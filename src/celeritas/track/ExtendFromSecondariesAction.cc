@@ -19,7 +19,7 @@ namespace celeritas
  */
 void ExtendFromSecondariesAction::execute(CoreHostRef const& core) const
 {
-    initialize_tracks(core);
+    extend_from_secondaries(core);
 }
 
 //---------------------------------------------------------------------------//
@@ -32,7 +32,7 @@ void ExtendFromSecondariesAction::execute(
 #if !CELER_USE_DEVICE
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 #else
-    initialize_tracks(core);
+    extend_from_secondaries(core);
 #endif
 }
 
