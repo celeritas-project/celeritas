@@ -269,7 +269,7 @@ TEST_F(UrbanMscTest, step_conversion)
         {
             // Calculate given a physics step between "tiny" and the maximum
             // range
-            real_type pstep = calc_pstep(i);
+            real_type pstep = min(calc_pstep(i), range);
             SCOPED_TRACE((LabeledValue{"pstep", pstep}));
             // Get the equivalent "geometrical" step
             MscStepToGeo::result_type gp;
@@ -285,11 +285,11 @@ TEST_F(UrbanMscTest, step_conversion)
                 msc_params_->host_ref().params, msc_step, range, lambda);
             LogInterp calc_gstep({0, 0.9 * params.limit_min_fix()},
                                  {4, gp.step});
-            for (auto i : celeritas::range(5))
+            for (auto j : celeritas::range(5))
             {
                 // Calculate between a nearby hypothetical geometric boundary
                 // and "no boundary" (i.e. pstep limited)
-                real_type gstep = calc_gstep(i);
+                real_type gstep = min(gp.step, calc_gstep(j));
                 SCOPED_TRACE((LabeledValue{"gstep", gstep}));
                 real_type true_step;
                 ASSERT_NO_THROW(true_step = geo_to_true(gstep));

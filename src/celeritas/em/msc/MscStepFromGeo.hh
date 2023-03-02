@@ -8,11 +8,11 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
 
 #include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"
 using std::cout;
@@ -106,8 +106,8 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
     cout << "g -> z: ";
     if (gstep < params_.min_step())
     {
-        // geometrical path length = true path length for a very small step
         cout << "tiny" << endl;
+        // Geometrical path length is true path length for a very small step
         return gstep;
     }
 
@@ -138,7 +138,7 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
             // x >= 1 corresponds to the stopping MFP being <= 0: zero is
             // correct when the step is the range, but the MFP will never be
             // zero except for numerical error.
-            CELER_ASSERT(x < 1 + 100 * numeric_limits<real_type>::epsilon());
+            CELER_ASSERT(x < 1 || soft_equal(x, real_type(1)));
             cout << "Range-limited: x = " << x << endl;
             return range_;
         }
@@ -148,11 +148,16 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
         return (1 - fastpow(1 - x, 1 / w)) / alpha_;
     }();
 
-    // No less than the geometry path if effectively no scattering
-    // took place; no more than the original calculated true path if the step
-    // is path-limited.
-    CELER_ENSURE(tstep >= gstep || soft_equal(tstep, gstep));
-    CELER_ENSURE(tstep <= true_step_ || soft_equal(tstep, true_step_));
+    // The result can be no less than the geometry path (effectively no
+    // scattering took place) and no more than the original calculated true
+    // path (if the step is path-limited).
+    // The result can be slightly outside the bounds due to numerical
+    // imprecision and edge cases:
+    // - a few ULP due to inexactness of log1p/expm1
+    // - small travel distance results in roundoff error inside (1 -
+    //   alpha/true)^w
+    // - gstep is just above min_step so that the updated recalculation of
+    //   tstep is just below min_step
     return clamp(tstep, gstep, true_step_);
 }
 
