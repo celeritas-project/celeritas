@@ -168,7 +168,9 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
         result.step = (1 - fastpow(mfp_slope, w)) / (result.alpha * w);
     }
 
-    CELER_ENSURE(result.step <= tstep);
+    // For extremely large lambda we can slightly exceed the step
+    CELER_ENSURE(result.step <= tstep || soft_equal(result.step, tstep));
+    result.step = min(result.step, tstep);
     return result;
 }
 

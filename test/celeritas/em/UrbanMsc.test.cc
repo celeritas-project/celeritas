@@ -327,20 +327,23 @@ TEST_F(UrbanMscTest, step_conversion)
         }
     };
 
-    for (auto ptype : {pdg::electron(), pdg::positron()})
+    for (char const* mat : {"G4_STAINLESS-STEEL", "G4_Galactic"})
     {
-        for (real_type energy : {99.999,
-                                 51.0231,
-                                 10.0564,
-                                 5.05808,
-                                 1.01162,
-                                 0.501328,
-                                 0.102364,
-                                 0.0465336,
-                                 0.00708839,
-                                 1e-5})
+        for (auto ptype : {pdg::electron(), pdg::positron()})
         {
-            test_one("G4_STAINLESS-STEEL", ptype, MevEnergy{energy});
+            for (real_type energy : {99.999,
+                                     51.0231,
+                                     10.0564,
+                                     5.05808,
+                                     1.01162,
+                                     0.501328,
+                                     0.102364,
+                                     0.0465336,
+                                     0.00708839,
+                                     1e-5})
+            {
+                test_one(mat, ptype, MevEnergy{energy});
+            }
         }
     }
 }
