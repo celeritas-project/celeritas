@@ -21,7 +21,7 @@
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "MscStepUpdater.hh"
+#include "MscStepFromGeo.hh"
 #include "UrbanMscHelper.hh"
 #include "detail/UrbanPositronCorrector.hh"
 
@@ -182,7 +182,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     {
         // Update the true path length from the physics-based value to one
         // based on the (shorter) geometry path
-        MscStepUpdater geo_to_true(params_, input, range, lambda_);
+        MscStepFromGeo geo_to_true(params_, input, range, lambda_);
         true_path_ = geo_to_true(geom_path_);
     }
     CELER_ASSERT(true_path_ >= geom_path_ && true_path_ <= phys_step);

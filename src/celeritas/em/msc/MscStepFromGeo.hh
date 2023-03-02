@@ -3,12 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/msc/MscStepUpdater.hh
+//! \file celeritas/em/msc/MscStepFromGeo.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"
@@ -35,7 +36,7 @@ namespace celeritas
  * \param gstep the proposed step after transportation.
  * \param alpha variable from UrbanMscStepLimit.
  */
-class MscStepUpdater
+class MscStepFromGeo
 {
   public:
     //!@{
@@ -45,7 +46,7 @@ class MscStepUpdater
 
   public:
     // Construct with path length data
-    inline CELER_FUNCTION MscStepUpdater(MscParameters const& params_,
+    inline CELER_FUNCTION MscStepFromGeo(MscParameters const& params_,
                                          MscStep const& step,
                                          real_type range,
                                          real_type lambda);
@@ -72,7 +73,7 @@ class MscStepUpdater
 /*!
  * Construct from MSC data.
  */
-CELER_FUNCTION MscStepUpdater::MscStepUpdater(MscParameters const& params,
+CELER_FUNCTION MscStepFromGeo::MscStepFromGeo(MscParameters const& params,
                                               MscStep const& step,
                                               real_type range,
                                               real_type lambda)
@@ -94,7 +95,7 @@ CELER_FUNCTION MscStepUpdater::MscStepUpdater(MscParameters const& params,
  * This should only be applied if the step was geometry-limited. Otherwise, the
  * original interaction length is correct.
  */
-CELER_FUNCTION real_type MscStepUpdater::operator()(real_type gstep) const
+CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
 {
     CELER_EXPECT(gstep >= 0 && gstep <= true_step_);
 

@@ -19,9 +19,9 @@
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/random/Selector.hh"
 #include "celeritas/random/distribution/NormalDistribution.hh"
 
+#include "MscStepToGeo.hh"
 #include "UrbanMscHelper.hh"
 
 namespace celeritas
@@ -99,9 +99,6 @@ class UrbanMscStepLimit
     };
 
     //// HELPER FUNCTIONS ////
-
-    // Calculate the geometry path length for a given true path length
-    inline CELER_FUNCTION GeomPathAlpha calc_geom_path(real_type true_path) const;
 
     // Calculate the minimum of the true path length limit
     inline CELER_FUNCTION real_type calc_limit_min() const;
@@ -185,14 +182,16 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
 template<class Engine>
 CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
 {
-    // The case for a very small step or the lower limit for the linear
-    // distance that e-/e+ can travel is far from the geometry boundary
     if (skip_displacement_)
     {
+        // Very small step or the lower limit for the linear
+        // distance that e-/e+ can travel is far from the geometry boundary
         MscStep result;
         result.is_displaced = false;
         result.true_path = phys_step_;
-        result.geom_path = this->calc_geom_path(phys_step_).geom_path;
+        MscStepToGeo calc_geom_path(
+            shared_, helper_, Energy{inc_energy_}, lambda_, range_);
+        result.geom_path = calc_geom_path(phys_step_).step;
         return result;
     }
 
@@ -223,106 +222,11 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     MscStep result;
     {
         result.true_path = true_path;
-        auto temp = this->calc_geom_path(true_path);
-        result.geom_path = temp.geom_path;
+        MscStepToGeo calc_geom_path(
+            shared_, helper_, Energy{inc_energy_}, lambda_, range_);
+        auto temp = calc_geom_path(true_path);
+        result.geom_path = temp.step;
         result.alpha = temp.alpha;
-    }
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the geometry step length for a given true step length.
- *
- * The mean value of the geometrical path length \f$ z \f$ (the first moment)
- * corresponding to a given true path length \f$ t \f$ is given by
- * \f[
- *     \langle z \rangle = \lambda_{1} [ 1 - \exp({-\frac{t}{\lambda_{1}}})]
- * \f]
- * where \f$\lambda_{1}\f$ is the first transport mean free path. Due to the
- * fact that \f$\lambda_{1}\f$ depends on the kinetic energy of the path and
- * decreases along the step, the path length correction is approximated as
- * \f[
- *     \lambda_{1} (t) = \lambda_{10} (1 - \alpha t)
- * \f]
- * where \f$ \alpha = \frac{\lambda_{10} - \lambda_{11}}{t\lambda_{10}} \f$
- * or  \f$ \alpha = 1/r_0 \f$ in a simpler form with the range \f$ r_0 \f$
- * if the kinetic energy of the particle is below its mass -
- * \f$ \lambda_{10} (\lambda_{11}) \f$ denotes the value of \f$\lambda_{1}\f$
- * at the start (end) of the step, respectively.
- *
- * Since the MSC cross section decreases as the energy increases, \f$
- * \lambda_{10} \f$ will be larger than \f$ \lambda_{11} \f$ and \f$ \alpha \f$
- * will be positive. However, in the Geant4 Urban MSC model, different methods
- * are used to calculate the cross section above and below 10 MeV. In the
- * higher energy region the cross sections are identical for electrons and
- * positrons, resulting in a discontinuity in the positron cross section at 10
- * MeV. This means on fine energy grids it's possible for the cross section to
- * be *increasing* with energy just above the 10 MeV threshold and therefore
- * for \f$ \alpha \f$ is negative.
- *
- * \note This performs the same method as in ComputeGeomPathLength of
- * G4UrbanMscModel of the Geant4 10.7 release.
- */
-CELER_FUNCTION
-auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
-    -> GeomPathAlpha
-{
-    // Do the true path -> geom path transformation
-    GeomPathAlpha result;
-    result.alpha = MscStep::small_step_alpha();
-
-    if (true_path < shared_.params.min_step())
-    {
-        // Geometrical path length = true path length for a very small step
-        result.geom_path = true_path;
-    }
-    else if (true_path <= lambda_ * params_.tau_small)
-    {
-        // Very small distance to collision (less than tau_small paths)
-        result.geom_path = min(true_path, lambda_);
-    }
-    else if (true_path < range_ * shared_.params.dtrl())
-    {
-        // Small enough distance to assume cross section is constant
-        // over the step: z = lambda * (1 - exp(-tau))
-        result.geom_path = -lambda_ * std::expm1(-true_path / lambda_);
-    }
-    else
-    {
-        // Eq 8.8: mfp_slope = (lambda_f / lambda_i) = (1 - alpha * true_path)
-        real_type mfp_slope;
-        if (inc_energy_ < value_as<Mass>(shared_.electron_mass)
-            || true_path == range_)
-        {
-            // Low energy or range-limited step
-            // (For range-limited step, the final cross section and thus MFP
-            // slope are zero).
-            result.alpha = 1 / range_;
-            mfp_slope = 1 - result.alpha * true_path;
-        }
-        else
-        {
-            // Calculate the energy at the end of a physics-limited step
-            real_type rfinal
-                = max<real_type>(range_ - true_path, real_type(0.01) * range_);
-            Energy endpoint_energy = helper_.calc_stopping_energy(rfinal);
-            real_type lambda1 = helper_.calc_msc_mfp(endpoint_energy);
-
-            // Calculate the geometric path assuming the cross section is
-            // linear between the start and end energy. Eq 8.10+1
-            result.alpha = (lambda_ - lambda1) / (lambda_ * true_path);
-            CELER_ASSERT(result.alpha != MscStep::small_step_alpha());
-            mfp_slope = lambda1 / lambda_;
-        }
-
-        // Eq 8.10 with simplifications
-        real_type w = 1 + 1 / (result.alpha * lambda_);
-        result.geom_path = (1 - fastpow(mfp_slope, w)) / (result.alpha * w);
-
-        // Limit step to 1 MFP
-        result.geom_path = min<real_type>(result.geom_path, lambda_);
     }
 
     return result;
