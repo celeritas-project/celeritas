@@ -304,6 +304,19 @@ TEST_F(UrbanMscTest, step_conversion)
             {
                 real_type true_step{-1};
                 ASSERT_NO_THROW(true_step = geo_to_true(gp.step));
+                /*
+                 * TODO: relative error -0.00081720192362734587 in one case:
+                 *
+                 z -> g: Low energy or range-limited step:
+                    slope = 1.6653345369377e-15
+                 g -> z: Exact inverse:
+                   x = 1 = 1 - 1.1102230246252e-16,
+                   w = 5.16719, alpha = 359.80425185237
+                   => 0.99918279807637 / alpha
+                 true_step=0.0027770177615531158
+                 pstep=0.0027792890018717618
+                 e- at 0.102364 MeV
+                 */
                 EXPECT_SOFT_EQ(pstep, true_step);
             }
         }

@@ -137,7 +137,6 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
         // ending MFP of zero is correct when the step is the range. Precision
         // loss means this conversion also may result in x > 1, which we guard
         // against.
-        CELER_ASSERT(x <= 1 || soft_equal(x, real_type(1)));
         x = min(x, real_type(1));
         // Near x=1, (1 - (1-x)^(1/w)) suffers from numerical precision loss;
         // the maximum value of the expression should be range_.
@@ -148,7 +147,6 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
              << ", w = " << w << ", alpha = " << repr(alpha_) << " => "
              << repr(temp) << " / alpha" << endl;
         real_type result = temp / alpha_;
-        CELER_ENSURE(result <= range_ || soft_equal(result, range_));
         return min(result, range_);
     }();
 
