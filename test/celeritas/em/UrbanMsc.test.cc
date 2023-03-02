@@ -248,6 +248,8 @@ TEST_F(UrbanMscTest, helper)
 TEST_F(UrbanMscTest, step_conversion)
 {
     using LogInterp = Interpolator<Interp::linear, Interp::log, real_type>;
+    constexpr int pstep_points = 8;
+    constexpr int gstep_points = 8;
 
     UrbanMscParameters const& params = msc_params_->host_ref().params;
 
@@ -264,12 +266,13 @@ TEST_F(UrbanMscTest, step_conversion)
         MscStepToGeo calc_geom_path(
             msc_params_->host_ref(), helper, energy, lambda, range);
 
-        LogInterp calc_pstep({0, 0.9 * params.limit_min_fix()}, {8, range});
-        for (auto i : celeritas::range(9))
+        LogInterp calc_pstep({0, 0.9 * params.limit_min_fix()},
+                             {pstep_points, range});
+        for (auto ppt : celeritas::range(pstep_points + 1))
         {
             // Calculate given a physics step between "tiny" and the maximum
             // range
-            real_type pstep = min(calc_pstep(i), range);
+            real_type pstep = min(calc_pstep(ppt), range);
             SCOPED_TRACE((LabeledValue{"pstep", pstep}));
             // Get the equivalent "geometrical" step
             MscStepToGeo::result_type gp;
@@ -284,17 +287,23 @@ TEST_F(UrbanMscTest, step_conversion)
             MscStepFromGeo geo_to_true(
                 msc_params_->host_ref().params, msc_step, range, lambda);
             LogInterp calc_gstep({0, 0.9 * params.limit_min_fix()},
-                                 {4, gp.step});
-            for (auto j : celeritas::range(5))
+                                 {gstep_points, gp.step});
+            for (auto gpt : celeritas::range(gstep_points + 1))
             {
                 // Calculate between a nearby hypothetical geometric boundary
                 // and "no boundary" (i.e. pstep limited)
-                real_type gstep = min(gp.step, calc_gstep(j));
+                real_type gstep = min(gp.step, calc_gstep(gpt));
                 SCOPED_TRACE((LabeledValue{"gstep", gstep}));
                 real_type true_step;
                 ASSERT_NO_THROW(true_step = geo_to_true(gstep));
                 EXPECT_LE(true_step, pstep);
                 EXPECT_GE(true_step, gstep);
+
+                if (gpt == gstep_points)
+                {
+                    // true -> geo -> true
+                    EXPECT_SOFT_EQ(pstep, true_step);
+                }
             }
         }
     };
