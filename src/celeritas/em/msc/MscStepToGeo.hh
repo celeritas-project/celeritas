@@ -127,11 +127,6 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
         // Geometrical path length = true path length for a very small step
         result.step = tstep;
     }
-    else if (tstep <= lambda_ * shared_.params.tau_small)
-    {
-        // Very small distance to collision (less than tau_small paths)
-        result.step = min(tstep, lambda_);
-    }
     else if (tstep < range_ * shared_.params.dtrl())
     {
         // Small enough distance to assume cross section is constant
