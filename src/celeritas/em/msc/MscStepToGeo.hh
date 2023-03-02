@@ -23,7 +23,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Convert the "true" path traveled to a geometrical approximatio.
+ * Convert the "true" path traveled to a geometrical approximation.
  *
  * This takes the physical step limit---whether limited by range, physics
  * interaction, or an MSC step limiter---and converts it to a "geometrical"
@@ -56,6 +56,9 @@ namespace celeritas
  * MeV. This means on fine energy grids it's possible for the cross section to
  * be *increasing* with energy just above the 10 MeV threshold and therefore
  * for \f$ \alpha \f$ is negative.
+ *
+ * The resulting geometrical step length *can* be greater than 1 MFP: it's the
+ * MSC step limiter's job to add additional restrictions.
  *
  * \note This performs the same method as in ComputeGeomPathLength of
  * G4UrbanMscModel of the Geant4 10.7 release.
