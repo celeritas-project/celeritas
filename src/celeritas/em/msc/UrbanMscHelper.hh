@@ -44,7 +44,10 @@ class UrbanMscHelper
 
     //// HELPER FUNCTIONS ////
 
-    // The mean free path of the multiple scattering for a given energy
+    // The mean free path of the multiple scattering at the current energy [cm]
+    CELER_FUNCTION real_type msc_mfp() const { return lambda_; }
+
+    // The mean free path of the multiple scattering for a given energy [cm]
     inline CELER_FUNCTION real_type calc_msc_mfp(Energy energy) const;
 
     // TODO: the following methods are used only by MscStepLimit
@@ -55,7 +58,7 @@ class UrbanMscHelper
     //! Step limit scaling based on atomic number and particle type
     CELER_FUNCTION real_type scaled_zeff() const
     {
-        return pmdata_.scaled_zeff;
+        return this->pmdata().scaled_zeff;
     }
 
     // TODO: the following methods are used only by MscScatter
@@ -66,22 +69,20 @@ class UrbanMscHelper
   private:
     //// DATA ////
 
-    // Incident particle energy
-    const real_type inc_energy_;
-    // PhysicsTrackView
+    // References to external data
+    UrbanMscRef const& shared_;
+    ParticleTrackView const& particle_;
     PhysicsTrackView const& physics_;
-    // Range scaling factor
-    const real_type dtrl_;
 
-    // Grid ID of range value of the energy loss
-    ValueGridId range_gid_;
-    // Grid ID of dedx value of the energy loss
-    ValueGridId eloss_gid_;
+    // Precalculated mean free path (TODO: move to physics step view)
+    real_type lambda_;  // [cm]
 
-    // Data for this particle + material
-    UrbanMscParMatData const& pmdata_;
-    // Calculate the transport cross section with a factor of E^2 built in
-    XsCalculator calc_scaled_xs_;
+    // Data for this particle+material
+    CELER_FUNCTION UrbanMscParMatData const& pmdata() const
+    {
+        return shared_.par_mat_data[shared_.at(physics_.material_id(),
+                                               particle_.particle_id())];
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -94,19 +95,13 @@ CELER_FUNCTION
 UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
                                ParticleTrackView const& particle,
                                PhysicsTrackView const& physics)
-    : inc_energy_(value_as<Energy>(particle.energy()))
+    : shared_(shared)
+    , particle_(particle)
     , physics_(physics)
-    , dtrl_(shared.params.dtrl())
-    , pmdata_(shared.par_mat_data[shared.at(physics.material_id(),
-                                            particle.particle_id())])
-    , calc_scaled_xs_(pmdata_.xs, shared.reals)
+    , lambda_(this->calc_msc_mfp(particle_.energy()))
 {
-    CELER_EXPECT(particle.particle_id() == shared.ids.electron
-                 || particle.particle_id() == shared.ids.positron);
-
-    ParticleProcessId eloss_pid = physics.eloss_ppid();
-    range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid);
-    eloss_gid_ = physics.value_grid(ValueGridType::energy_loss, eloss_pid);
+    CELER_EXPECT(particle.particle_id() == shared_.ids.electron
+                 || particle.particle_id() == shared_.ids.positron);
 }
 
 //---------------------------------------------------------------------------//
@@ -115,8 +110,11 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
  */
 CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 {
-    real_type xsec = calc_scaled_xs_(energy) / ipow<2>(energy.value());
-    CELER_ENSURE(xsec >= 0);
+    CELER_EXPECT(energy > zero_quantity());
+    XsCalculator calc_scaled_xs(this->pmdata().xs, shared_.reals);
+
+    real_type xsec = calc_scaled_xs(energy) / ipow<2>(energy.value());
+    CELER_ENSURE(xsec >= 0 && 1 / xsec > 0);
     return 1 / xsec;
 }
 
@@ -129,9 +127,10 @@ CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 CELER_FUNCTION auto UrbanMscHelper::calc_stopping_energy(real_type step) const
     -> Energy
 {
+    auto range_gid
+        = physics_.value_grid(ValueGridType::range, physics_.eloss_ppid());
     auto range_to_energy
-        = physics_.make_calculator<InverseRangeCalculator>(range_gid_);
-
+        = physics_.make_calculator<InverseRangeCalculator>(range_gid);
     return range_to_energy(step);
 }
 
@@ -143,13 +142,15 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     -> Energy
 {
     real_type range = physics_.dedx_range();
-    if (step <= range * dtrl_)
+    if (step <= range * shared_.params.dtrl())
     {
+        auto eloss_gid = physics_.value_grid(ValueGridType::energy_loss,
+                                             physics_.eloss_ppid());
         // Assume constant energy loss rate over the step
         real_type dedx = physics_.make_calculator<EnergyLossCalculator>(
-            eloss_gid_)(Energy{inc_energy_});
+            eloss_gid)(particle_.energy());
 
-        return Energy{inc_energy_ - step * dedx};
+        return particle_.energy() - Energy{step * dedx};
     }
     else
     {

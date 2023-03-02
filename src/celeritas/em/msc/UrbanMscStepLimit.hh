@@ -50,7 +50,8 @@ class UrbanMscStepLimit
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscStepLimit(UrbanMscRef const& shared,
-                                            ParticleTrackView const& particle,
+                                            UrbanMscHelper const& helper,
+                                            Energy inc_energy,
                                             PhysicsTrackView* physics,
                                             MaterialId matid,
                                             bool on_boundary,
@@ -66,23 +67,17 @@ class UrbanMscStepLimit
 
     // Shared constant data
     UrbanMscRef const& shared_;
-    // PhysicsTrackView
-    PhysicsTrackView& physics_;
+    // Urban MSC helper class
+    UrbanMscHelper const& helper_;
     // Incident particle energy [Energy]
-    const real_type inc_energy_;
+    Energy const inc_energy_;
     // Incident particle safety
-    const real_type safety_;
-    // Urban MSC setable parameters
-    MscParameters const& params_;
+    real_type const safety_;
     // Urban MSC material-dependent data
     MaterialData const& msc_;
-    // Urban MSC helper class
-    UrbanMscHelper helper_;
     // Urban MSC range properties
-    MscRange msc_range_;
+    MscRange const& msc_range_;
 
-    // Transport mean free path
-    real_type lambda_{};
     // Physics step length
     real_type phys_step_{};
     // Mean slowing-down distance from current energy to zero
@@ -112,28 +107,23 @@ class UrbanMscStepLimit
  */
 CELER_FUNCTION
 UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
-                                     ParticleTrackView const& particle,
+                                     UrbanMscHelper const& helper,
+                                     Energy inc_energy,
                                      PhysicsTrackView* physics,
                                      MaterialId matid,
                                      bool on_boundary,
                                      real_type safety,
                                      real_type phys_step)
     : shared_(shared)
-    , physics_(*physics)
-    , inc_energy_(value_as<Energy>(particle.energy()))
+    , helper_(helper)
+    , inc_energy_(inc_energy)
     , safety_(safety)
-    , params_(shared.params)
     , msc_(shared_.material_data[matid])
-    , helper_(shared, particle, physics_)
-    , msc_range_(physics_.msc_range())
-    , lambda_{helper_.calc_msc_mfp(Energy{inc_energy_})}
+    , msc_range_(physics->msc_range())
     , phys_step_(phys_step)
-    , range_(physics_.dedx_range())
+    , range_(physics->dedx_range())
 {
-    CELER_EXPECT(particle.particle_id() == shared.ids.electron
-                 || particle.particle_id() == shared.ids.positron);
     CELER_EXPECT(safety_ >= 0);
-    CELER_EXPECT(lambda_ > 0);
     CELER_EXPECT(phys_step > 0);
     CELER_EXPECT(phys_step_ <= range_);
 
@@ -150,19 +140,22 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
     }
     else if (!msc_range_ || on_boundary)
     {
+        MscRange new_range;
         // Initialize MSC range cache on the first step in a volume
-        msc_range_.range_fact = params_.range_fact;
-        msc_range_.range_init = max<real_type>(range_, lambda_);
-        if (lambda_ > params_.lambda_limit)
+        new_range.range_fact = shared.params.range_fact;
+        new_range.range_init = max<real_type>(range_, helper_.msc_mfp());
+        if (helper_.msc_mfp() > shared.params.lambda_limit)
         {
-            msc_range_.range_fact
-                *= (real_type(0.75)
-                    + real_type(0.25) * lambda_ / params_.lambda_limit);
+            new_range.range_fact *= (real_type(0.75)
+                                     + real_type(0.25) * helper_.msc_mfp()
+                                           / shared.params.lambda_limit);
         }
-        msc_range_.limit_min = this->calc_limit_min();
+        new_range.limit_min = this->calc_limit_min();
 
         // Store persistent range properties within this tracking volume
-        physics_.msc_range(msc_range_);
+        physics->msc_range(new_range);
+        // Range is a reference so should be updated
+        CELER_ASSERT(msc_range_);
     }
 }
 
@@ -190,7 +183,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
         result.is_displaced = false;
         result.true_path = phys_step_;
         MscStepToGeo calc_geom_path(
-            shared_, helper_, Energy{inc_energy_}, lambda_, range_);
+            shared_, helper_, inc_energy_, helper_.msc_mfp(), range_);
         result.geom_path = calc_geom_path(phys_step_).step;
         return result;
     }
@@ -200,7 +193,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     if (range_ > safety_)
     {
         limit = max<real_type>(msc_range_.range_fact * msc_range_.range_init,
-                               params_.safety_fact * safety_);
+                               shared_.params.safety_fact * safety_);
     }
     limit = max<real_type>(limit, msc_range_.limit_min);
 
@@ -223,10 +216,10 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     {
         result.true_path = true_path;
         MscStepToGeo calc_geom_path(
-            shared_, helper_, Energy{inc_energy_}, lambda_, range_);
+            shared_, helper_, inc_energy_, helper_.msc_mfp(), range_);
         auto temp = calc_geom_path(true_path);
         // Limit geometrical step to 1 MSC MFP
-        result.geom_path = min<real_type>(temp.step, lambda_);
+        result.geom_path = min<real_type>(temp.step, helper_.msc_mfp());
         result.alpha = temp.alpha;
     }
 
@@ -242,17 +235,18 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
     // Calculate minimum step
-    real_type xm = lambda_
-                   / PolyQuad(2, msc_.stepmin_a, msc_.stepmin_b)(inc_energy_);
+    real_type xm
+        = helper_.msc_mfp()
+          / PolyQuad(2, msc_.stepmin_a, msc_.stepmin_b)(inc_energy_.value());
 
     // Scale based on particle type and effective atomic number
     xm *= helper_.scaled_zeff();
 
-    if (inc_energy_ < value_as<Energy>(shared_.params.min_scaling_energy()))
+    if (inc_energy_ < shared_.params.min_scaling_energy())
     {
         // Energy is below a pre-defined limit
         xm *= (real_type(0.5)
-               + real_type(0.5) * inc_energy_
+               + real_type(0.5) * value_as<Energy>(inc_energy_)
                      / value_as<Energy>(shared_.params.min_scaling_energy()));
     }
 

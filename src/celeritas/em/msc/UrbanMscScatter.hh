@@ -51,13 +51,14 @@ class UrbanMscScatter
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscScatter(UrbanMscRef const& shared,
+                                          UrbanMscHelper const& helper,
                                           ParticleTrackView const& particle,
-                                          GeoTrackView* geometry,
                                           PhysicsTrackView const& physics,
                                           MaterialView const& material,
+                                          GeoTrackView* geometry,
                                           MscStep const& input,
                                           real_type phys_step,
-                                          bool const geo_limited);
+                                          bool geo_limited);
 
     // Sample the final true step length, position and direction by msc
     template<class Engine>
@@ -66,29 +67,28 @@ class UrbanMscScatter
   private:
     //// DATA ////
 
-    real_type inc_energy_;
-    Real3 inc_direction_;
-    bool is_positron_;
-    real_type rad_length_;
-    real_type mass_;
-
-    // Urban MSC parameters
-    MscParameters const& params_;
+    // Shared constant data
+    UrbanMscRef const& shared_;
     // Urban MSC material data
     MaterialData const& msc_;
-    // Average atomic number (used only if positron)
-    real_type const zeff_;
+    // Urban MSC helper class
+    UrbanMscHelper const& helper_;
+    // Material data
+    MaterialView const& material_;
+    // Geometry track view for finding safety
+    GeoTrackView& geometry_;
+
+    real_type inc_energy_;
+    Real3 const& inc_direction_;
+    bool is_positron_;
 
     // Results from UrbanMSCStepLimit
     bool is_displaced_;
     real_type geom_path_;
     real_type true_path_;
     real_type limit_min_;
-    // Geometry track view for finding safety
-    GeoTrackView& geometry_;
 
     // Calculated values for sampling
-    real_type lambda_{0};
     bool skip_sampling_;
     real_type end_energy_;
     real_type tau_{0};
@@ -143,26 +143,26 @@ class UrbanMscScatter
  */
 CELER_FUNCTION
 UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
+                                 UrbanMscHelper const& helper,
                                  ParticleTrackView const& particle,
-                                 GeoTrackView* geometry,
                                  PhysicsTrackView const& physics,
                                  MaterialView const& material,
+                                 GeoTrackView* geometry,
                                  MscStep const& input,
                                  real_type phys_step,
-                                 bool const geo_limited)
-    : inc_energy_(value_as<Energy>(particle.energy()))
+                                 bool geo_limited)
+    : shared_(shared)
+    , msc_(shared.material_data[material.material_id()])
+    , helper_(helper)
+    , material_(material)
+    , geometry_(*geometry)
+    , inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
-    , rad_length_(material.radiation_length())
-    , mass_(value_as<Mass>(shared.electron_mass))
-    , params_(shared.params)
-    , msc_(shared.material_data[material.material_id()])
-    , zeff_(material.zeff())
     , is_displaced_(input.is_displaced && !geo_limited)
     , geom_path_(input.geom_path)
     , true_path_(input.true_path)
     , limit_min_(physics.msc_range().limit_min)
-    , geometry_(*geometry)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
@@ -173,16 +173,12 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
 
     real_type range = physics.dedx_range();
 
-    // MFP must be calculated before calc_true_path
-    UrbanMscHelper helper(shared, particle, physics);
-    lambda_ = helper.calc_msc_mfp(Energy{inc_energy_});
-    CELER_ASSERT(lambda_ > 0);
-
     if (geo_limited)
     {
         // Update the true path length from the physics-based value to one
         // based on the (shorter) geometry path
-        MscStepFromGeo geo_to_true(params_, input, range, lambda_);
+        MscStepFromGeo geo_to_true(
+            shared_.params, input, range, helper.msc_mfp());
         true_path_ = geo_to_true(geom_path_);
     }
     CELER_ASSERT(true_path_ >= geom_path_ && true_path_ <= phys_step);
@@ -194,7 +190,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             // TODO: probably redundant with low 'end energy'
             return true;
         }
-        if (true_path_ < params_.geom_limit)
+        if (true_path_ < shared_.params.geom_limit)
         {
             // Very small step (NOTE: with the default values in UrbanMscData,
             // this is redundant witih the tau_small comparison below if MFP >=
@@ -205,12 +201,12 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         // Lazy calculation of end energy
         end_energy_ = value_as<Energy>(helper.calc_end_energy(true_path_));
 
-        if (Energy{end_energy_} < params_.min_sampling_energy())
+        if (Energy{end_energy_} < shared_.params.min_sampling_energy())
         {
             // Ending energy is very low
             return true;
         }
-        if (true_path_ <= lambda_ * params_.tau_small)
+        if (true_path_ <= helper_.msc_mfp() * shared_.params.tau_small)
         {
             // Very small MFP travelled
             return true;
@@ -231,24 +227,25 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         tau_ = true_path_ / [this, &helper] {
             // Calculate the average MFP assuming the cross section varies
             // linearly over the step
+            real_type lambda = helper_.msc_mfp();
             real_type lambda_end = helper.calc_msc_mfp(Energy{end_energy_});
-            if (std::fabs(lambda_ - lambda_end) < lambda_ * real_type(0.01))
+            if (std::fabs(lambda - lambda_end) < lambda * real_type(0.01))
             {
                 // Cross section is almost constant over the step: avoid
                 // numerical explosion
-                return lambda_;
+                return helper_.msc_mfp();
             }
-            return (lambda_ - lambda_end) / std::log(lambda_ / lambda_end);
+            return (lambda - lambda_end) / std::log(lambda / lambda_end);
         }();
 
-        if (CELER_UNLIKELY(tau_ < params_.tau_small))
+        if (CELER_UNLIKELY(tau_ < shared_.params.tau_small))
         {
             // Small MFP travelled
             // TODO: this should be virtually impossible because of
             // skip_sampling_ above
             is_displaced_ = false;
         }
-        else if (tau_ < params_.tau_big)
+        else if (tau_ < shared_.params.tau_big)
         {
             // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
             xmean_ = std::exp(-tau_);
@@ -262,7 +259,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                 CELER_ASSERT(!is_displaced_);
                 limit_min_ = UrbanMscParameters::limit_min();
             }
-            limit_min_ = min(limit_min_, params_.lambda_limit);
+            limit_min_ = min(limit_min_, shared_.params.lambda_limit);
 
             // TODO: theta0_ calculation could be done externally, eliminating
             // many of the class member data
@@ -290,19 +287,19 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 
     // Sample polar angle cosine
     real_type costheta = [this, &rng] {
-        if (CELER_UNLIKELY(tau_ < params_.tau_small))
+        if (CELER_UNLIKELY(tau_ < shared_.params.tau_small))
         {
             // Small mean free path: forward scatter
             // TODO: this condition is almost certainly impossible because we
             // already skip sampling for true_path / lambda <= tau_small
             return real_type{1};
         }
-        if (ipow<2>(theta0_) < params_.tau_small)
+        if (ipow<2>(theta0_) < shared_.params.tau_small)
         {
             // Very small outgoing angular distribution
             return real_type{1};
         }
-        if (tau_ >= params_.tau_big)
+        if (tau_ >= shared_.params.tau_big)
         {
             // Long mean free path: exiting direction is isotropic
             UniformRealDistribution<real_type> sample_isotropic(-1, 1);
@@ -392,13 +389,15 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     real_type xsi = [this] {
         using PolyQuad = PolyEvaluator<real_type, 2>;
 
-        real_type maxtau = true_path_ < limit_min_ ? limit_min_ / lambda_
-                                                   : tau_;
+        real_type maxtau
+            = true_path_ < limit_min_ ? limit_min_ / helper_.msc_mfp() : tau_;
         real_type u = fastpow(maxtau, 1 / real_type(6));
-        // 0 < u <= sqrt(2) when params_.tau_big == 8
-        real_type result = PolyQuad(msc_.d[0], msc_.d[1], msc_.d[2])(u)
-                           + msc_.d[3]
-                                 * std::log(true_path_ / (tau_ * rad_length_));
+        // 0 < u <= sqrt(2) when shared_.params.tau_big == 8
+        real_type result
+            = PolyQuad(msc_.d[0], msc_.d[1], msc_.d[2])(u)
+              + msc_.d[3]
+                    * std::log(true_path_
+                               / (tau_ * material_.radiation_length()));
         // The tail should not be too big
         return max(result, real_type(1.9));
     }();
@@ -514,21 +513,22 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(Engine& rng) const
 CELER_FUNCTION
 real_type UrbanMscScatter::compute_theta0() const
 {
+    real_type const mass = value_as<Mass>(shared_.electron_mass);
     real_type true_path = max(limit_min_, true_path_);
-    real_type y = true_path / rad_length_;
+    real_type y = true_path / material_.radiation_length();
 
     // Correction for the positron
     if (is_positron_)
     {
-        detail::UrbanPositronCorrector calc_correction{zeff_};
-        y *= calc_correction(std::sqrt(inc_energy_ * end_energy_) / mass_);
+        detail::UrbanPositronCorrector calc_correction{material_.zeff()};
+        y *= calc_correction(std::sqrt(inc_energy_ * end_energy_) / mass);
     }
 
     // TODO for hadrons: multiply abs(charge)
     real_type invbetacp
-        = std::sqrt((inc_energy_ + mass_) * (end_energy_ + mass_)
-                    / (inc_energy_ * (inc_energy_ + 2 * mass_) * end_energy_
-                       * (end_energy_ + 2 * mass_)));
+        = std::sqrt((inc_energy_ + mass) * (end_energy_ + mass)
+                    / (inc_energy_ * (inc_energy_ + 2 * mass) * end_energy_
+                       * (end_energy_ + 2 * mass)));
     real_type theta0 = value_as<Energy>(c_highland()) * std::sqrt(y)
                        * invbetacp;
 
@@ -601,15 +601,16 @@ UrbanMscScatter::calc_displacement_length(real_type rmax2)
 
     real_type rho = mean_radius_frac * std::sqrt(rmax2);
 
-    if (rho <= params_.geom_limit)
+    if (rho <= shared_.params.geom_limit)
     {
         // Displacement is too small to bother with
         rho = 0;
     }
     else
     {
-        real_type safety = (1 - params_.safety_tol) * geometry_.find_safety();
-        if (safety <= params_.geom_limit)
+        real_type safety = (1 - shared_.params.safety_tol)
+                           * geometry_.find_safety();
+        if (safety <= shared_.params.geom_limit)
         {
             // We're near a volume boundary so do not displace at all
             rho = 0;

@@ -401,10 +401,11 @@ TEST_F(UrbanMscTest, msc_scattering)
         auto par = this->make_par_view(ptype, MevEnergy{energy[i]});
         auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
         auto geo = this->make_geo_view(/* r = */ i * 2 - real_type(1e-4));
+        MaterialView mat = this->material()->get(phys.material_id());
 
         UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
         range.push_back(phys.dedx_range());
-        lambda.push_back(helper.calc_msc_mfp(par.energy()));
+        lambda.push_back(helper.msc_mfp());
 
         real_type this_pstep = step[i];
         if (this_pstep == step_is_range)
@@ -414,9 +415,10 @@ TEST_F(UrbanMscTest, msc_scattering)
         pstep.push_back(this_pstep);
 
         UrbanMscStepLimit calc_limit(msc_params_->host_ref(),
-                                     par,
+                                     helper,
+                                     par.energy(),
                                      &phys,
-                                     phys.material_id(),
+                                     mat.material_id(),
                                      geo.is_on_boundary(),
                                      geo.find_safety(),
                                      this_pstep);
@@ -426,12 +428,12 @@ TEST_F(UrbanMscTest, msc_scattering)
         gstep.push_back(step_result.geom_path);
         alpha.push_back(step_result.alpha);
 
-        MaterialView material_view = this->material()->get(phys.material_id());
         UrbanMscScatter scatter(msc_params_->host_ref(),
+                                helper,
                                 par,
-                                &geo,
                                 phys,
-                                material_view,
+                                mat,
+                                &geo,
                                 step_result,
                                 this_pstep,
                                 /* geo_limited = */ false);

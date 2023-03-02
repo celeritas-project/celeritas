@@ -82,13 +82,13 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
     if (step <= msc_params_.params.geom_limit)
         return false;
 
-    auto particle = track.make_particle_view();
-    if (particle.particle_id() != msc_params_.ids.electron
-        && particle.particle_id() != msc_params_.ids.positron)
+    auto par = track.make_particle_view();
+    if (par.particle_id() != msc_params_.ids.electron
+        && par.particle_id() != msc_params_.ids.positron)
         return false;
 
-    return particle.energy() > msc_params_.params.low_energy_limit
-           && particle.energy() < msc_params_.params.high_energy_limit;
+    return par.energy() > msc_params_.params.low_energy_limit
+           && par.energy() < msc_params_.params.high_energy_limit;
 }
 
 //---------------------------------------------------------------------------//
@@ -108,11 +108,13 @@ UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
 
     // Sample multiple scattering step length
     auto msc_step_result = [&] {
-        auto particle = track.make_particle_view();
+        auto par = track.make_particle_view();
+        UrbanMscHelper msc_helper(msc_params_, par, phys);
         UrbanMscStepLimit calc_limit(msc_params_,
-                                     particle,
+                                     msc_helper,
+                                     par.energy(),
                                      &phys,
-                                     track.make_material_view().material_id(),
+                                     phys.material_id(),
                                      geo.is_on_boundary(),
                                      geo.find_safety(),
                                      phys_step_);
@@ -156,11 +158,13 @@ UrbanMsc::apply_step(CoreTrackView const& track, AlongStepLocalState* local)
     auto msc_step_result = track.make_physics_step_view().msc_step();
     msc_step_result.geom_path = local->geo_step;
 
+    UrbanMscHelper msc_helper(msc_params_, par, phys);
     UrbanMscScatter msc_scatter(msc_params_,
+                                msc_helper,
                                 par,
-                                &geo,
                                 phys,
                                 mat.make_material_view(),
+                                &geo,
                                 msc_step_result,
                                 phys_step_,
                                 is_geo_limited(track, local->step_limit));
