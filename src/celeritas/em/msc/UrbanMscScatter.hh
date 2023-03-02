@@ -297,7 +297,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     }
 
     // Sample polar angle cosine
-    real_type costheta = [this, &rng]{
+    real_type costheta = [this, &rng] {
         if (CELER_UNLIKELY(tau_ < params_.tau_small))
         {
             // Small mean free path: forward scatter
@@ -466,16 +466,14 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
         {
             var /= (d * (c - 1));
             return -1
-                + var * (1 - real_type(0.5) * var * c)
-                * (2 + (c - xsi) * x);
+                   + var * (1 - real_type(0.5) * var * c) * (2 + (c - xsi) * x);
         }
         else
         {
-            return x * (c - xsi - c * fastpow(var + d, -1 / (c - 1)))
-                + 1;
+            return x * (c - xsi - c * fastpow(var + d, -1 / (c - 1))) + 1;
         }
     }
-    }
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -486,10 +484,10 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
  * \param x2mean_ the mean of \f$\cos\theta^{2}\f$.
  */
 template<class Engine>
-CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
-    Engine& rng) const
+CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(Engine& rng) const
 {
-    real_type a = (2 * xmean_ + 9 * x2mean_ - 3) / (2 * xmean_ - 3 * x2mean_ + 1);
+    real_type a = (2 * xmean_ + 9 * x2mean_ - 3)
+                  / (2 * xmean_ - 3 * x2mean_ + 1);
     BernoulliDistribution sample_pow{(a + 2) * xmean_ / a};
 
     // Sample cos(theta)

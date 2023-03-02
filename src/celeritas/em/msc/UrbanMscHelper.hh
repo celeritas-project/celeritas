@@ -126,7 +126,8 @@ CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
  *
  * This is an exact value based on the range claculation.
  */
-CELER_FUNCTION auto UrbanMscHelper::calc_stopping_energy(real_type step) const -> Energy
+CELER_FUNCTION auto UrbanMscHelper::calc_stopping_energy(real_type step) const
+    -> Energy
 {
     auto range_to_energy
         = physics_.make_calculator<InverseRangeCalculator>(range_gid_);
