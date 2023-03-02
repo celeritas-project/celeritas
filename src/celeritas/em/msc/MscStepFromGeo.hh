@@ -131,21 +131,25 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
 
         real_type w = 1 + 1 / (alpha_ * lambda_);
         real_type x = alpha_ * w * gstep;  // = (1 - (1 - alpha * true)^w)
-        if (CELER_UNLIKELY(x > 1))
-        {
-            // Range-limited step results in x = 1, which gives the correct
-            // result in the inverted equation below for alpha = 1/range.
-            // x >= 1 corresponds to the stopping MFP being <= 0: zero is
-            // correct when the step is the range, but the MFP will never be
-            // zero except for numerical error.
-            CELER_ASSERT(x < 1 || soft_equal(x, real_type(1)));
-            cout << "Range-limited: x = " << x << endl;
-            return range_;
-        }
-        // Invert Eq. 8.10 exactly
-        cout << "Exact inverse: x= " << x << ", w=" << w
-             << ", alpha=" << alpha_ << endl;
-        return (1 - fastpow(1 - x, 1 / w)) / alpha_;
+        // Range-limited step results in x = 1, which gives the correct
+        // result in the inverted equation below for alpha = 1/range.
+        // x >= 1 corresponds to the stopping MFP being <= 0: x=1 meaning
+        // ending MFP of zero is correct when the step is the range. Precision
+        // loss means this conversion also may result in x > 1, which we guard
+        // against.
+        CELER_ASSERT(x <= 1 || soft_equal(x, real_type(1)));
+        x = min(x, real_type(1));
+        // Near x=1, (1 - (1-x)^(1/w)) suffers from numerical precision loss;
+        // the maximum value of the expression should be range_.
+        // TODO: we should use the action ID to avoid applying this
+        // transformation if not range-limited.
+        real_type temp = 1 - fastpow(1 - x, 1 / w);
+        cout << "Exact inverse: x = " << repr(x) << " = 1 - " << repr(1 - x)
+             << ", w = " << w << ", alpha = " << repr(alpha_) << " => "
+             << repr(temp) << " / alpha" << endl;
+        real_type result = temp / alpha_;
+        CELER_ENSURE(result <= range_ || soft_equal(result, range_));
+        return min(result, range_);
     }();
 
     // The result can be no less than the geometry path (effectively no

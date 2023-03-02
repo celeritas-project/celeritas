@@ -292,18 +292,19 @@ TEST_F(UrbanMscTest, step_conversion)
             {
                 // Calculate between a nearby hypothetical geometric boundary
                 // and "no boundary" (i.e. pstep limited)
-                real_type gstep = min(gp.step, calc_gstep(gpt));
+                real_type gstep = calc_gstep(gpt);
                 SCOPED_TRACE((LabeledValue{"gstep", gstep}));
                 real_type true_step;
                 ASSERT_NO_THROW(true_step = geo_to_true(gstep));
                 EXPECT_LE(true_step, pstep);
                 EXPECT_GE(true_step, gstep);
+            }
 
-                if (gpt == gstep_points)
-                {
-                    // true -> geo -> true
-                    EXPECT_SOFT_EQ(pstep, true_step);
-                }
+            // Test exact true -> geo -> true conversion
+            {
+                real_type true_step{-1};
+                ASSERT_NO_THROW(true_step = geo_to_true(gp.step));
+                EXPECT_SOFT_EQ(pstep, true_step);
             }
         }
     };
