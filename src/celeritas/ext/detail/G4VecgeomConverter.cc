@@ -710,6 +710,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
                     vtx[0], vtx[1], vtx[2], vtx[3], ABSOLUTE);
             }
         }
+        unpvol->Close();
     }
 
     // Cut tube
