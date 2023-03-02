@@ -41,29 +41,29 @@ class G4VecGeomConverter
 {
   private:
     /** Remember pointer to generated world from imported G4 geometry. */
-    VPlacedVolume const* fWorld;
+    VPlacedVolume const* world_;
 
     // one G4 physical volume can correspond to multiple vecgeom placed volumes
     // (in case of replicas)
     BidirectionalTypeMap<std::vector<VPlacedVolume const*> const*,
                          G4VPhysicalVolume const*>
-        fPlacedVolumeMap;
+        placed_volume_map_;
 
     BidirectionalTypeMap<VUnplacedVolume const*, G4VSolid const*>
-        fUnplacedVolumeMap;
+        unplaced_volume_map_;
 
     BidirectionalTypeMap<LogicalVolume const*, G4LogicalVolume const*>
-        fLogicalVolumeMap;
+        logical_volume_map_;
 
     // fast O(1) lookup to get VecGeom or G4 placed volume based on index
     // FastG4VecGeomLookup fFastG4VGLookup;
     std::vector<Transformation3D const*> fReplicaTransformations;
 
-    int fVerbose;
+    int verbose_;
 
   public:
-    void SetVerbose(const int verbose) { fVerbose = verbose; }
-    int  GetVerboseLevel() const { return fVerbose; }
+    void SetVerbose(int const verbose) { verbose_ = verbose; }
+    int GetVerboseLevel() const { return verbose_; }
 
     /// Get placed volume that corresponds to a G4VPhysicalVolume
     std::vector<VPlacedVolume const*> const*
@@ -71,7 +71,7 @@ class G4VecGeomConverter
     {
         if (n == nullptr)
             return nullptr;
-        // return (GeoManager::Instance().Convert(fPlacedVolumeMap[n]));
+        // return (GeoManager::Instance().Convert(placed_volume_map_[n]));
         assert(false);
         return nullptr;
     }
@@ -122,12 +122,11 @@ class G4VecGeomConverter
   public:
     // constructor
     G4VecGeomConverter()
-        : fWorld(nullptr)
-        , fPlacedVolumeMap()
-        , fUnplacedVolumeMap()
-        , fLogicalVolumeMap()
-        ,
-        /*fTransformationMap(),*/ fVerbose(0)
+        : world_(nullptr)
+        , placed_volume_map_()
+        , unplaced_volume_map_()
+        , logical_volume_map_()
+        , /*transformation_map_(),*/ verbose_(0)
     {
     }
 

@@ -181,23 +181,23 @@ void G4VecGeomConverter::ConvertG4Geometry(G4VPhysicalVolume const* worldg4)
     timer.Start();
     auto volumes = Convert(worldg4);
     assert(volumes->size() == 1);
-    fWorld = (*volumes)[0];
+    world_ = (*volumes)[0];
     timer.Stop();
-    if (fVerbose)
+    if (verbose_)
     {
         CELER_LOG(info) << "*** Conversion of G4 -> VecGeom finished ("
             << timer.Elapsed() << " s) ***";
     }
-    GeoManager::Instance().SetWorld(fWorld);
+    GeoManager::Instance().SetWorld(world_);
     timer.Start();
     GeoManager::Instance().CloseGeometry();
     timer.Stop();
-    if (fVerbose)
+    if (verbose_)
     {
         CELER_LOG(info) << "*** Closing VecGeom geometry finished ("
             << timer.Elapsed() << " s) ***";
     }
-    fWorld = GeoManager::Instance().GetWorld();
+    world_ = GeoManager::Instance().GetWorld();
 }
 
 void G4VecGeomConverter::ExtractReplicatedTransformations(
@@ -265,7 +265,7 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
         CELER_LOG(warning) << "DIVISION VOLUME FOUND " << node->GetName();
     }
 
-    if (fPlacedVolumeMap.Contains(node))
+    if (placed_volume_map_.Contains(node))
     {
         CELER_ASSERT(false); // for the moment unsupported
         return GetPlacedVolume(node);
@@ -312,15 +312,15 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
         }
     }
 
-    fPlacedVolumeMap.Set(node, vgvector);
+    placed_volume_map_.Set(node, vgvector);
     return vgvector;
 }
 
 Transformation3D* G4VecGeomConverter::Convert(G4ThreeVector const&    t,
                                               G4RotationMatrix const* rot)
 {
-    // if (fTransformationMap.Contains(geomatrix)) return
-    // const_cast<Transformation3D *>(fTransformationMap[geomatrix]);
+    // if (transformation_map_.Contains(geomatrix)) return
+    // const_cast<Transformation3D *>(transformation_map_[geomatrix]);
     Transformation3D* transformation;
     if (!rot)
     {
@@ -347,20 +347,20 @@ Transformation3D* G4VecGeomConverter::Convert(G4ThreeVector const&    t,
     }
     // transformation->FixZeroes();
     // transformation->SetProperties();
-    // fTransformationMap.Set(geomatrix, transformation);
+    // transformation_map_.Set(geomatrix, transformation);
     return transformation;
 }
 
 LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
 {
-    if (fLogicalVolumeMap.Contains(volume))
-        return const_cast<LogicalVolume*>(fLogicalVolumeMap[volume]);
+    if (logical_volume_map_.Contains(volume))
+        return const_cast<LogicalVolume*>(logical_volume_map_[volume]);
 
     VUnplacedVolume const* unplaced;
     unplaced = Convert(volume->GetSolid());
     LogicalVolume* const logical_volume
         = new LogicalVolume(volume->GetName().c_str(), unplaced);
-    fLogicalVolumeMap.Set(volume, logical_volume);
+    logical_volume_map_.Set(volume, logical_volume);
 
     // can be used to make a cross check for dimensions and other properties
     // make a cross check using cubic volume property
@@ -387,8 +387,8 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
 //{
 //  assert(placed_volume->GetLogicalVolume() == logical_volume);
 //
-//  if (fLogicalVolumeMap.Contains(logical_volume)) return
-//  const_cast<TGeoVolume *>(fLogicalVolumeMap[logical_volume]);
+//  if (logical_volume_map_.Contains(logical_volume)) return
+//  const_cast<TGeoVolume *>(logical_volume_map_[logical_volume]);
 //
 //  const TGeoShape *root_shape = placed_volume->ConvertToRoot();
 //  // Some shapes do not exist in ROOT: we need to protect for that
@@ -399,7 +399,7 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
 //                                         MOMENT */
 //                                         );
 //
-//  fLogicalVolumeMap.Set(geovolume, logical_volume);
+//  logical_volume_map_.Set(geovolume, logical_volume);
 //  return geovolume;
 //}
 
@@ -407,8 +407,9 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
 {
     VUnplacedVolume* unplaced_volume = nullptr;
 
-    if (fUnplacedVolumeMap.Contains(shape)) {
-        return const_cast<VUnplacedVolume*>(fUnplacedVolumeMap[shape]);
+    if (unplaced_volume_map_.Contains(shape))
+    {
+        return const_cast<VUnplacedVolume*>(unplaced_volume_map_[shape]);
     }
 
     // Check whether this is already a vecgeom::VUnplacedVolume
@@ -896,7 +897,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     if (!unplaced_volume)
     {
         if (true)
-        { // fVerbose) {
+        {  // verbose_) {
             printf("Unsupported shape for G4 solid %s, of type %s\n",
                    shape->GetName().c_str(),
                    shape->GetEntityType().c_str());
@@ -906,16 +907,16 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
             << " capacity = " << unplaced_volume->Capacity() / ipow<3>(scale);
     }
 
-    fUnplacedVolumeMap.Set(shape, unplaced_volume);
+    unplaced_volume_map_.Set(shape, unplaced_volume);
     return unplaced_volume;
 }
 
 void G4VecGeomConverter::Clear()
 {
-    fPlacedVolumeMap.Clear();
-    fUnplacedVolumeMap.Clear();
-    fLogicalVolumeMap.Clear();
-    if (GeoManager::Instance().GetWorld() == fWorld)
+    placed_volume_map_.Clear();
+    unplaced_volume_map_.Clear();
+    logical_volume_map_.Clear();
+    if (GeoManager::Instance().GetWorld() == world_)
     {
         GeoManager::Instance().SetWorld(nullptr);
     }
