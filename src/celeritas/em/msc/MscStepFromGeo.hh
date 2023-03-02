@@ -117,7 +117,9 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
         {
             // Cross section was assumed to be constant over the step:
             // z = lambda * (1 - exp(-tau))
-            return -lambda_ * std::log(1 - gstep / lambda_);
+            real_type result = -lambda_ * std::log(1 - gstep / lambda_);
+            CELER_ENSURE(result >= gstep && result <= true_step_);
+            return result;
         }
 
         real_type w = 1 + 1 / (alpha_ * lambda_);
@@ -130,10 +132,13 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
             // correct when the step is the range, but the MFP will never be
             // zero except for numerical error.
             CELER_ASSERT(x < 1 + 100 * numeric_limits<real_type>::epsilon());
+            CELER_ENSURE(range_ >= gstep && range_ <= true_step_);
             return range_;
         }
         // Invert Eq. 8.10 exactly
-        return (1 - fastpow(1 - x, 1 / w)) / alpha_;
+        real_type result = (1 - fastpow(1 - x, 1 / w)) / alpha_;
+        CELER_ENSURE(result >= gstep && result <= true_step_);
+        return result;
     }();
 
     // No less than the geometry path if effectively no scattering

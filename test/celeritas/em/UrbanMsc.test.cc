@@ -245,6 +245,76 @@ TEST_F(UrbanMscTest, helper)
                    value_as<MevEnergy>(helper.calc_end_energy(0.5)));
 }
 
+TEST_F(UrbanMscTest, step_conversion)
+{
+    using LogInterp = Interpolator<Interp::linear, Interp::log, real_type>;
+
+    UrbanMscParameters const& params = msc_params_->host_ref().params;
+
+    auto test_one = [&](PDGNumber ptype, MevEnergy energy) {
+        auto par = this->make_par_view(ptype, energy);
+        auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
+        SCOPED_TRACE((PrintableParticle{par, *this->particle()}));
+        UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
+
+        real_type range = phys.dedx_range();
+        real_type lambda = helper.calc_msc_mfp(energy);
+        MscStepToGeo calc_geom_path(
+            msc_params_->host_ref(), helper, energy, lambda, range);
+
+        LogInterp calc_pstep({0, 0.9 * params.limit_min_fix()}, {8, range});
+        for (auto i : celeritas::range(9))
+        {
+            // Calculate given a physics step between "tiny" and the maximum
+            // range
+            real_type pstep = calc_pstep(i);
+            SCOPED_TRACE((LabeledValue{"pstep", pstep}));
+            // Get the equivalent "geometrical" step
+            MscStepToGeo::result_type gp;
+            ASSERT_NO_THROW(gp = calc_geom_path(pstep));
+            EXPECT_LE(gp.step, pstep);
+            EXPECT_GT(gp.step, 0);
+
+            MscStep msc_step;
+            msc_step.true_path = pstep;
+            msc_step.geom_path = gp.step;
+            msc_step.alpha = gp.alpha;
+            MscStepFromGeo geo_to_true(
+                msc_params_->host_ref().params, msc_step, range, lambda);
+            LogInterp calc_gstep({0, 0.9 * params.limit_min_fix()},
+                                 {4, gp.step});
+            for (auto i : celeritas::range(5))
+            {
+                // Calculate between a nearby hypothetical geometric boundary
+                // and "no boundary" (i.e. pstep limited)
+                real_type gstep = calc_gstep(i);
+                SCOPED_TRACE((LabeledValue{"gstep", gstep}));
+                real_type true_step;
+                ASSERT_NO_THROW(true_step = geo_to_true(gstep));
+                EXPECT_LE(true_step, pstep);
+                EXPECT_GE(true_step, gstep);
+            }
+        }
+    };
+
+    for (auto ptype : {pdg::electron(), pdg::positron()})
+    {
+        for (real_type energy : {99.999,
+                                 51.0231,
+                                 10.0564,
+                                 5.05808,
+                                 1.01162,
+                                 0.501328,
+                                 0.102364,
+                                 0.0465336,
+                                 0.00708839,
+                                 1e-5})
+        {
+            test_one(ptype, MevEnergy{energy});
+        }
+    }
+}
+
 TEST_F(UrbanMscTest, msc_scattering)
 {
     // Test the step limitation algorithm and the msc sample scattering
