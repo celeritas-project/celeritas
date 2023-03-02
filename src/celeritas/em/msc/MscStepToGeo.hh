@@ -77,11 +77,11 @@ class MscStepToGeo
 
   public:
     // Construct from MSC data
-    inline MscStepToGeo(UrbanMscRef const& shared,
-                        UrbanMscHelper const& helper,
-                        Energy energy,
-                        real_type lambda,
-                        real_type range);
+    inline CELER_FUNCTION MscStepToGeo(UrbanMscRef const& shared,
+                                       UrbanMscHelper const& helper,
+                                       Energy energy,
+                                       real_type lambda,
+                                       real_type range);
 
     // Calculate the geometrical step
     inline CELER_FUNCTION result_type operator()(real_type tstep) const;
