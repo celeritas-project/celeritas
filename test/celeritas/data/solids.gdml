@@ -58,7 +58,7 @@ acceptance of all terms of the Geant4 Software license.
   <position name="posParab1"     x="-3750" y="    0" z="0" unit="mm" />
   <position name="posArb8b"      x="-3750" y="-1250" z="0" unit="mm" />
 
-  <position name="posTessel1"    x=" 5000" y="    0" z="0" unit="mm" />
+  <position name="posTessel1"    x="-5000" y="    0" z="0" unit="mm" />
 
   <position name="v0" unit="mm"  x=" 400" y=" 400" z="-500" />
   <position name="v1" unit="mm"  x="-400" y=" 400" z="-500" />
@@ -93,7 +93,7 @@ acceptance of all terms of the Geant4 Software license.
  </materials>
 
  <solids>
-  <box name="WorldBox" lunit="mm" x="10000" y="6000" z="1500"/>
+  <box name="WorldBox" lunit="mm" x="12000" y="6000" z="1500"/>
 
   <box name="b100" lunit="mm" x="200.0" y="200.0" z="200.0"/>
   <box name="b500" lunit="mm" x="500.0" y="500.0" z="500.0"/>
@@ -115,9 +115,9 @@ acceptance of all terms of the Geant4 Software license.
       v3x="450.0"  v3y="450.0" v4x="450.0" v4y="-450.0" v5x="-350.0" v5y="-350.0"
       v6x="-350.0" v6y="350.0" v7x="350.0" v7y="350.0"  v8x="350.0"  v8y="-150.0" />
 
-  <trap name="trap1" lunit="mm" aunit="deg" theta="-10.0" phi="30.0" z="800"
-      y1="720.0" x1="600.0" x2="300.0"  alpha1="-20.0"
-      y2="360.0" x3="300.0" x4="150.0"  alpha2="-20.0"/>
+  <trap name="trap1" lunit="mm" aunit="deg" theta="10.0" phi="-30.0" z="800"
+      y1="720.0" x1="600.0" x2="300.0"  alpha1="-10.0"
+      y2="360.0" x3="300.0" x4="150.0"  alpha2="-10.0"/>
 
   <trd name="trd1" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
 
