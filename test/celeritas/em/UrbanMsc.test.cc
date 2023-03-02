@@ -18,6 +18,7 @@
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/grid/Interpolator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -116,40 +117,52 @@ class UrbanMscTest : public RootTestBase
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 
     // Initialize a track
-    PhysicsTrackView
-    make_track_view(PDGNumber pdg, MaterialId mid, MevEnergy energy)
+    ParticleTrackView make_par_view(PDGNumber pdg, MevEnergy energy)
     {
         CELER_EXPECT(pdg);
-        CELER_EXPECT(mid);
         CELER_EXPECT(energy > zero_quantity());
-
         auto pid = this->particle()->find(pdg);
         CELER_ASSERT(pid);
-        const ThreadId tid{0};
 
-        // Initialize particle
-        {
-            ParticleTrackView par{
-                this->particle()->host_ref(), particle_state_.ref(), tid};
-            ParticleTrackView::Initializer_t init;
-            init.particle_id = pid;
-            init.energy = energy;
-            par = init;
-        }
+        ParticleTrackView par{
+            this->particle()->host_ref(), particle_state_.ref(), ThreadId{0}};
+        ParticleTrackView::Initializer_t init;
+        init.particle_id = pid;
+        init.energy = energy;
+        par = init;
+        return par;
+    }
+
+    PhysicsTrackView
+    make_phys_view(ParticleTrackView const& par, std::string const& matname)
+    {
+        auto mid = this->material()->find_material(matname);
+        CELER_ASSERT(mid);
 
         // Initialize physics
-        PhysicsTrackView phys_view(
-            this->physics()->host_ref(), physics_state_.ref(), pid, mid, tid);
+        PhysicsTrackView phys_view(this->physics()->host_ref(),
+                                   physics_state_.ref(),
+                                   par.particle_id(),
+                                   mid,
+                                   ThreadId{0});
         phys_view = PhysicsTrackInitializer{};
 
         // Calculate and store the energy loss (dedx) range limit
         auto ppid = phys_view.eloss_ppid();
         auto grid_id = phys_view.value_grid(ValueGridType::range, ppid);
         auto calc_range = phys_view.make_calculator<RangeCalculator>(grid_id);
-        real_type range = calc_range(energy);
+        real_type range = calc_range(par.energy());
         phys_view.dedx_range(range);
 
         return phys_view;
+    }
+
+    GeoTrackView make_geo_view(real_type r)
+    {
+        GeoTrackView geo_view(
+            this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
+        geo_view = {{r, r, r}, Real3{0, 0, 1}};
+        return geo_view;
     }
 
   protected:
@@ -160,6 +173,37 @@ class UrbanMscTest : public RootTestBase
     GeoStateStore geo_state_;
     SimStateStore sim_state_;
 };
+
+struct PrintableParticle
+{
+    ParticleTrackView const& par;
+    ParticleParams const& params;
+};
+
+std::ostream& operator<<(std::ostream& os, PrintableParticle const& pp)
+{
+    os << pp.params.id_to_label(pp.par.particle_id()) << " at "
+       << value_as<units::MevEnergy>(pp.par.energy()) << " MeV";
+    return os;
+}
+
+template<class T>
+struct LabeledValue
+{
+    char const* label;
+    T value;
+};
+
+// CTAD
+template<typename T>
+LabeledValue(char const*, T) -> LabeledValue<T>;
+
+template<class T>
+std::ostream& operator<<(std::ostream& os, LabeledValue<T> const& lv)
+{
+    os << lv.label << "=" << lv.value;
+    return os;
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -188,11 +232,8 @@ TEST_F(UrbanMscTest, coeff_data)
 
 TEST_F(UrbanMscTest, helper)
 {
-    ParticleTrackView par{
-        this->particle()->host_ref(), particle_state_.ref(), ThreadId{0}};
-    auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
-    PhysicsTrackView phys
-        = this->make_track_view(pdg::electron(), mid, MevEnergy{10.01});
+    auto par = this->make_par_view(pdg::electron(), MevEnergy{10.01});
+    auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
     UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
 
     EXPECT_SOFT_EQ(0.90681578657668238, phys.dedx_range());
@@ -206,9 +247,6 @@ TEST_F(UrbanMscTest, helper)
 
 TEST_F(UrbanMscTest, msc_scattering)
 {
-    auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
-    ASSERT_TRUE(mid);
-
     // Test the step limitation algorithm and the msc sample scattering
     MscStep step_result;
     MscInteraction sample_result;
@@ -257,27 +295,17 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<char> action;
 
     auto sample_one = [&](PDGNumber ptype, int i) {
-        ParticleTrackView par{
-            this->particle()->host_ref(), particle_state_.ref(), ThreadId{0}};
-        GeoTrackView geo_view(
-            this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
-        MaterialView material_view = this->material()->get(mid);
-
-        real_type r = i * 2 - real_type(1e-4);
-        geo_view = {{r, r, r}, Real3{0, 0, 1}};
-
-        MevEnergy inc_energy = MevEnergy{energy[i]};
-        PhysicsTrackView phys = this->make_track_view(ptype, mid, inc_energy);
+        auto par = this->make_par_view(ptype, MevEnergy{energy[i]});
+        auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
+        auto geo = this->make_geo_view(/* r = */ i * 2 - real_type(1e-4));
 
         UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
         range.push_back(phys.dedx_range());
-        lambda.push_back(helper.calc_msc_mfp(inc_energy));
+        lambda.push_back(helper.calc_msc_mfp(par.energy()));
 
         real_type this_pstep = step[i];
         if (this_pstep == step_is_range)
         {
-            PhysicsTrackView phys
-                = this->make_track_view(ptype, mid, MevEnergy{energy[i]});
             this_pstep = phys.dedx_range();
         }
         pstep.push_back(this_pstep);
@@ -285,9 +313,9 @@ TEST_F(UrbanMscTest, msc_scattering)
         UrbanMscStepLimit calc_limit(msc_params_->host_ref(),
                                      par,
                                      &phys,
-                                     material_view.material_id(),
-                                     geo_view.is_on_boundary(),
-                                     geo_view.find_safety(),
+                                     phys.material_id(),
+                                     geo.is_on_boundary(),
+                                     geo.find_safety(),
                                      this_pstep);
 
         step_result = calc_limit(rng);
@@ -295,9 +323,10 @@ TEST_F(UrbanMscTest, msc_scattering)
         gstep.push_back(step_result.geom_path);
         alpha.push_back(step_result.alpha);
 
+        MaterialView material_view = this->material()->get(phys.material_id());
         UrbanMscScatter scatter(msc_params_->host_ref(),
                                 par,
-                                &geo_view,
+                                &geo,
                                 phys,
                                 material_view,
                                 step_result,
