@@ -9,14 +9,11 @@
 
 #include <cmath>
 
-#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"
-using std::cout;
-using std::endl;
 
 namespace celeritas
 {
@@ -103,10 +100,8 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
 {
     CELER_EXPECT(gstep >= 0 && gstep <= true_step_);
 
-    cout << "g -> z: ";
     if (gstep < params_.min_step())
     {
-        cout << "tiny" << endl;
         // Geometrical path length is true path length for a very small step
         return gstep;
     }
@@ -122,10 +117,8 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
             {
                 // Geometrical path length = true path length for a very small
                 // step
-                cout << "geo = true" << endl;
                 return gstep;
             }
-            cout << "Small step: g/lambda = " << repr(gstep / lambda_) << endl;
             return tstep;
         }
 
@@ -143,9 +136,6 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
         // TODO: we should use the action ID to avoid applying this
         // transformation if not range-limited.
         real_type temp = 1 - fastpow(1 - x, 1 / w);
-        cout << "Exact inverse: x = " << repr(x) << " = 1 - " << repr(1 - x)
-             << ", w = " << w << ", alpha = " << repr(alpha_) << " => "
-             << repr(temp) << " / alpha" << endl;
         real_type result = temp / alpha_;
         return min(result, range_);
     }();
