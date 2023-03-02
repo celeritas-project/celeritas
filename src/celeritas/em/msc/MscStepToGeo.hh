@@ -8,12 +8,16 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 
+#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 
 #include "UrbanMscHelper.hh"
+using std::cout;
+using std::endl;
 
 namespace celeritas
 {
@@ -120,18 +124,22 @@ CELER_FUNCTION MscStepToGeo::MscStepToGeo(UrbanMscRef const& shared,
 CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     -> result_type
 {
+    cout << "z -> g: ";
     result_type result;
     result.alpha = MscStep::small_step_alpha();
     if (tstep < shared_.params.min_step())
     {
         // Geometrical path length = true path length for a very small step
         result.step = tstep;
+        cout << "Very small step" << endl;
     }
     else if (tstep < range_ * shared_.params.dtrl())
     {
         // Small enough distance to assume cross section is constant
         // over the step: z = lambda * (1 - exp(-tau))
         result.step = -lambda_ * std::expm1(-tstep / lambda_);
+        cout << "Constant cross section, tau = " << repr(tstep / lambda_)
+             << endl;
     }
     else
     {
@@ -144,6 +152,8 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
             // slope are zero).
             result.alpha = 1 / range_;
             mfp_slope = 1 - result.alpha * tstep;
+            cout << "Low energy or range-limited step: slope ="
+                 << repr(mfp_slope) << endl;
         }
         else
         {
@@ -158,15 +168,21 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
             result.alpha = (lambda_ - lambda1) / (lambda_ * tstep);
             CELER_ASSERT(result.alpha != MscStep::small_step_alpha());
             mfp_slope = lambda1 / lambda_;
+            cout << "Physics-limited step: slope =" << repr(mfp_slope) << endl;
         }
 
         // Eq 8.10 with simplifications
         real_type w = 1 + 1 / (result.alpha * lambda_);
         result.step = (1 - fastpow(mfp_slope, w)) / (result.alpha * w);
-
-        // Limit step to 1 MFP
-        result.step = min<real_type>(result.step, lambda_);
     }
+
+    if (result.step > lambda_)
+    {
+        cout << "Reducing step " << result.step << " to lambda = " << lambda_
+             << endl;
+    }
+    // Limit step to 1 MFP
+    result.step = min<real_type>(result.step, lambda_);
     return result;
 }
 

@@ -251,9 +251,11 @@ TEST_F(UrbanMscTest, step_conversion)
 
     UrbanMscParameters const& params = msc_params_->host_ref().params;
 
-    auto test_one = [&](PDGNumber ptype, MevEnergy energy) {
+    auto test_one = [&](char const* material,
+                        PDGNumber ptype,
+                        MevEnergy energy) {
         auto par = this->make_par_view(ptype, energy);
-        auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
+        auto phys = this->make_phys_view(par, material);
         SCOPED_TRACE((PrintableParticle{par, *this->particle()}));
         UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
 
@@ -310,7 +312,7 @@ TEST_F(UrbanMscTest, step_conversion)
                                  0.00708839,
                                  1e-5})
         {
-            test_one(ptype, MevEnergy{energy});
+            test_one("G4_STAINLESS-STEEL", ptype, MevEnergy{energy});
         }
     }
 }

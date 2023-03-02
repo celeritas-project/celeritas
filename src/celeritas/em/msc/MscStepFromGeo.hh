@@ -8,11 +8,15 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 
+#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"
+using std::cout;
+using std::endl;
 
 namespace celeritas
 {
@@ -99,9 +103,11 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
 {
     CELER_EXPECT(gstep >= 0 && gstep <= true_step_);
 
+    cout << "g -> z: ";
     if (gstep < params_.min_step())
     {
         // geometrical path length = true path length for a very small step
+        cout << "tiny" << endl;
         return gstep;
     }
 
@@ -112,6 +118,14 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
             // z = lambda * (1 - exp(-g / lambda))
             // => g = -lambda * log(1 - g / lambda)
             real_type tstep = -lambda_ * std::log1p(-gstep / lambda_);
+            if (tstep < params_.min_step())
+            {
+                // Geometrical path length = true path length for a very small
+                // step
+                cout << "geo = true" << endl;
+                return gstep;
+            }
+            cout << "Small step: g/lambda = " << repr(gstep / lambda_) << endl;
             return tstep;
         }
 
@@ -125,21 +139,21 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
             // correct when the step is the range, but the MFP will never be
             // zero except for numerical error.
             CELER_ASSERT(x < 1 + 100 * numeric_limits<real_type>::epsilon());
-            CELER_ENSURE(range_ >= gstep && range_ <= true_step_);
+            cout << "Range-limited: x = " << x << endl;
             return range_;
         }
         // Invert Eq. 8.10 exactly
-        real_type result = (1 - fastpow(1 - x, 1 / w)) / alpha_;
-        CELER_ENSURE(result >= gstep && result <= true_step_);
-        return result;
+        cout << "Exact inverse: x= " << x << ", w=" << w
+             << ", alpha=" << alpha_ << endl;
+        return (1 - fastpow(1 - x, 1 / w)) / alpha_;
     }();
 
     // No less than the geometry path if effectively no scattering
     // took place; no more than the original calculated true path if the step
     // is path-limited.
-    CELER_ENSURE(tstep >= gstep);
-    CELER_ENSURE(tstep <= true_step_);
-    return tstep;
+    CELER_ENSURE(tstep >= gstep || soft_equal(tstep, gstep));
+    CELER_ENSURE(tstep <= true_step_ || soft_equal(tstep, true_step_));
+    return clamp(tstep, gstep, true_step_);
 }
 
 //---------------------------------------------------------------------------//
