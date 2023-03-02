@@ -225,7 +225,8 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
         MscStepToGeo calc_geom_path(
             shared_, helper_, Energy{inc_energy_}, lambda_, range_);
         auto temp = calc_geom_path(true_path);
-        result.geom_path = temp.step;
+        // Limit geometrical step to 1 MSC MFP
+        result.geom_path = min<real_type>(temp.step, lambda_);
         result.alpha = temp.alpha;
     }
 

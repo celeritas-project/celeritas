@@ -181,8 +181,7 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
         cout << "Reducing step " << result.step << " to lambda = " << lambda_
              << endl;
     }
-    // Limit step to 1 MFP
-    result.step = min<real_type>(result.step, lambda_);
+    CELER_ENSURE(result.step <= tstep);
     return result;
 }
 
