@@ -130,26 +130,38 @@ using ItemRange = Range<OpaqueId<T, Size>>;
 //---------------------------------------------------------------------------//
 /*! Access data in a Range<T2> with an index of type T1
  *
- * Here, T1 and T2 are expected to be OpaqueIds.
+ * Here, T1 and T2 are expected to be OpaqueId types
  */
 template<class T1, class T2>
 class ItemMap
 {
+  public:
+    //!@{
+    //! \name Type aliases
+    using key_type = T1;
+    using mapped_type = T2;
+    //!@}
+
   public:
     //// CONSTRUCTION ////
 
     ItemMap() = default;
 
     //! Contruct from an exising Range<T2>
-    ItemMap(Range<T2> range) : range_(range){};
+    ItemMap(Range<T2> range) : range_(range)
+    {
+        static_assert(detail::IsOpaqueId<T1>::value, "T1 isn't opaque ID");
+        static_assert(detail::IsOpaqueId<T2>::value, "T2 isn't opaque ID");
+    }
 
     //// ACCESS ////
 
     //! Access Range via OpaqueId of type T1
     CELER_FORCEINLINE_FUNCTION T2 operator[](T1 id) const
     {
+        CELER_EXPECT(id < this->size());
         return range_[id.unchecked_get()];
-    };
+    }
 
     //! Wheter the underlying Range<T2> is empty
     CELER_FORCEINLINE_FUNCTION bool empty() const { return range_.empty(); }

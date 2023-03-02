@@ -265,6 +265,15 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalSurfaceId surfid) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Surface name (or sentinel if no surface) within UniverseId{0}.
+ */
+std::string OrangeGeoTestBase::id_to_label(LocalSurfaceId surfid) const
+{
+    return this->id_to_label(UniverseId{0}, surfid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Volume name (or sentinel if no volume).
  */
 std::string
@@ -275,6 +284,15 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
 
     detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
     return params_->id_to_label(ui.global_volume(uid, volid)).name;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Volume name (or sentinel if no volume) within UniverseId{0}.
+ */
+std::string OrangeGeoTestBase::id_to_label(LocalVolumeId volid) const
+{
+    return this->id_to_label(UniverseId{0}, volid);
 }
 
 //---------------------------------------------------------------------------//

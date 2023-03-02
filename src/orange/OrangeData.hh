@@ -212,12 +212,12 @@ struct OrangeParamsData
 
     // Low-level storage
     Items<LocalSurfaceId> local_surface_ids;
+    Items<LocalVolumeId> local_volume_ids;
     Items<RealId> real_ids;
     Items<logic_int> logic_ints;
     Items<real_type> reals;
     Items<SurfaceType> surface_types;
     Items<Connectivity> connectivities;
-    Items<LocalVolumeId> local_volume_ids;
     Items<VolumeRecord> volume_records;
 
     Items<Translation> translations;
