@@ -148,6 +148,17 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     {
         // Eq 8.8: mfp_slope = (lambda_f / lambda_i) = (1 - alpha * tstep)
         real_type mfp_slope;
+        if (tstep == range_)
+        {
+            // Low energy or range-limited step
+            // (For range-limited step, the final cross section and thus MFP
+            // slope are zero).
+            result.alpha = 1 / range_;
+            mfp_slope = 0;
+            cout << "Range-limited step: slope = "
+                 << repr(mfp_slope) << endl;
+        }
+        else
         if (energy_ < value_as<Mass>(shared_.electron_mass) || tstep == range_)
         {
             // Low energy or range-limited step
@@ -155,7 +166,7 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
             // slope are zero).
             result.alpha = 1 / range_;
             mfp_slope = 1 - result.alpha * tstep;
-            cout << "Low energy or range-limited step: slope ="
+            cout << "Low energy step: slope = "
                  << repr(mfp_slope) << endl;
         }
         else

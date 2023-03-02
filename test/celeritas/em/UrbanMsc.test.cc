@@ -272,7 +272,10 @@ TEST_F(UrbanMscTest, step_conversion)
         {
             // Calculate given a physics step between "tiny" and the maximum
             // range
-            real_type pstep = min(calc_pstep(ppt), range);
+            real_type pstep = calc_pstep(ppt);
+            if (ppt == pstep_points)
+                pstep = range;
+
             SCOPED_TRACE((LabeledValue{"pstep", pstep}));
             // Get the equivalent "geometrical" step
             MscStepToGeo::result_type gp;
