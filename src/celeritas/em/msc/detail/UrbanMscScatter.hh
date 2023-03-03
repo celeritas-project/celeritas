@@ -227,15 +227,18 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         }
         else if (tau_ < shared_.params.tau_big)
         {
-            // TODO: if displacement is disabled (because of being far from the
-            // boundary or having a short step) then limit_min_ will be zero,
-            // and some corrections will not be applied.
-            // CELER_ASSERT(limit_min_ > 0);
-
             // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
             xmean_ = std::exp(-tau_);
             x2mean_ = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
+
             // MSC "true path" step limit
+            if (CELER_UNLIKELY(limit_min_ == 0))
+            {
+                // Unlikely: MSC range cache wasn't initialized by
+                // UrbanMscStepLimit
+                CELER_ASSERT(!is_displaced_);
+                limit_min_ = UrbanMscParameters::limit_min();
+            }
             limit_min_ = min(limit_min_, shared_.params.lambda_limit);
 
             // TODO: theta0_ calculation could be done externally, eliminating
