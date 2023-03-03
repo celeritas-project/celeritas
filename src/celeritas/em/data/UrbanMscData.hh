@@ -91,8 +91,6 @@ struct UrbanMscMaterialData
     Real4 d{0, 0, 0, 0};  //!< coefficients of tail parameters
     real_type stepmin_a{};  //!< coefficient of the step minimum calculation
     real_type stepmin_b{};  //!< coefficient of the step minimum calculation
-    real_type d_over_r{};  //!< the maximum distance/range for e-/e+
-    real_type d_over_r_mh{};  //!< the maximum distance/range for muon/h
 };
 
 //---------------------------------------------------------------------------//
@@ -128,6 +126,7 @@ struct UrbanMscParMatData
 {
     XsGridData xs;  //!< For calculating MFP
     real_type scaled_zeff{};  //!< a * Z^b
+    real_type d_over_r{};  //!< Maximum distance/range heuristic
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const

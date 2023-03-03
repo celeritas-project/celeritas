@@ -132,10 +132,11 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
         // Very short step: don't displace
         skip_displacement_ = true;
     }
-    else if (range_ * msc_.d_over_r < safety_)
+    else if (helper_.max_step(range_) < safety_)
     {
         // Potential step length is shorter than potential boundary distance
-        // NOTE: use d_over_r_mh for muons and charged hadrons
+        // TODO: should we only skip displacement if we're at or further than
+        // the boundary?
         skip_displacement_ = true;
     }
     else if (!msc_range_ || on_boundary)

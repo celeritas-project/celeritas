@@ -159,6 +159,23 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                 // Calculate scaled zeff
                 this_pm.scaled_zeff = a_coeff[p] * fastpow(zeff, b_coeff[p]);
 
+                // Compute the maximum distance that particles can travel
+                // (different for electrons, hadrons)
+                if (par_ids[p] == host_data.ids.electron
+                    || par_ids[p] == host_data.ids.positron)
+                {
+                    // Electrons and positrons
+                    this_pm.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(zeff)
+                                       + 4.3769e-3 * zeff;
+                    CELER_ASSERT(0 < this_pm.d_over_r && this_pm.d_over_r <= 1);
+                }
+                else
+                {
+                    // Muons and charged hadrons
+                    this_pm.d_over_r = 1.15 - 9.76e-4 * zeff;
+                    CELER_ASSERT(0 < this_pm.d_over_r);
+                }
+
                 // Get the cross section data for this particle and material
                 ImportPhysicsVector const& pvec
                     = xs_tables[p]->physics_vectors[mat_id.unchecked_get()];
@@ -219,14 +236,6 @@ UrbanMscParams::calc_material_data(MaterialView const& material_view)
     data.stepmin_a = 1e3 * 27.725 / (1 + 0.203 * zeff);
     data.stepmin_b = 1e3 * 6.152 / (1 + 0.111 * zeff);
 
-    // Parameters for the maximum distance that particles can travel
-    data.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(zeff) + 4.3769e-3 * zeff;
-    // XXX there must be another scaling factor missing here: how can the step
-    // length be greater than the range?
-    data.d_over_r_mh = 1.15 - 9.76e-4 * zeff;
-
-    CELER_ENSURE(0 < data.d_over_r && data.d_over_r <= 1);
-    CELER_ENSURE(0 < data.d_over_r_mh);
     return data;
 }
 //---------------------------------------------------------------------------//

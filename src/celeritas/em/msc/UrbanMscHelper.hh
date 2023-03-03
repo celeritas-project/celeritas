@@ -25,6 +25,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * This is a helper class for the UrbanMscStepLimit and UrbanMscScatter.
+ *
+ * \todo Refactor to UrbanMscTrackView .
  */
 class UrbanMscHelper
 {
@@ -60,6 +62,9 @@ class UrbanMscHelper
     {
         return this->pmdata().scaled_zeff;
     }
+
+    // Maximum expected distance based on the track's range
+    CELER_FUNCTION real_type max_step(real_type dedx_range) const;
 
     // TODO: the following methods are used only by MscScatter
 
@@ -132,6 +137,16 @@ CELER_FUNCTION auto UrbanMscHelper::calc_stopping_energy(real_type step) const
     auto range_to_energy
         = physics_.make_calculator<InverseRangeCalculator>(range_gid);
     return range_to_energy(step);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum expected step length based on the track's range.
+ */
+CELER_FUNCTION real_type UrbanMscHelper::max_step(real_type dedx_range) const
+{
+    CELER_EXPECT(dedx_range > 0);
+    return dedx_range * this->pmdata().d_over_r;
 }
 
 //---------------------------------------------------------------------------//
