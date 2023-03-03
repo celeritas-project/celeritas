@@ -51,7 +51,6 @@ class UrbanMsc
 
   private:
     ParamsRef const& msc_params_;
-    real_type phys_step_{-1};
 
     // Whether the step was limited by geometry
     static inline CELER_FUNCTION bool
@@ -103,11 +102,8 @@ UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
     auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();
 
-    // Save physics step for later
-    phys_step_ = local->step_limit.step;
-
     // Sample multiple scattering step length
-    auto msc_step_result = [&] {
+    auto msc_step = [&] {
         auto par = track.make_particle_view();
         UrbanMscHelper msc_helper(msc_params_, par, phys);
         UrbanMscStepLimit calc_limit(msc_params_,
@@ -117,24 +113,47 @@ UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
                                      phys.material_id(),
                                      geo.is_on_boundary(),
                                      geo.find_safety(),
-                                     phys_step_);
+                                     local->step_limit.step);
 
         auto rng = track.make_rng_engine();
-        return calc_limit(rng);
+        auto result = calc_limit(rng);
+        CELER_ASSERT(result.true_path <= local->step_limit.step);
+
+        MscStepToGeo calc_geom_path(msc_params_,
+                                    msc_helper,
+                                    par.energy(),
+                                    msc_helper.msc_mfp(),
+                                    phys.dedx_range());
+        auto gp = calc_geom_path(result.true_path);
+        result.geom_path = gp.step;
+        if (result.is_displaced)
+        {
+            // TODO: the conditional is a side effect of the original
+            // implementation.  It may be OK (and might be necessary for
+            // correctness!) to always assign alpha rather than leaving it as
+            // the "small step" value.
+            result.alpha = gp.alpha;
+        }
+
+        // Limit geometrical step to 1 MSC MFP
+        result.geom_path
+            = min<real_type>(result.geom_path, msc_helper.msc_mfp());
+
+        return result;
     }();
-    CELER_ASSERT(msc_step_result.geom_path > 0);
-    CELER_ASSERT(msc_step_result.true_path >= msc_step_result.geom_path);
-    track.make_physics_step_view().msc_step(msc_step_result);
+    CELER_ASSERT(msc_step.geom_path > 0);
+    CELER_ASSERT(msc_step.true_path >= msc_step.geom_path);
+    track.make_physics_step_view().msc_step(msc_step);
 
     // Use "straight line" path calculated for geometry step
-    local->geo_step = msc_step_result.geom_path;
+    local->geo_step = msc_step.geom_path;
 
-    if (msc_step_result.true_path < phys_step_)
+    if (msc_step.true_path < local->step_limit.step)
     {
         // True/physical step might be further limited by MSC
         // TODO: this is already kinda sorta determined inside the
         // UrbanMscStepLimit calculation
-        local->step_limit.step = msc_step_result.true_path;
+        local->step_limit.step = msc_step.true_path;
         local->step_limit.action = phys.scalars().msc_action();
     }
 }
@@ -147,7 +166,6 @@ CELER_FUNCTION void
 UrbanMsc::apply_step(CoreTrackView const& track, AlongStepLocalState* local)
 {
     CELER_EXPECT(msc_params_);
-    CELER_EXPECT(phys_step_ > 0);
 
     auto par = track.make_particle_view();
     auto geo = track.make_geo_view();
@@ -155,28 +173,41 @@ UrbanMsc::apply_step(CoreTrackView const& track, AlongStepLocalState* local)
     auto mat = track.make_material_view();
 
     // Replace step with actual geometry distance traveled
-    auto msc_step_result = track.make_physics_step_view().msc_step();
-    msc_step_result.geom_path = local->geo_step;
-
     UrbanMscHelper msc_helper(msc_params_, par, phys);
-    UrbanMscScatter msc_scatter(msc_params_,
-                                msc_helper,
-                                par,
-                                phys,
-                                mat.make_material_view(),
-                                &geo,
-                                msc_step_result,
-                                phys_step_,
-                                is_geo_limited(track, local->step_limit));
+    auto msc_step = track.make_physics_step_view().msc_step();
+    if (this->is_geo_limited(track, local->step_limit))
+    {
+        // Convert geometrical distance to equivalent physical distance, which
+        // will be greater than (or in edge cases equal to) that distance and
+        // less than the original physical step limit.
+        msc_step.geom_path = local->geo_step;
+        MscStepFromGeo geo_to_true(msc_params_.params,
+                                   msc_step,
+                                   phys.dedx_range(),
+                                   msc_helper.msc_mfp());
+        msc_step.true_path = geo_to_true(msc_step.geom_path);
+        CELER_ASSERT(msc_step.true_path >= msc_step.geom_path);
 
-    auto rng = track.make_rng_engine();
-    auto msc_result = msc_scatter(rng);
+        // Disable displacement on boundary
+        msc_step.is_displaced = false;
+    }
 
     // Update full path length traveled along the step based on MSC to
     // correctly calculate energy loss, step time, etc.
-    CELER_ASSERT(local->geo_step <= msc_result.step_length
-                 && msc_result.step_length <= local->step_limit.step);
-    local->step_limit.step = msc_result.step_length;
+    local->step_limit.step = msc_step.true_path;
+
+    auto msc_result = [&] {
+        UrbanMscScatter sample_scatter(msc_params_,
+                                       msc_helper,
+                                       par,
+                                       phys,
+                                       mat.make_material_view(),
+                                       &geo,
+                                       msc_step);
+
+        auto rng = track.make_rng_engine();
+        return sample_scatter(rng);
+    }();
 
     // Update direction and position
     if (msc_result.action != MscInteraction::Action::unchanged)

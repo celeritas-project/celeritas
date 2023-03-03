@@ -350,11 +350,7 @@ TEST_F(UrbanMscTest, step_conversion)
 
 TEST_F(UrbanMscTest, msc_scattering)
 {
-    // Test the step limitation algorithm and the msc sample scattering
-    MscStep step_result;
-    MscInteraction sample_result;
-
-    // Input
+    // Test energies
     static const real_type energy[] = {51.0231,
                                        10.0564,
                                        5.05808,
@@ -392,7 +388,6 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<double> alpha;
 
     // Scatter
-    std::vector<double> fstep;
     std::vector<double> angle;
     std::vector<double> displace;
     std::vector<char> action;
@@ -414,6 +409,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         }
         pstep.push_back(this_pstep);
 
+        // Calculate physical step limit due to MSC
         UrbanMscStepLimit calc_limit(msc_params_->host_ref(),
                                      helper,
                                      par.energy(),
@@ -423,24 +419,37 @@ TEST_F(UrbanMscTest, msc_scattering)
                                      geo.find_safety(),
                                      this_pstep);
 
-        step_result = calc_limit(rng);
+        MscStep step_result = calc_limit(rng);
         tstep.push_back(step_result.true_path);
+
+        // Convert physical step limit to geometrical step
+        MscStepToGeo calc_geom_path(msc_params_->host_ref(),
+                                    helper,
+                                    par.energy(),
+                                    helper.msc_mfp(),
+                                    phys.dedx_range());
+        auto gp = calc_geom_path(step_result.true_path);
+        step_result.geom_path = gp.step;
+        if (step_result.is_displaced)
+        {
+            step_result.alpha = gp.alpha;
+        }
+        else
+        {
+            // NOTE: this assignment is an artifact of the older
+            // implementation: alpha isn't used if displacement is disabled.
+            // In this case the
+            // step_result.alpha = MscStep::small_step_alpha();
+        }
         gstep.push_back(step_result.geom_path);
         alpha.push_back(step_result.alpha);
 
-        UrbanMscScatter scatter(msc_params_->host_ref(),
-                                helper,
-                                par,
-                                phys,
-                                mat,
-                                &geo,
-                                step_result,
-                                this_pstep,
-                                /* geo_limited = */ false);
+        // No geo->phys conversion needed because we don't test for the
+        // geo-limited case here (see the geo->true tests above)
+        UrbanMscScatter scatter(
+            msc_params_->host_ref(), helper, par, phys, mat, &geo, step_result);
+        MscInteraction sample_result = scatter(rng);
 
-        sample_result = scatter(rng);
-
-        fstep.push_back(sample_result.step_length);
         angle.push_back(sample_result.action != Action::unchanged
                             ? sample_result.direction[0]
                             : 0);
@@ -492,11 +501,6 @@ TEST_F(UrbanMscTest, msc_scattering)
     static double const expected_alpha[] = {0, 1.7708716862049,
         3.4500251375335, 0, 0, 0, 0, 0, 0, 1.7061753085921, 3.3439279763905, 0,
         0, 0, 0, 0};
-    static double const expected_fstep[] = {0.00279169, 0.15497550035228,
-        0.0376414, 0.078163867310103, 0.0013704878213315, 9.659931080008e-05,
-        0.00074215629579836, 3.1163160035578e-05, 0.00279169, 0.19292164062171,
-        0.028493079924889, 0.078778123985786, 0.001181975090476,
-        0.00011040360872946, 0.00067599187250339, 2.6048655048005e-05};
     static double const expected_angle[] = {0.00031474130607916,
         0.79003683103898, -0.14560882721751, 0, -0.32650640360665,
         0.013072020086723, 0, 0, 0.003112817663327, 0.055689200859297,
@@ -516,7 +520,6 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_VEC_SOFT_EQ(expected_tstep, tstep);
     EXPECT_VEC_SOFT_EQ(expected_gstep, gstep);
     EXPECT_VEC_SOFT_EQ(expected_alpha, alpha);
-    EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
     EXPECT_VEC_SOFT_EQ(expected_displace, displace);
     EXPECT_VEC_EQ(expected_action, action);

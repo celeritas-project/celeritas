@@ -125,7 +125,6 @@ struct MscInteraction
         unchanged  //!< No state change
     };
 
-    real_type step_length;  //!< True step length
     Real3 direction;  //!< Post-step direction
     Real3 displacement;  //!< Lateral displacement
     Action action{Action::unchanged};  //!< Flags for interaction result

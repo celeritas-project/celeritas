@@ -182,9 +182,6 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
         MscStep result;
         result.is_displaced = false;
         result.true_path = phys_step_;
-        MscStepToGeo calc_geom_path(
-            shared_, helper_, inc_energy_, helper_.msc_mfp(), range_);
-        result.geom_path = calc_geom_path(phys_step_).step;
         return result;
     }
 
@@ -213,15 +210,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     }
 
     MscStep result;
-    {
-        result.true_path = true_path;
-        MscStepToGeo calc_geom_path(
-            shared_, helper_, inc_energy_, helper_.msc_mfp(), range_);
-        auto temp = calc_geom_path(true_path);
-        // Limit geometrical step to 1 MSC MFP
-        result.geom_path = min<real_type>(temp.step, helper_.msc_mfp());
-        result.alpha = temp.alpha;
-    }
+    result.true_path = true_path;
 
     return result;
 }

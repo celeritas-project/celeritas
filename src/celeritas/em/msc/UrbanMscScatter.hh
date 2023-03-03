@@ -56,9 +56,7 @@ class UrbanMscScatter
                                           PhysicsTrackView const& physics,
                                           MaterialView const& material,
                                           GeoTrackView* geometry,
-                                          MscStep const& input,
-                                          real_type phys_step,
-                                          bool geo_limited);
+                                          MscStep const& input);
 
     // Sample the final true step length, position and direction by msc
     template<class Engine>
@@ -148,9 +146,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                                  PhysicsTrackView const& physics,
                                  MaterialView const& material,
                                  GeoTrackView* geometry,
-                                 MscStep const& input,
-                                 real_type phys_step,
-                                 bool geo_limited)
+                                 MscStep const& input)
     : shared_(shared)
     , msc_(shared.material_data[material.material_id()])
     , helper_(helper)
@@ -159,32 +155,20 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     , inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
-    , is_displaced_(input.is_displaced && !geo_limited)
+    , is_displaced_(input.is_displaced)
     , geom_path_(input.geom_path)
     , true_path_(input.true_path)
     , limit_min_(physics.msc_range().limit_min)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
-    CELER_EXPECT(input.true_path >= geom_path_);
     CELER_EXPECT(geom_path_ > 0);
+    CELER_EXPECT(true_path_ >= geom_path_);
     CELER_EXPECT(limit_min_ >= UrbanMscParameters::limit_min_fix()
                  || !is_displaced_);
 
-    real_type range = physics.dedx_range();
-
-    if (geo_limited)
-    {
-        // Update the true path length from the physics-based value to one
-        // based on the (shorter) geometry path
-        MscStepFromGeo geo_to_true(
-            shared_.params, input, range, helper.msc_mfp());
-        true_path_ = geo_to_true(geom_path_);
-    }
-    CELER_ASSERT(true_path_ >= geom_path_ && true_path_ <= phys_step);
-
-    skip_sampling_ = [this, &helper, range] {
-        if (true_path_ == range)
+    skip_sampling_ = [this, &helper, &physics] {
+        if (true_path_ == physics.dedx_range())
         {
             // Range-limited step (particle stops)
             // TODO: probably redundant with low 'end energy'
@@ -279,10 +263,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     if (skip_sampling_)
     {
         // Do not sample scattering at the last or at a small step
-        return {true_path_,
-                inc_direction_,
-                {0, 0, 0},
-                MscInteraction::Action::unchanged};
+        return {inc_direction_, {0, 0, 0}, MscInteraction::Action::unchanged};
     }
 
     // Sample polar angle cosine
@@ -347,7 +328,6 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     }
 
     // Calculate direction and return
-    result.step_length = true_path_;
     result.direction = rotate(from_spherical(costheta, phi), inc_direction_);
     return result;
 }
