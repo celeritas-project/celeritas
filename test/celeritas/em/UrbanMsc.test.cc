@@ -430,17 +430,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                     phys.dedx_range());
         auto gp = calc_geom_path(step_result.true_path);
         step_result.geom_path = gp.step;
-        if (step_result.is_displaced)
-        {
-            step_result.alpha = gp.alpha;
-        }
-        else
-        {
-            // NOTE: this assignment is an artifact of the older
-            // implementation: alpha isn't used if displacement is disabled.
-            // In this case the
-            // step_result.alpha = MscStep::small_step_alpha();
-        }
+        step_result.alpha = gp.alpha;
         gstep.push_back(step_result.geom_path);
         alpha.push_back(step_result.alpha);
 
@@ -499,8 +489,9 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.027387302420092, 0.021108585475838, 0.001114330224665,
         0.00010271284320013, 0.00015376538794516, 7.1509532866908e-06};
     static double const expected_alpha[] = {0, 1.7708716862049,
-        3.4500251375335, 0, 0, 0, 0, 0, 0, 1.7061753085921, 3.3439279763905, 0,
-        0, 0, 0, 0};
+        3.4500251375335, 12.793635146437, 0, 0, 1347.4250715939,
+        32089.171921536, 0, 1.7061753085921, 3.3439279763905, 12.693879333563,
+        0, 0, 1479.3077264327, 38389.697977001};
     static double const expected_angle[] = {0.00031474130607916,
         0.79003683103898, -0.14560882721751, 0, -0.32650640360665,
         0.013072020086723, 0, 0, 0.003112817663327, 0.055689200859297,

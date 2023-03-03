@@ -126,14 +126,7 @@ UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
                                     phys.dedx_range());
         auto gp = calc_geom_path(result.true_path);
         result.geom_path = gp.step;
-        if (result.is_displaced)
-        {
-            // TODO: the conditional is a side effect of the original
-            // implementation.  It may be OK (and might be necessary for
-            // correctness!) to always assign alpha rather than leaving it as
-            // the "small step" value.
-            result.alpha = gp.alpha;
-        }
+        result.alpha = gp.alpha;
 
         // Limit geometrical step to 1 MSC MFP
         result.geom_path
