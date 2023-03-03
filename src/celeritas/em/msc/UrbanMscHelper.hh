@@ -55,8 +55,8 @@ class UrbanMscHelper
 
     // TODO: the following methods are used only by MscStepLimit
 
-    // The total energy loss over a given step length
-    inline CELER_FUNCTION Energy calc_stopping_energy(real_type step) const;
+    // Calculate the energy corresponding to a given particle range
+    inline CELER_FUNCTION Energy calc_inverse_range(real_type step) const;
 
     //! Step limit scaling based on atomic number and particle type
     CELER_FUNCTION real_type scaled_zeff() const
@@ -124,11 +124,12 @@ CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the energy of a track that is stopped after the given step.
+ * Calculate the energy corresponding to a given particle range.
  *
- * This is an exact value based on the range claculation.
+ * This is an exact value based on the range claculation. It can be used to
+ * find the exact energy loss over a step.
  */
-CELER_FUNCTION auto UrbanMscHelper::calc_stopping_energy(real_type step) const
+CELER_FUNCTION auto UrbanMscHelper::calc_inverse_range(real_type step) const
     -> Energy
 {
     auto range_gid
@@ -169,7 +170,7 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     else
     {
         // Longer step is calculated exactly with inverse range
-        return this->calc_stopping_energy(range - step);
+        return this->calc_inverse_range(range - step);
     }
 }
 

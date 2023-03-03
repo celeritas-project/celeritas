@@ -220,14 +220,14 @@ TEST_F(UrbanMscTest, coeff_data)
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
     UrbanMscMaterialData const& msc = params.material_data[mid];
-    EXPECT_SOFT_EQ(msc.coeffth1, 0.97326969977637379);
-    EXPECT_SOFT_EQ(msc.coeffth2, 0.044188139325421663);
-    EXPECT_SOFT_EQ(msc.d[0], 1.6889578380303167);
-    EXPECT_SOFT_EQ(msc.d[1], 2.745018223507488);
-    EXPECT_SOFT_EQ(msc.d[2], -2.2531516772497562);
-    EXPECT_SOFT_EQ(msc.d[3], 0.052696806851297018);
-    EXPECT_SOFT_EQ(msc.stepmin_a, 1e3 * 4.4449610414595817);
-    EXPECT_SOFT_EQ(msc.stepmin_b, 1e3 * 1.5922149179564158);
+    EXPECT_SOFT_EQ(msc.theta_coeff[0], 0.97326969977637379);
+    EXPECT_SOFT_EQ(msc.theta_coeff[1], 0.044188139325421663);
+    EXPECT_SOFT_EQ(msc.tail_coeff[0], 1.6889578380303167);
+    EXPECT_SOFT_EQ(msc.tail_coeff[1], 2.745018223507488);
+    EXPECT_SOFT_EQ(msc.tail_coeff[2], -2.2531516772497562);
+    EXPECT_SOFT_EQ(msc.tail_corr, 0.052696806851297018);
+    EXPECT_SOFT_EQ(msc.stepmin_coeff[0], 1e3 * 4.4449610414595817);
+    EXPECT_SOFT_EQ(msc.stepmin_coeff[1], 1e3 * 1.5922149179564158);
 
     // Check data for electron
     UrbanMscParMatData const& par = params.par_mat_data[params.at(mid, pid)];
@@ -244,7 +244,7 @@ TEST_F(UrbanMscTest, helper)
     EXPECT_SOFT_EQ(1.0897296072933604, helper.calc_msc_mfp(MevEnergy{10.01}));
     EXPECT_SOFT_EQ(0.90820266262324023, helper.calc_msc_mfp(MevEnergy{9.01}));
     EXPECT_SOFT_EQ(11.039692548085707,
-                   value_as<MevEnergy>(helper.calc_stopping_energy(1.0)));
+                   value_as<MevEnergy>(helper.calc_inverse_range(1.0)));
     EXPECT_SOFT_EQ(4.5491422239586035,
                    value_as<MevEnergy>(helper.calc_end_energy(0.5)));
 }

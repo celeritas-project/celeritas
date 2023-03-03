@@ -161,7 +161,7 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
             // Calculate the energy at the end of a physics-limited step
             real_type rfinal
                 = max<real_type>(range_ - tstep, real_type(0.01) * range_);
-            Energy endpoint_energy = helper_.calc_stopping_energy(rfinal);
+            Energy endpoint_energy = helper_.calc_inverse_range(rfinal);
             real_type lambda1 = helper_.calc_msc_mfp(endpoint_energy);
 
             // Calculate the geometric path assuming the cross section is
