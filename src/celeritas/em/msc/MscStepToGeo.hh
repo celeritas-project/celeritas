@@ -123,8 +123,6 @@ CELER_FUNCTION MscStepToGeo::MscStepToGeo(UrbanMscRef const& shared,
 CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     -> result_type
 {
-    CELER_EXPECT(tstep >= 0 && tstep <= range_);
-
     result_type result;
     result.alpha = MscStep::small_step_alpha();
     if (tstep < shared_.params.min_step())
@@ -153,7 +151,8 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
         else
         {
             // Calculate the energy at the end of a physics-limited step
-            real_type rfinal = range_ - tstep;
+            real_type rfinal
+                = max<real_type>(range_ - tstep, real_type(0.01) * range_);
             Energy endpoint_energy = helper_.calc_stopping_energy(rfinal);
             real_type lambda1 = helper_.calc_msc_mfp(endpoint_energy);
 
