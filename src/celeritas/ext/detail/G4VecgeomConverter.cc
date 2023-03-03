@@ -869,25 +869,24 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
             {
                 CELER_LOG(warning) << "Minor difference in capacities detected.";
             }
-            // TODO: adapt CELER_LOG's precision as in std::cout
-            //int oldPrec = std::cout.precision(12);
+            int oldPrec = CELER_LOG(info).precision(12);
             CELER_LOG(info) << "for volume " << shape->GetName() << " of type "
                 << shape->GetEntityType() << ": G4 gives " << capacityG4
                 << " VG gives "<< capacityVg
                 << ", a relative difference of "<< relativeDiff;
-            //std::cout.precision(oldPrec);
+            CELER_LOG(info).precision(oldPrec);
         }
         else
         {
             if (std::fabs(relativeDiff) > 1.0e-6)
             {
-                //int oldPrec2 = std::cout.precision(12);
+                int constexpr oldPrec = CELER_LOG(info).precision(12);
                 CELER_LOG(info) << "Check for volume " << shape->GetName()
                     << " of type " << shape->GetEntityType()
                     << ": G4 gives " << capacityG4
                     << " VG gives " << capacityVg
                     << ", a relative difference of "<< relativeDiff;
-                //std::cout.precision(oldPrec2);
+                CELER_LOG(info).precision(oldPrec);
             }
         }
     }
