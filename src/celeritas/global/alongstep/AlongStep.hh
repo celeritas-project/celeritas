@@ -37,16 +37,15 @@ inline CELER_FUNCTION void along_step(MH&& msc,
 
     // True step is the actual path length traveled by the particle, including
     // within-step MSC
-    AlongStepLocalState local;
-    local.step_limit = sim.step_limit();
-    CELER_ASSERT(local.step_limit);
-    if (local.step_limit.step == 0)
+    StepLimit step_limit = sim.step_limit();
+    CELER_ASSERT(step_limit);
+    if (step_limit.step == 0)
     {
         // Track is stopped: no movement or energy loss will happen
         // (could be a stopped positron waiting for annihilation, or a particle
         // waiting to decay?)
         CELER_ASSERT(track.make_particle_view().is_stopped());
-        CELER_ASSERT(local.step_limit.action
+        CELER_ASSERT(step_limit.action
                      == track.make_physics_view().scalars().discrete_action());
         CELER_ASSERT(track.make_physics_view().has_at_rest());
         // Increment the step counter
@@ -54,44 +53,40 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         return;
     }
 
-    local.geo_step = local.step_limit.step;
-    bool use_msc = msc.is_applicable(track, local.geo_step);
+    bool use_msc = msc.is_applicable(track, step_limit.step);
     if (use_msc)
     {
-        msc.calc_step(track, &local);
-        CELER_ASSERT(local.geo_step > 0);
-        CELER_ASSERT(local.step_limit.step >= local.geo_step);
+        // Apply MSC step limiters and transform "physical" step (with MSC) to
+        // "geometrical" step (smooth curve)
+        msc.limit_step(track, &step_limit);
     }
 
     {
         auto geo = track.make_geo_view();
         auto propagate = make_propagator(track.make_particle_view(), &geo);
-        Propagation p = propagate(local.geo_step);
+        Propagation p = propagate(step_limit.step);
         if (p.boundary)
         {
             // Stopped at a geometry boundary: this is the new step action.
-            CELER_ASSERT(p.distance <= local.geo_step);
-            CELER_ASSERT(p.distance < local.step_limit.step);
-            local.geo_step = p.distance;
-            local.step_limit.action = track.boundary_action();
+            CELER_ASSERT(p.distance <= step_limit.step);
+            CELER_ASSERT(p.distance < step_limit.step);
+            step_limit.step = p.distance;
+            step_limit.action = track.boundary_action();
         }
-        else if (p.distance < local.geo_step)
+        else if (p.distance < step_limit.step)
         {
             // Some other internal non-boundary geometry limit has been reached
             // (e.g. too many substeps)
-            local.geo_step = p.distance;
-            local.step_limit.action = track.propagation_limit_action();
+            step_limit.step = p.distance;
+            step_limit.action = track.propagation_limit_action();
         }
     }
 
     if (use_msc)
     {
-        msc.apply_step(track, &local);
-    }
-    else
-    {
-        // Step might have been reduced due to geometry boundary
-        local.step_limit.step = local.geo_step;
+        // Scatter the track and transform the "geometrical" step back to
+        // "physical" step
+        msc.apply_step(track, &step_limit);
     }
 
     // Update track's lab-frame time using the beginning-of-step speed
@@ -104,7 +99,7 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         {
             // For very small energies (< numeric_limits<real_type>::epsilon)
             // the calculated speed can be zero.
-            real_type delta_time = local.step_limit.step / speed;
+            real_type delta_time = step_limit.step / speed;
             sim.add_time(delta_time);
         }
     }
@@ -113,9 +108,8 @@ inline CELER_FUNCTION void along_step(MH&& msc,
     {
         using Energy = ParticleTrackView::Energy;
 
-        bool apply_cut = (local.step_limit.action != track.boundary_action());
-        Energy deposited
-            = eloss.calc_eloss(track, local.step_limit.step, apply_cut);
+        bool apply_cut = (step_limit.action != track.boundary_action());
+        Energy deposited = eloss.calc_eloss(track, step_limit.step, apply_cut);
         CELER_ASSERT(deposited <= particle.energy());
         CELER_ASSERT(apply_cut || deposited != particle.energy());
 
@@ -135,7 +129,7 @@ inline CELER_FUNCTION void along_step(MH&& msc,
     if (particle.is_stopped())
     {
         // Particle lost all energy over the step
-        CELER_ASSERT(local.step_limit.action != track.boundary_action());
+        CELER_ASSERT(step_limit.action != track.boundary_action());
         auto phys = track.make_physics_view();
         if (!phys.has_at_rest())
         {
@@ -145,23 +139,23 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         else
         {
             // Particle slowed down to zero: force a discrete interaction
-            local.step_limit.action = phys.scalars().discrete_action();
+            step_limit.action = phys.scalars().discrete_action();
         }
     }
 
     if (sim.status() != TrackStatus::killed)
     {
-        CELER_ASSERT(local.step_limit.step > 0);
-        CELER_ASSERT(local.step_limit.action);
+        CELER_ASSERT(step_limit.step > 0);
+        CELER_ASSERT(step_limit.action);
         auto phys = track.make_physics_view();
-        if (local.step_limit.action != phys.scalars().discrete_action())
+        if (step_limit.action != phys.scalars().discrete_action())
         {
             // Reduce remaining mean free paths to travel. The 'discrete
             // action' case is launched separately and resets the
             // interaction MFP itself.
             auto step = track.make_physics_step_view();
             real_type mfp = phys.interaction_mfp()
-                            - local.step_limit.step * step.macro_xs();
+                            - step_limit.step * step.macro_xs();
             CELER_ASSERT(mfp > 0);
             phys.interaction_mfp(mfp);
         }
@@ -169,7 +163,7 @@ inline CELER_FUNCTION void along_step(MH&& msc,
 
     {
         // Override step limit with action/step changes we applied
-        sim.force_step_limit(local.step_limit);
+        sim.force_step_limit(step_limit);
         // Increment the step counter
         sim.increment_num_steps();
     }

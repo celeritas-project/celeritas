@@ -34,16 +34,10 @@ struct NoMsc
     }
 
     //! No updates needed to the physical and geometric step lengths
-    CELER_FUNCTION void
-    calc_step(CoreTrackView const&, AlongStepLocalState*) const
-    {
-    }
+    CELER_FUNCTION void limit_step(CoreTrackView const&, StepLimit*) const {}
 
     //! MSC is never applied
-    CELER_FUNCTION void
-    apply_step(CoreTrackView const&, AlongStepLocalState*) const
-    {
-    }
+    CELER_FUNCTION void apply_step(CoreTrackView const&, StepLimit*) const {}
 };
 
 //---------------------------------------------------------------------------//

@@ -42,12 +42,10 @@ class UrbanMsc
     is_applicable(CoreTrackView const&, real_type step) const;
 
     // Update the physical and geometric step lengths
-    inline CELER_FUNCTION void
-    calc_step(CoreTrackView const&, AlongStepLocalState*);
+    inline CELER_FUNCTION void limit_step(CoreTrackView const&, StepLimit*);
 
     // Apply MSC
-    inline CELER_FUNCTION void
-    apply_step(CoreTrackView const&, AlongStepLocalState*);
+    inline CELER_FUNCTION void apply_step(CoreTrackView const&, StepLimit*);
 
   private:
     ParamsRef const& msc_params_;
@@ -95,7 +93,7 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
  * Update the physical and geometric step lengths.
  */
 CELER_FUNCTION void
-UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
+UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
 {
     CELER_EXPECT(msc_params_);
 
@@ -113,11 +111,11 @@ UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
                                      phys.material_id(),
                                      geo.is_on_boundary(),
                                      geo.find_safety(),
-                                     local->step_limit.step);
+                                     step_limit->step);
 
         auto rng = track.make_rng_engine();
         auto result = calc_limit(rng);
-        CELER_ASSERT(result.true_path <= local->step_limit.step);
+        CELER_ASSERT(result.true_path <= step_limit->step);
 
         MscStepToGeo calc_geom_path(msc_params_,
                                     msc_helper,
@@ -138,17 +136,20 @@ UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
     CELER_ASSERT(msc_step.true_path >= msc_step.geom_path);
     track.make_physics_step_view().msc_step(msc_step);
 
-    // Use "straight line" path calculated for geometry step
-    local->geo_step = msc_step.geom_path;
-
-    if (msc_step.true_path < local->step_limit.step)
+    if (msc_step.true_path < step_limit->step)
     {
         // True/physical step might be further limited by MSC
-        // TODO: this is already kinda sorta determined inside the
-        // UrbanMscStepLimit calculation
-        local->step_limit.step = msc_step.true_path;
-        local->step_limit.action = phys.scalars().msc_action();
+        // TODO: use a return value from the UrbanMscStepLimit instead of a
+        // floating point comparison to determine whether the step is MSC
+        // limited.
+        // TODO: the true path comparison does *NOT* account for any extra
+        // limiting done by the 1MFP limiter!!
+        step_limit->action = phys.scalars().msc_action();
     }
+
+    // Always apply the step transformation, even if the physical step wasn't
+    // necessarily limited
+    step_limit->step = msc_step.geom_path;
 }
 
 //---------------------------------------------------------------------------//
@@ -156,7 +157,7 @@ UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
  * Apply MSC.
  */
 CELER_FUNCTION void
-UrbanMsc::apply_step(CoreTrackView const& track, AlongStepLocalState* local)
+UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
 {
     CELER_EXPECT(msc_params_);
 
@@ -168,12 +169,12 @@ UrbanMsc::apply_step(CoreTrackView const& track, AlongStepLocalState* local)
     // Replace step with actual geometry distance traveled
     UrbanMscHelper msc_helper(msc_params_, par, phys);
     auto msc_step = track.make_physics_step_view().msc_step();
-    if (this->is_geo_limited(track, local->step_limit))
+    if (this->is_geo_limited(track, *step_limit))
     {
         // Convert geometrical distance to equivalent physical distance, which
         // will be greater than (or in edge cases equal to) that distance and
         // less than the original physical step limit.
-        msc_step.geom_path = local->geo_step;
+        msc_step.geom_path = step_limit->step;
         MscStepFromGeo geo_to_true(msc_params_.params,
                                    msc_step,
                                    phys.dedx_range(),
@@ -187,7 +188,7 @@ UrbanMsc::apply_step(CoreTrackView const& track, AlongStepLocalState* local)
 
     // Update full path length traveled along the step based on MSC to
     // correctly calculate energy loss, step time, etc.
-    local->step_limit.step = msc_step.true_path;
+    step_limit->step = msc_step.true_path;
 
     auto msc_result = [&] {
         UrbanMscScatter sample_scatter(msc_params_,
