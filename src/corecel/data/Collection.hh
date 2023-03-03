@@ -128,9 +128,10 @@ template<class T, class Size = size_type>
 using ItemRange = Range<OpaqueId<T, Size>>;
 
 //---------------------------------------------------------------------------//
-/*! Access data in a Range<T2> with an index of type T1
+/*!
+ * Access data in a Range<T2> with an index of type T1.
  *
- * Here, T1 and T2 are expected to be OpaqueId types
+ * Here, T1 and T2 are expected to be OpaqueId types.
  */
 template<class T1, class T2>
 class ItemMap
@@ -148,7 +149,7 @@ class ItemMap
     ItemMap() = default;
 
     //! Contruct from an exising Range<T2>
-    ItemMap(Range<T2> range) : range_(range)
+   explicit CELER_FUNCTION ItemMap(Range<T2> range) : range_(range)
     {
         static_assert(detail::IsOpaqueId<T1>::value, "T1 isn't opaque ID");
         static_assert(detail::IsOpaqueId<T2>::value, "T2 isn't opaque ID");
