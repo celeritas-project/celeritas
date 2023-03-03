@@ -532,7 +532,7 @@ real_type UrbanMscScatter::compute_theta0() const
         theta0 *= std::sqrt(true_path_ / limit_min_);
     }
 
-    CELER_ENSURE(theta0 >= 0);
+    CELER_ENSURE(theta0 > 0);
     return theta0;
 }
 
