@@ -171,7 +171,6 @@ UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
     auto par = track.make_particle_view();
     auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();
-    auto mat = track.make_material_view();
 
     // Replace step with actual geometry distance traveled
     UrbanMscHelper msc_helper(msc_params_, par, phys);
@@ -198,13 +197,9 @@ UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
     step_limit->step = msc_step.true_path;
 
     auto msc_result = [&] {
-        UrbanMscScatter sample_scatter(msc_params_,
-                                       msc_helper,
-                                       par,
-                                       phys,
-                                       mat.make_material_view(),
-                                       &geo,
-                                       msc_step);
+        auto mat = track.make_material_view().make_material_view();
+        UrbanMscScatter sample_scatter(
+            msc_params_, msc_helper, par, phys, mat, &geo, msc_step);
 
         auto rng = track.make_rng_engine();
         return sample_scatter(rng);
