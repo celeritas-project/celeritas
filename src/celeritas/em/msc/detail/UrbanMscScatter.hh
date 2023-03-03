@@ -23,9 +23,11 @@
 
 #include "MscStepFromGeo.hh"
 #include "UrbanMscHelper.hh"
-#include "detail/UrbanPositronCorrector.hh"
+#include "UrbanPositronCorrector.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -617,4 +619,5 @@ UrbanMscScatter::calc_displacement_length(real_type rmax2)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

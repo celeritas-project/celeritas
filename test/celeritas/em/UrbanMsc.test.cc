@@ -13,8 +13,10 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/em/UrbanMscParams.hh"
-#include "celeritas/em/msc/UrbanMscScatter.hh"
-#include "celeritas/em/msc/UrbanMscStepLimit.hh"
+#include "celeritas/em/msc/detail/MscStepFromGeo.hh"
+#include "celeritas/em/msc/detail/MscStepToGeo.hh"
+#include "celeritas/em/msc/detail/UrbanMscScatter.hh"
+#include "celeritas/em/msc/detail/UrbanMscStepLimit.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -69,19 +71,13 @@ TEST(UrbanPositronCorrectorTest, all)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
-}  // namespace detail
-
-namespace test
-{
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UrbanMscTest : public RootTestBase
+class UrbanMscTest : public ::celeritas::test::RootTestBase
 {
   protected:
-    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
+    using RandomEngine = ::celeritas::test::DiagnosticRngEngine<std::mt19937>;
 
     using PhysicsStateStore
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
@@ -522,4 +518,5 @@ TEST_F(UrbanMscTest, msc_scattering)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace detail
 }  // namespace celeritas

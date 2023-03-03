@@ -17,6 +17,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Convert the "geometrical" path traveled to the true path with MSC.
@@ -155,4 +157,5 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

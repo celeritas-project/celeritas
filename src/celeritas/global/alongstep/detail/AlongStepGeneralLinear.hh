@@ -9,10 +9,10 @@
 
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/em/msc/UrbanMsc.hh"
+#include "celeritas/em/msc/UrbanMsc.hh"  // IWYU pragma: associated
 
 #include "AlongStepNeutral.hh"
-#include "FluctELoss.hh"
+#include "FluctELoss.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {

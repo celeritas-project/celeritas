@@ -26,6 +26,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * This is the step limitation algorithm of the Urban model for the e-/e+
@@ -244,4 +246,5 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
