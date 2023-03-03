@@ -108,21 +108,20 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
         return gstep;
     }
 
-    // NOTE: add && !insideskin if the UseDistanceToBoundary algorithm is used
-    if (gstep <= lambda_ * params_.tau_small)
-    {
-        // Very small distance to collision (less than tau_small paths)
-        return gstep;
-    }
-
     real_type tstep = [&] {
         if (alpha_ == MscStep::small_step_alpha())
         {
             // Cross section was assumed to be constant over the step:
             // z = lambda * (1 - exp(-g / lambda))
             // => g = -lambda * log(1 - g / lambda)
-            real_type result = -lambda_ * std::log(1 - gstep / lambda_);
-            return result;
+            real_type tstep = -lambda_ * std::log1p(-gstep / lambda_);
+            if (tstep < params_.min_step())
+            {
+                // Geometrical path length = true path length for a very small
+                // step
+                return gstep;
+            }
+            return tstep;
         }
 
         real_type w = 1 + 1 / (alpha_ * lambda_);

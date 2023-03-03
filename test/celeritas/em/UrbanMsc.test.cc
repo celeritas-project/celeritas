@@ -321,7 +321,7 @@ TEST_F(UrbanMscTest, step_conversion)
                  pstep=0.0027792890018717618
                  e- at 0.102364 MeV
                  */
-                real_type tol = (1 - gp.alpha * pstep < 1e-8 ? 1e-3 : 1e-8);
+                real_type tol = (1 - gp.alpha * pstep < 1e-8 ? 1e-3 : 1e-10);
                 EXPECT_SOFT_NEAR(pstep, true_step, tol);
             }
         }
