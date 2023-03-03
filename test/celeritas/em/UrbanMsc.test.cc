@@ -392,11 +392,16 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<double> displace;
     std::vector<char> action;
 
+    // Total RNG count (we only sample once per particle/energy so count and
+    // average are the same)
+    std::vector<int> avg_engine_samples;
+
     auto sample_one = [&](PDGNumber ptype, int i) {
         auto par = this->make_par_view(ptype, MevEnergy{energy[i]});
         auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
         auto geo = this->make_geo_view(/* r = */ i * 2 - real_type(1e-4));
         MaterialView mat = this->material()->get(phys.material_id());
+        rng.reset_count();
 
         UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
         range.push_back(phys.dedx_range());
@@ -449,6 +454,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         action.push_back(sample_result.action == Action::displaced   ? 'd'
                          : sample_result.action == Action::scattered ? 's'
                                                                      : 'u');
+        avg_engine_samples.push_back(rng.count());
     };
 
     for (auto ptype : {pdg::electron(), pdg::positron()})
@@ -503,6 +509,8 @@ TEST_F(UrbanMscTest, msc_scattering)
         0};
     static char const expected_action[] = {'d', 'd', 'd', 'u', 'd', 'd', 'u',
         'u', 'd', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
+    static int const expected_avg_engine_samples[] = {12, 16, 16, 0, 16, 16, 0,
+        0, 12, 16, 16, 0, 16, 16, 0, 0};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_pstep, pstep);
@@ -514,6 +522,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
     EXPECT_VEC_SOFT_EQ(expected_displace, displace);
     EXPECT_VEC_EQ(expected_action, action);
+    EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 
 //---------------------------------------------------------------------------//
