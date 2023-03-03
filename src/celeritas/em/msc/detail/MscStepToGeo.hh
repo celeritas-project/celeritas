@@ -141,10 +141,7 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     {
         // Small enough distance to assume cross section is constant
         // over the step: z = lambda * (1 - exp(-tau))
-        real_type tau = tstep / lambda_;
-        result.step = (tau < shared_.params.tau_limit)
-                          ? tstep * (1 - tau / 2)
-                          : lambda_ * (1 - std::exp(-tau));
+        result.step = -lambda_ * std::expm1(-tstep / lambda_);
     }
     else
     {
