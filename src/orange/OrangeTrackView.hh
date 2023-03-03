@@ -204,8 +204,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
     // Initialize logical state
     UniverseId next_uid = top_universe_id();
 
-    detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
-
     size_type level = 0;
 
     // Recurse into daughter universes starting with the outermost universe
@@ -222,12 +220,12 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.pos() = init.pos;
         lsa.dir() = init.dir;
         lsa.universe() = uid;
-        lsa.surf() = SurfaceId{};
+        lsa.surf() = LocalSurfaceId{};
         lsa.sense() = Sense{};
         lsa.boundary() = BoundaryResult::exiting;
 
-        auto global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
-        next_uid = params_.volume_records[global_vol_id].daughter;
+        auto const& vol_rec = tracker.unit_record().volumes[tinit.volume];
+        next_uid = params_.volume_records[vol_rec].daughter;
         ++level;
 
     } while (next_uid);
@@ -332,7 +330,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
     auto lsa = this->make_lsa(LevelId{0});
-    return lsa.vol() == VolumeId{0};
+    return lsa.vol() == LocalVolumeId{0};
 }
 
 //---------------------------------------------------------------------------//
@@ -463,7 +461,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     axpy(dist, lsa.dir(), &lsa.pos());
 
     next_step_ -= dist;
-    lsa.surf() = SurfaceId{};
+    lsa.surf() = LocalSurfaceId{};
 }
 
 //---------------------------------------------------------------------------//
@@ -477,7 +475,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
     auto lsa = this->make_lsa();
     lsa.pos() = pos;
-    lsa.surf() = SurfaceId{};
+    lsa.surf() = LocalSurfaceId{};
     this->clear_next_step();
 }
 
@@ -521,7 +519,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         // Initialization failure on release mode: set to exterior volume
         // rather than segfaulting
         // TODO: error correction or more graceful failure than losing energy
-        init.volume = VolumeId{0};
+        init.volume = LocalVolumeId{0};
         init.surface = {};
     }
 
@@ -559,7 +557,9 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         // dotted with the surface normal changes (i.e. heading from inside to
         // outside or vice versa).
         auto tracker = this->make_tracker(UniverseId{0});
-        const Real3 normal = tracker.normal(this->pos(), this->surface_id());
+        detail::UnitIndexer ui(params_.unit_indexer_data);
+        const Real3 normal = tracker.normal(
+            this->pos(), ui.local_surface(this->surface_id()).surface);
 
         if ((dot_product(normal, newdir) >= 0)
             != (dot_product(normal, this->dir()) >= 0))
@@ -704,10 +704,7 @@ OrangeTrackView::make_local_state(LevelId level) const
 
     local.pos = lsa.pos();
     local.dir = lsa.dir();
-
-    detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
-    local.volume = unit_indexer.local_volume(lsa.vol()).volume;
-
+    local.volume = lsa.vol();
     local.surface = {lsa.surf(), lsa.sense()};
     local.temp_sense = this->make_temp_sense();
     local.temp_next = this->make_temp_next();

@@ -37,9 +37,9 @@ class LevelStateAccessor
 
     //// ACCESSORS ////
 
-    CELER_FUNCTION VolumeId& vol()
+    CELER_FUNCTION LocalVolumeId& vol()
     {
-        return states_->vol[OpaqueId<VolumeId>{index_}];
+        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
     }
 
     CELER_FUNCTION Real3& pos()
@@ -57,9 +57,9 @@ class LevelStateAccessor
         return states_->universe[OpaqueId<UniverseId>{index_}];
     }
 
-    CELER_FUNCTION SurfaceId& surf()
+    CELER_FUNCTION LocalSurfaceId& surf()
     {
-        return states_->surf[OpaqueId<SurfaceId>{index_}];
+        return states_->surf[OpaqueId<LocalSurfaceId>{index_}];
     }
 
     CELER_FUNCTION Sense& sense()
@@ -74,9 +74,9 @@ class LevelStateAccessor
 
     //// CONST ACCESSORS ////
 
-    CELER_FUNCTION VolumeId const& vol() const
+    CELER_FUNCTION LocalVolumeId const& vol() const
     {
-        return states_->vol[OpaqueId<VolumeId>{index_}];
+        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
     }
 
     CELER_FUNCTION Real3 const& pos() const
@@ -94,9 +94,9 @@ class LevelStateAccessor
         return states_->universe[OpaqueId<UniverseId>{index_}];
     }
 
-    CELER_FUNCTION SurfaceId const& surf() const
+    CELER_FUNCTION LocalSurfaceId const& surf() const
     {
-        return states_->surf[OpaqueId<SurfaceId>{index_}];
+        return states_->surf[OpaqueId<LocalSurfaceId>{index_}];
     }
 
     CELER_FUNCTION Sense const& sense() const

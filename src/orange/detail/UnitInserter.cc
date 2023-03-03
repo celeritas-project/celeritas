@@ -159,34 +159,35 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<Translation> translations;
-    std::vector<std::set<VolumeId>> connectivity(inp.surfaces.size());
+    std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
     for (auto i : range(inp.volumes.size()))
     {
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
 
         // Add embedded universes
-        if (inp.daughter_map.find(VolumeId(i)) != inp.daughter_map.end())
+        if (inp.daughter_map.find(LocalVolumeId(i)) != inp.daughter_map.end())
         {
             process_daughter(&(vol_records[i]),
                              &translations,
-                             inp.daughter_map.at(VolumeId(i)));
+                             inp.daughter_map.at(LocalVolumeId(i)));
         }
 
         // Add connectivity for explicitly connected volumes
         if (!(vol_records[i].flags & VolumeRecord::implicit_vol))
         {
-            for (SurfaceId f : inp.volumes[i].faces)
+            for (LocalSurfaceId f : inp.volumes[i].faces)
             {
                 CELER_ASSERT(f < connectivity.size());
-                connectivity[f.unchecked_get()].insert(VolumeId(i));
+                connectivity[f.unchecked_get()].insert(LocalVolumeId(i));
             }
         }
     }
 
     // Save volumes
-    unit.volumes = make_builder(&orange_data_->volume_records)
-                       .insert_back(vol_records.begin(), vol_records.end());
+    unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::VolumeRecordId>(
+        make_builder(&orange_data_->volume_records)
+            .insert_back(vol_records.begin(), vol_records.end()));
 
     // Save translations
     unit.translations
@@ -197,7 +198,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     {
         std::vector<Connectivity> conn(connectivity.size());
         CELER_ASSERT(conn.size() == unit.surfaces.types.size());
-        auto vol_ids = make_builder(&orange_data_->volume_ids);
+        auto vol_ids = make_builder(&orange_data_->local_volume_ids);
         for (auto i : range(connectivity.size()))
         {
             Connectivity c;
@@ -212,7 +213,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     // Save unit scalars
     if (inp.volumes.back().zorder == 1)
     {
-        unit.background = VolumeId(inp.volumes.size() - 1);
+        unit.background = LocalVolumeId(inp.volumes.size() - 1);
     }
     unit.simple_safety = std::all_of(
         vol_records.begin(), vol_records.end(), [](VolumeRecord const& v) {
@@ -307,7 +308,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     auto get_num_intersections
         = make_surface_action(surfaces, NumIntersectionGetter{});
 
-    for (SurfaceId sid : v.faces)
+    for (LocalSurfaceId sid : v.faces)
     {
         CELER_ASSERT(sid < surfaces.num_surfaces());
         simple_safety = simple_safety && get_simple_safety(sid);
@@ -328,12 +329,11 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         input_logic = make_span(nowhere_logic);
     }
 
-    auto faces = make_builder(&orange_data_->surface_ids);
-    auto logic = make_builder(&orange_data_->logic_ints);
-
     VolumeRecord output;
-    output.faces = faces.insert_back(v.faces.begin(), v.faces.end());
-    output.logic = logic.insert_back(input_logic.begin(), input_logic.end());
+    output.faces = make_builder(&orange_data_->local_surface_ids)
+                       .insert_back(v.faces.begin(), v.faces.end());
+    output.logic = make_builder(&orange_data_->logic_ints)
+                       .insert_back(input_logic.begin(), input_logic.end());
     output.max_intersections = max_intersections;
     output.flags = v.flags;
     if (simple_safety)

@@ -54,7 +54,7 @@ struct VolumeInput
     Label label{};
 
     //! Sorted list of surface IDs in this volume
-    std::vector<SurfaceId> faces{};
+    std::vector<LocalSurfaceId> faces{};
     //! RPN region definition for this volume, using local surface index
     std::vector<logic_int> logic{};
     //! Axis-aligned bounding box (TODO: currently unused)
@@ -83,7 +83,7 @@ struct UnitInput
         UniverseId universe_id;
         Translation translation;
     };
-    using MapVolumeDaughter = std::unordered_map<VolumeId, Daughter>;
+    using MapVolumeDaughter = std::unordered_map<LocalVolumeId, Daughter>;
 
     SurfaceInput surfaces;
     std::vector<VolumeInput> volumes;

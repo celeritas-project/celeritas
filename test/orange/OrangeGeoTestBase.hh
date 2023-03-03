@@ -97,11 +97,17 @@ class OrangeGeoTestBase : public Test
     // Find the surface from its label (NULL pointer allowed)
     SurfaceId find_surface(char const* label) const;
 
-    // Surface name (or sentinel if no surface);
-    std::string id_to_label(SurfaceId) const;
+    // Surface name (or sentinel if no surface)
+    std::string id_to_label(UniverseId uid, LocalSurfaceId surfid) const;
 
-    // Cell name (or sentinel if no surface);
-    std::string id_to_label(VolumeId) const;
+    // Surface name (or sentinel if no surface) within UniverseId{0}
+    std::string id_to_label(LocalSurfaceId surfid) const;
+
+    // Cell name (or sentinel if no surface)
+    std::string id_to_label(UniverseId uid, LocalVolumeId volid) const;
+
+    // Cell name (or sentinel if no surface) within UniverseId{0}
+    std::string id_to_label(LocalVolumeId volid) const;
 
     // Print geometry description
     void describe(std::ostream& os) const;
