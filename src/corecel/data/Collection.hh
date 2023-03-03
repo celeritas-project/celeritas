@@ -136,6 +136,9 @@ using ItemRange = Range<OpaqueId<T, Size>>;
 template<class T1, class T2>
 class ItemMap
 {
+    static_assert(detail::IsOpaqueId<T1>::value, "T1 isn't opaque ID");
+    static_assert(detail::IsOpaqueId<T2>::value, "T2 isn't opaque ID");
+
   public:
     //!@{
     //! \name Type aliases
@@ -149,11 +152,7 @@ class ItemMap
     ItemMap() = default;
 
     //! Contruct from an exising Range<T2>
-   explicit CELER_FUNCTION ItemMap(Range<T2> range) : range_(range)
-    {
-        static_assert(detail::IsOpaqueId<T1>::value, "T1 isn't opaque ID");
-        static_assert(detail::IsOpaqueId<T2>::value, "T2 isn't opaque ID");
-    }
+    explicit CELER_FUNCTION ItemMap(Range<T2> range) : range_(range) {}
 
     //// ACCESS ////
 
