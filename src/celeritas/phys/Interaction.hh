@@ -76,15 +76,13 @@ struct Interaction
  * The value \f$ \alpha \f$ is used in the approximation of the MSC
  * transport cross section as a linear function over the current step. It is
  * the negative slope of the transport MFP from start to stop, divided by the
- * starting MFP. (Since MFP should decrease with decreasing energy over the
- * step, alpha *should* always be positive, but problems with the data can
- * violate that condition.) The "small step alpha" condition assumes a constant
- * MSC cross section over the step, i.e. an MFP slope of zero.
+ * starting MFP. (Since MFP decreases with decreasing energy over the step,
+ * alpha should always be positive.)
  */
 struct MscStep
 {
     //! Use a small step approximation for the path length correction
-    static CELER_CONSTEXPR_FUNCTION real_type small_step_alpha() { return 0; }
+    static CELER_CONSTEXPR_FUNCTION real_type small_step_alpha() { return -1; }
 
     bool is_displaced{true};  //!< Flag for the lateral displacement
     real_type true_path{};  //!< True path length due to the msc  [cm]
@@ -114,6 +112,10 @@ struct MscRange
 //---------------------------------------------------------------------------//
 /*!
  * Result of multiple scattering.
+ *
+ * The "true" step length is the physical path length taken along the geometric
+ * step, accounting for the extra distance taken between along-step
+ * elastic collisions.
  */
 struct MscInteraction
 {
