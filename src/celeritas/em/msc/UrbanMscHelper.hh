@@ -46,7 +46,8 @@ class UrbanMscHelper
 
     //// HELPER FUNCTIONS ////
 
-    // The mean free path of the multiple scattering at the current energy [cm]
+    //! The mean free path of the multiple scattering at the current energy
+    //! [cm]
     CELER_FUNCTION real_type msc_mfp() const { return lambda_; }
 
     // The mean free path of the multiple scattering for a given energy [cm]
@@ -64,9 +65,7 @@ class UrbanMscHelper
     }
 
     // Maximum expected distance based on the track's range
-    CELER_FUNCTION real_type max_step(real_type dedx_range) const;
-
-    // TODO: the following methods are used only by MscScatter
+    inline CELER_FUNCTION real_type max_step() const;
 
     // The kinetic energy at the end of a given step length corrected by dedx
     inline CELER_FUNCTION Energy calc_end_energy(real_type step) const;
@@ -143,10 +142,9 @@ CELER_FUNCTION auto UrbanMscHelper::calc_stopping_energy(real_type step) const
 /*!
  * Maximum expected step length based on the track's range.
  */
-CELER_FUNCTION real_type UrbanMscHelper::max_step(real_type dedx_range) const
+CELER_FUNCTION real_type UrbanMscHelper::max_step() const
 {
-    CELER_EXPECT(dedx_range > 0);
-    return dedx_range * this->pmdata().d_over_r;
+    return physics_.dedx_range() * this->pmdata().d_over_r;
 }
 
 //---------------------------------------------------------------------------//
@@ -156,6 +154,7 @@ CELER_FUNCTION real_type UrbanMscHelper::max_step(real_type dedx_range) const
 CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     -> Energy
 {
+    CELER_EXPECT(step <= physics_.dedx_range());
     real_type range = physics_.dedx_range();
     if (step <= range * shared_.params.dtrl())
     {

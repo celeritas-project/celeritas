@@ -213,11 +213,13 @@ TEST_F(UrbanMscTest, coeff_data)
 {
     auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
     ASSERT_TRUE(mid);
+    auto pid = this->particle()->find(pdg::electron());
+    ASSERT_TRUE(pid);
+
+    auto const& params = msc_params_->host_ref();
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
-    UrbanMscMaterialData const& msc
-        = msc_params_->host_ref().material_data[mid];
-
+    UrbanMscMaterialData const& msc = params.material_data[mid];
     EXPECT_SOFT_EQ(msc.coeffth1, 0.97326969977637379);
     EXPECT_SOFT_EQ(msc.coeffth2, 0.044188139325421663);
     EXPECT_SOFT_EQ(msc.d[0], 1.6889578380303167);
@@ -226,8 +228,10 @@ TEST_F(UrbanMscTest, coeff_data)
     EXPECT_SOFT_EQ(msc.d[3], 0.052696806851297018);
     EXPECT_SOFT_EQ(msc.stepmin_a, 1e3 * 4.4449610414595817);
     EXPECT_SOFT_EQ(msc.stepmin_b, 1e3 * 1.5922149179564158);
-    EXPECT_SOFT_EQ(msc.d_over_r, 0.64474963087322135);
-    EXPECT_SOFT_EQ(msc.d_over_r_mh, 1.1248191999999999);
+
+    // Check data for electron
+    UrbanMscParMatData const& par = params.par_mat_data[params.at(mid, pid)];
+    EXPECT_SOFT_EQ(par.d_over_r, 0.64474963087322135);
 }
 
 TEST_F(UrbanMscTest, helper)

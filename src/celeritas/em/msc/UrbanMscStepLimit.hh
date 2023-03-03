@@ -82,7 +82,7 @@ class UrbanMscStepLimit
     real_type phys_step_{};
     // Mean slowing-down distance from current energy to zero
     real_type range_{};
-    // Whether to skip sampling and just return the original physics step
+    // Whether to avoid changing the particle position near geometry boundary
     bool skip_displacement_{false};
 
     //// HELPER TYPES ////
@@ -132,11 +132,11 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
         // Very short step: don't displace
         skip_displacement_ = true;
     }
-    else if (helper_.max_step(range_) < safety_)
+    else if (helper_.max_step() < safety_)
     {
-        // Potential step length is shorter than potential boundary distance
-        // TODO: should we only skip displacement if we're at or further than
-        // the boundary?
+        // The lower limit for the linear distance that the track can travel in
+        // one step is closer than the nearest boundary. Displacement should
+        // only occur "near" boundaries.
         skip_displacement_ = true;
     }
     else if (!msc_range_ || on_boundary)
@@ -144,6 +144,8 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
         MscRange new_range;
         // Initialize MSC range cache on the first step in a volume
         new_range.range_fact = shared.params.range_fact;
+        // XXX the 1 MFP limitation is applied to the *geo* step, not the true
+        // step, so this isn't quite right (See UrbanMsc.hh)
         new_range.range_init = max<real_type>(range_, helper_.msc_mfp());
         if (helper_.msc_mfp() > shared.params.lambda_limit)
         {
@@ -178,8 +180,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
 {
     if (skip_displacement_)
     {
-        // Very small step or the lower limit for the linear
-        // distance that e-/e+ can travel is far from the geometry boundary
+        // Very small step or far from the geometry boundary
         MscStep result;
         result.is_displaced = false;
         result.true_path = phys_step_;
@@ -188,7 +189,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
 
     // Step limitation algorithm: UseSafety (the default)
     real_type limit = range_;
-    if (range_ > safety_)
+    if (safety_ < range_)
     {
         limit = max<real_type>(msc_range_.range_fact * msc_range_.range_init,
                                shared_.params.safety_fact * safety_);
