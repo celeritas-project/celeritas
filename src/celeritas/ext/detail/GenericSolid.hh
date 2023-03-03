@@ -23,11 +23,13 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 #include <VecGeom/volumes/UnplacedVolume.h>
 
+using namespace vecgeom;
+
 namespace celeritas
 {
 
 template<typename S>
-class GenericSolid : public vecgeom::VUnplacedVolume
+class GenericSolid : public VUnplacedVolume
 {
   public:
     using VUnplacedVolume::DistanceToIn;
@@ -37,7 +39,7 @@ class GenericSolid : public vecgeom::VUnplacedVolume
 
     explicit GenericSolid(S const* g4solid) : fG4Solid(g4solid) {}
 
-    static G4ThreeVector ToG4V(vecgeom::Vector3D<double> const& p)
+    static G4ThreeVector ToG4V(Vector3D<double> const& p)
     {
         return G4ThreeVector(p[0], p[1], p[2]);
     }
@@ -53,7 +55,7 @@ class GenericSolid : public vecgeom::VUnplacedVolume
 
     // ---------------- Contains --------------------------------------------
     VECCORE_ATT_HOST_DEVICE
-    bool Contains(vecgeom::Vector3D<Precision> const& p) const override
+    bool Contains(Vector3D<Precision> const& p) const override
     {
         auto a = ConvertEnum(fG4Solid->Inside(ToG4V(p)));
         if (a == EnumInside::kOutside)
@@ -62,15 +64,15 @@ class GenericSolid : public vecgeom::VUnplacedVolume
     }
 
     VECCORE_ATT_HOST_DEVICE
-    EnumInside Inside(vecgeom::Vector3D<Precision> const& p) const override
+    EnumInside Inside(Vector3D<Precision> const& p) const override
     {
         return ConvertEnum(fG4Solid->Inside(ToG4V(p)));
     }
 
     // ---------------- DistanceToOut functions ------------------------------
     VECCORE_ATT_HOST_DEVICE
-    Precision DistanceToOut(vecgeom::Vector3D<Precision> const& p,
-                            vecgeom::Vector3D<Precision> const& d,
+    Precision DistanceToOut(Vector3D<Precision> const& p,
+                            Vector3D<Precision> const& d,
                             Precision /*step_max = kInfLength*/) const override
     {
         return fG4Solid->DistanceToOut(ToG4V(p), ToG4V(d)); // , bool
@@ -81,24 +83,23 @@ class GenericSolid : public vecgeom::VUnplacedVolume
     // the USolid/GEANT4-like interface for DistanceToOut (returning also
     // exiting normal)
     VECCORE_ATT_HOST_DEVICE
-    Precision DistanceToOut(vecgeom::Vector3D<Precision> const& p,
-                            vecgeom::Vector3D<Precision> const& d,
-                            vecgeom::Vector3D<Precision>&       normal,
-                            bool&                               convex,
+    Precision DistanceToOut(Vector3D<Precision> const& p,
+                            Vector3D<Precision> const& d,
+                            Vector3D<Precision>& normal,
+                            bool& convex,
                             Precision /*step_max = kInfLength*/) const override
     {
         bool          calculateNorm = true;
         G4ThreeVector normalG4;
         auto          dist = fG4Solid->DistanceToOut(
             ToG4V(p), ToG4V(d), calculateNorm, &convex, &normalG4);
-        normal = vecgeom::Vector3D<vecgeom::Precision>(
-            normalG4[0], normalG4[1], normalG4[2]);
+        normal = Vector3D<Precision>(normalG4[0], normalG4[1], normalG4[2]);
         return dist;
     }
 
     // ---------------- SafetyToOut functions -------------------------------
     VECCORE_ATT_HOST_DEVICE
-    Precision SafetyToOut(vecgeom::Vector3D<Precision> const& p) const override
+    Precision SafetyToOut(Vector3D<Precision> const& p) const override
     {
         return fG4Solid->DistanceToOut(ToG4V(p));
     }
@@ -106,8 +107,8 @@ class GenericSolid : public vecgeom::VUnplacedVolume
     // ---------------- DistanceToIn functions ------------------------------
     VECCORE_ATT_HOST_DEVICE
     Precision
-    DistanceToIn(vecgeom::Vector3D<Precision> const& p,
-                 vecgeom::Vector3D<Precision> const& d,
+    DistanceToIn(Vector3D<Precision> const& p,
+                 Vector3D<Precision> const& d,
                  const Precision /*step_max = kInfLength*/) const override
     {
         return fG4Solid->DistanceToIn(ToG4V(p), ToG4V(d));
@@ -115,7 +116,7 @@ class GenericSolid : public vecgeom::VUnplacedVolume
 
     // ---------------- SafetyToIn functions ---------------------------------
     VECCORE_ATT_HOST_DEVICE
-    Precision SafetyToIn(vecgeom::Vector3D<Precision> const& p) const override
+    Precision SafetyToIn(Vector3D<Precision> const& p) const override
     {
         return fG4Solid->DistanceToIn(ToG4V(p));
     }
@@ -123,18 +124,18 @@ class GenericSolid : public vecgeom::VUnplacedVolume
     // ---------------- Normal ---------------------------------------------
 
     VECCORE_ATT_HOST_DEVICE
-    bool Normal(vecgeom::Vector3D<Precision> const& p,
-                vecgeom::Vector3D<Precision>&       normal) const override
+    bool Normal(Vector3D<Precision> const& p,
+                Vector3D<Precision>& normal) const override
     {
         auto n = fG4Solid->SurfaceNormal(ToG4V(p));
-        normal = vecgeom::Vector3D<double>(n[0], n[1], n[2]);
+        normal = Vector3D<double>(n[0], n[1], n[2]);
         return true;
     }
 
     // ----------------- Extent --------------------------------------------
     VECCORE_ATT_HOST_DEVICE
-    void Extent(vecgeom::Vector3D<Precision>& aMin,
-                vecgeom::Vector3D<Precision>& aMax) const override
+    void
+    Extent(Vector3D<Precision>& aMin, Vector3D<Precision>& aMax) const override
     {
         auto ext = fG4Solid->GetExtent();
         aMin.Set(ext.GetXmin(), ext.GetYmin(), ext.GetZmin());
@@ -162,9 +163,9 @@ class GenericSolid : public vecgeom::VUnplacedVolume
     void           Print() const override { Print(std::cout); }
     G4GeometryType GetEntityType() const { return fG4Solid->GetEntityType(); }
 
-    vecgeom::VPlacedVolume*
-    SpecializedVolume(LogicalVolume const* const             volume,
-                      vecgeom::Transformation3D const* const transformation,
+    VPlacedVolume*
+    SpecializedVolume(LogicalVolume const* const volume,
+                      Transformation3D const* const transformation,
                       const TranslationCode,
                       const RotationCode,
                       VPlacedVolume* const /*placement = nullptr*/) const override

@@ -23,6 +23,7 @@
 // more stuff might be needed
 #include <cassert>
 
+using namespace vecgeom;
 namespace celeritas
 {
 

@@ -92,11 +92,11 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 
+#include "GenericSolid.hh"
 using namespace vecgeom;
 
 namespace celeritas
 {
-
 static constexpr double scale = 0.1; // G4 mm to VecGeom cm scale
 
 void InitVecGeomNavigators()
@@ -138,8 +138,6 @@ void InitVecGeomNavigators()
         }
     }
 }
-
-#include "GenericSolid.hh"
 
 void G4VecGeomConverter::ConvertG4Geometry(G4VPhysicalVolume const* worldg4)
 {
@@ -881,4 +879,4 @@ void G4VecGeomConverter::Clear()
         GeoManager::Instance().SetWorld(nullptr);
     }
 }
-} // namespace celeritas
+}  // namespace celeritas
