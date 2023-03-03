@@ -99,38 +99,6 @@ namespace celeritas
 
 static constexpr double scale = 0.1; // G4 mm to VecGeom cm scale
 
-double TrapParametersGetZ(G4Trap const& t)
-{
-    double const* start = reinterpret_cast<double const*>(&t);
-
-    // 10 derives from sizeof(G4VSolid) + ... + offset
-    auto r = start[11];
-    assert(r == t.GetZHalfLength());
-    return r;
-}
-
-void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
-                                          double&       theta,
-                                          double&       phi)
-{
-    double const* start = reinterpret_cast<double const*>(&t);
-    assert(t.GetZHalfLength() == start[11]);
-    double x_peek = start[11];
-    double y_peek = start[12];
-
-    if (x_peek == 0. && y_peek == 0.)
-    {
-        theta = 0.;
-        phi   = 0.;
-    }
-    else // try to catch more corner cases + requirement that theta > 0??
-    {
-        // tan(t) = x / cos(phi) --> y = x / cos(phi) * sin(phi) = x * tan(phi)
-        phi   = std::atan2(y_peek, x_peek);
-        theta = std::atan2(x_peek, cos(phi));
-    }
-}
-
 void InitVecGeomNavigators()
 {
     for (auto& lvol : GeoManager::Instance().GetLogicalVolumesMap())
@@ -201,7 +169,7 @@ void G4VecGeomConverter::ConvertG4Geometry(G4VPhysicalVolume const* worldg4)
 }
 
 void G4VecGeomConverter::ExtractReplicatedTransformations(
-    G4PVReplica const&                    replica,
+    G4PVReplica const& replica,
     std::vector<Transformation3D const*>& transf) const
 {
     // read out parameters
@@ -247,7 +215,7 @@ void G4VecGeomConverter::ExtractReplicatedTransformations(
 std::vector<VPlacedVolume const*> const*
 G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
 {
-    // WARN POTENTIALLY UNSUPPORTED CASE
+    // Warn about unsupported cases
     if (dynamic_cast<G4PVParameterised const*>(node))
     {
         CELER_LOG(warning) << "PARAMETRIZED VOLUME FOUND " << node->GetName();
@@ -316,11 +284,10 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
     return vgvector;
 }
 
-Transformation3D* G4VecGeomConverter::Convert(G4ThreeVector const&    t,
-                                              G4RotationMatrix const* rot)
+Transformation3D* G4VecGeomConverter::Convert(
+    G4ThreeVector const&    t,
+    G4RotationMatrix const* rot)
 {
-    // if (transformation_map_.Contains(geomatrix)) return
-    // const_cast<Transformation3D *>(transformation_map_[geomatrix]);
     Transformation3D* transformation;
     if (!rot)
     {
@@ -329,9 +296,6 @@ Transformation3D* G4VecGeomConverter::Convert(G4ThreeVector const&    t,
     }
     else
     {
-        // transformation = new Transformation3D(
-        //    t[0], t[1], t[2], rot->xx(), rot->xy(), rot->xz(), rot->yx(),
-        //    rot->yy(), rot->yz(), rot->zx(), rot->zy(), rot->zz());
         transformation = new Transformation3D(scale * t[0],
                                               scale * t[1],
                                               scale * t[2],
@@ -346,8 +310,6 @@ Transformation3D* G4VecGeomConverter::Convert(G4ThreeVector const&    t,
                                               rot->zz());
     }
     // transformation->FixZeroes();
-    // transformation->SetProperties();
-    // transformation_map_.Set(geomatrix, transformation);
     return transformation;
 }
 
@@ -380,10 +342,9 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
 
 // the inverse: here we need both the placed volume and logical volume as input
 // they should match
-// TGeoVolume *G4VecGeomConverter::Convert(VPlacedVolume const *const
-// placed_volume,
-//                                         LogicalVolume const *const
-//                                         logical_volume)
+// TGeoVolume *G4VecGeomConverter::Convert(
+//    VPlacedVolume const *const placed_volume,
+//    LogicalVolume const *const logical_volume)
 //{
 //  assert(placed_volume->GetLogicalVolume() == logical_volume);
 //
