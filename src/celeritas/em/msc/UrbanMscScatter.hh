@@ -381,13 +381,14 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 
         real_type maxtau
             = true_path_ < limit_min_ ? limit_min_ / helper_.msc_mfp() : tau_;
+        // note: 0 < u <= sqrt(2) when shared_.params.tau_big == 8
         real_type u = fastpow(maxtau, 1 / real_type(6));
-        // 0 < u <= sqrt(2) when shared_.params.tau_big == 8
-        real_type result
-            = PolyQuad(msc_.d[0], msc_.d[1], msc_.d[2])(u)
-              + msc_.d[3]
-                    * std::log(true_path_
-                               / (tau_ * material_.radiation_length()));
+        // Number of radiation lengths traveled by the average MFP over this
+        // step
+        real_type radlen_mfp = true_path_
+                               / (tau_ * material_.radiation_length());
+        real_type result = PolyQuad(msc_.tail_coeff)(u)
+                           + msc_.tail_corr * std::log(radlen_mfp);
         // The tail should not be too big
         return max(result, real_type(1.9));
     }();
@@ -523,7 +524,7 @@ real_type UrbanMscScatter::compute_theta0() const
                        * invbetacp;
 
     // Correction factor from e- scattering data
-    theta0 *= (msc_.coeffth1 + msc_.coeffth2 * std::log(y));
+    theta0 *= PolyEvaluator<real_type, 1>(msc_.theta_coeff)(std::log(y));
 
     if (true_path_ < limit_min_)
     {

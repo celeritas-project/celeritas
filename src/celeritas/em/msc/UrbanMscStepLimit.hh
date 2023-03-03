@@ -226,9 +226,8 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
     // Calculate minimum step
-    real_type xm
-        = helper_.msc_mfp()
-          / PolyQuad(2, msc_.stepmin_a, msc_.stepmin_b)(inc_energy_.value());
+    PolyQuad calc_min_mfp(2, msc_.stepmin_coeff[0], msc_.stepmin_coeff[1]);
+    real_type xm = helper_.msc_mfp() / calc_min_mfp(inc_energy_.value());
 
     // Scale based on particle type and effective atomic number
     xm *= helper_.scaled_zeff();

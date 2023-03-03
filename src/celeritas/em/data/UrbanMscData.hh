@@ -84,13 +84,13 @@ struct UrbanMscParameters
  */
 struct UrbanMscMaterialData
 {
-    using Real4 = Array<real_type, 4>;
+    using Real2 = Array<real_type, 2>;
+    using Real3 = Array<real_type, 3>;
 
-    real_type coeffth1{};  //!< correction in theta_0 formula
-    real_type coeffth2{};  //!< correction in theta_0 formula
-    Real4 d{0, 0, 0, 0};  //!< coefficients of tail parameters
-    real_type stepmin_a{};  //!< coefficient of the step minimum calculation
-    real_type stepmin_b{};  //!< coefficient of the step minimum calculation
+    Real2 theta_coeff{0, 0};  //!< correction in theta_0 formula
+    Real3 tail_coeff{0, 0, 0};  //!< poly coefficients of tail parameters
+    real_type tail_corr{0};  //!< additional factor based on log
+    Real2 stepmin_coeff{0, 0};  //!< poly coefficients for step minimum
 };
 
 //---------------------------------------------------------------------------//
