@@ -84,7 +84,7 @@ struct Interaction
 struct MscStep
 {
     //! Use a small step approximation for the path length correction
-    static CELER_CONSTEXPR_FUNCTION real_type small_step_alpha() { return -1; }
+    static CELER_CONSTEXPR_FUNCTION real_type small_step_alpha() { return 0; }
 
     bool is_displaced{true};  //!< Flag for the lateral displacement
     real_type true_path{};  //!< True path length due to the msc  [cm]
@@ -114,10 +114,6 @@ struct MscRange
 //---------------------------------------------------------------------------//
 /*!
  * Result of multiple scattering.
- *
- * The "true" step length is the physical path length taken along the geometric
- * step, accounting for the extra distance taken between along-step
- * elastic collisions.
  */
 struct MscInteraction
 {
