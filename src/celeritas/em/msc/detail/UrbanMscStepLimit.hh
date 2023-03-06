@@ -136,7 +136,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
     }
     else if (helper_.max_step() < safety_)
     {
-        // The lower limit for the linear distance that the track can travel in
+        // The upper limit for the linear distance that the track can travel in
         // one step is closer than the nearest boundary. Displacement should
         // only occur "near" boundaries.
         skip_displacement_ = true;
