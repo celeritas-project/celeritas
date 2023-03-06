@@ -42,7 +42,7 @@ class SurfaceAction
     inline CELER_FUNCTION SurfaceAction(Surfaces const& surfaces, F&& action);
 
     // Apply to the surface specified by a surface ID
-    inline CELER_FUNCTION decltype(auto) operator()(SurfaceId id);
+    inline CELER_FUNCTION decltype(auto) operator()(LocalSurfaceId id);
 
     //! Access the resulting action
     CELER_FUNCTION F const& action() const { return action_; }
@@ -134,7 +134,7 @@ SurfaceAction<F>::SurfaceAction(Surfaces const& surfaces, F&& action)
  * Apply to the surface specified by the given surface ID.
  */
 template<class F>
-CELER_FUNCTION auto SurfaceAction<F>::operator()(SurfaceId id)
+CELER_FUNCTION auto SurfaceAction<F>::operator()(LocalSurfaceId id)
     -> decltype(auto)
 {
     CELER_EXPECT(id < surfaces_.num_surfaces());

@@ -47,12 +47,12 @@ SurfaceInputBuilder::SurfaceInputBuilder(SurfaceInput* input) : input_(input)
 /*!
  * Insert a generic surface.
  */
-SurfaceId SurfaceInputBuilder::operator()(GenericSurfaceRef generic_surf,
-                                          Label const& label)
+LocalSurfaceId SurfaceInputBuilder::operator()(GenericSurfaceRef generic_surf,
+                                               Label const& label)
 {
     CELER_EXPECT(generic_surf);
 
-    SurfaceId::size_type new_id = input_->size();
+    LocalSurfaceId::size_type new_id = input_->size();
     input_->types.push_back(generic_surf.type);
     input_->data.insert(
         input_->data.end(), generic_surf.data.begin(), generic_surf.data.end());
@@ -61,7 +61,7 @@ SurfaceId SurfaceInputBuilder::operator()(GenericSurfaceRef generic_surf,
 
     CELER_ENSURE(input_->types.size() == input_->sizes.size());
     CELER_ENSURE(input_->types.size() == input_->labels.size());
-    return SurfaceId{new_id};
+    return LocalSurfaceId{new_id};
 }
 
 //---------------------------------------------------------------------------//

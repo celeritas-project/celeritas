@@ -94,6 +94,7 @@ operator!=(OnTface<ValueT> const& lhs, OnTface<ValueT> const& rhs) noexcept
 }
 
 using OnSurface = OnTface<struct Surface>;
+using OnLocalSurface = OnTface<struct LocalSurface>;
 using OnFace = OnTface<struct Face>;
 
 //---------------------------------------------------------------------------//
@@ -105,7 +106,7 @@ using OnFace = OnTface<struct Face>;
  */
 struct Intersection
 {
-    OnSurface surface;
+    OnLocalSurface surface;
     real_type distance = no_intersection();
 
     //! Whether a next surface has been found
@@ -131,8 +132,8 @@ struct Intersection
  */
 struct Initialization
 {
-    VolumeId volume;
-    OnSurface surface;
+    LocalVolumeId volume;
+    OnLocalSurface surface;
 
     //! Whether initialization succeeded
     explicit CELER_FUNCTION operator bool() const
@@ -182,8 +183,8 @@ struct LocalState
 {
     Real3 pos;
     Real3 dir;
-    VolumeId volume;
-    OnSurface surface;
+    LocalVolumeId volume;
+    OnLocalSurface surface;
     Span<Sense> temp_sense;
     TempNextFace temp_next;
 };

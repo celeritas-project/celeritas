@@ -45,8 +45,7 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
 {
     CELER_EXPECT(result_xs);
 
-    std::vector<G4Element const*> const& elements
-        = *material_.GetElementVector();
+    auto const& elements = *material_.GetElementVector();
 
     // Resize microscopic cross sections for all elements
     result_xs->resize(elements.size());

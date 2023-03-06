@@ -14,8 +14,11 @@
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
-#include "UrbanMscScatter.hh"
-#include "UrbanMscStepLimit.hh"
+#include "detail/MscStepFromGeo.hh"  // IWYU pragma: associated
+#include "detail/MscStepToGeo.hh"  // IWYU pragma: associated
+#include "detail/UrbanMscHelper.hh"  // IWYU pragma: associated
+#include "detail/UrbanMscScatter.hh"  // IWYU pragma: associated
+#include "detail/UrbanMscStepLimit.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -42,12 +45,10 @@ class UrbanMsc
     is_applicable(CoreTrackView const&, real_type step) const;
 
     // Update the physical and geometric step lengths
-    inline CELER_FUNCTION void
-    calc_step(CoreTrackView const&, AlongStepLocalState*) const;
+    inline CELER_FUNCTION void limit_step(CoreTrackView const&, StepLimit*);
 
     // Apply MSC
-    inline CELER_FUNCTION void
-    apply_step(CoreTrackView const&, AlongStepLocalState*) const;
+    inline CELER_FUNCTION void apply_step(CoreTrackView const&, StepLimit*);
 
   private:
     ParamsRef const& msc_params_;
@@ -81,88 +82,124 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
     if (step <= msc_params_.params.geom_limit)
         return false;
 
-    auto particle = track.make_particle_view();
-    if (particle.particle_id() != msc_params_.ids.electron
-        && particle.particle_id() != msc_params_.ids.positron)
+    auto par = track.make_particle_view();
+    if (par.particle_id() != msc_params_.ids.electron
+        && par.particle_id() != msc_params_.ids.positron)
         return false;
 
-    return particle.energy() > msc_params_.params.low_energy_limit
-           && particle.energy() < msc_params_.params.high_energy_limit;
+    return par.energy() > msc_params_.params.low_energy_limit
+           && par.energy() < msc_params_.params.high_energy_limit;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Update the physical and geometric step lengths.
  */
-CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
-                                        AlongStepLocalState* local) const
+CELER_FUNCTION void
+UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
 {
     CELER_EXPECT(msc_params_);
 
-    auto particle = track.make_particle_view();
     auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();
 
     // Sample multiple scattering step length
-    UrbanMscStepLimit msc_step_limit(msc_params_,
-                                     particle,
-                                     &phys,
-                                     track.make_material_view().material_id(),
-                                     geo.is_on_boundary(),
-                                     geo.find_safety(),
-                                     local->step_limit.step);
+    auto msc_step = [&] {
+        auto par = track.make_particle_view();
+        detail::UrbanMscHelper msc_helper(msc_params_, par, phys);
+        detail::UrbanMscStepLimit calc_limit(msc_params_,
+                                             msc_helper,
+                                             par.energy(),
+                                             &phys,
+                                             phys.material_id(),
+                                             geo.is_on_boundary(),
+                                             geo.find_safety(),
+                                             step_limit->step);
 
-    auto rng = track.make_rng_engine();
-    auto msc_step_result = msc_step_limit(rng);
-    track.make_physics_step_view().msc_step(msc_step_result);
+        auto rng = track.make_rng_engine();
+        auto result = calc_limit(rng);
+        CELER_ASSERT(result.true_path <= step_limit->step);
 
-    // Use "straight line" path calculated for geometry step
-    local->geo_step = msc_step_result.geom_path;
+        detail::MscStepToGeo calc_geom_path(msc_params_,
+                                            msc_helper,
+                                            par.energy(),
+                                            msc_helper.msc_mfp(),
+                                            phys.dedx_range());
+        auto gp = calc_geom_path(result.true_path);
+        result.geom_path = gp.step;
+        result.alpha = gp.alpha;
 
-    if (msc_step_result.true_path < local->step_limit.step)
+        // Limit geometrical step to 1 MSC MFP
+        result.geom_path
+            = min<real_type>(result.geom_path, msc_helper.msc_mfp());
+
+        return result;
+    }();
+    CELER_ASSERT(msc_step.geom_path > 0);
+    CELER_ASSERT(msc_step.true_path >= msc_step.geom_path);
+    track.make_physics_step_view().msc_step(msc_step);
+
+    if (msc_step.true_path < step_limit->step)
     {
         // True/physical step might be further limited by MSC
-        // TODO: this is already kinda sorta determined inside the
-        // UrbanMscStepLimit calculation
-        local->step_limit.step = msc_step_result.true_path;
-        local->step_limit.action = phys.scalars().msc_action();
+        // TODO: use a return value from the UrbanMscStepLimit instead of a
+        // floating point comparison to determine whether the step is MSC
+        // limited.
+        // TODO: the true path comparison does *NOT* account for any extra
+        // limiting done by the 1MFP limiter!!
+        step_limit->action = phys.scalars().msc_action();
     }
+
+    // Always apply the step transformation, even if the physical step wasn't
+    // necessarily limited
+    step_limit->step = msc_step.geom_path;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Apply MSC.
  */
-CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
-                                         AlongStepLocalState* local) const
+CELER_FUNCTION void
+UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
 {
     CELER_EXPECT(msc_params_);
 
     auto par = track.make_particle_view();
     auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();
-    auto mat = track.make_material_view();
 
     // Replace step with actual geometry distance traveled
-    auto msc_step_result = track.make_physics_step_view().msc_step();
-    msc_step_result.geom_path = local->geo_step;
+    detail::UrbanMscHelper msc_helper(msc_params_, par, phys);
+    auto msc_step = track.make_physics_step_view().msc_step();
+    if (this->is_geo_limited(track, *step_limit))
+    {
+        // Convert geometrical distance to equivalent physical distance, which
+        // will be greater than (or in edge cases equal to) that distance and
+        // less than the original physical step limit.
+        msc_step.geom_path = step_limit->step;
+        detail::MscStepFromGeo geo_to_true(msc_params_.params,
+                                           msc_step,
+                                           phys.dedx_range(),
+                                           msc_helper.msc_mfp());
+        msc_step.true_path = geo_to_true(msc_step.geom_path);
+        CELER_ASSERT(msc_step.true_path >= msc_step.geom_path);
 
-    UrbanMscScatter msc_scatter(msc_params_,
-                                par,
-                                &geo,
-                                phys,
-                                mat.make_material_view(),
-                                msc_step_result,
-                                is_geo_limited(track, local->step_limit));
-
-    auto rng = track.make_rng_engine();
-    auto msc_result = msc_scatter(rng);
+        // Disable displacement on boundary
+        msc_step.is_displaced = false;
+    }
 
     // Update full path length traveled along the step based on MSC to
     // correctly calculate energy loss, step time, etc.
-    CELER_ASSERT(local->geo_step <= msc_result.step_length
-                 && msc_result.step_length <= local->step_limit.step);
-    local->step_limit.step = msc_result.step_length;
+    step_limit->step = msc_step.true_path;
+
+    auto msc_result = [&] {
+        auto mat = track.make_material_view().make_material_view();
+        detail::UrbanMscScatter sample_scatter(
+            msc_params_, msc_helper, par, phys, mat, &geo, msc_step);
+
+        auto rng = track.make_rng_engine();
+        return sample_scatter(rng);
+    }();
 
     // Update direction and position
     if (msc_result.action != MscInteraction::Action::unchanged)

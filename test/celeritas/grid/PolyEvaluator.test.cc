@@ -32,6 +32,13 @@ TEST(PolyEvaluatorTest, make_eval)
         (std::is_same<decltype(eval_int_poly), PolyEvaluator<int, 2>>()));
     EXPECT_EQ(3 * sizeof(int), sizeof(eval_int_poly));
     EXPECT_EQ(13, eval_int_poly(2));
+
+    // First-order poly from an array
+    constexpr Array<int, 2> linear_data{10, 1};
+    constexpr PolyEvaluator<int, 1> eval_linear{linear_data};
+    EXPECT_EQ(9, eval_linear(-1));
+    EXPECT_EQ(10, eval_linear(0));
+    EXPECT_EQ(12, eval_linear(2));
 }
 
 TEST(PolyEvaluatorTest, degenerate)

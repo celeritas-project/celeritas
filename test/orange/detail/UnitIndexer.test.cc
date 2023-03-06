@@ -57,26 +57,28 @@ TEST_F(UnitIndexerTest, single)
     EXPECT_EQ(10, indexer.num_volumes());
 
     EXPECT_EQ(SurfaceId(0),
-              indexer.global_surface(UniverseId{0}, SurfaceId{0}));
+              indexer.global_surface(UniverseId{0}, LocalSurfaceId{0}));
     EXPECT_EQ(SurfaceId(3),
-              indexer.global_surface(UniverseId{0}, SurfaceId{3}));
+              indexer.global_surface(UniverseId{0}, LocalSurfaceId{3}));
 
-    EXPECT_EQ(VolumeId(0), indexer.global_volume(UniverseId{0}, VolumeId{0}));
-    EXPECT_EQ(VolumeId(9), indexer.global_volume(UniverseId{0}, VolumeId{9}));
+    EXPECT_EQ(VolumeId(0),
+              indexer.global_volume(UniverseId{0}, LocalVolumeId{0}));
+    EXPECT_EQ(VolumeId(9),
+              indexer.global_volume(UniverseId{0}, LocalVolumeId{9}));
 
     auto local_s = indexer.local_surface(SurfaceId{0});
     EXPECT_EQ(UniverseId(0), local_s.universe);
-    EXPECT_EQ(SurfaceId(0), local_s.surface);
+    EXPECT_EQ(LocalSurfaceId(0), local_s.surface);
     local_s = indexer.local_surface(SurfaceId{3});
     EXPECT_EQ(UniverseId(0), local_s.universe);
-    EXPECT_EQ(SurfaceId(3), local_s.surface);
+    EXPECT_EQ(LocalSurfaceId(3), local_s.surface);
 
     auto local_v = indexer.local_volume(VolumeId{0});
     EXPECT_EQ(UniverseId(0), local_v.universe);
-    EXPECT_EQ(VolumeId(0), local_v.volume);
+    EXPECT_EQ(LocalVolumeId(0), local_v.volume);
     local_v = indexer.local_volume(VolumeId{3});
     EXPECT_EQ(UniverseId(0), local_v.universe);
-    EXPECT_EQ(VolumeId(3), local_v.volume);
+    EXPECT_EQ(LocalVolumeId(3), local_v.volume);
 }
 
 TEST_F(UnitIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
@@ -84,13 +86,14 @@ TEST_F(UnitIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
     this->set_data({0, 4}, {0, 10});
     UnitIndexer indexer(this->host_ref());
 
-    EXPECT_THROW(indexer.global_surface(UniverseId{0}, SurfaceId{4}),
+    EXPECT_THROW(indexer.global_surface(UniverseId{0}, LocalSurfaceId{4}),
                  DebugError);
-    EXPECT_THROW(indexer.global_surface(UniverseId{1}, SurfaceId{0}),
+    EXPECT_THROW(indexer.global_surface(UniverseId{1}, LocalSurfaceId{0}),
                  DebugError);
-    EXPECT_THROW(indexer.global_volume(UniverseId{0}, VolumeId{10}),
+    EXPECT_THROW(indexer.global_volume(UniverseId{0}, LocalVolumeId{10}),
                  DebugError);
-    EXPECT_THROW(indexer.global_volume(UniverseId{1}, VolumeId{0}), DebugError);
+    EXPECT_THROW(indexer.global_volume(UniverseId{1}, LocalVolumeId{0}),
+                 DebugError);
 
     EXPECT_THROW(indexer.local_surface(SurfaceId(4)), DebugError);
     EXPECT_THROW(indexer.local_volume(VolumeId(10)), DebugError);

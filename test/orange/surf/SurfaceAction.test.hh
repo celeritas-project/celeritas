@@ -129,7 +129,7 @@ struct CalcSenseDistanceLauncher
                               &this->states.sense[tid],
                               &this->states.distance[tid]});
 
-        SurfaceId sid{tid.get() % surfaces.num_surfaces()};
+        LocalSurfaceId sid{tid.get() % surfaces.num_surfaces()};
         calc_sense_dist(sid);
     }
 };

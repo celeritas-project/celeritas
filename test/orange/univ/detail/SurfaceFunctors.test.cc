@@ -44,7 +44,7 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
             // Create a volume
             VolumeInput v;
             v.logic = {0, 1, logic::lor, logic::ltrue, logic::lor};
-            v.faces = {SurfaceId{0}, SurfaceId{1}};
+            v.faces = {LocalSurfaceId{0}, LocalSurfaceId{1}};
             unit.volumes = {std::move(v)};
         }
 
@@ -66,7 +66,7 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
     {
         CELER_EXPECT(surfaces_);
         CELER_EXPECT(sid < surfaces_->num_surfaces());
-        return surfaces_->make_surface<T>(SurfaceId{sid});
+        return surfaces_->make_surface<T>(LocalSurfaceId{sid});
     }
 
     std::unique_ptr<Surfaces> surfaces_;
@@ -91,8 +91,8 @@ TEST_F(SurfaceFunctorsTest, calc_sense)
     // Test as generic surfaces
     pos = {2, 0, 0};
     auto calc_generic = make_surface_action(*surfaces_, CalcSense{pos});
-    EXPECT_EQ(SignedSense::outside, calc_generic(SurfaceId{0}));
-    EXPECT_EQ(SignedSense::inside, calc_generic(SurfaceId{1}));
+    EXPECT_EQ(SignedSense::outside, calc_generic(LocalSurfaceId{0}));
+    EXPECT_EQ(SignedSense::inside, calc_generic(LocalSurfaceId{1}));
 }
 
 //---------------------------------------------------------------------------//
@@ -112,9 +112,9 @@ TEST_F(SurfaceFunctorsTest, calc_normal)
     auto calc_normal = make_surface_action(*surfaces_, CalcNormal{pos});
 
     pos = {1.25, 1, 1};
-    EXPECT_EQ(Real3({1, 0, 0}), calc_normal(SurfaceId{0}));
+    EXPECT_EQ(Real3({1, 0, 0}), calc_normal(LocalSurfaceId{0}));
     pos = {2.25, 2.25, 0};
-    EXPECT_EQ(Real3({0, 1, 0}), calc_normal(SurfaceId{1}));
+    EXPECT_EQ(Real3({0, 1, 0}), calc_normal(LocalSurfaceId{1}));
 }
 
 //---------------------------------------------------------------------------//
@@ -128,28 +128,28 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
 
     real_type eps = 1e-4;
     pos = {1.25 + eps, 1, 0};
-    EXPECT_SOFT_EQ(eps, calc_distance(SurfaceId{0}));
-    EXPECT_SOFT_EQ(0.25 + eps, calc_distance(SurfaceId{1}));
+    EXPECT_SOFT_EQ(eps, calc_distance(LocalSurfaceId{0}));
+    EXPECT_SOFT_EQ(0.25 + eps, calc_distance(LocalSurfaceId{1}));
 
     pos = {1.25, 1, 0};
-    EXPECT_SOFT_EQ(0, calc_distance(SurfaceId{0}));
-    EXPECT_SOFT_EQ(0.25, calc_distance(SurfaceId{1}));
+    EXPECT_SOFT_EQ(0, calc_distance(LocalSurfaceId{0}));
+    EXPECT_SOFT_EQ(0.25, calc_distance(LocalSurfaceId{1}));
 
     pos = {1.25 - eps, 1, 0};
-    EXPECT_SOFT_EQ(eps, calc_distance(SurfaceId{0}));
-    EXPECT_SOFT_EQ(0.25 - eps, calc_distance(SurfaceId{1}));
+    EXPECT_SOFT_EQ(eps, calc_distance(LocalSurfaceId{0}));
+    EXPECT_SOFT_EQ(0.25 - eps, calc_distance(LocalSurfaceId{1}));
 
     pos = {1.0 - eps, 1, 0};
-    EXPECT_SOFT_EQ(0.25 + eps, calc_distance(SurfaceId{0}));
-    EXPECT_SOFT_EQ(eps, calc_distance(SurfaceId{1}));
+    EXPECT_SOFT_EQ(0.25 + eps, calc_distance(LocalSurfaceId{0}));
+    EXPECT_SOFT_EQ(eps, calc_distance(LocalSurfaceId{1}));
 
     pos = {3.5 + eps, 1, 0};
-    EXPECT_SOFT_EQ(2.25 + eps, calc_distance(SurfaceId{0}));
-    EXPECT_SOFT_NEAR(0.0 + eps, calc_distance(SurfaceId{1}), 1e-11);
+    EXPECT_SOFT_EQ(2.25 + eps, calc_distance(LocalSurfaceId{0}));
+    EXPECT_SOFT_NEAR(0.0 + eps, calc_distance(LocalSurfaceId{1}), 1e-11);
 
     pos = {3.5, 1, 0};
-    EXPECT_SOFT_EQ(2.25, calc_distance(SurfaceId{0}));
-    EXPECT_SOFT_EQ(0.0, calc_distance(SurfaceId{1}));
+    EXPECT_SOFT_EQ(2.25, calc_distance(LocalSurfaceId{0}));
+    EXPECT_SOFT_EQ(0.0, calc_distance(LocalSurfaceId{1}));
 }
 
 //---------------------------------------------------------------------------//

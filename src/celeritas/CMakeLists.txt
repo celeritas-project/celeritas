@@ -104,10 +104,11 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantExceptionHandler.cc
     ext/detail/GeantGeoExporter.cc
     ext/detail/GeantLoggerAdapter.cc
-    ext/detail/GeantPhysicsList.cc
-    ext/detail/GeantModelImporter.cc
-    ext/detail/GeantProcessImporter.cc
     ext/detail/GeantMicroXsCalculator.cc
+    ext/detail/GeantModelImporter.cc
+    ext/detail/GeantPhysicsList.cc
+    ext/detail/GeantProcessImporter.cc
+    ext/detail/GeantVolumeVisitor.cc
   )
   if(CELERITAS_USE_VecGeom)
     list(APPEND _cg4_sources

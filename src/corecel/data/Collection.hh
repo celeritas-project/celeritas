@@ -127,6 +127,53 @@ using ItemId = OpaqueId<T, size_type>;
 template<class T, class Size = size_type>
 using ItemRange = Range<OpaqueId<T, Size>>;
 
+//---------------------------------------------------------------------------//
+/*!
+ * Access data in a Range<T2> with an index of type T1.
+ *
+ * Here, T1 and T2 are expected to be OpaqueId types.
+ */
+template<class T1, class T2>
+class ItemMap
+{
+    static_assert(detail::IsOpaqueId<T1>::value, "T1 isn't opaque ID");
+    static_assert(detail::IsOpaqueId<T2>::value, "T2 isn't opaque ID");
+
+  public:
+    //!@{
+    //! \name Type aliases
+    using key_type = T1;
+    using mapped_type = T2;
+    //!@}
+
+  public:
+    //// CONSTRUCTION ////
+
+    ItemMap() = default;
+
+    //! Contruct from an exising Range<T2>
+    explicit CELER_FUNCTION ItemMap(Range<T2> range) : range_(range) {}
+
+    //// ACCESS ////
+
+    //! Access Range via OpaqueId of type T1
+    CELER_FORCEINLINE_FUNCTION T2 operator[](T1 id) const
+    {
+        CELER_EXPECT(id < this->size());
+        return range_[id.unchecked_get()];
+    }
+
+    //! Wheter the underlying Range<T2> is empty
+    CELER_FORCEINLINE_FUNCTION bool empty() const { return range_.empty(); }
+
+    //! Size of the underlying Range<T2>
+    CELER_FORCEINLINE_FUNCTION size_type size() const { return range_.size(); }
+
+  private:
+    //// DATA ////
+    Range<T2> range_;
+};
+
 // Forward-declare collection builder, needed for GCC7
 template<class T2, MemSpace M2, class Id2>
 class CollectionBuilder;
