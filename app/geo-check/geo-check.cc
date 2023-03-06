@@ -22,6 +22,7 @@
 #include "corecel/cont/Label.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
@@ -57,6 +58,7 @@ void run(std::istream& is, bool use_cuda)
         pos[i] = inp.at("track_origin")[i].get<real_type>();
         dir[i] = inp.at("track_direction")[i].get<real_type>();
     }
+    normalize_direction(&dir);
     GeoTrackInitializer trkinit{pos, dir};
 
     CELER_ASSERT(geo_params);
