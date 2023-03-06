@@ -274,8 +274,6 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
         if (ipow<2>(theta0_) < shared_.params.tau_small)
         {
             // Very small outgoing angular distribution
-            // XXX why are we comparing the square of an angle to an MFP
-            // value??
             return real_type{1};
         }
         if (tau_ >= shared_.params.tau_big)
@@ -521,7 +519,8 @@ real_type UrbanMscScatter::compute_theta0() const
         theta0 *= std::sqrt(true_path_ / limit_min_);
     }
 
-    return max<real_type>(theta0, 0);
+    CELER_ENSURE(theta0 > 0);
+    return theta0;
 }
 
 //---------------------------------------------------------------------------//
