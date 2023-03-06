@@ -22,6 +22,7 @@
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
+#include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
@@ -101,6 +102,10 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         scalars_.propagation_limit_action,
         "geo-propagation-limit",
         "Propagation substep/range limit"));
+
+    // Construct extend from secondaries action
+    input_.action_reg->insert(std::make_shared<ExtendFromSecondariesAction>(
+        input_.action_reg->next_id()));
 
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars_);

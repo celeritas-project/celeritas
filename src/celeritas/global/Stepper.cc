@@ -75,9 +75,6 @@ auto Stepper<M>::operator()() -> result_type
 
     actions_->execute(core_ref_);
 
-    // Create track initializers from surviving secondaries
-    extend_from_secondaries(core_ref_);
-
     // Get the number of track initializers and active tracks
     result.alive = states_.size() - core_ref_.states.init.vacancies.size();
     result.queued = core_ref_.states.init.initializers.size();

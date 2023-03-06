@@ -202,6 +202,7 @@ TEST_F(TestEm3NoMsc, setup)
         "brems-combined",
         "geo-boundary",
         "dummy-action",
+        "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
 }
@@ -334,6 +335,7 @@ TEST_F(TestEm3Msc, setup)
         "brems-combined",
         "geo-boundary",
         "dummy-action",
+        "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
 }
@@ -502,6 +504,7 @@ TEST_F(TestEm15Field, setup)
         "brems-rel",
         "geo-boundary",
         "dummy-action",
+        "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
 }
