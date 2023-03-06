@@ -49,7 +49,7 @@ struct UrbanMscParameters
         return 1e-9 * units::centimeter;
     }
 
-    //! Default minimum of the true path limit: 1e-8 cm
+    //! Minimum true path when not calculated in the step limiting
     static CELER_CONSTEXPR_FUNCTION real_type limit_min()
     {
         return 10 * limit_min_fix();
@@ -66,6 +66,12 @@ struct UrbanMscParameters
     {
         return units::MevEnergy{1e-6};
     }
+
+    //! The lower bound of energy to scale the minimum true path length limit
+    static CELER_CONSTEXPR_FUNCTION Energy min_scaling_energy()
+    {
+        return units::MevEnergy(5e-3);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -78,15 +84,13 @@ struct UrbanMscParameters
  */
 struct UrbanMscMaterialData
 {
-    using Real4 = Array<real_type, 4>;
+    using Real2 = Array<real_type, 2>;
+    using Real3 = Array<real_type, 3>;
 
-    real_type coeffth1{};  //!< correction in theta_0 formula
-    real_type coeffth2{};  //!< correction in theta_0 formula
-    Real4 d{0, 0, 0, 0};  //!< coefficients of tail parameters
-    real_type stepmin_a{};  //!< coefficient of the step minimum calculation
-    real_type stepmin_b{};  //!< coefficient of the step minimum calculation
-    real_type d_over_r{};  //!< the maximum distance/range for e-/e+
-    real_type d_over_r_mh{};  //!< the maximum distance/range for muon/h
+    Real2 theta_coeff{0, 0};  //!< correction in theta_0 formula
+    Real3 tail_coeff{0, 0, 0};  //!< poly coefficients of tail parameters
+    real_type tail_corr{0};  //!< additional factor based on log
+    Real2 stepmin_coeff{0, 0};  //!< poly coefficients for step minimum
 };
 
 //---------------------------------------------------------------------------//
@@ -122,6 +126,7 @@ struct UrbanMscParMatData
 {
     XsGridData xs;  //!< For calculating MFP
     real_type scaled_zeff{};  //!< a * Z^b
+    real_type d_over_r{};  //!< Maximum distance/range heuristic
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const

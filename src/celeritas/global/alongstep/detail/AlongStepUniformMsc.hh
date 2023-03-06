@@ -17,7 +17,7 @@
 #include "celeritas/field/UniformField.hh"
 
 #include "AlongStepNeutral.hh"
-#include "MeanELoss.hh"
+#include "MeanELoss.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
