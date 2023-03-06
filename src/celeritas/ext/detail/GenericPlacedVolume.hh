@@ -19,11 +19,8 @@
 #include <VecGeom/base/Transformation3D.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
-
-// more stuff might be needed
-#include <cassert>
-
 using namespace vecgeom;
+
 namespace celeritas
 {
 
@@ -172,40 +169,47 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
         return Real_v{0.};
     }
 #endif
+
     virtual void
     SafetyToIn(SOA3D<Precision> const&, Precision* const) const override
     {
     }
+
     virtual Precision
     SafetyToOut(Vector3D<Precision> const& position) const override
     {
         return GetUnplacedVolume()->SafetyToOut(position);
     }
+
 #ifdef VECGEOM_VECTORAPI
     virtual Real_v SafetyToOutVec(Vector3D<Real_v> const&) const override
     {
         return Real_v{0.};
     }
 #endif
+
     virtual void
     SafetyToOut(SOA3D<Precision> const&, Precision* const) const override
     {
-        ;
     }
+
     virtual Precision SurfaceArea() const override
     {
         return GetUnplacedVolume()->SurfaceArea();
     }
+
     virtual VPlacedVolume const* ConvertToUnspecialized() const override
     {
         return nullptr;
     }
+
 #ifdef VECGEOM_ROOT
     virtual TGeoShape const* ConvertToRoot() const override
     {
         return nullptr;
     }
 #endif
+
     VECCORE_ATT_HOST_DEVICE
     virtual void
     Extent(Vector3D<Precision>& min, Vector3D<Precision>& max) const override
@@ -221,7 +225,6 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
             GetTransformation()->Transform(point), normal);
     }
 
-    // VECCORE_ATT_HOST_DEVICE
     virtual Precision Capacity() override
     {
         return GetUnplacedVolume()->Capacity();
@@ -231,7 +234,6 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     virtual size_t DeviceSizeOf() const override
     {
         return 0;
-        // DevicePtr<GenericPlacedVolume>::SizeOf();
     }
 
     DevicePtr<cuda::VPlacedVolume>
@@ -241,6 +243,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     {
         return {};
     }
+
     DevicePtr<cuda::VPlacedVolume>
     CopyToGpu(DevicePtr<cuda::LogicalVolume> const,
               DevicePtr<cuda::Transformation3D> const) const
@@ -254,7 +257,6 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
                        std::vector<DevicePtr<cuda::VPlacedVolume>> const&) const
     {
     }
-
-#endif // VECGEOM_CUDA_INTERFACE
+#endif  // VECGEOM_CUDA_INTERFACE
 };
-} // namespace celeritas
+}  // namespace celeritas

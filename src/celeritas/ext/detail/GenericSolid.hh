@@ -6,7 +6,8 @@
  * \file GenericSolid.hh
  * \brief Class for a generic solid related to G4 to VecGeom conversion
  *
- * Original code from G4VecGeomNav package by John Apostolakis et.al.
+ * Original class VecGeomG4Solid, from G4VecGeomNav package by John Apostolakis
+ *   et.al., and adapted to Celeritas.
  *
  * Original source:
  *   https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/ce4a0bb2f777a6728e59dee96c764fd61fa8b785/include/VecGeomG4Solid.h
@@ -14,15 +15,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "GenericPlacedVolume.hh"
-#define VECGEOM_VECTORAPI
-
-#include <iostream>
 #include <G4VSolid.hh>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 #include <VecGeom/volumes/UnplacedVolume.h>
 
+#include "GenericPlacedVolume.hh"
 using namespace vecgeom;
 
 namespace celeritas
@@ -31,13 +29,13 @@ namespace celeritas
 template<typename S>
 class GenericSolid : public VUnplacedVolume
 {
-  public:
     using VUnplacedVolume::DistanceToIn;
     using VUnplacedVolume::DistanceToOut;
     using VUnplacedVolume::SafetyToIn;
     using VUnplacedVolume::SafetyToOut;
 
-    explicit GenericSolid(S const* g4solid) : fG4Solid(g4solid) {}
+  public:
+    explicit GenericSolid(S const* g4solid) : g4_solid_(g4solid) {}
 
     static G4ThreeVector ToG4V(Vector3D<double> const& p)
     {
@@ -57,16 +55,14 @@ class GenericSolid : public VUnplacedVolume
     VECCORE_ATT_HOST_DEVICE
     bool Contains(Vector3D<Precision> const& p) const override
     {
-        auto a = ConvertEnum(fG4Solid->Inside(ToG4V(p)));
-        if (a == EnumInside::kOutside)
-            return false;
-        return true;
+        auto loc = this->ConvertEnum(g4_solid_->Inside(ToG4V(p)));
+        return !(loc == EnumInside::kOutside);
     }
 
     VECCORE_ATT_HOST_DEVICE
     EnumInside Inside(Vector3D<Precision> const& p) const override
     {
-        return ConvertEnum(fG4Solid->Inside(ToG4V(p)));
+        return this->ConvertEnum(g4_solid_->Inside(ToG4V(p)));
     }
 
     // ---------------- DistanceToOut functions ------------------------------
@@ -75,12 +71,10 @@ class GenericSolid : public VUnplacedVolume
                             Vector3D<Precision> const& d,
                             Precision /*step_max = kInfLength*/) const override
     {
-        return fG4Solid->DistanceToOut(ToG4V(p), ToG4V(d)); // , bool
-                                                            // calculateNorm =
-                                                            // false);
+        return g4_solid_->DistanceToOut(ToG4V(p), ToG4V(d));
     }
 
-    // the USolid/GEANT4-like interface for DistanceToOut (returning also
+    // USolid/GEANT4-like interface for DistanceToOut (returns also
     // exiting normal)
     VECCORE_ATT_HOST_DEVICE
     Precision DistanceToOut(Vector3D<Precision> const& p,
@@ -91,7 +85,7 @@ class GenericSolid : public VUnplacedVolume
     {
         bool          calculateNorm = true;
         G4ThreeVector normalG4;
-        auto          dist = fG4Solid->DistanceToOut(
+        auto dist = g4_solid_->DistanceToOut(
             ToG4V(p), ToG4V(d), calculateNorm, &convex, &normalG4);
         normal = Vector3D<Precision>(normalG4[0], normalG4[1], normalG4[2]);
         return dist;
@@ -101,7 +95,7 @@ class GenericSolid : public VUnplacedVolume
     VECCORE_ATT_HOST_DEVICE
     Precision SafetyToOut(Vector3D<Precision> const& p) const override
     {
-        return fG4Solid->DistanceToOut(ToG4V(p));
+        return g4_solid_->DistanceToOut(ToG4V(p));
     }
 
     // ---------------- DistanceToIn functions ------------------------------
@@ -111,14 +105,14 @@ class GenericSolid : public VUnplacedVolume
                  Vector3D<Precision> const& d,
                  const Precision /*step_max = kInfLength*/) const override
     {
-        return fG4Solid->DistanceToIn(ToG4V(p), ToG4V(d));
+        return g4_solid_->DistanceToIn(ToG4V(p), ToG4V(d));
     }
 
     // ---------------- SafetyToIn functions ---------------------------------
     VECCORE_ATT_HOST_DEVICE
     Precision SafetyToIn(Vector3D<Precision> const& p) const override
     {
-        return fG4Solid->DistanceToIn(ToG4V(p));
+        return g4_solid_->DistanceToIn(ToG4V(p));
     }
 
     // ---------------- Normal ---------------------------------------------
@@ -127,7 +121,7 @@ class GenericSolid : public VUnplacedVolume
     bool Normal(Vector3D<Precision> const& p,
                 Vector3D<Precision>& normal) const override
     {
-        auto n = fG4Solid->SurfaceNormal(ToG4V(p));
+        auto n = g4_solid_->SurfaceNormal(ToG4V(p));
         normal = Vector3D<double>(n[0], n[1], n[2]);
         return true;
     }
@@ -137,31 +131,32 @@ class GenericSolid : public VUnplacedVolume
     void
     Extent(Vector3D<Precision>& aMin, Vector3D<Precision>& aMax) const override
     {
-        auto ext = fG4Solid->GetExtent();
+        auto ext = g4_solid_->GetExtent();
         aMin.Set(ext.GetXmin(), ext.GetYmin(), ext.GetZmin());
         aMax.Set(ext.GetXmax(), ext.GetYmax(), ext.GetZmax());
     }
 
     double Capacity() const override
     {
-        return const_cast<S*>(fG4Solid)->S::GetCubicVolume();
+        return const_cast<S*>(g4_solid_)->S::GetCubicVolume();
     }
 
     double SurfaceArea() const override
     {
-        return const_cast<S*>(fG4Solid)->S::GetSurfaceArea();
+        return const_cast<S*>(g4_solid_)->S::GetSurfaceArea();
     }
 
     int  MemorySize() const override { return sizeof(this); }
     void Print(std::ostream& os) const override
     {
-        if (fG4Solid)
+        if (g4_solid_)
         {
-            os << *fG4Solid;
+            os << *g4_solid_;
         }
     }
+
     void           Print() const override { Print(std::cout); }
-    G4GeometryType GetEntityType() const { return fG4Solid->GetEntityType(); }
+    G4GeometryType GetEntityType() const { return g4_solid_->GetEntityType(); }
 
     VPlacedVolume*
     SpecializedVolume(LogicalVolume const* const volume,
@@ -174,6 +169,9 @@ class GenericSolid : public VUnplacedVolume
     }
 
 #ifdef VECGEOM_CUDA_INTERFACE
+    // These are pure virtual in base class, implementation required when CUDA
+    // enabled is enabled. A trivial implementation is okay, since won't be
+    // called from GPU
     size_t DeviceSizeOf() const
     {
         return 0;
@@ -187,10 +185,10 @@ class GenericSolid : public VUnplacedVolume
     {
         return {};
     }
-#endif // VECGEOM_CUDA_INTERFACE
+#endif
 
   private:
-    const S* fG4Solid;
+    const S* g4_solid_;
 };
 
-} // namespace celeritas
+}  // namespace celeritas

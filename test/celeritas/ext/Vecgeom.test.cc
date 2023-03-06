@@ -481,7 +481,7 @@ TEST_F(SolidsTest, trace)
                                                        30,
                                                        88.786678713601,
                                                        42.426642572799,
-                                                       103.7866787136};
+                                                       203.7866787136};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -513,7 +513,7 @@ TEST_F(SolidsTest, trace)
                                                        25.977412807017,
                                                        86.987037891082,
                                                        10,
-                                                       120};
+                                                       220};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -547,7 +547,7 @@ TEST_F(SolidsTest, trace)
                                                        45,
                                                        105,
                                                        40,
-                                                       105};
+                                                       205};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 }
@@ -760,7 +760,7 @@ TEST_F(SolidsGeantTest, trace)
                                                        30,
                                                        88.786678713601,
                                                        42.426642572799,
-                                                       103.7866787136};
+                                                       203.7866787136};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -792,7 +792,7 @@ TEST_F(SolidsGeantTest, trace)
                                                        25.977412807017,
                                                        86.987037891082,
                                                        10,
-                                                       120};
+                                                       220};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -826,7 +826,7 @@ TEST_F(SolidsGeantTest, trace)
                                                        45,
                                                        105,
                                                        40,
-                                                       105};
+                                                       205};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 }

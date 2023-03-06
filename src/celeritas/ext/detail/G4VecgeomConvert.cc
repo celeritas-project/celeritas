@@ -14,14 +14,14 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-void g4_to_vecgeom(const G4VPhysicalVolume* world, bool verbose)
+void g4_to_vecgeom(G4VPhysicalVolume const* world, bool verbose)
 {
     // Convert the geometry to VecGeom
     G4VecGeomConverter converter;
-    converter.SetVerbose(verbose ? 1 : 0);
-    converter.ConvertG4Geometry(world);
+    converter.set_verbose(verbose ? 1 : 0);
+    converter.convert_G4_geometry(world);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas
