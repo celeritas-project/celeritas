@@ -104,12 +104,6 @@ class UrbanMscScatter
         return 5e-9 * units::centimeter;
     }
 
-    //! The constant in the Highland theta0 formula
-    static CELER_CONSTEXPR_FUNCTION Energy c_highland()
-    {
-        return units::MevEnergy{13.6};
-    }
-
     //// HELPER FUNCTIONS ////
 
     // Sample the angle, cos(theta), of the multiple scattering
@@ -233,7 +227,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         }
         else if (tau_ < shared_.params.tau_big)
         {
-            // TODO: if displacement is disabled (because of being near the
+            // TODO: if displacement is disabled (because of being far from the
             // boundary or having a short step) then limit_min_ will be zero,
             // and some corrections will not be applied.
             // CELER_ASSERT(limit_min_ > 0);
@@ -516,21 +510,22 @@ real_type UrbanMscScatter::compute_theta0() const
         detail::UrbanPositronCorrector calc_correction{material_.zeff()};
         y *= calc_correction(std::sqrt(inc_energy_ * end_energy_) / mass);
     }
+    CELER_ASSERT(y > 0);
 
     // TODO for hadrons: multiply abs(charge)
     real_type invbetacp
         = std::sqrt((inc_energy_ + mass) * (end_energy_ + mass)
                     / (inc_energy_ * (inc_energy_ + 2 * mass) * end_energy_
                        * (end_energy_ + 2 * mass)));
-    real_type theta0 = value_as<Energy>(c_highland()) * std::sqrt(y)
-                       * invbetacp;
+    constexpr units::MevEnergy c_highland{13.6};
+    real_type theta0 = c_highland.value() * std::sqrt(y) * invbetacp;
 
     // Correction factor from e- scattering data
     theta0 *= PolyEvaluator<real_type, 1>(msc_.theta_coeff)(std::log(y));
 
     if (true_path_ < limit_min_)
     {
-        // Correct for non-MSC-limited path lengths
+        // Apply correction if true path is very small
         theta0 *= std::sqrt(true_path_ / limit_min_);
     }
 

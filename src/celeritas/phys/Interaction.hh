@@ -66,7 +66,7 @@ struct Interaction
 /*!
  * Step lengths and properties needed to apply multiple scattering.
  *
- * \todo Document and/or refactor into a class that hides details:
+ * \todo Document and/or refactor into a class that hides details
  * - alpha == small_step_alpha() ? "true path is very small" (true path scaling
  *   changes)
  * - is_displaced == false ? limit_min is unchanged and alpha ==
@@ -76,8 +76,10 @@ struct Interaction
  * The value \f$ \alpha \f$ is used in the approximation of the MSC
  * transport cross section as a linear function over the current step. It is
  * the negative slope of the transport MFP from start to stop, divided by the
- * starting MFP. (Since MFP decreases with decreasing energy over the step,
- * alpha should always be positive.)
+ * starting MFP. (Since the transport cross section generally decreases
+ * monotonically with increasing energy over the step, alpha will usually be
+ * positive or zero for the step. Some known errors in the cross sections for
+ * positrons result in negative alpha around a discontinuity at 10 MeV.)
  */
 struct MscStep
 {
