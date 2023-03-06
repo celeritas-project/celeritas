@@ -156,7 +156,9 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
             // (For range-limited step, the final cross section and thus MFP
             // slope are zero).
             result.alpha = 1 / range_;
-            mfp_slope = 1 - result.alpha * tstep;
+            // Use max to avoid slightly negative slope due to roundoff for
+            // range-limited steps
+            mfp_slope = max<real_type>(1 - result.alpha * tstep, 0);
         }
         else
         {
@@ -169,7 +171,6 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
             // Calculate the geometric path assuming the cross section is
             // linear between the start and end energy. Eq 8.10+1
             result.alpha = (lambda_ - lambda1) / (lambda_ * tstep);
-            CELER_ASSERT(result.alpha != MscStep::small_step_alpha());
             mfp_slope = lambda1 / lambda_;
         }
 
