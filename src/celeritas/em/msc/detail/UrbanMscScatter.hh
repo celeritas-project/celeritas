@@ -244,6 +244,21 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             // TODO: theta0_ calculation could be done externally, eliminating
             // many of the class member data
             theta0_ = this->compute_theta0();
+
+            if (theta0_ < real_type{1e-8})
+            {
+                // Skip sampling angular distribution if width of direction
+                // distribution is too narrow
+                if (is_displaced_)
+                {
+                    // No angular sampling and no displacement => no change
+                    skip_sampling_ = true;
+                }
+                else
+                {
+                    theta0_ = 0;
+                }
+            }
         }
     }
 }
@@ -271,7 +286,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
             // already skip sampling for true_path / lambda <= tau_small
             return real_type{1};
         }
-        if (ipow<2>(theta0_) < shared_.params.tau_small)
+        if (theta0_ <= 0)
         {
             // Very small outgoing angular distribution
             return real_type{1};
@@ -299,12 +314,10 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 
     MscInteraction result;
     result.action = MscInteraction::Action::scattered;
-    {
-        // This should only be needed to silence compiler warning, since the
-        // displacement should be ignored since our action result is
-        // 'scattered'
-        result.displacement = {0, 0, 0};
-    }
+    // This should only be needed to silence compiler warning, since the
+    // displacement should be ignored since our action result is
+    // 'scattered'
+    result.displacement = {0, 0, 0};
 
     // Calculate displacement
     if (is_displaced_)
