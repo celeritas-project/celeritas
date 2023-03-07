@@ -420,7 +420,36 @@ void print_em_params(ImportEmParameters const& em_params)
 )gfm";
     cout << PEP_STREAM_BOOL(energy_loss_fluct) << PEP_STREAM_BOOL(lpm)
          << PEP_STREAM_BOOL(integral_approach)
-         << PEP_STREAM_PARAM(linear_loss_limit) << endl;
+         << PEP_STREAM_PARAM(linear_loss_limit) << PEP_STREAM_BOOL(auger)
+         << endl;
+#undef PEP_STREAM_PARAM
+#undef PEP_STREAM_BOOL
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print transportation parameters.
+ */
+void print_trans_params(ImportData::ImportTransParamMap const& trans_params,
+                        ParticleParams const& particles)
+{
+#define PEP_STREAM_PARAM(NAME, PAR)                                          \
+    "| " << setw(24) << #NAME << " | " << setw(9) << PAR << " | " << setw(7) \
+         << kv.second.NAME << " |\n"
+    cout << R"gfm(
+# Transportation parameters
+
+| Transportation parameter | Particle  | Value   |
+| ------------------------ | --------- | ------- |
+)gfm";
+    for (auto const& kv : trans_params)
+    {
+        auto pid = particles.find(PDGNumber{kv.first});
+        auto par = particles.id_to_label(pid);
+        cout << PEP_STREAM_PARAM(threshold_trials, par)
+             << PEP_STREAM_PARAM(important_energy, par);
+    }
+    cout << endl;
 #undef PEP_STREAM_PARAM
 }
 
@@ -440,6 +469,7 @@ void print_sb_data(ImportData::ImportSBMap const& sb_map)
 
     cout << R"gfm(
 # Seltzer-Berger data
+
 | Atomic number | Endpoints (x, y, value [mb]) |
 | ------------- | ---------------------------------------------------------- |
 )gfm";
@@ -578,6 +608,7 @@ int main(int argc, char* argv[])
     print_msc_models(data, *particle_params);
     print_volumes(data.volumes, data.materials);
     print_em_params(data.em_params);
+    print_trans_params(data.trans_params, *particle_params);
     print_sb_data(data.sb_data);
     print_livermore_pe_data(data.livermore_pe_data);
     print_atomic_relaxation_data(data.atomic_relaxation_data);

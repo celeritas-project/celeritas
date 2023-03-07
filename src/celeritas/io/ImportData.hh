@@ -47,6 +47,21 @@ struct ImportEmParameters
 
 //---------------------------------------------------------------------------//
 /*!
+ * Particle-dependent parameters related to transportation.
+ */
+struct ImportTransParameters
+{
+    //! Number of steps a higher-energy looping track takes before it's killed
+    int threshold_trials{10};
+    //! Energy below which looping tracks are immediately killed [MeV]
+    double important_energy{250};
+
+    //! Whether parameters are assigned and valid
+    explicit operator bool() const { return threshold_trials > 0; }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Import all the needed data from external sources (currently Geant4).
  *
  * All the data imported to Celeritas is stored in this single entity. This
@@ -61,6 +76,9 @@ struct ImportEmParameters
  * Seltzer-Berger, Livermore PE, and atomic relaxation data are loaded based on
  * atomic numbers, and thus are stored in maps. To retrieve specific data use
  * \c find(atomic_number) .
+ *
+ * The parameters related to transportation are particle-dependent and stored
+ * in a map where the keys are the PDG number.
  *
  * All units must be converted at import time to be in accordance to the
  * Celeritas' unit standard. Refer to \c base/Units.hh for further information.
@@ -82,6 +100,7 @@ struct ImportData
     using ImportSBMap = std::map<int, ImportSBTable>;
     using ImportLivermorePEMap = std::map<int, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<int, ImportAtomicRelaxation>;
+    using ImportTransParamMap = std::map<int, ImportTransParameters>;
     //!@}
 
     std::vector<ImportParticle> particles;
@@ -91,6 +110,7 @@ struct ImportData
     std::vector<ImportMscModel> msc_models;
     std::vector<ImportVolume> volumes;
     ImportEmParameters em_params;
+    ImportTransParamMap trans_params;
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
     ImportAtomicRelaxationMap atomic_relaxation_data;

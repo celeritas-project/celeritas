@@ -347,9 +347,7 @@ TransporterInput load_input(LDemoArgs const& args)
 
     // Construct simulation params
     {
-        SimParams::Input input;
-        input.particles = params.particle;
-        params.sim = std::make_shared<SimParams>(input);
+        params.sim = SimParams::from_import(imported_data, params.particle);
     }
 
     // Construct track initialization params

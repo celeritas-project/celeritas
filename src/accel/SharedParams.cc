@@ -358,9 +358,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
 
     // Construct simulation params
     {
-        SimParams::Input input;
-        input.particles = params.particle;
-        params.sim = std::make_shared<SimParams>(input);
+        params.sim = SimParams::from_import(*imported, params.particle);
     }
 
     // Construct track initialization params

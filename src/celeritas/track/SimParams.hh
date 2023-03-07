@@ -18,6 +18,7 @@
 namespace celeritas
 {
 class ParticleParams;
+struct ImportData;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -41,6 +42,10 @@ class SimParams
     };
 
   public:
+    // Construct with imported data
+    static std::shared_ptr<SimParams>
+    from_import(ImportData const&, SPConstParticles);
+
     // Construct with simulation input data
     explicit SimParams(Input const&);
 

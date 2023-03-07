@@ -35,6 +35,7 @@
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
 #include <G4String.hh>
+#include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4Types.hh>
 #include <G4VPhysicalVolume.hh>
@@ -472,6 +473,67 @@ auto store_processes(GeantImporter::DataSelection::Flags process_flags,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the transportation process for a given particle type.
+ */
+G4Transportation const* get_transportation(G4ParticleDefinition const* particle)
+{
+    CELER_EXPECT(particle);
+
+    auto const* pm = particle->GetProcessManager();
+    CELER_ASSERT(pm);
+
+    // Search through the processes to find transportion (it should be the
+    // first one)
+    auto const& pl = *pm->GetProcessList();
+    for (auto i : range(pl.size()))
+    {
+        if (auto const* trans = dynamic_cast<G4Transportation const*>(pl[i]))
+        {
+            return trans;
+        }
+    }
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store particle-dependent transportation parameters.
+ */
+std::map<int, ImportTransParameters>
+store_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
+{
+    std::map<int, ImportTransParameters> result;
+
+    G4ParticleTable::G4PTblDicIterator& particle_iterator
+        = *(G4ParticleTable::GetParticleTable()->GetIterator());
+    particle_iterator.reset();
+
+    ParticleFilter include_particle{particle_flags};
+    while (particle_iterator())
+    {
+        auto const* particle = particle_iterator.value();
+        if (!include_particle(PDGNumber{particle->GetPDGEncoding()}))
+        {
+            continue;
+        }
+
+        // Get the transportation process
+        auto const* trans = get_transportation(particle);
+        CELER_ASSERT(trans);
+
+        ImportTransParameters params;
+        params.threshold_trials = trans->GetThresholdTrials();
+        params.important_energy = trans->GetThresholdImportantEnergy() / MeV;
+        CELER_ASSERT(params);
+        result.insert({particle->GetPDGEncoding(), params});
+    }
+
+    CELER_ENSURE(!result.empty());
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a \c ImportData::ImportEmParamsMap .
  */
 ImportEmParameters store_em_parameters()
@@ -553,6 +615,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         import_data.processes = std::move(processes_and_msc.first);
         import_data.msc_models = std::move(processes_and_msc.second);
         import_data.volumes = this->load_volumes(selected.unique_volumes);
+        import_data.trans_params = store_trans_parameters(selected.particles);
         if (selected.processes & DataSelection::em)
         {
             import_data.em_params = store_em_parameters();
