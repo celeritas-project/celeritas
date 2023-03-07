@@ -20,6 +20,11 @@
 
 namespace celeritas
 {
+namespace detail
+{
+class HitManager;
+}
+
 struct SetupOptions;
 class SharedParams;
 
@@ -42,6 +47,17 @@ class LocalTransporter
 
     // Initialized with shared (across threads) params
     LocalTransporter(SetupOptions const& options, SharedParams const& params);
+
+    // Destroy thread-local manager data on destruct
+    ~LocalTransporter();
+
+    //!@{
+    //! Default copy/assign
+    LocalTransporter(LocalTransporter const&) = default;
+    LocalTransporter(LocalTransporter&&) = default;
+    LocalTransporter& operator=(LocalTransporter const&) = default;
+    LocalTransporter& operator=(LocalTransporter&&) = default;
+    //!@}
 
     // Alternative to construction + move assignment
     inline void
@@ -78,6 +94,9 @@ class LocalTransporter
 
     size_type auto_flush_{};
     size_type max_steps_{};
+
+    // Shared across threads but has to call locally
+    std::shared_ptr<detail::HitManager> hit_manager_;
 };
 
 //---------------------------------------------------------------------------//

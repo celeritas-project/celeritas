@@ -23,6 +23,7 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
+#include "detail/HitManager.hh"
 
 namespace celeritas
 {
@@ -50,7 +51,9 @@ inline Real3 convert_from_geant(G4ThreeVector const& vec, double units)
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams const& params)
-    : auto_flush_(options.max_num_tracks), max_steps_(options.max_steps)
+    : auto_flush_(options.max_num_tracks)
+    , max_steps_(options.max_steps)
+    , hit_manager_{params.hit_manager()}
 {
     CELER_EXPECT(params);
     particles_ = params.Params()->particle();
@@ -80,6 +83,18 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     else
     {
         step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear thread-local hit manager on destruction.
+ */
+LocalTransporter::~LocalTransporter()
+{
+    if (hit_manager_)
+    {
+        hit_manager_->finalize();
     }
 }
 

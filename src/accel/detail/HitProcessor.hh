@@ -13,6 +13,8 @@
 #include <G4TouchableHandle.hh>
 
 #include "celeritas/Types.hh"
+#include "celeritas/user/DetectorSteps.hh"
+#include "celeritas/user/StepData.hh"
 
 class G4LogicalVolume;
 class G4Step;
@@ -32,48 +34,53 @@ namespace detail
  * Transfer Celeritas sensitive detector hits to Geant4.
  *
  * This serves a similar purpose to the \c G4FastSimHitMaker class for
- * generating hit objects. It should be "stream local" but by necessity has to
- * share the same HitManager which takes the input
- * detector names, maps them to detector IDs, and adds a HitCollector to the
- * action manager.
+ * generating hit objects. It \b must be thread-local because the sensitive
+ * detectors it stores are thread-local, and additionally Geant4 makes
+ * assumptions about object allocations that cause crashes if the HitProcessor
+ * is allocated on one thread and destroyed on another.
  *
  * Call operator:
  * - Loop over detector steps
  * - Update step attributes based on hit selection for the detector (TODO:
  *   selection is global for now)
  * - Call the local detector (based on detector ID from map) with the step
- *
- * \note For now we store the LogicalVolume rather than the SD in order to work
- * better with multithreaded code. (The LV `GetSensitiveDetector` returns
- * thread-local data.) This means you can (and should) share the \c
- * HitProcessor instance across threads. Once multithreading is better
- * integrated into Celeritas and we can check how it interacts with CMSSW, then
- * we can make the whole kernel thread safe by ensuring independent hit
- * processors (and state data) for every thread.
  */
 class HitProcessor
 {
   public:
     //!@{
     //! \name Type aliases
-    using VecLV = std::vector<G4LogicalVolume*>;
+    using StepStateHostRef = HostRef<StepStateData>;
+    using StepStateDeviceRef = DeviceRef<StepStateData>;
+    using SPConstVecLV = std::shared_ptr<const std::vector<G4LogicalVolume*>>;
     //!@}
 
   public:
     // Construct from volumes that have SDs and step selection
-    HitProcessor(VecLV detector_volumes,
+    HitProcessor(SPConstVecLV detector_volumes,
                  StepSelection const& selection,
                  bool locate_touchable);
 
     // Default destructor
     ~HitProcessor();
 
-    // Generate and call hits from a detector output
+    // Process CPU-generated hits
+    void operator()(StepStateHostRef const&);
+
+    // Process device-generated hits
+    void operator()(StepStateDeviceRef const&);
+
+    // Generate and call hits from a detector output (for testing)
     void operator()(DetectorStepOutput const& out) const;
 
   private:
-    //! Map detector IDs to logical volumes
-    VecLV detector_volumes_;
+    //! Detector volumes for navigation updating
+    SPConstVecLV detector_volumes_;
+    //! Map detector IDs to sensitive detectors
+    std::vector<G4VSensitiveDetector*> detectors_;
+    //! Temporary CPU hit information
+    DetectorStepOutput steps_;
+
     //! Temporary step
     std::unique_ptr<G4Step> step_;
     //! Temporary track, required by some frameworks

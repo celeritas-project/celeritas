@@ -41,6 +41,7 @@ class SharedParams
     //!@{
     //! \name Type aliases
     using SPConstParams = std::shared_ptr<CoreParams const>;
+    using SPHitManager = std::shared_ptr<detail::HitManager>;
     //!@}
 
   public:
@@ -69,6 +70,9 @@ class SharedParams
 
     //! Whether this instance is initialized
     explicit operator bool() const { return static_cast<bool>(params_); }
+
+    //! Hit manager, to be used only by LocalTransporter
+    SPHitManager const& hit_manager() const { return hit_manager_; }
 
   private:
     //// DATA ////
