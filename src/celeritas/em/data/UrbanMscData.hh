@@ -87,10 +87,14 @@ struct UrbanMscMaterialData
     using Real2 = Array<real_type, 2>;
     using Real3 = Array<real_type, 3>;
 
-    Real2 theta_coeff{0, 0};  //!< correction in theta_0 formula
-    Real3 tail_coeff{0, 0, 0};  //!< poly coefficients of tail parameters
-    real_type tail_corr{0};  //!< additional factor based on log
+    // Step limiter
     Real2 stepmin_coeff{0, 0};  //!< poly coefficients for step minimum
+
+    // Scattering angle
+    Real2 theta_coeff{0, 0};  //!< Correction in theta_0 formula
+    real_type min_path{0};  //!< Limit for the theta0 calculation
+    Real3 tail_coeff{0, 0, 0};  //!< Coefficients of tail parameters
+    real_type tail_corr{0};  //!< Additional tail factor based on log
 };
 
 //---------------------------------------------------------------------------//

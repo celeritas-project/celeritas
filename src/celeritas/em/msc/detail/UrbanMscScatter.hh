@@ -491,6 +491,11 @@ real_type UrbanMscScatter::compute_theta0() const
 {
     real_type const mass = value_as<Mass>(shared_.electron_mass);
     real_type true_path = max(limit_min_, true_path_);
+    if (true_path <= msc_.min_path)
+    {
+        // Path length is too small to yield a positive theta0
+        return 0;
+    }
     real_type y = true_path / material_.radiation_length();
 
     // Correction for the positron
