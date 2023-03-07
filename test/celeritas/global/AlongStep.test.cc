@@ -394,7 +394,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         EXPECT_SOFT_EQ(273.03613780942214, result.step);
         EXPECT_EQ(0, result.eloss);
         EXPECT_EQ(0, result.mfp);
-        EXPECT_EQ("geo-propagation-limit", result.action);
+        EXPECT_EQ("killed-looping", result.action);
         // Track was flagged as looping and killed
         EXPECT_EQ(0, result.alive);
     }

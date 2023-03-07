@@ -76,11 +76,11 @@ inline CELER_FUNCTION void along_step(MH&& msc,
             step_limit.step = p.distance;
             step_limit.action = track.propagation_limit_action();
             sim.increment_looping_steps();
-
             auto pid = particle.particle_id();
             if (particle.energy() < sim.looping_threshold(pid)
                 || sim.num_looping_steps() >= sim.max_looping_steps(pid))
             {
+                step_limit.action = track.killed_looping_action();
                 sim.status(TrackStatus::killed);
             }
         }

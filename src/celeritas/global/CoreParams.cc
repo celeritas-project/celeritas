@@ -69,6 +69,15 @@ class ImplicitGeometryAction final : public ImplicitActionInterface,
     // Construct with ID and label
     using ConcreteAction::ConcreteAction;
 };
+
+//---------------------------------------------------------------------------//
+class ImplicitSimAction final : public ImplicitActionInterface,
+                                public ConcreteAction
+{
+  public:
+    // Construct with ID and label
+    using ConcreteAction::ConcreteAction;
+};
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -106,6 +115,13 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         scalars_.propagation_limit_action,
         "geo-propagation-limit",
         "Propagation substep/range limit"));
+
+    // Construct action for killed looping tracks
+    scalars_.killed_looping_action = input_.action_reg->next_id();
+    input_.action_reg->insert(
+        std::make_shared<ImplicitSimAction>(scalars_.killed_looping_action,
+                                            "killed-looping",
+                                            "Abandoned looping track"));
 
     // Construct initialize tracks action
     input_.action_reg->insert(std::make_shared<InitializeTracksAction>(

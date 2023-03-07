@@ -154,6 +154,7 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
         get_optional(jfilter, "event_id", v.mctruth_filter.event_id);
         get_optional(jfilter, "track_id", v.mctruth_filter.track_id);
         get_optional(jfilter, "parent_id", v.mctruth_filter.parent_id);
+        get_optional(jfilter, "action_id", v.mctruth_filter.action_id);
 
         if (v.mctruth_filter)
         {
