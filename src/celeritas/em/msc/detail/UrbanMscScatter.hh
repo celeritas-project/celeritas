@@ -218,14 +218,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             return (lambda - lambda_end) / std::log(lambda / lambda_end);
         }();
 
-        if (CELER_UNLIKELY(tau_ < shared_.params.tau_small))
-        {
-            // Small MFP travelled
-            // TODO: this should be virtually impossible because of
-            // skip_sampling_ above
-            is_displaced_ = false;
-        }
-        else if (tau_ < shared_.params.tau_big)
+        if (tau_ < shared_.params.tau_big)
         {
             // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
             xmean_ = std::exp(-tau_);
@@ -279,13 +272,6 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 
     // Sample polar angle cosine
     real_type costheta = [this, &rng] {
-        if (CELER_UNLIKELY(tau_ < shared_.params.tau_small))
-        {
-            // Small mean free path: forward scatter
-            // TODO: this condition is almost certainly impossible because we
-            // already skip sampling for true_path / lambda <= tau_small
-            return real_type{1};
-        }
         if (theta0_ <= 0)
         {
             // Very small outgoing angular distribution
