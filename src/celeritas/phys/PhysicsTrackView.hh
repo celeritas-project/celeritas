@@ -49,7 +49,7 @@ class PhysicsTrackView
                                            PhysicsStateRef const& states,
                                            ParticleId particle,
                                            MaterialId material,
-                                           ThreadId id);
+                                           TrackSlotId id);
 
     // Initialize the track view
     inline CELER_FUNCTION PhysicsTrackView& operator=(Initializer_t const&);
@@ -164,7 +164,7 @@ class PhysicsTrackView
     PhysicsStateRef const& states_;
     const ParticleId particle_;
     const MaterialId material_;
-    const ThreadId thread_;
+    const TrackSlotId thread_;
 
     //// IMPLEMENTATION HELPER FUNCTIONS ////
 
@@ -186,7 +186,7 @@ PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
                                    PhysicsStateRef const& states,
                                    ParticleId pid,
                                    MaterialId mid,
-                                   ThreadId tid)
+                                   TrackSlotId tid)
     : params_(params)
     , states_(states)
     , particle_(pid)

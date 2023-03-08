@@ -94,7 +94,7 @@ struct VecgeomStateData
     }
 
     //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return pos.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const { return pos.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

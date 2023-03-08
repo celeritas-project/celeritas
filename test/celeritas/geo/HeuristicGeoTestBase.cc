@@ -39,7 +39,7 @@ void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
     StateStore<MemSpace::host> state{params, num_states};
 
     HeuristicGeoLauncher launch{params, state.ref()};
-    for (auto tid : range(ThreadId{num_states}))
+    for (auto tid : range(TrackSlotId{num_states}))
     {
         for ([[maybe_unused]] auto step : range(num_steps))
         {

@@ -68,7 +68,7 @@ sa_post_test_kernel(SATestInput const input, SATestOutput* output)
     auto thread_id = KernelParamCalculator::thread_id();
 
     const StackAllocatorMock allocate(input.sa_data);
-    if (thread_id == ThreadId{0})
+    if (thread_id == TrackSlotId{0})
     {
         output->view_size = allocate.get().size();
     }
@@ -79,7 +79,7 @@ __global__ void sa_clear_kernel(SATestInput const input)
     auto thread_id = KernelParamCalculator::thread_id();
 
     StackAllocatorMock allocate(input.sa_data);
-    if (thread_id == ThreadId{0})
+    if (thread_id == TrackSlotId{0})
     {
         allocate.clear();
     }

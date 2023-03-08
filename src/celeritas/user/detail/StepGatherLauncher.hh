@@ -38,7 +38,7 @@ struct StepGatherLauncher
 
     //// METHODS ////
 
-    CELER_FUNCTION void operator()(ThreadId thread) const;
+    CELER_FUNCTION void operator()(TrackSlotId thread) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -48,7 +48,7 @@ struct StepGatherLauncher
  * Gather step data on device based on the user selection.
  */
 template<StepPoint P>
-CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
+CELER_FUNCTION void StepGatherLauncher<P>::operator()(TrackSlotId thread) const
 {
     CELER_ASSERT(thread < this->core_data.states.size());
 

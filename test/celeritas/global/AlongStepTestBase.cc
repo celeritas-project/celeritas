@@ -62,7 +62,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     }
 
     // Set remaining MFP and cached MSC range properties
-    for (auto tid : range(ThreadId{num_tracks}))
+    for (auto tid : range(TrackSlotId{num_tracks}))
     {
         CoreTrackView track{core_ref.params, core_ref.states, tid};
         auto phys = track.make_physics_view();
@@ -91,7 +91,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     // Process output
     RunResult result;
     std::map<ActionId, int> actions;
-    for (auto tid : range(ThreadId{num_tracks}))
+    for (auto tid : range(TrackSlotId{num_tracks}))
     {
         CoreTrackView track{core_ref.params, core_ref.states, tid};
         auto sim = track.make_sim_view();

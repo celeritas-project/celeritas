@@ -24,12 +24,12 @@ void process_secondaries(
     MultiExceptionHandler capture_exception;
     detail::ProcessSecondariesLauncher<MemSpace::host> launch(core_data);
     #pragma omp parallel for
-    for (ThreadId::size_type i = 0; i < core_data.states.size(); ++i)
+    for (TrackSlotId::size_type i = 0; i < core_data.states.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            launch(TrackSlotId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "process_secondaries"));
+            KernelContextException(core_data, TrackSlotId{i}, "process_secondaries"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

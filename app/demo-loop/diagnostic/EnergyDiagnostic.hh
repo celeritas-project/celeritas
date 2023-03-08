@@ -101,7 +101,7 @@ class EnergyDiagnosticLauncher
     //!@{
     //! \name Type aliases
     using real_type = celeritas::real_type;
-    using ThreadId = celeritas::ThreadId;
+    using TrackSlotId = celeritas::TrackSlotId;
     using Pointers = EnergyBinPointers<M>;
     using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
@@ -112,7 +112,7 @@ class EnergyDiagnosticLauncher
     EnergyDiagnosticLauncher(StateRef const& states, Pointers const& pointers);
 
     // Perform energy binning by position
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
 
   private:
     StateRef const& states_;
@@ -209,7 +209,8 @@ EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(StateRef const& states,
 
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void
+EnergyDiagnosticLauncher<M>::operator()(TrackSlotId tid) const
 {
     celeritas::SimTrackView sim(states_.sim, tid);
     if (sim.status() == celeritas::TrackStatus::inactive)

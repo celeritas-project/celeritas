@@ -34,7 +34,7 @@ struct TrackLauncher
 
     //// METHODS ////
 
-    CELER_FUNCTION void operator()(ThreadId thread) const
+    CELER_FUNCTION void operator()(TrackSlotId thread) const
     {
         CELER_ASSERT(thread < this->data.states.size());
         const celeritas::CoreTrackView track(

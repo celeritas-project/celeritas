@@ -58,7 +58,7 @@ class AtomicRelaxationHelper
     AtomicRelaxationHelper(AtomicRelaxParamsRef const& shared,
                            AtomicRelaxStateRef const& states,
                            ElementId el_id,
-                           ThreadId tid);
+                           TrackSlotId tid);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
@@ -79,7 +79,7 @@ class AtomicRelaxationHelper
     AtomicRelaxParamsRef const& shared_;
     AtomicRelaxStateRef const& states_;
     const ElementId el_id_;
-    const ThreadId thread_;
+    const TrackSlotId thread_;
 };
 
 //---------------------------------------------------------------------------//
@@ -93,7 +93,7 @@ AtomicRelaxationHelper::AtomicRelaxationHelper(
     AtomicRelaxParamsRef const& shared,
     AtomicRelaxStateRef const& states,
     ElementId el_id,
-    ThreadId tid)
+    TrackSlotId tid)
     : shared_(shared), states_(states), el_id_(el_id), thread_(tid)
 {
     CELER_EXPECT(!shared_ || el_id_ < shared_.elements.size());

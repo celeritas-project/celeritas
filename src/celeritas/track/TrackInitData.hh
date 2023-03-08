@@ -137,12 +137,12 @@ struct ResizableData
  * Storage for dynamic data used to initialize new tracks.
  *
  * Not all of this is technically "state" data, though it is all mutable and in
- * most cases accessed by \c ThreadId. Specifically, \c initializers and \c
+ * most cases accessed by \c TrackSlotId. Specifically, \c initializers and \c
  * vacancies are resizable, and \c track_counters has size
  * \c max_events.
  * - \c initializers stores the data for primaries and secondaries waiting to
  *   be turned into new tracks and can be any size up to \c capacity.
- * - \c parents is the \c ThreadId of the parent tracks of the initializers.
+ * - \c parents is the \c TrackSlotId of the parent tracks of the initializers.
  * - \c vacancies stores the indices of the threads of tracks that have been
  *   killed; the size will be <= the number of tracks.
  * - \c track_counters stores the total number of particles that have been
@@ -165,7 +165,7 @@ struct TrackInitStateData
 
     ResizableItems<TrackInitializer> initializers;
     ResizableItems<size_type> vacancies;
-    StateItems<ThreadId> parents;
+    StateItems<TrackSlotId> parents;
     StateItems<size_type> secondary_counts;
     EventItems<TrackId::size_type> track_counters;
 
@@ -232,7 +232,7 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     resize(&vacancies, size);
     for (auto i : range(size))
     {
-        vacancies[ThreadId{i}] = i;
+        vacancies[TrackSlotId{i}] = i;
     }
     data->vacancies.storage = vacancies;
     data->vacancies.resize(size);

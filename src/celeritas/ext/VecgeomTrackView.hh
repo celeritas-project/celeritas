@@ -60,7 +60,7 @@ class VecgeomTrackView
     // Construct from persistent and state data
     inline CELER_FUNCTION VecgeomTrackView(ParamsRef const& data,
                                            StateRef const& stateview,
-                                           ThreadId id);
+                                           TrackSlotId id);
 
     // Initialize the state
     inline CELER_FUNCTION VecgeomTrackView&
@@ -161,7 +161,7 @@ class VecgeomTrackView
 CELER_FUNCTION
 VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
                                    StateRef const& states,
-                                   ThreadId thread)
+                                   TrackSlotId thread)
     : params_(params)
     , vgstate_(states.vgstate.at(params_.max_depth, thread))
     , vgnext_(states.vgnext.at(params_.max_depth, thread))

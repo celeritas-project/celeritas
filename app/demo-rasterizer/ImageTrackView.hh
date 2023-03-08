@@ -25,14 +25,15 @@ class ImageTrackView
   public:
     //!@{
     //! \name Type aliases
-    using ThreadId = celeritas::ThreadId;
+    using TrackSlotId = celeritas::TrackSlotId;
     using Real3 = celeritas::Real3;
     using real_type = celeritas::real_type;
     //!@}
 
   public:
     // Construct with image data and thread ID
-    inline CELER_FUNCTION ImageTrackView(ImageData const& shared, ThreadId tid);
+    inline CELER_FUNCTION
+    ImageTrackView(ImageData const& shared, TrackSlotId tid);
 
     // Calculate start position
     inline CELER_FUNCTION Real3 start_pos() const;
@@ -61,7 +62,7 @@ class ImageTrackView
  * Construct with defaults.
  */
 CELER_FUNCTION
-ImageTrackView::ImageTrackView(ImageData const& shared, ThreadId tid)
+ImageTrackView::ImageTrackView(ImageData const& shared, TrackSlotId tid)
     : shared_(shared), j_index_(tid.get())
 {
     CELER_EXPECT(j_index_ < shared_.dims[0]);

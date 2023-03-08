@@ -148,7 +148,7 @@ TEST_F(LivermorePETest, basic)
 
     // Helper for simulating atomic relaxation
     AtomicRelaxationHelper relaxation(
-        relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
+        relax_params_ref_, relax_states_ref_, el_id, TrackSlotId{0});
     EXPECT_FALSE(relaxation);
 
     // Create the interactor
@@ -217,7 +217,7 @@ TEST_F(LivermorePETest, stress_test)
 
     // Helper for simulating atomic relaxation
     AtomicRelaxationHelper relaxation(
-        relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
+        relax_params_ref_, relax_states_ref_, el_id, TrackSlotId{0});
     EXPECT_FALSE(relaxation);
 
     for (double inc_e : {0.0001, 0.01, 1.0, 10.0, 1000.0})
@@ -321,7 +321,7 @@ TEST_F(LivermorePETest, distributions_all)
 
     // Helper for simulating atomic relaxation
     AtomicRelaxationHelper relaxation(
-        relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
+        relax_params_ref_, relax_states_ref_, el_id, TrackSlotId{0});
     EXPECT_EQ(7, relaxation.max_secondaries());
 
     // Allocate storage for secondaries (atomic relaxation + photoelectron)
@@ -417,7 +417,7 @@ TEST_F(LivermorePETest, distributions_radiative)
 
     // Helper for simulating atomic relaxation
     AtomicRelaxationHelper relaxation(
-        relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
+        relax_params_ref_, relax_states_ref_, el_id, TrackSlotId{0});
     EXPECT_EQ(3, relaxation.max_secondaries());
 
     // Allocate storage for secondaries (atomic relaxation + photoelectron)

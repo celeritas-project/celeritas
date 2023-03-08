@@ -50,7 +50,7 @@ class MaterialTrackView
     // Construct from "static" parameters and "dynamic" state
     inline CELER_FUNCTION MaterialTrackView(MaterialParamsRef const& params,
                                             MaterialStateRef const& states,
-                                            ThreadId tid);
+                                            TrackSlotId tid);
 
     // Initialize the particle
     inline CELER_FUNCTION MaterialTrackView&
@@ -72,7 +72,7 @@ class MaterialTrackView
   private:
     MaterialParamsRef const& params_;
     MaterialStateRef const& states_;
-    const ThreadId thread_;
+    const TrackSlotId thread_;
 
     CELER_FORCEINLINE_FUNCTION MaterialTrackState& state() const;
 };
@@ -86,7 +86,7 @@ class MaterialTrackView
 CELER_FUNCTION
 MaterialTrackView::MaterialTrackView(MaterialParamsRef const& params,
                                      MaterialStateRef const& states,
-                                     ThreadId tid)
+                                     TrackSlotId tid)
     : params_(params), states_(states), thread_(tid)
 {
     CELER_EXPECT(tid < states.state.size());

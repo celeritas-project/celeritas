@@ -86,7 +86,7 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
     void
     operator=(VecgeomNavCollection<Ownership::value, MemSpace::host>& other);
     // Get the navigation state for a given thread
-    NavState& at(int, ThreadId id) const;
+    NavState& at(int, TrackSlotId id) const;
     //! True if the collection is assigned/valiid
     explicit operator bool() const { return !nav_state.empty(); }
 };
@@ -150,7 +150,7 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
     void
     operator=(VecgeomNavCollection<Ownership::value, MemSpace::device>& other);
     // Get the navigation state for the given thread
-    inline CELER_FUNCTION NavState& at(int max_depth, ThreadId thread) const;
+    inline CELER_FUNCTION NavState& at(int max_depth, TrackSlotId thread) const;
 
     //! True if the collection is assigned/valid
     explicit CELER_FUNCTION operator bool() const
@@ -168,7 +168,7 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
  */
 CELER_FUNCTION auto
 VecgeomNavCollection<Ownership::reference, MemSpace::device>::at(
-    int max_depth_param, ThreadId thread) const -> NavState&
+    int max_depth_param, TrackSlotId thread) const -> NavState&
 {
     CELER_EXPECT(this->pool_view.IsValid());
     CELER_EXPECT(thread < this->pool_view.Capacity());

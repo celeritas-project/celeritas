@@ -24,12 +24,12 @@ void locate_alive(
     MultiExceptionHandler capture_exception;
     detail::LocateAliveLauncher<MemSpace::host> launch(core_data);
     #pragma omp parallel for
-    for (ThreadId::size_type i = 0; i < core_data.states.size(); ++i)
+    for (TrackSlotId::size_type i = 0; i < core_data.states.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            launch(TrackSlotId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "locate_alive"));
+            KernelContextException(core_data, TrackSlotId{i}, "locate_alive"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

@@ -27,9 +27,9 @@ class CoreTrackView;
  *
  * \code
     CELER_TRY_HANDLE_CONTEXT(
-        launch(ThreadId{i}),
+        launch(TrackSlotId{i}),
         capture_exception,
-        KernelContextException(data, ThreadId{i}, this->label())
+        KernelContextException(data, TrackSlotId{i}, this->label())
     );
  * \endcode
  */
@@ -45,7 +45,7 @@ class KernelContextException : public RichContextException
   public:
     // Construct with track data and kernel label
     KernelContextException(CoreHostRef const& data,
-                           ThreadId tid,
+                           TrackSlotId tid,
                            std::string&& label);
 
     // This class type
@@ -60,7 +60,7 @@ class KernelContextException : public RichContextException
     //!@{
     //! \name Track accessors
     //! Thread slot ID
-    ThreadId thread() const { return thread_; }
+    TrackSlotId thread() const { return thread_; }
     //! Event ID
     EventId event() const { return event_; }
     //! Track ID
@@ -89,7 +89,7 @@ class KernelContextException : public RichContextException
     std::string const& label() const { return label_; }
 
   private:
-    ThreadId thread_;
+    TrackSlotId thread_;
     EventId event_;
     TrackId track_;
     TrackId parent_;

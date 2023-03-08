@@ -44,7 +44,8 @@ __global__ void initialize_kernel(ParamsDeviceRef const params,
         return;
     }
 
-    ParticleTrackView particle(params.particle, states.particle, ThreadId(tid));
+    ParticleTrackView particle(
+        params.particle, states.particle, TrackSlotId(tid));
     particle = init.particle;
 
     // Particles begin alive and in the +z direction
@@ -70,8 +71,9 @@ move_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     }
 
     // Construct particle accessor from immutable and thread-local data
-    ParticleTrackView particle(params.particle, states.particle, ThreadId(tid));
-    RngEngine rng(states.rng, ThreadId(tid));
+    ParticleTrackView particle(
+        params.particle, states.particle, TrackSlotId(tid));
+    RngEngine rng(states.rng, TrackSlotId(tid));
 
     // Move to collision
     XsCalculator calc_xs(params.tables.xs, params.tables.reals);
@@ -105,15 +107,16 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     }
 
     // Construct particle accessor from immutable and thread-local data
-    ParticleTrackView particle(params.particle, states.particle, ThreadId(tid));
-    RngEngine rng(states.rng, ThreadId(tid));
+    ParticleTrackView particle(
+        params.particle, states.particle, TrackSlotId(tid));
+    RngEngine rng(states.rng, TrackSlotId(tid));
 
     Detector detector(params.detector, states.detector);
 
     Hit h;
     h.pos = states.position[tid];
     h.dir = states.direction[tid];
-    h.thread = ThreadId(tid);
+    h.thread = TrackSlotId(tid);
     h.time = states.time[tid];
 
     if (particle.energy() < units::MevEnergy{0.01})

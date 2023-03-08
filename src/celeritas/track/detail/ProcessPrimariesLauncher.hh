@@ -46,7 +46,7 @@ class ProcessPrimariesLauncher
     }
 
     // Create track initializers from primaries
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
 
   private:
     TrackInitStateRef const& data_;
@@ -58,12 +58,13 @@ class ProcessPrimariesLauncher
  * Create track initializers from primaries.
  */
 template<MemSpace M>
-CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void
+ProcessPrimariesLauncher<M>::operator()(TrackSlotId tid) const
 {
     Primary const& primary = primaries_[tid.get()];
 
     CELER_ASSERT(primaries_.size() <= data_.initializers.size() + tid.get());
-    TrackInitializer& ti = data_.initializers[ThreadId(
+    TrackInitializer& ti = data_.initializers[TrackSlotId(
         data_.initializers.size() - primaries_.size() + tid.get())];
 
     // Construct a track initializer from a primary particle

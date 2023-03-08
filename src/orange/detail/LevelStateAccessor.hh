@@ -28,7 +28,7 @@ class LevelStateAccessor
   public:
     // Construct from states and indices
     inline CELER_FUNCTION LevelStateAccessor(StateRef const* states,
-                                             ThreadId thread_id,
+                                             TrackSlotId thread_id,
                                              LevelId level_id);
 
     // Copy data from another LSA
@@ -122,7 +122,7 @@ class LevelStateAccessor
  */
 CELER_FUNCTION
 LevelStateAccessor::LevelStateAccessor(StateRef const* states,
-                                       ThreadId thread_id,
+                                       TrackSlotId thread_id,
                                        LevelId level_id)
     : states_(states)
     , index_(thread_id.get() * states_->max_level + level_id.get())

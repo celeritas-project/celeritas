@@ -24,7 +24,7 @@ namespace detail
 void rng_state_init(HostRef<CuHipRngStateData> const& rng,
                     HostCRef<CuHipRngInitData> const& seeds)
 {
-    for (auto tid : range(ThreadId{seeds.size()}))
+    for (auto tid : range(TrackSlotId{seeds.size()}))
     {
         CuHipRngEngine engine(rng, tid);
         engine = seeds.seeds[tid];

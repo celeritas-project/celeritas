@@ -101,7 +101,7 @@ class MockTrackView
 
     CELER_FUNCTION MockTrackView(ParamsData const& params,
                                  StateData const& states,
-                                 ThreadId tid)
+                                 TrackSlotId tid)
         : params_(params), states_(states), thread_(tid)
     {
         CELER_EXPECT(thread_ < states_.size());
@@ -125,7 +125,7 @@ class MockTrackView
   private:
     ParamsData const& params_;
     StateData const& states_;
-    ThreadId thread_;
+    TrackSlotId thread_;
 
     CELER_FUNCTION MockMaterial const& mat() const
     {

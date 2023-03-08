@@ -140,7 +140,7 @@ struct MaterialTrackState
  * Store dynamic states of multiple physical particles.
  *
  * The size of the view will be the size of the vector of tracks. Each particle
- * track state corresponds to the thread ID (\c ThreadId).
+ * track state corresponds to the thread ID (\c TrackSlotId).
  *
  * The "element scratch space" is a 2D array of reals, indexed with
  * [track_id][el_component_id], where the fast-moving dimension has the

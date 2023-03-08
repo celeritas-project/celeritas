@@ -40,9 +40,9 @@ void seltzer_berger_interact(
     for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            launch(TrackSlotId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "seltzer_berger"));
+            KernelContextException(core_data, TrackSlotId{i}, "seltzer_berger"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

@@ -107,7 +107,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
     tstep_ = TStepData();
 
     // Loop over thread ids and fill TTree
-    for (auto const tid : range(ThreadId{steps.size()}))
+    for (auto const tid : range(TrackSlotId{steps.size()}))
     {
         if (!steps.track_id[tid])
         {

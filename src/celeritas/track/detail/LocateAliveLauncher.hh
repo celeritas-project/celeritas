@@ -51,7 +51,7 @@ class LocateAliveLauncher
     }
 
     // Determine which tracks are alive and count secondaries
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
 
   private:
     ParamsRef const& params_;
@@ -63,7 +63,7 @@ class LocateAliveLauncher
  * Determine which tracks are alive and count secondaries.
  */
 template<MemSpace M>
-CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void LocateAliveLauncher<M>::operator()(TrackSlotId tid) const
 {
     // Count the number of secondaries produced by each track
     size_type num_secondaries{0};

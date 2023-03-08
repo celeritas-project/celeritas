@@ -30,7 +30,7 @@ struct Hit
 {
     celeritas::Real3 pos;
     celeritas::Real3 dir;
-    celeritas::ThreadId thread;
+    celeritas::TrackSlotId thread;
     celeritas::real_type time;
     celeritas::units::MevEnergy energy_deposited;
 };

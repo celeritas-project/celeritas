@@ -113,7 +113,7 @@ TEST_F(KernelContextExceptionTest, typical)
         EXPECT_STREQ(
             "kernel context: thread 15 in 'test-kernel', track 3 of event 1",
             e.what());
-        EXPECT_EQ(ThreadId{15}, e.thread());
+        EXPECT_EQ(TrackSlotId{15}, e.thread());
         EXPECT_EQ(EventId{1}, e.event());
         EXPECT_EQ(TrackId{3}, e.track());
         EXPECT_EQ(TrackId{}, e.parent());
@@ -140,7 +140,8 @@ TEST_F(KernelContextExceptionTest, typical)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data(), ThreadId{15}, "test-kernel"));
+        KernelContextException(
+            step.core_data(), TrackSlotId{15}, "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
 }
@@ -158,7 +159,7 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
         // Don't test this with vecgeom which has more assertions when
         // acquiring data
         EXPECT_STREQ("kernel context: thread 1 in 'test-kernel'", e.what());
-        EXPECT_EQ(ThreadId{1}, e.thread());
+        EXPECT_EQ(TrackSlotId{1}, e.thread());
         EXPECT_EQ(EventId{}, e.event());
         EXPECT_EQ(TrackId{}, e.track());
         if (CELERITAS_USE_JSON)
@@ -170,7 +171,8 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data(), ThreadId{1}, "test-kernel"));
+        KernelContextException(
+            step.core_data(), TrackSlotId{1}, "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
 }
@@ -186,7 +188,7 @@ TEST_F(KernelContextExceptionTest, bad_thread)
 
     this->check_kce = [](KernelContextException const& e) {
         EXPECT_STREQ("dumb-kernel (error processing track state)", e.what());
-        EXPECT_EQ(ThreadId{}, e.thread());
+        EXPECT_EQ(TrackSlotId{}, e.thread());
         if (CELERITAS_USE_JSON)
         {
             EXPECT_EQ(R"json({"label":"dumb-kernel"})json", get_json_str(e));
@@ -195,7 +197,7 @@ TEST_F(KernelContextExceptionTest, bad_thread)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data(), ThreadId{}, "dumb-kernel"));
+        KernelContextException(step.core_data(), TrackSlotId{}, "dumb-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
 }

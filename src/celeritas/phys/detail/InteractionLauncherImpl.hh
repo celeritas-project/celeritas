@@ -39,7 +39,7 @@ struct InteractionLauncherImpl
 
     //// METHODS ////
 
-    CELER_FUNCTION void operator()(ThreadId thread) const;
+    CELER_FUNCTION void operator()(TrackSlotId thread) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ struct InteractionLauncherImpl
  */
 template<class D, class F>
 CELER_FUNCTION void
-InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
+InteractionLauncherImpl<D, F>::operator()(TrackSlotId thread) const
 {
     CELER_ASSERT(thread < this->core_data.states.size());
     const celeritas::CoreTrackView track(

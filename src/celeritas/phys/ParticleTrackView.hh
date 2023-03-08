@@ -47,7 +47,7 @@ class ParticleTrackView
     // Construct from "dynamic" state and "static" particle definitions
     inline CELER_FUNCTION ParticleTrackView(ParticleParamsRef const& params,
                                             ParticleStateRef const& states,
-                                            ThreadId id);
+                                            TrackSlotId id);
 
     // Initialize the particle
     inline CELER_FUNCTION ParticleTrackView&
@@ -103,7 +103,7 @@ class ParticleTrackView
   private:
     ParticleParamsRef const& params_;
     ParticleStateRef const& states_;
-    const ThreadId thread_;
+    const TrackSlotId thread_;
 };
 
 //---------------------------------------------------------------------------//
@@ -115,7 +115,7 @@ class ParticleTrackView
 CELER_FUNCTION
 ParticleTrackView::ParticleTrackView(ParticleParamsRef const& params,
                                      ParticleStateRef const& states,
-                                     ThreadId thread)
+                                     TrackSlotId thread)
     : params_(params), states_(states), thread_(thread)
 {
     CELER_EXPECT(thread_ < states_.size());

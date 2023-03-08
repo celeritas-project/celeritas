@@ -67,7 +67,7 @@ class OrangeTrackView
     // Construct from params and state params
     inline CELER_FUNCTION OrangeTrackView(ParamsRef const& params,
                                           StateRef const& states,
-                                          ThreadId tid);
+                                          TrackSlotId tid);
 
     // Initialize the state
     inline CELER_FUNCTION OrangeTrackView& operator=(Initializer_t const& init);
@@ -123,7 +123,7 @@ class OrangeTrackView
 
     ParamsRef const& params_;
     StateRef const& states_;
-    ThreadId thread_;
+    TrackSlotId thread_;
 
     real_type next_step_{0};  //!< Temporary next step
     detail::OnSurface next_surface_{};  //!< Temporary next surface
@@ -167,7 +167,7 @@ class OrangeTrackView
 CELER_FUNCTION
 OrangeTrackView::OrangeTrackView(ParamsRef const& params,
                                  StateRef const& states,
-                                 ThreadId thread)
+                                 TrackSlotId thread)
     : params_(params), states_(states), thread_(thread)
 {
     CELER_EXPECT(params_);

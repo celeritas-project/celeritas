@@ -37,7 +37,7 @@ class CuHipRngEngine
   public:
     // Construct from state
     inline CELER_FUNCTION
-    CuHipRngEngine(StateRef const& state, ThreadId const& id);
+    CuHipRngEngine(StateRef const& state, TrackSlotId const& id);
 
     // Initialize state from seed
     inline CELER_FUNCTION CuHipRngEngine& operator=(Initializer_t const& s);
@@ -97,7 +97,7 @@ class GenerateCanonical<CuHipRngEngine, double>
  * Construct from state.
  */
 CELER_FUNCTION
-CuHipRngEngine::CuHipRngEngine(StateRef const& state, ThreadId const& id)
+CuHipRngEngine::CuHipRngEngine(StateRef const& state, TrackSlotId const& id)
 {
     CELER_EXPECT(id < state.rng.size());
     state_ = &state.rng[id];

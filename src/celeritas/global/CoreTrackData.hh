@@ -88,7 +88,7 @@ template<Ownership W, MemSpace M>
 struct CoreStateData
 {
     //! Index into the states from consecutive thread IDs
-    Collection<TrackSlotId, W, M, ThreadId> track_slots;
+    Collection<TrackSlotId, W, M, TrackSlotId> track_slots;
     //! Grid size (number of active threads)
     size_type max_active{0};
 

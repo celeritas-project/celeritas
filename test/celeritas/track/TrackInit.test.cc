@@ -121,7 +121,7 @@ class TrackInitTest : public SimpleTestBase
             states.sim.state);
 
         // Store the track IDs and parent IDs
-        for (auto tid : range(ThreadId{sim.size()}))
+        for (auto tid : range(TrackSlotId{sim.size()}))
         {
             result.track_ids.push_back(sim[tid].track_id.unchecked_get());
             result.parent_ids.push_back(sim[tid].parent_id.unchecked_get());

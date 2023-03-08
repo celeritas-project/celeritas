@@ -33,7 +33,7 @@ GCheckOutput run_cpu(SPConstGeo const& params,
 
     StateStore state = StateStore(params->host_ref(), 1);
 
-    GeoTrackView geo(params->host_ref(), state.ref(), ThreadId(0));
+    GeoTrackView geo(params->host_ref(), state.ref(), TrackSlotId(0));
     geo = GeoTrackInitializer{init->pos, init->dir};
 
     LinearPropagator propagate(&geo);  // one propagator per track

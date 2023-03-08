@@ -34,10 +34,11 @@ CELER_CONSTEXPR_FUNCTION size_type occupied()
 
 //---------------------------------------------------------------------------//
 //! Get the thread ID of the last element
-CELER_FORCEINLINE_FUNCTION ThreadId from_back(size_type size, ThreadId tid)
+CELER_FORCEINLINE_FUNCTION TrackSlotId from_back(size_type size,
+                                                 TrackSlotId tid)
 {
     CELER_EXPECT(tid.get() + 1 <= size);
-    return ThreadId{size - tid.get() - 1};
+    return TrackSlotId{size - tid.get() - 1};
 }
 
 //---------------------------------------------------------------------------//

@@ -54,7 +54,7 @@ void VecgeomNavCollection<Ownership::reference, MemSpace::host>::operator=(
  * Get the navigation state at the given thread, which must be zero.
  */
 auto VecgeomNavCollection<Ownership::reference, MemSpace::host>::at(
-    int, ThreadId id) const -> NavState&
+    int, TrackSlotId id) const -> NavState&
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(id < nav_state.size());

@@ -92,7 +92,7 @@ class ParticleProcessLauncher
     //!@{
     //! \name Type aliases
     using size_type = celeritas::size_type;
-    using ThreadId = celeritas::ThreadId;
+    using TrackSlotId = celeritas::TrackSlotId;
     using ItemsRef = celeritas::Collection<size_type, Ownership::reference, M>;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
     using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
@@ -105,7 +105,7 @@ class ParticleProcessLauncher
                                            ItemsRef& counts);
 
     //! Create track views and tally particle/processes
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
 
   private:
     ParamsRef const& params_;
@@ -243,7 +243,8 @@ ParticleProcessLauncher<M>::ParticleProcessLauncher(ParamsRef const& params,
  * Create track views and tally particle/processes.
  */
 template<MemSpace M>
-CELER_FUNCTION void ParticleProcessLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void
+ParticleProcessLauncher<M>::operator()(TrackSlotId tid) const
 {
     using BinId = celeritas::ItemId<size_type>;
 

@@ -123,7 +123,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
         // Create and initialize particle view
         ParticleTrackView particle(
-            params.particle, state.particle, ThreadId{0});
+            params.particle, state.particle, TrackSlotId{0});
 
         // Create helper classes
         StackAllocator<Secondary> allocate_secondaries(state.secondaries);
@@ -157,7 +157,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             Hit h;
             h.pos = position;
             h.dir = direction;
-            h.thread = ThreadId(0);
+            h.thread = TrackSlotId(0);
             h.time = time;
 
             // Check for below energy cutoff

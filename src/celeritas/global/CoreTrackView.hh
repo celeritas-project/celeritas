@@ -39,7 +39,7 @@ class CoreTrackView
     // Construct with comprehensive param/state data and thread
     inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
                                         StateRef const& states,
-                                        ThreadId thread);
+                                        TrackSlotId thread);
 
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView make_sim_view() const;
@@ -69,7 +69,7 @@ class CoreTrackView
     inline CELER_FUNCTION RngEngine make_rng_engine() const;
 
     //! Get the track's index among the states
-    CELER_FUNCTION ThreadId thread_id() const { return thread_; }
+    CELER_FUNCTION TrackSlotId thread_id() const { return thread_; }
 
     // Action ID for encountering a geometry boundary
     inline CELER_FUNCTION ActionId boundary_action() const;
@@ -80,7 +80,7 @@ class CoreTrackView
   private:
     StateRef const& states_;
     ParamsRef const& params_;
-    const ThreadId thread_;
+    const TrackSlotId thread_;
 };
 
 //---------------------------------------------------------------------------//
@@ -92,7 +92,7 @@ class CoreTrackView
 CELER_FUNCTION
 CoreTrackView::CoreTrackView(ParamsRef const& params,
                              StateRef const& states,
-                             ThreadId thread)
+                             TrackSlotId thread)
     : states_(states), params_(params), thread_(thread)
 {
     CELER_EXPECT(thread_ < states_.size());

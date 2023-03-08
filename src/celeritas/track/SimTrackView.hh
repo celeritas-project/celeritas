@@ -33,7 +33,7 @@ class SimTrackView
   public:
     // Construct with view to state and persistent data
     inline CELER_FUNCTION
-    SimTrackView(SimStateRef const& states, ThreadId thread);
+    SimTrackView(SimStateRef const& states, TrackSlotId thread);
 
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(Initializer_t const& other);
@@ -87,7 +87,7 @@ class SimTrackView
 
   private:
     SimStateRef const& states_;
-    const ThreadId thread_;
+    const TrackSlotId thread_;
 };
 
 //---------------------------------------------------------------------------//
@@ -97,7 +97,7 @@ class SimTrackView
  * Construct from persistent and local data.
  */
 CELER_FUNCTION
-SimTrackView::SimTrackView(SimStateRef const& states, ThreadId thread)
+SimTrackView::SimTrackView(SimStateRef const& states, TrackSlotId thread)
     : states_(states), thread_(thread)
 {
     CELER_EXPECT(thread < states_.size());

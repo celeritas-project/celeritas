@@ -229,7 +229,7 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
 
     // Loop over all threads
     Stopwatch get_time;
-    for (auto tid : range(ThreadId{states.size()}))
+    for (auto tid : range(TrackSlotId{states.size()}))
     {
         calc_init(tid);
     }
@@ -277,7 +277,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        auto lsa = LevelStateAccessor(&result_ref, ThreadId{i}, LevelId{0});
+        auto lsa = LevelStateAccessor(&result_ref, TrackSlotId{i}, LevelId{0});
         lsa.pos() = sample_box(rng);
         lsa.dir() = sample_isotropic(rng);
     }
@@ -306,7 +306,7 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
 
     for (auto i : range(host.size()))
     {
-        auto thread_id = ThreadId{i};
+        auto thread_id = TrackSlotId{i};
         // TODO Update for multiple universes
         LevelStateAccessor lsa(&host, thread_id, LevelId{0});
         auto vol = lsa.vol();

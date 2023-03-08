@@ -331,7 +331,7 @@ struct OrangeStateData
     }
 
     //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return level.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const { return level.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

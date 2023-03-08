@@ -69,12 +69,12 @@ namespace generated
     MultiExceptionHandler capture_exception;
     detail::{clsname}Launcher<MemSpace::host> launch({kernel_arglist});
     #pragma omp parallel for
-    for (ThreadId::size_type i = 0; i < {num_threads}; ++i)
+    for (TrackSlotId::size_type i = 0; i < {num_threads}; ++i)
     {{
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{{i}}),
+            launch(TrackSlotId{{i}}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{{i}}, "{funcname}"));
+            KernelContextException(core_data, TrackSlotId{{i}}, "{funcname}"));
     }}
     log_and_rethrow(std::move(capture_exception));
 }}

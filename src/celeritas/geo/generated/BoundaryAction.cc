@@ -32,9 +32,9 @@ void BoundaryAction::execute(CoreHostRef const& data) const
     for (size_type i = 0; i < data.states.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            launch(TrackSlotId{i}),
             capture_exception,
-            KernelContextException(data, ThreadId{i}, this->label()));
+            KernelContextException(data, TrackSlotId{i}, this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }

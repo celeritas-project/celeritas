@@ -49,7 +49,7 @@ class PhysicsStepView
     // Construct from shared and state data
     inline CELER_FUNCTION PhysicsStepView(PhysicsParamsRef const& params,
                                           PhysicsStateRef const& states,
-                                          ThreadId id);
+                                          TrackSlotId id);
 
     // Set the total (process-integrated) macroscopic xs [cm^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
@@ -105,7 +105,7 @@ class PhysicsStepView
 
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
-    const ThreadId thread_;
+    const TrackSlotId thread_;
 
     //// CLASS FUNCTIONS ////
 
@@ -121,7 +121,7 @@ class PhysicsStepView
  */
 CELER_FUNCTION PhysicsStepView::PhysicsStepView(PhysicsParamsRef const& params,
                                                 PhysicsStateRef const& states,
-                                                ThreadId tid)
+                                                TrackSlotId tid)
     : params_(params), states_(states), thread_(tid)
 {
     CELER_EXPECT(thread_);
