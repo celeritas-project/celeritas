@@ -87,8 +87,10 @@ struct CoreParamsData
 template<Ownership W, MemSpace M>
 struct CoreStateData
 {
-    template<class T>
-    using Items = StateCollection<T, W, M>;
+    //! Index into the states from consecutive thread IDs
+    Collection<TrackSlotId, W, M, ThreadId> track_slots;
+    //! Grid size (number of active threads)
+    size_type max_active{0};
 
     GeoStateData<W, M> geometry;
     MaterialStateData<W, M> materials;
@@ -113,6 +115,7 @@ struct CoreStateData
     CoreStateData& operator=(CoreStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
+        track_slots = other.track_slots;
         geometry = other.geometry;
         materials = other.materials;
         particles = other.particles;
