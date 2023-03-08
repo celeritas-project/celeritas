@@ -116,7 +116,7 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     Hit h;
     h.pos = states.position[tid];
     h.dir = states.direction[tid];
-    h.thread = TrackSlotId(tid);
+    h.track_slot = TrackSlotId(tid);
     h.time = states.time[tid];
 
     if (particle.energy() < units::MevEnergy{0.01})

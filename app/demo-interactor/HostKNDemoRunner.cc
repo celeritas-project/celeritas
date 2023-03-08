@@ -157,7 +157,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             Hit h;
             h.pos = position;
             h.dir = direction;
-            h.thread = TrackSlotId(0);
+            h.track_slot = TrackSlotId{0};
             h.time = time;
 
             // Check for below energy cutoff
