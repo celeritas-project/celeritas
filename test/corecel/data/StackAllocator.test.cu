@@ -31,7 +31,7 @@ namespace
 {
 __global__ void sa_test_kernel(SATestInput const input, SATestOutput* output)
 {
-    auto thread_idx = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()}.get();
+    auto thread_idx = KernelParamCalculator::thread_id().get();
     if (thread_idx >= input.num_threads)
         return;
 
@@ -65,7 +65,7 @@ __global__ void sa_test_kernel(SATestInput const input, SATestOutput* output)
 __global__ void
 sa_post_test_kernel(SATestInput const input, SATestOutput* output)
 {
-    auto thread_id = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
+    auto thread_id = KernelParamCalculator::thread_id();
 
     const StackAllocatorMock allocate(input.sa_data);
     if (thread_id == ThreadId{0})
@@ -76,7 +76,7 @@ sa_post_test_kernel(SATestInput const input, SATestOutput* output)
 
 __global__ void sa_clear_kernel(SATestInput const input)
 {
-    auto thread_id = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
+    auto thread_id = KernelParamCalculator::thread_id();
 
     StackAllocatorMock allocate(input.sa_data);
     if (thread_id == ThreadId{0})
