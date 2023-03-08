@@ -170,6 +170,8 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     step_->SetTrack(track_.get());
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
+    CELER_LOG_LOCAL(debug) << "Setting up " << detector_volumes_->size()
+                           << " sensitive detectors";
     detectors_.resize(detector_volumes_->size());
     for (auto i : range(detectors_.size()))
     {

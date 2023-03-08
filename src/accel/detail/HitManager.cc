@@ -12,6 +12,7 @@
 #include <G4LogicalVolumeStore.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
+#include <G4VSensitiveDetector.hh>
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/EnumArray.hh"
@@ -119,6 +120,10 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
                        << "failed to find " << celeritas_geometry
                        << " volume corresponding to Geant4 volume '"
                        << lv->GetName() << "'");
+        CELER_LOG(debug) << "Mapped sensitive detector '" << sd->GetName()
+                         << "' (logical volume '" << lv->GetName() << "') to "
+                         << celeritas_geometry << " volume '"
+                         << geo.id_to_label(id) << "'";
 
         // Add Geant4 volume and corresponding volume ID to list
         geant_vols.push_back(lv);
