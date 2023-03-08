@@ -36,7 +36,7 @@ namespace celeritas
  * \sa OrangeTrackView
  *
  * \code
-    VecgeomTrackView geom(vg_params_ref, vg_state_ref, thread_id);
+    VecgeomTrackView geom(vg_params_ref, vg_state_ref, trackslot_id);
    \endcode
  */
 class VecgeomTrackView

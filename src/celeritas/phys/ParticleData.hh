@@ -113,9 +113,6 @@ struct ParticleTrackInitializer
 /*!
  * Data storage/access for particle properties.
  *
- * The size of the view will be the size of the vector of tracks. Each particle
- * track state corresponds to the thread ID (\c TrackSlotId).
- *
  * \sa ParticleTrackView (uses the pointed-to data in a kernel)
  */
 template<Ownership W, MemSpace M>
