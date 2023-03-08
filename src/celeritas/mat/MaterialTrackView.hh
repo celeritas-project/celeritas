@@ -72,7 +72,7 @@ class MaterialTrackView
   private:
     MaterialParamsRef const& params_;
     MaterialStateRef const& states_;
-    const TrackSlotId thread_;
+    const TrackSlotId track_slot_;
 
     CELER_FORCEINLINE_FUNCTION MaterialTrackState& state() const;
 };
@@ -87,7 +87,7 @@ CELER_FUNCTION
 MaterialTrackView::MaterialTrackView(MaterialParamsRef const& params,
                                      MaterialStateRef const& states,
                                      TrackSlotId tid)
-    : params_(params), states_(states), thread_(tid)
+    : params_(params), states_(states), track_slot_(tid)
 {
     CELER_EXPECT(tid < states.state.size());
 }
@@ -128,7 +128,7 @@ CELER_FUNCTION MaterialView MaterialTrackView::make_material_view() const
  */
 CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
 {
-    auto offset = thread_.get() * params_.max_element_components;
+    auto offset = track_slot_.get() * params_.max_element_components;
     Span<real_type> all_scratch
         = states_.element_scratch[AllItems<real_type, MemSpace::native>{}];
     CELER_ENSURE(offset + params_.max_element_components <= all_scratch.size());
@@ -141,7 +141,7 @@ CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
  */
 CELER_FUNCTION MaterialTrackState& MaterialTrackView::state() const
 {
-    return states_.state[thread_];
+    return states_.state[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

@@ -49,7 +49,7 @@ class PhysicsStepView
     // Construct from shared and state data
     inline CELER_FUNCTION PhysicsStepView(PhysicsParamsRef const& params,
                                           PhysicsStateRef const& states,
-                                          TrackSlotId id);
+                                          TrackSlotId tid);
 
     // Set the total (process-integrated) macroscopic xs [cm^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
@@ -105,7 +105,7 @@ class PhysicsStepView
 
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
-    const TrackSlotId thread_;
+    const TrackSlotId track_slot_;
 
     //// CLASS FUNCTIONS ////
 
@@ -122,9 +122,9 @@ class PhysicsStepView
 CELER_FUNCTION PhysicsStepView::PhysicsStepView(PhysicsParamsRef const& params,
                                                 PhysicsStateRef const& states,
                                                 TrackSlotId tid)
-    : params_(params), states_(states), thread_(tid)
+    : params_(params), states_(states), track_slot_(tid)
 {
-    CELER_EXPECT(thread_);
+    CELER_EXPECT(track_slot_);
 }
 
 //---------------------------------------------------------------------------//
@@ -152,7 +152,7 @@ CELER_FUNCTION void PhysicsStepView::element(ElementComponentId elcomp_id)
  */
 CELER_FUNCTION void PhysicsStepView::msc_step(MscStep const& limit)
 {
-    states_.msc_step[thread_] = limit;
+    states_.msc_step[track_slot_] = limit;
 }
 
 //---------------------------------------------------------------------------//
@@ -225,7 +225,7 @@ CELER_FUNCTION ElementComponentId PhysicsStepView::element() const
  */
 CELER_FUNCTION MscStep const& PhysicsStepView::msc_step() const
 {
-    return states_.msc_step[thread_];
+    return states_.msc_step[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -256,7 +256,7 @@ CELER_FUNCTION real_type&
 PhysicsStepView::per_process_xs(ParticleProcessId ppid)
 {
     CELER_EXPECT(ppid < params_.scalars.max_particle_processes);
-    auto idx = thread_.get() * params_.scalars.max_particle_processes
+    auto idx = track_slot_.get() * params_.scalars.max_particle_processes
                + ppid.get();
     CELER_ENSURE(idx < states_.per_process_xs.size());
     return states_.per_process_xs[ItemId<real_type>(idx)];
@@ -270,7 +270,7 @@ CELER_FUNCTION
 real_type PhysicsStepView::per_process_xs(ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < params_.scalars.max_particle_processes);
-    auto idx = thread_.get() * params_.scalars.max_particle_processes
+    auto idx = track_slot_.get() * params_.scalars.max_particle_processes
                + ppid.get();
     CELER_ENSURE(idx < states_.per_process_xs.size());
     return states_.per_process_xs[ItemId<real_type>(idx)];
@@ -295,8 +295,10 @@ PhysicsStepView::make_relaxation_helper(ElementId el_id) const
     -> AtomicRelaxationHelper
 {
     CELER_ASSERT(el_id);
-    return AtomicRelaxationHelper{
-        params_.hardwired.relaxation_data, states_.relaxation, el_id, thread_};
+    return AtomicRelaxationHelper{params_.hardwired.relaxation_data,
+                                  states_.relaxation,
+                                  el_id,
+                                  track_slot_};
 }
 
 //---------------------------------------------------------------------------//
@@ -305,13 +307,13 @@ PhysicsStepView::make_relaxation_helper(ElementId el_id) const
 //! Get the thread-local state (mutable)
 CELER_FUNCTION PhysicsTrackState& PhysicsStepView::state()
 {
-    return states_.state[thread_];
+    return states_.state[track_slot_];
 }
 
 //! Get the thread-local state (const)
 CELER_FUNCTION PhysicsTrackState const& PhysicsStepView::state() const
 {
-    return states_.state[thread_];
+    return states_.state[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

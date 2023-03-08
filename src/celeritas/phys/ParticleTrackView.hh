@@ -103,7 +103,7 @@ class ParticleTrackView
   private:
     ParticleParamsRef const& params_;
     ParticleStateRef const& states_;
-    const TrackSlotId thread_;
+    const TrackSlotId track_slot_;
 };
 
 //---------------------------------------------------------------------------//
@@ -115,10 +115,10 @@ class ParticleTrackView
 CELER_FUNCTION
 ParticleTrackView::ParticleTrackView(ParticleParamsRef const& params,
                                      ParticleStateRef const& states,
-                                     TrackSlotId thread)
-    : params_(params), states_(states), thread_(thread)
+                                     TrackSlotId tid)
+    : params_(params), states_(states), track_slot_(tid)
 {
-    CELER_EXPECT(thread_ < states_.size());
+    CELER_EXPECT(track_slot_ < states_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -130,8 +130,8 @@ ParticleTrackView::operator=(Initializer_t const& other)
 {
     CELER_EXPECT(other.particle_id < params_.particles.size());
     CELER_EXPECT(other.energy >= zero_quantity());
-    states_.state[thread_].particle_id = other.particle_id;
-    states_.state[thread_].energy = other.energy.value();
+    states_.state[track_slot_].particle_id = other.particle_id;
+    states_.state[track_slot_].energy = other.energy.value();
     return *this;
 }
 
@@ -147,7 +147,7 @@ void ParticleTrackView::energy(Energy quantity)
 {
     CELER_EXPECT(this->particle_id());
     CELER_EXPECT(quantity >= zero_quantity());
-    states_.state[thread_].energy = quantity.value();
+    states_.state[track_slot_].energy = quantity.value();
 }
 
 //---------------------------------------------------------------------------//
@@ -159,7 +159,7 @@ CELER_FUNCTION void ParticleTrackView::subtract_energy(Energy eloss)
     CELER_EXPECT(eloss >= zero_quantity());
     CELER_EXPECT(eloss <= this->energy());
     // TODO: save a read/write by only saving if eloss is positive?
-    states_.state[thread_].energy -= eloss.value();
+    states_.state[track_slot_].energy -= eloss.value();
 }
 
 //---------------------------------------------------------------------------//
@@ -170,7 +170,7 @@ CELER_FUNCTION void ParticleTrackView::subtract_energy(Energy eloss)
  */
 CELER_FUNCTION ParticleId ParticleTrackView::particle_id() const
 {
-    return states_.state[thread_].particle_id;
+    return states_.state[track_slot_].particle_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -179,7 +179,7 @@ CELER_FUNCTION ParticleId ParticleTrackView::particle_id() const
  */
 CELER_FUNCTION auto ParticleTrackView::energy() const -> Energy
 {
-    return Energy{states_.state[thread_].energy};
+    return Energy{states_.state[track_slot_].energy};
 }
 
 //---------------------------------------------------------------------------//
@@ -199,7 +199,7 @@ CELER_FUNCTION bool ParticleTrackView::is_stopped() const
  */
 CELER_FUNCTION ParticleView ParticleTrackView::particle_view() const
 {
-    return ParticleView(params_, states_.state[thread_].particle_id);
+    return ParticleView(params_, states_.state[track_slot_].particle_id);
 }
 
 //---------------------------------------------------------------------------//

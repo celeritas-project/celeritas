@@ -123,7 +123,7 @@ class OrangeTrackView
 
     ParamsRef const& params_;
     StateRef const& states_;
-    TrackSlotId thread_;
+    TrackSlotId track_slot_;
 
     real_type next_step_{0};  //!< Temporary next step
     detail::OnSurface next_surface_{};  //!< Temporary next surface
@@ -167,12 +167,12 @@ class OrangeTrackView
 CELER_FUNCTION
 OrangeTrackView::OrangeTrackView(ParamsRef const& params,
                                  StateRef const& states,
-                                 TrackSlotId thread)
-    : params_(params), states_(states), thread_(thread)
+                                 TrackSlotId tid)
+    : params_(params), states_(states), track_slot_(tid)
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(states_);
-    CELER_EXPECT(thread < states.size());
+    CELER_EXPECT(track_slot_ < states.size());
 
     CELER_ENSURE(!this->has_next_step());
 }
@@ -230,7 +230,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
     } while (next_uid);
 
-    states_.level[thread_] = LevelId{level - 1};
+    states_.level[track_slot_] = LevelId{level - 1};
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -245,7 +245,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    for (auto i : range(states_.level[init.other.thread_] + 1))
+    for (auto i : range(states_.level[init.other.track_slot_] + 1))
     {
         // Copy all data accessed via LSA
         auto lsa = this->make_lsa(LevelId{i});
@@ -254,8 +254,9 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
     }
 
     // Copy init track's position but update the direction
-    states_.level[thread_] = states_.level[init.other.thread_];
-    states_.next_level[thread_] = states_.next_level[init.other.thread_];
+    states_.level[track_slot_] = states_.level[init.other.track_slot_];
+    states_.next_level[track_slot_]
+        = states_.next_level[init.other.track_slot_];
 
     // Clear step and surface info
     this->clear_next_step();
@@ -593,7 +594,7 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
 
     // Find the nearest intersection from level 0 to current level inclusive,
     // prefering the higher level (i.e., lowest uid)
-    for (auto levelid : range(LevelId{1}, states_.level[thread_] + 1))
+    for (auto levelid : range(LevelId{1}, states_.level[track_slot_] + 1))
     {
         auto lsa = this->make_lsa(levelid);
         auto tracker = this->make_tracker(lsa.universe());
@@ -667,7 +668,7 @@ CELER_FUNCTION SimpleUnitTracker OrangeTrackView::make_tracker(UniverseId id) co
 CELER_FUNCTION Span<Sense> OrangeTrackView::make_temp_sense() const
 {
     auto const max_faces = params_.scalars.max_faces;
-    auto offset = thread_.get() * max_faces;
+    auto offset = track_slot_.get() * max_faces;
     return states_.temp_sense[AllItems<Sense, MemSpace::native>{}].subspan(
         offset, max_faces);
 }
@@ -679,7 +680,7 @@ CELER_FUNCTION Span<Sense> OrangeTrackView::make_temp_sense() const
 CELER_FUNCTION detail::TempNextFace OrangeTrackView::make_temp_next() const
 {
     auto const max_isect = params_.scalars.max_intersections;
-    auto offset = thread_.get() * max_isect;
+    auto offset = track_slot_.get() * max_isect;
 
     detail::TempNextFace result;
     result.face = states_.temp_face[AllItems<FaceId>{}].data() + offset;
@@ -741,7 +742,7 @@ CELER_FUNCTION void OrangeTrackView::clear_next_step()
  */
 CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
 {
-    return this->make_lsa(states_.level[thread_]);
+    return this->make_lsa(states_.level[track_slot_]);
 }
 
 //---------------------------------------------------------------------------//
@@ -750,7 +751,7 @@ CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
  */
 CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa(LevelId level) const
 {
-    return LevelStateAccessor(&states_, thread_, level);
+    return LevelStateAccessor(&states_, track_slot_, level);
 }
 
 //---------------------------------------------------------------------------//

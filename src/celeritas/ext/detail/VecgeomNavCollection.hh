@@ -85,8 +85,8 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
     // Obtain reference from host memory
     void
     operator=(VecgeomNavCollection<Ownership::value, MemSpace::host>& other);
-    // Get the navigation state for a given thread
-    NavState& at(int, TrackSlotId id) const;
+    // Get the navigation state for a given track slot
+    NavState& at(int, TrackSlotId tid) const;
     //! True if the collection is assigned/valiid
     explicit operator bool() const { return !nav_state.empty(); }
 };
@@ -149,8 +149,8 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
     // Assign from device value
     void
     operator=(VecgeomNavCollection<Ownership::value, MemSpace::device>& other);
-    // Get the navigation state for the given thread
-    inline CELER_FUNCTION NavState& at(int max_depth, TrackSlotId thread) const;
+    // Get the navigation state for the given track slot
+    inline CELER_FUNCTION NavState& at(int max_depth, TrackSlotId tid) const;
 
     //! True if the collection is assigned/valid
     explicit CELER_FUNCTION operator bool() const
@@ -161,20 +161,20 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the navigation state at the given thread.
+ * Get the navigation state at the given track slot.
  *
  * The max_depth_param is used for error checking against the allocated
  * max_depth.
  */
 CELER_FUNCTION auto
 VecgeomNavCollection<Ownership::reference, MemSpace::device>::at(
-    int max_depth_param, TrackSlotId thread) const -> NavState&
+    int max_depth_param, TrackSlotId tid) const -> NavState&
 {
     CELER_EXPECT(this->pool_view.IsValid());
-    CELER_EXPECT(thread < this->pool_view.Capacity());
+    CELER_EXPECT(tid < this->pool_view.Capacity());
     CELER_EXPECT(max_depth_param == this->pool_view.Depth());
 
-    return *const_cast<NavState*>((this->pool_view)[thread.get()]);
+    return *const_cast<NavState*>((this->pool_view)[tid.get()]);
 }
 
 //---------------------------------------------------------------------------//
