@@ -29,7 +29,7 @@ __global__ void along_step_neutral_kernel(CoreDeviceRef const data)
 
     auto launch = make_along_step_launcher(
         data, NoData{}, NoData{}, NoData{}, detail::along_step_neutral);
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 //---------------------------------------------------------------------------//
 }  // namespace

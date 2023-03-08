@@ -87,6 +87,9 @@ struct CoreParamsData
 template<Ownership W, MemSpace M>
 struct CoreStateData
 {
+    template<class T>
+    using Items = StateCollection<T, W, M>;
+
     GeoStateData<W, M> geometry;
     MaterialStateData<W, M> materials;
     ParticleStateData<W, M> particles;

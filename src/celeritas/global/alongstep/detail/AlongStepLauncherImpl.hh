@@ -48,7 +48,7 @@ struct AlongStepLauncherImpl
 
     //// METHODS ////
 
-    CELER_FUNCTION void operator()(TrackSlotId thread) const;
+    CELER_FUNCTION void operator()(ThreadId thread) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -59,7 +59,7 @@ struct AlongStepLauncherImpl
  */
 template<class M, class P, class E, class F>
 CELER_FUNCTION void
-AlongStepLauncherImpl<M, P, E, F>::operator()(TrackSlotId thread) const
+AlongStepLauncherImpl<M, P, E, F>::operator()(ThreadId thread) const
 {
     CELER_ASSERT(thread < this->core_data.states.size());
     const celeritas::CoreTrackView track(

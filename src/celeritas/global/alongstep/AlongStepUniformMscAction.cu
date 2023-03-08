@@ -35,7 +35,7 @@ along_step_uniform_msc_kernel(CoreRef<MemSpace::device> const track_data,
                                            field_params,
                                            NoData{},
                                            detail::along_step_uniform_msc);
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 //---------------------------------------------------------------------------//
 }  // namespace

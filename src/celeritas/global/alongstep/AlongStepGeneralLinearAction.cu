@@ -35,7 +35,7 @@ along_step_general_linear_kernel(CoreRef<MemSpace::device> const track_data,
                                            NoData{},
                                            fluct,
                                            detail::along_step_general_linear);
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 //---------------------------------------------------------------------------//
 }  // namespace
