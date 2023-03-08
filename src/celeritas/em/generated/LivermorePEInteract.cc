@@ -40,9 +40,9 @@ void livermore_pe_interact(
     for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(TrackSlotId{i}),
+            launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, TrackSlotId{i}, "livermore_pe"));
+            KernelContextException(core_data, ThreadId{i}, "livermore_pe"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

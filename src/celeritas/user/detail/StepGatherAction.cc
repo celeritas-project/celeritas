@@ -77,7 +77,7 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
 #pragma omp parallel for
     for (size_type i = 0; i < core.states.size(); ++i)
     {
-        CELER_TRY_HANDLE(launch(TrackSlotId{i}), capture_exception);
+        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
 

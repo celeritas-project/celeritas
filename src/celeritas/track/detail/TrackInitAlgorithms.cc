@@ -21,7 +21,7 @@ namespace detail
  * tracks.
  */
 template<>
-size_type remove_if_alive<MemSpace::host>(Span<size_type> vacancies)
+size_type remove_if_alive<MemSpace::host>(Span<TrackSlotId> vacancies)
 {
     auto end = std::remove_if(vacancies.data(),
                               vacancies.data() + vacancies.size(),

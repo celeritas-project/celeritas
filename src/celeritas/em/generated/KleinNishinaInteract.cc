@@ -40,9 +40,9 @@ void klein_nishina_interact(
     for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(TrackSlotId{i}),
+            launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, TrackSlotId{i}, "klein_nishina"));
+            KernelContextException(core_data, ThreadId{i}, "klein_nishina"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

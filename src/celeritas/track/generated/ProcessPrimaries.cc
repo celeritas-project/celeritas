@@ -25,12 +25,12 @@ void process_primaries(
     MultiExceptionHandler capture_exception;
     detail::ProcessPrimariesLauncher<MemSpace::host> launch(core_data, primaries);
     #pragma omp parallel for
-    for (TrackSlotId::size_type i = 0; i < primaries.size(); ++i)
+    for (ThreadId::size_type i = 0; i < primaries.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(TrackSlotId{i}),
+            launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, TrackSlotId{i}, "process_primaries"));
+            KernelContextException(core_data, ThreadId{i}, "process_primaries"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

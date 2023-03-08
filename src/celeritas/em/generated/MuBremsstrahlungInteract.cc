@@ -40,9 +40,9 @@ void mu_bremsstrahlung_interact(
     for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(TrackSlotId{i}),
+            launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, TrackSlotId{i}, "mu_bremsstrahlung"));
+            KernelContextException(core_data, ThreadId{i}, "mu_bremsstrahlung"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

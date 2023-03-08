@@ -83,7 +83,7 @@ class CoreTrackView
   private:
     StateRef const& states_;
     ParamsRef const& params_;
-    const TrackId thread_;
+    ThreadId const thread_;
 };
 
 //---------------------------------------------------------------------------//

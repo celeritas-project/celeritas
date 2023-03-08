@@ -60,7 +60,7 @@ class InitTracksLauncher
     }
 
     // Initialize track states
-    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
     ParamsRef const& params_;
@@ -72,7 +72,7 @@ class InitTracksLauncher
  * Initialize the track states.
  */
 template<MemSpace M>
-CELER_FUNCTION void InitTracksLauncher<M>::operator()(TrackSlotId tid) const
+CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
 {
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
@@ -106,7 +106,7 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(TrackSlotId tid) const
             // Copy the geometry state from the parent for improved
             // performance
             TrackSlotId parent_id
-                = data.parents[from_back(data.parents.size(), tid)];
+                = data.parents[TrackSlotId{from_back(data.parents.size(), tid)}];
             GeoTrackView parent(params_.geometry, states_.geometry, parent_id);
             geo = GeoTrackView::DetailedInitializer{parent, init.geo.dir};
         }

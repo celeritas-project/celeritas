@@ -76,9 +76,8 @@ struct ResizableData
 {
     //// TYPES ////
 
-    using CollectionT = StateCollection<T, W, M>;
-    using ItemIdT = typename CollectionT::ItemIdT;
-    using ItemRangeT = typename CollectionT::ItemRangeT;
+    using CollectionT = Collection<T, W, M>;
+    using size_type = typename CollectionT::size_type;
     using reference_type = typename CollectionT::reference_type;
     using SpanT = typename CollectionT::SpanT;
 
@@ -109,17 +108,14 @@ struct ResizableData
     }
 
     //! Access a single element
-    CELER_FUNCTION reference_type operator[](ItemIdT i) const
+    CELER_FUNCTION reference_type operator[](size_type i) const
     {
         CELER_EXPECT(i < this->size());
-        return storage[i];
+        return storage[ItemId<T>{i}];
     }
 
     //! View to the data
-    CELER_FUNCTION SpanT data()
-    {
-        return storage[ItemRangeT{ItemIdT{0}, ItemIdT{this->size()}}];
-    }
+    CELER_FUNCTION SpanT data() { return storage[AllItems<T, M>{}]; }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -164,7 +160,7 @@ struct TrackInitStateData
     //// DATA ////
 
     ResizableItems<TrackInitializer> initializers;
-    ResizableItems<size_type> vacancies;
+    ResizableItems<TrackSlotId> vacancies;
     StateItems<TrackSlotId> parents;
     StateItems<size_type> secondary_counts;
     EventItems<TrackId::size_type> track_counters;
@@ -228,11 +224,11 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     data->initializers.resize(0);
 
     // Initialize vacancies to mark all track slots as empty
-    StateCollection<size_type, Ownership::value, MemSpace::host> vacancies;
+    Collection<TrackSlotId, Ownership::value, MemSpace::host> vacancies;
     resize(&vacancies, size);
     for (auto i : range(size))
     {
-        vacancies[TrackSlotId{i}] = i;
+        vacancies[OpaqueId<TrackSlotId>{i}] = TrackSlotId{i};
     }
     data->vacancies.storage = vacancies;
     data->vacancies.resize(size);

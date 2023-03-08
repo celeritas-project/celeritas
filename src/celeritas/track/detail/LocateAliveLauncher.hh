@@ -48,10 +48,19 @@ class LocateAliveLauncher
     {
         CELER_EXPECT(params_);
         CELER_EXPECT(states_);
+        // Vacancies should have been resized to be the number of track slots
+        CELER_EXPECT(states_.init.vacancies.size() == states_.size());
     }
 
     // Determine which tracks are alive and count secondaries
     inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
+
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        // The grid size should be equal to the state size and no thread/slot
+        // remapping should be performed
+        return (*this)(TrackSlotId{tid.unchecked_get()});
+    }
 
   private:
     ParamsRef const& params_;
@@ -84,7 +93,7 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(TrackSlotId tid) const
     if (sim.status() == TrackStatus::alive)
     {
         // The track is alive: mark this track slot as occupied
-        states_.init.vacancies[tid] = occupied();
+        states_.init.vacancies[tid.unchecked_get()] = occupied();
     }
     else if (num_secondaries > 0)
     {
@@ -92,14 +101,14 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(TrackSlotId tid) const
         // empty track slot will be filled with the first secondary. Mark this
         // slot as occupied even though the secondary has not been initialized
         // in it yet, and don't include the first secondary in the count
-        states_.init.vacancies[tid] = occupied();
+        states_.init.vacancies[tid.unchecked_get()] = occupied();
         --num_secondaries;
     }
     else
     {
         // The track is inactive/killed and did not produce secondaries: store
         // the index so it can be used later to initialize a new track
-        states_.init.vacancies[tid] = tid.unchecked_get();
+        states_.init.vacancies[tid.unchecked_get()] = tid;
     }
     states_.init.secondary_counts[tid] = num_secondaries;
 }

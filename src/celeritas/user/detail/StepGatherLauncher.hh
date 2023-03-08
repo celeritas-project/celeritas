@@ -38,7 +38,7 @@ struct StepGatherLauncher
 
     //// METHODS ////
 
-    CELER_FUNCTION void operator()(TrackSlotId thread) const;
+    CELER_FUNCTION void operator()(ThreadId thread) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -48,20 +48,20 @@ struct StepGatherLauncher
  * Gather step data on device based on the user selection.
  */
 template<StepPoint P>
-CELER_FUNCTION void StepGatherLauncher<P>::operator()(TrackSlotId thread) const
+CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
 {
     CELER_ASSERT(thread < this->core_data.states.size());
 
-    const celeritas::CoreTrackView track(
+    celeritas::CoreTrackView const track(
         this->core_data.params, this->core_data.states, thread);
 
-#define SGL_SET_IF_SELECTED(ATTR, VALUE)           \
-    do                                             \
-    {                                              \
-        if (this->step_params.selection.ATTR)      \
-        {                                          \
-            this->step_state.ATTR[thread] = VALUE; \
-        }                                          \
+#define SGL_SET_IF_SELECTED(ATTR, VALUE)                          \
+    do                                                            \
+    {                                                             \
+        if (this->step_params.selection.ATTR)                     \
+        {                                                         \
+            this->step_state.ATTR[track.track_slot_id()] = VALUE; \
+        }                                                         \
     } while (0)
 
     {
@@ -71,8 +71,8 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(TrackSlotId thread) const
         if (P == StepPoint::post)
         {
             // Always save track ID to clear output from inactive slots
-            this->step_state.track_id[thread] = inactive ? TrackId{}
-                                                         : sim.track_id();
+            this->step_state.track_id[track.track_slot_id()]
+                = inactive ? TrackId{} : sim.track_id();
         }
 
         if (inactive)
@@ -80,7 +80,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(TrackSlotId thread) const
             if (P == StepPoint::pre && !this->step_params.detector.empty())
             {
                 // Clear detector ID for inactive threads
-                this->step_state.detector[thread] = {};
+                this->step_state.detector[track.track_slot_id()] = {};
             }
 
             // No more data to be written
@@ -100,10 +100,11 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(TrackSlotId thread) const
             CELER_ASSERT(vol);
 
             // Map volume ID to detector ID
-            this->step_state.detector[thread] = this->step_params.detector[vol];
+            this->step_state.detector[track.track_slot_id()]
+                = this->step_params.detector[vol];
         }
 
-        if (!this->step_state.detector[thread])
+        if (!this->step_state.detector[track.track_slot_id()])
         {
             // We're not in a sensitive detector: don't save any further data
             return;
@@ -116,7 +117,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(TrackSlotId thread) const
             if (pstep.energy_deposition() == zero_quantity())
             {
                 // Clear detector ID and stop recording
-                this->step_state.detector[thread] = {};
+                this->step_state.detector[track.track_slot_id()] = {};
                 return;
             }
         }

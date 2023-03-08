@@ -25,12 +25,12 @@ void init_tracks(
     MultiExceptionHandler capture_exception;
     detail::InitTracksLauncher<MemSpace::host> launch(core_data, num_vacancies);
     #pragma omp parallel for
-    for (TrackSlotId::size_type i = 0; i < num_vacancies; ++i)
+    for (ThreadId::size_type i = 0; i < num_vacancies; ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(TrackSlotId{i}),
+            launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, TrackSlotId{i}, "init_tracks"));
+            KernelContextException(core_data, ThreadId{i}, "init_tracks"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

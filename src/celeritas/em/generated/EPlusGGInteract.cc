@@ -40,9 +40,9 @@ void eplusgg_interact(
     for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(TrackSlotId{i}),
+            launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, TrackSlotId{i}, "eplusgg"));
+            KernelContextException(core_data, ThreadId{i}, "eplusgg"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

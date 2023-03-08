@@ -28,7 +28,7 @@ __global__ void step_gather_kernel(CoreDeviceRef const core,
         return;
 
     StepGatherLauncher<P> launch{core, step_params, step_state};
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 //---------------------------------------------------------------------------//
 }  // namespace
