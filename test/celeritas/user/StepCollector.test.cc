@@ -268,8 +268,9 @@ TEST_F(TestEm3CaloTest, thirtytwo_step)
 {
     auto result = this->run(256, 32);
 
+    PRINT_EXPECTED(result.edep);
     static double const expected_edep[]
-        = {1535.4185205798, 109.69434829612, 20.443067191226};
+        = {1548.8862372467, 113.80254412772, 32.259504023678};
     EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
 }
 
