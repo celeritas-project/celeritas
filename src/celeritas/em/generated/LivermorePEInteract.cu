@@ -45,7 +45,7 @@ livermore_pe_interact_kernel(
         core_data,
         model_data,
         celeritas::livermore_pe_interact_track);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

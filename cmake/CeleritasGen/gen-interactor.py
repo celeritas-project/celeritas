@@ -137,7 +137,7 @@ __global__ void{launch_bounds}{func}_interact_kernel(
         core_data,
         model_data,
         {namespace}::{func}_interact_track);
-    launch(tid);
+    launch(TrackSlotId{{tid.unchecked_get()}});
 }}
 }}  // namespace
 

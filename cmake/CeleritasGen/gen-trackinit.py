@@ -103,7 +103,7 @@ namespace
         return;
 
     detail::{clsname}Launcher<MemSpace::device> launch({kernel_arglist});
-    launch(tid);
+    launch(TrackSlotId{{tid.unchecked_get()}});
 }}
 }}  // namespace
 

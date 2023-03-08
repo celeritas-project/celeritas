@@ -36,7 +36,7 @@ __global__ void relativistic_brem_interact_kernel(
         core_data,
         model_data,
         celeritas::relativistic_brem_interact_track);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

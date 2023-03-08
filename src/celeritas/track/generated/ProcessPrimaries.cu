@@ -36,7 +36,7 @@ process_primaries_kernel(
         return;
 
     detail::ProcessPrimariesLauncher<MemSpace::device> launch(core_data, primaries);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

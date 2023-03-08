@@ -45,7 +45,7 @@ klein_nishina_interact_kernel(
         core_data,
         model_data,
         celeritas::klein_nishina_interact_track);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

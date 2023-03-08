@@ -45,7 +45,7 @@ bethe_heitler_interact_kernel(
         core_data,
         model_data,
         celeritas::bethe_heitler_interact_track);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

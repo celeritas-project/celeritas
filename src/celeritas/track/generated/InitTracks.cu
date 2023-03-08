@@ -36,7 +36,7 @@ init_tracks_kernel(
         return;
 
     detail::InitTracksLauncher<MemSpace::device> launch(core_data, num_vacancies);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

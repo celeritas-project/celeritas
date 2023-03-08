@@ -45,7 +45,7 @@ combined_brem_interact_kernel(
         core_data,
         model_data,
         celeritas::combined_brem_interact_track);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

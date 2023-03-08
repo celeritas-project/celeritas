@@ -45,7 +45,7 @@ rayleigh_interact_kernel(
         core_data,
         model_data,
         celeritas::rayleigh_interact_track);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

@@ -30,7 +30,7 @@ __global__ void discrete_select_kernel(CoreDeviceRef const data
         return;
 
     auto launch = make_track_launcher(data, detail::discrete_select_track);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

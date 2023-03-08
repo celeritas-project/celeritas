@@ -30,7 +30,7 @@ __global__ void boundary_kernel(CoreDeviceRef const data
         return;
 
     auto launch = make_track_launcher(data, detail::boundary_track);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 
