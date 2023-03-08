@@ -45,7 +45,7 @@ moller_bhabha_interact_kernel(
         core_data,
         model_data,
         celeritas::moller_bhabha_interact_track);
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 }  // namespace
 

@@ -35,7 +35,7 @@ process_secondaries_kernel(
         return;
 
     detail::ProcessSecondariesLauncher<MemSpace::device> launch(core_data);
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 }  // namespace
 

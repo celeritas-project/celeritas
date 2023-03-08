@@ -39,7 +39,7 @@ pre_step_kernel(CoreDeviceRef const data
         return;
 
     auto launch = make_track_launcher(data, detail::pre_step_track);
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 }  // namespace
 

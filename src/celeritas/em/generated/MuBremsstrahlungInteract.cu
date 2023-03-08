@@ -36,7 +36,7 @@ __global__ void mu_bremsstrahlung_interact_kernel(
         core_data,
         model_data,
         celeritas::mu_bremsstrahlung_interact_track);
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 }  // namespace
 

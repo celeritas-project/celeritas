@@ -35,7 +35,7 @@ locate_alive_kernel(
         return;
 
     detail::LocateAliveLauncher<MemSpace::device> launch(core_data);
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 }  // namespace
 

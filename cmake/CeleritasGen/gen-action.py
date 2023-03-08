@@ -126,7 +126,7 @@ __global__ void{launch_bounds}{func}_kernel(CoreDeviceRef const data
         return;
 
     auto launch = make_track_launcher(data, detail::{func}_track);
-    launch(TrackSlotId{{tid.unchecked_get()}});
+    launch(tid);
 }}
 }}  // namespace
 

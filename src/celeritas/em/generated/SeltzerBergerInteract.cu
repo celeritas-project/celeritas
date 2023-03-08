@@ -36,7 +36,7 @@ __global__ void seltzer_berger_interact_kernel(
         core_data,
         model_data,
         celeritas::seltzer_berger_interact_track);
-    launch(TrackSlotId{tid.unchecked_get()});
+    launch(tid);
 }
 }  // namespace
 
