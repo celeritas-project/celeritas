@@ -114,8 +114,11 @@ struct ResizableData
         return storage[ItemId<T>{i}];
     }
 
-    //! View to the data
-    CELER_FUNCTION SpanT data() { return storage[AllItems<T, M>{}]; }
+    //! View to the data (up to *resized* count)
+    CELER_FUNCTION SpanT data()
+    {
+        return storage[ItemRange<T>{ItemId<T>{0}, ItemId<T>{this->size()}}];
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
