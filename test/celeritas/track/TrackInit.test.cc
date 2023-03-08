@@ -107,8 +107,10 @@ class TrackInitTest : public SimpleTestBase
         data = states.init;
 
         // Store the IDs of the vacant track slots
-        auto const vacancies = data.vacancies.data();
-        result.vacancies = {vacancies.begin(), vacancies.end()};
+        for (TrackSlotId const& v : data.vacancies.data())
+        {
+            result.vacancies.push_back(v.unchecked_get());
+        }
 
         // Store the track IDs of the initializers
         for (auto const& init : data.initializers.data())
