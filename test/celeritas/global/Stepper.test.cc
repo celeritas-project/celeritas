@@ -116,8 +116,8 @@ class TestEm3MscNofluct : public TestEm3Msc
 };
 
 //---------------------------------------------------------------------------//
-#define TestEm15Field TEST_IF_CELERITAS_GEANT(TestEm15Field)
-class TestEm15Field : public TestEm15Base, public StepperTestBase
+#define TestEm15MscField TEST_IF_CELERITAS_GEANT(TestEm15MscField)
+class TestEm15MscField : public TestEm15Base, public StepperTestBase
 {
     GeantPhysicsOptions build_geant_options() const override
     {
@@ -476,7 +476,7 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
 // TESTEM15_MSC_FIELD
 //---------------------------------------------------------------------------//
 
-TEST_F(TestEm15Field, setup)
+TEST_F(TestEm15MscField, setup)
 {
     auto result = this->check_setup();
 
@@ -506,7 +506,7 @@ TEST_F(TestEm15Field, setup)
     EXPECT_VEC_EQ(expected_actions, result.actions);
 }
 
-TEST_F(TestEm15Field, host)
+TEST_F(TestEm15MscField, host)
 {
     size_type num_primaries = 4;
     size_type num_tracks = 1024;
@@ -535,7 +535,7 @@ TEST_F(TestEm15Field, host)
     }
 }
 
-TEST_F(TestEm15Field, TEST_IF_CELER_DEVICE(device))
+TEST_F(TestEm15MscField, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries = 8;
     size_type num_tracks = 1024;
