@@ -116,6 +116,7 @@ struct CoreStateData
     {
         CELER_EXPECT(other);
         track_slots = other.track_slots;
+        max_active = other.max_active;
         geometry = other.geometry;
         materials = other.materials;
         particles = other.particles;
