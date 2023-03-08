@@ -24,7 +24,7 @@ __global__ void col_cuda_test_kernel(DeviceCRef<MockParamsData> const params,
                                      DeviceRef<MockStateData> const states,
                                      Span<double> const results)
 {
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() >= states.size())
         return;
 

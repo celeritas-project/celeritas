@@ -35,7 +35,7 @@ __global__ void m_test_kernel(unsigned int const size,
                               real_type* rad_len,
                               real_type* tot_z)
 {
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() >= size)
         return;
 

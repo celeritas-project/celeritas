@@ -32,7 +32,7 @@ __global__ void ptv_test_kernel(unsigned int size,
                                 ParticleTrackInitializer const* init,
                                 double* result)
 {
-    auto local_thread_id = KernelParamCalculator::thread_id();
+    auto local_thread_id = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (!(local_thread_id < size))
         return;
 

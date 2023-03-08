@@ -27,7 +27,7 @@ namespace
 
 __global__ void phys_test_kernel(const PTestInput inp)
 {
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() >= inp.states.size())
         return;
 

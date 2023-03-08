@@ -26,7 +26,7 @@ namespace test
 __global__ void
 interact_kernel(CoreStateDeviceRef const states, ITTestInputData const input)
 {
-    auto thread_id = KernelParamCalculator::thread_id();
+    auto thread_id = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (thread_id < states.size())
     {
         SimTrackView sim(states.sim, thread_id);
