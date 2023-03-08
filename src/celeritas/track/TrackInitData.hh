@@ -142,8 +142,8 @@ struct ResizableData
  * - \c initializers stores the data for primaries and secondaries waiting to
  *   be turned into new tracks and can be any size up to \c capacity.
  * - \c parents is the \c TrackSlotId of the parent tracks of the initializers.
- * - \c vacancies stores the indices of the threads of tracks that have been
- *   killed; the size will be <= the number of tracks.
+ * - \c vacancies stores the \c TrackSlotid of the tracks that have been
+ *   killed; the size will be <= the number of track states.
  * - \c track_counters stores the total number of particles that have been
  *   created per event.
  * - \c secondary_counts stores the number of secondaries created by each track

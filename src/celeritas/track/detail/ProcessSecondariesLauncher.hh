@@ -80,7 +80,7 @@ template<MemSpace M>
 CELER_FUNCTION void
 ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
 {
-    SimTrackView sim(states_.sim, TrackSlotId{tid});
+    SimTrackView sim(states_.sim, tid);
     if (sim.status() == TrackStatus::inactive)
     {
         // Do not create secondaries from stale data on inactive tracks
