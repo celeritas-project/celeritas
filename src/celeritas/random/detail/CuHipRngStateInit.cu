@@ -32,8 +32,9 @@ __global__ void rng_state_init_kernel(DeviceRef<CuHipRngStateData> const state,
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < state.size())
     {
-        CuHipRngEngine rng(state, tid);
-        rng = init.seeds[tid];
+        TrackSlotId tsid{tid.unchecked_get()};
+        CuHipRngEngine rng(state, tsid);
+        rng = init.seeds[tsid];
     }
 }
 
