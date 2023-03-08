@@ -40,11 +40,12 @@ __global__ void gcheck_kernel(const GeoParamsCRefDevice params,
     if (tid.get() >= state.size())
         return;
 
-    celeritas::GeoTrackView geo(params, state, tid);
+    celeritas::GeoTrackView geo(
+        params, state, TrackSlotId{tid.unchecked_get()});
     celeritas::LinearPropagator propagate(&geo);
 
     // Start track at the leftmost point in the requested direction
-    geo = init[tid.get()];
+    geo = init[tid.unchecked_get()];
 
     // Track along detector
     int istep = 0;
