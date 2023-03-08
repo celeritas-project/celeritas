@@ -28,13 +28,11 @@ __global__ void col_cuda_test_kernel(DeviceCRef<MockParamsData> const params,
     if (tid.get() >= states.size())
         return;
 
-    TrackSlotId tsid{tid.unchecked_get()};
-
     // Initialize local matid states
-    states.matid[tsid] = MockMaterialId(tid.get() % params.materials.size());
+    states.matid[tid] = MockMaterialId(tid.get() % params.materials.size());
 
     // Construct track view
-    MockTrackView mock(params, states, tsid);
+    MockTrackView mock(params, states, tid);
 
     // Access some values
     MockMaterialId matid = mock.matid();

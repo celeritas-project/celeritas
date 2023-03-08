@@ -227,7 +227,7 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
     // Set up for host run
     InitializingLauncher<> calc_init{this->params().host_ref(), states.ref()};
 
-    // Loop over all threads
+    // Loop over all track slots
     Stopwatch get_time;
     for (auto tid : range(TrackSlotId{states.size()}))
     {
@@ -306,9 +306,9 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
 
     for (auto i : range(host.size()))
     {
-        auto thread_id = TrackSlotId{i};
+        auto tid = TrackSlotId{i};
         // TODO Update for multiple universes
-        LevelStateAccessor lsa(&host, thread_id, LevelId{0});
+        LevelStateAccessor lsa(&host, tid, LevelId{0});
         auto vol = lsa.vol();
 
         if (vol < counts.size())
