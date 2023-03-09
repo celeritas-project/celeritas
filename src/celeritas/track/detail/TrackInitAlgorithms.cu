@@ -26,9 +26,9 @@ namespace detail
  * tracks.
  */
 template<>
-size_type remove_if_alive<MemSpace::device>(Span<size_type> vacancies)
+size_type remove_if_alive<MemSpace::device>(Span<TrackSlotId> vacancies)
 {
-    thrust::device_ptr<size_type> end = thrust::remove_if(
+    thrust::device_ptr<TrackSlotId> end = thrust::remove_if(
         thrust::device_pointer_cast(vacancies.data()),
         thrust::device_pointer_cast(vacancies.data() + vacancies.size()),
         IsEqual{occupied()});

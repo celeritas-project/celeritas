@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -19,12 +20,12 @@ namespace detail
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
 template<MemSpace M>
-size_type remove_if_alive(Span<size_type> vacancies);
+size_type remove_if_alive(Span<TrackSlotId> vacancies);
 
 template<>
-size_type remove_if_alive<MemSpace::host>(Span<size_type> vacancies);
+size_type remove_if_alive<MemSpace::host>(Span<TrackSlotId> vacancies);
 template<>
-size_type remove_if_alive<MemSpace::device>(Span<size_type> vacancies);
+size_type remove_if_alive<MemSpace::device>(Span<TrackSlotId> vacancies);
 
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
@@ -41,7 +42,7 @@ size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts);
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
-inline size_type remove_if_alive<MemSpace::device>(Span<size_type>)
+inline size_type remove_if_alive<MemSpace::device>(Span<TrackSlotId>)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

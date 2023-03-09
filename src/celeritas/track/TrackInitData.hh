@@ -76,9 +76,8 @@ struct ResizableData
 {
     //// TYPES ////
 
-    using CollectionT = StateCollection<T, W, M>;
-    using ItemIdT = typename CollectionT::ItemIdT;
-    using ItemRangeT = typename CollectionT::ItemRangeT;
+    using CollectionT = Collection<T, W, M>;
+    using size_type = typename CollectionT::size_type;
     using reference_type = typename CollectionT::reference_type;
     using SpanT = typename CollectionT::SpanT;
 
@@ -109,16 +108,16 @@ struct ResizableData
     }
 
     //! Access a single element
-    CELER_FUNCTION reference_type operator[](ItemIdT i) const
+    CELER_FUNCTION reference_type operator[](size_type i) const
     {
         CELER_EXPECT(i < this->size());
-        return storage[i];
+        return storage[ItemId<T>{i}];
     }
 
-    //! View to the data
+    //! View to the data (up to *resized* count)
     CELER_FUNCTION SpanT data()
     {
-        return storage[ItemRangeT{ItemIdT{0}, ItemIdT{this->size()}}];
+        return storage[ItemRange<T>{ItemId<T>{0}, ItemId<T>{this->size()}}];
     }
 
     //! Assign from another set of data
@@ -137,14 +136,14 @@ struct ResizableData
  * Storage for dynamic data used to initialize new tracks.
  *
  * Not all of this is technically "state" data, though it is all mutable and in
- * most cases accessed by \c ThreadId. Specifically, \c initializers and \c
+ * most cases accessed by \c TrackSlotId. Specifically, \c initializers and \c
  * vacancies are resizable, and \c track_counters has size
  * \c max_events.
  * - \c initializers stores the data for primaries and secondaries waiting to
  *   be turned into new tracks and can be any size up to \c capacity.
- * - \c parents is the \c ThreadId of the parent tracks of the initializers.
- * - \c vacancies stores the indices of the threads of tracks that have been
- *   killed; the size will be <= the number of tracks.
+ * - \c parents is the \c TrackSlotId of the parent tracks of the initializers.
+ * - \c vacancies stores the \c TrackSlotid of the tracks that have been
+ *   killed; the size will be <= the number of track states.
  * - \c track_counters stores the total number of particles that have been
  *   created per event.
  * - \c secondary_counts stores the number of secondaries created by each track
@@ -164,8 +163,8 @@ struct TrackInitStateData
     //// DATA ////
 
     ResizableItems<TrackInitializer> initializers;
-    ResizableItems<size_type> vacancies;
-    StateItems<ThreadId> parents;
+    ResizableItems<TrackSlotId> vacancies;
+    StateItems<TrackSlotId> parents;
     StateItems<size_type> secondary_counts;
     EventItems<TrackId::size_type> track_counters;
 
@@ -228,11 +227,11 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     data->initializers.resize(0);
 
     // Initialize vacancies to mark all track slots as empty
-    StateCollection<size_type, Ownership::value, MemSpace::host> vacancies;
+    Collection<TrackSlotId, Ownership::value, MemSpace::host> vacancies;
     resize(&vacancies, size);
     for (auto i : range(size))
     {
-        vacancies[ThreadId{i}] = i;
+        vacancies[OpaqueId<TrackSlotId>{i}] = TrackSlotId{i};
     }
     data->vacancies.storage = vacancies;
     data->vacancies.resize(size);

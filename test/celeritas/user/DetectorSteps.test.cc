@@ -86,7 +86,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
 
         // Fill with bogus data
         int i = 0;
-        for (auto tid : range(ThreadId{result.size()}))
+        for (auto tid : range(TrackSlotId{result.size()}))
         {
             for (auto sp : range(StepPoint::size_))
             {

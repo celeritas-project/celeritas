@@ -61,7 +61,7 @@ struct SimStateData
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
 
     //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return state.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const { return state.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

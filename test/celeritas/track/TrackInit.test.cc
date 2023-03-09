@@ -107,8 +107,10 @@ class TrackInitTest : public SimpleTestBase
         data = states.init;
 
         // Store the IDs of the vacant track slots
-        auto const vacancies = data.vacancies.data();
-        result.vacancies = {vacancies.begin(), vacancies.end()};
+        for (TrackSlotId const& v : data.vacancies.data())
+        {
+            result.vacancies.push_back(v.unchecked_get());
+        }
 
         // Store the track IDs of the initializers
         for (auto const& init : data.initializers.data())
@@ -121,7 +123,7 @@ class TrackInitTest : public SimpleTestBase
             states.sim.state);
 
         // Store the track IDs and parent IDs
-        for (auto tid : range(ThreadId{sim.size()}))
+        for (auto tid : range(TrackSlotId{sim.size()}))
         {
             result.track_ids.push_back(sim[tid].track_id.unchecked_get());
             result.parent_ids.push_back(sim[tid].parent_id.unchecked_get());

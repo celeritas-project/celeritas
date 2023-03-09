@@ -331,9 +331,9 @@ class Collection
     //@}
 };
 
-//! Collection for data of type T but indexed by ThreadId for use in States
+//! Collection for data of type T but indexed by TrackSlotId for use in States
 template<class T, Ownership W, MemSpace M>
-using StateCollection = Collection<T, W, M, ThreadId>;
+using StateCollection = Collection<T, W, M, TrackSlotId>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

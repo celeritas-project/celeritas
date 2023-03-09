@@ -80,7 +80,7 @@ CELER_FUNCTION Detector::Detector(Params const& params, State const& state)
  */
 CELER_FUNCTION void Detector::buffer_hit(Hit const& hit)
 {
-    CELER_EXPECT(hit.thread);
+    CELER_EXPECT(hit.track_slot);
     CELER_EXPECT(hit.time > 0);
     CELER_EXPECT(hit.energy_deposited > celeritas::zero_quantity());
 

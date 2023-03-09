@@ -70,7 +70,7 @@ StepSelection ExampleCalorimeters::selection() const
  */
 void ExampleCalorimeters::execute(StateHostRef const& data)
 {
-    for (auto tid : range(ThreadId{data.size()}))
+    for (auto tid : range(TrackSlotId{data.size()}))
     {
         DetectorId det = data.detector[tid];
         if (!det)

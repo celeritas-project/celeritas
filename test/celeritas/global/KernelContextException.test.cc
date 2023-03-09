@@ -111,9 +111,11 @@ TEST_F(KernelContextExceptionTest, typical)
     // Check for these values based on the step count and thread ID below
     this->check_kce = [](KernelContextException const& e) {
         EXPECT_STREQ(
-            "kernel context: thread 15 in 'test-kernel', track 3 of event 1",
+            "kernel context: track slot 15 in 'test-kernel', track 3 of event "
+            "1",
             e.what());
         EXPECT_EQ(ThreadId{15}, e.thread());
+        EXPECT_EQ(TrackSlotId{15}, e.track_slot());
         EXPECT_EQ(EventId{1}, e.event());
         EXPECT_EQ(TrackId{3}, e.track());
         EXPECT_EQ(TrackId{}, e.parent());
@@ -131,7 +133,7 @@ TEST_F(KernelContextExceptionTest, typical)
         if (CELERITAS_USE_JSON && !CELERITAS_USE_VECGEOM)
         {
             EXPECT_EQ(
-                R"json({"dir":[0.0,0.0,1.0],"energy":[10.0,"MeV"],"event":1,"label":"test-kernel","num_steps":1,"particle":0,"pos":[0.0,1.0,5.0],"surface":11,"thread":15,"track":3,"volume":2})json",
+                R"json({"dir":[0.0,0.0,1.0],"energy":[10.0,"MeV"],"event":1,"label":"test-kernel","num_steps":1,"particle":0,"pos":[0.0,1.0,5.0],"surface":11,"thread":15,"track":3,"track_slot":15,"volume":2})json",
                 get_json_str(e));
         }
     };
@@ -157,14 +159,15 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
     this->check_kce = [](KernelContextException const& e) {
         // Don't test this with vecgeom which has more assertions when
         // acquiring data
-        EXPECT_STREQ("kernel context: thread 1 in 'test-kernel'", e.what());
-        EXPECT_EQ(ThreadId{1}, e.thread());
+        EXPECT_STREQ("kernel context: track slot 1 in 'test-kernel'", e.what());
+        EXPECT_EQ(TrackSlotId{1}, e.track_slot());
         EXPECT_EQ(EventId{}, e.event());
         EXPECT_EQ(TrackId{}, e.track());
         if (CELERITAS_USE_JSON)
         {
-            EXPECT_EQ(R"json({"label":"test-kernel","thread":1})json",
-                      get_json_str(e));
+            EXPECT_EQ(
+                R"json({"label":"test-kernel","thread":1,"track_slot":1})json",
+                get_json_str(e));
         }
     };
     CELER_TRY_HANDLE_CONTEXT(
@@ -186,7 +189,7 @@ TEST_F(KernelContextExceptionTest, bad_thread)
 
     this->check_kce = [](KernelContextException const& e) {
         EXPECT_STREQ("dumb-kernel (error processing track state)", e.what());
-        EXPECT_EQ(ThreadId{}, e.thread());
+        EXPECT_EQ(TrackSlotId{}, e.track_slot());
         if (CELERITAS_USE_JSON)
         {
             EXPECT_EQ(R"json({"label":"dumb-kernel"})json", get_json_str(e));

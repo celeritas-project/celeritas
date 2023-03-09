@@ -120,8 +120,9 @@ class UrbanMscTest : public ::celeritas::test::RootTestBase
         auto pid = this->particle()->find(pdg);
         CELER_ASSERT(pid);
 
-        ParticleTrackView par{
-            this->particle()->host_ref(), particle_state_.ref(), ThreadId{0}};
+        ParticleTrackView par{this->particle()->host_ref(),
+                              particle_state_.ref(),
+                              TrackSlotId{0}};
         ParticleTrackView::Initializer_t init;
         init.particle_id = pid;
         init.energy = energy;
@@ -140,7 +141,7 @@ class UrbanMscTest : public ::celeritas::test::RootTestBase
                                    physics_state_.ref(),
                                    par.particle_id(),
                                    mid,
-                                   ThreadId{0});
+                                   TrackSlotId{0});
         phys_view = PhysicsTrackInitializer{};
 
         // Calculate and store the energy loss (dedx) range limit
@@ -156,7 +157,7 @@ class UrbanMscTest : public ::celeritas::test::RootTestBase
     GeoTrackView make_geo_view(real_type r)
     {
         GeoTrackView geo_view(
-            this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
+            this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0});
         geo_view = {{r, r, r}, Real3{0, 0, 1}};
         return geo_view;
     }
@@ -371,7 +372,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     ASSERT_EQ(nsamples, step.size());
 
     {
-        SimTrackView sim_track_view(sim_state_.ref(), ThreadId{0});
+        SimTrackView sim_track_view(sim_state_.ref(), TrackSlotId{0});
         sim_track_view = {};
         EXPECT_EQ(0, sim_track_view.num_steps());
     }

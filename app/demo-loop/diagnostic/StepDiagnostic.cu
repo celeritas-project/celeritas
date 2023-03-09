@@ -28,7 +28,7 @@ __global__ void count_steps_kernel(CoreParamsDeviceRef const params,
         return;
 
     StepLauncher<MemSpace::device> launch(params, states, data);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 
 //---------------------------------------------------------------------------//

@@ -20,24 +20,24 @@ namespace detail
 //---------------------------------------------------------------------------//
 struct IsEqual
 {
-    size_type value;
+    TrackSlotId value;
 
-    CELER_FUNCTION bool operator()(size_type x) const { return x == value; }
+    CELER_FUNCTION bool operator()(TrackSlotId x) const { return x == value; }
 };
 
 //---------------------------------------------------------------------------//
-//! Invalid index flag
-CELER_CONSTEXPR_FUNCTION size_type occupied()
+//! Indicate that a track slot is occupied by a still-alive track
+CELER_CONSTEXPR_FUNCTION TrackSlotId occupied()
 {
-    return numeric_limits<size_type>::max();
+    return TrackSlotId{};
 }
 
 //---------------------------------------------------------------------------//
-//! Get the thread ID of the last element
-CELER_FORCEINLINE_FUNCTION ThreadId from_back(size_type size, ThreadId tid)
+//! Get a track slot ID a certain number of threads from the end
+CELER_FORCEINLINE_FUNCTION size_type from_back(size_type size, ThreadId tid)
 {
     CELER_EXPECT(tid.get() + 1 <= size);
-    return ThreadId{size - tid.get() - 1};
+    return size - tid.get() - 1;
 }
 
 //---------------------------------------------------------------------------//

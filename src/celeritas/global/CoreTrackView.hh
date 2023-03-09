@@ -68,8 +68,11 @@ class CoreTrackView
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine make_rng_engine() const;
 
-    //! Get the track's index among the states
+    //! Get the index of the current thread in the current kernel
     CELER_FUNCTION ThreadId thread_id() const { return thread_; }
+
+    // Get the track's index among the states
+    inline CELER_FUNCTION TrackSlotId track_slot_id() const;
 
     // Action ID for encountering a geometry boundary
     inline CELER_FUNCTION ActionId boundary_action() const;
@@ -80,7 +83,7 @@ class CoreTrackView
   private:
     StateRef const& states_;
     ParamsRef const& params_;
-    const ThreadId thread_;
+    ThreadId const thread_;
 };
 
 //---------------------------------------------------------------------------//
@@ -104,7 +107,7 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
  */
 CELER_FUNCTION SimTrackView CoreTrackView::make_sim_view() const
 {
-    return SimTrackView{states_.sim, thread_};
+    return SimTrackView{states_.sim, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -113,7 +116,8 @@ CELER_FUNCTION SimTrackView CoreTrackView::make_sim_view() const
  */
 CELER_FUNCTION auto CoreTrackView::make_geo_view() const -> GeoTrackView
 {
-    return GeoTrackView{params_.geometry, states_.geometry, thread_};
+    return GeoTrackView{
+        params_.geometry, states_.geometry, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -133,7 +137,8 @@ CELER_FUNCTION auto CoreTrackView::make_geo_material_view() const
 CELER_FUNCTION auto CoreTrackView::make_material_view() const
     -> MaterialTrackView
 {
-    return MaterialTrackView{params_.materials, states_.materials, thread_};
+    return MaterialTrackView{
+        params_.materials, states_.materials, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -143,7 +148,8 @@ CELER_FUNCTION auto CoreTrackView::make_material_view() const
 CELER_FUNCTION auto CoreTrackView::make_particle_view() const
     -> ParticleTrackView
 {
-    return ParticleTrackView{params_.particles, states_.particles, thread_};
+    return ParticleTrackView{
+        params_.particles, states_.particles, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -168,7 +174,7 @@ CELER_FUNCTION auto CoreTrackView::make_physics_view() const -> PhysicsTrackView
     ParticleId par_id = this->make_particle_view().particle_id();
     CELER_ASSERT(par_id);
     return PhysicsTrackView{
-        params_.physics, states_.physics, par_id, mat_id, thread_};
+        params_.physics, states_.physics, par_id, mat_id, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -178,7 +184,8 @@ CELER_FUNCTION auto CoreTrackView::make_physics_view() const -> PhysicsTrackView
 CELER_FUNCTION auto CoreTrackView::make_physics_step_view() const
     -> PhysicsStepView
 {
-    return PhysicsStepView{params_.physics, states_.physics, thread_};
+    return PhysicsStepView{
+        params_.physics, states_.physics, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -187,7 +194,16 @@ CELER_FUNCTION auto CoreTrackView::make_physics_step_view() const
  */
 CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
 {
-    return RngEngine{states_.rng, thread_};
+    return RngEngine{states_.rng, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the track's index among the states.
+ */
+CELER_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
+{
+    return TrackSlotId{thread_.unchecked_get()};
 }
 
 //---------------------------------------------------------------------------//

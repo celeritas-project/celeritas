@@ -85,14 +85,14 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
     {
         CELER_EXPECT(id && energy > zero_quantity());
         ParticleTrackView view{
-            this->particle()->host_ref(), par_state_.ref(), ThreadId{0}};
+            this->particle()->host_ref(), par_state_.ref(), TrackSlotId{0}};
         view = {id, energy};
         return view;
     }
 
     GeoTrackView make_geo_view()
     {
-        return {this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0}};
+        return {this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0}};
     }
 
     GeoTrackView init_geo(Real3 const& pos, Real3 dir)

@@ -97,6 +97,7 @@ void KernelContextException::output(JsonPimpl* json) const
 #    define KCE_INSERT_IF_VALID(ATTR) insert_if_valid(#ATTR, ATTR##_, &j)
 
     KCE_INSERT_IF_VALID(thread);
+    KCE_INSERT_IF_VALID(track_slot);
     KCE_INSERT_IF_VALID(event);
     KCE_INSERT_IF_VALID(track);
     if (track_)
@@ -128,6 +129,7 @@ void KernelContextException::output(JsonPimpl* json) const
  */
 void KernelContextException::initialize(CoreTrackView const& core)
 {
+    track_slot_ = core.track_slot_id();
     auto const&& sim = core.make_sim_view();
     if (sim.status() == TrackStatus::alive)
     {
@@ -152,7 +154,8 @@ void KernelContextException::initialize(CoreTrackView const& core)
     {
         // Construct std::exception message
         std::ostringstream os;
-        os << "kernel context: thread " << thread_ << " in '" << label_ << "'";
+        os << "kernel context: track slot " << track_slot_ << " in '" << label_
+           << "'";
         if (track_)
         {
             os << ", track " << track_ << " of event " << event_;

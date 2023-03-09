@@ -321,10 +321,10 @@ TEST_F(CollectionTest, host)
     HostVal<MockStateData> host_state;
     resize(&host_state, 1);
     auto host_state_ref = make_ref(host_state);
-    host_state_ref.matid[ThreadId{0}] = MockMaterialId{1};
+    host_state_ref.matid[TrackSlotId{0}] = MockMaterialId{1};
 
     // Create view
-    MockTrackView mock(mock_params.host(), host_state_ref, ThreadId{0});
+    MockTrackView mock(mock_params.host(), host_state_ref, TrackSlotId{0});
     EXPECT_EQ(1, mock.matid().unchecked_get());
 }
 

@@ -36,7 +36,7 @@ namespace celeritas
  * \sa OrangeTrackView
  *
  * \code
-    VecgeomTrackView geom(vg_params_ref, vg_state_ref, thread_id);
+    VecgeomTrackView geom(vg_params_ref, vg_state_ref, trackslot_id);
    \endcode
  */
 class VecgeomTrackView
@@ -60,7 +60,7 @@ class VecgeomTrackView
     // Construct from persistent and state data
     inline CELER_FUNCTION VecgeomTrackView(ParamsRef const& data,
                                            StateRef const& stateview,
-                                           ThreadId id);
+                                           TrackSlotId tid);
 
     // Initialize the state
     inline CELER_FUNCTION VecgeomTrackView&
@@ -161,13 +161,13 @@ class VecgeomTrackView
 CELER_FUNCTION
 VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
                                    StateRef const& states,
-                                   ThreadId thread)
+                                   TrackSlotId tid)
     : params_(params)
-    , vgstate_(states.vgstate.at(params_.max_depth, thread))
-    , vgnext_(states.vgnext.at(params_.max_depth, thread))
-    , pos_(states.pos[thread])
-    , dir_(states.dir[thread])
-    , next_step_(states.next_step[thread])
+    , vgstate_(states.vgstate.at(params_.max_depth, tid))
+    , vgnext_(states.vgnext.at(params_.max_depth, tid))
+    , pos_(states.pos[tid])
+    , dir_(states.dir[tid])
+    , next_step_(states.next_step[tid])
 {
 }
 
