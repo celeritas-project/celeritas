@@ -23,6 +23,7 @@
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
+#include "celeritas/track/InitializeTracksAction.hh"
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
@@ -102,6 +103,10 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         scalars_.propagation_limit_action,
         "geo-propagation-limit",
         "Propagation substep/range limit"));
+
+    // Construct initialize tracks action
+    input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
+        input_.action_reg->next_id()));
 
     // Construct extend from secondaries action
     input_.action_reg->insert(std::make_shared<ExtendFromSecondariesAction>(

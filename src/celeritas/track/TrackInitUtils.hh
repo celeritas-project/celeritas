@@ -76,20 +76,23 @@ inline void initialize_tracks(CoreRef<M> const& core_data)
     // empty slots in the track vector and the number of track initializers
     size_type num_tracks
         = std::min(data.vacancies.size(), data.initializers.size());
+    using TrackInitStates = TrackInitStateData<Ownership::reference, M>;
     if (num_tracks > 0)
     {
         // Launch a kernel to initialize tracks on device
         auto num_vacancies
             = min(data.vacancies.size(), data.initializers.size());
         generated::init_tracks(core_data, num_vacancies);
-        // Resizing initializers/vacancies is a non-const operation, but the
-        // only ones
-        using TrackInitStates = TrackInitStateData<Ownership::reference, M>;
+        // Resizing initializers/vacancies is a non-const operation
         const_cast<TrackInitStates&>(data).initializers.resize(
             data.initializers.size() - num_tracks);
         const_cast<TrackInitStates&>(data).vacancies.resize(
             data.vacancies.size() - num_tracks);
     }
+
+    // Store number of active tracks (a non-const operation)
+    const_cast<TrackInitStates&>(data).num_active = core_data.states.size()
+                                                    - data.vacancies.size();
 }
 
 //---------------------------------------------------------------------------//

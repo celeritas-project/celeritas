@@ -67,15 +67,11 @@ auto Stepper<M>::operator()() -> result_type
 {
     CELER_EXPECT(*this);
 
-    result_type result;
-
-    // Create new tracks from queued primaries or secondaries
-    initialize_tracks(core_ref_);
-    result.active = states_.size() - core_ref_.states.init.vacancies.size();
-
     actions_->execute(core_ref_);
 
     // Get the number of track initializers and active tracks
+    result_type result;
+    result.active = core_ref_.states.init.num_active;
     result.alive = states_.size() - core_ref_.states.init.vacancies.size();
     result.queued = core_ref_.states.init.initializers.size();
 
