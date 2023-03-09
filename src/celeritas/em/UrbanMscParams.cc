@@ -230,10 +230,6 @@ UrbanMscParams::calc_material_data(MaterialView const& material_view)
     data.theta_coeff[0] = fz * (1 - 8.7780e-2 / zeff);
     data.theta_coeff[1] = fz * (4.0780e-2 + 1.7315e-4 * zeff);
 
-    // Find the smallest path that results in a nonnegative theta for electrons
-    double min_logy = -data.theta_coeff[0] / data.theta_coeff[1];
-    data.min_path = std::exp(min_logy) * material_view.radiation_length();
-
     // Tail parameters
     double z13 = ipow<2>(z16);
     data.tail_coeff[0] = PolyQuad(2.3785, -4.1981e-1, 6.3100e-2)(z13);

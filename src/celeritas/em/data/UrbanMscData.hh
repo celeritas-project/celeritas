@@ -92,7 +92,6 @@ struct UrbanMscMaterialData
 
     // Scattering angle
     Real2 theta_coeff{0, 0};  //!< Correction in theta_0 formula
-    real_type min_path{0};  //!< Limit for the theta0 calculation
     Real3 tail_coeff{0, 0, 0};  //!< Coefficients of tail parameters
     real_type tail_corr{0};  //!< Additional tail factor based on log
 };

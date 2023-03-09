@@ -218,32 +218,10 @@ TEST_F(UrbanMscTest, coeff_data)
         EXPECT_SOFT_EQ(md.stepmin_coeff[1], 1e3 * 1.5922149179564158);
         EXPECT_SOFT_EQ(md.theta_coeff[0], 0.97326969977637379);
         EXPECT_SOFT_EQ(md.theta_coeff[1], 0.044188139325421663);
-        EXPECT_SOFT_EQ(md.min_path, 4.7317566252771332e-10);
         EXPECT_SOFT_EQ(md.tail_coeff[0], 1.6889578380303167);
         EXPECT_SOFT_EQ(md.tail_coeff[1], 2.745018223507488);
         EXPECT_SOFT_EQ(md.tail_coeff[2], -2.2531516772497562);
         EXPECT_SOFT_EQ(md.tail_corr, 0.052696806851297018);
-    }
-    {
-        // Check near-void material data
-        auto mid = this->material()->find_material("G4_Galactic");
-        ASSERT_TRUE(mid);
-        UrbanMscMaterialData const& md = params.material_data[mid];
-        EXPECT_SOFT_EQ(md.min_path, 1.3361398800216362e+17);
-    }
-
-    // Check that theta coefficients are about approximately zero for the
-    // minimum path length in each material
-    for (auto mid : range(MaterialId{this->material()->num_materials()}))
-    {
-        MaterialView const mat = this->material()->get(mid);
-        UrbanMscMaterialData const& msc_md = params.material_data[mid];
-        PolyEvaluator<real_type, 1> calc_corr(msc_md.theta_coeff);
-
-        real_type y = msc_md.min_path / mat.radiation_length();
-        real_type theta0_corr = calc_corr(std::log(y));
-        EXPECT_SOFT_EQ(real_type(0), theta0_corr);
-        EXPECT_GE(theta0_corr, 0);
     }
 
     // Check data for electron in stainless steel
