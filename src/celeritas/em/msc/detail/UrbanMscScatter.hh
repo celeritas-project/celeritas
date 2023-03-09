@@ -238,11 +238,12 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             // many of the class member data
             theta0_ = this->compute_theta0();
 
-            if (theta0_ < real_type{1e-8})
+            if (theta0_ < 1e-8)
             {
-                // Skip sampling angular distribution if width of direction
+                // Arbitrarily (?) small angle change (theta_0^2 < 1e-16):
+                // skip sampling angular distribution if width of direction
                 // distribution is too narrow
-                if (is_displaced_)
+                if (!is_displaced_)
                 {
                     // No angular sampling and no displacement => no change
                     skip_sampling_ = true;
@@ -283,13 +284,13 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
             UniformRealDistribution<real_type> sample_isotropic(-1, 1);
             return sample_isotropic(rng);
         }
-        if (end_energy_ < real_type(0.5) * inc_energy_
-            || theta0_ > constants::pi / 6)
+        if (2 * end_energy_ < inc_energy_ || theta0_ > constants::pi / 6)
         {
             // Large energy loss over the step or large angle distribution
             // width
             return this->simple_scattering(rng);
         }
+        // No special cases match:
         return this->sample_cos_theta(rng);
     }();
     CELER_ASSERT(std::fabs(costheta) <= 1);
@@ -358,8 +359,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 {
     CELER_EXPECT(xmean_ > 0 && x2mean_ > 0);
 
-    real_type const x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
-
     // Evaluate parameters for the tail distribution
     real_type xsi = [this] {
         using PolyQuad = PolyEvaluator<real_type, 2>;
@@ -380,7 +379,11 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 
     real_type ea = std::exp(-xsi);
     // Mean of cos\theta computed from the distribution g_1(cos\theta)
-    real_type xmean_1 = 1 - (1 - (1 + xsi) * ea) * x / (1 - ea);
+    // small theta => x = theta0^2
+    // large xsi => xmean_1 = 1 - x
+    // small tau => xmean = 1
+    real_type x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
+    real_type xmean_1 = 1 - x * (1 + (xsi * ea) / (1 - ea));
 
     if (xmean_1 <= real_type(0.999) * xmean_)
     {
@@ -447,8 +450,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
  * Sample the large angle scattering using 2 model functions.
  *
  * \param rng Random number generator
- * \param xmean_ the mean of \f$\cos\theta\f$.
- * \param x2mean_ the mean of \f$\cos\theta^{2}\f$.
  */
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(Engine& rng) const
@@ -483,8 +484,6 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(Engine& rng) const
  * velocity, charge number of the incident particle, the true path length in
  * radiation length unit and the correction term, respectively. For details,
  * see the section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
- *
- * \param true_path the true step length.
  */
 CELER_FUNCTION
 real_type UrbanMscScatter::compute_theta0() const

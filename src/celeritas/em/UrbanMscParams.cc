@@ -231,6 +231,7 @@ UrbanMscParams::calc_material_data(MaterialView const& material_view)
     data.theta_coeff[1] = fz * (4.0780e-2 + 1.7315e-4 * zeff);
 
     // Tail parameters
+    // (to be used in linear polynomial of tau^{1/6})
     double z13 = ipow<2>(z16);
     data.tail_coeff[0] = PolyQuad(2.3785, -4.1981e-1, 6.3100e-2)(z13);
     data.tail_coeff[1] = PolyQuad(4.7526e-1, 1.7694, -3.3885e-1)(z13);
