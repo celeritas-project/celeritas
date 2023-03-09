@@ -17,6 +17,7 @@
 class G4LogicalVolume;
 class G4Step;
 class G4Navigator;
+class G4Track;
 class G4VSensitiveDetector;
 
 namespace celeritas
@@ -75,6 +76,8 @@ class HitProcessor
     VecLV detector_volumes_;
     //! Temporary step
     std::unique_ptr<G4Step> step_;
+    //! Temporary track, required by some frameworks
+    std::unique_ptr<G4Track> track_;
     //! Navigator for finding points
     std::unique_ptr<G4Navigator> navi_;
     //! Geant4 reference-counted pointer to a G4VTouchable

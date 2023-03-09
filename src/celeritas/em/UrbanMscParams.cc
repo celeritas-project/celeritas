@@ -159,6 +159,23 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                 // Calculate scaled zeff
                 this_pm.scaled_zeff = a_coeff[p] * fastpow(zeff, b_coeff[p]);
 
+                // Compute the maximum distance that particles can travel
+                // (different for electrons, hadrons)
+                if (par_ids[p] == host_data.ids.electron
+                    || par_ids[p] == host_data.ids.positron)
+                {
+                    // Electrons and positrons
+                    this_pm.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(zeff)
+                                       + 4.3769e-3 * zeff;
+                    CELER_ASSERT(0 < this_pm.d_over_r && this_pm.d_over_r <= 1);
+                }
+                else
+                {
+                    // Muons and charged hadrons
+                    this_pm.d_over_r = 1.15 - 9.76e-4 * zeff;
+                    CELER_ASSERT(0 < this_pm.d_over_r);
+                }
+
                 // Get the cross section data for this particle and material
                 ImportPhysicsVector const& pvec
                     = xs_tables[p]->physics_vectors[mat_id.unchecked_get()];
@@ -200,29 +217,27 @@ UrbanMscParams::calc_material_data(MaterialView const& material_view)
 
     UrbanMscMaterialData data;
 
-    double zeff = material_view.zeff();
+    double const zeff = material_view.zeff();
 
     // Correction in the (modified Highland-Lynch-Dahl) theta_0 formula
+    // (to be used in linear polynomial of log(E / MeV))
     double const z16 = fastpow(zeff, 1.0 / 6.0);
     double fz = PolyQuad(0.990395, -0.168386, 0.093286)(z16);
-    data.coeffth1 = fz * (1 - 8.7780e-2 / zeff);
-    data.coeffth2 = fz * (4.0780e-2 + 1.7315e-4 * zeff);
+    data.theta_coeff[0] = fz * (1 - 8.7780e-2 / zeff);
+    data.theta_coeff[1] = fz * (4.0780e-2 + 1.7315e-4 * zeff);
 
     // Tail parameters
     double z13 = ipow<2>(z16);
-    data.d[0] = PolyQuad(2.3785, -4.1981e-1, 6.3100e-2)(z13);
-    data.d[1] = PolyQuad(4.7526e-1, 1.7694, -3.3885e-1)(z13);
-    data.d[2] = PolyQuad(2.3683e-1, -1.8111, 3.2774e-1)(z13);
-    data.d[3] = PolyQuad(1.7888e-2, 1.9659e-2, -2.6664e-3)(z13);
+    data.tail_coeff[0] = PolyQuad(2.3785, -4.1981e-1, 6.3100e-2)(z13);
+    data.tail_coeff[1] = PolyQuad(4.7526e-1, 1.7694, -3.3885e-1)(z13);
+    data.tail_coeff[2] = PolyQuad(2.3683e-1, -1.8111, 3.2774e-1)(z13);
+    data.tail_corr = PolyQuad(1.7888e-2, 1.9659e-2, -2.6664e-3)(z13);
 
-    // Parameters for the step minimum calculation
-    data.stepmin_a = 1e3 * 27.725 / (1 + 0.203 * zeff);
-    data.stepmin_b = 1e3 * 6.152 / (1 + 0.111 * zeff);
+    // Linear+quadratic parameters for the step minimum calculation
+    data.stepmin_coeff[0] = 1e3 * 27.725 / (1 + 0.203 * zeff);
+    data.stepmin_coeff[1] = 1e3 * 6.152 / (1 + 0.111 * zeff);
 
-    // Parameters for the maximum distance that particles can travel
-    data.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(zeff) + 4.3769e-3 * zeff;
-    data.d_over_r_mh = 1.15 - 9.76e-4 * zeff;
-
+    CELER_ENSURE(data.theta_coeff[0] > 0 && data.theta_coeff[1] > 0);
     return data;
 }
 //---------------------------------------------------------------------------//

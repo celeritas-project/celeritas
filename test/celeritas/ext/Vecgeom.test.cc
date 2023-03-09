@@ -67,7 +67,7 @@ class VecgeomTestBase : virtual public GlobalTestBase
             host_state = HostStateStore(this->geometry()->host_ref(), 1);
         }
         return VecgeomTrackView(
-            this->geometry()->host_ref(), host_state.ref(), ThreadId(0));
+            this->geometry()->host_ref(), host_state.ref(), TrackSlotId(0));
     }
 
     //! Find linear segments until outside

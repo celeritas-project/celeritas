@@ -66,12 +66,20 @@ struct Interaction
 /*!
  * Step lengths and properties needed to apply multiple scattering.
  *
- * \todo Document and/or refactor into a class that hides details:
+ * \todo Document and/or refactor into a class that hides details
  * - alpha == small_step_alpha() ? "true path is very small" (true path scaling
  *   changes)
  * - is_displaced == false ? limit_min is unchanged and alpha ==
  *   small_step_alpha()
  * - true_step >= geom_path
+ *
+ * The value \f$ \alpha \f$ is used in the approximation of the MSC
+ * transport cross section as a linear function over the current step. It is
+ * the negative slope of the transport MFP from start to stop, divided by the
+ * starting MFP. (Since the transport cross section generally decreases
+ * monotonically with increasing energy over the step, alpha will usually be
+ * positive or zero for the step. Some known errors in the cross sections for
+ * positrons result in negative alpha around a discontinuity at 10 MeV.)
  */
 struct MscStep
 {
@@ -79,10 +87,9 @@ struct MscStep
     static CELER_CONSTEXPR_FUNCTION real_type small_step_alpha() { return -1; }
 
     bool is_displaced{true};  //!< Flag for the lateral displacement
-    real_type phys_step{};  //!< Step length from physics processes
-    real_type true_path{};  //!< True path length due to the msc
-    real_type geom_path{};  //!< Geometrical path length
-    real_type alpha = small_step_alpha();  //!< Effective mfp rate by distance
+    real_type true_path{};  //!< True path length due to the msc  [cm]
+    real_type geom_path{};  //!< Geometrical path length [cm]
+    real_type alpha = small_step_alpha();  //!< Scaled MFP slope [cm^-1]
 };
 
 //---------------------------------------------------------------------------//
@@ -122,7 +129,6 @@ struct MscInteraction
         unchanged  //!< No state change
     };
 
-    real_type step_length;  //!< True step length
     Real3 direction;  //!< Post-step direction
     Real3 displacement;  //!< Lateral displacement
     Action action{Action::unchanged};  //!< Flags for interaction result

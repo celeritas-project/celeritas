@@ -143,10 +143,10 @@ TEST_F(MockFluctuationTest, data)
 TEST_F(EnergyLossDistributionTest, none)
 {
     ParticleTrackView particle(
-        particles->host_ref(), particle_state.ref(), ThreadId{0});
+        particles->host_ref(), particle_state.ref(), TrackSlotId{0});
     particle = {ParticleId{0}, MevEnergy{1e-2}};
     MaterialTrackView material(
-        materials->host_ref(), material_state.ref(), ThreadId{0});
+        materials->host_ref(), material_state.ref(), TrackSlotId{0});
     material = {MaterialId{0}};
     CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
     MevEnergy mean_loss{2e-6};
@@ -165,10 +165,10 @@ TEST_F(EnergyLossDistributionTest, none)
 TEST_F(EnergyLossDistributionTest, gaussian)
 {
     ParticleTrackView particle(
-        particles->host_ref(), particle_state.ref(), ThreadId{0});
+        particles->host_ref(), particle_state.ref(), TrackSlotId{0});
     particle = {ParticleId{1}, MevEnergy{1e-2}};
     MaterialTrackView material(
-        materials->host_ref(), material_state.ref(), ThreadId{0});
+        materials->host_ref(), material_state.ref(), TrackSlotId{0});
     material = {MaterialId{0}};
     CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
     MevEnergy mean_loss{0.1};
@@ -237,10 +237,10 @@ TEST_F(EnergyLossDistributionTest, gaussian)
 TEST_F(EnergyLossDistributionTest, urban)
 {
     ParticleTrackView particle(
-        particles->host_ref(), particle_state.ref(), ThreadId{0});
+        particles->host_ref(), particle_state.ref(), TrackSlotId{0});
     particle = {ParticleId{0}, MevEnergy{100}};
     MaterialTrackView material(
-        materials->host_ref(), material_state.ref(), ThreadId{0});
+        materials->host_ref(), material_state.ref(), TrackSlotId{0});
     material = {MaterialId{0}};
     CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
     MevEnergy mean_loss{0.01};

@@ -19,7 +19,7 @@ namespace demo_loop
 void bin_energy(CoreStateHostRef const& states, PointersHost& pointers)
 {
     EnergyDiagnosticLauncher<MemSpace::host> launch(states, pointers);
-    for (auto tid : range(ThreadId{states.size()}))
+    for (auto tid : range(TrackSlotId{states.size()}))
     {
         launch(tid);
     }

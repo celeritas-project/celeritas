@@ -32,19 +32,20 @@ __global__ void ptv_test_kernel(unsigned int size,
                                 ParticleTrackInitializer const* init,
                                 double* result)
 {
-    auto local_thread_id = KernelParamCalculator::thread_id();
-    if (!(local_thread_id < size))
+    auto local_tid
+        = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
+    if (!(local_tid < size))
         return;
 
     // Initialize particle
-    ParticleTrackView p(params, states, local_thread_id);
-    p = init[local_thread_id.get()];
+    ParticleTrackView p(params, states, local_tid);
+    p = init[local_tid.get()];
 
     // Skip result to the start for this thread
-    result += local_thread_id.get() * PTVTestOutput::props_per_thread();
+    result += local_tid.get() * PTVTestOutput::props_per_thread();
 
     // Calculate/write values from the track view
-    CELER_ASSERT(p.particle_id() == init[local_thread_id.get()].particle_id);
+    CELER_ASSERT(p.particle_id() == init[local_tid.get()].particle_id);
     *result++ = p.energy().value();
     *result++ = p.mass().value();
     *result++ = p.charge().value();

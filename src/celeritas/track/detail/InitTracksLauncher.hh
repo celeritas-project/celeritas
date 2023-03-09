@@ -83,7 +83,7 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
         = data.initializers[from_back(data.initializers.size(), tid)];
 
     // Thread ID of vacant track where the new track will be initialized
-    ThreadId vacancy(data.vacancies[from_back(data.vacancies.size(), tid)]);
+    TrackSlotId vacancy(data.vacancies[from_back(data.vacancies.size(), tid)]);
 
     // Initialize the simulation state
     {
@@ -105,8 +105,8 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
         {
             // Copy the geometry state from the parent for improved
             // performance
-            ThreadId parent_id
-                = data.parents[from_back(data.parents.size(), tid)];
+            TrackSlotId parent_id
+                = data.parents[TrackSlotId{from_back(data.parents.size(), tid)}];
             GeoTrackView parent(params_.geometry, states_.geometry, parent_id);
             geo = GeoTrackView::DetailedInitializer{parent, init.geo.dir};
         }

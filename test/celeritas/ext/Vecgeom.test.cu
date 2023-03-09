@@ -31,7 +31,7 @@ __global__ void vgg_test_kernel(DeviceCRef<VecgeomParamsData> const params,
 {
     CELER_EXPECT(params && state);
 
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() >= state.size())
         return;
 

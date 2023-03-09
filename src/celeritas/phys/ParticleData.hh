@@ -113,9 +113,6 @@ struct ParticleTrackInitializer
 /*!
  * Data storage/access for particle properties.
  *
- * The size of the view will be the size of the vector of tracks. Each particle
- * track state corresponds to the thread ID (\c ThreadId).
- *
  * \sa ParticleTrackView (uses the pointed-to data in a kernel)
  */
 template<Ownership W, MemSpace M>
@@ -136,7 +133,7 @@ struct ParticleStateData
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
 
     //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return state.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const { return state.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

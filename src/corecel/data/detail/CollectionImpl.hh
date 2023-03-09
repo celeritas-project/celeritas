@@ -197,5 +197,18 @@ struct CollectionAssigner<Ownership::value, MemSpace::device>
 };
 
 //---------------------------------------------------------------------------//
+//! Template matching to determine if T is an OpaqueId
+template<class T>
+struct IsOpaqueId
+{
+    static constexpr bool value = false;
+};
+template<class V, class S>
+struct IsOpaqueId<OpaqueId<V, S>>
+{
+    static constexpr bool value = true;
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

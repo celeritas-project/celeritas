@@ -164,7 +164,7 @@ class ParticleTestHost : public ParticleTest
 TEST_F(ParticleTestHost, electron)
 {
     ParticleTrackView particle(
-        particle_params->host_ref(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, TrackSlotId(0));
     particle = Initializer_t{ParticleId{0}, MevEnergy{0.5}};
 
     EXPECT_DOUBLE_EQ(0.5, particle.energy().value());
@@ -190,7 +190,7 @@ TEST_F(ParticleTestHost, electron)
 TEST_F(ParticleTestHost, gamma)
 {
     ParticleTrackView particle(
-        particle_params->host_ref(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, TrackSlotId(0));
     particle = Initializer_t{ParticleId{1}, MevEnergy{10}};
 
     EXPECT_DOUBLE_EQ(0, particle.mass().value());
@@ -203,7 +203,7 @@ TEST_F(ParticleTestHost, gamma)
 TEST_F(ParticleTestHost, neutron)
 {
     ParticleTrackView particle(
-        particle_params->host_ref(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, TrackSlotId(0));
     particle = Initializer_t{ParticleId{2}, MevEnergy{20}};
 
     EXPECT_DOUBLE_EQ(20, particle.energy().value());

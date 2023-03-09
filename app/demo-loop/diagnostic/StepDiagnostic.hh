@@ -129,7 +129,7 @@ class StepLauncher
     //!@{
     //! \name Type aliases
     using size_type = celeritas::size_type;
-    using ThreadId = celeritas::ThreadId;
+    using TrackSlotId = celeritas::TrackSlotId;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
     using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
@@ -141,7 +141,7 @@ class StepLauncher
                                 StepDiagnosticDataRef<M> data);
 
     // Create track views and tally steps per track
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
 
   private:
     ParamsRef const& params_;
@@ -286,7 +286,7 @@ CELER_FUNCTION StepLauncher<M>::StepLauncher(ParamsRef const& params,
  * Increment step count and tally number of steps for tracks that were killed.
  */
 template<MemSpace M>
-CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void StepLauncher<M>::operator()(TrackSlotId tid) const
 {
     using BinId = celeritas::ItemId<size_type>;
 

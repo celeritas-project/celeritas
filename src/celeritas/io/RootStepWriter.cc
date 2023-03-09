@@ -106,8 +106,8 @@ void RootStepWriter::execute(StateHostRef const& steps)
     CELER_EXPECT(steps);
     tstep_ = TStepData();
 
-    // Loop over thread ids and fill TTree
-    for (auto const tid : range(ThreadId{steps.size()}))
+    // Loop over track slots and fill TTree
+    for (auto const tid : range(TrackSlotId{steps.size()}))
     {
         if (!steps.track_id[tid])
         {

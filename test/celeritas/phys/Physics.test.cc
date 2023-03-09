@@ -171,7 +171,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
         // Clear out energy deposition and secondary pointers (done in pre-step
         // kernel)
-        for (auto tid : range(ThreadId(state_size)))
+        for (auto tid : range(TrackSlotId(state_size)))
         {
             auto step = this->make_step_view(tid);
             step.reset_energy_deposition();
@@ -193,7 +193,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         CELER_ASSERT(pid);
         CELER_ASSERT(pid.get() < state.size());
 
-        ThreadId tid((pid.get() + 1) % state.size());
+        TrackSlotId tid((pid.get() + 1) % state.size());
 
         // Construct (thread depends on particle here to shake things up) and
         // initialize
@@ -203,7 +203,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         return phys;
     }
 
-    PhysicsStepView make_step_view(ThreadId tid)
+    PhysicsStepView make_step_view(TrackSlotId tid)
     {
         CELER_EXPECT(tid < state.size());
         return PhysicsStepView(params_ref, state.ref(), tid);
@@ -215,7 +215,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         CELER_ASSERT(pid);
         CELER_ASSERT(pid.get() < state.size());
 
-        ThreadId tid((pid.get() + 1) % state.size());
+        TrackSlotId tid((pid.get() + 1) % state.size());
         return this->make_step_view(tid);
     }
 
@@ -304,8 +304,8 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
 
 TEST_F(PhysicsTrackViewHostTest, step_view)
 {
-    PhysicsStepView gamma = this->make_step_view(ThreadId{0});
-    PhysicsStepView celer = this->make_step_view(ThreadId{1});
+    PhysicsStepView gamma = this->make_step_view(TrackSlotId{0});
+    PhysicsStepView celer = this->make_step_view(TrackSlotId{1});
     PhysicsStepView const& gamma_cref = gamma;
 
     // Cross sections
@@ -785,7 +785,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     const ParticleProcessId ppid{0};
     const MaterialId matid{0};
 
-    PhysicsTrackView phys(params_ref, state.ref(), pid, matid, ThreadId{0});
+    PhysicsTrackView phys(params_ref, state.ref(), pid, matid, TrackSlotId{0});
     phys = PhysicsTrackInitializer{};
 
     // e+ annihilation should have nonzero "inline" cross section for all

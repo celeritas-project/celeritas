@@ -41,8 +41,9 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
     if (tid.get() >= image_state.dims[0])
         return;
 
-    ImageTrackView image(image_state, tid);
-    GeoTrackView geo(geo_params, geo_state, tid);
+    TrackSlotId tsid{tid.unchecked_get()};
+    ImageTrackView image(image_state, tsid);
+    GeoTrackView geo(geo_params, geo_state, tsid);
 
     // Start track at the leftmost point in the requested direction
     geo = GeoTrackInitializer{image.start_pos(), image.start_dir()};

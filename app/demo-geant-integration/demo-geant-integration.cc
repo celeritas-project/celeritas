@@ -46,19 +46,14 @@ void run(std::string const& macro_filename)
     CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);
 
     std::unique_ptr<G4RunManager> run_manager;
-    if constexpr (!CELERITAS_G4_V10)
-    {
-        run_manager.reset(G4RunManagerFactory::CreateRunManager(
-            CELERITAS_G4_MT ? G4RunManagerType::MT : G4RunManagerType::Serial));
-    }
-    else if constexpr (CELERITAS_G4_MT)
-    {
-        run_manager = std::make_unique<G4MTRunManager>();
-    }
-    else
-    {
-        run_manager = std::make_unique<G4RunManager>();
-    }
+#if !CELERITAS_G4_V10
+    run_manager.reset(G4RunManagerFactory::CreateRunManager(
+        CELERITAS_G4_MT ? G4RunManagerType::MT : G4RunManagerType::Serial));
+#elif CELERITAS_G4_MT
+    run_manager = std::make_unique<G4MTRunManager>();
+#else
+    run_manager = std::make_unique<G4RunManager>();
+#endif
     CELER_ASSERT(run_manager);
     celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
     CELER_LOG(info) << "Run manager type: "
@@ -69,8 +64,7 @@ void run(std::string const& macro_filename)
     run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
     run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
 
-    demo_geant::GlobalSetup::Instance()->SetIgnoreProcesses(
-        {"CoulombScat", "muIoni", "muBrems", "muPairProd"});
+    demo_geant::GlobalSetup::Instance()->SetIgnoreProcesses({"CoulombScat"});
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);

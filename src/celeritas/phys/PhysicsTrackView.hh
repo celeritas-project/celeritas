@@ -49,7 +49,7 @@ class PhysicsTrackView
                                            PhysicsStateRef const& states,
                                            ParticleId particle,
                                            MaterialId material,
-                                           ThreadId id);
+                                           TrackSlotId tid);
 
     // Initialize the track view
     inline CELER_FUNCTION PhysicsTrackView& operator=(Initializer_t const&);
@@ -164,7 +164,7 @@ class PhysicsTrackView
     PhysicsStateRef const& states_;
     const ParticleId particle_;
     const MaterialId material_;
-    const ThreadId thread_;
+    const TrackSlotId track_slot_;
 
     //// IMPLEMENTATION HELPER FUNCTIONS ////
 
@@ -186,14 +186,14 @@ PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
                                    PhysicsStateRef const& states,
                                    ParticleId pid,
                                    MaterialId mid,
-                                   ThreadId tid)
+                                   TrackSlotId tid)
     : params_(params)
     , states_(states)
     , particle_(pid)
     , material_(mid)
-    , thread_(tid)
+    , track_slot_(tid)
 {
-    CELER_EXPECT(thread_);
+    CELER_EXPECT(track_slot_);
 }
 
 //---------------------------------------------------------------------------//
@@ -670,13 +670,13 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
 //! Get the thread-local state (mutable)
 CELER_FUNCTION PhysicsTrackState& PhysicsTrackView::state()
 {
-    return states_.state[thread_];
+    return states_.state[track_slot_];
 }
 
 //! Get the thread-local state (const)
 CELER_FUNCTION PhysicsTrackState const& PhysicsTrackView::state() const
 {
-    return states_.state[thread_];
+    return states_.state[track_slot_];
 }
 
 //! Get the group of processes that apply to the particle

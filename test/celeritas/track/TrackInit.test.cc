@@ -168,6 +168,43 @@ class TrackInitTest : public SimpleTestBase
         CELER_ENSURE(core_data.states);
     }
 
+    //! Copy results to host
+    ITTestOutput get_result(CoreStateDeviceRef& states)
+    {
+        CELER_EXPECT(states);
+
+        ITTestOutput result;
+
+        // Copy track initializer data to host
+        HostVal<TrackInitStateData> data;
+        data = states.init;
+
+        // Store the IDs of the vacant track slots
+        for (TrackSlotId const& v : data.vacancies.data())
+        {
+            result.vacancies.push_back(v.unchecked_get());
+        }
+
+        // Store the track IDs of the initializers
+        for (auto const& init : data.initializers.data())
+        {
+            result.init_ids.push_back(init.sim.track_id.get());
+        }
+
+        // Copy sim states to host
+        StateCollection<SimTrackState, Ownership::value, MemSpace::host> sim(
+            states.sim.state);
+
+        // Store the track IDs and parent IDs
+        for (auto tid : range(TrackSlotId{sim.size()}))
+        {
+            result.track_ids.push_back(sim[tid].track_id.unchecked_get());
+            result.parent_ids.push_back(sim[tid].parent_id.unchecked_get());
+        }
+
+        return result;
+    }
+
     CoreStateData<Ownership::value, MemSpace::device> device_states;
     CoreDeviceRef core_data;
 };

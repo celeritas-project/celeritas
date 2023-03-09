@@ -140,7 +140,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
     {
         // Insert volumes
         VolumeInput vi;
-        vi.faces = {SurfaceId{0}};
+        vi.faces = {LocalSurfaceId{0}};
 
         // Outside
         vi.logic = {0};
@@ -206,9 +206,10 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     auto surf_to_stream = make_surface_action(surfaces, ToStream{os});
 
     // Loop over all surfaces and apply
-    for (auto id : range(SurfaceId{surfaces.num_surfaces()}))
+    for (auto id : range(LocalSurfaceId{surfaces.num_surfaces()}))
     {
-        os << " - " << params_->id_to_label(id) << "(" << id.get() << "): ";
+        os << " - " << this->id_to_label(UniverseId{0}, id) << "(" << id.get()
+           << "): ";
         surf_to_stream(id);
         os << '\n';
     }
@@ -252,24 +253,46 @@ VolumeId OrangeGeoTestBase::find_volume(char const* label) const
 /*!
  * Surface name (or sentinel if no surface).
  */
-std::string OrangeGeoTestBase::id_to_label(SurfaceId surf) const
+std::string
+OrangeGeoTestBase::id_to_label(UniverseId uid, LocalSurfaceId surfid) const
 {
-    if (!surf)
+    if (!surfid)
         return "[none]";
 
-    return params_->id_to_label(surf).name;
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    return params_->id_to_label(ui.global_surface(uid, surfid)).name;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Surface name (or sentinel if no surface) within UniverseId{0}.
+ */
+std::string OrangeGeoTestBase::id_to_label(LocalSurfaceId surfid) const
+{
+    return this->id_to_label(UniverseId{0}, surfid);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Volume name (or sentinel if no volume).
  */
-std::string OrangeGeoTestBase::id_to_label(VolumeId vol) const
+std::string
+OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
 {
-    if (!vol)
+    if (!volid)
         return "[none]";
 
-    return params_->id_to_label(vol).name;
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    return params_->id_to_label(ui.global_volume(uid, volid)).name;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Volume name (or sentinel if no volume) within UniverseId{0}.
+ */
+std::string OrangeGeoTestBase::id_to_label(LocalVolumeId volid) const
+{
+    return this->id_to_label(UniverseId{0}, volid);
 }
 
 //---------------------------------------------------------------------------//

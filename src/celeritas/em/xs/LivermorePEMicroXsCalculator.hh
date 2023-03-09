@@ -82,8 +82,7 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
         // Fit parameters from the final shell are used to calculate the cross
         // section integrated over all subshells
         auto const& param = shells.back().param[energy < el.thresh_hi ? 0 : 1];
-        PolyEvaluator<real_type, 5> eval_poly(
-            param[0], param[1], param[2], param[3], param[4], param[5]);
+        PolyEvaluator<real_type, 5> eval_poly(param);
 
         // Use the parameterization of the integrated subshell cross sections
         result = inv_energy * eval_poly(inv_energy);

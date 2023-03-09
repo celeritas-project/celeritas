@@ -33,7 +33,7 @@ class SimTrackView
   public:
     // Construct with view to state and persistent data
     inline CELER_FUNCTION
-    SimTrackView(SimStateRef const& states, ThreadId thread);
+    SimTrackView(SimStateRef const& states, TrackSlotId tid);
 
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(Initializer_t const& other);
@@ -87,7 +87,7 @@ class SimTrackView
 
   private:
     SimStateRef const& states_;
-    const ThreadId thread_;
+    const TrackSlotId track_slot_;
 };
 
 //---------------------------------------------------------------------------//
@@ -97,10 +97,10 @@ class SimTrackView
  * Construct from persistent and local data.
  */
 CELER_FUNCTION
-SimTrackView::SimTrackView(SimStateRef const& states, ThreadId thread)
-    : states_(states), thread_(thread)
+SimTrackView::SimTrackView(SimStateRef const& states, TrackSlotId tid)
+    : states_(states), track_slot_(tid)
 {
-    CELER_EXPECT(thread < states_.size());
+    CELER_EXPECT(track_slot_ < states_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -109,7 +109,7 @@ SimTrackView::SimTrackView(SimStateRef const& states, ThreadId thread)
  */
 CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
 {
-    states_.state[thread_] = other;
+    states_.state[track_slot_] = other;
     return *this;
 }
 
@@ -120,7 +120,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
 CELER_FUNCTION void SimTrackView::add_time(real_type delta)
 {
     CELER_EXPECT(delta >= 0);
-    states_.state[thread_].time += delta;
+    states_.state[track_slot_].time += delta;
 }
 
 //---------------------------------------------------------------------------//
@@ -129,7 +129,7 @@ CELER_FUNCTION void SimTrackView::add_time(real_type delta)
  */
 CELER_FUNCTION void SimTrackView::increment_num_steps()
 {
-    ++states_.state[thread_].num_steps;
+    ++states_.state[track_slot_].num_steps;
 }
 
 //---------------------------------------------------------------------------//
@@ -143,7 +143,7 @@ CELER_FUNCTION void SimTrackView::reset_step_limit(StepLimit const& sl)
     CELER_EXPECT(sl.step >= 0);
     CELER_EXPECT(static_cast<bool>(sl.action)
                  != (sl.step == numeric_limits<real_type>::infinity()));
-    states_.state[thread_].step_limit = sl;
+    states_.state[track_slot_].step_limit = sl;
 }
 
 //---------------------------------------------------------------------------//
@@ -169,7 +169,7 @@ CELER_FUNCTION void SimTrackView::reset_step_limit()
 CELER_FUNCTION void SimTrackView::force_step_limit(ActionId action)
 {
     CELER_ASSERT(action);
-    states_.state[thread_].step_limit.action = action;
+    states_.state[track_slot_].step_limit.action = action;
 }
 
 //---------------------------------------------------------------------------//
@@ -182,9 +182,9 @@ CELER_FUNCTION void SimTrackView::force_step_limit(ActionId action)
 CELER_FUNCTION void SimTrackView::force_step_limit(StepLimit const& sl)
 {
     CELER_ASSERT(sl.step >= 0
-                 && sl.step <= states_.state[thread_].step_limit.step);
+                 && sl.step <= states_.state[track_slot_].step_limit.step);
 
-    states_.state[thread_].step_limit = sl;
+    states_.state[track_slot_].step_limit = sl;
 }
 
 //---------------------------------------------------------------------------//
@@ -199,10 +199,10 @@ CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
 {
     CELER_ASSERT(sl.step >= 0);
 
-    bool is_limiting = (sl.step < states_.state[thread_].step_limit.step);
+    bool is_limiting = (sl.step < states_.state[track_slot_].step_limit.step);
     if (is_limiting)
     {
-        states_.state[thread_].step_limit = sl;
+        states_.state[track_slot_].step_limit = sl;
     }
     return is_limiting;
 }
@@ -214,7 +214,7 @@ CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
 CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 {
     CELER_EXPECT(status != this->status());
-    states_.state[thread_].status = status;
+    states_.state[track_slot_].status = status;
 }
 
 //---------------------------------------------------------------------------//
@@ -225,7 +225,7 @@ CELER_FUNCTION void SimTrackView::status(TrackStatus status)
  */
 CELER_FUNCTION TrackId SimTrackView::track_id() const
 {
-    return states_.state[thread_].track_id;
+    return states_.state[track_slot_].track_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -234,7 +234,7 @@ CELER_FUNCTION TrackId SimTrackView::track_id() const
  */
 CELER_FUNCTION TrackId SimTrackView::parent_id() const
 {
-    return states_.state[thread_].parent_id;
+    return states_.state[track_slot_].parent_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -243,7 +243,7 @@ CELER_FUNCTION TrackId SimTrackView::parent_id() const
  */
 CELER_FUNCTION EventId SimTrackView::event_id() const
 {
-    return states_.state[thread_].event_id;
+    return states_.state[track_slot_].event_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -252,7 +252,7 @@ CELER_FUNCTION EventId SimTrackView::event_id() const
  */
 CELER_FUNCTION size_type SimTrackView::num_steps() const
 {
-    return states_.state[thread_].num_steps;
+    return states_.state[track_slot_].num_steps;
 }
 
 //---------------------------------------------------------------------------//
@@ -261,7 +261,7 @@ CELER_FUNCTION size_type SimTrackView::num_steps() const
  */
 CELER_FUNCTION real_type SimTrackView::time() const
 {
-    return states_.state[thread_].time;
+    return states_.state[track_slot_].time;
 }
 
 //---------------------------------------------------------------------------//
@@ -270,7 +270,7 @@ CELER_FUNCTION real_type SimTrackView::time() const
  */
 CELER_FUNCTION TrackStatus SimTrackView::status() const
 {
-    return states_.state[thread_].status;
+    return states_.state[track_slot_].status;
 }
 
 //---------------------------------------------------------------------------//
@@ -279,7 +279,7 @@ CELER_FUNCTION TrackStatus SimTrackView::status() const
  */
 CELER_FUNCTION StepLimit const& SimTrackView::step_limit() const
 {
-    return states_.state[thread_].step_limit;
+    return states_.state[track_slot_].step_limit;
 }
 
 //---------------------------------------------------------------------------//

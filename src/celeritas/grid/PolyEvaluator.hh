@@ -11,6 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 
 namespace celeritas
 {
@@ -47,6 +48,7 @@ class PolyEvaluator
     //! \name Type aliases
     using result_type = T;
     using argument_type = T;
+    using ArrayT = Array<T, N + 1>;
     //!@}
 
   public:
@@ -61,6 +63,12 @@ class PolyEvaluator
                       "specified");
     }
 
+    //! Construct from an array of data
+    CELER_CONSTEXPR_FUNCTION PolyEvaluator(ArrayT const& coeffs)
+        : coeffs_{coeffs}
+    {
+    }
+
     //! Evaluate the polynomial at the given value
     CELER_CONSTEXPR_FUNCTION T operator()(T arg) const
     {
@@ -68,7 +76,7 @@ class PolyEvaluator
     }
 
   private:
-    const T coeffs_[N + 1];
+    const ArrayT coeffs_;
 
     template<unsigned int M, std::enable_if_t<(M < N), int> = 0>
     CELER_CONSTEXPR_FUNCTION T calc_impl(T arg) const

@@ -26,7 +26,7 @@ __global__ void
 heuristic_test_kernel(DeviceCRef<HeuristicGeoParamsData> const params,
                       DeviceRef<HeuristicGeoStateData> const state)
 {
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() >= state.size())
         return;
 

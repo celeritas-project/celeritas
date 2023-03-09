@@ -29,7 +29,7 @@ bin_energy_kernel(const CoreStateDeviceRef states, PointersDevice pointers)
         return;
 
     EnergyDiagnosticLauncher<MemSpace::device> launch(states, pointers);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 
 //---------------------------------------------------------------------------//

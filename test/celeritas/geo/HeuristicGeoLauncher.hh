@@ -36,7 +36,7 @@ struct HeuristicGeoLauncher
     ParamsRef const& params;
     StateRef const& state;
 
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -46,7 +46,7 @@ struct HeuristicGeoLauncher
  * This is meant to emulate some of the variability in step sizes and direction
  * changes seen during a real transport loop,
  */
-CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
+CELER_FUNCTION void HeuristicGeoLauncher::operator()(TrackSlotId tid) const
 {
     RngEngine rng(state.rng, tid);
     GeoTrackView geo(params.geometry, state.geometry, tid);

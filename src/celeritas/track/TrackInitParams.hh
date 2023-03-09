@@ -38,6 +38,9 @@ class TrackInitParams
     // Construct with capacity and number of events
     explicit TrackInitParams(Input const&);
 
+    //! Event number cannot exceed this value
+    size_type max_events() const { return host_ref().max_events; }
+
     //! Access primaries for contructing track initializer states
     HostRef const& host_ref() const { return data_.host(); }
 

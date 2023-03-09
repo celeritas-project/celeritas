@@ -35,13 +35,13 @@ class UnitIndexer
     struct LocalSurface
     {
         UniverseId universe;
-        SurfaceId surface;
+        LocalSurfaceId surface;
     };
 
     struct LocalVolume
     {
         UniverseId universe;
-        VolumeId volume;
+        LocalVolumeId volume;
     };
     //!@}
 
@@ -51,9 +51,9 @@ class UnitIndexer
 
     // Local-to-global
     inline CELER_FUNCTION SurfaceId global_surface(UniverseId uni,
-                                                   SurfaceId surface) const;
+                                                   LocalSurfaceId surface) const;
     inline CELER_FUNCTION VolumeId global_volume(UniverseId uni,
-                                                 VolumeId volume) const;
+                                                 LocalVolumeId volume) const;
 
     // Global-to-local
     inline CELER_FUNCTION LocalSurface local_surface(SurfaceId id) const;
@@ -111,7 +111,7 @@ CELER_FUNCTION UnitIndexer::UnitIndexer(UnitIndexerDataRef const& data)
  * Transform local to global surface ID.
  */
 CELER_FUNCTION SurfaceId UnitIndexer::global_surface(UniverseId uni,
-                                                     SurfaceId surf) const
+                                                     LocalSurfaceId surf) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(surf < this->local_size(data_.surfaces, uni));
@@ -125,7 +125,7 @@ CELER_FUNCTION SurfaceId UnitIndexer::global_surface(UniverseId uni,
  * Transform local to global volume ID.
  */
 CELER_FUNCTION VolumeId UnitIndexer::global_volume(UniverseId uni,
-                                                   VolumeId volume) const
+                                                   LocalVolumeId volume) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(volume < this->local_size(data_.volumes, uni));
@@ -145,7 +145,7 @@ UnitIndexer::local_surface(SurfaceId id) const
     auto iter = this->find_local(data_.surfaces, id.unchecked_get());
 
     UniverseId uni(iter - data_.surfaces[AllVals{}].begin());
-    SurfaceId surface(id - *iter);
+    LocalSurfaceId surface((id - *iter).unchecked_get());
     CELER_ENSURE(uni < this->num_universes());
     return {uni, surface};
 }
@@ -161,7 +161,7 @@ UnitIndexer::local_volume(VolumeId id) const
     auto iter = this->find_local(data_.volumes, id.unchecked_get());
 
     UniverseId uni(iter - data_.volumes[AllVals{}].begin());
-    VolumeId volume(id - *iter);
+    LocalVolumeId volume((id - *iter).unchecked_get());
     CELER_ENSURE(uni.get() < this->num_universes());
     return {uni, volume};
 }

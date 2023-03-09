@@ -270,7 +270,6 @@ celeritas_add_test(celeritas/em/Rayleigh.test.cc)
 celeritas_add_test(celeritas/em/RelativisticBrem.test.cc)
 celeritas_add_test(celeritas/em/SeltzerBerger.test.cc)
 celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc)
-
 celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
 
@@ -286,7 +285,11 @@ endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc
-  ${_needs_geant4} LINK_LIBRARIES ${_optional_json_link})
+  ${_needs_geant4} LINK_LIBRARIES ${_optional_json_link}
+  FILTER
+    "FourSteelSlabs*"
+    "TestEm3*"
+  )
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 
 #-------------------------------------#

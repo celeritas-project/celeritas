@@ -31,14 +31,14 @@ class Surfaces
     Surfaces(ParamsRef const& params, SurfacesRecord const& surf_record);
 
     // Number of surfaces
-    inline CELER_FUNCTION SurfaceId::size_type num_surfaces() const;
+    inline CELER_FUNCTION LocalSurfaceId::size_type num_surfaces() const;
 
     // Get the type of an indexed surface
-    inline CELER_FUNCTION SurfaceType surface_type(SurfaceId) const;
+    inline CELER_FUNCTION SurfaceType surface_type(LocalSurfaceId) const;
 
     // Convert a stored surface to a class
     template<class T>
-    inline CELER_FUNCTION T make_surface(SurfaceId) const;
+    inline CELER_FUNCTION T make_surface(LocalSurfaceId) const;
 
   private:
     ParamsRef const& params_;
@@ -61,7 +61,7 @@ Surfaces::Surfaces(ParamsRef const& params, SurfacesRecord const& surf_record)
 /*!
  * Number of surfaces.
  */
-CELER_FUNCTION SurfaceId::size_type Surfaces::num_surfaces() const
+CELER_FUNCTION LocalSurfaceId::size_type Surfaces::num_surfaces() const
 {
     return surf_record_.size();
 }
@@ -70,7 +70,7 @@ CELER_FUNCTION SurfaceId::size_type Surfaces::num_surfaces() const
 /*!
  * Get the type of an indexed surface.
  */
-CELER_FUNCTION SurfaceType Surfaces::surface_type(SurfaceId sid) const
+CELER_FUNCTION SurfaceType Surfaces::surface_type(LocalSurfaceId sid) const
 {
     CELER_EXPECT(sid < this->num_surfaces());
     OpaqueId<SurfaceType> offset = *surf_record_.types.begin();
@@ -84,7 +84,7 @@ CELER_FUNCTION SurfaceType Surfaces::surface_type(SurfaceId sid) const
  * Convert a stored surface to a class.
  */
 template<class T>
-CELER_FUNCTION T Surfaces::make_surface(SurfaceId sid) const
+CELER_FUNCTION T Surfaces::make_surface(LocalSurfaceId sid) const
 {
     static_assert(T::Storage::extent > 0,
                   "Template parameter must be a surface class");

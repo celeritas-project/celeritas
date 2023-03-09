@@ -59,6 +59,50 @@ TEST(ItemRange, accessors)
     EXPECT_EQ(ItemIdT{12}, ps[2]);
 }
 
+TEST(ItemMap, basic)
+{
+    using T1 = OpaqueId<double>;
+    using T2 = OpaqueId<int>;
+    using ItemMap = ItemMap<T1, T2>;
+
+    Collection<double, Ownership::value, MemSpace::host, T2> host_val;
+    std::vector<T2::value_type> data_a = {5, 6, 7, 8};
+    std::vector<T2::value_type> data_b = {9, 10, 11};
+
+    // Add both vectors to the Collection, creating a Range for each
+    auto range_a
+        = make_builder(&host_val).insert_back(data_a.begin(), data_a.end());
+    auto range_b
+        = make_builder(&host_val).insert_back(data_b.begin(), data_b.end());
+
+    ItemMap im_a;
+    ItemMap im_b;
+
+    EXPECT_EQ(0, im_a.size());
+    EXPECT_TRUE(im_a.empty());
+
+    // Create an ItemMap for each Range
+    im_a = ItemMap(range_a);
+    im_b = ItemMap(range_b);
+
+    EXPECT_EQ(4, im_a.size());
+    EXPECT_EQ(3, im_b.size());
+
+    EXPECT_FALSE(im_a.empty());
+    EXPECT_FALSE(im_b.empty());
+
+    // Verify we can access the T2 data with index type T1
+    for (size_type i : range(data_a.size()))
+    {
+        EXPECT_EQ(range_a[i], im_a[T1{i}]);
+    }
+
+    for (size_type i : range(data_b.size()))
+    {
+        EXPECT_EQ(range_b[i], im_b[T1{i}]);
+    }
+}
+
 TEST(CollectionBuilder, size_limits)
 {
     using IdType = OpaqueId<struct Tiny, std::uint8_t>;
@@ -277,10 +321,10 @@ TEST_F(CollectionTest, host)
     HostVal<MockStateData> host_state;
     resize(&host_state, 1);
     auto host_state_ref = make_ref(host_state);
-    host_state_ref.matid[ThreadId{0}] = MockMaterialId{1};
+    host_state_ref.matid[TrackSlotId{0}] = MockMaterialId{1};
 
     // Create view
-    MockTrackView mock(mock_params.host(), host_state_ref, ThreadId{0});
+    MockTrackView mock(mock_params.host(), host_state_ref, TrackSlotId{0});
     EXPECT_EQ(1, mock.matid().unchecked_get());
 }
 

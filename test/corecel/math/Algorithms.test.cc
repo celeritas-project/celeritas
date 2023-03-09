@@ -226,6 +226,7 @@ TEST(MathTest, ipow)
 TEST(MathTest, fastpow)
 {
     EXPECT_DOUBLE_EQ(0.0, fastpow(0.0, 1.0));
+    EXPECT_DOUBLE_EQ(0.0, fastpow(0.0, 5.55042));
     EXPECT_DOUBLE_EQ(1.0, fastpow(1234.0, 0.0));
     if (CELERITAS_DEBUG)
     {

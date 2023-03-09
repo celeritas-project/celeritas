@@ -17,6 +17,7 @@
 #include "celeritas/random/XorwowRngData.hh"
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitUtils.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
 #include "detail/ActionSequence.hh"
@@ -95,6 +96,15 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << ") with size ("
                    << core_ref_.states.init.initializers.size()
                    << ") for primaries (" << primaries.size() << ")");
+    auto max_id
+        = std::max_element(primaries.begin(),
+                           primaries.end(),
+                           [](Primary const& left, Primary const& right) {
+                               return left.event_id < right.event_id;
+                           });
+    CELER_VALIDATE(max_id->event_id < params_->init()->max_events(),
+                   << "event number " << max_id->event_id.unchecked_get()
+                   << " exceeds max_events=" << params_->init()->max_events());
 
     // Create track initializers
     extend_from_primaries(core_ref_, primaries);

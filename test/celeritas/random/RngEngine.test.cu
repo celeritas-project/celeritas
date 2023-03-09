@@ -32,7 +32,7 @@ namespace
 __global__ void sample_native_kernel(DeviceRef<RngStateData> view,
                                      RngEngine::result_type* samples)
 {
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() < view.size())
     {
         RngEngine rng(view, tid);
@@ -44,7 +44,7 @@ template<class RealType>
 __global__ void
 sample_canonical_kernel(DeviceRef<RngStateData> view, RealType* samples)
 {
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() < view.size())
     {
         RngEngine rng(view, tid);

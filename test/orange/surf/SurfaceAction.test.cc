@@ -73,7 +73,7 @@ class SurfaceActionTest : public OrangeGeoTestBase
                 {
                     v.logic.push_back(logic::lor);
                 }
-                v.faces.push_back(SurfaceId{i});
+                v.faces.push_back(LocalSurfaceId{i});
             }
             v.logic.insert(v.logic.end(), {logic::ltrue, logic::lor});
             unit.volumes = {std::move(v)};
@@ -163,7 +163,7 @@ TEST_F(SurfaceActionTest, string)
 
     // Loop over all surfaces and apply
     std::vector<std::string> strings;
-    for (auto id : range(SurfaceId{surfaces.num_surfaces()}))
+    for (auto id : range(LocalSurfaceId{surfaces.num_surfaces()}))
     {
         strings.push_back(surf_to_string(id));
     }
@@ -195,12 +195,12 @@ TEST_F(SurfaceActionTest, host_distances)
     this->fill_isotropic(state_ref.dir[AllItems<Real3>{}]);
 
     CalcSenseDistanceLauncher<> calc_thread{host_ref, state_ref};
-    for (auto tid : range(ThreadId{states.size()}))
+    for (auto tid : range(TrackSlotId{states.size()}))
     {
         calc_thread(tid);
     }
 
-    auto test_threads = range(ThreadId{10});
+    auto test_threads = range(TrackSlotId{10});
     // PRINT_EXPECTED(senses_to_string(state_ref.sense[test_threads]));
     // PRINT_EXPECTED(state_ref.distance[test_threads]);
 
@@ -244,7 +244,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
         // Copy result back to host
         HostVal<OrangeMiniStateData> host_states;
         host_states = device_states;
-        auto test_threads = range(ThreadId{10});
+        auto test_threads = range(TrackSlotId{10});
 
         double const expected_distance[] = {inf,
                                             inf,

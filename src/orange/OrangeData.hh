@@ -53,7 +53,7 @@ struct OrangeParamsScalars
  */
 struct VolumeRecord
 {
-    ItemRange<SurfaceId> faces;
+    ItemRange<LocalSurfaceId> faces;
     ItemRange<logic_int> logic;
 
     logic_int max_intersections{0};
@@ -114,7 +114,7 @@ struct SurfacesRecord
  */
 struct Connectivity
 {
-    ItemRange<VolumeId> neighbors;
+    ItemRange<LocalVolumeId> neighbors;
 };
 
 //---------------------------------------------------------------------------//
@@ -123,21 +123,21 @@ struct Connectivity
  */
 struct SimpleUnitRecord
 {
-    using VolumeRecordRange = Range<VolumeId>;
+    using VolumeRecordId = OpaqueId<VolumeRecord>;
 
     // Surface data
     SurfacesRecord surfaces;
-    ItemRange<Connectivity> connectivity;  // Index by SurfaceId
+    ItemRange<Connectivity> connectivity;  // Index by LocalSurfaceId
 
-    // Volume data [index by VolumeId]
-    VolumeRecordRange volumes;
+    // Volume data [index by LocalVolumeId]
+    ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
     // Translation data [index by TranslationId]
     ItemRange<Translation> translations;
 
     // TODO: transforms
     // TODO: acceleration structure (bvh/kdtree/grid)
-    VolumeId background{};  //!< Default if not in any other volume
+    LocalVolumeId background{};  //!< Default if not in any other volume
     bool simple_safety{};
 
     //! True if defined
@@ -198,8 +198,6 @@ struct OrangeParamsData
     using Items = Collection<T, W, M>;
     template<class T>
     using UnivItems = Collection<T, W, M, UniverseId>;
-    template<class T>
-    using VolumeItems = Collection<T, W, M, VolumeId>;
     using RealId = OpaqueId<real_type>;
 
     //// DATA ////
@@ -213,14 +211,15 @@ struct OrangeParamsData
     Items<SimpleUnitRecord> simple_unit;
 
     // Low-level storage
-    Items<SurfaceId> surface_ids;
-    Items<VolumeId> volume_ids;
+    Items<LocalSurfaceId> local_surface_ids;
+    Items<LocalVolumeId> local_volume_ids;
     Items<RealId> real_ids;
     Items<logic_int> logic_ints;
     Items<real_type> reals;
     Items<SurfaceType> surface_types;
     Items<Connectivity> connectivities;
-    VolumeItems<VolumeRecord> volume_records;
+    Items<VolumeRecord> volume_records;
+
     Items<Translation> translations;
 
     UnitIndexerData<W, M> unit_indexer_data;
@@ -232,7 +231,8 @@ struct OrangeParamsData
     {
         return scalars && !universe_type.empty()
                && universe_index.size() == universe_type.size()
-               && ((!volume_ids.empty() && !logic_ints.empty() && !reals.empty())
+               && ((!local_volume_ids.empty() && !logic_ints.empty()
+                    && !reals.empty())
                    || surface_types.empty())
                && !volume_records.empty() && unit_indexer_data;
     }
@@ -247,8 +247,8 @@ struct OrangeParamsData
         universe_index = other.universe_index;
         simple_unit = other.simple_unit;
 
-        surface_ids = other.surface_ids;
-        volume_ids = other.volume_ids;
+        local_surface_ids = other.local_surface_ids;
+        local_volume_ids = other.local_volume_ids;
         real_ids = other.real_ids;
         logic_ints = other.logic_ints;
         reals = other.reals;
@@ -288,11 +288,11 @@ struct OrangeStateData
     // Dimensions {num_tracks, max_level}
     Items<Real3> pos;
     Items<Real3> dir;
-    Items<VolumeId> vol;
+    Items<LocalVolumeId> vol;
     Items<UniverseId> universe;
 
     // Surface crossing, dimensions {num_tracks, max_level}
-    Items<SurfaceId> surf;
+    Items<LocalSurfaceId> surf;
     Items<Sense> sense;
     Items<BoundaryResult> boundary;
 
@@ -331,7 +331,7 @@ struct OrangeStateData
     }
 
     //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return level.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const { return level.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

@@ -159,7 +159,8 @@ LocalState
 SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir, char const* vol)
 {
     LocalState state = this->make_state(pos, dir);
-    state.volume = this->find_volume(vol);
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    state.volume = ui.local_volume(this->find_volume(vol)).volume;
     return state;
 }
 
@@ -187,11 +188,13 @@ LocalState SimpleUnitTrackerTest::make_state(
     }
 
     LocalState state = this->make_state(pos, dir);
-    state.volume = this->find_volume(vol);
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    state.volume = ui.local_volume(this->find_volume(vol)).volume;
     // *Intentionally* flip the sense because we're looking for the
     // post-crossing volume. This is normally done by the multi-level
     // TrackingGeometry.
-    state.surface = {this->find_surface(surf), before_crossing_sense};
+    state.surface = {ui.local_surface(this->find_surface(surf)).surface,
+                     before_crossing_sense};
     return state;
 }
 
@@ -224,9 +227,9 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
     // Set up for host run
     InitializingLauncher<> calc_init{this->params().host_ref(), states.ref()};
 
-    // Loop over all threads
+    // Loop over all track slots
     Stopwatch get_time;
-    for (auto tid : range(ThreadId{states.size()}))
+    for (auto tid : range(TrackSlotId{states.size()}))
     {
         calc_init(tid);
     }
@@ -274,14 +277,14 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        auto lsa = LevelStateAccessor(&result_ref, ThreadId{i}, LevelId{0});
+        auto lsa = LevelStateAccessor(&result_ref, TrackSlotId{i}, LevelId{0});
         lsa.pos() = sample_box(rng);
         lsa.dir() = sample_isotropic(rng);
     }
 
     // Clear other data
-    fill(VolumeId{}, &result.vol);
-    fill(SurfaceId{}, &result.surf);
+    fill(LocalVolumeId{}, &result.vol);
+    fill(LocalSurfaceId{}, &result.surf);
     fill(LevelId{}, &result.level);
 
     CELER_ENSURE(result);
@@ -303,9 +306,9 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
 
     for (auto i : range(host.size()))
     {
-        auto thread_id = ThreadId{i};
+        auto tid = TrackSlotId{i};
         // TODO Update for multiple universes
-        LevelStateAccessor lsa(&host, thread_id, LevelId{0});
+        LevelStateAccessor lsa(&host, tid, LevelId{0});
         auto vol = lsa.vol();
 
         if (vol < counts.size())
@@ -367,7 +370,7 @@ TEST_F(OneVolumeTest, initialize)
         // Anywhere is valid
         auto init = tracker.initialize(this->make_state({1, 2, 3}, {0, 0, 1}));
         EXPECT_TRUE(init);
-        EXPECT_EQ(VolumeId{0}, init.volume);
+        EXPECT_EQ(LocalVolumeId{0}, init.volume);
         EXPECT_FALSE(init.surface);
     }
 }
@@ -391,9 +394,12 @@ TEST_F(OneVolumeTest, intersect)
 TEST_F(OneVolumeTest, safety)
 {
     SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
 
-    EXPECT_SOFT_EQ(inf,
-                   tracker.safety({1, 2, 3}, this->find_volume("infinite")));
+    EXPECT_SOFT_EQ(
+        inf,
+        tracker.safety({1, 2, 3},
+                       ui.local_volume(this->find_volume("infinite")).volume));
 }
 
 TEST_F(OneVolumeTest, heuristic_init)
@@ -478,28 +484,28 @@ TEST_F(TwoVolumeTest, intersect)
         auto state = this->make_state({0.5, 0, 0}, {0, 0, 1}, "inside");
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(sqrt_two, isect.distance);
 
         state = this->make_state({0.5, 0, 0}, {1, 0, 0}, "inside");
         isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.0, isect.distance);
 
         // Range limit: further than surface
         isect = tracker.intersect(state, 10.0);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.0, isect.distance);
 
         // Coincident
         isect = tracker.intersect(state, 1.0);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.0, isect.distance);
 
@@ -517,7 +523,7 @@ TEST_F(TwoVolumeTest, intersect)
         state = this->make_state({0, 0, 2.0}, {0, 0, -1}, "inside");
         isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.5, isect.distance);
     }
@@ -533,7 +539,7 @@ TEST_F(TwoVolumeTest, intersect)
         auto state = this->make_state(
             {0, 0, 1.5}, {0, 0, -1}, "outside", "sphere", '+');
         auto isect = tracker.intersect(state);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
         // NOTE: being on a surface with opposite sense and direction means
         // we should get a "zero distance" movement plus sense change, but
@@ -554,7 +560,7 @@ TEST_F(TwoVolumeTest, intersect)
         auto state = this->make_state(
             {0, 0, 1.5}, {0, 0, -1}, "inside", "sphere", '-');
         auto isect = tracker.intersect(state);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(3.0, isect.distance);
     }
@@ -566,7 +572,7 @@ TEST_F(TwoVolumeTest, intersect)
 #if 0
         // "Correct" result when accounting for sense in distance-to-boundary
         // calculation
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.0, isect.distance);
 #else
@@ -579,8 +585,10 @@ TEST_F(TwoVolumeTest, intersect)
 TEST_F(TwoVolumeTest, safety)
 {
     SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
-    VolumeId outside = this->find_volume("outside");
-    VolumeId inside = this->find_volume("inside");
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    LocalVolumeId outside
+        = ui.local_volume(this->find_volume("outside")).volume;
+    LocalVolumeId inside = ui.local_volume(this->find_volume("inside")).volume;
 
     EXPECT_SOFT_EQ(1.9641016151377535, tracker.safety({2, 2, 2}, outside));
     EXPECT_SOFT_EQ(1.3284271247461905, tracker.safety({2, 0, 2}, outside));
@@ -603,7 +611,8 @@ TEST_F(TwoVolumeTest, normal)
     if (CELERITAS_DEBUG)
     {
         SCOPED_TRACE("Not on a surface");
-        EXPECT_THROW(tracker.normal(Real3{0, 0, 1.6}, SurfaceId{}), DebugError);
+        EXPECT_THROW(tracker.normal(Real3{0, 0, 1.6}, LocalSurfaceId{}),
+                     DebugError);
     }
     {
         Real3 pos{3, -2, 1};
@@ -615,7 +624,7 @@ TEST_F(TwoVolumeTest, normal)
             pos[i] = expected_normal[i] * real_type(1.5);  // radius
         }
 
-        auto actual_normal = tracker.normal(pos, SurfaceId{0});
+        auto actual_normal = tracker.normal(pos, LocalSurfaceId{0});
         EXPECT_VEC_SOFT_EQ(expected_normal, actual_normal);
     }
 }
@@ -760,7 +769,6 @@ TEST_F(FiveVolumesTest, properties)
 TEST_F(FiveVolumesTest, initialize)
 {
     SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
-
     {
         SCOPED_TRACE("Exterior");
         auto init = tracker.initialize(
@@ -912,9 +920,9 @@ TEST_F(FiveVolumesTest, intersect)
 TEST_F(FiveVolumesTest, safety)
 {
     SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
-
-    VolumeId a = this->find_volume("a");
-    VolumeId d = this->find_volume("d");
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    LocalVolumeId a = ui.local_volume(this->find_volume("a")).volume;
+    LocalVolumeId d = ui.local_volume(this->find_volume("d")).volume;
 
     EXPECT_SOFT_EQ(0.15138781886599728, tracker.safety({-0.75, 0.5, 0}, a));
 

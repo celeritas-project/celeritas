@@ -44,7 +44,7 @@ TEST_F(GeoMaterialTest, host)
     auto const& mat_params = *this->material();
     CollectionStateStore<GeoStateData, MemSpace::host> geo_state(
         geo_params.host_ref(), 1);
-    GeoTrackView geo(geo_params.host_ref(), geo_state.ref(), ThreadId{0});
+    GeoTrackView geo(geo_params.host_ref(), geo_state.ref(), TrackSlotId{0});
     GeoMaterialView geo_mat_view(this->geomaterial()->host_ref());
 
     // Track across layers to get a truly implementation-independent

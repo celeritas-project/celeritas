@@ -55,7 +55,14 @@ class ProcessSecondariesLauncher
     }
 
     // Create track initializers from secondaries
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
+
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        // The grid size should be equal to the state size and no thread/slot
+        // remapping should be performed
+        return (*this)(TrackSlotId{tid.unchecked_get()});
+    }
 
   private:
     ParamsRef const& params_;
@@ -65,10 +72,13 @@ class ProcessSecondariesLauncher
 //---------------------------------------------------------------------------//
 /*!
  * Create track initializers from secondaries.
+ *
+ * This kernel is launched with a grid size equal to the number of track slots,
+ * so ThreadId should be equal to TrackSlotId. No remapping should be done.
  */
 template<MemSpace M>
 CELER_FUNCTION void
-ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
+ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
 {
     SimTrackView sim(states_.sim, tid);
     if (sim.status() == TrackStatus::inactive)
@@ -146,14 +156,14 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             {
                 // Store the track initializer
                 CELER_ASSERT(offset > 0 && offset <= data.initializers.size());
-                data.initializers[ThreadId(data.initializers.size() - offset)]
-                    = ti;
+                data.initializers[data.initializers.size() - offset] = ti;
 
                 // Store the thread ID of the secondary's parent if the
                 // secondary could be initialized in the next step
                 if (offset <= data.parents.size())
                 {
-                    data.parents[ThreadId(data.parents.size() - offset)] = tid;
+                    data.parents[TrackSlotId(data.parents.size() - offset)]
+                        = tid;
                 }
                 --offset;
             }

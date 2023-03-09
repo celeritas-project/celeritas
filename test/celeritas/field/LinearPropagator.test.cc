@@ -40,7 +40,7 @@ class LinearPropagatorTestBase : public GlobalGeoTestBase,
     GeoTrackView make_geo_view()
     {
         return GeoTrackView(
-            this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
+            this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0});
     }
 
     GeoTrackView init_geo(Real3 const& pos, Real3 dir)

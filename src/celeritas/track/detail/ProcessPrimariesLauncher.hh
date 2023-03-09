@@ -63,8 +63,8 @@ CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
     Primary const& primary = primaries_[tid.get()];
 
     CELER_ASSERT(primaries_.size() <= data_.initializers.size() + tid.get());
-    TrackInitializer& ti = data_.initializers[ThreadId(
-        data_.initializers.size() - primaries_.size() + tid.get())];
+    TrackInitializer& ti = data_.initializers[data_.initializers.size()
+                                              - primaries_.size() + tid.get()];
 
     // Construct a track initializer from a primary particle
     ti.sim.track_id = primary.track_id;
