@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/sys/ThreadId.hh"
+#include "corecel/data/Collection.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
@@ -99,6 +100,8 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
     : states_(states), params_(params), thread_(thread)
 {
     CELER_EXPECT(thread_ < states_.size());
+    //TODO: Smarter mapping of thread to track index
+    states_.track_slots[thread_] = TrackSlotId{thread_.get()};
 }
 
 //---------------------------------------------------------------------------//
@@ -203,7 +206,7 @@ CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
  */
 CELER_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 {
-    return TrackSlotId{thread_.unchecked_get()};
+    return states_.track_slots[thread_];
 }
 
 //---------------------------------------------------------------------------//
