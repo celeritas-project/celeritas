@@ -218,29 +218,41 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             return (lambda - lambda_end) / std::log(lambda / lambda_end);
         }();
 
-        if (CELER_UNLIKELY(tau_ < shared_.params.tau_small))
+        if (tau_ < shared_.params.tau_big)
         {
-            // Small MFP travelled
-            // TODO: this should be virtually impossible because of
-            // skip_sampling_ above
-            is_displaced_ = false;
-        }
-        else if (tau_ < shared_.params.tau_big)
-        {
-            // TODO: if displacement is disabled (because of being far from the
-            // boundary or having a short step) then limit_min_ will be zero,
-            // and some corrections will not be applied.
-            // CELER_ASSERT(limit_min_ > 0);
-
             // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
             xmean_ = std::exp(-tau_);
             x2mean_ = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
+
             // MSC "true path" step limit
+            if (CELER_UNLIKELY(limit_min_ == 0))
+            {
+                // Unlikely: MSC range cache wasn't initialized by
+                // UrbanMscStepLimit
+                CELER_ASSERT(!is_displaced_);
+                limit_min_ = UrbanMscParameters::limit_min();
+            }
             limit_min_ = min(limit_min_, shared_.params.lambda_limit);
 
             // TODO: theta0_ calculation could be done externally, eliminating
             // many of the class member data
             theta0_ = this->compute_theta0();
+
+            if (theta0_ < 1e-8)
+            {
+                // Arbitrarily (?) small angle change (theta_0^2 < 1e-16):
+                // skip sampling angular distribution if width of direction
+                // distribution is too narrow
+                if (!is_displaced_)
+                {
+                    // No angular sampling and no displacement => no change
+                    skip_sampling_ = true;
+                }
+                else
+                {
+                    theta0_ = 0;
+                }
+            }
         }
     }
 }
@@ -261,18 +273,9 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 
     // Sample polar angle cosine
     real_type costheta = [this, &rng] {
-        if (CELER_UNLIKELY(tau_ < shared_.params.tau_small))
-        {
-            // Small mean free path: forward scatter
-            // TODO: this condition is almost certainly impossible because we
-            // already skip sampling for true_path / lambda <= tau_small
-            return real_type{1};
-        }
-        if (ipow<2>(theta0_) < shared_.params.tau_small)
+        if (theta0_ <= 0)
         {
             // Very small outgoing angular distribution
-            // XXX why are we comparing the square of an angle to an MFP
-            // value??
             return real_type{1};
         }
         if (tau_ >= shared_.params.tau_big)
@@ -281,13 +284,13 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
             UniformRealDistribution<real_type> sample_isotropic(-1, 1);
             return sample_isotropic(rng);
         }
-        if (end_energy_ < real_type(0.5) * inc_energy_
-            || theta0_ > constants::pi / 6)
+        if (2 * end_energy_ < inc_energy_ || theta0_ > constants::pi / 6)
         {
             // Large energy loss over the step or large angle distribution
             // width
             return this->simple_scattering(rng);
         }
+        // No special cases match:
         return this->sample_cos_theta(rng);
     }();
     CELER_ASSERT(std::fabs(costheta) <= 1);
@@ -298,12 +301,10 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 
     MscInteraction result;
     result.action = MscInteraction::Action::scattered;
-    {
-        // This should only be needed to silence compiler warning, since the
-        // displacement should be ignored since our action result is
-        // 'scattered'
-        result.displacement = {0, 0, 0};
-    }
+    // This should only be needed to silence compiler warning, since the
+    // displacement should be ignored since our action result is
+    // 'scattered'
+    result.displacement = {0, 0, 0};
 
     // Calculate displacement
     if (is_displaced_)
@@ -358,21 +359,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 {
     CELER_EXPECT(xmean_ > 0 && x2mean_ > 0);
 
-    real_type x = [this] {
-        real_type theta0_sq = ipow<2>(theta0_);
-        if (theta0_sq > real_type(0.01))
-        {
-            return ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
-        }
-        else
-        {
-            // Second-order Taylor expansion of (2 * sin(theta/2))^2
-            // TODO I don't think the `sin` expression is unstable so this
-            // should be removed for simplicity
-            return theta0_sq * (1 - theta0_sq / 12);
-        }
-    }();
-
     // Evaluate parameters for the tail distribution
     real_type xsi = [this] {
         using PolyQuad = PolyEvaluator<real_type, 2>;
@@ -393,7 +379,11 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 
     real_type ea = std::exp(-xsi);
     // Mean of cos\theta computed from the distribution g_1(cos\theta)
-    real_type xmean_1 = 1 - (1 - (1 + xsi) * ea) * x / (1 - ea);
+    // small theta => x = theta0^2
+    // large xsi => xmean_1 = 1 - x
+    // small tau => xmean = 1
+    real_type x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
+    real_type xmean_1 = 1 - x * (1 + (xsi * ea) / (1 - ea));
 
     if (xmean_1 <= real_type(0.999) * xmean_)
     {
@@ -460,8 +450,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
  * Sample the large angle scattering using 2 model functions.
  *
  * \param rng Random number generator
- * \param xmean_ the mean of \f$\cos\theta\f$.
- * \param x2mean_ the mean of \f$\cos\theta^{2}\f$.
  */
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(Engine& rng) const
@@ -496,8 +484,6 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(Engine& rng) const
  * velocity, charge number of the incident particle, the true path length in
  * radiation length unit and the correction term, respectively. For details,
  * see the section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
- *
- * \param true_path the true step length.
  */
 CELER_FUNCTION
 real_type UrbanMscScatter::compute_theta0() const
@@ -531,6 +517,9 @@ real_type UrbanMscScatter::compute_theta0() const
         theta0 *= std::sqrt(true_path_ / limit_min_);
     }
 
+    // Very small path lengths can result in a negative e- scattering
+    // correction: clamp to zero so that too-small paths result in no change
+    // in angle
     return max<real_type>(theta0, 0);
 }
 

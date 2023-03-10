@@ -78,19 +78,23 @@ struct UrbanMscParameters
 /*!
  * Material-dependent data for Urban MSC.
  *
- * UrbanMsc material data (see G4UrbanMscModel::mscData) is a set of
+ * UrbanMsc material data (see UrbanMscParams::calc_material_data) is a set of
  * precalculated material dependent parameters used in sampling the angular
- * distribution of MSC, \f$ \cos\theta \f$. All parameters are unitless.
+ * distribution of MSC, \f$ \cos\theta \f$, and in the step limiter. The
+ * coeffient vectors are used in polynomial evaluation.
  */
 struct UrbanMscMaterialData
 {
     using Real2 = Array<real_type, 2>;
     using Real3 = Array<real_type, 3>;
 
-    Real2 theta_coeff{0, 0};  //!< correction in theta_0 formula
-    Real3 tail_coeff{0, 0, 0};  //!< poly coefficients of tail parameters
-    real_type tail_corr{0};  //!< additional factor based on log
-    Real2 stepmin_coeff{0, 0};  //!< poly coefficients for step minimum
+    // Step limiter
+    Real2 stepmin_coeff{0, 0};  //!< Coefficients for step minimum
+
+    // Scattering angle
+    Real2 theta_coeff{0, 0};  //!< Coeffecients for theta_0 correction
+    Real3 tail_coeff{0, 0, 0};  //!< Coefficients for tail parameter
+    real_type tail_corr{0};  //!< Additional radiation length tail correction
 };
 
 //---------------------------------------------------------------------------//

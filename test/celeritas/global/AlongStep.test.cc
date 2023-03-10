@@ -275,7 +275,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(2.2870403276278, result.eloss, 5e-4);
         EXPECT_SOFT_NEAR(1.1622519442871, result.displacement, 5e-4);
-        EXPECT_SOFT_NEAR(0.82595842677474, result.angle, 1e-3);
+        EXPECT_SOFT_NEAR(0.85325942256503251, result.angle, 1e-3);
         EXPECT_SOFT_NEAR(4.083585865972e-11, result.time, 1e-5);
         EXPECT_SOFT_NEAR(1.222780668781, result.step, 5e-4);
         EXPECT_EQ("eloss-range", result.action);

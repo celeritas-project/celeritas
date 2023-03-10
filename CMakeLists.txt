@@ -131,6 +131,16 @@ cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
   "CELERITAS_USE_CUDA OR CELERITAS_USE_HIP" OFF
 )
 
+if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
+  set(_default_lock ON)
+else()
+  set(_default_lock OFF)
+endif()
+cmake_dependent_option(CELERITAS_TEST_RESOURCE_LOCK
+  "Only run one GPU-enabled test at a time" "${_default_lock}"
+  "CELERITAS_BUILD_TESTS" OFF
+)
+
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   # Default CMake standard to C++17 for this directory and underneath
   set(CMAKE_CXX_STANDARD 17)
