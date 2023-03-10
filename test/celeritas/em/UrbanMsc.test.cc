@@ -28,6 +28,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/SimTrackView.hh"
 
@@ -465,6 +466,11 @@ TEST_F(UrbanMscTest, msc_scattering)
         for (auto i : celeritas::range(nsamples))
         {
             sample_one(ptype, i);
+            if (i == 1 || i == 9)
+            {
+                // Test original RNG stream
+                celeritas::generate_canonical(rng);
+            }
         }
     }
 
@@ -502,18 +508,18 @@ TEST_F(UrbanMscTest, msc_scattering)
         32089.171921536, 0, 1.7061753085921, 3.3439279763905, 12.693879333563,
         0, 0, 1479.3077264327, 38389.697977001};
     static double const expected_angle[] = {0.00031474130607916,
-        0.79003683103898, -0.14560882721751, 0, -0.32650640360665,
-        0.013072020086723, 0, 0, 0.003112817663327, 0.055689200859297,
+        -0.0179600098014372, -0.14560882721751, 0, -0.32650640360665,
+        0.013072020086723, 0, 0, 0.003112817663327, 0.385707466417037,
         0.17523769034715, 0, -0.30604942826098, 0.40930643323792, 0, 0};
     static double const expected_displace[] = {8.1986203515053e-06,
-        9.7530617641316e-05, -7.1670542039709e-05, 0, -9.1137823713002e-05,
-        9.7878389032256e-06, 0, 0, 5.3169211357544e-06, 7.9159745553753e-05,
+        9.86121281691721e-05, -7.1670542039709e-05, 0, -9.1137823713002e-05,
+        9.7878389032256e-06, 0, 0, 5.3169211357544e-06, 3.04785478410349e-05,
         9.8992726876372e-05, 0, -9.0024133671603e-05, 2.9542258777685e-05, 0,
         0};
     static char const expected_action[] = {'d', 'd', 'd', 'u', 'd', 'd', 'u',
         'u', 'd', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
-    static int const expected_avg_engine_samples[] = {12, 16, 16, 0, 16, 16, 0,
-        0, 12, 16, 16, 0, 16, 16, 0, 0};
+    static int const expected_avg_engine_samples[] = {12, 14, 16, 0, 16, 16, 0,
+        0, 12, 14, 16, 0, 16, 16, 0, 0};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_pstep, pstep);
