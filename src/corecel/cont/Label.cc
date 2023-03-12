@@ -18,7 +18,7 @@ namespace celeritas
  */
 Label Label::from_geant(std::string const& name)
 {
-    static const std::regex final_ptr_regex{"0x[0-9a-f]{4,16}$"};
+    static const std::regex final_ptr_regex{"(.*)(0x[0-9a-f]{4,16}.+)"};
 
     // Remove possible Geant uniquifying pointer-address suffix
     // (Geant4 does this automatically, but VGDML does not)
@@ -27,7 +27,7 @@ Label Label::from_geant(std::string const& name)
     if (std::regex_search(name, ptr_match, final_ptr_regex))
     {
         // Copy pointer as 'extension' and delete from name
-        split_point = name.begin() + ptr_match.position(0);
+        split_point = name.begin() + ptr_match.position(2);
     }
 
     Label result;

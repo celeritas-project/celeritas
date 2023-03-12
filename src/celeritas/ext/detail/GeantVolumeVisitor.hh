@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <vector>
 
 class G4LogicalVolume;
@@ -29,7 +30,10 @@ class GeantVolumeVisitor
     explicit inline GeantVolumeVisitor(bool unique_volumes);
 
     // Recurse into the given logical volume
-    void visit(G4LogicalVolume const& logical_volume);
+    void visit(G4LogicalVolume& logical_volume);
+
+    // Generate the GDML name for a Geant4 logical volume
+    std::string generate_name(G4LogicalVolume& logical_volume);
 
     // Transform the map of volumes into a contiguous vector with empty spaces
     std::vector<ImportVolume> build_volume_vector() const;
