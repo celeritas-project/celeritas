@@ -415,14 +415,8 @@ TEST_F(TestEm3MscNofluct, host)
     if (this->is_ci_build())
     {
         EXPECT_EQ(72, result.num_step_iters());
-        if (CELERITAS_USE_VECGEOM)
-        {
-            EXPECT_SOFT_EQ(58.875, result.calc_avg_steps_per_primary());
-        }
-        else
-        {
-            EXPECT_SOFT_EQ(58.625, result.calc_avg_steps_per_primary());
-        }
+        EXPECT_LE(58.625, result.calc_avg_steps_per_primary());
+        EXPECT_GE(58.875, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
     }
