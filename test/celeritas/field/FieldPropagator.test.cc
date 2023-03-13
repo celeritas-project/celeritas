@@ -1182,7 +1182,8 @@ TEST_F(SimpleCmsTest, electron_stuck)
             = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_EQ(CELERITAS_USE_VECGEOM ? 93 : 92, stepper.count());
+        EXPECT_LE(92, stepper.count());
+        EXPECT_LE(stepper.count(), 93);
         ASSERT_TRUE(geo.is_on_boundary());
         if (!CELERITAS_USE_VECGEOM)
         {

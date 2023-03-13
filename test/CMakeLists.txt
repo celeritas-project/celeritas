@@ -170,6 +170,7 @@ celeritas_add_test(corecel/sys/ScopedSignalHandler.test.cc)
 celeritas_add_test(corecel/sys/ScopedStreamRedirect.test.cc)
 celeritas_add_test(corecel/sys/Stopwatch.test.cc ADDED_TESTS _stopwatch)
 set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
+celeritas_add_test(corecel/sys/Version.test.cc)
 
 #-----------------------------------------------------------------------------#
 # ORANGE TESTS

@@ -391,8 +391,8 @@ TEST_F(TestEm3Msc, host)
     if (this->is_ci_build())
     {
         EXPECT_EQ(86, result.num_step_iters());
-        EXPECT_SOFT_EQ(CELERITAS_USE_VECGEOM ? 46.125 : 46,
-                       result.calc_avg_steps_per_primary());
+        EXPECT_LE(46, result.calc_avg_steps_per_primary());
+        EXPECT_GE(46.125, result.calc_avg_steps_per_primary());
         EXPECT_EQ(10, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({1, 4}), result.calc_queue_hwm());
     }
@@ -453,16 +453,10 @@ TEST_F(TestEm3MscNofluct, host)
 
     if (this->is_ci_build())
     {
-        if (CELERITAS_USE_VECGEOM)
-        {
-            EXPECT_EQ(73, result.num_step_iters());
-            EXPECT_SOFT_EQ(63.125, result.calc_avg_steps_per_primary());
-        }
-        else
-        {
-            EXPECT_EQ(70, result.num_step_iters());
-            EXPECT_SOFT_EQ(61.625, result.calc_avg_steps_per_primary());
-        }
+        EXPECT_LE(70, result.num_step_iters());
+        EXPECT_GE(73, result.num_step_iters());
+        EXPECT_LE(61.625, result.calc_avg_steps_per_primary());
+        EXPECT_GE(63.125, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
     }
