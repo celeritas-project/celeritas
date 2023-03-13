@@ -441,20 +441,21 @@ TEST_F(SolidsTest, accessors)
     {
         FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
     }
-    else if (vecgeom_version <= Version(1, 2, 0))
-    {
-        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
-    }
 
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
 
+    if (vecgeom_version <= Version(1, 2, 0))
+    {
+        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
+    }
+
     // TODO: there are 27 actual solids, but there are a few "unused" volumes
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
-    ASSERT_EQ(25, geom.num_volumes());
+    ASSERT_EQ(26, geom.num_volumes());
 
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{25}).name);
     EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
     EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
@@ -519,21 +520,22 @@ TEST_F(SolidsGeantTest, accessors)
     {
         FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
     }
-    else if (vecgeom_version <= Version(1, 2, 0))
-    {
-        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
-    }
 
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
 
+    if (vecgeom_version <= Version(1, 2, 0))
+    {
+        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
+    }
+
     // TODO: there are 27 actual solids, but there are a few "unused" volumes
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
-    // 25 is the "expected" number from VecGeom 1.2.1 (used by CI)
-    ASSERT_EQ(25, geom.num_volumes());
+    // 26 is the "expected" number from VecGeom 1.2.2 (used by CI)
+    ASSERT_EQ(26, geom.num_volumes());
 
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{25}).name);
     EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
     EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
