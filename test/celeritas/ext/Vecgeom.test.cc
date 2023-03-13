@@ -443,10 +443,10 @@ TEST_F(SolidsTest, accessors)
     // TODO: there are 27 actual solids, but there are a few "unused" volumes
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
-    EXPECT_EQ(25, geom.num_volumes());
+    EXPECT_EQ(26, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{25}).name);
     EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
     EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
@@ -520,11 +520,11 @@ TEST_F(SolidsGeantTest, accessors)
     // TODO: there are 27 actual solids, but there are a few "unused" volumes
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
-    // 25 is the "expected" number from VecGeom 1.2.1 (used by CI)
-    EXPECT_EQ(25, geom.num_volumes());
+    // 26 is the "expected" number from VecGeom 1.2.2 (used by CI)
+    EXPECT_EQ(26, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{25}).name);
     EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
     EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
