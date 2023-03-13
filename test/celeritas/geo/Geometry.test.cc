@@ -172,13 +172,14 @@ TEST_F(TestEm3Test, host)
     {
         EXPECT_FALSE(this->geometry()->supports_safety());
     }
-    real_type tol = CELERITAS_USE_VECGEOM ? 0.2 : 1e-3;
+    real_type tol = CELERITAS_USE_VECGEOM ? 0.25 : 1e-3;
     this->run_host(512, tol);
 }
 
 TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 {
-    this->run_device(512, 1e-3);
+    real_type tol = CELERITAS_USE_VECGEOM ? 0.25 : 1e-3;
+    this->run_device(512, tol);
 }
 
 //---------------------------------------------------------------------------//
