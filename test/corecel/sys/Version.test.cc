@@ -73,11 +73,14 @@ TEST(VersionTest, from_string)
     EXPECT_EQ(Version(1000, 99, 8), Version::from_string("1000.99.8.7"sv));
     EXPECT_EQ(Version(0), Version::from_string("0"));
     EXPECT_EQ(Version(0, 1), Version::from_string("0.1"sv));
+    EXPECT_EQ(Version(0, 3, 1), Version::from_string("0.3.1-dev.2"sv));
 
     EXPECT_THROW(Version::from_string(""sv), celeritas::RuntimeError);
     EXPECT_THROW(Version::from_string("0.x"sv), celeritas::RuntimeError);
     EXPECT_THROW(Version::from_string("1.-2.3"sv), celeritas::RuntimeError);
     EXPECT_THROW(Version::from_string("nope"sv), celeritas::RuntimeError);
+    EXPECT_THROW(Version::from_string("0.3.1blakjsdf"sv),
+                 celeritas::RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "Version.hh"
 
-#include <cerrno>
 #include <cstdlib>
 #include <iostream>
 #include <regex>
@@ -27,7 +26,7 @@ namespace celeritas
 Version Version::from_string(std::string_view sv)
 {
     static const std::regex version_regex{
-        R"re(^(\w+)(?:\.(\w+)(?:\.(\w+)(?:\.\w+)*)?)?$)re"};
+        R"re(^(\d+)(?:\.(\d+)(?:\.(\d+)(?:\.\d+)*)?)?(?:-.*)?)re"};
     std::match_results<std::string_view::iterator> version_match;
     bool matched
         = std::regex_match(sv.begin(), sv.end(), version_match, version_regex);
@@ -39,14 +38,7 @@ Version Version::from_string(std::string_view sv)
             // No version component given
             return size_type{0};
         }
-        errno = 0;
         int result = std::atoi(submatch.first);
-        CELER_VALIDATE(errno == 0,
-                       << "version component '" << submatch
-                       << "' is not an integer: " << std::strerror(errno));
-        CELER_VALIDATE(result >= 0,
-                       << "version component '" << submatch
-                       << "' is not an unsigned integer");
         return static_cast<size_type>(result);
     };
 
