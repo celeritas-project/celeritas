@@ -74,18 +74,14 @@ bool GeantTestBase::is_ci_build()
 //! Whether Geant4 dependencies match those on Wildstyle
 bool GeantTestBase::is_wildstyle_build()
 {
-    return cstring_equal(celeritas_rng, "XORWOW")
-           && cstring_equal(celeritas_clhep_version, "2.4.6.0")
-           && cstring_equal(celeritas_geant4_version, "11.0.3");
+    return GeantTestBase::is_ci_build();
 }
 
 //---------------------------------------------------------------------------//
 //! Whether Geant4 dependencies match those on Summit
 bool GeantTestBase::is_summit_build()
 {
-    return cstring_equal(celeritas_rng, "XORWOW")
-           && cstring_equal(celeritas_clhep_version, "2.4.5.1")
-           && cstring_equal(celeritas_geant4_version, "11.0.0");
+    return GeantTestBase::is_ci_build();
 }
 
 //---------------------------------------------------------------------------//
