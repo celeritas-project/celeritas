@@ -19,7 +19,7 @@ ENV DEBIAN_FRONTEND=noninteractive    \
 
 # Combined ubuntu/centos run command
 ARG DOCKERFILE_DISTRO
-RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then \
+RUN if [ "$DOCKERFILE_DISTRO" = "ubuntu" ] ; then \
   apt-get -yqq update \
   && apt-get -yqq install --no-install-recommends \
     build-essential \
@@ -45,7 +45,7 @@ RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then \
   && locale-gen en_US.UTF-8 \
   && pip3 install boto3 \
   && rm -rf /var/lib/apt/lists/* ; \
-elif [ "$DOCKERFILE_DISTRO" == "centos" ] ; then \
+elif [ "$DOCKERFILE_DISTRO" = "centos" ] ; then \
   yum update -y \
   && yum install -y epel-release \
   && yum update -y \
@@ -82,7 +82,7 @@ RUN mkdir -p $SPACK_ROOT \
 
 # TODO: delete when next spack version comes out
 # see https://github.com/spack/spack/pull/33128
-RUN if [ "$DOCKERFILE_DISTRO" == "centos" ] ; then \
+RUN if [ "$DOCKERFILE_DISTRO" = "centos" ] ; then \
   curl -s -L https://patch-diff.githubusercontent.com/raw/spack/spack/pull/33128.patch?full_index=1 \
   | patch -p1 -d $SPACK_ROOT ; \
   fi
