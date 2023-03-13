@@ -59,8 +59,10 @@ class KernelContextException : public RichContextException
 
     //!@{
     //! \name Track accessors
-    //! Thread slot ID
+    //! Kernel thread ID
     ThreadId thread() const { return thread_; }
+    //! Track slot ID
+    TrackSlotId track_slot() const { return track_slot_; }
     //! Event ID
     EventId event() const { return event_; }
     //! Track ID
@@ -90,6 +92,7 @@ class KernelContextException : public RichContextException
 
   private:
     ThreadId thread_;
+    TrackSlotId track_slot_;
     EventId event_;
     TrackId track_;
     TrackId parent_;

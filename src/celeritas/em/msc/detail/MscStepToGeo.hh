@@ -125,6 +125,8 @@ CELER_FUNCTION MscStepToGeo::MscStepToGeo(UrbanMscRef const& shared,
 CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     -> result_type
 {
+    CELER_EXPECT(tstep >= 0 && tstep <= range_);
+
     result_type result;
     result.alpha = MscStep::small_step_alpha();
     if (tstep < shared_.params.min_step())
@@ -132,19 +134,11 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
         // Geometrical path length = true path length for a very small step
         result.step = tstep;
     }
-    else if (tstep <= lambda_ * shared_.params.tau_small)
-    {
-        // Very small distance to collision (less than tau_small paths)
-        result.step = min(tstep, lambda_);
-    }
     else if (tstep < range_ * shared_.params.dtrl())
     {
         // Small enough distance to assume cross section is constant
         // over the step: z = lambda * (1 - exp(-tau))
-        real_type tau = tstep / lambda_;
-        result.step = (tau < shared_.params.tau_limit)
-                          ? tstep * (1 - tau / 2)
-                          : lambda_ * (1 - std::exp(-tau));
+        result.step = -lambda_ * std::expm1(-tstep / lambda_);
     }
     else
     {
@@ -163,8 +157,7 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
         else
         {
             // Calculate the energy at the end of a physics-limited step
-            real_type rfinal
-                = max<real_type>(range_ - tstep, real_type(0.01) * range_);
+            real_type rfinal = range_ - tstep;
             Energy endpoint_energy = helper_.calc_inverse_range(rfinal);
             real_type lambda1 = helper_.calc_msc_mfp(endpoint_energy);
 

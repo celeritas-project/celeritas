@@ -14,6 +14,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Version.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/GlobalTestBase.hh"
@@ -37,6 +38,12 @@ namespace test
 #else
 #    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
 #endif
+
+namespace
+{
+auto const vecgeom_version
+    = celeritas::Version::from_string(celeritas_vecgeom_version);
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -67,7 +74,7 @@ class VecgeomTestBase : virtual public GlobalTestBase
             host_state = HostStateStore(this->geometry()->host_ref(), 1);
         }
         return VecgeomTrackView(
-            this->geometry()->host_ref(), host_state.ref(), ThreadId(0));
+            this->geometry()->host_ref(), host_state.ref(), TrackSlotId(0));
     }
 
     //! Find linear segments until outside
@@ -150,8 +157,8 @@ class FourLevelsTest : public GlobalGeoTestBase,
 TEST_F(FourLevelsTest, accessors)
 {
     auto const& geom = *this->geometry();
-    EXPECT_EQ(4, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
+    ASSERT_EQ(4, geom.num_volumes());
 
     EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
@@ -427,19 +434,20 @@ TEST_F(SolidsTest, geomDump)
 
 TEST_F(SolidsTest, accessors)
 {
-    if (starts_with(celeritas_vecgeom_version, "1.1"))
+    if (vecgeom_version <= Version(1, 1, 17))
     {
         FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
     }
-    else if (celeritas_vecgeom_version == std::string{"1.2.0"})
+
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+
+    if (vecgeom_version <= Version(1, 2, 0))
     {
         ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
     }
 
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(26, geom.num_volumes());
-    EXPECT_EQ(2, geom.max_depth());
-
+    ASSERT_EQ(26, geom.num_volumes());
     EXPECT_EQ("World", geom.id_to_label(VolumeId{geom.num_volumes() - 1}).name);
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{5}).name);
@@ -586,8 +594,8 @@ class FourLevelsGeantTest : public GeantBuilderTestBase
 TEST_F(FourLevelsGeantTest, accessors)
 {
     auto const& geom = *this->geometry();
-    EXPECT_EQ(4, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
+    ASSERT_EQ(4, geom.num_volumes());
 
     EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{1}).name);
@@ -706,23 +714,24 @@ TEST_F(SolidsGeantTest, geomDump)
 
 TEST_F(SolidsGeantTest, accessors)
 {
-    if (starts_with(celeritas_vecgeom_version, "1.1"))
+    if (vecgeom_version <= Version(1, 1, 17))
     {
         FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
     }
-    else if (celeritas_vecgeom_version == std::string{"1.2.0"})
+
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+
+    if (vecgeom_version <= Version(1, 2, 0))
     {
         ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
     }
 
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(26, geom.num_volumes());
-    EXPECT_EQ(2, geom.max_depth());
-
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
-    EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("b500_bool_left", geom.id_to_label(VolumeId{9}).name);
+    ASSERT_EQ(26, geom.num_volumes());
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{geom.num_volumes() - 1}).name);
+    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
+    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
+    EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
 }
 
 //---------------------------------------------------------------------------//

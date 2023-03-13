@@ -20,7 +20,7 @@ void count_steps(CoreParamsHostRef const& params,
                  StepDiagnosticDataRef<MemSpace::host> data)
 {
     StepLauncher<MemSpace::host> launch(params, states, data);
-    for (auto tid : range(ThreadId{states.size()}))
+    for (auto tid : range(TrackSlotId{states.size()}))
     {
         launch(tid);
     }

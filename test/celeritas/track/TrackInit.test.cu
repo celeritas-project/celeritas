@@ -26,10 +26,11 @@ namespace test
 __global__ void
 interact_kernel(CoreStateDeviceRef const states, ITTestInputData const input)
 {
-    auto thread_id = KernelParamCalculator::thread_id();
-    if (thread_id < states.size())
+    auto slot_id
+        = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
+    if (slot_id < states.size())
     {
-        SimTrackView sim(states.sim, thread_id);
+        SimTrackView sim(states.sim, slot_id);
 
         // There may be more track slots than active tracks; only active tracks
         // should interact
@@ -40,12 +41,12 @@ interact_kernel(CoreStateDeviceRef const states, ITTestInputData const input)
                 states.physics.secondaries);
 
             Interactor interact(allocate_secondaries,
-                                input.alloc_size[thread_id.get()],
-                                input.alive[thread_id.get()]);
+                                input.alloc_size[slot_id.get()],
+                                input.alive[slot_id.get()]);
             auto result = interact();
 
             // Save secondaries
-            states.physics.state[thread_id].secondaries = result.secondaries;
+            states.physics.state[slot_id].secondaries = result.secondaries;
 
             // Kill the selected tracks
             if (result.action == Interaction::Action::absorbed)

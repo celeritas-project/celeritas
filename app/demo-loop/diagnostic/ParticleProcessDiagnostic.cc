@@ -21,7 +21,7 @@ void count_particle_process(
     ParticleProcessLauncher<MemSpace::host>::ItemsRef counts)
 {
     ParticleProcessLauncher<MemSpace::host> launch(params, states, counts);
-    for (auto tid : range(ThreadId{states.size()}))
+    for (auto tid : range(TrackSlotId{states.size()}))
     {
         launch(tid);
     }

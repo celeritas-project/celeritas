@@ -170,6 +170,7 @@ celeritas_add_test(corecel/sys/ScopedSignalHandler.test.cc)
 celeritas_add_test(corecel/sys/ScopedStreamRedirect.test.cc)
 celeritas_add_test(corecel/sys/Stopwatch.test.cc ADDED_TESTS _stopwatch)
 set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
+celeritas_add_test(corecel/sys/Version.test.cc)
 
 #-----------------------------------------------------------------------------#
 # ORANGE TESTS
@@ -303,6 +304,7 @@ celeritas_add_test(celeritas/ext/GeantImporter.test.cc
   FILTER
     "FourSteelSlabs*"
     "TestEm3*"
+    "OneSteelSphere*"
   )
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 
@@ -371,7 +373,8 @@ celeritas_add_test(celeritas/global/Stepper.test.cc
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
-    "TestEm15Field.*"
+    "TestEm15MscField.*"
+    "OneSteelSphere.*"
 )
 
 #-------------------------------------#

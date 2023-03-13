@@ -53,7 +53,7 @@ class XorwowRngEngine
 
     // Construct from state
     inline CELER_FUNCTION
-    XorwowRngEngine(StateRef const& state, ThreadId const& id);
+    XorwowRngEngine(StateRef const& state, TrackSlotId const& id);
 
     // Generate a 32-bit pseudorandom number
     inline CELER_FUNCTION result_type operator()();
@@ -91,7 +91,7 @@ class GenerateCanonical<XorwowRngEngine, RealType>
  * Construct from state.
  */
 CELER_FUNCTION
-XorwowRngEngine::XorwowRngEngine(StateRef const& state, ThreadId const& id)
+XorwowRngEngine::XorwowRngEngine(StateRef const& state, TrackSlotId const& id)
 {
     CELER_EXPECT(id < state.state.size());
     state_ = &state.state[id];

@@ -28,6 +28,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/SimTrackView.hh"
 
@@ -44,8 +45,8 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(UrbanPositronCorrectorTest, all)
 {
-    UrbanPositronCorrector calc_h{1.0};
-    UrbanPositronCorrector calc_w{74.0};
+    UrbanPositronCorrector calc_h{1.0};  // Hydrogen
+    UrbanPositronCorrector calc_w{74.0};  // Tungsten
 
     std::vector<real_type> actual_h;
     std::vector<real_type> actual_w;
@@ -120,8 +121,9 @@ class UrbanMscTest : public ::celeritas::test::RootTestBase
         auto pid = this->particle()->find(pdg);
         CELER_ASSERT(pid);
 
-        ParticleTrackView par{
-            this->particle()->host_ref(), particle_state_.ref(), ThreadId{0}};
+        ParticleTrackView par{this->particle()->host_ref(),
+                              particle_state_.ref(),
+                              TrackSlotId{0}};
         ParticleTrackView::Initializer_t init;
         init.particle_id = pid;
         init.energy = energy;
@@ -140,7 +142,7 @@ class UrbanMscTest : public ::celeritas::test::RootTestBase
                                    physics_state_.ref(),
                                    par.particle_id(),
                                    mid,
-                                   ThreadId{0});
+                                   TrackSlotId{0});
         phys_view = PhysicsTrackInitializer{};
 
         // Calculate and store the energy loss (dedx) range limit
@@ -156,7 +158,7 @@ class UrbanMscTest : public ::celeritas::test::RootTestBase
     GeoTrackView make_geo_view(real_type r)
     {
         GeoTrackView geo_view(
-            this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
+            this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0});
         geo_view = {{r, r, r}, Real3{0, 0, 1}};
         return geo_view;
     }
@@ -207,25 +209,28 @@ std::ostream& operator<<(std::ostream& os, LabeledValue<T> const& lv)
 
 TEST_F(UrbanMscTest, coeff_data)
 {
+    auto const& params = msc_params_->host_ref();
+
+    {
+        // Check steel material data
+        auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
+        ASSERT_TRUE(mid);
+        UrbanMscMaterialData const& md = params.material_data[mid];
+        EXPECT_SOFT_EQ(md.stepmin_coeff[0], 1e3 * 4.4449610414595817);
+        EXPECT_SOFT_EQ(md.stepmin_coeff[1], 1e3 * 1.5922149179564158);
+        EXPECT_SOFT_EQ(md.theta_coeff[0], 0.97326969977637379);
+        EXPECT_SOFT_EQ(md.theta_coeff[1], 0.044188139325421663);
+        EXPECT_SOFT_EQ(md.tail_coeff[0], 1.6889578380303167);
+        EXPECT_SOFT_EQ(md.tail_coeff[1], 2.745018223507488);
+        EXPECT_SOFT_EQ(md.tail_coeff[2], -2.2531516772497562);
+        EXPECT_SOFT_EQ(md.tail_corr, 0.052696806851297018);
+    }
+
+    // Check data for electron in stainless steel
     auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
     ASSERT_TRUE(mid);
     auto pid = this->particle()->find(pdg::electron());
     ASSERT_TRUE(pid);
-
-    auto const& params = msc_params_->host_ref();
-
-    // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
-    UrbanMscMaterialData const& msc = params.material_data[mid];
-    EXPECT_SOFT_EQ(msc.theta_coeff[0], 0.97326969977637379);
-    EXPECT_SOFT_EQ(msc.theta_coeff[1], 0.044188139325421663);
-    EXPECT_SOFT_EQ(msc.tail_coeff[0], 1.6889578380303167);
-    EXPECT_SOFT_EQ(msc.tail_coeff[1], 2.745018223507488);
-    EXPECT_SOFT_EQ(msc.tail_coeff[2], -2.2531516772497562);
-    EXPECT_SOFT_EQ(msc.tail_corr, 0.052696806851297018);
-    EXPECT_SOFT_EQ(msc.stepmin_coeff[0], 1e3 * 4.4449610414595817);
-    EXPECT_SOFT_EQ(msc.stepmin_coeff[1], 1e3 * 1.5922149179564158);
-
-    // Check data for electron
     UrbanMscParMatData const& par = params.par_mat_data[params.at(mid, pid)];
     EXPECT_SOFT_EQ(par.d_over_r, 0.64474963087322135);
 }
@@ -321,7 +326,7 @@ TEST_F(UrbanMscTest, step_conversion)
                  pstep=0.0027792890018717618
                  e- at 0.102364 MeV
                  */
-                real_type tol = (1 - gp.alpha * pstep < 1e-8 ? 1e-3 : 1e-8);
+                real_type tol = (1 - gp.alpha * pstep < 1e-8 ? 1e-3 : 1e-10);
                 EXPECT_SOFT_NEAR(pstep, true_step, tol);
             }
         }
@@ -371,7 +376,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     ASSERT_EQ(nsamples, step.size());
 
     {
-        SimTrackView sim_track_view(sim_state_.ref(), ThreadId{0});
+        SimTrackView sim_track_view(sim_state_.ref(), TrackSlotId{0});
         sim_track_view = {};
         EXPECT_EQ(0, sim_track_view.num_steps());
     }
@@ -462,6 +467,11 @@ TEST_F(UrbanMscTest, msc_scattering)
         for (auto i : celeritas::range(nsamples))
         {
             sample_one(ptype, i);
+            if (i == 1 || i == 9)
+            {
+                // Test original RNG stream
+                celeritas::generate_canonical(rng);
+            }
         }
     }
 
@@ -494,23 +504,23 @@ TEST_F(UrbanMscTest, msc_scattering)
         5.6145615756546e-06, 0.0027915002818486, 0.17644490740217,
         0.027387302420092, 0.021108585475838, 0.001114330224665,
         0.00010271284320013, 0.00015376538794516, 7.1509532866908e-06};
-    static double const expected_alpha[] = {-1, 1.7708716862049,
-        3.4500251375335, 12.793635146437, -1, -1, 1347.4250715939,
-        32089.171921536, -1, 1.7061753085921, 3.3439279763905, 12.693879333563,
-        -1, -1, 1479.3077264327, 38389.697977001};
+    static double const expected_alpha[] = {0, 1.7708716862049,
+        3.4500251375335, 12.793635146437, 0, 0, 1347.4250715939,
+        32089.171921536, 0, 1.7061753085921, 3.3439279763905, 12.693879333563,
+        0, 0, 1479.3077264327, 38389.697977001};
     static double const expected_angle[] = {0.00031474130607916,
-        0.79003683103898, -0.14560882721751, 0, -0.32650640360665,
-        0.013072020086723, 0, 0, 0.0031128176633161, 0.055689200859297,
+        -0.0179600098014372, -0.14560882721751, 0, -0.32650640360665,
+        0.013072020086723, 0, 0, 0.003112817663327, 0.385707466417037,
         0.17523769034715, 0, -0.30604942826098, 0.40930643323792, 0, 0};
-    static double const expected_displace[] = {8.198620357924e-06,
-        9.7530617641316e-05, -7.1670542039709e-05, 0, -9.1137823713002e-05,
-        9.7878389032256e-06, 0, 0, 5.31692113991705e-06, 7.9159745553753e-05,
+    static double const expected_displace[] = {8.1986203515053e-06,
+        9.86121281691721e-05, -7.1670542039709e-05, 0, -9.1137823713002e-05,
+        9.7878389032256e-06, 0, 0, 5.3169211357544e-06, 3.04785478410349e-05,
         9.8992726876372e-05, 0, -9.0024133671603e-05, 2.9542258777685e-05, 0,
         0};
     static char const expected_action[] = {'d', 'd', 'd', 'u', 'd', 'd', 'u',
         'u', 'd', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
-    static int const expected_avg_engine_samples[] = {12, 16, 16, 0, 16, 16, 0,
-        0, 12, 16, 16, 0, 16, 16, 0, 0};
+    static int const expected_avg_engine_samples[] = {12, 14, 16, 0, 16, 16, 0,
+        0, 12, 14, 16, 0, 16, 16, 0, 0};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_pstep, pstep);

@@ -29,7 +29,7 @@ __global__ void count_particle_process_kernel(
         return;
 
     ParticleProcessLauncher<MemSpace::device> launch(params, states, counts);
-    launch(tid);
+    launch(TrackSlotId{tid.unchecked_get()});
 }
 
 //---------------------------------------------------------------------------//

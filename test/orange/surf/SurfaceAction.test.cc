@@ -195,12 +195,12 @@ TEST_F(SurfaceActionTest, host_distances)
     this->fill_isotropic(state_ref.dir[AllItems<Real3>{}]);
 
     CalcSenseDistanceLauncher<> calc_thread{host_ref, state_ref};
-    for (auto tid : range(ThreadId{states.size()}))
+    for (auto tid : range(TrackSlotId{states.size()}))
     {
         calc_thread(tid);
     }
 
-    auto test_threads = range(ThreadId{10});
+    auto test_threads = range(TrackSlotId{10});
     // PRINT_EXPECTED(senses_to_string(state_ref.sense[test_threads]));
     // PRINT_EXPECTED(state_ref.distance[test_threads]);
 
@@ -244,7 +244,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
         // Copy result back to host
         HostVal<OrangeMiniStateData> host_states;
         host_states = device_states;
-        auto test_threads = range(ThreadId{10});
+        auto test_threads = range(TrackSlotId{10});
 
         double const expected_distance[] = {inf,
                                             inf,

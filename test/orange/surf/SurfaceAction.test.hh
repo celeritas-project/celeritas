@@ -58,7 +58,7 @@ struct OrangeMiniStateData
     }
 
     //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return pos.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const { return pos.size(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -116,7 +116,7 @@ struct CalcSenseDistanceLauncher
     OrangeParamsData<Ownership::const_reference, M> params;
     OrangeMiniStateData<Ownership::reference, M> states;
 
-    CELER_FUNCTION void operator()(ThreadId tid) const
+    CELER_FUNCTION void operator()(TrackSlotId tid) const
     {
         CELER_EXPECT(this->params.simple_unit.size() == 1);
         Surfaces surfaces(this->params,

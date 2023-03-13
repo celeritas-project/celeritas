@@ -58,7 +58,7 @@ class AtomicRelaxationHelper
     AtomicRelaxationHelper(AtomicRelaxParamsRef const& shared,
                            AtomicRelaxStateRef const& states,
                            ElementId el_id,
-                           ThreadId tid);
+                           TrackSlotId tid);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
@@ -79,7 +79,7 @@ class AtomicRelaxationHelper
     AtomicRelaxParamsRef const& shared_;
     AtomicRelaxStateRef const& states_;
     const ElementId el_id_;
-    const ThreadId thread_;
+    const TrackSlotId track_slot_;
 };
 
 //---------------------------------------------------------------------------//
@@ -93,11 +93,11 @@ AtomicRelaxationHelper::AtomicRelaxationHelper(
     AtomicRelaxParamsRef const& shared,
     AtomicRelaxStateRef const& states,
     ElementId el_id,
-    ThreadId tid)
-    : shared_(shared), states_(states), el_id_(el_id), thread_(tid)
+    TrackSlotId tid)
+    : shared_(shared), states_(states), el_id_(el_id), track_slot_(tid)
 {
     CELER_EXPECT(!shared_ || el_id_ < shared_.elements.size());
-    CELER_EXPECT(!states_ || thread_ < states.size());
+    CELER_EXPECT(!states_ || track_slot_ < states.size());
     CELER_EXPECT(bool(shared_) == bool(states_));
 }
 
@@ -131,7 +131,7 @@ CELER_FUNCTION size_type AtomicRelaxationHelper::max_secondaries() const
 CELER_FUNCTION Span<SubshellId> AtomicRelaxationHelper::scratch() const
 {
     CELER_EXPECT(*this);
-    auto offset = thread_.get() * shared_.max_stack_size;
+    auto offset = track_slot_.get() * shared_.max_stack_size;
     Span<SubshellId> all_scratch
         = states_.scratch[AllItems<SubshellId, MemSpace::native>{}];
     CELER_ENSURE(offset + shared_.max_stack_size <= all_scratch.size());

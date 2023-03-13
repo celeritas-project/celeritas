@@ -45,7 +45,7 @@ StepSelection ExampleMctruth::selection() const
 //---------------------------------------------------------------------------//
 void ExampleMctruth::execute(StateHostRef const& data)
 {
-    for (auto tid : range(ThreadId{data.size()}))
+    for (auto tid : range(TrackSlotId{data.size()}))
     {
         TrackId track = data.track_id[tid];
         if (!track)

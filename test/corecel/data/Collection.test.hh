@@ -101,15 +101,15 @@ class MockTrackView
 
     CELER_FUNCTION MockTrackView(ParamsData const& params,
                                  StateData const& states,
-                                 ThreadId tid)
-        : params_(params), states_(states), thread_(tid)
+                                 TrackSlotId tid)
+        : params_(params), states_(states), track_slot_(tid)
     {
-        CELER_EXPECT(thread_ < states_.size());
+        CELER_EXPECT(track_slot_ < states_.size());
     }
 
     CELER_FUNCTION MockMaterialId matid() const
     {
-        return states_.matid[thread_];
+        return states_.matid[track_slot_];
     }
 
     CELER_FUNCTION double number_density() const
@@ -125,7 +125,7 @@ class MockTrackView
   private:
     ParamsData const& params_;
     StateData const& states_;
-    ThreadId thread_;
+    TrackSlotId track_slot_;
 
     CELER_FUNCTION MockMaterial const& mat() const
     {

@@ -37,6 +37,7 @@ list(APPEND SOURCES
   sys/ScopedMpiInit.cc
   sys/ScopedSignalHandler.cc
   sys/TypeDemangler.cc
+  sys/Version.cc
 )
 
 #-----------------------------------------------------------------------------#

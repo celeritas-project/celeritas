@@ -103,6 +103,10 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
     auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();
 
+    // TODO: limited is set as a side effect of the lambda below: change to be
+    // part of the MSC return result
+    bool limited = false;
+
     // Sample multiple scattering step length
     auto msc_step = [&] {
         auto par = track.make_particle_view();
@@ -120,6 +124,10 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
         auto result = calc_limit(rng);
         CELER_ASSERT(result.true_path <= step_limit->step);
 
+        // TODO: use a return value from UrbanMscStepLimit rather than this
+        // comparison
+        limited = (result.true_path < step_limit->step);
+
         detail::MscStepToGeo calc_geom_path(msc_params_,
                                             msc_helper,
                                             par.energy(),
@@ -130,8 +138,11 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
         result.alpha = gp.alpha;
 
         // Limit geometrical step to 1 MSC MFP
-        result.geom_path
-            = min<real_type>(result.geom_path, msc_helper.msc_mfp());
+        if (result.geom_path > msc_helper.msc_mfp())
+        {
+            result.geom_path = msc_helper.msc_mfp();
+            limited = true;
+        }
 
         return result;
     }();
@@ -139,20 +150,16 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
     CELER_ASSERT(msc_step.true_path >= msc_step.geom_path);
     track.make_physics_step_view().msc_step(msc_step);
 
-    if (msc_step.true_path < step_limit->step)
+    // Always apply the step transformation, even if the physical step wasn't
+    // necessarily limited. This transformation will be reversed in
+    // `apply_step` below.
+    step_limit->step = msc_step.geom_path;
+
+    if (limited)
     {
-        // True/physical step might be further limited by MSC
-        // TODO: use a return value from the UrbanMscStepLimit instead of a
-        // floating point comparison to determine whether the step is MSC
-        // limited.
-        // TODO: the true path comparison does *NOT* account for any extra
-        // limiting done by the 1MFP limiter!!
+        // Physical step was further limited by MSC
         step_limit->action = phys.scalars().msc_action();
     }
-
-    // Always apply the step transformation, even if the physical step wasn't
-    // necessarily limited
-    step_limit->step = msc_step.geom_path;
 }
 
 //---------------------------------------------------------------------------//

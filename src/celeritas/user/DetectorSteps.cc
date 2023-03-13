@@ -57,7 +57,7 @@ void assign_field(std::vector<T>* dst,
     dst->resize(size);
 
     auto iter = dst->begin();
-    for (ThreadId tid : range(ThreadId{src.size()}))
+    for (TrackSlotId tid : range(TrackSlotId{src.size()}))
     {
         if (detector[tid])
         {

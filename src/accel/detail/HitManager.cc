@@ -8,7 +8,6 @@
 #include "HitManager.hh"
 
 #include <utility>
-#include <G4GDMLWriteStructure.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 
@@ -18,7 +17,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/detail/GeantVolumeVisitor.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/io/ImportVolume.hh"
 #include "accel/SetupOptions.hh"
 
 #include "HitProcessor.hh"
@@ -63,7 +64,7 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     std::vector<G4LogicalVolume*> lv_with_sd;
 
     // Helper class to extract GDML names+labels from Geant4 volume
-    G4GDMLWriteStructure temp_writer;
+    GeantVolumeVisitor visitor(true);
 
     // Loop over all logical volumes
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
@@ -85,7 +86,7 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
         {
             // Label doesn't have a pointer address attached: we probably need
             // to regenerate to match the exported GDML file
-            label = Label::from_geant(temp_writer.GenerateName(label.name, lv));
+            label = Label::from_geant(visitor.generate_name(*lv));
         }
 
         auto id = geo.find_volume(label);
@@ -100,6 +101,14 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
                     << " volume corresponding to Geant4 volume '"
                     << lv->GetName() << "'; found '" << geo.id_to_label(id)
                     << "' by omitting the extension";
+            }
+            else
+            {
+                // Try regenerating the name even if we *did* have a pointer
+                // address attached (in case the original volume name already
+                // had a pointer suffix and we added another)
+                label = Label::from_geant(visitor.generate_name(*lv));
+                id = geo.find_volume(label.name);
             }
         }
         CELER_VALIDATE(id,

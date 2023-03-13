@@ -29,7 +29,7 @@ __global__ void sa_test_kernel(SATestInput input)
 
     // Calculate distances in parallel
     CalcSenseDistanceLauncher<> calc_thread{input.params, input.states};
-    calc_thread(tid);
+    calc_thread(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
 

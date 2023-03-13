@@ -39,7 +39,7 @@ COPY --from=builder /etc/profile.d/celeritas_spack_env.sh /etc/profile.d/celerit
 
 # Add core files
 # TODO: gcc isn't used for centos build
-RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then \
+RUN if [ "$DOCKERFILE_DISTRO" = "ubuntu" ] ; then \
   apt-get -yqq update \
   && apt-get -yqq install --no-install-recommends \
     build-essential \
@@ -50,7 +50,7 @@ RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then \
     ssh \
     vim \
   && rm -rf /var/lib/apt/lists/* ; \
-elif [ "$DOCKERFILE_DISTRO" == "centos" ] ; then \
+elif [ "$DOCKERFILE_DISTRO" = "centos" ] ; then \
   yum update -y \
   && yum install -y epel-release \
   && yum update -y \
@@ -93,7 +93,7 @@ RUN if [ -n "${VECGEOM}" ] ; then \
 fi
 
 # Set up entrypoint and group
-RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then CELER_ID=999 ; else CELER_ID=990 ; fi ; \
+RUN if [ "$DOCKERFILE_DISTRO" = "ubuntu" ] ; then CELER_ID=999 ; else CELER_ID=990 ; fi ; \
  groupadd -g $CELER_ID celeritas \
  && useradd -r -u $CELER_ID -g celeritas -d /home/celeritas -m celeritas \
  && ln -s /opt/docker/entrypoint.bash /usr/local/bin/entrypoint-shell \

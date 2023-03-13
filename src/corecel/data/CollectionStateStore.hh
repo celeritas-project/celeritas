@@ -42,7 +42,7 @@ class CollectionStateStore
     //! \name Type aliases
     using Value = S<Ownership::value, M>;
     using Ref = S<Ownership::reference, M>;
-    using size_type = ThreadId::size_type;
+    using size_type = TrackSlotId::size_type;
     //!@}
 
   public:

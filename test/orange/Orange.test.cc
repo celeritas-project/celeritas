@@ -35,7 +35,7 @@ class OrangeTest : public OrangeGeoTestBase
         }
 
         return OrangeTrackView(
-            this->params().host_ref(), host_state_.ref(), ThreadId{0});
+            this->params().host_ref(), host_state_.ref(), TrackSlotId{0});
     }
 
   private:
