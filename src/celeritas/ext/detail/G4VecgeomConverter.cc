@@ -39,6 +39,7 @@
 #include <G4ReflectedSolid.hh>
 #include <G4Sphere.hh>
 #include <G4SubtractionSolid.hh>
+#include <G4TessellatedSolid.hh>
 #include <G4Tet.hh>
 #include <G4Torus.hh>
 #include <G4Transform3D.hh>
