@@ -50,7 +50,7 @@ case $CONFIG in
     # ***IMPORTANT***: update cuda external version in dev/jammy-cuda11!
     DOCKERFILE_DISTRO=ubuntu
     BASE_TAG=nvidia/cuda:11.8.0-devel-ubuntu22.04
-    VECGEOM=v1.2.1
+    VECGEOM=v1.2.2
     ;;
   centos7-rocm5)
     # ***IMPORTANT***: update hip external version in dev/centos7-rocm5!
@@ -67,12 +67,12 @@ esac
 ${DOCKER} pull ${BASE_TAG}
 ${DOCKER} tag ${BASE_TAG} base-${CONFIG}
 
-${DOCKER} build -t dev-${CONFIG} \
-  --build-arg CONFIG=${CONFIG} \
-  --build-arg SPACK_VERSION=${SPACK_VERSION} \
-  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
-  ${BUILDARGS} \
-  dev
+#${DOCKER} build -t dev-${CONFIG} \
+#  --build-arg CONFIG=${CONFIG} \
+#  --build-arg SPACK_VERSION=${SPACK_VERSION} \
+#  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
+#  ${BUILDARGS} \
+#  dev
 
 ${DOCKER} build -t ci-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
