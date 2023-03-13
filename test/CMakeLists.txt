@@ -358,7 +358,7 @@ celeritas_add_test(celeritas/global/Stepper.test.cc
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
-    "TestEm15Field.*"
+    "TestEm15MscField.*"
 )
 
 #-------------------------------------#

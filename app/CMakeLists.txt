@@ -391,8 +391,14 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
   )
   if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_HepMC3)
     if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-      set(DEMO_MAX_NUM_TRACKS 524288)
-      set(DEMO_INIT_CAPACITY 4194304)
+      if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        set(DEMO_MAX_NUM_TRACKS 524288)
+        set(DEMO_INIT_CAPACITY 4194304)
+      else()
+        # Use smaller number of tracks when running on CPU
+        set(DEMO_MAX_NUM_TRACKS 2048)
+        set(DEMO_INIT_CAPACITY 65536)
+      endif()
     else()
       # Use smaller number of tracks when running on CPU
       set(DEMO_MAX_NUM_TRACKS 1024)
@@ -426,7 +432,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     )
     if(Geant4_multithreaded_FOUND)
       list(APPEND _env
-        "G4FORCENUMBEROFTHREADS=2"
+        # TODO: use 2 threads k
+        "G4FORCENUMBEROFTHREADS=1"
       )
     endif()
     if(CELERITAS_USE_OpenMP)
