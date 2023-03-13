@@ -110,11 +110,10 @@ constexpr Version::Version(size_type major, size_type minor, size_type patch)
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-#define CELER_DEFINE_VERSION_CMP(TOKEN)                      \
-    inline constexpr bool operator TOKEN(Version const& lhs, \
-                                         Version const& rhs) \
-    {                                                        \
-        return lhs.value() TOKEN rhs.value();                \
+#define CELER_DEFINE_VERSION_CMP(TOKEN)                                \
+    inline bool operator TOKEN(Version const& lhs, Version const& rhs) \
+    {                                                                  \
+        return lhs.value() TOKEN rhs.value();                          \
     }
 
 CELER_DEFINE_VERSION_CMP(==)
