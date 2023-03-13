@@ -146,10 +146,23 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
               / CLHEP::MeV;
         double max_energy = model.HighEnergyLimit() / CLHEP::MeV;
         CELER_ASSERT(0 <= min_energy);
-        CELER_ASSERT(min_energy < max_energy);
 
         auto& model_mat = result.materials[mat_idx];
-        if (needs_micro_xs(result.model_class))
+        bool export_micros = needs_micro_xs(result.model_class);
+        if (CELER_UNLIKELY(!(min_energy < max_energy)))
+        {
+            // It's possible for the lower energy bound to be higher than the
+            // upper energy bound if the production cuts are very high.  Don't
+            // build the microscopic cross section grid if this is the case.
+            CELER_LOG(debug)
+                << "Skipping microscopic cross section grid for model '"
+                << model.GetName() << "' in material '" << g4mat.GetName()
+                << ": lower energy bound " << min_energy
+                << " [MeV] is not less than upper energy bound " << max_energy
+                << " [MeV]";
+            export_micros = false;
+        }
+        if (export_micros)
         {
             // Calculate microscopic cross section grid with a reduced number
             // of bins compared to to regular cross sections

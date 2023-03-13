@@ -242,6 +242,20 @@ class TestEm3 : public GeantImporterTest
 };
 
 //---------------------------------------------------------------------------//
+class OneSteelSphere : public GeantImporterTest
+{
+    char const* geometry_basename() const final { return "one-steel-sphere"; }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        GeantPhysicsOptions opts;
+        opts.relaxation = RelaxationSelection::none;
+        opts.verbose = false;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
@@ -562,14 +576,13 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
 
 TEST_F(FourSteelSlabsEmStandard, conv)
 {
-    // Check Bethe-Heitler micro xs
     ImportProcess const& proc = this->find_process(
         celeritas::pdg::gamma(), ImportProcessClass::conversion);
     EXPECT_EQ(celeritas::pdg::electron().get(), proc.secondary_pdg);
     ASSERT_EQ(1, proc.models.size());
 
     {
-        // Check Seltzer-Berger electron micro xs
+        // Check Bethe-Heitler micro xs
         auto const& model = proc.models[0];
         EXPECT_EQ(ImportModelClass::bethe_heitler_lpm, model.model_class);
 
@@ -940,6 +953,128 @@ TEST_F(TestEm3, unique_volumes)
 
     EXPECT_EQ(101, volumes.size());
     EXPECT_TRUE(starts_with(volumes.front().name, "gap_lv_00x"));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(OneSteelSphere, cutoffs)
+{
+    auto&& import_data = this->imported_data();
+
+    EXPECT_EQ(2, import_data.volumes.size());
+    EXPECT_EQ(2, import_data.materials.size());
+
+    // Check secondary production cuts
+    std::vector<int> pdg;
+    std::vector<double> range_cut, energy_cut;
+    for (auto const& mat : import_data.materials)
+    {
+        for (auto const& cut : mat.pdg_cutoffs)
+        {
+            pdg.push_back(cut.first);
+            range_cut.push_back(cut.second.range);
+            energy_cut.push_back(cut.second.energy);
+        }
+    }
+    static int const expected_pdg[] = {-11, 11, 22, -11, 11, 22};
+    EXPECT_VEC_EQ(expected_pdg, pdg);
+    // 1 mm range cut in vacuum, 50 m range cut in steel
+    static double const expected_range_cut[]
+        = {0.1, 0.1, 0.1, 5000, 5000, 5000};
+    EXPECT_VEC_SOFT_EQ(expected_range_cut, range_cut);
+    static double const expected_energy_cut[] = {0.00099,
+                                                 0.00099,
+                                                 0.00099,
+                                                 9549.6516356879,
+                                                 9549.6516356879,
+                                                 9549.6516356879};
+    EXPECT_VEC_SOFT_EQ(expected_energy_cut, energy_cut);
+}
+
+TEST_F(OneSteelSphere, physics)
+{
+    // Check the bremsstrahlung cross sections
+    ImportProcess const& brems = this->find_process(
+        celeritas::pdg::electron(), ImportProcessClass::e_brems);
+    ASSERT_EQ(1, brems.tables.size());
+    ASSERT_EQ(2, brems.models.size());
+    {
+        // Check Seltzer-Berger electron micro xs
+        auto const& model = brems.models[0];
+        EXPECT_EQ(ImportModelClass::e_brems_sb, model.model_class);
+        EXPECT_EQ(2, model.materials.size());
+
+        auto result = summarize(model.materials);
+        static unsigned int const expected_size[] = {7u, 2u};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        static double const expected_energy[]
+            = {0.001, 1000, 9549.6516356879, 1000};
+        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+        // Gamma production cut in steel is higher than the SB model upper
+        // energy limit, so there will be no micro xs
+        EXPECT_TRUE(result.xs.empty());
+    }
+    {
+        // Check relativistic brems electron micro xs
+        auto const& model = brems.models[1];
+        EXPECT_EQ(ImportModelClass::e_brems_lpm, model.model_class);
+        EXPECT_EQ(2, model.materials.size());
+
+        auto result = summarize(model.materials);
+        static const real_type expected_size[] = {6u, 5u};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        static double const expected_energy[]
+            = {1000, 100000000, 9549.6516356879, 100000000};
+        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+        static double const expected_xs[] = {16.197663688566,
+                                             14.176435287746,
+                                             13.963271396942,
+                                             12.201090525228,
+                                             18.583905773638,
+                                             16.289792829097};
+        EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
+    }
+    {
+        // Check the bremsstrahlung macro xs
+        ImportPhysicsTable const& xs = brems.tables[0];
+        ASSERT_EQ(2, xs.physics_vectors.size());
+        ImportPhysicsVector const& steel = xs.physics_vectors.back();
+        ASSERT_EQ(29, steel.x.size());
+        EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+    }
+    {
+        // Check the ionization electron macro xs
+        ImportProcess const& ioni = this->find_process(
+            celeritas::pdg::electron(), ImportProcessClass::e_ioni);
+        ASSERT_EQ(3, ioni.tables.size());
+
+        // Lambda table for steel
+        ImportPhysicsTable const& xs = ioni.tables[2];
+        ASSERT_EQ(2, xs.physics_vectors.size());
+        ImportPhysicsVector const& steel = xs.physics_vectors.back();
+        ASSERT_EQ(27, steel.x.size());
+        // Starts at min primary energy = 2 * electron production cut for
+        // primary electrons
+        EXPECT_SOFT_EQ(19099.303271375884, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+    }
+    {
+        // Check the ionization positron macro xs
+        ImportProcess const& ioni = this->find_process(
+            celeritas::pdg::positron(), ImportProcessClass::e_ioni);
+        ASSERT_EQ(3, ioni.tables.size());
+
+        // Lambda table for steel
+        ImportPhysicsTable const& xs = ioni.tables[2];
+        ASSERT_EQ(2, xs.physics_vectors.size());
+        ImportPhysicsVector const& steel = xs.physics_vectors.back();
+        ASSERT_EQ(29, steel.x.size());
+        // Start at min primary energy = electron production cut for primary
+        // positrons
+        EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+    }
 }
 
 //---------------------------------------------------------------------------//
