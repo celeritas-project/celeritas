@@ -9,7 +9,6 @@
 
 #include <cerrno>
 #include <cstdlib>
-#include <iomanip>
 #include <iostream>
 #include <regex>
 
@@ -32,7 +31,7 @@ Version Version::from_string(std::string_view sv)
     std::match_results<std::string_view::iterator> version_match;
     bool matched
         = std::regex_match(sv.begin(), sv.end(), version_match, version_regex);
-    CELER_VALIDATE(matched, << "failed to parse version " << std::quoted(sv));
+    CELER_VALIDATE(matched, << "failed to parse version '" << sv << "'");
 
     auto match_to_int = [](auto const& submatch) {
         if (submatch.length() == 0)
@@ -42,16 +41,12 @@ Version Version::from_string(std::string_view sv)
         }
         errno = 0;
         int result = std::atoi(submatch.first);
-        CELER_VALIDATE(
-            errno == 0,
-            << "version component "
-            << std::quoted(std::string_view(submatch.first, submatch.length()))
-            << " is not an integer: " << std::strerror(errno));
-        CELER_VALIDATE(
-            result >= 0,
-            << "version component "
-            << std::quoted(std::string_view(submatch.first, submatch.length()))
-            << " is not an unsigned integer");
+        CELER_VALIDATE(errno == 0,
+                       << "version component '" << submatch
+                       << "' is not an integer: " << std::strerror(errno));
+        CELER_VALIDATE(result >= 0,
+                       << "version component '" << submatch
+                       << "' is not an unsigned integer");
         return static_cast<size_type>(result);
     };
 
