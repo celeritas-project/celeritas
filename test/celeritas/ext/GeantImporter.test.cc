@@ -11,12 +11,13 @@
 #include "celeritas_config.h"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Version.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "celeritas_test.hh"
 #include "../GeantTestBase.hh"
+#include "celeritas_test.hh"
 #if CELERITAS_USE_JSON
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #endif
@@ -40,11 +41,7 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
     return result;
 }
 
-bool geant4_is_v10()
-{
-    static bool const result = starts_with(celeritas_geant4_version, "10.");
-    return result;
-}
+auto const geant4_version = Version::from_string(celeritas_geant4_version);
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -104,10 +101,7 @@ class GeantImporterTest : public GeantTestBase
     real_type comparison_tolerance() const
     {
         // Some values change substantially between geant versions
-        static real_type const tol
-            = (celeritas_geant4_version == std::string("11.0.3")) ? 1e-12
-                                                                  : 5e-3;
-        return tol;
+        return geant4_version == Version(11, 0, 3) ? 1e-12 : 5e-3;
     }
 
   protected:
@@ -404,7 +398,7 @@ TEST_F(FourSteelSlabsEmStandard, materials)
                                                       0.0209231725658313};
     EXPECT_VEC_NEAR(expected_cutoff_energies,
                     cutoff_energies,
-                    geant4_is_v10() ? 1e-12 : 0.02);
+                    geant4_version.major() == 10 ? 1e-12 : 0.02);
     static double const expected_cutoff_ranges[]
         = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     EXPECT_VEC_SOFT_EQ(expected_cutoff_ranges, cutoff_ranges);
