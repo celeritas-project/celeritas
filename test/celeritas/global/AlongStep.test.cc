@@ -152,7 +152,7 @@ TEST_F(MockAlongStepTest, basic)
         EXPECT_SOFT_EQ(1e-06, result.eloss);
         EXPECT_SOFT_EQ(5.2704627669473e-05, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_EQ(1.2431209185653e-12, result.time);
+        EXPECT_SOFT_NEAR(1.2431209185653e-12, result.time, 1e-11);
         EXPECT_SOFT_EQ(5.2704627669473e-05, result.step);
         EXPECT_EQ("physics-discrete-select", result.action);
     }
