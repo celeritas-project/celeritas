@@ -58,6 +58,11 @@ TEST(LabelTest, construction)
 {
     EXPECT_EQ(Label("foo"), Label::from_geant("foo"));
     EXPECT_EQ(Label("foo", "0xdeadb01d"), Label::from_geant("foo0xdeadb01d"));
+    EXPECT_EQ(Label("foo", "0x1234"), Label::from_geant("foo0x1234"));
+    EXPECT_EQ(Label("foo", "0x1e0cea00x1e0c5c0"),
+              Label::from_geant("foo0x1e0cea00x1e0c5c0"));
+    EXPECT_EQ(Label("foo", "0x1e0c8c0_refl"),
+              Label::from_geant("foo0x1e0c8c0_refl"));
 
     EXPECT_EQ(Label("bar"), Label::from_separator("bar", '@'));
     EXPECT_EQ(Label("bar"), Label::from_separator("bar@", '@'));

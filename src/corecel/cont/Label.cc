@@ -8,7 +8,6 @@
 #include "Label.hh"
 
 #include <ostream>
-#include <regex>
 
 namespace celeritas
 {
@@ -18,16 +17,14 @@ namespace celeritas
  */
 Label Label::from_geant(std::string const& name)
 {
-    static const std::regex final_ptr_regex{"0x[0-9a-f]{4,16}$"};
-
     // Remove possible Geant uniquifying pointer-address suffix
     // (Geant4 does this automatically, but VGDML does not)
     auto split_point = name.end();
-    std::smatch ptr_match;
-    if (std::regex_search(name, ptr_match, final_ptr_regex))
+    auto pos = name.find("0x");
+    if (pos != std::string::npos)
     {
         // Copy pointer as 'extension' and delete from name
-        split_point = name.begin() + ptr_match.position(0);
+        split_point = name.begin() + pos;
     }
 
     Label result;
