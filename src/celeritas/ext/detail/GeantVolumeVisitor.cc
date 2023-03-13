@@ -30,7 +30,7 @@ namespace detail
  * duplicated.
  * Function called by \c store_volumes(...) .
  */
-void GeantVolumeVisitor::visit(G4LogicalVolume& logical_volume)
+void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
 {
     auto&& [iter, inserted] = volids_volumes_.emplace(
         logical_volume.GetInstanceID(), ImportVolume{});
@@ -72,7 +72,8 @@ void GeantVolumeVisitor::visit(G4LogicalVolume& logical_volume)
 /*!
  * Generate the GDML name for a Geant4 logical volume.
  */
-std::string GeantVolumeVisitor::generate_name(G4LogicalVolume& logical_volume)
+std::string
+GeantVolumeVisitor::generate_name(G4LogicalVolume const& logical_volume)
 {
     std::string name = logical_volume.GetName();
 
@@ -81,7 +82,8 @@ std::string GeantVolumeVisitor::generate_name(G4LogicalVolume& logical_volume)
     // overhead: note that the method isn't const correct.
     static G4GDMLWriteStructure temp_writer;
     auto const* refl_factory = G4ReflectionFactory::Instance();
-    if (auto const* lv = refl_factory->GetConstituentLV(&logical_volume))
+    if (auto const* lv = refl_factory->GetConstituentLV(
+            const_cast<G4LogicalVolume*>(&logical_volume)))
     {
         // If this is a reflected volume, generate the name based on the
         // constituent volume and re-add the reflection extension after the
