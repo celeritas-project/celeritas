@@ -732,10 +732,10 @@ TEST_F(SolidsGeantTest, accessors)
     }
 
     ASSERT_EQ(26, geom.num_volumes());
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{geom.num_volumes() - 1}).name);
-    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
-    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
-    EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
+    EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
+    EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
+    EXPECT_EQ("b500_bool_left", geom.id_to_label(VolumeId{9}).name);
 }
 
 //---------------------------------------------------------------------------//
