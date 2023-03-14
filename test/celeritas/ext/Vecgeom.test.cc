@@ -442,9 +442,11 @@ TEST_F(SolidsTest, accessors)
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
 
-    if (vecgeom_version <= Version(1, 2, 0))
+    if (vecgeom_version <= Version(1, 2, 2))
     {
-        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
+        ADD_FAILURE()
+            << "VecGeom " << vecgeom_version
+            << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
     ASSERT_EQ(26, geom.num_volumes());
@@ -722,9 +724,11 @@ TEST_F(SolidsGeantTest, accessors)
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
 
-    if (vecgeom_version <= Version(1, 2, 0))
+    if (vecgeom_version <= Version(1, 2, 2))
     {
-        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
+        ADD_FAILURE()
+            << "VecGeom " << vecgeom_version
+            << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
     ASSERT_EQ(26, geom.num_volumes());
