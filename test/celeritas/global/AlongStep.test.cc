@@ -381,7 +381,8 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
     size_type num_tracks = 128;
     Input inp;
     {
-        // Step limited by distance to interaction = 2.49798914193346685e21
+        // This track takes ~150k substeps in the field propagator before
+        // reaching a boundary.
         SCOPED_TRACE("electron taking large step in vacuum");
         inp.particle_id = this->particle()->find(pdg::electron());
         inp.energy = MevEnergy{0.697421113579829943};
@@ -390,11 +391,12 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         inp.direction = {-0.680265923322200705,
                          0.731921125057842015,
                          -0.0391118941072485030};
+        // Step limited by distance to interaction = 2.49798914193346685e21
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(273.03613780942214, result.step);
         EXPECT_EQ(0, result.eloss);
         EXPECT_EQ(0, result.mfp);
-        EXPECT_EQ("killed-looping", result.action);
+        EXPECT_EQ("abandon-looping", result.action);
         // Track was flagged as looping and killed
         EXPECT_EQ(0, result.alive);
     }

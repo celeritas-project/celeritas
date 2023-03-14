@@ -81,7 +81,7 @@ class CoreTrackView
     inline CELER_FUNCTION ActionId propagation_limit_action() const;
 
     // Action ID for being abandoned while looping
-    inline CELER_FUNCTION ActionId killed_looping_action() const;
+    inline CELER_FUNCTION ActionId abandon_looping_action() const;
 
   private:
     StateRef const& states_;
@@ -236,9 +236,9 @@ CELER_FUNCTION ActionId CoreTrackView::propagation_limit_action() const
 /*!
  * Get the action ID for being abandoned while looping.
  */
-CELER_FUNCTION ActionId CoreTrackView::killed_looping_action() const
+CELER_FUNCTION ActionId CoreTrackView::abandon_looping_action() const
 {
-    return params_.scalars.killed_looping_action;
+    return params_.scalars.abandon_looping_action;
 }
 
 //---------------------------------------------------------------------------//

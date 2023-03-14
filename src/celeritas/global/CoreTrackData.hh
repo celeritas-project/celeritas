@@ -27,13 +27,13 @@ struct CoreScalars
 {
     ActionId boundary_action;
     ActionId propagation_limit_action;
-    ActionId killed_looping_action;
+    ActionId abandon_looping_action;
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
         return boundary_action && propagation_limit_action
-               && killed_looping_action;
+               && abandon_looping_action;
     }
 };
 

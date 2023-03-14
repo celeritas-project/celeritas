@@ -86,7 +86,7 @@ class SimTrackView
     // Total number of steps taken by the track
     CELER_FORCEINLINE_FUNCTION size_type num_steps() const;
 
-    // Number of steps taken by a track after it was flagged as looping
+    // Number of steps taken by the track since it was flagged as looping
     CELER_FORCEINLINE_FUNCTION size_type num_looping_steps() const;
 
     // Time elapsed in the lab frame since the start of the event [s]
@@ -103,7 +103,7 @@ class SimTrackView
     // Energy below which looping tracks will be killed immediately
     CELER_FORCEINLINE_FUNCTION Energy looping_threshold(ParticleId) const;
 
-    // Number of steps a looping track below \c looping_threshold will live
+    // Number of steps a looping track below \c looping_threshold can survive
     CELER_FORCEINLINE_FUNCTION size_type max_looping_steps(ParticleId) const;
 
   private:
@@ -299,7 +299,7 @@ CELER_FUNCTION size_type SimTrackView::num_steps() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Number of steps taken by a track after it was flagged as looping.
+ * Number of steps taken by the track since it was flagged as looping.
  */
 CELER_FUNCTION size_type SimTrackView::num_looping_steps() const
 {
@@ -349,7 +349,7 @@ SimTrackView::looping_threshold(ParticleId pid) const -> Energy
 
 //---------------------------------------------------------------------------//
 /*!
- * Number of steps a looping track below \c looping_threshold will live.
+ * Number of steps a looping track below \c looping_threshold can survive.
  */
 CELER_FORCEINLINE_FUNCTION size_type
 SimTrackView::max_looping_steps(ParticleId pid) const

@@ -56,8 +56,7 @@ SimParams::SimParams(Input const& input)
     HostValue host_data;
 
     // Initialize with the default threshold values
-    std::vector<LoopingThreshold> looping(input.particles->size(),
-                                          LoopingThreshold{});
+    std::vector<LoopingThreshold> looping(input.particles->size());
     for (auto pid : range(ParticleId{input.particles->size()}))
     {
         auto pdg = input.particles->id_to_pdg(pid);

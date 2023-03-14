@@ -69,18 +69,19 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         {
             // The track is looping, i.e. progressing little over many
             // integration steps in the field propagator (likely a low energy
-            // particle in a low density material/strong magnetic field). If
-            // its energy is below the looping threshold or it has taken more
-            // than the allowed number of steps while looping, kill it.
-            // TODO: only stable particles should be killed
+            // particle in a low density material/strong magnetic field).
             step_limit.step = p.distance;
             step_limit.action = track.propagation_limit_action();
             sim.increment_looping_steps();
+
+            // If the energy is below the looping threshold or the maximum
+            // number of looping steps has been reached, kill the track.
+            // TODO: only stable particles should be killed
             auto pid = particle.particle_id();
             if (particle.energy() < sim.looping_threshold(pid)
                 || sim.num_looping_steps() >= sim.max_looping_steps(pid))
             {
-                step_limit.action = track.killed_looping_action();
+                step_limit.action = track.abandon_looping_action();
                 sim.status(TrackStatus::killed);
             }
         }
@@ -92,6 +93,13 @@ inline CELER_FUNCTION void along_step(MH&& msc,
                 CELER_ASSERT(p.distance <= step_limit.step);
                 step_limit.step = p.distance;
                 step_limit.action = track.boundary_action();
+            }
+            else if (p.distance < step_limit.step)
+            {
+                // Some other internal non-boundary geometry limit has been
+                // reached (e.g. too many substeps)
+                step_limit.step = p.distance;
+                step_limit.action = track.propagation_limit_action();
             }
             sim.reset_looping_steps();
         }
