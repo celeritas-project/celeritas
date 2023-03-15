@@ -170,13 +170,15 @@ other major code changes.
 .. _Semantic Versioning: https://semver.org
 
 
-Releases can be created from the main branch (major, minor, patch) or a
-"backport" branch (minor, patch). The following process must be followed (and
-may need iteration to converge) for each release.
+Releases can be created from the primary "develop" branch (major, minor, patch)
+or a "backport" branch (minor, patch).
+The following process must be followed (and may need iteration to converge) for
+each release.
 
 - Create a ``release-vX.Y.Z`` branch.
 - Ensure all CI jobs passed for the release in question. This is automatic for
-  releases from the main branch (since every pull request must pass) but should
+  releases from the ``develop`` branch (since every pull request must pass) but
+  should
   be checked manually for backports.
 - Run regression tests on Summit (for performance testing), Crusher (for HIP
   testing), and an additional machine with debug assertions enabled (e.g.
@@ -221,7 +223,8 @@ After committing the release tag:
 The first commit that deviates from the most recent major or minor branch
 should be tagged (but not released!) with the next version number with a
 ``-dev`` suffix. For example, after releasing version 1.0.0, the next
-commit on the main branch that is *not* intended for version 1.0.1 (i.e., the
+commit on the ``develop`` branch that is *not* intended for version 1.0.1
+(i.e., the
 first new feature) should be tagged with ``v1.1.0-dev``, so that
 ``git describe --tags --match 'v*'`` shows the new features as being part of the
 ``v1.1.0`` series.
