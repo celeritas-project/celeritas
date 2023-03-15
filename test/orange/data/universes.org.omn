@@ -1,33 +1,34 @@
-# Diagram (to scale) of slice at z = 1
-# The outer cell, johnny spans z = (-1, 2)
-# Cells c, a, b make up hole inner_b which spans z = (0.5, 1.5)
-# An identical hole, inner_a is placed the same way in x and y, with z = (-0.5, 0.5)
-# Cell bobby spans the full height of inner_a and inner_b, with z = (-0.5, 1.5)
-#
-#   4_ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
-#     |                                                            |
-#   3_|                         johnny                             |
-#     |                                                            |
-#   2_|           ____________________________________             |
-#     |           |                                   |            |
-#   1_|           |             bobby                 |            |
-#     |           |                                   |            |
-#   0_|           |___________________________________|            |
-#     |           |                 c                 |            |
-#  -1_|           |      _______________________      |            |
-#     |           |     |           |           |     |            |
-#  -2_|           |     |    a      |     b     |     |            |
-#     |           |     |           |           |     |            |
-#  -3_            |     |___________|___________|     |            |
-#     |           |                                   |            |
-#  -4_|           |___________________________________|            |
-#     |                                                            |
-#  -5_|                                                            |
-#     |                                                            |
-#  -6_|__ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ |
-#     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^
-#    -2    -1     0     1     2     3     4     5     6     7     8
-#
+! Diagram (to scale) of slice at z = 1
+! The outer cell, johnny spans z = (-1, 2)
+! Cell bobby spans the full height of inner_a and inner_b, with z = (-0.5, 1.5)
+! Cells c, a, b make up hole inner_a which spans z = (0.5, 1.5)
+! Cell patty makes up hole inner_c, a hole in the bottom left corner of inner_a/inner_b
+! An identical hole, inner_b is placed the same way in x and y, with z = (-0.5, 0.5)
+!
+!   4_ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+!     |                                                            |
+!   3_|                         johnny                             |
+!     |                                                            |
+!   2_|           ____________________________________             |
+!     |           |                                   |            |
+!   1_|           |             bobby                 |            |
+!     |           |                                   |            |
+!   0_|           |___________________________________|            |
+!     |           |                 c                 |            |
+!  -1_|           |      _______________________      |            |
+!     |           |     |           |           |     |            |
+!  -2_|           |     |    a      |     b     |     |            |
+!     |           |     |           |           |     |            |
+!  -3_            |     |___________|___________|     |            |
+!     |           |__                                 |            |
+!  -4_| patty --> |__|________________________________|            |
+!     |                                                            |
+!  -5_|                                                            |
+!     |                                                            |
+!  -6_|__ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ |
+!     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^
+!    -2    -1     0     1     2     3     4     5     6     7     8
+!
 [GEOMETRY]
 global "outer"
 
@@ -40,8 +41,21 @@ comp         : matid
     "media 3"  3
     "media 4"  4
 
-!#### INNER UNIVERSE ####!
+!#### LEVEL 2 UNIVERSE ####!
 ! Since this is referenced by the outer universe, it must come first !
+
+[UNIVERSE=general most_inner]
+interior "patricia"
+
+[UNIVERSE][SHAPE=cuboid patricia]
+faces 0.0 0.5 0.0 0.5 0 1
+
+[UNIVERSE][CELL patty]
+comp "media 2"
+shapes -patricia
+! volume: 0.5 * 0.5 * 1 = 0.25
+
+!#### LEVEL 1 UNIVERSE ####!
 
 [UNIVERSE=general inner]
 interior "gamma"
@@ -73,7 +87,11 @@ comp "media 2"
 shapes +alpha +beta -gamma
 volume 16.0 ! 24 - 4 - 4
 
-!#### OUTER UNIVERSE ####!
+[UNIVERSE][HOLE inner_c]
+fill most_inner
+translate -2 -2 0
+
+!#### LEVEL 0 UNIVERSE ####!
 
 [UNIVERSE=general outer]
 interior "john"

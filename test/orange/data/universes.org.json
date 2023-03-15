@@ -9,8 +9,11 @@
 3,
 4,
 -1,
+-1,
 0,
 1,
+2,
+-1,
 2
 ],
 "names": [
@@ -126,7 +129,7 @@
 ],
 "md": {
 "name": "outer",
-"provenance": "universes.org.omn:48"
+"provenance": "universes.org.omn:96"
 },
 "parent_cells": [
 1,
@@ -197,7 +200,15 @@
 "pz",
 "py"
 ]
-}
+},
+"translations": [
+2.0,
+-2.0,
+-0.5,
+2.0,
+-2.0,
+0.5
+]
 },
 {
 "_type": "simple unit",
@@ -215,6 +226,7 @@
 ],
 "cell_names": [
 "[EXTERIOR]",
+"inner_c",
 "a",
 "b",
 "c"
@@ -229,66 +241,91 @@
 },
 {
 "faces": [
-0,
 1,
-2,
 3
 ],
-"logic": "0 1 ~ & 2 & 3 ~ & * &",
-"num_intersections": 4,
+"logic": "0 ~ 1 ~ & * &",
+"num_intersections": 2,
 "zorder": 2
 },
 {
 "faces": [
-1,
-2,
-3,
-6
+6,
+7,
+8,
+9
 ],
-"logic": "0 1 & 2 ~ & * & 3 ~ &",
+"logic": "* 0 & 1 ~ & 2 & 3 ~ &",
 "num_intersections": 4,
 "zorder": 2
 },
 {
 "faces": [
-0,
-1,
-2,
-3,
-6
+7,
+8,
+9,
+10
+],
+"logic": "* 0 & 1 & 2 ~ & 3 ~ &",
+"num_intersections": 4,
+"zorder": 2
+},
+{
+"faces": [
+6,
+7,
+8,
+9,
+10
 ],
 "flags": 1,
-"logic": "0 1 ~ & 2 & 3 ~ & * & ~ 1 2 & 3 ~ & * & 4 ~ & ~ &",
+"logic": "* 0 & 1 ~ & 2 & 3 ~ & ~ * 1 & 2 & 3 ~ & 4 ~ & ~ &",
 "num_intersections": 5,
 "zorder": 2
 }
 ],
-"daughters": [],
+"daughters": [
+2
+],
 "md": {
 "name": "inner",
-"provenance": "universes.org.omn:16"
+"provenance": "universes.org.omn:60"
 },
-"parent_cells": [],
+"parent_cells": [
+1
+],
 "surface_names": [
+"gamma.mx",
+"inner_c.px",
+"gamma.my",
+"inner_c.py",
+"alpha.mz",
+"alpha.pz",
 "alpha.mx",
 "alpha.px",
 "alpha.my",
 "alpha.py",
-"alpha.mz",
-"alpha.pz",
 "beta.px"
 ],
 "surfaces": {
 "data": [
--1.0,
-1.0,
--1.0,
-1.0,
+-2.0,
+-1.5,
+-2.0,
+-1.5,
 0.0,
+1.0,
+-1.0,
+1.0,
+-1.0,
 1.0,
 3.0
 ],
 "sizes": [
+1,
+1,
+1,
+1,
 1,
 1,
 1,
@@ -304,9 +341,65 @@
 "py",
 "pz",
 "pz",
+"px",
+"px",
+"py",
+"py",
 "px"
 ]
+},
+"translations": [
+-2.0,
+-2.0,
+0.0
+]
+},
+{
+"_type": "simple unit",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+0.5,
+0.5,
+1.0
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"patty"
+],
+"cells": [
+{
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"num_intersections": 0,
+"zorder": 65534
+},
+{
+"faces": [],
+"logic": "*",
+"num_intersections": 0,
+"zorder": 2
 }
+],
+"daughters": [],
+"md": {
+"name": "most_inner",
+"provenance": "universes.org.omn:47"
+},
+"parent_cells": [],
+"surface_names": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"translations": []
 }
 ]
 }

@@ -25,6 +25,21 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
 
+namespace
+{
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the i-th translation from a flattened vector.
+ */
+celeritas::Translation make_translation(std::vector<double> const& translations,
+                                        celeritas::size_type i)
+{
+    return celeritas::Translation{
+        translations[3 * i], translations[3 * i + 1], translations[3 * i + 2]};
+}
+}  // namespace
+
 namespace celeritas
 {
 namespace
@@ -180,16 +195,23 @@ void from_json(nlohmann::json const& j, UnitInput& value)
     {
         auto const& parent_cells
             = j.at("parent_cells").get<std::vector<size_type>>();
+
         auto const& daughters = j.at("daughters").get<std::vector<size_type>>();
         CELER_VALIDATE(parent_cells.size() == daughters.size(),
                        << "fields 'parent_cells' and 'daughters' have "
                           "different lengths");
 
+        auto const& translations
+            = j.at("translations").get<std::vector<double>>();
+        CELER_VALIDATE(3 * parent_cells.size() == translations.size(),
+                       << "field 'translations' is not 3x length of "
+                          "'parent_cells'");
+
         UnitInput::MapVolumeDaughter daughter_map;
         for (auto i : range(parent_cells.size()))
         {
-            daughter_map[LocalVolumeId{parent_cells[i]}]
-                = {UniverseId{daughters[i]}, {0, 0, 0}};
+            daughter_map[LocalVolumeId{parent_cells[i]}] = {
+                UniverseId{daughters[i]}, make_translation(translations, i)};
         }
 
         value.daughter_map = std::move(daughter_map);
