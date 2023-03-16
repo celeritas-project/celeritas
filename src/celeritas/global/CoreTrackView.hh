@@ -8,7 +8,6 @@
 #pragma once
 
 #include "corecel/sys/ThreadId.hh"
-#include "corecel/data/Collection.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
