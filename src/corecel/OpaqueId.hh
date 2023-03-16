@@ -54,6 +54,14 @@ class OpaqueId
         return value_ != invalid_value();
     }
 
+    //! Increment ID's value
+    OpaqueId& operator++()
+    {
+        CELER_EXPECT(*this);
+        value_ += 1;
+        return *this;
+    }
+
     //! Get the ID's value
     CELER_FORCEINLINE_FUNCTION size_type get() const
     {
@@ -135,6 +143,26 @@ operator-(OpaqueId<V, S> id, std::make_signed_t<S> offset)
     CELER_EXPECT(id);
     CELER_EXPECT(offset <= 0 || static_cast<S>(offset) <= id.unchecked_get());
     return OpaqueId<V, S>{id.unchecked_get() - static_cast<S>(offset)};
+}
+
+//! Multiply an opaque ID by a factor
+template<class V, class S>
+inline CELER_FUNCTION OpaqueId<V, S>
+operator*(OpaqueId<V, S> id, std::make_signed_t<S> factor)
+{
+    CELER_EXPECT(id);
+    CELER_EXPECT(factor >= 0 || static_cast<S>(-factor) <= id.unchecked_get());
+    return OpaqueId<V, S>{id.unchecked_get() * static_cast<S>(factor)};
+}
+
+//! Add two OpaqueId
+template<class V, class S>
+inline CELER_FUNCTION OpaqueId<V, S>
+operator+(OpaqueId<V, S> self, OpaqueId<V, S> other)
+{
+    CELER_EXPECT(self);
+    CELER_EXPECT(other);
+    return OpaqueId<V, S>{self.unchecked_get() + other.unchecked_get()};
 }
 
 //---------------------------------------------------------------------------//

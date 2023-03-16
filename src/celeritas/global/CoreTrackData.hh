@@ -16,6 +16,7 @@
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
+#include "celeritas/track/detail/TrackSortUtils.hh"
 
 namespace celeritas
 {
@@ -157,7 +158,7 @@ using CoreDeviceRef = CoreRef<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize states in host code.
+ * Resize states in host code. Initialize threads to track slots mapping.
  */
 template<MemSpace M>
 inline void resize(CoreStateData<Ownership::value, M>* state,
@@ -174,14 +175,9 @@ inline void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->rng, params.rng, size);
     resize(&state->sim, size);
     resize(&state->init, params.init, size);
+    resize(&state->track_slots, size);
 
-    Collection<TrackSlotId, Ownership::value, MemSpace::host, ThreadId> track_slots;
-    resize(&track_slots, size);
-    for (auto i : range(size))
-    {
-        track_slots[ThreadId{i}] = TrackSlotId{i};
-    }
-    state->track_slots = track_slots;
+    detail::fill_track_slots<M>(state->track_slots[AllItems<TrackSlotId, M>{}]);
 }
 
 //---------------------------------------------------------------------------//
