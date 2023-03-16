@@ -356,11 +356,13 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
     ASSERT_NO_THROW(device_states = copy_to_device_test(host_states));
     EXPECT_EQ(16, device_states.size());
 
+    host_states = {};
     resize(&host_states, 8);
     auto host_state_ref = make_ref(host_states);
     ASSERT_NO_THROW(device_states = copy_to_device_test(host_state_ref));
     EXPECT_EQ(8, device_states.size());
 
+    host_states = {};
     resize(&host_states, 4);
     auto host_state_cref = make_ref(host_states);
     ASSERT_NO_THROW(device_states = copy_to_device_test(host_state_cref));
