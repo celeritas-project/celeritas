@@ -79,7 +79,13 @@ struct CollectionStorage<T, Ownership::value, MemSpace::host>
 {
     static_assert(!std::is_same<T, bool>::value,
                   "bool is not compatible between vector and anything else");
+#ifdef CELER_DEVICE_SOURCE
+    // Use "not implemented" but __host__ __device__ decorated functions when
+    // compiling in CUDA
+    using type = DisabledStorage<T>;
+#else
     using type = std::vector<T>;
+#endif
     type data;
 };
 
@@ -87,13 +93,14 @@ struct CollectionStorage<T, Ownership::value, MemSpace::host>
 template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::device>
 {
-#ifndef CELER_DEVICE_COMPILE
-    using type = DeviceVector<T>;
-    type data;
-#else
+#ifdef CELER_DEVICE_SOURCE
+    // Use "not implemented" but __host__ __device__ decorated functions when
+    // compiling in CUDA
     using type = DisabledStorage<T>;
-    type data;
+#else
+    using type = DeviceVector<T>;
 #endif
+    type data;
 };
 
 //---------------------------------------------------------------------------//
