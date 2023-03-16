@@ -34,7 +34,7 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId> track_slots);
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
-inline void fill_track_slots(Span<TrackSlotId> track_slots)
+inline void fill_track_slots<MemSpace::device>(Span<TrackSlotId> track_slots)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
