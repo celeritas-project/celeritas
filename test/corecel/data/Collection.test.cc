@@ -356,6 +356,8 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
     auto host_state_ref = make_ref(host_states);
     device_states = copy_to_device_test(host_state_ref);
     EXPECT_EQ(16, device_states.size());
+    MockStateData<Ownership::reference, MemSpace::device> device_state_ref;
+    device_state_ref = copy_to_device_test(device_states);
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

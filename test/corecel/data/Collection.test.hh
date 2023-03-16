@@ -151,8 +151,11 @@ struct CTestInput
 void col_cuda_test(CTestInput);
 
 //! Test that we can copy inside .cu code
-MockStateData<Ownership::value, MemSpace::device> copy_to_device_test(
-    MockStateData<Ownership::const_reference, MemSpace::host>);
+MockStateData<Ownership::value, MemSpace::device>
+copy_to_device_test(MockStateData<Ownership::const_reference, MemSpace::host>&);
+//! Test that we can make a reference inside of .cu code
+MockStateData<Ownership::reference, MemSpace::device>
+reference_device_test(MockStateData<Ownership::value, MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void col_cuda_test(CTestInput)
@@ -161,6 +164,11 @@ inline void col_cuda_test(CTestInput)
 }
 inline MockStateData<Ownership::value, MemSpace::device>
 copy_to_device_test(MockStateData<Ownership::value, MemSpace::host>&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+inline MockStateData<Ownership::reference, MemSpace::device>
+reference_device_test(MockStateData<Ownership::value, MemSpace::device>&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

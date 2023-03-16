@@ -76,15 +76,25 @@ void col_cuda_test(CTestInput input)
                         input.result);
 }
 
+//! Test that we can make a device reference inside .cu code
+MockStateData<Ownership::reference, MemSpace::device> reference_device_test(
+    MockStateData<Ownership::value, MemSpace::device> &device_value)
+{
+    MockStateData<Ownership::reference, MemSpace::device> result;
+    result = device_value;
+    return result;
+}
+
+#if 0
 //! Test that we can copy inside .cu code
 MockStateData<Ownership::value, MemSpace::device> copy_to_device_test(
-    MockStateData<Ownership::const_reference, MemSpace::host> host_inp)
+    MockStateData<Ownership::const_reference, MemSpace::host> &host_inp)
 {
     MockStateData<Ownership::value, MemSpace::device> result;
     result = host_inp;
     return result;
 }
-
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
