@@ -85,7 +85,6 @@ MockStateData<Ownership::reference, MemSpace::device> reference_device_test(
     return result;
 }
 
-#if 0
 //! Test that we can copy inside .cu code
 MockStateData<Ownership::value, MemSpace::device> copy_to_device_test(
     MockStateData<Ownership::const_reference, MemSpace::host> &host_inp)
@@ -94,7 +93,6 @@ MockStateData<Ownership::value, MemSpace::device> copy_to_device_test(
     result = host_inp;
     return result;
 }
-#endif
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

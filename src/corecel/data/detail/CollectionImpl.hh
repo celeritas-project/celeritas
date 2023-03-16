@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
@@ -182,15 +183,18 @@ struct CollectionAssigner<Ownership::value, MemSpace::host>
 template<>
 struct CollectionAssigner<Ownership::value, MemSpace::device>
 {
+    template<class T>
+    using StorageValDev
+        = CollectionStorage<T, Ownership::value, MemSpace::device>;
+
     template<class T, Ownership W2, MemSpace M2>
-    CollectionStorage<T, Ownership::value, MemSpace::device>
-    operator()(CollectionStorage<T, W2, M2> const& source)
+    StorageValDev<T> operator()(CollectionStorage<T, W2, M2> const& source)
     {
         static_assert(M2 == MemSpace::host,
                       "Can only assign by value from host to device");
 
-        CollectionStorage<T, Ownership::value, MemSpace::device> result{
-            DeviceVector<T>(source.data.size())};
+        StorageValDev<T> result{
+            typename StorageValDev<T>::type(source.data.size())};
         result.data.copy_to_device({source.data.data(), source.data.size()});
         return result;
     }
