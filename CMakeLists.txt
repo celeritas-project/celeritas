@@ -216,7 +216,8 @@ if(CELERITAS_USE_Python)
 endif()
 
 if(CELERITAS_USE_ROOT)
-  find_package(ROOT REQUIRED)
+  # Older ROOT versions are missing CMake macros
+  find_package(ROOT 6.24 REQUIRED)
 endif()
 
 if(CELERITAS_USE_SWIG AND NOT SWIG_FOUND)
