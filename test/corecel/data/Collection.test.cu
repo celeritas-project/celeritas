@@ -76,6 +76,15 @@ void col_cuda_test(CTestInput input)
                         input.result);
 }
 
+//! Test that we can copy inside .cu code
+MockStateData<Ownership::value, MemSpace::device> copy_to_device_test(
+    MockStateData<Ownership::const_reference, MemSpace::host> host_inp)
+{
+    MockStateData<Ownership::value, MemSpace::device> result;
+    result = host_inp;
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

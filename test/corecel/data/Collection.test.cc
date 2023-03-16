@@ -349,6 +349,13 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
     result.resize(6);
     double const expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
     EXPECT_VEC_SOFT_EQ(expected_result, result);
+
+    // Check that we can copy back to the device
+    MockStateData<Ownership::value, MemSpace::host> host_states;
+    resize(&host_states, 16);
+    auto host_state_ref = make_ref(host_states);
+    device_states = copy_to_device_test(host_state_ref);
+    EXPECT_EQ(16, device_states.size());
 }
 //---------------------------------------------------------------------------//
 }  // namespace test
