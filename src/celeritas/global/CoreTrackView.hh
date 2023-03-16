@@ -100,8 +100,6 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
     : states_(states), params_(params), thread_(thread)
 {
     CELER_EXPECT(thread_ < states_.size());
-    //TODO: Smarter mapping of thread to track index
-    states_.track_slots[thread_] = TrackSlotId{thread_.get()};
 }
 
 //---------------------------------------------------------------------------//
