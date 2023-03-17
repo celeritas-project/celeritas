@@ -72,6 +72,7 @@ enum class ImportProcessClass
     mu_ioni,
     mu_brems,
     mu_pair_prod,
+    gamma_general, // Will be decomposed into other processes
     size_
 };
 
