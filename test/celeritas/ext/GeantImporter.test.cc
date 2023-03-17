@@ -212,7 +212,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         {
             nlohmann::json out = opts;
             static char const expected[]
-                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
+                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_general":false,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
             EXPECT_EQ(std::string(expected), std::string(out.dump()));
         }
 #endif
@@ -223,6 +223,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
 //---------------------------------------------------------------------------//
 class TestEm3 : public GeantImporterTest
 {
+  protected:
     char const* geometry_basename() const final { return "testem3-flat"; }
 
     GeantPhysicsOptions build_geant_options() const override
@@ -238,6 +239,7 @@ class TestEm3 : public GeantImporterTest
 //---------------------------------------------------------------------------//
 class OneSteelSphere : public GeantImporterTest
 {
+  protected:
     char const* geometry_basename() const final { return "one-steel-sphere"; }
 
     GeantPhysicsOptions build_geant_options() const override
@@ -245,6 +247,18 @@ class OneSteelSphere : public GeantImporterTest
         GeantPhysicsOptions opts;
         opts.relaxation = RelaxationSelection::none;
         opts.verbose = false;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
+class OneSteelSphereGG : public OneSteelSphere
+{
+  protected:
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = OneSteelSphere::build_geant_options();
+        opts.gamma_general = true;
         return opts;
     }
 };
@@ -1069,6 +1083,33 @@ TEST_F(OneSteelSphere, physics)
         EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
     }
+}
+
+TEST_F(OneSteelSphereGG, physics)
+{
+    auto&& imported = this->imported_data();
+    auto summary = this->summarize(imported);
+
+    static char const* expected_particles[] = {"e+", "e-", "gamma"};
+    EXPECT_VEC_EQ(expected_particles, summary.particles);
+    static char const* expected_processes[] = {"e_ioni",
+                                               "e_brems",
+                                               "photoelectric",
+                                               "compton",
+                                               "conversion",
+                                               "rayleigh",
+                                               "annihilation"};
+    EXPECT_VEC_EQ(expected_processes, summary.processes);
+    static char const* expected_models[] = {"urban_msc",
+                                            "moller_bhabha",
+                                            "e_brems_sb",
+                                            "e_brems_lpm",
+                                            "e_plus_to_gg",
+                                            "livermore_photoelectric",
+                                            "klein_nishina",
+                                            "bethe_heitler_lpm",
+                                            "livermore_rayleigh"};
+    EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
 //---------------------------------------------------------------------------//

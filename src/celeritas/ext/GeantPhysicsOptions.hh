@@ -53,6 +53,7 @@ enum class RelaxationSelection
  * - \c eloss_fluctuation: enable universal energy fluctuations
  * - \c lpm: apply relativistic corrections for select models
  * - \c integral_approach: see \c PhysicsParamsOptions::disable_integral_xs
+ * - \c gamma_general: load G4GammaGeneral instead of individual processes
  * - \c brems: Bremsstrahlung model selection
  * - \c msc: Multiple scattering model selection
  * - \c relaxation: Atomic relaxation selection
@@ -69,6 +70,7 @@ struct GeantPhysicsOptions
     bool eloss_fluctuation{true};
     bool lpm{true};
     bool integral_approach{true};
+    bool gamma_general{false};
 
     BremsModelSelection brems{BremsModelSelection::all};
     MscModelSelection msc{MscModelSelection::urban};
@@ -90,7 +92,8 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
     return a.coulomb_scattering == b.coulomb_scattering
            && a.rayleigh_scattering == b.rayleigh_scattering
            && a.eloss_fluctuation == b.eloss_fluctuation && a.lpm == b.lpm
-           && a.integral_approach == b.integral_approach && a.brems == b.brems
+           && a.integral_approach == b.integral_approach
+           && a.gamma_general == b.gamma_general && a.brems == b.brems
            && a.msc == b.msc && a.relaxation == b.relaxation
            && a.em_bins_per_decade == b.em_bins_per_decade
            && a.min_energy == b.min_energy && a.max_energy == b.max_energy

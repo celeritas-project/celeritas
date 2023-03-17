@@ -22,6 +22,7 @@
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
 #include <G4EmParameters.hh>
+#include <G4GammaGeneralProcess.hh>
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4Navigator.hh>
@@ -438,7 +439,24 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             return;
         }
 
-        if (auto const* em_process = dynamic_cast<G4VEmProcess const*>(&process))
+        if (auto const* gg_process
+            = dynamic_cast<G4GammaGeneralProcess const*>(&process))
+        {
+            // Extract the real EM processes embedded inside "gamma general"
+            // using an awkward string-based lookup which is the only one
+            // available to us :(
+            for (auto emproc_enum : range(ImportProcessClass::size_))
+            {
+                if (G4VEmProcess const* subprocess
+                    = const_cast<G4GammaGeneralProcess*>(gg_process)
+                          ->GetEmProcess(to_geant_name(emproc_enum)))
+                {
+                    processes.push_back(import_process(particle, *subprocess));
+                }
+            }
+        }
+        else if (auto const* em_process
+                 = dynamic_cast<G4VEmProcess const*>(&process))
         {
             processes.push_back(import_process(particle, *em_process));
         }
