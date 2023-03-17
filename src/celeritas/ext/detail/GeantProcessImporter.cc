@@ -511,7 +511,7 @@ void GeantProcessImporter::add_table(G4PhysicsTable const* g4table,
                      << to_cstring(table_type);
     if (!inserted)
     {
-        CELER_LOG(debug) << "PreviousExisting table was at"
+        CELER_LOG(debug) << "Existing table was at"
                          << prev->second.particle_pdg << '.'
                          << to_cstring(prev->second.process_class) << '.'
                          << to_cstring(prev->second.table_type);
