@@ -121,9 +121,13 @@ struct ImportMscModel
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
+// Get the string form of one of the enumerations
 char const* to_cstring(ImportModelClass value);
-// Whether Celeritas requires microscopic xs data for sampling
-bool needs_micro_xs(ImportModelClass model);
+
+// Get the default Geant4 process name
+char const* to_geant_name(ImportModelClass value);
+// Convert a Geant4 process name to an IMC (throw RuntimeError if unsupported)
+ImportModelClass geant_name_to_import_model_class(std::string const& s);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

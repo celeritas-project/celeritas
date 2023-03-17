@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "GeantModelImporter.hh"
 
+#include <algorithm>
+#include <initializer_list>
 #include <unordered_map>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4EmParameters.hh>
@@ -16,6 +18,7 @@
 #include <G4VEmModel.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/TypeDemangler.hh"
@@ -29,49 +32,6 @@ namespace detail
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Safely retrieve the correct model enum from a given string.
- */
-ImportModelClass to_import_model(G4VEmModel const& model)
-{
-    static const std::unordered_map<std::string, ImportModelClass> model_map = {
-        // clang-format off
-        {"BraggIon",            ImportModelClass::bragg_ion},
-        {"BetheBloch",          ImportModelClass::bethe_bloch},
-        {"UrbanMsc",            ImportModelClass::urban_msc},
-        {"ICRU73QO",            ImportModelClass::icru_73_qo},
-        {"WentzelVIUni",        ImportModelClass::wentzel_VI_uni},
-        {"hBrem",               ImportModelClass::h_brems},
-        {"hPairProd",           ImportModelClass::h_pair_prod},
-        {"eCoulombScattering",  ImportModelClass::e_coulomb_scattering},
-        {"Bragg",               ImportModelClass::bragg},
-        {"MollerBhabha",        ImportModelClass::moller_bhabha},
-        {"eBremSB",             ImportModelClass::e_brems_sb},
-        {"eBremLPM",            ImportModelClass::e_brems_lpm},
-        {"eplus2gg",            ImportModelClass::e_plus_to_gg},
-        {"LivermorePhElectric", ImportModelClass::livermore_photoelectric},
-        {"Klein-Nishina",       ImportModelClass::klein_nishina},
-        {"BetheHeitler",        ImportModelClass::bethe_heitler},
-        {"BetheHeitlerLPM",     ImportModelClass::bethe_heitler_lpm},
-        {"LivermoreRayleigh",   ImportModelClass::livermore_rayleigh},
-        {"MuBetheBloch",        ImportModelClass::mu_bethe_bloch},
-        {"MuBrem",              ImportModelClass::mu_brems},
-        {"muPairProd",          ImportModelClass::mu_pair_prod},
-        // clang-format on
-    };
-    std::string const& name = model.GetName();
-    auto iter = model_map.find(name);
-    if (iter == model_map.end())
-    {
-        static celeritas::TypeDemangler<G4VEmModel> demangle_model;
-        CELER_LOG(warning) << "Encountered unknown model '" << name
-                           << "' (RTTI: " << demangle_model(model) << ")";
-        return ImportModelClass::other;
-    }
-    return iter->second;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Get a G4Material from a material index.
@@ -97,6 +57,39 @@ G4ParticleDefinition const& get_g4particle(PDGNumber pdg)
         = G4ParticleTable::GetParticleTable()->FindParticle(pdg.get());
     CELER_ENSURE(particle);
     return *particle;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the model requires microscopic xs data for sampling.
+ *
+ * TODO: this could be an implementation detail of ImportModelConverter
+ */
+bool needs_micro_xs(ImportModelClass value)
+{
+    CELER_EXPECT(value < ImportModelClass::size_);
+
+    using ModelBoolArray = EnumArray<ImportModelClass, bool>;
+
+    static ModelBoolArray const needs_xs = [] {
+        ModelBoolArray result;
+        std::fill(result.begin(), result.end(), false);
+        for (ImportModelClass c : {
+                 ImportModelClass::e_brems_sb,
+                 ImportModelClass::e_brems_lpm,
+                 ImportModelClass::mu_brems,
+                 ImportModelClass::mu_pair_prod,
+                 ImportModelClass::bethe_heitler_lpm,
+                 ImportModelClass::livermore_rayleigh,
+                 ImportModelClass::e_coulomb_scattering,
+             })
+        {
+            result[c] = true;
+        }
+        return result;
+    }();
+
+    return needs_xs[value];
 }
 
 //---------------------------------------------------------------------------//
@@ -128,7 +121,16 @@ GeantModelImporter::GeantModelImporter(VecMaterial const& materials,
 ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
 {
     ImportModel result;
-    result.model_class = to_import_model(model);
+    try
+    {
+        result.model_class = geant_name_to_import_model_class(model.GetName());
+    }
+    catch (celeritas::RuntimeError const&)
+    {
+        CELER_LOG(warning) << "Encountered unknown process '"
+                           << model.GetName() << "'";
+        result.model_class = ImportModelClass::other;
+    }
 
     // Calculate lower cutoff energy for the model in each material
     result.materials.resize(materials_.size());

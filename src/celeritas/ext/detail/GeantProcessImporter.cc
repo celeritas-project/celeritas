@@ -32,7 +32,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantModelImporter.hh"
@@ -107,6 +106,44 @@ ImportProcessClass to_import_process_class(G4VProcess const& process)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize a process result.
+ */
+ImportProcess
+init_process(G4ParticleDefinition const& particle, G4VProcess const& process)
+{
+    CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
+                     << "' for particle " << particle.GetParticleName() << " ("
+                     << particle.GetPDGEncoding() << ')';
+
+    ImportProcess result;
+    result = {};
+    result.process_type = to_import_process_type(process.GetProcessType());
+    result.process_class = to_import_process_class(process);
+    result.particle_pdg = particle.GetPDGEncoding();
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the PDG of a process.
+ */
+template<class T>
+int get_secondary_pdg(T const& process)
+{
+    static_assert(std::is_base_of<G4VProcess, T>::value,
+                  "process must be a G4VProcess");
+
+    // Save secondaries
+    if (auto const* secondary = process.SecondaryParticle())
+    {
+        return secondary->GetPDGEncoding();
+    }
+    return 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a multiplicative geant4-natural-units constant to convert the units.
  */
 double units_to_scaling(ImportUnits units)
@@ -169,11 +206,18 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read values from a Geant4 physics table into an ImportTable.
+ * Import data from a Geant4 physics table if available.
  */
-ImportPhysicsTable
-import_table(G4PhysicsTable const& g4table, ImportTableType table_type)
+void append_table(G4PhysicsTable const* g4table,
+                  ImportTableType table_type,
+                  std::vector<ImportPhysicsTable>* tables)
 {
+    if (!g4table)
+    {
+        // Table isn't present
+        return;
+    }
+
     CELER_EXPECT(table_type != ImportTableType::size_);
     ImportPhysicsTable table;
     table.table_type = table_type;
@@ -219,7 +263,7 @@ import_table(G4PhysicsTable const& g4table, ImportTableType table_type)
     double y_scaling = units_to_scaling(table.y_units);
 
     // Save physics vectors
-    for (auto const* g4vector : g4table)
+    for (auto const* g4vector : *g4table)
     {
         ImportPhysicsVector import_vec;
 
@@ -237,7 +281,15 @@ import_table(G4PhysicsTable const& g4table, ImportTableType table_type)
         table.physics_vectors.push_back(std::move(import_vec));
     }
 
-    return table;
+    tables->push_back(std::move(table));
+}
+
+template<class T>
+bool all_are_assigned(std::vector<T> const& arr)
+{
+    return std::all_of(arr.begin(), arr.end(), [](T const& v) {
+        return static_cast<bool>(v);
+    });
 }
 
 //---------------------------------------------------------------------------//
@@ -259,151 +311,66 @@ GeantProcessImporter::GeantProcessImporter(
 
 //---------------------------------------------------------------------------//
 /*!
- * Default destructor.
- */
-GeantProcessImporter::~GeantProcessImporter() = default;
-
-//---------------------------------------------------------------------------//
-/*!
- * Load and return physics tables from a given particle and process.
- *
- * If the process was already returned, \c operator() will return an
- * empty object.
- */
-ImportProcess
-GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
-                                 G4VProcess const& process)
-{
-    // Check for duplicate processes
-    auto [prev, inserted] = written_processes_.insert({&process, {&particle}});
-
-    if (!inserted)
-    {
-        static const celeritas::TypeDemangler<G4VProcess> demangle_process;
-        CELER_LOG(debug) << "Skipping process '" << process.GetProcessName()
-                         << "' (RTTI: " << demangle_process(process)
-                         << ") for particle " << particle.GetParticleName()
-                         << ": duplicate of particle "
-                         << prev->second.particle->GetParticleName();
-        return {};
-    }
-    CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
-                     << "' for particle " << particle.GetParticleName() << " ("
-                     << particle.GetPDGEncoding() << ')';
-
-    // Save process and particle info
-    process_ = {};
-    process_.process_type = to_import_process_type(process.GetProcessType());
-    process_.process_class = to_import_process_class(process);
-    process_.particle_pdg = particle.GetPDGEncoding();
-
-    if (auto const* em_process = dynamic_cast<G4VEmProcess const*>(&process))
-    {
-        this->store_em_process(*em_process);
-    }
-    else if (auto const* energy_loss
-             = dynamic_cast<G4VEnergyLossProcess const*>(&process))
-    {
-        this->store_eloss_process(*energy_loss);
-    }
-    else if (auto const* multiple_scattering
-             = dynamic_cast<G4VMultipleScattering const*>(&process))
-    {
-        this->store_msc_process(*multiple_scattering);
-    }
-    else
-    {
-        static const celeritas::TypeDemangler<G4VProcess> demangle_process;
-        CELER_LOG(error) << "Cannot export unknown process '"
-                         << process.GetProcessName()
-                         << "' (RTTI: " << demangle_process(process) << ")";
-    }
-
-    CELER_ENSURE(process_);
-    CELER_ENSURE(std::all_of(
-        process_.models.begin(),
-        process_.models.end(),
-        [](ImportModel const& m) { return static_cast<bool>(m); }));
-    return std::move(process_);
-}
-
-//---------------------------------------------------------------------------//
-// PRIVATE
-//---------------------------------------------------------------------------//
-/*!
- * Store common properties of the current process.
- *
- * As of Geant4 11, these functions are non-virtual functions of the daughter
- * classes that have the same interface.
- */
-template<class T>
-void GeantProcessImporter::store_common_process(T const& process)
-{
-    static_assert(std::is_base_of<G4VProcess, T>::value,
-                  "process must be a G4VProcess");
-
-    // Save secondaries
-    if (auto const* secondary = process.SecondaryParticle())
-    {
-        process_.secondary_pdg = secondary->GetPDGEncoding();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Store EM cross section tables for the current process.
  *
  * Cross sections are calculated in G4EmModelManager::FillLambdaVector by
  * calling G4VEmModel::CrossSection .
  */
-void GeantProcessImporter::store_em_process(G4VEmProcess const& process)
+ImportProcess
+GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
+                                 G4VEmProcess const& process)
 {
-    this->store_common_process(process);
+    auto result = init_process(particle, process);
+    result.secondary_pdg = get_secondary_pdg(process);
 
     GeantModelImporter convert_model(materials_,
-                                     PDGNumber{process_.particle_pdg},
-                                     PDGNumber{process_.secondary_pdg});
+                                     PDGNumber{result.particle_pdg},
+                                     PDGNumber{result.secondary_pdg});
 #if G4VERSION_NUMBER < 1100
     for (auto i : celeritas::range(process.GetNumberOfModels()))
 #else
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
-        process_.models.push_back(convert_model(*process.GetModelByIndex(i)));
-        CELER_ASSERT(process_.models.back());
+        result.models.push_back(convert_model(*process.GetModelByIndex(i)));
+        CELER_ASSERT(result.models.back());
     }
 
     // Save cross section tables if available
-    this->add_table(process.LambdaTable(), ImportTableType::lambda);
-    this->add_table(process.LambdaTablePrim(), ImportTableType::lambda_prim);
+    append_table(
+        process.LambdaTable(), ImportTableType::lambda, &result.tables);
+    append_table(process.LambdaTablePrim(),
+                 ImportTableType::lambda_prim,
+                 &result.tables);
+    CELER_ENSURE(result && all_are_assigned(result.models));
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Store energy loss XS tables to this->process_.
+ * Store energy loss XS tables to this->result.
  *
  * The following XS tables do not exist in Geant4 v11:
  * - DEDXTableForSubsec()
  * - IonisationTableForSubsec()
  * - SubLambdaTable()
  */
-void GeantProcessImporter::store_eloss_process(
-    G4VEnergyLossProcess const& process)
+ImportProcess
+GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
+                                 G4VEnergyLossProcess const& process)
 {
-    this->store_common_process(process);
+    auto result = init_process(particle, process);
+    result.secondary_pdg = get_secondary_pdg(process);
 
     // Note: NumberOfModels/GetModelByIndex is a *not* a virtual method on
-    // G4VProcess, so this loop cannot yet be combined with the one in
-    // store_em_process .
-    // TODO: when we drop support for Geant4 10 we can use a template to
-    // move this into store_common_process...
+    // G4VProcess.
 
     GeantModelImporter convert_model(materials_,
-                                     PDGNumber{process_.particle_pdg},
-                                     PDGNumber{process_.secondary_pdg});
+                                     PDGNumber{result.particle_pdg},
+                                     PDGNumber{result.secondary_pdg});
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
-        process_.models.push_back(convert_model(*process.GetModelByIndex(i)));
+        result.models.push_back(convert_model(*process.GetModelByIndex(i)));
     }
 
     if (process.IsIonisationProcess())
@@ -412,47 +379,67 @@ void GeantProcessImporter::store_eloss_process(
         // each energy loss process are stored in the "ionization process"
         // (which might be ionization or might be another arbitrary energy loss
         // process if there is no ionization in the problem).
-        this->add_table(process.DEDXTable(), ImportTableType::dedx);
-        this->add_table(process.RangeTableForLoss(), ImportTableType::range);
+        append_table(
+            process.DEDXTable(), ImportTableType::dedx, &result.tables);
+        append_table(process.RangeTableForLoss(),
+                     ImportTableType::range,
+                     &result.tables);
     }
 
-    this->add_table(process.LambdaTable(), ImportTableType::lambda);
+    append_table(
+        process.LambdaTable(), ImportTableType::lambda, &result.tables);
 
     if (which_tables_ > TableSelection::minimal)
     {
         // Inverse range is redundant with range
-        this->add_table(process.InverseRangeTable(),
-                        ImportTableType::inverse_range);
+        append_table(process.InverseRangeTable(),
+                     ImportTableType::inverse_range,
+                     &result.tables);
 
         // None of these tables appear to be used in Geant4
         if (process.IsIonisationProcess())
         {
             // The "ionization table" is just the per-process de/dx table for
             // ionization
-            this->add_table(process.IonisationTable(),
-                            ImportTableType::dedx_process);
+            append_table(process.IonisationTable(),
+                         ImportTableType::dedx_process,
+                         &result.tables);
         }
 
         else
         {
-            this->add_table(process.DEDXTable(), ImportTableType::dedx_process);
+            append_table(process.DEDXTable(),
+                         ImportTableType::dedx_process,
+                         &result.tables);
         }
 
 #if G4VERSION_NUMBER < 1100
-        this->add_table(process.DEDXTableForSubsec(),
-                        ImportTableType::dedx_subsec);
-        this->add_table(process.IonisationTableForSubsec(),
-                        ImportTableType::ionization_subsec);
-        this->add_table(process.SubLambdaTable(), ImportTableType::sublambda);
+        // DEPRECATED: remove in v0.4
+        append_table(process.DEDXTableForSubsec(),
+                     ImportTableType::dedx_subsec,
+                     &result.tables);
+        append_table(process.IonisationTableForSubsec(),
+                     ImportTableType::ionization_subsec,
+                     &result.tables);
+        append_table(process.SubLambdaTable(),
+                     ImportTableType::sublambda,
+                     &result.tables);
         // Secondary range is removed in 11.1
-        this->add_table(process.SecondaryRangeTable(),
-                        ImportTableType::secondary_range);
+        append_table(process.SecondaryRangeTable(),
+                     ImportTableType::secondary_range,
+                     &result.tables);
 #endif
 
-        this->add_table(process.DEDXunRestrictedTable(),
-                        ImportTableType::dedx_unrestricted);
-        this->add_table(process.CSDARangeTable(), ImportTableType::csda_range);
+        append_table(process.DEDXunRestrictedTable(),
+                     ImportTableType::dedx_unrestricted,
+                     &result.tables);
+        append_table(process.CSDARangeTable(),
+                     ImportTableType::csda_range,
+                     &result.tables);
     }
+
+    CELER_ENSURE(result && all_are_assigned(result.models));
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -468,10 +455,16 @@ void GeantProcessImporter::store_eloss_process(
  * They're calculated in G4LossTableBuilder::BuildTableForModel which calls
  * G4VEmModel::Value.
  */
-void GeantProcessImporter::store_msc_process(G4VMultipleScattering const& process)
+std::vector<ImportMscModel>
+GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
+                                 G4VMultipleScattering const& process)
 {
+    std::vector<ImportMscModel> result;
+    int primary_pdg = particle.GetPDGEncoding();
+
     GeantModelImporter convert_model(
-        materials_, PDGNumber{process_.particle_pdg}, PDGNumber{});
+        materials_, PDGNumber{primary_pdg}, PDGNumber{});
+    std::vector<ImportPhysicsTable> temp_tables;
 
 #if G4VERSION_NUMBER < 1100
     for (auto i : celeritas::range(4))
@@ -481,44 +474,31 @@ void GeantProcessImporter::store_msc_process(G4VMultipleScattering const& proces
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
-            process_.models.push_back(convert_model(*model));
-            this->add_table(model->GetCrossSectionTable(),
-                            ImportTableType::msc_xs);
+            ImportMscModel imm;
+            imm.particle_pdg = primary_pdg;
+            try
+            {
+                imm.model_class
+                    = geant_name_to_import_model_class(model->GetName());
+            }
+            catch (celeritas::RuntimeError const&)
+            {
+                CELER_LOG(warning) << "Encountered unknown process '"
+                                   << model->GetName() << "'";
+                imm.model_class = ImportModelClass::other;
+            }
+            append_table(model->GetCrossSectionTable(),
+                         ImportTableType::msc_xs,
+                         &temp_tables);
+            CELER_EXPECT(temp_tables.size() == 1);
+            imm.xs_table = std::move(temp_tables.back());
+            temp_tables.clear();
+            result.push_back(std::move(imm));
         }
     }
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Write data from a Geant4 physics table if available.
- */
-void GeantProcessImporter::add_table(G4PhysicsTable const* g4table,
-                                     ImportTableType table_type)
-{
-    if (!g4table)
-    {
-        // Table isn't present
-        return;
-    }
-
-    // Check for duplicate tables
-    auto [prev, inserted] = written_tables_.insert(
-        {g4table, {process_.particle_pdg, process_.process_class, table_type}});
-
-    CELER_LOG(debug) << (inserted ? "Saving" : "Skipping duplicate")
-                     << " physics table " << process_.particle_pdg << '.'
-                     << to_cstring(process_.process_class) << '.'
-                     << to_cstring(table_type);
-    if (!inserted)
-    {
-        CELER_LOG(debug) << "Existing table was at"
-                         << prev->second.particle_pdg << '.'
-                         << to_cstring(prev->second.process_class) << '.'
-                         << to_cstring(prev->second.table_type);
-        return;
-    }
-
-    process_.tables.push_back(import_table(*g4table, table_type));
+    CELER_ENSURE(all_are_assigned(result));
+    return result;
 }
 
 //---------------------------------------------------------------------------//

@@ -109,7 +109,7 @@ struct ImportProcess
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-// Get the string form of one of the enumerations.
+// Get the string form of one of the enumerations
 char const* to_cstring(ImportProcessType value);
 char const* to_cstring(ImportProcessClass value);
 

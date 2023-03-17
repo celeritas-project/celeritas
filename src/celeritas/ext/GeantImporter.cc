@@ -12,9 +12,10 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <tuple>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <tuple>
 #include <vector>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Element.hh>
@@ -38,6 +39,8 @@
 #include <G4String.hh>
 #include <G4TransportationManager.hh>
 #include <G4Types.hh>
+#include <G4VEnergyLossProcess.hh>
+#include <G4VMultipleScattering.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
@@ -46,6 +49,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
@@ -413,8 +417,53 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
 
-    detail::GeantProcessImporter load_process(
+    static const celeritas::TypeDemangler<G4VProcess> demangle_process;
+    std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
+    detail::GeantProcessImporter import_process(
         detail::TableSelection::minimal, materials, elements);
+
+    auto append_process = [&](G4ParticleDefinition const& particle,
+                              G4VProcess const& process) -> void {
+        // Check for duplicate processes
+        auto [prev, inserted] = visited.insert({&process, &particle});
+
+        if (!inserted)
+        {
+            CELER_LOG(debug)
+                << "Skipping process '" << process.GetProcessName()
+                << "' (RTTI: " << demangle_process(process)
+                << ") for particle " << particle.GetParticleName()
+                << ": duplicate of particle "
+                << prev->second->GetParticleName();
+            return;
+        }
+
+        if (auto const* em_process = dynamic_cast<G4VEmProcess const*>(&process))
+        {
+            processes.push_back(import_process(particle, *em_process));
+        }
+        else if (auto const* el_process
+                 = dynamic_cast<G4VEnergyLossProcess const*>(&process))
+        {
+            processes.push_back(import_process(particle, *el_process));
+        }
+        else if (auto const* msc_process
+                 = dynamic_cast<G4VMultipleScattering const*>(&process))
+        {
+            // Unpack MSC process into multiple MSC models
+            auto new_msc_models = import_process(particle, *msc_process);
+            msc_models.insert(msc_models.end(),
+                              std::make_move_iterator(new_msc_models.begin()),
+                              std::make_move_iterator(new_msc_models.end()));
+        }
+        else
+        {
+            CELER_LOG(error)
+                << "Cannot export unknown process '"
+                << process.GetProcessName()
+                << "' (RTTI: " << demangle_process(process) << ")";
+        }
+    };
 
     for (auto const& p : particles)
     {
@@ -442,29 +491,7 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                 continue;
             }
 
-            if (ImportProcess ip = load_process(*g4_particle_def, process))
-            {
-                // Not an empty process, so it was not added in a previous loop
-                if (ip.process_class != ImportProcessClass::msc)
-                {
-                    processes.push_back(std::move(ip));
-                }
-                else
-                {
-                    // Unfold process to MSC models
-                    CELER_ASSERT(ip.models.size() == ip.tables.size());
-                    for (auto i : range(ip.models.size()))
-                    {
-                        CELER_ASSERT(ip.tables[i].table_type
-                                     == ImportTableType::msc_xs);
-                        ImportMscModel imm;
-                        imm.particle_pdg = ip.particle_pdg;
-                        imm.model_class = ip.models[i].model_class;
-                        imm.xs_table = std::move(ip.tables[i]);
-                        msc_models.push_back(std::move(imm));
-                    }
-                }
-            }
+            append_process(*g4_particle_def, process);
         }
     }
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";

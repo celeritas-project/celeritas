@@ -13,12 +13,8 @@
 
 #include "celeritas/io/ImportElement.hh"
 #include "celeritas/io/ImportMaterial.hh"
+#include "celeritas/io/ImportModel.hh"
 #include "celeritas/io/ImportProcess.hh"
-
-using celeritas::ImportElement;
-using celeritas::ImportMaterial;
-using celeritas::ImportPhysicsVector;
-using celeritas::ImportProcess;
 
 class TFile;
 class TTree;
@@ -87,44 +83,17 @@ class GeantProcessImporter
                          std::vector<ImportMaterial> const& materials,
                          std::vector<ImportElement> const& elements);
 
-    // Default destructor
-    ~GeantProcessImporter();
-
-    // Return ImportProcess for a given particle and physics process
+    // Import processes
     ImportProcess operator()(G4ParticleDefinition const& particle,
-                             G4VProcess const& process);
+                             G4VEmProcess const& process);
+    ImportProcess operator()(G4ParticleDefinition const& particle,
+                             G4VEnergyLossProcess const& process);
+    std::vector<ImportMscModel>
+    operator()(G4ParticleDefinition const& particle,
+               G4VMultipleScattering const& process);
 
   private:
-    // Save common process attributes
-    template<class T>
-    void store_common_process(T const& process);
-    // Save "discrete" process
-    void store_em_process(G4VEmProcess const& em_process);
-    // Save "continuous/discrete" process
-    void store_eloss_process(G4VEnergyLossProcess const& eloss_process);
-    // Save multiple scattering data to this->process_
-    void store_msc_process(G4VMultipleScattering const& msc_process);
-
-    // Write the remaining elements of this->process_
-    void add_table(G4PhysicsTable const* table,
-                   celeritas::ImportTableType table_type);
-
-  private:
-    // Store material and element information for the element selector tables
-    std::vector<ImportMaterial> const& materials_;
-    std::vector<ImportElement> const& elements_;
-
-    // Whether to write tables that aren't used by physics
-    TableSelection which_tables_;
-
-    // Temporary process data returned by operator()
-    ImportProcess process_;
-
-    // Keep track of processes and tables already written
-    struct PrevProcess
-    {
-        G4ParticleDefinition const* particle;
-    };
+    //// TYPES ////
 
     struct PrevTable
     {
@@ -133,8 +102,14 @@ class GeantProcessImporter
         celeritas::ImportTableType table_type;
     };
 
-    std::unordered_map<G4VProcess const*, PrevProcess> written_processes_;
-    std::unordered_map<G4PhysicsTable const*, PrevTable> written_tables_;
+    //// DATA ////
+
+    // Store material and element information for the element selector tables
+    std::vector<ImportMaterial> const& materials_;
+    std::vector<ImportElement> const& elements_;
+
+    // Whether to write tables that aren't used by physics
+    TableSelection which_tables_;
 };
 
 //---------------------------------------------------------------------------//
