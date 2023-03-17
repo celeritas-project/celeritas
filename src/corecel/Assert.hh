@@ -179,9 +179,9 @@
             }                                                             \
         } while (0)
 #else
-#    define CELER_VALIDATE(COND, MSG) \
-        static_assert(false,          \
-                      "CELER_VALIDATE cannot be called from device code")
+#    define CELER_VALIDATE(COND, MSG)                                         \
+        CELER_DEBUG_FAIL_("CELER_VALIDATE cannot be called from device code", \
+                          unreachable);
 #endif
 
 #define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL_(WHAT, unconfigured)
@@ -506,7 +506,8 @@ inline __host__ void device_debug_error(DebugErrorType which,
     throw DebugError({which, condition, __FILE__, __LINE__});
 }
 
-//! Device-only call for HIP (must always be declared; only used if NDEBUG)
+//! Device-only call for HIP (must always be declared; only used if
+//! NDEBUG)
 inline __attribute__((noinline)) __device__ void device_debug_error(
     DebugErrorType, char const* condition, char const* file, unsigned int line)
 {

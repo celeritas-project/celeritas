@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
@@ -78,7 +79,13 @@ struct CollectionStorage<T, Ownership::value, MemSpace::host>
 {
     static_assert(!std::is_same<T, bool>::value,
                   "bool is not compatible between vector and anything else");
+#ifdef CELER_DEVICE_COMPILE
+    // Use "not implemented" but __host__ __device__ decorated functions when
+    // compiling in CUDA
+    using type = DisabledStorage<T>;
+#else
     using type = std::vector<T>;
+#endif
     type data;
 };
 
@@ -86,13 +93,14 @@ struct CollectionStorage<T, Ownership::value, MemSpace::host>
 template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::device>
 {
-#ifndef CELER_DEVICE_COMPILE
-    using type = DeviceVector<T>;
-    type data;
-#else
+#ifdef CELER_DEVICE_COMPILE
+    // Use "not implemented" but __host__ __device__ decorated functions when
+    // compiling in CUDA
     using type = DisabledStorage<T>;
-    type data;
+#else
+    using type = DeviceVector<T>;
 #endif
+    type data;
 };
 
 //---------------------------------------------------------------------------//
@@ -182,15 +190,18 @@ struct CollectionAssigner<Ownership::value, MemSpace::host>
 template<>
 struct CollectionAssigner<Ownership::value, MemSpace::device>
 {
+    template<class T>
+    using StorageValDev
+        = CollectionStorage<T, Ownership::value, MemSpace::device>;
+
     template<class T, Ownership W2, MemSpace M2>
-    CollectionStorage<T, Ownership::value, MemSpace::device>
-    operator()(CollectionStorage<T, W2, M2> const& source)
+    StorageValDev<T> operator()(CollectionStorage<T, W2, M2> const& source)
     {
         static_assert(M2 == MemSpace::host,
                       "Can only assign by value from host to device");
 
-        CollectionStorage<T, Ownership::value, MemSpace::device> result{
-            DeviceVector<T>(source.data.size())};
+        StorageValDev<T> result{
+            typename StorageValDev<T>::type(source.data.size())};
         result.data.copy_to_device({source.data.data(), source.data.size()});
         return result;
     }

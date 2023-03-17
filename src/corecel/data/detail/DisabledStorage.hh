@@ -35,6 +35,8 @@ class DisabledStorage
     using const_reference = T const&;
     using iterator = pointer;
     using const_iterator = const_pointer;
+    using SpanT = Span<T>;
+    using SpanConstT = Span<T const>;
     //!@}
   public:
     //!@{
@@ -56,6 +58,15 @@ class DisabledStorage
         CELER_ASSERT_UNREACHABLE();
         return nullptr;
     }
+    CELER_FORCEINLINE_FUNCTION void copy_to_device(SpanConstT)
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+    CELER_FORCEINLINE_FUNCTION void copy_to_host(SpanT) const
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
     //!@}
 };
 
