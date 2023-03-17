@@ -27,6 +27,7 @@
 #include <G4VEnergyLossProcess.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4VProcess.hh>
+#include <G4Version.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -34,7 +35,6 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "../GeantConfig.hh"
 #include "GeantModelImporter.hh"
 
 using CLHEP::cm;
@@ -146,19 +146,19 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 {
     switch (g4_vector_type)
     {
-#if CELERITAS_G4_V10
+#if G4VERSION_NUMBER < 1100
         case T_G4PhysicsVector:
             return ImportPhysicsVectorType::unknown;
 #endif
         case T_G4PhysicsLinearVector:
             return ImportPhysicsVectorType::linear;
         case T_G4PhysicsLogVector:
-#if CELERITAS_G4_V10
+#if G4VERSION_NUMBER < 1100
         case T_G4PhysicsLnVector:
 #endif
             return ImportPhysicsVectorType::log;
         case T_G4PhysicsFreeVector:
-#if CELERITAS_G4_V10
+#if G4VERSION_NUMBER < 1100
         case T_G4PhysicsOrderedFreeVector:
         case T_G4LPhysicsFreeVector:
 #endif
@@ -363,7 +363,7 @@ void GeantProcessImporter::store_em_process(G4VEmProcess const& process)
     GeantModelImporter convert_model(materials_,
                                      PDGNumber{process_.particle_pdg},
                                      PDGNumber{process_.secondary_pdg});
-#if CELERITAS_G4_V10
+#if G4VERSION_NUMBER < 1100
     for (auto i : celeritas::range(process.GetNumberOfModels()))
 #else
     for (auto i : celeritas::range(process.NumberOfModels()))
@@ -438,7 +438,7 @@ void GeantProcessImporter::store_eloss_process(
             this->add_table(process.DEDXTable(), ImportTableType::dedx_process);
         }
 
-#if CELERITAS_G4_V10
+#if G4VERSION_NUMBER < 1100
         this->add_table(process.DEDXTableForSubsec(),
                         ImportTableType::dedx_subsec);
         this->add_table(process.IonisationTableForSubsec(),
@@ -473,7 +473,7 @@ void GeantProcessImporter::store_msc_process(G4VMultipleScattering const& proces
     GeantModelImporter convert_model(
         materials_, PDGNumber{process_.particle_pdg}, PDGNumber{});
 
-#if CELERITAS_G4_V10
+#if G4VERSION_NUMBER < 1100
     for (auto i : celeritas::range(4))
 #else
     for (auto i : celeritas::range(process.NumberOfModels()))
