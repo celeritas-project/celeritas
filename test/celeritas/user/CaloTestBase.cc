@@ -63,13 +63,52 @@ void CaloTestBase::RunResult::print_expected() const
  * Run a number of tracks.
  */
 template<MemSpace M>
-auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
+auto CaloTestBase::run(size_type num_tracks,
+                       size_type num_steps,
+                       size_type num_batches) -> RunResult
 {
-    this->run_impl<M>(num_tracks, num_steps);
+    // Can't have fewer than 1 track per batch
+    CELER_ASSERT(num_batches<=num_tracks);
 
+    // Don't want to deal with remainders
+    CELER_ASSERT(num_tracks%num_batches==0);
+
+    // Compute tracks per batch
+    size_type num_tracks_per_batch=num_tracks/num_batches;
+
+    // Initialize RunResult
     RunResult result;
-    result.edep = calo_->calc_total_energy_deposition();
-    calo_->clear();
+    size_t num_detectors = this->calo_->num_detectors();
+    result.edep=std::vector<double>(num_detectors,0.);
+    result.edep_err=std::vector<double>(num_detectors,0.);
+
+    // Loop over batches
+    for(size_type i_batch=0; i_batch<num_batches; ++i_batch){
+
+      this->run_impl<M>(num_tracks_per_batch, num_steps);
+
+      // Retrieve energies deposited this batch for each detector
+      auto edep = calo_->calc_total_energy_deposition();
+
+      // Update results for each detector
+      for(size_t i_det=0; i_det<num_detectors; ++i_det){
+        auto edep_det=edep[i_det];
+        result.edep.at(i_det)+=edep_det;
+        result.edep_err.at(i_det)+=(edep_det*edep_det);
+      }
+
+      calo_->clear();
+    }
+
+    // Finally, compute the mean and relative_err
+    double norm=num_batches > 1 ?  1.0/double(num_batches) : 1.0;
+    for(size_t i_det=0; i_det<num_detectors; ++i_det){
+      auto mu=result.edep.at(i_det)*norm;
+      auto var=result.edep_err.at(i_det)*norm - mu*mu;
+      auto err=sqrt(var) / mu;
+      result.edep.at(i_det) = mu;
+      result.edep_err.at(i_det) = err;
+    }
 
     return result;
 }
@@ -86,9 +125,9 @@ std::string CaloTestBase::output() const
 
 //---------------------------------------------------------------------------//
 template CaloTestBase::RunResult
-    CaloTestBase::run<MemSpace::device>(size_type, size_type);
+    CaloTestBase::run<MemSpace::device>(size_type, size_type, size_type);
 template CaloTestBase::RunResult
-    CaloTestBase::run<MemSpace::host>(size_type, size_type);
+    CaloTestBase::run<MemSpace::host>(size_type, size_type, size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace test
