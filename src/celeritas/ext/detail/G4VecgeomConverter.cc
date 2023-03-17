@@ -22,6 +22,7 @@
 #include <G4Ellipsoid.hh>
 #include <G4EllipticalCone.hh>
 #include <G4EllipticalTube.hh>
+#include <G4GDMLWriteStructure.hh>
 #include <G4GenericPolycone.hh>
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>
@@ -312,31 +313,41 @@ Transformation3D* G4VecGeomConverter::convert(G4ThreeVector const& t,
     return transformation;
 }
 
-LogicalVolume* G4VecGeomConverter::convert(G4LogicalVolume const* volume)
+LogicalVolume* G4VecGeomConverter::convert(G4LogicalVolume const* g4_logvol)
 {
-    if (logical_volume_map_.Contains(volume))
-        return const_cast<LogicalVolume*>(logical_volume_map_[volume]);
+    if (logical_volume_map_.Contains(g4_logvol))
+        return const_cast<LogicalVolume*>(logical_volume_map_[g4_logvol]);
 
     VUnplacedVolume const* unplaced;
-    unplaced = this->convert(volume->GetSolid());
-    LogicalVolume* const logical_volume
-        = new LogicalVolume(volume->GetName().c_str(), unplaced);
-    logical_volume_map_.Set(volume, logical_volume);
+    unplaced = this->convert(g4_logvol->GetSolid());
+
+    // add 0x suffix, unless already provided from GDML through Geant4 parser
+    static G4GDMLWriteStructure gdml_mangler;
+    std::string clean_name(g4_logvol->GetName());  // may have 0x suffix from
+                                                   // GDML
+    if (clean_name.find("0x") == std::string::npos)
+    {
+        // but if not found, add the 0x suffix here
+        clean_name = gdml_mangler.GenerateName(clean_name.c_str(), g4_logvol);
+    }
+
+    LogicalVolume* const vg_logvol
+        = new LogicalVolume(clean_name.c_str(), unplaced);
+    logical_volume_map_.Set(g4_logvol, vg_logvol);
 
     // can be used to make a cross check for dimensions and other properties
     // make a cross check using cubic volume property
-    if (!dynamic_cast<UnplacedScaledShape const*>(
-            logical_volume->GetUnplacedVolume())
-        && !dynamic_cast<G4BooleanSolid const*>(volume->GetSolid()))
+    if (!dynamic_cast<UnplacedScaledShape const*>(vg_logvol->GetUnplacedVolume())
+        && !dynamic_cast<G4BooleanSolid const*>(g4_logvol->GetSolid()))
     {
-        auto const v1 = logical_volume->GetUnplacedVolume()->Capacity()
+        auto const v1 = vg_logvol->GetUnplacedVolume()->Capacity()
                         / ipow<3>(scale);
-        auto const v2 = volume->GetSolid()->GetCubicVolume();
+        auto const v2 = g4_logvol->GetSolid()->GetCubicVolume();
 
         CELER_ASSERT(v1 > 0.);
         CELER_ASSERT(std::fabs((v1 / v2) - 1.0) < 0.01);
     }
-    return logical_volume;
+    return vg_logvol;
 }
 
 // the inverse: here we need both the placed volume and logical volume as input
