@@ -122,7 +122,7 @@ secondaries.
    :members: none
 .. doxygenclass:: celeritas::EnergyLossHelper
    :members: none
-.. doxygenclass:: celeritas::UrbanMscStepLimit
+.. doxygenclass:: celeritas::detail::UrbanMscStepLimit
    :members: none
-.. doxygenclass:: celeritas::UrbanMscScatter
+.. doxygenclass:: celeritas::detail::UrbanMscScatter
    :members: none

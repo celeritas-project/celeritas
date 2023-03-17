@@ -27,8 +27,7 @@
         "CMAKE_CXX_STANDARD": {"type": "STRING", "value": "17"},
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
-        "CMAKE_PREFIX_PATH": "/bld3/build/celeritas/geant4/geant4-v10.6.0-install/lib64;/bld3/build/celeritas/VecGeom/install-v1.1.20/lib64/cmake;/cvmfs/atlas-nightlies.cern.ch/repo/sw/master_Athena_x86_64-centos7-gcc11-opt/2023-02-13T2101/AthenaExternals/23.0.17/InstallArea/x86_64-centos7-gcc11-opt/lib/cmake;/cvmfs/sft.cern.ch/lcg/views/LCG_102b_ATLAS_11/x86_64-centos7-gcc11-opt/lib64/cmake;/cvmfs/sft.cern.ch/lcg/views/LCG_102b_ATLAS_11/x86_64-centos7-gcc11-opt/cmake",
-        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_CXX_COMPILER": "$env{CXX}",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=cascadelake -mtune=cascadelake",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
       }
@@ -41,7 +40,7 @@
     },
     {
       "name": "reldeb-novg",
-      "displayName": "Zeus release mode",
+      "displayName": "Zeus release with debug symbols and Orange",
       "inherits": [".reldeb", ".base"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
@@ -49,12 +48,12 @@
     },
     {
       "name": "reldeb",
-      "displayName": "Zeus release mode",
+      "displayName": "Zeus release with debug symbols",
       "inherits": [".reldeb", ".base"]
     },
     {
       "name": "ndebug-novg",
-      "displayName": "Zeus release mode",
+      "displayName": "Zeus release with Orange",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
@@ -62,7 +61,7 @@
     },
     {
       "name": "ndebug",
-      "displayName": "Zeus release mode",
+      "displayName": "Zeus release",
       "inherits": [".ndebug", ".base"]
     }
   ],
