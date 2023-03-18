@@ -11,6 +11,14 @@
 #include <iosfwd>
 #include <string_view>
 
+// Undefine macros from sys/sysmacros.h
+#ifdef major
+#    undef major
+#endif
+#ifdef minor
+#    undef minor
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
