@@ -103,7 +103,7 @@ char const* to_geant_name(ImportProcessClass value)
  * This will throw a \c celeritas::RuntimeError if the string is not known to
  * us.
  */
-ImportProcessClass geant_name_to_import_process_class(std::string const& s)
+ImportProcessClass geant_name_to_import_process_class(std::string_view s)
 {
     static auto const from_string
         = StringEnumMapper<ImportProcessClass>::from_cstring_func(

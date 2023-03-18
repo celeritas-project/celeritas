@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
 #include <vector>
 
 #include "ImportPhysicsTable.hh"
@@ -127,7 +128,7 @@ char const* to_cstring(ImportModelClass value);
 // Get the default Geant4 process name
 char const* to_geant_name(ImportModelClass value);
 // Convert a Geant4 process name to an IMC (throw RuntimeError if unsupported)
-ImportModelClass geant_name_to_import_model_class(std::string const& s);
+ImportModelClass geant_name_to_import_model_class(std::string_view s);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

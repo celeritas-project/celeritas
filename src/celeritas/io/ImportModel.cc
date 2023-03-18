@@ -87,7 +87,7 @@ char const* to_geant_name(ImportModelClass value)
  * This will throw a \c celeritas::RuntimeError if the string is not known to
  * us.
  */
-ImportModelClass geant_name_to_import_model_class(std::string const& s)
+ImportModelClass geant_name_to_import_model_class(std::string_view s)
 {
     static auto const from_string
         = StringEnumMapper<ImportModelClass>::from_cstring_func(to_geant_name,
