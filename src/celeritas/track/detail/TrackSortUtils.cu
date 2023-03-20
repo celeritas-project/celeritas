@@ -21,12 +21,12 @@ namespace detail
  * Initialize default threads to track_slots mapping, track_slots[i] = i
  */
 template<>
-void fill_track_slots<MemSpace::device>(Span<TrackSlotId> track_slots)
+void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots)
 {
     thrust::sequence(
         thrust::device_pointer_cast(track_slots.data()),
         thrust::device_pointer_cast(track_slots.data() + track_slots.size()),
-        TrackSlotId{0});
+        0);
     CELER_DEVICE_CHECK_ERROR();
 }
 //---------------------------------------------------------------------------//

@@ -91,7 +91,7 @@ struct CoreStateData
     template<class T>
     using Items = StateCollection<T, W, M>;
 
-    using TrackSlotsLookup = Collection<TrackSlotId, W, M, ThreadId>;
+    using TrackSlotsLookup = Collection<TrackSlotId::size_type, W, M, ThreadId>;
 
     GeoStateData<W, M> geometry;
     MaterialStateData<W, M> materials;
@@ -177,7 +177,7 @@ inline void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->init, params.init, size);
     resize(&state->track_slots, size);
 
-    detail::fill_track_slots<M>(state->track_slots[AllItems<TrackSlotId, M>{}]);
+    detail::fill_track_slots<M>(state->track_slots[AllItems<TrackSlotId::size_type, M>{}]);
 }
 
 //---------------------------------------------------------------------------//

@@ -18,11 +18,11 @@ namespace detail
  * Initialize default threads to track_slots mapping, track_slots[i] = i
  */
 template<>
-void fill_track_slots<MemSpace::host>(Span<TrackSlotId> track_slots)
+void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots)
 {
     std::iota(track_slots.data(),
               track_slots.data() + track_slots.size(),
-              TrackSlotId{0});
+              0);
 }
 //---------------------------------------------------------------------------//
 }  // namespace detail
