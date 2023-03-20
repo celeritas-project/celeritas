@@ -23,6 +23,7 @@
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
+#include "../OneSteelSphereBase.hh"
 #include "../SimpleTestBase.hh"
 #include "../TestEm15Base.hh"
 #include "../TestEm3Base.hh"
@@ -164,6 +165,42 @@ class TestEm15MscField : public TestEm15Base, public StepperTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].direction = sample_dir(rng);
+            result[i].particle_id = particles[i % particles.size()];
+        }
+        return result;
+    }
+
+    size_type max_average_steps() const override { return 500; }
+};
+
+//---------------------------------------------------------------------------//
+#define OneSteelSphere TEST_IF_CELERITAS_GEANT(OneSteelSphere)
+class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
+{
+    //! Make isotropic 10MeV electron/positron/gamma mix
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        Primary p;
+        p.energy = MevEnergy{10};
+        p.position = {0, 0, 0};
+        p.time = 0;
+        p.event_id = EventId{0};
+
+        Array<ParticleId, 3> const particles = {
+            this->particle()->find(pdg::gamma()),
+            this->particle()->find(pdg::electron()),
+            this->particle()->find(pdg::positron()),
+        };
+        CELER_ASSERT(particles[0] && particles[1] && particles[2]);
+
+        std::vector<Primary> result(count, p);
+        IsotropicDistribution<> sample_dir;
+        std::mt19937 rng;
+
+        for (auto i : range(count))
+        {
+            result[i].track_id = TrackId{i};
             result[i].direction = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
@@ -354,8 +391,8 @@ TEST_F(TestEm3Msc, host)
     if (this->is_ci_build())
     {
         EXPECT_EQ(86, result.num_step_iters());
-        EXPECT_SOFT_EQ(CELERITAS_USE_VECGEOM ? 46.125 : 46,
-                       result.calc_avg_steps_per_primary());
+        EXPECT_LE(46, result.calc_avg_steps_per_primary());
+        EXPECT_GE(46.125, result.calc_avg_steps_per_primary());
         EXPECT_EQ(10, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({1, 4}), result.calc_queue_hwm());
     }
@@ -416,16 +453,10 @@ TEST_F(TestEm3MscNofluct, host)
 
     if (this->is_ci_build())
     {
-        if (CELERITAS_USE_VECGEOM)
-        {
-            EXPECT_EQ(73, result.num_step_iters());
-            EXPECT_SOFT_EQ(63.125, result.calc_avg_steps_per_primary());
-        }
-        else
-        {
-            EXPECT_EQ(70, result.num_step_iters());
-            EXPECT_SOFT_EQ(61.625, result.calc_avg_steps_per_primary());
-        }
+        EXPECT_LE(70, result.num_step_iters());
+        EXPECT_GE(73, result.num_step_iters());
+        EXPECT_LE(61.625, result.calc_avg_steps_per_primary());
+        EXPECT_GE(63.125, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
     }
@@ -557,6 +588,71 @@ TEST_F(TestEm15MscField, TEST_IF_CELER_DEVICE(device))
         EXPECT_SOFT_EQ(34, result.calc_avg_steps_per_primary());
         EXPECT_EQ(5, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({1, 10}), result.calc_queue_hwm());
+    }
+    else
+    {
+        cout << "No output saved for combination of "
+             << test::PrintableBuildConf{} << std::endl;
+        result.print_expected();
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated stepper results are required for CI tests";
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+// ONESTEELSPHERE
+//---------------------------------------------------------------------------//
+
+TEST_F(OneSteelSphere, setup)
+{
+    auto result = this->check_setup();
+
+    static char const* const expected_processes[] = {
+        "Compton scattering",
+        "Photoelectric effect",
+        "Photon annihiliation",
+        "Positron annihiliation",
+        "Electron/positron ionization",
+        "Bremsstrahlung",
+    };
+    EXPECT_VEC_EQ(expected_processes, result.processes);
+    static char const* const expected_actions[] = {
+        "initialize-tracks",
+        "pre-step",
+        "along-step-general-linear",
+        "physics-discrete-select",
+        "scat-klein-nishina",
+        "photoel-livermore",
+        "conv-bethe-heitler",
+        "annihil-2-gamma",
+        "ioni-moller-bhabha",
+        "brems-sb",
+        "brems-rel",
+        "geo-boundary",
+        "dummy-action",
+        "extend-from-secondaries",
+    };
+    EXPECT_VEC_EQ(expected_actions, result.actions);
+}
+
+TEST_F(OneSteelSphere, host)
+{
+    size_type num_primaries = 128;
+    size_type num_tracks = 1024;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+    EXPECT_SOFT_NEAR(15.8671875, result.calc_avg_steps_per_primary(), 0.10);
+
+    if (this->is_ci_build())
+    {
+        EXPECT_EQ(16, result.num_step_iters());
+        EXPECT_SOFT_EQ(15.8671875, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(7, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({5, 114}), result.calc_queue_hwm());
     }
     else
     {

@@ -1,13 +1,19 @@
 #!/bin/sh -e
 
-export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
-# we need to clear exit on unchecked error for atlasLocalSetup...
-set +e
-source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh
-lsetup "views LCG_102b_ATLAS_11 x86_64-centos7-gcc11-opt"
-asetup none,gcc112,cmakesetup,siteroot=cvmfs
-set -e
+function _fail {
+    echo "$1" >&2
+    exit $2
+}
 
-# not in standard Atlas build env but we need it for cuda-enabled vecgeom
+celeritas_spack_env_name=celeritas
+
+if ! declare -fF spack > /dev/null; then
+    _fail "Expects spack shell support" 1
+elif [[ ! -d "${SPACK_ROOT}/var/spack/environments/${celeritas_spack_env_name}" ]]; then
+    _fail "Expects a spack environment named ${celeritas_spack_env_name}" 2
+fi
+
+module unload gcc
+source /cvmfs/sft.cern.ch/lcg/contrib/gcc/11.3.0/x86_64-centos7-gcc11-opt/setup.sh
 module load cuda/11.8.0
-source /bld3/build/celeritas/geant4/geant4-v10.6.0-install/bin/geant4.sh
+spack env activate ${celeritas_spack_env_name}

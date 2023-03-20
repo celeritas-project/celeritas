@@ -14,6 +14,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Version.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/GlobalTestBase.hh"
@@ -37,6 +38,12 @@ namespace test
 #else
 #    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
 #endif
+
+namespace
+{
+auto const vecgeom_version
+    = celeritas::Version::from_string(celeritas_vecgeom_version);
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -150,8 +157,8 @@ class FourLevelsTest : public GlobalGeoTestBase,
 TEST_F(FourLevelsTest, accessors)
 {
     auto const& geom = *this->geometry();
-    EXPECT_EQ(4, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
+    ASSERT_EQ(4, geom.num_volumes());
 
     EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
@@ -430,23 +437,25 @@ class SolidsTest : public GlobalGeoTestBase,
 
 TEST_F(SolidsTest, accessors)
 {
-    if (starts_with(celeritas_vecgeom_version, "1.1"))
+    if (vecgeom_version <= Version(1, 1, 17))
     {
         FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
     }
-    else if (celeritas_vecgeom_version == std::string{"1.2.0"})
+
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+
+    if (vecgeom_version <= Version(1, 2, 0))
     {
         ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
     }
 
-    auto const& geom = *this->geometry();
     // TODO: there are 27 actual solids, but there are a few "unused" volumes
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
-    EXPECT_EQ(25, geom.num_volumes());
-    EXPECT_EQ(2, geom.max_depth());
+    ASSERT_EQ(26, geom.num_volumes());
 
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{25}).name);
     EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
     EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
@@ -507,24 +516,26 @@ class SolidsGeantTest : public GeantBuilderTestBase
 
 TEST_F(SolidsGeantTest, accessors)
 {
-    if (starts_with(celeritas_vecgeom_version, "1.1"))
+    if (vecgeom_version <= Version(1, 1, 17))
     {
         FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
     }
-    else if (celeritas_vecgeom_version == std::string{"1.2.0"})
+
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+
+    if (vecgeom_version <= Version(1, 2, 0))
     {
         ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
     }
 
-    auto const& geom = *this->geometry();
     // TODO: there are 27 actual solids, but there are a few "unused" volumes
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
-    // 25 is the "expected" number from VecGeom 1.2.1 (used by CI)
-    EXPECT_EQ(25, geom.num_volumes());
-    EXPECT_EQ(2, geom.max_depth());
+    // 26 is the "expected" number from VecGeom 1.2.2 (used by CI)
+    ASSERT_EQ(26, geom.num_volumes());
 
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{25}).name);
     EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
     EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);

@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "GeantVolumeVisitor.hh"
 
-#include <regex>
 #include <G4GDMLWriteStructure.hh>
 #include <G4LogicalVolume.hh>
 #include <G4MaterialCutsCouple.hh>
+#include <G4ReflectionFactory.hh>
 #include <G4VSolid.hh>
 
 #include "corecel/Assert.hh"
@@ -56,22 +56,7 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
     }
     else if (unique_volumes_)
     {
-        // See if the name already has a uniquifying address (e.g., we loaded
-        // it through our GdmlLoader with `SetStripFlag(false)`)
-        // static std::regex const final_ptr_regex{"0x[0-9a-f]{4,16}$"};
-        static std::regex const final_ptr_regex{"0x[0-9a-f]{4,16}$"};
-        std::smatch ptr_match;
-        if (!std::regex_search(volume.name, ptr_match, final_ptr_regex))
-        {
-            // No unique extension: run the LV through the GDML export name
-            // generator so that the volume is uniquely identifiable in
-            // VecGeom.
-            // Reuse the same instance to reduce overhead: note that the method
-            // isn't const correct.
-            static G4GDMLWriteStructure temp_writer;
-            volume.name
-                = temp_writer.GenerateName(volume.name, &logical_volume);
-        }
+        volume.name = this->generate_name(logical_volume);
     }
 
     // Recursive: repeat for every daughter volume, if there are any
@@ -81,6 +66,37 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
     }
 
     CELER_ENSURE(volume);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate the GDML name for a Geant4 logical volume.
+ */
+std::string
+GeantVolumeVisitor::generate_name(G4LogicalVolume const& logical_volume)
+{
+    std::string name = logical_volume.GetName();
+
+    // Run the LV through the GDML export name generator so that the volume is
+    // uniquely identifiable in VecGeom. Reuse the same instance to reduce
+    // overhead: note that the method isn't const correct.
+    static G4GDMLWriteStructure temp_writer;
+    auto const* refl_factory = G4ReflectionFactory::Instance();
+    if (auto const* lv = refl_factory->GetConstituentLV(
+            const_cast<G4LogicalVolume*>(&logical_volume)))
+    {
+        // If this is a reflected volume, generate the name based on the
+        // constituent volume and re-add the reflection extension after the
+        // final pointer so the name will match the GDML name.
+        name = lv->GetName();
+        name = temp_writer.GenerateName(name, lv)
+               + refl_factory->GetVolumesNameExtension();
+    }
+    else
+    {
+        name = temp_writer.GenerateName(name, &logical_volume);
+    }
+    return name;
 }
 
 //---------------------------------------------------------------------------//

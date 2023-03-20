@@ -27,23 +27,6 @@
       }
     },
     {
-      "name": "acceleritas",
-      "displayName": "Everything in release mode",
-      "inherits": [".ndebug", ".base"],
-      "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
-        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
-      },
-      "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS":{"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_BUILD_TESTS":{"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
-      }
-    },
-    {
       "name": "base",
       "displayName": "Wildstyle default options (GCC, debug, no omp)",
       "inherits": [".base"],
