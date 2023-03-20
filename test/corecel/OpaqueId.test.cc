@@ -106,7 +106,7 @@ TEST(OpaqueIdTest, iota)
               data_view.end(),
               Id_t{0});
     for(auto i: range(data_view.size())) {
-        EXPECT_TRUE(i == data_view[i].unchecked_get());
+        EXPECT_EQ(Id_t{i}, data_view[i]);
     }
 }
 
