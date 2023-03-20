@@ -20,6 +20,7 @@
 #include "corecel/cont/Label.hh"
 #include "corecel/cont/LabelIO.json.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
@@ -30,13 +31,13 @@ namespace
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the i-th translation from a flattened vector.
+ * Create a Translation object from a Span into a vector of translation data.
  */
-celeritas::Translation make_translation(std::vector<double> const& translations,
-                                        celeritas::size_type i)
+celeritas::Translation
+make_translation(celeritas::Span<celeritas::real_type const> const& trans)
 {
-    return celeritas::Translation{
-        translations[3 * i], translations[3 * i + 1], translations[3 * i + 2]};
+    CELER_EXPECT(trans.size() == 3);
+    return celeritas::Translation{trans[0], trans[1], trans[2]};
 }
 }  // namespace
 
@@ -202,7 +203,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
                           "different lengths");
 
         auto const& translations
-            = j.at("translations").get<std::vector<double>>();
+            = j.at("translations").get<std::vector<real_type>>();
         CELER_VALIDATE(3 * parent_cells.size() == translations.size(),
                        << "field 'translations' is not 3x length of "
                           "'parent_cells'");
@@ -210,8 +211,10 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         UnitInput::MapVolumeDaughter daughter_map;
         for (auto i : range(parent_cells.size()))
         {
-            daughter_map[LocalVolumeId{parent_cells[i]}] = {
-                UniverseId{daughters[i]}, make_translation(translations, i)};
+            daughter_map[LocalVolumeId{parent_cells[i]}]
+                = {UniverseId{daughters[i]},
+                   make_translation(
+                       Span<real_type const>(translations.data() + 3 * i, 3))};
         }
 
         value.daughter_map = std::move(daughter_map);
