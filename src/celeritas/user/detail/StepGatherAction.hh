@@ -104,7 +104,12 @@ template<MemSpace M>
 StepStateData<Ownership::reference, M> const&
 StepGatherAction<P>::get_state(CoreRef<M> const& core) const
 {
-    auto& state_store = storage_->get_state(StepStorage::MemSpaceTag<M>{});
+    if (CELER_UNLIKELY(core.states.stream_id != StreamId{0}))
+    {
+        CELER_NOT_IMPLEMENTED("StepCollector with multiple streams");
+    }
+
+    auto& state_store = storage_->get_state<M>();
     if (CELER_UNLIKELY(!state_store))
     {
         // State storage hasn't been allocated yet: allocate based on current

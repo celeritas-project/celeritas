@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "StepGatherAction.hh"
 
-#include <mutex>
 #include <utility>
 
 #include "corecel/Assert.hh"
@@ -64,11 +63,6 @@ template<StepPoint P>
 void StepGatherAction<P>::execute(CoreHostRef const& core) const
 {
     CELER_EXPECT(core);
-
-    // Lock mutex to prevent multiple CPU threads from
-    // creating/accessing/processing state data simultaneously
-    std::lock_guard<std::mutex> scoped_lock{storage_->mumu};
-
     auto const& step_state = this->get_state(core);
     CELER_ASSERT(step_state.size() == core.states.size());
 
@@ -98,10 +92,6 @@ template<StepPoint P>
 void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
 {
     CELER_EXPECT(core);
-
-    // Lock mutex to prevent multiple CPU threads from
-    // creating/accessing/processing state data simultaneously
-    std::lock_guard<std::mutex> scoped_lock{storage_->mumu};
 
 #if CELER_USE_DEVICE
     auto& step_state = this->get_state(core);
