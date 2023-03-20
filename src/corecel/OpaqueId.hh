@@ -62,6 +62,14 @@ class OpaqueId
         return *this;
     }
 
+    OpaqueId operator++(int)
+    {
+        CELER_EXPECT(*this);
+        OpaqueId old{*this};
+        ++*this;
+        return old;
+    }
+
     //! Get the ID's value
     CELER_FORCEINLINE_FUNCTION size_type get() const
     {
