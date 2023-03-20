@@ -8,6 +8,7 @@
 #pragma once
 
 #include <mutex>
+#include <thread>
 #include <type_traits>
 
 #include "corecel/data/CollectionMirror.hh"
@@ -36,6 +37,8 @@ struct StepStorage
 
     // Mutex to prevent multiple CPU threads from writing simultaneously
     mutable std::mutex mumu;
+    // For checking that pre/post aren't stepping on each other
+    mutable std::thread::id pre_id;
 
     // Parameter data
     CollectionMirror<StepParamsData> params;

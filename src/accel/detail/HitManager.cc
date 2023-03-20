@@ -11,6 +11,8 @@
 #include <G4GDMLWriteStructure.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
+#include <G4RunManager.hh>
+#include <G4Threading.hh>
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/EnumArray.hh"
@@ -18,6 +20,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "accel/SetupOptions.hh"
 
@@ -48,6 +51,19 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
 {
     CELER_EXPECT(setup.enabled);
+
+    // FIXME for v0.3: hit manager fails on multiple threads
+    {
+        auto* run_man = G4RunManager::GetRunManager();
+        CELER_VALIDATE(run_man,
+                       << "G4RunManager was not created before setting up "
+                          "HitManager");
+        int num_threads = celeritas::get_num_threads(*run_man);
+        CELER_VALIDATE(num_threads == 1,
+                       << "Celeritas HitManager does not support "
+                          "multithreading/multitasking: disable sensitive "
+                          "detectors or run with a single thread");
+    }
 
     // Convert setup options to step data
     selection_.energy_deposition = setup.energy_deposition;
