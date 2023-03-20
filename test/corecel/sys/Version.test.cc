@@ -5,11 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/Version.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/sys/Version.hh"
-
 #include <string_view>
-
 #include "celeritas_test.hh"
+#include "corecel/sys/Version.hh"
 
 #define VT_G4VERSION 1063
 static char const vt_g4version[] = "10.6.3";
