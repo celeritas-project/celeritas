@@ -53,7 +53,8 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         return;
     }
 
-    if (msc.is_applicable(track, step_limit.step))
+    bool use_msc = msc.is_applicable(track, step_limit.step);
+    if (use_msc)
     {
         // Apply MSC step limiters and transform "physical" step (with MSC) to
         // "geometrical" step (smooth curve)
@@ -65,22 +66,30 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         auto geo = track.make_geo_view();
         auto propagate = make_propagator(particle, &geo);
         Propagation p = propagate(step_limit.step);
-        if (p.looping)
+        if (propagate.tracks_can_loop())
+        {
+            sim.update_looping(p.looping);
+        }
+        if (propagate.tracks_can_loop() && p.looping)
         {
             // The track is looping, i.e. progressing little over many
             // integration steps in the field propagator (likely a low energy
             // particle in a low density material/strong magnetic field).
             step_limit.step = p.distance;
             step_limit.action = track.propagation_limit_action();
-            sim.increment_looping_steps();
 
             // If the energy is below the looping threshold or the maximum
             // number of looping steps has been reached, kill the track.
-            // TODO: only stable particles should be killed
             auto pid = particle.particle_id();
-            if (particle.energy() < sim.looping_threshold(pid)
-                || sim.num_looping_steps() >= sim.max_looping_steps(pid))
+            if (particle.is_stable()
+                && (particle.energy() < sim.looping_threshold(pid)
+                    || sim.num_looping_steps() >= sim.max_looping_steps(pid)))
             {
+                // If the track is looping (or if it's a stuck track that waa
+                // flagged as looping), the energy is discarded because it's
+                // likely either to be an error (in which case there is no
+                // correct treatment) or the track is assumed to be escaping
+                // the problem
                 step_limit.action = track.abandon_looping_action();
                 sim.status(TrackStatus::killed);
             }
@@ -96,16 +105,17 @@ inline CELER_FUNCTION void along_step(MH&& msc,
             }
             else if (p.distance < step_limit.step)
             {
-                // Some other internal non-boundary geometry limit has been
-                // reached (e.g. too many substeps)
+                // Some tracks may get stuck on a boundary and fail to move at
+                // all in the field propagtor, and will get bumped a small
+                // distance. This primarily occurs with reentrant tracks on a
+                // boundary with VecGeom.
                 step_limit.step = p.distance;
                 step_limit.action = track.propagation_limit_action();
             }
-            sim.reset_looping_steps();
         }
     }
 
-    if (msc.is_applicable(track, step_limit.step))
+    if (use_msc && sim.status() == TrackStatus::alive)
     {
         // Scatter the track and transform the "geometrical" step back to
         // "physical" step
@@ -126,7 +136,7 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         }
     }
 
-    if (eloss.is_applicable(track))
+    if (eloss.is_applicable(track) && sim.status() == TrackStatus::alive)
     {
         using Energy = ParticleTrackView::Energy;
 

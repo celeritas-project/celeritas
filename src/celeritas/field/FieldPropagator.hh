@@ -61,6 +61,9 @@ class FieldPropagator
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
+    //! Whether it's possible to have tracks that are looping
+    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return true; }
+
     //! Limit on substeps
     static CELER_CONSTEXPR_FUNCTION short int max_substeps() { return 1000; }
 
@@ -259,7 +262,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
     // Flag track as looping if the max number of substeps was reached without
     // hitting a boundary or moving the full step length
-    if (remaining_substeps == 0 && (!result.boundary || result.distance < step))
+    if (remaining_substeps == 0)
     {
         result.looping = true;
     }

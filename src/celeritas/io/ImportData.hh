@@ -57,7 +57,10 @@ struct ImportTransParameters
     double important_energy{250};
 
     //! Whether parameters are assigned and valid
-    explicit operator bool() const { return threshold_trials > 0; }
+    explicit operator bool() const
+    {
+        return threshold_trials > 0 && important_energy >= 0;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -97,10 +100,12 @@ struct ImportData
 {
     //!@{
     //! \name Type aliases
-    using ImportSBMap = std::map<int, ImportSBTable>;
-    using ImportLivermorePEMap = std::map<int, ImportLivermorePE>;
-    using ImportAtomicRelaxationMap = std::map<int, ImportAtomicRelaxation>;
-    using ImportTransParamMap = std::map<int, ImportTransParameters>;
+    using ZInt = int;
+    using PDGInt = int;
+    using ImportSBMap = std::map<ZInt, ImportSBTable>;
+    using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
+    using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
+    using ImportTransParamMap = std::map<PDGInt, ImportTransParameters>;
     //!@}
 
     std::vector<ImportParticle> particles;

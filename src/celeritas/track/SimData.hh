@@ -37,7 +37,10 @@ struct LoopingThreshold
     Energy threshold_energy{250};
 
     //! Whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const { return max_steps > 0; }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return max_steps > 0 && threshold_energy >= zero_quantity();
+    }
 };
 //---------------------------------------------------------------------------//
 /*!

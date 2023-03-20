@@ -34,6 +34,9 @@ class LinearPropagator
     // Move track up to a user-provided distance, up to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
+    //! Whether it's possible to have tracks that are looping
+    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return false; }
+
   private:
     GeoTrackView& track_;
 };

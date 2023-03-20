@@ -499,10 +499,10 @@ G4Transportation const* get_transportation(G4ParticleDefinition const* particle)
 /*!
  * Store particle-dependent transportation parameters.
  */
-std::map<int, ImportTransParameters>
-store_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
+auto store_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
+    -> ImportData::ImportTransParamMap
 {
-    std::map<int, ImportTransParameters> result;
+    ImportData::ImportTransParamMap result;
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());

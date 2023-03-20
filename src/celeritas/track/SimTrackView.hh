@@ -48,11 +48,8 @@ class SimTrackView
     // Increment the total number of steps
     CELER_FORCEINLINE_FUNCTION void increment_num_steps();
 
-    // Increment the number of steps this track has been looping
-    CELER_FORCEINLINE_FUNCTION void increment_looping_steps();
-
-    // Reset the number of looping steps to zero
-    CELER_FORCEINLINE_FUNCTION void reset_looping_steps();
+    // Update the number of steps this track has been looping
+    CELER_FORCEINLINE_FUNCTION void update_looping(bool);
 
     // Set whether the track is alive
     inline CELER_FUNCTION void status(TrackStatus);
@@ -158,20 +155,18 @@ CELER_FUNCTION void SimTrackView::increment_num_steps()
 
 //---------------------------------------------------------------------------//
 /*!
- * Increment the number of steps this track has been looping.
+ * Update the number of steps this track has been looping.
  */
-CELER_FUNCTION void SimTrackView::increment_looping_steps()
+CELER_FUNCTION void SimTrackView::update_looping(bool is_looping)
 {
-    ++states_.state[track_slot_].num_looping_steps;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reset the number of looping steps to zero.
- */
-CELER_FUNCTION void SimTrackView::reset_looping_steps()
-{
-    states_.state[track_slot_].num_looping_steps = 0;
+    if (is_looping)
+    {
+        ++states_.state[track_slot_].num_looping_steps;
+    }
+    else
+    {
+        states_.state[track_slot_].num_looping_steps = 0;
+    }
 }
 
 //---------------------------------------------------------------------------//
