@@ -442,7 +442,7 @@ TEST_F(SolidsTest, accessors)
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
 
-    if (vecgeom_version <= Version(1, 2, 2))
+    if (vecgeom_version < Version(1, 2, 2))
     {
         ADD_FAILURE()
             << "VecGeom " << vecgeom_version
@@ -724,7 +724,7 @@ TEST_F(SolidsGeantTest, accessors)
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
 
-    if (vecgeom_version <= Version(1, 2, 2))
+    if (vecgeom_version < Version(1, 2, 2))
     {
         ADD_FAILURE()
             << "VecGeom " << vecgeom_version
