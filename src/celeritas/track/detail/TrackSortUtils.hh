@@ -23,7 +23,9 @@ namespace detail
 //---------------------------------------------------------------------------//
 
 // Initialize default threads to track_slots mapping, track_slots[i] = i
-template<MemSpace M, typename Size, typename = std::enable_if_t<std::is_unsigned_v<Size>> >
+template<MemSpace M,
+         typename Size,
+         typename = std::enable_if_t<std::is_unsigned_v<Size>>>
 void fill_track_slots(Span<Size> track_slots);
 
 template<>

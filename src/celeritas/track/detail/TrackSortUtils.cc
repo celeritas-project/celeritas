@@ -20,9 +20,7 @@ namespace detail
 template<>
 void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots)
 {
-    std::iota(track_slots.data(),
-              track_slots.data() + track_slots.size(),
-              0);
+    std::iota(track_slots.data(), track_slots.data() + track_slots.size(), 0);
 }
 //---------------------------------------------------------------------------//
 }  // namespace detail
