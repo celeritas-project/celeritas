@@ -26,7 +26,7 @@ char const* to_cstring(ImportModelClass value)
         "bethe_bloch",
         "urban_msc",
         "icru_73_qo",
-        "wentzel_VI_uni",
+        "wentzel_vi_uni",
         "h_brems",
         "h_pair_prod",
         "e_coulomb_scattering",
@@ -76,6 +76,7 @@ char const* to_geant_name(ImportModelClass value)
         "MuBetheBloch",
         "MuBrem",
         "muPairProd",
+        "PhotoElectric",
     };
     return to_name_impl(value);
 }

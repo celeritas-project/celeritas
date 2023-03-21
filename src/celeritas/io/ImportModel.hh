@@ -19,6 +19,9 @@ namespace celeritas
  * Enumerator for the available physics models.
  *
  * This enum was created to safely access the many imported physics tables.
+ *
+ * \todo reorganize by physics list (major) and particle (minor) so that newly
+ * supported models are appended cleanly to the end of the list.
  */
 enum class ImportModelClass
 {
@@ -28,7 +31,7 @@ enum class ImportModelClass
     bethe_bloch,
     urban_msc,
     icru_73_qo,
-    wentzel_VI_uni,
+    wentzel_vi_uni,
     h_brems,
     h_pair_prod,
     e_coulomb_scattering,
@@ -45,6 +48,7 @@ enum class ImportModelClass
     mu_bethe_bloch,
     mu_brems,
     mu_pair_prod,
+    fluo_photoelectric,
     size_
 };
 
