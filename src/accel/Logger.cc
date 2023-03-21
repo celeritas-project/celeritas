@@ -69,7 +69,7 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
     if (local_thread >= 0)
     {
         // On a worker thread
-        cerr << color_code('W') << '[' << G4Threading::G4GetThreadId();
+        cerr << color_code('W') << '[' << G4Threading::G4GetThreadId() + 1;
         if (num_threads_ > 0)
         {
             // Using MT runner (as opposed to tasking/serial)

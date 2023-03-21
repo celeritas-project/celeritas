@@ -134,7 +134,6 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
  */
 void HitRootIO::Close()
 {
-    CELER_LOG_LOCAL(status) << "Closing ROOT file";
     CELER_EXPECT((file_ && file_->IsOpen())
                  || (G4Threading::IsMultithreadedApplication()
                      && G4Threading::IsMasterThread()));
@@ -154,6 +153,7 @@ void HitRootIO::Close()
         }
         else
         {
+            CELER_LOG(debug) << "Writing temporary local ROOT output";
             file_->Write("", TObject::kOverwrite);
         }
     }
