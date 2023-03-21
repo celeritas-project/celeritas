@@ -124,6 +124,11 @@ void GeantPhysicsList::ConstructProcess()
  * | Photoelectric effect | G4LivermorePhotoElectricModel |
  * | Rayleigh scattering  | G4LivermoreRayleighModel      |
  * | Gamma conversion     | G4PairProductionRelModel      |
+ *
+ * If the \c gamma_general option is enabled, we create a single unified
+ * \c G4GammaGeneralProcess process, which embeds these other processes and
+ * calculates a combined total cross section. It's faster in Geant4 but
+ * shouldn't result in different answers.
  */
 void GeantPhysicsList::add_gamma_processes()
 {
