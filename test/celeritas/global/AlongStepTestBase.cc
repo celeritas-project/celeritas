@@ -32,9 +32,9 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     CELER_EXPECT(inp);
     CELER_EXPECT(num_tracks > 0);
 
-    // Create states
+    // Create states (single thread)
     CollectionStateStore<CoreStateData, MemSpace::host> states{
-        this->core()->host_ref(), num_tracks};
+        this->core()->host_ref(), StreamId{0}, num_tracks};
     CoreRef<MemSpace::host> core_ref;
     core_ref.params = this->core()->host_ref();
     core_ref.states = states.ref();

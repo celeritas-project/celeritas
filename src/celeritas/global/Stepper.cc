@@ -32,10 +32,11 @@ template<MemSpace M>
 Stepper<M>::Stepper(Input input) : params_(std::move(input.params))
 {
     CELER_EXPECT(params_);
+    CELER_VALIDATE(input.stream_id, << "stream ID is not set");
     CELER_VALIDATE(input.num_track_slots > 0,
-                   << "number of track slots has not been set");
-    states_ = CollectionStateStore<CoreStateData, M>(params_->host_ref(),
-                                                     input.num_track_slots);
+                   << "number of track slots is not set");
+    states_ = CollectionStateStore<CoreStateData, M>(
+        params_->host_ref(), input.stream_id, input.num_track_slots);
 
     // Create action sequence
     {

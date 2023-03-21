@@ -55,14 +55,19 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     CELER_EXPECT(params);
     particles_ = params.Params()->particle();
 
-    StepperInput inp{params.Params(), options.max_num_tracks, options.sync};
+    StepperInput inp;
+    inp.params = params.Params();
+    inp.stream_id = StreamId(G4Threading::G4GetThreadId());
+    inp.num_track_slots = options.max_num_tracks;
+    inp.sync = options.sync;
+
     if (celeritas::device())
     {
-        step_ = std::make_shared<Stepper<MemSpace::device>>(inp);
+        step_ = std::make_shared<Stepper<MemSpace::device>>(std::move(inp));
     }
     else
     {
-        step_ = std::make_shared<Stepper<MemSpace::host>>(inp);
+        step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
     }
 }
 

@@ -87,6 +87,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
+    CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
@@ -103,6 +104,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         scalars_.propagation_limit_action,
         "geo-propagation-limit",
         "Propagation substep/range limit"));
+
+    // Save maximum number of streams;
+    scalars_.max_streams = input_.max_streams;
 
     // Construct initialize tracks action
     input_.action_reg->insert(std::make_shared<InitializeTracksAction>(

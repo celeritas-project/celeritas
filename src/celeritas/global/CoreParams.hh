@@ -65,11 +65,14 @@ class CoreParams
 
         SPActionRegistry action_reg;
 
+        //! Maximum number of simultaneous threads/tasks per process
+        StreamId::size_type max_streams{1};
+
         //! True if all params are assigned
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && rng && init && action_reg;
+                   && physics && rng && init && action_reg && max_streams;
         }
     };
 

@@ -164,7 +164,8 @@ class TrackInitTest : public SimpleTestBase
         CELER_EXPECT(core_data.params);
 
         // Allocate state data
-        resize(&device_states, this->core()->host_ref(), num_tracks);
+        resize(
+            &device_states, this->core()->host_ref(), StreamId{0}, num_tracks);
         core_data.states = device_states;
 
         CELER_ENSURE(core_data.states);

@@ -185,6 +185,8 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
     StepperInput input;
     input.params = input_.params;
     input.num_track_slots = input_.num_track_slots;
+    // TODO: change when doing multithreading on the front end
+    input.stream_id = StreamId{0};
     input.sync = input_.sync;
     Stepper<M> step(std::move(input));
 

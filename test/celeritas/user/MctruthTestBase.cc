@@ -79,6 +79,7 @@ auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
 {
     StepperInput step_inp;
     step_inp.params = this->core();
+    step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_tracks;
 
     Stepper<MemSpace::host> step(step_inp);
