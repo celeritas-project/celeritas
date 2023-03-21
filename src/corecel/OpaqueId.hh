@@ -54,7 +54,7 @@ class OpaqueId
         return value_ != invalid_value();
     }
 
-    //! Increment ID's value
+    //! Pre-increment of the ID
     CELER_FUNCTION OpaqueId& operator++()
     {
         CELER_EXPECT(*this);
@@ -62,6 +62,7 @@ class OpaqueId
         return *this;
     }
 
+    //! Post-increment of the ID
     CELER_FUNCTION OpaqueId operator++(int)
     {
         CELER_EXPECT(*this);

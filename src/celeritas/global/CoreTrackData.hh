@@ -91,7 +91,8 @@ struct CoreStateData
     template<class T>
     using Items = StateCollection<T, W, M>;
 
-    using TrackSlotsLookup = Collection<TrackSlotId::size_type, W, M, ThreadId>;
+    template<class T>
+    using ThreadItems = Collection<T, W, M, ThreadId>;
 
     GeoStateData<W, M> geometry;
     MaterialStateData<W, M> materials;
@@ -100,8 +101,7 @@ struct CoreStateData
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;
     TrackInitStateData<W, M> init;
-    TrackSlotsLookup track_slots;
-
+    ThreadItems<TrackSlotId::size_type> track_slots;
 
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return particles.size(); }
@@ -177,7 +177,8 @@ inline void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->init, params.init, size);
     resize(&state->track_slots, size);
 
-    detail::fill_track_slots<M>(state->track_slots[AllItems<TrackSlotId::size_type, M>{}]);
+    detail::fill_track_slots<M>(
+        state->track_slots[AllItems<TrackSlotId::size_type, M>{}]);
 }
 
 //---------------------------------------------------------------------------//

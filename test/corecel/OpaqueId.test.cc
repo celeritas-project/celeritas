@@ -6,11 +6,13 @@
 //! \file corecel/data/OpaqueId.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/OpaqueId.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
+
 #include <cstdint>
 #include <numeric>
 #include <utility>
+
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 
 #include "celeritas_test.hh"
 
@@ -95,18 +97,17 @@ TEST(OpaqueIdTest, multi_int)
 
 TEST(OpaqueIdTest, iota)
 {
-    using Id_t = OpaqueId<TestInstantiator, std::size_t>;
     using Id_i = OpaqueId<int, std::size_t>;
-    using Col = Collection<Id_t, Ownership::value, MemSpace::host, Id_i>;
+    using T = Id_i::size_type;
+    using Col = Collection<T, Ownership::value, MemSpace::host, Id_i>;
     Col data;
     CollectionBuilder builder{&data};
     builder.resize(100);
-    Span data_view{data[AllItems<Id_t>{}]};
-    std::iota(data_view.begin(),
-              data_view.end(),
-              Id_t{0});
-    for(auto i: range(data_view.size())) {
-        EXPECT_EQ(Id_t{i}, data_view[i]);
+    Span data_view{data[AllItems<T>{}]};
+    std::iota(data_view.begin(), data_view.end(), 0);
+    for (auto i : range(data_view.size()))
+    {
+        EXPECT_EQ(i, data_view[i]);
     }
 }
 
