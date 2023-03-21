@@ -123,6 +123,7 @@ celeritas_add_test(corecel/OpaqueId.test.cc)
 # Cont
 set(CELERITASTEST_PREFIX corecel/cont)
 celeritas_add_test(corecel/cont/Array.test.cc)
+celeritas_add_test(corecel/cont/InitializedValue.test.cc)
 celeritas_add_test(corecel/cont/Span.test.cc)
 celeritas_add_test(corecel/cont/LabelIdMultiMap.test.cc)
 celeritas_add_device_test(corecel/cont/Range)

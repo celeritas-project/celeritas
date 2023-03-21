@@ -9,10 +9,10 @@
 
 #include <type_traits>
 
+#include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
 
 #include "DeviceAllocation.hh"
-#include "detail/InitializedValue.hh"
 
 namespace celeritas
 {
@@ -92,7 +92,7 @@ class DeviceVector
 
   private:
     DeviceAllocation allocation_;
-    detail::InitializedValue<size_type> size_;
+    InitializedValue<size_type> size_;
 };
 
 // Swap two vectors.
