@@ -394,10 +394,11 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         // Step limited by distance to interaction = 2.49798914193346685e21
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(273.03613780942214, result.step);
-        EXPECT_EQ(0, result.eloss);
+        // All of the track's energy was deposited locally
+        EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
         EXPECT_EQ(0, result.mfp);
-        EXPECT_EQ("abandon-looping", result.action);
         // Track was flagged as looping and killed
+        EXPECT_EQ("abandon-looping", result.action);
         EXPECT_EQ(0, result.alive);
     }
 }

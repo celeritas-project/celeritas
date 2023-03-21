@@ -86,12 +86,17 @@ inline CELER_FUNCTION void along_step(MH&& msc,
                     || sim.num_looping_steps() >= sim.max_looping_steps(pid)))
             {
                 // If the track is looping (or if it's a stuck track that waa
-                // flagged as looping), the energy is discarded because it's
-                // likely either to be an error (in which case there is no
-                // correct treatment) or the track is assumed to be escaping
-                // the problem
+                // flagged as looping), deposit the energy locally.
+                track.make_physics_step_view().deposit_energy(
+                    particle.energy());
+                particle.subtract_energy(particle.energy());
+
+                // Mark that this track was abandoned while looping
                 step_limit.action = track.abandon_looping_action();
+                sim.force_step_limit(step_limit);
+                sim.increment_num_steps();
                 sim.status(TrackStatus::killed);
+                return;
             }
         }
         else
@@ -115,7 +120,7 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         }
     }
 
-    if (use_msc && sim.status() == TrackStatus::alive)
+    if (use_msc)
     {
         // Scatter the track and transform the "geometrical" step back to
         // "physical" step
@@ -136,7 +141,7 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         }
     }
 
-    if (eloss.is_applicable(track) && sim.status() == TrackStatus::alive)
+    if (eloss.is_applicable(track))
     {
         using Energy = ParticleTrackView::Energy;
 
