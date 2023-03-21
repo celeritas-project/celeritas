@@ -8,7 +8,11 @@
 #include "corecel/OpaqueId.hh"
 
 #include <cstdint>
+#include <numeric>
 #include <utility>
+
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 
 #include "celeritas_test.hh"
 
@@ -55,6 +59,12 @@ TEST(OpaqueIdTest, operations)
     EXPECT_EQ(Id_t{21}, Id_t{22} - 1);
     EXPECT_EQ(Id_t{0}, Id_t{1} - 1);
     EXPECT_EQ(Id_t{0}, Id_t{2} + (-2));
+    EXPECT_EQ(Id_t{1}, ++Id_t{0});
+
+    Id_t id{0};
+    Id_t old{id++};
+    EXPECT_EQ(Id_t{1}, id);
+    EXPECT_EQ(Id_t{0}, old);
 }
 
 TEST(OpaqueIdTest, TEST_IF_CELERITAS_DEBUG(assertions))
@@ -83,6 +93,22 @@ TEST(OpaqueIdTest, multi_int)
     EXPECT_TRUE(UId8{254} < Uint32(limits_t::max()));
     EXPECT_TRUE(UId8{254} < Uint32(255));
     EXPECT_TRUE(UId8{10} < Uint32(15));
+}
+
+TEST(OpaqueIdTest, iota)
+{
+    using Id_i = OpaqueId<int, std::size_t>;
+    using T = Id_i::size_type;
+    using Col = Collection<T, Ownership::value, MemSpace::host, Id_i>;
+    Col data;
+    CollectionBuilder builder{&data};
+    builder.resize(100);
+    Span data_view{data[AllItems<T>{}]};
+    std::iota(data_view.begin(), data_view.end(), 0);
+    for (auto i : range(data_view.size()))
+    {
+        EXPECT_EQ(i, data_view[i]);
+    }
 }
 
 //---------------------------------------------------------------------------//

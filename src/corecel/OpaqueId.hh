@@ -54,6 +54,23 @@ class OpaqueId
         return value_ != invalid_value();
     }
 
+    //! Pre-increment of the ID
+    CELER_FUNCTION OpaqueId& operator++()
+    {
+        CELER_EXPECT(*this);
+        value_ += 1;
+        return *this;
+    }
+
+    //! Post-increment of the ID
+    CELER_FUNCTION OpaqueId operator++(int)
+    {
+        CELER_EXPECT(*this);
+        OpaqueId old{*this};
+        ++*this;
+        return old;
+    }
+
     //! Get the ID's value
     CELER_FORCEINLINE_FUNCTION size_type get() const
     {

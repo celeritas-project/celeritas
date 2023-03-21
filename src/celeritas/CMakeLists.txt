@@ -237,6 +237,7 @@ celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
+celeritas_polysource(track/detail/TrackSortUtils)
 
 #-----------------------------------------------------------------------------#
 # Auto-generated code
