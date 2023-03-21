@@ -654,8 +654,9 @@ TEST_F(FourSteelSlabsEmStandard, trans_parameters)
 {
     auto&& import_data = this->imported_data();
 
-    EXPECT_EQ(3, import_data.trans_params.size());
-    for (auto const& kv : import_data.trans_params)
+    EXPECT_EQ(1000, import_data.trans_params.max_substeps);
+    EXPECT_EQ(3, import_data.trans_params.looping.size());
+    for (auto const& kv : import_data.trans_params.looping)
     {
         EXPECT_EQ(10, kv.second.threshold_trials);
         EXPECT_EQ(250, kv.second.important_energy);

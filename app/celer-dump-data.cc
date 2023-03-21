@@ -430,10 +430,13 @@ void print_em_params(ImportEmParameters const& em_params)
 /*!
  * Print transportation parameters.
  */
-void print_trans_params(ImportData::ImportTransParamMap const& trans_params,
+void print_trans_params(ImportTransParameters const& trans_params,
                         ParticleParams const& particles)
 {
-#define PEP_STREAM_PARAM(NAME, PAR)                                          \
+#define PEP_STREAM_PARAM(NAME)                          \
+    "| " << setw(24) << #NAME << " | " << setw(9) << "" \
+         << " | " << setw(7) << trans_params.NAME << " |\n"
+#define PEP_STREAM_PAR_PARAM(NAME, PAR)                                      \
     "| " << setw(24) << #NAME << " | " << setw(9) << PAR << " | " << setw(7) \
          << kv.second.NAME << " |\n"
     cout << R"gfm(
@@ -442,14 +445,16 @@ void print_trans_params(ImportData::ImportTransParamMap const& trans_params,
 | Transportation parameter | Particle  | Value   |
 | ------------------------ | --------- | ------- |
 )gfm";
-    for (auto const& kv : trans_params)
+    cout << PEP_STREAM_PARAM(max_substeps);
+    for (auto const& kv : trans_params.looping)
     {
         auto pid = particles.find(PDGNumber{kv.first});
         auto par = particles.id_to_label(pid);
-        cout << PEP_STREAM_PARAM(threshold_trials, par)
-             << PEP_STREAM_PARAM(important_energy, par);
+        cout << PEP_STREAM_PAR_PARAM(threshold_trials, par)
+             << PEP_STREAM_PAR_PARAM(important_energy, par);
     }
     cout << endl;
+#undef PEP_STREAM_PAR_PARAM
 #undef PEP_STREAM_PARAM
 }
 

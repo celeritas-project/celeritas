@@ -24,7 +24,7 @@ SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(particle_params);
-    CELER_EXPECT(data.trans_params.size() == particle_params->size());
+    CELER_EXPECT(data.trans_params.looping.size() == particle_params->size());
 
     SimParams::Input input;
     input.particles = std::move(particle_params);
@@ -32,8 +32,8 @@ SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
     for (auto pid : range(ParticleId{input.particles->size()}))
     {
         auto pdg = input.particles->id_to_pdg(pid);
-        auto iter = data.trans_params.find(pdg.get());
-        CELER_ASSERT(iter != data.trans_params.end());
+        auto iter = data.trans_params.looping.find(pdg.get());
+        CELER_ASSERT(iter != data.trans_params.looping.end());
 
         // Store the parameters for this particle
         LoopingThreshold looping;

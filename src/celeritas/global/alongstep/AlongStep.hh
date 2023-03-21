@@ -78,12 +78,10 @@ inline CELER_FUNCTION void along_step(MH&& msc,
             step_limit.step = p.distance;
             step_limit.action = track.propagation_limit_action();
 
-            // If the energy is below the looping threshold or the maximum
-            // number of looping steps has been reached, kill the track.
-            auto pid = particle.particle_id();
+            // Kill the track if it's stable and below the threshold energy or
+            // above the threshold number of steps allowed while looping.
             if (particle.is_stable()
-                && (particle.energy() < sim.looping_threshold(pid)
-                    || sim.num_looping_steps() >= sim.max_looping_steps(pid)))
+                && sim.is_looping(particle.particle_id(), particle.energy()))
             {
                 // If the track is looping (or if it's a stuck track that waa
                 // flagged as looping), deposit the energy locally.

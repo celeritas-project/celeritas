@@ -14,6 +14,7 @@
 #include "ImportElement.hh"
 #include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
+#include "ImportParameters.hh"
 #include "ImportParticle.hh"
 #include "ImportProcess.hh"
 #include "ImportSBTable.hh"
@@ -22,47 +23,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Common electromagnetic physics parameters (see G4EmParameters.hh).
- *
- * \note Geant4 v11 removed the Spline() option from G4EmParameters.hh.
- */
-struct ImportEmParameters
-{
-    //! Energy loss fluctuation
-    bool energy_loss_fluct{false};
-    //! LPM effect for bremsstrahlung and pair production
-    bool lpm{true};
-    //! Integral cross section rejection
-    bool integral_approach{true};
-    //! Slowing down threshold for linearity assumption
-    double linear_loss_limit{0.01};
-    //! Whether auger emission should be enabled (valid only for relaxation)
-    bool auger{false};
-
-    //! Whether parameters are assigned and valid
-    explicit operator bool() const { return linear_loss_limit > 0; }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Particle-dependent parameters related to transportation.
- */
-struct ImportTransParameters
-{
-    //! Number of steps a higher-energy looping track takes before it's killed
-    int threshold_trials{10};
-    //! Energy below which looping tracks are immediately killed [MeV]
-    double important_energy{250};
-
-    //! Whether parameters are assigned and valid
-    explicit operator bool() const
-    {
-        return threshold_trials > 0 && important_energy >= 0;
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Import all the needed data from external sources (currently Geant4).
@@ -79,9 +39,6 @@ struct ImportTransParameters
  * Seltzer-Berger, Livermore PE, and atomic relaxation data are loaded based on
  * atomic numbers, and thus are stored in maps. To retrieve specific data use
  * \c find(atomic_number) .
- *
- * The parameters related to transportation are particle-dependent and stored
- * in a map where the keys are the PDG number.
  *
  * All units must be converted at import time to be in accordance to the
  * Celeritas' unit standard. Refer to \c base/Units.hh for further information.
@@ -101,11 +58,9 @@ struct ImportData
     //!@{
     //! \name Type aliases
     using ZInt = int;
-    using PDGInt = int;
     using ImportSBMap = std::map<ZInt, ImportSBTable>;
     using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
-    using ImportTransParamMap = std::map<PDGInt, ImportTransParameters>;
     //!@}
 
     std::vector<ImportParticle> particles;
@@ -115,7 +70,7 @@ struct ImportData
     std::vector<ImportMscModel> msc_models;
     std::vector<ImportVolume> volumes;
     ImportEmParameters em_params;
-    ImportTransParamMap trans_params;
+    ImportTransParameters trans_params;
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
     ImportAtomicRelaxationMap atomic_relaxation_data;

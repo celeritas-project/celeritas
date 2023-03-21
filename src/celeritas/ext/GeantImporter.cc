@@ -499,15 +499,22 @@ G4Transportation const* get_transportation(G4ParticleDefinition const* particle)
 /*!
  * Store particle-dependent transportation parameters.
  */
-auto store_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
-    -> ImportData::ImportTransParamMap
+ImportTransParameters
+store_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
 {
-    ImportData::ImportTransParamMap result;
+    ImportTransParameters result;
+
+    // Get the maximum number of substeps in the field propagator
+    auto const* tm = G4TransportationManager::GetTransportationManager();
+    CELER_ASSERT(tm);
+    if (auto const* fp = tm->GetPropagatorInField())
+    {
+        result.max_substeps = fp->GetMaxLoopCount();
+    }
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
     particle_iterator.reset();
-
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
     {
@@ -521,14 +528,16 @@ auto store_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
         auto const* trans = get_transportation(particle);
         CELER_ASSERT(trans);
 
-        ImportTransParameters params;
-        params.threshold_trials = trans->GetThresholdTrials();
-        params.important_energy = trans->GetThresholdImportantEnergy() / MeV;
-        CELER_ASSERT(params);
-        result.insert({particle->GetPDGEncoding(), params});
+        // Get the threshold values for killing looping tracks
+        ImportLoopingThreshold looping;
+        looping.threshold_trials = trans->GetThresholdTrials();
+        looping.important_energy = trans->GetThresholdImportantEnergy() / MeV;
+        CELER_ASSERT(looping);
+        result.looping.insert({particle->GetPDGEncoding(), looping});
     }
 
-    CELER_ENSURE(!result.empty());
+    CELER_ENSURE(!result.looping.empty());
+    CELER_ENSURE(result);
     return result;
 }
 

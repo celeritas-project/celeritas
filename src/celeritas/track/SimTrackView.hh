@@ -49,7 +49,10 @@ class SimTrackView
     CELER_FORCEINLINE_FUNCTION void increment_num_steps();
 
     // Update the number of steps this track has been looping
-    CELER_FORCEINLINE_FUNCTION void update_looping(bool);
+    inline CELER_FUNCTION void update_looping(bool);
+
+    // Whether the looping track should be abandoned
+    inline CELER_FUNCTION bool is_looping(ParticleId, Energy);
 
     // Set whether the track is alive
     inline CELER_FUNCTION void status(TrackStatus);
@@ -97,11 +100,9 @@ class SimTrackView
 
     //// PARAMETER DATA ////
 
-    // Energy below which looping tracks will be killed immediately
-    CELER_FORCEINLINE_FUNCTION Energy looping_threshold(ParticleId) const;
-
-    // Number of steps a looping track below \c looping_threshold can survive
-    CELER_FORCEINLINE_FUNCTION size_type max_looping_steps(ParticleId) const;
+    // Particle-dependent parameters for killing looping tracks
+    CELER_FORCEINLINE_FUNCTION
+    LoopingThreshold const& looping_threshold(ParticleId) const;
 
   private:
     SimParamsRef const& params_;
@@ -167,6 +168,24 @@ CELER_FUNCTION void SimTrackView::update_looping(bool is_looping)
     {
         states_.state[track_slot_].num_looping_steps = 0;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the looping track should be abandoned.
+ */
+CELER_FUNCTION bool SimTrackView::is_looping(ParticleId pid, Energy energy)
+{
+    auto const& looping = this->looping_threshold(pid);
+    if (energy < looping.threshold_energy)
+    {
+        return true;
+    }
+    if (this->num_looping_steps() >= looping.max_steps)
+    {
+        return true;
+    }
+    return false;
 }
 
 //---------------------------------------------------------------------------//
@@ -330,26 +349,13 @@ CELER_FUNCTION StepLimit const& SimTrackView::step_limit() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Energy below which looping tracks will be killed immediately.
- *
- * Looping tracks above this energy will only be killed if they are still
- * looping after \c max_looping_steps step iterations. This is equivalent to
- * the "important energy" in Geant4.
+ * Particle-dependent parameters for killing looping tracks.
  */
-CELER_FORCEINLINE_FUNCTION auto
-SimTrackView::looping_threshold(ParticleId pid) const -> Energy
+CELER_FORCEINLINE_FUNCTION LoopingThreshold const&
+SimTrackView::looping_threshold(ParticleId pid) const
 {
-    return params_.looping[pid].threshold_energy;
+    return params_.looping[pid];
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Number of steps a looping track below \c looping_threshold can survive.
- */
-CELER_FORCEINLINE_FUNCTION size_type
-SimTrackView::max_looping_steps(ParticleId pid) const
-{
-    return params_.looping[pid].max_steps;
-}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

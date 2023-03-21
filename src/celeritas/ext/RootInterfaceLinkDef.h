@@ -28,8 +28,8 @@
 #pragma link C++ class celeritas::ImportAtomicSubshell+;
 #pragma link C++ class celeritas::ImportAtomicRelaxation+;
 #pragma link C++ class celeritas::ImportEmParameters+;
+#pragma link C++ class celeritas::ImportLoopingThreshold+;
 #pragma link C++ class celeritas::ImportTransParameters+;
-#pragma link C++ class celeritas::ImportData::ImportTransParamMap+;
 #pragma link C++ class celeritas::ImportData::ImportSBMap+;
 #pragma link C++ class celeritas::ImportData::ImportLivermorePEMap+;
 #pragma link C++ class celeritas::ImportData::ImportAtomicRelaxationMap+;
