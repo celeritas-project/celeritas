@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/global/KernelContextException.hh"
 
+#include <algorithm>
 #include <exception>
+#include <iterator>
+#include <sstream>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -114,7 +117,6 @@ TEST_F(KernelContextExceptionTest, typical)
             "kernel context: track slot 15 in 'test-kernel', track 3 of event "
             "1",
             e.what());
-        EXPECT_EQ(ThreadId{15}, e.thread());
         EXPECT_EQ(TrackSlotId{15}, e.track_slot());
         EXPECT_EQ(EventId{1}, e.event());
         EXPECT_EQ(TrackId{3}, e.track());
@@ -132,17 +134,27 @@ TEST_F(KernelContextExceptionTest, typical)
         EXPECT_EQ(SurfaceId{}, e.next_surface());
         if (CELERITAS_USE_JSON && !CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ(
-                R"json({"dir":[0.0,0.0,1.0],"energy":[10.0,"MeV"],"event":1,"label":"test-kernel","num_steps":1,"particle":0,"pos":[0.0,1.0,5.0],"surface":11,"thread":15,"track":3,"track_slot":15,"volume":2})json",
-                get_json_str(e));
+            std::stringstream ss;
+            ss << R"json({"dir":[0.0,0.0,1.0],"energy":[10.0,"MeV"],"event":1,"label":"test-kernel","num_steps":1,"particle":0,"pos":[0.0,1.0,5.0],"surface":11,"thread":)json"
+               << e.thread().unchecked_get()
+               << R"json(,"track":3,"track_slot":15,"volume":2})json";
+            EXPECT_EQ(ss.str(), get_json_str(e));
         }
     };
     // Since tracks are initialized back to front, the thread ID must be toward
     // the end
+    Span track_slots{
+        step.core_data().states.track_slots[AllItems<TrackSlotId::size_type>{}]};
+    auto idx
+        = std::distance(track_slots.begin(),
+                        std::find(track_slots.begin(), track_slots.end(), 15));
+    EXPECT_NE(track_slots.size(), idx);
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data(), ThreadId{15}, "test-kernel"));
+        KernelContextException(step.core_data(),
+                               ThreadId{static_cast<celeritas::size_type>(idx)},
+                               "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
 }
@@ -165,15 +177,24 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
         EXPECT_EQ(TrackId{}, e.track());
         if (CELERITAS_USE_JSON)
         {
-            EXPECT_EQ(
-                R"json({"label":"test-kernel","thread":1,"track_slot":1})json",
-                get_json_str(e));
+            std::stringstream ss;
+            ss << R"json({"label":"test-kernel","thread":)json"
+               << e.thread().unchecked_get() << R"json(,"track_slot":1})json";
+            EXPECT_EQ(ss.str(), get_json_str(e));
         }
     };
+    Span track_slots{
+        step.core_data().states.track_slots[AllItems<TrackSlotId::size_type>{}]};
+    auto idx
+        = std::distance(track_slots.begin(),
+                        std::find(track_slots.begin(), track_slots.end(), 1));
+    EXPECT_NE(track_slots.size(), idx);
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data(), ThreadId{1}, "test-kernel"));
+        KernelContextException(step.core_data(),
+                               ThreadId{static_cast<celeritas::size_type>(idx)},
+                               "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
 }
