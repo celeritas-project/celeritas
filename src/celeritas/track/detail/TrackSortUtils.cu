@@ -7,8 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "TrackSortUtils.hh"
 
+#include <random>
 #include <thrust/device_ptr.h>
 #include <thrust/sequence.h>
+#include <thrust/shuffle.h>
 
 #include "corecel/Macros.hh"
 
@@ -27,6 +29,21 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots
         thrust::device_pointer_cast(track_slots.data()),
         thrust::device_pointer_cast(track_slots.data() + track_slots.size()),
         0);
+    CELER_DEVICE_CHECK_ERROR();
+}
+
+/*!
+ * Shuffle track slots
+ */
+template<>
+void shuffle_track_slots<MemSpace::device>(
+    Span<TrackSlotId::size_type> track_slots)
+{
+    std::mt19937 g{track_slots.size()};
+    thrust::shuffle(
+        thrust::device_pointer_cast(track_slots.data()),
+        thrust::device_pointer_cast(track_slots.data() + track_slots.size()),
+        g);
     CELER_DEVICE_CHECK_ERROR();
 }
 //---------------------------------------------------------------------------//

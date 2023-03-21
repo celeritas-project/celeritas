@@ -177,8 +177,9 @@ inline void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->init, params.init, size);
     resize(&state->track_slots, size);
 
-    detail::fill_track_slots<M>(
-        state->track_slots[AllItems<TrackSlotId::size_type, M>{}]);
+    Span track_slots{state->track_slots[AllItems<TrackSlotId::size_type, M>{}]};
+    detail::fill_track_slots<M>(track_slots);
+    detail::shuffle_track_slots<M>(track_slots);
 }
 
 //---------------------------------------------------------------------------//
