@@ -88,18 +88,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
 
 //---------------------------------------------------------------------------//
 /*!
- * Clear thread-local hit manager on destruction.
- */
-LocalTransporter::~LocalTransporter()
-{
-    if (hit_manager_)
-    {
-        hit_manager_->finalize();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set the event ID at the start of an event.
  */
 void LocalTransporter::SetEventId(int id)
@@ -215,6 +203,18 @@ void LocalTransporter::Finalize()
     *this = {};
 
     CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear thread-local hit manager on destruction.
+ */
+void LocalTransporter::HMFinalizer::operator()(SPHitManger& hm) const
+{
+    if (hm)
+    {
+        hm->finalize();
+    }
 }
 
 //---------------------------------------------------------------------------//

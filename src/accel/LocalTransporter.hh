@@ -12,6 +12,7 @@
 #include <G4Track.hh>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/InitializedValue.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -48,17 +49,6 @@ class LocalTransporter
     // Initialized with shared (across threads) params
     LocalTransporter(SetupOptions const& options, SharedParams const& params);
 
-    // Destroy thread-local manager data on destruct
-    ~LocalTransporter();
-
-    //!@{
-    //! Default copy/assign
-    LocalTransporter(LocalTransporter const&) = default;
-    LocalTransporter(LocalTransporter&&) = default;
-    LocalTransporter& operator=(LocalTransporter const&) = default;
-    LocalTransporter& operator=(LocalTransporter&&) = default;
-    //!@}
-
     // Alternative to construction + move assignment
     inline void
     Initialize(SetupOptions const& options, SharedParams const& params);
@@ -85,6 +75,13 @@ class LocalTransporter
     explicit operator bool() const { return static_cast<bool>(step_); }
 
   private:
+    using SPHitManger = std::shared_ptr<detail::HitManager>;
+
+    struct HMFinalizer
+    {
+        void operator()(SPHitManger& hm) const;
+    };
+
     std::shared_ptr<ParticleParams const> particles_;
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
@@ -95,8 +92,8 @@ class LocalTransporter
     size_type auto_flush_{};
     size_type max_steps_{};
 
-    // Shared across threads but has to call locally
-    std::shared_ptr<detail::HitManager> hit_manager_;
+    // Shared pointer across threads, "finalize" called when clearing
+    InitializedValue<SPHitManger, HMFinalizer> hit_manager_;
 };
 
 //---------------------------------------------------------------------------//
