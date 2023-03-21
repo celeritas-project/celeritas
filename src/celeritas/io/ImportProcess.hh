@@ -8,7 +8,7 @@
 #pragma once
 
 #include <map>
-#include <string>
+#include <string_view>
 #include <vector>
 
 #include "corecel/Macros.hh"
@@ -72,6 +72,7 @@ enum class ImportProcessClass
     mu_ioni,
     mu_brems,
     mu_pair_prod,
+    gamma_general, // Will be decomposed into other processes
     size_
 };
 
@@ -108,14 +109,14 @@ struct ImportProcess
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-// Get the string form of one of the enumerations.
+// Get the string form of one of the enumerations
 char const* to_cstring(ImportProcessType value);
 char const* to_cstring(ImportProcessClass value);
 
 // Get the default Geant4 process name
 char const* to_geant_name(ImportProcessClass value);
 // Convert a Geant4 process name to an IPC (throw RuntimeError if unsupported)
-ImportProcessClass geant_name_to_import_process_class(std::string const& s);
+ImportProcessClass geant_name_to_import_process_class(std::string_view sv);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

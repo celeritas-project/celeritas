@@ -2,7 +2,7 @@ spack:
   specs: 
     - cmake
     - doxygen
-    - "geant4@11 cxxstd=17"
+    - "geant4@11:11.0 cxxstd=17"
     - git
     - git-lfs
     - "googletest@1.10:"
@@ -10,12 +10,12 @@ spack:
     - ninja
     - nlohmann-json
     - mpi
-    - python
+    - "python@3.6:"
     - py-breathe
     - py-sphinx
     - py-sphinx-rtd-theme
     - py-sphinxcontrib-bibtex
-    - root cxxstd=17
+    - "root@6.24: cxxstd=17"
     - "swig@4.1:"
     - "vecgeom@1.2: +gdml cxxstd=17"
   view: true

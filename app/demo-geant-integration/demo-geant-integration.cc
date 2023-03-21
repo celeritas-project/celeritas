@@ -12,11 +12,12 @@
 #include <string>
 #include <vector>
 #include <CLHEP/Random/Random.h>
+#include <G4GlobalConfig.hh>
 #include <G4RunManager.hh>
 #include <G4UImanager.hh>
+#include <G4Version.hh>
 
-#include "celeritas/ext/GeantConfig.hh"
-#if !CELERITAS_G4_V10
+#if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #else
 #    include <G4MTRunManager.hh>
@@ -46,10 +47,14 @@ void run(std::string const& macro_filename)
     CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);
 
     std::unique_ptr<G4RunManager> run_manager;
-#if !CELERITAS_G4_V10
-    run_manager.reset(G4RunManagerFactory::CreateRunManager(
-        CELERITAS_G4_MT ? G4RunManagerType::MT : G4RunManagerType::Serial));
-#elif CELERITAS_G4_MT
+#if G4VERSION_NUMBER >= 1100
+#    ifdef G4MULTITHREADED
+    auto default_rmt = G4RunManagerType::MT;
+#    else
+    auto default_rmt = G4RunManagerType::Serial;
+#    endif
+    run_manager.reset(G4RunManagerFactory::CreateRunManager(default_rmt));
+#elif defined(G4MULTITHREADED)
     run_manager = std::make_unique<G4MTRunManager>();
 #else
     run_manager = std::make_unique<G4RunManager>();

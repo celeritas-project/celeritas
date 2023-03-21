@@ -11,6 +11,7 @@
 #include <cctype>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/EnumArray.hh"
 
 #include "celeritas_test.hh"
 
@@ -56,13 +57,16 @@ TEST(StringEnumMapperTest, from_cstring)
 
 TEST(StringEnumMapperTest, from_generic)
 {
-    auto capstring = [](CeleritasLabs lab) -> std::string {
+    // NOTE: string storage must exceed lifetime of string enum mapper
+    EnumArray<CeleritasLabs, std::string> storage;
+    auto capstring = [&storage](CeleritasLabs lab) -> std::string_view {
         std::string temp = to_cstring(lab);
         std::transform(
             temp.begin(), temp.end(), temp.begin(), [](unsigned char c) {
                 return std::toupper(c);
             });
-        return temp;
+        storage[lab] = std::move(temp);
+        return storage[lab];
     };
 
     StringEnumMapper<CeleritasLabs> from_string(capstring);
