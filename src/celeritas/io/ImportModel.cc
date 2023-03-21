@@ -43,6 +43,7 @@ char const* to_cstring(ImportModelClass value)
         "mu_bethe_bloch",
         "mu_brems",
         "mu_pair_prod",
+        "fluo_photoelectric",
     };
     return to_cstring_impl(value);
 }
