@@ -418,11 +418,9 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     )
     if(Geant4_multithreaded_FOUND)
       list(APPEND _env
-        "G4FORCENUMBEROFTHREADS=2"
+        "G4FORCENUMBEROFTHREADS=1"
+        "G4FORCE_RUN_MANAGER_TYPE=Serial"
       )
-    endif()
-    if(CELERITAS_USE_OpenMP)
-      list(APPEND _env "OMP_NUM_THREADS=1")
     endif()
     set_tests_properties("app/demo-geant-integration" PROPERTIES
       ENVIRONMENT "${_env}"

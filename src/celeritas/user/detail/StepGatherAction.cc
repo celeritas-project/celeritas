@@ -69,6 +69,16 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
     // creating/accessing/processing state data simultaneously
     std::lock_guard<std::mutex> scoped_lock{storage_->mumu};
 
+    auto this_thread_id = std::this_thread::get_id();
+    if (P == StepPoint::pre)
+    {
+        storage_->pre_id = this_thread_id;
+    }
+    else if (storage_->pre_id != this_thread_id)
+    {
+        CELER_NOT_IMPLEMENTED("multithreading for StepCollector");
+    }
+
     auto const& step_state = this->get_state(core);
     CELER_ASSERT(step_state.size() == core.states.size());
 

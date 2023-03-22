@@ -184,6 +184,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
     CELER_ASSERT(!navi_ || !out.points[StepPoint::pre].dir.empty());
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
+    step_->ResetTotalEnergyDeposit();
 
     for (auto i : range(out.size()))
     {
@@ -192,6 +193,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
     {                                                \
         if (!OUT.empty())                            \
         {                                            \
+            CELER_ASSERT(i < OUT.size());            \
             SETTER(convert_to_geant(OUT[i], UNITS)); \
         }                                            \
     } while (0)
