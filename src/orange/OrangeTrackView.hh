@@ -307,11 +307,6 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
     this->level() = states_.level[init.other.track_slot_];
     this->surface_level() = states_.surface_level[init.other.track_slot_];
 
-    this->next_step() = states_.next_step[init.other.track_slot_];
-    this->next_surface() = states_.next_surface[init.other.track_slot_];
-    this->next_surface_level()
-        = states_.next_surface_level[init.other.track_slot_];
-
     // Clear step and surface info
     this->clear_next_step();
 
@@ -566,7 +561,11 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     if (CELER_UNLIKELY(lsa.boundary() == BoundaryResult::reentrant))
     {
-        CELER_ASSERT(sl.unchecked_get() == 0);
+        if (sl != LevelId{0})
+        {
+            CELER_NOT_IMPLEMENTED(
+                "reentrant surfaces with multilevel ORANGE geometry");
+        }
 
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
@@ -652,7 +651,6 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     }
 
     this->level() = LevelId{current_level};
-    this->next_surface_level() = LevelId{};
 
     CELER_ENSURE(this->is_on_boundary());
     this->clear_next_step();
@@ -798,9 +796,8 @@ CELER_FUNCTION LevelId const& OrangeTrackView::next_surface_level() const
 CELER_FUNCTION void
 OrangeTrackView::find_next_step_impl(detail::Intersection isect)
 {
-    // The UniverseID and LevelId corresponding to the level with with minium
+    // The LevelId corresponding to the level with with minium
     // distance to intersection
-    UniverseId min_uid{0};
     LevelId min_level{0};
 
     // Find the nearest intersection from level 0 to current level inclusive,
@@ -814,7 +811,6 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
         if (local_isect.distance < isect.distance)
         {
             isect = local_isect;
-            min_uid = lsa.universe();
             min_level = levelid;
         }
     }
@@ -826,7 +822,8 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     {
         detail::UnitIndexer ui(params_.unit_indexer_data);
         this->next_surface() = celeritas::detail::OnSurface(
-            ui.global_surface(min_uid, isect.surface.id()),
+            ui.global_surface(this->make_lsa(min_level).universe(),
+                              isect.surface.id()),
             isect.surface.unchecked_sense());
         this->next_surface_level() = min_level;
     }
