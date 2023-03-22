@@ -24,6 +24,7 @@
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
+#include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
@@ -53,6 +54,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
     ref.cutoffs = get_ref<M>(*p.cutoff);
     ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
+    ref.sim = get_ref<M>(*p.sim);
     ref.init = get_ref<M>(*p.init);
 
     CELER_ENSURE(ref);
@@ -62,6 +64,15 @@ build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
 //---------------------------------------------------------------------------//
 class ImplicitGeometryAction final : public ImplicitActionInterface,
                                      public ConcreteAction
+{
+  public:
+    // Construct with ID and label
+    using ConcreteAction::ConcreteAction;
+};
+
+//---------------------------------------------------------------------------//
+class ImplicitSimAction final : public ImplicitActionInterface,
+                                public ConcreteAction
 {
   public:
     // Construct with ID and label
@@ -85,6 +96,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(cutoff);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
 #undef CP_VALIDATE_INPUT
@@ -103,6 +115,13 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         scalars_.propagation_limit_action,
         "geo-propagation-limit",
         "Propagation substep/range limit"));
+
+    // Construct action for killed looping tracks
+    scalars_.abandon_looping_action = input_.action_reg->next_id();
+    input_.action_reg->insert(
+        std::make_shared<ImplicitSimAction>(scalars_.abandon_looping_action,
+                                            "abandon-looping",
+                                            "Abandoned looping track"));
 
     // Construct initialize tracks action
     input_.action_reg->insert(std::make_shared<InitializeTracksAction>(

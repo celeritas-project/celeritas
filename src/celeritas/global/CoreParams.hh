@@ -27,6 +27,7 @@ class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
+class SimParams;
 class TrackInitParams;
 
 //---------------------------------------------------------------------------//
@@ -45,6 +46,7 @@ class CoreParams
     using SPConstCutoff = std::shared_ptr<CutoffParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
+    using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
 
@@ -61,6 +63,7 @@ class CoreParams
         SPConstCutoff cutoff;
         SPConstPhysics physics;
         SPConstRng rng;
+        SPConstSim sim;
         SPConstTrackInit init;
 
         SPActionRegistry action_reg;
@@ -69,7 +72,7 @@ class CoreParams
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && rng && init && action_reg;
+                   && physics && rng && sim && init && action_reg;
         }
     };
 
@@ -89,6 +92,7 @@ class CoreParams
     SPConstCutoff const& cutoff() const { return input_.cutoff; }
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
+    SPConstSim const& sim() const { return input_.sim; }
     SPConstTrackInit const& init() const { return input_.init; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     //!@}

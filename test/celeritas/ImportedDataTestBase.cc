@@ -14,6 +14,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
+#include "celeritas/track/SimParams.hh"
 
 namespace celeritas
 {
@@ -58,6 +59,12 @@ auto ImportedDataTestBase::build_cutoff() -> SPConstCutoff
 {
     return CutoffParams::from_import(
         this->imported_data(), this->particle(), this->material());
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_sim() -> SPConstSim
+{
+    return SimParams::from_import(this->imported_data(), this->particle());
 }
 
 //---------------------------------------------------------------------------//

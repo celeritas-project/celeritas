@@ -37,6 +37,7 @@
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/StepCollector.hh"
 
@@ -353,6 +354,11 @@ void SharedParams::initialize_core(SetupOptions const& options)
     {
         params.rng
             = std::make_shared<RngParams>(CLHEP::HepRandom::getTheSeed());
+    }
+
+    // Construct simulation params
+    {
+        params.sim = SimParams::from_import(*imported, params.particle);
     }
 
     // Construct track initialization params

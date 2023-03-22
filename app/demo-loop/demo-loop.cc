@@ -93,8 +93,9 @@ bool rsw_filter_match(size_type step_trk_id,
 /*!
  * `RootStepWriter` filter.
  *
- * Write if any combination of event ID, track ID, and/or parent ID match. If
- * no fields are specified or are set to -1, all steps are stored.
+ * Write if any combination of event ID, track ID, and/or parent ID match, or
+ * if the action ID matches. If no fields are specified or are set to -1, all
+ * steps are stored.
  */
 std::function<bool(RootStepWriter::TStepData const&)>
 make_root_step_writer_filter(LDemoArgs const& args)
@@ -105,6 +106,10 @@ make_root_step_writer_filter(LDemoArgs const& args)
     {
         rsw_filter = [opts = args.mctruth_filter](
                          RootStepWriter::TStepData const& step) {
+            if (opts.action_id != MCTruthFilter::unspecified())
+            {
+                return step.action_id == opts.action_id;
+            }
             return (rsw_filter_match(step.event_id, opts.event_id)
                     && rsw_filter_match(step.track_id, opts.track_id)
                     && rsw_filter_match(step.parent_id, opts.parent_id));

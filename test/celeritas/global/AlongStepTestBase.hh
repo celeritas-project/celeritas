@@ -57,6 +57,8 @@ class AlongStepTestBase : virtual public GlobalTestBase
         real_type angle{};  //!< Dot product of in/out direction
         real_type time{};  //!< Change in time
         real_type step{};  //!< Physical step length
+        real_type mfp{};  //!< Number of MFP traveled over step
+        real_type alive{};  //!< Fraction of tracks alive at end of step
         std::string action;  //!< Most likely action to take next
 
         void print_expected() const;

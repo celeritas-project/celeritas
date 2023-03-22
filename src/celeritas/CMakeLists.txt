@@ -83,6 +83,7 @@ list(APPEND SOURCES
   random/XorwowRngParams.cc
   track/ExtendFromSecondariesAction.cc
   track/InitializeTracksAction.cc
+  track/SimParams.cc
   track/TrackInitParams.cc
   user/DetectorSteps.cc
   user/StepCollector.cc

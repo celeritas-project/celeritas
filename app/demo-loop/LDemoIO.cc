@@ -37,6 +37,7 @@
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 using namespace celeritas;
@@ -153,6 +154,7 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
         get_optional(jfilter, "event_id", v.mctruth_filter.event_id);
         get_optional(jfilter, "track_id", v.mctruth_filter.track_id);
         get_optional(jfilter, "parent_id", v.mctruth_filter.parent_id);
+        get_optional(jfilter, "action_id", v.mctruth_filter.action_id);
 
         if (v.mctruth_filter)
         {
@@ -342,6 +344,11 @@ TransporterInput load_input(LDemoArgs const& args)
     // Construct RNG params
     {
         params.rng = std::make_shared<RngParams>(args.seed);
+    }
+
+    // Construct simulation params
+    {
+        params.sim = SimParams::from_import(imported_data, params.particle);
     }
 
     // Construct track initialization params
