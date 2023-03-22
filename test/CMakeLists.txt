@@ -290,7 +290,8 @@ celeritas_add_test(celeritas/ext/GeantImporter.test.cc
   FILTER
     "FourSteelSlabs*"
     "TestEm3*"
-    "OneSteelSphere*"
+    "OneSteelSphere.*"
+    "OneSteelSphereGG.*"
   )
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 

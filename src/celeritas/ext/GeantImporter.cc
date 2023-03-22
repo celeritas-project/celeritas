@@ -12,6 +12,8 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <tuple>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -20,6 +22,7 @@
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
 #include <G4EmParameters.hh>
+#include <G4GammaGeneralProcess.hh>
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4Navigator.hh>
@@ -38,6 +41,8 @@
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4Types.hh>
+#include <G4VEnergyLossProcess.hh>
+#include <G4VMultipleScattering.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
@@ -46,6 +51,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
@@ -187,7 +193,7 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
  * Return a populated \c ImportParticle vector.
  */
 std::vector<ImportParticle>
-store_particles(GeantImporter::DataSelection::Flags particle_flags)
+import_particles(GeantImporter::DataSelection::Flags particle_flags)
 {
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -233,7 +239,7 @@ store_particles(GeantImporter::DataSelection::Flags particle_flags)
 /*!
  * Return a populated \c ImportElement vector.
  */
-std::vector<ImportElement> store_elements()
+std::vector<ImportElement> import_elements()
 {
     auto const& g4element_table = *G4Element::GetElementTable();
 
@@ -270,7 +276,7 @@ std::vector<ImportElement> store_elements()
  * material+cutoff values?
  */
 std::vector<ImportMaterial>
-store_materials(GeantImporter::DataSelection::Flags particle_flags)
+import_materials(GeantImporter::DataSelection::Flags particle_flags)
 {
     ParticleFilter include_particle{particle_flags};
     auto const& g4production_cuts_table
@@ -401,10 +407,10 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
 /*!
  * Return a populated \c ImportProcess vector.
  */
-auto store_processes(GeantImporter::DataSelection::Flags process_flags,
-                     std::vector<ImportParticle> const& particles,
-                     std::vector<ImportElement> const& elements,
-                     std::vector<ImportMaterial> const& materials)
+auto import_processes(GeantImporter::DataSelection::Flags process_flags,
+                      std::vector<ImportParticle> const& particles,
+                      std::vector<ImportElement> const& elements,
+                      std::vector<ImportMaterial> const& materials)
     -> std::pair<std::vector<ImportProcess>, std::vector<ImportMscModel>>
 {
     ParticleFilter include_particle{process_flags};
@@ -413,8 +419,70 @@ auto store_processes(GeantImporter::DataSelection::Flags process_flags,
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
 
-    detail::GeantProcessImporter load_process(
+    static const celeritas::TypeDemangler<G4VProcess> demangle_process;
+    std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
+    detail::GeantProcessImporter import_process(
         detail::TableSelection::minimal, materials, elements);
+
+    auto append_process = [&](G4ParticleDefinition const& particle,
+                              G4VProcess const& process) -> void {
+        // Check for duplicate processes
+        auto [prev, inserted] = visited.insert({&process, &particle});
+
+        if (!inserted)
+        {
+            CELER_LOG(debug)
+                << "Skipping process '" << process.GetProcessName()
+                << "' (RTTI: " << demangle_process(process)
+                << ") for particle " << particle.GetParticleName()
+                << ": duplicate of particle "
+                << prev->second->GetParticleName();
+            return;
+        }
+
+        if (auto const* gg_process
+            = dynamic_cast<G4GammaGeneralProcess const*>(&process))
+        {
+            // Extract the real EM processes embedded inside "gamma general"
+            // using an awkward string-based lookup which is the only one
+            // available to us :(
+            for (auto emproc_enum : range(ImportProcessClass::size_))
+            {
+                if (G4VEmProcess const* subprocess
+                    = const_cast<G4GammaGeneralProcess*>(gg_process)
+                          ->GetEmProcess(to_geant_name(emproc_enum)))
+                {
+                    processes.push_back(import_process(particle, *subprocess));
+                }
+            }
+        }
+        else if (auto const* em_process
+                 = dynamic_cast<G4VEmProcess const*>(&process))
+        {
+            processes.push_back(import_process(particle, *em_process));
+        }
+        else if (auto const* el_process
+                 = dynamic_cast<G4VEnergyLossProcess const*>(&process))
+        {
+            processes.push_back(import_process(particle, *el_process));
+        }
+        else if (auto const* msc_process
+                 = dynamic_cast<G4VMultipleScattering const*>(&process))
+        {
+            // Unpack MSC process into multiple MSC models
+            auto new_msc_models = import_process(particle, *msc_process);
+            msc_models.insert(msc_models.end(),
+                              std::make_move_iterator(new_msc_models.begin()),
+                              std::make_move_iterator(new_msc_models.end()));
+        }
+        else
+        {
+            CELER_LOG(error)
+                << "Cannot export unknown process '"
+                << process.GetProcessName()
+                << "' (RTTI: " << demangle_process(process) << ")";
+        }
+    };
 
     for (auto const& p : particles)
     {
@@ -442,29 +510,7 @@ auto store_processes(GeantImporter::DataSelection::Flags process_flags,
                 continue;
             }
 
-            if (ImportProcess ip = load_process(*g4_particle_def, process))
-            {
-                // Not an empty process, so it was not added in a previous loop
-                if (ip.process_class != ImportProcessClass::msc)
-                {
-                    processes.push_back(std::move(ip));
-                }
-                else
-                {
-                    // Unfold process to MSC models
-                    CELER_ASSERT(ip.models.size() == ip.tables.size());
-                    for (auto i : range(ip.models.size()))
-                    {
-                        CELER_ASSERT(ip.tables[i].table_type
-                                     == ImportTableType::msc_xs);
-                        ImportMscModel imm;
-                        imm.particle_pdg = ip.particle_pdg;
-                        imm.model_class = ip.models[i].model_class;
-                        imm.xs_table = std::move(ip.tables[i]);
-                        msc_models.push_back(std::move(imm));
-                    }
-                }
-            }
+            append_process(*g4_particle_def, process);
         }
     }
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
@@ -500,7 +546,7 @@ G4Transportation const* get_transportation(G4ParticleDefinition const* particle)
  * Store particle-dependent transportation parameters.
  */
 ImportTransParameters
-store_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
+import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
 {
     ImportTransParameters result;
 
@@ -544,7 +590,7 @@ store_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
 /*!
  * Return a \c ImportData::ImportEmParamsMap .
  */
-ImportEmParameters store_em_parameters()
+ImportEmParameters import_em_parameters()
 {
     ImportEmParameters import;
 
@@ -607,26 +653,24 @@ GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
  */
 ImportData GeantImporter::operator()(DataSelection const& selected)
 {
-    ImportData import_data;
+    ImportData imported;
 
     {
         CELER_LOG(status) << "Transferring data from Geant4";
         ScopedTimeLog scoped_time;
-        import_data.particles = store_particles(selected.particles);
-        import_data.elements = store_elements();
-        import_data.materials = store_materials(selected.particles);
-        // TODO: when moving to C++17, use a structured binding
-        auto processes_and_msc = store_processes(selected.processes,
-                                                 import_data.particles,
-                                                 import_data.elements,
-                                                 import_data.materials);
-        import_data.processes = std::move(processes_and_msc.first);
-        import_data.msc_models = std::move(processes_and_msc.second);
-        import_data.volumes = this->load_volumes(selected.unique_volumes);
-        import_data.trans_params = store_trans_parameters(selected.particles);
+        imported.particles = import_particles(selected.particles);
+        imported.elements = import_elements();
+        imported.materials = import_materials(selected.particles);
+        std::tie(imported.processes, imported.msc_models)
+            = import_processes(selected.processes,
+                               imported.particles,
+                               imported.elements,
+                               imported.materials);
+        imported.volumes = this->import_volumes(selected.unique_volumes);
+        imported.trans_params = import_trans_parameters(selected.particles);
         if (selected.processes & DataSelection::em)
         {
-            import_data.em_params = store_em_parameters();
+            imported.em_params = import_em_parameters();
         }
     }
 
@@ -635,11 +679,11 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         CELER_LOG(status) << "Loading external elemental data";
         ScopedTimeLog scoped_time;
 
-        detail::AllElementReader load_data{import_data.elements};
+        detail::AllElementReader load_data{imported.elements};
 
-        auto have_process = [&import_data](ImportProcessClass ipc) {
-            return std::any_of(import_data.processes.begin(),
-                               import_data.processes.end(),
+        auto have_process = [&imported](ImportProcessClass ipc) {
+            return std::any_of(imported.processes.begin(),
+                               imported.processes.end(),
                                [ipc](const ImportProcess& ip) {
                                    return ip.process_class == ipc;
                                });
@@ -647,16 +691,16 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 
         if (have_process(ImportProcessClass::e_brems))
         {
-            import_data.sb_data = load_data(SeltzerBergerReader{});
+            imported.sb_data = load_data(SeltzerBergerReader{});
         }
         if (have_process(ImportProcessClass::photoelectric))
         {
-            import_data.livermore_pe_data = load_data(LivermorePEReader{});
+            imported.livermore_pe_data = load_data(LivermorePEReader{});
         }
         if (G4EmParameters::Instance()->Fluo())
         {
             // TODO: only read auger data if that option is enabled
-            import_data.atomic_relaxation_data
+            imported.atomic_relaxation_data
                 = load_data(AtomicRelaxationReader{});
         }
         else if (G4EmParameters::Instance()->Auger())
@@ -666,15 +710,16 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
     }
 
-    CELER_ENSURE(import_data);
-    return import_data;
+    CELER_ENSURE(imported);
+    return imported;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Return a populated \c ImportVolume vector.
  */
-std::vector<ImportVolume> GeantImporter::load_volumes(bool unique_volumes) const
+std::vector<ImportVolume>
+GeantImporter::import_volumes(bool unique_volumes) const
 {
     detail::GeantVolumeVisitor visitor(unique_volumes);
     // Recursive loop over all logical volumes to populate map

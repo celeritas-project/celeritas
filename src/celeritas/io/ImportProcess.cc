@@ -62,6 +62,7 @@ char const* to_cstring(ImportProcessClass value)
         "mu_ioni",
         "mu_brems",
         "mu_pair_prod",
+        "gamma_general",
     };
     return to_cstring_impl(value);
 }
@@ -90,6 +91,7 @@ char const* to_geant_name(ImportProcessClass value)
         "muIoni",  // mu_ioni,
         "muBrems",  // mu_brems,
         "muPairProd",  // mu_pair_prod,
+        "GammaGeneralProc",  // gamma_general,
     };
     return to_name_impl(value);
 }
@@ -101,7 +103,7 @@ char const* to_geant_name(ImportProcessClass value)
  * This will throw a \c celeritas::RuntimeError if the string is not known to
  * us.
  */
-ImportProcessClass geant_name_to_import_process_class(std::string const& s)
+ImportProcessClass geant_name_to_import_process_class(std::string_view s)
 {
     static auto const from_string
         = StringEnumMapper<ImportProcessClass>::from_cstring_func(

@@ -206,7 +206,7 @@ CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
  */
 CELER_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 {
-    return TrackSlotId{thread_.unchecked_get()};
+    return TrackSlotId{states_.track_slots[thread_]};
 }
 
 //---------------------------------------------------------------------------//

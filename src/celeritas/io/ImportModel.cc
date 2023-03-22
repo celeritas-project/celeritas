@@ -7,45 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "ImportModel.hh"
 
-#include <algorithm>
-#include <initializer_list>
-
-#include "corecel/Assert.hh"
-#include "corecel/cont/EnumArray.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/StringEnumMapper.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<class T>
-using ModelArray = EnumArray<ImportModelClass, T>;
-
-namespace
-{
-//---------------------------------------------------------------------------//
-// Return flags for whether microscopic cross sections are needed
-ModelArray<bool> make_microxs_flag_array()
-{
-    ModelArray<bool> result;
-    std::fill(result.begin(), result.end(), false);
-    for (ImportModelClass c : {
-             ImportModelClass::e_brems_sb,
-             ImportModelClass::e_brems_lpm,
-             ImportModelClass::mu_brems,
-             ImportModelClass::mu_pair_prod,
-             ImportModelClass::bethe_heitler_lpm,
-             ImportModelClass::livermore_rayleigh,
-             ImportModelClass::e_coulomb_scattering,
-         })
-    {
-        result[c] = true;
-    }
-    return result;
-}
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Enumerator for the available physics models.
@@ -60,7 +26,7 @@ char const* to_cstring(ImportModelClass value)
         "bethe_bloch",
         "urban_msc",
         "icru_73_qo",
-        "wentzel_VI_uni",
+        "wentzel_vi_uni",
         "h_brems",
         "h_pair_prod",
         "e_coulomb_scattering",
@@ -77,21 +43,59 @@ char const* to_cstring(ImportModelClass value)
         "mu_bethe_bloch",
         "mu_brems",
         "mu_pair_prod",
+        "fluo_photoelectric",
     };
     return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the model requires microscopic xs data for sampling.
- *
- * TODO: this could be an implementation detail of ImportModelConverter
+ * Get the default Geant4 process name for an ImportProcessClass.
  */
-bool needs_micro_xs(ImportModelClass value)
+char const* to_geant_name(ImportModelClass value)
 {
-    CELER_EXPECT(value < ImportModelClass::size_);
-    static ModelArray<bool> const needs_xs = make_microxs_flag_array();
-    return needs_xs[value];
+    static EnumStringMapper<ImportModelClass> const to_name_impl{
+        "",
+        "BraggIon",
+        "BetheBloch",
+        "UrbanMsc",
+        "ICRU73QO",
+        "WentzelVIUni",
+        "hBrem",
+        "hPairProd",
+        "eCoulombScattering",
+        "Bragg",
+        "MollerBhabha",
+        "eBremSB",
+        "eBremLPM",
+        "eplus2gg",
+        "LivermorePhElectric",
+        "Klein-Nishina",
+        "BetheHeitler",
+        "BetheHeitlerLPM",
+        "LivermoreRayleigh",
+        "MuBetheBloch",
+        "MuBrem",
+        "muPairProd",
+        "PhotoElectric",
+    };
+    return to_name_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a Geant4 process name to an IPC.
+ *
+ * This will throw a \c celeritas::RuntimeError if the string is not known to
+ * us.
+ */
+ImportModelClass geant_name_to_import_model_class(std::string_view s)
+{
+    static auto const from_string
+        = StringEnumMapper<ImportModelClass>::from_cstring_func(to_geant_name,
+                                                                "model class");
+
+    return from_string(s);
 }
 
 //---------------------------------------------------------------------------//

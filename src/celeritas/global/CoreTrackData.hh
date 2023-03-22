@@ -16,6 +16,7 @@
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
+#include "celeritas/track/detail/TrackSortUtils.hh"
 
 namespace celeritas
 {
@@ -94,6 +95,9 @@ struct CoreStateData
     template<class T>
     using Items = StateCollection<T, W, M>;
 
+    template<class T>
+    using ThreadItems = Collection<T, W, M, ThreadId>;
+
     GeoStateData<W, M> geometry;
     MaterialStateData<W, M> materials;
     ParticleStateData<W, M> particles;
@@ -101,6 +105,7 @@ struct CoreStateData
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;
     TrackInitStateData<W, M> init;
+    ThreadItems<TrackSlotId::size_type> track_slots;
 
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return particles.size(); }
@@ -124,6 +129,7 @@ struct CoreStateData
         rng = other.rng;
         sim = other.sim;
         init = other.init;
+        track_slots = other.track_slots;
         return *this;
     }
 };
@@ -156,7 +162,7 @@ using CoreDeviceRef = CoreRef<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize states in host code.
+ * Resize states in host code. Initialize threads to track slots mapping.
  */
 template<MemSpace M>
 inline void resize(CoreStateData<Ownership::value, M>* state,
@@ -173,6 +179,10 @@ inline void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->rng, params.rng, size);
     resize(&state->sim, size);
     resize(&state->init, params.init, size);
+    resize(&state->track_slots, size);
+
+    detail::fill_track_slots<M>(
+        state->track_slots[AllItems<TrackSlotId::size_type, M>{}]);
 }
 
 //---------------------------------------------------------------------------//
