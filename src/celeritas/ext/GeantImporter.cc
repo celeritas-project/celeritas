@@ -536,7 +536,6 @@ store_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
         result.looping.insert({particle->GetPDGEncoding(), looping});
     }
 
-    CELER_ENSURE(!result.looping.empty());
     CELER_ENSURE(result);
     return result;
 }

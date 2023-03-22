@@ -109,7 +109,7 @@ inline CELER_FUNCTION void along_step(MH&& msc,
             else if (p.distance < step_limit.step)
             {
                 // Some tracks may get stuck on a boundary and fail to move at
-                // all in the field propagtor, and will get bumped a small
+                // all in the field propagator, and will get bumped a small
                 // distance. This primarily occurs with reentrant tracks on a
                 // boundary with VecGeom.
                 step_limit.step = p.distance;

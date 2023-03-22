@@ -27,17 +27,17 @@ namespace celeritas
  * looping (i.e., taking a large number of substeps in the field propagator)
  * should be killed.
  *
- * In Geant4 tracks are killed immediately if their energy is below \c
- * threshold_energy (equivalent to Geant4's "important energy") or after \c
- * max_steps step iterations if their energy is above the threshold.
+ * In Geant4, tracks are killed immediately if their energy is below the
+ * "important energy" (equivalent to \c threshold_energy here) or after some
+ * number of step iterations if their energy is above the threshold.
  *
- * In Celeritas the default \c max_substeps in the field propagator is set to a
- * smaller value than in Geant4 to improve load balancing. Therefore, an
- * additional parameter \c max_subthreshold_steps is added to approximate
- * Geant4's policy for killing looping tracks: a track flagged as looping will
- * be killed if its energy is below \c threshold_energy and it has taken more
- * then \c max_subthreshold_steps steps, or after \c max_steps steps if its
- * energy is above the threshold.
+ * In Celeritas, the default \c max_substeps in the field propagator is set to
+ * a smaller value than in Geant4. Therefore, an additional parameter \c
+ * max_subthreshold_steps is added to approximate Geant4's policy for killing
+ * looping tracks: a track flagged as looping will be killed if its energy is
+ * below \c threshold_energy and it has taken more then \c
+ * max_subthreshold_steps steps, or after \c max_steps steps if its energy is
+ * above the threshold.
  */
 struct LoopingThreshold
 {

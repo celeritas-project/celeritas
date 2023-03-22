@@ -73,7 +73,10 @@ struct ImportTransParameters
     int max_substeps{1000};
 
     //! Whether parameters are assigned and valid
-    explicit operator bool() const { return max_substeps >= 0; }
+    explicit operator bool() const
+    {
+        return max_substeps >= 0 && !looping.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//

@@ -435,6 +435,7 @@ endif()
 #-------------------------------------#
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
+celeritas_add_test(celeritas/track/Sim.test.cc ${_needs_geant4})
 celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
 
 #-------------------------------------#
