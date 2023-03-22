@@ -39,7 +39,7 @@ namespace
 //!@{
 template<MemSpace M>
 CoreParamsData<Ownership::const_reference, M>
-build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
+build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
 {
     CELER_EXPECT(scalars);
 
@@ -92,21 +92,23 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
+    CoreScalars scalars;
+
     // Construct geometry action
-    scalars_.boundary_action = input_.action_reg->next_id();
+    scalars.boundary_action = input_.action_reg->next_id();
     input_.action_reg->insert(
         std::make_shared<celeritas::generated::BoundaryAction>(
-            scalars_.boundary_action, "geo-boundary", "Boundary crossing"));
+            scalars.boundary_action, "geo-boundary", "Boundary crossing"));
 
     // Construct implicit limit for propagator pausing midstep
-    scalars_.propagation_limit_action = input_.action_reg->next_id();
+    scalars.propagation_limit_action = input_.action_reg->next_id();
     input_.action_reg->insert(std::make_shared<ImplicitGeometryAction>(
-        scalars_.propagation_limit_action,
+        scalars.propagation_limit_action,
         "geo-propagation-limit",
         "Propagation substep/range limit"));
 
-    // Save maximum number of streams;
-    scalars_.max_streams = input_.max_streams;
+    // Save maximum number of streams
+    scalars.max_streams = input_.max_streams;
 
     // Construct initialize tracks action
     input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
@@ -117,12 +119,13 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         input_.action_reg->next_id()));
 
     // Save host reference
-    host_ref_ = build_params_refs<MemSpace::host>(input_, scalars_);
+    host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);
     if (celeritas::device())
     {
-        device_ref_ = build_params_refs<MemSpace::device>(input_, scalars_);
+        device_ref_ = build_params_refs<MemSpace::device>(input_, scalars);
     }
     CELER_ENSURE(host_ref_);
+    CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
 }
 
 //---------------------------------------------------------------------------//

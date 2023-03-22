@@ -55,9 +55,21 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     CELER_EXPECT(params);
     particles_ = params.Params()->particle();
 
+    // Thread ID is -1 when running serially
+    auto thread_id = G4Threading::IsMultithreadedApplication() ? G4Threading::G4GetThreadId() : 0;
+    CELER_VALIDATE(thread_id >= 0,
+                   << "Geant4 ThreadID (" << thread_id
+                   << ") is invalid (perhaps LocalTransporter is being built "
+                      "on a non-worker thread?)");
+    CELER_VALIDATE(
+        static_cast<size_type>(thread_id) < params.Params()->max_streams(),
+        << "Geant4 ThreadID (" << thread_id
+        << ") is out of range for the reported number of worker threads ("
+        << params.Params()->max_streams() << ")");
+
     StepperInput inp;
     inp.params = params.Params();
-    inp.stream_id = StreamId(G4Threading::G4GetThreadId());
+    inp.stream_id = StreamId{static_cast<size_type>(thread_id)};
     inp.num_track_slots = options.max_num_tracks;
     inp.sync = options.sync;
 

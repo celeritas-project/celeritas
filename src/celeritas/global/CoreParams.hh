@@ -102,9 +102,11 @@ class CoreParams
     // Access properties on the device
     inline DeviceRef const& device_ref() const;
 
+    //! Maximum number of streams
+    size_type max_streams() const { return input_.max_streams; }
+
   private:
     Input input_;
-    CoreScalars scalars_;
     HostRef host_ref_;
     DeviceRef device_ref_;
 };
