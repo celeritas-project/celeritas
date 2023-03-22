@@ -277,7 +277,9 @@ EnergyDiagnosticLauncher<M>::operator()(TrackSlotId tid) const
 }
 
 #if !CELER_USE_DEVICE
-inline void bin_energy(celeritas::CoreStateDeviceRef const&, PointersDevice&)
+inline void bin_energy(celeritas::CoreParamsDeviceRef const&,
+                       celeritas::CoreStateDeviceRef const&,
+                       PointersDevice&)
 {
     CELER_NOT_CONFIGURED("CUDA/HIP");
 }
