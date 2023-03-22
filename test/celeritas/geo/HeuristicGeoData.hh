@@ -126,7 +126,7 @@ inline void resize(HeuristicGeoStateData<Ownership::value, M>* state,
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
     resize(&state->geometry, params.geometry, size);
-    resize(&state->rng, params.rng, size);
+    resize(&state->rng, params.rng, StreamId{0}, size);
     resize(&state->status, size);
     fill(LifeStatus::unborn, &state->status);
 

@@ -138,7 +138,7 @@ class XorwowRngEngineTest : public Test
 TEST_F(XorwowRngEngineTest, host)
 {
     // Construct and initialize
-    HostStore states(params->host_ref(), 8);
+    HostStore states(params->host_ref(), StreamId{0}, 8);
 
     Span<XorwowState> state_ref = states.ref().state[AllItems<XorwowState>{}];
 
@@ -167,12 +167,31 @@ TEST_F(XorwowRngEngineTest, host)
     EXPECT_VEC_EQ(expected_flattened, flattened);
 }
 
+TEST_F(XorwowRngEngineTest, host_stream)
+{
+    // Construct and initialize on "another thread"
+    HostStore states(params->host_ref(), StreamId{1}, 8);
+
+    Span<XorwowState> state_ref = states.ref().state[AllItems<XorwowState>{}];
+    std::vector<uint_t> flattened(8);
+    std::copy_n(&state_ref.begin()->xorstate[0], 8, flattened.begin());
+    static unsigned int const expected_flattened[] = {600837418u,
+                                                      1595898312u,
+                                                      3746176631u,
+                                                      2544092812u,
+                                                      689723186u,
+                                                      2087379088u,
+                                                      2231971747u,
+                                                      2290977355u};
+    EXPECT_VEC_EQ(expected_flattened, flattened);
+}
+
 TEST_F(XorwowRngEngineTest, moments)
 {
     unsigned int num_samples = 1 << 12;
     unsigned int num_seeds = 1 << 8;
 
-    HostStore states(params->host_ref(), num_seeds);
+    HostStore states(params->host_ref(), StreamId{0}, num_seeds);
     RngTally tally;
 
     for (unsigned int i = 0; i < num_seeds; ++i)
@@ -189,7 +208,7 @@ TEST_F(XorwowRngEngineTest, moments)
 TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))
 {
     // Create and initialize states
-    DeviceStore rng_store(params->host_ref(), 1024);
+    DeviceStore rng_store(params->host_ref(), StreamId{0}, 1024);
     // Copy to host and check
     StateCollection<XorwowState, Ownership::value, MemSpace::host> host_state;
     host_state = rng_store.ref().state;
