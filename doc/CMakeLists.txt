@@ -57,7 +57,9 @@ endif()
 
 # Output options
 set(DOXYGEN_PROJECT_LOGO
-  "${CMAKE_CURRENT_SOURCE_DIR}/_static/celeritas-thumbnail.png")
+  "${CMAKE_CURRENT_SOURCE_DIR}/_static/celeritas-square.svg")
+set(DOXYGEN_HTML_EXTRA_STYLESHEET
+  "${CMAKE_CURRENT_SOURCE_DIR}/_static/doxygen-custom.css")
 set(DOXYGEN_GENERATE_HTML YES)
 set(DOXYGEN_HTML_OUTPUT "doxygen-html")
 set(DOXYGEN_CREATE_SUBDIRS YES)
@@ -156,13 +158,14 @@ configure_file("config.json.in" "config.json" @ONLY)
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
 set(DOXYGEN_XML_PROGRAMLISTING NO)
+
 # Annotations break breathe parsing
 foreach(_var
   CELER_FUNCTION CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
   [[maybe_unused]] CFIF_)
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
-# Only process top two levels (no detail, generated)
+# Only process top two levels (mostly no detail, generated)
 file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.hh"
   "${PROJECT_SOURCE_DIR}/src/*/*.cc"
@@ -175,6 +178,7 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"

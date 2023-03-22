@@ -123,7 +123,7 @@ if celer_config['options']['rtdtheme']:
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_logo = "_static/celeritas-thumbnail.png"
+html_logo = "_static/celeritas-square.svg"
 
 if html_theme == 'alabaster':
     html_theme_options = {
