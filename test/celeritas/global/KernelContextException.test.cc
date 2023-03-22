@@ -43,6 +43,17 @@ std::string get_json_str(KernelContextException const& e)
     return {};
 #endif
 }
+
+ThreadId find_thread(CoreRef<MemSpace::host> const& data, TrackSlotId track)
+{
+    Span track_slots{
+        data.states.track_slots[AllItems<TrackSlotId::size_type>{}]};
+    auto idx = std::distance(
+        track_slots.begin(),
+        std::find(track_slots.begin(), track_slots.end(), track.get()));
+    EXPECT_NE(track_slots.size(), idx);
+    return ThreadId{static_cast<ThreadId::size_type>(idx)};
+}
 }  // namespace
 //---------------------------------------------------------------------------//
 
@@ -97,18 +108,6 @@ class KernelContextExceptionTest : public SimpleTestBase, public StepperTestBase
         }
     }
 
-    ThreadId
-    find_thread(CoreRef<MemSpace::host> const& data, TrackSlotId track) const
-    {
-        Span track_slots{
-            data.states.track_slots[AllItems<TrackSlotId::size_type>{}]};
-        auto idx = std::distance(
-            track_slots.begin(),
-            std::find(track_slots.begin(), track_slots.end(), track.get()));
-        EXPECT_NE(track_slots.size(), idx);
-        return ThreadId{static_cast<ThreadId::size_type>(idx)};
-    }
-
     std::function<void(KernelContextException const&)> check_kce;
     bool caught_debug = false;
     bool caught_kce = false;
@@ -124,14 +123,13 @@ TEST_F(KernelContextExceptionTest, typical)
     step(make_span(primaries));
 
     // Check for these values based on the step count and thread ID below
-    this->check_kce = [&step, this](KernelContextException const& e) {
+    this->check_kce = [&step](KernelContextException const& e) {
         EXPECT_STREQ(
             "kernel context: track slot 15 in 'test-kernel', track 3 of event "
             "1",
             e.what());
 
-        EXPECT_EQ(this->find_thread(step.core_data(), TrackSlotId{15}),
-                  e.thread());
+        EXPECT_EQ(find_thread(step.core_data(), TrackSlotId{15}), e.thread());
         EXPECT_EQ(TrackSlotId{15}, e.track_slot());
         EXPECT_EQ(EventId{1}, e.event());
         EXPECT_EQ(TrackId{3}, e.track());
@@ -161,10 +159,9 @@ TEST_F(KernelContextExceptionTest, typical)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(
-            step.core_data(),
-            this->find_thread(step.core_data(), TrackSlotId{15}),
-            "test-kernel"));
+        KernelContextException(step.core_data(),
+                               find_thread(step.core_data(), TrackSlotId{15}),
+                               "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
 }
@@ -197,10 +194,9 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(
-            step.core_data(),
-            this->find_thread(step.core_data(), TrackSlotId{1}),
-            "test-kernel"));
+        KernelContextException(step.core_data(),
+                               find_thread(step.core_data(), TrackSlotId{1}),
+                               "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
 }
