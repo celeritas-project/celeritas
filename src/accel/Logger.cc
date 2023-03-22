@@ -109,10 +109,10 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
  * In the \c main of your application's exectuable, set the "process-local"
  * (MPI-aware) logger:
  * \code
-    celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
+    celeritas::self_logger() = celeritas::MakeMTLogger(*run_manager);
    \endcode
  */
-Logger make_mt_logger(G4RunManager const& runman)
+Logger MakeMTLogger(G4RunManager const& runman)
 {
     return Logger(MpiCommunicator{},
                   MtLogger{get_num_threads(runman)},

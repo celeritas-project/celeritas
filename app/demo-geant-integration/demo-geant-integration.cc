@@ -60,7 +60,7 @@ void run(std::string const& macro_filename)
     run_manager = std::make_unique<G4RunManager>();
 #endif
     CELER_ASSERT(run_manager);
-    celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
+    celeritas::self_logger() = celeritas::MakeMTLogger(*run_manager);
     CELER_LOG(info) << "Run manager type: "
                     << celeritas::TypeDemangler<G4RunManager>{}(*run_manager);
 

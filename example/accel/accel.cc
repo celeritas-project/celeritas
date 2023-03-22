@@ -237,7 +237,7 @@ int main()
     std::unique_ptr<G4RunManager> run_manager{
         G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly)};
 
-    celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
+    celeritas::self_logger() = celeritas::MakeMTLogger(*run_manager);
     run_manager->SetUserInitialization(new DetectorConstruction{});
     run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
     run_manager->SetUserInitialization(new ActionInitialization());
