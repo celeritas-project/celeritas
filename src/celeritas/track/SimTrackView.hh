@@ -179,11 +179,11 @@ CELER_FUNCTION bool SimTrackView::is_looping(ParticleId pid, Energy energy)
     auto const& looping = this->looping_threshold(pid);
     if (energy < looping.threshold_energy)
     {
-        return true;
+        return this->num_looping_steps() >= looping.max_subthreshold_steps;
     }
-    if (this->num_looping_steps() >= looping.max_steps)
+    else
     {
-        return true;
+        return this->num_looping_steps() >= looping.max_steps;
     }
     return false;
 }

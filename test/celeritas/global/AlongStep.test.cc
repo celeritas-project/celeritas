@@ -393,13 +393,11 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
                          -0.0391118941072485030};
         // Step limited by distance to interaction = 2.49798914193346685e21
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(273.03613780942214, result.step);
-        // All of the track's energy was deposited locally
-        EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
+        EXPECT_SOFT_EQ(27.208980085333259, result.step);
+        EXPECT_EQ(0, result.eloss);
         EXPECT_EQ(0, result.mfp);
-        // Track was flagged as looping and killed
-        EXPECT_EQ("abandon-looping", result.action);
-        EXPECT_EQ(0, result.alive);
+        EXPECT_EQ("geo-propagation-limit", result.action);
+        EXPECT_TRUE(result.alive);
     }
 }
 
@@ -425,7 +423,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
         EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
         EXPECT_EQ("eloss-range", result.action);
-        EXPECT_EQ(0, result.alive);
+        EXPECT_FALSE(result.alive);
     }
 }
 //---------------------------------------------------------------------------//

@@ -23,23 +23,35 @@ namespace celeritas
 /*!
  * Particle-dependent parameters for killing looping tracks.
  *
- * Tracks that are flagged as looping (taking a large number of substeps in the
- * field propagator) will be killed immediately if their energy is below \c
- * threshold_energy or after \c max_steps step iterations if their energy is
- * above the threshold. The \c threshold_energy is equivalent to the "important
- * energy" in Geant4.
+ * These threshold values are used to determine when tracks that are flagged as
+ * looping (i.e., taking a large number of substeps in the field propagator)
+ * should be killed.
+ *
+ * In Geant4 tracks are killed immediately if their energy is below \c
+ * threshold_energy (equivalent to Geant4's "important energy") or after \c
+ * max_steps step iterations if their energy is above the threshold.
+ *
+ * In Celeritas the default \c max_substeps in the field propagator is set to a
+ * smaller value than in Geant4 to improve load balancing. Therefore, an
+ * additional parameter \c max_subthreshold_steps is added to approximate
+ * Geant4's policy for killing looping tracks: a track flagged as looping will
+ * be killed if its energy is below \c threshold_energy and it has taken more
+ * then \c max_subthreshold_steps steps, or after \c max_steps steps if its
+ * energy is above the threshold.
  */
 struct LoopingThreshold
 {
     using Energy = units::MevEnergy;
 
-    size_type max_steps{10};
+    size_type max_subthreshold_steps{10};
+    size_type max_steps{100};
     Energy threshold_energy{250};
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_steps > 0 && threshold_energy >= zero_quantity();
+        return max_subthreshold_steps > 0 && max_steps > 0
+               && threshold_energy >= zero_quantity();
     }
 };
 //---------------------------------------------------------------------------//

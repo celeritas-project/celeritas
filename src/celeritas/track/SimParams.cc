@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/field/FieldPropagator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/track/SimData.hh"
@@ -29,6 +30,14 @@ SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
     SimParams::Input input;
     input.particles = std::move(particle_params);
 
+    // Calculate the maximum number of steps a track below the threshold energy
+    // can take while looping (ceil(max Geant4 field propagator substeps / max
+    // Celeritas field propagator substeps))
+    auto max_substeps = FieldPropagatorOptions::max_substeps;
+    CELER_ASSERT(data.trans_params.max_substeps >= max_substeps);
+    auto max_subthreshold_steps
+        = (data.trans_params.max_substeps + (max_substeps - 1)) / max_substeps;
+
     for (auto pid : range(ParticleId{input.particles->size()}))
     {
         auto pdg = input.particles->id_to_pdg(pid);
@@ -37,7 +46,9 @@ SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
 
         // Store the parameters for this particle
         LoopingThreshold looping;
-        looping.max_steps = iter->second.threshold_trials;
+        looping.max_subthreshold_steps = max_subthreshold_steps;
+        looping.max_steps = iter->second.threshold_trials
+                            * max_subthreshold_steps;
         looping.threshold_energy
             = LoopingThreshold::Energy{iter->second.important_energy};
         input.looping.insert({pdg, looping});
