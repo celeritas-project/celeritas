@@ -33,6 +33,12 @@ using logic_int = unsigned short int;
 //! Identifier for a face local to a particular volume (internal use only)
 using FaceId = OpaqueId<struct Face>;
 
+//! Local Identifier for a surface within within a universe
+using LocalSurfaceId = OpaqueId<struct LocalSurface>;
+
+//! Lacal identifier for a geometry volume in a universe
+using LocalVolumeId = OpaqueId<struct LocalVolume>;
+
 //! Identifier for the current "level", i.e. depth of embedded universe
 using LevelId = OpaqueId<struct Level>;
 
@@ -47,6 +53,16 @@ using UniverseId = OpaqueId<struct Universe>;
 
 //! Opaque index for "simple unit" data
 using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
+
+//! Data to specify an embeded universe withing a volume
+struct Daughter
+{
+    UniverseId universe_id;
+    TranslationId translation_id;
+};
+
+//! Opaque index for "simple unit" data
+using DaughterId = OpaqueId<struct Daughter>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
