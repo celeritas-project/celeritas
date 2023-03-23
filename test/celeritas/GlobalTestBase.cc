@@ -60,6 +60,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.cutoff = this->cutoff();
     inp.physics = this->physics();
     inp.rng = this->rng();
+    inp.sim = this->sim();
     inp.init = this->init();
     inp.action_reg = this->action_reg();
     CELER_ASSERT(inp);

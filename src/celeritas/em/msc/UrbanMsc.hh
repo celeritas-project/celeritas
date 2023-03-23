@@ -82,6 +82,9 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
     if (step <= msc_params_.params.geom_limit)
         return false;
 
+    if (track.make_sim_view().status() != TrackStatus::alive)
+        return false;
+
     auto par = track.make_particle_view();
     if (par.particle_id() != msc_params_.ids.electron
         && par.particle_id() != msc_params_.ids.positron)

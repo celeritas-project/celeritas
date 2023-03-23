@@ -24,6 +24,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Configuration options for the field propagator.
+ */
+struct FieldPropagatorOptions
+{
+    //! Limit on substeps
+    static constexpr short int max_substeps = 100;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Propagate a charged particle in a field.
  *
  * For a given initial state (position, momentum), it propagates a charged
@@ -61,8 +71,14 @@ class FieldPropagator
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
+    //! Whether it's possible to have tracks that are looping
+    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return true; }
+
     //! Limit on substeps
-    static CELER_CONSTEXPR_FUNCTION short int max_substeps() { return 128; }
+    static CELER_CONSTEXPR_FUNCTION short int max_substeps()
+    {
+        return FieldPropagatorOptions::max_substeps;
+    }
 
     // Distance to bump or to consider a "zero" movement
     inline CELER_FUNCTION real_type bump_distance() const;
@@ -256,6 +272,13 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             remaining = update_length;
         }
     } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
+
+    // Flag track as looping if the max number of substeps was reached without
+    // hitting a boundary or moving the full step length
+    if (remaining_substeps == 0)
+    {
+        result.looping = true;
+    }
 
     if (result.boundary && result.distance > 0)
     {

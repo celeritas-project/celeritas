@@ -19,6 +19,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 namespace celeritas
@@ -151,6 +152,14 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
     input.action_registry = this->action_reg().get();
 
     return std::make_shared<PhysicsParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+auto SimpleTestBase::build_sim() -> SPConstSim
+{
+    SimParams::Input input;
+    input.particles = this->particle();
+    return std::make_shared<SimParams>(input);
 }
 
 //---------------------------------------------------------------------------//

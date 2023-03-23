@@ -16,9 +16,11 @@ namespace demo_loop
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void bin_energy(CoreStateHostRef const& states, PointersHost& pointers)
+void bin_energy(CoreParamsHostRef const& params,
+                CoreStateHostRef const& states,
+                PointersHost& pointers)
 {
-    EnergyDiagnosticLauncher<MemSpace::host> launch(states, pointers);
+    EnergyDiagnosticLauncher<MemSpace::host> launch(params, states, pointers);
     for (auto tid : range(TrackSlotId{states.size()}))
     {
         launch(tid);

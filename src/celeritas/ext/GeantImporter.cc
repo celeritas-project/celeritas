@@ -38,6 +38,7 @@
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
 #include <G4String.hh>
+#include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4Types.hh>
 #include <G4VEnergyLossProcess.hh>
@@ -518,6 +519,75 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the transportation process for a given particle type.
+ */
+G4Transportation const* get_transportation(G4ParticleDefinition const* particle)
+{
+    CELER_EXPECT(particle);
+
+    auto const* pm = particle->GetProcessManager();
+    CELER_ASSERT(pm);
+
+    // Search through the processes to find transportion (it should be the
+    // first one)
+    auto const& pl = *pm->GetProcessList();
+    for (auto i : range(pl.size()))
+    {
+        if (auto const* trans = dynamic_cast<G4Transportation const*>(pl[i]))
+        {
+            return trans;
+        }
+    }
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store particle-dependent transportation parameters.
+ */
+ImportTransParameters
+import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
+{
+    ImportTransParameters result;
+
+    // Get the maximum number of substeps in the field propagator
+    auto const* tm = G4TransportationManager::GetTransportationManager();
+    CELER_ASSERT(tm);
+    if (auto const* fp = tm->GetPropagatorInField())
+    {
+        result.max_substeps = fp->GetMaxLoopCount();
+    }
+
+    G4ParticleTable::G4PTblDicIterator& particle_iterator
+        = *(G4ParticleTable::GetParticleTable()->GetIterator());
+    particle_iterator.reset();
+    ParticleFilter include_particle{particle_flags};
+    while (particle_iterator())
+    {
+        auto const* particle = particle_iterator.value();
+        if (!include_particle(PDGNumber{particle->GetPDGEncoding()}))
+        {
+            continue;
+        }
+
+        // Get the transportation process
+        auto const* trans = get_transportation(particle);
+        CELER_ASSERT(trans);
+
+        // Get the threshold values for killing looping tracks
+        ImportLoopingThreshold looping;
+        looping.threshold_trials = trans->GetThresholdTrials();
+        looping.important_energy = trans->GetThresholdImportantEnergy() / MeV;
+        CELER_ASSERT(looping);
+        result.looping.insert({particle->GetPDGEncoding(), looping});
+    }
+
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a \c ImportData::ImportEmParamsMap .
  */
 ImportEmParameters import_em_parameters()
@@ -597,6 +667,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                                imported.elements,
                                imported.materials);
         imported.volumes = this->import_volumes(selected.unique_volumes);
+        imported.trans_params = import_trans_parameters(selected.particles);
         if (selected.processes & DataSelection::em)
         {
             imported.em_params = import_em_parameters();

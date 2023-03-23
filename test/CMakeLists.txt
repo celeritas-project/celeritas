@@ -338,11 +338,13 @@ celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 if(CELERITAS_USE_Geant4)
   set(_filter
     FILTER
-      "-Em3*"
+      "-Em3*:SimpleCms*"
       "Em3AlongStepTest.nofluct_nomsc"
       "Em3AlongStepTest.msc_nofluct"
       "Em3AlongStepTest.msc_nofluct_finegrid"
       "Em3AlongStepTest.fluct_nomsc"
+      "SimpleCmsAlongStepTest.msc_field"
+      "SimpleCmsAlongStepTest.msc_field_finegrid"
   )
 else()
   set(_filter)
@@ -434,6 +436,7 @@ endif()
 #-------------------------------------#
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
+celeritas_add_test(celeritas/track/Sim.test.cc ${_needs_geant4})
 celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
 
 #-------------------------------------#
