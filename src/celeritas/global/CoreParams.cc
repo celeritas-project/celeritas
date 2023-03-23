@@ -120,9 +120,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         "Propagation substep/range limit"));
 
     // Construct action for killed looping tracks
-    scalars_.abandon_looping_action = input_.action_reg->next_id();
+    scalars.abandon_looping_action = input_.action_reg->next_id();
     input_.action_reg->insert(
-        std::make_shared<ImplicitSimAction>(scalars_.abandon_looping_action,
+        std::make_shared<ImplicitSimAction>(scalars.abandon_looping_action,
                                             "abandon-looping",
                                             "Abandoned looping track"));
 
