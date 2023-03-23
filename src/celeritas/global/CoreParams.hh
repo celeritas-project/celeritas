@@ -71,7 +71,7 @@ class CoreParams
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
 
-        //! True if all params are assigned
+        //! True if all params are assigned and valid
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
