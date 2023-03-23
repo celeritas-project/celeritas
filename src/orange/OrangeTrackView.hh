@@ -235,7 +235,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
     // Initialize logical state
     UniverseId next_uid = top_universe_id();
-
     size_type level = 0;
 
     // Recurse into daughter universes starting with the outermost universe
@@ -256,18 +255,11 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.sense() = Sense{};
         lsa.boundary() = BoundaryResult::exiting;
 
-        auto const& vol_rec_id = tracker.unit_record().volumes[tinit.volume];
-        auto const& vol_rec = params_.volume_records[vol_rec_id];
-
-        next_uid = vol_rec.daughter;
+        next_uid = tracker.daughter_uid(tinit.volume);
 
         if (next_uid)
         {
-            auto const& trans_id
-                = tracker.unit_record()
-                      .translations[vol_rec.daughter_translation.unchecked_get()];
-            auto const& trans = params_.translations[trans_id];
-
+            auto const& trans = tracker.translation(tinit.volume);
             TranslatorDown td(trans);
             local.pos = td(local.pos);
 
@@ -605,28 +597,20 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     // Starting with the current level (i.e., next_surface_level), iterate down
     // into the deepest level
     size_type current_level = sl.get();
+    LocalVolumeId current_volume = tinit.volume;
     auto current_uid = lsa.universe();
-    auto current_volume = tinit.volume;
-    VolumeRecord const* current_vol_rec = &(
-        params_.volume_records[tracker.unit_record().volumes[current_volume]]);
-    UniverseId next_uid = current_vol_rec->daughter;
-    Translation current_trans;
+    UniverseId next_uid = tracker.daughter_uid(current_volume);
 
     while (next_uid)
     {
         // Get the translator at the parent level, in order to translate into
         // daughter
-        current_trans
-            = params_.translations
-                  [this->make_tracker(current_uid)
-                       .unit_record()
-                       .translations[current_vol_rec->daughter_translation
-                                         .unchecked_get()]];
-        TranslatorDown current_translator(current_trans);
+        TranslatorDown current_translator(
+            this->make_tracker(current_uid).translation(current_volume));
 
         // Make the current level the daughter level
         ++current_level;
-        auto current_uid = next_uid;
+        current_uid = next_uid;
         auto current_tracker = this->make_tracker(current_uid);
 
         // Create local state on the daughter level
@@ -636,10 +620,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         local.temp_sense = this->make_temp_sense();
 
         current_volume = current_tracker.initialize(local).volume;
-        current_vol_rec
-            = &(params_.volume_records[current_tracker.unit_record()
-                                           .volumes[current_volume]]);
-        next_uid = current_vol_rec->daughter;
+        next_uid = current_tracker.daughter_uid(current_volume);
 
         auto current_lsa = make_lsa(LevelId{current_level});
         current_lsa.vol() = current_volume;

@@ -59,8 +59,7 @@ struct VolumeRecord
 
     logic_int max_intersections{0};
     logic_int flags{0};
-    UniverseId daughter;
-    TranslationId daughter_translation;
+    DaughterId daughter_id;
     // TODO (KENO geometry): zorder
 
     //! Flag values (bit field)
@@ -133,8 +132,8 @@ struct SimpleUnitRecord
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
-    // Translation data [index by TranslationId]
-    ItemRange<Translation> translations;
+    // Daughter data [index by DaughterId]
+    ItemRange<Daughter> daughters;
 
     // TODO: transforms
     // TODO: acceleration structure (bvh/kdtree/grid)
@@ -221,6 +220,7 @@ struct OrangeParamsData
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
 
+    Items<Daughter> daughters;
     Items<Translation> translations;
 
     UnitIndexerData<W, M> unit_indexer_data;
@@ -256,6 +256,7 @@ struct OrangeParamsData
         surface_types = other.surface_types;
         connectivities = other.connectivities;
         volume_records = other.volume_records;
+        daughters = other.daughters;
         translations = other.translations;
         unit_indexer_data = other.unit_indexer_data;
 
