@@ -9,6 +9,8 @@
 
 #include <random>
 #include <thrust/device_ptr.h>
+#include <thrust/execution_policy.h>
+#include <thrust/random.h>
 #include <thrust/sequence.h>
 #include <thrust/shuffle.h>
 
@@ -39,8 +41,11 @@ template<>
 void shuffle_track_slots<MemSpace::device>(
     Span<TrackSlotId::size_type> track_slots)
 {
-    std::mt19937 g{track_slots.size()};
+    using result_type = thrust::default_random_engine::result_type;
+    thrust::default_random_engine g{
+        static_cast<result_type>(track_slots.size())};
     thrust::shuffle(
+        thrust::device,
         thrust::device_pointer_cast(track_slots.data()),
         thrust::device_pointer_cast(track_slots.data() + track_slots.size()),
         g);
