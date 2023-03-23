@@ -525,11 +525,21 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
  */
 CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
+    auto local_pos = pos;
+
     for (auto i : range(this->level() + 1))
     {
         auto lsa = this->make_lsa(LevelId{i});
-        lsa.pos() = pos;
+        lsa.pos() = local_pos;
         lsa.surf() = LocalSurfaceId{};
+
+        if (i < this->level())
+        {
+            auto tracker = this->make_tracker(lsa.universe());
+            auto const& trans = tracker.translation(lsa.vol());
+            TranslatorDown td(trans);
+            local_pos = td(pos);
+        }
     }
 
     this->surface_level() = LevelId{};

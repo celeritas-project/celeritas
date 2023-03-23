@@ -577,6 +577,24 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     EXPECT_FALSE(geo.is_on_boundary());
 }
 
+TEST_F(UniversesTest, move_internal_multiple_universes)
+{
+    auto geo = this->make_track_view();
+
+    // Initialize in daughter universe
+    geo = Initializer_t{{0.5, -2, 1}, {0, 1, 0}};
+
+    // Move internally, then check that the distance to boundary is correct
+    geo.move_internal({0.5, -1, 1});
+    auto next = geo.find_next_step();
+    EXPECT_SOFT_EQ(1, next.distance);
+
+    // Move again, using other move_internal method
+    geo.move_internal(0.1);
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(0.9, next.distance);
+}
+
 // Cross into daughter universe for the case where the hole cell does not share
 // a boundary with another with a parent cell
 TEST_F(UniversesTest, cross_into_daughter_non_coincident)
