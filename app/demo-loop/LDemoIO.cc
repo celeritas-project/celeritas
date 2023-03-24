@@ -284,7 +284,7 @@ TransporterInput load_input(LDemoArgs const& args)
                  ProcessBuilder::get_all_process_classes(imported.processes))
             {
                 result.push_back(build_process(p));
-                CELER_ASSERT(input.processes.back());
+                CELER_ASSERT(result.back());
             }
             return result;
         }();
