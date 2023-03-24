@@ -334,14 +334,14 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Construct along-step action
     {
         AlongStepFactoryInput asfi;
-        asfi.action_id   = params.action_reg->next_id();
-        asfi.geometry    = params.geometry;
-        asfi.material    = params.material;
+        asfi.action_id = params.action_reg->next_id();
+        asfi.geometry = params.geometry;
+        asfi.material = params.material;
         asfi.geomaterial = params.geomaterial;
-        asfi.particle    = params.particle;
-        asfi.cutoff      = params.cutoff;
-        asfi.physics     = params.physics;
-        asfi.imported    = imported;
+        asfi.particle = params.particle;
+        asfi.cutoff = params.cutoff;
+        asfi.physics = params.physics;
+        asfi.imported = imported;
 
         auto along_step = options.make_along_step(asfi);
         CELER_VALIDATE(along_step,
