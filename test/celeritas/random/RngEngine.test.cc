@@ -174,7 +174,7 @@ class DeviceRngEngineTest : public Test
 TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
 {
     // Create and initialize states
-    RngDeviceStore rng_store(params->host_ref(), 1024);
+    RngDeviceStore rng_store(params->host_ref(), StreamId{0}, 1024);
 
     // Generate on device
     std::vector<unsigned int> values = re_test_native(rng_store.ref());
@@ -279,7 +279,7 @@ TYPED_TEST(DeviceRngEngineFloatTest, DISABLED_device)
     using real_type = TypeParam;
 
     // Create and initialize states
-    RngDeviceStore rng_store(this->params->host_ref(), 100);
+    RngDeviceStore rng_store(this->params->host_ref(), StreamId{0}, 100);
 
     // Generate on device
     auto values = re_test_canonical<real_type>(rng_store.ref());

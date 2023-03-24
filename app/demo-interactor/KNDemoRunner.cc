@@ -71,7 +71,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 
     RngParams rng_params(args.seed);
     RngStateData<Ownership::value, MemSpace::device> rng_states;
-    resize(&rng_states, rng_params.host_ref(), args.num_tracks);
+    resize(&rng_states, rng_params.host_ref(), StreamId{0}, args.num_tracks);
 
     // Secondary data
     StackAllocatorData<Secondary, Ownership::value, MemSpace::device> secondaries;

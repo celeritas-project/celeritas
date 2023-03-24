@@ -32,7 +32,7 @@ void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->materials, params.materials, size);
     resize(&state->particles, params.particles, size);
     resize(&state->physics, params.physics, size);
-    resize(&state->rng, params.rng, size);
+    resize(&state->rng, params.rng, stream_id, size);
     resize(&state->sim, size);
     resize(&state->init, params.init, size);
     resize(&state->track_slots, size);
