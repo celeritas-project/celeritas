@@ -25,10 +25,10 @@ using namespace vecgeom;
 
 namespace celeritas
 {
-
 template<typename S>
 class GenericSolid : public VUnplacedVolume
 {
+  private:
     using VUnplacedVolume::DistanceToIn;
     using VUnplacedVolume::DistanceToOut;
     using VUnplacedVolume::SafetyToIn;

@@ -31,15 +31,15 @@ class G4VSolid;
 namespace celeritas
 {
 
-// class converting G4 to VecGeom (only geometry; no materials)
-using vecgeom::BidirectionalTypeMap;
-using vecgeom::LogicalVolume;
-using vecgeom::Transformation3D;
-using vecgeom::VPlacedVolume;
-using vecgeom::VUnplacedVolume;
-
 class GeantGeometryImporter
 {
+  private:
+    // class converting G4 to VecGeom (only geometry; no materials)
+    using Transformation3D = vecgeom::Transformation3D;
+    using LogicalVolume = vecgeom::LogicalVolume;
+    using VPlacedVolume = vecgeom::VPlacedVolume;
+    using VUnplacedVolume = vecgeom::VUnplacedVolume;
+
   private:
     /** Remember pointer to generated world from imported G4 geometry. */
     VPlacedVolume const* world_;

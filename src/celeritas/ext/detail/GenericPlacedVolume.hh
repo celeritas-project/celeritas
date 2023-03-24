@@ -19,7 +19,6 @@
 #include <VecGeom/base/Transformation3D.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
-using namespace vecgeom;
 
 namespace celeritas
 {
@@ -28,9 +27,18 @@ namespace celeritas
 
 class GenericPlacedVolume : public vecgeom::VPlacedVolume
 {
-  public:
+  private:
     using Base = vecgeom::VPlacedVolume;
-    // using Base::Base;
+    using LogicalVolume = vecgeom::LogicalVolume;
+    using Transformation3D = vecgeom::Transformation3D;
+    template<class T>
+    using Vector3D = vecgeom::Vector3D<T>;
+    template<class T>
+    using SOA3D = vecgeom::SOA3D<T>;
+    template<class T>
+    using DevicePtr = vecgeom::DevicePtr<T>;
+
+  public:
     GenericPlacedVolume(char const* const             label,
                         LogicalVolume const* const    logicalVolume,
                         Transformation3D const* const transformation)
@@ -71,13 +79,15 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
         return GetUnplacedVolume()->Contains(localPoint);
     }
 
-    virtual EnumInside Inside(Vector3D<Precision> const& point) const override
+    virtual vecgeom::EnumInside
+    Inside(Vector3D<Precision> const& point) const override
     {
         return GetUnplacedVolume()->Inside(
             GetTransformation()->Transform(point));
     }
 
-    virtual void Inside(SOA3D<Precision> const&, Inside_t* const) const override
+    virtual void
+    Inside(SOA3D<Precision> const&, vecgeom::Inside_t* const) const override
     {
     }
 
@@ -91,7 +101,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     virtual Precision
     DistanceToIn(Vector3D<Precision> const& position,
                  Vector3D<Precision> const& direction,
-                 const Precision step_max = kInfLength) const override
+                 const Precision step_max = vecgeom::kInfLength) const override
     {
         return GetUnplacedVolume()->DistanceToIn(
             GetTransformation()->Transform(position),
@@ -121,7 +131,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     virtual Precision
     DistanceToOut(Vector3D<Precision> const& position,
                   Vector3D<Precision> const& direction,
-                  Precision const step_max = kInfLength) const override
+                  Precision const step_max = vecgeom::kInfLength) const override
     {
         return GetUnplacedVolume()->DistanceToOut(
             position, direction, step_max);
@@ -236,25 +246,26 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
         return 0;
     }
 
-    DevicePtr<cuda::VPlacedVolume>
-    CopyToGpu(DevicePtr<cuda::LogicalVolume> const,
-              DevicePtr<cuda::Transformation3D> const,
-              DevicePtr<cuda::VPlacedVolume> const) const
+    DevicePtr<vecgeom::cuda::VPlacedVolume>
+    CopyToGpu(DevicePtr<vecgeom::cuda::LogicalVolume> const,
+              DevicePtr<vecgeom::cuda::Transformation3D> const,
+              DevicePtr<vecgeom::cuda::VPlacedVolume> const) const
     {
         return {};
     }
 
-    DevicePtr<cuda::VPlacedVolume>
-    CopyToGpu(DevicePtr<cuda::LogicalVolume> const,
-              DevicePtr<cuda::Transformation3D> const) const
+    DevicePtr<vecgeom::cuda::VPlacedVolume>
+    CopyToGpu(DevicePtr<vecgeom::cuda::LogicalVolume> const,
+              DevicePtr<vecgeom::cuda::Transformation3D> const) const
     {
         return {};
     }
 
-    void CopyManyToGpu(std::vector<VPlacedVolume const*> const&,
-                       std::vector<DevicePtr<cuda::LogicalVolume>> const&,
-                       std::vector<DevicePtr<cuda::Transformation3D>> const&,
-                       std::vector<DevicePtr<cuda::VPlacedVolume>> const&) const
+    void CopyManyToGpu(
+        std::vector<VPlacedVolume const*> const&,
+        std::vector<DevicePtr<vecgeom::cuda::LogicalVolume>> const&,
+        std::vector<DevicePtr<vecgeom::cuda::Transformation3D>> const&,
+        std::vector<DevicePtr<vecgeom::cuda::VPlacedVolume>> const&) const
     {
     }
 #endif  // VECGEOM_CUDA_INTERFACE
