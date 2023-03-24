@@ -397,7 +397,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         EXPECT_EQ(0, result.eloss);
         EXPECT_EQ(0, result.mfp);
         EXPECT_EQ("geo-propagation-limit", result.action);
-        EXPECT_TRUE(result.alive);
+        EXPECT_DOUBLE_EQ(1, result.alive);
     }
 }
 
@@ -423,7 +423,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
         EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
         EXPECT_EQ("eloss-range", result.action);
-        EXPECT_FALSE(result.alive);
+        EXPECT_DOUBLE_EQ(0, result.alive);
     }
 }
 //---------------------------------------------------------------------------//
