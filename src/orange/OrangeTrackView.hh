@@ -233,14 +233,13 @@ OrangeTrackView::operator=(Initializer_t const& init)
     local.surface = {};
     local.temp_sense = this->make_temp_sense();
 
-    // Initialize logical state
-    UniverseId next_uid = top_universe_id();
+    // Recurse into daughter universes starting with the outermost universe
+    UniverseId uid = top_universe_id();
+    DaughterId daughter_id;
     size_type level = 0;
 
-    // Recurse into daughter universes starting with the outermost universe
     do
     {
-        auto uid = next_uid;
         auto tracker = this->make_tracker(uid);
         auto tinit = tracker.initialize(local);
         // TODO: error correction/graceful failure if initialiation failed
@@ -255,18 +254,20 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.sense() = Sense{};
         lsa.boundary() = BoundaryResult::exiting;
 
-        next_uid = tracker.daughter_uid(tinit.volume);
+        daughter_id = tracker.daughter(tinit.volume);
 
-        if (next_uid)
+        if (daughter_id)
         {
-            auto const& trans = tracker.translation(tinit.volume);
+            auto const& daughter = params_.daughters[daughter_id];
+            auto const& trans = params_.translations[daughter.translation_id];
             TranslatorDown td(trans);
             local.pos = td(local.pos);
 
+            uid = daughter.universe_id;
             ++level;
         }
 
-    } while (next_uid);
+    } while (daughter_id);
 
     this->level() = LevelId{level};
     this->surface_level() = LevelId{};
@@ -536,7 +537,11 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
         if (i < this->level())
         {
             auto tracker = this->make_tracker(lsa.universe());
-            auto const& trans = tracker.translation(lsa.vol());
+            auto daughter_id = tracker.daughter(lsa.vol());
+            CELER_ASSERT(daughter_id);
+            auto const& daughter = params_.daughters[daughter_id];
+            auto const& trans = params_.translations[daughter.translation_id];
+
             TranslatorDown td(trans);
             local_pos = td(pos);
         }
@@ -606,42 +611,43 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     // Starting with the current level (i.e., next_surface_level), iterate down
     // into the deepest level
-    size_type current_level = sl.get();
-    LocalVolumeId current_volume = tinit.volume;
-    auto current_uid = lsa.universe();
-    UniverseId next_uid = tracker.daughter_uid(current_volume);
+    size_type level = sl.get();
+    LocalVolumeId volume_id = tinit.volume;
+    auto universe_id = lsa.universe();
+    auto daughter_id = tracker.daughter(volume_id);
 
-    while (next_uid)
+    while (daughter_id)
     {
+        auto daughter = params_.daughters[daughter_id];
         // Get the translator at the parent level, in order to translate into
         // daughter
-        TranslatorDown current_translator(
-            this->make_tracker(current_uid).translation(current_volume));
+        TranslatorDown translator(
+            params_.translations[daughter.translation_id]);
 
         // Make the current level the daughter level
-        ++current_level;
-        current_uid = next_uid;
-        auto current_tracker = this->make_tracker(current_uid);
+        ++level;
+        universe_id = daughter.universe_id;
+        auto tracker = this->make_tracker(universe_id);
 
         // Create local state on the daughter level
-        local.pos = current_translator(local.pos);
+        local.pos = translator(local.pos);
         local.volume = {};
         local.surface = {};
         local.temp_sense = this->make_temp_sense();
 
-        current_volume = current_tracker.initialize(local).volume;
-        next_uid = current_tracker.daughter_uid(current_volume);
+        volume_id = tracker.initialize(local).volume;
+        daughter_id = tracker.daughter(volume_id);
 
-        auto current_lsa = make_lsa(LevelId{current_level});
-        current_lsa.vol() = current_volume;
-        current_lsa.pos() = local.pos;
-        current_lsa.dir() = local.dir;
-        current_lsa.universe() = current_uid;
-        current_lsa.surf() = LocalSurfaceId{};
-        current_lsa.boundary() = BoundaryResult::exiting;
+        auto lsa = make_lsa(LevelId{level});
+        lsa.vol() = volume_id;
+        lsa.pos() = local.pos;
+        lsa.dir() = local.dir;
+        lsa.universe() = universe_id;
+        lsa.surf() = LocalSurfaceId{};
+        lsa.boundary() = BoundaryResult::exiting;
     }
 
-    this->level() = LevelId{current_level};
+    this->level() = LevelId{level};
 
     CELER_ENSURE(this->is_on_boundary());
     this->clear_next_step();

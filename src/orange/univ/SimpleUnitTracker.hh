@@ -67,12 +67,8 @@ class SimpleUnitTracker
         return unit_record_;
     }
 
-    // Provide the daughter universe embedded in a given volume
-    inline CELER_FUNCTION UniverseId daughter_uid(LocalVolumeId vol) const;
-
-    // Provide the translation daughter universe embedded in a given volume
-    inline CELER_FUNCTION Translation const&
-    translation(LocalVolumeId vol) const;
+    // DaughterId of universe embedded in a given volume
+    inline CELER_FUNCTION DaughterId daughter(LocalVolumeId vol) const;
 
     //// OPERATIONS ////
 
@@ -646,36 +642,21 @@ SimpleUnitTracker::make_local_volume(LocalVolumeId vid) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Provide the daughter universe embedded in a given volume.
+ * DaughterId of universe embedded in a given volume.
  */
-CELER_FORCEINLINE_FUNCTION UniverseId
-SimpleUnitTracker::daughter_uid(LocalVolumeId vol) const
+CELER_FORCEINLINE_FUNCTION DaughterId
+SimpleUnitTracker::daughter(LocalVolumeId vol) const
 {
-    auto const& vol_rec = params_.volume_records[unit_record_.volumes[vol]];
-    UniverseId uid{};
-
-    if (vol_rec.daughter_id)
+    auto local_daughter_id
+        = params_.volume_records[unit_record_.volumes[vol]].daughter_id;
+    if (local_daughter_id)
     {
-        uid = params_
-                  .daughters[unit_record_.daughters[vol_rec.daughter_id.get()]]
-                  .universe_id;
+        return unit_record_.daughters[local_daughter_id.get()];
     }
-    return uid;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Provide the translation of the daughter universe embedded in a given volume.
- */
-CELER_FORCEINLINE_FUNCTION Translation const&
-SimpleUnitTracker::translation(LocalVolumeId vol) const
-{
-    auto const& vol_rec = params_.volume_records[unit_record_.volumes[vol]];
-    auto const& trans_id
-        = params_.daughters[unit_record_.daughters[vol_rec.daughter_id.get()]]
-              .translation_id;
-    CELER_ASSERT(trans_id);
-    return params_.translations[trans_id];
+    else
+    {
+        return DaughterId{};
+    }
 }
 
 //---------------------------------------------------------------------------//
