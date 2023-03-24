@@ -234,12 +234,6 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
         CELER_LOG(info) << "DIVISION volume found: " << node->GetName();
     }
 
-    if (placed_volume_map_.Contains(node))
-    {
-        CELER_ASSERT(false);  // for the moment unsupported
-        return get_placed_volume(node);
-    }
-
     // convert node transformation
     auto const transformation
         = this->convert(node->GetTranslation(), node->GetRotation());
@@ -281,7 +275,7 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
         }
     }
 
-    placed_volume_map_.Set(node, vgvector);
+    placed_volume_map_[node] = vgvector;
     return vgvector;
 }
 
@@ -315,7 +309,7 @@ Transformation3D* GeantGeometryImporter::convert(G4ThreeVector const& t,
 
 LogicalVolume* GeantGeometryImporter::convert(G4LogicalVolume const* g4_logvol)
 {
-    if (logical_volume_map_.Contains(g4_logvol))
+    if (logical_volume_map_.find(g4_logvol) != logical_volume_map_.end())
         return const_cast<LogicalVolume*>(logical_volume_map_[g4_logvol]);
 
     VUnplacedVolume const* unplaced;
@@ -333,7 +327,7 @@ LogicalVolume* GeantGeometryImporter::convert(G4LogicalVolume const* g4_logvol)
 
     LogicalVolume* const vg_logvol
         = new LogicalVolume(clean_name.c_str(), unplaced);
-    logical_volume_map_.Set(g4_logvol, vg_logvol);
+    logical_volume_map_[g4_logvol] = vg_logvol;
 
     // can be used to make a cross check for dimensions and other properties
     // make a cross check using cubic volume property
@@ -354,7 +348,7 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
 {
     VUnplacedVolume* unplaced_volume = nullptr;
 
-    if (unplaced_volume_map_.Contains(shape))
+    if (unplaced_volume_map_.find(shape) != unplaced_volume_map_.end())
     {
         return const_cast<VUnplacedVolume*>(unplaced_volume_map_[shape]);
     }
@@ -840,15 +834,15 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
                          << unplaced_volume->Capacity() / ipow<3>(scale);
     }
 
-    unplaced_volume_map_.Set(shape, unplaced_volume);
+    unplaced_volume_map_[shape] = unplaced_volume;
     return unplaced_volume;
 }
 
 void GeantGeometryImporter::clear_vecgeom()
 {
-    placed_volume_map_.Clear();
-    unplaced_volume_map_.Clear();
-    logical_volume_map_.Clear();
+    placed_volume_map_.clear();
+    unplaced_volume_map_.clear();
+    logical_volume_map_.clear();
     if (GeoManager::Instance().GetWorld() == world_)
     {
         GeoManager::Instance().SetWorld(nullptr);

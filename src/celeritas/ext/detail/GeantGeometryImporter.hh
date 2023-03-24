@@ -14,6 +14,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
 #include <utility>
 #include <vector>
 #include <G4PVReplica.hh>
@@ -45,15 +46,12 @@ class GeantGeometryImporter
 
     // one G4 physical volume can correspond to multiple vecgeom placed volumes
     // (in case of replicas)
-    BidirectionalTypeMap<std::vector<VPlacedVolume const*> const*,
-                         G4VPhysicalVolume const*>
+    std::map<G4VPhysicalVolume const*, std::vector<VPlacedVolume const*> const*>
         placed_volume_map_;
 
-    BidirectionalTypeMap<VUnplacedVolume const*, G4VSolid const*>
-        unplaced_volume_map_;
+    std::map<G4VSolid const*, VUnplacedVolume const*> unplaced_volume_map_;
 
-    BidirectionalTypeMap<LogicalVolume const*, G4LogicalVolume const*>
-        logical_volume_map_;
+    std::map<G4LogicalVolume const*, LogicalVolume const*> logical_volume_map_;
 
     // fast O(1) lookup to get VecGeom or G4 placed volume based on index
     // FastG4VecGeomLookup fFastG4VGLookup;
@@ -72,8 +70,11 @@ class GeantGeometryImporter
         if (n == nullptr)
             return nullptr;
         // return (GeoManager::Instance().Convert(placed_volume_map_[n]));
-        assert(false);
-        return nullptr;
+        if (auto found = placed_volume_map_.find(n);
+            found != placed_volume_map_.end())
+            return found->second;
+        else
+            return nullptr;
     }
 
     /**
@@ -93,7 +94,7 @@ class GeantGeometryImporter
      * making the conversion process recursive, comprising the whole geometry
      * starting from the top volume.
      * Will take care not to convert anything twice by checking the
-     * bidirectional map between Geant4 and VecGeom geometry.
+     * mapping between Geant4 and VecGeom geometry.
      */
     std::vector<VPlacedVolume const*> const* convert(G4VPhysicalVolume const*);
 
