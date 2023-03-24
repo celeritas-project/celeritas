@@ -68,11 +68,15 @@ class CoreParams
 
         SPActionRegistry action_reg;
 
-        //! True if all params are assigned
+        //! Maximum number of simultaneous threads/tasks per process
+        StreamId::size_type max_streams{1};
+
+        //! True if all params are assigned and valid
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && rng && sim && init && action_reg;
+                   && physics && rng && sim && init && action_reg
+                   && max_streams;
         }
     };
 
@@ -103,9 +107,11 @@ class CoreParams
     // Access properties on the device
     inline DeviceRef const& device_ref() const;
 
+    //! Maximum number of streams
+    size_type max_streams() const { return input_.max_streams; }
+
   private:
     Input input_;
-    CoreScalars scalars_;
     HostRef host_ref_;
     DeviceRef device_ref_;
 };

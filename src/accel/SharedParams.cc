@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Random/Random.h>
+#include <G4RunManager.hh>
+#include <G4Threading.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -24,6 +26,7 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
@@ -332,6 +335,17 @@ void SharedParams::initialize_core(SetupOptions const& options)
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
 
+    // Set maximum number of streams based on Geant4 multithreading
+    // Hit processors *must* be allocated on the thread they're used because of
+    // geant4 thread-local SDs. There must be one per thread.
+    params.max_streams = [] {
+        auto* run_man = G4RunManager::GetRunManager();
+        CELER_VALIDATE(run_man,
+                       << "G4RunManager was not created before initializing "
+                          "SharedParams");
+        return celeritas::get_num_threads(*run_man);
+    }();
+
     // Construct along-step action
     {
         AlongStepFactoryInput asfi;
@@ -372,6 +386,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Construct sensitive detector callback
     if (options.sd)
     {
+        CELER_VALIDATE(params.max_streams == 1,
+                       << "HitManager currently supports only serial mode");
         hit_manager_ = std::make_shared<detail::HitManager>(*params.geometry,
                                                             options.sd);
         step_collector_ = std::make_shared<StepCollector>(
