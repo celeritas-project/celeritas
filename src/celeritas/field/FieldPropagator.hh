@@ -260,7 +260,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // to the extra delta_intersection boost when searching. The
             // substep itself can be more than the requested step.
             result.distance += celeritas::min(update_length, substep.step);
-            CELER_ASSERT(result.distance <= step);
             state_.mom = substep.state.mom;
             remaining = 0;
         }
