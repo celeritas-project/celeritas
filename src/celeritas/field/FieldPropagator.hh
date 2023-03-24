@@ -275,7 +275,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
     // Flag track as looping if the max number of substeps was reached without
     // hitting a boundary or moving the full step length
-    if (remaining_substeps == 0)
+    if (remaining_substeps == 0 && result.distance < step)
     {
         result.looping = true;
     }
