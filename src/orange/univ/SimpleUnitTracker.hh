@@ -647,16 +647,7 @@ SimpleUnitTracker::make_local_volume(LocalVolumeId vid) const
 CELER_FORCEINLINE_FUNCTION DaughterId
 SimpleUnitTracker::daughter(LocalVolumeId vol) const
 {
-    auto local_daughter_id
-        = params_.volume_records[unit_record_.volumes[vol]].daughter_id;
-    if (local_daughter_id)
-    {
-        return unit_record_.daughters[local_daughter_id.get()];
-    }
-    else
-    {
-        return DaughterId{};
-    }
+    return params_.volume_records[unit_record_.volumes[vol]].daughter_id;
 }
 
 //---------------------------------------------------------------------------//

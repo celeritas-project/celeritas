@@ -158,7 +158,6 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
 
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
-    std::vector<Daughter> daughters;
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
     for (auto i : range(inp.volumes.size()))
     {
@@ -169,7 +168,6 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         if (inp.daughter_map.find(LocalVolumeId(i)) != inp.daughter_map.end())
         {
             process_daughter(&(vol_records[i]),
-                             &daughters,
                              inp.daughter_map.at(LocalVolumeId(i)));
         }
 
@@ -188,10 +186,6 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::VolumeRecordId>(
         make_builder(&orange_data_->volume_records)
             .insert_back(vol_records.begin(), vol_records.end()));
-
-    // Save daughters
-    unit.daughters = make_builder(&orange_data_->daughters)
-                         .insert_back(daughters.begin(), daughters.end());
 
     // Save connectivity
     {
@@ -360,18 +354,16 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
  * Process a single daughter universe.
  */
 void UnitInserter::process_daughter(VolumeRecord* vol_record,
-                                    std::vector<Daughter>* daughters,
                                     UnitInput::Daughter const& daughter_input)
 {
-    vol_record->flags &= VolumeRecord::embedded_universe;
-    vol_record->daughter_id = DaughterId(daughters->size());
-
     Daughter daughter;
     daughter.universe_id = daughter_input.universe_id;
     daughter.translation_id = make_builder(&orange_data_->translations)
                                   .push_back(daughter_input.translation);
 
-    daughters->push_back(daughter);
+    vol_record->daughter_id
+        = make_builder(&orange_data_->daughters).push_back(daughter);
+    vol_record->flags &= VolumeRecord::embedded_universe;
 }
 
 //---------------------------------------------------------------------------//

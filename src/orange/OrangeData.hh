@@ -132,9 +132,6 @@ struct SimpleUnitRecord
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
-    // Daughter data [index by DaughterId]
-    ItemRange<Daughter> daughters;
-
     // TODO: transforms
     // TODO: acceleration structure (bvh/kdtree/grid)
     LocalVolumeId background{};  //!< Default if not in any other volume
