@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //---------------------------------------------------------------------------//
 /*!
- * \file G4VecgeomConverter.hh
+ * \file GeantGeometryImporter.hh
  * \brief Class to create a VecGeom model from a pre-existing Geant4 geometry
  *
  * Original code from G4VecGeomNav package by John Apostolakis et.al.
@@ -37,7 +37,7 @@ using vecgeom::Transformation3D;
 using vecgeom::VPlacedVolume;
 using vecgeom::VUnplacedVolume;
 
-class G4VecGeomConverter
+class GeantGeometryImporter
 {
   private:
     /** Remember pointer to generated world from imported G4 geometry. */
@@ -121,7 +121,7 @@ class G4VecGeomConverter
 
   public:
     // constructor
-    G4VecGeomConverter()
+    GeantGeometryImporter()
         : world_(nullptr)
         , placed_volume_map_()
         , unplaced_volume_map_()
@@ -132,14 +132,14 @@ class G4VecGeomConverter
     }
 
     // destructor
-    ~G4VecGeomConverter()
+    ~GeantGeometryImporter()
     {
         //..  The VecGeom geometry created during conversion is not owned here!
         // this->clear_vecgeom();
     }
 
   private:
-    G4VecGeomConverter(G4VecGeomConverter const&)            = delete;
-    G4VecGeomConverter& operator=(G4VecGeomConverter const&) = delete;
+    GeantGeometryImporter(GeantGeometryImporter const&) = delete;
+    GeantGeometryImporter& operator=(GeantGeometryImporter const&) = delete;
 };
 }  // namespace celeritas

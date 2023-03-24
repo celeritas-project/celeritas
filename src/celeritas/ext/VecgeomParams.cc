@@ -31,7 +31,7 @@
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "detail/GeantGeoExporter.hh"
-#include "detail/G4VecgeomConvert.hh"
+#include "detail/GeantGeometryImport.hh"
 
 namespace celeritas
 {
