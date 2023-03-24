@@ -153,8 +153,8 @@ void GeantGeometryImporter::convert_G4_geometry(G4VPhysicalVolume const* g4_worl
     timer.Stop();
     if (verbose_)
     {
-        CELER_LOG(info) << "*** Conversion of G4 -> VecGeom finished ("
-                        << timer.Elapsed() << " s) ***";
+        CELER_LOG(debug) << "Conversion of G4 -> VecGeom finished ("
+                         << timer.Elapsed() << " s) ***";
     }
     GeoManager::Instance().SetWorld(world_);
     timer.Start();
@@ -162,8 +162,8 @@ void GeantGeometryImporter::convert_G4_geometry(G4VPhysicalVolume const* g4_worl
     timer.Stop();
     if (verbose_)
     {
-        CELER_LOG(info) << "*** Closing VecGeom geometry finished ("
-                        << timer.Elapsed() << " s) ***";
+        CELER_LOG(debug) << "Closing VecGeom geometry finished ("
+                         << timer.Elapsed() << " s) ***";
     }
     world_ = GeoManager::Instance().GetWorld();
 }
@@ -219,19 +219,19 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
     // Warn about potentially unsupported cases
     if (dynamic_cast<G4PVParameterised const*>(node))
     {
-        CELER_LOG(warning) << "PARAMETRIZED VOLUME FOUND " << node->GetName();
+        CELER_LOG(info) << "PARAMETRIZED volume found: " << node->GetName();
     }
     replica_transformations_.clear();
     if (auto replica = dynamic_cast<G4PVReplica const*>(node))
     {
-        CELER_LOG(info) << "REPLICA VOLUME FOUND " << replica->GetName();
+        CELER_LOG(info) << "REPLICA volume found: " << replica->GetName();
 #ifdef ACTIVATEREPLICATION
         extract_replicated_transformations(*replica, replica_transformations_);
 #endif
     }
     if (dynamic_cast<G4PVDivision const*>(node))
     {
-        CELER_LOG(warning) << "DIVISION VOLUME FOUND " << node->GetName();
+        CELER_LOG(info) << "DIVISION volume found: " << node->GetName();
     }
 
     if (placed_volume_map_.Contains(node))
@@ -764,7 +764,7 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
         if (t.getTranslation().mag2() == 0.
             && (t.xx() == -1. || t.yy() == -1. || t.zz() == -1.))
         {
-            CELER_LOG(info) << "SIMPLE REFLECTION -> CONVERT TO SCALED SHAPE";
+            CELER_LOG(info) << "Simple Reflection -> Convert to Scaled shape";
             VUnplacedVolume* referenced_shape
                 = Convert(p->GetConstituentMovedSolid());
 
@@ -775,7 +775,7 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
         }
         else
         {
-            CLER_LOG(info) << "NONSIMPLE REFLECTION in solid"
+            CLER_LOG(info) << "Non-simple REFLECTION in solid "
                            << shape->GetName();
             unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
         }
@@ -815,25 +815,16 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
                 CELER_LOG(warning) << "Minor difference in capacities "
                                       "detected.";
             }
-            int old_prec = CELER_LOG(info).precision(12);
-            CELER_LOG(info) << "for volume " << shape->GetName() << " of type "
-                            << shape->GetEntityType() << ": G4 gives "
-                            << capacityG4 << " VG gives " << capacityVg
-                            << ", a relative difference of " << relativeDiff;
-            CELER_LOG(info).precision(old_prec);
         }
-        else
+        if (std::fabs(relativeDiff) > 1.0e-6)
         {
-            if (std::fabs(relativeDiff) > 1.0e-6)
-            {
-                int constexpr old_prec = CELER_LOG(info).precision(12);
-                CELER_LOG(info)
-                    << "Check for volume " << shape->GetName() << " of type "
-                    << shape->GetEntityType() << ": G4 gives " << capacityG4
-                    << " VG gives " << capacityVg
-                    << ", a relative difference of " << relativeDiff;
-                CELER_LOG(info).precision(old_prec);
-            }
+            constexpr int old_prec = CELER_LOG(info).precision(12);
+            CELER_LOG(info)
+                << "Check for volume " << shape->GetName() << " of type "
+                << shape->GetEntityType() << ": G4 gives " << capacityG4
+                << " VG gives " << capacityVg << ", a relative difference of "
+                << relativeDiff;
+            CELER_LOG(info).precision(old_prec);
         }
     }
 #endif
@@ -841,14 +832,11 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
     // New volumes should be implemented here...
     if (!unplaced_volume)
     {
-        if (true)
-        {  // verbose_) {
-            printf("Unsupported shape for G4 solid %s, of type %s\n",
-                   shape->GetName().c_str(),
-                   shape->GetEntityType().c_str());
-        }
+        CELER_LOG(info) << "Unsupported shape for G4 solid "
+                        << shape->GetName().c_str() << ", of type "
+                        << shape->GetEntityType().c_str();
         unplaced_volume = new celeritas::GenericSolid<G4VSolid>(shape);
-        CELER_LOG(debug) << " capacity = "
+        CELER_LOG(debug) << " -- capacity = "
                          << unplaced_volume->Capacity() / ipow<3>(scale);
     }
 

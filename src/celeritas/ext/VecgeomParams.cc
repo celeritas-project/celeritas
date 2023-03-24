@@ -41,7 +41,7 @@ namespace celeritas
  */
 VecgeomParams::VecgeomParams(std::string const& filename)
 {
-    CELER_LOG(info) << "Loading VecGeom geometry from GDML at " << filename;
+    CELER_LOG(status) << "Loading VecGeom geometry from GDML at " << filename;
     if (!ends_with(filename, ".gdml"))
     {
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
@@ -67,7 +67,7 @@ VecgeomParams::VecgeomParams(std::string const& filename)
 VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 {
     CELER_EXPECT(world);
-    CELER_LOG(info) << "Importing VecGeom model from Geant4";
+    CELER_LOG(status) << "Importing VecGeom model from Geant4";
 
     // Convert the geometry to VecGeom
     detail::g4_to_vecgeom(world, /* verbose = */ true);
