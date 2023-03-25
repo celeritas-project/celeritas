@@ -217,7 +217,7 @@ TransporterInput load_input(LDemoArgs const& args)
     TransporterInput result;
     CoreParams::Input params;
 
-    ImportData imported = [&args] {
+    ImportData const imported = [&args] {
         if (ends_with(args.physics_filename, ".root"))
         {
             // Load imported from ROOT file
@@ -349,7 +349,7 @@ TransporterInput load_input(LDemoArgs const& args)
         TrackInitParams::Input input;
         input.capacity = args.initializer_capacity;
         input.max_events = args.max_events;
-        return std::make_shared<TrackInitParams>(input);
+        return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
     // Create params

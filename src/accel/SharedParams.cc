@@ -259,7 +259,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
                    << "along-step action factory 'make_along_step' was not "
                       "defined in the celeritas::SetupOptions");
 
-    auto imported = [&options] {
+    auto const imported = [&options] {
         celeritas::GeantImporter load_geant_data(
             GeantImporter::get_world_volume());
         // Convert ImportVolume names to GDML versions if we're exporting
@@ -341,7 +341,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
         TrackInitParams::Input input;
         input.capacity = options.initializer_capacity;
         input.max_events = options.max_num_events;
-        return std::make_shared<TrackInitParams>(input);
+        return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
     // Set maximum number of streams based on Geant4 multithreading
@@ -356,7 +356,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
     }();
 
     // Construct along-step action
-    auto along_step = [&params, &options, &imported] {
+    params.action_reg->insert([&params, &options, &imported] {
         AlongStepFactoryInput asfi;
         asfi.action_id = params.action_reg->next_id();
         asfi.geometry = params.geometry;
@@ -366,10 +366,11 @@ void SharedParams::initialize_core(SetupOptions const& options)
         asfi.cutoff = params.cutoff;
         asfi.physics = params.physics;
         asfi.imported = imported;
-        return options.make_along_step(asfi);
-    }();
-    CELER_VALIDATE(along_step, << "along-step factory returned a null pointer");
-    params.action_reg->insert(std::move(along_step));
+        auto const along_step{options.make_along_step(asfi)};
+        CELER_VALIDATE(along_step,
+                       << "along-step factory returned a null pointer");
+        return along_step;
+    }());
 
     // Construct sensitive detector callback
     if (options.sd)
