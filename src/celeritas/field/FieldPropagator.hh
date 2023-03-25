@@ -260,7 +260,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // to the extra delta_intersection boost when searching. The
             // substep itself can be more than the requested step.
             result.distance += celeritas::min(update_length, substep.step);
-            CELER_ASSERT(result.distance <= step);
             state_.mom = substep.state.mom;
             remaining = 0;
         }
@@ -273,20 +272,31 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         }
     } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
 
-    // Flag track as looping if the max number of substeps was reached without
-    // hitting a boundary or moving the full step length
-    if (remaining_substeps == 0)
+    if (remaining_substeps == 0 && result.distance < step)
     {
+        // Flag track as looping if the max number of substeps was reached
+        // without hitting a boundary or moving the full step length
         result.looping = true;
     }
-
-    if (result.boundary && result.distance > 0)
+    else if (result.distance > 0)
     {
-        // We moved to a new boundary. Update the position to reflect the
-        // geometry's state (and possibly "bump" the ODE state's position
-        // because of the tolerance in the intercept checks above).
-        geo_.move_to_boundary();
-        state_.pos = geo_.pos();
+        if (result.boundary)
+        {
+            // We moved to a new boundary. Update the position to reflect the
+            // geometry's state (and possibly "bump" the ODE state's position
+            // because of the tolerance in the intercept checks above).
+            geo_.move_to_boundary();
+            state_.pos = geo_.pos();
+        }
+        else if (CELER_UNLIKELY(result.distance < step))
+        {
+            // Even though the track traveled the full step length, the
+            // distance might be slightly less than the step due to roundoff
+            // error. Reset the distance so the track's action isn't
+            // erroneously set as propagation-limited.
+            CELER_ASSERT(soft_equal(result.distance, step));
+            result.distance = step;
+        }
     }
 
     // Even though the along-substep movement was through chord lengths,
