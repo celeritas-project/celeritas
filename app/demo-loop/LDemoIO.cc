@@ -217,68 +217,53 @@ TransporterInput load_input(LDemoArgs const& args)
     TransporterInput result;
     CoreParams::Input params;
 
-    ImportData imported_data;
-    if (ends_with(args.physics_filename, ".root"))
-    {
-        // Load imported_data from ROOT file
-        imported_data = RootImporter(args.physics_filename.c_str())();
-    }
-    else if (ends_with(args.physics_filename, ".gdml"))
-    {
-        // Load imported_data directly from Geant4
-        imported_data = GeantImporter(
-            GeantSetup(args.physics_filename, args.geant_options))();
-    }
-    else
-    {
+    ImportData const imported = [&args] {
+        if (ends_with(args.physics_filename, ".root"))
+        {
+            // Load imported from ROOT file
+            return RootImporter(args.physics_filename.c_str())();
+        }
+        else if (ends_with(args.physics_filename, ".gdml"))
+        {
+            // Load imported directly from Geant4
+            return GeantImporter(
+                GeantSetup(args.physics_filename, args.geant_options))();
+        }
         CELER_VALIDATE(false,
                        << "invalid physics filename '" << args.physics_filename
                        << "' (expected gdml or root)");
-    }
+    }();
 
     // Create action manager
-    {
-        params.action_reg = std::make_shared<ActionRegistry>();
-    }
+    params.action_reg = std::make_shared<ActionRegistry>();
 
     // Load geometry
+    params.geometry
+        = std::make_shared<GeoParams>(args.geometry_filename.c_str());
+    if (!params.geometry->supports_safety())
     {
-        params.geometry
-            = std::make_shared<GeoParams>(args.geometry_filename.c_str());
-        if (!params.geometry->supports_safety())
-        {
-            CELER_LOG(warning)
-                << "Geometry contains surfaces that are "
-                   "incompatible with the current ORANGE simple "
-                   "safety algorithm: multiple scattering may "
-                   "result in arbitrarily small steps";
-        }
+        CELER_LOG(warning) << "Geometry contains surfaces that are "
+                              "incompatible with the current ORANGE simple "
+                              "safety algorithm: multiple scattering may "
+                              "result in arbitrarily small steps";
     }
 
     // Load materials
-    {
-        params.material = MaterialParams::from_import(imported_data);
-    }
+    params.material = MaterialParams::from_import(imported);
 
     // Create geometry/material coupling
-    {
-        params.geomaterial = GeoMaterialParams::from_import(
-            imported_data, params.geometry, params.material);
-    }
+    params.geomaterial = GeoMaterialParams::from_import(
+        imported, params.geometry, params.material);
 
     // Construct particle params
-    {
-        params.particle = ParticleParams::from_import(imported_data);
-    }
+    params.particle = ParticleParams::from_import(imported);
 
     // Construct cutoffs
-    {
-        params.cutoff = CutoffParams::from_import(
-            imported_data, params.particle, params.material);
-    }
+    params.cutoff = CutoffParams::from_import(
+        imported, params.particle, params.material);
 
     // Load physics: create individual processes with make_shared
-    {
+    params.physics = [&params, &args, &imported] {
         PhysicsParams::Input input;
         input.particles = params.particle;
         input.materials = params.material;
@@ -286,29 +271,30 @@ TransporterInput load_input(LDemoArgs const& args)
 
         input.options.fixed_step_limiter = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
-        input.options.linear_loss_limit
-            = imported_data.em_params.linear_loss_limit;
+        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
 
-        {
+        input.processes = [&params, &args, &imported] {
+            std::vector<std::shared_ptr<Process const>> result;
             ProcessBuilder::Options opts;
             opts.brem_combined = args.brem_combined;
 
             ProcessBuilder build_process(
-                imported_data, params.particle, params.material, opts);
-            for (auto p : ProcessBuilder::get_all_process_classes(
-                     imported_data.processes))
+                imported, params.particle, params.material, opts);
+            for (auto p :
+                 ProcessBuilder::get_all_process_classes(imported.processes))
             {
-                input.processes.push_back(build_process(p));
-                CELER_ASSERT(input.processes.back());
+                result.push_back(build_process(p));
+                CELER_ASSERT(result.back());
             }
-        }
+            return result;
+        }();
 
-        params.physics = std::make_shared<PhysicsParams>(std::move(input));
-    }
+        return std::make_shared<PhysicsParams>(std::move(input));
+    }();
 
-    bool eloss = imported_data.em_params.energy_loss_fluct;
+    bool eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
-        *params.particle, *params.material, imported_data);
+        *params.particle, *params.material, imported);
     if (args.mag_field == LDemoArgs::no_field())
     {
         // Create along-step action
@@ -342,17 +328,13 @@ TransporterInput load_input(LDemoArgs const& args)
     }
 
     // Construct RNG params
-    {
-        params.rng = std::make_shared<RngParams>(args.seed);
-    }
+    params.rng = std::make_shared<RngParams>(args.seed);
 
     // Construct simulation params
-    {
-        params.sim = SimParams::from_import(imported_data, params.particle);
-    }
+    params.sim = SimParams::from_import(imported, params.particle);
 
     // Construct track initialization params
-    {
+    params.init = [&args] {
         CELER_VALIDATE(args.initializer_capacity > 0,
                        << "nonpositive initializer_capacity="
                        << args.initializer_capacity);
@@ -367,8 +349,8 @@ TransporterInput load_input(LDemoArgs const& args)
         TrackInitParams::Input input;
         input.capacity = args.initializer_capacity;
         input.max_events = args.max_events;
-        params.init = std::make_shared<TrackInitParams>(input);
-    }
+        return std::make_shared<TrackInitParams>(std::move(input));
+    }();
 
     // Create params
     CELER_ASSERT(params);

@@ -22,7 +22,7 @@ namespace units
 struct NativeUnit
 {
     //! The conversion factor of the resulting unit is always unity
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return 1; }
+    static CELER_CONSTEXPR_FUNCTION int value() { return 1; }
 };
 
 //! Unit for quantity such that the numeric value of 1 MeV is unity
@@ -31,7 +31,7 @@ struct Mev
     //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        return 1e6 * constants::e_electron * units::volt;
+        return real_type(1e6) * constants::e_electron * units::volt;
     }
     //! Text label for output
     static char const* label() { return "MeV"; }
@@ -87,7 +87,7 @@ struct Millibarn
     //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        return 1e-3 * units::barn;
+        return real_type(1e-3) * units::barn;
     }
 };
 

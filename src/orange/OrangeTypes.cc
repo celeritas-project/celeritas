@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "OrangeTypes.hh"
 
-#include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
 
 namespace celeritas

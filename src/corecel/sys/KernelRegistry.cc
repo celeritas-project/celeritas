@@ -17,22 +17,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-namespace
-{
-//---------------------------------------------------------------------------//
-bool determine_profiling()
-{
-    if constexpr (CELERITAS_DEBUG)
-    {
-        return true;
-    }
-    return !celeritas::getenv("CELER_PROFILE_DEVICE").empty();
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
 /*!
  * Whether to record potentially expensive kernel profiling information.
  *
@@ -41,7 +25,13 @@ bool determine_profiling()
  */
 bool KernelRegistry::profiling()
 {
-    static bool const result = determine_profiling();
+    static bool const result = [] {
+        if constexpr (CELERITAS_DEBUG)
+        {
+            return true;
+        }
+        return !celeritas::getenv("CELER_PROFILE_DEVICE").empty();
+    }();
     return result;
 }
 
@@ -49,7 +39,7 @@ bool KernelRegistry::profiling()
 /*!
  * Add a new kernel definition to the list
  */
-auto KernelRegistry::insert(char const* name, KernelAttributes&& attrs)
+auto KernelRegistry::insert(std::string_view name, KernelAttributes&& attrs)
     -> KernelProfiling*
 {
     // Create metadata for this kernel

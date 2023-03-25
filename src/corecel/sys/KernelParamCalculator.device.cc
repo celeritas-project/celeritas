@@ -15,7 +15,7 @@ namespace celeritas
 /*!
  * Add a new kernel to the registry.
  */
-void KernelParamCalculator::register_kernel(char const* name,
+void KernelParamCalculator::register_kernel(std::string_view name,
                                             KernelAttributes&& attributes)
 {
     profiling_

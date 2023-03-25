@@ -157,11 +157,16 @@ function(_cgv_try_git_describe)
     # This is a tagged release!
     _cgv_store_version("${CMAKE_MATCH_1}" "${CMAKE_MATCH_2}" "")
   else()
+    if(CMAKE_MATCH_2)
+      set(_suffix ${CMAKE_MATCH_2}.${CMAKE_MATCH_4})
+    else()
+      set(_suffix -${CMAKE_MATCH_4})
+    endif()
     # Qualify the version number and save the hash
     _cgv_store_version(
-      "${CMAKE_MATCH_1}"
-      "${CMAKE_MATCH_2}-${CMAKE_MATCH_4}"
-      "${CMAKE_MATCH_5}"
+      "${CMAKE_MATCH_1}" # [0-9.]+
+      "${_suffix}" # (-dev[0-9.]*)? \. ([0-9]+)
+      "${CMAKE_MATCH_5}" ([0-9a-f]+)
     )
   endif()
 endfunction()
@@ -202,7 +207,7 @@ function(cgv_find_version)
   endif()
 
   if(NOT CGV_TAG_REGEX)
-    set(CGV_TAG_REGEX "v([0-9.]+)(-dev[0-9.]*)?")
+    set(CGV_TAG_REGEX "v([0-9.]+)(-[a-z]+[0-9.]*)?")
   endif()
 
   set(CGV_CACHE_VAR "${CGV_PROJECT}_GIT_DESCRIBE")
