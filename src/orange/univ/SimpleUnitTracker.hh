@@ -67,6 +67,9 @@ class SimpleUnitTracker
         return unit_record_;
     }
 
+    // DaughterId of universe embedded in a given volume
+    inline CELER_FUNCTION DaughterId daughter(LocalVolumeId vol) const;
+
     //// OPERATIONS ////
 
     // Find the local volume from a position
@@ -635,6 +638,16 @@ CELER_FORCEINLINE_FUNCTION VolumeView
 SimpleUnitTracker::make_local_volume(LocalVolumeId vid) const
 {
     return VolumeView{params_, unit_record_, vid};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * DaughterId of universe embedded in a given volume.
+ */
+CELER_FORCEINLINE_FUNCTION DaughterId
+SimpleUnitTracker::daughter(LocalVolumeId vol) const
+{
+    return params_.volume_records[unit_record_.volumes[vol]].daughter_id;
 }
 
 //---------------------------------------------------------------------------//

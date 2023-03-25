@@ -30,6 +30,9 @@ namespace celeritas
 //! Integer type for volume CSG tree representation
 using logic_int = unsigned short int;
 
+//! Identifier for a daughter universe
+using DaughterId = OpaqueId<struct Daughter>;
+
 //! Identifier for a face local to a particular volume (internal use only)
 using FaceId = OpaqueId<struct Face>;
 
@@ -199,6 +202,18 @@ enum OperatorToken : logic_int
     lend
 };
 }  // namespace logic
+
+//---------------------------------------------------------------------------//
+// STRUCTS
+//---------------------------------------------------------------------------//
+/*!
+ * Data specifying a daughter universe embedded in a volume.
+ */
+struct Daughter
+{
+    UniverseId universe_id;
+    TranslationId translation_id;
+};
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)

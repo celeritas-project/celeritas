@@ -51,8 +51,7 @@ class UnitInserter
     insert_volume(SurfacesRecord const& unit, VolumeInput const& v);
 
     void process_daughter(VolumeRecord* vol_record,
-                          std::vector<Translation>* translations,
-                          UnitInput::Daughter const& daughter);
+                          UnitInput::Daughter const& daughter_input);
 };
 
 //---------------------------------------------------------------------------//
