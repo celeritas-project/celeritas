@@ -156,9 +156,10 @@ inline CELER_FUNCTION void along_step(MH&& msc,
             particle.subtract_energy(deposited);
         }
         // Energy loss helper *must* apply the tracking cutoff
-        CELER_ASSERT(particle.energy()
-                         >= track.make_physics_view().scalars().eloss_calc_limit
-                     || !apply_cut || particle.is_stopped());
+        CELER_ASSERT(
+            particle.energy()
+                >= track.make_physics_view().scalars().lowest_electron_energy
+            || !apply_cut || particle.is_stopped());
     }
 
     if (particle.is_stopped())

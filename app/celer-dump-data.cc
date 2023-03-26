@@ -408,19 +408,20 @@ void print_em_params(ImportEmParameters const& em_params)
     // NOTE: boolalpha doesn't work with setw, see
     // https://timsong-cpp.github.io/lwg-issues/2703
 #define PEP_STREAM_PARAM(NAME) \
-    "| " << setw(18) << #NAME << " | " << setw(7) << em_params.NAME << " |\n"
+    "| " << setw(22) << #NAME << " | " << setw(7) << em_params.NAME << " |\n"
 #define PEP_STREAM_BOOL(NAME)                     \
-    "| " << setw(18) << #NAME << " | " << setw(7) \
+    "| " << setw(22) << #NAME << " | " << setw(7) \
          << (em_params.NAME ? "true" : "false") << " |\n"
     cout << R"gfm(
 # EM parameters
 
-| EM parameter       | Value   |
-| ------------------ | ------- |
+| EM parameter           | Value   |
+| ---------------------- | ------- |
 )gfm";
     cout << PEP_STREAM_BOOL(energy_loss_fluct) << PEP_STREAM_BOOL(lpm)
          << PEP_STREAM_BOOL(integral_approach)
-         << PEP_STREAM_PARAM(linear_loss_limit) << PEP_STREAM_BOOL(auger)
+         << PEP_STREAM_PARAM(linear_loss_limit)
+         << PEP_STREAM_PARAM(lowest_electron_energy) << PEP_STREAM_BOOL(auger)
          << endl;
 #undef PEP_STREAM_PARAM
 #undef PEP_STREAM_BOOL

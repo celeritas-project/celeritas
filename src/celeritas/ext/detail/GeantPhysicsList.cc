@@ -67,6 +67,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetAuger(options.relaxation == RelaxationSelection::all);
     em_parameters.SetIntegral(options.integral_approach);
     em_parameters.SetLinearLossLimit(options.linear_loss_limit);
+    em_parameters.SetLowestElectronEnergy(options.lowest_electron_energy);
 
     int verb = options_.verbose ? 1 : 0;
     this->SetVerboseLevel(verb);

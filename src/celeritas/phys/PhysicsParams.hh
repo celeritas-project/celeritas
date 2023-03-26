@@ -50,8 +50,7 @@ class ParticleParams;
  * - \c linear_loss_limit: if the mean energy loss along a step is greater than
  *   this fractional value of the pre-step kinetic energy, recalculate the
  *   energy loss.
- * - \c eloss_calc_limit: kill charged particles below this energy at the end
- *   of a step.
+ * - \c lowest_electron_energy: lowest kinetic energy for electrons/positrons
  * - \c secondary_stack_factor: the number of secondary slots per track slot
  *   allocated.
  * - \c disable_integral_xs: for particles with energy loss processes, the
@@ -79,7 +78,7 @@ struct PhysicsParamsOptions
     //! \name Energy loss
     real_type min_eprime_over_e = 0.8;
     real_type linear_loss_limit = 0.01;
-    Energy eloss_calc_limit = Energy{0.001};
+    Energy lowest_electron_energy = Energy{0.001};
     //!@}
 
     real_type secondary_stack_factor = 3;

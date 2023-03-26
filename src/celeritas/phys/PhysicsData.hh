@@ -222,7 +222,7 @@ struct PhysicsParamsScalars
     real_type min_range{};  //!< rho [cm]
     real_type max_step_over_range{};  //!< alpha [unitless]
     real_type min_eprime_over_e{};  //!< xi [unitless]
-    Energy eloss_calc_limit{};  //!< Lowest energy for eloss calculation
+    Energy lowest_electron_energy{};  //!< Lowest e-/e+ kinetic energy
     real_type linear_loss_limit{};  //!< For scaled range calculation
     real_type fixed_step_limiter{};  //!< Global charged step size limit [cm]
 
@@ -237,7 +237,8 @@ struct PhysicsParamsScalars
     {
         return max_particle_processes > 0 && model_to_action >= 4
                && num_models > 0 && min_range > 0 && max_step_over_range > 0
-               && min_eprime_over_e > 0 && eloss_calc_limit > zero_quantity()
+               && min_eprime_over_e > 0
+               && lowest_electron_energy > zero_quantity()
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action));

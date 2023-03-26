@@ -212,7 +212,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         {
             nlohmann::json out = opts;
             static char const expected[]
-                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_general":false,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
+                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_general":false,"integral_approach":true,"linear_loss_limit":0.01,"lowest_electron_energy":0.001,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
             EXPECT_EQ(std::string(expected), std::string(out.dump()));
         }
 #endif
@@ -660,6 +660,7 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_EQ(true, em_params.lpm);
     EXPECT_EQ(true, em_params.integral_approach);
     EXPECT_DOUBLE_EQ(0.01, em_params.linear_loss_limit);
+    EXPECT_DOUBLE_EQ(0.001, em_params.lowest_electron_energy);
     EXPECT_EQ(true, em_params.auger);
 }
 

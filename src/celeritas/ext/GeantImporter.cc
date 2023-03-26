@@ -600,6 +600,7 @@ ImportEmParameters import_em_parameters()
     import.lpm = g4.LPM();
     import.integral_approach = g4.Integral();
     import.linear_loss_limit = g4.LinearLossLimit();
+    import.lowest_electron_energy = g4.LowestElectronEnergy() / MeV;
     import.auger = g4.Auger();
 
     CELER_ENSURE(import);
