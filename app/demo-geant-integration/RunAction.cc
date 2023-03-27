@@ -16,11 +16,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "accel/AlongStepFactory.hh"
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
 #include "HitRootIO.hh"
-#include "NoFieldAlongStepFactory.hh"
 
 namespace demo_geant
 {
@@ -62,8 +62,9 @@ void RunAction::BeginOfRunAction(G4Run const* run)
                 = GlobalSetup::Instance()->GetGeometryFile();
         }
 
-        // Create the along-step action
-        GlobalSetup::Instance()->SetAlongStep(NoFieldAlongStepFactory{});
+        // Create the along-step action (no field)
+        GlobalSetup::Instance()->SetAlongStep(
+            celeritas::UniformAlongStepFactory{});
 
         // Initialize shared data and setup GPU on all threads
         CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);

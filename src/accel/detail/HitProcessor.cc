@@ -31,6 +31,8 @@
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
+#include "Convert.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -59,26 +61,6 @@ namespace detail
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-template<class T>
-inline T convert_to_geant(T const& val, T units)
-{
-    return val * units;
-}
-
-//---------------------------------------------------------------------------//
-inline G4ThreeVector convert_to_geant(Real3 const& arr, double units)
-{
-    return {arr[0] * units, arr[1] * units, arr[2] * units};
-}
-
-//---------------------------------------------------------------------------//
-inline double convert_to_geant(units::MevEnergy const& energy, double units)
-{
-    CELER_EXPECT(units == CLHEP::MeV);
-    return energy.value() * CLHEP::MeV;
-}
-
 //---------------------------------------------------------------------------//
 struct PrintableNavHistory
 {

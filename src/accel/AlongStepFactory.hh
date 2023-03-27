@@ -4,10 +4,13 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/AlongStepFactory.hh
+//! \brief Along-step factory interface and definitions
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <memory>
+#include <G4ThreeVector.hh>
 
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
@@ -83,6 +86,35 @@ class AlongStepFactoryInterface
 
     // Emit an along-step action
     virtual result_type operator()(argument_type input) const = 0;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create an along-step method for a uniform (or zero) field.
+ *
+ * The constructor is a lazily evaluated function that must return the field
+ * vector in native Geant4 units.  If unspecified, the field is zero.
+ */
+class UniformAlongStepFactory : public AlongStepFactoryInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using FieldFunction = std::function<G4ThreeVector()>;
+    //!@}
+
+  public:
+    //! Construct with no field (linear propagation)
+    UniformAlongStepFactory() = default;
+
+    // Construct with a function to return the field strength
+    explicit UniformAlongStepFactory(FieldFunction f);
+
+    // Emit an along-step action
+    result_type operator()(argument_type input) const final;
+
+  private:
+    FieldFunction get_field_;
 };
 
 //---------------------------------------------------------------------------//
