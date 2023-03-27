@@ -54,8 +54,14 @@ UrbanMscParams::from_import(ParticleParams const& particles,
         // No Urban MSC present
         return nullptr;
     }
+
+    Options opts;
+    opts.lambda_limit = import.em_params.msc_lambda_limit;
+    opts.safety_fact = import.em_params.msc_safety_factor;
+    opts.range_fact = import.em_params.msc_range_factor;
+
     return std::make_shared<UrbanMscParams>(
-        particles, materials, import.msc_models);
+        particles, materials, import.msc_models, opts);
 }
 
 //---------------------------------------------------------------------------//
@@ -64,7 +70,8 @@ UrbanMscParams::from_import(ParticleParams const& particles,
  */
 UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                MaterialParams const& materials,
-                               VecImportMscModel const& mdata_vec)
+                               VecImportMscModel const& mdata_vec,
+                               Options options)
 {
     HostVal<UrbanMscData> host_data;
 
@@ -84,6 +91,20 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
         CELER_LOG(warning) << "Multiple scattering is not implemented for for "
                               "particles other than electron and positron";
     }
+
+    // Save parameters
+    CELER_VALIDATE(options.lambda_limit > 0,
+                   << "invalid lambda_limit=" << options.lambda_limit
+                   << " (should be positive)");
+    CELER_VALIDATE(options.safety_fact >= 0.1,
+                   << "invalid safety_fact=" << options.safety_fact
+                   << " (should be >= 0.1)");
+    CELER_VALIDATE(options.range_fact > 0 && options.range_fact < 1,
+                   << "invalid range_fact=" << options.range_fact
+                   << " (should be within 0 < limit < 1)");
+    host_data.params.lambda_limit = options.lambda_limit;
+    host_data.params.range_fact = options.range_fact;
+    host_data.params.safety_fact = options.safety_fact;
 
     // Filter MSC data by model and particle type
     std::vector<ImportMscModel const*> urban_data(particles.size(), nullptr);

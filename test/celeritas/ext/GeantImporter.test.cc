@@ -212,8 +212,10 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         {
             nlohmann::json out = opts;
             static char const expected[]
-                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_general":false,"integral_approach":true,"linear_loss_limit":0.01,"lowest_electron_energy":0.001,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
-            EXPECT_EQ(std::string(expected), std::string(out.dump()));
+                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_general":false,"integral_approach":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
+            EXPECT_EQ(std::string(expected), std::string(out.dump()))
+                << "\n/*** REPLACE ***/\nR\"json(" << std::string(out.dump())
+                << ")json\"\n/******/";
         }
 #endif
         return opts;
@@ -662,6 +664,9 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_DOUBLE_EQ(0.01, em_params.linear_loss_limit);
     EXPECT_DOUBLE_EQ(0.001, em_params.lowest_electron_energy);
     EXPECT_EQ(true, em_params.auger);
+    EXPECT_EQ(0.04, em_params.msc_range_factor);
+    EXPECT_EQ(0.6, em_params.msc_safety_factor);
+    EXPECT_EQ(0.1, em_params.msc_lambda_limit);
 }
 
 //---------------------------------------------------------------------------//

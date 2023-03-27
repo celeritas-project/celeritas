@@ -16,6 +16,10 @@ namespace celeritas
  * Common electromagnetic physics parameters (see G4EmParameters.hh).
  *
  * \note Geant4 v11 removed the Spline() option from G4EmParameters.hh.
+ * \note The Geant4 MSC models use the values in \c G4EmParameters as the
+ * defaults; however, the MSC parameters can also be set directly using the
+ * model setter methods (there is no way to retrieve the values from the model
+ * in that case).
  */
 struct ImportEmParameters
 {
@@ -31,11 +35,19 @@ struct ImportEmParameters
     double lowest_electron_energy{0.001};
     //! Whether auger emission should be enabled (valid only for relaxation)
     bool auger{false};
+    //! MSC range factor for e-/e+
+    double msc_range_factor{0.04};
+    //! MSC safety factor
+    double msc_safety_factor{0.6};
+    //! MSC lambda limit [cm]
+    double msc_lambda_limit{0.1};
 
     //! Whether parameters are assigned and valid
     explicit operator bool() const
     {
-        return linear_loss_limit > 0 && lowest_electron_energy > 0;
+        return linear_loss_limit > 0 && lowest_electron_energy > 0
+               && msc_range_factor > 0 && msc_range_factor < 1
+               && msc_safety_factor >= 0.1 && msc_lambda_limit > 0;
     }
 };
 

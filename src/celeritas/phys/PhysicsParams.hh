@@ -61,7 +61,8 @@ class ParticleParams;
  *   processes.
  *
  * NOTE: min_range/max_step_over_range are not accessible through Geant4, and
- * they can also be set to be different for electrons, mu/hadrons, and ions.
+ * they can also be set to be different for electrons, mu/hadrons, and ions
+ * (they are set in Geant4 with \c G4EmParameters::SetStepFunction()).
  */
 struct PhysicsParamsOptions
 {

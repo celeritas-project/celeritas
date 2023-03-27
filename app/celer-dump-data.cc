@@ -422,7 +422,9 @@ void print_em_params(ImportEmParameters const& em_params)
          << PEP_STREAM_BOOL(integral_approach)
          << PEP_STREAM_PARAM(linear_loss_limit)
          << PEP_STREAM_PARAM(lowest_electron_energy) << PEP_STREAM_BOOL(auger)
-         << endl;
+         << PEP_STREAM_PARAM(msc_range_factor)
+         << PEP_STREAM_PARAM(msc_safety_factor)
+         << PEP_STREAM_PARAM(msc_lambda_limit) << endl;
 #undef PEP_STREAM_PARAM
 #undef PEP_STREAM_BOOL
 }
