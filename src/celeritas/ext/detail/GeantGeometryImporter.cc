@@ -143,7 +143,6 @@ void init_VecGeom_navigators()
 
 void GeantGeometryImporter::convert_G4_geometry(G4VPhysicalVolume const* g4_world)
 {
-    this->clear_vecgeom();
     GeoManager::Instance().Clear();
     Stopwatch timer;
     timer.Start();
@@ -166,6 +165,7 @@ void GeantGeometryImporter::convert_G4_geometry(G4VPhysicalVolume const* g4_worl
                          << timer.Elapsed() << " s) ***";
     }
     world_ = GeoManager::Instance().GetWorld();
+    this->clear_maps();
 }
 
 void GeantGeometryImporter::extract_replicated_transformations(
@@ -838,14 +838,10 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
     return unplaced_volume;
 }
 
-void GeantGeometryImporter::clear_vecgeom()
+void GeantGeometryImporter::clear_maps()
 {
     placed_volume_map_.clear();
     unplaced_volume_map_.clear();
     logical_volume_map_.clear();
-    if (GeoManager::Instance().GetWorld() == world_)
-    {
-        GeoManager::Instance().SetWorld(nullptr);
-    }
 }
 }  // namespace celeritas
