@@ -58,7 +58,7 @@ inline void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
 }
 
 template<>
-void shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
+inline void shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
