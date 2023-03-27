@@ -14,11 +14,77 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/phys/Secondary.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Particle-dependent parameters for killing looping tracks.
+ *
+ * These threshold values are used to determine when tracks that are flagged as
+ * looping (i.e., taking a large number of substeps in the field propagator)
+ * should be killed.
+ *
+ * In Geant4, tracks are killed immediately if their energy is below the
+ * "important energy" (equivalent to \c threshold_energy here) or after some
+ * number of step iterations if their energy is above the threshold.
+ *
+ * In Celeritas, the default \c max_substeps in the field propagator is set to
+ * a smaller value than in Geant4. Therefore, an additional parameter \c
+ * max_subthreshold_steps is added to approximate Geant4's policy for killing
+ * looping tracks: a track flagged as looping will be killed if its energy is
+ * below \c threshold_energy and it has taken more then \c
+ * max_subthreshold_steps steps, or after \c max_steps steps if its energy is
+ * above the threshold.
+ */
+struct LoopingThreshold
+{
+    using Energy = units::MevEnergy;
+
+    size_type max_subthreshold_steps{10};
+    size_type max_steps{100};
+    Energy threshold_energy{250};
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return max_subthreshold_steps > 0 && max_steps > 0
+               && threshold_energy >= zero_quantity();
+    }
+};
+//---------------------------------------------------------------------------//
+/*!
+ * Persistent simulation data.
+ */
+template<Ownership W, MemSpace M>
+struct SimParamsData
+{
+    //// TYPES ////
+
+    template<class T>
+    using ParticleItems = Collection<T, W, M, ParticleId>;
+
+    //// DATA ////
+
+    ParticleItems<LoopingThreshold> looping;
+
+    //// METHODS ////
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const { return !looping.empty(); }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    SimParamsData& operator=(SimParamsData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+        looping = other.looping;
+        return *this;
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Simulation state of a track.
@@ -31,6 +97,8 @@ struct SimTrackState
     TrackId parent_id;  //!< ID of parent that created it
     EventId event_id;  //!< ID of originating event
     size_type num_steps{0};  //!< Total number of steps taken
+    size_type num_looping_steps{0};  //!< Number of steps taken since the
+                                     //!< track was flagged as looping
     real_type time{0};  //!< Time elapsed in lab frame since start of event [s]
 
     TrackStatus status{TrackStatus::inactive};

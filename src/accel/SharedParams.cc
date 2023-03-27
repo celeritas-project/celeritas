@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Random/Random.h>
+#include <G4RunManager.hh>
+#include <G4Threading.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -24,6 +26,7 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
@@ -37,6 +40,7 @@
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/StepCollector.hh"
 
@@ -255,13 +259,16 @@ void SharedParams::initialize_core(SetupOptions const& options)
                    << "along-step action factory 'make_along_step' was not "
                       "defined in the celeritas::SetupOptions");
 
-    celeritas::GeantImporter load_geant_data(GeantImporter::get_world_volume());
-    // Convert ImportVolume names to GDML versions if we're exporting
-    GeantImportDataSelection import_opts;
-    import_opts.particles = GeantImportDataSelection::em_basic;
-    import_opts.processes = import_opts.particles;
-    import_opts.unique_volumes = options.geometry_file.empty();
-    auto imported = std::make_shared<ImportData>(load_geant_data(import_opts));
+    auto const imported = [&options] {
+        celeritas::GeantImporter load_geant_data(
+            GeantImporter::get_world_volume());
+        // Convert ImportVolume names to GDML versions if we're exporting
+        GeantImportDataSelection import_opts;
+        import_opts.particles = GeantImportDataSelection::em_basic;
+        import_opts.processes = import_opts.particles;
+        import_opts.unique_volumes = options.geometry_file.empty();
+        return std::make_shared<ImportData>(load_geant_data(import_opts));
+    }();
     CELER_ASSERT(imported && *imported);
 
     if (CELERITAS_USE_ROOT && options.output_file.size() > 5)
@@ -276,47 +283,39 @@ void SharedParams::initialize_core(SetupOptions const& options)
     CoreParams::Input params;
 
     // Create action manager
-    {
-        params.action_reg = std::make_shared<ActionRegistry>();
-    }
+    params.action_reg = std::make_shared<ActionRegistry>();
 
-    // Reload geometry
-    if (!options.geometry_file.empty())
-    {
-        // Read directly from GDML input
-        params.geometry = std::make_shared<GeoParams>(options.geometry_file);
-    }
-    else
-    {
-        // Import from Geant4
-        params.geometry
-            = std::make_shared<GeoParams>(GeantImporter::get_world_volume());
-    }
+    // Load geometry
+    params.geometry = [&options] {
+        if (!options.geometry_file.empty())
+        {
+            // Read directly from GDML input
+            return std::make_shared<GeoParams>(options.geometry_file);
+        }
+        else
+        {
+            // Import from Geant4
+            return std::make_shared<GeoParams>(
+                GeantImporter::get_world_volume());
+        }
+    }();
 
     // Load materials
-    {
-        params.material = MaterialParams::from_import(*imported);
-    }
+    params.material = MaterialParams::from_import(*imported);
 
     // Create geometry/material coupling
-    {
-        params.geomaterial = GeoMaterialParams::from_import(
-            *imported, params.geometry, params.material);
-    }
+    params.geomaterial = GeoMaterialParams::from_import(
+        *imported, params.geometry, params.material);
 
     // Construct particle params
-    {
-        params.particle = ParticleParams::from_import(*imported);
-    }
+    params.particle = ParticleParams::from_import(*imported);
 
     // Construct cutoffs
-    {
-        params.cutoff = CutoffParams::from_import(
-            *imported, params.particle, params.material);
-    }
+    params.cutoff = CutoffParams::from_import(
+        *imported, params.particle, params.material);
 
     // Load physics: create individual processes with make_shared
-    {
+    params.physics = [&params, &options, &imported] {
         PhysicsParams::Input input;
         input.particles = params.particle;
         input.materials = params.material;
@@ -328,11 +327,36 @@ void SharedParams::initialize_core(SetupOptions const& options)
         input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
         input.options.secondary_stack_factor = options.secondary_stack_factor;
 
-        params.physics = std::make_shared<PhysicsParams>(std::move(input));
-    }
+        return std::make_shared<PhysicsParams>(std::move(input));
+    }();
+
+    // Construct RNG params
+    params.rng = std::make_shared<RngParams>(CLHEP::HepRandom::getTheSeed());
+
+    // Construct simulation params
+    params.sim = SimParams::from_import(*imported, params.particle);
+
+    // Construct track initialization params
+    params.init = [&options] {
+        TrackInitParams::Input input;
+        input.capacity = options.initializer_capacity;
+        input.max_events = options.max_num_events;
+        return std::make_shared<TrackInitParams>(std::move(input));
+    }();
+
+    // Set maximum number of streams based on Geant4 multithreading
+    // Hit processors *must* be allocated on the thread they're used because of
+    // geant4 thread-local SDs. There must be one per thread.
+    params.max_streams = [] {
+        auto* run_man = G4RunManager::GetRunManager();
+        CELER_VALIDATE(run_man,
+                       << "G4RunManager was not created before initializing "
+                          "SharedParams");
+        return celeritas::get_num_threads(*run_man);
+    }();
 
     // Construct along-step action
-    {
+    params.action_reg->insert([&params, &options, &imported] {
         AlongStepFactoryInput asfi;
         asfi.action_id = params.action_reg->next_id();
         asfi.geometry = params.geometry;
@@ -342,30 +366,17 @@ void SharedParams::initialize_core(SetupOptions const& options)
         asfi.cutoff = params.cutoff;
         asfi.physics = params.physics;
         asfi.imported = imported;
-
-        auto along_step = options.make_along_step(asfi);
+        auto const along_step{options.make_along_step(asfi)};
         CELER_VALIDATE(along_step,
                        << "along-step factory returned a null pointer");
-        params.action_reg->insert(std::move(along_step));
-    }
-
-    // Construct RNG params
-    {
-        params.rng
-            = std::make_shared<RngParams>(CLHEP::HepRandom::getTheSeed());
-    }
-
-    // Construct track initialization params
-    {
-        TrackInitParams::Input input;
-        input.capacity = options.initializer_capacity;
-        input.max_events = options.max_num_events;
-        params.init = std::make_shared<TrackInitParams>(input);
-    }
+        return along_step;
+    }());
 
     // Construct sensitive detector callback
     if (options.sd)
     {
+        CELER_VALIDATE(params.max_streams == 1,
+                       << "HitManager currently supports only serial mode");
         hit_manager_ = std::make_shared<detail::HitManager>(*params.geometry,
                                                             options.sd);
         step_collector_ = std::make_shared<StepCollector>(

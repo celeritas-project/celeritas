@@ -99,7 +99,7 @@ class StepDiagnostic : public Diagnostic<M>
                    size_type max_steps);
 
     // Number of steps per track, tallied before post-processing
-    void mid_step(StateRef const& states) final;
+    void mid_step(ParamsRef const&, StateRef const& states) final;
 
     // Collect diagnostic results
     void get_result(TransporterResult* result) final;
@@ -210,7 +210,7 @@ StepDiagnostic<M>::StepDiagnostic(ParamsRef const& params,
  * the original track data.
  */
 template<MemSpace M>
-void StepDiagnostic<M>::mid_step(StateRef const& states)
+void StepDiagnostic<M>::mid_step(ParamsRef const&, StateRef const& states)
 {
     StepDiagnosticDataRef<M> data_ref;
     data_ref = data_;
@@ -292,7 +292,7 @@ CELER_FUNCTION void StepLauncher<M>::operator()(TrackSlotId tid) const
 
     celeritas::ParticleTrackView particle(
         params_.particles, states_.particles, tid);
-    celeritas::SimTrackView sim(states_.sim, tid);
+    celeritas::SimTrackView sim(params_.sim, states_.sim, tid);
 
     // Tally the number of steps if the track was killed
     if (sim.status() == celeritas::TrackStatus::killed)

@@ -60,7 +60,7 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
                               SPConstPhysics physics);
 
     // Particle/model tallied after sampling discrete interaction
-    void mid_step(StateRef const& states) final;
+    void mid_step(ParamsRef const&, StateRef const& states) final;
 
     // Collect diagnostic results
     void get_result(TransporterResult* result) final;
@@ -164,7 +164,8 @@ ParticleProcessDiagnostic<M>::ParticleProcessDiagnostic(
  * physics state if a discrete interaction occurred.
  */
 template<MemSpace M>
-void ParticleProcessDiagnostic<M>::mid_step(StateRef const& states)
+void ParticleProcessDiagnostic<M>::mid_step(ParamsRef const&,
+                                            StateRef const& states)
 {
     using ItemsRef = celeritas::Collection<size_type, Ownership::reference, M>;
 
@@ -248,7 +249,7 @@ ParticleProcessLauncher<M>::operator()(TrackSlotId tid) const
 {
     using BinId = celeritas::ItemId<size_type>;
 
-    celeritas::SimTrackView sim(states_.sim, tid);
+    celeritas::SimTrackView sim(params_.sim, states_.sim, tid);
 
     celeritas::ParticleTrackView particle(
         params_.particles, states_.particles, tid);

@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "LoggerTypes.hh"
 
-#include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 namespace celeritas
 {
@@ -17,7 +17,7 @@ namespace celeritas
  */
 char const* to_cstring(LogLevel lev)
 {
-    static char const* const levels[] = {
+    static EnumStringMapper<LogLevel> const to_cstring_impl{
         "debug",
         "diagnostic",
         "status",
@@ -26,9 +26,7 @@ char const* to_cstring(LogLevel lev)
         "error",
         "critical",
     };
-    auto idx = static_cast<unsigned int>(lev);
-    CELER_ENSURE(idx * sizeof(char const*) < sizeof(levels));
-    return levels[idx];
+    return to_cstring_impl(lev);
 }
 
 //---------------------------------------------------------------------------//

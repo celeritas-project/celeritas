@@ -127,8 +127,8 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
     }
     catch (celeritas::RuntimeError const&)
     {
-        CELER_LOG(warning) << "Encountered unknown model '"
-                           << model.GetName() << "'";
+        CELER_LOG(warning) << "Encountered unknown model '" << model.GetName()
+                           << "'";
         result.model_class = ImportModelClass::other;
     }
 

@@ -83,6 +83,9 @@ class ParticleTrackView
     // Decay constant [1/s]
     CELER_FORCEINLINE_FUNCTION real_type decay_constant() const;
 
+    // Whether the particle is stable
+    CELER_FORCEINLINE_FUNCTION bool is_stable() const;
+
     //// DERIVED PROPERTIES (indirection plus calculation) ////
 
     // Square of fraction of lightspeed [unitless]
@@ -227,6 +230,15 @@ CELER_FUNCTION units::ElementaryCharge ParticleTrackView::charge() const
 CELER_FUNCTION real_type ParticleTrackView::decay_constant() const
 {
     return this->particle_view().decay_constant();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether particle is stable.
+ */
+CELER_FUNCTION bool ParticleTrackView::is_stable() const
+{
+    return this->decay_constant() == ParticleRecord::stable_decay_constant();
 }
 
 //---------------------------------------------------------------------------//

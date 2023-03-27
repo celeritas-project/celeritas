@@ -14,6 +14,7 @@
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "phys/MockProcess.hh"
@@ -221,6 +222,14 @@ auto MockTestBase::build_along_step() -> SPConstAction
     CELER_ASSERT(!result->has_msc());
     action_reg.insert(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+auto MockTestBase::build_sim() -> SPConstSim
+{
+    SimParams::Input input;
+    input.particles = this->particle();
+    return std::make_shared<SimParams>(input);
 }
 
 //---------------------------------------------------------------------------//

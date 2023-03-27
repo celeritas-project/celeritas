@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstddef>
+#include <string_view>
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
@@ -106,11 +107,11 @@ class KernelParamCalculator
 
     // Construct with the default block size
     template<class F>
-    inline KernelParamCalculator(char const* name, F* kernel_func_ptr);
+    inline KernelParamCalculator(std::string_view name, F* kernel_func_ptr);
 
     // Construct with an explicit number of threads per block
     template<class F>
-    inline KernelParamCalculator(char const* name,
+    inline KernelParamCalculator(std::string_view name,
                                  F* kernel_func_ptr,
                                  dim_type threads_per_block);
 
@@ -125,7 +126,7 @@ class KernelParamCalculator
 
     //// HELPER FUNCTIONS ////
 
-    void register_kernel(char const* name, KernelAttributes&& attributes);
+    void register_kernel(std::string_view name, KernelAttributes&& attributes);
     void log_launch(size_type min_num_threads) const;
 };
 
@@ -150,7 +151,7 @@ CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
  * Construct for the given global kernel F.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(char const* name,
+KernelParamCalculator::KernelParamCalculator(std::string_view name,
                                              F* kernel_func_ptr)
     : KernelParamCalculator(
         name, kernel_func_ptr, celeritas::device().default_block_size())
@@ -165,7 +166,7 @@ KernelParamCalculator::KernelParamCalculator(char const* name,
  * pointer to the profiling data if profiling is to be used.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(char const* name,
+KernelParamCalculator::KernelParamCalculator(std::string_view name,
                                              F* kernel_func_ptr,
                                              dim_type threads_per_block)
     : block_size_(threads_per_block)

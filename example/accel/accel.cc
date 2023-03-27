@@ -147,6 +147,7 @@ class RunAction final : public G4UserRunAction
         if (G4Threading::IsWorkerThread()
             || !G4Threading::IsMultithreadedApplication())
         {
+            CELER_LOG_LOCAL(status) << "Constructing local state";
             CELER_TRY_HANDLE(
                 local_transporter.Initialize(setup_options, shared_params),
                 call_g4exception);

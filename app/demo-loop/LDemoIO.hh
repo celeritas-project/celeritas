@@ -33,7 +33,8 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 /*!
- * Write when event ID matches and either track ID or parent ID matches.
+ * Write when event ID matches and either track ID or parent ID matches, or
+ * when action ID matches.
  */
 struct MCTruthFilter
 {
@@ -47,11 +48,12 @@ struct MCTruthFilter
     std::vector<size_type> track_id;
     size_type event_id = unspecified();
     size_type parent_id = unspecified();
+    size_type action_id = unspecified();
 
     explicit operator bool() const
     {
         return !track_id.empty() || event_id != unspecified()
-               || parent_id != unspecified();
+               || parent_id != unspecified() || action_id != unspecified();
     }
 };
 

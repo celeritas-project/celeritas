@@ -71,13 +71,13 @@ class DiagnosticActionAdapter final : public ExplicitActionInterface
     //! Execute the action with host data
     void execute(CoreHostRef const& core) const final
     {
-        this->execute_impl(core.states, diagnostics_->host);
+        this->execute_impl(core.params, core.states, diagnostics_->host);
     }
 
     //! Execute the action with device data
     void execute(CoreDeviceRef const& core) const final
     {
-        this->execute_impl(core.states, diagnostics_->device);
+        this->execute_impl(core.params, core.states, diagnostics_->device);
     }
 
     //!@{
@@ -99,12 +99,14 @@ class DiagnosticActionAdapter final : public ExplicitActionInterface
     using VecUPDiag = DiagnosticStore::VecUPDiag<M>;
 
     template<MemSpace M>
-    void execute_impl(CoreStateData<Ownership::reference, M> const& states,
-                      VecUPDiag<M> const& diagnostics) const
+    void
+    execute_impl(CoreParamsData<Ownership::const_reference, M> const& params,
+                 CoreStateData<Ownership::reference, M> const& states,
+                 VecUPDiag<M> const& diagnostics) const
     {
         for (auto const& diag_ptr : diagnostics)
         {
-            diag_ptr->mid_step(states);
+            diag_ptr->mid_step(params, states);
         }
     }
 };
@@ -185,6 +187,8 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
     StepperInput input;
     input.params = input_.params;
     input.num_track_slots = input_.num_track_slots;
+    // TODO: change when doing multithreading on the front end
+    input.stream_id = StreamId{0};
     input.sync = input_.sync;
     Stepper<M> step(std::move(input));
 

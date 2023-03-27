@@ -12,6 +12,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "corecel/Assert.hh"
@@ -72,7 +73,7 @@ class KernelRegistry
     //// CONSTRUCTION ////
 
     // Register a kernel and return optional reference to profiling info
-    KernelProfiling* insert(char const* name, KernelAttributes&& attrs);
+    KernelProfiling* insert(std::string_view name, KernelAttributes&& attrs);
 
     //// ACCESSORS ////
 

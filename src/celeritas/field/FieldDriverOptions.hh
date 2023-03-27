@@ -56,10 +56,10 @@ struct FieldDriverOptions
     short int max_nsteps = 100;
 
     //! Initial step tolerance
-    static constexpr real_type initial_step_tol = 1e-6;
+    static constexpr inline real_type initial_step_tol = 1e-6;
 
     //! Chord distance fudge factor
-    static constexpr real_type dchord_tol = 1e-5 * units::millimeter;
+    static constexpr inline real_type dchord_tol = 1e-5 * units::millimeter;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const

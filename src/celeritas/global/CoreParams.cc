@@ -24,6 +24,7 @@
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
+#include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
@@ -39,7 +40,7 @@ namespace
 //!@{
 template<MemSpace M>
 CoreParamsData<Ownership::const_reference, M>
-build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
+build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
 {
     CELER_EXPECT(scalars);
 
@@ -53,6 +54,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
     ref.cutoffs = get_ref<M>(*p.cutoff);
     ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
+    ref.sim = get_ref<M>(*p.sim);
     ref.init = get_ref<M>(*p.init);
 
     CELER_ENSURE(ref);
@@ -62,6 +64,15 @@ build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
 //---------------------------------------------------------------------------//
 class ImplicitGeometryAction final : public ImplicitActionInterface,
                                      public ConcreteAction
+{
+  public:
+    // Construct with ID and label
+    using ConcreteAction::ConcreteAction;
+};
+
+//---------------------------------------------------------------------------//
+class ImplicitSimAction final : public ImplicitActionInterface,
+                                public ConcreteAction
 {
   public:
     // Construct with ID and label
@@ -85,24 +96,38 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(cutoff);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
+    CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
 
+    CoreScalars scalars;
+
     // Construct geometry action
-    scalars_.boundary_action = input_.action_reg->next_id();
+    scalars.boundary_action = input_.action_reg->next_id();
     input_.action_reg->insert(
         std::make_shared<celeritas::generated::BoundaryAction>(
-            scalars_.boundary_action, "geo-boundary", "Boundary crossing"));
+            scalars.boundary_action, "geo-boundary", "Boundary crossing"));
 
     // Construct implicit limit for propagator pausing midstep
-    scalars_.propagation_limit_action = input_.action_reg->next_id();
+    scalars.propagation_limit_action = input_.action_reg->next_id();
     input_.action_reg->insert(std::make_shared<ImplicitGeometryAction>(
-        scalars_.propagation_limit_action,
+        scalars.propagation_limit_action,
         "geo-propagation-limit",
         "Propagation substep/range limit"));
+
+    // Construct action for killed looping tracks
+    scalars.abandon_looping_action = input_.action_reg->next_id();
+    input_.action_reg->insert(
+        std::make_shared<ImplicitSimAction>(scalars.abandon_looping_action,
+                                            "abandon-looping",
+                                            "Abandoned looping track"));
+
+    // Save maximum number of streams
+    scalars.max_streams = input_.max_streams;
 
     // Construct initialize tracks action
     input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
@@ -113,12 +138,13 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         input_.action_reg->next_id()));
 
     // Save host reference
-    host_ref_ = build_params_refs<MemSpace::host>(input_, scalars_);
+    host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);
     if (celeritas::device())
     {
-        device_ref_ = build_params_refs<MemSpace::device>(input_, scalars_);
+        device_ref_ = build_params_refs<MemSpace::device>(input_, scalars);
     }
     CELER_ENSURE(host_ref_);
+    CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
 }
 
 //---------------------------------------------------------------------------//

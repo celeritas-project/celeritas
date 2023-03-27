@@ -74,6 +74,7 @@ class MockTestBase : virtual public GlobalGeoTestBase
     SPConstCutoff build_cutoff() override;
     SPConstPhysics build_physics() override;
     SPConstAction build_along_step() override;
+    SPConstSim build_sim() override;
     SPConstTrackInit build_init() override;
 
     virtual PhysicsOptions build_physics_options() const;

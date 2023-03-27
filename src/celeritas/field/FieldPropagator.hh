@@ -24,6 +24,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Configuration options for the field propagator.
+ */
+struct FieldPropagatorOptions
+{
+    //! Limit on substeps
+    static constexpr short int max_substeps = 100;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Propagate a charged particle in a field.
  *
  * For a given initial state (position, momentum), it propagates a charged
@@ -61,8 +71,14 @@ class FieldPropagator
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
+    //! Whether it's possible to have tracks that are looping
+    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return true; }
+
     //! Limit on substeps
-    static CELER_CONSTEXPR_FUNCTION short int max_substeps() { return 128; }
+    static CELER_CONSTEXPR_FUNCTION short int max_substeps()
+    {
+        return FieldPropagatorOptions::max_substeps;
+    }
 
     // Distance to bump or to consider a "zero" movement
     inline CELER_FUNCTION real_type bump_distance() const;
@@ -244,7 +260,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // to the extra delta_intersection boost when searching. The
             // substep itself can be more than the requested step.
             result.distance += celeritas::min(update_length, substep.step);
-            CELER_ASSERT(result.distance <= step);
             state_.mom = substep.state.mom;
             remaining = 0;
         }
@@ -257,13 +272,31 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         }
     } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
 
-    if (result.boundary && result.distance > 0)
+    if (remaining_substeps == 0 && result.distance < step)
     {
-        // We moved to a new boundary. Update the position to reflect the
-        // geometry's state (and possibly "bump" the ODE state's position
-        // because of the tolerance in the intercept checks above).
-        geo_.move_to_boundary();
-        state_.pos = geo_.pos();
+        // Flag track as looping if the max number of substeps was reached
+        // without hitting a boundary or moving the full step length
+        result.looping = true;
+    }
+    else if (result.distance > 0)
+    {
+        if (result.boundary)
+        {
+            // We moved to a new boundary. Update the position to reflect the
+            // geometry's state (and possibly "bump" the ODE state's position
+            // because of the tolerance in the intercept checks above).
+            geo_.move_to_boundary();
+            state_.pos = geo_.pos();
+        }
+        else if (CELER_UNLIKELY(result.distance < step))
+        {
+            // Even though the track traveled the full step length, the
+            // distance might be slightly less than the step due to roundoff
+            // error. Reset the distance so the track's action isn't
+            // erroneously set as propagation-limited.
+            CELER_ASSERT(soft_equal(result.distance, step));
+            result.distance = step;
+        }
     }
 
     // Even though the along-substep movement was through chord lengths,

@@ -431,8 +431,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       "CELER_DISABLE_PARALLEL=1"
     )
     if(Geant4_multithreaded_FOUND)
+      # TODO: use 2 threads when we support multithreaded hit manager
       list(APPEND _env
-        # TODO: use 2 threads k
         "G4FORCENUMBEROFTHREADS=1"
       )
     endif()

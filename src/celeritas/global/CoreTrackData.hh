@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialData.hh"
 #include "celeritas/mat/MaterialData.hh"
@@ -16,7 +17,6 @@
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
-#include "celeritas/track/detail/TrackSortUtils.hh"
 
 namespace celeritas
 {
@@ -28,11 +28,14 @@ struct CoreScalars
 {
     ActionId boundary_action;
     ActionId propagation_limit_action;
+    ActionId abandon_looping_action;
+    StreamId::size_type max_streams{0};
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return boundary_action && propagation_limit_action;
+        return boundary_action && propagation_limit_action
+               && abandon_looping_action && max_streams > 0;
     }
 };
 
@@ -50,6 +53,7 @@ struct CoreParamsData
     CutoffParamsData<W, M> cutoffs;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
+    SimParamsData<W, M> sim;
     TrackInitParamsData<W, M> init;
 
     CoreScalars scalars;
@@ -58,7 +62,7 @@ struct CoreParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && geo_mats && materials && particles && cutoffs
-               && physics && init && scalars;
+               && physics && sim && init && scalars;
     }
 
     //! Assign from another set of data
@@ -73,6 +77,7 @@ struct CoreParamsData
         cutoffs = other.cutoffs;
         physics = other.physics;
         rng = other.rng;
+        sim = other.sim;
         init = other.init;
         scalars = other.scalars;
         return *this;
@@ -103,6 +108,9 @@ struct CoreStateData
     TrackInitStateData<W, M> init;
     ThreadItems<TrackSlotId::size_type> track_slots;
 
+    //! Unique identifier for "thread-local" data.
+    StreamId stream_id;
+
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return particles.size(); }
 
@@ -110,7 +118,7 @@ struct CoreStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && materials && particles && physics && rng && sim
-               && init;
+               && init && stream_id;
     }
 
     //! Assign from another set of data
@@ -126,6 +134,7 @@ struct CoreStateData
         sim = other.sim;
         init = other.init;
         track_slots = other.track_slots;
+        stream_id = other.stream_id;
         return *this;
     }
 };
@@ -158,29 +167,16 @@ using CoreDeviceRef = CoreRef<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize states in host code. Initialize threads to track slots mapping.
+ * Resize states in host code.
+ *
+ * Initialize threads to track slots mapping.
+ * Resize core states using parameter data, stream ID, and track slots.
  */
 template<MemSpace M>
-inline void resize(CoreStateData<Ownership::value, M>* state,
-                   HostCRef<CoreParamsData> const& params,
-                   size_type size)
-{
-    CELER_EXPECT(state);
-    CELER_EXPECT(params);
-    CELER_EXPECT(size > 0);
-    resize(&state->geometry, params.geometry, size);
-    resize(&state->materials, params.materials, size);
-    resize(&state->particles, params.particles, size);
-    resize(&state->physics, params.physics, size);
-    resize(&state->rng, params.rng, size);
-    resize(&state->sim, size);
-    resize(&state->init, params.init, size);
-    resize(&state->track_slots, size);
-
-    Span track_slots{state->track_slots[AllItems<TrackSlotId::size_type, M>{}]};
-    detail::fill_track_slots<M>(track_slots);
-    detail::shuffle_track_slots<M>(track_slots);
-}
+void resize(CoreStateData<Ownership::value, M>* state,
+            HostCRef<CoreParamsData> const& params,
+            StreamId stream_id,
+            size_type size);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

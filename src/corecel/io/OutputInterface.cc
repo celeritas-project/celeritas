@@ -8,7 +8,6 @@
 #include "OutputInterface.hh"
 
 #include "celeritas_config.h"
-#include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
 
 #include "JsonPimpl.hh"

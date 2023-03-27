@@ -42,33 +42,37 @@ namespace units
  * - steradians are used for measures of solid angle (unitless)
  */
 
+#define CELER_ICRT inline constexpr real_type
+
 //!@{
 //! \name Units with numerical value defined to be 1
-constexpr real_type centimeter = 1;  //!< Length
-constexpr real_type gram = 1;  //!< Mass
-constexpr real_type second = 1;  //!< Time
-constexpr real_type gauss = 1;  //!< Field strength
-constexpr real_type kelvin = 1;  //!< Temperature
+CELER_ICRT centimeter = 1;  //!< Length
+CELER_ICRT gram = 1;  //!< Mass
+CELER_ICRT second = 1;  //!< Time
+CELER_ICRT gauss = 1;  //!< Field strength
+CELER_ICRT kelvin = 1;  //!< Temperature
 //!@}
 
 //!@{
 //! \name Exact unit transformations for SI units
-constexpr real_type meter = 100 * centimeter;
-constexpr real_type kilogram = 1000 * gram;
-constexpr real_type tesla = 10000 * gauss;
-constexpr real_type newton = kilogram * meter / (second * second);
-constexpr real_type joule = newton * meter;
-constexpr real_type coulomb = kilogram / (tesla * second);
-constexpr real_type ampere = coulomb / second;
-constexpr real_type volt = joule / coulomb;
-constexpr real_type farad = coulomb / volt;
+CELER_ICRT meter = 100 * centimeter;
+CELER_ICRT kilogram = 1000 * gram;
+CELER_ICRT tesla = 10000 * gauss;
+CELER_ICRT newton = kilogram * meter / (second * second);
+CELER_ICRT joule = newton * meter;
+CELER_ICRT coulomb = kilogram / (tesla * second);
+CELER_ICRT ampere = coulomb / second;
+CELER_ICRT volt = joule / coulomb;
+CELER_ICRT farad = coulomb / volt;
 //!@}
 
 //!@{
 //! \name Other common units
-constexpr real_type millimeter = real_type(0.1) * centimeter;
-constexpr real_type barn = real_type(1e-24) * centimeter * centimeter;
+CELER_ICRT millimeter = real_type(0.1) * centimeter;
+CELER_ICRT barn = real_type(1e-24) * centimeter * centimeter;
 //!@}
+
+#undef CELER_ICRT
 
 //---------------------------------------------------------------------------//
 }  // namespace units

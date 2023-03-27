@@ -147,6 +147,7 @@ struct CuHipRngStateData
 template<MemSpace M>
 void resize(CuHipRngStateData<Ownership::value, M>* state,
             HostCRef<CuHipRngParamsData> const& params,
+            StreamId stream,
             size_type size);
 
 }  // namespace celeritas

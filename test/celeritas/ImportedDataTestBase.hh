@@ -49,6 +49,7 @@ class ImportedDataTestBase : virtual public GlobalGeoTestBase
     SPConstParticle build_particle() override;
     SPConstCutoff build_cutoff() override;
     SPConstPhysics build_physics() override;
+    SPConstSim build_sim() override;
 };
 
 //---------------------------------------------------------------------------//
