@@ -40,25 +40,6 @@ class GeantGeometryImporter
     using VPlacedVolume = vecgeom::VPlacedVolume;
     using VUnplacedVolume = vecgeom::VUnplacedVolume;
 
-  private:
-    /** Remember pointer to generated world from imported G4 geometry. */
-    VPlacedVolume const* world_;
-
-    // one G4 physical volume can correspond to multiple vecgeom placed volumes
-    // (in case of replicas)
-    std::map<G4VPhysicalVolume const*, std::vector<VPlacedVolume const*> const*>
-        placed_volume_map_;
-
-    std::map<G4VSolid const*, VUnplacedVolume const*> unplaced_volume_map_;
-
-    std::map<G4LogicalVolume const*, LogicalVolume const*> logical_volume_map_;
-
-    // fast O(1) lookup to get VecGeom or G4 placed volume based on index
-    // FastG4VecGeomLookup fFastG4VGLookup;
-    std::vector<Transformation3D const*> replica_transformations_;
-
-    int verbose_;
-
   public:
     void set_verbose(int const verbose) { verbose_ = verbose; }
     int get_verbose_level() const { return verbose_; }
@@ -142,5 +123,24 @@ class GeantGeometryImporter
   private:
     GeantGeometryImporter(GeantGeometryImporter const&) = delete;
     GeantGeometryImporter& operator=(GeantGeometryImporter const&) = delete;
+
+  private:
+    /** Remember pointer to generated world from imported G4 geometry. */
+    VPlacedVolume const* world_;
+
+    // one G4 physical volume can correspond to multiple vecgeom placed volumes
+    // (in case of replicas)
+    std::map<G4VPhysicalVolume const*, std::vector<VPlacedVolume const*> const*>
+        placed_volume_map_;
+
+    std::map<G4VSolid const*, VUnplacedVolume const*> unplaced_volume_map_;
+
+    std::map<G4LogicalVolume const*, LogicalVolume const*> logical_volume_map_;
+
+    // fast O(1) lookup to get VecGeom or G4 placed volume based on index
+    // FastG4VecGeomLookup fFastG4VGLookup;
+    std::vector<Transformation3D const*> replica_transformations_;
+
+    int verbose_;
 };
 }  // namespace celeritas

@@ -77,7 +77,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     //.. dump VecGeom geometry details for comparison
     vecgeom::VPlacedVolume const* vgWorld
         = vecgeom::GeoManager::Instance().GetWorld();
-    CELER_ENSURE(vgWorld);
+    CELER_ASSERT(vgWorld);
     CELER_LOG(debug) << "Top VecGeom volume: " << vgWorld->GetName()
                      << " - Label: " << vgWorld->GetLabel();
 
