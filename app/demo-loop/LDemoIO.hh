@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <vector>
+#include <celeritas/Types.hh>
 #include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
@@ -27,6 +28,10 @@
 namespace celeritas
 {
 class CoreParams;
+
+NLOHMANN_JSON_SERIALIZE_ENUM(TrackOrder,
+                             {{TrackOrder::arbitrary, "arbitrary"},
+                              {TrackOrder::random, "random"}})
 }
 
 namespace demo_loop
@@ -105,6 +110,9 @@ struct LDemoArgs
 
     // Diagnostic input
     EnergyDiagInput energy_diag;
+
+    // Track init options
+    celeritas::TrackOrder track_order{celeritas::TrackOrder::arbitrary};
 
     // Optional setup options if loading directly from Geant4
     celeritas::GeantPhysicsOptions geant_options;
