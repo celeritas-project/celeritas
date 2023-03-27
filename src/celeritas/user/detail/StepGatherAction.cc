@@ -7,11 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "StepGatherAction.hh"
 
+#include <mutex>
 #include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/user/StepData.hh"
@@ -110,11 +112,65 @@ void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a reference to the stream-local step state data, allocating if needed.
+ *
+ * This is thread-safe and allocates storage on demand for each stream *and*
+ * device type.
+ */
+template<MemSpace M>
+StepStateData<Ownership::reference, M> const&
+get_stream_state(CoreRef<M> const& core, StepStorage* storage)
+{
+    CELER_EXPECT(storage);
+
+    auto& state_vec = storage->get_states<M>();
+    if (CELER_UNLIKELY(state_vec.empty()))
+    {
+        // State storage hasn't been resized to the number of streams yet:
+        // mutex and resize if needed
+        static std::mutex resize_mutex;
+        std::lock_guard<std::mutex> scoped_lock{resize_mutex};
+        if (state_vec.empty())
+        {
+            // State is guaranteed unresized and we've got a lock
+            CELER_LOG_LOCAL(debug)
+                << "Resizing " << (M == MemSpace::host ? "host" : "device")
+                << " step state data for " << core.params.scalars.max_streams
+                << " threads";
+            state_vec.resize(core.params.scalars.max_streams);
+        }
+    }
+
+    // Get the stream-local but possibly unallocated state storage for the
+    // current stream
+    CELER_ASSERT(core.states.stream_id < state_vec.size());
+    auto& state_store = state_vec[core.states.stream_id.unchecked_get()];
+    if (CELER_UNLIKELY(!state_store))
+    {
+        // Thread-local data hasn't been allocated yet
+        CELER_LOG_LOCAL(debug)
+            << "Allocating local " << (M == MemSpace::host ? "host" : "device")
+            << " step state data";
+        state_store = CollectionStateStore<StepStateData, M>{
+            storage->params.host_ref(), core.states.size()};
+    }
+
+    CELER_ENSURE(state_store);
+    return state_store.ref();
+}
+
+//---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
 template class StepGatherAction<StepPoint::pre>;
 template class StepGatherAction<StepPoint::post>;
+
+template StepStateData<Ownership::reference, MemSpace::host> const&
+get_stream_state(CoreRef<MemSpace::host> const&, StepStorage*);
+template StepStateData<Ownership::reference, MemSpace::device> const&
+get_stream_state(CoreRef<MemSpace::device> const&, StepStorage*);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

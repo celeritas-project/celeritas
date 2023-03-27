@@ -26,6 +26,8 @@ struct StepStorage
 
     template<MemSpace M>
     using StepStateCollection = CollectionStateStore<StepStateData, M>;
+    template<MemSpace M>
+    using VecSSC = std::vector<StepStateCollection<M>>;
 
     //// DATA ////
 
@@ -35,14 +37,14 @@ struct StepStorage
     // State data
     struct
     {
-        StepStateCollection<MemSpace::host> host;
-        StepStateCollection<MemSpace::device> device;
+        VecSSC<MemSpace::host> host;
+        VecSSC<MemSpace::device> device;
     } states;
 
     //// METHODS ////
 
     template<MemSpace M>
-    decltype(auto) get_state()
+    decltype(auto) get_states()
     {
         if constexpr (M == MemSpace::host)
         {

@@ -19,58 +19,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-TEST(InitializedValue, semantics)
-{
-    using InitValueInt = detail::InitializedValue<int>;
-    static_assert(sizeof(InitValueInt) == sizeof(int), "Bad size");
-
-    // Use operator new to test that the int is being initialized properly by
-    // constructing into data space that's been set to a different value
-    alignas(int) Byte buf[sizeof(int)];
-    std::fill(std::begin(buf), std::end(buf), Byte(-1));
-    InitValueInt* ival = new (buf) InitValueInt{};
-    EXPECT_EQ(0, *ival);
-
-    InitValueInt other = 345;
-    EXPECT_EQ(345, other);
-    *ival = other;
-    EXPECT_EQ(345, *ival);
-    EXPECT_EQ(345, other);
-    other = 1000;
-    *ival = std::move(other);
-    EXPECT_EQ(1000, *ival);
-    EXPECT_EQ(0, other);
-
-    InitValueInt third(std::move(*ival));
-    EXPECT_EQ(0, *ival);
-    EXPECT_EQ(1000, third);
-
-    // Test const T& constructor
-    int const cint = 1234;
-    other = InitValueInt(cint);
-    EXPECT_EQ(1234, other);
-
-    // Test implicit conversion
-    int tempint;
-    tempint = third;
-    EXPECT_EQ(1000, tempint);
-    tempint = 1;
-#if 0
-    // NOTE: this will not work because template matching will not
-    // search for implicit constructors
-    EXPECT_EQ(1000, std::max(tempint, third));
-#else
-    EXPECT_EQ(1000, std::max(tempint, static_cast<int>(third)));
-#endif
-    auto passthrough_int = [](int i) -> int { return i; };
-    EXPECT_EQ(1000, passthrough_int(third));
-
-    // Destroy
-    ival->~InitializedValue();
-}
-
-//---------------------------------------------------------------------------//
-
 TEST(DeviceAllocationTest, always)
 {
     DeviceAllocation alloc;

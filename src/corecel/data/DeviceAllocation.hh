@@ -12,9 +12,8 @@
 #include <utility>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
-
-#include "detail/InitializedValue.hh"
 
 namespace celeritas
 {
@@ -78,7 +77,7 @@ class DeviceAllocation
 
     //// DATA ////
 
-    detail::InitializedValue<size_type> size_;
+    InitializedValue<size_type> size_;
     DeviceUniquePtr data_;
 };
 

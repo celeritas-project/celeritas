@@ -375,8 +375,6 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Construct sensitive detector callback
     if (options.sd)
     {
-        CELER_VALIDATE(params.max_streams == 1,
-                       << "HitManager currently supports only serial mode");
         hit_manager_ = std::make_shared<detail::HitManager>(*params.geometry,
                                                             options.sd);
         step_collector_ = std::make_shared<StepCollector>(
