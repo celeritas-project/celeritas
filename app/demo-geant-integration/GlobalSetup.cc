@@ -105,6 +105,9 @@ GlobalSetup::GlobalSetup()
     {
         // TODO: expose other options here
     }
+
+    // MT logger is already set in main()
+    options_->use_mt_logger = false;
 }
 
 //---------------------------------------------------------------------------//
