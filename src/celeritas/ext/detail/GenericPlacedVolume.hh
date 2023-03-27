@@ -28,6 +28,8 @@ namespace celeritas
 class GenericPlacedVolume : public vecgeom::VPlacedVolume
 {
   private:
+    //!@{
+    //! \name Type aliases
     using Base = vecgeom::VPlacedVolume;
     using LogicalVolume = vecgeom::LogicalVolume;
     using Transformation3D = vecgeom::Transformation3D;
@@ -37,6 +39,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     using SOA3D = vecgeom::SOA3D<T>;
     template<class T>
     using DevicePtr = vecgeom::DevicePtr<T>;
+    //!@}
 
   public:
     GenericPlacedVolume(char const* const             label,

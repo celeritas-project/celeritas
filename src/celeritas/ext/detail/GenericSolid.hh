@@ -29,10 +29,13 @@ template<typename S>
 class GenericSolid : public VUnplacedVolume
 {
   private:
+    //!@{
+    //! \name Type aliases
     using VUnplacedVolume::DistanceToIn;
     using VUnplacedVolume::DistanceToOut;
     using VUnplacedVolume::SafetyToIn;
     using VUnplacedVolume::SafetyToOut;
+    //!@}
 
   public:
     explicit GenericSolid(S const* g4solid) : g4_solid_(g4solid) {}
