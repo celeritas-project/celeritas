@@ -123,7 +123,7 @@ struct SetupOptions
 
     //!@{
     //! \name Track init options
-    TrackOrder track_order{TrackOrder::arbitrary};
+    TrackOrder track_order{TrackOrder::unsorted};
     //!@}
 };
 

@@ -126,8 +126,8 @@ enum class StepPoint
 //! Ordering / sorting of tracks on GPU
 enum class TrackOrder
 {
-    arbitrary,
-    random,
+    unsorted,
+    shuffled,
     size_
 };
 

@@ -30,8 +30,8 @@ namespace celeritas
 class CoreParams;
 
 NLOHMANN_JSON_SERIALIZE_ENUM(TrackOrder,
-                             {{TrackOrder::arbitrary, "arbitrary"},
-                              {TrackOrder::random, "random"}})
+                             {{TrackOrder::unsorted, "unsorted"},
+                              {TrackOrder::shuffled, "shuffled"}})
 }
 
 namespace demo_loop
@@ -112,7 +112,7 @@ struct LDemoArgs
     EnergyDiagInput energy_diag;
 
     // Track init options
-    celeritas::TrackOrder track_order{celeritas::TrackOrder::arbitrary};
+    celeritas::TrackOrder track_order{celeritas::TrackOrder::unsorted};
 
     // Optional setup options if loading directly from Geant4
     celeritas::GeantPhysicsOptions geant_options;

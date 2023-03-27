@@ -35,7 +35,7 @@ struct TrackInitParamsData
 {
     size_type capacity{0};  //!< Track initializer storage size
     size_type max_events{0};  //!< Maximum number of events that can be run
-    TrackOrder track_order{TrackOrder::arbitrary};  //!< How to sort tracks on
+    TrackOrder track_order{TrackOrder::unsorted};  //!< How to sort tracks on
                                                     //!< gpu
 
     //// METHODS ////

@@ -40,7 +40,7 @@ void resize(CoreStateData<Ownership::value, M>* state,
 
     Span track_slots{state->track_slots[AllItems<TrackSlotId::size_type, M>{}]};
     detail::fill_track_slots<M>(track_slots);
-    if (params.init.track_order == TrackOrder::random)
+    if (params.init.track_order == TrackOrder::shuffled)
     {
         detail::shuffle_track_slots<M>(track_slots);
     }
