@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepFactory.hh"
 
+#include <CLHEP/Units/SystemOfUnits.h>
+
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/em/UrbanMscParams.hh"
@@ -15,7 +17,6 @@
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"
 
-#include "CLHEP/Units/SystemOfUnits.h"
 #include "detail/Convert.hh"
 
 namespace celeritas
