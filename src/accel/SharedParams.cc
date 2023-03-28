@@ -13,10 +13,10 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Random/Random.h>
-#include <G4RunManager.hh>
-#include <G4Threading.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
+#include <G4RunManager.hh>
+#include <G4Threading.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
