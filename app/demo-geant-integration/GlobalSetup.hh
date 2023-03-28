@@ -58,7 +58,7 @@ class GlobalSetup
     //! Set the field to this value (T) along the z axis
     void SetMagFieldZTesla(double f)
     {
-        field_ = G4ThreeVector(0, 0, f / CLHEP::tesla);
+        field_ = G4ThreeVector(0, 0, f * CLHEP::tesla);
     }
 
   private:
