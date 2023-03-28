@@ -24,7 +24,6 @@
 #include "corecel/io/OutputManager.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -46,7 +45,6 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include "AlongStepFactory.hh"
-#include "Logger.hh"
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
 
@@ -131,18 +129,6 @@ SharedParams::~SharedParams() = default;
 SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
-
-    if (options.use_mt_logger)
-    {
-        auto* run_man = G4RunManager::GetRunManager();
-        CELER_VALIDATE(run_man,
-                       << "G4RunManager was not created before constructing "
-                          "SharedParams");
-        CELER_LOG(debug) << "Run manager type: "
-                         << celeritas::TypeDemangler<G4RunManager>{}(*run_man);
-
-        celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
-    }
 
     CELER_LOG_LOCAL(status) << "Initializing Celeritas shared data";
     ScopedTimeLog scoped_time;

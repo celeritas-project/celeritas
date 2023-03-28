@@ -79,8 +79,6 @@ struct SetupOptions
     std::string geometry_file;
     //! Filename for JSON diagnostic output
     std::string output_file;
-    //! Set up Celeritas logging to use thread-local G4cerr
-    bool use_mt_logger{true};
     //!@}
 
     //!@{

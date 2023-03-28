@@ -113,8 +113,6 @@ GlobalSetup::GlobalSetup()
         // TODO: expose other options here
     }
 
-    // MT logger is already set in main()
-    options_->use_mt_logger = false;
     // At setup time, get the field strength (native G4units)
     options_->make_along_step
         = celeritas::UniformAlongStepFactory([this] { return field_; });
