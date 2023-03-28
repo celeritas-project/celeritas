@@ -52,7 +52,9 @@ MtLogger::MtLogger(int num_threads) : num_threads_(num_threads)
 void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
 {
     auto& cerr = G4cerr;
+
     {
+        // Write the file name up to the last directory component
         auto last_slash = std::find(prov.file.rbegin(), prov.file.rend(), '/');
         if (!prov.file.empty() && last_slash == prov.file.rend())
         {
@@ -70,6 +72,7 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
     int local_thread = G4Threading::G4GetThreadId();
     if (local_thread >= 0)
     {
+        // Logging from a worker thread
         if (CELER_UNLIKELY(local_thread >= num_threads_))
         {
             // In tasking or potentially other contexts, the max thread might
@@ -79,14 +82,8 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
             num_threads_ = std::max(local_thread + 1, num_threads_);
         }
 
-        // On a worker thread
-        cerr << color_code('W') << '[' << local_thread + 1;
-        if (num_threads_ > 0)
-        {
-            // Using MT runner (as opposed to tasking/serial)
-            cerr << '/' << num_threads_;
-        }
-        cerr << "] " << color_code(' ');
+        cerr << color_code('W') << '[' << local_thread + 1 << '/'
+             << num_threads_ << "] " << color_code(' ');
     }
 
     // clang-format off
