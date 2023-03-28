@@ -53,9 +53,12 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
     if (magnitude_tesla > 0)
     {
         // Create a uniform field
-        CELER_VALIDATE(!input.imported->em_params.energy_loss_fluct,
-                       << "magnetic field with energy loss fluctuations is "
-                          "not currently supported");
+        if (input.imported->em_params.energy_loss_fluct)
+        {
+            CELER_LOG(error)
+                << "Magnetic field with energy loss fluctuations is "
+                   "not currently supported: using mean energy loss";
+        }
 
         // Convert field units from tesla to native celeritas units
         for (real_type& v : field)
