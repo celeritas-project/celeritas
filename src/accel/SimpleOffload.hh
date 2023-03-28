@@ -51,7 +51,7 @@ class SimpleOffload
         *this = {setup, params, local};
     }
 
-    //! Lazy initialization of this class (master thread)
+    //! Lazy initialization of this class on the master thread
     void BuildForMaster(SetupOptions const* setup, SharedParams* params)
     {
         *this = {setup, params, nullptr};

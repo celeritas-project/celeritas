@@ -8,34 +8,54 @@ Acceleritas
 ===========
 
 The ``accel`` directory contains components exclusive to coupling Celeritas
-with Geant4 for user-oriented integration. See the
-:file:`app/demo-geant-integration` for a complete example of how to use
-Celeritas to offload EM tracks to GPU and dispatch hits back to Geant4
-sensitive detectors.
+with Geant4 for user-oriented integration. See :ref:`example_geant_full` for a
+detailed example of how to use Celeritas to offload EM tracks to GPU and
+dispatch hits back to Geant4 sensitive detectors. The simpler interface for
+multithreaded or serial applications is demonstrated in
+:ref:`example_geant_minimal`.
 
-Utilities
-------------
+High-level interface
+--------------------
 
-.. doxygenfunction:: celeritas::MakeMTLogger
+The SimpleOffload class is an extremely easy-to-use interface for
+offloading tracks to Celeritas in a multithreaded or serial application. The
+class names correspond to user actions and ActionInitialization. It requires a
+few app-owned pieces such as SharedParams and LocalTransporter to be owned by
+the calling application; the options described below must also be set up and
+provided.
 
-.. doxygenclass:: celeritas::ExceptionConverter
+.. doxygenclass:: celeritas::SimpleOffload
 
-Setup
------
+Celeritas setup
+---------------
+
+The setup options help translate the Geant4 physics and problem setup to
+Celeritas. They are also necessary to set up the GPU offloading
+characteristics. Future versions of Celeritas will automate more of these
+settings.
 
 .. doxygenstruct:: celeritas::SetupOptions
 
 .. doxygenstruct:: celeritas::SDSetupOptions
 
-.. doxygenclass:: celeritas::AlongStepFactoryInterface
-
 .. doxygenclass:: celeritas::UniformAlongStepFactory
 
-Transport interface
--------------------
+Detailed interface
+------------------
 
-These classes are usually integrated into UserActions.
+These classes are usually integrated into UserActions. The ``SimpleOffload``
+interface above hides the complexity of these classes, or for more complex
+applications you can choose to use these classes directly instead of it.
 
 .. doxygenclass:: celeritas::SharedParams
 
 .. doxygenclass:: celeritas::LocalTransporter
+
+Interface utilities
+-------------------
+
+.. doxygenfunction:: celeritas::MakeMTLogger
+
+.. doxygenclass:: celeritas::ExceptionConverter
+
+.. doxygenclass:: celeritas::AlongStepFactoryInterface
