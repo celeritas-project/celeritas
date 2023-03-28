@@ -10,6 +10,8 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <CLHEP/Units/SystemOfUnits.h>
+#include <G4ThreeVector.hh>
 
 #include "accel/SetupOptions.hh"
 
@@ -50,11 +52,14 @@ class GlobalSetup
         return options_;
     }
 
-    // Set the along-step factory function/instance
-    void SetAlongStep(SetupOptions::AlongStepFactory asf);
-
     // Set the list of ignored EM process names
     void SetIgnoreProcesses(SetupOptions::VecString ignored);
+
+    //! Set the field to this value (T) along the z axis
+    void SetMagFieldZTesla(double f)
+    {
+        field_ = G4ThreeVector(0, 0, f * CLHEP::tesla);
+    }
 
   private:
     // Private constructor since we're a singleton
@@ -67,6 +72,7 @@ class GlobalSetup
     std::string event_file_;
     int root_buffer_size_{128000};
     bool write_sd_hits_{false};
+    G4ThreeVector field_;
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };

@@ -23,28 +23,11 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
+#include "detail/Convert.hh"
 #include "detail/HitManager.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-template<class T>
-inline T convert_from_geant(T const& val, T units)
-{
-    return val / units;
-}
-
-//---------------------------------------------------------------------------//
-inline Real3 convert_from_geant(G4ThreeVector const& vec, double units)
-{
-    return {vec[0] / units, vec[1] / units, vec[2] / units};
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared (MT) params.
@@ -118,6 +101,8 @@ void LocalTransporter::Push(G4Track const& g4track)
     CELER_EXPECT(*this);
     CELER_EXPECT(event_id_);
     CELER_EXPECT(this->IsApplicable(g4track));
+
+    using detail::convert_from_geant;
 
     Primary track;
 

@@ -39,9 +39,6 @@
 #include <accel/Logger.hh>
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
-#include <celeritas/em/UrbanMscParams.hh>
-#include <celeritas/global/alongstep/AlongStepGeneralLinearAction.hh>
-#include <celeritas/io/ImportData.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
 
@@ -56,19 +53,6 @@ celeritas::SetupOptions setup_options;
 celeritas::SharedParams shared_params;
 // Thread-local transporter
 G4ThreadLocal celeritas::LocalTransporter local_transporter;
-
-//---------------------------------------------------------------------------//
-std::shared_ptr<celeritas::ExplicitActionInterface const>
-make_nofield_along_step(celeritas::AlongStepFactoryInput const& input)
-{
-    return celeritas::AlongStepGeneralLinearAction::from_params(
-        input.action_id,
-        *input.material,
-        *input.particle,
-        celeritas::UrbanMscParams::from_import(
-            *input.particle, *input.material, *input.imported),
-        input.imported->em_params.energy_loss_fluct);
-}
 
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
@@ -132,7 +116,8 @@ class RunAction final : public G4UserRunAction
         if (G4Threading::IsMasterThread())
         {
             CELER_LOG_LOCAL(status) << "Setting up field propagation";
-            setup_options.make_along_step = make_nofield_along_step;
+            setup_options.make_along_step
+                = celeritas::UniformAlongStepFactory();
 
             CELER_TRY_HANDLE(shared_params.Initialize(setup_options),
                              call_g4exception);
@@ -237,7 +222,7 @@ int main()
     std::unique_ptr<G4RunManager> run_manager{
         G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly)};
 
-    celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
+    celeritas::self_logger() = celeritas::MakeMTLogger(*run_manager);
     run_manager->SetUserInitialization(new DetectorConstruction{});
     run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
     run_manager->SetUserInitialization(new ActionInitialization());

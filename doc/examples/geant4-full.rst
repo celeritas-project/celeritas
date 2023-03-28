@@ -40,12 +40,6 @@ User initialization
 .. literalinclude:: ../../app/demo-geant-integration/ActionInitialization.cc
    :start-at: #include
 
-.. literalinclude:: ../../app/demo-geant-integration/NoFieldAlongStepFactory.hh
-   :start-at: #pragma
-
-.. literalinclude:: ../../app/demo-geant-integration/NoFieldAlongStepFactory.cc
-   :start-at: #include
-
 User actions
 ------------
 
