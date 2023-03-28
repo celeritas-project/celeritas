@@ -9,8 +9,11 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "corecel/Assert.hh"
+
+class G4ParticleDefinition;
 
 namespace celeritas
 {
@@ -42,16 +45,15 @@ class SharedParams
     //! \name Type aliases
     using SPConstParams = std::shared_ptr<CoreParams const>;
     using SPHitManager = std::shared_ptr<detail::HitManager>;
+    using VecG4ParticleDef = std::vector<G4ParticleDefinition const*>;
     //!@}
 
   public:
-    // Default constructors, assignment, destructor
+    //!@{
+    //! \name Construction
+
+    // Construct in an uninitialized state
     SharedParams() = default;
-    SharedParams(SharedParams&&) = default;
-    SharedParams(SharedParams const&) = default;
-    SharedParams& operator=(SharedParams&&) = default;
-    SharedParams& operator=(SharedParams const&) = default;
-    ~SharedParams();
 
     // Construct Celeritas using Geant4 data on the master thread.
     explicit SharedParams(SetupOptions const& options);
@@ -65,14 +67,27 @@ class SharedParams
     // Write (shared) diagnostic output and clear shared data on master.
     void Finalize();
 
+    //!@}
+    //!@{
+    //! \name Accessors
+
     // Access constructed Celeritas data
     inline SPConstParams Params() const;
+
+    //! Get a vector of particles supported by Celeritas offloading
+    inline VecG4ParticleDef const& OffloadParticles() const;
 
     //! Whether this instance is initialized
     explicit operator bool() const { return static_cast<bool>(params_); }
 
+    //!@}
+    //!@{
+    //! \name Internal use only
+
     //! Hit manager, to be used only by LocalTransporter
     SPHitManager const& hit_manager() const { return hit_manager_; }
+
+    //!@}
 
   private:
     //// DATA ////
@@ -80,6 +95,7 @@ class SharedParams
     std::shared_ptr<CoreParams> params_;
     std::shared_ptr<detail::HitManager> hit_manager_;
     std::shared_ptr<StepCollector> step_collector_;
+    VecG4ParticleDef particles_;
     std::string output_filename_;
 
     //// HELPER FUNCTIONS ////
@@ -107,6 +123,18 @@ auto SharedParams::Params() const -> SPConstParams
 {
     CELER_EXPECT(*this);
     return params_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a vector of particles supported by Celeritas offloading.
+ *
+ * This can only be called after \c Initialize.
+ */
+auto SharedParams::OffloadParticles() const -> VecG4ParticleDef
+{
+    CELER_EXPECT(*this);
+    return particles_;
 }
 
 //---------------------------------------------------------------------------//

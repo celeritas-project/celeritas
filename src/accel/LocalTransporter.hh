@@ -9,7 +9,6 @@
 
 #include <memory>
 #include <vector>
-#include <G4Track.hh>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/InitializedValue.hh"
@@ -18,6 +17,8 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/Primary.hh"
+
+class G4Track;
 
 namespace celeritas
 {
@@ -55,9 +56,6 @@ class LocalTransporter
 
     // Set the event ID
     void SetEventId(int);
-
-    // Whether Celeritas supports offloading of this track
-    bool IsApplicable(G4Track const&) const;
 
     // Offload this track
     void Push(G4Track const&);

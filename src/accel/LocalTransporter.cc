@@ -12,6 +12,7 @@
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
 #include <G4ThreeVector.hh>
+#include <G4Track.hh>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
