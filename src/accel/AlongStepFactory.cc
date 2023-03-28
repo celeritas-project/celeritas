@@ -52,7 +52,7 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
 
     if (magnitude_tesla > 0)
     {
-        // Create a linear field
+        // Create a uniform field
         CELER_VALIDATE(!input.imported->em_params.energy_loss_fluct,
                        << "magnetic field with energy loss fluctuations is "
                           "not currently supported");
