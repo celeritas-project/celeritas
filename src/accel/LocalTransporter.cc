@@ -84,24 +84,12 @@ void LocalTransporter::SetEventId(int id)
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether Celeritas supports offloading of this track.
- */
-bool LocalTransporter::IsApplicable(G4Track const& g4track) const
-{
-    CELER_EXPECT(*this);
-    PDGNumber pdg{g4track.GetDefinition()->GetPDGEncoding()};
-    return static_cast<bool>(particles_->find(pdg));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Convert a Geant4 track to a Celeritas primary and add to buffer.
  */
 void LocalTransporter::Push(G4Track const& g4track)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(event_id_);
-    CELER_EXPECT(this->IsApplicable(g4track));
 
     using detail::convert_from_geant;
 
@@ -111,6 +99,11 @@ void LocalTransporter::Push(G4Track const& g4track)
         PDGNumber{g4track.GetDefinition()->GetPDGEncoding()});
     track.energy = units::MevEnergy{
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV)};
+
+    CELER_VALIDATE(track.particle_id,
+                   << "cannot offload '"
+                   << g4track.GetDefinition()->GetParticleName()
+                   << "' particles");
 
     track.position = convert_from_geant(g4track.GetPosition(), CLHEP::cm);
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);

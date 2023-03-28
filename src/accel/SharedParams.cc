@@ -129,7 +129,8 @@ build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
         if (phys->processes(par_id).empty())
         {
             CELER_LOG(warning)
-                << "Not offloading particle '" << particles->label(par_id)
+                << "Not offloading particle '"
+                << particles->id_to_label(par_id)
                 << "' because it has no physics processes defined";
             continue;
         }

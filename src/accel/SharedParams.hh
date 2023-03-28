@@ -131,7 +131,7 @@ auto SharedParams::Params() const -> SPConstParams
  *
  * This can only be called after \c Initialize.
  */
-auto SharedParams::OffloadParticles() const -> VecG4ParticleDef
+auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
 {
     CELER_EXPECT(*this);
     return particles_;

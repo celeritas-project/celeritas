@@ -17,6 +17,7 @@ list(APPEND SOURCES
   Logger.cc
   LocalTransporter.cc
   SharedParams.cc
+  SimpleOffload.cc
   detail/HitManager.cc
   detail/HitProcessor.cc
 )
