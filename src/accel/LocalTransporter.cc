@@ -39,7 +39,10 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     , max_steps_(options.max_steps)
     , hit_manager_{params.hit_manager()}
 {
-    CELER_EXPECT(params);
+    CELER_VALIDATE(params,
+                   << "Celeritas SharedParams was not initialized before "
+                      "constructing LocalTransporter (perhaps the master "
+                      "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
 
     // Thread ID is -1 when running serially
