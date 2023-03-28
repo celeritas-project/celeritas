@@ -42,6 +42,14 @@ class UrbanMscParams
     using VecImportMscModel = std::vector<ImportMscModel>;
     //!@}
 
+    //! MSC configuration options
+    struct Options
+    {
+        real_type lambda_limit{1 * units::millimeter};  //!< Lambda limit
+        real_type range_fact{0.04};  //!< Range factor for e-/e+
+        real_type safety_fact{0.6};  //!< Safety factor
+    };
+
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<UrbanMscParams>
@@ -52,7 +60,8 @@ class UrbanMscParams
     // Construct from process data
     inline UrbanMscParams(ParticleParams const& particles,
                           MaterialParams const& materials,
-                          VecImportMscModel const& mdata);
+                          VecImportMscModel const& mdata,
+                          Options options);
 
     // TODO: possible "applicability" interface used for constructing
     // along-step kernels?

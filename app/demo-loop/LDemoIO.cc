@@ -272,6 +272,8 @@ TransporterInput load_input(LDemoArgs const& args)
         input.options.fixed_step_limiter = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy{
+            imported.em_params.lowest_electron_energy};
 
         input.processes = [&params, &args, &imported] {
             std::vector<std::shared_ptr<Process const>> result;

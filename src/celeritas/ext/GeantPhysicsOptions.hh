@@ -61,6 +61,10 @@ enum class RelaxationSelection
  * - \c min_energy: lowest energy of any EM physics process
  * - \c max_energy: highest energy of any EM physics process
  * - \c linear_loss_limit: see \c PhysicsParamsOptions::linear_loss_limit
+ * - \c lowest_electron_energy: lowest e-/e+ kinetic energy
+ * - \c msc_range_factor: e-/e+ range factor for MSC models
+ * - \c msc_safety_factor: safety factor for MSC models
+ * - \c msc_lambda_limit: lambda limit for MSC models [cm]
  * - \c verbose: print detailed Geant4 output
  */
 struct GeantPhysicsOptions
@@ -80,6 +84,10 @@ struct GeantPhysicsOptions
     units::MevEnergy min_energy{0.1 * 1e-3};  // 0.1 keV
     units::MevEnergy max_energy{100 * 1e6};  // 100 TeV
     real_type linear_loss_limit{0.01};
+    units::MevEnergy lowest_electron_energy{0.001};  // 1 keV
+    real_type msc_range_factor{0.04};
+    real_type msc_safety_factor{0.6};
+    real_type msc_lambda_limit{0.1};  // 1 mm
 
     bool verbose{false};
 };
@@ -98,6 +106,10 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.em_bins_per_decade == b.em_bins_per_decade
            && a.min_energy == b.min_energy && a.max_energy == b.max_energy
            && a.linear_loss_limit == b.linear_loss_limit
+           && a.lowest_electron_energy == b.lowest_electron_energy
+           && a.msc_range_factor == b.msc_range_factor
+           && a.msc_safety_factor == b.msc_safety_factor
+           && a.msc_lambda_limit == b.msc_lambda_limit
            && a.verbose == b.verbose;
 }
 

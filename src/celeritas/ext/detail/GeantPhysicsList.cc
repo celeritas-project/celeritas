@@ -67,6 +67,12 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetAuger(options.relaxation == RelaxationSelection::all);
     em_parameters.SetIntegral(options.integral_approach);
     em_parameters.SetLinearLossLimit(options.linear_loss_limit);
+    em_parameters.SetMscRangeFactor(options.msc_range_factor);
+    em_parameters.SetMscSafetyFactor(options.msc_safety_factor);
+    em_parameters.SetMscLambdaLimit(options.msc_lambda_limit * CLHEP::cm);
+    em_parameters.SetLowestElectronEnergy(
+        value_as<units::MevEnergy>(options.lowest_electron_energy)
+        * CLHEP::MeV);
 
     int verb = options_.verbose ? 1 : 0;
     this->SetVerboseLevel(verb);

@@ -84,7 +84,7 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
         PPO_SAVE_OPTION(min_range);
         PPO_SAVE_OPTION(max_step_over_range);
         PPO_SAVE_OPTION(min_eprime_over_e);
-        PPO_SAVE_OPTION(eloss_calc_limit);
+        PPO_SAVE_OPTION(lowest_electron_energy);
         PPO_SAVE_OPTION(linear_loss_limit);
         PPO_SAVE_OPTION(fixed_step_limiter);
 #    undef PPO_SAVE_OPTION
