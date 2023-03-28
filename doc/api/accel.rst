@@ -16,7 +16,7 @@ sensitive detectors.
 Utilities
 ------------
 
-.. doxygenfunction:: celeritas::make_mt_logger
+.. doxygenfunction:: celeritas::MakeMTLogger
 
 .. doxygenclass:: celeritas::ExceptionConverter
 
@@ -28,6 +28,8 @@ Setup
 .. doxygenstruct:: celeritas::SDSetupOptions
 
 .. doxygenclass:: celeritas::AlongStepFactoryInterface
+
+.. doxygenclass:: celeritas::UniformAlongStepFactory
 
 Transport interface
 -------------------
