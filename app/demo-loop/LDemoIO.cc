@@ -98,6 +98,7 @@ void to_json(nlohmann::json& j, LDemoArgs const& v)
                        {"seed", v.seed},
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
+                       {"track_order", v.track_order},
                        {"initializer_capacity", v.initializer_capacity},
                        {"max_events", v.max_events},
                        {"secondary_stack_factor", v.secondary_stack_factor},
@@ -173,10 +174,15 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
 
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);
+    if (j.contains("track_order"))
+    {
+        j.at("track_order").get_to(v.track_order);
+    }
     if (j.contains("max_steps"))
     {
         j.at("max_steps").get_to(v.max_steps);
     }
+
     j.at("initializer_capacity").get_to(v.initializer_capacity);
     j.at("max_events").get_to(v.max_events);
     j.at("secondary_stack_factor").get_to(v.secondary_stack_factor);
@@ -216,7 +222,6 @@ TransporterInput load_input(LDemoArgs const& args)
     CELER_LOG(status) << "Loading input and initializing problem data";
     TransporterInput result;
     CoreParams::Input params;
-
     ImportData const imported = [&args] {
         if (ends_with(args.physics_filename, ".root"))
         {
@@ -351,6 +356,7 @@ TransporterInput load_input(LDemoArgs const& args)
         TrackInitParams::Input input;
         input.capacity = args.initializer_capacity;
         input.max_events = args.max_events;
+        input.track_order = args.track_order;
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 

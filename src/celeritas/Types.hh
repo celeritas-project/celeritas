@@ -123,6 +123,15 @@ enum class StepPoint
 };
 
 //---------------------------------------------------------------------------//
+//! Ordering / sorting of tracks on GPU
+enum class TrackOrder
+{
+    unsorted,
+    shuffled,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
 //! Step length and limiting action to take

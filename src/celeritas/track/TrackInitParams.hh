@@ -32,6 +32,7 @@ class TrackInitParams
     {
         size_type capacity;  //!< Max number of initializers
         size_type max_events;  //!< Max number of events that can be run
+        TrackOrder track_order;  //!< How to sort tracks on gpu
     };
 
   public:

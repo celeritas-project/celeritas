@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include "celeritas/Types.hh"
+
 namespace celeritas
 {
 struct AlongStepFactoryInput;
@@ -117,6 +119,11 @@ struct SetupOptions
     //! \name CUDA options
     size_type cuda_stack_size{};
     size_type cuda_heap_size{};
+    //!@}
+
+    //!@{
+    //! \name Track init options
+    TrackOrder track_order{TrackOrder::unsorted};
     //!@}
 };
 

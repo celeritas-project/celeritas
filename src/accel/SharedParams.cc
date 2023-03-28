@@ -343,6 +343,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
         TrackInitParams::Input input;
         input.capacity = options.initializer_capacity;
         input.max_events = options.max_num_events;
+        input.track_order = options.track_order;
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 

@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "TrackSortUtils.hh"
 
+#include <algorithm>
 #include <numeric>
+#include <random>
 
 namespace celeritas
 {
@@ -21,6 +23,16 @@ template<>
 void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots)
 {
     std::iota(track_slots.data(), track_slots.data() + track_slots.size(), 0);
+}
+
+/*!
+ * Shuffle track slots
+ */
+template<>
+void shuffle_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots)
+{
+    std::mt19937 g{track_slots.size()};
+    std::shuffle(track_slots.begin(), track_slots.end(), g);
 }
 //---------------------------------------------------------------------------//
 }  // namespace detail
