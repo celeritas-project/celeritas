@@ -261,8 +261,9 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
         // All or no daughters should have been placed already
         remaining_daughters = g4logical->GetNoDaughters()
                               - logical_volume->GetDaughters().size();
-        assert(remaining_daughters <= 0
-               || remaining_daughters == (int)g4logical->GetNoDaughters());
+        CELER_ASSERT(remaining_daughters <= 0
+                     || remaining_daughters
+                            == (int)g4logical->GetNoDaughters());
     }
 
     for (int i = 0; i < remaining_daughters; ++i)
@@ -303,7 +304,6 @@ Transformation3D* GeantGeometryImporter::convert(G4ThreeVector const& t,
                                               rot->yz(),
                                               rot->zz());
     }
-    // transformation->FixZeroes();
     return transformation;
 }
 
@@ -317,8 +317,7 @@ LogicalVolume* GeantGeometryImporter::convert(G4LogicalVolume const* g4_logvol)
 
     // add 0x suffix, unless already provided from GDML through Geant4 parser
     static G4GDMLWriteStructure gdml_mangler;
-    std::string clean_name(g4_logvol->GetName());  // may have 0x suffix from
-                                                   // GDML
+    std::string clean_name(g4_logvol->GetName());  // may have suffix from GDML
     if (clean_name.find("0x") == std::string::npos)
     {
         // but if not found, add the 0x suffix here
@@ -601,7 +600,6 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
     // Generic trapezoid
     else if (auto gt = dynamic_cast<G4GenericTrap const*>(shape))
     {
-        // auto params = p->GetOriginalParameters();
         // fix dimensions - (requires making a copy of some arrays)
         int const nVtx = gt->GetNofVertices();
         std::unique_ptr<double[]> vx(new double[nVtx]);
@@ -627,7 +625,6 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
 
         int const nFacets = tess->GetNumberOfFacets();
         std::unique_ptr<Vertex[]> vtx(new Vertex[4]);  // 3- or 4-side facets
-                                                       // only
         for (int i = 0; i < nFacets; ++i)
         {
             G4VFacet const* facet = tess->GetFacet(i);

@@ -25,6 +25,14 @@ namespace celeritas
 
 #define VECGEOM_VECTORAPI
 
+/*!
+ * A generic VecGeom placed volume converted from a Geant4 geometry.
+ *
+ * Some complex geometry functionalities in Geant4 don't have equivalents yet
+ * in VecGeom. This class can be used either as a placeholder, or as a wrapper
+ * when it makes sense to use some functionality from the original Geant4
+ * volume.
+ */
 class GenericPlacedVolume : public vecgeom::VPlacedVolume
 {
   private:
@@ -42,20 +50,20 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     //!@}
 
   public:
-    GenericPlacedVolume(char const* const             label,
-                        LogicalVolume const* const    logicalVolume,
+    GenericPlacedVolume(char const* const label,
+                        LogicalVolume const* const logicalVolume,
                         Transformation3D const* const transformation)
         : Base(label, logicalVolume, transformation)
     {
     }
 
-    GenericPlacedVolume(LogicalVolume const* const    logicalVolume,
+    GenericPlacedVolume(LogicalVolume const* const logicalVolume,
                         Transformation3D const* const transformation)
         : GenericPlacedVolume("", logicalVolume, transformation)
     {
     }
 
-    virtual int  MemorySize() const override { return sizeof(*this); }
+    virtual int MemorySize() const override { return sizeof(*this); }
     virtual void PrintType() const override { PrintType(std::cout); }
     virtual void PrintType(std::ostream&) const override {}
 
@@ -232,7 +240,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
 
     VECCORE_ATT_HOST_DEVICE
     virtual bool Normal(Vector3D<Precision> const& point,
-                        Vector3D<Precision>&       normal) const override
+                        Vector3D<Precision>& normal) const override
     {
         return GetUnplacedVolume()->Normal(
             GetTransformation()->Transform(point), normal);
@@ -244,6 +252,10 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     }
 
 #ifdef VECGEOM_CUDA_INTERFACE
+    //! @{ /name Required interface
+    //
+    // These implementations are required when CUDA is enabled.
+    // A trivialimplementation is okay, since won't be called from GPU.
     virtual size_t DeviceSizeOf() const override
     {
         return 0;
@@ -271,11 +283,15 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
         std::vector<DevicePtr<vecgeom::cuda::VPlacedVolume>> const&) const
     {
     }
+    //!@}
 #endif  // VECGEOM_CUDA_INTERFACE
 
   private:
+    //!@{ \name Deleted constructors and assignment operator.
     ~GenericPlacedVolume() = default;
     GenericPlacedVolume(GenericPlacedVolume const&) = delete;
+    GenericPlacedVolume(GenericPlacedVolume const&&) = delete;
     GenericPlacedVolume& operator=(GenericPlacedVolume const&) = delete;
+    //!@}
 };
 }  // namespace celeritas

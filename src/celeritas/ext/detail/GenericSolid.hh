@@ -25,6 +25,13 @@ using namespace vecgeom;
 
 namespace celeritas
 {
+/*!
+ * A generic VecGeom solid converted from a Geant4 geometry.
+ *
+ * Some complex geometry functionalities in Geant4 don't have equivalents yet
+ * in VecGeom. This class can be used either as a placeholder, or as a wrapper
+ * when it makes sense to use some functionality from the original G4 shape.
+ */
 template<typename S>
 class GenericSolid : public VUnplacedVolume
 {
@@ -86,7 +93,7 @@ class GenericSolid : public VUnplacedVolume
                             bool& convex,
                             Precision /*step_max = kInfLength*/) const override
     {
-        bool          calculateNorm = true;
+        bool calculateNorm = true;
         G4ThreeVector normalG4;
         auto dist = g4_solid_->DistanceToOut(
             ToG4V(p), ToG4V(d), calculateNorm, &convex, &normalG4);
@@ -149,7 +156,7 @@ class GenericSolid : public VUnplacedVolume
         return const_cast<S*>(g4_solid_)->S::GetSurfaceArea();
     }
 
-    int  MemorySize() const override { return sizeof(this); }
+    int MemorySize() const override { return sizeof(this); }
     void Print(std::ostream& os) const override
     {
         if (g4_solid_)
@@ -158,7 +165,7 @@ class GenericSolid : public VUnplacedVolume
         }
     }
 
-    void           Print() const override { Print(std::cout); }
+    void Print() const override { Print(std::cout); }
     G4GeometryType GetEntityType() const { return g4_solid_->GetEntityType(); }
 
     VPlacedVolume*
@@ -172,9 +179,10 @@ class GenericSolid : public VUnplacedVolume
     }
 
 #ifdef VECGEOM_CUDA_INTERFACE
-    // These are pure virtual in base class, implementation required when CUDA
-    // enabled is enabled. A trivial implementation is okay, since won't be
-    // called from GPU
+    //! @{ /name Required interface
+    //
+    // These implementations are required when CUDA is enabled.
+    // A trivialimplementation is okay, since won't be called from GPU.
     size_t DeviceSizeOf() const
     {
         return 0;
@@ -188,15 +196,19 @@ class GenericSolid : public VUnplacedVolume
     {
         return {};
     }
+    //! @}
 #endif
 
   private:
+    //!@{ \name Deleted constructors and assignment operator.
     ~GenericSolid() = default;
     GenericSolid(GenericSolid const&) = delete;
+    GenericSolid(GenericSolid const&&) = delete;
     GenericSolid& operator=(GenericSolid const&) = delete;
+    //!@}
 
   private:
-    const S* g4_solid_;
+    S const* g4_solid_;
 };
 
 }  // namespace celeritas
