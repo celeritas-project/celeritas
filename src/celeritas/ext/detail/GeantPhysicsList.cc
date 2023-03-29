@@ -73,6 +73,11 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetLowestElectronEnergy(
         value_as<units::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);
+    if (options_.msc == MscModelSelection::urban_extended)
+    {
+        CELER_LOG(debug) << "Extended low-energy MSC limit to 100 TeV";
+        em_parameters.SetMscEnergyLimit(100 * CLHEP::TeV);
+    }
 
     int verb = options_.verbose ? 1 : 0;
     this->SetVerboseLevel(verb);
@@ -286,6 +291,13 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
         CELER_LOG(debug) << "Loaded Coulomb scattering with "
                             "G4eCoulombScatteringModel";
+        if (options_.msc == MscModelSelection::wentzel_vi
+            || options_.msc == MscModelSelection::urban_wentzel)
+        {
+            CELER_LOG(warning)
+                << "Coulomb scattering may be inconsistent with msc="
+                << to_cstring(options_.msc);
+        }
     }
 
     if (options_.msc != MscModelSelection::none)
@@ -296,7 +308,8 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         auto process = std::make_unique<G4eMultipleScattering>();
 
         if (options_.msc == MscModelSelection::urban
-            || options_.msc == MscModelSelection::all)
+            || options_.msc == MscModelSelection::urban
+            || options_.msc == MscModelSelection::urban_wentzel)
         {
             auto model = std::make_unique<G4UrbanMscModel>();
             model->SetHighEnergyLimit(msc_energy_limit);
@@ -307,7 +320,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         }
 
         if (options_.msc == MscModelSelection::wentzel_vi
-            || options_.msc == MscModelSelection::all)
+            || options_.msc == MscModelSelection::urban_wentzel)
         {
             auto model = std::make_unique<G4WentzelVIModel>();
             model->SetLowEnergyLimit(msc_energy_limit);

@@ -22,13 +22,14 @@ enum class BremsModelSelection
 };
 
 //---------------------------------------------------------------------------//
-//! MSC selection (TODO: make bitset)
+//! MSC selection (TODO: make bitset?)
 enum class MscModelSelection
 {
     none,
     urban,
+    urban_extended,  //!< Use 100 TeV as upper bound instead of 100 MeV
     wentzel_vi,
-    all,
+    urban_wentzel,  //!< Urban for low-E, Wentzel_VI for high-E
     size_
 };
 
@@ -45,6 +46,9 @@ enum class RelaxationSelection
 //---------------------------------------------------------------------------//
 /*!
  * Construction options for geant physics.
+ *
+ * These options attempt to default to our closest match to
+ * \c G4StandardEmPhysics.
  *
  * Note that not all Geant physics choices are implemented in Celeritas.
  *
@@ -77,7 +81,7 @@ struct GeantPhysicsOptions
     bool gamma_general{false};
 
     BremsModelSelection brems{BremsModelSelection::all};
-    MscModelSelection msc{MscModelSelection::urban};
+    MscModelSelection msc{MscModelSelection::urban_extended};
     RelaxationSelection relaxation{RelaxationSelection::none};
 
     int em_bins_per_decade{7};
@@ -112,6 +116,14 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.msc_lambda_limit == b.msc_lambda_limit
            && a.verbose == b.verbose;
 }
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+char const* to_cstring(BremsModelSelection value);
+char const* to_cstring(MscModelSelection value);
+char const* to_cstring(RelaxationSelection value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
