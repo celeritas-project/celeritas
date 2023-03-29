@@ -16,6 +16,7 @@
 #include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
 #include <G4GammaGeneralProcess.hh>
+#include <G4GoudsmitSaundersonMscModel.hh>
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LossTableManager.hh>
 #include <G4MollerBhabhaModel.hh>
@@ -328,6 +329,15 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
             CELER_LOG(debug) << "Loaded high-energy multiple scattering with "
                                 "G4WentzelVIModel";
+        }
+
+        if (options_.msc == MscModelSelection::goudsmit_saunderson)
+        {
+            auto model = std::make_unique<G4GoudsmitSaundersonMscModel>();
+            process->SetEmModel(model.release());
+
+            CELER_LOG(debug) << "Loaded multiple scattering with "
+                                "G4GoudsmitSaundersonMscModel";
         }
 
         physics_list->RegisterProcess(process.release(), p);

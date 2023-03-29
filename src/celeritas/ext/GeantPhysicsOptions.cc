@@ -37,6 +37,7 @@ char const* to_cstring(MscModelSelection value)
         "urban_extended",
         "wentzel_vi",
         "urban_wentzel",
+        "goudsmit_saunderson",
     };
     return to_cstring_impl(value);
 }

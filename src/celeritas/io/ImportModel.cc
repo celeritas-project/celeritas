@@ -44,6 +44,7 @@ char const* to_cstring(ImportModelClass value)
         "mu_brems",
         "mu_pair_prod",
         "fluo_photoelectric",
+        "goudsmit_saunderson",
     };
     return to_cstring_impl(value);
 }
@@ -78,6 +79,7 @@ char const* to_geant_name(ImportModelClass value)
         "MuBrem",
         "muPairProd",
         "PhotoElectric",
+        "GoudsmitSaunderson",
     };
     return to_name_impl(value);
 }

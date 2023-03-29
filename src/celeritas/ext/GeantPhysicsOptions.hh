@@ -30,6 +30,7 @@ enum class MscModelSelection
     urban_extended,  //!< Use 100 TeV as upper bound instead of 100 MeV
     wentzel_vi,
     urban_wentzel,  //!< Urban for low-E, Wentzel_VI for high-E
+    goudsmit_saunderson,
     size_
 };
 

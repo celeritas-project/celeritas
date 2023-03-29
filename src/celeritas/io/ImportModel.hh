@@ -49,6 +49,7 @@ enum class ImportModelClass
     mu_brems,
     mu_pair_prod,
     fluo_photoelectric,
+    goudsmit_saunderson,
     size_
 };
 
