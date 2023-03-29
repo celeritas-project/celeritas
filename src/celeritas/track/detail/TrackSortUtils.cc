@@ -31,7 +31,8 @@ void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots)
 template<>
 void shuffle_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots)
 {
-    std::mt19937 g{track_slots.size()};
+    unsigned int seed = track_slots.size();
+    std::mt19937 g{seed};
     std::shuffle(track_slots.begin(), track_slots.end(), g);
 }
 //---------------------------------------------------------------------------//
