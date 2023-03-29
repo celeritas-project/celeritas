@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Random/Random.h>
+#include <G4ParticleDefinition.hh>
+#include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -110,11 +112,43 @@ build_processes(ImportData const& imported,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace
+std::vector<G4ParticleDefinition const*>
+build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
+                   std::shared_ptr<PhysicsParams const> const& phys)
+{
+    CELER_EXPECT(particles);
+    CELER_EXPECT(phys);
+
+    G4ParticleTable* g4particles = G4ParticleTable::GetParticleTable();
+    CELER_ASSERT(g4particles);
+
+    std::vector<G4ParticleDefinition const*> result;
+
+    for (auto par_id : range(ParticleId{particles->size()}))
+    {
+        if (phys->processes(par_id).empty())
+        {
+            CELER_LOG(warning)
+                << "Not offloading particle '"
+                << particles->id_to_label(par_id)
+                << "' because it has no physics processes defined";
+            continue;
+        }
+
+        PDGNumber pdg = particles->id_to_pdg(par_id);
+        G4ParticleDefinition* g4pd = g4particles->FindParticle(pdg.get());
+        CELER_VALIDATE(g4pd,
+                       << "could not find PDG '" << pdg.get()
+                       << "' in G4ParticleTable");
+        result.push_back(g4pd);
+    }
+
+    CELER_ENSURE(!result.empty());
+    return result;
+}
 
 //---------------------------------------------------------------------------//
-//! Default destructor
-SharedParams::~SharedParams() = default;
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -392,6 +426,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
 
     // Save other data as needed
     output_filename_ = options.output_file;
+
+    // Translate supported particles
+    particles_ = build_g4_particles(params_->particle(), params_->physics());
 }
 
 //---------------------------------------------------------------------------//

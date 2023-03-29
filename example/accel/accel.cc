@@ -34,15 +34,12 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <accel/AlongStepFactory.hh>
-#include <accel/ExceptionConverter.hh>
 #include <accel/LocalTransporter.hh>
-#include <accel/Logger.hh>
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
+#include <accel/SimpleOffload.hh>
 #include <corecel/Macros.hh>
 #include <corecel/io/Logger.hh>
-
-using celeritas::ExceptionConverter;
 
 namespace
 {
@@ -54,6 +51,9 @@ celeritas::SharedParams shared_params;
 // Thread-local transporter
 G4ThreadLocal celeritas::LocalTransporter local_transporter;
 
+// Simple interface to running celeritas
+G4ThreadLocal celeritas::SimpleOffload simple_offload;
+
 //---------------------------------------------------------------------------//
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
@@ -62,6 +62,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
         : aluminum_{new G4Material{
             "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
+        setup_options.make_along_step = celeritas::UniformAlongStepFactory();
     }
 
     G4VPhysicalVolume* Construct() final
@@ -111,47 +112,11 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        ExceptionConverter call_g4exception{"celer0001"};
-
-        if (G4Threading::IsMasterThread())
-        {
-            CELER_LOG_LOCAL(status) << "Setting up field propagation";
-            setup_options.make_along_step
-                = celeritas::UniformAlongStepFactory();
-
-            CELER_TRY_HANDLE(shared_params.Initialize(setup_options),
-                             call_g4exception);
-        }
-        else
-        {
-            CELER_TRY_HANDLE(
-                celeritas::SharedParams::InitializeWorker(setup_options),
-                call_g4exception);
-        }
-
-        if (G4Threading::IsWorkerThread()
-            || !G4Threading::IsMultithreadedApplication())
-        {
-            CELER_LOG_LOCAL(status) << "Constructing local state";
-            CELER_TRY_HANDLE(
-                local_transporter.Initialize(setup_options, shared_params),
-                call_g4exception);
-        }
+        simple_offload.BeginOfRunAction(run);
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
-        ExceptionConverter call_g4exception{"celer0005"};
-
-        if (local_transporter)
-        {
-            CELER_TRY_HANDLE(local_transporter.Finalize(), call_g4exception);
-        }
-
-        if (G4Threading::IsMasterThread())
-        {
-            CELER_TRY_HANDLE(shared_params.Finalize(), call_g4exception);
-        }
+        simple_offload.EndOfRunAction(run);
     }
 };
 
@@ -161,16 +126,12 @@ class EventAction final : public G4UserEventAction
   public:
     void BeginOfEventAction(G4Event const* event) final
     {
-        // Set event ID in local transporter
-        ExceptionConverter call_g4exception{"celer0002"};
-        CELER_TRY_HANDLE(local_transporter.SetEventId(event->GetEventID()),
-                         call_g4exception);
+        simple_offload.BeginOfEventAction(event);
     }
 
     void EndOfEventAction(G4Event const* event) final
     {
-        ExceptionConverter call_g4exception{"celer0004"};
-        CELER_TRY_HANDLE(local_transporter.Flush(), call_g4exception);
+        simple_offload.EndOfEventAction(event);
     }
 };
 
@@ -179,22 +140,7 @@ class TrackingAction final : public G4UserTrackingAction
 {
     void PreUserTrackingAction(G4Track const* track) final
     {
-        static G4ParticleDefinition const* const allowed_particles[] = {
-            G4Gamma::Gamma(),
-            G4Electron::Electron(),
-            G4Positron::Positron(),
-        };
-
-        if (std::find(std::begin(allowed_particles),
-                      std::end(allowed_particles),
-                      track->GetDefinition())
-            != std::end(allowed_particles))
-        {
-            // Celeritas is transporting this track
-            ExceptionConverter call_g4exception{"celer0003"};
-            CELER_TRY_HANDLE(local_transporter.Push(*track), call_g4exception);
-            const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
-        }
+        simple_offload.PreUserTrackingAction(const_cast<G4Track*>(track));
     }
 };
 
@@ -202,9 +148,19 @@ class TrackingAction final : public G4UserTrackingAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    void BuildForMaster() const final { this->Build(); }
+    void BuildForMaster() const final
+    {
+        simple_offload.BuildForMaster(&setup_options, &shared_params);
+
+        CELER_LOG_LOCAL(status) << "Constructing user actions";
+
+        this->SetUserAction(new RunAction{});
+    }
     void Build() const final
     {
+        simple_offload.Build(
+            &setup_options, &shared_params, &local_transporter);
+
         CELER_LOG_LOCAL(status) << "Constructing user actions";
 
         this->SetUserAction(new PrimaryGeneratorAction{});
@@ -220,17 +176,18 @@ class ActionInitialization final : public G4VUserActionInitialization
 int main()
 {
     std::unique_ptr<G4RunManager> run_manager{
-        G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly)};
+        G4RunManagerFactory::CreateRunManager()};  // G4RunManagerType::SerialOnly)};
 
-    celeritas::self_logger() = celeritas::MakeMTLogger(*run_manager);
     run_manager->SetUserInitialization(new DetectorConstruction{});
     run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
     run_manager->SetUserInitialization(new ActionInitialization());
 
+    // NOTE: these numbers are appropriate for CPU execution
     setup_options.max_num_tracks = 1024;
-    setup_options.max_num_events = 1024;
     setup_options.initializer_capacity = 1024 * 128;
-    setup_options.secondary_stack_factor = 3.0;
+    // This parameter will eventually be removed
+    setup_options.max_num_events = 1024;
+    // Celeritas does not support EmStandard MSC physics above 100 MeV
     setup_options.ignore_processes = {"CoulombScat"};
 
     run_manager->Initialize();

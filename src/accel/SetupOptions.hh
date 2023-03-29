@@ -94,7 +94,7 @@ struct SetupOptions
     //! Maximum number of track initializers (primaries+secondaries)
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
-    real_type secondary_stack_factor{};
+    real_type secondary_stack_factor{3.0};
     //! Sync the GPU at every kernel for error checking
     bool sync{false};
     //!@}
