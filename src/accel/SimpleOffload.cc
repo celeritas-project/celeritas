@@ -38,25 +38,24 @@ SimpleOffload::SimpleOffload(SetupOptions const* setup,
                  == (G4Threading::IsWorkerThread()
                      || !G4Threading::IsMultithreadedApplication()));
 
-    if (!celeritas::getenv("CELER_DISABLE").empty())
-    {
-        CELER_LOG(info)
-            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
-        *this = {};
-        CELER_ENSURE(!*this);
-    }
-    else if (G4Threading::IsMasterThread())
+    if (G4Threading::IsMasterThread())
     {
         if (auto* run_man = G4RunManager::GetRunManager())
         {
             // Initialize multithread logger if run manager exists
             celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
-
-            CELER_LOG(debug)
-                << "Run manager type: "
-                << celeritas::TypeDemangler<G4RunManager>{}(*run_man);
         }
+    }
+    if (!celeritas::getenv("CELER_DISABLE").empty())
+    {
+        using LL = celeritas::LogLevel;
+        celeritas::self_logger()(CELER_CODE_PROVENANCE,
+                                 G4Threading::IsMasterThread() ? LL::info
+                                                               : LL::debug)
+            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
+               "environment variable is present and non-empty";
+        *this = {};
+        CELER_ENSURE(!*this);
     }
 }
 
