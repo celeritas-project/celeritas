@@ -51,15 +51,11 @@ class GeantGeometryImporter
         , unplaced_volume_map_()
         , logical_volume_map_()
         , replica_transformations_()
-        , verbose_(0)
     {
     }
 
     //! Clear the maps, while keeping the newly created VecGeom geometry.
     ~GeantGeometryImporter() { this->clear_maps(); }
-
-    void set_verbose(int const verbose) { verbose_ = verbose; }
-    int get_verbose_level() const { return verbose_; }
 
     /*!
      * Main entry point of geometry importer.
@@ -136,7 +132,5 @@ class GeantGeometryImporter
     std::map<G4LogicalVolume const*, LogicalVolume const*> logical_volume_map_;
 
     std::vector<Transformation3D const*> replica_transformations_;
-
-    int verbose_;
 };
 }  // namespace celeritas

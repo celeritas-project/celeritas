@@ -17,7 +17,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 // Build a VecGeom geometry in-memory from Geant4 (hiding Geant4 includes)
-void g4_to_vecgeom(G4VPhysicalVolume const* world, bool verbose);
+void g4_to_vecgeom(G4VPhysicalVolume const* world);
 
 #if !CELERITAS_USE_GEANT4
 inline void g4_to_vecgeom(G4VPhysicalVolume const*, bool)

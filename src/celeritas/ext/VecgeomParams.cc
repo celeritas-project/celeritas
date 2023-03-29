@@ -70,7 +70,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     CELER_LOG(status) << "Importing VecGeom model from Geant4";
 
     // Convert the geometry to VecGeom
-    detail::g4_to_vecgeom(world, /* verbose = */ true);
+    detail::g4_to_vecgeom(world);
     CELER_LOG(debug) << "Converted: max_depth = "
                      << vecgeom::GeoManager::Instance().getMaxDepth();
 

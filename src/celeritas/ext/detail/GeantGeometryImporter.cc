@@ -150,20 +150,16 @@ void GeantGeometryImporter::convert_G4_geometry(G4VPhysicalVolume const* g4_worl
     assert(volumes->size() == 1);
     world_ = (*volumes)[0];
     timer.Stop();
-    if (verbose_)
-    {
-        CELER_LOG(debug) << "Conversion of G4 -> VecGeom finished ("
-                         << timer.Elapsed() << " s) ***";
-    }
+    CELER_LOG(debug) << "Conversion of G4 -> VecGeom finished ("
+                     << timer.Elapsed() << " s) ***";
+
     GeoManager::Instance().SetWorld(world_);
     timer.Start();
     GeoManager::Instance().CloseGeometry();
     timer.Stop();
-    if (verbose_)
-    {
-        CELER_LOG(debug) << "Closing VecGeom geometry finished ("
-                         << timer.Elapsed() << " s) ***";
-    }
+    CELER_LOG(debug) << "Closing VecGeom geometry finished ("
+                     << timer.Elapsed() << " s) ***";
+
     world_ = GeoManager::Instance().GetWorld();
     this->clear_maps();
 }
@@ -768,7 +764,8 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
         {
             CLER_LOG(info) << "Non-simple REFLECTION in solid "
                            << refl->GetName();
-            unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(refl);
+            unplaced_volume
+                = new celeritas::GenericSolid<G4ReflectedSolid>(refl);
         }
 #else
         CELER_LOG(info) << "Reflection G4 solid " << shape->GetName()
