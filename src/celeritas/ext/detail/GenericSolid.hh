@@ -191,6 +191,11 @@ class GenericSolid : public VUnplacedVolume
 #endif
 
   private:
+    ~GenericSolid() = default;
+    GenericSolid(GenericSolid const&) = delete;
+    GenericSolid& operator=(GenericSolid const&) = delete;
+
+  private:
     const S* g4_solid_;
 };
 

@@ -743,24 +743,24 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
             CELER_ASSERT_UNREACHABLE();
         }
     }
-    else if (auto p = dynamic_cast<G4ReflectedSolid const*>(shape))
+    else if (auto refl = dynamic_cast<G4ReflectedSolid const*>(shape))
     {
-        G4VSolid* underlyingSolid = p->GetConstituentMovedSolid();
+        G4VSolid* underlyingSolid = refl->GetConstituentMovedSolid();
         CELER_LOG(info)
             << " Reflected solid found: "
-            << " volume: " << shape->GetName()
-            << " type = " << shape->GetEntityType()
+            << " volume: " << refl->GetName()
+            << " type = " << refl->GetEntityType()
             << "   -- underlying solid: " << underlyingSolid->GetName()
             << " type = " << underlyingSolid->GetEntityType();
 // #define USE_VG_SCALE_FOR_REFLECTION 1
 #ifdef USE_VG_SCALE_FOR_REFLECTION
-        auto t = p->GetDirectTransform3D();
+        auto t = refl->GetDirectTransform3D();
         if (t.getTranslation().mag2() == 0.
             && (t.xx() == -1. || t.yy() == -1. || t.zz() == -1.))
         {
             CELER_LOG(info) << "Simple Reflection -> Convert to Scaled shape";
             VUnplacedVolume* referenced_shape
-                = Convert(p->GetConstituentMovedSolid());
+                = Convert(refl->GetConstituentMovedSolid());
 
             // implement in terms of scaled shape first of all
             // we could later modify the node directly?
@@ -770,13 +770,13 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
         else
         {
             CLER_LOG(info) << "Non-simple REFLECTION in solid "
-                           << shape->GetName();
-            unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
+                           << refl->GetName();
+            unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(refl);
         }
 #else
         CELER_LOG(info) << "Reflection G4 solid " << shape->GetName()
                         << " -- wrapping G4 implementation.";
-        unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
+        unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(refl);
 #endif
     }
 

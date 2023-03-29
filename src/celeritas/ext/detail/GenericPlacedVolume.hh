@@ -272,5 +272,10 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     {
     }
 #endif  // VECGEOM_CUDA_INTERFACE
+
+  private:
+    ~GenericPlacedVolume() = default;
+    GenericPlacedVolume(GenericPlacedVolume const&) = delete;
+    GenericPlacedVolume& operator=(GenericPlacedVolume const&) = delete;
 };
 }  // namespace celeritas
