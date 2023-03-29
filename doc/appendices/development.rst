@@ -101,9 +101,9 @@ Examples:
 
 - Random number sampling: write a unit sphere sampling functor instead of
   replicating a polar-to-Cartesian transform in a thousand places.
-- Cell IDs: Opaque IDs add type safety so that you can't accidentally convert a
-  cell identifier into a double or switch a cell and material ID. It also makes
-  code more readable of course.
+- Volume IDs: Opaque IDs add type safety so that you can't accidentally convert
+  a volume identifier into a double or switch a volume and material ID. It also
+  makes code more readable of course.
 
 Encapsulation is also useful for code reuse. Always avoid copy-pasting code, as
 it means potentially duplicating bugs, duplicating the amount of work needed
