@@ -25,6 +25,17 @@ struct ParticleCutoff
 
 //---------------------------------------------------------------------------//
 /*!
+ * IDs of particles that can be killed when \c apply_cuts is enabled.
+ */
+struct ApplyCutsIds
+{
+    ParticleId gamma;
+    ParticleId electron;
+    ParticleId positron;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Persistent shared cutoff data.
  *
  * Secondary production cuts are stored for every material and for only the
@@ -52,6 +63,9 @@ struct CutoffParamsData
     ParticleId::size_type num_particles;  //!< Particles with production cuts
     MaterialId::size_type num_materials;  //!< All materials in the problem
 
+    bool apply_cuts{false};  //!< Kill secondaries below production cut
+    ApplyCutsIds ids;  //!< Secondaries that can be killed below production cut
+
     //// MEMBER FUNCTIONS ////
 
     //! True if assigned
@@ -71,6 +85,8 @@ struct CutoffParamsData
         this->id_to_index = other.id_to_index;
         this->num_particles = other.num_particles;
         this->num_materials = other.num_materials;
+        this->apply_cuts = other.apply_cuts;
+        this->ids = other.ids;
 
         return *this;
     }

@@ -59,6 +59,7 @@ CutoffParams::from_import(ImportData const& data,
         }
         input.cutoffs.insert({pdg, mat_cutoffs});
     }
+    input.apply_cuts = data.em_params.apply_cuts;
 
     return std::make_shared<CutoffParams>(input);
 }
@@ -74,6 +75,10 @@ CutoffParams::CutoffParams(Input const& input)
 
     HostValue host_data;
     host_data.num_materials = input.materials->size();
+    host_data.apply_cuts = input.apply_cuts;
+    host_data.ids.electron = input.particles->find(pdg::electron());
+    host_data.ids.positron = input.particles->find(pdg::positron());
+    host_data.ids.gamma = input.particles->find(pdg::gamma());
 
     std::vector<ParticleCutoff> cutoffs;
 

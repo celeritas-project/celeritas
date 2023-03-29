@@ -8,6 +8,7 @@
 #pragma once
 
 #include "CutoffData.hh"
+#include "celeritas/phys/Secondary.hh"
 
 namespace celeritas
 {
@@ -45,6 +46,12 @@ class CutoffView
 
     // Return range cutoff value
     inline CELER_FUNCTION real_type range(ParticleId particle) const;
+
+    // Whether to kill secondaries below the production cut
+    inline CELER_FUNCTION bool apply_cuts() const;
+
+    // Whether the secondary should be killed if \c apply_cuts is enabled
+    inline CELER_FUNCTION bool apply_cut(Secondary const&) const;
 
   private:
     CutoffData const& params_;
@@ -86,6 +93,27 @@ CELER_FUNCTION auto CutoffView::energy(ParticleId particle) const -> Energy
 CELER_FUNCTION real_type CutoffView::range(ParticleId particle) const
 {
     return this->get(particle).range;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether to kill secondaries below the production cut.
+ */
+CELER_FUNCTION bool CutoffView::apply_cuts() const
+{
+    return params_.apply_cuts;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the secondary should be killed if \c apply_cuts is enabled.
+ */
+CELER_FUNCTION bool CutoffView::apply_cut(Secondary const& secondary) const
+{
+    return (secondary.particle_id == params_.ids.gamma
+            || secondary.particle_id == params_.ids.electron
+            || secondary.particle_id == params_.ids.positron)
+           && secondary.energy < this->energy(secondary.particle_id);
 }
 
 //---------------------------------------------------------------------------//

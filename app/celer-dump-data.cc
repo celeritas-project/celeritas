@@ -424,7 +424,8 @@ void print_em_params(ImportEmParameters const& em_params)
          << PEP_STREAM_PARAM(lowest_electron_energy) << PEP_STREAM_BOOL(auger)
          << PEP_STREAM_PARAM(msc_range_factor)
          << PEP_STREAM_PARAM(msc_safety_factor)
-         << PEP_STREAM_PARAM(msc_lambda_limit) << endl;
+         << PEP_STREAM_PARAM(msc_lambda_limit) << PEP_STREAM_BOOL(apply_cuts)
+         << endl;
 #undef PEP_STREAM_PARAM
 #undef PEP_STREAM_BOOL
 }

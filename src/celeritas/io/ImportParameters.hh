@@ -41,6 +41,8 @@ struct ImportEmParameters
     double msc_safety_factor{0.6};
     //! MSC lambda limit [cm]
     double msc_lambda_limit{0.1};
+    //! Kill secondaries below production cut
+    bool apply_cuts{false};
 
     //! Whether parameters are assigned and valid
     explicit operator bool() const

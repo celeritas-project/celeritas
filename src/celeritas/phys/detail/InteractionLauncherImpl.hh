@@ -64,9 +64,7 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
 
     if (result.changed())
     {
-        auto phys = track.make_physics_step_view();
         // Scattered or absorbed
-        phys.deposit_energy(result.energy_deposition);
         {
             // Update post-step energy
             auto particle = track.make_particle_view();
@@ -85,6 +83,32 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
             sim.status(TrackStatus::killed);
         }
 
+        real_type deposition = result.energy_deposition.value();
+        auto cutoff = track.make_cutoff_view();
+        if (cutoff.apply_cuts())
+        {
+            // Kill secondaries with energies below the production cut
+            for (auto& secondary : result.secondaries)
+            {
+                if (cutoff.apply_cut(secondary))
+                {
+                    // Secondary is an electron, positron or gamma with energy
+                    // below the production cut -- deposit the energy locally
+                    // and kill it
+                    deposition += secondary.energy.value();
+                    ParticleView particle{this->core_data.params.particles,
+                                          secondary.particle_id};
+                    if (particle.is_antiparticle())
+                    {
+                        // Conservation of energy for positrons
+                        deposition += 2 * particle.mass().value();
+                    }
+                    secondary = {};
+                }
+            }
+        }
+        auto phys = track.make_physics_step_view();
+        phys.deposit_energy(units::MevEnergy{deposition});
         phys.secondaries(result.secondaries);
     }
     else if (CELER_UNLIKELY(result.action == Interaction::Action::failed))
