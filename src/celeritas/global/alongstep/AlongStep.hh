@@ -85,8 +85,14 @@ inline CELER_FUNCTION void along_step(MH&& msc,
             {
                 // If the track is looping (or if it's a stuck track that waa
                 // flagged as looping), deposit the energy locally.
+                auto deposited = particle.energy().value();
+                if (particle.is_antiparticle())
+                {
+                    // Energy conservation for killed positrons
+                    deposited += 2 * particle.mass().value();
+                }
                 track.make_physics_step_view().deposit_energy(
-                    particle.energy());
+                    ParticleTrackView::Energy{deposited});
                 particle.subtract_energy(particle.energy());
 
                 // Mark that this track was abandoned while looping
