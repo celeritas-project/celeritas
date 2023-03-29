@@ -8,7 +8,6 @@
 #include "Logger.hh"
 
 #include <algorithm>
-#include <atomic>
 #include <functional>
 #include <mutex>
 #include <string>
