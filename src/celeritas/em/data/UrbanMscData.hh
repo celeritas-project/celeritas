@@ -37,8 +37,8 @@ struct UrbanMscParameters
     real_type safety_fact{0.6};  //!< safety factor
     real_type safety_tol{0.01};  //!< safety tolerance
     real_type geom_limit{5e-8 * units::millimeter};  //!< minimum step
-    Energy low_energy_limit{1e-5};  //!< 10 eV
-    Energy high_energy_limit{1e+2};  //!< 100 MeV
+    Energy low_energy_limit{0};
+    Energy high_energy_limit{0};
 
     //! A scale factor for the range
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }

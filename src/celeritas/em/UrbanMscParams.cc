@@ -73,6 +73,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                VecImportMscModel const& mdata_vec,
                                Options options)
 {
+    using units::MevEnergy;
+
     HostVal<UrbanMscData> host_data;
 
     host_data.ids.electron = particles.find(pdg::electron());
@@ -138,6 +140,16 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     };
 
     {
+        // Set initial high/low energy limits
+        auto const& phys_vec
+            = get_scaled_xs(host_data.ids.electron)->physics_vectors;
+        CELER_ASSERT(!phys_vec.empty());
+        CELER_ASSERT(!phys_vec[0].x.empty());
+        host_data.params.low_energy_limit = MevEnergy{phys_vec[0].x.front()};
+        host_data.params.high_energy_limit = MevEnergy{phys_vec[0].x.back()};
+    }
+
+    {
         // Particle-dependent data
         Array<ParticleId, 2> const par_ids{
             {host_data.ids.electron, host_data.ids.positron}};
@@ -201,6 +213,18 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                 ImportPhysicsVector const& pvec
                     = xs_tables[p]->physics_vectors[mat_id.unchecked_get()];
                 CELER_ASSERT(pvec.vector_type == ImportPhysicsVectorType::log);
+
+                // Check that the limits are the same for all materials and
+                // particles; otherwise we need to change
+                // `UrbanMsc::is_applicable` to look up the particle and
+                // material
+                CELER_VALIDATE(host_data.params.low_energy_limit
+                                       == MevEnergy{pvec.x.front()}
+                                   && host_data.params.high_energy_limit
+                                          == MevEnergy{pvec.x.back()},
+                               << "multiple scattering cross section energy "
+                                  "limits are inconsistent across particles "
+                                  "and/or materials");
 
                 // To reuse existing code (TODO: simplify when refactoring)
                 // use the value grid builder to construct the grid entry in a
