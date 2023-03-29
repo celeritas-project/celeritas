@@ -42,7 +42,7 @@ G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
             throw err;
         case JustWarning:
             // Display a message
-            CELER_LOG(warning) << err.what();
+            CELER_LOG(error) << err.what();
             break;
         default:
             CELER_ASSERT_UNREACHABLE();
