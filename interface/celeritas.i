@@ -90,10 +90,14 @@ namespace celeritas
 %rename(process_type_to_string) to_cstring(ImportProcessType);
 %rename(process_class_to_string) to_cstring(ImportProcessClass);
 %rename(model_to_string) to_cstring(ImportModelClass);
+%rename(process_class_to_geant_name) to_geant_name(ImportProcessClass);
+%rename(model_to_geant_name) to_geant_name(ImportModelClass);
 
 %rename(xs_lo) ImportTableType::lambda;
 %rename(xs_hi) ImportTableType::lambda_prim;
 }
+
+%include "celeritas/io/ImportParameters.hh"
 
 %include "celeritas/io/ImportPhysicsVector.hh"
 %template(VecImportPhysicsVector) std::vector<celeritas::ImportPhysicsVector>;
