@@ -291,8 +291,8 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
         CELER_LOG(debug) << "Loaded Coulomb scattering with "
                             "G4eCoulombScatteringModel";
-        if (options_.msc == MscModelSelection::wentzel_vi
-            || options_.msc == MscModelSelection::urban_wentzel)
+        if (options_.msc == MscModelSelection::urban
+            || options_.msc == MscModelSelection::urban_extended)
         {
             CELER_LOG(warning)
                 << "Coulomb scattering may be inconsistent with msc="
