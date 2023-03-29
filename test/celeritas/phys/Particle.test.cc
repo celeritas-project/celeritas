@@ -55,6 +55,11 @@ class ParticleTest : public Test
                         MevMass{939.565413},
                         zero,
                         1.0 / (879.4 * second)});
+        defs.push_back({"positron",
+                        pdg::positron(),
+                        MevMass{0.5109989461},
+                        ElementaryCharge{1},
+                        stable});
 
         particle_params = std::make_shared<ParticleParams>(std::move(defs));
     }
@@ -69,10 +74,12 @@ TEST_F(ParticleTest, params_accessors)
     EXPECT_EQ(ParticleId(0), defs.find(PDGNumber(11)));
     EXPECT_EQ(ParticleId(1), defs.find(PDGNumber(22)));
     EXPECT_EQ(ParticleId(2), defs.find(PDGNumber(2112)));
+    EXPECT_EQ(ParticleId(3), defs.find(PDGNumber(-11)));
 
     EXPECT_EQ(ParticleId(0), defs.find("electron"));
     EXPECT_EQ(ParticleId(1), defs.find("gamma"));
     EXPECT_EQ(ParticleId(2), defs.find("neutron"));
+    EXPECT_EQ(ParticleId(3), defs.find("positron"));
 
     EXPECT_EQ("electron", defs.id_to_label(ParticleId(0)));
     EXPECT_EQ(PDGNumber(11), defs.id_to_pdg(ParticleId(0)));
@@ -86,7 +93,7 @@ TEST_F(ParticleTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json([{"label":"electron","pdg":11},{"label":"gamma","pdg":22},{"label":"neutron","pdg":2112}])json",
+            R"json([{"label":"electron","pdg":11},{"label":"gamma","pdg":22},{"label":"neutron","pdg":2112},{"label":"positron","pdg":-11}])json",
             to_string(out));
     }
 }
@@ -171,6 +178,7 @@ TEST_F(ParticleTestHost, electron)
     EXPECT_DOUBLE_EQ(0.5109989461, particle.mass().value());
     EXPECT_DOUBLE_EQ(-1., particle.charge().value());
     EXPECT_DOUBLE_EQ(0.0, particle.decay_constant());
+    EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
     EXPECT_SOFT_EQ(0.74453076757415848, particle.beta_sq());
     EXPECT_SOFT_EQ(0.86286196322132447, particle.speed().value());
@@ -188,6 +196,20 @@ TEST_F(ParticleTestHost, electron)
     EXPECT_DOUBLE_EQ(0.0, particle.energy().value());
 }
 
+TEST_F(ParticleTestHost, positron)
+{
+    ParticleTrackView particle(
+        particle_params->host_ref(), state_ref, TrackSlotId(0));
+    particle = Initializer_t{ParticleId{3}, MevEnergy{1}};
+
+    EXPECT_DOUBLE_EQ(1, particle.energy().value());
+    EXPECT_DOUBLE_EQ(0.5109989461, particle.mass().value());
+    EXPECT_DOUBLE_EQ(1., particle.charge().value());
+    EXPECT_DOUBLE_EQ(0.0, particle.decay_constant());
+    EXPECT_TRUE(particle.is_antiparticle());
+    EXPECT_TRUE(particle.is_stable());
+}
+
 TEST_F(ParticleTestHost, gamma)
 {
     ParticleTrackView particle(
@@ -196,6 +218,7 @@ TEST_F(ParticleTestHost, gamma)
 
     EXPECT_DOUBLE_EQ(0, particle.mass().value());
     EXPECT_DOUBLE_EQ(10, particle.energy().value());
+    EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
     EXPECT_DOUBLE_EQ(1.0, particle.beta_sq());
     EXPECT_DOUBLE_EQ(1.0, particle.speed().value());
@@ -210,6 +233,7 @@ TEST_F(ParticleTestHost, neutron)
 
     EXPECT_DOUBLE_EQ(20, particle.energy().value());
     EXPECT_DOUBLE_EQ(1.0 / 879.4, particle.decay_constant());
+    EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_FALSE(particle.is_stable());
 }
 

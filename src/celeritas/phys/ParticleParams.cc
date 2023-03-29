@@ -106,6 +106,7 @@ ParticleParams::ParticleParams(Input const& input)
         host_def.mass = particle.mass;
         host_def.charge = particle.charge;
         host_def.decay_constant = particle.decay_constant;
+        host_def.is_antiparticle = particle.pdg_code.get() < 0;
         particles.push_back(std::move(host_def));
     }
 
