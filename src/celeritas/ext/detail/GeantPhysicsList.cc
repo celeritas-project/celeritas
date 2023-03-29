@@ -289,16 +289,6 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         model->SetActivationLowEnergyLimit(msc_energy_limit);
         process->SetEmModel(model.release());
         physics_list->RegisterProcess(process.release(), p);
-
-        CELER_LOG(debug) << "Loaded Coulomb scattering with "
-                            "G4eCoulombScatteringModel";
-        if (options_.msc == MscModelSelection::urban
-            || options_.msc == MscModelSelection::urban_extended)
-        {
-            CELER_LOG(warning)
-                << "Coulomb scattering may be inconsistent with msc="
-                << to_cstring(options_.msc);
-        }
     }
 
     if (options_.msc != MscModelSelection::none)
