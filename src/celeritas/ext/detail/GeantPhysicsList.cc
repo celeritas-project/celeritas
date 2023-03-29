@@ -308,7 +308,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         auto process = std::make_unique<G4eMultipleScattering>();
 
         if (options_.msc == MscModelSelection::urban
-            || options_.msc == MscModelSelection::urban
+            || options_.msc == MscModelSelection::urban_extended
             || options_.msc == MscModelSelection::urban_wentzel)
         {
             auto model = std::make_unique<G4UrbanMscModel>();
