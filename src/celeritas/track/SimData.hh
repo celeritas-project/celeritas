@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
 #include <vector>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Quantities.hh"
@@ -164,43 +164,29 @@ struct SimStateData
 //---------------------------------------------------------------------------//
 /*!
  * Resize simulation states and set \c alive to be false.
- *
- * TODO: replace with resize + fill
  */
 template<MemSpace M>
 void resize(SimStateData<Ownership::value, M>* data, size_type size)
 {
     CELER_EXPECT(size > 0);
 
-    auto resize_state_collection = [size](auto& state_collection) {
-        using value_type = typename std::remove_reference<
-            decltype(state_collection)>::type::value_type;
-        celeritas::StateCollection<value_type, Ownership::value, MemSpace::host>
-            state;
-        std::vector<value_type> initial_state(size);
-        make_builder(&state).insert_back(initial_state.begin(),
-                                         initial_state.end());
-        state_collection = state;
-    };
-    auto resize_state_collection_with_default = [size](auto& state_collection,
-                                                       auto init) {
-        using value_type = typename std::remove_reference<
-            decltype(state_collection)>::type::value_type;
-        celeritas::StateCollection<value_type, Ownership::value, MemSpace::host>
-            state;
-        std::vector<value_type> initial_state(size, init);
-        make_builder(&state).insert_back(initial_state.begin(),
-                                         initial_state.end());
-        state_collection = state;
-    };
-    resize_state_collection(data->track_ids);
-    resize_state_collection(data->parent_ids);
-    resize_state_collection(data->event_ids);
-    resize_state_collection_with_default(data->num_steps, 0);
-    resize_state_collection_with_default(data->num_looping_steps, 0);
-    resize_state_collection_with_default(data->time, 0);
-    resize_state_collection_with_default(data->status, TrackStatus::inactive);
-    resize_state_collection(data->step_limit);
+    resize(&data->track_ids, size);
+    resize(&data->parent_ids, size);
+    resize(&data->event_ids, size);
+
+    resize(&data->num_steps, size);
+    fill(size_type{0}, &data->num_steps);
+
+    resize(&data->num_looping_steps, size);
+    fill(size_type{0}, &data->num_looping_steps);
+
+    resize(&data->time, size);
+    fill(real_type{0}, &data->time);
+
+    resize(&data->status, size);
+    fill(TrackStatus::inactive, &data->status);
+
+    resize(&data->step_limit, size);
 
     CELER_ENSURE(*data);
 }
