@@ -98,6 +98,12 @@ if(CELERITAS_RNG STREQUAL "CURAND")
   list(APPEND PUBLIC_DEPS Celeritas::DeviceToolkit)
 endif()
 
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  list(APPEND SOURCES
+    track/detail/Filler.cu
+  )
+endif()
+
 if(CELERITAS_USE_Geant4)
   celeritas_add_object_library(celeritas_geant4
     ext/LoadGdml.cc
