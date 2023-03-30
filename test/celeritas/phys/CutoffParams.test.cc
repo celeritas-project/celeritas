@@ -106,16 +106,16 @@ TEST_F(CutoffParamsTest, empty_cutoffs)
         for (auto const mid : range(MaterialId{materials->size()}))
         {
             CutoffView cutoffs(cutoff.host_ref(), mid);
-            if (pid == particles->find(pdg::proton()))
+            if (pid != particles->find(pdg::proton()))
+            {
+                energies.push_back(cutoffs.energy(pid).value());
+                ranges.push_back(cutoffs.range(pid));
+            }
+            else if (CELERITAS_DEBUG)
             {
                 // Protons aren't currently used
                 EXPECT_THROW(cutoffs.energy(pid), DebugError);
                 EXPECT_THROW(cutoffs.range(pid), DebugError);
-            }
-            else
-            {
-                energies.push_back(cutoffs.energy(pid).value());
-                ranges.push_back(cutoffs.range(pid));
             }
         }
     }
@@ -145,16 +145,16 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
         for (auto const mid : range(MaterialId{materials->size()}))
         {
             CutoffView cutoffs(cutoff.host_ref(), mid);
-            if (pid == particles->find(pdg::proton()))
+            if (pid != particles->find(pdg::proton()))
+            {
+                energies.push_back(cutoffs.energy(pid).value());
+                ranges.push_back(cutoffs.range(pid));
+            }
+            else if (CELERITAS_DEBUG)
             {
                 // Protons aren't currently used
                 EXPECT_THROW(cutoffs.energy(pid), DebugError);
                 EXPECT_THROW(cutoffs.range(pid), DebugError);
-            }
-            else
-            {
-                energies.push_back(cutoffs.energy(pid).value());
-                ranges.push_back(cutoffs.range(pid));
             }
         }
     }
