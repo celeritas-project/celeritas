@@ -178,17 +178,11 @@ Physics properties
    :undoc-members:
 
 .. doxygenenum:: ImportProcessType
-   :undoc-members:
 .. doxygenenum:: ImportProcessClass
-   :undoc-members:
 .. doxygenenum:: ImportModelClass
-   :undoc-members:
 .. doxygenenum:: ImportTableType
-   :undoc-members:
 .. doxygenenum:: ImportUnits
-   :undoc-members:
 .. doxygenenum:: ImportPhysicsVectorType
-   :undoc-members:
 
 EM data
 ~~~~~~~
