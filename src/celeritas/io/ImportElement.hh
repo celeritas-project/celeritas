@@ -14,8 +14,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Store element data.
- *
- * \sa ImportData
  */
 struct ImportElement
 {

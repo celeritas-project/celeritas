@@ -80,8 +80,6 @@ enum class ImportProcessClass
 /*!
  * Store physics process data.
  *
- * \sa ImportData
- *
  * \note
  * \c ImportPhysicsTable is process and type (lambda, dedx, and so
  * on) dependent, with each table type including physics vectors for all

@@ -90,7 +90,7 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
       |                |                     +-----------------------------+----------------------------------------------------+--------------------------+
       |                |                     |  Relativistic               | :cpp:class:`celeritas::RelativisticBremInteractor` |   1 GeV -- 100 TeV       |
       |                +---------------------+-----------------------------+----------------------------------------------------+--------------------------+
-      |                | Coulomb scattering  |  Urban                      | :cpp:class:`celeritas::UrbanMscScatter`            |   10 eV -- 100 TeV       |
+      |                | Coulomb scattering  |  Urban                      | :cpp:class:`celeritas::UrbanMscScatter`            |   100 eV -- 100 TeV      |
       +----------------+---------------------+-----------------------------+----------------------------------------------------+--------------------------+
       | :math:`e^+`    | Ionisation          |  Bhabha                     | :cpp:class:`celeritas::MollerBhabhaInteractor`     |       0--100 TeV         |
       |                +---------------------+-----------------------------+----------------------------------------------------+--------------------------+
@@ -98,7 +98,7 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
       |                |                     +-----------------------------+----------------------------------------------------+--------------------------+
       |                |                     |  Relativistic               | :cpp:class:`celeritas::RelativisticBremInteractor` |   1 GeV -- 100 TeV       |
       |                +---------------------+-----------------------------+----------------------------------------------------+--------------------------+
-      |                | Coulomb scattering  |  Urban                      | :cpp:class:`celeritas::UrbanMscScatter`            |   10 eV -- 100 TeV       |
+      |                | Coulomb scattering  |  Urban                      | :cpp:class:`celeritas::UrbanMscScatter`            |   100 eV -- 100 TeV      |
       |                +---------------------+-----------------------------+----------------------------------------------------+--------------------------+
       |                | Annihilation        | :math:`e^+,e^- \to 2\gamma` | :cpp:class:`celeritas::EPlusGGInteractor`          |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+----------------------------------------------------+--------------------------+
@@ -128,7 +128,7 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
                                                                       \cline{3-5}
                                     &                                 & Relativistic         & \texttt{\scriptsize celeritas::RelativisticBremInteractor} & 1 GeV -- 100 TeV \\
                                     \cline{2-5}
-                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize celeritas::UrbanMscScatter}            & 10 eV -- 100 TeV \\
+                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize celeritas::UrbanMscScatter}            & 100 eV -- 100 TeV \\
           \hline
           \multirow{5}{*}{$e^+$}    & Ionisation                      & Bhabha               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}     & 0--100 TeV \\
                                     \cline{2-5}
@@ -136,7 +136,7 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
                                                                       \cline{3-5}
                                     &                                 & Relativistic         & \texttt{\scriptsize celeritas::RelativisticBremInteractor} & 1 GeV -- 100 TeV \\
                                     \cline{2-5}
-                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize celeritas::UrbanMscScatter}            & 10 eV -- 100 TeV \\
+                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize celeritas::UrbanMscScatter}            & 100 eV -- 100 TeV \\
                                     \cline{2-5}
                                     & Annihilation                    & $e^+,e^-\to 2\gamma$ & \texttt{\scriptsize celeritas::EPlusGGInteractor}          & 0--100 TeV \\
           \hline
@@ -161,6 +161,9 @@ The implemented physics models are meant to match the defaults constructed in
 * As with the AdePT project, Celeritas currently extends the range of Urban MSC
   to higher energies rather than implementing the Wentzel-VI and discrete
   Coulomb scattering.
+* Celeritas imports tracking cutoffs and other parameters from
+  ``G4EmParameters``, but some custom model cutoffs are not accessible to
+  Celeritas.
 
 Geometry
 ========
