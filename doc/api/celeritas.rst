@@ -126,3 +126,80 @@ secondaries.
    :members: none
 .. doxygenclass:: celeritas::detail::UrbanMscScatter
    :members: none
+
+Physics data
+------------
+
+Celeritas reads physics data from Geant4 (or from a ROOT file exported from
+data previously loaded into Geant4). Different versions of Geant4 (and Geant4
+data) can be used seamlessly with any version of Celeritas, allowing
+differences to be isolated without respect to machine or model implementation.
+The following classes enumerate all the data used at runtime.
+
+.. doxygenstruct:: celeritas::ImportData
+   :undoc-members:
+
+Material and geometry properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. doxygenstruct:: celeritas::ImportElement
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportProductionCut
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportMatElemComponent
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportMaterial
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportVolume
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportTransParameters
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportLoopingThreshold
+   :undoc-members:
+
+.. doxygenenum:: ImportMaterialState
+
+Physics properties
+~~~~~~~~~~~~~~~~~~
+
+.. doxygenstruct:: celeritas::ImportParticle
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportProcess
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportModel
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportMscModel
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportModelMaterial
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportPhysicsTable
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportPhysicsVector
+   :undoc-members:
+
+.. doxygenenum:: ImportProcessType
+.. doxygenenum:: ImportProcessClass
+.. doxygenenum:: ImportModelClass
+.. doxygenenum:: ImportTableType
+.. doxygenenum:: ImportUnits
+.. doxygenenum:: ImportPhysicsVectorType
+
+EM data
+~~~~~~~
+
+.. doxygenstruct:: celeritas::ImportEmParameters
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportAtomicTransition
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportAtomicSubshell
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportAtomicRelaxation
+   :undoc-members:
+
+.. doxygenstruct:: celeritas::ImportLivermoreSubshell
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportLivermorePE
+   :undoc-members:
+
+.. doxygenstruct:: celeritas::ImportSBTable
+   :undoc-members:

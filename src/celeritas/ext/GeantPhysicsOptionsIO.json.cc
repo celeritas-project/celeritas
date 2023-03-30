@@ -9,67 +9,13 @@
 
 #include <string>
 
-#include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/math/QuantityIO.json.hh"
-#include "celeritas/ext/GeantPhysicsOptions.hh"
+
+#include "GeantPhysicsOptions.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to the Bremsstrahlung model selection.
- */
-char const* to_cstring(BremsModelSelection value)
-{
-    static EnumStringMapper<BremsModelSelection> const to_cstring_impl{
-        "seltzer_berger",
-        "relativistic",
-        "all",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to the multiple scattering model selection.
- */
-char const* to_cstring(MscModelSelection value)
-{
-    static EnumStringMapper<MscModelSelection> const to_cstring_impl{
-        "none",
-        "urban",
-        "wentzel_vi",
-        "all",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to the atomic relaxation option.
- */
-char const* to_cstring(RelaxationSelection value)
-{
-    static EnumStringMapper<RelaxationSelection> const to_cstring_impl{
-        "none",
-        "radiative",
-        "all",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
-// JSON serializers
 //---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, MscModelSelection& value)
 {

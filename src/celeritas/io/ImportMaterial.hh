@@ -18,8 +18,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Enum for storing G4State enumerators.
- *
- * See G4Material.hh.
  */
 enum class ImportMaterialState
 {
@@ -55,8 +53,6 @@ struct ImportMatElemComponent
 //---------------------------------------------------------------------------//
 /*!
  * Store material data.
- *
- * \sa ImportData
  */
 struct ImportMaterial
 {

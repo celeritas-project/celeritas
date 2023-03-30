@@ -16,6 +16,7 @@
 #include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
 #include <G4GammaGeneralProcess.hh>
+#include <G4GoudsmitSaundersonMscModel.hh>
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LossTableManager.hh>
 #include <G4MollerBhabhaModel.hh>
@@ -73,6 +74,11 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetLowestElectronEnergy(
         value_as<units::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);
+    if (options_.msc == MscModelSelection::urban_extended)
+    {
+        CELER_LOG(debug) << "Extended low-energy MSC limit to 100 TeV";
+        em_parameters.SetMscEnergyLimit(100 * CLHEP::TeV);
+    }
 
     int verb = options_.verbose ? 1 : 0;
     this->SetVerboseLevel(verb);
@@ -283,9 +289,6 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         model->SetActivationLowEnergyLimit(msc_energy_limit);
         process->SetEmModel(model.release());
         physics_list->RegisterProcess(process.release(), p);
-
-        CELER_LOG(debug) << "Loaded Coulomb scattering with "
-                            "G4eCoulombScatteringModel";
     }
 
     if (options_.msc != MscModelSelection::none)
@@ -296,7 +299,8 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         auto process = std::make_unique<G4eMultipleScattering>();
 
         if (options_.msc == MscModelSelection::urban
-            || options_.msc == MscModelSelection::all)
+            || options_.msc == MscModelSelection::urban_extended
+            || options_.msc == MscModelSelection::urban_wentzel)
         {
             auto model = std::make_unique<G4UrbanMscModel>();
             model->SetHighEnergyLimit(msc_energy_limit);
@@ -307,7 +311,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         }
 
         if (options_.msc == MscModelSelection::wentzel_vi
-            || options_.msc == MscModelSelection::all)
+            || options_.msc == MscModelSelection::urban_wentzel)
         {
             auto model = std::make_unique<G4WentzelVIModel>();
             model->SetLowEnergyLimit(msc_energy_limit);
@@ -315,6 +319,15 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
             CELER_LOG(debug) << "Loaded high-energy multiple scattering with "
                                 "G4WentzelVIModel";
+        }
+
+        if (options_.msc == MscModelSelection::goudsmit_saunderson)
+        {
+            auto model = std::make_unique<G4GoudsmitSaundersonMscModel>();
+            process->SetEmModel(model.release());
+
+            CELER_LOG(debug) << "Loaded multiple scattering with "
+                                "G4GoudsmitSaundersonMscModel";
         }
 
         physics_list->RegisterProcess(process.release(), p);

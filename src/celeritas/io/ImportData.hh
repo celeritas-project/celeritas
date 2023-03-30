@@ -25,7 +25,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Import all the needed data from external sources (currently Geant4).
+ * Store imported physics data from external sources.
  *
  * All the data imported to Celeritas is stored in this single entity. This
  * struct can be used in memory or recorded in a ROOT TBranch as a single TTree
@@ -44,14 +44,6 @@ namespace celeritas
  * Celeritas' unit standard. Refer to \c base/Units.hh for further information.
  *
  * The "processes" field may be empty for testing applications.
- *
- * \sa celeritas::units
- * \sa ImportParticle
- * \sa ImportElement
- * \sa ImportMaterial
- * \sa ImportProcess
- * \sa ImportVolume
- * \sa RootImporter
  */
 struct ImportData
 {

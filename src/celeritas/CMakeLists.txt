@@ -48,6 +48,7 @@ list(APPEND SOURCES
   em/process/GammaConversionProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
+  ext/GeantPhysicsOptions.cc
   geo/GeoMaterialParams.cc
   global/ActionInterface.cc
   global/ActionRegistry.cc
