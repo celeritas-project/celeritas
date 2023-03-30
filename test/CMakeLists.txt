@@ -398,7 +398,7 @@ celeritas_add_device_test(celeritas/mat/Material)
 #-------------------------------------#
 # Phys
 set(CELERITASTEST_PREFIX celeritas/phys)
-celeritas_add_test(celeritas/phys/CutoffParams.test.cc)
+celeritas_add_test(celeritas/phys/CutoffParams.test.cc ${_needs_root})
 celeritas_add_device_test(celeritas/phys/Particle)
 celeritas_add_device_test(celeritas/phys/Physics)
 celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
