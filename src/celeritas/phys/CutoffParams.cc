@@ -127,13 +127,14 @@ CutoffParams::CutoffParams(Input const& input)
 /*!
  * PDG numbers of particles with prodution cuts.
  *
- * Only electrons and photons have secondary production cuts -- protons are not
- * currently used, and positrons cannot have production cuts.
+ * Positron production cuts are only used when the \c apply_cuts option is
+ * enabled to explicitly kill secondary positrons with energies below the
+ * production threshold. Protons production cuts are not currently used.
  */
 std::vector<PDGNumber> const& CutoffParams::pdg_numbers()
 {
-    static const std::vector<PDGNumber> pdg_numbers{pdg::electron(),
-                                                    pdg::gamma()};
+    static const std::vector<PDGNumber> pdg_numbers{
+        pdg::electron(), pdg::gamma(), pdg::positron()};
     return pdg_numbers;
 }
 
