@@ -17,8 +17,8 @@ namespace detail
 void g4_to_vecgeom(G4VPhysicalVolume const* world)
 {
     // Convert the geometry to VecGeom
-    GeantGeometryImporter converter;
-    converter.convert_G4_geometry(world);
+    GeantGeometryImporter convert;
+    convert(world);
 }
 
 //---------------------------------------------------------------------------//

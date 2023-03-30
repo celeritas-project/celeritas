@@ -45,14 +45,7 @@ class GeantGeometryImporter
 
   public:
     //! Default constructor.
-    GeantGeometryImporter()
-        : world_(nullptr)
-        , placed_volume_map_()
-        , unplaced_volume_map_()
-        , logical_volume_map_()
-        , replica_transformations_()
-    {
-    }
+    GeantGeometryImporter() = default;
 
     //! Clear the maps, while keeping the newly created VecGeom geometry.
     ~GeantGeometryImporter() { this->clear_maps(); }
@@ -63,7 +56,7 @@ class GeantGeometryImporter
      * Queries the G4 geometry for the top volume and recursively
      * converts the whole native geometry into a VecGeom geometry.
      */
-    void convert_G4_geometry(G4VPhysicalVolume const*);
+    VPlacedVolume const& operator()(G4VPhysicalVolume const*);
 
     //! Returns a placed volume that corresponds to a G4VPhysicalVolume.
     std::vector<VPlacedVolume const*> const*

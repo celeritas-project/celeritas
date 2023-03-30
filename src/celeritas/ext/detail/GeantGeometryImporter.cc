@@ -141,7 +141,8 @@ void init_VecGeom_navigators()
     }
 }
 
-void GeantGeometryImporter::convert_G4_geometry(G4VPhysicalVolume const* g4_world)
+VPlacedVolume const&
+GeantGeometryImporter::operator()(G4VPhysicalVolume const* g4_world)
 {
     GeoManager::Instance().Clear();
     Stopwatch timer;
@@ -160,8 +161,11 @@ void GeantGeometryImporter::convert_G4_geometry(G4VPhysicalVolume const* g4_worl
     CELER_LOG(debug) << "Closing VecGeom geometry finished ("
                      << timer.Elapsed() << " s) ***";
 
+    // Reset reference after geometry closing
     world_ = GeoManager::Instance().GetWorld();
     this->clear_maps();
+    CELER_ENSURE(world_);
+    return *world_;
 }
 
 void GeantGeometryImporter::extract_replicated_transformations(
