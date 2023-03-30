@@ -45,13 +45,16 @@ class GenericSolid : public VUnplacedVolume
     //!@}
 
   public:
+    //! Basic constructor
     explicit GenericSolid(S const* g4solid) : g4_solid_(g4solid) {}
 
+    //! Convert a Vector3D object into Geant4 3-vector format.
     static G4ThreeVector ToG4V(Vector3D<double> const& p)
     {
         return G4ThreeVector(p[0], p[1], p[2]);
     }
 
+    //! Convert containment flags, from VecGeom into USolids type.
     static EnumInside ConvertEnum(::EInside p)
     {
         if (p == ::EInside::kInside)
@@ -62,6 +65,7 @@ class GenericSolid : public VUnplacedVolume
     }
 
     // ---------------- Contains --------------------------------------------
+    //!@{ \name Containment functions.
     VECCORE_ATT_HOST_DEVICE
     bool Contains(Vector3D<Precision> const& p) const override
     {
@@ -74,8 +78,10 @@ class GenericSolid : public VUnplacedVolume
     {
         return this->ConvertEnum(g4_solid_->Inside(ToG4V(p)));
     }
+    //!@}
 
     // ---------------- DistanceToOut functions ------------------------------
+    //! Distance to exit a shape, from point p along a direction d.
     VECCORE_ATT_HOST_DEVICE
     Precision DistanceToOut(Vector3D<Precision> const& p,
                             Vector3D<Precision> const& d,
@@ -84,8 +90,8 @@ class GenericSolid : public VUnplacedVolume
         return g4_solid_->DistanceToOut(ToG4V(p), ToG4V(d));
     }
 
-    // USolid/GEANT4-like interface for DistanceToOut (returns also
-    // exiting normal)
+    //! USolid/GEANT4-like interface for DistanceToOut, also returns exiting
+    // normal vector.
     VECCORE_ATT_HOST_DEVICE
     Precision DistanceToOut(Vector3D<Precision> const& p,
                             Vector3D<Precision> const& d,
@@ -102,6 +108,7 @@ class GenericSolid : public VUnplacedVolume
     }
 
     // ---------------- SafetyToOut functions -------------------------------
+    //! Shortest isotropic distance from point to exit the shape.
     VECCORE_ATT_HOST_DEVICE
     Precision SafetyToOut(Vector3D<Precision> const& p) const override
     {
@@ -109,6 +116,7 @@ class GenericSolid : public VUnplacedVolume
     }
 
     // ---------------- DistanceToIn functions ------------------------------
+    //! Distance to enter a shape, from point p along a direction d.
     VECCORE_ATT_HOST_DEVICE
     Precision
     DistanceToIn(Vector3D<Precision> const& p,
@@ -119,6 +127,8 @@ class GenericSolid : public VUnplacedVolume
     }
 
     // ---------------- SafetyToIn functions ---------------------------------
+    //! Shortest isotropic distance from point p, to safely propagate without
+    // entering a shape.
     VECCORE_ATT_HOST_DEVICE
     Precision SafetyToIn(Vector3D<Precision> const& p) const override
     {
@@ -126,7 +136,8 @@ class GenericSolid : public VUnplacedVolume
     }
 
     // ---------------- Normal ---------------------------------------------
-
+    //! If true, p is on-surface (within tolerance), and `normal` contains a
+    //  normal vector along the exiting surface.
     VECCORE_ATT_HOST_DEVICE
     bool Normal(Vector3D<Precision> const& p,
                 Vector3D<Precision>& normal) const override
@@ -137,6 +148,7 @@ class GenericSolid : public VUnplacedVolume
     }
 
     // ----------------- Extent --------------------------------------------
+    //! Dispatch to VecGeom for shape's bounding box in its local frame.
     VECCORE_ATT_HOST_DEVICE
     void
     Extent(Vector3D<Precision>& aMin, Vector3D<Precision>& aMax) const override
@@ -146,16 +158,19 @@ class GenericSolid : public VUnplacedVolume
         aMax.Set(ext.GetXmax(), ext.GetYmax(), ext.GetZmax());
     }
 
+    //! Dispatch to Geant4 for calculation of shape's volumetric capacity.
     double Capacity() const override
     {
         return const_cast<S*>(g4_solid_)->S::GetCubicVolume();
     }
 
+    //! Dispatch to Geant4 for calculation of shape's surface area.
     double SurfaceArea() const override
     {
         return const_cast<S*>(g4_solid_)->S::GetSurfaceArea();
     }
 
+    //!@{ \name Boilerplate helper functions.
     int MemorySize() const override { return sizeof(this); }
     void Print(std::ostream& os) const override
     {
@@ -177,6 +192,7 @@ class GenericSolid : public VUnplacedVolume
     {
         return new GenericPlacedVolume(volume, transformation);
     }
+    //!@}
 
 #ifdef VECGEOM_CUDA_INTERFACE
     //! @{ /name Required interface

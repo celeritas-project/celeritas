@@ -50,6 +50,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     //!@}
 
   public:
+    //! Full constructor, just dispatches to base class constructor.
     GenericPlacedVolume(char const* const label,
                         LogicalVolume const* const logicalVolume,
                         Transformation3D const* const transformation)
@@ -57,27 +58,36 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     {
     }
 
+    //! Dispatch to full constructor with a default name, as no name was
+    //! provided.
     GenericPlacedVolume(LogicalVolume const* const logicalVolume,
                         Transformation3D const* const transformation)
-        : GenericPlacedVolume("", logicalVolume, transformation)
+        : GenericPlacedVolume(
+            "GenericPlacedVolume", logicalVolume, transformation)
     {
     }
 
+    //!@{ \name Boilerplate helper functions
     virtual int MemorySize() const override { return sizeof(*this); }
     virtual void PrintType() const override { PrintType(std::cout); }
     virtual void PrintType(std::ostream&) const override {}
 
     virtual void PrintImplementationType(std::ostream&) const override {}
     virtual void PrintUnplacedType(std::ostream&) const override {}
+    //!@}
+
+    //!@{ \name Containing methods
     virtual bool Contains(Vector3D<Precision> const& point) const override
     {
         return GetUnplacedVolume()->Contains(
             GetTransformation()->Transform(point));
     }
+
     virtual void Contains(SOA3D<Precision> const&, bool* const) const override
     {
     }
     virtual bool
+
     Contains(Vector3D<Precision> const&, Vector3D<Precision>&) const override
     {
         assert(false);
@@ -101,7 +111,9 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     Inside(SOA3D<Precision> const&, vecgeom::Inside_t* const) const override
     {
     }
+    //!@}
 
+    //!@{ \name Geometrical ToIn methods
     virtual Precision
     SafetyToIn(Vector3D<Precision> const& position) const override
     {
@@ -120,6 +132,18 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
             step_max);
     }
 
+    virtual void DistanceToIn(SOA3D<Precision> const&,
+                              SOA3D<Precision> const&,
+                              Precision const* const,
+                              Precision* const) const override
+    {
+    }
+
+    virtual void
+    SafetyToIn(SOA3D<Precision> const&, Precision* const) const override
+    {
+    }
+
 #ifdef VECGEOM_VECTORAPI
     // if we have any SIMD backend, we offer a SIMD interface
     virtual Real_v
@@ -129,15 +153,15 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     {
         return Real_v{0.};
     }
-#endif
 
-    virtual void DistanceToIn(SOA3D<Precision> const&,
-                              SOA3D<Precision> const&,
-                              Precision const* const,
-                              Precision* const) const override
+    virtual Real_v SafetyToInVec(Vector3D<Real_v> const&) const override
     {
+        return Real_v{0.};
     }
+#endif
+    //!@}
 
+    //!@{ \name Geometrical ToOut methods
     VECCORE_ATT_HOST_DEVICE
     virtual Precision
     DistanceToOut(Vector3D<Precision> const& position,
@@ -147,17 +171,6 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
         return GetUnplacedVolume()->DistanceToOut(
             position, direction, step_max);
     }
-
-#ifdef VECGEOM_VECTORAPI
-    // define this interface in case we don't have the Scalar interface
-    virtual Real_v
-    DistanceToOutVec(Vector3D<Real_v> const&,
-                     Vector3D<Real_v> const&,
-                     Real_v const /*step_max = kInfLength*/) const override
-    {
-        return Real_v{0.};
-    }
-#endif
 
     VECCORE_ATT_HOST_DEVICE
     virtual Precision
@@ -184,36 +197,35 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     {
     }
 
-#ifdef VECGEOM_VECTORAPI
-    virtual Real_v SafetyToInVec(Vector3D<Real_v> const&) const override
-    {
-        return Real_v{0.};
-    }
-#endif
-
-    virtual void
-    SafetyToIn(SOA3D<Precision> const&, Precision* const) const override
-    {
-    }
-
     virtual Precision
     SafetyToOut(Vector3D<Precision> const& position) const override
     {
         return GetUnplacedVolume()->SafetyToOut(position);
     }
 
-#ifdef VECGEOM_VECTORAPI
-    virtual Real_v SafetyToOutVec(Vector3D<Real_v> const&) const override
-    {
-        return Real_v{0.};
-    }
-#endif
-
     virtual void
     SafetyToOut(SOA3D<Precision> const&, Precision* const) const override
     {
     }
 
+#ifdef VECGEOM_VECTORAPI
+    // define this interface in case we don't have the Scalar interface
+    virtual Real_v
+    DistanceToOutVec(Vector3D<Real_v> const&,
+                     Vector3D<Real_v> const&,
+                     Real_v const /*step_max = kInfLength*/) const override
+    {
+        return Real_v{0.};
+    }
+
+    virtual Real_v SafetyToOutVec(Vector3D<Real_v> const&) const override
+    {
+        return Real_v{0.};
+    }
+#endif
+    //!@}
+
+    //! Calculation of surface area.
     virtual Precision SurfaceArea() const override
     {
         return GetUnplacedVolume()->SurfaceArea();
@@ -231,6 +243,8 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     }
 #endif
 
+    //! Dispatch to VecGeom function for shape's bounding box in its local
+    //! frame.
     VECCORE_ATT_HOST_DEVICE
     virtual void
     Extent(Vector3D<Precision>& min, Vector3D<Precision>& max) const override
@@ -238,6 +252,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
         return GetUnplacedVolume()->Extent(min, max);
     }
 
+    //! Dispatch to VecGeom function for shape's normal at `point`.
     VECCORE_ATT_HOST_DEVICE
     virtual bool Normal(Vector3D<Precision> const& point,
                         Vector3D<Precision>& normal) const override
@@ -246,6 +261,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
             GetTransformation()->Transform(point), normal);
     }
 
+    //! Dispatch to VecGeom function to compute shape's volumetric capacity.
     virtual Precision Capacity() override
     {
         return GetUnplacedVolume()->Capacity();
