@@ -257,7 +257,7 @@ EnergyDiagnosticLauncher<M>::operator()(TrackSlotId tid) const
 #else
         real_type dir = lsa.dir()[static_cast<int>(pointers_.axis)];
 #endif
-        pos -= real_type(0.5) * states_.sim.state[tid].step_limit.step * dir;
+        pos -= real_type(0.5) * states_.sim.step_limit[tid].step * dir;
     }
 
     using BinId = celeritas::ItemId<real_type>;

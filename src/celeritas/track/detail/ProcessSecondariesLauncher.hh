@@ -122,8 +122,6 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
             ti.sim.track_id = TrackId{track_id};
             ti.sim.parent_id = parent_id;
             ti.sim.event_id = sim.event_id();
-            ti.sim.num_steps = 0;
-            ti.sim.num_looping_steps = 0;
             ti.sim.time = sim.time();
             ti.sim.status = TrackStatus::alive;
             ti.geo.pos = geo.pos();

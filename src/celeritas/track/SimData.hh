@@ -12,6 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Quantities.hh"
@@ -88,24 +89,17 @@ struct SimParamsData
 //---------------------------------------------------------------------------//
 /*!
  * Simulation state of a track.
- *
- * TODO change to struct-of-arrays
  */
-struct SimTrackState
+struct SimTrackInitializer
 {
     TrackId track_id;  //!< Unique ID for this track
     TrackId parent_id;  //!< ID of parent that created it
     EventId event_id;  //!< ID of originating event
-    size_type num_steps{0};  //!< Total number of steps taken
-    size_type num_looping_steps{0};  //!< Number of steps taken since the
-                                     //!< track was flagged as looping
     real_type time{0};  //!< Time elapsed in lab frame since start of event [s]
 
     TrackStatus status{TrackStatus::inactive};
     StepLimit step_limit;
 };
-
-using SimTrackInitializer = SimTrackState;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -120,23 +114,46 @@ struct SimStateData
     using Items = celeritas::StateCollection<T, W, M>;
 
     //// DATA ////
+    Items<TrackId> track_ids;  //!< Unique ID for this track
+    Items<TrackId> parent_ids;  //!< ID of parent that created it
+    Items<EventId> event_ids;  //!< ID of originating event
+    Items<size_type> num_steps;  //!< Total number of steps taken
+    Items<size_type> num_looping_steps;  //!< Number of steps taken since the
+                                         //!< track was flagged as looping
+    Items<real_type> time;  //!< Time elapsed in lab frame since start of event
+                            //!< [s]
 
-    Items<SimTrackState> state;
-
+    Items<TrackStatus> status;
+    Items<StepLimit> step_limit;
     //// METHODS ////
 
     //! Check whether the interface is assigned
-    explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !track_ids.empty() && !parent_ids.empty() && !event_ids.empty()
+               && !num_steps.empty() && !num_looping_steps.empty()
+               && !time.empty() && !status.empty() && !step_limit.empty();
+    }
 
     //! State size
-    CELER_FUNCTION TrackSlotId::size_type size() const { return state.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const
+    {
+        return track_ids.size();
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     SimStateData& operator=(SimStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        state = other.state;
+        track_ids = other.track_ids;
+        parent_ids = other.parent_ids;
+        event_ids = other.event_ids;
+        num_steps = other.num_steps;
+        num_looping_steps = other.num_looping_steps;
+        time = other.time;
+        status = other.status;
+        step_limit = other.step_limit;
         return *this;
     }
 };
@@ -144,18 +161,30 @@ struct SimStateData
 //---------------------------------------------------------------------------//
 /*!
  * Resize simulation states and set \c alive to be false.
- *
- * TODO: replace with resize + fill
  */
 template<MemSpace M>
 void resize(SimStateData<Ownership::value, M>* data, size_type size)
 {
     CELER_EXPECT(size > 0);
-    StateCollection<SimTrackState, Ownership::value, MemSpace::host> state;
-    std::vector<SimTrackState> initial_state(size);
-    make_builder(&state).insert_back(initial_state.begin(),
-                                     initial_state.end());
-    data->state = state;
+
+    resize(&data->track_ids, size);
+    resize(&data->parent_ids, size);
+    resize(&data->event_ids, size);
+
+    resize(&data->num_steps, size);
+    fill(size_type{0}, &data->num_steps);
+
+    resize(&data->num_looping_steps, size);
+    fill(size_type{0}, &data->num_looping_steps);
+
+    resize(&data->time, size);
+    fill(real_type{0}, &data->time);
+
+    resize(&data->status, size);
+    fill(TrackStatus::inactive, &data->status);
+
+    resize(&data->step_limit, size);
+
     CELER_ENSURE(*data);
 }
 
