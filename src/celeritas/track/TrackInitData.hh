@@ -169,7 +169,7 @@ struct TrackInitStateData
     EventItems<TrackId::size_type> track_counters;
 
     size_type num_secondaries{};  //!< Number of secondaries produced in a step
-    size_type num_active{};  //!< Number of active tracks at start of a step
+    size_type num_active{}; //!< Number of active tracks at start of a step
 
     //// METHODS ////
 
