@@ -20,30 +20,23 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/io/outputRegistry.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
-#include "corecel/sys/KernelRegistry.hh"
-#include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/RootFileManager.hh"
 #include "celeritas/io/RootStepWriter.hh"
-#include "celeritas/phys/ParticleParamsOutput.hh"
-#include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
@@ -167,7 +160,7 @@ init_root_mctruth_output(LDemoArgs const& run_args,
 /*!
  * Run, launch, and output.
  */
-void run(std::istream* is, outputRegistry* output)
+void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
     // Read input options
     auto inp = nlohmann::json::parse(*is);
@@ -199,18 +192,8 @@ void run(std::istream* is, outputRegistry* output)
     Stopwatch get_setup_time;
 
     // Load all the problem data and create transporter
-    auto transport_ptr = build_transporter(run_args);
+    auto transport_ptr = build_transporter(run_args, output);
     double const setup_time = get_setup_time();
-
-    {
-        // Save diagnostic information
-        CoreParams const& params = transport_ptr->params();
-        output->insert(
-            std::make_shared<ParticleParamsOutput>(params.particle()));
-        output->insert(std::make_shared<PhysicsParamsOutput>(params.physics()));
-        output->insert(
-            std::make_shared<ActionRegistryOutput>(params.action_reg()));
-    }
 
     // Initialize RootFileManager and store input data if requested
     auto root_manager = init_root_mctruth_output(run_args, transport_ptr.get());
@@ -306,34 +289,25 @@ int main(int argc, char* argv[])
     }
 
     // Set up output
-    outputRegistry output;
-    output.insert(OutputInterfaceAdapter<Device>::from_const_ref(
-        OutputInterface::Category::system, "device", celeritas::device()));
-    output.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
-        OutputInterface::Category::system,
-        "kernels",
-        celeritas::kernel_registry()));
-    output.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
-        OutputInterface::Category::system, "environ", celeritas::environment()));
-    output.insert(std::make_shared<BuildOutput>());
+    auto output = std::make_shared<OutputRegistry>();
 
     int return_code = EXIT_SUCCESS;
     try
     {
-        run(instream, &output);
+        run(instream, output);
     }
     catch (std::exception const& e)
     {
         CELER_LOG(critical)
             << "While running input at " << filename << ": " << e.what();
         return_code = EXIT_FAILURE;
-        output.insert(
+        output->insert(
             std::make_shared<ExceptionOutput>(std::current_exception()));
     }
 
     // Write system properties and (if available) results
     CELER_LOG(status) << "Saving output";
-    output.output(&cout);
+    output->output(&cout);
     cout << endl;
 
     return return_code;
