@@ -70,6 +70,7 @@ enum class RelaxationSelection
  * - \c msc_range_factor: e-/e+ range factor for MSC models
  * - \c msc_safety_factor: safety factor for MSC models
  * - \c msc_lambda_limit: lambda limit for MSC models [cm]
+ * - \c apply_cuts: kill secondaries below the production cut
  * - \c verbose: print detailed Geant4 output
  */
 struct GeantPhysicsOptions
@@ -93,6 +94,7 @@ struct GeantPhysicsOptions
     real_type msc_range_factor{0.04};
     real_type msc_safety_factor{0.6};
     real_type msc_lambda_limit{0.1};  // 1 mm
+    bool apply_cuts{false};
 
     bool verbose{false};
 };
@@ -115,7 +117,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.msc_range_factor == b.msc_range_factor
            && a.msc_safety_factor == b.msc_safety_factor
            && a.msc_lambda_limit == b.msc_lambda_limit
-           && a.verbose == b.verbose;
+           && a.apply_cuts == b.apply_cuts && a.verbose == b.verbose;
 }
 
 //---------------------------------------------------------------------------//

@@ -79,6 +79,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
         CELER_LOG(debug) << "Extended low-energy MSC limit to 100 TeV";
         em_parameters.SetMscEnergyLimit(100 * CLHEP::TeV);
     }
+    em_parameters.SetApplyCuts(options.apply_cuts);
 
     int verb = options_.verbose ? 1 : 0;
     this->SetVerboseLevel(verb);

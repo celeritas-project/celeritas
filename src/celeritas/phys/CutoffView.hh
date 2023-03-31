@@ -8,6 +8,7 @@
 #pragma once
 
 #include "CutoffData.hh"
+#include "celeritas/phys/Secondary.hh"
 
 namespace celeritas
 {
@@ -45,6 +46,12 @@ class CutoffView
 
     // Return range cutoff value
     inline CELER_FUNCTION real_type range(ParticleId particle) const;
+
+    // Whether to kill secondaries below the production cut post-interaction
+    inline CELER_FUNCTION bool apply_post_interaction() const;
+
+    // Whether the post-interaction cutoff should be applied to the secondary
+    inline CELER_FUNCTION bool apply(Secondary const&) const;
 
   private:
     CutoffData const& params_;
@@ -86,6 +93,31 @@ CELER_FUNCTION auto CutoffView::energy(ParticleId particle) const -> Energy
 CELER_FUNCTION real_type CutoffView::range(ParticleId particle) const
 {
     return this->get(particle).range;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether to kill secondaries below the production cut post-interaction.
+ */
+CELER_FUNCTION bool CutoffView::apply_post_interaction() const
+{
+    return params_.apply_post_interaction;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the post-interaction cutoff should be applied to the secondary.
+ *
+ * This will be true if the \c apply_post_interaction option is enabled and the
+ * seccondary is an electron, positron, or gamma with energy below the
+ * production cut.
+ */
+CELER_FUNCTION bool CutoffView::apply(Secondary const& secondary) const
+{
+    return (secondary.particle_id == params_.ids.gamma
+            || secondary.particle_id == params_.ids.electron
+            || secondary.particle_id == params_.ids.positron)
+           && secondary.energy < this->energy(secondary.particle_id);
 }
 
 //---------------------------------------------------------------------------//
