@@ -165,7 +165,7 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
 }
 
-TEST_F(CutoffParamsTest, apply_cuts)
+TEST_F(CutoffParamsTest, apply_post_interaction)
 {
     CutoffParams::Input input;
     input.materials = materials;
@@ -173,32 +173,34 @@ TEST_F(CutoffParamsTest, apply_cuts)
     input.cutoffs.insert({pdg::electron(), {{Energy{6}, 0.6}, {}, {}}});
     input.cutoffs.insert({pdg::gamma(), {{Energy{4}, 0.4}, {}, {}}});
     input.cutoffs.insert({pdg::positron(), {{Energy{2}, 0.2}, {}, {}}});
-    input.apply_cuts = true;
+    input.apply_post_interaction = true;
     CutoffParams cutoff(input);
 
     CutoffView cutoffs(cutoff.host_ref(), MaterialId{0});
-    EXPECT_TRUE(cutoffs.apply_cuts());
+    EXPECT_TRUE(cutoffs.apply_post_interaction());
 
     Secondary secondary;
     secondary.energy = Energy{7};
     secondary.particle_id = particles->find(pdg::electron());
-    EXPECT_FALSE(cutoffs.apply_cut(secondary));
+    EXPECT_FALSE(cutoffs.apply(secondary));
     secondary.energy = Energy{5};
-    EXPECT_TRUE(cutoffs.apply_cut(secondary));
+    EXPECT_TRUE(cutoffs.apply(secondary));
 
     secondary.particle_id = particles->find(pdg::gamma());
-    EXPECT_FALSE(cutoffs.apply_cut(secondary));
+    EXPECT_FALSE(cutoffs.apply(secondary));
     secondary.energy = Energy{3};
-    EXPECT_TRUE(cutoffs.apply_cut(secondary));
+    EXPECT_TRUE(cutoffs.apply(secondary));
 
     secondary.particle_id = particles->find(pdg::positron());
-    EXPECT_FALSE(cutoffs.apply_cut(secondary));
+    EXPECT_FALSE(cutoffs.apply(secondary));
     secondary.energy = Energy{1};
-    EXPECT_TRUE(cutoffs.apply_cut(secondary));
+    EXPECT_TRUE(cutoffs.apply(secondary));
 }
 
 //---------------------------------------------------------------------------//
 
+#define CutoffParamsImportTest \
+    TEST_IF_CELERITAS_USE_ROOT(CutoffParamsImportTest)
 class CutoffParamsImportTest : public RootTestBase
 {
   protected:
@@ -220,7 +222,7 @@ TEST_F(CutoffParamsImportTest, import_cutoffs)
             CutoffView cutoffs(this->cutoff()->host_ref(), mid);
             energies.push_back(cutoffs.energy(pid).value());
             ranges.push_back(cutoffs.range(pid));
-            EXPECT_FALSE(cutoffs.apply_cuts());
+            EXPECT_FALSE(cutoffs.apply_post_interaction());
         }
     }
 

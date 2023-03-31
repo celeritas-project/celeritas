@@ -50,9 +50,9 @@ struct ImportData;
  * below the production threshold, while others (e.g. bremsstrahlung,
  * ionization) use the production cut as their instrinsic limit. By default all
  * of these secondaries are transported, even if their energy is below the
- * threshold. If the \c apply_cuts option is enabled, any secondary photon,
- * electron, or positron with energy below the cutoff will be killed (the flag
- * will be ignored for other particle types).
+ * threshold. If the \c apply_post_interaction option is enabled, any secondary
+ * photon, electron, or positron with energy below the cutoff will be killed
+ * (the flag will be ignored for other particle types).
  */
 class CutoffParams
 {
@@ -73,7 +73,7 @@ class CutoffParams
         SPConstParticles particles;
         SPConstMaterials materials;
         std::map<PDGNumber, MaterialCutoffs> cutoffs;
-        bool apply_cuts{false};
+        bool apply_post_interaction{false};
     };
 
   public:

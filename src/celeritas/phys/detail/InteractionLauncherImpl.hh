@@ -85,16 +85,16 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
 
         real_type deposition = result.energy_deposition.value();
         auto cutoff = track.make_cutoff_view();
-        if (cutoff.apply_cuts())
+        if (cutoff.apply_post_interaction())
         {
             // Kill secondaries with energies below the production cut
             for (auto& secondary : result.secondaries)
             {
-                if (cutoff.apply_cut(secondary))
+                if (cutoff.apply(secondary))
                 {
                     // Secondary is an electron, positron or gamma with energy
                     // below the production cut -- deposit the energy locally
-                    // and kill it
+                    // and clear the secondary
                     deposition += secondary.energy.value();
                     ParticleView particle{this->core_data.params.particles,
                                           secondary.particle_id};

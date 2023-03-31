@@ -25,9 +25,12 @@ struct ParticleCutoff
 
 //---------------------------------------------------------------------------//
 /*!
- * IDs of particles that can be killed when \c apply_cuts is enabled.
+ * IDs of particles that can be killed post-interaction.
+ *
+ * The ID will be valid if the \c apply_post_interaction option is enabled and
+ * the particle is present in the problem.
  */
-struct ApplyCutsIds
+struct CutoffIds
 {
     ParticleId gamma;
     ParticleId electron;
@@ -39,9 +42,9 @@ struct ApplyCutsIds
  * Persistent shared cutoff data.
  *
  * Secondary production cuts are stored for every material and for only the
- * particle types to which production cuts apply. Currently production cuts are
- * only needed for electrons and photons (protons are unused and positrons
- * cannot have a cutoff).
+ * particle types to which production cuts apply. Positron production cuts are
+ * only used when the post-interaction cutoff is enabled. Proton production
+ * cuts are currently unused.
  *
  * \sa CutoffView
  * \sa CutoffParams
@@ -63,8 +66,9 @@ struct CutoffParamsData
     ParticleId::size_type num_particles;  //!< Particles with production cuts
     MaterialId::size_type num_materials;  //!< All materials in the problem
 
-    bool apply_cuts{false};  //!< Kill secondaries below production cut
-    ApplyCutsIds ids;  //!< Secondaries that can be killed below production cut
+    bool apply_post_interaction{false};  //!< Apply cutoff post-interaction
+    CutoffIds ids;  //!< Secondaries that can be killed post-interaction if
+                    //!< their energy is below the production cut
 
     //// MEMBER FUNCTIONS ////
 
@@ -85,7 +89,7 @@ struct CutoffParamsData
         this->id_to_index = other.id_to_index;
         this->num_particles = other.num_particles;
         this->num_materials = other.num_materials;
-        this->apply_cuts = other.apply_cuts;
+        this->apply_post_interaction = other.apply_post_interaction;
         this->ids = other.ids;
 
         return *this;

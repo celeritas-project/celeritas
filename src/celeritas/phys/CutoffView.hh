@@ -47,11 +47,11 @@ class CutoffView
     // Return range cutoff value
     inline CELER_FUNCTION real_type range(ParticleId particle) const;
 
-    // Whether to kill secondaries below the production cut
-    inline CELER_FUNCTION bool apply_cuts() const;
+    // Whether to kill secondaries below the production cut post-interaction
+    inline CELER_FUNCTION bool apply_post_interaction() const;
 
-    // Whether the secondary should be killed if \c apply_cuts is enabled
-    inline CELER_FUNCTION bool apply_cut(Secondary const&) const;
+    // Whether the post-interaction cutoff should be applied to the secondary
+    inline CELER_FUNCTION bool apply(Secondary const&) const;
 
   private:
     CutoffData const& params_;
@@ -97,18 +97,22 @@ CELER_FUNCTION real_type CutoffView::range(ParticleId particle) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether to kill secondaries below the production cut.
+ * Whether to kill secondaries below the production cut post-interaction.
  */
-CELER_FUNCTION bool CutoffView::apply_cuts() const
+CELER_FUNCTION bool CutoffView::apply_post_interaction() const
 {
-    return params_.apply_cuts;
+    return params_.apply_post_interaction;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the secondary should be killed if \c apply_cuts is enabled.
+ * Whether the post-interaction cutoff should be applied to the secondary.
+ *
+ * This will be true if the \c apply_post_interaction option is enabled and the
+ * seccondary is an electron, positron, or gamma with energy below the
+ * production cut.
  */
-CELER_FUNCTION bool CutoffView::apply_cut(Secondary const& secondary) const
+CELER_FUNCTION bool CutoffView::apply(Secondary const& secondary) const
 {
     return (secondary.particle_id == params_.ids.gamma
             || secondary.particle_id == params_.ids.electron
