@@ -25,7 +25,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/io/OutputManager.hh"
+#include "corecel/io/outputRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
@@ -167,7 +167,7 @@ init_root_mctruth_output(LDemoArgs const& run_args,
 /*!
  * Run, launch, and output.
  */
-void run(std::istream* is, OutputManager* output)
+void run(std::istream* is, outputRegistry* output)
 {
     // Read input options
     auto inp = nlohmann::json::parse(*is);
@@ -306,7 +306,7 @@ int main(int argc, char* argv[])
     }
 
     // Set up output
-    OutputManager output;
+    outputRegistry output;
     output.insert(OutputInterfaceAdapter<Device>::from_const_ref(
         OutputInterface::Category::system, "device", celeritas::device()));
     output.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(

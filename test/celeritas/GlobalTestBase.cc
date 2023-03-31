@@ -12,7 +12,7 @@
 #include "celeritas_config.h"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/OutputManager.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
@@ -30,7 +30,7 @@ namespace test
 //---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
 {
-    output_ = std::make_shared<OutputManager>();
+    output_ = std::make_shared<OutputRegistry>();
 }
 
 //---------------------------------------------------------------------------//

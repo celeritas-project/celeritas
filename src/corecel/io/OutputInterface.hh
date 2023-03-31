@@ -19,7 +19,7 @@ struct JsonPimpl;
 /*!
  * Pure abstract interface for writing metadata output to JSON.
  *
- * At the end of the program/run, the OutputManager will call the "output"
+ * At the end of the program/run, the OutputRegistry will call the "output"
  * method on all interfaces.
  *
  * \todo Perhaps another output method for saving a schema?

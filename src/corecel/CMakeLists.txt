@@ -23,7 +23,7 @@ list(APPEND SOURCES
   io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
-  io/OutputManager.cc
+  io/OutputRegistry.cc
   io/ScopedStreamRedirect.cc
   io/ScopedTimeAndRedirect.cc
   io/StringUtils.cc

@@ -23,7 +23,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/io/OutputManager.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
@@ -207,7 +207,7 @@ void SharedParams::Finalize()
 #if CELERITAS_USE_JSON
         CELER_LOG(info) << "Writing Celeritas output to \"" << output_filename_
                         << '"';
-        OutputManager output;
+        OutputRegistry output;
 
         // System diagnostics
         output.insert(OutputInterfaceAdapter<Device>::from_const_ref(

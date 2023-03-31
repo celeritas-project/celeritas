@@ -33,7 +33,7 @@ class SimParams;
 class TrackInitParams;
 
 class CoreParams;
-class OutputManager;
+class OutputRegistry;
 
 namespace test
 {
@@ -66,7 +66,7 @@ class GlobalTestBase : public Test
     using SPConstCore = SP<CoreParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
-    using SPOutputManager = SP<OutputManager>;
+    using SPOutputRegistry = SP<OutputRegistry>;
     //!@}
 
   public:
@@ -109,7 +109,7 @@ class GlobalTestBase : public Test
     //// OUTPUT ////
 
     //! Access output manager
-    SPOutputManager const& output_mgr() const { return output_; }
+    SPOutputRegistry const& output_mgr() const { return output_; }
     //! Write output to a debug text file
     void write_output();
     //! Write output to a stream
@@ -157,7 +157,7 @@ class GlobalTestBase : public Test
     SPConstSim sim_;
     SPConstTrackInit init_;
     SPConstCore core_;
-    SPOutputManager output_;
+    SPOutputRegistry output_;
 };
 
 //---------------------------------------------------------------------------//

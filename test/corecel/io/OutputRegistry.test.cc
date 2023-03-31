@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/io/OutputManager.test.cc
+//! \file corecel/io/OutputRegistry.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/io/OutputManager.hh"
+#include "corecel/io/OutputRegistry.hh"
 
 #include <exception>
 #include <regex>
@@ -85,17 +85,17 @@ class MockKernelContextException : public RichContextException
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class OutputManagerTest : public Test
+class OutputRegistryTest : public Test
 {
   protected:
     using Category = OutputInterface::Category;
 
-    std::string to_string(OutputManager const& om)
+    std::string to_string(OutputRegistry const& reg)
     {
         static const std::regex file_match(R"re("file":"[^"]+")re");
         static const std::regex line_match(R"re("line":[0-9]+)re");
         std::ostringstream os;
-        om.output(&os);
+        reg.output(&os);
         std::string result = os.str();
         result = std::regex_replace(result, file_match, R"("file":"FILE")");
         result = std::regex_replace(result, line_match, R"("line":123)");
@@ -107,11 +107,11 @@ class OutputManagerTest : public Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(OutputManagerTest, empty)
+TEST_F(OutputRegistryTest, empty)
 {
-    OutputManager om;
+    OutputRegistry reg;
 
-    std::string result = this->to_string(om);
+    std::string result = this->to_string(reg);
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ("null", result);
@@ -122,21 +122,21 @@ TEST_F(OutputManagerTest, empty)
     }
 }
 
-TEST_F(OutputManagerTest, minimal)
+TEST_F(OutputRegistryTest, minimal)
 {
     auto first
         = std::make_shared<TestInterface>(Category::input, "input_value", 42);
     auto second = std::make_shared<TestInterface>(Category::result, "out", 1);
     auto third = std::make_shared<TestInterface>(Category::result, "timing", 2);
 
-    OutputManager om;
-    om.insert(first);
-    om.insert(second);
-    om.insert(third);
+    OutputRegistry reg;
+    reg.insert(first);
+    reg.insert(second);
+    reg.insert(third);
 
-    EXPECT_THROW(om.insert(first), RuntimeError);
+    EXPECT_THROW(reg.insert(first), RuntimeError);
 
-    std::string result = this->to_string(om);
+    std::string result = this->to_string(reg);
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
@@ -149,50 +149,51 @@ TEST_F(OutputManagerTest, minimal)
     }
 }
 
-TEST_F(OutputManagerTest, build_output)
+TEST_F(OutputRegistryTest, build_output)
 {
-    OutputManager om;
-    om.insert(std::make_shared<celeritas::BuildOutput>());
-    std::string result = this->to_string(om);
+    OutputRegistry reg;
+    reg.insert(std::make_shared<celeritas::BuildOutput>());
+    std::string result = this->to_string(reg);
     EXPECT_TRUE(result.find("CELERITAS_BUILD_TYPE") != std::string::npos)
         << "actual output: " << result;
 }
 
-TEST_F(OutputManagerTest, exception_output)
+TEST_F(OutputRegistryTest, exception_output)
 {
-    OutputManager om;
-    auto exception_to_output = [&om](std::exception_ptr const& ep) {
-        om.insert(std::make_shared<celeritas::ExceptionOutput>(ep));
+    OutputRegistry reg;
+    auto exception_to_output = [&reg](std::exception_ptr const& ep) {
+        reg.insert(std::make_shared<celeritas::ExceptionOutput>(ep));
     };
 
-    CELER_TRY_HANDLE(
-        CELER_VALIDATE(false, << "things went wrong"),
-        exception_to_output);
+    CELER_TRY_HANDLE(CELER_VALIDATE(false, << "things went wrong"),
+                     exception_to_output);
 
-    std::string result = this->to_string(om);
+    std::string result = this->to_string(reg);
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_EQ(R"json({"result":{"exception":{"condition":"false","file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json", result);
+        EXPECT_EQ(
+            R"json({"result":{"exception":{"condition":"false","file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json",
+            result);
     }
 }
 
-TEST_F(OutputManagerTest, nested_exception_output)
+TEST_F(OutputRegistryTest, nested_exception_output)
 {
-    OutputManager om;
-    auto exception_to_output = [&om](std::exception_ptr const& ep) {
-        om.insert(std::make_shared<celeritas::ExceptionOutput>(ep));
+    OutputRegistry reg;
+    auto exception_to_output = [&reg](std::exception_ptr const& ep) {
+        reg.insert(std::make_shared<celeritas::ExceptionOutput>(ep));
     };
 
     CELER_TRY_HANDLE_CONTEXT(CELER_VALIDATE(false, << "things went wrong"),
                              exception_to_output,
                              MockKernelContextException(123, 2, 4567));
 
-
-    std::string result = this->to_string(om);
+    std::string result = this->to_string(reg);
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_EQ(R"json({"result":{"exception":{"condition":"false","context":{"event":2,"thread":123,"track":4567,"type":"MockKernelContextException"},"file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json", result);
-
+        EXPECT_EQ(
+            R"json({"result":{"exception":{"condition":"false","context":{"event":2,"thread":123,"track":4567,"type":"MockKernelContextException"},"file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json",
+            result);
     }
 }
 
