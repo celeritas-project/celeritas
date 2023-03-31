@@ -73,6 +73,8 @@ struct TrackInitializer
 //---------------------------------------------------------------------------//
 /*!
  * StateCollection with a fixed capacity and dynamic size.
+ *
+ * The allocation (storage) is fixed-size and cannot be increased.
  */
 template<class T, Ownership W, MemSpace M>
 struct ResizableData
@@ -91,7 +93,7 @@ struct ResizableData
 
     //// METHODS ////
 
-    // Whether the interface is initialized
+    //! Whether the underlying allocation has been made
     explicit inline CELER_FUNCTION operator bool() const
     {
         return !storage.empty();
@@ -123,7 +125,7 @@ struct ResizableData
         return storage[ItemRange<T>{ItemId<T>{0}, ItemId<T>{this->size()}}];
     }
 
-    //! Assign from another set of data
+    //! Assign from another resizeable data
     template<Ownership W2, MemSpace M2>
     ResizableData& operator=(ResizableData<T, W2, M2>& other)
     {
