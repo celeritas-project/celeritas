@@ -1,14 +1,17 @@
 //----------------------------------*-C++-*----------------------------------//
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+// THE ABOVE TEXT APPLIES TO MODIFICATIONS FROM THE ORIGINAL WORK BELOW:
 // SPDX-FileCopyrightText: 2020 CERN
 // SPDX-License-Identifier: Apache-2.0
+// Original work:
+// https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/7f5d5ec3258d2b7ffbf717e4bd37a3a07285a65f/src/G4VecGeomConverter.cxx
 //---------------------------------------------------------------------------//
 /*!
  * \file GeantGeometryImporter.cc
  *
  * Original code from G4VecGeomNav package by John Apostolakis et.al.
- *
- * Original source:
- *   https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/7f5d5ec3258d2b7ffbf717e4bd37a3a07285a65f/src/G4VecGeomConverter.cxx
  */
 //---------------------------------------------------------------------------//
 #include "GeantGeometryImporter.hh"
