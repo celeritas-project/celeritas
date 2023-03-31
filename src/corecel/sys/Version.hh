@@ -8,6 +8,7 @@
 #pragma once
 
 #include <array>
+#include <cstdlib>  // IWYU pragma: keep
 #include <iosfwd>
 #include <string_view>
 
