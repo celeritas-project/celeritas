@@ -104,17 +104,20 @@ OrangeParams::OrangeParams(G4VPhysicalVolume const*)
 
 //---------------------------------------------------------------------------//
 /*!
- * Advanced usage: construct from explicit host data.
- *
- * Volume and surface labels must be unique for the time being.
+ * Insert all simple units
  */
-OrangeParams::OrangeParams(OrangeInput input)
+void OrangeParams::insert_simple_units(HostVal<OrangeParamsData>& host_data,
+                                       OrangeInput const& input)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
 
-    HostVal<OrangeParamsData> host_data;
-
+    // Copy data from OrangeInput
     host_data.scalars.max_level = input.max_level;
+    make_builder(&host_data.universe_types)
+        .insert_back(input.universe_types.begin(), input.universe_types.end());
+    make_builder(&host_data.universe_indices)
+        .insert_back(input.universe_indices.begin(),
+                     input.universe_indices.end());
 
     // Calculate offsets for UnitIndexerData
     auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
@@ -132,18 +135,13 @@ OrangeParams::OrangeParams(OrangeInput input)
         ui_vol.push_back(volume_offset + u.volumes.size());
     }
 
-    // Insert all units
+    // Insert simple units
     detail::UnitInserter insert_unit(&host_data);
-    auto universe_type = make_builder(&host_data.universe_type);
-    auto universe_index = make_builder(&host_data.universe_index);
-
     for (UnitInput const& u : input.units)
     {
         CELER_VALIDATE(
             u, << "unit '" << u.label << "' is not properly constructed");
-        SimpleUnitId uid = insert_unit(u);
-        universe_type.push_back(UniverseType::simple);
-        universe_index.push_back(uid.get());
+        insert_unit(u);
     }
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
@@ -180,15 +178,63 @@ OrangeParams::OrangeParams(OrangeInput input)
             }
             volume_labels.push_back(std::move(volume_label));
         }
-
-        bbox_ = u.bbox;
     }
 
     surf_labels_ = LabelIdMultiMap<SurfaceId>{std::move(surface_labels)};
     vol_labels_ = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
+}
 
-    supports_safety_ = host_data.simple_unit[SimpleUnitId{0}].simple_safety;
-    bbox_ = input.units.front().bbox;
+//---------------------------------------------------------------------------//
+/*!
+ * Advanced usage: construct from explicit host data.
+ *
+ * Volume and surface labels must be unique for the time being.
+ */
+OrangeParams::OrangeParams(OrangeInput input)
+{
+    CELER_VALIDATE(!input.units.empty(), << "input geometry has no universes");
+
+    HostVal<OrangeParamsData> host_data;
+
+    // Copy data from OrangeInput
+    host_data.scalars.max_level = input.max_level;
+    make_builder(&host_data.universe_types)
+        .insert_back(input.universe_types.begin(), input.universe_types.end());
+    make_builder(&host_data.universe_indices)
+        .insert_back(input.universe_indices.begin(),
+                     input.universe_indices.end());
+
+    // Insert simple units
+    insert_simple_units(host_data, input);
+
+    // Insert rect array Units
+    detail::RectArrayInserter insert_rect_array(&host_data);
+    for (RectArrayInput const& r : input.rect_arrays)
+    {
+        CELER_VALIDATE(
+            r, << "rect array '" << r.label << "' is not properly constructed");
+        insert_rect_array(r);
+    }
+
+    switch (input.universe_types[0])
+    {
+        case UniverseType::simple: {
+            supports_safety_
+                = host_data.simple_units[SimpleUnitId{0}].simple_safety;
+            bbox_ = input.units.front().bbox;
+            break;
+        }
+        case UniverseType::rect_array: {
+            supports_safety_
+                = host_data.rect_arrays[RectArrayId{0}].simple_safety;
+            bbox_ = input.rect_arrays.front().bbox;
+            break;
+        }
+        default: {
+            CELER_ASSERT_UNREACHABLE();
+            break;
+        }
+    }
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);

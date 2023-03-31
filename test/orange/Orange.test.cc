@@ -75,6 +75,12 @@ class UniversesTest : public OrangeTest
     void SetUp() override { this->build_geometry("universes.org.json"); }
 };
 
+#define RectArrayTest TEST_IF_CELERITAS_JSON(RectArrayTest)
+class RectArrayTest : public OrangeTest
+{
+    void SetUp() override { this->build_geometry("rect_array.org.json"); }
+};
+
 #define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)
 class Geant4Testem15Test : public OrangeTest
 {
@@ -839,6 +845,11 @@ TEST_F(UniversesTest, cross_between_daughters)
     geo.move_to_boundary();
     EXPECT_EQ(-1, geo.next_surface_id().unchecked_get());
     EXPECT_EQ("bob.mz", this->params().id_to_label(geo.surface_id()).name);
+}
+
+TEST_F(RectArrayTest, initialization)
+{
+    OrangeTrackView geo = this->make_track_view();
 }
 
 TEST_F(Geant4Testem15Test, safety)

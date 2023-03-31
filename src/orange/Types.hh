@@ -33,12 +33,12 @@ using VolumeId = OpaqueId<struct Volume>;
 /*!
  * Enumeration for cartesian axes.
  */
-enum class Axis
+enum Axis : size_type
 {
-    x,  //!< X axis/I index coordinate
-    y,  //!< Y axis/J index coordinate
-    z,  //!< Z axis/K index coordinate
-    size_  //!< Sentinel value for looping over axes
+    x = 0,  //!< X axis/I index coordinate
+    y = 1,  //!< Y axis/J index coordinate
+    z = 2,  //!< Z axis/K index coordinate
+    size_ = 3  //!< Sentinel value for looping over axes
 };
 
 //---------------------------------------------------------------------------//

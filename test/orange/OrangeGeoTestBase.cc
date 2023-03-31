@@ -46,6 +46,8 @@ OrangeInput to_input(UnitInput u)
 {
     OrangeInput result;
     result.units.push_back(std::move(u));
+    result.universe_types.push_back(celeritas::UniverseType::simple);
+    result.universe_indices.push_back(0);
     return result;
 }
 
@@ -215,10 +217,11 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
 
     // TODO: update when multiple units are in play
     auto const& host_ref = this->host_params();
-    CELER_ASSERT(host_ref.simple_unit.size() == 1);
+    CELER_ASSERT(host_ref.simple_units.size() == 1);
 
     os << "# Surfaces\n";
-    Surfaces surfaces(host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
+    Surfaces surfaces(host_ref,
+                      host_ref.simple_units[SimpleUnitId{0}].surfaces);
     auto surf_to_stream = make_surface_action(surfaces, ToStream{os});
 
     // Loop over all surfaces and apply

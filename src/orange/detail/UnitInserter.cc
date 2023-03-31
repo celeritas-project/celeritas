@@ -149,7 +149,7 @@ UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
 /*!
  * Create a simple unit and return its ID.
  */
-SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
+void UnitInserter::operator()(UnitInput const& inp)
 {
     SimpleUnitRecord unit;
 
@@ -214,8 +214,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         });
 
     CELER_ASSERT(unit);
-    auto simple_units = make_builder(&orange_data_->simple_unit);
-    return simple_units.push_back(unit);
+    make_builder(&orange_data_->simple_units).push_back(unit);
 }
 
 //---------------------------------------------------------------------------//
@@ -354,7 +353,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
  * Process a single daughter universe.
  */
 void UnitInserter::process_daughter(VolumeRecord* vol_record,
-                                    UnitInput::Daughter const& daughter_input)
+                                    DaughterInput const& daughter_input)
 {
     Daughter daughter;
     daughter.universe_id = daughter_input.universe_id;

@@ -74,16 +74,21 @@ struct VolumeInput
 
 //---------------------------------------------------------------------------//
 /*!
+ * Input definition a daughter universe embedded in a parent cell
+ */
+struct DaughterInput
+{
+    UniverseId universe_id;
+    Translation translation;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Input definition for a unit.
  */
 struct UnitInput
 {
-    struct Daughter
-    {
-        UniverseId universe_id;
-        Translation translation;
-    };
-    using MapVolumeDaughter = std::unordered_map<LocalVolumeId, Daughter>;
+    using MapVolumeDaughter = std::unordered_map<LocalVolumeId, DaughterInput>;
 
     SurfaceInput surfaces;
     std::vector<VolumeInput> volumes;
@@ -99,11 +104,36 @@ struct UnitInput
 
 //---------------------------------------------------------------------------//
 /*!
+ * Input definition for a rectangular array universe.
+ */
+struct RectArrayInput
+{
+    // Grid boundaries in x, y, and z
+    Array<std::vector<double>, 3> grid;
+
+    // Daughter loading
+    std::vector<DaughterInput> daughters;
+
+    BoundingBox bbox;  //!< Outer bounding box
+
+    // Unit metadata
+    Label label;
+
+    //! Whether the universe definition is valid
+    explicit operator bool() const { return !daughters.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Construction definition for a full ORANGE geometry.
  */
 struct OrangeInput
 {
     std::vector<UnitInput> units;
+    std::vector<RectArrayInput> rect_arrays;
+
+    std::vector<UniverseType> universe_types;
+    std::vector<size_type> universe_indices;
 
     // TODO: Calculate automatically in Shift by traversing the parent/daughter
     // tree
