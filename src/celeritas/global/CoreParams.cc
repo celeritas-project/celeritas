@@ -11,17 +11,14 @@
 #include <type_traits>
 #include <utility>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/BuildOutput.hh"
-#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
-#include "corecel/sys/KernelRegistryIO.json.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/generated/BoundaryAction.hh"
@@ -40,6 +37,13 @@
 
 #include "ActionInterface.hh"
 #include "ActionRegistry.hh"  // IWYU pragma: keep
+
+#if CELERITAS_USE_JSON
+#    include "corecel/io/OutputInterfaceAdapter.hh"
+#    include "corecel/sys/DeviceIO.json.hh"
+#    include "corecel/sys/EnvironmentIO.json.hh"
+#    include "corecel/sys/KernelRegistryIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -156,6 +160,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         device_ref_ = build_params_refs<MemSpace::device>(input_, scalars);
     }
 
+#if CELERITAS_USE_JSON
     // Save system diagnostic information
     input_.output_reg->insert(OutputInterfaceAdapter<Device>::from_const_ref(
         OutputInterface::Category::system, "device", celeritas::device()));
@@ -167,6 +172,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
     input_.output_reg->insert(std::make_shared<BuildOutput>());
+#endif
 
     // Save core diagnostic information
     input_.output_reg->insert(
