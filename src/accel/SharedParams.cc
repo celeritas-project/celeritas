@@ -20,12 +20,14 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
-#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/KernelRegistry.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -33,12 +35,15 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
@@ -51,15 +56,10 @@
 #include "detail/HitManager.hh"
 
 #if CELERITAS_USE_JSON
-#    include "corecel/io/BuildOutput.hh"
+#    include "corecel/io/OutputInterfaceAdapter.hh"
 #    include "corecel/sys/DeviceIO.json.hh"
-#    include "corecel/sys/Environment.hh"
 #    include "corecel/sys/EnvironmentIO.json.hh"
-#    include "corecel/sys/KernelRegistry.hh"
 #    include "corecel/sys/KernelRegistryIO.json.hh"
-#    include "celeritas/global/ActionRegistryOutput.hh"
-#    include "celeritas/phys/ParticleParamsOutput.hh"
-#    include "celeritas/phys/PhysicsParamsOutput.hh"
 #endif
 
 namespace celeritas
@@ -207,34 +207,12 @@ void SharedParams::Finalize()
 #if CELERITAS_USE_JSON
         CELER_LOG(info) << "Writing Celeritas output to \"" << output_filename_
                         << '"';
-        OutputRegistry output;
-
-        // System diagnostics
-        output.insert(OutputInterfaceAdapter<Device>::from_const_ref(
-            OutputInterface::Category::system, "device", celeritas::device()));
-        output.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
-            OutputInterface::Category::system,
-            "kernels",
-            celeritas::kernel_registry()));
-        output.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
-            OutputInterface::Category::system,
-            "environ",
-            celeritas::environment()));
-        output.insert(std::make_shared<BuildOutput>());
-
-        // Problem diagnostics
-        output.insert(
-            std::make_shared<ParticleParamsOutput>(params_->particle()));
-        output.insert(
-            std::make_shared<PhysicsParamsOutput>(params_->physics()));
-        output.insert(
-            std::make_shared<ActionRegistryOutput>(params_->action_reg()));
 
         std::ofstream outf(output_filename_);
         CELER_VALIDATE(outf,
                        << "failed to open output file at \""
                        << output_filename_ << '"');
-        output.output(&outf);
+        params_->output_reg()->output(&outf);
 #else
         CELER_LOG(warning) << "JSON support is not enabled, so no output will "
                               "be written to \""
@@ -424,8 +402,35 @@ void SharedParams::initialize_core(SetupOptions const& options)
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
 
-    // Save other data as needed
+    // Set up output
     output_filename_ = options.output_file;
+    if (!output_filename_.empty())
+    {
+        auto& out_reg = *params_->output_reg();
+        out_reg.insert(std::make_shared<BuildOutput>());
+
+#if CELERITAS_USE_JSON
+        // System diagnostics
+        out_reg.insert(OutputInterfaceAdapter<Device>::from_const_ref(
+            OutputInterface::Category::system, "device", celeritas::device()));
+        out_reg.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
+            OutputInterface::Category::system,
+            "kernels",
+            celeritas::kernel_registry()));
+        out_reg.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
+            OutputInterface::Category::system,
+            "environ",
+            celeritas::environment()));
+#endif
+
+        // Problem diagnostics
+        out_reg.insert(
+            std::make_shared<ParticleParamsOutput>(params_->particle()));
+        out_reg.insert(
+            std::make_shared<PhysicsParamsOutput>(params_->physics()));
+        out_reg.insert(
+            std::make_shared<ActionRegistryOutput>(params_->action_reg()));
+    }
 
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());
