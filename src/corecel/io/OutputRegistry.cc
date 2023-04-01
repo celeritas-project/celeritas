@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "OutputRegistry.hh"
 
+#include <algorithm>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -108,6 +109,17 @@ void OutputRegistry::output(std::ostream* os) const
                         "in the current build configuration";
     *os << "\"output unavailable\"";
 #endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether no output has been registered.
+ */
+bool OutputRegistry::empty() const
+{
+    return std::all_of(interfaces_.begin(),
+                       interfaces_.end(),
+                       [](auto const& m) { return m.empty(); });
 }
 
 //---------------------------------------------------------------------------//

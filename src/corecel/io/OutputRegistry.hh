@@ -47,6 +47,9 @@ class OutputRegistry
     // Dump all outputs as JSON to the given stream
     void output(std::ostream* os) const;
 
+    // Whether no output has been registered
+    bool empty() const;
+
   private:
     using Category = OutputInterface::Category;
 

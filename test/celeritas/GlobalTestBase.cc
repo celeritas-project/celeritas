@@ -35,10 +35,9 @@ GlobalTestBase::GlobalTestBase()
 }
 
 //---------------------------------------------------------------------------//
-// Default destructor
 GlobalTestBase::~GlobalTestBase()
 {
-    if (this->HasFailure())
+    if (this->HasFailure() && !this->output_reg()->empty())
     {
         std::cerr << "Writing diagnostic output to screen because test failed:\n";
         this->write_output(std::cout);
@@ -101,7 +100,7 @@ void GlobalTestBase::write_output(std::ostream& os) const
 {
 #if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
-    output_reg_->output(&json_wrap);
+    this->output_reg()->output(&json_wrap);
 
     // Print with pretty indentation
     os << json_wrap.obj.dump(1) << '\n';

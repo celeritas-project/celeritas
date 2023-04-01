@@ -110,6 +110,7 @@ class OutputRegistryTest : public Test
 TEST_F(OutputRegistryTest, empty)
 {
     OutputRegistry reg;
+    EXPECT_TRUE(reg.empty());
 
     std::string result = this->to_string(reg);
     if (CELERITAS_USE_JSON)
@@ -131,7 +132,9 @@ TEST_F(OutputRegistryTest, minimal)
 
     OutputRegistry reg;
     reg.insert(first);
+    EXPECT_FALSE(reg.empty());
     reg.insert(second);
+    EXPECT_FALSE(reg.empty());
     reg.insert(third);
 
     EXPECT_THROW(reg.insert(first), RuntimeError);
