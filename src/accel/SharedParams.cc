@@ -20,9 +20,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
@@ -35,15 +33,12 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
-#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/PhysicsParams.hh"
-#include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
@@ -54,13 +49,6 @@
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
-
-#if CELERITAS_USE_JSON
-#    include "corecel/io/OutputInterfaceAdapter.hh"
-#    include "corecel/sys/DeviceIO.json.hh"
-#    include "corecel/sys/EnvironmentIO.json.hh"
-#    include "corecel/sys/KernelRegistryIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -405,33 +393,6 @@ void SharedParams::initialize_core(SetupOptions const& options)
 
     // Set up output
     output_filename_ = options.output_file;
-    if (!output_filename_.empty())
-    {
-        auto& out_reg = *params_->output_reg();
-        out_reg.insert(std::make_shared<BuildOutput>());
-
-#if CELERITAS_USE_JSON
-        // System diagnostics
-        out_reg.insert(OutputInterfaceAdapter<Device>::from_const_ref(
-            OutputInterface::Category::system, "device", celeritas::device()));
-        out_reg.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
-            OutputInterface::Category::system,
-            "kernels",
-            celeritas::kernel_registry()));
-        out_reg.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
-            OutputInterface::Category::system,
-            "environ",
-            celeritas::environment()));
-#endif
-
-        // Problem diagnostics
-        out_reg.insert(
-            std::make_shared<ParticleParamsOutput>(params_->particle()));
-        out_reg.insert(
-            std::make_shared<PhysicsParamsOutput>(params_->physics()));
-        out_reg.insert(
-            std::make_shared<ActionRegistryOutput>(params_->action_reg()));
-    }
 
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());
