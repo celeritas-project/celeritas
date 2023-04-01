@@ -50,6 +50,7 @@ list(APPEND SOURCES
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
   geo/GeoMaterialParams.cc
+  geo/GeoParamsOutput.cc
   global/ActionInterface.cc
   global/ActionRegistry.cc
   global/ActionRegistryOutput.cc
