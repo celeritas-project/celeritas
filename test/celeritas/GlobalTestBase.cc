@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GlobalTestBase.hh"
 
+#include <iostream>
 #include <fstream>
 
 #include "celeritas_config.h"
@@ -30,12 +31,20 @@ namespace test
 //---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
 {
-    output_ = std::make_shared<OutputRegistry>();
+    output_reg_ = std::make_shared<OutputRegistry>();
 }
 
 //---------------------------------------------------------------------------//
 // Default destructor
-GlobalTestBase::~GlobalTestBase() = default;
+GlobalTestBase::~GlobalTestBase()
+{
+    if (this->HasFailure())
+    {
+        std::cerr << "Writing diagnostic output to screen because test failed:\n";
+        this->write_output(std::cout);
+        std::cout << std::endl;
+    }
+}
 
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_rng() const -> SPConstRng
@@ -92,29 +101,13 @@ void GlobalTestBase::write_output(std::ostream& os) const
 {
 #if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
-    output_->output(&json_wrap);
+    output_reg_->output(&json_wrap);
 
     // Print with pretty indentation
     os << json_wrap.obj.dump(1) << '\n';
 #else
     os << "\"output unavailable\"";
 #endif
-}
-
-//---------------------------------------------------------------------------//
-// PRIVATE
-//---------------------------------------------------------------------------//
-void GlobalTestBase::register_physics_output()
-{
-    CELER_ASSERT(physics_);
-    output_->insert(std::make_shared<PhysicsParamsOutput>(physics_));
-}
-
-//---------------------------------------------------------------------------//
-void GlobalTestBase::register_action_reg_output()
-{
-    CELER_ASSERT(action_reg_);
-    output_->insert(std::make_shared<ActionRegistryOutput>(action_reg_));
 }
 
 //---------------------------------------------------------------------------//

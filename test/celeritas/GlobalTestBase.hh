@@ -72,7 +72,7 @@ class GlobalTestBase : public Test
   public:
     // Create output manager on construction
     GlobalTestBase();
-    // Default destructor
+    // Print output on failure if available
     virtual ~GlobalTestBase();
 
     //// ACCESSORS ////
@@ -109,7 +109,7 @@ class GlobalTestBase : public Test
     //// OUTPUT ////
 
     //! Access output manager
-    SPOutputRegistry const& output_mgr() const { return output_; }
+    SPOutputRegistry const& output_reg() const { return output_reg_; }
     //! Write output to a debug text file
     void write_output();
     //! Write output to a stream
@@ -131,19 +131,6 @@ class GlobalTestBase : public Test
     SPActionRegistry build_action_reg() const;
     SPConstCore build_core();
 
-    void register_geometry_output() {}
-    void register_material_output() {}
-    void register_geomaterial_output() {}
-    void register_particle_output() {}
-    void register_cutoff_output() {}
-    void register_physics_output();
-    void register_along_step_output() {}
-    void register_rng_output() {}
-    void register_sim_output() {}
-    void register_init_output() {}
-    void register_action_reg_output();
-    void register_core_output() {}
-
   private:
     SPConstGeo geometry_;
     SPConstMaterial material_;
@@ -157,7 +144,7 @@ class GlobalTestBase : public Test
     SPConstSim sim_;
     SPConstTrackInit init_;
     SPConstCore core_;
-    SPOutputRegistry output_;
+    SPOutputRegistry output_reg_;
 };
 
 //---------------------------------------------------------------------------//
@@ -171,7 +158,6 @@ class GlobalTestBase : public Test
         {                                         \
             this->NAME##_ = this->build_##NAME(); \
             CELER_ASSERT(this->NAME##_);          \
-            this->register_##NAME##_output();     \
         }                                         \
         return this->NAME##_;                     \
     }                                             \
