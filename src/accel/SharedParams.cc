@@ -294,8 +294,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
 
     CoreParams::Input params;
 
-    // Create action manager
+    // Create registries
     params.action_reg = std::make_shared<ActionRegistry>();
+    params.output_reg = std::make_shared<OutputRegistry>();
 
     // Load geometry
     params.geometry = [&options] {
