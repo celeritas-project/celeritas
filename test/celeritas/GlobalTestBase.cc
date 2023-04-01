@@ -63,6 +63,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.sim = this->sim();
     inp.init = this->init();
     inp.action_reg = this->action_reg();
+    inp.output_reg = this->output_reg();
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop
