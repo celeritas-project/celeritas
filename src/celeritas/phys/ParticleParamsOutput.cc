@@ -37,13 +37,19 @@ ParticleParamsOutput::ParticleParamsOutput(SPConstParticleParams particles)
 void ParticleParamsOutput::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
-    auto obj = nlohmann::json::array();
+    using json = nlohmann::json;
+    auto label = json::array();
+    auto pdg = json::array();
+
     for (auto id : range(ParticleId{particles_->size()}))
     {
-        obj.push_back({{"label", particles_->id_to_label(id)},
-                       {"pdg", particles_->id_to_pdg(id).unchecked_get()}});
+        label.push_back(particles_->id_to_label(id));
+        pdg.push_back(particles_->id_to_pdg(id).unchecked_get());
     }
-    j->obj = std::move(obj);
+    j->obj = {
+        {"label", std::move(label)},
+        {"pdg", std::move(pdg)},
+    };
 #else
     (void)sizeof(j);
 #endif

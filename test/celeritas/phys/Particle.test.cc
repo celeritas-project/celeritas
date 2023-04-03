@@ -93,8 +93,10 @@ TEST_F(ParticleTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json([{"label":"electron","pdg":11},{"label":"gamma","pdg":22},{"label":"neutron","pdg":2112},{"label":"positron","pdg":-11}])json",
-            to_string(out));
+            R"json({"label":["electron","gamma","neutron","positron"],"pdg":[11,22,2112,-11]})json",
+            to_string(out))
+            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
+            << ")json\"\n/******/";
     }
 }
 
