@@ -23,8 +23,6 @@
 namespace celeritas
 {
 
-#define VECGEOM_VECTORAPI
-
 /*!
  * A generic VecGeom placed volume converted from a Geant4 geometry.
  *
@@ -144,7 +142,6 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     {
     }
 
-#ifdef VECGEOM_VECTORAPI
     // if we have any SIMD backend, we offer a SIMD interface
     virtual Real_v
     DistanceToInVec(Vector3D<Real_v> const&,
@@ -158,7 +155,6 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     {
         return Real_v{0.};
     }
-#endif
     //!@}
 
     //!@{ \name Geometrical ToOut methods
@@ -208,7 +204,6 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     {
     }
 
-#ifdef VECGEOM_VECTORAPI
     // define this interface in case we don't have the Scalar interface
     virtual Real_v
     DistanceToOutVec(Vector3D<Real_v> const&,
@@ -222,7 +217,6 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     {
         return Real_v{0.};
     }
-#endif
     //!@}
 
     //! Calculation of surface area.
