@@ -381,16 +381,28 @@ void SharedParams::initialize_core(SetupOptions const& options)
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
-    // Set maximum number of streams based on Geant4 multithreading
-    // Hit processors *must* be allocated on the thread they're used because of
-    // geant4 thread-local SDs. There must be one per thread.
-    params.max_streams = [] {
-        auto* run_man = G4RunManager::GetRunManager();
-        CELER_VALIDATE(run_man,
-                       << "G4RunManager was not created before initializing "
-                          "SharedParams");
-        return celeritas::get_num_threads(*run_man);
-    }();
+    if (options.get_num_streams)
+    {
+        int num_streams = options.get_num_streams();
+        CELER_VALIDATE(num_streams > 0,
+                       << "nonpositive number of streams (" << num_streams
+                       << ") returned by SetupOptions.get_num_streams");
+        params.max_streams = num_streams;
+    }
+    else
+    {
+        // Default to setting the maximum number of streams based on Geant4
+        // multithreading.
+        // Hit processors *must* be allocated on the thread they're used
+        // because of geant4 thread-local SDs. There must be one per thread.
+        params.max_streams = [] {
+            auto* run_man = G4RunManager::GetRunManager();
+            CELER_VALIDATE(run_man,
+                           << "G4RunManager was not created before "
+                              "initializing SharedParams");
+            return celeritas::get_num_threads(*run_man);
+        }();
+    }
 
     // Construct along-step action
     params.action_reg->insert([&params, &options, &imported] {
