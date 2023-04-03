@@ -88,7 +88,7 @@ class VecgeomParams
     //! Access geometry data on host
     inline HostRef const& host_ref() const;
 
-    //! Access geometry data on host
+    //! Access geometry data on device
     inline DeviceRef const& device_ref() const;
 
   private:
