@@ -262,6 +262,10 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     }
 
 #ifdef VECGEOM_CUDA_INTERFACE
+    using CudaVPlacedVolume = vecgeom::cuda::VPlacedVolume;
+    using CudaLogicalVolume = vecgeom::cuda::LogicalVolume;
+    using CudaTransformation3D = vecgeom::cuda::Transformation3D;
+
     //! @{ /name Required interface
     //
     // These implementations are required when CUDA is enabled.
@@ -271,26 +275,25 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
         return 0;
     }
 
-    DevicePtr<vecgeom::cuda::VPlacedVolume>
-    CopyToGpu(DevicePtr<vecgeom::cuda::LogicalVolume> const,
-              DevicePtr<vecgeom::cuda::Transformation3D> const,
-              DevicePtr<vecgeom::cuda::VPlacedVolume> const) const
+    DevicePtr<CudaVPlacedVolume>
+    CopyToGpu(DevicePtr<CudaLogicalVolume> const,
+              DevicePtr<CudaTransformation3D> const,
+              DevicePtr<CudaVPlacedVolume> const) const
     {
         return {};
     }
 
-    DevicePtr<vecgeom::cuda::VPlacedVolume>
-    CopyToGpu(DevicePtr<vecgeom::cuda::LogicalVolume> const,
-              DevicePtr<vecgeom::cuda::Transformation3D> const) const
+    DevicePtr<CudaVPlacedVolume>
+    CopyToGpu(DevicePtr<CudaLogicalVolume> const,
+              DevicePtr<CudaTransformation3D> const) const
     {
         return {};
     }
 
-    void CopyManyToGpu(
-        std::vector<VPlacedVolume const*> const&,
-        std::vector<DevicePtr<vecgeom::cuda::LogicalVolume>> const&,
-        std::vector<DevicePtr<vecgeom::cuda::Transformation3D>> const&,
-        std::vector<DevicePtr<vecgeom::cuda::VPlacedVolume>> const&) const
+    void CopyManyToGpu(std::vector<VPlacedVolume const*> const&,
+                       std::vector<DevicePtr<CudaLogicalVolume>> const&,
+                       std::vector<DevicePtr<CudaTransformation3D>> const&,
+                       std::vector<DevicePtr<CudaVPlacedVolume>> const&) const
     {
     }
     //!@}

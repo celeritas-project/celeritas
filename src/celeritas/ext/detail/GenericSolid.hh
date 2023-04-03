@@ -21,7 +21,8 @@
 #include <VecGeom/volumes/UnplacedVolume.h>
 
 #include "GenericPlacedVolume.hh"
-using namespace vecgeom;
+
+using vecgeom::VUnplacedVolume;
 
 namespace celeritas
 {
@@ -38,10 +39,13 @@ class GenericSolid : public VUnplacedVolume
   private:
     //!@{
     //! \name Type aliases
-    using VUnplacedVolume::DistanceToIn;
-    using VUnplacedVolume::DistanceToOut;
-    using VUnplacedVolume::SafetyToIn;
-    using VUnplacedVolume::SafetyToOut;
+    using EnumInside = vecgeom::EnumInside;
+    using LogicalVolume = vecgeom::LogicalVolume;
+    using Transformation3D = vecgeom::Transformation3D;
+    template<class T>
+    using Vector3D = vecgeom::Vector3D<T>;
+    template<class T>
+    using DevicePtr = vecgeom::DevicePtr<T>;
     //!@}
 
   public:
@@ -55,7 +59,7 @@ class GenericSolid : public VUnplacedVolume
     }
 
     //! Convert containment flags, from VecGeom into USolids type.
-    static EnumInside ConvertEnum(::EInside p)
+    static vecgeom::EnumInside ConvertEnum(::EInside p)
     {
         if (p == ::EInside::kInside)
             return EnumInside::kInside;
@@ -183,18 +187,20 @@ class GenericSolid : public VUnplacedVolume
     void Print() const override { Print(std::cout); }
     G4GeometryType GetEntityType() const { return g4_solid_->GetEntityType(); }
 
-    VPlacedVolume*
-    SpecializedVolume(LogicalVolume const* const volume,
-                      Transformation3D const* const transformation,
-                      const TranslationCode,
-                      const RotationCode,
-                      VPlacedVolume* const /*placement = nullptr*/) const override
+    vecgeom::VPlacedVolume* SpecializedVolume(
+        LogicalVolume const* const volume,
+        Transformation3D const* const transformation,
+        const TranslationCode,
+        const RotationCode,
+        vecgeom::VPlacedVolume* const /*placement = nullptr*/) const override
     {
         return new GenericPlacedVolume(volume, transformation);
     }
     //!@}
 
 #ifdef VECGEOM_CUDA_INTERFACE
+    using CudaUnplacedVolume = vecgeom::cuda::VUnplacedVolume;
+
     //! @{ /name Required interface
     //
     // These implementations are required when CUDA is enabled.
@@ -203,12 +209,12 @@ class GenericSolid : public VUnplacedVolume
     {
         return 0;
     }
-    DevicePtr<cuda::VUnplacedVolume> CopyToGpu() const
+    DevicePtr<CudaUnplacedVolume> CopyToGpu() const
     {
         return {};
     }
-    DevicePtr<cuda::VUnplacedVolume>
-    CopyToGpu(DevicePtr<cuda::VUnplacedVolume> const) const
+    DevicePtr<CudaUnplacedVolume>
+    CopyToGpu(DevicePtr<CudaUnplacedVolume> const) const
     {
         return {};
     }
