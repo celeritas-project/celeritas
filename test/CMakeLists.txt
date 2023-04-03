@@ -70,8 +70,8 @@ function(celeritas_add_device_test base)
   celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
-if(NOT CELERITAS_USE_CUDA)
-  set(_needs_cuda DISABLE)
+if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
+  set(_needs_device DISABLE)
 endif()
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
@@ -435,7 +435,7 @@ endif()
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_add_test(celeritas/track/Sim.test.cc ${_needs_geant4})
-celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
+celeritas_add_device_test(celeritas/track/TrackInit ${_needs_device})
 
 #-------------------------------------#
 # User
