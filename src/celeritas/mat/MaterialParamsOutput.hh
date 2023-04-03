@@ -16,7 +16,7 @@ class MaterialParams;
 /*!
  * Save material diagnostic data.
  */
-class MaterialParamsOutput : public OutputInterface
+class MaterialParamsOutput final : public OutputInterface
 {
   public:
     //!@{

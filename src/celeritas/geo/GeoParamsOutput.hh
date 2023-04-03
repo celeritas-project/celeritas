@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Save geometry diagnostic data.
  */
-class GeoParamsOutput : public OutputInterface
+class GeoParamsOutput final : public OutputInterface
 {
   public:
     //!@{
