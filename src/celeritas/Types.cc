@@ -13,6 +13,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to a state of matter.
+ */
+char const* to_cstring(MatterState value)
+{
+    static EnumStringMapper<MatterState> const to_cstring_impl{
+        "unspecified",
+        "solid",
+        "liquid",
+        "gas",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a string corresponding to an action order.
  */
 char const* to_cstring(ActionOrder value)

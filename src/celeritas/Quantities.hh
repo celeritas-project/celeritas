@@ -72,6 +72,8 @@ struct Amu
     {
         return constants::atomic_mass;
     }
+    //! Text label for output
+    static char const* label() { return "amu"; }
 };
 
 //! Unit for cross sections
