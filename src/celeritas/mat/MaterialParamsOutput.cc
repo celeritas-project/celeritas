@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/Types.hh"
 
 #include "MaterialParams.hh"  // IWYU pragma: keep
@@ -57,7 +58,7 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
 
         for (auto id : range(ElementId{material_->num_elements()}))
         {
-            auto&& el_view = material_->get(id);
+            ElementView const el_view = material_->get(id);
             label.push_back(material_->id_to_label(id));
             atomic_number.push_back(el_view.atomic_number().unchecked_get());
             atomic_mass.push_back(el_view.atomic_mass().value());
@@ -71,8 +72,8 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
             {"coulomb_correction", std::move(coulomb_correction)},
             {"mass_radiation_coeff", std::move(mass_radiation_coeff)},
         };
-        units["atomic_mass"] = decltype(material_->get(ElementId{0})
-                                            .atomic_mass())::unit_type::label();
+        units["atomic_mass"]
+            = accessor_unit_label<decltype(&ElementView::atomic_mass)>();
     }
 
     // Unfold materials
@@ -93,7 +94,7 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
 
         for (auto id : range(MaterialId{material_->num_materials()}))
         {
-            auto&& mat_view = material_->get(id);
+            MaterialView const mat_view = material_->get(id);
             label.push_back(material_->id_to_label(id));
             number_density.push_back(mat_view.number_density());
             temperature.push_back(mat_view.temperature());
@@ -132,9 +133,8 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
             {"mean_excitation_energy", std::move(mean_excitation_energy)},
         };
         {
-            units["mean_excitation_energy"]
-                = decltype(material_->get(MaterialId{0})
-                               .mean_excitation_energy())::unit_type::label();
+            units["mean_excitation_energy"] = accessor_unit_label<
+                decltype(&MaterialView::mean_excitation_energy)>();
         }
     }
 
