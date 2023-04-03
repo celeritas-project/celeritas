@@ -91,7 +91,7 @@ if(NOT Sphinx_FOUND)
         "${CMAKE_COMMAND}"
         -UCELERITAS_PYTHONPATH
         -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
-        -DCELERITAS_PYTHONPATH_RERUN
+        -DCELERITAS_PYTHONPATH_RERUN:BOOL=ON
         "${CMAKE_BINARY_DIR}"
       COMMENT "Rerunning CMake because Sphinx was not found"
       ${ARGN}
@@ -213,42 +213,47 @@ install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
 set(_doc_tex "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.tex")
 celeritas_build_sphinx(latex "${_doc_tex}")
 
-# Download ornltm class
-ExternalProject_Add(ornltm
-  GIT_REPOSITORY https://code.ornl.gov/s3j/ornltm.git
-  GIT_TAG 05a4b22f104abd53ac7cae72fe03768710b56b86
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ""
-  SOURCE_DIR "${_ORNLTM_BASE}"
-)
+if(Sphinx_FOUND)
+  # Download ornltm class
+  ExternalProject_Add(ornltm
+    GIT_REPOSITORY https://code.ornl.gov/s3j/ornltm.git
+    GIT_TAG 05a4b22f104abd53ac7cae72fe03768710b56b86
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+    SOURCE_DIR "${_ORNLTM_BASE}"
+  )
 
-# Generate header
-set(_header_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-header-celeritas.pdf")
-celeritas_build_latex(
-  "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-header-celeritas.tex"
-  "${_header_pdf}"
-  COMMENT "Building tech memo header"
-  DEPENDS ornltm
-)
+  # Generate header
+  set(_header_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-header-celeritas.pdf")
+  celeritas_build_latex(
+    "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-header-celeritas.tex"
+    "${_header_pdf}"
+    COMMENT "Building tech memo header"
+    DEPENDS ornltm
+  )
 
-# Generate header
-set(_footer_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-footer.pdf")
-celeritas_build_latex(
-  "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-footer.tex"
-  "${_footer_pdf}"
-  COMMENT "Building tech memo footer"
-  DEPENDS ornltm
-)
+  # Generate header
+  set(_footer_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-footer.pdf")
+  celeritas_build_latex(
+    "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-footer.tex"
+    "${_footer_pdf}"
+    COMMENT "Building tech memo footer"
+    DEPENDS ornltm
+  )
 
-# Generate PDF
-set(_doc_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.pdf")
-celeritas_build_latex(
-  Celeritas
-  "${_doc_pdf}"
-  COMMENT "Building PDF documentation from LaTeX"
-  DEPENDS "${_doc_tex}" "${_header_pdf}" "${_footer_pdf}" ornltm
-)
+  # Generate PDF
+  set(_doc_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.pdf")
+  celeritas_build_latex(
+    Celeritas
+    "${_doc_pdf}"
+    COMMENT "Building PDF documentation from LaTeX"
+    DEPENDS "${_doc_tex}" "${_header_pdf}" "${_footer_pdf}" ornltm
+  )
+else()
+  # No sphinx available: don't confuse people by downloading PDF classes
+  set(_doc_pdf "${_doc_tex}")
+endif()
 
 add_custom_target(doc_pdf DEPENDS "${_doc_pdf}")
 if(CELERITAS_USE_BREATHE)
