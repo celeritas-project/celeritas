@@ -56,7 +56,6 @@
 #include <G4UnionSolid.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VisExtent.hh>
-#include <VecGeom/base/Stopwatch.h>
 #include <VecGeom/base/Transformation3D.h>
 #include <VecGeom/management/FlatVoxelManager.h>
 #include <VecGeom/management/GeoManager.h>
@@ -97,6 +96,9 @@
 #include <VecGeom/volumes/UnplacedTrd.h>
 #include <VecGeom/volumes/UnplacedTube.h>
 
+#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 
@@ -147,21 +149,21 @@ VPlacedVolume const&
 GeantGeometryImporter::operator()(G4VPhysicalVolume const* g4_world)
 {
     GeoManager::Instance().Clear();
-    Stopwatch timer;
-    timer.Start();
-    auto volumes = convert(g4_world);
-    assert(volumes->size() == 1);
-    world_ = (*volumes)[0];
-    timer.Stop();
-    CELER_LOG(debug) << "Conversion of G4 -> VecGeom finished ("
-                     << timer.Elapsed() << " s) ***";
+    {
+        CELER_LOG(status) << "Converting Geant4 geometry to VecGeom";
+        ScopedTimeLog scoped_time;
 
-    GeoManager::Instance().SetWorld(world_);
-    timer.Start();
-    GeoManager::Instance().CloseGeometry();
-    timer.Stop();
-    CELER_LOG(debug) << "Closing VecGeom geometry finished ("
-                     << timer.Elapsed() << " s) ***";
+        auto volumes = convert(g4_world);
+        CELER_ASSERT(volumes->size() == 1);
+        world_ = (*volumes)[0];
+    }
+
+    {
+        CELER_LOG(status) << "Finalizing VecGeom";
+        ScopedTimeLog scoped_time;
+        GeoManager::Instance().SetWorld(world_);
+        GeoManager::Instance().CloseGeometry();
+    }
 
     // Reset reference after geometry closing
     world_ = GeoManager::Instance().GetWorld();
@@ -188,21 +190,17 @@ void GeantGeometryImporter::extract_replicated_transformations(
     Vector3D<double> direction;
     switch (axis)
     {
-        case kXAxis: {
+        case kXAxis:
             direction.Set(1, 0, 0);
             break;
-        }
-        case kYAxis: {
+        case kYAxis:
             direction.Set(0, 1, 0);
             break;
-        }
-        case kZAxis: {
+        case kZAxis:
             direction.Set(0, 0, 1);
             break;
-        }
-        default: {
-            CELER_LOG(warning) << "UNSUPPORTED REPLICATION";
-        }
+        default:
+                     CELER_ASSERT_UNREACHABLE();
     }
     for (int r = 0; r < nReplicas; ++r)
     {
@@ -218,27 +216,20 @@ std::vector<VPlacedVolume const*> const*
 GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
 {
     // Warn about potentially unsupported cases
-    if (dynamic_cast<G4PVParameterised const*>(node))
+    if (dynamic_cast<G4PVParameterised const*>(node)
+        || dynamic_cast<G4PVReplica const*>(node)
+        || dynamic_cast<G4PVDivision const*>(node))
     {
-        CELER_LOG(info) << "PARAMETRIZED volume found: " << node->GetName();
-    }
-    replica_transformations_.clear();
-    if (auto replica = dynamic_cast<G4PVReplica const*>(node))
-    {
-        CELER_LOG(info) << "REPLICA volume found: " << replica->GetName();
-    }
-    if (dynamic_cast<G4PVDivision const*>(node))
-    {
-        CELER_LOG(info) << "DIVISION volume found: " << node->GetName();
+        TypeDemangler<G4VPhysicalVolume> demangle_type;
+        CELER_LOG(warning) << "Encountered possibly unsupported Geant4 physical volume type '"
+            << demangle_type(*node) << "'";
     }
 
     // convert node transformation
     auto* transformation
         = make_transformation(node->GetTranslation(), node->GetRotation());
-    if (replica_transformations_.size() == 0)
-    {
-        replica_transformations_.push_back(transformation);
-    }
+    replica_transformations_.clear();
+    replica_transformations_.push_back(transformation);
 
     auto vgvector = new std::vector<VPlacedVolume const*>;
 
@@ -254,15 +245,11 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
         vgvector->emplace_back(placed_volume);
     }
 
-    int remaining_daughters = 0;
-    {
-        // All or no daughters should have been placed already
-        remaining_daughters = g4logical->GetNoDaughters()
-                              - logical_volume->GetDaughters().size();
-        CELER_ASSERT(remaining_daughters <= 0
-                     || remaining_daughters
-                            == (int)g4logical->GetNoDaughters());
-    }
+    // All or no daughters should have been placed already
+    int remaining_daughters = g4logical->GetNoDaughters()
+                                - logical_volume->GetDaughters().size();
+    CELER_ASSERT(remaining_daughters <= 0
+                 || remaining_daughters == (int)g4logical->GetNoDaughters());
 
     for (int i = 0; i < remaining_daughters; ++i)
     {
@@ -304,12 +291,11 @@ LogicalVolume* GeantGeometryImporter::convert(G4LogicalVolume const* g4_logvol)
     if (!dynamic_cast<UnplacedScaledShape const*>(vg_logvol->GetUnplacedVolume())
         && !dynamic_cast<G4BooleanSolid const*>(g4_logvol->GetSolid()))
     {
-        auto const v1 = vg_logvol->GetUnplacedVolume()->Capacity()
-                        / ipow<3>(scale);
-        auto const v2 = g4_logvol->GetSolid()->GetCubicVolume();
+        auto v1 = vg_logvol->GetUnplacedVolume()->Capacity() / ipow<3>(scale);
+        auto v2 = g4_logvol->GetSolid()->GetCubicVolume();
 
         CELER_ASSERT(v1 > 0.);
-        CELER_ASSERT(std::fabs((v1 / v2) - 1.0) < 0.01);
+        CELER_ASSERT(SoftEqual{0.01}(v1, v2));
     }
     return vg_logvol;
 }
@@ -720,8 +706,6 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
             << " type = " << refl->GetEntityType()
             << "   -- underlying solid: " << underlyingSolid->GetName()
             << " type = " << underlyingSolid->GetEntityType();
-        CELER_LOG(info) << "Reflection G4 solid " << shape->GetName()
-                        << " -- wrapping G4 implementation.";
         unplaced_volume = new GenericSolid<G4ReflectedSolid>(refl);
     }
 

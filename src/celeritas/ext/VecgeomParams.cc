@@ -67,7 +67,6 @@ VecgeomParams::VecgeomParams(std::string const& filename)
 VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 {
     CELER_EXPECT(world);
-    CELER_LOG(status) << "Importing VecGeom model from Geant4";
 
     // Convert the geometry to VecGeom
 #if CELERITAS_USE_GEANT4
