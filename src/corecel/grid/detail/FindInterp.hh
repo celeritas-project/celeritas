@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/detail/FindInterp.hh
+//! \file corecel/grid/detail/FindInterp.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

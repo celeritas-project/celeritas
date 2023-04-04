@@ -18,12 +18,12 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/math/Atomics.hh"
 #include "orange/Types.hh"
 #include "orange/detail/LevelStateAccessor.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/grid/NonuniformGrid.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "../Transporter.hh"

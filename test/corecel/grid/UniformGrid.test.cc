@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/UniformGrid.test.cc
+//! \file corecel/grid/UniformGrid.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/UniformGrid.hh"
+#include "corecel/grid/UniformGrid.hh"
 
 #include <cmath>
 

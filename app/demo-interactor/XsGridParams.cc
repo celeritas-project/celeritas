@@ -16,9 +16,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "celeritas/grid/UniformGrid.hh"
-#include "celeritas/grid/UniformGridData.hh"
 #include "celeritas/grid/XsGridData.hh"
 
 namespace demo_interactor

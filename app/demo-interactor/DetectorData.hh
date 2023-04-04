@@ -10,9 +10,9 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/StackAllocatorData.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/UniformGridData.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/data/CollectionBuilder.hh"
