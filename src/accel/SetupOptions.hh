@@ -82,6 +82,8 @@ struct SetupOptions
     std::string geometry_file;
     //! Filename for JSON diagnostic output
     std::string output_file;
+    //! Filename for ROOT dump of physics data
+    std::string physics_output_file;
     //!@}
 
     //!@{

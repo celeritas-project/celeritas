@@ -271,12 +271,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
     }();
     CELER_ASSERT(imported && *imported);
 
-    if (CELERITAS_USE_ROOT && options.output_file.size() > 5)
+    if (!options.physics_output_file.empty())
     {
-        std::string root_out{options.output_file.begin(),
-                             options.output_file.end() - 5};
-        root_out += ".root";
-        RootExporter export_root(root_out.c_str());
+        RootExporter export_root(options.physics_output_file.c_str());
         export_root(*imported);
     }
 
