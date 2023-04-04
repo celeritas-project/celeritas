@@ -166,7 +166,6 @@ GeantGeometryImporter::operator()(G4VPhysicalVolume const* g4_world)
 
     // Reset reference after geometry closing
     world_ = GeoManager::Instance().GetWorld();
-    this->clear_maps();
     CELER_ENSURE(world_);
     return *world_;
 }
@@ -839,10 +838,4 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
     return unplaced_volume;
 }
 
-void GeantGeometryImporter::clear_maps()
-{
-    placed_volume_map_.clear();
-    unplaced_volume_map_.clear();
-    logical_volume_map_.clear();
-}
 }  // namespace celeritas
