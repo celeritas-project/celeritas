@@ -55,9 +55,9 @@ void GeantGeoExporter::operator()(std::string const& filename) const
     ScopedTimeAndRedirect time_and_output_("G4GDMLParser");
 
     G4GDMLParser parser;
-    parser.SetEnergyCutsExport(true);
-    parser.SetSDExport(true);
-    parser.SetOverlapCheck(true);
+    parser.SetEnergyCutsExport(false);
+    parser.SetSDExport(false);
+    parser.SetOverlapCheck(false);
 #if G4VERSION_NUMBER >= 1070
     parser.SetOutputFileOverwrite(true);
 #endif
