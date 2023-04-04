@@ -20,9 +20,6 @@
 #include <map>
 #include <utility>
 #include <vector>
-#include <G4PVReplica.hh>
-#include <G4RotationMatrix.hh>
-#include <G4ThreeVector.hh>
 #include <VecGeom/base/TypeMap.h>
 #include <VecGeom/management/GeoManager.h>
 
@@ -30,6 +27,7 @@ class G4LogicalVolume;
 class G4AffineTransformation;
 class G4VPhysicalVolume;
 class G4VSolid;
+class G4PVReplica;
 
 namespace celeritas
 {
@@ -88,9 +86,6 @@ class GeantGeometryImporter
      * All daughters' physical volumes will be recursively converted.
      */
     LogicalVolume* convert(G4LogicalVolume const*);
-
-    //! Convert transformation matrices.
-    Transformation3D* convert(G4ThreeVector const&, G4RotationMatrix const*);
 
   private:
     //!@{ Deleted constructors and assignment operator.

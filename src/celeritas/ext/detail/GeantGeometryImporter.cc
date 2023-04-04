@@ -35,16 +35,19 @@
 #include <G4Orb.hh>
 #include <G4PVDivision.hh>
 #include <G4PVParameterised.hh>
+#include <G4PVReplica.hh>
 #include <G4Para.hh>
 #include <G4Paraboloid.hh>
 #include <G4Polycone.hh>
 #include <G4Polyhedra.hh>
 #include <G4PropagatorInField.hh>
 #include <G4ReflectedSolid.hh>
+#include <G4RotationMatrix.hh>
 #include <G4Sphere.hh>
 #include <G4SubtractionSolid.hh>
 #include <G4TessellatedSolid.hh>
 #include <G4Tet.hh>
+#include <G4ThreeVector.hh>
 #include <G4Torus.hh>
 #include <G4Transform3D.hh>
 #include <G4Trap.hh>
@@ -105,9 +108,41 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
 //---------------------------------------------------------------------------//
 static constexpr double scale = 0.1;  // G4 mm to VecGeom cm scale
 
+//---------------------------------------------------------------------------//
+Transformation3D*
+make_transformation(G4ThreeVector const& t, G4RotationMatrix const* rot)
+{
+    Transformation3D* transformation;
+    if (!rot)
+    {
+        transformation
+            = new Transformation3D(scale * t[0], scale * t[1], scale * t[2]);
+    }
+    else
+    {
+        transformation = new Transformation3D(scale * t[0],
+                                              scale * t[1],
+                                              scale * t[2],
+                                              rot->xx(),
+                                              rot->yx(),
+                                              rot->zx(),
+                                              rot->xy(),
+                                              rot->yy(),
+                                              rot->zy(),
+                                              rot->xz(),
+                                              rot->yz(),
+                                              rot->zz());
+    }
+    return transformation;
+}
+}  // namespace
+
+//---------------------------------------------------------------------------//
 VPlacedVolume const&
 GeantGeometryImporter::operator()(G4VPhysicalVolume const* g4_world)
 {
@@ -201,11 +236,11 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
     }
 
     // convert node transformation
-    auto const transformation
-        = this->convert(node->GetTranslation(), node->GetRotation());
+    auto* transformation
+        = make_transformation(node->GetTranslation(), node->GetRotation());
     if (replica_transformations_.size() == 0)
     {
-        replica_transformations_.emplace_back(transformation);
+        replica_transformations_.push_back(transformation);
     }
 
     auto vgvector = new std::vector<VPlacedVolume const*>;
@@ -244,33 +279,6 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
 
     placed_volume_map_[node] = vgvector;
     return vgvector;
-}
-
-Transformation3D* GeantGeometryImporter::convert(G4ThreeVector const& t,
-                                                 G4RotationMatrix const* rot)
-{
-    Transformation3D* transformation;
-    if (!rot)
-    {
-        transformation
-            = new Transformation3D(scale * t[0], scale * t[1], scale * t[2]);
-    }
-    else
-    {
-        transformation = new Transformation3D(scale * t[0],
-                                              scale * t[1],
-                                              scale * t[2],
-                                              rot->xx(),
-                                              rot->yx(),
-                                              rot->zx(),
-                                              rot->xy(),
-                                              rot->yy(),
-                                              rot->zy(),
-                                              rot->xz(),
-                                              rot->yz(),
-                                              rot->zz());
-    }
-    return transformation;
 }
 
 LogicalVolume* GeantGeometryImporter::convert(G4LogicalVolume const* g4_logvol)
@@ -664,7 +672,7 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
         Transformation3D const* lefttrans = &Transformation3D::kIdentity;
         auto rot = g4righttrans.NetRotation();
         Transformation3D const* righttrans
-            = this->convert(g4righttrans.NetTranslation(), &rot);
+            = make_transformation(g4righttrans.NetTranslation(), &rot);
 
         // unplaced shapes
         VUnplacedVolume const* leftunplaced = this->convert(left);

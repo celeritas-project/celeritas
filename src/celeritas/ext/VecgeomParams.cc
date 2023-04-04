@@ -31,7 +31,7 @@
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "detail/GeantGeoExporter.hh"
-#include "detail/GeantGeometryImport.hh"
+#include "detail/GeantGeometryImporter.hh"
 
 namespace celeritas
 {
@@ -70,16 +70,15 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     CELER_LOG(status) << "Importing VecGeom model from Geant4";
 
     // Convert the geometry to VecGeom
-    detail::g4_to_vecgeom(world);
-    CELER_LOG(debug) << "Converted: max_depth = "
-                     << vecgeom::GeoManager::Instance().getMaxDepth();
-
-    //.. dump VecGeom geometry details for comparison
-    vecgeom::VPlacedVolume const* vgWorld
-        = vecgeom::GeoManager::Instance().GetWorld();
-    CELER_ASSERT(vgWorld);
-    CELER_LOG(debug) << "Top VecGeom volume: " << vgWorld->GetName()
-                     << " - Label: " << vgWorld->GetLabel();
+#if CELERITAS_USE_GEANT4
+    {
+        detail::GeantGeometryImporter convert;
+        convert(world);
+        CELER_ASSERT(vecgeom::GeoManager::Instance().GetWorld());
+    }
+#else
+    CELER_NOT_CONFIGURED("Geant4");
+#endif
 
     this->build_tracking();
     this->build_data();

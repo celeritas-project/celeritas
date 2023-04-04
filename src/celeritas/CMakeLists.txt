@@ -114,7 +114,6 @@ if(CELERITAS_USE_Geant4)
   )
   if(CELERITAS_USE_VecGeom)
     list(APPEND _cg4_sources
-      ext/detail/GeantGeometryImport.cc
       ext/detail/GeantGeometryImporter.cc
     )
     list(APPEND _cg4_libs VecGeom::vecgeom)
