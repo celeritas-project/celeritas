@@ -61,7 +61,8 @@
       "inherits": [".reldeb", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "ON"}
       }
     },
     {
@@ -70,7 +71,8 @@
       "inherits": [".ndebug", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "ON"}
       }
     }
   ],
