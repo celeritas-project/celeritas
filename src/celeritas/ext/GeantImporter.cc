@@ -731,7 +731,9 @@ GeantImporter::import_volumes(bool unique_volumes) const
     visitor.visit(*world_->GetLogicalVolume());
 
     auto volumes = visitor.build_volume_vector();
-    CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes";
+    CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes with "
+                     << (unique_volumes ? "uniquified" : "original")
+                     << " names";
     return volumes;
 }
 
