@@ -98,11 +98,9 @@ void DetectorConstruction::ConstructSDandField()
     {
         // Find the end of the current range of keys
         auto stop = iter;
-        int num_keys = 0;
         do
         {
             ++stop;
-            ++num_keys;
         } while (stop != detectors_.end() && iter->first == stop->first);
 
         // Create one detector for all the volumes
