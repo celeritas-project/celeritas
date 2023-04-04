@@ -54,7 +54,8 @@ void RunAction::BeginOfRunAction(G4Run const* run)
     {
         // This worker (or master thread) is responsible for initializing
         // celeritas
-        if (!CELERITAS_USE_VECGEOM)
+        if (!CELERITAS_USE_VECGEOM
+            || GlobalSetup::Instance()->StripGDMLPointers())
         {
             // For testing purposes, pass the GDML input filename to Celeritas
             const_cast<celeritas::SetupOptions&>(*options_).geometry_file

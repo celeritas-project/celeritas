@@ -57,7 +57,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     CELER_LOG_LOCAL(status) << "Loading detector geometry";
 
     G4GDMLParser gdml_parser;
-    gdml_parser.SetStripFlag(false);
+    gdml_parser.SetStripFlag(GlobalSetup::Instance()->StripGDMLPointers());
 
     std::string const& filename = GlobalSetup::Instance()->GetGeometryFile();
     if (filename.empty())
