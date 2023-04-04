@@ -18,6 +18,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Label.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -98,9 +99,10 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
         if (!id)
         {
             // Fallback to skipping the extension
-            id = geo.find_volume(label.name);
-            if (id)
+            auto all_ids = geo.find_volumes(label.name);
+            if (all_ids.size() == 1)
             {
+                id = all_ids.front();
                 CELER_LOG(warning)
                     << "Failed to find " << celeritas_geometry
                     << " volume corresponding to Geant4 volume '"
@@ -114,10 +116,22 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
                 // had a pointer suffix and we added another)
                 label = Label::from_geant(visitor.generate_name(*lv));
                 id = geo.find_volume(label.name);
+                if (!id)
+                {
+                    CELER_LOG(warning)
+                        << "Multiple volumes '"
+                        << join(all_ids.begin(),
+                                all_ids.end(),
+                                "', '",
+                                [&geo](VolumeId v) {
+                                    return geo.id_to_label(v);
+                                })
+                        << "' match the Geant4 volume with extension omitted";
+                }
             }
         }
         CELER_VALIDATE(id,
-                       << "failed to find " << celeritas_geometry
+                       << "failed to find a unique " << celeritas_geometry
                        << " volume corresponding to Geant4 volume '"
                        << lv->GetName() << "'");
         CELER_LOG(debug) << "Mapped sensitive detector '" << sd->GetName()
