@@ -23,7 +23,9 @@
 
 namespace celeritas
 {
-
+namespace detail
+{
+//---------------------------------------------------------------------------//
 /*!
  * A generic VecGeom placed volume converted from a Geant4 geometry.
  *
@@ -308,4 +310,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     GenericPlacedVolume& operator=(GenericPlacedVolume const&) = delete;
     //!@}
 };
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

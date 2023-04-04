@@ -33,8 +33,12 @@ class G4VSolid;
 
 namespace celeritas
 {
-
-//! class converting G4 to VecGeom (only geometry; no materials)
+namespace detail
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Convert G4 geometry to VecGeom.
+ */
 class GeantGeometryImporter
 {
   private:
@@ -123,4 +127,7 @@ class GeantGeometryImporter
 
     std::vector<Transformation3D const*> replica_transformations_;
 };
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

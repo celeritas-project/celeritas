@@ -98,10 +98,14 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "GenericSolid.hh"
+
 using namespace vecgeom;
 
 namespace celeritas
 {
+namespace detail
+{
+//---------------------------------------------------------------------------//
 static constexpr double scale = 0.1;  // G4 mm to VecGeom cm scale
 
 void init_VecGeom_navigators()
@@ -770,13 +774,12 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
         {
             CLER_LOG(info) << "Non-simple REFLECTION in solid "
                            << refl->GetName();
-            unplaced_volume
-                = new celeritas::GenericSolid<G4ReflectedSolid>(refl);
+            unplaced_volume = new GenericSolid<G4ReflectedSolid>(refl);
         }
 #else
         CELER_LOG(info) << "Reflection G4 solid " << shape->GetName()
                         << " -- wrapping G4 implementation.";
-        unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(refl);
+        unplaced_volume = new GenericSolid<G4ReflectedSolid>(refl);
 #endif
     }
 
@@ -829,7 +832,7 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
         CELER_LOG(info) << "Unsupported shape for G4 solid "
                         << shape->GetName().c_str() << ", of type "
                         << shape->GetEntityType().c_str();
-        unplaced_volume = new celeritas::GenericSolid<G4VSolid>(shape);
+        unplaced_volume = new GenericSolid<G4VSolid>(shape);
         CELER_LOG(debug) << " -- capacity = "
                          << unplaced_volume->Capacity() / ipow<3>(scale);
     }
@@ -838,4 +841,6 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
     return unplaced_volume;
 }
 
+//---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

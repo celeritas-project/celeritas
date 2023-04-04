@@ -24,10 +24,11 @@
 
 #include "GenericPlacedVolume.hh"
 
-using vecgeom::VUnplacedVolume;
-
 namespace celeritas
 {
+namespace detail
+{
+//---------------------------------------------------------------------------//
 /*!
  * A generic VecGeom solid converted from a Geant4 geometry.
  *
@@ -36,7 +37,7 @@ namespace celeritas
  * when it makes sense to use some functionality from the original G4 shape.
  */
 template<typename S>
-class GenericSolid : public VUnplacedVolume
+class GenericSolid : public vecgeom::VUnplacedVolume
 {
   private:
     //!@{
@@ -46,6 +47,7 @@ class GenericSolid : public VUnplacedVolume
     using Transformation3D = vecgeom::Transformation3D;
     template<class T>
     using Vector3D = vecgeom::Vector3D<T>;
+    using VUnplacedVolume = vecgeom::VUnplacedVolume;
     //!@}
 
   public:
@@ -59,7 +61,7 @@ class GenericSolid : public VUnplacedVolume
     }
 
     //! Convert containment flags, from VecGeom into USolids type.
-    static vecgeom::EnumInside ConvertEnum(::EInside p)
+    static EnumInside ConvertEnum(::EInside p)
     {
         if (p == ::EInside::kInside)
             return EnumInside::kInside;
@@ -235,4 +237,6 @@ class GenericSolid : public VUnplacedVolume
     S const* g4_solid_;
 };
 
+//---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
