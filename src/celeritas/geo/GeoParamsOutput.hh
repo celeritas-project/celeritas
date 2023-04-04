@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
 #include "corecel/io/OutputInterface.hh"
 
 #include "GeoParamsFwd.hh"  // IWYU pragma: keep
