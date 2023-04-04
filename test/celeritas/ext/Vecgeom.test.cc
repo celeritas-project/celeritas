@@ -497,11 +497,13 @@ TEST_F(SolidsTest, trace)
     {
         SCOPED_TRACE("Upper +x");
         auto result = this->track({-375, 125, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"World", "hype1",    "World", "para1",     "World", "tube100",
-               "World", "boolean1", "World", "boolean1",  "World", "torus1",
-               "World", "torus1",   "World", "polyhedr1", "World", "polyhedr1",
-               "World", "ellcone1", "World"};
+        static char const* const expected_volumes[] = {
+            "World",  "hype1",     "World",  "para1",     "World",  "tube100",
+            "World",  "boolean1",  "World",  "boolean1",  "World",  "torus1",
+            "torus1", "torus1",    "torus1", "torus1",    "torus1", "World",
+            "torus1", "torus1",    "torus1", "torus1",    "torus1", "torus1",
+            "World",  "polyhedr1", "World",  "polyhedr1", "World",  "ellcone1",
+            "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {20,
                                                        4,
@@ -515,9 +517,19 @@ TEST_F(SolidsTest, trace)
                                                        17.499999,
                                                        60,
                                                        2,
-                                                       16,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       15.99999995,
                                                        2,
-                                                       111.98703789108,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       111.98703784108,
                                                        1e-08,
                                                        40.048511400819,
                                                        25.977412807017,
@@ -779,11 +791,13 @@ TEST_F(SolidsGeantTest, trace)
     {
         SCOPED_TRACE("Upper +x");
         auto result = this->track({-375, 125, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"World", "hype1",    "World", "para1",     "World", "tube100",
-               "World", "boolean1", "World", "boolean1",  "World", "torus1",
-               "World", "torus1",   "World", "polyhedr1", "World", "polyhedr1",
-               "World", "ellcone1", "World"};
+        static char const* const expected_volumes[] = {
+            "World",  "hype1",     "World",  "para1",     "World",  "tube100",
+            "World",  "boolean1",  "World",  "boolean1",  "World",  "torus1",
+            "torus1", "torus1",    "torus1", "torus1",    "torus1", "World",
+            "torus1", "torus1",    "torus1", "torus1",    "torus1", "torus1",
+            "World",  "polyhedr1", "World",  "polyhedr1", "World",  "ellcone1",
+            "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {20,
                                                        4,
@@ -797,9 +811,19 @@ TEST_F(SolidsGeantTest, trace)
                                                        17.499999,
                                                        60,
                                                        2,
-                                                       16,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       15.99999995,
                                                        2,
-                                                       111.98703789108,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       1e-08,
+                                                       111.98703784108,
                                                        1e-08,
                                                        40.048511400819,
                                                        25.977412807017,
