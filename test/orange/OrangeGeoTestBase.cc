@@ -18,6 +18,7 @@
 #include "orange/Types.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/construct/SurfaceInputBuilder.hh"
+#include "orange/detail/UnitIndexer.hh"
 #include "orange/surf/Sphere.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/SurfaceIO.hh"
@@ -77,6 +78,10 @@ std::vector<Sense> OrangeGeoTestBase::string_to_senses(std::string const& s)
     });
     return result;
 }
+
+//---------------------------------------------------------------------------//
+//! Default constructor
+OrangeGeoTestBase::OrangeGeoTestBase() = default;
 
 //---------------------------------------------------------------------------//
 //! Default destructor
@@ -182,9 +187,19 @@ auto OrangeGeoTestBase::host_state() -> HostStateRef const&
     CELER_EXPECT(params_);
     if (!host_state_)
     {
-        host_state_ = HostStateStore(this->params().host_ref(), 1);
+        host_state_ = HostStateStore(this->host_params(), 1);
     }
     return host_state_.ref();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the params data on the host.
+ */
+auto OrangeGeoTestBase::host_params() const -> HostParamsRef const&
+{
+    CELER_EXPECT(params_);
+    return params_->host_ref();
 }
 
 //---------------------------------------------------------------------------//
@@ -199,7 +214,7 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     CELER_EXPECT(params_);
 
     // TODO: update when multiple units are in play
-    auto const& host_ref = this->params().host_ref();
+    auto const& host_ref = this->host_params();
     CELER_ASSERT(host_ref.simple_unit.size() == 1);
 
     os << "# Surfaces\n";
@@ -214,6 +229,16 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
         surf_to_stream(id);
         os << '\n';
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the number of volumes.
+ */
+VolumeId::size_type OrangeGeoTestBase::num_volumes() const
+{
+    CELER_EXPECT(params_);
+    return params_->num_volumes();
 }
 
 //---------------------------------------------------------------------------//
