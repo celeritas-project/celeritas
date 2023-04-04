@@ -11,16 +11,24 @@
 #include <type_traits>
 #include <utility>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/io/BuildOutput.hh"
+#include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/KernelRegistry.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/generated/BoundaryAction.hh"
+#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
@@ -29,6 +37,13 @@
 
 #include "ActionInterface.hh"
 #include "ActionRegistry.hh"  // IWYU pragma: keep
+
+#if CELERITAS_USE_JSON
+#    include "corecel/io/OutputInterfaceAdapter.hh"
+#    include "corecel/sys/DeviceIO.json.hh"
+#    include "corecel/sys/EnvironmentIO.json.hh"
+#    include "corecel/sys/KernelRegistryIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -99,6 +114,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
+    CP_VALIDATE_INPUT(output_reg);
     CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 
@@ -143,6 +159,29 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     {
         device_ref_ = build_params_refs<MemSpace::device>(input_, scalars);
     }
+
+#if CELERITAS_USE_JSON
+    // Save system diagnostic information
+    input_.output_reg->insert(OutputInterfaceAdapter<Device>::from_const_ref(
+        OutputInterface::Category::system, "device", celeritas::device()));
+    input_.output_reg->insert(
+        OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
+            OutputInterface::Category::system,
+            "kernels",
+            celeritas::kernel_registry()));
+    input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
+        OutputInterface::Category::system, "environ", celeritas::environment()));
+    input_.output_reg->insert(std::make_shared<BuildOutput>());
+#endif
+
+    // Save core diagnostic information
+    input_.output_reg->insert(
+        std::make_shared<ParticleParamsOutput>(input_.particle));
+    input_.output_reg->insert(
+        std::make_shared<PhysicsParamsOutput>(input_.physics));
+    input_.output_reg->insert(
+        std::make_shared<ActionRegistryOutput>(input_.action_reg));
+
     CELER_ENSURE(host_ref_);
     CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
 }

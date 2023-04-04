@@ -21,11 +21,11 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/OutputInterface.hh"
-#include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/io/OutputManager.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/KernelRegistry.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -49,18 +49,6 @@
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
-
-#if CELERITAS_USE_JSON
-#    include "corecel/io/BuildOutput.hh"
-#    include "corecel/sys/DeviceIO.json.hh"
-#    include "corecel/sys/Environment.hh"
-#    include "corecel/sys/EnvironmentIO.json.hh"
-#    include "corecel/sys/KernelRegistry.hh"
-#    include "corecel/sys/KernelRegistryIO.json.hh"
-#    include "celeritas/global/ActionRegistryOutput.hh"
-#    include "celeritas/phys/ParticleParamsOutput.hh"
-#    include "celeritas/phys/PhysicsParamsOutput.hh"
-#endif
 
 namespace celeritas
 {
@@ -207,34 +195,12 @@ void SharedParams::Finalize()
 #if CELERITAS_USE_JSON
         CELER_LOG(info) << "Writing Celeritas output to \"" << output_filename_
                         << '"';
-        OutputManager output;
-
-        // System diagnostics
-        output.insert(OutputInterfaceAdapter<Device>::from_const_ref(
-            OutputInterface::Category::system, "device", celeritas::device()));
-        output.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
-            OutputInterface::Category::system,
-            "kernels",
-            celeritas::kernel_registry()));
-        output.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
-            OutputInterface::Category::system,
-            "environ",
-            celeritas::environment()));
-        output.insert(std::make_shared<BuildOutput>());
-
-        // Problem diagnostics
-        output.insert(
-            std::make_shared<ParticleParamsOutput>(params_->particle()));
-        output.insert(
-            std::make_shared<PhysicsParamsOutput>(params_->physics()));
-        output.insert(
-            std::make_shared<ActionRegistryOutput>(params_->action_reg()));
 
         std::ofstream outf(output_filename_);
         CELER_VALIDATE(outf,
                        << "failed to open output file at \""
                        << output_filename_ << '"');
-        output.output(&outf);
+        params_->output_reg()->output(&outf);
 #else
         CELER_LOG(warning) << "JSON support is not enabled, so no output will "
                               "be written to \""
@@ -316,8 +282,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
 
     CoreParams::Input params;
 
-    // Create action manager
+    // Create registries
     params.action_reg = std::make_shared<ActionRegistry>();
+    params.output_reg = std::make_shared<OutputRegistry>();
 
     // Load geometry
     params.geometry = [&options] {
@@ -436,7 +403,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
 
-    // Save other data as needed
+    // Set up output
     output_filename_ = options.output_file;
 
     // Translate supported particles

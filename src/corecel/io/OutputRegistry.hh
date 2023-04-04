@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/io/OutputManager.hh
+//! \file corecel/io/OutputRegistry.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -29,7 +29,7 @@ namespace celeritas
    {"category": {"label": "data"}}
  * \endverbatim
  */
-class OutputManager
+class OutputRegistry
 {
   public:
     //!@{
@@ -47,14 +47,15 @@ class OutputManager
     // Dump all outputs as JSON to the given stream
     void output(std::ostream* os) const;
 
+    // Whether no output has been registered
+    bool empty() const;
+
   private:
     using Category = OutputInterface::Category;
 
     // Interfaces by category
     EnumArray<Category, std::map<std::string, SPConstInterface>> interfaces_;
 };
-
-// TODO: potentially add a global instance here?
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
