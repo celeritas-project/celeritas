@@ -62,19 +62,6 @@ class GeantGeometryImporter
      */
     VPlacedVolume const& operator()(G4VPhysicalVolume const*);
 
-    //! Returns a placed volume that corresponds to a G4VPhysicalVolume.
-    std::vector<VPlacedVolume const*> const*
-    get_placed_volume(G4VPhysicalVolume const* n) const
-    {
-        if (n == nullptr)
-            return nullptr;
-        if (auto found = placed_volume_map_.find(n);
-            found != placed_volume_map_.end())
-            return found->second;
-        else
-            return nullptr;
-    }
-
   private:
     /*!
      * Converts a physical volume into a VecGeom placed volume.

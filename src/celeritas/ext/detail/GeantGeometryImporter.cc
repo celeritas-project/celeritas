@@ -108,46 +108,6 @@ namespace detail
 //---------------------------------------------------------------------------//
 static constexpr double scale = 0.1;  // G4 mm to VecGeom cm scale
 
-void init_VecGeom_navigators()
-{
-    for (auto& lvol : GeoManager::Instance().GetLogicalVolumesMap())
-    {
-        if (lvol.second->GetDaughtersp()->size() < 4)
-        {
-            lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
-        }
-        if (lvol.second->GetDaughtersp()->size() >= 5)
-        {
-            lvol.second->SetNavigator(SimpleABBoxNavigator<>::Instance());
-            lvol.second->SetSafetyEstimator(
-                SimpleABBoxSafetyEstimator::Instance());
-        }
-        if (lvol.second->GetDaughtersp()->size() >= 10)
-        {
-            lvol.second->SetNavigator(HybridNavigator<>::Instance());
-            lvol.second->SetSafetyEstimator(VoxelSafetyEstimator::Instance());
-            lvol.second->SetLevelLocator(
-                TVoxelLevelLocator<false>::GetInstance());
-            HybridManager2::Instance().InitStructure((lvol.second));
-            FlatVoxelManager::Instance().InitStructure((lvol.second));
-        }
-
-        if (lvol.second->ContainsAssembly())
-        {
-            lvol.second->SetLevelLocator(
-                SimpleAssemblyAwareABBoxLevelLocator::GetInstance());
-        }
-        else
-        {
-            if (lvol.second->GetLevelLocator() == nullptr)
-            {
-                lvol.second->SetLevelLocator(
-                    SimpleABBoxLevelLocator::GetInstance());
-            }
-        }
-    }
-}
-
 VPlacedVolume const&
 GeantGeometryImporter::operator()(G4VPhysicalVolume const* g4_world)
 {
