@@ -11,12 +11,12 @@
 #include <string>
 #include <vector>
 
+#include "celeritas/io/ImportVolume.hh"
+
 class G4LogicalVolume;
 
 namespace celeritas
 {
-struct ImportVolume;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -26,14 +26,14 @@ namespace detail
 class GeantVolumeVisitor
 {
   public:
+    // Generate the GDML name for a Geant4 logical volume
+    static std::string generate_name(G4LogicalVolume const& logical_volume);
+
     // Construct with the unique volume flag
     explicit inline GeantVolumeVisitor(bool unique_volumes);
 
     // Recurse into the given logical volume
     void visit(G4LogicalVolume const& logical_volume);
-
-    // Generate the GDML name for a Geant4 logical volume
-    std::string generate_name(G4LogicalVolume const& logical_volume);
 
     // Transform the map of volumes into a contiguous vector with empty spaces
     std::vector<ImportVolume> build_volume_vector() const;
