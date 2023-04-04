@@ -15,6 +15,7 @@
 #pragma once
 
 #include <G4LogicalVolume.hh>
+#include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Transformation3D.h>
 #include <VecGeom/volumes/LogicalVolume.h>
@@ -43,8 +44,6 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     using Vector3D = vecgeom::Vector3D<T>;
     template<class T>
     using SOA3D = vecgeom::SOA3D<T>;
-    template<class T>
-    using DevicePtr = vecgeom::DevicePtr<T>;
     //!@}
 
   public:
@@ -265,6 +264,8 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     using CudaVPlacedVolume = vecgeom::cuda::VPlacedVolume;
     using CudaLogicalVolume = vecgeom::cuda::LogicalVolume;
     using CudaTransformation3D = vecgeom::cuda::Transformation3D;
+    template<class T>
+    using DevicePtr = vecgeom::DevicePtr<T>;
 
     //! @{ /name Required interface
     //

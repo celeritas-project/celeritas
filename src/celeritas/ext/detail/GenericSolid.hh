@@ -16,6 +16,8 @@
 #pragma once
 
 #include <G4VSolid.hh>
+#include <VecGeom/base/Config.h>
+#include <VecGeom/base/Cuda.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 #include <VecGeom/volumes/UnplacedVolume.h>
@@ -44,8 +46,6 @@ class GenericSolid : public VUnplacedVolume
     using Transformation3D = vecgeom::Transformation3D;
     template<class T>
     using Vector3D = vecgeom::Vector3D<T>;
-    template<class T>
-    using DevicePtr = vecgeom::DevicePtr<T>;
     //!@}
 
   public:
@@ -200,6 +200,8 @@ class GenericSolid : public VUnplacedVolume
 
 #ifdef VECGEOM_CUDA_INTERFACE
     using CudaUnplacedVolume = vecgeom::cuda::VUnplacedVolume;
+    template<class T>
+    using DevicePtr = vecgeom::DevicePtr<T>;
 
     //! @{ /name Required interface
     //
