@@ -226,9 +226,6 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
     if (auto replica = dynamic_cast<G4PVReplica const*>(node))
     {
         CELER_LOG(info) << "REPLICA volume found: " << replica->GetName();
-#ifdef ACTIVATEREPLICATION
-        extract_replicated_transformations(*replica, replica_transformations_);
-#endif
     }
     if (dynamic_cast<G4PVDivision const*>(node))
     {
@@ -723,76 +720,10 @@ VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
             << " type = " << refl->GetEntityType()
             << "   -- underlying solid: " << underlyingSolid->GetName()
             << " type = " << underlyingSolid->GetEntityType();
-// #define USE_VG_SCALE_FOR_REFLECTION 1
-#ifdef USE_VG_SCALE_FOR_REFLECTION
-        auto t = refl->GetDirectTransform3D();
-        if (t.getTranslation().mag2() == 0.
-            && (t.xx() == -1. || t.yy() == -1. || t.zz() == -1.))
-        {
-            CELER_LOG(info) << "Simple Reflection -> Convert to Scaled shape";
-            VUnplacedVolume* referenced_shape
-                = Convert(refl->GetConstituentMovedSolid());
-
-            // implement in terms of scaled shape first of all
-            // we could later modify the node directly?
-            unplaced_volume = GeoManager::MakeInstance<UnplacedScaledShape>(
-                referenced_shape, t.xx(), t.yy(), t.zz());
-        }
-        else
-        {
-            CLER_LOG(info) << "Non-simple REFLECTION in solid "
-                           << refl->GetName();
-            unplaced_volume = new GenericSolid<G4ReflectedSolid>(refl);
-        }
-#else
         CELER_LOG(info) << "Reflection G4 solid " << shape->GetName()
                         << " -- wrapping G4 implementation.";
         unplaced_volume = new GenericSolid<G4ReflectedSolid>(refl);
-#endif
     }
-
-#ifdef CHECK_CAPACITY
-    // Check capacity as a 'soft' confirmation that the shape / solid was
-    // constructed correctly
-    if (unplaced_volume)
-    {
-        double capacityG4 = const_cast<G4VSolid*>(shape)->GetCubicVolume();
-        double capacityVg = unplaced_volume->Capacity() / ipow<3>(scale));
-        if (capacityVg < 0)
-        {
-            CELER_LOG(warning)
-                << "Capacity given by VecGeom is negative = " << capacityVg
-                << " for shape" << shape << " of type "
-                << shape->GetEntityType() << "\n";
-            capacityVg *= -1.0;
-        }
-        double relativeDiff = (capacityVg - capacityG4)
-                              / (std::max(capacityVg, capacityG4) + 1.0e-50);
-        if (std::fabs(relativeDiff) > 1.0e-3)
-        {
-            if (std::fabs(relativeDiff) > 0.03)
-            {
-                CELER_LOG(error) << "Capacities of Geant4 solid and VecGeom "
-                                    "solid DIFFER.";
-            }
-            else
-            {
-                CELER_LOG(warning) << "Minor difference in capacities "
-                                      "detected.";
-            }
-        }
-        if (std::fabs(relativeDiff) > 1.0e-6)
-        {
-            constexpr int old_prec = CELER_LOG(info).precision(12);
-            CELER_LOG(info)
-                << "Check for volume " << shape->GetName() << " of type "
-                << shape->GetEntityType() << ": G4 gives " << capacityG4
-                << " VG gives " << capacityVg << ", a relative difference of "
-                << relativeDiff;
-            CELER_LOG(info).precision(old_prec);
-        }
-    }
-#endif
 
     // New volumes should be implemented here...
     if (!unplaced_volume)
