@@ -86,6 +86,22 @@ pipeline {
             }
           }
         }
+        stage('vecgeom-reldeb') {
+          agent {
+            docker {
+              image 'celeritas/ci-jammy-cuda11:2023-03-13'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-reldeb'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
         stage('vecgeom-demos') {
           agent {
             docker {
