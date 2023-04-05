@@ -29,7 +29,7 @@ struct GeantVolumeMapper
 };
 
 #if !CELERITAS_USE_GEANT4
-inline VolumeId operator()(G4LogicalVolume const&) const
+inline VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const&) const
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
