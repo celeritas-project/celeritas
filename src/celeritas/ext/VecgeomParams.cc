@@ -29,6 +29,7 @@
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedMem.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "detail/GeantGeoExporter.hh"
@@ -47,7 +48,9 @@ VecgeomParams::VecgeomParams(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
+    ScopedMem record_mem("VecgeomParams.construct");
     {
+        ScopedMem record_mem("VecgeomParams.load_gdml");
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
         vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
     }
@@ -75,11 +78,13 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     CELER_LOG(debug) << "Temporary file for Geant4 export: " << filename;
     {
         // Export file from Geant4
+        ScopedMem record_mem("VecgeomParams.export_gdml");
         detail::GeantGeoExporter export_to(world);
         export_to(filename);
     }
     {
         // Import file into VecGeom
+        ScopedMem record_mem("VecgeomParams.load_gdml");
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
         vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
     }
@@ -167,6 +172,7 @@ auto VecgeomParams::find_volumes(std::string const& name) const
 void VecgeomParams::build_tracking()
 {
     CELER_LOG(status) << "Initializing tracking information";
+    ScopedMem record_mem("VecgeomParams.build_tracking");
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
@@ -232,6 +238,7 @@ void VecgeomParams::build_tracking()
  */
 void VecgeomParams::build_data()
 {
+    ScopedMem record_mem("VecgeomParams.build_data");
     // Save host data
     auto& vg_manager = vecgeom::GeoManager::Instance();
     host_ref_.world_volume = vg_manager.GetWorld();
@@ -255,6 +262,7 @@ void VecgeomParams::build_data()
  */
 void VecgeomParams::build_metadata()
 {
+    ScopedMem record_mem("VecgeomParams.build_metadata");
     // Construct volume labels
     vol_labels_ = LabelIdMultiMap<VolumeId>([] {
         auto& vg_manager = vecgeom::GeoManager::Instance();
@@ -314,5 +322,6 @@ void VecgeomParams::build_metadata()
         return BoundingBox{detail::to_array(lower), detail::to_array(upper)};
     }();
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

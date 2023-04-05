@@ -26,6 +26,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -153,6 +154,7 @@ SharedParams::SharedParams(SetupOptions const& options)
     CELER_EXPECT(!*this);
 
     CELER_LOG_LOCAL(status) << "Initializing Celeritas shared data";
+    ScopedMem record_mem("SharedParams.construct");
     ScopedTimeLog scoped_time;
 
     // Initialize device and other "global" data

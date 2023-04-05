@@ -29,6 +29,7 @@
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
@@ -162,6 +163,7 @@ init_root_mctruth_output(LDemoArgs const& run_args,
  */
 void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
+    ScopedMem record_mem("demo_loop.run");
     // Read input options
     auto inp = nlohmann::json::parse(*is);
 
@@ -246,10 +248,12 @@ int main(int argc, char* argv[])
     ScopedRootErrorHandler scoped_root_error;
     ScopedMpiInit scoped_mpi(&argc, &argv);
 
-    MpiCommunicator comm
-        = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
-               ? MpiCommunicator{}
-               : MpiCommunicator::comm_world());
+    MpiCommunicator comm = [] {
+        if (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled)
+            return MpiCommunicator{};
+
+        return MpiCommunicator::comm_world();
+    }();
 
     if (comm.size() > 1)
     {

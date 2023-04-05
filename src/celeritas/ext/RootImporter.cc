@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 
 // This "public API" function is defined in CeleritasRootInterface.cxx to
@@ -35,6 +36,7 @@ RootImporter::RootImporter(char const* filename)
     TriggerDictionaryInitialization_libceleritas();
 
     CELER_LOG(info) << "Opening ROOT file at " << filename;
+    ScopedMem record_mem("RootImporter.open");
     ScopedTimeLog scoped_time;
     root_input_.reset(TFile::Open(filename, "read"));
     CELER_VALIDATE(root_input_ && !root_input_->IsZombie(),
@@ -49,6 +51,7 @@ RootImporter::RootImporter(char const* filename)
 ImportData RootImporter::operator()()
 {
     CELER_LOG(debug) << "Reading data from ROOT";
+    ScopedMem record_mem("RootImporter.read");
     ScopedTimeLog scoped_time;
 
     std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>(tree_name()));

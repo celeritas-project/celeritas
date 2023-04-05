@@ -15,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -220,6 +221,7 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
 CoreParams::Input load_core_params(LDemoArgs const& args)
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
+    ScopedMem record_mem("demo_loop.load_core_params");
     CoreParams::Input params;
     ImportData const imported = [&args] {
         if (ends_with(args.physics_filename, ".root"))
