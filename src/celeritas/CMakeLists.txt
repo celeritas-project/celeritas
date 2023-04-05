@@ -50,6 +50,7 @@ list(APPEND SOURCES
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
   geo/GeoMaterialParams.cc
+  geo/GeoParamsOutput.cc
   global/ActionInterface.cc
   global/ActionRegistry.cc
   global/ActionRegistryOutput.cc
@@ -70,6 +71,7 @@ list(APPEND SOURCES
   io/LivermorePEReader.cc
   io/SeltzerBergerReader.cc
   mat/MaterialParams.cc
+  mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc

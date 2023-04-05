@@ -17,6 +17,7 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "celeritas_config.h"
+#include "celeritas/ext/detail/VecgeomCompatibility.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
@@ -254,29 +255,33 @@ void VecgeomParams::build_data()
  */
 void VecgeomParams::build_metadata()
 {
-    auto& vg_manager = vecgeom::GeoManager::Instance();
-    CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
+    // Construct volume labels
+    vol_labels_ = LabelIdMultiMap<VolumeId>([] {
+        auto& vg_manager = vecgeom::GeoManager::Instance();
+        CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
 
-    std::vector<Label> labels(vg_manager.GetRegisteredVolumesCount());
+        std::vector<Label> result(vg_manager.GetRegisteredVolumesCount());
 
-    for (auto vol_idx : range<VolumeId::size_type>(labels.size()))
-    {
-        // Get label
-        vecgeom::LogicalVolume const* vol
-            = vg_manager.FindLogicalVolume(vol_idx);
-        CELER_ASSERT(vol);
-
-        auto label = Label::from_geant(vol->GetLabel());
-        if (label.name.empty())
+        for (auto vol_idx : range<VolumeId::size_type>(result.size()))
         {
-            // Many VGDML imported IDs seem to be empty for CMS
-            label.name = "[unused]";
-            label.ext = std::to_string(vol_idx);
-        }
+            // Get label
+            vecgeom::LogicalVolume const* vol
+                = vg_manager.FindLogicalVolume(vol_idx);
+            CELER_ASSERT(vol);
 
-        labels[vol_idx] = std::move(label);
-    }
-    vol_labels_ = LabelIdMultiMap<VolumeId>(std::move(labels));
+            auto label = Label::from_geant(vol->GetLabel());
+            if (label.name.empty())
+            {
+                // Many VGDML imported IDs seem to be empty for CMS
+                label.name = "[unused]";
+                label.ext = std::to_string(vol_idx);
+            }
+
+            result[vol_idx] = std::move(label);
+        }
+        return result;
+    }());
+
     // Check for duplicates
     {
         auto vol_dupes = vol_labels_.duplicates();
@@ -294,6 +299,20 @@ void VecgeomParams::build_metadata()
                                               streamed_label);
         }
     }
+
+    // Save world bbox
+    bbox_ = [] {
+        using namespace vecgeom;
+
+        // Get world logical volume
+        VPlacedVolume const* pv = GeoManager::Instance().GetWorld();
+
+        // Calculate bounding box
+        Vector3D<real_type> lower, upper;
+        ABBoxManager::Instance().ComputeABBox(pv, &lower, &upper);
+
+        return BoundingBox{detail::to_array(lower), detail::to_array(upper)};
+    }();
 }
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

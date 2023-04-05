@@ -158,8 +158,12 @@ TEST_F(FourLevelsTest, accessors)
 {
     auto const& geom = *this->geometry();
     EXPECT_EQ(4, geom.max_depth());
-    ASSERT_EQ(4, geom.num_volumes());
 
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-24.001, -24.001, -24.001}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{24.001, 24.001, 24.001}), bbox.upper());
+
+    ASSERT_EQ(4, geom.num_volumes());
     EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
@@ -528,6 +532,10 @@ TEST_F(SolidsGeantTest, accessors)
     {
         ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
     }
+
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-500.001, -500.001, -500.001}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{500.001, 500.001, 500.001}), bbox.upper());
 
     // TODO: there are 27 actual solids, but there are a few "unused" volumes
     // created during construction, and different versions of VecGeom are

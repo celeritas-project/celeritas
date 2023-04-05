@@ -21,9 +21,11 @@
 #include "corecel/sys/KernelRegistry.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/geo/GeoParamsOutput.hh"
 #include "celeritas/geo/generated/BoundaryAction.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
+#include "celeritas/mat/MaterialParamsOutput.hh"
 #include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/ParticleParamsOutput.hh"
@@ -171,10 +173,14 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             celeritas::kernel_registry()));
     input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
-    input_.output_reg->insert(std::make_shared<BuildOutput>());
 #endif
+    input_.output_reg->insert(std::make_shared<BuildOutput>());
 
     // Save core diagnostic information
+    input_.output_reg->insert(
+        std::make_shared<GeoParamsOutput>(input_.geometry));
+    input_.output_reg->insert(
+        std::make_shared<MaterialParamsOutput>(input_.material));
     input_.output_reg->insert(
         std::make_shared<ParticleParamsOutput>(input_.particle));
     input_.output_reg->insert(

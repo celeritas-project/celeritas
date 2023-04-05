@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/ParticleParamsOutput.hh
+//! \file celeritas/geo/GeoParamsOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,36 +11,37 @@
 
 #include "corecel/io/OutputInterface.hh"
 
+#include "GeoParamsFwd.hh"  // IWYU pragma: keep
+
 namespace celeritas
 {
-class ParticleParams;
 //---------------------------------------------------------------------------//
 /*!
- * Save detailed debugging information about particles in use.
+ * Save geometry diagnostic data.
  */
-class ParticleParamsOutput final : public OutputInterface
+class GeoParamsOutput final : public OutputInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParticleParams = std::shared_ptr<ParticleParams const>;
+    using SPConstGeoParams = std::shared_ptr<GeoParams const>;
     //!@}
 
   public:
-    // Construct from shared physics data
-    explicit ParticleParamsOutput(SPConstParticleParams physics);
+    // Construct from shared geometry data
+    explicit GeoParamsOutput(SPConstGeoParams geo);
 
     //! Category of data to write
     Category category() const final { return Category::internal; }
 
     //! Name of the entry inside the category.
-    std::string label() const final { return "particle"; }
+    std::string label() const final { return "geometry"; }
 
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;
 
   private:
-    SPConstParticleParams particles_;
+    SPConstGeoParams geo_;
 };
 
 //---------------------------------------------------------------------------//

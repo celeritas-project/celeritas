@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/ParticleParamsOutput.hh
+//! \file celeritas/mat/MaterialParamsOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,34 +13,34 @@
 
 namespace celeritas
 {
-class ParticleParams;
+class MaterialParams;
 //---------------------------------------------------------------------------//
 /*!
- * Save detailed debugging information about particles in use.
+ * Save material diagnostic data.
  */
-class ParticleParamsOutput final : public OutputInterface
+class MaterialParamsOutput final : public OutputInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParticleParams = std::shared_ptr<ParticleParams const>;
+    using SPConstMaterialParams = std::shared_ptr<MaterialParams const>;
     //!@}
 
   public:
-    // Construct from shared physics data
-    explicit ParticleParamsOutput(SPConstParticleParams physics);
+    // Construct from shared materialmetry data
+    explicit MaterialParamsOutput(SPConstMaterialParams material);
 
     //! Category of data to write
     Category category() const final { return Category::internal; }
 
     //! Name of the entry inside the category.
-    std::string label() const final { return "particle"; }
+    std::string label() const final { return "material"; }
 
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;
 
   private:
-    SPConstParticleParams particles_;
+    SPConstMaterialParams material_;
 };
 
 //---------------------------------------------------------------------------//

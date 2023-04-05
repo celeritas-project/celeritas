@@ -58,6 +58,9 @@ class OrangeParams
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const { return supports_safety_; }
 
+    //! Outer bounding box of geometry
+    BoundingBox const& bbox() const { return bbox_; }
+
     //// VOLUMES ////
 
     //! Number of volumes
@@ -77,9 +80,6 @@ class OrangeParams
 
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(std::string const& name) const;
-
-    //! Outer bounding box of geometry
-    BoundingBox const& bbox() const { return bbox_; }
 
     //// SURFACES ////
 

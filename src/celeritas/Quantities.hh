@@ -62,6 +62,8 @@ struct EElectron
     {
         return constants::e_electron;  // *Positive* sign
     }
+    //! Text label for output
+    static char const* label() { return "e"; }
 };
 
 //! Unit for atomic masses
@@ -72,6 +74,8 @@ struct Amu
     {
         return constants::atomic_mass;
     }
+    //! Text label for output
+    static char const* label() { return "amu"; }
 };
 
 //! Unit for cross sections
@@ -91,8 +95,19 @@ struct Millibarn
     }
 };
 
-//! Unit for converting mass to an energy-valued quantity
-using CLightSq = UnitProduct<CLight, CLight>;
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Derivative units
+
+struct CLightSq : UnitProduct<CLight, CLight>
+{
+    static char const* label() { return "c^2"; }
+};
+struct MevPerCsq : UnitDivide<Mev, CLightSq>
+{
+    static char const* label() { return "MeV/c^2"; }
+};
+//!@}
 
 //---------------------------------------------------------------------------//
 //!@{
@@ -100,7 +115,7 @@ using CLightSq = UnitProduct<CLight, CLight>;
 using ElementaryCharge = Quantity<EElectron>;
 using MevEnergy = Quantity<Mev>;
 using LogMevEnergy = Quantity<LogMev>;
-using MevMass = Quantity<UnitDivide<Mev, CLightSq>>;
+using MevMass = Quantity<MevPerCsq>;
 using MevMomentum = Quantity<UnitDivide<Mev, CLight>>;
 using MevMomentumSq = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
 using LightSpeed = Quantity<CLight>;
