@@ -60,6 +60,7 @@ if(CELERITAS_USE_JSON)
     AssertIO.json.cc
     sys/DeviceIO.json.cc
     sys/KernelRegistryIO.json.cc
+    sys/MemRegistryIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()

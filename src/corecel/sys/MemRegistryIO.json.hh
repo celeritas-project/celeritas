@@ -1,24 +1,24 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/KernelRegistryIO.json.hh
+//! \file corecel/sys/MemRegistryIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-#include "KernelRegistry.hh"
+#include "MemRegistry.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-// Write one kernel's attributes to json
-void to_json(nlohmann::json& j, KernelAttributes const& md);
-// Write all kernels to JSON
-void to_json(nlohmann::json& j, KernelRegistry const& diagnostics);
+// Write one memory diagnostic block to json
+void to_json(nlohmann::json& j, MemUsageEntry const& md);
+// Write device diagnostics to JSON
+void to_json(nlohmann::json& j, MemRegistry const& diagnostics);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
