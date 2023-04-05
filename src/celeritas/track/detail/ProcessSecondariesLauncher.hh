@@ -128,6 +128,7 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
             ti.geo.dir = secondary.direction;
             ti.particle.particle_id = secondary.particle_id;
             ti.particle.energy = secondary.energy;
+            CELER_ASSERT(ti);
 
             if (!initialized && sim.status() != TrackStatus::alive)
             {

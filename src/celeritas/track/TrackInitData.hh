@@ -68,6 +68,12 @@ struct TrackInitializer
     SimTrackInitializer sim;
     GeoTrackInitializer geo;
     ParticleTrackInitializer particle;
+
+    //! True if assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return sim && geo && particle;
+    }
 };
 
 //---------------------------------------------------------------------------//

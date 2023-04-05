@@ -108,6 +108,12 @@ struct ParticleTrackInitializer
 {
     ParticleId particle_id;  //!< Type of particle (electron, gamma, ...)
     units::MevEnergy energy;  //!< Kinetic energy [MeV]
+
+    //! True if assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return particle_id && energy > zero_quantity();
+    }
 };
 
 //---------------------------------------------------------------------------//
