@@ -112,7 +112,7 @@ struct ParticleTrackInitializer
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return particle_id && energy > zero_quantity();
+        return particle_id && energy >= zero_quantity();
     }
 };
 
