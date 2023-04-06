@@ -182,6 +182,8 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
 CELER_FUNCTION VecgeomTrackView&
 VecgeomTrackView::operator=(Initializer_t const& init)
 {
+    CELER_EXPECT(is_soft_unit_vector(init.dir));
+
     // Initialize position/direction
     pos_ = init.pos;
     dir_ = init.dir;
@@ -213,6 +215,8 @@ VecgeomTrackView::operator=(Initializer_t const& init)
 CELER_FUNCTION
 VecgeomTrackView& VecgeomTrackView::operator=(DetailedInitializer const& init)
 {
+    CELER_EXPECT(is_soft_unit_vector(init.dir));
+
     if (this != &init.other)
     {
         // Copy the navigation state and position from the parent state
