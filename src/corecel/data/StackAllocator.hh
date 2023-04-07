@@ -230,7 +230,7 @@ CELER_FUNCTION auto StackAllocator<T>::operator()(size_type count)
         // Initialize remaining values
         // XXX see #639: something is causing \c start to change unexpectedly,
         // which leads to values being initialized at the wrong memory location
-        CELER_ASSERT(&data_.storage[StorageId{start + i}] - result == i);
+        CELER_ASSERT(&data_.storage[StorageId{start + i}] == result + i);
         new (&data_.storage[StorageId{start + i}]) value_type;
     }
     return result;
