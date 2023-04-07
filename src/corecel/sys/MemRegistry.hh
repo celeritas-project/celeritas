@@ -39,11 +39,11 @@ struct MemUsageEntry
     //! Difference in CPU memory usage from beginning to end
     KibiBytes cpu_delta{};
     //! Reported CPU "high water mark" at the end the block
-    KibiBytes cpu_hwm{};
+    KibiBytes cpu_hwm{-1};
     //! Difference in GPU memory usage from beginning to end
     KibiBytes gpu_delta{};
     //! Reported GPU "high water mark" at the end the block
-    KibiBytes gpu_hwm{};
+    KibiBytes gpu_usage{-1};
 };
 
 //---------------------------------------------------------------------------//

@@ -14,22 +14,28 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Write one kernel's metadata to JSON.
+ *
+ * If the registry is dumped before a "scoped memory" saves the memory results,
+ * no entries will be written. Parent indices are only written for child nodes.
  */
 void to_json(nlohmann::json& j, MemUsageEntry const& entry)
 {
     j = {
         {"label", entry.label},
-        {"parent_index",
-         entry.parent_index
-             ? static_cast<int>(entry.parent_index.unchecked_get())
-             : -1},
-        {"cpu_delta", entry.cpu_delta.value()},
-        {"cpu_hwm", entry.cpu_hwm.value()},
     };
-    if (entry.gpu_hwm.value() != 0)
+    if (entry.parent_index)
+    {
+        j["parent_index"] = entry.parent_index.unchecked_get();
+    }
+    if (entry.cpu_hwm.value() >= 0)
+    {
+        j["cpu_delta"] = entry.cpu_delta.value();
+        j["cpu_hwm"] = entry.cpu_hwm.value();
+    }
+    if (entry.gpu_usage.value() >= 0)
     {
         j["gpu_delta"] = entry.gpu_delta.value();
-        j["gpu_hwm"] = entry.gpu_hwm.value();
+        j["gpu_usage"] = entry.gpu_usage.value();
     }
 }
 

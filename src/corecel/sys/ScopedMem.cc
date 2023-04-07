@@ -17,7 +17,11 @@
 #    include <windows.h>
 #endif
 
+#include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
+#include "corecel/math/Quantity.hh"
+
+#include "Device.hh"
 
 namespace celeritas
 {
@@ -29,7 +33,8 @@ struct MemResult
     std::size_t resident{0};  // unused, not available on linux
 };
 //---------------------------------------------------------------------------//
-MemResult get_usage_bytes()
+//! Return high water mark and possibly resident memory [bytes]
+MemResult get_cpu_mem()
 {
     MemResult result;
 #if defined(__APPLE__)
@@ -63,6 +68,15 @@ MemResult get_usage_bytes()
     return result;
 }
 
+std::size_t get_gpu_mem()
+{
+    std::size_t free{0};
+    std::size_t total{0};
+    CELER_DEVICE_CALL_PREFIX(MemGetInfo(&free, &total));
+    CELER_ASSERT(total > free);
+    return total - free;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -82,7 +96,11 @@ ScopedMem::ScopedMem(std::string_view label, MemRegistry* registry)
     MemUsageEntry& entry = registry_.value()->get(id_);
     entry.label = label;
 
-    cpu_start_hwm_ = get_usage_bytes().hwm;
+    cpu_start_hwm_ = get_cpu_mem().hwm;
+    if (celeritas::device())
+    {
+        gpu_start_used_ = get_gpu_mem();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -95,10 +113,18 @@ ScopedMem::~ScopedMem()
     {
         MemUsageEntry& entry = registry_.value()->get(id_);
 
-        // Save HWM and delta
-        std::ptrdiff_t stop_hwm = get_usage_bytes().hwm;
+        // Save CPU stats
+        std::ptrdiff_t stop_hwm = get_cpu_mem().hwm;
         entry.cpu_hwm = native_value_to<KibiBytes>(stop_hwm);
         entry.cpu_delta = native_value_to<KibiBytes>(stop_hwm - cpu_start_hwm_);
+
+        if (celeritas::device())
+        {
+            std::ptrdiff_t stop_usage = get_gpu_mem();
+            entry.gpu_usage = native_value_to<KibiBytes>(stop_usage);
+            entry.gpu_delta
+                = native_value_to<KibiBytes>(stop_usage - gpu_start_used_);
+        }
 
         registry_.value()->pop();
     }

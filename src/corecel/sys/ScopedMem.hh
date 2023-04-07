@@ -62,7 +62,8 @@ class ScopedMem
   private:
     InitializedValue<MemRegistry*> registry_;
     MemUsageId id_;
-    std::ptrdiff_t cpu_start_hwm_;
+    std::ptrdiff_t cpu_start_hwm_{0};
+    std::ptrdiff_t gpu_start_used_{0};
 };
 
 //---------------------------------------------------------------------------//
