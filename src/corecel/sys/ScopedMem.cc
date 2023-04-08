@@ -68,13 +68,13 @@ MemResult get_cpu_mem()
     return result;
 }
 
-std::size_t get_gpu_mem()
+std::ptrdiff_t get_gpu_mem()
 {
     std::size_t free{0};
     std::size_t total{0};
     CELER_DEVICE_CALL_PREFIX(MemGetInfo(&free, &total));
     CELER_ASSERT(total > free);
-    return total - free;
+    return std::ptrdiff_t(total) - std::ptrdiff_t(free);
 }
 
 //---------------------------------------------------------------------------//

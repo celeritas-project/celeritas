@@ -8,6 +8,7 @@
 #include "MemRegistryIO.json.hh"
 
 #include "corecel/cont/Range.hh"
+#include "corecel/math/QuantityIO.json.hh"
 
 namespace celeritas
 {
@@ -27,15 +28,21 @@ void to_json(nlohmann::json& j, MemUsageEntry const& entry)
     {
         j["parent_index"] = entry.parent_index.unchecked_get();
     }
-    if (entry.cpu_hwm.value() >= 0)
+    if (entry.cpu_delta.value() > 0)
     {
-        j["cpu_delta"] = entry.cpu_delta.value();
-        j["cpu_hwm"] = entry.cpu_hwm.value();
+        j["cpu_delta"] = entry.cpu_delta;
     }
-    if (entry.gpu_usage.value() >= 0)
+    if (entry.cpu_hwm.value() > 0)
     {
-        j["gpu_delta"] = entry.gpu_delta.value();
-        j["gpu_usage"] = entry.gpu_usage.value();
+        j["cpu_hwm"] = entry.cpu_hwm;
+    }
+    if (entry.gpu_delta.value() > 0)
+    {
+        j["gpu_delta"] = entry.gpu_delta;
+    }
+    if (entry.gpu_usage.value() > 0)
+    {
+        j["gpu_usage"] = entry.gpu_usage;
     }
 }
 
