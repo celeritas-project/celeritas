@@ -55,6 +55,7 @@ void to_json(nlohmann::json& j, KernelRegistry const& kr)
     {
         auto const& md = kr.kernel(kernel_id);
         j.push_back(md.attributes);
+        j.back()["name"] = md.name;
         if (write_profiling)
         {
             j.back()["num_launches"]
