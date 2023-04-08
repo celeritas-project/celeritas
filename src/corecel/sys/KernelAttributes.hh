@@ -102,7 +102,7 @@ KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
     CELER_DEVICE_CALL_PREFIX(DeviceGetLimit(
         &result.heap_size, CELER_DEVICE_PREFIX(LimitMallocHeapSize)));
     CELER_DEVICE_CALL_PREFIX(DeviceGetLimit(
-        &result.print_buffer_size, CELER_DEVICE_PREFIX(PrintfFifoSize)));
+        &result.print_buffer_size, CELER_DEVICE_PREFIX(LimitPrintfFifoSize)));
 
 #else
     (void)sizeof(func);
