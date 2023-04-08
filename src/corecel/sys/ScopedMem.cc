@@ -57,7 +57,7 @@ MemResult get_cpu_mem()
     usage.ru_maxrss = 0;
     if (!getrusage(RUSAGE_SELF, &usage))
     {
-        result.hwm = tinfo.resident_size_max;
+        result.hwm = usage.ru_maxrss;
     }
 #elif defined(_WIN32)
     PROCESS_MEMORY_COUNTERS info;

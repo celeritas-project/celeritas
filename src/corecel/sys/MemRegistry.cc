@@ -16,7 +16,7 @@ namespace celeritas
 MemUsageId MemRegistry::push()
 {
     // Add a new entry
-    MemUsageId result_id{entries_.size()};
+    MemUsageId result_id(entries_.size());
     entries_.resize(entries_.size() + 1);
 
     // Record the parent index and update the stack
