@@ -21,7 +21,7 @@ namespace celeritas
 struct Kibi
 {
     static CELER_CONSTEXPR_FUNCTION int value() { return 1024; }
-    static char const* label() { return "Ki"; }
+    static char const* label() { return "kibi"; }
 };
 
 //! 1024 bytes

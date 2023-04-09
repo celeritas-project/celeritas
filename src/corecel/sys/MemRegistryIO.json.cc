@@ -21,29 +21,30 @@ namespace celeritas
  */
 void to_json(nlohmann::json& j, MemUsageEntry const& entry)
 {
-    j = {
-        {"label", entry.label},
-    };
+    using MemQuantity = KibiBytes;
+    j = nlohmann::json::object();
+#define MRIO_MEM_OUT(MEMBER)                                  \
+    do                                                        \
+    {                                                         \
+        if (entry.MEMBER.value() > 0)                         \
+        {                                                     \
+            j[#MEMBER] = value_as<MemQuantity>(entry.MEMBER); \
+        }                                                     \
+    } while (false)
+    MRIO_MEM_OUT(cpu_delta);
+    MRIO_MEM_OUT(cpu_hwm);
+    MRIO_MEM_OUT(gpu_delta);
+    MRIO_MEM_OUT(gpu_usage);
+#undef MRIO_MEM_OUT
+    if (!j.empty())
+    {
+        j["_units"] = MemQuantity::unit_type::label();
+    }
     if (entry.parent_index)
     {
         j["parent_index"] = entry.parent_index.unchecked_get();
     }
-    if (entry.cpu_delta.value() > 0)
-    {
-        j["cpu_delta"] = entry.cpu_delta;
-    }
-    if (entry.cpu_hwm.value() > 0)
-    {
-        j["cpu_hwm"] = entry.cpu_hwm;
-    }
-    if (entry.gpu_delta.value() > 0)
-    {
-        j["gpu_delta"] = entry.gpu_delta;
-    }
-    if (entry.gpu_usage.value() > 0)
-    {
-        j["gpu_usage"] = entry.gpu_usage;
-    }
+    j["label"] = entry.label;
 }
 
 //---------------------------------------------------------------------------//

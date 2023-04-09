@@ -49,6 +49,7 @@ MemResult get_cpu_mem()
                   &tcount)
         == KERN_SUCCESS)
     {
+        // Units are B
         result.hwm = tinfo.resident_size_max;
         result.resident = tinfo.resident_size;
     }
@@ -57,9 +58,11 @@ MemResult get_cpu_mem()
     usage.ru_maxrss = 0;
     if (!getrusage(RUSAGE_SELF, &usage))
     {
-        result.hwm = usage.ru_maxrss;
+        // Units are kiB!
+        result.hwm = usage.ru_maxrss * 1024u;
     }
 #elif defined(_WIN32)
+    // Units are B
     PROCESS_MEMORY_COUNTERS info;
     GetProcessMemoryInfo(GetCurrentProcess(), &info, sizeof(info));
     result.hwm = info.PeakWorkingSetSize;
