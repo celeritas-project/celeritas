@@ -31,11 +31,11 @@ class OrangeTest : public OrangeGeoTestBase
     {
         if (!host_state_)
         {
-            host_state_ = HostStateStore(this->params().host_ref(), 1);
+            host_state_ = HostStateStore(this->host_params(), 1);
         }
 
         return OrangeTrackView(
-            this->params().host_ref(), host_state_.ref(), TrackSlotId{0});
+            this->host_params(), host_state_.ref(), TrackSlotId{0});
     }
 
   private:

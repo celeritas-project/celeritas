@@ -7,10 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
-#include <utility>
-#include <vector>
 #include <G4VUserDetectorConstruction.hh>
 
 class G4LogicalVolume;
@@ -32,7 +31,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 
   private:
     std::unique_ptr<G4VPhysicalVolume> world_;
-    std::vector<std::pair<G4LogicalVolume*, std::string>> detectors_;
+    std::multimap<std::string, G4LogicalVolume*> detectors_;
 };
 
 //---------------------------------------------------------------------------//

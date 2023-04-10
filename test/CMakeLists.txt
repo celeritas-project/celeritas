@@ -294,6 +294,8 @@ celeritas_add_test(celeritas/ext/GeantImporter.test.cc
     "OneSteelSphere.*"
     "OneSteelSphereGG.*"
   )
+celeritas_add_test(celeritas/ext/GeantVolumeMapper.test.cc ${_needs_geant4}
+  LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 
 #-------------------------------------#

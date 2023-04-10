@@ -20,7 +20,6 @@
 #include "BoundingBox.hh"
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
-#include "detail/UnitIndexer.hh"
 
 class G4VPhysicalVolume;
 
