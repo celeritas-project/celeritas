@@ -449,7 +449,7 @@ TEST_F(SolidsTest, accessors)
             << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
-    ASSERT_EQ(26, geom.num_volumes());
+    ASSERT_EQ(25, geom.num_volumes());
     EXPECT_EQ("World", geom.id_to_label(VolumeId{geom.num_volumes() - 1}).name);
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{5}).name);
@@ -497,11 +497,23 @@ TEST_F(SolidsTest, trace)
     {
         SCOPED_TRACE("Upper +x");
         auto result = this->track({-375, 125, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"World", "hype1",    "World", "para1",     "World", "tube100",
-               "World", "boolean1", "World", "boolean1",  "World", "torus1",
-               "World", "torus1",   "World", "polyhedr1", "World", "polyhedr1",
-               "World", "ellcone1", "World"};
+        static char const* const expected_volumes[] = {"World",
+                                                       "hype1",
+                                                       "World",
+                                                       "para1",
+                                                       "World",
+                                                       "tube100",
+                                                       "World",
+                                                       "boolean1",
+                                                       "World",
+                                                       "boolean1",
+                                                       "World",
+                                                       "polyhedr1",
+                                                       "World",
+                                                       "polyhedr1",
+                                                       "World",
+                                                       "ellcone1",
+                                                       "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {20,
                                                        4,
@@ -513,11 +525,7 @@ TEST_F(SolidsTest, trace)
                                                        12.499999,
                                                        20.000001,
                                                        17.499999,
-                                                       60,
-                                                       2,
-                                                       16,
-                                                       2,
-                                                       111.98703789108,
+                                                       191.98703789108,
                                                        1e-08,
                                                        40.048511400819,
                                                        25.977412807017,
@@ -731,7 +739,7 @@ TEST_F(SolidsGeantTest, accessors)
             << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
-    ASSERT_EQ(26, geom.num_volumes());
+    ASSERT_EQ(25, geom.num_volumes());
     EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
@@ -779,11 +787,23 @@ TEST_F(SolidsGeantTest, trace)
     {
         SCOPED_TRACE("Upper +x");
         auto result = this->track({-375, 125, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"World", "hype1",    "World", "para1",     "World", "tube100",
-               "World", "boolean1", "World", "boolean1",  "World", "torus1",
-               "World", "torus1",   "World", "polyhedr1", "World", "polyhedr1",
-               "World", "ellcone1", "World"};
+        static char const* const expected_volumes[] = {"World",
+                                                       "hype1",
+                                                       "World",
+                                                       "para1",
+                                                       "World",
+                                                       "tube100",
+                                                       "World",
+                                                       "boolean1",
+                                                       "World",
+                                                       "boolean1",
+                                                       "World",
+                                                       "polyhedr1",
+                                                       "World",
+                                                       "polyhedr1",
+                                                       "World",
+                                                       "ellcone1",
+                                                       "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {20,
                                                        4,
@@ -795,11 +815,7 @@ TEST_F(SolidsGeantTest, trace)
                                                        12.499999,
                                                        20.000001,
                                                        17.499999,
-                                                       60,
-                                                       2,
-                                                       16,
-                                                       2,
-                                                       111.98703789108,
+                                                       191.98703789108,
                                                        1e-08,
                                                        40.048511400819,
                                                        25.977412807017,

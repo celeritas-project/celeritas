@@ -144,7 +144,7 @@ acceptance of all terms of the Geant4 Software license.
     <quadrangular vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v0" />
   </tessellated-->
 
-  <torus name="shTorus1" lunit="mm" aunit="deg" rmin="80.0" rmax="100.0" rtor="300.0" startphi="10" deltaphi="270"/>
+  <!--torus name="shTorus1" lunit="mm" aunit="deg" rmin="80.0" rmax="100.0" rtor="300.0" startphi="10" deltaphi="270"/-->
 
   <orb name="shOrb1" lunit="mm" r="400.0"/>
 
@@ -257,10 +257,10 @@ acceptance of all terms of the Geant4 Software license.
    <solidref ref="testtessel"/>
   </volume-->
 
-  <volume name="torus1">
+  <!--volume name="torus1">
    <materialref ref="Water"/>
    <solidref ref="shTorus1"/>
-  </volume>
+  </volume-->
 
   <volume name="orb1">
    <materialref ref="Water"/>
@@ -360,11 +360,11 @@ acceptance of all terms of the Geant4 Software license.
      <rotationref ref="norot"/>
    </physvol>
 
-   <physvol>
+   <!--physvol>
      <volumeref ref="torus1"/>
      <positionref ref="posTorus1"/>
      <rotationref ref="norot"/>
-   </physvol>
+   </physvol-->
 
    <physvol>
      <volumeref ref="orb1"/>
