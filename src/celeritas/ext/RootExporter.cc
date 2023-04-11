@@ -28,7 +28,7 @@ namespace celeritas
 RootExporter::RootExporter(char const* filename)
 {
     CELER_LOG(info) << "Creating ROOT file at " << filename;
-    ScopedMem record_mem("RootImporter.open");
+    ScopedMem record_mem("RootExporter.open");
     ScopedTimeLog scoped_time;
     root_output_.reset(TFile::Open(filename, "recreate"));
     CELER_VALIDATE(root_output_ && !root_output_->IsZombie(),
@@ -41,7 +41,7 @@ RootExporter::RootExporter(char const* filename)
  */
 void RootExporter::operator()(ImportData const& import_data)
 {
-    ScopedMem record_mem("RootImporter.write");
+    ScopedMem record_mem("RootExporter.write");
     TTree tree_data(tree_name(), tree_name());
     TBranch* branch = tree_data.Branch(branch_name(),
                                        const_cast<ImportData*>(&import_data));
