@@ -58,9 +58,14 @@ namespace
 {
 struct alive_predicate
 {
-    CELER_FUNCTION bool operator()(TrackStatus const& track_status) const
+    using SpanT = Span<TrackStatus>;
+    SpanT status_;
+
+    CELER_FUNCTION explicit alive_predicate(SpanT status) : status_{status} {}
+    CELER_FUNCTION bool
+    operator()(TrackSlotId::size_type const& track_slot) const
     {
-        return track_status == TrackStatus::alive;
+        return status_[track_slot] == TrackStatus::alive;
     }
 };
 }  // namespace
@@ -72,12 +77,12 @@ void partition_tracks_by_status(
     CELER_EXPECT(states.size() > 0);
     Span track_slots{
         states.track_slots[AllItems<TrackSlotId::size_type, MemSpace::device>{}]};
-    Span status{states.sim.status[AllItems<TrackStatus, MemSpace::device>{}]};
-    thrust::partition(thrust::device,
-                      thrust::device_pointer_cast(track_slots.begin()),
-                      thrust::device_pointer_cast(track_slots.end()),
-                      thrust::device_pointer_cast(status.data()),
-                      alive_predicate{});
+    thrust::partition(
+        thrust::device,
+        thrust::device_pointer_cast(track_slots.begin()),
+        thrust::device_pointer_cast(track_slots.end()),
+        alive_predicate{
+            states.sim.status[AllItems<TrackStatus, MemSpace::device>{}]});
     CELER_DEVICE_CHECK_ERROR();
 }
 //---------------------------------------------------------------------------//
