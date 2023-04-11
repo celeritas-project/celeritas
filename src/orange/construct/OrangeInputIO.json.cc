@@ -22,7 +22,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/StringEnumMapper.hh"
-#include "orange/BoundingBox.hh"
+#include "orange/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
 
@@ -154,8 +154,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     // Parse bbox
     if (j.contains("bbox"))
     {
-        auto bbox = j.at("bbox").get<Array<Real3, 2>>();
-        value.bbox = {bbox[0], bbox[1]};
+        j.at("bbox").get_to(value.bbox);
     }
 
     // Read scalars, including optional flags

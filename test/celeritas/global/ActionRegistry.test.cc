@@ -69,6 +69,7 @@ class ActionRegistryTest : public Test
     {
         EXPECT_EQ(ActionId{0}, mgr.next_id());
         EXPECT_EQ(0, mgr.num_actions());
+        EXPECT_TRUE(mgr.empty());
 
         // Add actions
         auto impl1 = std::make_shared<MyImplicitAction>(mgr.next_id(), "impl1");
@@ -93,6 +94,7 @@ class ActionRegistryTest : public Test
 
 TEST_F(ActionRegistryTest, accessors)
 {
+    EXPECT_FALSE(mgr.empty());
     EXPECT_EQ(3, mgr.num_actions());
 
     // Find IDs
@@ -118,8 +120,10 @@ TEST_F(ActionRegistryTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json([{"label":"impl1"},{"description":"explicit action test","label":"explicit"},{"description":"the second implicit action","label":"impl2"}])json",
-            to_string(out));
+            R"json({"description":["","explicit action test","the second implicit action"],"label":["impl1","explicit","impl2"]})json",
+            to_string(out))
+            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
+            << ")json\"\n/******/";
     }
 }
 

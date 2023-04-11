@@ -8,7 +8,6 @@
 #include "HitManager.hh"
 
 #include <utility>
-#include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
@@ -21,9 +20,8 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/ext/detail/GeantVolumeVisitor.hh"
+#include "celeritas/ext/GeantVolumeMapper.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
-#include "celeritas/io/ImportVolume.hh"
 #include "accel/SetupOptions.hh"
 
 #include "HitProcessor.hh"
@@ -42,6 +40,7 @@ void update_selection(StepPointSelection* selection,
     selection->pos = options.position;
     selection->energy = options.kinetic_energy;
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -68,10 +67,8 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     // Logical volumes to pass to hit processor
     std::vector<G4LogicalVolume*> geant_vols;
 
-    // Helper class to extract GDML names+labels from Geant4 volume
-    GeantVolumeVisitor visitor(true);
-
-    // Loop over all logical volumes
+    // Loop over all logical volumes and map detectors to Volume IDS
+    GeantVolumeMapper g4_to_celer{geo};
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
     CELER_ASSERT(lv_store);
     for (G4LogicalVolume* lv : *lv_store)
@@ -85,39 +82,9 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
             continue;
         }
 
-        // Convert volume name to GPU geometry ID
-        auto label = Label::from_geant(lv->GetName());
-        if (label.ext.empty())
-        {
-            // Label doesn't have a pointer address attached: we probably need
-            // to regenerate to match the exported GDML file
-            label = Label::from_geant(visitor.generate_name(*lv));
-        }
-
-        auto id = geo.find_volume(label);
-        if (!id)
-        {
-            // Fallback to skipping the extension
-            id = geo.find_volume(label.name);
-            if (id)
-            {
-                CELER_LOG(warning)
-                    << "Failed to find " << celeritas_geometry
-                    << " volume corresponding to Geant4 volume '"
-                    << lv->GetName() << "'; found '" << geo.id_to_label(id)
-                    << "' by omitting the extension";
-            }
-            else
-            {
-                // Try regenerating the name even if we *did* have a pointer
-                // address attached (in case the original volume name already
-                // had a pointer suffix and we added another)
-                label = Label::from_geant(visitor.generate_name(*lv));
-                id = geo.find_volume(label.name);
-            }
-        }
+        auto id = g4_to_celer(*lv);
         CELER_VALIDATE(id,
-                       << "failed to find " << celeritas_geometry
+                       << "failed to find a unique " << celeritas_geometry
                        << " volume corresponding to Geant4 volume '"
                        << lv->GetName() << "'");
         CELER_LOG(debug) << "Mapped sensitive detector '" << sd->GetName()

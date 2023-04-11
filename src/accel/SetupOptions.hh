@@ -66,6 +66,7 @@ struct SetupOptions
     using SPConstAction = std::shared_ptr<ExplicitActionInterface const>;
     using AlongStepFactory
         = std::function<SPConstAction(AlongStepFactoryInput const&)>;
+    using IntAccessor = std::function<int()>;
     using VecString = std::vector<std::string>;
     //!@}
 
@@ -81,6 +82,8 @@ struct SetupOptions
     std::string geometry_file;
     //! Filename for JSON diagnostic output
     std::string output_file;
+    //! Filename for ROOT dump of physics data
+    std::string physics_output_file;
     //!@}
 
     //!@{
@@ -98,6 +101,9 @@ struct SetupOptions
     //! Sync the GPU at every kernel for error checking
     bool sync{false};
     //!@}
+
+    //! Set the number of streams (defaults to run manager # threads)
+    IntAccessor get_num_streams;
 
     //!@{
     //! \name Stepping actions

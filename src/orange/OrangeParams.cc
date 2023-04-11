@@ -110,7 +110,7 @@ OrangeParams::OrangeParams(G4VPhysicalVolume const*)
  */
 OrangeParams::OrangeParams(OrangeInput input)
 {
-    CELER_VALIDATE(!input.units.empty(), << "input geometry has no universes");
+    CELER_VALIDATE(input, << "input geometry is incomplete");
 
     HostVal<OrangeParamsData> host_data;
 

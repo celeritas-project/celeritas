@@ -86,7 +86,8 @@ enum class MatterState
     unspecified = 0,
     solid,
     liquid,
-    gas
+    gas,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -156,6 +157,9 @@ struct NoData
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
+
+// Get a string corresponding to a material state
+char const* to_cstring(MatterState);
 
 // Get a string corresponding to a surface type
 char const* to_cstring(ActionOrder);

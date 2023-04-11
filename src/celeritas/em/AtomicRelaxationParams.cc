@@ -21,6 +21,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
@@ -49,6 +50,8 @@ AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
     CELER_EXPECT(inp.cutoffs);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.particles);
+
+    ScopedMem record_mem("AtomicRelaxationParams.construct");
 
     HostData host_data;
 

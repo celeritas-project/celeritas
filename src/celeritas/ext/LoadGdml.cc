@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedMem.hh"
 
 namespace celeritas
 {
@@ -36,6 +37,7 @@ void detail::PVDeleter::operator()(G4VPhysicalVolume* vol) const
 UPG4PhysicalVolume load_gdml(std::string const& filename)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
+    ScopedMem record_mem("load_gdml");
 
     // Create parser; do *not* strip `0x` extensions since those are needed to
     // deduplicate complex geometries (e.g. CMS) and are handled by the Label

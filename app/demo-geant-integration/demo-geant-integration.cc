@@ -78,6 +78,7 @@ void run(std::string const& macro_filename)
     ui->ApplyCommand("/control/execute " + macro_filename);
 
     // Initialize run and process events
+    CELER_LOG(status) << "Initializing run manager";
     run_manager->Initialize();
 
     // Load the input file
@@ -86,6 +87,7 @@ void run(std::string const& macro_filename)
         num_events = demo_geant::PrimaryGeneratorAction::NumEvents(),
         celeritas::ExceptionConverter{"demo-geant000"});
 
+    CELER_LOG(status) << "Transporting " << num_events << " events";
     run_manager->BeamOn(num_events);
 }
 

@@ -27,6 +27,7 @@
 
 namespace celeritas
 {
+class OutputRegistry;
 class CoreParams;
 
 NLOHMANN_JSON_SERIALIZE_ENUM(TrackOrder,
@@ -129,11 +130,10 @@ struct LDemoArgs
     }
 };
 
-// Load params from input arguments
-TransporterInput load_input(LDemoArgs const& args);
-
 // Build transporter from input arguments
-std::unique_ptr<TransporterBase> build_transporter(LDemoArgs const& run_args);
+std::unique_ptr<TransporterBase>
+build_transporter(LDemoArgs const& args,
+                  std::shared_ptr<celeritas::OutputRegistry> const& outreg);
 
 void to_json(nlohmann::json& j, LDemoArgs const& value);
 void from_json(nlohmann::json const& j, LDemoArgs& value);

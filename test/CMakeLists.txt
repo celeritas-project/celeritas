@@ -141,7 +141,7 @@ set(CELERITASTEST_PREFIX corecel/io)
 celeritas_add_test(corecel/io/EnumStringMapper.test.cc)
 celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
-celeritas_add_test(corecel/io/OutputManager.test.cc
+celeritas_add_test(corecel/io/OutputRegistry.test.cc
   LINK_LIBRARIES ${_optional_json_link})
 celeritas_add_test(corecel/io/Repr.test.cc)
 celeritas_add_test(corecel/io/StringEnumMapper.test.cc)
@@ -294,6 +294,8 @@ celeritas_add_test(celeritas/ext/GeantImporter.test.cc
     "OneSteelSphere.*"
     "OneSteelSphereGG.*"
   )
+celeritas_add_test(celeritas/ext/GeantVolumeMapper.test.cc ${_needs_geant4}
+  LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 
 #-------------------------------------#

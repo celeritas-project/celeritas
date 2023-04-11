@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "GlobalTestBase.hh"
 
+#include <iostream>
 #include <fstream>
 
 #include "celeritas_config.h"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/OutputManager.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
@@ -30,12 +31,19 @@ namespace test
 //---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
 {
-    output_ = std::make_shared<OutputManager>();
+    output_reg_ = std::make_shared<OutputRegistry>();
 }
 
 //---------------------------------------------------------------------------//
-// Default destructor
-GlobalTestBase::~GlobalTestBase() = default;
+GlobalTestBase::~GlobalTestBase()
+{
+    if (this->HasFailure() && !this->output_reg()->empty())
+    {
+        std::cerr << "Writing diagnostic output to screen because test failed:\n";
+        this->write_output(std::cout);
+        std::cout << std::endl;
+    }
+}
 
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_rng() const -> SPConstRng
@@ -63,6 +71,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.sim = this->sim();
     inp.init = this->init();
     inp.action_reg = this->action_reg();
+    inp.output_reg = this->output_reg();
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop
@@ -91,29 +100,13 @@ void GlobalTestBase::write_output(std::ostream& os) const
 {
 #if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
-    output_->output(&json_wrap);
+    this->output_reg()->output(&json_wrap);
 
     // Print with pretty indentation
     os << json_wrap.obj.dump(1) << '\n';
 #else
     os << "\"output unavailable\"";
 #endif
-}
-
-//---------------------------------------------------------------------------//
-// PRIVATE
-//---------------------------------------------------------------------------//
-void GlobalTestBase::register_physics_output()
-{
-    CELER_ASSERT(physics_);
-    output_->insert(std::make_shared<PhysicsParamsOutput>(physics_));
-}
-
-//---------------------------------------------------------------------------//
-void GlobalTestBase::register_action_reg_output()
-{
-    CELER_ASSERT(action_reg_);
-    output_->insert(std::make_shared<ActionRegistryOutput>(action_reg_));
 }
 
 //---------------------------------------------------------------------------//

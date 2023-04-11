@@ -15,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -217,10 +218,10 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
 //!@}
 
 //---------------------------------------------------------------------------//
-TransporterInput load_input(LDemoArgs const& args)
+CoreParams::Input load_core_params(LDemoArgs const& args)
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
-    TransporterInput result;
+    ScopedMem record_mem("demo_loop.load_core_params");
     CoreParams::Input params;
     ImportData const imported = [&args] {
         if (ends_with(args.physics_filename, ".root"))
@@ -360,39 +361,43 @@ TransporterInput load_input(LDemoArgs const& args)
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
-    // Create params
-    CELER_ASSERT(params);
-    result.params = std::make_shared<CoreParams>(std::move(params));
-
-    // Save constants
-    CELER_VALIDATE(args.max_num_tracks > 0,
-                   << "nonpositive max_num_tracks=" << args.max_num_tracks);
-    CELER_VALIDATE(args.max_steps > 0,
-                   << "nonpositive max_steps=" << args.max_steps);
-    result.num_track_slots = args.max_num_tracks;
-    result.max_steps = args.max_steps;
-    result.enable_diagnostics = args.enable_diagnostics;
-    result.sync = args.sync;
-
-    // Save diagnosics
-    result.energy_diag = args.energy_diag;
-
-    CELER_ENSURE(result);
-    return result;
+    return params;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct parameters, input, and transporter from the given run arguments.
  */
-std::unique_ptr<TransporterBase> build_transporter(LDemoArgs const& run_args)
+std::unique_ptr<TransporterBase>
+build_transporter(LDemoArgs const& args,
+                  std::shared_ptr<OutputRegistry> const& outreg)
 {
+    CELER_EXPECT(outreg);
     using celeritas::MemSpace;
 
-    TransporterInput input = load_input(run_args);
+    // Save constants from args
+    TransporterInput input;
+    CELER_VALIDATE(args.max_num_tracks > 0,
+                   << "nonpositive max_num_tracks=" << args.max_num_tracks);
+    CELER_VALIDATE(args.max_steps > 0,
+                   << "nonpositive max_steps=" << args.max_steps);
+    input.num_track_slots = args.max_num_tracks;
+    input.max_steps = args.max_steps;
+    input.enable_diagnostics = args.enable_diagnostics;
+    input.sync = args.sync;
+    input.energy_diag = args.energy_diag;
+
+    // Create core params
+    input.params = [&args, &outreg] {
+        auto params = load_core_params(args);
+        params.output_reg = outreg;
+        CELER_ASSERT(params);
+        return std::make_shared<CoreParams>(std::move(params));
+    }();
+
     std::unique_ptr<TransporterBase> result;
 
-    if (run_args.use_device)
+    if (args.use_device)
     {
         CELER_VALIDATE(celeritas::device(),
                        << "CUDA device is unavailable but GPU run was "

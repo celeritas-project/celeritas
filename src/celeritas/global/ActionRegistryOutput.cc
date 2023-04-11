@@ -39,22 +39,22 @@ ActionRegistryOutput::ActionRegistryOutput(SPConstActionRegistry actions)
 void ActionRegistryOutput::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
-    auto obj = nlohmann::json::array();
+    using json = nlohmann::json;
+
+    auto label = json::array();
+    auto description = json::array();
+
     for (auto id : range(ActionId{actions_->num_actions()}))
     {
-        nlohmann::json entry{
-            {"label", actions_->id_to_label(id)},
-        };
+        label.push_back(actions_->id_to_label(id));
 
         ActionInterface const& action = *actions_->action(id);
-        auto&& desc = action.description();
-        if (!desc.empty())
-        {
-            entry["description"] = std::move(desc);
-        }
-        obj.push_back(entry);
+        description.push_back(action.description());
     }
-    j->obj = std::move(obj);
+    j->obj = {
+        {"label", std::move(label)},
+        {"description", std::move(description)},
+    };
 #else
     (void)sizeof(j);
 #endif
