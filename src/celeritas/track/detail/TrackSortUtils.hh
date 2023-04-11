@@ -77,7 +77,7 @@ inline void shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
 }
 
 template<>
-void partition_tracks_by_status(
+inline void partition_tracks_by_status(
     CoreStateData<Ownership::reference, MemSpace::device> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");

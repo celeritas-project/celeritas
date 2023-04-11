@@ -42,6 +42,7 @@ template<>
 void partition_tracks_by_status(
     CoreStateData<Ownership::reference, MemSpace::host> const& states)
 {
+    CELER_EXPECT(states.size() > 0);
     Span track_slots{
         states.track_slots[AllItems<TrackSlotId::size_type, MemSpace::host>{}]};
     std::partition(track_slots.begin(),
