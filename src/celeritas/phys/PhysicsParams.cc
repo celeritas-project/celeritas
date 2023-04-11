@@ -22,6 +22,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/data/AtomicRelaxationData.hh"
@@ -78,6 +79,8 @@ PhysicsParams::PhysicsParams(Input inp)
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);
+
+    ScopedMem record_mem("PhysicsParams.construct");
 
     // Create actions (order matters due to accessors in PhysicsParamsScalars)
     {

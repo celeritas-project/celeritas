@@ -28,6 +28,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/ScopedMem.hh"
 
 #include "LoadGdml.hh"
 #include "detail/GeantExceptionHandler.hh"
@@ -93,6 +94,7 @@ int get_num_threads(G4RunManager const& runman)
 GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
+    ScopedMem record_setup_mem("GeantSetup.construct");
 
     {
         // Run manager writes output that cannot be redirected...
@@ -149,6 +151,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 
     {
         CELER_LOG(status) << "Initializing Geant4 physics tables";
+        ScopedMem record_mem("GeantSetup.initialize");
         ScopedTimeLog scoped_time;
 
         run_manager_->Initialize();

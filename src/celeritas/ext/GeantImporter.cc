@@ -51,6 +51,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
@@ -658,6 +659,7 @@ GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
  */
 ImportData GeantImporter::operator()(DataSelection const& selected)
 {
+    ScopedMem record_mem("GeantImporter.load");
     ImportData imported;
 
     {

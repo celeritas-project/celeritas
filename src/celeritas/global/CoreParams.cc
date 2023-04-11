@@ -19,6 +19,8 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParamsOutput.hh"
@@ -45,6 +47,7 @@
 #    include "corecel/sys/DeviceIO.json.hh"
 #    include "corecel/sys/EnvironmentIO.json.hh"
 #    include "corecel/sys/KernelRegistryIO.json.hh"
+#    include "corecel/sys/MemRegistryIO.json.hh"
 #endif
 
 namespace celeritas
@@ -122,6 +125,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
+    ScopedMem record_mem("CoreParams.construct");
+
     CoreScalars scalars;
 
     // Construct geometry action
@@ -171,6 +176,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             OutputInterface::Category::system,
             "kernels",
             celeritas::kernel_registry()));
+    input_.output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
+        OutputInterface::Category::system, "memory", celeritas::mem_registry()));
     input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
 #endif
