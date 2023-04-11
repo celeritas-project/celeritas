@@ -18,6 +18,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/track/detail/TrackSortUtils.hh"
 
 #include "../ActionRegistry.hh"
 
@@ -103,6 +104,7 @@ void ActionSequence::execute(CoreRef<M> const& data)
             sp_action->execute(data);
         }
     }
+    detail::partition_tracks_by_status(data.states);
 }
 
 //---------------------------------------------------------------------------//
