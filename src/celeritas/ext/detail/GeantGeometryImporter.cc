@@ -145,27 +145,28 @@ make_transformation(G4ThreeVector const& t, G4RotationMatrix const* rot)
 VPlacedVolume const&
 GeantGeometryImporter::operator()(G4VPhysicalVolume const* g4_world)
 {
+    VecVPlacedVolume const* top_volumes{nullptr};
+
     GeoManager::Instance().Clear();
     {
         CELER_LOG(status) << "Converting Geant4 geometry to VecGeom";
         ScopedTimeLog scoped_time;
 
-        auto volumes = convert(g4_world);
-        CELER_ASSERT(volumes->size() == 1);
-        world_ = (*volumes)[0];
+        top_volumes = this->convert(g4_world);
+        CELER_ASSERT(top_volumes->size() == 1);
     }
 
     {
         CELER_LOG(status) << "Finalizing VecGeom";
         ScopedTimeLog scoped_time;
-        GeoManager::Instance().SetWorld(world_);
+        GeoManager::Instance().SetWorld((*top_volumes)[0]);
         GeoManager::Instance().CloseGeometry();
     }
 
     // Reset reference after geometry closing
-    world_ = GeoManager::Instance().GetWorld();
-    CELER_ENSURE(world_);
-    return *world_;
+    VPlacedVolume const* world = GeoManager::Instance().GetWorld();
+    CELER_ENSURE(world);
+    return *world;
 }
 
 void GeantGeometryImporter::extract_replicated_transformations(
@@ -228,9 +229,9 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
     replica_transformations_.clear();
     replica_transformations_.push_back(transformation);
 
-    auto vgvector = new std::vector<VPlacedVolume const*>;
+    std::vector<VPlacedVolume const*> vgvector;
 
-    auto const g4logical = node->GetLogicalVolume();
+    auto* const g4logical = node->GetLogicalVolume();
     LogicalVolume* logical_volume = this->convert(g4logical);
 
     // place (all replicas here) ... if normal we will only have one
@@ -239,7 +240,7 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
     {
         VPlacedVolume const* placed_volume
             = logical_volume->Place(node->GetName(), transf);
-        vgvector->emplace_back(placed_volume);
+        vgvector.push_back(placed_volume);
     }
 
     // All or no daughters should have been placed already
@@ -250,16 +251,20 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
 
     for (int i = 0; i < remaining_daughters; ++i)
     {
-        auto const daughter_node = g4logical->GetDaughter(i);
-        auto const placedvector = this->convert(daughter_node);
-        for (auto placed : *placedvector)
+        auto* const daughter_node = g4logical->GetDaughter(i);
+        auto* const placedvector = this->convert(daughter_node);
+        for (auto* placed : *placedvector)
         {
-            logical_volume->PlaceDaughter((VPlacedVolume*)placed);
+                     logical_volume->PlaceDaughter(
+                         const_cast<VPlacedVolume*>(placed));
         }
     }
 
-    placed_volume_map_[node] = vgvector;
-    return vgvector;
+    // Move to map, return reference to stored vector
+    auto&& [iter, inserted]
+        = placed_volume_map_.insert({node, std::move(vgvector)});
+    CELER_ASSERT(inserted);
+    return &iter->second;
 }
 
 LogicalVolume* GeantGeometryImporter::convert(G4LogicalVolume const* g4_logvol)

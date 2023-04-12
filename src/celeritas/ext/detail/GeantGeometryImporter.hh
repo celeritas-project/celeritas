@@ -48,6 +48,13 @@ class GeantGeometryImporter
     //! Default constructor.
     GeantGeometryImporter() = default;
 
+    //!@{
+    //! Deleted constructors and assignment operator.
+    GeantGeometryImporter(GeantGeometryImporter const&) = delete;
+    GeantGeometryImporter(GeantGeometryImporter const&&) = delete;
+    GeantGeometryImporter& operator=(GeantGeometryImporter const&) = delete;
+    //!@}
+
     /*!
      * Main entry point of geometry importer.
      *
@@ -57,6 +64,24 @@ class GeantGeometryImporter
     VPlacedVolume const& operator()(G4VPhysicalVolume const*);
 
   private:
+    //// TYPES ////
+
+    using VecVPlacedVolume = std::vector<VPlacedVolume const*>;
+
+    //// DATA ////
+
+    // one G4 physical volume can correspond to multiple vecgeom placed volumes
+    // (in case of replicas)
+    std::map<G4VPhysicalVolume const*, VecVPlacedVolume> placed_volume_map_;
+
+    std::map<G4VSolid const*, VUnplacedVolume const*> unplaced_volume_map_;
+
+    std::map<G4LogicalVolume const*, LogicalVolume const*> logical_volume_map_;
+
+    std::vector<Transformation3D const*> replica_transformations_;
+
+    //// HELPER FUNCTIONS ////
+
     /*!
      * Converts a physical volume into a VecGeom placed volume.
      *
@@ -66,7 +91,7 @@ class GeantGeometryImporter
      * Will take care not to convert anything twice by checking the
      * mapping between Geant4 and VecGeom geometry.
      */
-    std::vector<VPlacedVolume const*> const* convert(G4VPhysicalVolume const*);
+    VecVPlacedVolume const* convert(G4VPhysicalVolume const*);
 
     /**
      * @brief Special treatment needed for replicated volumes.
@@ -82,28 +107,6 @@ class GeantGeometryImporter
      * All daughters' physical volumes will be recursively converted.
      */
     LogicalVolume* convert(G4LogicalVolume const*);
-
-  private:
-    //!@{ Deleted constructors and assignment operator.
-    GeantGeometryImporter(GeantGeometryImporter const&) = delete;
-    GeantGeometryImporter(GeantGeometryImporter const&&) = delete;
-    GeantGeometryImporter& operator=(GeantGeometryImporter const&) = delete;
-    //!@}
-
-  private:
-    //! Pointer to generated world built from imported Geant4 geometry.
-    VPlacedVolume const* world_;
-
-    // one G4 physical volume can correspond to multiple vecgeom placed volumes
-    // (in case of replicas)
-    std::map<G4VPhysicalVolume const*, std::vector<VPlacedVolume const*> const*>
-        placed_volume_map_;
-
-    std::map<G4VSolid const*, VUnplacedVolume const*> unplaced_volume_map_;
-
-    std::map<G4LogicalVolume const*, LogicalVolume const*> logical_volume_map_;
-
-    std::vector<Transformation3D const*> replica_transformations_;
 };
 
 //---------------------------------------------------------------------------//
