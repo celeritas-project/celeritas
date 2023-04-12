@@ -88,7 +88,7 @@ class InteractAction final : public ExplicitActionInterface
 };
 
 //! Copy results to host
-ITTestOutput get_result(CoreStateDeviceRef& states)
+ITTestOutput get_result(DeviceRef<CoreStateData>& states)
 {
     CELER_EXPECT(states);
 
@@ -172,7 +172,7 @@ class TrackInitTest : public SimpleTestBase
     }
 
     //! Copy results to host
-    ITTestOutput get_result(CoreStateDeviceRef& states)
+    ITTestOutput get_result(DeviceRef<CoreStateData>& states)
     {
         CELER_EXPECT(states);
 

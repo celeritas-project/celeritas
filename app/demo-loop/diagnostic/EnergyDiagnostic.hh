@@ -127,11 +127,11 @@ class EnergyDiagnosticLauncher
 using PointersDevice = EnergyBinPointers<MemSpace::device>;
 using PointersHost = EnergyBinPointers<MemSpace::host>;
 
-void bin_energy(celeritas::CoreParamsDeviceRef const& params,
-                celeritas::CoreStateDeviceRef const& states,
+void bin_energy(celeritas::DeviceCRef<celeritas::CoreParamsData> const& params,
+                celeritas::DeviceRef<celeritas::CoreStateData> const& states,
                 PointersDevice& pointers);
-void bin_energy(celeritas::CoreParamsHostRef const& params,
-                celeritas::CoreStateHostRef const& states,
+void bin_energy(celeritas::HostCRef<celeritas::CoreParamsData> const& params,
+                celeritas::HostRef<celeritas::CoreStateData> const& states,
                 PointersHost& pointers);
 
 //---------------------------------------------------------------------------//
@@ -277,8 +277,8 @@ EnergyDiagnosticLauncher<M>::operator()(TrackSlotId tid) const
 }
 
 #if !CELER_USE_DEVICE
-inline void bin_energy(celeritas::CoreParamsDeviceRef const&,
-                       celeritas::CoreStateDeviceRef const&,
+inline void bin_energy(celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+                       celeritas::DeviceRef<celeritas::CoreStateData> const&,
                        PointersDevice&)
 {
     CELER_NOT_CONFIGURED("CUDA/HIP");
