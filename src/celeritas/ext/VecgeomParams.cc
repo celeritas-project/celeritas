@@ -32,7 +32,6 @@
 #include "corecel/sys/ScopedMem.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
-#include "detail/GeantGeoExporter.hh"
 #include "detail/GeantGeometryImporter.hh"
 
 namespace celeritas
