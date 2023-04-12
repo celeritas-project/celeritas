@@ -32,10 +32,15 @@ Additional licenses
 
 Small portions of Celeritas are derived from other open source projects.
 
-BVHNavigator
-------------
+CERN Apache 2.0
+---------------
 
-Derived from AdePT_ under the following license::
+The following VecGeom-related components are derivative works:
+
+- BVHNavigator: from AdePT_
+- GenericSolid, GenericPlacedVolume, GeantGeometryImporter: from VecGeomG4Solid_
+
+with portions distributed under the following license::
 
    Copyright 2020 CERN
 
@@ -52,3 +57,4 @@ Derived from AdePT_ under the following license::
    limitations under the License.
 
 .. _AdePT: https://github.com/apt-sim/AdePT
+.. _VecGeomG4Solid: https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/ce4a0bb2f777a6728e59dee96c764fd61fa8b785/include/VecGeomG4Solid.h

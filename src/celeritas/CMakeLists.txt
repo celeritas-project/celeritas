@@ -108,15 +108,13 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_Geant4)
-  set(_cg4_libs Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES})
-  celeritas_add_object_library(celeritas_geant4
+  set(_cg4_sources
     ext/LoadGdml.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantExceptionHandler.cc
-    ext/detail/GeantGeoExporter.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
@@ -124,12 +122,20 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeantVolumeVisitor.cc
   )
+  set(_cg4_libs Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES})
+
   if(CELERITAS_USE_VecGeom)
+    list(APPEND _cg4_sources
+      ext/detail/GeantGeoConverter.cc
+    )
     list(APPEND _cg4_libs VecGeom::vecgeom)
   else()
     list(APPEND _cg4_libs Celeritas::orange)
   endif()
+
+  celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
   target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})
+
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_geant4>)
   list(APPEND PRIVATE_DEPS celeritas_geant4)
 endif()
