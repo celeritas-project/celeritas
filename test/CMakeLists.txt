@@ -123,6 +123,7 @@ celeritas_add_test(corecel/OpaqueId.test.cc)
 # Cont
 set(CELERITASTEST_PREFIX corecel/cont)
 celeritas_add_test(corecel/cont/Array.test.cc)
+celeritas_add_test(corecel/cont/InitializedValue.test.cc)
 celeritas_add_test(corecel/cont/Span.test.cc)
 celeritas_add_test(corecel/cont/LabelIdMultiMap.test.cc)
 celeritas_add_device_test(corecel/cont/Range)
@@ -140,7 +141,7 @@ set(CELERITASTEST_PREFIX corecel/io)
 celeritas_add_test(corecel/io/EnumStringMapper.test.cc)
 celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
-celeritas_add_test(corecel/io/OutputManager.test.cc
+celeritas_add_test(corecel/io/OutputRegistry.test.cc
   LINK_LIBRARIES ${_optional_json_link})
 celeritas_add_test(corecel/io/Repr.test.cc)
 celeritas_add_test(corecel/io/StringEnumMapper.test.cc)
@@ -304,8 +305,11 @@ celeritas_add_test(celeritas/ext/GeantImporter.test.cc
   FILTER
     "FourSteelSlabs*"
     "TestEm3*"
-    "OneSteelSphere*"
+    "OneSteelSphere.*"
+    "OneSteelSphereGG.*"
   )
+celeritas_add_test(celeritas/ext/GeantVolumeMapper.test.cc ${_needs_geant4}
+  LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 
 #-------------------------------------#
@@ -351,11 +355,13 @@ celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 if(CELERITAS_USE_Geant4)
   set(_filter
     FILTER
-      "-Em3*"
+      "-Em3*:SimpleCms*"
       "Em3AlongStepTest.nofluct_nomsc"
       "Em3AlongStepTest.msc_nofluct"
       "Em3AlongStepTest.msc_nofluct_finegrid"
       "Em3AlongStepTest.fluct_nomsc"
+      "SimpleCmsAlongStepTest.msc_field"
+      "SimpleCmsAlongStepTest.msc_field_finegrid"
   )
 else()
   set(_filter)
@@ -447,6 +453,7 @@ endif()
 #-------------------------------------#
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
+celeritas_add_test(celeritas/track/Sim.test.cc ${_needs_geant4})
 celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
 
 #-------------------------------------#

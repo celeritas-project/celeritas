@@ -11,23 +11,44 @@
 #include <type_traits>
 #include <utility>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/io/BuildOutput.hh"
+#include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/geo/GeoParamsOutput.hh"
 #include "celeritas/geo/generated/BoundaryAction.hh"
+#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
+#include "celeritas/mat/MaterialParamsOutput.hh"
 #include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
+#include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
 #include "ActionRegistry.hh"  // IWYU pragma: keep
+
+#if CELERITAS_USE_JSON
+#    include "corecel/io/OutputInterfaceAdapter.hh"
+#    include "corecel/sys/DeviceIO.json.hh"
+#    include "corecel/sys/EnvironmentIO.json.hh"
+#    include "corecel/sys/KernelRegistryIO.json.hh"
+#    include "corecel/sys/MemRegistryIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -39,7 +60,7 @@ namespace
 //!@{
 template<MemSpace M>
 CoreParamsData<Ownership::const_reference, M>
-build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
+build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
 {
     CELER_EXPECT(scalars);
 
@@ -53,6 +74,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
     ref.cutoffs = get_ref<M>(*p.cutoff);
     ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
+    ref.sim = get_ref<M>(*p.sim);
     ref.init = get_ref<M>(*p.init);
 
     CELER_ENSURE(ref);
@@ -62,6 +84,15 @@ build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
 //---------------------------------------------------------------------------//
 class ImplicitGeometryAction final : public ImplicitActionInterface,
                                      public ConcreteAction
+{
+  public:
+    // Construct with ID and label
+    using ConcreteAction::ConcreteAction;
+};
+
+//---------------------------------------------------------------------------//
+class ImplicitSimAction final : public ImplicitActionInterface,
+                                public ConcreteAction
 {
   public:
     // Construct with ID and label
@@ -85,24 +116,41 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(cutoff);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
+    CP_VALIDATE_INPUT(output_reg);
+    CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
 
+    ScopedMem record_mem("CoreParams.construct");
+
+    CoreScalars scalars;
+
     // Construct geometry action
-    scalars_.boundary_action = input_.action_reg->next_id();
+    scalars.boundary_action = input_.action_reg->next_id();
     input_.action_reg->insert(
         std::make_shared<celeritas::generated::BoundaryAction>(
-            scalars_.boundary_action, "geo-boundary", "Boundary crossing"));
+            scalars.boundary_action, "geo-boundary", "Boundary crossing"));
 
     // Construct implicit limit for propagator pausing midstep
-    scalars_.propagation_limit_action = input_.action_reg->next_id();
+    scalars.propagation_limit_action = input_.action_reg->next_id();
     input_.action_reg->insert(std::make_shared<ImplicitGeometryAction>(
-        scalars_.propagation_limit_action,
+        scalars.propagation_limit_action,
         "geo-propagation-limit",
         "Propagation substep/range limit"));
+
+    // Construct action for killed looping tracks
+    scalars.abandon_looping_action = input_.action_reg->next_id();
+    input_.action_reg->insert(
+        std::make_shared<ImplicitSimAction>(scalars.abandon_looping_action,
+                                            "abandon-looping",
+                                            "Abandoned looping track"));
+
+    // Save maximum number of streams
+    scalars.max_streams = input_.max_streams;
 
     // Construct initialize tracks action
     input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
@@ -113,12 +161,42 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         input_.action_reg->next_id()));
 
     // Save host reference
-    host_ref_ = build_params_refs<MemSpace::host>(input_, scalars_);
+    host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);
     if (celeritas::device())
     {
-        device_ref_ = build_params_refs<MemSpace::device>(input_, scalars_);
+        device_ref_ = build_params_refs<MemSpace::device>(input_, scalars);
     }
+
+#if CELERITAS_USE_JSON
+    // Save system diagnostic information
+    input_.output_reg->insert(OutputInterfaceAdapter<Device>::from_const_ref(
+        OutputInterface::Category::system, "device", celeritas::device()));
+    input_.output_reg->insert(
+        OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
+            OutputInterface::Category::system,
+            "kernels",
+            celeritas::kernel_registry()));
+    input_.output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
+        OutputInterface::Category::system, "memory", celeritas::mem_registry()));
+    input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
+        OutputInterface::Category::system, "environ", celeritas::environment()));
+#endif
+    input_.output_reg->insert(std::make_shared<BuildOutput>());
+
+    // Save core diagnostic information
+    input_.output_reg->insert(
+        std::make_shared<GeoParamsOutput>(input_.geometry));
+    input_.output_reg->insert(
+        std::make_shared<MaterialParamsOutput>(input_.material));
+    input_.output_reg->insert(
+        std::make_shared<ParticleParamsOutput>(input_.particle));
+    input_.output_reg->insert(
+        std::make_shared<PhysicsParamsOutput>(input_.physics));
+    input_.output_reg->insert(
+        std::make_shared<ActionRegistryOutput>(input_.action_reg));
+
     CELER_ENSURE(host_ref_);
+    CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
 }
 
 //---------------------------------------------------------------------------//

@@ -25,8 +25,12 @@ namespace celeritas
  *
  * The State class must be templated on ownership and memory space, and
  * additionally must have an operator bool(), a templated operator=, and a
- * size() accessor. It must also define a free function "resize" that takes
- * a value state and (optionally) Params host data.
+ * size() accessor. It must also define a free function "resize" that takes:
+ * - \b REQUIRED: a pointer to the state with \c Ownership::value semantics
+ * - \b OPTIONAL: a \c Ownership::const_reference instance of \c MemSpace::host
+ *   params data
+ * - \b OPTIONAL: a \c StreamId for setting up thread/task-local data
+ * - \b REQUIRED: a \c size_type for specifying the size of the new state.
  *
  * \code
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
@@ -48,7 +52,13 @@ class CollectionStateStore
   public:
     CollectionStateStore() = default;
 
-    // Construct from parameters
+    // Construct from parameters and stream ID
+    template<template<Ownership, MemSpace> class P>
+    inline CollectionStateStore(HostCRef<P> const& p,
+                                StreamId stream_id,
+                                size_type size);
+
+    // Construct from just parameters
     template<template<Ownership, MemSpace> class P>
     inline CollectionStateStore(HostCRef<P> const& p, size_type size);
 
@@ -90,6 +100,27 @@ class CollectionStateStore
     template<template<Ownership, MemSpace> class S2, MemSpace M2>
     friend class CollectionStateStore;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from parameter data.
+ *
+ * Most states are constructed with a \c resize function that takes host
+ * parameter data and the number of states.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+template<template<Ownership, MemSpace> class P>
+CollectionStateStore<S, M>::CollectionStateStore(HostCRef<P> const& p,
+                                                 StreamId sid,
+                                                 size_type size)
+{
+    CELER_EXPECT(sid);
+    CELER_EXPECT(size > 0);
+    resize(&val_, p, sid, size);
+
+    // Save reference
+    ref_ = val_;
+}
 
 //---------------------------------------------------------------------------//
 /*!

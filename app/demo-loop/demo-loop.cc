@@ -20,30 +20,24 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/io/OutputManager.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
-#include "corecel/sys/KernelRegistry.hh"
-#include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/RootFileManager.hh"
 #include "celeritas/io/RootStepWriter.hh"
-#include "celeritas/phys/ParticleParamsOutput.hh"
-#include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
@@ -93,8 +87,9 @@ bool rsw_filter_match(size_type step_trk_id,
 /*!
  * `RootStepWriter` filter.
  *
- * Write if any combination of event ID, track ID, and/or parent ID match. If
- * no fields are specified or are set to -1, all steps are stored.
+ * Write if any combination of event ID, track ID, and/or parent ID match, or
+ * if the action ID matches. If no fields are specified or are set to -1, all
+ * steps are stored.
  */
 std::function<bool(RootStepWriter::TStepData const&)>
 make_root_step_writer_filter(LDemoArgs const& args)
@@ -105,6 +100,10 @@ make_root_step_writer_filter(LDemoArgs const& args)
     {
         rsw_filter = [opts = args.mctruth_filter](
                          RootStepWriter::TStepData const& step) {
+            if (opts.action_id != MCTruthFilter::unspecified())
+            {
+                return step.action_id == opts.action_id;
+            }
             return (rsw_filter_match(step.event_id, opts.event_id)
                     && rsw_filter_match(step.track_id, opts.track_id)
                     && rsw_filter_match(step.parent_id, opts.parent_id));
@@ -162,8 +161,9 @@ init_root_mctruth_output(LDemoArgs const& run_args,
 /*!
  * Run, launch, and output.
  */
-void run(std::istream* is, OutputManager* output)
+void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
+    ScopedMem record_mem("demo_loop.run");
     // Read input options
     auto inp = nlohmann::json::parse(*is);
 
@@ -194,18 +194,8 @@ void run(std::istream* is, OutputManager* output)
     Stopwatch get_setup_time;
 
     // Load all the problem data and create transporter
-    auto transport_ptr = build_transporter(run_args);
+    auto transport_ptr = build_transporter(run_args, output);
     double const setup_time = get_setup_time();
-
-    {
-        // Save diagnostic information
-        CoreParams const& params = transport_ptr->params();
-        output->insert(
-            std::make_shared<ParticleParamsOutput>(params.particle()));
-        output->insert(std::make_shared<PhysicsParamsOutput>(params.physics()));
-        output->insert(
-            std::make_shared<ActionRegistryOutput>(params.action_reg()));
-    }
 
     // Initialize RootFileManager and store input data if requested
     auto root_manager = init_root_mctruth_output(run_args, transport_ptr.get());
@@ -258,10 +248,12 @@ int main(int argc, char* argv[])
     ScopedRootErrorHandler scoped_root_error;
     ScopedMpiInit scoped_mpi(&argc, &argv);
 
-    MpiCommunicator comm
-        = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
-               ? MpiCommunicator{}
-               : MpiCommunicator::comm_world());
+    MpiCommunicator comm = [] {
+        if (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled)
+            return MpiCommunicator{};
+
+        return MpiCommunicator::comm_world();
+    }();
 
     if (comm.size() > 1)
     {
@@ -301,34 +293,25 @@ int main(int argc, char* argv[])
     }
 
     // Set up output
-    OutputManager output;
-    output.insert(OutputInterfaceAdapter<Device>::from_const_ref(
-        OutputInterface::Category::system, "device", celeritas::device()));
-    output.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
-        OutputInterface::Category::system,
-        "kernels",
-        celeritas::kernel_registry()));
-    output.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
-        OutputInterface::Category::system, "environ", celeritas::environment()));
-    output.insert(std::make_shared<BuildOutput>());
+    auto output = std::make_shared<OutputRegistry>();
 
     int return_code = EXIT_SUCCESS;
     try
     {
-        run(instream, &output);
+        run(instream, output);
     }
     catch (std::exception const& e)
     {
         CELER_LOG(critical)
             << "While running input at " << filename << ": " << e.what();
         return_code = EXIT_FAILURE;
-        output.insert(
+        output->insert(
             std::make_shared<ExceptionOutput>(std::current_exception()));
     }
 
     // Write system properties and (if available) results
     CELER_LOG(status) << "Saving output";
-    output.output(&cout);
+    output->output(&cout);
     cout << endl;
 
     return return_code;

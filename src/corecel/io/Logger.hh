@@ -18,6 +18,13 @@
 //---------------------------------------------------------------------------//
 // MACROS
 //---------------------------------------------------------------------------//
+//! Inject the source code provenance (current file and line)
+#define CELER_CODE_PROVENANCE \
+    ::celeritas::Provenance   \
+    {                         \
+        __FILE__, __LINE__    \
+    }
+
 /*!
  * \def CELER_LOG
  *
@@ -34,8 +41,8 @@
  CELER_LOG(critical) << "Caught a fatal exception: " << e.what();
  * \endcode
  */
-#define CELER_LOG(LEVEL)                              \
-    ::celeritas::world_logger()({__FILE__, __LINE__}, \
+#define CELER_LOG(LEVEL)                               \
+    ::celeritas::world_logger()(CELER_CODE_PROVENANCE, \
                                 ::celeritas::LogLevel::LEVEL)
 
 //---------------------------------------------------------------------------//
@@ -45,8 +52,8 @@
  * Like \c CELER_LOG but for code paths that may only happen on a single
  * process. Use sparingly.
  */
-#define CELER_LOG_LOCAL(LEVEL)                       \
-    ::celeritas::self_logger()({__FILE__, __LINE__}, \
+#define CELER_LOG_LOCAL(LEVEL)                        \
+    ::celeritas::self_logger()(CELER_CODE_PROVENANCE, \
                                ::celeritas::LogLevel::LEVEL)
 
 namespace celeritas

@@ -9,10 +9,8 @@
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -20,6 +18,7 @@
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Secondary.hh"
 
 #include "celeritas_test.hh"
 
@@ -32,6 +31,8 @@ namespace test
 class CutoffParamsTest : public Test
 {
   protected:
+    using Energy = units::MevEnergy;
+
     void SetUp() override
     {
         using namespace units;
@@ -60,7 +61,7 @@ class CutoffParamsTest : public Test
              {{ElementId{0}, 1.0}},
              "H2"},
         };
-        material_params = std::make_shared<MaterialParams>(std::move(m_input));
+        materials = std::make_shared<MaterialParams>(std::move(m_input));
 
         // Set up ParticleParams
         ParticleParams::Input p_input;
@@ -73,36 +74,54 @@ class CutoffParamsTest : public Test
                            ElementaryCharge{-1},
                            stable});
         p_input.push_back({"gamma", pdg::gamma(), zero, zero, stable});
-        particle_params = std::make_shared<ParticleParams>(std::move(p_input));
+        p_input.push_back({"positron",
+                           pdg::positron(),
+                           MevMass{0.5109989461},
+                           ElementaryCharge{1},
+                           stable});
+        p_input.push_back({"proton",
+                           pdg::proton(),
+                           MevMass{938.27208816},
+                           ElementaryCharge{1},
+                           stable});
+        particles = std::make_shared<ParticleParams>(std::move(p_input));
     }
 
-    std::shared_ptr<MaterialParams> material_params;
-    std::shared_ptr<ParticleParams> particle_params;
+    std::shared_ptr<MaterialParams> materials;
+    std::shared_ptr<ParticleParams> particles;
 };
 
 TEST_F(CutoffParamsTest, empty_cutoffs)
 {
     CutoffParams::Input input;
-    input.materials = material_params;
-    input.particles = particle_params;
+    input.materials = materials;
+    input.particles = particles;
 
     // input.cutoffs left empty
-    CutoffParams cutoff_params(input);
+    CutoffParams cutoff(input);
 
     std::vector<double> energies, ranges;
-    for (auto const pid : range(ParticleId{particle_params->size()}))
+    for (auto const pid : range(ParticleId{particles->size()}))
     {
-        for (auto const matid : range(MaterialId{material_params->size()}))
+        for (auto const mid : range(MaterialId{materials->size()}))
         {
-            CutoffView cutoff_view(cutoff_params.host_ref(), matid);
-            energies.push_back(cutoff_view.energy(pid).value());
-            ranges.push_back(cutoff_view.range(pid));
+            CutoffView cutoffs(cutoff.host_ref(), mid);
+            if (pid != particles->find(pdg::proton()))
+            {
+                energies.push_back(cutoffs.energy(pid).value());
+                ranges.push_back(cutoffs.range(pid));
+            }
+            else if (CELERITAS_DEBUG)
+            {
+                // Protons aren't currently used
+                EXPECT_THROW(cutoffs.energy(pid), DebugError);
+                EXPECT_THROW(cutoffs.range(pid), DebugError);
+            }
         }
     }
 
-    double const expected_energies[] = {0, 0, 0, 0, 0, 0};
-    double const expected_ranges[] = {0, 0, 0, 0, 0, 0};
-
+    double const expected_energies[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    double const expected_ranges[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
 }
@@ -111,75 +130,109 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
 {
     CutoffParams::Input input;
     CutoffParams::MaterialCutoffs mat_cutoffs;
-    input.materials = material_params;
-    input.particles = particle_params;
-    mat_cutoffs.push_back({units::MevEnergy{0.2}, 0.1});
-    mat_cutoffs.push_back({units::MevEnergy{0.0}, 0.0});
-    mat_cutoffs.push_back({units::MevEnergy{0.4}, 0.3});
+    input.materials = materials;
+    input.particles = particles;
+    mat_cutoffs.push_back({Energy{0.2}, 0.1});
+    mat_cutoffs.push_back({Energy{0.0}, 0.0});
+    mat_cutoffs.push_back({Energy{0.4}, 0.3});
     input.cutoffs.insert({pdg::electron(), mat_cutoffs});
 
-    CutoffParams cutoff_params(input);
+    CutoffParams cutoff(input);
 
     std::vector<double> energies, ranges;
-    for (auto const pid : range(ParticleId{particle_params->size()}))
+    for (auto const pid : range(ParticleId{particles->size()}))
     {
-        for (auto const matid : range(MaterialId{material_params->size()}))
+        for (auto const mid : range(MaterialId{materials->size()}))
         {
-            CutoffView cutoff_view(cutoff_params.host_ref(), matid);
-
-            energies.push_back(cutoff_view.energy(pid).value());
-            ranges.push_back(cutoff_view.range(pid));
+            CutoffView cutoffs(cutoff.host_ref(), mid);
+            if (pid != particles->find(pdg::proton()))
+            {
+                energies.push_back(cutoffs.energy(pid).value());
+                ranges.push_back(cutoffs.range(pid));
+            }
+            else if (CELERITAS_DEBUG)
+            {
+                // Protons aren't currently used
+                EXPECT_THROW(cutoffs.energy(pid), DebugError);
+                EXPECT_THROW(cutoffs.range(pid), DebugError);
+            }
         }
     }
 
-    double const expected_energies[] = {0.2, 0, 0.4, 0, 0, 0};
-    double const expected_ranges[] = {0.1, 0, 0.3, 0, 0, 0};
-
+    double const expected_energies[] = {0.2, 0, 0.4, 0, 0, 0, 0, 0, 0};
+    double const expected_ranges[] = {0.1, 0, 0.3, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
 }
 
+TEST_F(CutoffParamsTest, apply_post_interaction)
+{
+    CutoffParams::Input input;
+    input.materials = materials;
+    input.particles = particles;
+    input.cutoffs.insert({pdg::electron(), {{Energy{6}, 0.6}, {}, {}}});
+    input.cutoffs.insert({pdg::gamma(), {{Energy{4}, 0.4}, {}, {}}});
+    input.cutoffs.insert({pdg::positron(), {{Energy{2}, 0.2}, {}, {}}});
+    input.apply_post_interaction = true;
+    CutoffParams cutoff(input);
+
+    CutoffView cutoffs(cutoff.host_ref(), MaterialId{0});
+    EXPECT_TRUE(cutoffs.apply_post_interaction());
+
+    Secondary secondary;
+    secondary.energy = Energy{7};
+    secondary.particle_id = particles->find(pdg::electron());
+    EXPECT_FALSE(cutoffs.apply(secondary));
+    secondary.energy = Energy{5};
+    EXPECT_TRUE(cutoffs.apply(secondary));
+
+    secondary.particle_id = particles->find(pdg::gamma());
+    EXPECT_FALSE(cutoffs.apply(secondary));
+    secondary.energy = Energy{3};
+    EXPECT_TRUE(cutoffs.apply(secondary));
+
+    secondary.particle_id = particles->find(pdg::positron());
+    EXPECT_FALSE(cutoffs.apply(secondary));
+    secondary.energy = Energy{1};
+    EXPECT_TRUE(cutoffs.apply(secondary));
+}
+
 //---------------------------------------------------------------------------//
 
-class CutoffParamsImportTest : public Test
+#define CutoffParamsImportTest \
+    TEST_IF_CELERITAS_USE_ROOT(CutoffParamsImportTest)
+class CutoffParamsImportTest : public RootTestBase
 {
   protected:
-    void SetUp() override
-    {
-        root_filename_
-            = this->test_data_path("celeritas", "four-steel-slabs.root");
-        RootImporter import_from_root(root_filename_.c_str());
-        data_ = import_from_root();
-    }
-    std::string root_filename_;
-    ImportData data_;
+    char const* geometry_basename() const final { return "four-steel-slabs"; }
 
-    ScopedRootErrorHandler scoped_root_error_;
+    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 };
 
-TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
+TEST_F(CutoffParamsImportTest, import_cutoffs)
 {
-    auto const particles = ParticleParams::from_import(data_);
-    auto const materials = MaterialParams::from_import(data_);
-    auto const cutoffs = CutoffParams::from_import(data_, particles, materials);
-
     std::vector<double> energies, ranges;
-
-    for (auto const pid :
-         {particles->find(pdg::electron()), particles->find(pdg::gamma())})
+    for (auto const pid : {this->particle()->find(pdg::electron()),
+                           this->particle()->find(pdg::gamma()),
+                           this->particle()->find(pdg::positron())})
     {
-        for (auto const matid : range(MaterialId{materials->size()}))
+        for (auto const mid : range(MaterialId{this->material()->size()}))
         {
-            CutoffView cutoff_view(cutoffs->host_ref(), matid);
-            energies.push_back(cutoff_view.energy(pid).value());
-            ranges.push_back(cutoff_view.range(pid));
+            CutoffView cutoffs(this->cutoff()->host_ref(), mid);
+            energies.push_back(cutoffs.energy(pid).value());
+            ranges.push_back(cutoffs.range(pid));
+            EXPECT_FALSE(cutoffs.apply_post_interaction());
         }
     }
 
-    static double const expected_energies[]
-        = {0.00099, 1.3082781553076, 0.00099, 0.020822442086622};
-    static double const expected_ranges[] = {0.1, 0.1, 0.1, 0.1};
-
+    static double const expected_energies[] = {0.00099,
+                                               1.3082781553076,
+                                               0.00099,
+                                               0.020822442086622,
+                                               0.00099,
+                                               1.2358930791935};
+    static double const expected_ranges[] = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
 }

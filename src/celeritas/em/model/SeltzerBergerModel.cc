@@ -18,6 +18,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/generated/SeltzerBergerInteract.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
@@ -48,6 +49,8 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_sb_table);
+
+    ScopedMem record_mem("SeltzerBergerModel.construct");
 
     HostVal<SeltzerBergerData> host_data;
 

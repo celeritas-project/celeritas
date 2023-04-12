@@ -30,6 +30,7 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/track/SimData.hh"
+#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "DiagnosticRngEngine.hh"
@@ -211,6 +212,8 @@ TEST_F(UrbanMscTest, coeff_data)
 {
     auto const& params = msc_params_->host_ref();
 
+    EXPECT_SOFT_EQ(1e-4, value_as<MevEnergy>(params.params.low_energy_limit));
+    EXPECT_SOFT_EQ(1e2, value_as<MevEnergy>(params.params.high_energy_limit));
     {
         // Check steel material data
         auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
@@ -376,7 +379,8 @@ TEST_F(UrbanMscTest, msc_scattering)
     ASSERT_EQ(nsamples, step.size());
 
     {
-        SimTrackView sim_track_view(sim_state_.ref(), TrackSlotId{0});
+        SimTrackView sim_track_view(
+            this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
         sim_track_view = {};
         EXPECT_EQ(0, sim_track_view.num_steps());
     }

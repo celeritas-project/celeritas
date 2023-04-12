@@ -22,7 +22,7 @@ namespace units
 struct NativeUnit
 {
     //! The conversion factor of the resulting unit is always unity
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return 1; }
+    static CELER_CONSTEXPR_FUNCTION int value() { return 1; }
 };
 
 //! Unit for quantity such that the numeric value of 1 MeV is unity
@@ -31,7 +31,7 @@ struct Mev
     //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        return 1e6 * constants::e_electron * units::volt;
+        return real_type(1e6) * constants::e_electron * units::volt;
     }
     //! Text label for output
     static char const* label() { return "MeV"; }
@@ -62,6 +62,8 @@ struct EElectron
     {
         return constants::e_electron;  // *Positive* sign
     }
+    //! Text label for output
+    static char const* label() { return "e"; }
 };
 
 //! Unit for atomic masses
@@ -72,6 +74,8 @@ struct Amu
     {
         return constants::atomic_mass;
     }
+    //! Text label for output
+    static char const* label() { return "amu"; }
 };
 
 //! Unit for cross sections
@@ -87,12 +91,23 @@ struct Millibarn
     //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        return 1e-3 * units::barn;
+        return real_type(1e-3) * units::barn;
     }
 };
 
-//! Unit for converting mass to an energy-valued quantity
-using CLightSq = UnitProduct<CLight, CLight>;
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Derivative units
+
+struct CLightSq : UnitProduct<CLight, CLight>
+{
+    static char const* label() { return "c^2"; }
+};
+struct MevPerCsq : UnitDivide<Mev, CLightSq>
+{
+    static char const* label() { return "MeV/c^2"; }
+};
+//!@}
 
 //---------------------------------------------------------------------------//
 //!@{
@@ -100,7 +115,7 @@ using CLightSq = UnitProduct<CLight, CLight>;
 using ElementaryCharge = Quantity<EElectron>;
 using MevEnergy = Quantity<Mev>;
 using LogMevEnergy = Quantity<LogMev>;
-using MevMass = Quantity<UnitDivide<Mev, CLightSq>>;
+using MevMass = Quantity<MevPerCsq>;
 using MevMomentum = Quantity<UnitDivide<Mev, CLight>>;
 using MevMomentumSq = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
 using LightSpeed = Quantity<CLight>;

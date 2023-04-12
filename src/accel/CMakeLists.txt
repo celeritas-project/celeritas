@@ -13,9 +13,11 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
+  AlongStepFactory.cc
   Logger.cc
   LocalTransporter.cc
   SharedParams.cc
+  SimpleOffload.cc
   detail/HitManager.cc
   detail/HitProcessor.cc
 )

@@ -408,19 +408,57 @@ void print_em_params(ImportEmParameters const& em_params)
     // NOTE: boolalpha doesn't work with setw, see
     // https://timsong-cpp.github.io/lwg-issues/2703
 #define PEP_STREAM_PARAM(NAME) \
-    "| " << setw(18) << #NAME << " | " << setw(7) << em_params.NAME << " |\n"
+    "| " << setw(22) << #NAME << " | " << setw(7) << em_params.NAME << " |\n"
 #define PEP_STREAM_BOOL(NAME)                     \
-    "| " << setw(18) << #NAME << " | " << setw(7) \
+    "| " << setw(22) << #NAME << " | " << setw(7) \
          << (em_params.NAME ? "true" : "false") << " |\n"
     cout << R"gfm(
 # EM parameters
 
-| EM parameter       | Value   |
-| ------------------ | ------- |
+| EM parameter           | Value   |
+| ---------------------- | ------- |
 )gfm";
     cout << PEP_STREAM_BOOL(energy_loss_fluct) << PEP_STREAM_BOOL(lpm)
          << PEP_STREAM_BOOL(integral_approach)
-         << PEP_STREAM_PARAM(linear_loss_limit) << endl;
+         << PEP_STREAM_PARAM(linear_loss_limit)
+         << PEP_STREAM_PARAM(lowest_electron_energy) << PEP_STREAM_BOOL(auger)
+         << PEP_STREAM_PARAM(msc_range_factor)
+         << PEP_STREAM_PARAM(msc_safety_factor)
+         << PEP_STREAM_PARAM(msc_lambda_limit) << PEP_STREAM_BOOL(apply_cuts)
+         << endl;
+#undef PEP_STREAM_PARAM
+#undef PEP_STREAM_BOOL
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print transportation parameters.
+ */
+void print_trans_params(ImportTransParameters const& trans_params,
+                        ParticleParams const& particles)
+{
+#define PEP_STREAM_PARAM(NAME)                          \
+    "| " << setw(24) << #NAME << " | " << setw(9) << "" \
+         << " | " << setw(7) << trans_params.NAME << " |\n"
+#define PEP_STREAM_PAR_PARAM(NAME, PAR)                                      \
+    "| " << setw(24) << #NAME << " | " << setw(9) << PAR << " | " << setw(7) \
+         << kv.second.NAME << " |\n"
+    cout << R"gfm(
+# Transportation parameters
+
+| Transportation parameter | Particle  | Value   |
+| ------------------------ | --------- | ------- |
+)gfm";
+    cout << PEP_STREAM_PARAM(max_substeps);
+    for (auto const& kv : trans_params.looping)
+    {
+        auto pid = particles.find(PDGNumber{kv.first});
+        auto par = particles.id_to_label(pid);
+        cout << PEP_STREAM_PAR_PARAM(threshold_trials, par)
+             << PEP_STREAM_PAR_PARAM(important_energy, par);
+    }
+    cout << endl;
+#undef PEP_STREAM_PAR_PARAM
 #undef PEP_STREAM_PARAM
 }
 
@@ -440,6 +478,7 @@ void print_sb_data(ImportData::ImportSBMap const& sb_map)
 
     cout << R"gfm(
 # Seltzer-Berger data
+
 | Atomic number | Endpoints (x, y, value [mb]) |
 | ------------- | ---------------------------------------------------------- |
 )gfm";
@@ -578,6 +617,7 @@ int main(int argc, char* argv[])
     print_msc_models(data, *particle_params);
     print_volumes(data.volumes, data.materials);
     print_em_params(data.em_params);
+    print_trans_params(data.trans_params, *particle_params);
     print_sb_data(data.sb_data);
     print_livermore_pe_data(data.livermore_pe_data);
     print_atomic_relaxation_data(data.atomic_relaxation_data);

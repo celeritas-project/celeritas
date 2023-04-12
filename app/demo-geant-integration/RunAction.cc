@@ -20,7 +20,6 @@
 
 #include "GlobalSetup.hh"
 #include "HitRootIO.hh"
-#include "NoFieldAlongStepFactory.hh"
 
 namespace demo_geant
 {
@@ -57,13 +56,11 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         // celeritas
         if (!CELERITAS_USE_VECGEOM)
         {
-            // For testing purposes, pass the GDML input filename to Celeritas
+            // To allow ORANGE to work for testing purposes, pass the GDML
+            // input filename to Celeritas
             const_cast<celeritas::SetupOptions&>(*options_).geometry_file
                 = GlobalSetup::Instance()->GetGeometryFile();
         }
-
-        // Create the along-step action
-        GlobalSetup::Instance()->SetAlongStep(NoFieldAlongStepFactory{});
 
         // Initialize shared data and setup GPU on all threads
         CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);

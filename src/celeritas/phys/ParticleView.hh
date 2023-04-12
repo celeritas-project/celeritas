@@ -42,6 +42,9 @@ class ParticleView
     // Decay constant [1/s]
     CELER_FORCEINLINE_FUNCTION real_type decay_constant() const;
 
+    // Whether it is an antiparticle
+    CELER_FORCEINLINE_FUNCTION bool is_antiparticle() const;
+
   private:
     ParticleParamsRef const& params_;
     const ParticleId particle_;
@@ -94,6 +97,15 @@ CELER_FUNCTION units::ElementaryCharge ParticleView::charge() const
 CELER_FUNCTION real_type ParticleView::decay_constant() const
 {
     return params_.particles[particle_].decay_constant;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether it is an antiparticle.
+ */
+CELER_FUNCTION bool ParticleView::is_antiparticle() const
+{
+    return params_.particles[particle_].is_antiparticle;
 }
 
 //---------------------------------------------------------------------------//

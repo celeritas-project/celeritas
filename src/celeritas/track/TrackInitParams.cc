@@ -26,6 +26,7 @@ TrackInitParams::TrackInitParams(Input const& inp)
     HostVal<TrackInitParamsData> host_data;
     host_data.capacity = inp.capacity;
     host_data.max_events = inp.max_events;
+    host_data.track_order = inp.track_order;
     CELER_ASSERT(host_data);
     data_ = CollectionMirror<TrackInitParamsData>{std::move(host_data)};
 }

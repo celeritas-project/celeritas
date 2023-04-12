@@ -15,7 +15,10 @@
 #include <G4EmParameters.hh>
 #include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
+#include <G4GammaGeneralProcess.hh>
+#include <G4GoudsmitSaundersonMscModel.hh>
 #include <G4LivermorePhotoElectricModel.hh>
+#include <G4LossTableManager.hh>
 #include <G4MollerBhabhaModel.hh>
 #include <G4PairProductionRelModel.hh>
 #include <G4PhotoElectricEffect.hh>
@@ -65,6 +68,18 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetAuger(options.relaxation == RelaxationSelection::all);
     em_parameters.SetIntegral(options.integral_approach);
     em_parameters.SetLinearLossLimit(options.linear_loss_limit);
+    em_parameters.SetMscRangeFactor(options.msc_range_factor);
+    em_parameters.SetMscSafetyFactor(options.msc_safety_factor);
+    em_parameters.SetMscLambdaLimit(options.msc_lambda_limit * CLHEP::cm);
+    em_parameters.SetLowestElectronEnergy(
+        value_as<units::MevEnergy>(options.lowest_electron_energy)
+        * CLHEP::MeV);
+    if (options_.msc == MscModelSelection::urban_extended)
+    {
+        CELER_LOG(debug) << "Extended low-energy MSC limit to 100 TeV";
+        em_parameters.SetMscEnergyLimit(100 * CLHEP::TeV);
+    }
+    em_parameters.SetApplyCuts(options.apply_cuts);
 
     int verb = options_.verbose ? 1 : 0;
     this->SetVerboseLevel(verb);
@@ -122,17 +137,40 @@ void GeantPhysicsList::ConstructProcess()
  * | Photoelectric effect | G4LivermorePhotoElectricModel |
  * | Rayleigh scattering  | G4LivermoreRayleighModel      |
  * | Gamma conversion     | G4PairProductionRelModel      |
+ *
+ * If the \c gamma_general option is enabled, we create a single unified
+ * \c G4GammaGeneralProcess process, which embeds these other processes and
+ * calculates a combined total cross section. It's faster in Geant4 but
+ * shouldn't result in different answers.
  */
 void GeantPhysicsList::add_gamma_processes()
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
     auto* gamma = G4Gamma::Gamma();
 
+    // Option to create GammaGeneral for performance/robustness
+    std::unique_ptr<G4GammaGeneralProcess> ggproc;
+    if (options_.gamma_general)
+    {
+        ggproc = std::make_unique<G4GammaGeneralProcess>();
+    }
+
+    auto add_process = [&ggproc, physics_list, gamma](G4VEmProcess* p) {
+        if (ggproc)
+        {
+            ggproc->AddEmProcess(p);
+        }
+        else
+        {
+            physics_list->RegisterProcess(p, gamma);
+        }
+    };
+
+    if (true)
     {
         // Compton Scattering: G4KleinNishinaCompton
         auto compton_scattering = std::make_unique<G4ComptonScattering>();
-        physics_list->RegisterProcess(compton_scattering.release(), gamma);
-
+        add_process(compton_scattering.release());
         CELER_LOG(debug) << "Loaded Compton scattering with "
                             "G4KleinNishinaCompton";
     }
@@ -140,10 +178,9 @@ void GeantPhysicsList::add_gamma_processes()
     if (true)
     {
         // Photoelectric effect: G4LivermorePhotoElectricModel
-        auto photoelectrict_effect = std::make_unique<G4PhotoElectricEffect>();
-        photoelectrict_effect->SetEmModel(new G4LivermorePhotoElectricModel());
-        physics_list->RegisterProcess(photoelectrict_effect.release(), gamma);
-
+        auto pe = std::make_unique<G4PhotoElectricEffect>();
+        pe->SetEmModel(new G4LivermorePhotoElectricModel());
+        add_process(pe.release());
         CELER_LOG(debug) << "Loaded photoelectric effect with "
                             "G4LivermorePhotoElectricModel";
     }
@@ -151,8 +188,7 @@ void GeantPhysicsList::add_gamma_processes()
     if (options_.rayleigh_scattering)
     {
         // Rayleigh: G4LivermoreRayleighModel
-        physics_list->RegisterProcess(new G4RayleighScattering(), gamma);
-
+        add_process(new G4RayleighScattering());
         CELER_LOG(debug) << "Loaded Rayleigh scattering with "
                             "G4LivermoreRayleighModel";
     }
@@ -162,10 +198,16 @@ void GeantPhysicsList::add_gamma_processes()
         // Gamma conversion: G4PairProductionRelModel
         auto gamma_conversion = std::make_unique<G4GammaConversion>();
         gamma_conversion->SetEmModel(new G4PairProductionRelModel());
-        physics_list->RegisterProcess(gamma_conversion.release(), gamma);
-
+        add_process(gamma_conversion.release());
         CELER_LOG(debug) << "Loaded gamma conversion with "
                             "G4PairProductionRelModel";
+    }
+
+    if (ggproc)
+    {
+        CELER_LOG(debug) << "Registered G4GammaGeneralProcess";
+        G4LossTableManager::Instance()->SetGammaGeneralProcess(ggproc.get());
+        physics_list->RegisterProcess(ggproc.release(), gamma);
     }
 }
 
@@ -248,9 +290,6 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         model->SetActivationLowEnergyLimit(msc_energy_limit);
         process->SetEmModel(model.release());
         physics_list->RegisterProcess(process.release(), p);
-
-        CELER_LOG(debug) << "Loaded Coulomb scattering with "
-                            "G4eCoulombScatteringModel";
     }
 
     if (options_.msc != MscModelSelection::none)
@@ -261,7 +300,8 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         auto process = std::make_unique<G4eMultipleScattering>();
 
         if (options_.msc == MscModelSelection::urban
-            || options_.msc == MscModelSelection::all)
+            || options_.msc == MscModelSelection::urban_extended
+            || options_.msc == MscModelSelection::urban_wentzel)
         {
             auto model = std::make_unique<G4UrbanMscModel>();
             model->SetHighEnergyLimit(msc_energy_limit);
@@ -272,7 +312,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         }
 
         if (options_.msc == MscModelSelection::wentzel_vi
-            || options_.msc == MscModelSelection::all)
+            || options_.msc == MscModelSelection::urban_wentzel)
         {
             auto model = std::make_unique<G4WentzelVIModel>();
             model->SetLowEnergyLimit(msc_energy_limit);
@@ -280,6 +320,15 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
             CELER_LOG(debug) << "Loaded high-energy multiple scattering with "
                                 "G4WentzelVIModel";
+        }
+
+        if (options_.msc == MscModelSelection::goudsmit_saunderson)
+        {
+            auto model = std::make_unique<G4GoudsmitSaundersonMscModel>();
+            process->SetEmModel(model.release());
+
+            CELER_LOG(debug) << "Loaded multiple scattering with "
+                                "G4GoudsmitSaundersonMscModel";
         }
 
         physics_list->RegisterProcess(process.release(), p);

@@ -27,7 +27,7 @@ class VolumeViewTest : public OrangeGeoTestBase
     VolumeView make_view(LocalVolumeId v) const
     {
         CELER_EXPECT(v);
-        auto const& host_ref = this->params().host_ref();
+        auto const& host_ref = this->host_params();
         return VolumeView{host_ref, host_ref.simple_unit[SimpleUnitId{0}], v};
     }
 
@@ -53,7 +53,7 @@ TEST_F(VolumeViewTest, one_volume)
 {
     // Build a volume that's infinite
     this->build_geometry(OneVolInput{});
-    ASSERT_EQ(1, this->params().num_volumes());
+    ASSERT_EQ(1, this->num_volumes());
 
     VolumeView vol = this->make_view(LocalVolumeId{0});
     EXPECT_EQ(0, vol.num_faces());
@@ -81,7 +81,7 @@ TEST_F(VolumeViewTest, five_volumes)
     std::vector<size_type> num_faces;
     std::vector<logic_int> flags;
 
-    for (auto vol_id : range(LocalVolumeId{this->params().num_volumes()}))
+    for (auto vol_id : range(LocalVolumeId{this->num_volumes()}))
     {
         VolumeView vol = this->make_view(vol_id);
         num_faces.push_back(vol.num_faces());

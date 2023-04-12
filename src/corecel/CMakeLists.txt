@@ -23,7 +23,7 @@ list(APPEND SOURCES
   io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
-  io/OutputManager.cc
+  io/OutputRegistry.cc
   io/ScopedStreamRedirect.cc
   io/ScopedTimeAndRedirect.cc
   io/StringUtils.cc
@@ -32,6 +32,8 @@ list(APPEND SOURCES
   sys/Device.cc
   sys/Environment.cc
   sys/KernelRegistry.cc
+  sys/MemRegistry.cc
+  sys/ScopedMem.cc
   sys/MpiCommunicator.cc
   sys/MultiExceptionHandler.cc
   sys/ScopedMpiInit.cc
@@ -58,6 +60,7 @@ if(CELERITAS_USE_JSON)
     AssertIO.json.cc
     sys/DeviceIO.json.cc
     sys/KernelRegistryIO.json.cc
+    sys/MemRegistryIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()

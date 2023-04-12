@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
 #include <vector>
 
 #include "ImportPhysicsTable.hh"
@@ -18,16 +19,19 @@ namespace celeritas
  * Enumerator for the available physics models.
  *
  * This enum was created to safely access the many imported physics tables.
+ *
+ * \todo reorganize by physics list (major) and particle (minor) so that newly
+ * supported models are appended cleanly to the end of the list.
  */
 enum class ImportModelClass
 {
     other,
-    unknown [[deprecated]] = other,
+    unknown [[deprecated]] = other,  // remove in v0.4
     bragg_ion,
     bethe_bloch,
     urban_msc,
     icru_73_qo,
-    wentzel_VI_uni,
+    wentzel_vi_uni,
     h_brems,
     h_pair_prod,
     e_coulomb_scattering,
@@ -44,6 +48,8 @@ enum class ImportModelClass
     mu_bethe_bloch,
     mu_brems,
     mu_pair_prod,
+    fluo_photoelectric,
+    goudsmit_saunderson,
     size_
 };
 
@@ -121,9 +127,13 @@ struct ImportMscModel
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
+// Get the string form of one of the enumerations
 char const* to_cstring(ImportModelClass value);
-// Whether Celeritas requires microscopic xs data for sampling
-bool needs_micro_xs(ImportModelClass model);
+
+// Get the default Geant4 process name
+char const* to_geant_name(ImportModelClass value);
+// Convert a Geant4 process name to an IMC (throw RuntimeError if unsupported)
+ImportModelClass geant_name_to_import_model_class(std::string_view s);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

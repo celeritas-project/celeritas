@@ -12,8 +12,9 @@
 
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
-#include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepInterface.hh"
+
+class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -31,14 +32,9 @@ class HitProcessor;
  * - Created during SharedParams::Initialize alongside the step collector
  * - Is shared across threads
  * - Finds *all* logical volumes that have SDs attached (TODO: add list of
- *   exclusions?)
+ *   exclusions for SDs that are implemented natively on GPU)
  * - Maps those volumes to VecGeom geometry
  * - Creates a HitProcessor for each Geant4 thread
- *
- * Execute:
- * - Can share DetectorStepOutput across threads for now since StepGatherAction
- *   is mutexed across all threads
- * - Calls a single HitProcessor (thread safe because of caller's mutex)
  */
 class HitManager final : public StepInterface
 {
@@ -61,14 +57,19 @@ class HitManager final : public StepInterface
     // Process device-generated hits
     void execute(StateDeviceRef const&) final;
 
+    // Destroy local data to avoid Geant4 crashes
+    void finalize();
+
   private:
     bool nonzero_energy_deposition_{};
+    bool locate_touchable_{};
     StepSelection selection_;
-    DetectorStepOutput steps_;
+    std::shared_ptr<const std::vector<G4LogicalVolume*>> geant_vols_;
     std::vector<VolumeId> vecgeom_vols_;
-    std::unique_ptr<HitProcessor> process_hits_;
+    std::vector<std::unique_ptr<HitProcessor>> processors_;
 
-    void call_local_processor() const;
+    // Ensure thread-local hit processor exists and return it
+    HitProcessor& get_local_hit_processor();
 };
 
 //---------------------------------------------------------------------------//

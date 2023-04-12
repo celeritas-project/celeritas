@@ -62,6 +62,9 @@ class ActionRegistry
     //! Get the number of defined actions
     ActionId::size_type num_actions() const { return actions_.size(); }
 
+    //! Whether no actions have been registered
+    bool empty() const { return actions_.empty(); }
+
     // Access an action
     inline SPConstAction const& action(ActionId id) const;
 

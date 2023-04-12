@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Read an array from a JSON file.
+ * Read a label from a JSON file.
  */
 inline void from_json(nlohmann::json const& j, Label& value)
 {
@@ -23,7 +23,7 @@ inline void from_json(nlohmann::json const& j, Label& value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write an array to a JSON file.
+ * Write a label to a JSON file.
  */
 inline void to_json(nlohmann::json& j, Label const& value)
 {

@@ -84,7 +84,7 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
         return result;
     }
 
-    size_type bpd_{56};
+    size_type bpd_{14};
     bool msc_{true};
     bool fluct_{false};
 };
@@ -376,8 +376,35 @@ TEST_F(Em3AlongStepTest, fluct_nomsc)
     }
 }
 
+TEST_F(SimpleCmsAlongStepTest, msc_field)
+{
+    size_type num_tracks = 128;
+    Input inp;
+    {
+        // This track takes ~150k substeps in the field propagator before
+        // reaching a boundary.
+        SCOPED_TRACE("electron taking large step in vacuum");
+        inp.particle_id = this->particle()->find(pdg::electron());
+        inp.energy = MevEnergy{0.697421113579829943};
+        inp.phys_mfp = 0.0493641564748481393;
+        inp.position = {-33.3599681684743388, 1.43414625226707426, -700.000001};
+        inp.direction = {-0.680265923322200705,
+                         0.731921125057842015,
+                         -0.0391118941072485030};
+        // Step limited by distance to interaction = 2.49798914193346685e21
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(27.208980085333259, result.step);
+        EXPECT_EQ(0, result.eloss);
+        EXPECT_EQ(0, result.mfp);
+        EXPECT_EQ("geo-propagation-limit", result.action);
+        EXPECT_DOUBLE_EQ(1, result.alive);
+    }
+}
+
 TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
 {
+    bpd_ = 56;
+
     size_type num_tracks = 1024;
     Input inp;
     {
@@ -396,6 +423,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
         EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
         EXPECT_EQ("eloss-range", result.action);
+        EXPECT_DOUBLE_EQ(0, result.alive);
     }
 }
 //---------------------------------------------------------------------------//

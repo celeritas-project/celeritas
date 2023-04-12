@@ -94,6 +94,14 @@ class StepGatherAction final : public ExplicitActionInterface
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+// Get a reference to the stream-local step state data, allocating if needed.
+template<MemSpace M>
+StepStateData<Ownership::reference, M> const&
+get_stream_state(CoreRef<M> const& core, StepStorage* storage);
+
+//---------------------------------------------------------------------------//
 // PRIVATE HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -104,16 +112,7 @@ template<MemSpace M>
 StepStateData<Ownership::reference, M> const&
 StepGatherAction<P>::get_state(CoreRef<M> const& core) const
 {
-    auto& state_store = storage_->get_state(StepStorage::MemSpaceTag<M>{});
-    if (CELER_UNLIKELY(!state_store))
-    {
-        // State storage hasn't been allocated yet: allocate based on current
-        // state
-        state_store = CollectionStateStore<StepStateData, M>{
-            storage_->params.host_ref(), core.states.size()};
-    }
-    CELER_ENSURE(state_store);
-    return state_store.ref();
+    return get_stream_state(core, storage_.get());
 }
 
 //---------------------------------------------------------------------------//

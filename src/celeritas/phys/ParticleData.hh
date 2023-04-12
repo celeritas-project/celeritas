@@ -34,6 +34,7 @@ struct ParticleRecord
     units::MevMass mass;  //!< Rest mass [MeV / c^2]
     units::ElementaryCharge charge;  //!< Charge in units of [e]
     real_type decay_constant;  //!< Decay constant [1/s]
+    bool is_antiparticle;  //!< Antiparticle (negative PDG number)
 
     //! Value of decay_constant for a stable particle
     static CELER_CONSTEXPR_FUNCTION real_type stable_decay_constant()

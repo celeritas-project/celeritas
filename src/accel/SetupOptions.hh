@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include "celeritas/Types.hh"
+
 namespace celeritas
 {
 struct AlongStepFactoryInput;
@@ -64,6 +66,7 @@ struct SetupOptions
     using SPConstAction = std::shared_ptr<ExplicitActionInterface const>;
     using AlongStepFactory
         = std::function<SPConstAction(AlongStepFactoryInput const&)>;
+    using IntAccessor = std::function<int()>;
     using VecString = std::vector<std::string>;
     //!@}
 
@@ -79,6 +82,8 @@ struct SetupOptions
     std::string geometry_file;
     //! Filename for JSON diagnostic output
     std::string output_file;
+    //! Filename for ROOT dump of physics data
+    std::string physics_output_file;
     //!@}
 
     //!@{
@@ -92,10 +97,13 @@ struct SetupOptions
     //! Maximum number of track initializers (primaries+secondaries)
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
-    real_type secondary_stack_factor{};
+    real_type secondary_stack_factor{3.0};
     //! Sync the GPU at every kernel for error checking
     bool sync{false};
     //!@}
+
+    //! Set the number of streams (defaults to run manager # threads)
+    IntAccessor get_num_streams;
 
     //!@{
     //! \name Stepping actions
@@ -117,6 +125,11 @@ struct SetupOptions
     //! \name CUDA options
     size_type cuda_stack_size{};
     size_type cuda_heap_size{};
+    //!@}
+
+    //!@{
+    //! \name Track init options
+    TrackOrder track_order{TrackOrder::unsorted};
     //!@}
 };
 

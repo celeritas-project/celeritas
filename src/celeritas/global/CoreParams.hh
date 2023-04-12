@@ -25,8 +25,10 @@ class CutoffParams;
 class FluctuationParams;
 class GeoMaterialParams;
 class MaterialParams;
+class OutputRegistry;
 class ParticleParams;
 class PhysicsParams;
+class SimParams;
 class TrackInitParams;
 
 //---------------------------------------------------------------------------//
@@ -45,8 +47,10 @@ class CoreParams
     using SPConstCutoff = std::shared_ptr<CutoffParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
+    using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
 
     using HostRef = HostCRef<CoreParamsData>;
     using DeviceRef = DeviceCRef<CoreParamsData>;
@@ -61,15 +65,21 @@ class CoreParams
         SPConstCutoff cutoff;
         SPConstPhysics physics;
         SPConstRng rng;
+        SPConstSim sim;
         SPConstTrackInit init;
 
         SPActionRegistry action_reg;
+        SPOutputRegistry output_reg;
 
-        //! True if all params are assigned
+        //! Maximum number of simultaneous threads/tasks per process
+        StreamId::size_type max_streams{1};
+
+        //! True if all params are assigned and valid
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && rng && init && action_reg;
+                   && physics && rng && sim && init && action_reg && output_reg
+                   && max_streams;
         }
     };
 
@@ -89,8 +99,10 @@ class CoreParams
     SPConstCutoff const& cutoff() const { return input_.cutoff; }
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
+    SPConstSim const& sim() const { return input_.sim; }
     SPConstTrackInit const& init() const { return input_.init; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
+    SPOutputRegistry const& output_reg() const { return input_.output_reg; }
     //!@}
 
     // Access properties on the host
@@ -99,9 +111,11 @@ class CoreParams
     // Access properties on the device
     inline DeviceRef const& device_ref() const;
 
+    //! Maximum number of streams
+    size_type max_streams() const { return input_.max_streams; }
+
   private:
     Input input_;
-    CoreScalars scalars_;
     HostRef host_ref_;
     DeviceRef device_ref_;
 };

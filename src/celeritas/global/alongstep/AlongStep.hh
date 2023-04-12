@@ -61,23 +61,66 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         msc.limit_step(track, &step_limit);
     }
 
+    auto particle = track.make_particle_view();
     {
         auto geo = track.make_geo_view();
-        auto propagate = make_propagator(track.make_particle_view(), &geo);
+        auto propagate = make_propagator(particle, &geo);
         Propagation p = propagate(step_limit.step);
-        if (p.boundary)
+        if (propagate.tracks_can_loop())
         {
-            // Stopped at a geometry boundary: this is the new step action.
-            CELER_ASSERT(p.distance <= step_limit.step);
-            step_limit.step = p.distance;
-            step_limit.action = track.boundary_action();
+            sim.update_looping(p.looping);
         }
-        else if (p.distance < step_limit.step)
+        if (propagate.tracks_can_loop() && p.looping)
         {
-            // Some other internal non-boundary geometry limit has been reached
-            // (e.g. too many substeps)
+            // The track is looping, i.e. progressing little over many
+            // integration steps in the field propagator (likely a low energy
+            // particle in a low density material/strong magnetic field).
             step_limit.step = p.distance;
             step_limit.action = track.propagation_limit_action();
+
+            // Kill the track if it's stable and below the threshold energy or
+            // above the threshold number of steps allowed while looping.
+            if (particle.is_stable()
+                && sim.is_looping(particle.particle_id(), particle.energy()))
+            {
+                // If the track is looping (or if it's a stuck track that waa
+                // flagged as looping), deposit the energy locally.
+                auto deposited = particle.energy().value();
+                if (particle.is_antiparticle())
+                {
+                    // Energy conservation for killed positrons
+                    deposited += 2 * particle.mass().value();
+                }
+                track.make_physics_step_view().deposit_energy(
+                    ParticleTrackView::Energy{deposited});
+                particle.subtract_energy(particle.energy());
+
+                // Mark that this track was abandoned while looping
+                step_limit.action = track.abandon_looping_action();
+                sim.force_step_limit(step_limit);
+                sim.increment_num_steps();
+                sim.status(TrackStatus::killed);
+                return;
+            }
+        }
+        else
+        {
+            if (p.boundary)
+            {
+                // Stopped at a geometry boundary: this is the new step action.
+                CELER_ASSERT(p.distance <= step_limit.step);
+                step_limit.step = p.distance;
+                step_limit.action = track.boundary_action();
+            }
+            else if (p.distance < step_limit.step)
+            {
+                // Some tracks may get stuck on a boundary and fail to move at
+                // all in the field propagator, and will get bumped a small
+                // distance. This primarily occurs with reentrant tracks on a
+                // boundary with VecGeom.
+                step_limit.step = p.distance;
+                step_limit.action = track.propagation_limit_action();
+            }
         }
     }
 
@@ -89,7 +132,6 @@ inline CELER_FUNCTION void along_step(MH&& msc,
     }
 
     // Update track's lab-frame time using the beginning-of-step speed
-    auto particle = track.make_particle_view();
     {
         CELER_ASSERT(!particle.is_stopped());
         real_type speed = native_value_from(particle.speed());
@@ -120,9 +162,10 @@ inline CELER_FUNCTION void along_step(MH&& msc,
             particle.subtract_energy(deposited);
         }
         // Energy loss helper *must* apply the tracking cutoff
-        CELER_ASSERT(particle.energy()
-                         >= track.make_physics_view().scalars().eloss_calc_limit
-                     || !apply_cut || particle.is_stopped());
+        CELER_ASSERT(
+            particle.energy()
+                >= track.make_physics_view().scalars().lowest_electron_energy
+            || !apply_cut || particle.is_stopped());
     }
 
     if (particle.is_stopped())

@@ -14,6 +14,7 @@
 #include "ImportElement.hh"
 #include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
+#include "ImportParameters.hh"
 #include "ImportParticle.hh"
 #include "ImportProcess.hh"
 #include "ImportSBTable.hh"
@@ -24,30 +25,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Common electromagnetic physics parameters (see G4EmParameters.hh).
- *
- * \note Geant4 v11 removed the Spline() option from G4EmParameters.hh.
- */
-struct ImportEmParameters
-{
-    //! Energy loss fluctuation
-    bool energy_loss_fluct{false};
-    //! LPM effect for bremsstrahlung and pair production
-    bool lpm{true};
-    //! Integral cross section rejection
-    bool integral_approach{true};
-    //! Slowing down threshold for linearity assumption
-    double linear_loss_limit{0.01};
-    //! Whether auger emission should be enabled (valid only for relaxation)
-    bool auger{false};
-
-    //! Whether parameters are assigned and valid
-    explicit operator bool() const { return linear_loss_limit > 0; }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Import all the needed data from external sources (currently Geant4).
+ * Store imported physics data from external sources.
  *
  * All the data imported to Celeritas is stored in this single entity. This
  * struct can be used in memory or recorded in a ROOT TBranch as a single TTree
@@ -66,22 +44,15 @@ struct ImportEmParameters
  * Celeritas' unit standard. Refer to \c base/Units.hh for further information.
  *
  * The "processes" field may be empty for testing applications.
- *
- * \sa celeritas::units
- * \sa ImportParticle
- * \sa ImportElement
- * \sa ImportMaterial
- * \sa ImportProcess
- * \sa ImportVolume
- * \sa RootImporter
  */
 struct ImportData
 {
     //!@{
     //! \name Type aliases
-    using ImportSBMap = std::map<int, ImportSBTable>;
-    using ImportLivermorePEMap = std::map<int, ImportLivermorePE>;
-    using ImportAtomicRelaxationMap = std::map<int, ImportAtomicRelaxation>;
+    using ZInt = int;
+    using ImportSBMap = std::map<ZInt, ImportSBTable>;
+    using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
+    using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
     //!@}
 
     std::vector<ImportParticle> particles;
@@ -91,6 +62,7 @@ struct ImportData
     std::vector<ImportMscModel> msc_models;
     std::vector<ImportVolume> volumes;
     ImportEmParameters em_params;
+    ImportTransParameters trans_params;
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
     ImportAtomicRelaxationMap atomic_relaxation_data;

@@ -44,6 +44,7 @@ class EnergyDiagnostic : public Diagnostic<M>
     using real_type = celeritas::real_type;
     using Axis = celeritas::Axis;
     using Items = celeritas::Collection<real_type, Ownership::value, M>;
+    using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
     using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
 
@@ -52,7 +53,7 @@ class EnergyDiagnostic : public Diagnostic<M>
     explicit EnergyDiagnostic(std::vector<real_type> const& bounds, Axis axis);
 
     // Number of alive tracks determined at the end of a step.
-    void mid_step(StateRef const& states) final;
+    void mid_step(ParamsRef const& params, StateRef const& states) final;
 
     // Collect diagnostic results
     void get_result(TransporterResult* result) final;
@@ -103,18 +104,22 @@ class EnergyDiagnosticLauncher
     using real_type = celeritas::real_type;
     using TrackSlotId = celeritas::TrackSlotId;
     using Pointers = EnergyBinPointers<M>;
+    using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
     using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
     CELER_FUNCTION
-    EnergyDiagnosticLauncher(StateRef const& states, Pointers const& pointers);
+    EnergyDiagnosticLauncher(ParamsRef const& params,
+                             StateRef const& states,
+                             Pointers const& pointers);
 
     // Perform energy binning by position
     inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
 
   private:
+    ParamsRef const& params_;
     StateRef const& states_;
     Pointers const& pointers_;
 };
@@ -122,9 +127,11 @@ class EnergyDiagnosticLauncher
 using PointersDevice = EnergyBinPointers<MemSpace::device>;
 using PointersHost = EnergyBinPointers<MemSpace::host>;
 
-void bin_energy(celeritas::CoreStateDeviceRef const& states,
+void bin_energy(celeritas::CoreParamsDeviceRef const& params,
+                celeritas::CoreStateDeviceRef const& states,
                 PointersDevice& pointers);
-void bin_energy(celeritas::CoreStateHostRef const& states,
+void bin_energy(celeritas::CoreParamsHostRef const& params,
+                celeritas::CoreStateHostRef const& states,
                 PointersHost& pointers);
 
 //---------------------------------------------------------------------------//
@@ -159,7 +166,8 @@ EnergyDiagnostic<M>::EnergyDiagnostic(std::vector<real_type> const& bounds,
  * Accumulate energy deposition in diagnostic.
  */
 template<MemSpace M>
-void EnergyDiagnostic<M>::mid_step(StateRef const& states)
+void EnergyDiagnostic<M>::mid_step(ParamsRef const& params,
+                                   StateRef const& states)
 {
     // Set up pointers to pass to device
     EnergyBinPointers<M> pointers;
@@ -168,7 +176,7 @@ void EnergyDiagnostic<M>::mid_step(StateRef const& states)
     pointers.edep = energy_per_bin_;
 
     // Invoke kernel for binning energies
-    demo_loop::bin_energy(states, pointers);
+    demo_loop::bin_energy(params, states, pointers);
 }
 
 //---------------------------------------------------------------------------//
@@ -199,10 +207,12 @@ std::vector<celeritas::real_type> EnergyDiagnostic<M>::energy_deposition()
 //---------------------------------------------------------------------------//
 template<MemSpace M>
 CELER_FUNCTION
-EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(StateRef const& states,
+EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(ParamsRef const& params,
+                                                      StateRef const& states,
                                                       Pointers const& pointers)
-    : states_(states), pointers_(pointers)
+    : params_(params), states_(states), pointers_(pointers)
 {
+    CELER_EXPECT(params_);
     CELER_EXPECT(states_);
     CELER_EXPECT(pointers_);
 }
@@ -212,7 +222,7 @@ template<MemSpace M>
 CELER_FUNCTION void
 EnergyDiagnosticLauncher<M>::operator()(TrackSlotId tid) const
 {
-    celeritas::SimTrackView sim(states_.sim, tid);
+    celeritas::SimTrackView sim(params_.sim, states_.sim, tid);
     if (sim.status() == celeritas::TrackStatus::inactive)
     {
         // Only apply to active and dying tracks
@@ -247,7 +257,7 @@ EnergyDiagnosticLauncher<M>::operator()(TrackSlotId tid) const
 #else
         real_type dir = lsa.dir()[static_cast<int>(pointers_.axis)];
 #endif
-        pos -= real_type(0.5) * states_.sim.state[tid].step_limit.step * dir;
+        pos -= real_type(0.5) * states_.sim.step_limit[tid].step * dir;
     }
 
     using BinId = celeritas::ItemId<real_type>;
@@ -267,7 +277,9 @@ EnergyDiagnosticLauncher<M>::operator()(TrackSlotId tid) const
 }
 
 #if !CELER_USE_DEVICE
-inline void bin_energy(celeritas::CoreStateDeviceRef const&, PointersDevice&)
+inline void bin_energy(celeritas::CoreParamsDeviceRef const&,
+                       celeritas::CoreStateDeviceRef const&,
+                       PointersDevice&)
 {
     CELER_NOT_CONFIGURED("CUDA/HIP");
 }

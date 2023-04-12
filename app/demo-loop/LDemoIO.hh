@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <vector>
+#include <celeritas/Types.hh>
 #include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
@@ -26,14 +27,20 @@
 
 namespace celeritas
 {
+class OutputRegistry;
 class CoreParams;
+
+NLOHMANN_JSON_SERIALIZE_ENUM(TrackOrder,
+                             {{TrackOrder::unsorted, "unsorted"},
+                              {TrackOrder::shuffled, "shuffled"}})
 }
 
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 /*!
- * Write when event ID matches and either track ID or parent ID matches.
+ * Write when event ID matches and either track ID or parent ID matches, or
+ * when action ID matches.
  */
 struct MCTruthFilter
 {
@@ -47,11 +54,12 @@ struct MCTruthFilter
     std::vector<size_type> track_id;
     size_type event_id = unspecified();
     size_type parent_id = unspecified();
+    size_type action_id = unspecified();
 
     explicit operator bool() const
     {
         return !track_id.empty() || event_id != unspecified()
-               || parent_id != unspecified();
+               || parent_id != unspecified() || action_id != unspecified();
     }
 };
 
@@ -104,6 +112,9 @@ struct LDemoArgs
     // Diagnostic input
     EnergyDiagInput energy_diag;
 
+    // Track init options
+    celeritas::TrackOrder track_order{celeritas::TrackOrder::unsorted};
+
     // Optional setup options if loading directly from Geant4
     celeritas::GeantPhysicsOptions geant_options;
 
@@ -119,11 +130,10 @@ struct LDemoArgs
     }
 };
 
-// Load params from input arguments
-TransporterInput load_input(LDemoArgs const& args);
-
 // Build transporter from input arguments
-std::unique_ptr<TransporterBase> build_transporter(LDemoArgs const& run_args);
+std::unique_ptr<TransporterBase>
+build_transporter(LDemoArgs const& args,
+                  std::shared_ptr<celeritas::OutputRegistry> const& outreg);
 
 void to_json(nlohmann::json& j, LDemoArgs const& value);
 void from_json(nlohmann::json const& j, LDemoArgs& value);

@@ -42,6 +42,11 @@ HitRootIO::HitRootIO()
         std::regex("\\.json$"),
         ".root");
 
+    if (file_name_.empty())
+    {
+        file_name_ = "demo-geant-integration.root";
+    }
+
     if (G4Threading::IsWorkerThread())
     {
         file_name_ += std::to_string(G4Threading::G4GetThreadId());
@@ -50,6 +55,9 @@ HitRootIO::HitRootIO()
     if (G4Threading::IsWorkerThread()
         || !G4Threading::IsMultithreadedApplication())
     {
+        CELER_LOG_LOCAL(info)
+            << "Creating ROOT event output file at '" << file_name_ << "'";
+
         file_.reset(TFile::Open(file_name_.c_str(), "recreate"));
         CELER_VALIDATE(file_->IsOpen(), << "failed to open " << file_name_);
         tree_.reset(new TTree(
@@ -134,7 +142,6 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
  */
 void HitRootIO::Close()
 {
-    CELER_LOG_LOCAL(status) << "Closing ROOT file";
     CELER_EXPECT((file_ && file_->IsOpen())
                  || (G4Threading::IsMultithreadedApplication()
                      && G4Threading::IsMasterThread()));
@@ -154,6 +161,7 @@ void HitRootIO::Close()
         }
         else
         {
+            CELER_LOG(debug) << "Writing temporary local ROOT output";
             file_->Write("", TObject::kOverwrite);
         }
     }

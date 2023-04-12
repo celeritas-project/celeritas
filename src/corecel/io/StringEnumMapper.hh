@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
 #include <type_traits>
 #include <unordered_map>
 
@@ -20,7 +21,8 @@ namespace celeritas
  * Map strings to enums for user input.
  *
  * Note that since a map is built at construction time, instances of this class
- * should be \c static to amortize the cost.
+ * should be \c static to amortize the cost. The strings being converted *must*
+ * exceed the lifetime of this class. (Usually it references `const char*`.)
  *
  * \todo If the size of the strings is short and there aren't a lot of them, it
  * will be faster to use a fixed-size array and search over them.
@@ -59,11 +61,11 @@ class StringEnumMapper
                                      char const* desc = nullptr);
 
     // Convert from a string
-    inline T operator()(std::string const& s) const;
+    inline T operator()(std::string_view s) const;
 
   private:
     char const* description_;
-    std::unordered_map<std::string, T> map_;
+    std::unordered_map<std::string_view, T> map_;
 };
 
 //---------------------------------------------------------------------------//
@@ -84,7 +86,7 @@ StringEnumMapper<T>::from_cstring_func(EnumCStringFuncPtr fp, char const* desc)
 /*!
  * Construct with a "stringify" function.
  *
- * The result just has to be implicitly convertible to a \c std::string .
+ * The result just has to be implicitly convertible to a \c std::string_view .
  */
 template<class T>
 template<class U>
@@ -101,10 +103,10 @@ StringEnumMapper<T>::StringEnumMapper(U&& enum_to_string, char const* desc)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a string to the corresponding enum.
+ * Convert a string_view to the corresponding enum.
  */
 template<class T>
-T StringEnumMapper<T>::operator()(std::string const& s) const
+T StringEnumMapper<T>::operator()(std::string_view s) const
 {
     auto result = map_.find(s);
     CELER_VALIDATE(result != map_.end(),

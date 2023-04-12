@@ -93,7 +93,7 @@ class GeantImporter
 
     //// HELPER FUNCTIONS ////
 
-    std::vector<ImportVolume> load_volumes(bool unique_volumes) const;
+    std::vector<ImportVolume> import_volumes(bool unique_volumes) const;
 };
 
 //---------------------------------------------------------------------------//

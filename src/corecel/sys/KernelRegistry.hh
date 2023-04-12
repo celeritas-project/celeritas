@@ -12,6 +12,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "corecel/Assert.hh"
@@ -72,13 +73,15 @@ class KernelRegistry
     //// CONSTRUCTION ////
 
     // Register a kernel and return optional reference to profiling info
-    KernelProfiling* insert(char const* name, KernelAttributes&& attrs);
+    KernelProfiling* insert(std::string_view name, KernelAttributes&& attrs);
 
     //// ACCESSORS ////
 
+    // TODO: rename to size
     // Number of kernel diagnostics available
     KernelId::size_type num_kernels() const;
 
+    // TODO: rename to get
     // Access kernel data for a single kernel
     KernelMetadata const& kernel(KernelId id) const;
 

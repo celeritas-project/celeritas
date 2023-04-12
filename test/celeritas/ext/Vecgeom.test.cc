@@ -142,8 +142,6 @@ void VecgeomTestBase::TrackingResult::print_expected()
 //---------------------------------------------------------------------------//
 // FOUR-LEVELS TEST
 //---------------------------------------------------------------------------//
-#define FourLevelsTest FourLevelsTest
-
 class FourLevelsTest : public GlobalGeoTestBase,
                        public OnlyGeoTestBase,
                        public VecgeomTestBase
@@ -158,8 +156,12 @@ TEST_F(FourLevelsTest, accessors)
 {
     auto const& geom = *this->geometry();
     EXPECT_EQ(4, geom.max_depth());
-    ASSERT_EQ(4, geom.num_volumes());
 
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-24.001, -24.001, -24.001}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{24.001, 24.001, 24.001}), bbox.upper());
+
+    ASSERT_EQ(4, geom.num_volumes());
     EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
@@ -449,6 +451,10 @@ TEST_F(SolidsTest, accessors)
             << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), bbox.upper());
+
     ASSERT_EQ(25, geom.num_volumes());
     EXPECT_EQ("World", geom.id_to_label(VolumeId{geom.num_volumes() - 1}).name);
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{4}).name);
@@ -605,8 +611,12 @@ TEST_F(FourLevelsGeantTest, accessors)
 {
     auto const& geom = *this->geometry();
     EXPECT_EQ(4, geom.max_depth());
-    ASSERT_EQ(4, geom.num_volumes());
 
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-24.001, -24.001, -24.001}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{24.001, 24.001, 24.001}), bbox.upper());
+
+    ASSERT_EQ(4, geom.num_volumes());
     EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{1}).name);
     EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{2}).name);
@@ -738,6 +748,10 @@ TEST_F(SolidsGeantTest, accessors)
             << "VecGeom " << vecgeom_version
             << " is missing features: upgrade to 1.2.2 to pass this test";
     }
+
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), bbox.upper());
 
     ASSERT_EQ(25, geom.num_volumes());
     EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);

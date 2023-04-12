@@ -131,7 +131,7 @@ class HitProcessorTest : public ::celeritas::test::SimpleCmsTestBase
 {
   protected:
     using MapStrSD = std::map<std::string, SensitiveDetector*>;
-    using VecLV = std::vector<G4LogicalVolume*>;
+    using SPConstVecLV = std::shared_ptr<const std::vector<G4LogicalVolume*>>;
 
     void SetUp() override
     {
@@ -154,7 +154,7 @@ class HitProcessorTest : public ::celeritas::test::SimpleCmsTestBase
     }
 
     static MapStrSD& detectors();
-    static VecLV& detector_volumes();
+    static SPConstVecLV& detector_volumes();
     static void setup_detectors();
 
     static HitsResult const& get_hits(std::string const& name)
@@ -185,21 +185,23 @@ auto HitProcessorTest::detectors() -> MapStrSD&
 }
 
 //---------------------------------------------------------------------------//
-auto HitProcessorTest::detector_volumes() -> VecLV&
+auto HitProcessorTest::detector_volumes() -> SPConstVecLV&
 {
-    static VecLV dv;
+    static SPConstVecLV dv;
     return dv;
 }
 
 //---------------------------------------------------------------------------//
 void HitProcessorTest::setup_detectors()
 {
-    auto& dv = HitProcessorTest::detector_volumes();
-    if (!dv.empty())
+    auto& sp_dv = HitProcessorTest::detector_volumes();
+    if (sp_dv)
     {
         // We've already set them up
         return;
     }
+
+    std::vector<G4LogicalVolume*> dv;
 
     // Find and set up sensitive detectors
     G4SDManager* sd_manager = G4SDManager::GetSDMpointer();
@@ -236,6 +238,8 @@ void HitProcessorTest::setup_detectors()
         dv.begin(), dv.end(), [](G4LogicalVolume* lhs, G4LogicalVolume* rhs) {
             return lhs->GetName() < rhs->GetName();
         });
+    sp_dv = std::make_shared<std::vector<G4LogicalVolume*>>(std::move(dv));
+    CELER_ENSURE(HitProcessorTest::detector_volumes());
 }
 
 //---------------------------------------------------------------------------//

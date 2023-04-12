@@ -12,6 +12,7 @@
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
 #include <G4ThreeVector.hh>
+#include <G4Track.hh>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
@@ -23,46 +24,52 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
+#include "detail/Convert.hh"
+#include "detail/HitManager.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-template<class T>
-inline T convert_from_geant(T const& val, T units)
-{
-    return val / units;
-}
-
-//---------------------------------------------------------------------------//
-inline Real3 convert_from_geant(G4ThreeVector const& vec, double units)
-{
-    return {vec[0] / units, vec[1] / units, vec[2] / units};
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared (MT) params.
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams const& params)
-    : auto_flush_(options.max_num_tracks), max_steps_(options.max_steps)
+    : auto_flush_(options.max_num_tracks)
+    , max_steps_(options.max_steps)
+    , hit_manager_{params.hit_manager()}
 {
-    CELER_EXPECT(params);
+    CELER_VALIDATE(params,
+                   << "Celeritas SharedParams was not initialized before "
+                      "constructing LocalTransporter (perhaps the master "
+                      "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
 
-    StepperInput inp{params.Params(), options.max_num_tracks, options.sync};
+    // Thread ID is -1 when running serially
+    auto thread_id = G4Threading::IsMultithreadedApplication() ? G4Threading::G4GetThreadId() : 0;
+    CELER_VALIDATE(thread_id >= 0,
+                   << "Geant4 ThreadID (" << thread_id
+                   << ") is invalid (perhaps LocalTransporter is being built "
+                      "on a non-worker thread?)");
+    CELER_VALIDATE(
+        static_cast<size_type>(thread_id) < params.Params()->max_streams(),
+        << "Geant4 ThreadID (" << thread_id
+        << ") is out of range for the reported number of worker threads ("
+        << params.Params()->max_streams() << ")");
+
+    StepperInput inp;
+    inp.params = params.Params();
+    inp.stream_id = StreamId{static_cast<size_type>(thread_id)};
+    inp.num_track_slots = options.max_num_tracks;
+    inp.sync = options.sync;
+
     if (celeritas::device())
     {
-        step_ = std::make_shared<Stepper<MemSpace::device>>(inp);
+        step_ = std::make_shared<Stepper<MemSpace::device>>(std::move(inp));
     }
     else
     {
-        step_ = std::make_shared<Stepper<MemSpace::host>>(inp);
+        step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
     }
 }
 
@@ -80,24 +87,14 @@ void LocalTransporter::SetEventId(int id)
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether Celeritas supports offloading of this track.
- */
-bool LocalTransporter::IsApplicable(G4Track const& g4track) const
-{
-    CELER_EXPECT(*this);
-    PDGNumber pdg{g4track.GetDefinition()->GetPDGEncoding()};
-    return static_cast<bool>(particles_->find(pdg));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Convert a Geant4 track to a Celeritas primary and add to buffer.
  */
 void LocalTransporter::Push(G4Track const& g4track)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(event_id_);
-    CELER_EXPECT(this->IsApplicable(g4track));
+
+    using detail::convert_from_geant;
 
     Primary track;
 
@@ -105,6 +102,11 @@ void LocalTransporter::Push(G4Track const& g4track)
         PDGNumber{g4track.GetDefinition()->GetPDGEncoding()});
     track.energy = units::MevEnergy{
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV)};
+
+    CELER_VALIDATE(track.particle_id,
+                   << "cannot offload '"
+                   << g4track.GetDefinition()->GetParticleName()
+                   << "' particles");
 
     track.position = convert_from_geant(g4track.GetPosition(), CLHEP::cm);
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
@@ -183,6 +185,18 @@ void LocalTransporter::Finalize()
     *this = {};
 
     CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear thread-local hit manager on destruction.
+ */
+void LocalTransporter::HMFinalizer::operator()(SPHitManger& hm) const
+{
+    if (hm)
+    {
+        hm->finalize();
+    }
 }
 
 //---------------------------------------------------------------------------//

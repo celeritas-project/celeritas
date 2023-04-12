@@ -31,6 +31,8 @@
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
+#include "Convert.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -59,26 +61,6 @@ namespace detail
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-template<class T>
-inline T convert_to_geant(T const& val, T units)
-{
-    return val * units;
-}
-
-//---------------------------------------------------------------------------//
-inline G4ThreeVector convert_to_geant(Real3 const& arr, double units)
-{
-    return {arr[0] * units, arr[1] * units, arr[2] * units};
-}
-
-//---------------------------------------------------------------------------//
-inline double convert_to_geant(units::MevEnergy const& energy, double units)
-{
-    CELER_EXPECT(units == CLHEP::MeV);
-    return energy.value() * CLHEP::MeV;
-}
-
 //---------------------------------------------------------------------------//
 struct PrintableNavHistory
 {
@@ -115,12 +97,12 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
 /*!
  * Construct local navigator and step data.
  */
-HitProcessor::HitProcessor(VecLV detector_volumes,
+HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            bool locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
 {
-    CELER_EXPECT(!detector_volumes_.empty());
+    CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
     CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
                    << "cannot set 'locate_touchable' because the pre-step "
                       "position is not being collected");
@@ -168,6 +150,19 @@ HitProcessor::HitProcessor(VecLV detector_volumes,
     }
     track_ = std::make_unique<G4Track>();
     step_->SetTrack(track_.get());
+
+    // Convert logical volumes (global) to sensitive detectors (thread local)
+    CELER_LOG_LOCAL(debug) << "Setting up " << detector_volumes_->size()
+                           << " sensitive detectors";
+    detectors_.resize(detector_volumes_->size());
+    for (auto i : range(detectors_.size()))
+    {
+        CELER_ASSERT((*detector_volumes_)[i]);
+        detectors_[i] = (*detector_volumes_)[i]->GetSensitiveDetector();
+        CELER_ENSURE(detectors_[i]);
+    }
+
+    CELER_ENSURE(!detectors_.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -175,7 +170,37 @@ HitProcessor::~HitProcessor() = default;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Process detector tallies (CPU).
+ */
+void HitProcessor::operator()(StepStateHostRef const& states)
+{
+    copy_steps(&steps_, states);
+    if (steps_)
+    {
+        (*this)(steps_);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process detector tallies (GPU).
+ */
+void HitProcessor::operator()(StepStateDeviceRef const& states)
+{
+    copy_steps(&steps_, states);
+    if (steps_)
+    {
+        (*this)(steps_);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Generate and call hits from a detector output.
+ *
+ * In an application setting, this is always called with our local data \c
+ * steps_ as an argument. For tests, we can call this function explicitly using
+ * local test data.
  */
 void HitProcessor::operator()(DetectorStepOutput const& out) const
 {
@@ -230,11 +255,11 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 
         if (navi_)
         {
-            CELER_ASSERT(out.detector[i] < detector_volumes_.size());
+            CELER_ASSERT(out.detector[i] < detectors_.size());
             bool success = this->update_touchable(
                 out.points[StepPoint::pre].pos[i],
                 out.points[StepPoint::pre].dir[i],
-                detector_volumes_[out.detector[i].unchecked_get()]);
+                (*detector_volumes_)[out.detector[i].unchecked_get()]);
             if (CELER_UNLIKELY(!success))
             {
                 // Inconsistent touchable: skip this energy deposition
@@ -242,14 +267,9 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
             }
         }
 
-        // Hit sensitive detector (NOTE: GetSensitiveDetector returns a
-        // thread-local object from a global object.)
-        CELER_ASSERT(out.detector[i] < detector_volumes_.size());
-        G4VSensitiveDetector* sd
-            = detector_volumes_[out.detector[i].unchecked_get()]
-                  ->GetSensitiveDetector();
-        CELER_ASSERT(sd);
-        sd->Hit(step_.get());
+        // Hit sensitive detector
+        CELER_ASSERT(out.detector[i] < detectors_.size());
+        detectors_[out.detector[i].unchecked_get()]->Hit(step_.get());
     }
 }
 

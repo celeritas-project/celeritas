@@ -29,10 +29,11 @@ class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
+class SimParams;
 class TrackInitParams;
 
 class CoreParams;
-class OutputManager;
+class OutputRegistry;
 
 namespace test
 {
@@ -60,17 +61,18 @@ class GlobalTestBase : public Test
     using SPConstPhysics = SP<PhysicsParams const>;
     using SPConstAction = SP<ExplicitActionInterface const>;
     using SPConstRng = SP<RngParams const>;
+    using SPConstSim = SP<SimParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;
     using SPConstCore = SP<CoreParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
-    using SPOutputManager = SP<OutputManager>;
+    using SPOutputRegistry = SP<OutputRegistry>;
     //!@}
 
   public:
     // Create output manager on construction
     GlobalTestBase();
-    // Default destructor
+    // Print output on failure if available
     virtual ~GlobalTestBase();
 
     //// ACCESSORS ////
@@ -85,6 +87,7 @@ class GlobalTestBase : public Test
     inline SPConstPhysics const& physics();
     inline SPConstAction const& along_step();
     inline SPConstRng const& rng();
+    inline SPConstSim const& sim();
     inline SPConstTrackInit const& init();
     inline SPActionRegistry const& action_reg();
     inline SPConstCore const& core();
@@ -97,6 +100,7 @@ class GlobalTestBase : public Test
     inline SPConstPhysics const& physics() const;
     inline SPConstAction const& along_step() const;
     inline SPConstRng const& rng() const;
+    inline SPConstSim const& sim() const;
     inline SPConstTrackInit const& init() const;
     inline SPActionRegistry const& action_reg() const;
     inline SPConstCore const& core() const;
@@ -105,7 +109,7 @@ class GlobalTestBase : public Test
     //// OUTPUT ////
 
     //! Access output manager
-    SPOutputManager const& output_mgr() const { return output_; }
+    SPOutputRegistry const& output_reg() const { return output_reg_; }
     //! Write output to a debug text file
     void write_output();
     //! Write output to a stream
@@ -118,6 +122,7 @@ class GlobalTestBase : public Test
     virtual SPConstParticle build_particle() = 0;
     virtual SPConstCutoff build_cutoff() = 0;
     virtual SPConstPhysics build_physics() = 0;
+    virtual SPConstSim build_sim() = 0;
     virtual SPConstTrackInit build_init() = 0;
     virtual SPConstAction build_along_step() = 0;
 
@@ -125,18 +130,6 @@ class GlobalTestBase : public Test
     SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
     SPConstCore build_core();
-
-    void register_geometry_output() {}
-    void register_material_output() {}
-    void register_geomaterial_output() {}
-    void register_particle_output() {}
-    void register_cutoff_output() {}
-    void register_physics_output();
-    void register_along_step_output() {}
-    void register_rng_output() {}
-    void register_init_output() {}
-    void register_action_reg_output();
-    void register_core_output() {}
 
   private:
     SPConstGeo geometry_;
@@ -148,9 +141,10 @@ class GlobalTestBase : public Test
     SPActionRegistry action_reg_;
     SPConstAction along_step_;
     SPConstRng rng_;
+    SPConstSim sim_;
     SPConstTrackInit init_;
     SPConstCore core_;
-    SPOutputManager output_;
+    SPOutputRegistry output_reg_;
 };
 
 //---------------------------------------------------------------------------//
@@ -164,7 +158,6 @@ class GlobalTestBase : public Test
         {                                         \
             this->NAME##_ = this->build_##NAME(); \
             CELER_ASSERT(this->NAME##_);          \
-            this->register_##NAME##_output();     \
         }                                         \
         return this->NAME##_;                     \
     }                                             \
@@ -182,6 +175,7 @@ DEF_GTB_ACCESSORS(SPConstCutoff, cutoff)
 DEF_GTB_ACCESSORS(SPConstPhysics, physics)
 DEF_GTB_ACCESSORS(SPConstAction, along_step)
 DEF_GTB_ACCESSORS(SPConstRng, rng)
+DEF_GTB_ACCESSORS(SPConstSim, sim)
 DEF_GTB_ACCESSORS(SPConstTrackInit, init)
 DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
 DEF_GTB_ACCESSORS(SPConstCore, core)

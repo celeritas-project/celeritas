@@ -24,15 +24,17 @@ namespace celeritas
 template<MemSpace M>
 void resize(CuHipRngStateData<Ownership::value, M>* state,
             HostCRef<CuHipRngParamsData> const& params,
+            StreamId stream,
             size_type size)
 {
+    CELER_EXPECT(stream);
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
     using RngInit = CuHipRngInitializer;
 
     // Host-side RNG for creating seeds
-    std::mt19937 host_rng(params.seed);
+    std::mt19937 host_rng(params.seed + stream.get());
     std::uniform_int_distribution<ull_int> sample_uniform_int;
 
     // Create seeds for device in host memory
@@ -54,10 +56,12 @@ void resize(CuHipRngStateData<Ownership::value, M>* state,
 // Explicit instantiations
 template void resize(HostVal<CuHipRngStateData>*,
                      HostCRef<CuHipRngParamsData> const&,
+                     StreamId,
                      size_type);
 
 template void resize(CuHipRngStateData<Ownership::value, MemSpace::device>*,
                      HostCRef<CuHipRngParamsData> const&,
+                     StreamId,
                      size_type);
 
 //---------------------------------------------------------------------------//

@@ -21,25 +21,29 @@ namespace demo_loop
 /*!
  * Get energy deposition from state data and accumulate in appropriate bin
  */
-__global__ void
-bin_energy_kernel(const CoreStateDeviceRef states, PointersDevice pointers)
+__global__ void bin_energy_kernel(CoreParamsDeviceRef const params,
+                                  CoreStateDeviceRef const states,
+                                  PointersDevice pointers)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
         return;
 
-    EnergyDiagnosticLauncher<MemSpace::device> launch(states, pointers);
+    EnergyDiagnosticLauncher<MemSpace::device> launch(params, states, pointers);
     launch(TrackSlotId{tid.unchecked_get()});
 }
 
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void bin_energy(CoreStateDeviceRef const& states, PointersDevice& pointers)
+void bin_energy(CoreParamsDeviceRef const& params,
+                CoreStateDeviceRef const& states,
+                PointersDevice& pointers)
 {
     CELER_LAUNCH_KERNEL(bin_energy,
                         celeritas::device().default_block_size(),
                         states.size(),
+                        params,
                         states,
                         pointers);
 }

@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/phys/Secondary.hh"
 
 #include "SimData.hh"
@@ -26,14 +27,17 @@ class SimTrackView
   public:
     //!@{
     //! \name Type aliases
+    using SimParamsRef = NativeCRef<SimParamsData>;
     using SimStateRef = NativeRef<SimStateData>;
     using Initializer_t = SimTrackInitializer;
+    using Energy = units::MevEnergy;
     //!@}
 
   public:
     // Construct with view to state and persistent data
-    inline CELER_FUNCTION
-    SimTrackView(SimStateRef const& states, TrackSlotId tid);
+    inline CELER_FUNCTION SimTrackView(SimParamsRef const& params,
+                                       SimStateRef const& states,
+                                       TrackSlotId tid);
 
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(Initializer_t const& other);
@@ -43,6 +47,12 @@ class SimTrackView
 
     // Increment the total number of steps
     CELER_FORCEINLINE_FUNCTION void increment_num_steps();
+
+    // Update the number of steps this track has been looping
+    inline CELER_FUNCTION void update_looping(bool);
+
+    // Whether the looping track should be abandoned
+    inline CELER_FUNCTION bool is_looping(ParticleId, Energy);
 
     // Set whether the track is alive
     inline CELER_FUNCTION void status(TrackStatus);
@@ -76,6 +86,9 @@ class SimTrackView
     // Total number of steps taken by the track
     CELER_FORCEINLINE_FUNCTION size_type num_steps() const;
 
+    // Number of steps taken by the track since it was flagged as looping
+    CELER_FORCEINLINE_FUNCTION size_type num_looping_steps() const;
+
     // Time elapsed in the lab frame since the start of the event [s]
     CELER_FORCEINLINE_FUNCTION real_type time() const;
 
@@ -85,7 +98,14 @@ class SimTrackView
     // Limiting step and action to take
     CELER_FORCEINLINE_FUNCTION StepLimit const& step_limit() const;
 
+    //// PARAMETER DATA ////
+
+    // Particle-dependent parameters for killing looping tracks
+    CELER_FORCEINLINE_FUNCTION
+    LoopingThreshold const& looping_threshold(ParticleId) const;
+
   private:
+    SimParamsRef const& params_;
     SimStateRef const& states_;
     const TrackSlotId track_slot_;
 };
@@ -97,8 +117,10 @@ class SimTrackView
  * Construct from persistent and local data.
  */
 CELER_FUNCTION
-SimTrackView::SimTrackView(SimStateRef const& states, TrackSlotId tid)
-    : states_(states), track_slot_(tid)
+SimTrackView::SimTrackView(SimParamsRef const& params,
+                           SimStateRef const& states,
+                           TrackSlotId tid)
+    : params_(params), states_(states), track_slot_(tid)
 {
     CELER_EXPECT(track_slot_ < states_.size());
 }
@@ -109,7 +131,14 @@ SimTrackView::SimTrackView(SimStateRef const& states, TrackSlotId tid)
  */
 CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
 {
-    states_.state[track_slot_] = other;
+    states_.track_ids[track_slot_] = other.track_id;
+    states_.parent_ids[track_slot_] = other.parent_id;
+    states_.event_ids[track_slot_] = other.event_id;
+    states_.num_steps[track_slot_] = 0;
+    states_.num_looping_steps[track_slot_] = 0;
+    states_.time[track_slot_] = other.time;
+    states_.status[track_slot_] = other.status;
+    states_.step_limit[track_slot_] = other.step_limit;
     return *this;
 }
 
@@ -120,7 +149,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
 CELER_FUNCTION void SimTrackView::add_time(real_type delta)
 {
     CELER_EXPECT(delta >= 0);
-    states_.state[track_slot_].time += delta;
+    states_.time[track_slot_] += delta;
 }
 
 //---------------------------------------------------------------------------//
@@ -129,7 +158,41 @@ CELER_FUNCTION void SimTrackView::add_time(real_type delta)
  */
 CELER_FUNCTION void SimTrackView::increment_num_steps()
 {
-    ++states_.state[track_slot_].num_steps;
+    ++states_.num_steps[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update the number of steps this track has been looping.
+ */
+CELER_FUNCTION void SimTrackView::update_looping(bool is_looping)
+{
+    if (is_looping)
+    {
+        ++states_.num_looping_steps[track_slot_];
+    }
+    else
+    {
+        states_.num_looping_steps[track_slot_] = 0;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the looping track should be abandoned.
+ */
+CELER_FUNCTION bool SimTrackView::is_looping(ParticleId pid, Energy energy)
+{
+    auto const& looping = this->looping_threshold(pid);
+    if (energy < looping.threshold_energy)
+    {
+        return this->num_looping_steps() >= looping.max_subthreshold_steps;
+    }
+    else
+    {
+        return this->num_looping_steps() >= looping.max_steps;
+    }
+    return false;
 }
 
 //---------------------------------------------------------------------------//
@@ -143,7 +206,7 @@ CELER_FUNCTION void SimTrackView::reset_step_limit(StepLimit const& sl)
     CELER_EXPECT(sl.step >= 0);
     CELER_EXPECT(static_cast<bool>(sl.action)
                  != (sl.step == numeric_limits<real_type>::infinity()));
-    states_.state[track_slot_].step_limit = sl;
+    states_.step_limit[track_slot_] = sl;
 }
 
 //---------------------------------------------------------------------------//
@@ -169,7 +232,7 @@ CELER_FUNCTION void SimTrackView::reset_step_limit()
 CELER_FUNCTION void SimTrackView::force_step_limit(ActionId action)
 {
     CELER_ASSERT(action);
-    states_.state[track_slot_].step_limit.action = action;
+    states_.step_limit[track_slot_].action = action;
 }
 
 //---------------------------------------------------------------------------//
@@ -182,9 +245,9 @@ CELER_FUNCTION void SimTrackView::force_step_limit(ActionId action)
 CELER_FUNCTION void SimTrackView::force_step_limit(StepLimit const& sl)
 {
     CELER_ASSERT(sl.step >= 0
-                 && sl.step <= states_.state[track_slot_].step_limit.step);
+                 && sl.step <= states_.step_limit[track_slot_].step);
 
-    states_.state[track_slot_].step_limit = sl;
+    states_.step_limit[track_slot_] = sl;
 }
 
 //---------------------------------------------------------------------------//
@@ -199,10 +262,10 @@ CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
 {
     CELER_ASSERT(sl.step >= 0);
 
-    bool is_limiting = (sl.step < states_.state[track_slot_].step_limit.step);
+    bool is_limiting = (sl.step < states_.step_limit[track_slot_].step);
     if (is_limiting)
     {
-        states_.state[track_slot_].step_limit = sl;
+        states_.step_limit[track_slot_] = sl;
     }
     return is_limiting;
 }
@@ -214,7 +277,7 @@ CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
 CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 {
     CELER_EXPECT(status != this->status());
-    states_.state[track_slot_].status = status;
+    states_.status[track_slot_] = status;
 }
 
 //---------------------------------------------------------------------------//
@@ -225,7 +288,7 @@ CELER_FUNCTION void SimTrackView::status(TrackStatus status)
  */
 CELER_FUNCTION TrackId SimTrackView::track_id() const
 {
-    return states_.state[track_slot_].track_id;
+    return states_.track_ids[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -234,7 +297,7 @@ CELER_FUNCTION TrackId SimTrackView::track_id() const
  */
 CELER_FUNCTION TrackId SimTrackView::parent_id() const
 {
-    return states_.state[track_slot_].parent_id;
+    return states_.parent_ids[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -243,7 +306,7 @@ CELER_FUNCTION TrackId SimTrackView::parent_id() const
  */
 CELER_FUNCTION EventId SimTrackView::event_id() const
 {
-    return states_.state[track_slot_].event_id;
+    return states_.event_ids[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -252,7 +315,16 @@ CELER_FUNCTION EventId SimTrackView::event_id() const
  */
 CELER_FUNCTION size_type SimTrackView::num_steps() const
 {
-    return states_.state[track_slot_].num_steps;
+    return states_.num_steps[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of steps taken by the track since it was flagged as looping.
+ */
+CELER_FUNCTION size_type SimTrackView::num_looping_steps() const
+{
+    return states_.num_looping_steps[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -261,7 +333,7 @@ CELER_FUNCTION size_type SimTrackView::num_steps() const
  */
 CELER_FUNCTION real_type SimTrackView::time() const
 {
-    return states_.state[track_slot_].time;
+    return states_.time[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -270,7 +342,7 @@ CELER_FUNCTION real_type SimTrackView::time() const
  */
 CELER_FUNCTION TrackStatus SimTrackView::status() const
 {
-    return states_.state[track_slot_].status;
+    return states_.status[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -279,7 +351,17 @@ CELER_FUNCTION TrackStatus SimTrackView::status() const
  */
 CELER_FUNCTION StepLimit const& SimTrackView::step_limit() const
 {
-    return states_.state[track_slot_].step_limit;
+    return states_.step_limit[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Particle-dependent parameters for killing looping tracks.
+ */
+CELER_FORCEINLINE_FUNCTION LoopingThreshold const&
+SimTrackView::looping_threshold(ParticleId pid) const
+{
+    return params_.looping[pid];
 }
 
 //---------------------------------------------------------------------------//

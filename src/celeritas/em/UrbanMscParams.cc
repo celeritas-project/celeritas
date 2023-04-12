@@ -19,6 +19,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
@@ -54,8 +55,14 @@ UrbanMscParams::from_import(ParticleParams const& particles,
         // No Urban MSC present
         return nullptr;
     }
+
+    Options opts;
+    opts.lambda_limit = import.em_params.msc_lambda_limit;
+    opts.safety_fact = import.em_params.msc_safety_factor;
+    opts.range_fact = import.em_params.msc_range_factor;
+
     return std::make_shared<UrbanMscParams>(
-        particles, materials, import.msc_models);
+        particles, materials, import.msc_models, opts);
 }
 
 //---------------------------------------------------------------------------//
@@ -64,8 +71,13 @@ UrbanMscParams::from_import(ParticleParams const& particles,
  */
 UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                MaterialParams const& materials,
-                               VecImportMscModel const& mdata_vec)
+                               VecImportMscModel const& mdata_vec,
+                               Options options)
 {
+    using units::MevEnergy;
+
+    ScopedMem record_mem("UrbanMscParams.construct");
+
     HostVal<UrbanMscData> host_data;
 
     host_data.ids.electron = particles.find(pdg::electron());
@@ -84,6 +96,20 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
         CELER_LOG(warning) << "Multiple scattering is not implemented for for "
                               "particles other than electron and positron";
     }
+
+    // Save parameters
+    CELER_VALIDATE(options.lambda_limit > 0,
+                   << "invalid lambda_limit=" << options.lambda_limit
+                   << " (should be positive)");
+    CELER_VALIDATE(options.safety_fact >= 0.1,
+                   << "invalid safety_fact=" << options.safety_fact
+                   << " (should be >= 0.1)");
+    CELER_VALIDATE(options.range_fact > 0 && options.range_fact < 1,
+                   << "invalid range_fact=" << options.range_fact
+                   << " (should be within 0 < limit < 1)");
+    host_data.params.lambda_limit = options.lambda_limit;
+    host_data.params.range_fact = options.range_fact;
+    host_data.params.safety_fact = options.safety_fact;
 
     // Filter MSC data by model and particle type
     std::vector<ImportMscModel const*> urban_data(particles.size(), nullptr);
@@ -115,6 +141,16 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                        << particles.id_to_label(pid));
         return &imm->xs_table;
     };
+
+    {
+        // Set initial high/low energy limits
+        auto const& phys_vec
+            = get_scaled_xs(host_data.ids.electron)->physics_vectors;
+        CELER_ASSERT(!phys_vec.empty());
+        CELER_ASSERT(!phys_vec[0].x.empty());
+        host_data.params.low_energy_limit = MevEnergy{phys_vec[0].x.front()};
+        host_data.params.high_energy_limit = MevEnergy{phys_vec[0].x.back()};
+    }
 
     {
         // Particle-dependent data
@@ -180,6 +216,18 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                 ImportPhysicsVector const& pvec
                     = xs_tables[p]->physics_vectors[mat_id.unchecked_get()];
                 CELER_ASSERT(pvec.vector_type == ImportPhysicsVectorType::log);
+
+                // Check that the limits are the same for all materials and
+                // particles; otherwise we need to change
+                // `UrbanMsc::is_applicable` to look up the particle and
+                // material
+                CELER_VALIDATE(host_data.params.low_energy_limit
+                                       == MevEnergy{pvec.x.front()}
+                                   && host_data.params.high_energy_limit
+                                          == MevEnergy{pvec.x.back()},
+                               << "multiple scattering cross section energy "
+                                  "limits are inconsistent across particles "
+                                  "and/or materials");
 
                 // To reuse existing code (TODO: simplify when refactoring)
                 // use the value grid builder to construct the grid entry in a

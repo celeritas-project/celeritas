@@ -211,7 +211,8 @@ if(CELERITAS_USE_Python)
 endif()
 
 if(CELERITAS_USE_ROOT)
-  find_package(ROOT REQUIRED)
+  # Older ROOT versions are missing CMake macros
+  find_package(ROOT 6.24 REQUIRED)
 endif()
 
 if(CELERITAS_USE_SWIG AND NOT SWIG_FOUND)
@@ -246,7 +247,7 @@ endif()
 
 if(CELERITAS_BUILD_DOCS)
   if(NOT Doxygen_FOUND)
-    find_package(Doxygen REQUIRED)
+    find_package(Doxygen)
   endif()
 
   if(Python_FOUND)
@@ -257,13 +258,15 @@ if(CELERITAS_BUILD_DOCS)
     celeritas_check_python_module(CELERITAS_USE_Breathe breathe)
     celeritas_check_python_module(CELERITAS_USE_SphinxBibtex "sphinxcontrib.bibtex")
     celeritas_check_python_module(CELERITAS_USE_SphinxRtdTheme "sphinx_rtd_theme")
-    find_program(LATEXMK_EXECUTABLE latexmk)
+    if(CELERITAS_USE_Breathe)
+      find_program(LATEXMK_EXECUTABLE latexmk)
+    endif()
   endif()
-  if(NOT Sphinx_FOUND AND NOT Doxygen_FOUND)
-    message(SEND_ERROR "Sphinx and/or Doxygen are required for docs: setting "
+  if(NOT Doxygen_FOUND)
+    message(SEND_ERROR "Doxygen is required for building documentation: setting "
       "CELERITAS_BUILD_DOCS=OFF for next build")
     set(CELERITAS_BUILD_DOCS OFF CACHE BOOL
-      "Disabled because of missing Doxygen/Sphinx" FORCE)
+      "Disabled because of missing Doxygen" FORCE)
   endif()
 endif()
 

@@ -13,9 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Store volume data.
- *
- * \sa ImportData
+ * Store logical volume properties.
  */
 struct ImportVolume
 {

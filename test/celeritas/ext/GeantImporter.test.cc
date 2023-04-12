@@ -72,7 +72,6 @@ class GeantImporterTest : public GeantTestBase
         void print_expected() const;
     };
 
-
     ImportSummary summarize(ImportData const& data) const;
     ImportXsSummary summarize(VecModelMaterial const& xs) const;
 
@@ -89,15 +88,31 @@ class GeantImporterTest : public GeantTestBase
         auto const& processes = this->imported_data().processes;
         auto result = std::find_if(processes.begin(),
                                    processes.end(),
-                                   [&pdg, &ipc](ImportProcess const& proc) {
+                                   [pdg, ipc](ImportProcess const& proc) {
                                        return PDGNumber{proc.particle_pdg}
                                                   == pdg
                                               && proc.process_class == ipc;
                                    });
-        CELER_ENSURE(result != processes.end());
+        CELER_VALIDATE(result != processes.end(),
+                       << "missing process " << to_cstring(ipc)
+                       << " for particle PDG=" << pdg.get());
         return *result;
     }
 
+    ImportMscModel const&
+    find_msc_model(PDGNumber pdg, ImportModelClass imc) const
+    {
+        CELER_EXPECT(this->imported_data());
+        auto const& models = this->imported_data().msc_models;
+        auto result = std::find_if(
+            models.begin(), models.end(), [pdg, imc](ImportMscModel const& m) {
+                return PDGNumber{m.particle_pdg} == pdg && m.model_class == imc;
+            });
+        CELER_VALIDATE(result != models.end(),
+                       << "missing model " << to_cstring(imc)
+                       << " for particle PDG=" << pdg.get());
+        return *result;
+    }
     real_type comparison_tolerance() const
     {
         // Some values change substantially between geant versions
@@ -212,8 +227,10 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         {
             nlohmann::json out = opts;
             static char const expected[]
-                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
-            EXPECT_EQ(std::string(expected), std::string(out.dump()));
+                = R"json({"apply_cuts":false,"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_general":false,"integral_approach":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban_extended","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
+            EXPECT_EQ(std::string(expected), std::string(out.dump()))
+                << "\n/*** REPLACE ***/\nR\"json(" << std::string(out.dump())
+                << ")json\"\n/******/";
         }
 #endif
         return opts;
@@ -223,6 +240,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
 //---------------------------------------------------------------------------//
 class TestEm3 : public GeantImporterTest
 {
+  protected:
     char const* geometry_basename() const final { return "testem3-flat"; }
 
     GeantPhysicsOptions build_geant_options() const override
@@ -238,13 +256,28 @@ class TestEm3 : public GeantImporterTest
 //---------------------------------------------------------------------------//
 class OneSteelSphere : public GeantImporterTest
 {
+  protected:
     char const* geometry_basename() const final { return "one-steel-sphere"; }
 
     GeantPhysicsOptions build_geant_options() const override
     {
         GeantPhysicsOptions opts;
+        opts.msc = MscModelSelection::urban;
         opts.relaxation = RelaxationSelection::none;
         opts.verbose = false;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
+class OneSteelSphereGG : public OneSteelSphere
+{
+  protected:
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = OneSteelSphere::build_geant_options();
+        opts.gamma_general = true;
+        opts.msc = MscModelSelection::urban_extended;
         return opts;
     }
 };
@@ -646,7 +679,25 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_EQ(true, em_params.lpm);
     EXPECT_EQ(true, em_params.integral_approach);
     EXPECT_DOUBLE_EQ(0.01, em_params.linear_loss_limit);
+    EXPECT_DOUBLE_EQ(0.001, em_params.lowest_electron_energy);
     EXPECT_EQ(true, em_params.auger);
+    EXPECT_EQ(0.04, em_params.msc_range_factor);
+    EXPECT_EQ(0.6, em_params.msc_safety_factor);
+    EXPECT_EQ(0.1, em_params.msc_lambda_limit);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, trans_parameters)
+{
+    auto&& import_data = this->imported_data();
+
+    EXPECT_EQ(1000, import_data.trans_params.max_substeps);
+    EXPECT_EQ(3, import_data.trans_params.looping.size());
+    for (auto const& kv : import_data.trans_params.looping)
+    {
+        EXPECT_EQ(10, kv.second.threshold_trials);
+        EXPECT_EQ(250, kv.second.important_energy);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -1068,6 +1119,60 @@ TEST_F(OneSteelSphere, physics)
         // positrons
         EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
+    }
+    // Check MSC bounds
+    {
+        // Check the ionization electron macro xs
+        ImportMscModel const& msc = this->find_msc_model(
+            celeritas::pdg::electron(), ImportModelClass::urban_msc);
+        EXPECT_TRUE(msc);
+        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        {
+            ASSERT_FALSE(pv.x.empty());
+            EXPECT_SOFT_EQ(1e-4, pv.x.front());
+            EXPECT_SOFT_EQ(1e2, pv.x.back());
+        }
+    }
+}
+
+TEST_F(OneSteelSphereGG, physics)
+{
+    auto&& imported = this->imported_data();
+    auto summary = this->summarize(imported);
+
+    static char const* expected_particles[] = {"e+", "e-", "gamma"};
+    EXPECT_VEC_EQ(expected_particles, summary.particles);
+    static char const* expected_processes[] = {"e_ioni",
+                                               "e_brems",
+                                               "photoelectric",
+                                               "compton",
+                                               "conversion",
+                                               "rayleigh",
+                                               "annihilation"};
+    EXPECT_VEC_EQ(expected_processes, summary.processes);
+    static char const* expected_models[] = {"urban_msc",
+                                            "moller_bhabha",
+                                            "e_brems_sb",
+                                            "e_brems_lpm",
+                                            "e_plus_to_gg",
+                                            "livermore_photoelectric",
+                                            "klein_nishina",
+                                            "bethe_heitler_lpm",
+                                            "livermore_rayleigh"};
+    EXPECT_VEC_EQ(expected_models, summary.models);
+
+    // Check MSC bounds
+    {
+        // Check the ionization electron macro xs
+        ImportMscModel const& msc = this->find_msc_model(
+            celeritas::pdg::electron(), ImportModelClass::urban_msc);
+        EXPECT_TRUE(msc);
+        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        {
+            ASSERT_FALSE(pv.x.empty());
+            EXPECT_SOFT_EQ(1e-4, pv.x.front());
+            EXPECT_SOFT_EQ(1e8, pv.x.back());
+        }
     }
 }
 

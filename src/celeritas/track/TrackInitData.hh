@@ -35,6 +35,8 @@ struct TrackInitParamsData
 {
     size_type capacity{0};  //!< Track initializer storage size
     size_type max_events{0};  //!< Maximum number of events that can be run
+    TrackOrder track_order{TrackOrder::unsorted};  //!< How to sort tracks on
+                                                    //!< gpu
 
     //// METHODS ////
 
@@ -51,6 +53,7 @@ struct TrackInitParamsData
         CELER_EXPECT(other);
         capacity = other.capacity;
         max_events = other.max_events;
+        track_order = other.track_order;
         return *this;
     }
 };
@@ -70,6 +73,8 @@ struct TrackInitializer
 //---------------------------------------------------------------------------//
 /*!
  * StateCollection with a fixed capacity and dynamic size.
+ *
+ * The allocation (storage) is fixed-size and cannot be increased.
  */
 template<class T, Ownership W, MemSpace M>
 struct ResizableData
@@ -88,7 +93,7 @@ struct ResizableData
 
     //// METHODS ////
 
-    // Whether the interface is initialized
+    //! Whether the underlying allocation has been made
     explicit inline CELER_FUNCTION operator bool() const
     {
         return !storage.empty();
@@ -120,7 +125,7 @@ struct ResizableData
         return storage[ItemRange<T>{ItemId<T>{0}, ItemId<T>{this->size()}}];
     }
 
-    //! Assign from another set of data
+    //! Assign from another resizeable data
     template<Ownership W2, MemSpace M2>
     ResizableData& operator=(ResizableData<T, W2, M2>& other)
     {

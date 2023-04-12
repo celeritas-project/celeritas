@@ -14,8 +14,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Store particle data.
- *
- * \sa ImportData
  */
 struct ImportParticle
 {

@@ -86,7 +86,8 @@ enum class MatterState
     unspecified = 0,
     solid,
     liquid,
-    gas
+    gas,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -123,6 +124,15 @@ enum class StepPoint
 };
 
 //---------------------------------------------------------------------------//
+//! Ordering / sorting of tracks on GPU
+enum class TrackOrder
+{
+    unsorted,
+    shuffled,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
 //! Step length and limiting action to take
@@ -147,6 +157,9 @@ struct NoData
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
+
+// Get a string corresponding to a material state
+char const* to_cstring(MatterState);
 
 // Get a string corresponding to a surface type
 char const* to_cstring(ActionOrder);

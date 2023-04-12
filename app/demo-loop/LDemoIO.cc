@@ -15,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -37,6 +38,7 @@
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 using namespace celeritas;
@@ -97,6 +99,7 @@ void to_json(nlohmann::json& j, LDemoArgs const& v)
                        {"seed", v.seed},
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
+                       {"track_order", v.track_order},
                        {"initializer_capacity", v.initializer_capacity},
                        {"max_events", v.max_events},
                        {"secondary_stack_factor", v.secondary_stack_factor},
@@ -153,6 +156,7 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
         get_optional(jfilter, "event_id", v.mctruth_filter.event_id);
         get_optional(jfilter, "track_id", v.mctruth_filter.track_id);
         get_optional(jfilter, "parent_id", v.mctruth_filter.parent_id);
+        get_optional(jfilter, "action_id", v.mctruth_filter.action_id);
 
         if (v.mctruth_filter)
         {
@@ -171,10 +175,15 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
 
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);
+    if (j.contains("track_order"))
+    {
+        j.at("track_order").get_to(v.track_order);
+    }
     if (j.contains("max_steps"))
     {
         j.at("max_steps").get_to(v.max_steps);
     }
+
     j.at("initializer_capacity").get_to(v.initializer_capacity);
     j.at("max_events").get_to(v.max_events);
     j.at("secondary_stack_factor").get_to(v.secondary_stack_factor);
@@ -209,74 +218,58 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
 //!@}
 
 //---------------------------------------------------------------------------//
-TransporterInput load_input(LDemoArgs const& args)
+CoreParams::Input load_core_params(LDemoArgs const& args)
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
-    TransporterInput result;
+    ScopedMem record_mem("demo_loop.load_core_params");
     CoreParams::Input params;
-
-    ImportData imported_data;
-    if (ends_with(args.physics_filename, ".root"))
-    {
-        // Load imported_data from ROOT file
-        imported_data = RootImporter(args.physics_filename.c_str())();
-    }
-    else if (ends_with(args.physics_filename, ".gdml"))
-    {
-        // Load imported_data directly from Geant4
-        imported_data = GeantImporter(
-            GeantSetup(args.physics_filename, args.geant_options))();
-    }
-    else
-    {
+    ImportData const imported = [&args] {
+        if (ends_with(args.physics_filename, ".root"))
+        {
+            // Load imported from ROOT file
+            return RootImporter(args.physics_filename.c_str())();
+        }
+        else if (ends_with(args.physics_filename, ".gdml"))
+        {
+            // Load imported directly from Geant4
+            return GeantImporter(
+                GeantSetup(args.physics_filename, args.geant_options))();
+        }
         CELER_VALIDATE(false,
                        << "invalid physics filename '" << args.physics_filename
                        << "' (expected gdml or root)");
-    }
+    }();
 
     // Create action manager
-    {
-        params.action_reg = std::make_shared<ActionRegistry>();
-    }
+    params.action_reg = std::make_shared<ActionRegistry>();
 
     // Load geometry
+    params.geometry
+        = std::make_shared<GeoParams>(args.geometry_filename.c_str());
+    if (!params.geometry->supports_safety())
     {
-        params.geometry
-            = std::make_shared<GeoParams>(args.geometry_filename.c_str());
-        if (!params.geometry->supports_safety())
-        {
-            CELER_LOG(warning)
-                << "Geometry contains surfaces that are "
-                   "incompatible with the current ORANGE simple "
-                   "safety algorithm: multiple scattering may "
-                   "result in arbitrarily small steps";
-        }
+        CELER_LOG(warning) << "Geometry contains surfaces that are "
+                              "incompatible with the current ORANGE simple "
+                              "safety algorithm: multiple scattering may "
+                              "result in arbitrarily small steps";
     }
 
     // Load materials
-    {
-        params.material = MaterialParams::from_import(imported_data);
-    }
+    params.material = MaterialParams::from_import(imported);
 
     // Create geometry/material coupling
-    {
-        params.geomaterial = GeoMaterialParams::from_import(
-            imported_data, params.geometry, params.material);
-    }
+    params.geomaterial = GeoMaterialParams::from_import(
+        imported, params.geometry, params.material);
 
     // Construct particle params
-    {
-        params.particle = ParticleParams::from_import(imported_data);
-    }
+    params.particle = ParticleParams::from_import(imported);
 
     // Construct cutoffs
-    {
-        params.cutoff = CutoffParams::from_import(
-            imported_data, params.particle, params.material);
-    }
+    params.cutoff = CutoffParams::from_import(
+        imported, params.particle, params.material);
 
     // Load physics: create individual processes with make_shared
-    {
+    params.physics = [&params, &args, &imported] {
         PhysicsParams::Input input;
         input.particles = params.particle;
         input.materials = params.material;
@@ -284,29 +277,32 @@ TransporterInput load_input(LDemoArgs const& args)
 
         input.options.fixed_step_limiter = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
-        input.options.linear_loss_limit
-            = imported_data.em_params.linear_loss_limit;
+        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy{
+            imported.em_params.lowest_electron_energy};
 
-        {
+        input.processes = [&params, &args, &imported] {
+            std::vector<std::shared_ptr<Process const>> result;
             ProcessBuilder::Options opts;
             opts.brem_combined = args.brem_combined;
 
             ProcessBuilder build_process(
-                imported_data, params.particle, params.material, opts);
-            for (auto p : ProcessBuilder::get_all_process_classes(
-                     imported_data.processes))
+                imported, params.particle, params.material, opts);
+            for (auto p :
+                 ProcessBuilder::get_all_process_classes(imported.processes))
             {
-                input.processes.push_back(build_process(p));
-                CELER_ASSERT(input.processes.back());
+                result.push_back(build_process(p));
+                CELER_ASSERT(result.back());
             }
-        }
+            return result;
+        }();
 
-        params.physics = std::make_shared<PhysicsParams>(std::move(input));
-    }
+        return std::make_shared<PhysicsParams>(std::move(input));
+    }();
 
-    bool eloss = imported_data.em_params.energy_loss_fluct;
+    bool eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
-        *params.particle, *params.material, imported_data);
+        *params.particle, *params.material, imported);
     if (args.mag_field == LDemoArgs::no_field())
     {
         // Create along-step action
@@ -340,12 +336,13 @@ TransporterInput load_input(LDemoArgs const& args)
     }
 
     // Construct RNG params
-    {
-        params.rng = std::make_shared<RngParams>(args.seed);
-    }
+    params.rng = std::make_shared<RngParams>(args.seed);
+
+    // Construct simulation params
+    params.sim = SimParams::from_import(imported, params.particle);
 
     // Construct track initialization params
-    {
+    params.init = [&args] {
         CELER_VALIDATE(args.initializer_capacity > 0,
                        << "nonpositive initializer_capacity="
                        << args.initializer_capacity);
@@ -360,42 +357,47 @@ TransporterInput load_input(LDemoArgs const& args)
         TrackInitParams::Input input;
         input.capacity = args.initializer_capacity;
         input.max_events = args.max_events;
-        params.init = std::make_shared<TrackInitParams>(input);
-    }
+        input.track_order = args.track_order;
+        return std::make_shared<TrackInitParams>(std::move(input));
+    }();
 
-    // Create params
-    CELER_ASSERT(params);
-    result.params = std::make_shared<CoreParams>(std::move(params));
-
-    // Save constants
-    CELER_VALIDATE(args.max_num_tracks > 0,
-                   << "nonpositive max_num_tracks=" << args.max_num_tracks);
-    CELER_VALIDATE(args.max_steps > 0,
-                   << "nonpositive max_steps=" << args.max_steps);
-    result.num_track_slots = args.max_num_tracks;
-    result.max_steps = args.max_steps;
-    result.enable_diagnostics = args.enable_diagnostics;
-    result.sync = args.sync;
-
-    // Save diagnosics
-    result.energy_diag = args.energy_diag;
-
-    CELER_ENSURE(result);
-    return result;
+    return params;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct parameters, input, and transporter from the given run arguments.
  */
-std::unique_ptr<TransporterBase> build_transporter(LDemoArgs const& run_args)
+std::unique_ptr<TransporterBase>
+build_transporter(LDemoArgs const& args,
+                  std::shared_ptr<OutputRegistry> const& outreg)
 {
+    CELER_EXPECT(outreg);
     using celeritas::MemSpace;
 
-    TransporterInput input = load_input(run_args);
+    // Save constants from args
+    TransporterInput input;
+    CELER_VALIDATE(args.max_num_tracks > 0,
+                   << "nonpositive max_num_tracks=" << args.max_num_tracks);
+    CELER_VALIDATE(args.max_steps > 0,
+                   << "nonpositive max_steps=" << args.max_steps);
+    input.num_track_slots = args.max_num_tracks;
+    input.max_steps = args.max_steps;
+    input.enable_diagnostics = args.enable_diagnostics;
+    input.sync = args.sync;
+    input.energy_diag = args.energy_diag;
+
+    // Create core params
+    input.params = [&args, &outreg] {
+        auto params = load_core_params(args);
+        params.output_reg = outreg;
+        CELER_ASSERT(params);
+        return std::make_shared<CoreParams>(std::move(params));
+    }();
+
     std::unique_ptr<TransporterBase> result;
 
-    if (run_args.use_device)
+    if (args.use_device)
     {
         CELER_VALIDATE(celeritas::device(),
                        << "CUDA device is unavailable but GPU run was "

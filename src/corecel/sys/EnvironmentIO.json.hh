@@ -17,7 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Read an array from a JSON file.
+ * Read environment variables from a JSON file.
  */
 inline void from_json(nlohmann::json const& j, Environment& value)
 {
@@ -30,9 +30,9 @@ inline void from_json(nlohmann::json const& j, Environment& value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write an array to a JSON file.
+ * Write environment variables to a JSON file.
  */
-void to_json(nlohmann::json& j, Environment const& value)
+inline void to_json(nlohmann::json& j, Environment const& value)
 {
     j = nlohmann::json::object();
     for (auto const& kvref : value.ordered_environment())

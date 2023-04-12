@@ -59,6 +59,15 @@
       "inherits": [".reldeb", ".base"]
     },
     {
+      "name": "ndebug-vecgeom",
+      "displayName": "Everything in release mode",
+      "inherits": [".ndebug", "vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_RNG": "XORWOW"
+      }
+    },
+    {
       "name": "reldeb-vecgeom",
       "displayName": "Everything in release mode",
       "inherits": [".reldeb", "vecgeom"],

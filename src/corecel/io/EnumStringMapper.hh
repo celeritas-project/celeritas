@@ -17,6 +17,15 @@ namespace celeritas
  * Map enums to strings for user output.
  *
  * This should generally be a static const class.
+ *
+ * Example:
+ * \code
+    char const* to_cstring(Foo value)
+    {
+        static EnumStringMapper<Foo> const convert{"foo", "bar", "baz"};
+        return convert(value);
+    }
+ * \endcode
  */
 template<class T>
 class EnumStringMapper

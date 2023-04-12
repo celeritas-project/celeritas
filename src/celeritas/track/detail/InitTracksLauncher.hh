@@ -87,7 +87,7 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
 
     // Initialize the simulation state
     {
-        SimTrackView sim(states_.sim, vacancy);
+        SimTrackView sim(params_.sim, states_.sim, vacancy);
         sim = init.sim;
     }
 

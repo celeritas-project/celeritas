@@ -3,25 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/NoFieldAlongStepFactory.hh
+//! \file corecel/sys/MemRegistryIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "accel/AlongStepFactory.hh"
+#include <nlohmann/json.hpp>
 
-namespace demo_geant
+#include "MemRegistry.hh"
+
+namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Construct an along-step action with MSC but no field.
- */
-class NoFieldAlongStepFactory final
-    : public celeritas::AlongStepFactoryInterface
-{
-  public:
-    // Emit the along-step action
-    result_type operator()(argument_type input) const final;
-};
+
+// Write one memory diagnostic block to json
+void to_json(nlohmann::json& j, MemUsageEntry const& md);
+// Write device diagnostics to JSON
+void to_json(nlohmann::json& j, MemRegistry const& diagnostics);
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace celeritas

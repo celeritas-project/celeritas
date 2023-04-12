@@ -66,7 +66,7 @@ CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
     auto particle = track.make_particle_view();
     auto phys = track.make_physics_view();
 
-    if (apply_cut && particle.energy() < phys.scalars().eloss_calc_limit)
+    if (apply_cut && particle.energy() < phys.scalars().lowest_electron_energy)
     {
         // Deposit all energy when we start below the tracking cut
         return particle.energy();
@@ -76,7 +76,7 @@ CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
     Energy eloss = calc_mean_energy_loss(particle, phys, step);
 
     if (apply_cut
-        && (particle.energy() - eloss <= phys.scalars().eloss_calc_limit))
+        && (particle.energy() - eloss <= phys.scalars().lowest_electron_energy))
     {
         // Deposit all energy when we end below the tracking cut
         return particle.energy();

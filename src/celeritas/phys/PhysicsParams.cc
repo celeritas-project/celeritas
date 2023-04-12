@@ -22,6 +22,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/data/AtomicRelaxationData.hh"
@@ -78,6 +79,8 @@ PhysicsParams::PhysicsParams(Input inp)
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);
+
+    ScopedMem record_mem("PhysicsParams.construct");
 
     // Create actions (order matters due to accessors in PhysicsParamsScalars)
     {
@@ -220,9 +223,10 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     CELER_VALIDATE(opts.min_range > 0,
                    << "invalid min_range=" << opts.min_range
                    << " (should be positive)");
-    CELER_VALIDATE(opts.eloss_calc_limit.value() > 0,
-                   << "invalid eloss_calc_limit="
-                   << opts.eloss_calc_limit.value() << " (should be positive)");
+    CELER_VALIDATE(opts.lowest_electron_energy.value() > 0,
+                   << "invalid lowest_electron_energy="
+                   << opts.lowest_electron_energy.value()
+                   << " (should be positive)");
     CELER_VALIDATE(opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
                    << "invalid linear_loss_limit=" << opts.linear_loss_limit
                    << " (should be within 0 <= limit <= 1)");
@@ -232,7 +236,7 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     data->scalars.min_range = opts.min_range;
     data->scalars.max_step_over_range = opts.max_step_over_range;
     data->scalars.min_eprime_over_e = opts.min_eprime_over_e;
-    data->scalars.eloss_calc_limit = opts.eloss_calc_limit;
+    data->scalars.lowest_electron_energy = opts.lowest_electron_energy;
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
 }

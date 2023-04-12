@@ -9,6 +9,9 @@
 
 #include <memory>
 #include <utility>
+#include <G4ParticleTable.hh>
+#include <G4VPhysicalVolume.hh>
+#include <G4VUserDetectorConstruction.hh>
 #include <G4Version.hh>
 
 #if G4VERSION_NUMBER >= 1070
@@ -16,22 +19,16 @@
 #else
 #    include <G4MTRunManager.hh>
 #endif
-
-#include <G4ParticleTable.hh>
-#include <G4VPhysicalVolume.hh>
-#include <G4VUserDetectorConstruction.hh>
-
-#include "corecel/io/Logger.hh"
-
-#include "GeantConfig.hh"
-#if CELERITAS_G4_V10
-#    include <G4RunManager.hh>
-#else
+#if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
+#else
+#    include <G4RunManager.hh>
 #endif
 
+#include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/ScopedMem.hh"
 
 #include "LoadGdml.hh"
 #include "detail/GeantExceptionHandler.hh"
@@ -73,7 +70,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
  * Get the number of threads in a version-portable way.
  *
  * G4RunManager::GetNumberOfThreads isn't virtual before Geant4 v10.7.0 so we
- * need to explicitely try dynamic cast to G4MTRunManager to get the number of
+ * need to explicitly dynamic cast to G4MTRunManager to get the number of
  * threads.
  */
 int get_num_threads(G4RunManager const& runman)
@@ -97,6 +94,7 @@ int get_num_threads(G4RunManager const& runman)
 GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
+    ScopedMem record_setup_mem("GeantSetup.construct");
 
     {
         // Run manager writes output that cannot be redirected...
@@ -119,12 +117,12 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         G4Backtrace::DefaultSignals() = {};
 #endif
 
-#if CELERITAS_G4_V10
-        // Note: custom deleter means `make_unique` won't work
-        run_manager_.reset(new G4RunManager);
-#else
+#if G4VERSION_NUMBER >= 1100
         run_manager_.reset(
             G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
+#else
+        // Note: custom deleter means `make_unique` won't work
+        run_manager_.reset(new G4RunManager);
 #endif
         CELER_ASSERT(run_manager_);
     }
@@ -153,6 +151,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 
     {
         CELER_LOG(status) << "Initializing Geant4 physics tables";
+        ScopedMem record_mem("GeantSetup.initialize");
         ScopedTimeLog scoped_time;
 
         run_manager_->Initialize();

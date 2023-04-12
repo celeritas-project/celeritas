@@ -35,8 +35,7 @@ namespace celeritas
 struct Label
 {
     std::string name;  //!< Primary readable label component
-    std::string ext;  //!< Uniquifying component such as a pointer address or
-                      //!< ID
+    std::string ext;  //!< Uniquifying component: pointer address or ID
 
     //// STATIC DATA ////
 

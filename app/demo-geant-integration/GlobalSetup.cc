@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/Device.hh"
+#include "accel/AlongStepFactory.hh"
 
 namespace demo_geant
 {
@@ -32,6 +33,7 @@ GlobalSetup* GlobalSetup::Instance()
 GlobalSetup::GlobalSetup()
 {
     options_ = std::make_shared<SetupOptions>();
+    field_ = G4ThreeVector(0, 0, 0);
     messenger_ = std::make_unique<G4GenericMessenger>(
         this, "/setup/", "Demo geant integration setup");
 
@@ -54,6 +56,13 @@ GlobalSetup::GlobalSetup()
         auto& cmd = messenger_->DeclareProperty("writeSDHits",
                                                 write_sd_hits_);
         cmd.SetGuidance("Write a ROOT output file with hits from the SDs");
+        cmd.SetDefaultValue("false");
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty("stripGDMLPointers",
+                                                strip_gdml_pointers_);
+        cmd.SetGuidance(
+            "Remove pointer suffix from input logical volume names");
         cmd.SetDefaultValue("false");
     }
     {
@@ -103,22 +112,17 @@ GlobalSetup::GlobalSetup()
         options_->cuda_heap_size = 0;
     }
     {
+        messenger_->DeclareMethod("magFieldZ",
+                                  &GlobalSetup::SetMagFieldZTesla,
+                                  "Set Z-axis magnetic field strength (T)");
+    }
+    {
         // TODO: expose other options here
     }
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Set the along-step factory.
- *
- * The "asf" can be an instance of a class inheriting from \c
- * celeritas::AlongStepFactoryInterface , a functor, or just a function.
- */
-void GlobalSetup::SetAlongStep(SetupOptions::AlongStepFactory asf)
-{
-    CELER_EXPECT(asf);
-
-    options_->make_along_step = std::move(asf);
+    // At setup time, get the field strength (native G4units)
+    options_->make_along_step
+        = celeritas::UniformAlongStepFactory([this] { return field_; });
 }
 
 //---------------------------------------------------------------------------//

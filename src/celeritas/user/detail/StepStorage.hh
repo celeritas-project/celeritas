@@ -7,9 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <mutex>
-#include <type_traits>
-
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/CollectionStateStore.hh"
 
@@ -30,12 +27,9 @@ struct StepStorage
     template<MemSpace M>
     using StepStateCollection = CollectionStateStore<StepStateData, M>;
     template<MemSpace M>
-    using MemSpaceTag = std::integral_constant<MemSpace, M>;
+    using VecSSC = std::vector<StepStateCollection<M>>;
 
     //// DATA ////
-
-    // Mutex to prevent multiple CPU threads from writing simultaneously
-    mutable std::mutex mumu;
 
     // Parameter data
     CollectionMirror<StepParamsData> params;
@@ -43,26 +37,26 @@ struct StepStorage
     // State data
     struct
     {
-        StepStateCollection<MemSpace::host> host;
-        StepStateCollection<MemSpace::device> device;
+        VecSSC<MemSpace::host> host;
+        VecSSC<MemSpace::device> device;
     } states;
 
     //// METHODS ////
 
-    //!@{
-    //! Tag-based dispatch for accessing states
-    // TODO: replace with `if constexpr` for C++17
-    StepStateCollection<MemSpace::host>& get_state(MemSpaceTag<MemSpace::host>)
+    template<MemSpace M>
+    decltype(auto) get_states()
     {
-        return states.host;
+        if constexpr (M == MemSpace::host)
+        {
+            // NOTE: parens are necessary to return a reference instead of a
+            // value
+            return (states.host);
+        }
+        else
+        {
+            return (states.device);
+        }
     }
-
-    StepStateCollection<MemSpace::device>&
-    get_state(MemSpaceTag<MemSpace::device>)
-    {
-        return states.device;
-    }
-    //!@}
 };
 
 //---------------------------------------------------------------------------//

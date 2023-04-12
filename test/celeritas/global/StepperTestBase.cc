@@ -45,6 +45,7 @@ StepperInput StepperTestBase::make_stepper_input(size_type tracks)
 
     StepperInput result;
     result.params = this->core();
+    result.stream_id = StreamId{0};
     result.num_track_slots = tracks;
 
     return result;

@@ -17,6 +17,7 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "celeritas_config.h"
+#include "celeritas/ext/detail/VecgeomCompatibility.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
@@ -28,6 +29,7 @@
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedMem.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "detail/GeantGeoExporter.hh"
@@ -47,7 +49,9 @@ VecgeomParams::VecgeomParams(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
+    ScopedMem record_mem("VecgeomParams.construct");
     {
+        ScopedMem record_mem("VecgeomParams.load_gdml");
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
         vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
     }
@@ -67,10 +71,12 @@ VecgeomParams::VecgeomParams(std::string const& filename)
 VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 {
     CELER_EXPECT(world);
+    ScopedMem record_mem("VecgeomParams.construct");
 
     // Convert the geometry to VecGeom
 #if CELERITAS_USE_GEANT4
     {
+        ScopedMem record_mem("VecgeomParams.convert");
         detail::GeantGeometryImporter convert;
         convert(world);
         CELER_ASSERT(vecgeom::GeoManager::Instance().GetWorld());
@@ -159,6 +165,7 @@ auto VecgeomParams::find_volumes(std::string const& name) const
 void VecgeomParams::build_tracking()
 {
     CELER_LOG(status) << "Initializing tracking information";
+    ScopedMem record_mem("VecgeomParams.build_tracking");
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
@@ -224,6 +231,7 @@ void VecgeomParams::build_tracking()
  */
 void VecgeomParams::build_data()
 {
+    ScopedMem record_mem("VecgeomParams.build_data");
     // Save host data
     auto& vg_manager = vecgeom::GeoManager::Instance();
     host_ref_.world_volume = vg_manager.GetWorld();
@@ -247,29 +255,34 @@ void VecgeomParams::build_data()
  */
 void VecgeomParams::build_metadata()
 {
-    auto& vg_manager = vecgeom::GeoManager::Instance();
-    CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
+    ScopedMem record_mem("VecgeomParams.build_metadata");
+    // Construct volume labels
+    vol_labels_ = LabelIdMultiMap<VolumeId>([] {
+        auto& vg_manager = vecgeom::GeoManager::Instance();
+        CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
 
-    std::vector<Label> labels(vg_manager.GetRegisteredVolumesCount());
+        std::vector<Label> result(vg_manager.GetRegisteredVolumesCount());
 
-    for (auto vol_idx : range<VolumeId::size_type>(labels.size()))
-    {
-        // Get label
-        vecgeom::LogicalVolume const* vol
-            = vg_manager.FindLogicalVolume(vol_idx);
-        CELER_ASSERT(vol);
-
-        auto label = Label::from_geant(vol->GetLabel());
-        if (label.name.empty())
+        for (auto vol_idx : range<VolumeId::size_type>(result.size()))
         {
-            // Many VGDML imported IDs seem to be empty for CMS
-            label.name = "[unused]";
-            label.ext = std::to_string(vol_idx);
-        }
+            // Get label
+            vecgeom::LogicalVolume const* vol
+                = vg_manager.FindLogicalVolume(vol_idx);
+            CELER_ASSERT(vol);
 
-        labels[vol_idx] = std::move(label);
-    }
-    vol_labels_ = LabelIdMultiMap<VolumeId>(std::move(labels));
+            auto label = Label::from_geant(vol->GetLabel());
+            if (label.name.empty())
+            {
+                // Many VGDML imported IDs seem to be empty for CMS
+                label.name = "[unused]";
+                label.ext = std::to_string(vol_idx);
+            }
+
+            result[vol_idx] = std::move(label);
+        }
+        return result;
+    }());
+
     // Check for duplicates
     {
         auto vol_dupes = vol_labels_.duplicates();
@@ -287,6 +300,21 @@ void VecgeomParams::build_metadata()
                                               streamed_label);
         }
     }
+
+    // Save world bbox
+    bbox_ = [] {
+        using namespace vecgeom;
+
+        // Get world logical volume
+        VPlacedVolume const* pv = GeoManager::Instance().GetWorld();
+
+        // Calculate bounding box
+        Vector3D<real_type> lower, upper;
+        ABBoxManager::Instance().ComputeABBox(pv, &lower, &upper);
+
+        return BoundingBox{detail::to_array(lower), detail::to_array(upper)};
+    }();
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

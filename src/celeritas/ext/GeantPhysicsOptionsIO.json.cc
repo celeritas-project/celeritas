@@ -9,67 +9,13 @@
 
 #include <string>
 
-#include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/math/QuantityIO.json.hh"
-#include "celeritas/ext/GeantPhysicsOptions.hh"
+
+#include "GeantPhysicsOptions.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to the Bremsstrahlung model selection.
- */
-char const* to_cstring(BremsModelSelection value)
-{
-    static EnumStringMapper<BremsModelSelection> const to_cstring_impl{
-        "seltzer_berger",
-        "relativistic",
-        "all",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to the multiple scattering model selection.
- */
-char const* to_cstring(MscModelSelection value)
-{
-    static EnumStringMapper<MscModelSelection> const to_cstring_impl{
-        "none",
-        "urban",
-        "wentzel_vi",
-        "all",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to the atomic relaxation option.
- */
-char const* to_cstring(RelaxationSelection value)
-{
-    static EnumStringMapper<RelaxationSelection> const to_cstring_impl{
-        "none",
-        "radiative",
-        "all",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
-// JSON serializers
 //---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, MscModelSelection& value)
 {
@@ -128,6 +74,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(eloss_fluctuation);
     GPO_LOAD_OPTION(lpm);
     GPO_LOAD_OPTION(integral_approach);
+    GPO_LOAD_OPTION(gamma_general);
     GPO_LOAD_OPTION(brems);
     GPO_LOAD_OPTION(msc);
     GPO_LOAD_OPTION(relaxation);
@@ -135,6 +82,11 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(min_energy);
     GPO_LOAD_OPTION(max_energy);
     GPO_LOAD_OPTION(linear_loss_limit);
+    GPO_LOAD_OPTION(lowest_electron_energy);
+    GPO_LOAD_OPTION(msc_range_factor);
+    GPO_LOAD_OPTION(msc_safety_factor);
+    GPO_LOAD_OPTION(msc_lambda_limit);
+    GPO_LOAD_OPTION(apply_cuts);
     GPO_LOAD_OPTION(verbose);
 #undef GPO_LOAD_OPTION
 }
@@ -152,6 +104,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
     GPO_SAVE_OPTION(eloss_fluctuation);
     GPO_SAVE_OPTION(lpm);
     GPO_SAVE_OPTION(integral_approach);
+    GPO_SAVE_OPTION(gamma_general);
     GPO_SAVE_OPTION(brems);
     GPO_SAVE_OPTION(msc);
     GPO_SAVE_OPTION(relaxation);
@@ -159,6 +112,11 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
     GPO_SAVE_OPTION(min_energy);
     GPO_SAVE_OPTION(max_energy);
     GPO_SAVE_OPTION(linear_loss_limit);
+    GPO_SAVE_OPTION(lowest_electron_energy);
+    GPO_SAVE_OPTION(msc_range_factor);
+    GPO_SAVE_OPTION(msc_safety_factor);
+    GPO_SAVE_OPTION(msc_lambda_limit);
+    GPO_SAVE_OPTION(apply_cuts);
     GPO_SAVE_OPTION(verbose);
 #undef GPO_SAVE_OPTION
 }

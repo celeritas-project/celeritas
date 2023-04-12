@@ -23,6 +23,7 @@ namespace celeritas
 template<MemSpace M>
 void resize(XorwowRngStateData<Ownership::value, M>* state,
             HostCRef<XorwowRngParamsData> const& params,
+            StreamId stream,
             size_type size)
 {
     CELER_EXPECT(size > 0);
@@ -30,10 +31,20 @@ void resize(XorwowRngStateData<Ownership::value, M>* state,
 
     using uint_t = XorwowState::uint_t;
 
-    // Seed sequence to generate well-distributed seed numbers
-    std::seed_seq seeds(params.seed.begin(), params.seed.end());
+    // Seed sequence to generate well-distributed seed numbers, including
+    // stream ID to give strings different starting contributions
+    std::vector<unsigned int> host_seeds(params.seed.begin(),
+                                         params.seed.end());
+    if (stream != StreamId{0})
+    {
+        // For backward compatibility with prior RNG seed, don't modify the
+        // seed for the first stream
+        host_seeds.push_back(stream.get());
+    }
+    std::seed_seq seed_seq(host_seeds.begin(), host_seeds.end());
+
     // 32-bit generator to fill initial states
-    std::mt19937 rng(seeds);
+    std::mt19937 rng(seed_seq);
     std::uniform_int_distribution<uint_t> sample_uniform_int;
 
     // Create seeds for device in host memory
@@ -69,10 +80,12 @@ void resize(XorwowRngStateData<Ownership::value, M>* state,
 // Explicit instantiations
 template void resize(HostVal<XorwowRngStateData>*,
                      HostCRef<XorwowRngParamsData> const&,
+                     StreamId,
                      size_type);
 
 template void resize(XorwowRngStateData<Ownership::value, MemSpace::device>*,
                      HostCRef<XorwowRngParamsData> const&,
+                     StreamId,
                      size_type);
 
 //---------------------------------------------------------------------------//

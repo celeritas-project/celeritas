@@ -80,6 +80,9 @@ class CoreTrackView
     // Action ID for some other propagation limit (e.g. field stepping)
     inline CELER_FUNCTION ActionId propagation_limit_action() const;
 
+    // Action ID for being abandoned while looping
+    inline CELER_FUNCTION ActionId abandon_looping_action() const;
+
   private:
     StateRef const& states_;
     ParamsRef const& params_;
@@ -107,7 +110,7 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
  */
 CELER_FUNCTION SimTrackView CoreTrackView::make_sim_view() const
 {
-    return SimTrackView{states_.sim, this->track_slot_id()};
+    return SimTrackView{params_.sim, states_.sim, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -203,7 +206,7 @@ CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
  */
 CELER_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 {
-    return TrackSlotId{thread_.unchecked_get()};
+    return TrackSlotId{states_.track_slots[thread_]};
 }
 
 //---------------------------------------------------------------------------//
@@ -227,6 +230,15 @@ CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
 CELER_FUNCTION ActionId CoreTrackView::propagation_limit_action() const
 {
     return params_.scalars.propagation_limit_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action ID for being abandoned while looping.
+ */
+CELER_FUNCTION ActionId CoreTrackView::abandon_looping_action() const
+{
+    return params_.scalars.abandon_looping_action;
 }
 
 //---------------------------------------------------------------------------//

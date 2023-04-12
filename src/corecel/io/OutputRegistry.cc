@@ -3,10 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/io/OutputManager.cc
+//! \file corecel/io/OutputRegistry.cc
 //---------------------------------------------------------------------------//
-#include "OutputManager.hh"
+#include "OutputRegistry.hh"
 
+#include <algorithm>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -29,7 +30,7 @@ namespace celeritas
 /*!
  * Add an interface for writing.
  */
-void OutputManager::insert(SPConstInterface interface)
+void OutputRegistry::insert(SPConstInterface interface)
 {
     CELER_EXPECT(interface);
     CELER_EXPECT(interface->category() != Category::size_);
@@ -49,7 +50,7 @@ void OutputManager::insert(SPConstInterface interface)
 /*!
  * Output all classes to a JSON object.
  */
-void OutputManager::output(JsonPimpl* j) const
+void OutputRegistry::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
     nlohmann::json result;
@@ -96,7 +97,7 @@ void OutputManager::output(JsonPimpl* j) const
 /*!
  * Output all classes to a JSON object that's written to the given stream.
  */
-void OutputManager::output(std::ostream* os) const
+void OutputRegistry::output(std::ostream* os) const
 {
 #if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
@@ -108,6 +109,17 @@ void OutputManager::output(std::ostream* os) const
                         "in the current build configuration";
     *os << "\"output unavailable\"";
 #endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether no output has been registered.
+ */
+bool OutputRegistry::empty() const
+{
+    return std::all_of(interfaces_.begin(),
+                       interfaces_.end(),
+                       [](auto const& m) { return m.empty(); });
 }
 
 //---------------------------------------------------------------------------//

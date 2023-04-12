@@ -27,6 +27,22 @@ struct UnitlessQuantity
     T value_;  //!< Special nonnumeric value
 };
 
+//! Helper class for getting attributes about a member function
+template<class T>
+struct AccessorTraits;
+
+//! Access the return type using AccessorTraits<decltype(&Foo::bar)>
+template<typename ResultType, typename ClassType>
+struct AccessorTraits<ResultType (ClassType::*)() const>
+{
+    using type = ClassType;
+    using result_type = ResultType;
+};
+
+//! Get the result type of a class accessor
+template<class T>
+using AccessorResultType = typename AccessorTraits<T>::result_type;
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 
@@ -68,6 +84,17 @@ struct UnitlessQuantity
  * When using a Quantity from another part of the code, e.g. an imported unit
  * system, use the \c quantity free function rather than \c .value() in order
  * to guarantee consistency of units between source and destination.
+ *
+ * An example unit class would be:
+ * \code
+    struct DozenUnit
+    {
+        static constexpr int value() { return 12; }
+        static constexpr char const* label() { return "dozen"; }
+    };
+   \endcode
+ *
+ * The label is used solely for outputting to JSON.
  *
  * \note The Quantity is designed to be a simple "strong type" class, not a
  * complex mathematical class. To operate on quantities, you must use
@@ -313,6 +340,21 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Quantity<SrcUnitT, ValueT> quant)
     static_assert(std::is_same<Q, Quantity<SrcUnitT, ValueT>>::value,
                   "quantity units do not match");
     return quant.value();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the label for a unit returned from a class accessor.
+ *
+ * Example:
+ * \code
+   cout << accessor_unit_label<&ParticleView::mass>() << endl;
+   \endcode
+ */
+template<class T>
+inline char const* accessor_unit_label()
+{
+    return detail::AccessorResultType<T>::unit_type::label();
 }
 
 //---------------------------------------------------------------------------//

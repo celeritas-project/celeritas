@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportMaterial.hh"
@@ -59,6 +60,7 @@ CutoffParams::from_import(ImportData const& data,
         }
         input.cutoffs.insert({pdg, mat_cutoffs});
     }
+    input.apply_post_interaction = data.em_params.apply_cuts;
 
     return std::make_shared<CutoffParams>(input);
 }
@@ -72,8 +74,17 @@ CutoffParams::CutoffParams(Input const& input)
     CELER_EXPECT(input.materials);
     CELER_EXPECT(input.particles);
 
+    ScopedMem record_mem("CutoffParams.construct");
+
     HostValue host_data;
     host_data.num_materials = input.materials->size();
+    host_data.apply_post_interaction = input.apply_post_interaction;
+    if (input.apply_post_interaction)
+    {
+        host_data.ids.electron = input.particles->find(pdg::electron());
+        host_data.ids.positron = input.particles->find(pdg::positron());
+        host_data.ids.gamma = input.particles->find(pdg::gamma());
+    }
 
     std::vector<ParticleCutoff> cutoffs;
 
@@ -122,13 +133,14 @@ CutoffParams::CutoffParams(Input const& input)
 /*!
  * PDG numbers of particles with prodution cuts.
  *
- * Only electrons and photons have secondary production cuts -- protons are not
- * currently used, and positrons cannot have production cuts.
+ * Positron production cuts are only used when the \c apply_post_interaction
+ * option is enabled to explicitly kill secondary positrons with energies below
+ * the production threshold. Proton production cuts are not currently used.
  */
 std::vector<PDGNumber> const& CutoffParams::pdg_numbers()
 {
-    static const std::vector<PDGNumber> pdg_numbers{pdg::electron(),
-                                                    pdg::gamma()};
+    static const std::vector<PDGNumber> pdg_numbers{
+        pdg::electron(), pdg::gamma(), pdg::positron()};
     return pdg_numbers;
 }
 

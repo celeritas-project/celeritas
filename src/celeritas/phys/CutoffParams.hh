@@ -45,6 +45,14 @@ struct ImportData;
  *
  * The \c Input structure provides a failsafe mechanism to construct the
  * host/device data.
+ *
+ * Some processes (e.g. photoelectric effect, decay) can produce secondaries
+ * below the production threshold, while others (e.g. bremsstrahlung,
+ * ionization) use the production cut as their instrinsic limit. By default all
+ * of these secondaries are transported, even if their energy is below the
+ * threshold. If the \c apply_post_interaction option is enabled, any secondary
+ * photon, electron, or positron with energy below the cutoff will be killed
+ * (the flag will be ignored for other particle types).
  */
 class CutoffParams
 {
@@ -65,6 +73,7 @@ class CutoffParams
         SPConstParticles particles;
         SPConstMaterials materials;
         std::map<PDGNumber, MaterialCutoffs> cutoffs;
+        bool apply_post_interaction{false};
     };
 
   public:

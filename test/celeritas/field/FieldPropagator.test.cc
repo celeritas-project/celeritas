@@ -1242,6 +1242,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
         EXPECT_EQ(2, stepper.count());
+        EXPECT_FALSE(result.looping);
     }
     {
         ASSERT_TRUE(geo.is_on_boundary());
@@ -1272,13 +1273,14 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         auto result = propagate(2.12621374950874703e+21);
         EXPECT_FALSE(result.boundary);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_SOFT_NEAR(125, calc_radius(), 1e-4);
+        EXPECT_SOFT_NEAR(125, calc_radius(), 1e-2);
         if (successful_reentry)
         {
             // Extremely long propagation stopped by substep countdown
-            EXPECT_SOFT_EQ(14.946488966946923, result.distance);
+            EXPECT_SOFT_EQ(11.676851876556075, result.distance);
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_EQ(9984, stepper.count());
+            EXPECT_EQ(7800, stepper.count());
+            EXPECT_TRUE(result.looping);
         }
         else
         {
@@ -1286,6 +1288,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             EXPECT_SOFT_EQ(1e-6, result.distance);
             // Minor floating point differences could make this 102 or 103
             EXPECT_SOFT_NEAR(real_type(103), real_type(stepper.count()), 0.02);
+            EXPECT_FALSE(result.looping);
         }
     }
 }

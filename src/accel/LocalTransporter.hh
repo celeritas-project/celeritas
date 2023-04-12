@@ -9,17 +9,24 @@
 
 #include <memory>
 #include <vector>
-#include <G4Track.hh>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/InitializedValue.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/Primary.hh"
 
+class G4Track;
+
 namespace celeritas
 {
+namespace detail
+{
+class HitManager;
+}
+
 struct SetupOptions;
 class SharedParams;
 
@@ -50,9 +57,6 @@ class LocalTransporter
     // Set the event ID
     void SetEventId(int);
 
-    // Whether Celeritas supports offloading of this track
-    bool IsApplicable(G4Track const&) const;
-
     // Offload this track
     void Push(G4Track const&);
 
@@ -69,6 +73,13 @@ class LocalTransporter
     explicit operator bool() const { return static_cast<bool>(step_); }
 
   private:
+    using SPHitManger = std::shared_ptr<detail::HitManager>;
+
+    struct HMFinalizer
+    {
+        void operator()(SPHitManger& hm) const;
+    };
+
     std::shared_ptr<ParticleParams const> particles_;
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
@@ -78,6 +89,9 @@ class LocalTransporter
 
     size_type auto_flush_{};
     size_type max_steps_{};
+
+    // Shared pointer across threads, "finalize" called when clearing
+    InitializedValue<SPHitManger, HMFinalizer> hit_manager_;
 };
 
 //---------------------------------------------------------------------------//

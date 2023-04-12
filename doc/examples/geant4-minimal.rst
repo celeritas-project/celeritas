@@ -2,11 +2,17 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. _example_geant_minimal:
 
 Minimal Geant4 integration
 ==========================
 
-This small example demonstrates how to offload tracks to Celeritas.
+This small example demonstrates how to offload tracks to Celeritas in a serial
+or multithreaded environment. The :ref:`accel` library is the only part of
+Celeritas that needs to be understood for it to work. The key components are
+global SetupOptions and SharedParams, coupled to thread-local SimpleOffload and
+LocalTransporter. The SimpleOffload provides all the methods needed to
+integrate into Geant4 application's UserActions.
 
 .. _example_cmake:
 

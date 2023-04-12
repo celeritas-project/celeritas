@@ -103,6 +103,7 @@ struct XorwowRngStateData
 template<MemSpace M>
 void resize(XorwowRngStateData<Ownership::value, M>* state,
             HostCRef<XorwowRngParamsData> const& params,
+            StreamId stream,
             size_type size);
 
 //---------------------------------------------------------------------------//
