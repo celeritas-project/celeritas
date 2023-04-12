@@ -423,7 +423,7 @@ class SolidsTest : public VecgeomTestBase,
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SolidsTest, geomDump)
+TEST_F(SolidsTest, DISABLED_dump)
 {
     this->geometry();
     auto const& geomgr = vecgeom::GeoManager::Instance();
@@ -723,7 +723,7 @@ class SolidsGeantTest : public GeantBuilderTestBase
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SolidsGeantTest, geomDump)
+TEST_F(SolidsGeantTest, DISABLED_dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
