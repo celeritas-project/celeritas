@@ -73,8 +73,8 @@ function(celeritas_device_test base)
   celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
-if(NOT CELERITAS_USE_CUDA)
-  set(_needs_cuda DISABLE)
+if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
+  set(_needs_device DISABLE)
 endif()
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
@@ -298,9 +298,6 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
-else()
-  # FIXME: backscattering (or field direction change) into volume crashes ORANGE
-  list(APPEND _geo_args DISABLE)
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 
@@ -391,4 +388,4 @@ endif()
 #-------------------------------------#
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
-celeritas_device_test(celeritas/track/TrackInit ${_needs_cuda})
+celeritas_device_test(celeritas/track/TrackInit ${_needs_device})
