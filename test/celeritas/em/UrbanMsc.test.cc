@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/grid/Interpolator.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/em/msc/detail/MscStepFromGeo.hh"
@@ -20,7 +21,6 @@
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/grid/Interpolator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -316,7 +316,8 @@ TEST_F(UrbanMscTest, step_conversion)
                 real_type true_step{-1};
                 ASSERT_NO_THROW(true_step = geo_to_true(gp.step));
                 /*
-                 * TODO: large relative error -0.00081720192362734587 when pstep
+                 * TODO: large relative error -0.00081720192362734587 when
+                 pstep
                  * is near or equal to range:
                  *
                  z -> g: Low energy or range-limited step:

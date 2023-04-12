@@ -13,10 +13,10 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "corecel/math/SoftEqual.hh"
 
-#include "UniformGrid.hh"
-#include "UniformGridData.hh"
 #include "ValueGridInserter.hh"
 
 namespace celeritas

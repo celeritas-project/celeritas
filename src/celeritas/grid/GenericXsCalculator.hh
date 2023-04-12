@@ -12,9 +12,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/Interpolator.hh"
+#include "corecel/grid/NonuniformGrid.hh"
 
-#include "Interpolator.hh"
-#include "NonuniformGrid.hh"
 #include "XsGridData.hh"
 
 namespace celeritas

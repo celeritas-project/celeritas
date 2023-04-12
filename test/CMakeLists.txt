@@ -136,6 +136,13 @@ celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
 celeritas_add_device_test(corecel/data/StackAllocator)
 
+# Grid
+set(CELERITASTEST_PREFIX corecel/grid)
+celeritas_add_test(corecel/grid/Interpolator.test.cc)
+celeritas_add_test(corecel/grid/NonuniformGrid.test.cc)
+celeritas_add_test(corecel/grid/TwodGridCalculator.test.cc)
+celeritas_add_test(corecel/grid/UniformGrid.test.cc)
+
 # IO
 set(CELERITASTEST_PREFIX corecel/io)
 celeritas_add_test(corecel/io/EnumStringMapper.test.cc)
@@ -385,13 +392,9 @@ celeritas_add_test(celeritas/global/Stepper.test.cc
 set(CELERITASTEST_PREFIX celeritas/grid)
 celeritas_add_test(celeritas/grid/GenericXsCalculator.test.cc)
 celeritas_add_test(celeritas/grid/GridIdFinder.test.cc)
-celeritas_add_test(celeritas/grid/Interpolator.test.cc)
 celeritas_add_test(celeritas/grid/InverseRangeCalculator.test.cc)
-celeritas_add_test(celeritas/grid/NonuniformGrid.test.cc)
 celeritas_add_test(celeritas/grid/PolyEvaluator.test.cc)
 celeritas_add_test(celeritas/grid/RangeCalculator.test.cc)
-celeritas_add_test(celeritas/grid/TwodGridCalculator.test.cc)
-celeritas_add_test(celeritas/grid/UniformGrid.test.cc)
 celeritas_add_test(celeritas/grid/ValueGridBuilder.test.cc)
 celeritas_add_test(celeritas/grid/ValueGridInserter.test.cc)
 celeritas_add_test(celeritas/grid/VectorUtils.test.cc)
