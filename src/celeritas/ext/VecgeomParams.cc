@@ -32,7 +32,7 @@
 #include "corecel/sys/ScopedMem.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
-#include "detail/GeantGeometryImporter.hh"
+#include "detail/GeantGeoConverter.hh"
 
 namespace celeritas
 {
@@ -76,7 +76,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 #if CELERITAS_USE_GEANT4
     {
         ScopedMem record_mem("VecgeomParams.convert");
-        detail::GeantGeometryImporter convert;
+        detail::GeantGeoConverter convert;
         convert(world);
         CELER_ASSERT(vecgeom::GeoManager::Instance().GetWorld());
     }

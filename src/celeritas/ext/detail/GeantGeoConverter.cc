@@ -9,9 +9,9 @@
 // https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/7f5d5ec3258d2b7ffbf717e4bd37a3a07285a65f/src/G4VecGeomConverter.cxx
 // Original code from G4VecGeomNav package by John Apostolakis et al.
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantGeometryImporter.cc
+//! \file celeritas/ext/detail/GeantGeoConverter.cc
 //---------------------------------------------------------------------------//
-#include "GeantGeometryImporter.hh"
+#include "GeantGeoConverter.hh"
 
 #include <G4AffineTransform.hh>
 #include <G4BooleanSolid.hh>
@@ -93,11 +93,11 @@
 #include <VecGeom/volumes/UnplacedTrd.h>
 #include <VecGeom/volumes/UnplacedTube.h>
 
+#include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/math/Algorithms.hh"
 
 #include "GenericSolid.hh"
 
@@ -143,7 +143,7 @@ make_transformation(G4ThreeVector const& t, G4RotationMatrix const* rot)
 
 //---------------------------------------------------------------------------//
 VPlacedVolume const&
-GeantGeometryImporter::operator()(G4VPhysicalVolume const* g4_world)
+GeantGeoConverter::operator()(G4VPhysicalVolume const* g4_world)
 {
     VecVPlacedVolume const* top_volumes{nullptr};
 
@@ -169,7 +169,7 @@ GeantGeometryImporter::operator()(G4VPhysicalVolume const* g4_world)
     return *world;
 }
 
-void GeantGeometryImporter::extract_replicated_transformations(
+void GeantGeoConverter::extract_replicated_transformations(
     G4PVReplica const& replica,
     std::vector<Transformation3D const*>& transf) const
 {
@@ -198,7 +198,7 @@ void GeantGeometryImporter::extract_replicated_transformations(
             direction.Set(0, 0, 1);
             break;
         default:
-                     CELER_ASSERT_UNREACHABLE();
+            CELER_ASSERT_UNREACHABLE();
     }
     for (int r = 0; r < nReplicas; ++r)
     {
@@ -211,7 +211,7 @@ void GeantGeometryImporter::extract_replicated_transformations(
 }
 
 std::vector<VPlacedVolume const*> const*
-GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
+GeantGeoConverter::convert(G4VPhysicalVolume const* node)
 {
     // Warn about potentially unsupported cases
     if (dynamic_cast<G4PVParameterised const*>(node)
@@ -219,7 +219,8 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
         || dynamic_cast<G4PVDivision const*>(node))
     {
         TypeDemangler<G4VPhysicalVolume> demangle_type;
-        CELER_LOG(warning) << "Encountered possibly unsupported Geant4 physical volume type '"
+        CELER_LOG(warning)
+            << "Encountered possibly unsupported Geant4 physical volume type '"
             << demangle_type(*node) << "'";
     }
 
@@ -245,7 +246,7 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
 
     // All or no daughters should have been placed already
     int remaining_daughters = g4logical->GetNoDaughters()
-                                - logical_volume->GetDaughters().size();
+                              - logical_volume->GetDaughters().size();
     CELER_ASSERT(remaining_daughters <= 0
                  || remaining_daughters == (int)g4logical->GetNoDaughters());
 
@@ -255,8 +256,7 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
         auto* const placedvector = this->convert(daughter_node);
         for (auto* placed : *placedvector)
         {
-                     logical_volume->PlaceDaughter(
-                         const_cast<VPlacedVolume*>(placed));
+            logical_volume->PlaceDaughter(const_cast<VPlacedVolume*>(placed));
         }
     }
 
@@ -267,7 +267,7 @@ GeantGeometryImporter::convert(G4VPhysicalVolume const* node)
     return &iter->second;
 }
 
-LogicalVolume* GeantGeometryImporter::convert(G4LogicalVolume const* g4_logvol)
+LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
 {
     if (logical_volume_map_.find(g4_logvol) != logical_volume_map_.end())
         return const_cast<LogicalVolume*>(logical_volume_map_[g4_logvol]);
@@ -302,7 +302,7 @@ LogicalVolume* GeantGeometryImporter::convert(G4LogicalVolume const* g4_logvol)
     return vg_logvol;
 }
 
-VUnplacedVolume* GeantGeometryImporter::convert(G4VSolid const* shape)
+VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
 {
     VUnplacedVolume* unplaced_volume = nullptr;
 

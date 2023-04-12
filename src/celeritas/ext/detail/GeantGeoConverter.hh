@@ -9,7 +9,7 @@
 // https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/fdd310842fa71c58b3d99646159ef1993a0366b0/include/G4VecGeomConverter.h
 // Original code from G4VecGeomNav package by John Apostolakis et al.
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantGeometryImporter.hh
+//! \file celeritas/ext/detail/GeantGeoConverter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -33,7 +33,7 @@ namespace detail
 /*!
  * Convert G4 geometry to VecGeom.
  */
-class GeantGeometryImporter
+class GeantGeoConverter
 {
   private:
     //!@{
@@ -46,13 +46,13 @@ class GeantGeometryImporter
 
   public:
     //! Default constructor.
-    GeantGeometryImporter() = default;
+    GeantGeoConverter() = default;
 
     //!@{
     //! Deleted constructors and assignment operator.
-    GeantGeometryImporter(GeantGeometryImporter const&) = delete;
-    GeantGeometryImporter(GeantGeometryImporter const&&) = delete;
-    GeantGeometryImporter& operator=(GeantGeometryImporter const&) = delete;
+    GeantGeoConverter(GeantGeoConverter const&) = delete;
+    GeantGeoConverter(GeantGeoConverter const&&) = delete;
+    GeantGeoConverter& operator=(GeantGeoConverter const&) = delete;
     //!@}
 
     /*!
@@ -83,7 +83,7 @@ class GeantGeometryImporter
     //// HELPER FUNCTIONS ////
 
     /*!
-     * Converts a physical volume into a VecGeom placed volume.
+     * Convert a physical volume into a VecGeom placed volume.
      *
      * Its transformation matrix and its logical volume are also converted,
      * making the conversion process recursive, comprising the whole geometry
@@ -93,16 +93,15 @@ class GeantGeometryImporter
      */
     VecVPlacedVolume const* convert(G4VPhysicalVolume const*);
 
-    /**
-     * @brief Special treatment needed for replicated volumes.
-     */
+    //! Special treatment needed for replicated volumes.
     void extract_replicated_transformations(
         G4PVReplica const&, std::vector<Transformation3D const*>&) const;
 
     //! Converts G4 solids into VecGeom unplaced volumes
     VUnplacedVolume* convert(G4VSolid const*);
 
-    /*! Converts logical volumes from Geant4 into VecGeom.
+    /*!
+     * Convert logical volumes from Geant4 into VecGeom.
      *
      * All daughters' physical volumes will be recursively converted.
      */
