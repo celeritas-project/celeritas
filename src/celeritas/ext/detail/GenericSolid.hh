@@ -1,17 +1,11 @@
 //----------------------------------*-C++-*----------------------------------//
 // SPDX-FileCopyrightText: 2020 CERN
 // SPDX-License-Identifier: Apache-2.0
+// Original work:
+// https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/ce4a0bb2f777a6728e59dee96c764fd61fa8b785/include/VecGeomG4Solid.h
+// Original code from G4VecGeomNav package by John Apostolakis et al.
 //---------------------------------------------------------------------------//
-/*!
- * \file GenericSolid.hh
- * \brief Class for a generic solid related to G4 to VecGeom conversion
- *
- * Original class VecGeomG4Solid, from G4VecGeomNav package by John Apostolakis
- *   et.al., and adapted to Celeritas.
- *
- * Original source:
- *   https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/ce4a0bb2f777a6728e59dee96c764fd61fa8b785/include/VecGeomG4Solid.h
- */
+//! \file celeritas/ext/detail/GenericSolid.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

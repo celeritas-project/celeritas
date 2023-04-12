@@ -7,13 +7,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Original work:
 // https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/fdd310842fa71c58b3d99646159ef1993a0366b0/include/G4VecGeomConverter.h
+// Original code from G4VecGeomNav package by John Apostolakis et al.
 //---------------------------------------------------------------------------//
-/*!
- * \file GeantGeometryImporter.hh
- * \brief Class to create a VecGeom model from a pre-existing Geant4 geometry
- *
- * Original code from G4VecGeomNav package by John Apostolakis et.al.
- */
+//! \file celeritas/ext/detail/GeantGeometryImporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

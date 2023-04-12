@@ -7,12 +7,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Original work:
 // https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/7f5d5ec3258d2b7ffbf717e4bd37a3a07285a65f/src/G4VecGeomConverter.cxx
+// Original code from G4VecGeomNav package by John Apostolakis et al.
 //---------------------------------------------------------------------------//
-/*!
- * \file GeantGeometryImporter.cc
- *
- * Original code from G4VecGeomNav package by John Apostolakis et.al.
- */
+//! \file celeritas/ext/detail/GeantGeometryImporter.cc
 //---------------------------------------------------------------------------//
 #include "GeantGeometryImporter.hh"
 
