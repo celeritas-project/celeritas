@@ -19,18 +19,19 @@ namespace celeritas
 namespace generated
 {
 void init_tracks(
-    CoreHostRef const& core_data,
+    HostCRef<CoreParamsData> const& core_params,
+    HostRef<CoreStateData> const& core_states,
     size_type const num_vacancies)
 {
     MultiExceptionHandler capture_exception;
-    detail::InitTracksLauncher<MemSpace::host> launch(core_data, num_vacancies);
+    detail::InitTracksLauncher<MemSpace::host> launch(core_params, core_states, num_vacancies);
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < num_vacancies; ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "init_tracks"));
+            KernelContextException(core_params, core_states, ThreadId{i}, "init_tracks"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

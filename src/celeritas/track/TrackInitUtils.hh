@@ -53,7 +53,8 @@ inline void extend_from_primaries(CoreRef<M> const& core_data,
     copy(M, primaries[AllItems<Primary, M>{}]);
 
     // Create track initializers from primaries
-    generated::process_primaries(core_data, primaries[AllItems<Primary, M>{}]);
+    generated::process_primaries(
+        core_data.params, core_data.states, primaries[AllItems<Primary, M>{}]);
 }
 
 //---------------------------------------------------------------------------//
@@ -82,7 +83,8 @@ inline void initialize_tracks(CoreRef<M> const& core_data)
         // Launch a kernel to initialize tracks on device
         auto num_vacancies
             = min(data.vacancies.size(), data.initializers.size());
-        generated::init_tracks(core_data, num_vacancies);
+        generated::init_tracks(
+            core_data.params, core_data.states, num_vacancies);
         // Resizing initializers/vacancies is a non-const operation
         const_cast<TrackInitStates&>(data).initializers.resize(
             data.initializers.size() - num_tracks);
@@ -166,7 +168,7 @@ inline void extend_from_secondaries(CoreRef<M> const& core_data)
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
-    generated::locate_alive(core_data);
+    generated::locate_alive(core_data.params, core_data.states);
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
@@ -196,7 +198,7 @@ inline void extend_from_secondaries(CoreRef<M> const& core_data)
     // Launch a kernel to create track initializers from secondaries
     const_cast<TrackInitStates&>(data).initializers.resize(
         data.initializers.size() + data.num_secondaries);
-    generated::process_secondaries(core_data);
+    generated::process_secondaries(core_data.params, core_data.states);
 }
 
 //---------------------------------------------------------------------------//

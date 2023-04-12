@@ -22,14 +22,16 @@ namespace generated
 {
 namespace
 {
-__global__ void boundary_kernel(CoreDeviceRef const data
+__global__ void boundary_kernel(
+    DeviceCRef<CoreParamsData> const params,
+    DeviceRef<CoreStateData> const state
 )
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < data.states.size()))
         return;
 
-    auto launch = make_track_launcher(data, detail::boundary_track);
+    auto launch = make_track_launcher(params, state, detail::boundary_track);
     launch(tid);
 }
 }  // namespace
@@ -40,7 +42,8 @@ void BoundaryAction::execute(CoreDeviceRef const& data) const
     CELER_LAUNCH_KERNEL(boundary,
                         celeritas::device().default_block_size(),
                         data.states.size(),
-                        data);
+                        data.params,
+                        data.states);
 }
 
 }  // namespace generated

@@ -85,7 +85,10 @@ void {clsname}::execute(CoreHostRef const& data) const
     CELER_EXPECT(data);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_track_launcher(data, detail::{func}_track);
+    auto launch = make_track_launcher(
+        data.params,
+        const_cast<HostRef<CoreStateData>&>(data.states),
+        detail::{func}_track);
     #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {{
@@ -118,14 +121,16 @@ namespace generated
 {{
 namespace
 {{
-__global__ void{launch_bounds}{func}_kernel(CoreDeviceRef const data
+__global__ void{launch_bounds}{func}_kernel(
+    DeviceCRef<CoreParamsData> const params,
+    DeviceRef<CoreStateData> const state
 )
 {{
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < data.states.size()))
         return;
 
-    auto launch = make_track_launcher(data, detail::{func}_track);
+    auto launch = make_track_launcher(params, state, detail::{func}_track);
     launch(tid);
 }}
 }}  // namespace
@@ -136,7 +141,8 @@ void {clsname}::execute(CoreDeviceRef const& data) const
     CELER_LAUNCH_KERNEL({func},
                         celeritas::device().default_block_size(),
                         data.states.size(),
-                        data);
+                        data.params,
+                        data.states);
 }}
 
 }}  // namespace generated

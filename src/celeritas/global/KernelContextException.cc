@@ -57,6 +57,19 @@ std::ostream& operator<<(std::ostream& os, OpaqueId<V, S> const& v)
 KernelContextException::KernelContextException(CoreHostRef const& data,
                                                ThreadId thread,
                                                std::string&& label)
+    : KernelContextException(data.params, data.states, thread, std::move(label))
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with track data and kernel label.
+ */
+KernelContextException::KernelContextException(
+    HostCRef<CoreParamsData> const& params,
+    HostRef<CoreStateData> const& states,
+    ThreadId thread,
+    std::string&& label)
     : thread_(thread), label_(std::move(label))
 {
     try
@@ -67,7 +80,7 @@ KernelContextException::KernelContextException(CoreHostRef const& data,
             // detailed debug information
             throw std::exception();
         }
-        CoreTrackView core(data.params, data.states, thread);
+        CoreTrackView core(params, states, thread);
         this->initialize(core);
     }
     catch (...)

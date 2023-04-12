@@ -19,18 +19,19 @@ namespace celeritas
 namespace generated
 {
 void process_primaries(
-    CoreHostRef const& core_data,
+    HostCRef<CoreParamsData> const& core_params,
+    HostRef<CoreStateData> const& core_states,
     Span<const Primary> const primaries)
 {
     MultiExceptionHandler capture_exception;
-    detail::ProcessPrimariesLauncher<MemSpace::host> launch(core_data, primaries);
+    detail::ProcessPrimariesLauncher<MemSpace::host> launch(core_params, core_states, primaries);
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < primaries.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "process_primaries"));
+            KernelContextException(core_params, core_states, ThreadId{i}, "process_primaries"));
     }
     log_and_rethrow(std::move(capture_exception));
 }
