@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/OrangeTypes.hh
+//! \file orange/Types.hh
 //! Shared (VecGeom + ORANGE) geometry type definitions.
 //---------------------------------------------------------------------------//
 #pragma once
@@ -18,20 +18,14 @@ namespace celeritas
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-//! Identifier for a geometry volume
-using VolumeId = OpaqueId<struct Volume>;
-
-//! Local identifier for a geometry volume in a universe
-using LocalVolumeId = OpaqueId<struct LocalVolume>;
+//! Fixed-size array for 3D space
+using Real3 = Array<real_type, 3>;
 
 //! Identifier for a surface (for surface-based geometries)
 using SurfaceId = OpaqueId<struct Surface>;
 
-//! Local Identifier for a surface within a universe
-using LocalSurfaceId = OpaqueId<struct LocalSurface>;
-
-//! Fixed-size array for 3D space
-using Real3 = Array<real_type, 3>;
+//! Identifier for a geometry volume
+using VolumeId = OpaqueId<struct Volume>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
