@@ -209,7 +209,7 @@ class TrackInitTest : public SimpleTestBase
     }
 
     CoreStateData<Ownership::value, MemSpace::device> device_states;
-    CoreDeviceRef core_data;
+    CoreRef<MemSpace::device> core_data;
 };
 
 //---------------------------------------------------------------------------//

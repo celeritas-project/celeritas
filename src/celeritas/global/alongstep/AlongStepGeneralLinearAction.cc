@@ -87,7 +87,8 @@ void AlongStepGeneralLinearAction::execute(CoreHostRef const& data) const
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(data, ThreadId{i}, this->label()));
+            KernelContextException(
+                data.params, data.states, ThreadId{i}, this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }

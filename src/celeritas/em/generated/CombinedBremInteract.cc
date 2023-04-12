@@ -42,7 +42,7 @@ void combined_brem_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "combined_brem"));
+            KernelContextException(core_data.params, core_data.states, ThreadId{i}, "combined_brem"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

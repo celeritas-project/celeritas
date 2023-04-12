@@ -108,10 +108,10 @@ using SecondaryAllocatorData
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
-void interact(CoreDeviceRef data, ITTestInputData input);
+void interact(CoreRef<MemSpace::device> data, ITTestInputData input);
 
 #if !CELER_USE_DEVICE
-inline void interact(CoreDeviceRef, ITTestInputData)
+inline void interact(CoreRef<MemSpace::device>, ITTestInputData)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

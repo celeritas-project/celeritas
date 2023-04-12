@@ -159,7 +159,8 @@ TEST_F(KernelContextExceptionTest, typical)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data(),
+        KernelContextException(step.core_data().params,
+                               step.core_data().states,
                                find_thread(step.core_data(), TrackSlotId{15}),
                                "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
@@ -194,7 +195,8 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data(),
+        KernelContextException(step.core_data().params,
+                               step.core_data().states,
                                find_thread(step.core_data(), TrackSlotId{1}),
                                "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
@@ -221,7 +223,10 @@ TEST_F(KernelContextExceptionTest, bad_thread)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data(), ThreadId{}, "dumb-kernel"));
+        KernelContextException(step.core_data().params,
+                               step.core_data().states,
+                               ThreadId{},
+                               "dumb-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
 }

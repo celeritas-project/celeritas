@@ -42,7 +42,7 @@ void livermore_pe_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "livermore_pe"));
+            KernelContextException(core_data.params, core_data.states, ThreadId{i}, "livermore_pe"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

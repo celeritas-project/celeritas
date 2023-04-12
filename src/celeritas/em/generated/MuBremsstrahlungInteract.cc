@@ -42,7 +42,7 @@ void mu_bremsstrahlung_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "mu_bremsstrahlung"));
+            KernelContextException(core_data.params, core_data.states, ThreadId{i}, "mu_bremsstrahlung"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

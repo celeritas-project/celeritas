@@ -42,7 +42,7 @@ void rayleigh_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "rayleigh"));
+            KernelContextException(core_data.params, core_data.states, ThreadId{i}, "rayleigh"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

@@ -42,7 +42,7 @@ void relativistic_brem_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "relativistic_brem"));
+            KernelContextException(core_data.params, core_data.states, ThreadId{i}, "relativistic_brem"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

@@ -23,7 +23,8 @@ namespace test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void interact_kernel(CoreDeviceRef data, ITTestInputData const input)
+__global__ void
+interact_kernel(CoreRef<MemSpace::device> data, ITTestInputData const input)
 {
     auto slot_id
         = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
@@ -60,7 +61,7 @@ __global__ void interact_kernel(CoreDeviceRef data, ITTestInputData const input)
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 
-void interact(CoreDeviceRef data, ITTestInputData input)
+void interact(CoreRef<MemSpace::device> data, ITTestInputData input)
 {
     CELER_EXPECT(data.states.size() > 0);
     CELER_EXPECT(data.states.size() == input.alloc_size.size());

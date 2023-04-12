@@ -42,7 +42,7 @@ void eplusgg_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "eplusgg"));
+            KernelContextException(core_data.params, core_data.states, ThreadId{i}, "eplusgg"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

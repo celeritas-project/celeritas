@@ -42,7 +42,7 @@ void seltzer_berger_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "seltzer_berger"));
+            KernelContextException(core_data.params, core_data.states, ThreadId{i}, "seltzer_berger"));
     }
     log_and_rethrow(std::move(capture_exception));
 }
