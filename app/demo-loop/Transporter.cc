@@ -69,15 +69,16 @@ class DiagnosticActionAdapter final : public ExplicitActionInterface
     }
 
     //! Execute the action with host data
-    void execute(CoreHostRef const& core) const final
+    void execute(ParamsHostCRef const& params, StateHostRef& states) const final
     {
-        this->execute_impl(core.params, core.states, diagnostics_->host);
+        this->execute_impl(params, states, diagnostics_->host);
     }
 
     //! Execute the action with device data
-    void execute(CoreDeviceRef const& core) const final
+    void
+    execute(ParamsDeviceCRef const& params, StateDeviceRef& states) const final
     {
-        this->execute_impl(core.params, core.states, diagnostics_->device);
+        this->execute_impl(params, states, diagnostics_->device);
     }
 
     //!@{

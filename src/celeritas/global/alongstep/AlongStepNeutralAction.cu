@@ -38,7 +38,8 @@ __global__ void along_step_neutral_kernel(CoreDeviceRef const data)
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepNeutralAction::execute(CoreDeviceRef const& data) const
+void AlongStepNeutralAction::execute(ParamsDeviceCRef const& params,
+                                     StateDeviceRef& states) const
 {
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(along_step_neutral,

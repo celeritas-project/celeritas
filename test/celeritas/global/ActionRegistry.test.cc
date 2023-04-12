@@ -35,8 +35,14 @@ class MyExplicitAction final : public ExplicitActionInterface
     std::string label() const final { return "explicit"; }
     std::string description() const final { return "explicit action test"; }
 
-    void execute(CoreHostRef const&) const final { ++host_count_; }
-    void execute(CoreDeviceRef const&) const final { ++device_count_; }
+    void execute(ParamsHostCRef const&, StateHostRef&) const final
+    {
+        ++host_count_;
+    }
+    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final
+    {
+        ++device_count_;
+    }
 
     int host_count() const { return host_count_; }
     int device_count() const { return device_count_; }

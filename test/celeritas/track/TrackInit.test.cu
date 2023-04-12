@@ -23,14 +23,15 @@ namespace test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void
-interact_kernel(CoreRef<MemSpace::device> data, ITTestInputData const input)
+__global__ void interact_kernel(DeviceCRef<CoreParamsData> const params,
+                                DeviceRef<CoreStateData> const state,
+                                ITTestInputData const input)
 {
     auto slot_id
         = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
-    if (slot_id < data.states.size())
+    if (slot_id < states.size())
     {
-        SimTrackView sim(data.params.sim, data.states.sim, slot_id);
+        SimTrackView sim(params.sim, states.sim, slot_id);
 
         // There may be more track slots than active tracks; only active tracks
         // should interact
@@ -38,7 +39,7 @@ interact_kernel(CoreRef<MemSpace::device> data, ITTestInputData const input)
         {
             // Allow the particle to interact and create secondaries
             StackAllocator<Secondary> allocate_secondaries(
-                data.states.physics.secondaries);
+                states.physics.secondaries);
 
             Interactor interact(allocate_secondaries,
                                 input.alloc_size[slot_id.get()],
@@ -46,7 +47,7 @@ interact_kernel(CoreRef<MemSpace::device> data, ITTestInputData const input)
             auto result = interact();
 
             // Save secondaries
-            data.states.physics.state[slot_id].secondaries = result.secondaries;
+            states.physics.state[slot_id].secondaries = result.secondaries;
 
             // Kill the selected tracks
             if (result.action == Interaction::Action::absorbed)
@@ -61,16 +62,15 @@ interact_kernel(CoreRef<MemSpace::device> data, ITTestInputData const input)
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 
-void interact(CoreRef<MemSpace::device> data, ITTestInputData input)
+void interact(DeviceCRef<CoreParamsData> const& params,
+              DeviceRef<CoreStateData> const& state,
+              ITTestInputData const& input)
 {
-    CELER_EXPECT(data.states.size() > 0);
-    CELER_EXPECT(data.states.size() == input.alloc_size.size());
+    CELER_EXPECT(states.size() > 0);
+    CELER_EXPECT(states.size() == input.alloc_size.size());
 
-    CELER_LAUNCH_KERNEL(interact,
-                        device().default_block_size(),
-                        data.states.size(),
-                        data,
-                        input);
+    CELER_LAUNCH_KERNEL(
+        interact, device().default_block_size(), states.size(), data, input);
 }
 
 //---------------------------------------------------------------------------//

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackDataFwd.hh"
 
 #include "detail/InteractionLauncherImpl.hh"
 
@@ -38,11 +38,13 @@ inline CELER_FUNCTION Interaction foo_interact(
  */
 template<class D, class F>
 CELER_FUNCTION detail::InteractionLauncherImpl<D, F>
-make_interaction_launcher(CoreRef<MemSpace::native> const& core_data,
+make_interaction_launcher(NativeCRef<CoreParamsData> const& params,
+                          NativeRef<CoreStateData> const& states,
                           D const& model_data,
                           F&& call_with_track)
 {
-    return {core_data, model_data, ::celeritas::forward<F>(call_with_track)};
+    return {
+        params, states, model_data, ::celeritas::forward<F>(call_with_track)};
 }
 
 //---------------------------------------------------------------------------//

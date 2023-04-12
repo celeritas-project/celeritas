@@ -44,7 +44,8 @@ along_step_general_linear_kernel(CoreRef<MemSpace::device> const track_data,
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepGeneralLinearAction::execute(CoreDeviceRef const& data) const
+void AlongStepGeneralLinearAction::execute(ParamsDeviceCRef const& params,
+                                           StateDeviceRef& states) const
 {
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(along_step_general_linear,

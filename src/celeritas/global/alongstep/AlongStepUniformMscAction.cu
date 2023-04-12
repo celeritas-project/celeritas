@@ -44,7 +44,8 @@ along_step_uniform_msc_kernel(CoreRef<MemSpace::device> const track_data,
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepUniformMscAction::execute(CoreDeviceRef const& data) const
+void AlongStepUniformMscAction::execute(ParamsDeviceCRef const& params,
+                                        StateDeviceRef& states) const
 {
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(along_step_uniform_msc,

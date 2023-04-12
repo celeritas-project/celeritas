@@ -28,7 +28,7 @@ __global__ void boundary_kernel(
 )
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < data.states.size()))
+    if (!(tid < state.size()))
         return;
 
     auto launch = make_track_launcher(params, state, detail::boundary_track);
@@ -36,14 +36,14 @@ __global__ void boundary_kernel(
 }
 }  // namespace
 
-void BoundaryAction::execute(CoreDeviceRef const& data) const
+void BoundaryAction::execute(ParamsDeviceCRef const& params, StateDeviceRef& state) const
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(boundary,
                         celeritas::device().default_block_size(),
-                        data.states.size(),
-                        data.params,
-                        data.states);
+                        state.size(),
+                        params,
+                        state);
 }
 
 }  // namespace generated

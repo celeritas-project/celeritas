@@ -37,7 +37,7 @@ pre_step_kernel(
 )
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < data.states.size()))
+    if (!(tid < state.size()))
         return;
 
     auto launch = make_track_launcher(params, state, detail::pre_step_track);
@@ -45,14 +45,14 @@ pre_step_kernel(
 }
 }  // namespace
 
-void PreStepAction::execute(CoreDeviceRef const& data) const
+void PreStepAction::execute(ParamsDeviceCRef const& params, StateDeviceRef& state) const
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(pre_step,
                         celeritas::device().default_block_size(),
-                        data.states.size(),
-                        data.params,
-                        data.states);
+                        state.size(),
+                        params,
+                        state);
 }
 
 }  // namespace generated

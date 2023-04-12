@@ -12,7 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/BetheHeitlerData.hh" // IWYU pragma: associated
-#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackDataFwd.hh"
 
 namespace celeritas
 {
@@ -20,16 +20,19 @@ namespace generated
 {
 void bethe_heitler_interact(
     celeritas::BetheHeitlerHostRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::host> const&);
+    celeritas::HostCRef<celeritas::CoreParamsData> const&,
+    celeritas::HostRef<celeritas::CoreStateData> const&);
 
 void bethe_heitler_interact(
     celeritas::BetheHeitlerDeviceRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::device> const&);
+    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::DeviceRef<celeritas::CoreStateData> const&);
 
 #if !CELER_USE_DEVICE
 inline void bethe_heitler_interact(
     celeritas::BetheHeitlerDeviceRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::device> const&)
+    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::DeviceRef<celeritas::CoreStateData> const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

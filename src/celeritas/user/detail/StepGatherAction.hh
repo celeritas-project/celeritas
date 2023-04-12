@@ -52,10 +52,10 @@ class StepGatherAction final : public ExplicitActionInterface
     StepGatherAction(ActionId id, SPStepStorage storage, VecInterface callbacks);
 
     // Launch kernel with host data
-    void execute(CoreHostRef const&) const final;
+    void execute(ParamsHostCRef const&, StateHostRef&) const final;
 
     // Launch kernel with device data
-    void execute(CoreDeviceRef const&) const final;
+    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
@@ -89,8 +89,9 @@ class StepGatherAction final : public ExplicitActionInterface
     //// HELPER FUNCTIONS ////
 
     template<MemSpace M>
-    inline StepStateData<Ownership::reference, M> const&
-    get_state(CoreRef<M> const& core_data) const;
+    inline StepStateData<Ownership::reference, M>&
+    get_state(CoreParamsData<Ownership::const_reference, M> const&,
+              CoreStateData<Ownership::reference, M>&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -98,8 +99,10 @@ class StepGatherAction final : public ExplicitActionInterface
 //---------------------------------------------------------------------------//
 // Get a reference to the stream-local step state data, allocating if needed.
 template<MemSpace M>
-StepStateData<Ownership::reference, M> const&
-get_stream_state(CoreRef<M> const& core, StepStorage* storage);
+StepStateData<Ownership::reference, M>&
+get_stream_state(CoreParamsData<Ownership::const_reference, M> const& params,
+                 CoreStateData<Ownership::reference, M>& states,
+                 StepStorage* storage);
 
 //---------------------------------------------------------------------------//
 // PRIVATE HELPER FUNCTIONS
@@ -109,10 +112,11 @@ get_stream_state(CoreRef<M> const& core, StepStorage* storage);
  */
 template<StepPoint P>
 template<MemSpace M>
-StepStateData<Ownership::reference, M> const&
-StepGatherAction<P>::get_state(CoreRef<M> const& core) const
+StepStateData<Ownership::reference, M>& StepGatherAction<P>::get_state(
+    CoreParamsData<Ownership::const_reference, M> const& params,
+    CoreStateData<Ownership::reference, M>& states) const
 {
-    return get_stream_state(core, storage_.get());
+    return get_stream_state(params, states, storage_.get());
 }
 
 //---------------------------------------------------------------------------//
