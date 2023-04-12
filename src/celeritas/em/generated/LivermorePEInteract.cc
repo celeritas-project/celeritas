@@ -27,7 +27,7 @@ namespace generated
 void livermore_pe_interact(
     celeritas::LivermorePEHostRef const& model_data,
     celeritas::HostCRef<celeritas::CoreParamsData> const& params,
-    celeritas::HostRef<celeritas::CoreStateData> const& state)
+    celeritas::HostRef<celeritas::CoreStateData>& state)
 {
     CELER_EXPECT(params && state);
     CELER_EXPECT(model_data);

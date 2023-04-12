@@ -22,16 +22,18 @@ namespace
 {
 //---------------------------------------------------------------------------//
 __global__ void
-along_step_general_linear_kernel(CoreRef<MemSpace::device> const track_data,
-                                 DeviceCRef<UrbanMscData> const msc_data,
+along_step_general_linear_kernel(DeviceCRef<CoreParamsData> const params,
+                                 DeviceRef<CoreStateData> const state,
+                                 DeviceCRef<UrbanMscData> const msc_params,
                                  DeviceCRef<FluctuationData> const fluct)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < track_data.states.size()))
+    if (!(tid < state.size()))
         return;
 
-    auto launch = make_along_step_launcher(track_data,
-                                           msc_data,
+    auto launch = make_along_step_launcher(params,
+                                           state,
+                                           msc_params,
                                            NoData{},
                                            fluct,
                                            detail::along_step_general_linear);
@@ -45,13 +47,14 @@ along_step_general_linear_kernel(CoreRef<MemSpace::device> const track_data,
  * Launch the along-step action on device.
  */
 void AlongStepGeneralLinearAction::execute(ParamsDeviceCRef const& params,
-                                           StateDeviceRef& states) const
+                                           StateDeviceRef& state) const
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(along_step_general_linear,
                         celeritas::device().default_block_size(),
-                        data.states.size(),
-                        data,
+                        state.size(),
+                        params,
+                        state,
                         device_data_.msc,
                         device_data_.fluct);
 }

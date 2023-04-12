@@ -54,7 +54,7 @@ make_track_launcher(CoreRef<MemSpace::native> const& data, F&& call_with_track)
 template<class F>
 CELER_FUNCTION detail::TrackLauncher<F>
 make_track_launcher(NativeCRef<CoreParamsData> const& params,
-                    NativeRef<CoreStateData>& state,
+                    NativeRef<CoreStateData> const& state,
                     F&& call_with_track)
 {
     return {params, state, ::celeritas::forward<F>(call_with_track)};

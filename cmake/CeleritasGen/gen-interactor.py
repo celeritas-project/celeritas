@@ -42,18 +42,18 @@ namespace generated
 void {func}_interact(
     {namespace}::{class}HostRef const&,
     celeritas::HostCRef<celeritas::CoreParamsData> const&,
-    celeritas::HostRef<celeritas::CoreStateData> const&);
+    celeritas::HostRef<celeritas::CoreStateData>&);
 
 void {func}_interact(
     {namespace}::{class}DeviceRef const&,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData> const&);
+    celeritas::DeviceRef<celeritas::CoreStateData>&);
 
 #if !CELER_USE_DEVICE
 inline void {func}_interact(
     {namespace}::{class}DeviceRef const&,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData> const&)
+    celeritas::DeviceRef<celeritas::CoreStateData>&)
 {{
     CELER_ASSERT_UNREACHABLE();
 }}
@@ -85,7 +85,7 @@ namespace generated
 void {func}_interact(
     {namespace}::{class}HostRef const& model_data,
     celeritas::HostCRef<celeritas::CoreParamsData> const& params,
-    celeritas::HostRef<celeritas::CoreStateData> const& state)
+    celeritas::HostRef<celeritas::CoreStateData>& state)
 {{
     CELER_EXPECT(params && state);
     CELER_EXPECT(model_data);

@@ -28,16 +28,15 @@ struct TrackLauncher
     //// DATA ////
 
     NativeCRef<CoreParamsData> const& params;
-    NativeRef<CoreStateData>& states;
+    NativeRef<CoreStateData> const& state;
     F call_with_track;
 
     //// METHODS ////
 
     CELER_FUNCTION void operator()(ThreadId thread) const
     {
-        CELER_ASSERT(thread < this->states.size());
-        const celeritas::CoreTrackView track(
-            this->params, this->states, thread);
+        CELER_ASSERT(thread < this->state.size());
+        const celeritas::CoreTrackView track(this->params, this->state, thread);
         this->call_with_track(track);
     }
 };

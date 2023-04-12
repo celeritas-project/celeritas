@@ -21,18 +21,18 @@ namespace generated
 void bethe_heitler_interact(
     celeritas::BetheHeitlerHostRef const&,
     celeritas::HostCRef<celeritas::CoreParamsData> const&,
-    celeritas::HostRef<celeritas::CoreStateData> const&);
+    celeritas::HostRef<celeritas::CoreStateData>&);
 
 void bethe_heitler_interact(
     celeritas::BetheHeitlerDeviceRef const&,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData> const&);
+    celeritas::DeviceRef<celeritas::CoreStateData>&);
 
 #if !CELER_USE_DEVICE
 inline void bethe_heitler_interact(
     celeritas::BetheHeitlerDeviceRef const&,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData> const&)
+    celeritas::DeviceRef<celeritas::CoreStateData>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

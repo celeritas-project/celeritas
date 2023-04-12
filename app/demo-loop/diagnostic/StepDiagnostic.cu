@@ -19,7 +19,7 @@ namespace demo_loop
 /*!
  * Count the steps per track for each particle type.
  */
-__global__ void count_steps_kernel(DeviceRef<CoreParamsData> const params,
+__global__ void count_steps_kernel(DeviceCRef<CoreParamsData> const params,
                                    DeviceRef<CoreStateData> const states,
                                    StepDiagnosticDataRef<MemSpace::device> data)
 {
@@ -37,7 +37,7 @@ __global__ void count_steps_kernel(DeviceRef<CoreParamsData> const params,
 /*!
  * Launch kernel to tally the steps per track.
  */
-void count_steps(DeviceRef<CoreParamsData> const& params,
+void count_steps(DeviceCRef<CoreParamsData> const& params,
                  DeviceRef<CoreStateData> const& states,
                  StepDiagnosticDataRef<MemSpace::device> data)
 {

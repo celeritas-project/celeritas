@@ -21,18 +21,18 @@ namespace generated
 void seltzer_berger_interact(
     celeritas::SeltzerBergerHostRef const&,
     celeritas::HostCRef<celeritas::CoreParamsData> const&,
-    celeritas::HostRef<celeritas::CoreStateData> const&);
+    celeritas::HostRef<celeritas::CoreStateData>&);
 
 void seltzer_berger_interact(
     celeritas::SeltzerBergerDeviceRef const&,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData> const&);
+    celeritas::DeviceRef<celeritas::CoreStateData>&);
 
 #if !CELER_USE_DEVICE
 inline void seltzer_berger_interact(
     celeritas::SeltzerBergerDeviceRef const&,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData> const&)
+    celeritas::DeviceRef<celeritas::CoreStateData>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

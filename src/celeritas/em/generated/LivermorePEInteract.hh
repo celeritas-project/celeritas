@@ -21,18 +21,18 @@ namespace generated
 void livermore_pe_interact(
     celeritas::LivermorePEHostRef const&,
     celeritas::HostCRef<celeritas::CoreParamsData> const&,
-    celeritas::HostRef<celeritas::CoreStateData> const&);
+    celeritas::HostRef<celeritas::CoreStateData>&);
 
 void livermore_pe_interact(
     celeritas::LivermorePEDeviceRef const&,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData> const&);
+    celeritas::DeviceRef<celeritas::CoreStateData>&);
 
 #if !CELER_USE_DEVICE
 inline void livermore_pe_interact(
     celeritas::LivermorePEDeviceRef const&,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData> const&)
+    celeritas::DeviceRef<celeritas::CoreStateData>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
