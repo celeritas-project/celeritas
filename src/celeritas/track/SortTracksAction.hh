@@ -13,19 +13,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sort track by status
+ * Sort tracks according to a given strategy specified by TrackOrder.
  *
- * Provides Action interface to
- * `celeritas::detail::partition_tracks_by_status`.
- *
- * TODO: Use init params.init to configure sorting strategy
- *
- * \sa celeritas::detail::partition_tracks_by_status
+ * This action can be applied at different stage of a simulation step, as
+ * specified by the ActionOrder. This should not have any impact on simulation
+ * output, it is only useful for accelerator optimizations.
  */
 class SortTracksAction final : public ExplicitActionInterface
 {
   public:
-    //! Construct with explicit Id
+    //! Construct with explicit Id, action order and track order
     explicit SortTracksAction(ActionId id,
                               ActionOrder action_order,
                               TrackOrder track_order)
