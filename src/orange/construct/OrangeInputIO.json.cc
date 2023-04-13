@@ -231,13 +231,12 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
     auto const& bbox = j.at("bbox");
     value.bbox = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
 
-    std::vector<std::string> dim_strings({"x", "y", "z"});
-
-    for (auto i : range(3))
+    for (auto ax : range(Axis::size_))
     {
-        value.grid[i] = j.at(dim_strings[i]).get<std::vector<real_type>>();
-        CELER_VALIDATE(value.grid[i].size() >= 2,
-                       << "axis " << dim_strings[i]
+        value.grid[to_int(ax)]
+            = j.at(std::string(1, to_char(ax))).get<std::vector<real_type>>();
+        CELER_VALIDATE(value.grid[to_int(ax)].size() >= 2,
+                       << "axis " << to_char(ax)
                        << " does must have at least two grid points");
     }
 

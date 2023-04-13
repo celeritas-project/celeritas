@@ -147,7 +147,7 @@ struct SimpleUnitRecord
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single rectilinear array universe
+ * Data for a single rectilinear array universe.
  */
 struct RectArrayRecord
 {
@@ -156,14 +156,13 @@ struct RectArrayRecord
     // Daughter data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, DaughterId> daughters;
 
-    bool simple_safety{};
-
     explicit CELER_FUNCTION operator bool() const
     {
         return daughters.size() > 0
                && daughters.size()
-                      == (grid[Axis::x].size() - 1) * (grid[Axis::y].size() - 1)
-                             * (grid[Axis::z].size() - 1);
+                      == (grid[to_int(Axis::x)].size() - 1)
+                             * (grid[to_int(Axis::y)].size() - 1)
+                             * (grid[to_int(Axis::z)].size() - 1);
     }
 };
 

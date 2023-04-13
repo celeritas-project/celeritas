@@ -37,7 +37,7 @@ class UnitInserter
     UnitInserter(Data* orange_data);
 
     // Create a simple unit and store in in OrangeParamsData
-    void operator()(UnitInput const& inp);
+    SimpleUnitId operator()(UnitInput const& inp);
 
   private:
     Data* orange_data_{nullptr};

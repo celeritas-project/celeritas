@@ -33,12 +33,12 @@ using VolumeId = OpaqueId<struct Volume>;
 /*!
  * Enumeration for cartesian axes.
  */
-enum Axis : size_type
+enum class Axis
 {
-    x = 0,  //!< X axis/I index coordinate
-    y = 1,  //!< Y axis/J index coordinate
-    z = 2,  //!< Z axis/K index coordinate
-    size_ = 3  //!< Sentinel value for looping over axes
+    x,  //!< X axis/I index coordinate
+    y,  //!< Y axis/J index coordinate
+    z,  //!< Z axis/K index coordinate
+    size_  //!< Sentinel value for looping over axes
 };
 
 //---------------------------------------------------------------------------//
@@ -70,6 +70,19 @@ struct Propagation
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
+//! Convert Axis enum value to int
+CELER_CONSTEXPR_FUNCTION int to_int(Axis a)
+{
+    return static_cast<int>(a);
+}
+
+//! Convert int to Axis enum value
+inline CELER_FUNCTION Axis to_axis(int a)
+{
+    CELER_EXPECT(a >= 0 && a < 3);
+    return static_cast<Axis>(a);
+}
+
 //! Get the lowercase name of the axis.
 inline constexpr char to_char(Axis ax)
 {

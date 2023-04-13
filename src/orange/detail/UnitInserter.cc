@@ -149,7 +149,7 @@ UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
 /*!
  * Create a simple unit and return its ID.
  */
-void UnitInserter::operator()(UnitInput const& inp)
+SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
 {
     SimpleUnitRecord unit;
 
@@ -214,7 +214,7 @@ void UnitInserter::operator()(UnitInput const& inp)
         });
 
     CELER_ASSERT(unit);
-    make_builder(&orange_data_->simple_units).push_back(unit);
+    return make_builder(&orange_data_->simple_units).push_back(unit);
 }
 
 //---------------------------------------------------------------------------//

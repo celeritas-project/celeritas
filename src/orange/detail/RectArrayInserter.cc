@@ -38,20 +38,21 @@ RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
 {
     RectArrayRecord rect_array;
 
+    auto reals_builder = make_builder(&orange_data_->reals);
     for (auto i : range(3))
     {
-        rect_array.grid[i]
-            = make_builder(&orange_data_->reals)
-                  .insert_back(inp.grid[i].begin(), inp.grid[i].end());
+        rect_array.grid[i] = reals_builder.insert_back(inp.grid[i].begin(),
+                                                       inp.grid[i].end());
     }
 
     std::vector<Daughter> daughters;
+    auto translations_builder = make_builder(&orange_data_->translations);
     for (auto const& daughter_input : inp.daughters)
     {
         Daughter d;
         d.universe_id = daughter_input.universe_id;
-        d.translation_id = make_builder(&orange_data_->translations)
-                               .push_back(daughter_input.translation);
+        d.translation_id
+            = translations_builder.push_back(daughter_input.translation);
         daughters.push_back(d);
     }
 

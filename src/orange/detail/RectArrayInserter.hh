@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
 #include "corecel/Types.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"

@@ -1,14 +1,10 @@
-!##############################################################################
-! File  : Geometria/orange/test/data/array.org.omn
-!
-! Note that this is now different from the GG geometry: the array has two
-! elements along Z.
-!##############################################################################
-
+! Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+! See the top-level COPYRIGHT file for details.
+! SPDX-License-Identifier: (Apache-2.0 OR MIT)
 [GEOMETRY]
 global "global"
 
-!##############################################################################
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 [UNIVERSE=general T]
 interior "outer"
 
@@ -29,7 +25,7 @@ comp 1
 !shapes -outer +triangle
 shapes -outer
 
-!##############################################################################
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 [UNIVERSE=general H]
 interior "outer"
 
@@ -50,7 +46,7 @@ comp 1
 !shapes -outer +hexagon
 shapes -outer
 
-!##############################################################################
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 [UNIVERSE=general C]
 interior "outer"
 
@@ -73,8 +69,7 @@ comp 1
 !shapes -outer +cylinder
 shapes -outer
 
-!##############################################################################
-
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 ! (3 + 3 + 6) x (3 + 3) x (10)
 [UNIVERSE=array arr]
 nx 3
@@ -93,8 +88,7 @@ fill  T H C
       T H C
 origin -6 -3 -5
 
-!##############################################################################
-
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 [UNIVERSE=general global]
 interior "outer"
 
@@ -110,8 +104,4 @@ fill arr
 
 [UNIVERSE][CELL interior]
 comp 0
-shapes +arrfill -outer ! +arrfill2 
-
-!##############################################################################
-! end of Geometria/orange/test/data/array.org.omn
-!##############################################################################
+shapes +arrfill -outer ! +arrfill2
