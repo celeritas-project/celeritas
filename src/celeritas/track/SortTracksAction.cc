@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
 namespace celeritas
@@ -19,7 +20,10 @@ namespace celeritas
  */
 void SortTracksAction::execute(CoreHostRef const& core) const
 {
-    detail::partition_tracks_by_status(core.states);
+    if (core.params.init.track_order == TrackOrder::partition_status)
+    {
+        detail::partition_tracks_by_status(core.states);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -32,7 +36,10 @@ void SortTracksAction::execute(
 #if !CELER_USE_DEVICE
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 #else
-    detail::partition_tracks_by_status(core.states);
+    if (core.params.init.track_order == TrackOrder::partition_status)
+    {
+        detail::partition_tracks_by_status(core.states);
+    }
 #endif
 }
 
