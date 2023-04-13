@@ -37,6 +37,7 @@
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
 #include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
+#include "celeritas/track/SortTracksAction.hh"
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
@@ -154,6 +155,10 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     // Construct initialize tracks action
     input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
+        input_.action_reg->next_id()));
+
+    // Construt sort tracks action 
+    input_.action_reg->insert(std::make_shared<SortTracksAction>(
         input_.action_reg->next_id()));
 
     // Construct extend from secondaries action

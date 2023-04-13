@@ -104,7 +104,6 @@ void ActionSequence::execute(CoreRef<M> const& data)
             sp_action->execute(data);
         }
     }
-    detail::partition_tracks_by_status(data.states);
 }
 
 //---------------------------------------------------------------------------//
