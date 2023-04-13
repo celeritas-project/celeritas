@@ -15,8 +15,9 @@ namespace celeritas
 /*!
  * Sort track by status
  *
- * Provides Action interface to `celeritas::detail::partition_tracks_by_status`.
- * 
+ * Provides Action interface to
+ * `celeritas::detail::partition_tracks_by_status`.
+ *
  * TODO: Use init params.init to configure sorting strategy
  *
  * \sa celeritas::detail::partition_tracks_by_status
@@ -25,7 +26,12 @@ class SortTracksAction final : public ExplicitActionInterface
 {
   public:
     //! Construct with explicit Id
-    explicit SortTracksAction(ActionId id) : id_(id) {}
+    explicit SortTracksAction(ActionId id,
+                              ActionOrder action_order,
+                              TrackOrder track_order)
+        : id_(id), action_order_(action_order), track_order_(track_order)
+    {
+    }
 
     //! Default destructor
     ~SortTracksAction() = default;
@@ -40,16 +46,18 @@ class SortTracksAction final : public ExplicitActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string label() const final { return "sort-tracks"; }
+    std::string label() const final;
 
     //! Description of the action for user interaction
     std::string description() const final { return "sort tracks states"; }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::start; }
+    ActionOrder order() const final { return action_order_; }
 
   private:
     ActionId id_;
+    ActionOrder action_order_;
+    TrackOrder track_order_;
 };
 
 //---------------------------------------------------------------------------//

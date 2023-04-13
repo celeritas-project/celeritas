@@ -16,11 +16,25 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Short name for the action
+ */
+std::string SortTracksAction::label() const
+{
+    switch (action_order_)
+    {
+        case ActionOrder::start:
+            return "sort-tracks-start";
+        default:
+            return "sort-tracks";
+    }
+}
+//---------------------------------------------------------------------------//
+/*!
  * Execute the action with host data
  */
 void SortTracksAction::execute(CoreHostRef const& core) const
 {
-    if (core.params.init.track_order == TrackOrder::partition_status)
+    if (track_order_ == TrackOrder::partition_status)
     {
         detail::partition_tracks_by_status(core.states);
     }
@@ -30,13 +44,12 @@ void SortTracksAction::execute(CoreHostRef const& core) const
 /*!
  * Execute the action with device data
  */
-void SortTracksAction::execute(
-    [[maybe_unused]] CoreDeviceRef const& core) const
+void SortTracksAction::execute([[maybe_unused]] CoreDeviceRef const& core) const
 {
 #if !CELER_USE_DEVICE
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 #else
-    if (core.params.init.track_order == TrackOrder::partition_status)
+    if (track_order_ == TrackOrder::partition_status)
     {
         detail::partition_tracks_by_status(core.states);
     }

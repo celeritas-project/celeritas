@@ -127,7 +127,7 @@ enum class StepPoint
 //! Ordering / sorting of tracks on GPU
 enum class TrackOrder
 {
-    unsorted,  //!< Don't do any sorting, tracks are in a arbitrary order
+    unsorted,  //!< Don't do any sorting, tracks are in an arbitrary order
     shuffled,  //!< Tracks are shuffled at the start ot the simulation
     partition_status,  //!< Tracks are partitioned by status at the start of
                        //!< each step
