@@ -44,16 +44,12 @@ void SortTracksAction::execute(CoreHostRef const& core) const
 /*!
  * Execute the action with device data
  */
-void SortTracksAction::execute([[maybe_unused]] CoreDeviceRef const& core) const
+void SortTracksAction::execute(CoreDeviceRef const& core) const
 {
-#if !CELER_USE_DEVICE
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-#else
     if (track_order_ == TrackOrder::partition_status)
     {
         detail::partition_tracks_by_status(core.states);
     }
-#endif
 }
 
 }  // namespace celeritas
