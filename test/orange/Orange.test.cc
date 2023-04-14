@@ -849,7 +849,7 @@ TEST_F(UniversesTest, cross_between_daughters)
 
 TEST_F(RectArrayTest, initialization)
 {
-    OrangeTrackView geo = this->make_track_view();
+    FAIL() << "not implemented";
 }
 
 TEST_F(Geant4Testem15Test, safety)
