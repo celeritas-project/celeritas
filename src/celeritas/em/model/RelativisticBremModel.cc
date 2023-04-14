@@ -100,14 +100,16 @@ auto RelativisticBremModel::micro_xs(Applicability applic) const
 /*!
  * Apply the interaction kernel.
  */
-void RelativisticBremModel::execute(CoreDeviceRef const& data) const
+void RelativisticBremModel::execute(ParamsDeviceCRef const& params,
+                                    StateDeviceRef& states) const
 {
-    generated::relativistic_brem_interact(this->device_ref(), data);
+    generated::relativistic_brem_interact(this->device_ref(), params, states);
 }
 
-void RelativisticBremModel::execute(CoreHostRef const& data) const
+void RelativisticBremModel::execute(ParamsHostCRef const& params,
+                                    StateHostRef& states) const
 {
-    generated::relativistic_brem_interact(this->host_ref(), data);
+    generated::relativistic_brem_interact(this->host_ref(), params, states);
 }
 
 //!@}

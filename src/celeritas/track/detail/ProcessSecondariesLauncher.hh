@@ -47,8 +47,8 @@ class ProcessSecondariesLauncher
   public:
     // Construct with shared and state data
     CELER_FUNCTION
-    ProcessSecondariesLauncher(CoreRef<M> const& core_data)
-        : params_(core_data.params), states_(core_data.states)
+    ProcessSecondariesLauncher(ParamsRef const& params, StateRef const& states)
+        : params_(params), states_(states)
     {
         CELER_EXPECT(params_);
         CELER_EXPECT(states_);

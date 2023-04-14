@@ -43,8 +43,9 @@ class LocateAliveLauncher
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION LocateAliveLauncher(CoreRef<M> const& core_data)
-        : params_(core_data.params), states_(core_data.states)
+    CELER_FUNCTION
+    LocateAliveLauncher(ParamsRef const& params, StateRef const& states)
+        : params_(params), states_(states)
     {
         CELER_EXPECT(params_);
         CELER_EXPECT(states_);

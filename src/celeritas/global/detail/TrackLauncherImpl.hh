@@ -25,20 +25,18 @@ namespace detail
 template<class F>
 struct TrackLauncher
 {
-    using CoreRefNative = celeritas::CoreRef<MemSpace::native>;
-
     //// DATA ////
 
-    CoreRefNative const& data;
+    NativeCRef<CoreParamsData> const& params;
+    NativeRef<CoreStateData> const& state;
     F call_with_track;
 
     //// METHODS ////
 
     CELER_FUNCTION void operator()(ThreadId thread) const
     {
-        CELER_ASSERT(thread < this->data.states.size());
-        const celeritas::CoreTrackView track(
-            this->data.params, this->data.states, thread);
+        CELER_ASSERT(thread < this->state.size());
+        const celeritas::CoreTrackView track(this->params, this->state, thread);
         this->call_with_track(track);
     }
 };

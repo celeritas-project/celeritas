@@ -102,14 +102,16 @@ auto LivermorePEModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void LivermorePEModel::execute(CoreDeviceRef const& data) const
+void LivermorePEModel::execute(ParamsDeviceCRef const& params,
+                               StateDeviceRef& states) const
 {
-    generated::livermore_pe_interact(this->device_ref(), data);
+    generated::livermore_pe_interact(this->device_ref(), params, states);
 }
 
-void LivermorePEModel::execute(CoreHostRef const& data) const
+void LivermorePEModel::execute(ParamsHostCRef const& params,
+                               StateHostRef& states) const
 {
-    generated::livermore_pe_interact(this->host_ref(), data);
+    generated::livermore_pe_interact(this->host_ref(), params, states);
 }
 
 //!@}

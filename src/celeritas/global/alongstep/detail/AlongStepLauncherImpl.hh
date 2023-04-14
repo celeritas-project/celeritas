@@ -33,14 +33,10 @@ namespace detail
 template<class M, class P, class E, class F>
 struct AlongStepLauncherImpl
 {
-    //!@{
-    //! \name Type aliases
-    using CoreRefNative = CoreRef<MemSpace::native>;
-    //!@}
-
     //// DATA ////
 
-    CoreRefNative const& core_data;
+    NativeCRef<CoreParamsData> const& core_params;
+    NativeRef<CoreStateData> const& core_state;
     M msc_data;
     P propagator_data;
     E eloss_data;
@@ -61,9 +57,9 @@ template<class M, class P, class E, class F>
 CELER_FUNCTION void
 AlongStepLauncherImpl<M, P, E, F>::operator()(ThreadId thread) const
 {
-    CELER_ASSERT(thread < this->core_data.states.size());
+    CELER_ASSERT(thread < this->core_state.size());
     const celeritas::CoreTrackView track(
-        this->core_data.params, this->core_data.states, thread);
+        this->core_params, this->core_state, thread);
 
     {
         auto sim = track.make_sim_view();
