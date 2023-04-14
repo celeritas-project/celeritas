@@ -18,7 +18,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/track/detail/TrackSortUtils.hh"
+#include "celeritas/global/CoreTrackData.hh"
 
 #include "../ActionRegistry.hh"
 
@@ -80,7 +80,9 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
  * The given action ID \em must be an explicit action.
  */
 template<MemSpace M>
-void ActionSequence::execute(CoreRef<M> const& data)
+void ActionSequence::execute(
+    CoreParamsData<Ownership::const_reference, M> const& params,
+    CoreStateData<Ownership::reference, M>& state)
 {
     if (M == MemSpace::host || options_.sync)
     {
@@ -88,7 +90,7 @@ void ActionSequence::execute(CoreRef<M> const& data)
         for (auto i : range(actions_.size()))
         {
             Stopwatch get_time;
-            actions_[i]->execute(data);
+            actions_[i]->execute(params, state);
             if (M == MemSpace::device)
             {
                 CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
@@ -101,7 +103,7 @@ void ActionSequence::execute(CoreRef<M> const& data)
         // Just loop over the actions
         for (SPConstExplicit const& sp_action : actions_)
         {
-            sp_action->execute(data);
+            sp_action->execute(params, state);
         }
     }
 }
@@ -110,8 +112,12 @@ void ActionSequence::execute(CoreRef<M> const& data)
 // Explicit template instantiation
 //---------------------------------------------------------------------------//
 
-template void ActionSequence::execute(CoreRef<MemSpace::host> const&);
-template void ActionSequence::execute(CoreRef<MemSpace::device> const&);
+template void ActionSequence::execute(
+    CoreParamsData<Ownership::const_reference, MemSpace::host> const&,
+    CoreStateData<Ownership::reference, MemSpace::host>&);
+template void ActionSequence::execute(
+    CoreParamsData<Ownership::const_reference, MemSpace::device> const&,
+    CoreStateData<Ownership::reference, MemSpace::device>&);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

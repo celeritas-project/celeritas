@@ -5,12 +5,13 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/grid/TwodGridCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/TwodGridCalculator.hh"
+
+#include "corecel/grid/TwodGridCalculator.hh"
 
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "celeritas/grid/UniformGrid.hh"
-#include "celeritas/grid/detail/FindInterp.hh"
+#include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/detail/FindInterp.hh"
 
 #include "celeritas_test.hh"
 

@@ -26,11 +26,13 @@ class ExtendFromSecondariesAction final : public ExplicitActionInterface
     //! Default destructor
     ~ExtendFromSecondariesAction() = default;
 
-    //! Execute the action with host data
-    void execute(CoreHostRef const& core) const final;
+    // Execute the action with host data
+    void
+    execute(ParamsHostCRef const& params, StateHostRef& states) const final;
 
-    //! Execute the action with device data
-    void execute(CoreDeviceRef const& core) const final;
+    // Execute the action with device data
+    void execute(ParamsDeviceCRef const& params,
+                 StateDeviceRef& states) const final;
 
     //! ID of the action
     ActionId action_id() const final { return id_; }

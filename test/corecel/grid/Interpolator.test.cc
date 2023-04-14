@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/grid/Interpolator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/Interpolator.hh"
+#include "corecel/grid/Interpolator.hh"
 
 #include "celeritas_test.hh"
 

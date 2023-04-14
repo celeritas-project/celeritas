@@ -22,19 +22,19 @@ namespace celeritas
 {
 namespace generated
 {
-void DiscreteSelectAction::execute(CoreHostRef const& data) const
+void DiscreteSelectAction::execute(ParamsHostCRef const& params, StateHostRef& state) const
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_track_launcher(data, detail::discrete_select_track);
+    auto launch = make_track_launcher(params, state, detail::discrete_select_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < data.states.size(); ++i)
+    for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(data, ThreadId{i}, this->label()));
+            KernelContextException(params, state, ThreadId{i}, this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }

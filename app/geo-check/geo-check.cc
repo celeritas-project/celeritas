@@ -19,9 +19,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Label.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
@@ -51,13 +53,10 @@ void run(std::istream& is, bool use_cuda)
         set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
     }
 
-    Real3 pos, dir;
-    for (int i = 0; i < 3; ++i)
-    {
-        pos[i] = inp.at("track_origin")[i].get<real_type>();
-        dir[i] = inp.at("track_direction")[i].get<real_type>();
-    }
-    GeoTrackInitializer trkinit{pos, dir};
+    GeoTrackInitializer trkinit;
+    inp.at("track_origin").get_to(trkinit.pos);
+    inp.at("track_direction").get_to(trkinit.dir);
+    normalize_direction(&trkinit.dir);
 
     CELER_ASSERT(geo_params);
     int max_steps = inp.at("max_steps").get<int>();

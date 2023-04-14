@@ -88,14 +88,16 @@ auto CombinedBremModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void CombinedBremModel::execute(CoreDeviceRef const& data) const
+void CombinedBremModel::execute(ParamsDeviceCRef const& params,
+                                StateDeviceRef& states) const
 {
-    generated::combined_brem_interact(this->device_ref(), data);
+    generated::combined_brem_interact(this->device_ref(), params, states);
 }
 
-void CombinedBremModel::execute(CoreHostRef const& data) const
+void CombinedBremModel::execute(ParamsHostCRef const& params,
+                                StateHostRef& states) const
 {
-    generated::combined_brem_interact(this->host_ref(), data);
+    generated::combined_brem_interact(this->host_ref(), params, states);
 }
 
 //!@}

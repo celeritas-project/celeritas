@@ -14,8 +14,8 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/UniformGridData.hh"
 
 #include "XsGridData.hh"
 

@@ -42,17 +42,17 @@ public:
   using ConcreteAction::ConcreteAction;
 
   // Launch kernel with host data
-  void execute(CoreHostRef const&) const final;
+  void execute(ParamsHostCRef const&, StateHostRef&) const final;
 
   // Launch kernel with device data
-  void execute(CoreDeviceRef const&) const final;
+  void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
 
   //! Dependency ordering of the action
   ActionOrder order() const final {{ return ActionOrder::{actionorder}; }}
 }};
 
 #if !CELER_USE_DEVICE
-inline void {clsname}::execute(CoreDeviceRef const&) const
+inline void {clsname}::execute(ParamsDeviceCRef const&, StateDeviceRef&) const
 {{
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }}
@@ -80,19 +80,19 @@ namespace celeritas
 {{
 namespace generated
 {{
-void {clsname}::execute(CoreHostRef const& data) const
+void {clsname}::execute(ParamsHostCRef const& params, StateHostRef& state) const
 {{
-    CELER_EXPECT(data);
+    CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_track_launcher(data, detail::{func}_track);
+    auto launch = make_track_launcher(params, state, detail::{func}_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < data.states.size(); ++i)
+    for (size_type i = 0; i < state.size(); ++i)
     {{
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{{i}}),
             capture_exception,
-            KernelContextException(data, ThreadId{{i}}, this->label()));
+            KernelContextException(params, state, ThreadId{{i}}, this->label()));
     }}
     log_and_rethrow(std::move(capture_exception));
 }}
@@ -118,25 +118,28 @@ namespace generated
 {{
 namespace
 {{
-__global__ void{launch_bounds}{func}_kernel(CoreDeviceRef const data
+__global__ void{launch_bounds}{func}_kernel(
+    DeviceCRef<CoreParamsData> const params,
+    DeviceRef<CoreStateData> const state
 )
 {{
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < data.states.size()))
+    if (!(tid < state.size()))
         return;
 
-    auto launch = make_track_launcher(data, detail::{func}_track);
+    auto launch = make_track_launcher(params, state, detail::{func}_track);
     launch(tid);
 }}
 }}  // namespace
 
-void {clsname}::execute(CoreDeviceRef const& data) const
+void {clsname}::execute(ParamsDeviceCRef const& params, StateDeviceRef& state) const
 {{
-    CELER_EXPECT(data);
+    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL({func},
                         celeritas::device().default_block_size(),
-                        data.states.size(),
-                        data);
+                        state.size(),
+                        params,
+                        state);
 }}
 
 }}  // namespace generated

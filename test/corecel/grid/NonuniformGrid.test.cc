@@ -5,7 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/grid/NonuniformGrid.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/NonuniformGrid.hh"
+
+#include "corecel/grid/NonuniformGrid.hh"
 
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"

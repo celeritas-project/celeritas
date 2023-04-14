@@ -26,9 +26,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 template<StepPoint P>
-void step_gather_device(CoreRef<MemSpace::device> const& core,
+void step_gather_device(DeviceCRef<CoreParamsData> const& core_params,
+                        DeviceRef<CoreStateData>& core_state,
                         DeviceCRef<StepParamsData> const& step_params,
-                        DeviceRef<StepStateData> const& step_state);
+                        DeviceRef<StepStateData>& step_state);
 
 //---------------------------------------------------------------------------//
 /*!
@@ -62,16 +63,18 @@ std::string StepGatherAction<P>::description() const
  * Gather step attributes from host data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(CoreHostRef const& core) const
+void StepGatherAction<P>::execute(ParamsHostCRef const& params,
+                                  StateHostRef& states) const
 {
-    CELER_EXPECT(core);
-    auto const& step_state = this->get_state(core);
-    CELER_ASSERT(step_state.size() == core.states.size());
+    CELER_EXPECT(params && states);
+    auto const& step_state = this->get_state(params, states);
+    CELER_ASSERT(step_state.size() == states.size());
 
     MultiExceptionHandler capture_exception;
-    StepGatherLauncher<P> launch{core, storage_->params.host_ref(), step_state};
+    StepGatherLauncher<P> launch{
+        params, states, storage_->params.host_ref(), step_state};
 #pragma omp parallel for
-    for (size_type i = 0; i < core.states.size(); ++i)
+    for (size_type i = 0; i < states.size(); ++i)
     {
         CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
     }
@@ -91,13 +94,15 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
  * Gather step attributes from GPU data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
+void StepGatherAction<P>::execute(ParamsDeviceCRef const& params,
+                                  StateDeviceRef& states) const
 {
-    CELER_EXPECT(core);
+    CELER_EXPECT(params && states);
 
 #if CELER_USE_DEVICE
-    auto& step_state = this->get_state(core);
-    step_gather_device<P>(core, storage_->params.device_ref(), step_state);
+    auto& step_state = this->get_state(params, states);
+    step_gather_device<P>(
+        params, states, storage_->params.device_ref(), step_state);
 
     if (P == StepPoint::post)
     {
@@ -119,8 +124,10 @@ void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
  * device type.
  */
 template<MemSpace M>
-StepStateData<Ownership::reference, M> const&
-get_stream_state(CoreRef<M> const& core, StepStorage* storage)
+StepStateData<Ownership::reference, M>&
+get_stream_state(CoreParamsData<Ownership::const_reference, M> const& params,
+                 CoreStateData<Ownership::reference, M>& states,
+                 StepStorage* storage)
 {
     CELER_EXPECT(storage);
 
@@ -136,16 +143,16 @@ get_stream_state(CoreRef<M> const& core, StepStorage* storage)
             // State is guaranteed unresized and we've got a lock
             CELER_LOG_LOCAL(debug)
                 << "Resizing " << (M == MemSpace::host ? "host" : "device")
-                << " step state data for " << core.params.scalars.max_streams
+                << " step state data for " << params.scalars.max_streams
                 << " threads";
-            state_vec.resize(core.params.scalars.max_streams);
+            state_vec.resize(params.scalars.max_streams);
         }
     }
 
     // Get the stream-local but possibly unallocated state storage for the
     // current stream
-    CELER_ASSERT(core.states.stream_id < state_vec.size());
-    auto& state_store = state_vec[core.states.stream_id.unchecked_get()];
+    CELER_ASSERT(states.stream_id < state_vec.size());
+    auto& state_store = state_vec[states.stream_id.unchecked_get()];
     if (CELER_UNLIKELY(!state_store))
     {
         // Thread-local data hasn't been allocated yet
@@ -153,7 +160,7 @@ get_stream_state(CoreRef<M> const& core, StepStorage* storage)
             << "Allocating local " << (M == MemSpace::host ? "host" : "device")
             << " step state data";
         state_store = CollectionStateStore<StepStateData, M>{
-            storage->params.host_ref(), core.states.size()};
+            storage->params.host_ref(), states.size()};
     }
 
     CELER_ENSURE(state_store);
@@ -167,10 +174,14 @@ get_stream_state(CoreRef<M> const& core, StepStorage* storage)
 template class StepGatherAction<StepPoint::pre>;
 template class StepGatherAction<StepPoint::post>;
 
-template StepStateData<Ownership::reference, MemSpace::host> const&
-get_stream_state(CoreRef<MemSpace::host> const&, StepStorage*);
-template StepStateData<Ownership::reference, MemSpace::device> const&
-get_stream_state(CoreRef<MemSpace::device> const&, StepStorage*);
+template StepStateData<Ownership::reference, MemSpace::host>&
+get_stream_state(HostCRef<CoreParamsData> const&,
+                 HostRef<CoreStateData>&,
+                 StepStorage*);
+template StepStateData<Ownership::reference, MemSpace::device>&
+get_stream_state(DeviceCRef<CoreParamsData> const&,
+                 DeviceRef<CoreStateData>&,
+                 StepStorage*);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

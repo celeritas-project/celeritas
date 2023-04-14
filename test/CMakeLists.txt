@@ -70,8 +70,8 @@ function(celeritas_add_device_test base)
   celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
-if(NOT CELERITAS_USE_CUDA)
-  set(_needs_cuda DISABLE)
+if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
+  set(_needs_device DISABLE)
 endif()
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
@@ -135,6 +135,13 @@ celeritas_add_test(corecel/data/Copier.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
 celeritas_add_device_test(corecel/data/StackAllocator)
+
+# Grid
+set(CELERITASTEST_PREFIX corecel/grid)
+celeritas_add_test(corecel/grid/Interpolator.test.cc)
+celeritas_add_test(corecel/grid/NonuniformGrid.test.cc)
+celeritas_add_test(corecel/grid/TwodGridCalculator.test.cc)
+celeritas_add_test(corecel/grid/UniformGrid.test.cc)
 
 # IO
 set(CELERITASTEST_PREFIX corecel/io)
@@ -280,9 +287,23 @@ celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
 set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
+  set(_vg_geant)
+  if(CELERITAS_USE_Geant4)
+    set(_vg_geant
+      ${_needs_geant4}
+      FILTER
+        "-*Geant*"
+        "FourLevelsGeantTest.*"
+        "SolidsGeantTest.*"
+    )
+  else()
+    set(_vg_geant ${_optional_geant4_env})
+  endif()
+
   celeritas_add_device_test(celeritas/ext/Vecgeom
-    ${_optional_geant4_env}
-    LINK_LIBRARIES VecGeom::vecgeom)
+    LINK_LIBRARIES VecGeom::vecgeom
+    ${_vg_geant}
+  )
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
@@ -324,9 +345,6 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
-else()
-  # FIXME: backscattering (or field direction change) into volume crashes ORANGE
-  list(APPEND _geo_args DISABLE)
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 
@@ -374,13 +392,9 @@ celeritas_add_test(celeritas/global/Stepper.test.cc
 set(CELERITASTEST_PREFIX celeritas/grid)
 celeritas_add_test(celeritas/grid/GenericXsCalculator.test.cc)
 celeritas_add_test(celeritas/grid/GridIdFinder.test.cc)
-celeritas_add_test(celeritas/grid/Interpolator.test.cc)
 celeritas_add_test(celeritas/grid/InverseRangeCalculator.test.cc)
-celeritas_add_test(celeritas/grid/NonuniformGrid.test.cc)
 celeritas_add_test(celeritas/grid/PolyEvaluator.test.cc)
 celeritas_add_test(celeritas/grid/RangeCalculator.test.cc)
-celeritas_add_test(celeritas/grid/TwodGridCalculator.test.cc)
-celeritas_add_test(celeritas/grid/UniformGrid.test.cc)
 celeritas_add_test(celeritas/grid/ValueGridBuilder.test.cc)
 celeritas_add_test(celeritas/grid/ValueGridInserter.test.cc)
 celeritas_add_test(celeritas/grid/VectorUtils.test.cc)
@@ -440,7 +454,7 @@ endif()
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_add_test(celeritas/track/Sim.test.cc ${_needs_geant4})
-celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
+celeritas_add_device_test(celeritas/track/TrackInit ${_needs_device})
 
 #-------------------------------------#
 # User

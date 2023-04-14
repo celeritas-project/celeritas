@@ -1,0 +1,56 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": ".base",
+      "hidden": true,
+      "inherits": ["full"],
+      "binaryDir": "${sourceDir}/build-${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx90a"},
+        "CMAKE_CXX_COMPILER": "/opt/rocm-5.5.0/bin/amdclang++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "base",
+      "displayName": "Omnia default options (rocm, debug)",
+      "inherits": [".base"]
+    },
+    {
+      "name": "ndebug",
+      "displayName": "Omnia default options (rocm, no debug)",
+      "inherits": [".ndebug", ".base"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "jobs": 24,
+      "nativeToolOptions": ["-k0"]
+    },
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+    },
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+  ]
+}

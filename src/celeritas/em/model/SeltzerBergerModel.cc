@@ -16,6 +16,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/TwodGridData.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
@@ -23,7 +24,6 @@
 #include "celeritas/em/generated/SeltzerBergerInteract.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
-#include "celeritas/grid/TwodGridData.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -124,14 +124,16 @@ auto SeltzerBergerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void SeltzerBergerModel::execute(CoreDeviceRef const& data) const
+void SeltzerBergerModel::execute(ParamsDeviceCRef const& params,
+                                 StateDeviceRef& states) const
 {
-    generated::seltzer_berger_interact(this->device_ref(), data);
+    generated::seltzer_berger_interact(this->device_ref(), params, states);
 }
 
-void SeltzerBergerModel::execute(CoreHostRef const& data) const
+void SeltzerBergerModel::execute(ParamsHostCRef const& params,
+                                 StateHostRef& states) const
 {
-    generated::seltzer_berger_interact(this->host_ref(), data);
+    generated::seltzer_berger_interact(this->host_ref(), params, states);
 }
 //!@}
 //---------------------------------------------------------------------------//

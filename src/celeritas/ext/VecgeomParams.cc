@@ -32,7 +32,7 @@
 #include "corecel/sys/ScopedMem.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
-#include "detail/GeantGeoExporter.hh"
+#include "detail/GeantGeoConverter.hh"
 
 namespace celeritas
 {
@@ -42,7 +42,7 @@ namespace celeritas
  */
 VecgeomParams::VecgeomParams(std::string const& filename)
 {
-    CELER_LOG(info) << "Loading VecGeom geometry from GDML at " << filename;
+    CELER_LOG(status) << "Loading VecGeom geometry from GDML at " << filename;
     if (!ends_with(filename, ".gdml"))
     {
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
@@ -66,27 +66,19 @@ VecgeomParams::VecgeomParams(std::string const& filename)
 //---------------------------------------------------------------------------//
 /*!
  * Translate a geometry from Geant4.
- *
- * At present this just exports the geometry to GDML, then loads it through the
- * VGDML reader.
  */
 VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 {
     CELER_EXPECT(world);
+    ScopedMem record_mem("VecgeomParams.construct");
+
+    // Convert the geometry to VecGeom
 #if CELERITAS_USE_GEANT4
-    auto filename = detail::GeantGeoExporter::make_tmpfile_name();
-    CELER_LOG(debug) << "Temporary file for Geant4 export: " << filename;
     {
-        // Export file from Geant4
-        ScopedMem record_mem("VecgeomParams.export_gdml");
-        detail::GeantGeoExporter export_to(world);
-        export_to(filename);
-    }
-    {
-        // Import file into VecGeom
-        ScopedMem record_mem("VecgeomParams.load_gdml");
-        ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
-        vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
+        ScopedMem record_mem("VecgeomParams.convert");
+        detail::GeantGeoConverter convert;
+        convert(world);
+        CELER_ASSERT(vecgeom::GeoManager::Instance().GetWorld());
     }
 #else
     CELER_NOT_CONFIGURED("Geant4");

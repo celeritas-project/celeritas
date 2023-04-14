@@ -142,11 +142,9 @@ void VecgeomTestBase::TrackingResult::print_expected()
 //---------------------------------------------------------------------------//
 // FOUR-LEVELS TEST
 //---------------------------------------------------------------------------//
-
 class FourLevelsTest : public GlobalGeoTestBase,
                        public OnlyGeoTestBase,
                        public VecgeomTestBase
-
 {
   public:
     char const* geometry_basename() const final { return "four-levels"; }
@@ -320,7 +318,7 @@ TEST_F(FourLevelsTest, tracking)
     {
         // Formerly in linear propagator test, used to fail
         SCOPED_TRACE("From just outside world");
-        auto result = this->track({-24, 6.5, 6.5}, {1, 0, 0});
+        auto result = this->track({-24, 10, 10}, {1, 0, 0});
         static char const* const expected_volumes[] = {"[OUTSIDE]",
                                                        "World",
                                                        "Envelope",
@@ -336,20 +334,8 @@ TEST_F(FourLevelsTest, tracking)
                                                        "Envelope",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {1e-13,
-                                                       6.9999999999999,
-                                                       1,
-                                                       5.2928932188135,
-                                                       1.4142135623731,
-                                                       5.2928932188135,
-                                                       1,
-                                                       6,
-                                                       1,
-                                                       5.2928932188135,
-                                                       1.4142135623731,
-                                                       5.2928932188135,
-                                                       1,
-                                                       7};
+        static const real_type expected_distances[]
+            = {1e-13, 7, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 }
@@ -427,15 +413,24 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 // SOLIDS TEST
 //---------------------------------------------------------------------------//
 
-// TODO: solids are not all implemented in VGDML
-
-class SolidsTest : public GlobalGeoTestBase,
+class SolidsTest : public VecgeomTestBase,
                    public OnlyGeoTestBase,
-                   public VecgeomTestBase
+                   public GlobalGeoTestBase
 {
   public:
     char const* geometry_basename() const final { return "solids"; }
 };
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsTest, DISABLED_dump)
+{
+    this->geometry();
+    auto const& geomgr = vecgeom::GeoManager::Instance();
+    auto const* world = geomgr.GetWorld();
+    CELER_ASSERT(world);
+    world->PrintContent();
+}
 
 //---------------------------------------------------------------------------//
 
@@ -449,42 +444,136 @@ TEST_F(SolidsTest, accessors)
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
 
-    if (vecgeom_version <= Version(1, 2, 0))
+    if (vecgeom_version < Version(1, 2, 2))
     {
-        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
+        ADD_FAILURE()
+            << "VecGeom " << vecgeom_version
+            << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
-    // TODO: there are 27 actual solids, but there are a few "unused" volumes
-    // created during construction, and different versions of VecGeom are
-    // missing different solids (and thus are missing volumes!)
-    ASSERT_EQ(26, geom.num_volumes());
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), bbox.upper());
 
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{25}).name);
-    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
-    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
-    EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
+    ASSERT_EQ(25, geom.num_volumes());
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{geom.num_volumes() - 1}).name);
+    EXPECT_EQ("box500", geom.id_to_label(VolumeId{4}).name);
+    EXPECT_EQ("cone1", geom.id_to_label(VolumeId{5}).name);
+    EXPECT_EQ("trap1", geom.id_to_label(VolumeId{9}).name);
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SolidsTest, DISABLED_trace)
+TEST_F(SolidsTest, trace)
 {
     {
-        SCOPED_TRACE("Center +x");
-        auto result = this->track({-100, 0, 0}, {1, 0, 0});
-        result.print_expected();
+        SCOPED_TRACE("Center -x");
+        auto result = this->track({375, 0, 0}, {-1, 0, 0});
+        static char const* const expected_volumes[] = {"ellipsoid1",
+                                                       "World",
+                                                       "polycone1",
+                                                       "World",
+                                                       "sphere1",
+                                                       "World",
+                                                       "box500",
+                                                       "World",
+                                                       "cone1",
+                                                       "World",
+                                                       "trd1",
+                                                       "World",
+                                                       "parabol1",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {20,
+                                                       95,
+                                                       20,
+                                                       115,
+                                                       40,
+                                                       60,
+                                                       50,
+                                                       73,
+                                                       54,
+                                                       83,
+                                                       30,
+                                                       88.786678713601,
+                                                       42.426642572799,
+                                                       203.7866787136};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Upper +x");
-        auto result = this->track({-100, 12.5, 0}, {1, 0, 0});
-        result.print_expected();
+        auto result = this->track({-375, 125, 0}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"World",
+                                                       "hype1",
+                                                       "World",
+                                                       "para1",
+                                                       "World",
+                                                       "tube100",
+                                                       "World",
+                                                       "boolean1",
+                                                       "World",
+                                                       "boolean1",
+                                                       "World",
+                                                       "polyhedr1",
+                                                       "World",
+                                                       "polyhedr1",
+                                                       "World",
+                                                       "ellcone1",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {20,
+                                                       4,
+                                                       71,
+                                                       60,
+                                                       75,
+                                                       4,
+                                                       116.000001,
+                                                       12.499999,
+                                                       20.000001,
+                                                       17.499999,
+                                                       191.98703789108,
+                                                       1e-08,
+                                                       40.048511400819,
+                                                       25.977412807017,
+                                                       86.987037891082,
+                                                       10,
+                                                       220};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Lower +x");
-        auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
-        result.print_expected();
+        auto result = this->track({-375, -125, 0}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"arb8b",
+                                                       "World",
+                                                       "arb8a",
+                                                       "World",
+                                                       "trap1",
+                                                       "World",
+                                                       "tetrah1",
+                                                       "World",
+                                                       "orb1",
+                                                       "World",
+                                                       "genPocone1",
+                                                       "World",
+                                                       "elltube1",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {40,
+                                                       45,
+                                                       80,
+                                                       68.125,
+                                                       33.75,
+                                                       108.125,
+                                                       55.928620358185,
+                                                       29.071379641815,
+                                                       80,
+                                                       40,
+                                                       45,
+                                                       105,
+                                                       40,
+                                                       205};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
-    ADD_FAILURE() << "These are all wrong...";
 }
 
 //---------------------------------------------------------------------------//
@@ -509,12 +598,137 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
 
 //---------------------------------------------------------------------------//
 
+#define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
+class FourLevelsGeantTest : public GeantBuilderTestBase
+{
+  public:
+    char const* geometry_basename() const final { return "four-levels"; }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(FourLevelsGeantTest, accessors)
+{
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(4, geom.max_depth());
+
+    auto const& bbox = geom.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-24.001, -24.001, -24.001}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{24.001, 24.001, 24.001}), bbox.upper());
+
+    ASSERT_EQ(4, geom.num_volumes());
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{1}).name);
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{2}).name);
+    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{3}).name);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(FourLevelsGeantTest, tracking)
+{
+    {
+        SCOPED_TRACE("Rightward");
+        auto result = this->track({-10, -10, -10}, {1, 0, 0});
+        // result.print_expected();
+        static char const* const expected_volumes[] = {"Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {5, 1, 1, 6, 1, 1, 10, 1, 1, 7};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("From outside edge");
+        auto result = this->track({-24, 10., 10.}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"[OUTSIDE]",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {1e-13, 7.0 - 1e-13, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Leaving world");
+        auto result = this->track({-10, 10, 10}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"Shape2", "Shape1", "Envelope", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {5, 1, 2, 6};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Upward");
+        auto result = this->track({-10, 10, 10}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"Shape2", "Shape1", "Envelope", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {5, 1, 3, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        // Formerly in linear propagator test, used to fail
+        SCOPED_TRACE("From just outside world");
+        auto result = this->track({-24, 10, 10}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"[OUTSIDE]",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {1e-13, 7, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
 #define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
+
 class SolidsGeantTest : public GeantBuilderTestBase
 {
   public:
     char const* geometry_basename() const final { return "solids"; }
 };
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, DISABLED_dump)
+{
+    this->geometry();
+    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
+    world->PrintContent();
+}
 
 //---------------------------------------------------------------------------//
 
@@ -528,69 +742,136 @@ TEST_F(SolidsGeantTest, accessors)
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
 
-    if (vecgeom_version <= Version(1, 2, 0))
+    if (vecgeom_version < Version(1, 2, 2))
     {
-        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
+        ADD_FAILURE()
+            << "VecGeom " << vecgeom_version
+            << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
     auto const& bbox = geom.bbox();
-    EXPECT_VEC_SOFT_EQ((Real3{-500.001, -500.001, -500.001}), bbox.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{500.001, 500.001, 500.001}), bbox.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), bbox.upper());
 
-    // TODO: there are 27 actual solids, but there are a few "unused" volumes
-    // created during construction, and different versions of VecGeom are
-    // missing different solids (and thus are missing volumes!)
-    // 26 is the "expected" number from VecGeom 1.2.2 (used by CI)
-    ASSERT_EQ(26, geom.num_volumes());
-
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{25}).name);
-    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
-    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
-    EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
+    ASSERT_EQ(25, geom.num_volumes());
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
+    EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
+    EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
+    EXPECT_EQ("b500_bool_left", geom.id_to_label(VolumeId{9}).name);
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SolidsGeantTest, DISABLED_trace)
+TEST_F(SolidsGeantTest, trace)
 {
     {
-        SCOPED_TRACE("Center +x");
-        auto result = this->track({-100, 0, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"World",
-                                                       "vol1",
+        SCOPED_TRACE("Center -x");
+        auto result = this->track({375, 0, 0}, {-1, 0, 0});
+        static char const* const expected_volumes[] = {"ellipsoid1",
                                                        "World",
-                                                       "vol2",
+                                                       "polycone1",
                                                        "World",
-                                                       "vol0",
+                                                       "sphere1",
                                                        "World",
-                                                       "vol3",
+                                                       "box500",
                                                        "World",
-                                                       "vol4",
+                                                       "cone1",
+                                                       "World",
+                                                       "trd1",
+                                                       "World",
+                                                       "parabol1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[]
-            = {72.25, 5.5, 9.25, 1, 11.5, 1, 7, 10, 7, 1, 474.5};
+        static const real_type expected_distances[] = {20,
+                                                       95,
+                                                       20,
+                                                       115,
+                                                       40,
+                                                       60,
+                                                       50,
+                                                       73,
+                                                       54,
+                                                       83,
+                                                       30,
+                                                       88.786678713601,
+                                                       42.426642572799,
+                                                       203.7866787136};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Upper +x");
-        auto result = this->track({-100, 12.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"World", "vol11", "World", "vol21", "World", "vol31", "World"};
+        auto result = this->track({-375, 125, 0}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"World",
+                                                       "hype1",
+                                                       "World",
+                                                       "para1",
+                                                       "World",
+                                                       "tube100",
+                                                       "World",
+                                                       "boolean1",
+                                                       "World",
+                                                       "boolean1",
+                                                       "World",
+                                                       "polyhedr1",
+                                                       "World",
+                                                       "polyhedr1",
+                                                       "World",
+                                                       "ellcone1",
+                                                       "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[]
-            = {74.5, 1, 11, 2, 22.000001, 4.999999, 484.5};
+        static const real_type expected_distances[] = {20,
+                                                       4,
+                                                       71,
+                                                       60,
+                                                       75,
+                                                       4,
+                                                       116.000001,
+                                                       12.499999,
+                                                       20.000001,
+                                                       17.499999,
+                                                       191.98703789108,
+                                                       1e-08,
+                                                       40.048511400819,
+                                                       25.977412807017,
+                                                       86.987037891082,
+                                                       10,
+                                                       220};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Lower +x");
-        auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"World"};
+        auto result = this->track({-375, -125, 0}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"arb8b",
+                                                       "World",
+                                                       "arb8a",
+                                                       "World",
+                                                       "trap1",
+                                                       "World",
+                                                       "tetrah1",
+                                                       "World",
+                                                       "orb1",
+                                                       "World",
+                                                       "genPocone1",
+                                                       "World",
+                                                       "elltube1",
+                                                       "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {600};
+        static const real_type expected_distances[] = {40,
+                                                       45,
+                                                       80,
+                                                       68.125,
+                                                       33.75,
+                                                       108.125,
+                                                       55.928620358185,
+                                                       29.071379641815,
+                                                       80,
+                                                       40,
+                                                       45,
+                                                       105,
+                                                       40,
+                                                       205};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
-    ADD_FAILURE() << "These are all wrong...";
 }
 
 //---------------------------------------------------------------------------//

@@ -69,7 +69,7 @@ auto Stepper<M>::operator()() -> result_type
 {
     CELER_EXPECT(*this);
 
-    actions_->execute(core_ref_);
+    actions_->execute(core_ref_.params, core_ref_.states);
 
     // Get the number of track initializers and active tracks
     result_type result;
@@ -108,7 +108,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << " exceeds max_events=" << params_->init()->max_events());
 
     // Create track initializers
-    extend_from_primaries(core_ref_, primaries);
+    extend_from_primaries(core_ref_.params, core_ref_.states, primaries);
 
     return (*this)();
 }

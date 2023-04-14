@@ -106,7 +106,7 @@ G4VPhysicalVolume const* GeantTestBase::get_world_volume()
 auto GeantTestBase::build_init() -> SPConstTrackInit
 {
     TrackInitParams::Input input;
-    input.capacity = 4096;
+    input.capacity = 4096 * 2;
     input.max_events = 4096;
     return std::make_shared<TrackInitParams>(input);
 }
