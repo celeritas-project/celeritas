@@ -112,13 +112,8 @@ class OrangeParams
   private:
     //// HELPER METHODS ////
 
-    // Insert all simple units
-    void insert_simple_units(HostVal<OrangeParamsData>& host_data,
-                             OrangeInput const& input);
-
     // Get surface and volume labels for all universes.
-    void process_metadata(HostVal<OrangeParamsData>& host_data,
-                          OrangeInput const& input);
+    void process_metadata(OrangeInput const& input);
 };
 
 //---------------------------------------------------------------------------//

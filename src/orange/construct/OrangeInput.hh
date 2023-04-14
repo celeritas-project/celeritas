@@ -8,6 +8,7 @@
 #pragma once
 
 #include <unordered_map>  // IWYU pragma: export
+#include <variant>
 #include <vector>
 
 #include "corecel/cont/Label.hh"
@@ -129,8 +130,7 @@ struct RectArrayInput
  */
 struct OrangeInput
 {
-    std::vector<UnitInput> units;
-    std::vector<RectArrayInput> rect_arrays;
+    std::vector<std::variant<UnitInput, RectArrayInput>> universes;
 
     std::vector<UniverseType> universe_types;
     std::vector<size_type> universe_indices;
@@ -143,7 +143,10 @@ struct OrangeInput
     // or maybe std::variant when we require C++17
 
     //! Whether the unit definition is valid
-    explicit operator bool() const { return !units.empty() && max_level > 0; }
+    explicit operator bool() const
+    {
+        return !universes.empty() && max_level > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//

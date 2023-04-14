@@ -266,21 +266,25 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
 {
     auto const& universes = j.at("universes");
 
-    value.units.reserve(universes.size());
+    value.universes.reserve(universes.size());
+
+    size_type simple_unit_index = 0;
+    size_type rect_array_index = 0;
+
     for (auto const& uni : universes)
     {
         auto uni_type = uni.at("_type").get<std::string>();
         if (uni_type == "simple unit")
         {
             value.universe_types.push_back(UniverseType::simple);
-            value.universe_indices.push_back(value.units.size());
-            value.units.push_back(uni.get<UnitInput>());
+            value.universe_indices.push_back(simple_unit_index++);
+            value.universes.push_back(uni.get<UnitInput>());
         }
         else if (uni_type == "rectangular array")
         {
             value.universe_types.push_back(UniverseType::rect_array);
-            value.universe_indices.push_back(value.rect_arrays.size());
-            value.rect_arrays.push_back(uni.get<RectArrayInput>());
+            value.universe_indices.push_back(rect_array_index++);
+            value.universes.push_back(uni.get<RectArrayInput>());
         }
         else if (uni_type == "hexagonal array")
         {

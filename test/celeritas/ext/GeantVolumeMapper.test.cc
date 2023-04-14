@@ -211,7 +211,7 @@ void NestedTest::build_orange()
 
     OrangeInput input;
     input.max_level = 1;
-    input.units.push_back(std::move(ui));
+    input.universes.push_back(std::move(ui));
     auto geo = std::make_shared<OrangeParams>(std::move(input));
 #if !CELERITAS_USE_VECGEOM
     geo_params_ = std::move(geo);
