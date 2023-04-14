@@ -45,7 +45,7 @@ void SortTracksAction::execute(ParamsHostCRef const&,
 /*!
  * Execute the action with device data
  */
-void SortTracksAction::execute([[maybe_unused]] ParamsDeviceCRef const& params,
+void SortTracksAction::execute(ParamsDeviceCRef const&,
                                StateDeviceRef& states) const
 {
     if (track_order_ == TrackOrder::partition_status)
