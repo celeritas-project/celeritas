@@ -160,7 +160,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     // Construct sort tracks action
     input_.action_reg->insert(std::make_shared<SortTracksAction>(
         input_.action_reg->next_id(),
-        ActionOrder::start,
+        ActionOrder::sort_start,
         input_.init->host_ref().track_order));
 
     // Construct extend from secondaries action

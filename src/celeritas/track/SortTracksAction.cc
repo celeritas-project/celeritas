@@ -22,7 +22,7 @@ std::string SortTracksAction::label() const
 {
     switch (action_order_)
     {
-        case ActionOrder::start:
+        case ActionOrder::sort_start:
             return "sort-tracks-start";
         default:
             return "sort-tracks";
