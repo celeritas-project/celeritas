@@ -21,14 +21,16 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-__global__ void along_step_neutral_kernel(CoreDeviceRef const data)
+__global__ void
+along_step_neutral_kernel(DeviceCRef<CoreParamsData> const params,
+                          DeviceRef<CoreStateData> const state)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < data.states.size()))
+    if (!(tid < state.size()))
         return;
 
     auto launch = make_along_step_launcher(
-        data, NoData{}, NoData{}, NoData{}, detail::along_step_neutral);
+        params, state, NoData{}, NoData{}, NoData{}, detail::along_step_neutral);
     launch(tid);
 }
 //---------------------------------------------------------------------------//
@@ -38,13 +40,15 @@ __global__ void along_step_neutral_kernel(CoreDeviceRef const data)
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepNeutralAction::execute(CoreDeviceRef const& data) const
+void AlongStepNeutralAction::execute(ParamsDeviceCRef const& params,
+                                     StateDeviceRef& state) const
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(along_step_neutral,
                         celeritas::device().default_block_size(),
-                        data.states.size(),
-                        data);
+                        state.size(),
+                        params,
+                        state);
 }
 
 //---------------------------------------------------------------------------//

@@ -24,7 +24,6 @@ namespace test
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-//! Interactor
 struct Interactor
 {
     CELER_FUNCTION Interactor(StackAllocator<Secondary>& allocate_secondaries,
@@ -108,10 +107,14 @@ using SecondaryAllocatorData
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
-void interact(CoreDeviceRef data, ITTestInputData input);
+void interact(DeviceCRef<CoreParamsData> const& params,
+              DeviceRef<CoreStateData> const& state,
+              ITTestInputData const& input);
 
 #if !CELER_USE_DEVICE
-inline void interact(CoreDeviceRef, ITTestInputData)
+inline void interact(DeviceCRef<CoreParamsData> const&,
+                     DeviceRef<CoreStateData> const&,
+                     ITTestInputData const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

@@ -32,18 +32,18 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId id,
                 {pdg::gamma()})
 {
     CELER_EXPECT(id);
-    interface_.ids.action = id;
-    interface_.ids.electron = particles.find(pdg::electron());
-    interface_.ids.positron = particles.find(pdg::positron());
-    interface_.ids.gamma = particles.find(pdg::gamma());
-    interface_.enable_lpm = enable_lpm;
+    data_.ids.action = id;
+    data_.ids.electron = particles.find(pdg::electron());
+    data_.ids.positron = particles.find(pdg::positron());
+    data_.ids.gamma = particles.find(pdg::gamma());
+    data_.enable_lpm = enable_lpm;
 
-    CELER_VALIDATE(interface_.ids,
+    CELER_VALIDATE(data_.ids,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
                    << this->description() << ")");
-    interface_.electron_mass = particles.get(interface_.ids.electron).mass();
-    CELER_ENSURE(interface_);
+    data_.electron_mass = particles.get(data_.ids.electron).mass();
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId id,
 auto BetheHeitlerModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
-    photon_applic.particle = interface_.ids.gamma;
+    photon_applic.particle = data_.ids.gamma;
     photon_applic.lower = zero_quantity();
     photon_applic.upper = units::MevEnergy{1e8};
 
@@ -74,14 +74,16 @@ auto BetheHeitlerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void BetheHeitlerModel::execute(CoreDeviceRef const& data) const
+void BetheHeitlerModel::execute(ParamsDeviceCRef const& params,
+                                StateDeviceRef& states) const
 {
-    generated::bethe_heitler_interact(interface_, data);
+    generated::bethe_heitler_interact(data_, params, states);
 }
 
-void BetheHeitlerModel::execute(CoreHostRef const& data) const
+void BetheHeitlerModel::execute(ParamsHostCRef const& params,
+                                StateHostRef& states) const
 {
-    generated::bethe_heitler_interact(interface_, data);
+    generated::bethe_heitler_interact(data_, params, states);
 }
 //!@}
 //---------------------------------------------------------------------------//
@@ -90,7 +92,7 @@ void BetheHeitlerModel::execute(CoreHostRef const& data) const
  */
 ActionId BetheHeitlerModel::action_id() const
 {
-    return interface_.ids.action;
+    return data_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

@@ -16,8 +16,8 @@ namespace demo_loop
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void bin_energy(CoreParamsHostRef const& params,
-                CoreStateHostRef const& states,
+void bin_energy(HostCRef<CoreParamsData> const& params,
+                HostRef<CoreStateData> const& states,
                 PointersHost& pointers)
 {
     EnergyDiagnosticLauncher<MemSpace::host> launch(params, states, pointers);

@@ -33,14 +33,17 @@ class ProcessPrimariesLauncher
   public:
     //!@{
     //! \name Type aliases
+    using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
+    using StateRef = CoreStateData<Ownership::reference, M>;
     using TrackInitStateRef = TrackInitStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION ProcessPrimariesLauncher(CoreRef<M> const& core_data,
+    CELER_FUNCTION ProcessPrimariesLauncher(ParamsRef const&,
+                                            StateRef const& states,
                                             Span<Primary const> primaries)
-        : data_(core_data.states.init), primaries_(primaries)
+        : data_(states.init), primaries_(primaries)
     {
         CELER_EXPECT(data_);
     }

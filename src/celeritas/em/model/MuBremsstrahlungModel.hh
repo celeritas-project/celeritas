@@ -42,10 +42,10 @@ class MuBremsstrahlungModel final : public Model
     MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel on host
-    void execute(CoreHostRef const&) const final;
+    void execute(ParamsHostCRef const&, StateHostRef&) const final;
 
     // Apply the interaction kernel on device
-    void execute(CoreDeviceRef const&) const final;
+    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
 
     // ID of the model
     ActionId action_id() const final;
@@ -57,7 +57,7 @@ class MuBremsstrahlungModel final : public Model
     std::string description() const final { return "Muon bremsstrahlung"; }
 
   private:
-    MuBremsstrahlungData interface_;
+    MuBremsstrahlungData data_;
     ImportedModelAdapter imported_;
 };
 

@@ -45,10 +45,10 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
     ~AlongStepUniformMscAction();
 
     // Launch kernel with host data
-    void execute(CoreHostRef const&) const final;
+    void execute(ParamsHostCRef const&, StateHostRef&) const final;
 
     // Launch kernel with device data
-    void execute(CoreDeviceRef const&) const final;
+    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
@@ -97,7 +97,8 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-inline void AlongStepUniformMscAction::execute(CoreDeviceRef const&) const
+inline void AlongStepUniformMscAction::execute(ParamsDeviceCRef const&,
+                                               StateDeviceRef&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

@@ -35,10 +35,9 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     // Create states (single thread)
     CollectionStateStore<CoreStateData, MemSpace::host> states{
         this->core()->host_ref(), StreamId{0}, num_tracks};
-    CoreRef<MemSpace::host> core_ref;
-    core_ref.params = this->core()->host_ref();
-    core_ref.states = states.ref();
-    CELER_ASSERT(core_ref);
+    auto& core_params = this->core()->host_ref();
+    auto& core_states = states.ref();
+    CELER_ASSERT(core_params && core_states);
 
     {
         // Create primary from input (separate event IDs)
@@ -57,14 +56,14 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         }
 
         // Primary -> track initializer -> track
-        extend_from_primaries(core_ref, make_span(primaries));
-        initialize_tracks(core_ref);
+        extend_from_primaries(core_params, core_states, make_span(primaries));
+        initialize_tracks(core_params, core_states);
     }
 
     // Set remaining MFP and cached MSC range properties
     for (auto tid : range(ThreadId{num_tracks}))
     {
-        CoreTrackView track{core_ref.params, core_ref.states, tid};
+        CoreTrackView track{core_params, core_states, tid};
         auto phys = track.make_physics_view();
         phys.interaction_mfp(inp.phys_mfp);
         if (inp.msc_range)
@@ -81,11 +80,11 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         auto const& prestep_action
             = dynamic_cast<ExplicitActionInterface const&>(
                 *am.action(prestep_action_id));
-        prestep_action.execute(core_ref);
+        prestep_action.execute(core_params, core_states);
 
         // Call along-step action
         auto const& along_step = *this->along_step();
-        along_step.execute(core_ref);
+        along_step.execute(core_params, core_states);
     }
 
     // Process output
@@ -93,7 +92,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     std::map<ActionId, int> actions;
     for (auto tid : range(ThreadId{num_tracks}))
     {
-        CoreTrackView track{core_ref.params, core_ref.states, tid};
+        CoreTrackView track{core_params, core_states, tid};
         auto sim = track.make_sim_view();
         auto particle = track.make_particle_view();
         auto geo = track.make_geo_view();
