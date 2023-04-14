@@ -32,11 +32,12 @@ std::string SortTracksAction::label() const
 /*!
  * Execute the action with host data
  */
-void SortTracksAction::execute(CoreHostRef const& core) const
+void SortTracksAction::execute([[maybe_unused]] ParamsHostCRef const& params,
+                               StateHostRef& states) const
 {
     if (track_order_ == TrackOrder::partition_status)
     {
-        detail::partition_tracks_by_status(core.states);
+        detail::partition_tracks_by_status(states);
     }
 }
 
@@ -44,11 +45,12 @@ void SortTracksAction::execute(CoreHostRef const& core) const
 /*!
  * Execute the action with device data
  */
-void SortTracksAction::execute(CoreDeviceRef const& core) const
+void SortTracksAction::execute([[maybe_unused]] ParamsDeviceCRef const& params,
+                               StateDeviceRef& states) const
 {
     if (track_order_ == TrackOrder::partition_status)
     {
-        detail::partition_tracks_by_status(core.states);
+        detail::partition_tracks_by_status(states);
     }
 }
 
