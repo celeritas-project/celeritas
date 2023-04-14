@@ -83,8 +83,10 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
     Span<UPNavState> nav_state;
 
     // Obtain reference from host memory
-    void
+    VecgeomNavCollection&
     operator=(VecgeomNavCollection<Ownership::value, MemSpace::host>& other);
+    VecgeomNavCollection& operator=(VecgeomNavCollection const&) = default;
+
     // Get the navigation state for a given track slot
     NavState& at(int, TrackSlotId tid) const;
     //! True if the collection is assigned/valiid
@@ -147,8 +149,12 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
     vecgeom::NavStatePoolView pool_view = {nullptr, 0, 0};
 
     // Assign from device value
-    void
+    VecgeomNavCollection&
     operator=(VecgeomNavCollection<Ownership::value, MemSpace::device>& other);
+    // Assign from device reference
+    VecgeomNavCollection& operator=(VecgeomNavCollection const& other)
+        = default;
+
     // Get the navigation state for the given track slot
     inline CELER_FUNCTION NavState& at(int max_depth, TrackSlotId tid) const;
 
