@@ -278,7 +278,7 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
         }
         else if (uni_type == "rectangular array")
         {
-            value.universe_types.push_back(UniverseType::simple);
+            value.universe_types.push_back(UniverseType::rect_array);
             value.universe_indices.push_back(value.rect_arrays.size());
             value.rect_arrays.push_back(uni.get<RectArrayInput>());
         }

@@ -127,7 +127,7 @@ OrangeParams::OrangeParams(OrangeInput input)
     // Insert simple units
     this->insert_simple_units(host_data, input);
 
-    // Insert rect array Units
+    // Insert rect arrays
     detail::RectArrayInserter insert_rect_array(&host_data);
     for (RectArrayInput const& r : input.rect_arrays)
     {
