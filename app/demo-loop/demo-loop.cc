@@ -148,6 +148,7 @@ init_root_mctruth_output(LDemoArgs const& run_args,
     auto step_collector = std::make_shared<StepCollector>(
         StepCollector::VecInterface{step_writer},
         transport_ptr->params().geometry(),
+        transport_ptr->params().max_streams(),
         transport_ptr->params().action_reg().get());
 
     // Store input and CoreParams data
