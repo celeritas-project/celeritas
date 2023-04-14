@@ -32,7 +32,7 @@ std::string SortTracksAction::label() const
 /*!
  * Execute the action with host data
  */
-void SortTracksAction::execute([[maybe_unused]] ParamsHostCRef const& params,
+void SortTracksAction::execute(ParamsHostCRef const&,
                                StateHostRef& states) const
 {
     if (track_order_ == TrackOrder::partition_status)
