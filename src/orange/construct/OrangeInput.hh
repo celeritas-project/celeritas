@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <unordered_map>  // IWYU pragma: export
 #include <variant>
 #include <vector>
@@ -112,14 +113,20 @@ struct RectArrayInput
     // Grid boundaries in x, y, and z
     Array<std::vector<double>, 3> grid;
 
-    // Daughter loading
+    // Daughters in each cell [x][y][z]
     std::vector<DaughterInput> daughters;
 
     // Unit metadata
     Label label;
 
     //! Whether the universe definition is valid
-    explicit operator bool() const { return !daughters.empty(); }
+    explicit operator bool() const
+    {
+        return !daughters.empty()
+               && std::all_of(grid.begin(), grid.end(), [](auto& v) {
+                      return v.size() >= 2;
+                  });
+    }
 };
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "RectArrayInserter.hh"
 
+#include <algorithm>
 #include <vector>
 
 #include "corecel/Assert.hh"
@@ -36,14 +37,33 @@ RectArrayInserter::RectArrayInserter(Data* orange_data)
  */
 RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
 {
-    RectArrayRecord rect_array;
+    RectArrayRecord record;
 
     auto reals_builder = make_builder(&orange_data_->reals);
-    for (auto i : range(3))
+    size_type num_volumes = 1;
+    for (auto ax : range(Axis::size_))
     {
-        rect_array.grid[i] = reals_builder.insert_back(inp.grid[i].begin(),
-                                                       inp.grid[i].end());
+        std::vector<double> const& grid = inp.grid[to_int(ax)];
+        CELER_VALIDATE(grid.size() >= 2,
+                       << "grid for " << to_char(ax) << " axis in '"
+                       << inp.label << "' is too small (size " << grid.size()
+                       << ")");
+        CELER_VALIDATE(std::is_sorted(grid.begin(), grid.end()),
+                       << "grid for " << to_char(ax) << " axis in '"
+                       << inp.label << "' is not monotonically increasing");
+
+        num_volumes *= grid.size() - 1;
+
+        // Construct grid
+        record.grid[to_int(ax)]
+            = reals_builder.insert_back(grid.begin(), grid.end());
     }
+
+    CELER_VALIDATE(inp.daughters.size() == num_volumes,
+                   << "number of input daughters (" << inp.daughters.size()
+                   << ") in '" << inp.label
+                   << "' does not match number of volumes (" << num_volumes
+                   << ")");
 
     std::vector<Daughter> daughters;
     auto translations_builder = make_builder(&orange_data_->translations);
@@ -56,13 +76,13 @@ RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
         daughters.push_back(d);
     }
 
-    rect_array.daughters = ItemMap<LocalVolumeId, DaughterId>(
+    record.daughters = ItemMap<LocalVolumeId, DaughterId>(
         make_builder(&orange_data_->daughters)
             .insert_back(daughters.begin(), daughters.end()));
 
-    CELER_ASSERT(rect_array);
+    CELER_ASSERT(record);
     return RectArrayId(
-        make_builder(&orange_data_->rect_arrays).push_back(rect_array).get());
+        make_builder(&orange_data_->rect_arrays).push_back(record).get());
 }
 
 //---------------------------------------------------------------------------//
