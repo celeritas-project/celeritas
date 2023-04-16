@@ -128,7 +128,10 @@ P<Ownership::const_reference, M> const& CollectionMirror<P>::ref() const
         CELER_ENSURE(device_ref_);
         return device_ref_;
     }
+    // "error #128-D: loop is not reachable"
+#ifndef __NVCC__
     CELER_ASSERT_UNREACHABLE();
+#endif
 }
 
 //---------------------------------------------------------------------------//
