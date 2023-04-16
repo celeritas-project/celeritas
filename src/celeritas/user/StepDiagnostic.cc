@@ -7,15 +7,20 @@
 //---------------------------------------------------------------------------//
 #include "StepDiagnostic.hh"
 
-#include "corecel/Assert.hh"
+#include <type_traits>
+#include <utility>
+
+#include "celeritas_config.h"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/user/ParticleTallyData.hh"
 
 #include "detail/StepDiagnosticExecutor.hh"
 

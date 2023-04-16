@@ -8,6 +8,8 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/data/Collection.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialData.hh"
 #include "celeritas/mat/MaterialData.hh"

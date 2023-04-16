@@ -7,24 +7,22 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepRZMapFieldMscAction.hh"
 
+#include <type_traits>
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/data/Ref.hh"
-#include "corecel/sys/Device.hh"
+#include "corecel/Macros.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepRZMapFieldMsc.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "InitializeTracksAction.hh"
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/ActionLauncher.hh"

@@ -8,7 +8,20 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/ParticleView.hh"
+#include "celeritas/phys/PhysicsData.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 namespace celeritas
 {
