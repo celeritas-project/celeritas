@@ -17,6 +17,11 @@ if [ $# -ne 1 ]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname $0)" && pwd)"
+if ! (cd "${SCRIPT_DIR}" && git diff-files --quiet) ; then
+  echo "error: Git repository is dirty so patches will not be applied"
+  exit 0
+fi
+
 OUTFILE=$(mktemp)
 iwyu_tool.py -p $1 -- \
   -Xiwyu --no_fwd_decls \
@@ -24,16 +29,11 @@ iwyu_tool.py -p $1 -- \
   -Xiwyu --keep="*.json.hh*" \
   -Xiwyu --transitive_includes_only \
   -Xiwyu --mapping_file="${SCRIPT_DIR}/iwyu-apple-clang.imp" \
+  | grep -v '\.icc>' \
   > $OUTFILE \
 || echo "error: iwyu failed"
 
-
-if ! (cd "${SCRIPT_DIR}" && git diff-files --quiet) ; then
-  echo "warning: Git repository is dirty so patches will not be applied"
-  exit 0
-else
-  fix_includes.py --nocomments -p $1 < $OUTFILE
-fi
+fix_includes.py --nocomments -p $1 < $OUTFILE
 
 if [ -z "${SKIP_FORMAT}" ]; then
   # Fix include ordering
