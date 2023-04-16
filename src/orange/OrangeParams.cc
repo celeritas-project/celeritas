@@ -135,21 +135,11 @@ OrangeParams::OrangeParams(OrangeInput input)
     HostVal<OrangeParamsData> host_data;
 
     // Copy data from OrangeInput
-    host_data.scalars.max_level = input.max_level;
     make_builder(&host_data.universe_types)
         .insert_back(input.universe_types.begin(), input.universe_types.end());
     make_builder(&host_data.universe_indices)
         .insert_back(input.universe_indices.begin(),
                      input.universe_indices.end());
-
-    CELER_VALIDATE(host_data.scalars.max_logic_depth
-                       < detail::LogicStack::max_stack_depth(),
-                   << "input geometry has at least one volume with a "
-                      "logic depth of"
-                   << host_data.scalars.max_logic_depth
-                   << " (surfaces are nested too deeply); but the logic "
-                      "stack is limited to a depth of "
-                   << detail::LogicStack::max_stack_depth());
 
     // Calculate offsets for UnitIndexerData
     auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
@@ -223,6 +213,16 @@ OrangeParams::OrangeParams(OrangeInput input)
         };
 
     bbox_ = std::visit(GetBoundingBox, input.universes.front());
+    // Update scalars *after* loading all units
+    host_data.scalars.max_level = input.max_level;
+    CELER_VALIDATE(host_data.scalars.max_logic_depth
+                       < detail::LogicStack::max_stack_depth(),
+                   << "input geometry has at least one volume with a "
+                      "logic depth of"
+                   << host_data.scalars.max_logic_depth
+                   << " (surfaces are nested too deeply); but the logic "
+                      "stack is limited to a depth of "
+                   << detail::LogicStack::max_stack_depth());
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
