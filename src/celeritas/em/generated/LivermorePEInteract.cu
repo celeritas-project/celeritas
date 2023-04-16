@@ -16,8 +16,6 @@
 #include "celeritas/em/launcher/LivermorePELauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
-using celeritas::MemSpace;
-
 namespace celeritas
 {
 namespace generated
@@ -35,15 +33,15 @@ __launch_bounds__(1024, 7)
 #endif // CELERITAS_LAUNCH_BOUNDS
 livermore_pe_interact_kernel(
     celeritas::LivermorePEDeviceRef const model_data,
-    celeritas::CoreRef<MemSpace::device> const core_data)
+    celeritas::DeviceCRef<celeritas::CoreParamsData> const params,
+    celeritas::DeviceRef<celeritas::CoreStateData> const state)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (!(tid < core_data.states.size()))
+    if (!(tid < state.size()))
         return;
 
     auto launch = celeritas::make_interaction_launcher(
-        core_data,
-        model_data,
+        params, state, model_data,
         celeritas::livermore_pe_interact_track);
     launch(tid);
 }
@@ -51,15 +49,16 @@ livermore_pe_interact_kernel(
 
 void livermore_pe_interact(
     celeritas::LivermorePEDeviceRef const& model_data,
-    celeritas::CoreRef<MemSpace::device> const& core_data)
+    celeritas::DeviceCRef<celeritas::CoreParamsData> const& params,
+    celeritas::DeviceRef<celeritas::CoreStateData>& state)
 {
-    CELER_EXPECT(core_data);
+    CELER_EXPECT(params && state);
     CELER_EXPECT(model_data);
 
     CELER_LAUNCH_KERNEL(livermore_pe_interact,
                         celeritas::device().default_block_size(),
-                        core_data.states.size(),
-                        model_data, core_data);
+                        state.size(),
+                        model_data, params, state);
 }
 
 }  // namespace generated

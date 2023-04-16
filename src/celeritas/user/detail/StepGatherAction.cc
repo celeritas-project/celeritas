@@ -26,9 +26,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 template<StepPoint P>
-void step_gather_device(CoreRef<MemSpace::device> const&,
+void step_gather_device(DeviceCRef<CoreParamsData> const&,
+                        DeviceRef<CoreStateData>&,
                         DeviceCRef<StepParamsData> const&,
-                        DeviceRef<StepStateData> const&)
+                        DeviceRef<StepStateData>&)
 #if CELER_USE_DEVICE
     ;
 #else
@@ -69,18 +70,18 @@ std::string StepGatherAction<P>::description() const
  * Gather step attributes from host data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(CoreHostRef const& core) const
+void StepGatherAction<P>::execute(ParamsHostCRef const& params,
+                                  StateHostRef& state) const
 {
-    CELER_EXPECT(core);
-    auto& state = core.states;
+    CELER_EXPECT(params && state);
     auto const& step_state
         = storage_->obj.state<MemSpace::host>(state.stream_id, state.size());
 
     MultiExceptionHandler capture_exception;
     StepGatherLauncher<P> launch{
-        core, storage_->obj.params<MemSpace::host>(), step_state};
+        params, state, storage_->obj.params<MemSpace::host>(), step_state};
 #pragma omp parallel for
-    for (size_type i = 0; i < core.states.size(); ++i)
+    for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
     }
@@ -100,15 +101,15 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
  * Gather step attributes from GPU data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
+void StepGatherAction<P>::execute(ParamsDeviceCRef const& params,
+                                  StateDeviceRef& state) const
 {
-    CELER_EXPECT(core);
+    CELER_EXPECT(params && state);
 
-    auto& state = core.states;
     auto& step_state
         = storage_->obj.state<MemSpace::device>(state.stream_id, state.size());
     step_gather_device<P>(
-        core, storage_->obj.params<MemSpace::device>(), step_state);
+        params, state, storage_->obj.params<MemSpace::device>(), step_state);
 
     if (P == StepPoint::post)
     {

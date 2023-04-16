@@ -16,8 +16,8 @@ namespace demo_loop
  * Tally the particle/process combinations that occur at each step.
  */
 void count_particle_process(
-    CoreParamsHostRef const& params,
-    CoreStateHostRef const& states,
+    HostCRef<CoreParamsData> const& params,
+    HostRef<CoreStateData> const& states,
     ParticleProcessLauncher<MemSpace::host>::ItemsRef counts)
 {
     ParticleProcessLauncher<MemSpace::host> launch(params, states, counts);

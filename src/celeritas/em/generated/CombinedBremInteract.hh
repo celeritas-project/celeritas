@@ -12,7 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/CombinedBremData.hh" // IWYU pragma: associated
-#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackDataFwd.hh"
 
 namespace celeritas
 {
@@ -20,16 +20,19 @@ namespace generated
 {
 void combined_brem_interact(
     celeritas::CombinedBremHostRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::host> const&);
+    celeritas::HostCRef<celeritas::CoreParamsData> const&,
+    celeritas::HostRef<celeritas::CoreStateData>&);
 
 void combined_brem_interact(
     celeritas::CombinedBremDeviceRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::device> const&);
+    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::DeviceRef<celeritas::CoreStateData>&);
 
 #if !CELER_USE_DEVICE
 inline void combined_brem_interact(
     celeritas::CombinedBremDeviceRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::device> const&)
+    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::DeviceRef<celeritas::CoreStateData>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

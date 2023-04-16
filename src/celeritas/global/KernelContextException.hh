@@ -29,7 +29,8 @@ class CoreTrackView;
     CELER_TRY_HANDLE_CONTEXT(
         launch(ThreadId{i}),
         capture_exception,
-        KernelContextException(data, ThreadId{i}, this->label())
+        KernelContextException(data.params, data.states, ThreadId{i},
+ this->label())
     );
  * \endcode
  */
@@ -44,9 +45,15 @@ class KernelContextException : public RichContextException
 
   public:
     // Construct with track data and kernel label
-    KernelContextException(CoreHostRef const& data,
+    KernelContextException(HostCRef<CoreParamsData> const& params,
+                           HostRef<CoreStateData> const& states,
                            ThreadId tid,
                            std::string&& label);
+
+    //! Construct with combined track data
+    [[deprecated]] KernelContextException(CoreHostRef const& data,
+                                          ThreadId tid,
+                                          std::string&& label);
 
     // This class type
     char const* type() const final;

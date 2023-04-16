@@ -43,10 +43,21 @@ inline CELER_FUNCTION void foo_track(celeritas::CoreTrackView const& track)
    \endcode
  */
 template<class F>
-CELER_FUNCTION detail::TrackLauncher<F>
+[[deprecated]] CELER_FUNCTION detail::TrackLauncher<F>
 make_track_launcher(CoreRef<MemSpace::native> const& data, F&& call_with_track)
 {
-    return {data, ::celeritas::forward<F>(call_with_track)};
+    return {data.params,
+            const_cast<NativeRef<CoreStateData>&>(data.states),
+            ::celeritas::forward<F>(call_with_track)};
+}
+
+template<class F>
+CELER_FUNCTION detail::TrackLauncher<F>
+make_track_launcher(NativeCRef<CoreParamsData> const& params,
+                    NativeRef<CoreStateData> const& state,
+                    F&& call_with_track)
+{
+    return {params, state, ::celeritas::forward<F>(call_with_track)};
 }
 
 //---------------------------------------------------------------------------//

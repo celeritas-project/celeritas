@@ -19,8 +19,8 @@ namespace demo_loop
 /*!
  * Count the steps per track for each particle type.
  */
-__global__ void count_steps_kernel(CoreParamsDeviceRef const params,
-                                   CoreStateDeviceRef const states,
+__global__ void count_steps_kernel(DeviceCRef<CoreParamsData> const params,
+                                   DeviceRef<CoreStateData> const states,
                                    StepDiagnosticDataRef<MemSpace::device> data)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -37,8 +37,8 @@ __global__ void count_steps_kernel(CoreParamsDeviceRef const params,
 /*!
  * Launch kernel to tally the steps per track.
  */
-void count_steps(CoreParamsDeviceRef const& params,
-                 CoreStateDeviceRef const& states,
+void count_steps(DeviceCRef<CoreParamsData> const& params,
+                 DeviceRef<CoreStateData> const& states,
                  StepDiagnosticDataRef<MemSpace::device> data)
 {
     CELER_LAUNCH_KERNEL(count_steps,

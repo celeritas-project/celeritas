@@ -47,24 +47,26 @@ AlongStepUniformMscAction::~AlongStepUniformMscAction() = default;
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepUniformMscAction::execute(CoreHostRef const& data) const
+void AlongStepUniformMscAction::execute(ParamsHostCRef const& params,
+                                        StateHostRef& state) const
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_along_step_launcher(data,
+    auto launch = make_along_step_launcher(params,
+                                           state,
                                            host_data_.msc,
                                            field_params_,
                                            NoData{},
                                            detail::along_step_uniform_msc);
 
 #pragma omp parallel for
-    for (size_type i = 0; i < data.states.size(); ++i)
+    for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(data, ThreadId{i}, this->label()));
+            KernelContextException(params, state, ThreadId{i}, this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }

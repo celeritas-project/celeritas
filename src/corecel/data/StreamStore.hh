@@ -53,7 +53,7 @@ class StreamStore
     // Get references to the state data for a given stream, allocating if
     // necessary.
     template<MemSpace M>
-    inline S<Ownership::reference, M> const&
+    inline S<Ownership::reference, M>&
     state(StreamId stream_id, size_type size);
 
   private:
@@ -128,7 +128,7 @@ P<Ownership::const_reference, M> const& StreamStore<P, S>::params() const
  */
 template<template<Ownership, MemSpace> class P, template<Ownership, MemSpace> class S>
 template<MemSpace M>
-S<Ownership::reference, M> const&
+S<Ownership::reference, M>&
 StreamStore<P, S>::state(StreamId stream_id, size_type size)
 {
     CELER_EXPECT(*this);

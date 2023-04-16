@@ -22,15 +22,17 @@ namespace
 {
 //---------------------------------------------------------------------------//
 __global__ void
-along_step_uniform_msc_kernel(CoreRef<MemSpace::device> const track_data,
+along_step_uniform_msc_kernel(DeviceCRef<CoreParamsData> const params,
+                              DeviceRef<CoreStateData> const state,
                               DeviceCRef<UrbanMscData> const msc_data,
                               UniformFieldParams const field_params)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < track_data.states.size()))
+    if (!(tid < state.size()))
         return;
 
-    auto launch = make_along_step_launcher(track_data,
+    auto launch = make_along_step_launcher(params,
+                                           state,
                                            msc_data,
                                            field_params,
                                            NoData{},
@@ -44,13 +46,15 @@ along_step_uniform_msc_kernel(CoreRef<MemSpace::device> const track_data,
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepUniformMscAction::execute(CoreDeviceRef const& data) const
+void AlongStepUniformMscAction::execute(ParamsDeviceCRef const& params,
+                                        StateDeviceRef& state) const
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(along_step_uniform_msc,
                         celeritas::device().default_block_size(),
-                        data.states.size(),
-                        data,
+                        state.size(),
+                        params,
+                        state,
                         device_data_.msc,
                         field_params_);
 }

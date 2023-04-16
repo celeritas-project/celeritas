@@ -22,15 +22,15 @@ namespace celeritas
 EPlusGGModel::EPlusGGModel(ActionId id, ParticleParams const& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.action = id;
-    interface_.ids.positron = particles.find(pdg::positron());
-    interface_.ids.gamma = particles.find(pdg::gamma());
+    data_.ids.action = id;
+    data_.ids.positron = particles.find(pdg::positron());
+    data_.ids.gamma = particles.find(pdg::gamma());
 
-    CELER_VALIDATE(interface_.ids.positron && interface_.ids.gamma,
+    CELER_VALIDATE(data_.ids.positron && data_.ids.gamma,
                    << "missing positron and/or gamma particles (required for "
                    << this->description() << ")");
-    interface_.electron_mass = particles.get(interface_.ids.positron).mass();
-    CELER_ENSURE(interface_);
+    data_.electron_mass = particles.get(data_.ids.positron).mass();
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ EPlusGGModel::EPlusGGModel(ActionId id, ParticleParams const& particles)
 auto EPlusGGModel::applicability() const -> SetApplicability
 {
     Applicability applic;
-    applic.particle = interface_.ids.positron;
+    applic.particle = data_.ids.positron;
     applic.lower = neg_max_quantity();  // Valid at rest
     applic.upper = units::MevEnergy{1e8};  // 100 TeV
 
@@ -62,14 +62,16 @@ auto EPlusGGModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void EPlusGGModel::execute(CoreDeviceRef const& data) const
+void EPlusGGModel::execute(ParamsDeviceCRef const& params,
+                           StateDeviceRef& states) const
 {
-    generated::eplusgg_interact(interface_, data);
+    generated::eplusgg_interact(data_, params, states);
 }
 
-void EPlusGGModel::execute(CoreHostRef const& data) const
+void EPlusGGModel::execute(ParamsHostCRef const& params,
+                           StateHostRef& states) const
 {
-    generated::eplusgg_interact(interface_, data);
+    generated::eplusgg_interact(data_, params, states);
 }
 
 //!@}
@@ -79,7 +81,7 @@ void EPlusGGModel::execute(CoreHostRef const& data) const
  */
 ActionId EPlusGGModel::action_id() const
 {
-    return interface_.ids.action;
+    return data_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

@@ -26,23 +26,23 @@ namespace generated
 {
 void klein_nishina_interact(
     celeritas::KleinNishinaHostRef const& model_data,
-    celeritas::CoreRef<MemSpace::host> const& core_data)
+    celeritas::HostCRef<celeritas::CoreParamsData> const& params,
+    celeritas::HostRef<celeritas::CoreStateData>& state)
 {
-    CELER_EXPECT(core_data);
+    CELER_EXPECT(params && state);
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        core_data,
-        model_data,
+        params, state, model_data,
         celeritas::klein_nishina_interact_track);
     #pragma omp parallel for
-    for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
+    for (celeritas::size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "klein_nishina"));
+            KernelContextException(params, state, ThreadId{i}, "klein_nishina"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

@@ -59,10 +59,10 @@ class CombinedBremModel final : public Model
     MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel to host data
-    void execute(CoreHostRef const&) const final;
+    void execute(ParamsHostCRef const&, StateHostRef&) const final;
 
     // Apply the interaction kernel to device data
-    void execute(CoreDeviceRef const&) const final;
+    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
 
     // ID of the model
     ActionId action_id() const final;
