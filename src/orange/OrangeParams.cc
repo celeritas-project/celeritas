@@ -147,17 +147,13 @@ OrangeParams::OrangeParams(OrangeInput input)
     ui_surf.push_back(0);
     ui_vol.push_back(0);
 
-    auto GetNumSurfaces
-        = Overload<std::function<size_type(UnitInput const&)>,
-                   std::function<size_type(RectArrayInput const&)>>{
-            [](UnitInput const& u) { return u.surfaces.size(); },
-            [](RectArrayInput const&) { return size_type{0}; }};
+    auto get_num_surfaces
+        = Overload{[](UnitInput const& u) { return u.surfaces.size(); },
+                   [](RectArrayInput const&) { return size_type{0}; }};
 
-    auto GetNumVolumes
-        = Overload<std::function<size_type(UnitInput const&)>,
-                   std::function<size_type(RectArrayInput const&)>>{
-            [](UnitInput const& u) { return u.volumes.size(); },
-            [](RectArrayInput const&) { return size_type{0}; }};
+    auto get_num_volumes
+        = Overload{[](UnitInput const& u) { return u.volumes.size(); },
+                   [](RectArrayInput const&) { return size_type{0}; }};
 
     for (auto const& u : input.universes)
     {
@@ -168,8 +164,8 @@ OrangeParams::OrangeParams(OrangeInput input)
         auto volume_offset
             = host_data.unit_indexer_data.volumes[AllVals{}].back();
 
-        auto surfs = std::visit(GetNumSurfaces, u);
-        auto vols = std::visit(GetNumVolumes, u);
+        auto surfs = std::visit(get_num_surfaces, u);
+        auto vols = std::visit(get_num_volumes, u);
 
         ui_surf.push_back(surface_offset + surfs);
         ui_vol.push_back(volume_offset + vols);
@@ -178,7 +174,7 @@ OrangeParams::OrangeParams(OrangeInput input)
     detail::UnitInserter insert_unit(&host_data);
     detail::RectArrayInserter insert_rect_array(&host_data);
 
-    auto InsertUniverse = Overload{
+    auto insert_universe = Overload{
         [&insert_unit](UnitInput const& u) {
             CELER_VALIDATE(u,
                            << "simple unit '" << u.label
@@ -197,7 +193,7 @@ OrangeParams::OrangeParams(OrangeInput input)
 
     for (auto const& u : input.universes)
     {
-        std::visit(InsertUniverse, u);
+        std::visit(insert_universe, u);
     }
 
     // Get surface/volume labels
@@ -335,9 +331,9 @@ void OrangeParams::process_metadata(OrangeInput const& input)
                     for (auto k : range(r.grid[to_int(Axis::z)].size() - 1))
                     {
                         Label vl;
-                        vl.name = std::string("(" + std::to_string(i) + ", "
-                                              + std::to_string(j) + ", "
-                                              + std::to_string(k) + ")");
+                        vl.name = std::string("{" + std::to_string(i) + ","
+                                              + std::to_string(j) + ","
+                                              + std::to_string(k) + "}");
                         vl.ext = r.label.name;
                         volume_labels.push_back(std::move(vl));
                     }
@@ -363,8 +359,8 @@ void OrangeParams::process_metadata(OrangeInput const& input)
                 for (auto i : range(r.grid[to_int(ax)].size() - 1))
                 {
                     Label sl;
-                    sl.name = std::string("(" + std::string(1, to_char(ax))
-                                          + ", " + std::to_string(i) + ")");
+                    sl.name = std::string("{" + std::string(1, to_char(ax))
+                                          + "," + std::to_string(i) + "}");
                     sl.ext = r.label.name;
                     surface_labels.push_back(std::move(sl));
                 }
