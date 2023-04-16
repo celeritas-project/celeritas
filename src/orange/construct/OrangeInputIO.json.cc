@@ -228,9 +228,6 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
 {
     j.at("md").at("name").get_to(value.label);
 
-    auto const& bbox = j.at("bbox");
-    value.bbox = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
-
     for (auto ax : range(Axis::size_))
     {
         value.grid[to_int(ax)]

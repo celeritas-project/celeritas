@@ -115,8 +115,6 @@ struct RectArrayInput
     // Daughter loading
     std::vector<DaughterInput> daughters;
 
-    BoundingBox bbox;  //!< Outer bounding box
-
     // Unit metadata
     Label label;
 

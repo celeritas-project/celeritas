@@ -205,14 +205,10 @@ OrangeParams::OrangeParams(OrangeInput input)
 
     supports_safety_ = host_data.simple_units[SimpleUnitId{0}].simple_safety;
 
-    auto GetBoundingBox
-        = Overload<std::function<BoundingBox(UnitInput const&)>,
-                   std::function<BoundingBox(RectArrayInput const&)>>{
-            [](UnitInput const& u) { return u.bbox; },
-            [](RectArrayInput const& u) { return u.bbox; },
-        };
+    CELER_VALIDATE(std::holds_alternative<UnitInput>(input.universes.front()),
+                   << "global universe is not a SimpleUnit");
+    bbox_ = std::get<UnitInput>(input.universes.front()).bbox;
 
-    bbox_ = std::visit(GetBoundingBox, input.universes.front());
     // Update scalars *after* loading all units
     host_data.scalars.max_level = input.max_level;
     CELER_VALIDATE(host_data.scalars.max_logic_depth
