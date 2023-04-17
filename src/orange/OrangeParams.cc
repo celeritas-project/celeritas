@@ -148,12 +148,16 @@ OrangeParams::OrangeParams(OrangeInput input)
     ui_vol.push_back(0);
 
     auto get_num_surfaces
-        = Overload{[](UnitInput const& u) { return u.surfaces.size(); },
-                   [](RectArrayInput const&) { return size_type{0}; }};
+        = Overload<std::function<size_type(UnitInput const&)>,
+                   std::function<size_type(RectArrayInput const&)>>{
+            [](UnitInput const& u) { return u.surfaces.size(); },
+            [](RectArrayInput const&) { return size_type{0}; }};
 
     auto get_num_volumes
-        = Overload{[](UnitInput const& u) { return u.volumes.size(); },
-                   [](RectArrayInput const&) { return size_type{0}; }};
+        = Overload<std::function<size_type(UnitInput const&)>,
+                   std::function<size_type(RectArrayInput const&)>>{
+            [](UnitInput const& u) { return u.volumes.size(); },
+            [](RectArrayInput const&) { return size_type{0}; }};
 
     for (auto const& u : input.universes)
     {
