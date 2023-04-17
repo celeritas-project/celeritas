@@ -8,8 +8,8 @@
 Administration
 **************
 
-This appendix includes administrative details describing the roles and
-responsibilities of participants. It is meant to be a living document, more
+This appendix includes administrative policies and details describing the roles
+and responsibilities of participants. It is meant to be a living document, more
 descriptive than prescriptive. It should be a basis for future decision making,
 using past decisions as a prior. Changes to this appendix can be made by pull
 request with the leadership team as reviewers.
@@ -148,8 +148,8 @@ Since there are few enough merge requests these days, only :ref:`maintainers
 <roles>` may commit a merge.
 
 
-Release process
-===============
+Releases
+========
 
 Celeritas uses `Semantic Versioning`_ to enumerate releases. During its initial
 development phase, ``0.x.0`` is a major release and ``0.x.z`` is a patch
@@ -158,9 +158,10 @@ release. When Celeritas is declared stable, ``x.0.0`` is a major release,
 
 Major and minor releases (including 0.x.0 development releases) must have a
 milestone in the git issue tracker with a list of issues that can be assigned.
-Only major releases can deprecate or remove features and change
-:ref:`public-facing APIs <api>`. Both major and minor releases should include
-notable improvements to the code.
+Only major releases can remove features and change
+:ref:`public-facing APIs <api>`. Minor releases can
+:ref:`deprecate features <deprecations>`. Both major and minor releases should
+include notable improvements to the code.
 
 Patch releases can be created at any time but should typically include at least
 one critical bug fix or several substantial fixes. Patch releases should focus
@@ -169,6 +170,8 @@ other major code changes.
 
 .. _Semantic Versioning: https://semver.org
 
+Release process
+---------------
 
 Releases can be created from the primary "develop" branch (major, minor, patch)
 or a "backport" branch (minor, patch).
@@ -231,3 +234,33 @@ first new feature) should be tagged with ``v1.1.0-dev``, so that
 
 .. _helper notebook: https://github.com/celeritas-project/celeritas-docs/blob/master/nb/admin/github-stats.ipynb
 .. _geant-val: https://geant-val.cern.ch
+
+.. _deprecations:
+
+Deprecations
+------------
+
+Deprecating obsolete code is vital to the long-term maintainability of an
+open-source project. As new capabilities and better interfaces replace old
+ones, removing the old ones is the only way to pay off technical debt. A
+careful deprecation process is necessary to provide users a way to transition
+to the newer capabilities: there must be separate releases marking code as
+deprecated and removing it, and removal is only allowed in major version
+changes.
+
+Deprecated public APIs (functions, classes, identifiers, ...) should be marked
+in the code with the ``[[deprecated]]`` C++ attribute and an adjacent comment
+"remove in vX.0". Here, X is the next major release after the deprecation is
+released [#]_. For example, if a function is deprecated after version 1.2 is
+released but a 1.3 release is planned, the comment should specify ``remove in
+v2.0``. However, if the deprecation is made after the final minor version is
+released (i.e., on or after the ``v2.0-dev`` tag) the deprecation should be
+marked for ``v3.0``.
+
+Private APIs (those not documented in the user API documentation, *not* limited
+to classes in the ``detail`` namespace) are not subject to the deprecation
+policy and can be changed at will. As the Celeritas code and its use cases
+mature, some functionality will become public and others will become "private."
+Making a public API private should be treated as a deprecation.
+
+.. [#] During initial development, deprecations will target ``v0.Y``.
