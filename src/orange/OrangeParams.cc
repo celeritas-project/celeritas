@@ -26,6 +26,7 @@
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeTypes.hh"
 #include "construct/OrangeInput.hh"
+#include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"
 #include "univ/detail/LogicStack.hh"
 
@@ -39,6 +40,23 @@ namespace celeritas
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Variadic-templated struct for overloaded operator() calls.
+ */
+template<typename... Ts>
+struct Overload : Ts...
+{
+    using Ts::operator()...;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * "Deduction guide" for instantiating Overload objects w/o specifying types.
+ */
+template<class... Ts>
+Overload(Ts...) -> Overload<Ts...>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Load a geometry from the given filename.
@@ -111,40 +129,84 @@ OrangeParams::OrangeParams(G4VPhysicalVolume const*)
 OrangeParams::OrangeParams(OrangeInput input)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
+    CELER_VALIDATE(!input.universes.empty(),
+                   << "input geometry has no universes");
 
     HostVal<OrangeParamsData> host_data;
 
-    host_data.scalars.max_level = input.max_level;
+    // Copy data from OrangeInput
+    make_builder(&host_data.universe_types)
+        .insert_back(input.universe_types.begin(), input.universe_types.end());
+    make_builder(&host_data.universe_indices)
+        .insert_back(input.universe_indices.begin(),
+                     input.universe_indices.end());
 
     // Calculate offsets for UnitIndexerData
     auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
     auto ui_vol = make_builder(&host_data.unit_indexer_data.volumes);
     ui_surf.push_back(0);
     ui_vol.push_back(0);
-    for (UnitInput const& u : input.units)
+
+    auto get_num_surfaces = Overload{
+        [](UnitInput const& u) -> size_type { return u.surfaces.size(); },
+        [](RectArrayInput const&) -> size_type { return 0; }};
+
+    auto get_num_volumes = Overload{
+        [](UnitInput const& u) -> size_type { return u.volumes.size(); },
+        [](RectArrayInput const&) -> size_type { return 0; }};
+
+    for (auto const& u : input.universes)
     {
         using AllVals = AllItems<size_type, MemSpace::native>;
+
         auto surface_offset
             = host_data.unit_indexer_data.surfaces[AllVals{}].back();
         auto volume_offset
             = host_data.unit_indexer_data.volumes[AllVals{}].back();
-        ui_surf.push_back(surface_offset + u.surfaces.size());
-        ui_vol.push_back(volume_offset + u.volumes.size());
+
+        auto surfs = std::visit(get_num_surfaces, u);
+        auto vols = std::visit(get_num_volumes, u);
+
+        ui_surf.push_back(surface_offset + surfs);
+        ui_vol.push_back(volume_offset + vols);
     }
 
-    // Insert all units
     detail::UnitInserter insert_unit(&host_data);
-    auto universe_type = make_builder(&host_data.universe_type);
-    auto universe_index = make_builder(&host_data.universe_index);
+    detail::RectArrayInserter insert_rect_array(&host_data);
 
-    for (UnitInput const& u : input.units)
+    auto insert_universe = Overload{
+        [&insert_unit](UnitInput const& u) {
+            CELER_VALIDATE(u,
+                           << "simple unit '" << u.label
+                           << "' is not properly constructed");
+
+            insert_unit(u);
+        },
+        [&insert_rect_array](RectArrayInput const& r) {
+            CELER_VALIDATE(r,
+                           << "rect array '" << r.label
+                           << "' is not properly constructed");
+
+            insert_rect_array(r);
+        },
+    };
+
+    for (auto const& u : input.universes)
     {
-        CELER_VALIDATE(
-            u, << "unit '" << u.label << "' is not properly constructed");
-        SimpleUnitId uid = insert_unit(u);
-        universe_type.push_back(UniverseType::simple);
-        universe_index.push_back(uid.get());
+        std::visit(insert_universe, u);
     }
+
+    // Get surface/volume labels
+    this->process_metadata(input);
+
+    supports_safety_ = host_data.simple_units[SimpleUnitId{0}].simple_safety;
+
+    CELER_VALIDATE(std::holds_alternative<UnitInput>(input.universes.front()),
+                   << "global universe is not a SimpleUnit");
+    bbox_ = std::get<UnitInput>(input.universes.front()).bbox;
+
+    // Update scalars *after* loading all units
+    host_data.scalars.max_level = input.max_level;
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
                    << "input geometry has at least one volume with a "
@@ -153,42 +215,6 @@ OrangeParams::OrangeParams(OrangeInput input)
                    << " (surfaces are nested too deeply); but the logic "
                       "stack is limited to a depth of "
                    << detail::LogicStack::max_stack_depth());
-
-    std::vector<Label> surface_labels;
-    std::vector<Label> volume_labels;
-
-    for (UnitInput const& u : input.units)
-    {
-        // Capture metadata
-
-        for (auto const& s : u.surfaces.labels)
-        {
-            Label surface_label = s;
-            if (surface_label.ext.empty())
-            {
-                surface_label.ext = u.label.name;
-            }
-            surface_labels.push_back(std::move(surface_label));
-        }
-
-        for (auto const& v : u.volumes)
-        {
-            Label volume_label = v.label;
-            if (volume_label.ext.empty())
-            {
-                volume_label.ext = u.label.name;
-            }
-            volume_labels.push_back(std::move(volume_label));
-        }
-
-        bbox_ = u.bbox;
-    }
-
-    surf_labels_ = LabelIdMultiMap<SurfaceId>{std::move(surface_labels)};
-    vol_labels_ = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
-
-    supports_safety_ = host_data.simple_unit[SimpleUnitId{0}].simple_safety;
-    bbox_ = input.units.front().bbox;
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
@@ -272,6 +298,83 @@ SurfaceId OrangeParams::find_surface(std::string const& name) const
     CELER_VALIDATE(result.size() == 1,
                    << "surface '" << name << "' is not unique");
     return result.front();
+}
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get surface and volume labels for all universes.
+ */
+void OrangeParams::process_metadata(OrangeInput const& input)
+{
+    std::vector<Label> surface_labels;
+    std::vector<Label> volume_labels;
+
+    auto GetVolumeLabels = Overload{
+        [&volume_labels](UnitInput const& u) {
+            for (auto const& v : u.volumes)
+            {
+                Label vl = v.label;
+                if (vl.ext.empty())
+                {
+                    vl.ext = u.label.name;
+                }
+                volume_labels.push_back(std::move(vl));
+            }
+        },
+        [&volume_labels](RectArrayInput const& r) {
+            for (auto i : range(r.grid[to_int(Axis::x)].size() - 1))
+            {
+                for (auto j : range(r.grid[to_int(Axis::y)].size() - 1))
+                {
+                    for (auto k : range(r.grid[to_int(Axis::z)].size() - 1))
+                    {
+                        Label vl;
+                        vl.name = std::string("{" + std::to_string(i) + ","
+                                              + std::to_string(j) + ","
+                                              + std::to_string(k) + "}");
+                        vl.ext = r.label.name;
+                        volume_labels.push_back(std::move(vl));
+                    }
+                }
+            }
+        }};
+
+    auto GetSurfaceLabels = Overload{
+        [&surface_labels](UnitInput const& u) {
+            for (auto const& s : u.surfaces.labels)
+            {
+                Label surface_label = s;
+                if (surface_label.ext.empty())
+                {
+                    surface_label.ext = u.label.name;
+                }
+                surface_labels.push_back(std::move(surface_label));
+            }
+        },
+        [&surface_labels](RectArrayInput const& r) {
+            for (auto ax : range(Axis::size_))
+            {
+                for (auto i : range(r.grid[to_int(ax)].size() - 1))
+                {
+                    Label sl;
+                    sl.name = std::string("{" + std::string(1, to_char(ax))
+                                          + "," + std::to_string(i) + "}");
+                    sl.ext = r.label.name;
+                    surface_labels.push_back(std::move(sl));
+                }
+            }
+        }};
+
+    for (auto const& u : input.universes)
+    {
+        std::visit(GetSurfaceLabels, u);
+        std::visit(GetVolumeLabels, u);
+    }
+
+    surf_labels_ = LabelIdMultiMap<SurfaceId>{std::move(surface_labels)};
+    vol_labels_ = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
 }
 
 //---------------------------------------------------------------------------//

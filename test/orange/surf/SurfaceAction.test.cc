@@ -159,7 +159,8 @@ TEST_F(SurfaceActionTest, string)
 {
     // Create functor
     auto const& host_ref = this->host_params();
-    Surfaces surfaces(host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
+    Surfaces surfaces(host_ref,
+                      host_ref.simple_units[SimpleUnitId{0}].surfaces);
     auto surf_to_string = make_surface_action(surfaces, ToString{});
 
     // Loop over all surfaces and apply

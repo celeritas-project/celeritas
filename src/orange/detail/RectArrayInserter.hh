@@ -3,11 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/UnitInserter.hh
+//! \file orange/detail/RectArrayInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
-
-#include <vector>
 
 #include "corecel/Types.hh"
 #include "orange/OrangeData.hh"
@@ -20,11 +18,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Convert a unit input to params data.
- *
- * Linearize the data in a UnitInput and add it to the host.
+ * Convert a RectArrayInput a RectArrayRecord.
  */
-class UnitInserter
+class RectArrayInserter
 {
   public:
     //!@{
@@ -34,24 +30,13 @@ class UnitInserter
 
   public:
     // Construct from full parameter data
-    UnitInserter(Data* orange_data);
+    RectArrayInserter(Data* orange_data);
 
-    // Create a simple unit and store in in OrangeParamsData
-    SimpleUnitId operator()(UnitInput const& inp);
+    // Create a simple unit and return its ID
+    RectArrayId operator()(RectArrayInput const& inp);
 
   private:
     Data* orange_data_{nullptr};
-
-    // TODO: additional caches for hashed data?
-
-    //// HELPER METHODS ////
-
-    SurfacesRecord insert_surfaces(SurfaceInput const& s);
-    VolumeRecord
-    insert_volume(SurfacesRecord const& unit, VolumeInput const& v);
-
-    void process_daughter(VolumeRecord* vol_record,
-                          DaughterInput const& daughter_input);
 };
 
 //---------------------------------------------------------------------------//

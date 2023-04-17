@@ -108,6 +108,12 @@ class OrangeParams
 
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;
+
+  private:
+    //// HELPER METHODS ////
+
+    // Get surface and volume labels for all universes.
+    void process_metadata(OrangeInput const& input);
 };
 
 //---------------------------------------------------------------------------//

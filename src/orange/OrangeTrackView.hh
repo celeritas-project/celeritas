@@ -858,8 +858,8 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
  */
 CELER_FUNCTION SimpleUnitTracker OrangeTrackView::make_tracker(UniverseId id) const
 {
-    CELER_EXPECT(id < params_.universe_type.size());
-    CELER_EXPECT(id.unchecked_get() == params_.universe_index[id]);
+    CELER_EXPECT(id < params_.universe_types.size());
+    CELER_EXPECT(id.unchecked_get() == params_.universe_indices[id]);
 
     using TraitsT = UniverseTypeTraits<UniverseType::simple>;
     using IdT = OpaqueId<typename TraitsT::record_type>;

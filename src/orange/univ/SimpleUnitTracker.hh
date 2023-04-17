@@ -138,7 +138,7 @@ class SimpleUnitTracker
  */
 CELER_FUNCTION
 SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
-    : params_(params), unit_record_(params.simple_unit[suid])
+    : params_(params), unit_record_(params.simple_units[suid])
 {
     CELER_EXPECT(params_);
 }

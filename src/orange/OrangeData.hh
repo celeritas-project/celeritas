@@ -147,6 +147,26 @@ struct SimpleUnitRecord
 
 //---------------------------------------------------------------------------//
 /*!
+ * Data for a single rectilinear array universe.
+ */
+struct RectArrayRecord
+{
+    Array<ItemRange<real_type>, 3> grid;
+
+    // Daughter data [index by LocalVolumeId]
+    ItemMap<LocalVolumeId, DaughterId> daughters;
+
+    //! Cursory check for validity
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !daughters.empty() && !grid[to_int(Axis::x)].empty()
+               && !grid[to_int(Axis::y)].empty()
+               && !grid[to_int(Axis::z)].empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Surface and volume offsets to convert between local and global indices.
  *
  * Each collection should be of length num_universes + 1. The first entry is
@@ -183,10 +203,10 @@ struct UnitIndexerData
  * Most data will be accessed through the invidual units, which reference data
  * in the "storage" below. The type and index for a universe ID will determine
  * the class type and data of the Tracker to instantiate. If *only* simple
- * units are present, then the \c simple_unit data structure will just be equal
- * to a range (with the total number of universes present). Use `universe_type`
- * to switch on the type of universe; then `universe_index` to index into
- * `simple_unit` or `rect_array` or ...
+ * units are present, then the \c simple_units data structure will just be
+ * equal to a range (with the total number of universes present). Use
+ * `universe_types` to switch on the type of universe; then `universe_indices`
+ * to index into `simple_units` or `rect_arrays` or ...
  */
 template<Ownership W, MemSpace M>
 struct OrangeParamsData
@@ -203,9 +223,10 @@ struct OrangeParamsData
     OrangeParamsScalars scalars;
 
     // High-level universe definitions
-    UnivItems<UniverseType> universe_type;
-    UnivItems<size_type> universe_index;
-    Items<SimpleUnitRecord> simple_unit;
+    UnivItems<UniverseType> universe_types;
+    UnivItems<size_type> universe_indices;
+    Items<SimpleUnitRecord> simple_units;
+    Items<RectArrayRecord> rect_arrays;
 
     // Low-level storage
     Items<LocalSurfaceId> local_surface_ids;
@@ -227,8 +248,8 @@ struct OrangeParamsData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return scalars && !universe_type.empty()
-               && universe_index.size() == universe_type.size()
+        return scalars && !universe_types.empty()
+               && universe_indices.size() == universe_types.size()
                && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
                    || surface_types.empty())
@@ -241,9 +262,10 @@ struct OrangeParamsData
     {
         scalars = other.scalars;
 
-        universe_type = other.universe_type;
-        universe_index = other.universe_index;
-        simple_unit = other.simple_unit;
+        universe_types = other.universe_types;
+        universe_indices = other.universe_indices;
+        simple_units = other.simple_units;
+        rect_arrays = other.rect_arrays;
 
         local_surface_ids = other.local_surface_ids;
         local_volume_ids = other.local_volume_ids;

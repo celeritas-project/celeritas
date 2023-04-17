@@ -28,7 +28,7 @@ class VolumeViewTest : public OrangeGeoTestBase
     {
         CELER_EXPECT(v);
         auto const& host_ref = this->host_params();
-        return VolumeView{host_ref, host_ref.simple_unit[SimpleUnitId{0}], v};
+        return VolumeView{host_ref, host_ref.simple_units[SimpleUnitId{0}], v};
     }
 
     void test_face_accessors(VolumeView const& volumes)

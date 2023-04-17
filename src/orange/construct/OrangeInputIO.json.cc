@@ -222,18 +222,76 @@ void from_json(nlohmann::json const& j, UnitInput& value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Read a rectangular array universe definition from an ORANGE input file.
+ */
+void from_json(nlohmann::json const& j, RectArrayInput& value)
+{
+    j.at("md").at("name").get_to(value.label);
+
+    for (auto ax : range(Axis::size_))
+    {
+        value.grid[to_int(ax)]
+            = j.at(std::string(1, to_char(ax))).get<std::vector<real_type>>();
+        CELER_VALIDATE(value.grid[to_int(ax)].size() >= 2,
+                       << "axis " << to_char(ax)
+                       << " does must have at least two grid points");
+    }
+
+    // Read daughters universes/translations
+    {
+        auto daughters = j.at("daughters").get<std::vector<size_type>>();
+        auto translations = j.at("translations").get<std::vector<real_type>>();
+
+        CELER_VALIDATE(3 * daughters.size() == translations.size(),
+                       << "field 'daughters' is not 3x length of "
+                          "'parent_cells'");
+
+        for (auto i : range(daughters.size()))
+        {
+            value.daughters.push_back({UniverseId{daughters[i]},
+                                       make_translation(Span<real_type const>(
+                                           translations.data() + 3 * i, 3))});
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Read a partially preprocessed geometry definition from an ORANGE JSON file.
  */
 void from_json(nlohmann::json const& j, OrangeInput& value)
 {
     auto const& universes = j.at("universes");
 
-    value.units.reserve(universes.size());
+    value.universes.reserve(universes.size());
+
+    size_type simple_unit_index = 0;
+    size_type rect_array_index = 0;
+
     for (auto const& uni : universes)
     {
-        CELER_VALIDATE(uni.at("_type").get<std::string>() == "simple unit",
-                       << "unsupported universe type '" << uni["_type"] << "'");
-        value.units.push_back(uni.get<UnitInput>());
+        auto uni_type = uni.at("_type").get<std::string>();
+        if (uni_type == "simple unit")
+        {
+            value.universe_types.push_back(UniverseType::simple);
+            value.universe_indices.push_back(simple_unit_index++);
+            value.universes.push_back(uni.get<UnitInput>());
+        }
+        else if (uni_type == "rectangular array")
+        {
+            value.universe_types.push_back(UniverseType::rect_array);
+            value.universe_indices.push_back(rect_array_index++);
+            value.universes.push_back(uni.get<RectArrayInput>());
+        }
+        else if (uni_type == "hexagonal array")
+        {
+            CELER_NOT_IMPLEMENTED("hexagonal array universes");
+        }
+        else
+        {
+            CELER_VALIDATE(
+                false, << "unsupported universe type '" << uni_type << "'");
+        }
     }
 }
 

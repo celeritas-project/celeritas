@@ -58,7 +58,7 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
         auto const& host_ref = this->host_params();
 
         surfaces_ = std::make_unique<Surfaces>(
-            host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
+            host_ref, host_ref.simple_units[SimpleUnitId{0}].surfaces);
     }
 
     template<class T>

@@ -48,6 +48,9 @@ using LocalVolumeId = OpaqueId<struct LocalVolume>;
 //! Opaque index for "simple unit" data
 using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 
+//! Opaque index for rectilinear array data
+using RectArrayId = OpaqueId<struct RectArrayRecord>;
+
 //! Translation of a single embedded universe
 using Translation = Real3;
 
@@ -122,8 +125,8 @@ enum class SurfaceType : unsigned char
 enum class UniverseType : unsigned char
 {
     simple,
-#if 0
     rect_array,
+#if 0
     hex_array,
     dode_array,
     ...
