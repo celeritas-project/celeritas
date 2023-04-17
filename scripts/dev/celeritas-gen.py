@@ -16,7 +16,7 @@ import sys
 
 ###############################################################################
 
-CLIKE_TOP = '''\
+CXX_TOP = '''\
 //{modeline:-^75s}//
 // Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
@@ -455,7 +455,6 @@ TEMPLATES = {
     'hh': HEADER_FILE,
     'cc': CODE_FILE,
     'cu': CODE_FILE,
-    'cuh': HEADER_FILE,
     'test.cc': TEST_HARNESS_FILE,
     'test.cu': TEST_CODE_FILE,
     'test.hh': TEST_HEADER_FILE,
@@ -469,11 +468,10 @@ TEMPLATES = {
 }
 
 LANG = {
-    'h': "C++",
+    'h': "C",
     'hh': "C++",
     'cc': "C++",
     'cu': "CUDA",
-    'cuh': "CUDA",
     'cmake': "CMake",
     'i': "SWIG",
     'CMakeLists.txt': "CMake",
@@ -484,9 +482,10 @@ LANG = {
 }
 
 TOPS = {
-    'C++': CLIKE_TOP,
-    'CUDA': CLIKE_TOP,
-    'SWIG': CLIKE_TOP,
+    'C': CXX_TOP,
+    'C++': CXX_TOP,
+    'CUDA': CXX_TOP,
+    'SWIG': CXX_TOP,
     'CMake': CMAKE_TOP,
     'Python': PYTHON_TOP,
     'Shell': SHELL_TOP,
@@ -495,8 +494,9 @@ TOPS = {
 }
 
 HEXT = {
+    'C': "h",
     'C++': "hh",
-    'CUDA': "cuh",
+    'CUDA': "hh",
     'SWIG': "hh",
 }
 
@@ -547,7 +547,7 @@ def generate(repodir, filename, namespace):
     variables = {
         'longext': longext,
         'ext': ext,
-        'hext': HEXT.get(lang, ext),
+        'hext': "hh",
         'modeline': "-*-{}-*-".format(lang),
         'name': name,
         'namespace': namespace,
