@@ -12,18 +12,12 @@
 
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/Stepper.hh"
-#include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/Primary.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
-#include "../TestEm3Base.hh"
-#include "../global/StepperTestBase.hh"
-#include "celeritas_test.hh"
+#include "../global/Stepper.test.hh"
 
 namespace celeritas
 {
@@ -34,7 +28,7 @@ using celeritas::units::MevEnergy;
 
 #define TestTrackPartitionEm3Stepper \
     TEST_IF_CELERITAS_GEANT(TestTrackPartitionEm3Stepper)
-class TestTrackPartitionEm3Stepper : public TestEm3Base, public StepperTestBase
+class TestTrackPartitionEm3Stepper : public TestEm3NoMsc
 {
   protected:
     auto build_init() -> SPConstTrackInit override
@@ -44,45 +38,6 @@ class TestTrackPartitionEm3Stepper : public TestEm3Base, public StepperTestBase
         input.max_events = 4096;
         input.track_order = TrackOrder::partition_status;
         return std::make_shared<TrackInitParams>(input);
-    }
-
-  public:
-    std::vector<Primary>
-    make_primaries_with_energy(size_type count, MevEnergy energy) const
-    {
-        Primary p;
-        p.particle_id = this->particle()->find(pdg::electron());
-        CELER_ASSERT(p.particle_id);
-        p.energy = energy;
-        p.track_id = TrackId{0};
-        p.position = {-22, 0, 0};
-        p.direction = {1, 0, 0};
-        p.time = 0;
-
-        std::vector<Primary> result(count, p);
-        for (auto i : range(count))
-        {
-            result[i].event_id = EventId{i};
-        }
-        return result;
-    }
-
-    //! Make 10GeV electrons along +x
-    std::vector<Primary> make_primaries(size_type count) const override
-    {
-        return this->make_primaries_with_energy(count, MevEnergy{10000});
-    }
-
-    size_type max_average_steps() const override
-    {
-        return 100000;  // 8 primaries -> ~500k steps, be conservative
-    }
-
-    GeantPhysicsOptions build_geant_options() const override
-    {
-        auto opts = TestEm3Base::build_geant_options();
-        opts.msc = MscModelSelection::none;
-        return opts;
     }
 };
 
