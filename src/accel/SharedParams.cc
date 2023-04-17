@@ -395,6 +395,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
         step_collector_ = std::make_shared<StepCollector>(
             StepCollector::VecInterface{hit_manager_},
             params.geometry,
+            params.max_streams,
             params.action_reg.get());
     }
 

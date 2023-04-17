@@ -335,6 +335,7 @@ inline void resize(StepPointStateData<Ownership::value, M>* state,
 template<MemSpace M>
 inline void resize(StepStateData<Ownership::value, M>* state,
                    HostCRef<StepParamsData> const& params,
+                   StreamId,
                    size_type size)
 {
     CELER_EXPECT(state->size() == 0);

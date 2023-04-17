@@ -85,39 +85,7 @@ class StepGatherAction final : public ExplicitActionInterface
     ActionId id_;
     SPStepStorage storage_;
     VecInterface callbacks_;
-
-    //// HELPER FUNCTIONS ////
-
-    template<MemSpace M>
-    inline StepStateData<Ownership::reference, M>&
-    get_state(CoreParamsData<Ownership::const_reference, M> const&,
-              CoreStateData<Ownership::reference, M>&) const;
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-// Get a reference to the stream-local step state data, allocating if needed.
-template<MemSpace M>
-StepStateData<Ownership::reference, M>&
-get_stream_state(CoreParamsData<Ownership::const_reference, M> const& params,
-                 CoreStateData<Ownership::reference, M>& states,
-                 StepStorage* storage);
-
-//---------------------------------------------------------------------------//
-// PRIVATE HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get a reference to the step state data, allocating if needed.
- */
-template<StepPoint P>
-template<MemSpace M>
-StepStateData<Ownership::reference, M>& StepGatherAction<P>::get_state(
-    CoreParamsData<Ownership::const_reference, M> const& params,
-    CoreStateData<Ownership::reference, M>& states) const
-{
-    return get_stream_state(params, states, storage_.get());
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
