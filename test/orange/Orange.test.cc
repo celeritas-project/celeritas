@@ -847,11 +847,6 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_EQ("bob.mz", this->params().id_to_label(geo.surface_id()).name);
 }
 
-TEST_F(RectArrayTest, initialization)
-{
-    FAIL() << "not implemented";
-}
-
 TEST_F(Geant4Testem15Test, safety)
 {
     OrangeTrackView geo = this->make_track_view();
