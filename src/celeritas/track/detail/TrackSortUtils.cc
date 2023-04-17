@@ -11,6 +11,8 @@
 #include <numeric>
 #include <random>
 
+#include "corecel/data/Collection.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -34,6 +36,21 @@ void shuffle_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slot
     unsigned int seed = track_slots.size();
     std::mt19937 g{seed};
     std::shuffle(track_slots.begin(), track_slots.end(), g);
+}
+
+template<>
+void partition_tracks_by_status(
+    CoreStateData<Ownership::reference, MemSpace::host> const& states)
+{
+    CELER_EXPECT(states.size() > 0);
+    Span track_slots{
+        states.track_slots[AllItems<TrackSlotId::size_type, MemSpace::host>{}]};
+    std::partition(track_slots.begin(),
+                   track_slots.end(),
+                   [&status = states.sim.status](auto const track_slot) {
+                       return status[TrackSlotId{track_slot}]
+                              == TrackStatus::alive;
+                   });
 }
 //---------------------------------------------------------------------------//
 }  // namespace detail

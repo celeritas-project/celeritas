@@ -88,6 +88,7 @@ list(APPEND SOURCES
   track/ExtendFromSecondariesAction.cc
   track/InitializeTracksAction.cc
   track/SimParams.cc
+  track/SortTracksAction.cc
   track/TrackInitParams.cc
   user/DetectorSteps.cc
   user/StepCollector.cc

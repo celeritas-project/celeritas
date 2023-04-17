@@ -32,7 +32,9 @@ class CoreParams;
 
 NLOHMANN_JSON_SERIALIZE_ENUM(TrackOrder,
                              {{TrackOrder::unsorted, "unsorted"},
-                              {TrackOrder::shuffled, "shuffled"}})
+                              {TrackOrder::shuffled, "shuffled"},
+                              {TrackOrder::partition_status,
+                               "partition-status"}})
 }
 
 namespace demo_loop
