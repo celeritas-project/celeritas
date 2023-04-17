@@ -23,7 +23,8 @@ namespace celeritas
  * Helper class for storing parameters and multiple stream-dependent states.
  *
  * This requires a templated ParamsData and StateData. Hopefully this
- * frankenstein of a class will be replaced by a
+ * frankenstein of a class will be replaced by a std::any-like data container
+ * owned by each (possibly thread-local) State.
  */
 template<template<Ownership, MemSpace> class P, template<Ownership, MemSpace> class S>
 class StreamStore
