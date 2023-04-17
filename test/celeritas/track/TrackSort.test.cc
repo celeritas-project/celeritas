@@ -103,8 +103,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
         track_status = core_ref.states.sim.status;
 
         // check for partitioned tracks
-        auto span
-            = track_slots[AllItems<TrackSlotId::size_type, MemSpace::host>{}];
+        auto span = track_slots[AllItems<TrackSlotId::size_type>{}];
         return std::is_partitioned(
             span.begin(), span.end(), [&track_status](auto const track_slot) {
                 return track_status[TrackSlotId{track_slot}]

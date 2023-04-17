@@ -33,6 +33,9 @@ namespace test
 {
 
 //---------------------------------------------------------------------------//
+// TEST HARNESS
+//---------------------------------------------------------------------------//
+
 #define TestEm3Msc TEST_IF_CELERITAS_GEANT(TestEm3Msc)
 class TestEm3Msc : public TestEm3StepperTestBase
 {
