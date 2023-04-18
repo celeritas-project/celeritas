@@ -46,8 +46,6 @@ OrangeInput to_input(UnitInput u)
 {
     OrangeInput result;
     result.universes.push_back(std::move(u));
-    result.universe_types.push_back(celeritas::UniverseType::simple);
-    result.universe_indices.push_back(0);
     return result;
 }
 

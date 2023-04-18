@@ -137,9 +137,6 @@ struct OrangeInput
 {
     std::vector<std::variant<UnitInput, RectArrayInput>> universes;
 
-    std::vector<UniverseType> universe_types;
-    std::vector<size_type> universe_indices;
-
     // TODO: Calculate automatically in Shift by traversing the parent/daughter
     // tree
     size_type max_level = 3;

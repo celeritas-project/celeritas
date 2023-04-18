@@ -131,6 +131,7 @@ enum class UniverseType : unsigned char
     dode_array,
     ...
 #endif
+    size_  //!< Sentinel value for number of universe types
 };
 
 //---------------------------------------------------------------------------//
