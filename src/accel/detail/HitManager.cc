@@ -138,20 +138,20 @@ auto HitManager::filters() const -> Filters
 /*!
  * Process detector tallies (CPU).
  */
-void HitManager::execute(StateHostRef const& data)
+void HitManager::process_steps(HostWTFStepState state)
 {
-    auto&& process_hits = this->get_local_hit_processor();
-    process_hits(data);
+    auto&& process_hits = this->get_local_hit_processor(state.stream_id);
+    process_hits(state.steps);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Process detector tallies (GPU).
  */
-void HitManager::execute(StateDeviceRef const& data)
+void HitManager::process_steps(DeviceWTFStepState state)
 {
-    auto&& process_hits = this->get_local_hit_processor();
-    process_hits(data);
+    auto&& process_hits = this->get_local_hit_processor(state.stream_id);
+    process_hits(state.steps);
 }
 
 //---------------------------------------------------------------------------//
@@ -175,18 +175,20 @@ void HitManager::finalize()
 /*!
  * Ensure the local hit processor exists, and return it.
  */
-HitProcessor& HitManager::get_local_hit_processor()
+HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
 {
-    int local_thread = G4Threading::G4GetThreadId();
-    CELER_ASSERT(static_cast<std::size_t>(local_thread) < processors_.size());
-    if (CELER_UNLIKELY(!processors_[local_thread]))
+    CELER_EXPECT(sid.get()
+                 == static_cast<size_type>(G4Threading::G4GetThreadId()));
+    CELER_EXPECT(sid < processors_.size());
+
+    if (CELER_UNLIKELY(!processors_[sid.unchecked_get()]))
     {
         CELER_LOG_LOCAL(debug) << "Allocating hit processor";
         // Allocate the hit processor locally
-        processors_[local_thread] = std::make_unique<HitProcessor>(
+        processors_[sid.unchecked_get()] = std::make_unique<HitProcessor>(
             geant_vols_, selection_, locate_touchable_);
     }
-    return *processors_[local_thread];
+    return *processors_[sid.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

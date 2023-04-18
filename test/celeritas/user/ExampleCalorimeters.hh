@@ -40,10 +40,10 @@ class ExampleCalorimeters final : public StepInterface
     StepSelection selection() const final;
 
     // Tally host data for a step iteration
-    void execute(StateHostRef const&) final;
+    void process_steps(HostWTFStepState) final;
 
     // Tally device data for a step iteration
-    void execute(StateDeviceRef const&) final
+    void process_steps(DeviceWTFStepState) final
     {
         CELER_NOT_IMPLEMENTED("device example");
     }

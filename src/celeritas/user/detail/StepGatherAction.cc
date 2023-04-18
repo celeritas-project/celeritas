@@ -25,20 +25,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<StepPoint P>
-void step_gather_device(DeviceCRef<CoreParamsData> const&,
-                        DeviceRef<CoreStateData>&,
-                        DeviceCRef<StepParamsData> const&,
-                        DeviceRef<StepStateData>&)
-#if CELER_USE_DEVICE
-    ;
-#else
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
-
-//---------------------------------------------------------------------------//
 /*!
  * Capture construction arguments.
  */
@@ -89,9 +75,10 @@ void StepGatherAction<P>::execute(ParamsHostCRef const& params,
 
     if (P == StepPoint::post)
     {
+        WTFStepState<MemSpace::host> cb_state{step_state, state.stream_id};
         for (auto const& sp_callback : callbacks_)
         {
-            sp_callback->execute(step_state);
+            sp_callback->process_steps(cb_state);
         }
     }
 }
@@ -113,12 +100,28 @@ void StepGatherAction<P>::execute(ParamsDeviceCRef const& params,
 
     if (P == StepPoint::post)
     {
+        WTFStepState<MemSpace::device> cb_state{step_state, state.stream_id};
         for (auto const& sp_callback : callbacks_)
         {
-            sp_callback->execute(step_state);
+            sp_callback->process_steps(cb_state);
         }
     }
 }
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS INSTANTIATION
+//---------------------------------------------------------------------------//
+
+#if !CELER_USE_DEVICE
+template<StepPoint P>
+void step_gather_device(DeviceCRef<CoreParamsData> const&,
+                        DeviceRef<CoreStateData>&,
+                        DeviceCRef<StepParamsData> const&,
+                        DeviceRef<StepStateData>&)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION

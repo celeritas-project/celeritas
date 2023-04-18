@@ -68,8 +68,9 @@ StepSelection ExampleCalorimeters::selection() const
 /*!
  * Process detector tallies.
  */
-void ExampleCalorimeters::execute(StateHostRef const& data)
+void ExampleCalorimeters::process_steps(HostWTFStepState state)
 {
+    auto& data = state.steps;
     for (auto tid : range(TrackSlotId{data.size()}))
     {
         DetectorId det = data.detector[tid];
