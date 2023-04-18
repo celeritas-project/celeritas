@@ -134,7 +134,7 @@ OrangeParams::OrangeParams(OrangeInput input)
 
     HostVal<OrangeParamsData> host_data;
 
-    // Calculate offsets for UnitIndexerData
+    // Calculate offsets for UniverseIndexerData
     {
         auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
         auto ui_vol = make_builder(&host_data.unit_indexer_data.volumes);
@@ -143,11 +143,20 @@ OrangeParams::OrangeParams(OrangeInput input)
 
         auto get_num_surfaces = Overload{
             [](UnitInput const& u) -> size_type { return u.surfaces.size(); },
-            [](RectArrayInput const&) -> size_type { return 0; }};
+            [](RectArrayInput const& r) -> size_type {
+                return r.daughters.size();
+            }};
 
         auto get_num_volumes = Overload{
             [](UnitInput const& u) -> size_type { return u.volumes.size(); },
-            [](RectArrayInput const&) -> size_type { return 0; }};
+            [](RectArrayInput const& r) -> size_type {
+                return std::accumulate(r.grid.begin(),
+                                       r.grid.end(),
+                                       size_type(0),
+                                       [](size_type acc, const auto& vec) {
+                                           return acc + vec.size();
+                                       });
+            }};
 
         for (auto const& u : input.universes)
         {

@@ -173,13 +173,13 @@ struct RectArrayRecord
  * zero and the last item should be the total number of surfaces or volumes.
  */
 template<Ownership W, MemSpace M>
-struct UnitIndexerData
+struct UniverseIndexerData
 {
     Collection<size_type, W, M> surfaces;
     Collection<size_type, W, M> volumes;
 
     template<Ownership W2, MemSpace M2>
-    UnitIndexerData& operator=(UnitIndexerData<W2, M2> const& other)
+    UniverseIndexerData& operator=(UniverseIndexerData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
 
@@ -241,7 +241,7 @@ struct OrangeParamsData
     Items<Daughter> daughters;
     Items<Translation> translations;
 
-    UnitIndexerData<W, M> unit_indexer_data;
+    UniverseIndexerData<W, M> unit_indexer_data;
 
     //// METHODS ////
 

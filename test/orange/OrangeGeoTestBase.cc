@@ -18,7 +18,7 @@
 #include "orange/Types.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/construct/SurfaceInputBuilder.hh"
-#include "orange/detail/UnitIndexer.hh"
+#include "orange/detail/UniverseIndexer.hh"
 #include "orange/surf/Sphere.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/SurfaceIO.hh"
@@ -286,7 +286,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalSurfaceId surfid) const
     if (!surfid)
         return "[none]";
 
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().unit_indexer_data);
     return params_->id_to_label(ui.global_surface(uid, surfid)).name;
 }
 
@@ -309,7 +309,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
     if (!volid)
         return "[none]";
 
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().unit_indexer_data);
     return params_->id_to_label(ui.global_volume(uid, volid)).name;
 }
 
