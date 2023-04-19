@@ -104,32 +104,18 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   unset(_default_build_type)
 endif()
 
-# RNG selection
-set(CELERITAS_RNG_OPTIONS XORWOW)
+# Define CELERITAS_RNG option for random number generator selection
+set(CELERITAS_RNG_OPTIONS xorwow)
 if(CELERITAS_USE_CUDA)
-  list(APPEND CELERITAS_RNG_OPTIONS CURAND)
+  list(APPEND CELERITAS_RNG_OPTIONS cuRAND)
 elseif(CELERITAS_USE_HIP)
-  list(APPEND CELERITAS_RNG_OPTIONS HIPRAND)
+  list(APPEND CELERITAS_RNG_OPTIONS hipRAND)
 elseif(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
   # TODO: allow wrapper to standard library RNG when not building for device?
   # TODO: maybe even add wrapper to Geant4 RNG??
 endif()
-list(GET CELERITAS_RNG_OPTIONS 0 _DEFAULT_RNG)
-set(CELERITAS_RNG "${_DEFAULT_RNG}" CACHE STRING
+celeritas_define_options(CELERITAS_RNG
   "Celeritas runtime random number generator")
-set_property(CACHE CELERITAS_RNG PROPERTY STRINGS "${CELERITAS_RNG_OPTIONS}")
-list(FIND CELERITAS_RNG_OPTIONS "${CELERITAS_RNG}" _rng_index)
-if(_rng_index EQUAL -1)
-  message(SEND_ERROR "Invalid value CELERITAS_RNG=${CELERITAS_RNG}: must be "
-    "${CELERITAS_RNG_OPTIONS}; overriding for next configure")
-  set(CELERITAS_RNG "${_DEFAULT_RNG}" CACHE STRING
-    "Celeritas runtime random number generator" FORCE)
-endif()
-
-cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
-  "Use kernel launch bounds generated from launch-bounds.json" "OFF"
-  "CELERITAS_USE_CUDA OR CELERITAS_USE_HIP" OFF
-)
 
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)

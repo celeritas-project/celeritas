@@ -64,6 +64,29 @@ CMake configuration utility functions for Celeritas.
   The ``<input>`` must be a relative path to the current source directory, and
   the ``<output>` path is configured to the project build "include" directory.
 
+.. command:: celeritas_define_options
+
+  Set up CMake variables for defining configure-time option switches::
+
+    celeritas_define_options(<var> <doc>)
+
+  This will set <var> to the first item of the list ``${<var>_OPTIONS}``. It
+  will validate that the selection is one of the list and default to the first
+  item in the list.
+
+.. command:: celeritas_generate_option_macros
+
+  Generate preprocessor macros for the given option list.::
+
+    celeritas_generate_option_macros(<var>)
+
+  This requires the list of ``<var>_OPTIONS`` to be set and ``<var>`` to be set,
+  and it creates a string in the parent scope called ``<var>_MACROS``
+
+  The resulting macro list starts a counter counter from 1 because undefined
+  macros have the implicit value of 0 in the C preprocessor. Thus any
+  unavailable options (e.g. CELERITAS_USE_CURAND when HIP is in use) will
+  implicitly be zero.
 
 #]=======================================================================]
 include_guard(GLOBAL)
@@ -218,6 +241,45 @@ function(celeritas_configure_file input output)
   configure_file("${input}"
     "${CELERITAS_HEADER_CONFIG_DIRECTORY}/${output}"
     ${ARGN})
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_define_options var doc)
+  if(NOT ${var}_OPTIONS)
+    message(FATAL_ERROR "${var}_OPTIONS has no options")
+  endif()
+  mark_as_advanced(${var}_OPTIONS)
+
+  list(GET ${var}_OPTIONS 0 _default)
+  set(${var} "${_default}" CACHE STRING "${doc}")
+  set_property(CACHE ${var} PROPERTY STRINGS "${${var}_OPTIONS}")
+
+  list(FIND ${var}_OPTIONS "${${var}}" _index)
+  if(_index EQUAL -1)
+    message(SEND_ERROR "Invalid value ${var}=${${var}}: must be "
+      "${${var}_OPTIONS}; overriding for next configure")
+    set(${var} "${_default}" CACHE STRING "${doc}" FORCE)
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_generate_option_macros var)
+  set(_counter 1)
+  set(_options)
+  foreach(_val IN LISTS ${var}_OPTIONS)
+    string(TOUPPER "${_val}" _val)
+    list(APPEND _options "#define ${var}_${_val} ${_counter}")
+    math(EXPR _counter "${_counter} + 1")
+  endforeach()
+
+  string(TOUPPER "${${var}}" _val)
+  string(JOIN "\n" _result
+    ${_options}
+    "#define ${var} ${var}_${_val}"
+  )
+  set(${var}_MACROS "${_result}" PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#
