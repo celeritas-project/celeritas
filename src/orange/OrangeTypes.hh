@@ -326,7 +326,7 @@ CELER_CONSTEXPR_FUNCTION bool is_operator_token(logic_int lv)
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 //! Get a printable character corresponding to a sense.
-inline static constexpr char to_char(Sense s)
+inline constexpr char to_char(Sense s)
 {
     return s == Sense::inside ? '-' : '+';
 }
@@ -337,7 +337,7 @@ char const* to_cstring(SurfaceType);
 //! Get a printable character corresponding to an operator.
 namespace logic
 {
-inline static constexpr char to_char(OperatorToken tok)
+inline constexpr char to_char(OperatorToken tok)
 {
     return is_operator_token(tok) ? "*|&~"[tok - lbegin] : '\a';
 }
