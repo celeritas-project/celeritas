@@ -33,8 +33,8 @@ template<class T, Ownership W, MemSpace M, class I, std::size_t E>
 void copy_to_host(Collection<T, W, M, I> const& src, Span<T, E> dst)
 {
     CELER_EXPECT(src.size() == dst.size());
-    Copier<T, M> copy_impl{src[AllItems<T, M>{}]};
-    copy_impl(MemSpace::host, dst);
+    Copier<T, MemSpace::host> copy_to_result{dst};
+    copy_to_result(M, src[AllItems<T, M>{}]);
 }
 
 //---------------------------------------------------------------------------//

@@ -54,10 +54,9 @@ template<>
 size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts)
 {
     // Copy the last element to the host
-    Copier<size_type, MemSpace::device> copy_last_element_to{
-        {counts.data() + counts.size() - 1, 1}};
     size_type partial1{};
-    copy_last_element_to(MemSpace::host, {&partial1, 1});
+    Copier<size_type, MemSpace::host> copy_to_temp{{&partial1, 1}};
+    copy_to_temp(MemSpace::device, {counts.data() + counts.size() - 1, 1});
 
     thrust::exclusive_scan(
         thrust::device_pointer_cast(counts.data()),
