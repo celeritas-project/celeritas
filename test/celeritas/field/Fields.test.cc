@@ -6,14 +6,14 @@
 //! \file celeritas/field/Fields.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
+#include "celeritas/field/FieldMapData.hh"
+#include "celeritas/field/FieldMapReader.hh"
+#include "celeritas/field/MagFieldMap.hh"
+#include "celeritas/field/MapField.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
 
-#include "CMSFieldMapReader.hh"
-#include "CMSMapField.hh"
 #include "CMSParameterizedField.hh"
-#include "FieldMapData.hh"
-#include "MagFieldMap.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -96,13 +96,13 @@ TEST(CMSMapField, all)
         params.num_grid_z = 2 * 16 + 1;  //! [-16:16]
         params.offset_z = 16 * units::meter;
 
-        CMSFieldMapReader load_map(
+        FieldMapReader load_map(
             params,
             test::Test::test_data_path("celeritas", "cmsFieldMap.tiny"));
         field_map = std::make_unique<MagFieldMap>(load_map);
     }
 
-    CMSMapField calc_field(field_map->host_ref());
+    MapField calc_field(field_map->host_ref());
 
     int const nsamples = 8;
     real_type delta_z = 25.0;

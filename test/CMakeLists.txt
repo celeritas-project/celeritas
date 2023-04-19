@@ -323,11 +323,7 @@ celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 # Field
 set(CELERITASTEST_PREFIX celeritas/field)
 
-celeritas_add_test(celeritas/field/Fields.test.cc
-SOURCES
-  celeritas/field/MagFieldMap.cc
-  celeritas/field/CMSFieldMapReader.cc
-)
+celeritas_add_test(celeritas/field/Fields.test.cc)
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
 celeritas_add_test(celeritas/field/FieldPropagator.test.cc ${_needs_geo})
