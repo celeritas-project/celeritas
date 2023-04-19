@@ -97,12 +97,14 @@ using AccessorResultType = typename AccessorTraits<T>::result_type;
  * The label is used solely for outputting to JSON.
  *
  * \note The Quantity is designed to be a simple "strong type" class, not a
- * complex mathematical class. To operate on quantities, you must use
+ * complex mathematical class. To operate on quantities, you should use
  `value_as`
  * (to operate within the Quantity's unit system) or `native_value_from` (to
  * operate in the Celeritas native unit system), use the resulting numeric
  * values in your mathematical expressions, then return a new Quantity class
- * with the resulting value and correct type.
+ * with the resulting value and correct type. In cases where the types are
+ * \em known to be consistent, the \c std::optional -like \c value and \c
+ * operator* functions can be used to access the underlying value.
  */
 template<class UnitT, class ValueT = real_type>
 class Quantity
@@ -128,8 +130,20 @@ class Quantity
     //! Construct implicitly from a unitless quantity
     CELER_CONSTEXPR_FUNCTION Quantity(Unitless uq) : value_(uq.value_) {}
 
-    //! Get numeric value, discarding units
-    CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
+    //!@{
+    //! Access the underlying numeric value, discarding units
+#define CELER_DEFINE_QACCESS(FUNC, QUAL)                                     \
+    CELER_CONSTEXPR_FUNCTION value_type QUAL FUNC() QUAL noexcept     \
+    {                                                                  \
+        return value_;                                                 \
+    }
+
+    CELER_DEFINE_QACCESS(value, &)
+    CELER_DEFINE_QACCESS(value, const&)
+    CELER_DEFINE_QACCESS(operator*, &)
+    CELER_DEFINE_QACCESS(operator*, const&)
+#undef CELER_DEFINE_QACCESS
+    //!@}
 
   private:
     value_type value_{};
