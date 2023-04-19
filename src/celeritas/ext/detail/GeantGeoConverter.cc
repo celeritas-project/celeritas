@@ -702,7 +702,7 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
     else if (auto refl = dynamic_cast<G4ReflectedSolid const*>(shape))
     {
         G4VSolid* underlyingSolid = refl->GetConstituentMovedSolid();
-        CELER_LOG(info)
+        CELER_LOG(debug)
             << " Reflected solid found: "
             << " volume: " << refl->GetName()
             << " type = " << refl->GetEntityType()
@@ -714,7 +714,7 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
     // New volumes should be implemented here...
     if (!unplaced_volume)
     {
-        CELER_LOG(info) << "Unsupported shape for G4 solid "
+        CELER_LOG(error) << "Unsupported shape for G4 solid "
                         << shape->GetName().c_str() << ", of type "
                         << shape->GetEntityType().c_str();
         unplaced_volume = new GenericSolid<G4VSolid>(shape);

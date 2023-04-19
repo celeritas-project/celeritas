@@ -21,7 +21,6 @@
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
 #include "celeritas/ext/LoadGdml.hh"
-#include "corecel/io/ScopedTimeAndRedirect.hh"
 
 #include "celeritas_test.hh"
 
@@ -249,13 +248,8 @@ auto VecgeomTestBase::load_vgdml(std::string_view filename) const -> SPGeometry
 //---------------------------------------------------------------------------//
 auto VecgeomTestBase::load_g4_gdml(std::string_view filename) const -> SPGeometry
 {
-    G4VPhysicalVolume* world = nullptr;
-    {
-        ScopedTimeAndRedirect scoped_time("celeritas::load_gdml");
-world = ::celeritas::load_gdml(
-        this->test_data_path("celeritas", filename));
-    }
-    return std::make_shared<VecgeomParams>(world);
+    return std::make_shared<VecgeomParams>(::celeritas::load_gdml(
+        this->test_data_path("celeritas", filename)));
 }
 
 //---------------------------------------------------------------------------//
