@@ -173,7 +173,7 @@ endif()
 # DEMO: geometry tracking
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
   add_executable(demo-rasterizer
     demo-rasterizer/demo-rasterizer.cc
     demo-rasterizer/RDemoRunner.cc
@@ -181,11 +181,14 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     demo-rasterizer/ImageIO.cc
     demo-rasterizer/ImageStore.cc
   )
-  celeritas_target_link_libraries(demo-rasterizer
+  set(_rasterizer_libs
     Celeritas::celeritas
     nlohmann_json::nlohmann_json
-    VecGeom::vecgeom
   )
+  if(CELERITAS_USE_CUDA AND CELERITAS_DEBUG AND CELERITAS_GEO STREQUAL "VecGeom")
+    list(APPEND _rasterizer_libs VecGeom::vecgeom)
+  endif()
+  celeritas_target_link_libraries(demo-rasterizer ${_rasterizer_libs})
 
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/simple-driver.py")
@@ -233,7 +236,7 @@ if(CELERITAS_BUILD_DEMOS)
     nlohmann_json::nlohmann_json
     Celeritas::DeviceToolkit
   )
-  if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
+  if(CELERITAS_USE_CUDA AND CELERITAS_GEO STREQUAL "VecGeom")
     list(APPEND _demo_loop_libs VecGeom::vecgeom)
   endif()
   if(CELERITAS_USE_OpenMP)
@@ -275,7 +278,7 @@ if(CELERITAS_BUILD_DEMOS)
       "${_geant_exporter_env}"
       "CELER_DISABLE_PARALLEL=1"
     )
-    if(NOT CELERITAS_USE_VecGeom)
+    if(NOT CELERITAS_GEO STREQUAL "VecGeom")
       list(APPEND _env "CELER_DISABLE_VECGEOM=1")
     endif()
     set_tests_properties("app/demo-loop" PROPERTIES
@@ -286,8 +289,6 @@ if(CELERITAS_BUILD_DEMOS)
     )
 
     # Disable test when prereqs are not available
-    # Note that this test has been known to fail for CUDA architecture 3.5
-    # when using VecGeom and a debug build
     if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
        OR NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_HepMC3
@@ -314,7 +315,7 @@ if(CELERITAS_BUILD_DEMOS)
       "CELER_DISABLE_PARALLEL=1"
       ${_omp_env}
     )
-    if(NOT CELERITAS_USE_VecGeom)
+    if(NOT CELERITAS_GEO STREQUAL "VecGeom")
       list(APPEND _env "CELER_DISABLE_VECGEOM=1")
     endif()
     set_tests_properties("app/demo-loop-cpu" PROPERTIES
@@ -465,7 +466,7 @@ if(CELERITAS_BUILD_DEMOS)
     nlohmann_json::nlohmann_json
     Celeritas::DeviceToolkit
   )
-  if(CELERITAS_USE_VecGeom)
+  if(CELERITAS_GEO STREQUAL "VecGeom")
     list(APPEND _geo_check_libs VecGeom::vecgeom)
   endif()
 
@@ -486,7 +487,7 @@ if(CELERITAS_BUILD_DEMOS)
       RESOURCE_LOCK gpu
       LABELS "app;gpu"
     )
-    if (NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA))
+    if(NOT (CELERITAS_GEO STREQUAL "VecGeom" AND CELERITAS_USE_CUDA))
       set_tests_properties("app/geo-check" PROPERTIES
         DISABLED true
       )

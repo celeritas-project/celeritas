@@ -76,9 +76,6 @@ endif()
 if(CMAKE_VERSION VERSION_LESS 3.22 AND CELERITAS_USE_HIP)
   message(WARNING "HIP support is immature; CMake 3.22+ is recommended.")
 endif()
-if(CELERITAS_USE_HIP AND CELERITAS_USE_VecGeom)
-  message(SEND_ERROR "HIP is incompatible with VecGeom.")
-endif()
 
 # Library
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
@@ -114,16 +111,18 @@ celeritas_define_options(CELERITAS_RNG
   "Celeritas runtime random number generator")
 
 # Runtime geometry selection: default to VecGeom if available
-celeritas_setup_option(CELERITAS_GEO VecGeom CELERITAS_USE_VecGeom)
+set(_allow_vecgeom FALSE)
+if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
+  set(_allow_vecgeom TRUE)
+endif()
+celeritas_setup_option(CELERITAS_GEO VecGeom _allow_vecgeom)
 celeritas_setup_option(CELERITAS_GEO ORANGE)
-celeritas_define_options(CELERITAS_GEO
-  "Celeritas runtime geometry")
+celeritas_define_options(CELERITAS_GEO "Celeritas runtime geometry")
 
 cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
   "Use kernel launch bounds generated from launch-bounds.json" "OFF"
   "CELERITAS_USE_CUDA OR CELERITAS_USE_HIP" OFF
 )
-
 
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)

@@ -13,6 +13,7 @@
 
 #include "celeritas_config.h"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/ext/LoadGdml.hh"
 
 #include "celeritas_test.hh"
 
