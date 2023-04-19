@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/LoadGdml.cc
+//! \file celeritas/ext/GeantGeoUtils.cc
 //---------------------------------------------------------------------------//
-#include "LoadGdml.hh"
+#include "GeantGeoUtils.hh"
 
 #include <G4GDMLParser.hh>
 #include <G4LogicalVolumeStore.hh>
@@ -13,9 +13,9 @@
 #include <G4SolidStore.hh>
 #include <G4VPhysicalVolume.hh>
 
-#include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 namespace celeritas
@@ -29,10 +29,10 @@ namespace celeritas
  *
  * \return the world volume
  */
-G4VPhysicalVolume* load_gdml(std::string const& filename)
+G4VPhysicalVolume* load_geant_geometry(std::string const& filename)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
-    ScopedMem record_mem("load_gdml");
+    ScopedMem record_mem("load_geant_geometry");
 
     // Create parser; do *not* strip `0x` extensions since those are needed to
     // deduplicate complex geometries (e.g. CMS) and are handled by the Label
@@ -44,8 +44,8 @@ G4VPhysicalVolume* load_gdml(std::string const& filename)
 
     constexpr bool validate_gdml_schema = false;
     {
-    ScopedTimeAndRedirect scoped_time("G4GDMLParser::Read");
-    gdml_parser.Read(filename, validate_gdml_schema);
+        ScopedTimeAndRedirect scoped_time("G4GDMLParser::Read");
+        gdml_parser.Read(filename, validate_gdml_schema);
     }
 
     G4VPhysicalVolume* result(gdml_parser.GetWorldVolume());

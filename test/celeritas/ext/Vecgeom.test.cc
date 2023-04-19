@@ -8,6 +8,7 @@
 #include "Vecgeom.test.hh"
 
 #include <string_view>
+
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
@@ -17,10 +18,10 @@
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Version.hh"
+#include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
-#include "celeritas/ext/LoadGdml.hh"
 
 #include "celeritas_test.hh"
 
@@ -248,7 +249,7 @@ auto VecgeomTestBase::load_vgdml(std::string_view filename) const -> SPGeometry
 //---------------------------------------------------------------------------//
 auto VecgeomTestBase::load_g4_gdml(std::string_view filename) const -> SPGeometry
 {
-    return std::make_shared<VecgeomParams>(::celeritas::load_gdml(
+    return std::make_shared<VecgeomParams>(::celeritas::load_geant_geometry(
         this->test_data_path("celeritas", filename)));
 }
 

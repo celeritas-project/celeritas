@@ -110,7 +110,7 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
-    ext/LoadGdml.cc
+    ext/GeantGeoUtils.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc

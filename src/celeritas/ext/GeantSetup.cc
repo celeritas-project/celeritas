@@ -30,7 +30,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 
-#include "LoadGdml.hh"
+#include "GeantGeoUtils.hh"
 #include "detail/GeantExceptionHandler.hh"
 #include "detail/GeantLoggerAdapter.hh"
 #include "detail/GeantPhysicsList.hh"
@@ -134,7 +134,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         ScopedTimeLog scoped_time;
 
         // Load GDML and save a copy of the pointer
-        world_ = load_gdml(gdml_filename);
+        world_ = load_geant_geometry(gdml_filename);
         CELER_ASSERT(world_);
 
         // Construct the geometry

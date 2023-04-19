@@ -12,8 +12,8 @@
 #include <vector>
 
 #include "celeritas_config.h"
+#include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/ext/LoadGdml.hh"
 
 #include "celeritas_test.hh"
 
