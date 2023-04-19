@@ -64,6 +64,16 @@ CMake configuration utility functions for Celeritas.
   The ``<input>`` must be a relative path to the current source directory, and
   the ``<output>` path is configured to the project build "include" directory.
 
+.. command:: celeritas_setup_option
+
+  Add a single compile time option value to the list::
+
+    celeritas_setup_option(<var> <option> [conditional])
+
+  This appends ``<option>`` to the list ``<var>_OPTIONS`` if ``${conditional}``
+  is true or the argument is not provided; and to ``<var>_DISABLED_OPTIONS`` if
+  the variable is present and false.
+
 .. command:: celeritas_define_options
 
   Set up CMake variables for defining configure-time option switches::
@@ -245,6 +255,20 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
+macro(celeritas_setup_option var option) #[condition]
+  if(${ARGC} EQUAL 2)
+    # always-on-option
+    list(APPEND ${var}_OPTIONS ${option})
+  elseif(${ARGV2})
+    # variable evaluates to true
+    list(APPEND ${var}_OPTIONS ${option})
+  else()
+    list(APPEND ${var}_DISABLED_OPTIONS ${option})
+  endif()
+endmacro()
+
+#-----------------------------------------------------------------------------#
+
 function(celeritas_define_options var doc)
   if(NOT ${var}_OPTIONS)
     message(FATAL_ERROR "${var}_OPTIONS has no options")
@@ -266,19 +290,29 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_generate_option_macros var)
-  set(_counter 1)
+  # Add disabled options first
   set(_options)
+  foreach(_val IN LISTS ${var}_DISABLED_OPTIONS)
+    string(TOUPPER "${_val}" _val)
+    list(APPEND _options "#define ${var}_${_val} 0")
+  endforeach()
+
+  # Add available options
+  set(_counter 1)
   foreach(_val IN LISTS ${var}_OPTIONS)
     string(TOUPPER "${_val}" _val)
     list(APPEND _options "#define ${var}_${_val} ${_counter}")
     math(EXPR _counter "${_counter} + 1")
   endforeach()
 
+  # Add selected option
   string(TOUPPER "${${var}}" _val)
   string(JOIN "\n" _result
     ${_options}
     "#define ${var} ${var}_${_val}"
   )
+
+  # Set in parent scope
   set(${var}_MACROS "${_result}" PARENT_SCOPE)
 endfunction()
 
