@@ -241,7 +241,7 @@ struct OrangeParamsData
     Items<Daughter> daughters;
     Items<Translation> translations;
 
-    UniverseIndexerData<W, M> unit_indexer_data;
+    UniverseIndexerData<W, M> universe_indexer_data;
 
     //// METHODS ////
 
@@ -253,7 +253,7 @@ struct OrangeParamsData
                && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
                    || surface_types.empty())
-               && !volume_records.empty() && unit_indexer_data;
+               && !volume_records.empty() && universe_indexer_data;
     }
 
     //! Assign from another set of data
@@ -277,7 +277,7 @@ struct OrangeParamsData
         volume_records = other.volume_records;
         daughters = other.daughters;
         translations = other.translations;
-        unit_indexer_data = other.unit_indexer_data;
+        universe_indexer_data = other.universe_indexer_data;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
         return *this;

@@ -136,8 +136,8 @@ OrangeParams::OrangeParams(OrangeInput input)
 
     // Calculate offsets for UniverseIndexerData
     {
-        auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
-        auto ui_vol = make_builder(&host_data.unit_indexer_data.volumes);
+        auto ui_surf = make_builder(&host_data.universe_indexer_data.surfaces);
+        auto ui_vol = make_builder(&host_data.universe_indexer_data.volumes);
         ui_surf.push_back(0);
         ui_vol.push_back(0);
 
@@ -163,9 +163,9 @@ OrangeParams::OrangeParams(OrangeInput input)
             using AllVals = AllItems<size_type, MemSpace::native>;
 
             auto surface_offset
-                = host_data.unit_indexer_data.surfaces[AllVals{}].back();
+                = host_data.universe_indexer_data.surfaces[AllVals{}].back();
             auto volume_offset
-                = host_data.unit_indexer_data.volumes[AllVals{}].back();
+                = host_data.universe_indexer_data.volumes[AllVals{}].back();
 
             auto surfs = std::visit(get_num_surfaces, u);
             auto vols = std::visit(get_num_volumes, u);
