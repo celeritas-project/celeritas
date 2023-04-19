@@ -66,10 +66,10 @@ GCheckOutput run_cpu(SPConstGeo const& geo_params,
                      int max_steps);
 
 //! Run tracking on the GPU
-GCheckOutput run_gpu(GCheckInput init);
+GCheckOutput run_gpu(GCheckInput const& init);
 
 #if !CELERITAS_USE_CUDA
-inline GCheckOutput run_gpu(GCheckInput)
+inline GCheckOutput run_gpu(GCheckInput const&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }
