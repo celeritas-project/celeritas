@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
 #include <string>
 
 #include "celeritas_config.h"
@@ -17,44 +16,26 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
-namespace detail
-{
-//---------------------------------------------------------------------------//
-//! Helper function to move destructor to .cc file for implementation hiding
-struct PVDeleter
-{
-    void operator()(G4VPhysicalVolume*) const;
-};
-
-//---------------------------------------------------------------------------//
-}  // namespace detail
-
-//---------------------------------------------------------------------------//
-// TYPE ALIASES
-//---------------------------------------------------------------------------//
-
-//! Unique pointer with externally defined deleter
-using UPG4PhysicalVolume
-    = std::unique_ptr<G4VPhysicalVolume, detail::PVDeleter>;
-
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-/*!
- * Load a GDML file and return the world volume.
- */
-UPG4PhysicalVolume load_gdml(std::string const& gdml_filename);
+// Load a GDML file and return the world volume (Geant4 owns!)
+G4VPhysicalVolume* load_gdml(std::string const& gdml_filename);
+
+//---------------------------------------------------------------------------//
+// Reset all Geant4 geometry stores if *not* using RunManager
+void reset_geant_geometry();
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline void detail::PVDeleter::operator()(G4VPhysicalVolume*) const
+inline G4VPhysicalVolume* load_gdml(std::string const&)
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline UPG4PhysicalVolume load_gdml(std::string const&)
+inline void reset_geant_geometry()
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

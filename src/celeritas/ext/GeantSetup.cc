@@ -46,20 +46,19 @@ namespace
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    explicit DetectorConstruction(UPG4PhysicalVolume world)
-        : world_{std::move(world)}
+    explicit DetectorConstruction(G4VPhysicalVolume* world)
+        : world_{world}
     {
         CELER_ENSURE(world_);
     }
 
     G4VPhysicalVolume* Construct() override
     {
-        CELER_EXPECT(world_);
-        return world_.release();
+        return world_;
     }
 
   private:
-    UPG4PhysicalVolume world_;
+    G4VPhysicalVolume* world_;
 };
 
 //---------------------------------------------------------------------------//
@@ -135,13 +134,11 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         ScopedTimeLog scoped_time;
 
         // Load GDML and save a copy of the pointer
-        auto world = load_gdml(gdml_filename);
-        CELER_ASSERT(world);
-        world_ = world.get();
+        world_ = load_gdml(gdml_filename);
+        CELER_ASSERT(world_);
 
         // Construct the geometry
-        auto detector
-            = std::make_unique<DetectorConstruction>(std::move(world));
+        auto detector = std::make_unique<DetectorConstruction>(world_);
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics

@@ -8,33 +8,28 @@
 #include "LoadGdml.hh"
 
 #include <G4GDMLParser.hh>
+#include <G4LogicalVolumeStore.hh>
+#include <G4PhysicalVolumeStore.hh>
+#include <G4SolidStore.hh>
 #include <G4VPhysicalVolume.hh>
 
+#include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
- * Delete a geant4 volume pointer.
+ * Load a gdml input file, creating a pointer owned by Geant4.
+ *
+ * Geant4's constructors for physical/logical volumes register \c this pointers
+ * in a vector which is cleaned up manually. Yuck.
+ *
+ * \return the world volume
  */
-void detail::PVDeleter::operator()(G4VPhysicalVolume* vol) const
-{
-    delete vol;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace detail
-
-//---------------------------------------------------------------------------//
-/*!
- * Load a gdml input file, creating a pointer with ownership semantics.
- */
-UPG4PhysicalVolume load_gdml(std::string const& filename)
+G4VPhysicalVolume* load_gdml(std::string const& filename)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
     ScopedMem record_mem("load_gdml");
@@ -48,11 +43,30 @@ UPG4PhysicalVolume load_gdml(std::string const& filename)
     gdml_parser.SetStripFlag(false);
 
     constexpr bool validate_gdml_schema = false;
+    {
+    ScopedTimeAndRedirect scoped_time("G4GDMLParser::Read");
     gdml_parser.Read(filename, validate_gdml_schema);
+    }
 
-    UPG4PhysicalVolume result(gdml_parser.GetWorldVolume());
+    G4VPhysicalVolume* result(gdml_parser.GetWorldVolume());
     CELER_ENSURE(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset all Geant4 geometry stores if *not* using RunManager.
+ *
+ * Use this function if reading geometry and cleaning up *without* doing any
+ * transport in between (useful for geometry conversion testing).
+ */
+void reset_geant_geometry()
+{
+    CELER_LOG(debug) << "Resetting Geant4 geometry stores";
+
+    G4PhysicalVolumeStore::Clean();
+    G4LogicalVolumeStore::Clean();
+    G4SolidStore::Clean();
 }
 
 //---------------------------------------------------------------------------//

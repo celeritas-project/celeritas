@@ -18,13 +18,10 @@
 
 #if CELERITAS_USE_GEANT4
 #    include <G4LogicalVolume.hh>
-#    include <G4LogicalVolumeStore.hh>
 #    include <G4Material.hh>
 #    include <G4NistManager.hh>
 #    include <G4Orb.hh>
 #    include <G4PVPlacement.hh>
-#    include <G4PhysicalVolumeStore.hh>
-#    include <G4SolidStore.hh>
 #    include <G4SubtractionSolid.hh>
 #    include <G4ThreeVector.hh>
 #    include <G4VPhysicalVolume.hh>
@@ -81,11 +78,10 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
     // Clean up geometry at destruction
     void TearDown() override
     {
-#if CELERITAS_USE_GEANT4
-        G4PhysicalVolumeStore::Clean();
-        G4LogicalVolumeStore::Clean();
-        G4SolidStore::Clean();
-#endif
+        if (CELERITAS_USE_GEANT4)
+        {
+            reset_geant_geometry();
+        }
         geo_params_.reset();
     }
 
