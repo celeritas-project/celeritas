@@ -286,24 +286,9 @@ celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
 # External
 set(CELERITASTEST_PREFIX celeritas/ext)
 
-# FIXME: if(CELERITAS_USE_VecGeom)
-if(CELERITAS_GEO STREQUAL "VecGeom")
-  set(_vg_geant)
-  if(CELERITAS_USE_Geant4)
-    set(_vg_geant
-      ${_needs_geant4}
-      FILTER
-        "-*Geant*"
-        "FourLevelsGeantTest.*"
-        "SolidsGeantTest.*"
-    )
-  else()
-    set(_vg_geant ${_optional_geant4_env})
-  endif()
-
+if(CELERITAS_USE_VecGeom)
   celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom
-    ${_vg_geant}
   )
 endif()
 

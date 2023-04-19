@@ -7,21 +7,21 @@
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 
+#include <string_view>
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Version.hh"
-#include "celeritas/GeantTestBase.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
-#include "celeritas/GlobalTestBase.hh"
-#include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
+#include "celeritas/ext/LoadGdml.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
 
 #include "celeritas_test.hh"
 
@@ -48,11 +48,16 @@ auto const vecgeom_version
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-
-class VecgeomTestBase : virtual public GlobalTestBase
+/*!
+ * Preserve the VecGeom geometry across test cases.
+ *
+ * Test cases should be matched to unique geometries.
+ */
+class VecgeomTestBase : public ::celeritas::test::Test
 {
   public:
     //!@{
+    using SPGeometry = std::shared_ptr<VecgeomParams>;
     using HostStateStore
         = CollectionStateStore<VecgeomStateData, MemSpace::host>;
     //!@}
@@ -66,24 +71,118 @@ class VecgeomTestBase : virtual public GlobalTestBase
     };
 
   public:
+
+    //! Lazily construct and access the geometry
+    SPGeometry const& geometry();
+
     //! Create a host track view
-    VecgeomTrackView make_geo_track_view()
-    {
-        if (!host_state)
-        {
-            host_state = HostStateStore(this->geometry()->host_ref(), 1);
-        }
-        return VecgeomTrackView(
-            this->geometry()->host_ref(), host_state.ref(), TrackSlotId(0));
-    }
+    VecgeomTrackView make_geo_track_view();
 
     //! Find linear segments until outside
     TrackingResult track(Real3 const& pos, Real3 const& dir);
 
+    //! Build the geometry
+    virtual SPGeometry build_geometry() = 0;
+
+    //! Helper function: build with VecGeom using VGDML
+    SPGeometry load_vgdml(std::string_view filename) const;
+
+    //! Helper function: build via Geant4 GDML reader
+    SPGeometry load_g4_gdml(std::string_view filename) const;
+
   private:
-    HostStateStore host_state;
+    HostStateStore host_state_;
+
+    struct LazyGeo;
+    class CleanupGeoEnvironment;
+    static LazyGeo& lazy_geo();
+    static void reset_geometry();
 };
 
+//---------------------------------------------------------------------------//
+// Geometry class management
+//---------------------------------------------------------------------------//
+
+struct VecgeomTestBase::LazyGeo
+{
+    std::string case_name{};
+    SPGeometry geometry{};
+};
+
+class VecgeomTestBase::CleanupGeoEnvironment : public ::testing::Environment
+{
+  public:
+    void SetUp() override {}
+    void TearDown() override { VecgeomTestBase::reset_geometry(); }
+};
+
+void VecgeomTestBase::reset_geometry()
+{
+    auto& lazy = VecgeomTestBase::lazy_geo();
+    if (lazy.geometry)
+    {
+        CELER_LOG(debug) << "Destroying '" << lazy.case_name << "' geometry";
+        lazy.geometry.reset();
+        if (CELERITAS_USE_GEANT4)
+        {
+            reset_geant_geometry();
+        }
+    }
+}
+
+auto VecgeomTestBase::lazy_geo() -> LazyGeo&
+{
+    static bool registered_cleanup = false;
+    if (!registered_cleanup)
+    {
+        // Always reset geometry at end of testing before global destructors.
+        CELER_LOG(debug) << "Registering CleanupGeoEnvironment";
+        ::testing::AddGlobalTestEnvironment(new CleanupGeoEnvironment());
+        registered_cleanup = true;
+    }
+
+    // Delayed initialization
+    static LazyGeo lg;
+    return lg;
+}
+
+//---------------------------------------------------------------------------//
+auto VecgeomTestBase::geometry() -> SPGeometry const&
+{
+    // Get filename based on unit test name
+    ::testing::TestInfo const* const test_info
+        = ::testing::UnitTest::GetInstance()->current_test_info();
+    CELER_ASSERT(test_info);
+
+    // Convert test case to lowercase
+    std::string case_name = test_info->test_case_name();
+    LazyGeo& lg = VecgeomTestBase::lazy_geo();
+    if (lg.case_name != case_name)
+    {
+        // Deallocate old geometry
+        lg = {};
+    }
+    if (!lg.geometry)
+    {
+        lg.geometry = this->build_geometry();
+        lg.case_name = case_name;
+        CELER_ASSERT(lg.geometry);
+    }
+    return lg.geometry;
+}
+
+//---------------------------------------------------------------------------//
+auto VecgeomTestBase::make_geo_track_view() -> VecgeomTrackView
+{
+    if (!host_state_)
+    {
+        host_state_ = HostStateStore(this->geometry()->host_ref(), 1);
+    }
+    return VecgeomTrackView(
+        this->geometry()->host_ref(), host_state_.ref(), TrackSlotId(0));
+}
+
+//---------------------------------------------------------------------------//
 auto VecgeomTestBase::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
@@ -127,6 +226,7 @@ auto VecgeomTestBase::track(Real3 const& pos, Real3 const& dir)
     return result;
 }
 
+//---------------------------------------------------------------------------//
 void VecgeomTestBase::TrackingResult::print_expected()
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
@@ -140,14 +240,35 @@ void VecgeomTestBase::TrackingResult::print_expected()
 }
 
 //---------------------------------------------------------------------------//
+auto VecgeomTestBase::load_vgdml(std::string_view filename) const -> SPGeometry
+{
+    return std::make_shared<VecgeomParams>(
+        this->test_data_path("celeritas", filename));
+}
+
+//---------------------------------------------------------------------------//
+auto VecgeomTestBase::load_g4_gdml(std::string_view filename) const -> SPGeometry
+{
+    G4VPhysicalVolume* world = nullptr;
+    {
+        ScopedTimeAndRedirect scoped_time("celeritas::load_gdml");
+world = ::celeritas::load_gdml(
+        this->test_data_path("celeritas", filename));
+    }
+    return std::make_shared<VecgeomParams>(world);
+}
+
+//---------------------------------------------------------------------------//
 // FOUR-LEVELS TEST
 //---------------------------------------------------------------------------//
-class FourLevelsTest : public GlobalGeoTestBase,
-                       public OnlyGeoTestBase,
-                       public VecgeomTestBase
+
+class FourLevelsTest : public VecgeomTestBase
 {
   public:
-    char const* geometry_basename() const final { return "four-levels"; }
+    SPGeometry build_geometry() final
+    {
+        return this->load_vgdml("four-levels.gdml");
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -413,12 +534,13 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 // SOLIDS TEST
 //---------------------------------------------------------------------------//
 
-class SolidsTest : public VecgeomTestBase,
-                   public OnlyGeoTestBase,
-                   public GlobalGeoTestBase
+class SolidsTest : public VecgeomTestBase
 {
   public:
-    char const* geometry_basename() const final { return "solids"; }
+    SPGeometry build_geometry() final
+    {
+        return this->load_vgdml("solids.gdml");
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -580,29 +702,14 @@ TEST_F(SolidsTest, trace)
 // CONSTRUCT FROM GEANT4
 //---------------------------------------------------------------------------//
 
-class GeantBuilderTestBase : virtual public GeantTestBase,
-                             public VecgeomTestBase
-{
-  public:
-    static void SetUpTestCase()
-    {
-        // Make sure existing VecGeom geometry has been cleared
-        GlobalGeoTestBase::reset_geometry();
-    }
-
-    SPConstGeo build_geometry() override
-    {
-        return std::make_shared<VecgeomParams>(this->get_world_volume());
-    }
-};
-
-//---------------------------------------------------------------------------//
-
 #define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
-class FourLevelsGeantTest : public GeantBuilderTestBase
+class FourLevelsGeantTest : public VecgeomTestBase
 {
   public:
-    char const* geometry_basename() const final { return "four-levels"; }
+    SPGeometry build_geometry() final
+    {
+        return this->load_g4_gdml("four-levels.gdml");
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -714,11 +821,13 @@ TEST_F(FourLevelsGeantTest, tracking)
 //---------------------------------------------------------------------------//
 
 #define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
-
-class SolidsGeantTest : public GeantBuilderTestBase
+class SolidsGeantTest : public VecgeomTestBase
 {
   public:
-    char const* geometry_basename() const final { return "solids"; }
+    SPGeometry build_geometry() final
+    {
+        return this->load_g4_gdml("solids.gdml");
+    }
 };
 
 //---------------------------------------------------------------------------//
