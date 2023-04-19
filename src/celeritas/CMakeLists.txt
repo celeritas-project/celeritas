@@ -91,7 +91,9 @@ list(APPEND SOURCES
   track/SortTracksAction.cc
   track/TrackInitParams.cc
   user/DetectorSteps.cc
+  user/SimpleCalo.cc
   user/StepCollector.cc
+  user/detail/SimpleCaloImpl.cc
 )
 
 #-----------------------------------------------------------------------------#

@@ -132,10 +132,10 @@ class Quantity
 
     //!@{
     //! Access the underlying numeric value, discarding units
-#define CELER_DEFINE_QACCESS(FUNC, QUAL)                                     \
-    CELER_CONSTEXPR_FUNCTION value_type QUAL FUNC() QUAL noexcept     \
-    {                                                                  \
-        return value_;                                                 \
+#define CELER_DEFINE_QACCESS(FUNC, QUAL)                          \
+    CELER_CONSTEXPR_FUNCTION value_type QUAL FUNC() QUAL noexcept \
+    {                                                             \
+        return value_;                                            \
     }
 
     CELER_DEFINE_QACCESS(value, &)
