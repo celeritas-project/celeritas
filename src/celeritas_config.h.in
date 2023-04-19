@@ -29,4 +29,6 @@
 
 @CELERITAS_RNG_MACROS@
 
+@CELERITAS_GEO_MACROS@
+
 #endif /* celeritas_config_h */

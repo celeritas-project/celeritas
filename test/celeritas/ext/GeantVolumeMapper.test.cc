@@ -30,6 +30,9 @@
 #    include <G4VPhysicalVolume.hh>
 #    include <G4VSolid.hh>
 #endif
+#if CELERITAS_USE_VECGEOM
+#    include "celeritas/ext/VecgeomParams.hh"
+#endif
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MpiCommunicator.hh"
@@ -95,14 +98,9 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
         }
         CELER_ASSERT(!logical_.empty());
 
-        if (CELERITAS_USE_VECGEOM)
-        {
-            this->build_vecgeom();
-        }
-        else
-        {
-            this->build_orange();
-        }
+        this->build_vecgeom();
+        this->build_orange();
+
         CELER_ENSURE(geo_params_);
     }
 
@@ -172,7 +170,14 @@ void NestedTest::build_g4()
 void NestedTest::build_vecgeom()
 {
     CELER_EXPECT(!physical_.empty());
-    geo_params_ = std::make_shared<GeoParams>(physical_.front());
+#if CELERITAS_USE_VECGEOM
+    auto geo = std::make_shared<VecgeomParams>(physical_.front());
+#endif
+#if CELERITAS_GEO == CELERITAS_GEO_VECGEOM
+    geo_params_ = std::move(geo);
+#else
+    (void)sizeof(geo);
+#endif
 }
 
 void NestedTest::build_orange()
@@ -215,12 +220,11 @@ void NestedTest::build_orange()
     input.universe_types.push_back(celeritas::UniverseType::simple);
     input.universe_indices.push_back(0);
     auto geo = std::make_shared<OrangeParams>(std::move(input));
-#if !CELERITAS_USE_VECGEOM
+#if CELERITAS_GEO == CELERITAS_GEO_ORANGE
     geo_params_ = std::move(geo);
 #else
     (void)sizeof(geo);
 #endif
-    CELER_ENSURE(geo_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -237,7 +241,7 @@ class IntersectionTest : public GeantVolumeMapperTestBase
     bool suffix_{false};
 };
 
-#if !CELERITAS_USE_VECGEOM
+#if CELERITAS_GEO == CELERITAS_GEO_ORANGE
 #    define SKIP_IF_ORANGE(NAME) DISABLED_##NAME
 #else
 #    define SKIP_IF_ORANGE(NAME) NAME
@@ -259,11 +263,7 @@ TEST_F(NestedTest, unique)
         EXPECT_EQ(names_[i], geo_params_->id_to_label(vol_id).name);
     }
 
-    if (CELERITAS_USE_VECGEOM)
-    {
-        EXPECT_EQ(0, messages_.size());
-    }
-    else
+    if (CELERITAS_GEO == CELERITAS_GEO_ORANGE)
     {
         static std::string const expected_messages[]
             = {"Failed to exactly match ORANGE volume from Geant4 volume "
@@ -275,6 +275,10 @@ TEST_F(NestedTest, unique)
                "Failed to exactly match ORANGE volume from Geant4 volume "
                "'inner'; found 'inner@global' by omitting the extension"};
         EXPECT_VEC_EQ(expected_messages, messages_);
+    }
+    else
+    {
+        EXPECT_EQ(0, messages_.size());
     }
 }
 

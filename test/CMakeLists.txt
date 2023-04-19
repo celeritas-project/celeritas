@@ -286,7 +286,8 @@ celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
 # External
 set(CELERITASTEST_PREFIX celeritas/ext)
 
-if(CELERITAS_USE_VecGeom)
+# FIXME: if(CELERITAS_USE_VecGeom)
+if(CELERITAS_GEO STREQUAL "VecGeom")
   set(_vg_geant)
   if(CELERITAS_USE_Geant4)
     set(_vg_geant
@@ -345,6 +346,8 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
+else()
+  list(APPEND _geo_args LINK_LIBRARIES Celeritas::orange)
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 

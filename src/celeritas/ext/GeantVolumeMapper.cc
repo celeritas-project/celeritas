@@ -47,7 +47,7 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
     auto all_ids = geo.find_volumes(label.name);
     if (all_ids.size() == 1)
     {
-        CELER_LOG(warning) << "Failed to exactly match " << celeritas_geometry
+        CELER_LOG(warning) << "Failed to exactly match " << celeritas_geo
                            << " volume from Geant4 volume '" << lv.GetName()
                            << "'; found '" << geo.id_to_label(all_ids.front())
                            << "' by omitting the extension";

@@ -113,6 +113,18 @@ celeritas_setup_option(CELERITAS_RNG hipRAND CELERITAS_USE_HIP)
 celeritas_define_options(CELERITAS_RNG
   "Celeritas runtime random number generator")
 
+# Runtime geometry selection: default to VecGeom if available
+celeritas_setup_option(CELERITAS_GEO VecGeom CELERITAS_USE_VecGeom)
+celeritas_setup_option(CELERITAS_GEO ORANGE)
+celeritas_define_options(CELERITAS_GEO
+  "Celeritas runtime geometry")
+
+cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
+  "Use kernel launch bounds generated from launch-bounds.json" "OFF"
+  "CELERITAS_USE_CUDA OR CELERITAS_USE_HIP" OFF
+)
+
+
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
 else()

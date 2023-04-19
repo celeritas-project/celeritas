@@ -84,13 +84,13 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
 
         auto id = g4_to_celer(*lv);
         CELER_VALIDATE(id,
-                       << "failed to find a unique " << celeritas_geometry
+                       << "failed to find a unique " << celeritas_geo
                        << " volume corresponding to Geant4 volume '"
                        << lv->GetName() << "'");
         CELER_LOG(debug) << "Mapped sensitive detector '" << sd->GetName()
                          << "' (logical volume '" << lv->GetName() << "') to "
-                         << celeritas_geometry << " volume '"
-                         << geo.id_to_label(id) << "'";
+                         << celeritas_geo << " volume '" << geo.id_to_label(id)
+                         << "'";
 
         // Add Geant4 volume and corresponding volume ID to list
         geant_vols.push_back(lv);

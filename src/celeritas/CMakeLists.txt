@@ -130,8 +130,6 @@ if(CELERITAS_USE_Geant4)
       ext/detail/GeantGeoConverter.cc
     )
     list(APPEND _cg4_libs VecGeom::vecgeom)
-  else()
-    list(APPEND _cg4_libs Celeritas::orange)
   endif()
 
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
@@ -238,7 +236,9 @@ if(CELERITAS_USE_VecGeom)
   # to resolve the symbols generate by the `nvcc -dlink` of
   # one of the executable.
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
-else()
+endif()
+
+if(CELERITAS_GEO STREQUAL "ORANGE")
   list(APPEND PUBLIC_DEPS Celeritas::orange)
 endif()
 

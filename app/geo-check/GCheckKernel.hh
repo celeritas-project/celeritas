@@ -52,7 +52,7 @@ CELER_FORCEINLINE_FUNCTION int physid(celeritas::GeoTrackView const& geo)
 {
     if (geo.is_outside())
         return 0;
-#if CELERITAS_USE_VECGEOM
+#if CELERITAS_GEO == CELERITAS_GEO_VECGEOM
     return geo.volume_physid();
 #else
     return geo.volume_id().get();
