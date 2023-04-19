@@ -134,66 +134,89 @@ OrangeParams::OrangeParams(OrangeInput input)
 
     HostVal<OrangeParamsData> host_data;
 
-    // Copy data from OrangeInput
-    make_builder(&host_data.universe_types)
-        .insert_back(input.universe_types.begin(), input.universe_types.end());
-    make_builder(&host_data.universe_indices)
-        .insert_back(input.universe_indices.begin(),
-                     input.universe_indices.end());
-
-    // Calculate offsets for UnitIndexerData
-    auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
-    auto ui_vol = make_builder(&host_data.unit_indexer_data.volumes);
-    ui_surf.push_back(0);
-    ui_vol.push_back(0);
-
-    auto get_num_surfaces = Overload{
-        [](UnitInput const& u) -> size_type { return u.surfaces.size(); },
-        [](RectArrayInput const&) -> size_type { return 0; }};
-
-    auto get_num_volumes = Overload{
-        [](UnitInput const& u) -> size_type { return u.volumes.size(); },
-        [](RectArrayInput const&) -> size_type { return 0; }};
-
-    for (auto const& u : input.universes)
+    // Calculate offsets for UniverseIndexerData
     {
-        using AllVals = AllItems<size_type, MemSpace::native>;
+        auto ui_surf = make_builder(&host_data.universe_indexer_data.surfaces);
+        auto ui_vol = make_builder(&host_data.universe_indexer_data.volumes);
+        ui_surf.push_back(0);
+        ui_vol.push_back(0);
 
-        auto surface_offset
-            = host_data.unit_indexer_data.surfaces[AllVals{}].back();
-        auto volume_offset
-            = host_data.unit_indexer_data.volumes[AllVals{}].back();
+        auto get_num_surfaces = Overload{
+            [](UnitInput const& u) -> size_type { return u.surfaces.size(); },
+            [](RectArrayInput const& r) -> size_type {
+                return r.daughters.size();
+            }};
 
-        auto surfs = std::visit(get_num_surfaces, u);
-        auto vols = std::visit(get_num_volumes, u);
+        auto get_num_volumes = Overload{
+            [](UnitInput const& u) -> size_type { return u.volumes.size(); },
+            [](RectArrayInput const& r) -> size_type {
+                return std::accumulate(r.grid.begin(),
+                                       r.grid.end(),
+                                       size_type(0),
+                                       [](size_type acc, const auto& vec) {
+                                           return acc + vec.size();
+                                       });
+            }};
 
-        ui_surf.push_back(surface_offset + surfs);
-        ui_vol.push_back(volume_offset + vols);
+        for (auto const& u : input.universes)
+        {
+            using AllVals = AllItems<size_type, MemSpace::native>;
+
+            auto surface_offset
+                = host_data.universe_indexer_data.surfaces[AllVals{}].back();
+            auto volume_offset
+                = host_data.universe_indexer_data.volumes[AllVals{}].back();
+
+            auto surfs = std::visit(get_num_surfaces, u);
+            auto vols = std::visit(get_num_volumes, u);
+
+            ui_surf.push_back(surface_offset + surfs);
+            ui_vol.push_back(volume_offset + vols);
+        }
     }
 
-    detail::UnitInserter insert_unit(&host_data);
-    detail::RectArrayInserter insert_rect_array(&host_data);
-
-    auto insert_universe = Overload{
-        [&insert_unit](UnitInput const& u) {
-            CELER_VALIDATE(u,
-                           << "simple unit '" << u.label
-                           << "' is not properly constructed");
-
-            insert_unit(u);
-        },
-        [&insert_rect_array](RectArrayInput const& r) {
-            CELER_VALIDATE(r,
-                           << "rect array '" << r.label
-                           << "' is not properly constructed");
-
-            insert_rect_array(r);
-        },
-    };
-
-    for (auto const& u : input.universes)
+    // Create universe_types and universe_indices vectors
     {
-        std::visit(insert_universe, u);
+        auto u_types_builder = make_builder(&host_data.universe_types);
+        auto u_indices_builder = make_builder(&host_data.universe_indices);
+
+        std::vector<size_type> current_indices(
+            static_cast<size_t>(UniverseType::size_), 0);
+
+        for (auto const& u : input.universes)
+        {
+            auto u_type_idx = u.index();
+            u_types_builder.push_back(static_cast<UniverseType>(u_type_idx));
+            u_indices_builder.push_back(current_indices[u_type_idx]++);
+        }
+    }
+
+    // Insert all universes
+    {
+        detail::UnitInserter insert_unit(&host_data);
+        detail::RectArrayInserter insert_rect_array(&host_data);
+
+        auto insert_universe = Overload{
+            [&insert_unit](UnitInput const& u) {
+                CELER_VALIDATE(u,
+                               << "simple unit '" << u.label
+                               << "' is not properly constructed");
+
+                insert_unit(u);
+            },
+            [&insert_rect_array](RectArrayInput const& r) {
+                CELER_VALIDATE(r,
+                               << "rect array '" << r.label
+                               << "' is not properly constructed");
+
+                insert_rect_array(r);
+            },
+        };
+
+        for (auto const& u : input.universes)
+        {
+            std::visit(insert_universe, u);
+        }
     }
 
     // Get surface/volume labels
