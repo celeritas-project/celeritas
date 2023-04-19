@@ -47,6 +47,9 @@ class StreamStore
     //! Whether the instance is ready for storing data
     explicit operator bool() const { return num_streams_ > 0; }
 
+    //! Number of streams being stored
+    StreamId::size_type num_streams() const { return num_streams_; }
+
     // Get references to the params data
     template<MemSpace M>
     inline P<Ownership::const_reference, M> const& params() const;
@@ -56,6 +59,10 @@ class StreamStore
     template<MemSpace M>
     inline S<Ownership::reference, M>&
     state(StreamId stream_id, size_type size);
+
+    // Get a pointer to the state data, null if not allocated
+    template<MemSpace M>
+    inline S<Ownership::reference, M> const* state(StreamId stream_id) const;
 
   private:
     //// TYPES ////
@@ -68,7 +75,7 @@ class StreamStore
     //// DATA ////
 
     CollectionMirror<P> params_;
-    size_type num_streams_{0};
+    StreamId::size_type num_streams_{0};
     VecSS<MemSpace::host> host_states_;
     VecSS<MemSpace::device> device_states_;
 
@@ -76,6 +83,20 @@ class StreamStore
 
     template<MemSpace M>
     decltype(auto) states()
+    {
+        if constexpr (M == MemSpace::host)
+        {
+            // Extra parens needed to return reference instead of copy
+            return (host_states_);
+        }
+        else if constexpr (M == MemSpace::device)
+        {
+            return (device_states_);
+        }
+    }
+
+    template<MemSpace M>
+    decltype(auto) states() const
     {
         if constexpr (M == MemSpace::host)
         {
@@ -145,6 +166,30 @@ StreamStore<P, S>::state(StreamId stream_id, size_type size)
 
     CELER_ENSURE(state_store.size() == size);
     return state_store.ref();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reference to the state data, null if not available for stream+mem.
+ */
+template<template<Ownership, MemSpace> class P, template<Ownership, MemSpace> class S>
+template<MemSpace M>
+S<Ownership::reference, M> const*
+StreamStore<P, S>::state(StreamId stream_id) const
+{
+    CELER_EXPECT(stream_id < num_streams_ || !*this);
+    if (!*this)
+        return nullptr;
+
+    auto& state_vec = this->states<M>();
+    CELER_ASSERT(state_vec.size() == num_streams_);
+    auto& state_store = state_vec[stream_id.unchecked_get()];
+    if (!state_store)
+    {
+        return nullptr;
+    }
+
+    return &state_store.ref();
 }
 
 //---------------------------------------------------------------------------//
