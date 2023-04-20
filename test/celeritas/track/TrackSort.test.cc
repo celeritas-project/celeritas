@@ -163,13 +163,11 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
     step(make_span(primaries));
     auto check_is_sorted = [&step] {
         auto& step_limit = step.core_data().states.sim.step_limit;
-        for (celeritas::size_type i = 0;
-             i < step.core_data().states.track_slots.size() - 1;
-             ++i)
+        auto& track_slots = step.core_data().states.track_slots;
+        for (celeritas::size_type i = 0; i < track_slots.size() - 1; ++i)
         {
-            TrackSlotId tid_current{
-                step.core_data().states.track_slots[ThreadId{i}]},
-                tid_next{step.core_data().states.track_slots[ThreadId{i + 1}]};
+            TrackSlotId tid_current{track_slots[ThreadId{i}]},
+                tid_next{track_slots[ThreadId{i + 1}]};
             ActionId::size_type aid_current{
                 step_limit[tid_current].action.unchecked_get()},
                 aid_next{step_limit[tid_next].action.unchecked_get()};
