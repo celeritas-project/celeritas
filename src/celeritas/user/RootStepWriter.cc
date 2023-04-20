@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/io/RootStepWriter.cc
+//! \file celeritas/user/RootStepWriter.cc
 //---------------------------------------------------------------------------//
 #include "RootStepWriter.hh"
 
@@ -12,7 +12,7 @@
 #include <TTree.h>
 
 #include "corecel/Assert.hh"
-#include "celeritas/io/RootFileManager.hh"
+#include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 namespace

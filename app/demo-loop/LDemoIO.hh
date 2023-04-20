@@ -18,11 +18,11 @@
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/io/RootFileManager.hh"
-#include "celeritas/io/RootStepWriter.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
+#include "celeritas/user/RootStepWriter.hh"
 
 #include "Transporter.hh"
 
