@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "SimpleCalo.hh"
 
+#include <vector>
+
 #include "celeritas_config.h"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #if CELERITAS_USE_JSON
@@ -21,6 +23,55 @@
 
 namespace celeritas
 {
+namespace {
+//---------------------------------------------------------------------------//
+//! Helper function for accumulating energy from host and device for all streams
+struct SumEnergy
+{
+    using Energy = SimpleCalo::Energy;
+
+    std::vector<Energy>* result;
+    std::vector<Energy> temp_host;
+
+    explicit SumEnergy(std::vector<Energy>* r)
+        : result(r)
+    {
+        CELER_EXPECT(result);
+    }
+
+    // Transfer host data
+    void operator()(
+        SimpleCaloStateData<Ownership::reference, MemSpace::host> const& state)
+    {
+        CELER_EXPECT(state.energy_deposition.size() == result->size());
+        for (auto detid : range(state.energy_deposition.size()))
+        {
+            *(*result)[detid] += *state.energy_deposition[DetectorId{detid}];
+        }
+    }
+
+    // Transfer device data
+    void operator()(
+        SimpleCaloStateData<Ownership::reference, MemSpace::device> const& state)
+    {
+        CELER_EXPECT(state.energy_deposition.size() == result->size());
+
+        if (temp_host.empty())
+        {
+            temp_host.resize(result->size());
+        }
+        copy_to_host(state.energy_deposition, make_span(temp_host));
+
+        for (auto detid : range(state.energy_deposition.size()))
+        {
+            *(*result)[detid] += *temp_host[detid];
+        }
+    }
+};
+
+//---------------------------------------------------------------------------//
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with sensitive regions.
@@ -158,40 +209,41 @@ auto SimpleCalo::calc_total_energy_deposition() const -> VecEnergy
 {
     VecEnergy result(this->num_detectors(), zero_quantity());
 
+    this->apply_to_all_streams(store_, SumEnergy{&result});
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset energy deposition to zero, usually at the start of an event.
+ */
+void SimpleCalo::reset()
+{
+    this->apply_to_all_streams(store_,
+        [](auto& state) { fill(Energy{0}, &state.energy_deposition); });
+}
+
+//---------------------------------------------------------------------------//
+template<class S, class F>
+void SimpleCalo::apply_to_all_streams(S& store, F&& func)
+{
     // Accumulate on host
-    for (StreamId s : range(StreamId{store_.num_streams()}))
+    for (StreamId s : range(StreamId{store.num_streams()}))
     {
-        if (auto* state = store_.state<MemSpace ::host>(s))
+        if (auto* state = store.template state<MemSpace::host>(s))
         {
-            CELER_EXPECT(state->energy_deposition.size() == result.size());
-            for (auto detid : range(this->num_detectors()))
-            {
-                *result[detid] += *state->energy_deposition[DetectorId{detid}];
-            }
+            func(*state);
         }
     }
 
     // Accumulate on device into temporary
-    std::vector<Energy> temp_host;
-    for (StreamId s : range(StreamId{store_.num_streams()}))
+    for (StreamId s : range(StreamId{store.num_streams()}))
     {
-        if (auto* state = store_.state<MemSpace ::device>(s))
+        if (auto* state = store.template state<MemSpace::device>(s))
         {
-            if (temp_host.empty())
-            {
-                temp_host.resize(result.size());
-            }
-            CELER_EXPECT(state->energy_deposition.size() == result.size());
-            copy_to_host(state->energy_deposition, make_span(temp_host));
-
-            for (auto detid : range(this->num_detectors()))
-            {
-                *result[detid] += *temp_host[detid];
-            }
+            func(*state);
         }
     }
-
-    return result;
 }
 
 //---------------------------------------------------------------------------//

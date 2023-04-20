@@ -17,9 +17,10 @@ namespace celeritas
 /*!
  * Fill the collection with the given value.
  */
-template<class T, MemSpace M, class I>
-void fill(T const& value, Collection<T, Ownership::value, M, I>* col)
+template<class T, Ownership W, MemSpace M, class I>
+void fill(T const& value, Collection<T, W, M, I>* col)
 {
+    static_assert(W != Ownership::const_reference, "const references cannot be filled");
     CELER_EXPECT(col);
     detail::Filler<T, M> fill_impl{value};
     fill_impl((*col)[AllItems<T, M>{}]);

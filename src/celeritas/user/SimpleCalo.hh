@@ -74,7 +74,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     template<MemSpace M>
     EnergyRef<M> const& energy_deposition(StreamId) const;
 
-    // Get accumulated energy deposition over all streams, on host.
+    // Get accumulated energy deposition over all streams and host/device
     VecEnergy calc_total_energy_deposition() const;
 
     //// MUTATORS ////
@@ -83,9 +83,14 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     void reset();
 
   private:
+    using StoreT = StreamStore<SimpleCaloParamsData, SimpleCaloStateData>;
+
     VecLabel volume_labels_;
     std::vector<VolumeId> volume_ids_;
-    StreamStore<SimpleCaloParamsData, SimpleCaloStateData> store_;
+    StoreT store_;
+
+    template<class S, class F>
+    static void apply_to_all_streams(S&& store, F&&);
 };
 
 //---------------------------------------------------------------------------//
