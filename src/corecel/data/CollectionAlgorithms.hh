@@ -18,7 +18,7 @@ namespace celeritas
  * Fill the collection with the given value.
  */
 template<class T, Ownership W, MemSpace M, class I>
-void fill(T const& value, Collection<T, W, M, I>* col)
+void fill(T&& value, Collection<T, W, M, I>* col)
 {
     static_assert(W != Ownership::const_reference, "const references cannot be filled");
     CELER_EXPECT(col);

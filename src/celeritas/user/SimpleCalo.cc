@@ -87,10 +87,14 @@ VolumeId find_volume_fuzzy(GeoParams const& geo, Label const& label)
     auto all_ids = geo.find_volumes(label.name);
     if (all_ids.size() == 1)
     {
-        CELER_LOG(warning) << "Failed to exactly match " << celeritas_geometry
-                           << " volume from volume '" << label << "'; found '"
-                           << geo.id_to_label(all_ids.front())
-                           << "' by omitting the extension";
+        if (!label.ext.empty())
+        {
+            CELER_LOG(warning)
+                << "Failed to exactly match " << celeritas_geometry
+                << " volume from volume '" << label << "'; found '"
+                << geo.id_to_label(all_ids.front())
+                << "' by omitting the extension";
+        }
         return all_ids.front();
     }
     if (all_ids.size() > 1)
@@ -118,9 +122,9 @@ VolumeId find_volume_fuzzy(GeoParams const& geo, Label const& label)
 SimpleCalo::SimpleCalo(VecLabel labels,
                        GeoParams const& geo,
                        size_type num_streams)
-    : volume_labels_{std::move(labels)}, store_{{}, num_streams}
+    : volume_labels_{std::move(labels)}
 {
-    CELER_EXPECT(!labels.empty());
+    CELER_EXPECT(!volume_labels_.empty());
     CELER_EXPECT(num_streams > 0);
 
     // Map labels to volume IDs
@@ -139,7 +143,9 @@ SimpleCalo::SimpleCalo(VecLabel labels,
                    << " volume(s) for labels '"
                    << join(missing.begin(), missing.end(), "', '"));
 
-    this->reset();
+    HostVal<SimpleCaloParamsData> host_params;
+    host_params.num_detectors = this->num_detectors();
+    store_ = {std::move(host_params), num_streams};
 
     CELER_ENSURE(volume_ids_.size() == volume_labels_.size());
     CELER_ENSURE(store_);
@@ -273,7 +279,7 @@ auto SimpleCalo::calc_total_energy_deposition() const -> VecEnergy
 /*!
  * Reset energy deposition to zero, usually at the start of an event.
  */
-void SimpleCalo::reset()
+void SimpleCalo::clear()
 {
     this->apply_to_all_streams(store_,
         [](auto& state) { fill(Energy{0}, &state.energy_deposition); });

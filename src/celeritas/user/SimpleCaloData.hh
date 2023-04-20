@@ -85,20 +85,12 @@ struct SimpleCaloStateData
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-/*!
- * Resize based on the number of detectors.
- */
+// Resize based on the number of detectors
 template<MemSpace M>
-inline void resize(SimpleCaloStateData<Ownership::value, M>* state,
-                   HostCRef<SimpleCaloParamsData> const& params,
-                   StreamId,
-                   size_type num_track_slots)
-{
-    CELER_EXPECT(params);
-    resize(&state->energy_deposition, params.num_detectors);
-    state->num_track_slots = num_track_slots;
-    CELER_ENSURE(*state);
-}
+void resize(SimpleCaloStateData<Ownership::value, M>* state,
+            HostCRef<SimpleCaloParamsData> const& params,
+            StreamId,
+            size_type num_track_slots);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

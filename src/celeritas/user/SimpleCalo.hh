@@ -79,7 +79,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     //// MUTATORS ////
 
     // Reset energy deposition to zero, usually at the start of an event
-    void reset();
+    void clear();
 
   private:
     using StoreT = StreamStore<SimpleCaloParamsData, SimpleCaloStateData>;
