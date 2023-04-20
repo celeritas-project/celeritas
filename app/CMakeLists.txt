@@ -206,6 +206,12 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
       REQUIRED_FILES "${_driver};${_gdml_inp}"
       LABELS "app;nomemcheck;gpu"
     )
+    if(NOT CELERITAS_GEO STREQUAL "VecGeom")
+      # two-boxes.org.json isn't set up in the test directory
+      set_tests_properties("app/demo-rasterizer" PROPERTIES
+        DISABLED true
+      )
+    endif()
   endif()
 endif()
 
