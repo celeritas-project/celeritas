@@ -105,8 +105,8 @@ enum class TrackStatus : std::int_least8_t
 enum class ActionOrder
 {
     start,  //!< Initialize tracks
-    sort_start,  //!< Sort track slots for GPU optimization
     pre,  //!< Pre-step physics and setup
+    sort_start,  //!< Sort track slots for GPU optimization
     along,  //!< Along-step
     pre_post,  //!< Discrete selection kernel
     post,  //!< After step
@@ -132,6 +132,7 @@ enum class TrackOrder
     shuffled,  //!< Tracks are shuffled at the start ot the simulation
     partition_status,  //!< Tracks are partitioned by status at the start of
                        //!< each step
+    sort_step_limit_action,  //!< Sort by the step limit action id.
     size_
 };
 

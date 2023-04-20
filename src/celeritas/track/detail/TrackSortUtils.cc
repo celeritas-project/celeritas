@@ -52,6 +52,12 @@ void partition_tracks_by_status(
                               == TrackStatus::alive;
                    });
 }
+
+template<>
+void sort_tracks_by_action_id(
+    CoreStateData<Ownership::reference, MemSpace::host> const& states)
+{
+}
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

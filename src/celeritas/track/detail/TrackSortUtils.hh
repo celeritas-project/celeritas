@@ -61,6 +61,17 @@ void partition_tracks_by_status(
     CoreStateData<Ownership::reference, MemSpace::device> const& states);
 
 //---------------------------------------------------------------------------//
+template<MemSpace M>
+void sort_tracks_by_action_id(
+    CoreStateData<Ownership::reference, M> const& states);
+template<>
+void sort_tracks_by_action_id(
+    CoreStateData<Ownership::reference, MemSpace::host> const& states);
+template<>
+void sort_tracks_by_action_id(
+    CoreStateData<Ownership::reference, MemSpace::device> const& states);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
@@ -78,6 +89,13 @@ inline void shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
 
 template<>
 inline void partition_tracks_by_status(
+    CoreStateData<Ownership::reference, MemSpace::device> const&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+template<>
+inline void sort_tracks_by_action_id(
     CoreStateData<Ownership::reference, MemSpace::device> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");

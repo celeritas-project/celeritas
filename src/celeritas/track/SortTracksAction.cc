@@ -35,9 +35,16 @@ std::string SortTracksAction::label() const
 void SortTracksAction::execute(ParamsHostCRef const&,
                                StateHostRef& states) const
 {
-    if (track_order_ == TrackOrder::partition_status)
+    switch (track_order_)
     {
-        detail::partition_tracks_by_status(states);
+        case TrackOrder::partition_status:
+            detail::partition_tracks_by_status(states);
+            break;
+        case TrackOrder::sort_step_limit_action:
+            detail::sort_tracks_by_action_id(states);
+            break;
+        default:
+            break;
     }
 }
 
@@ -48,9 +55,16 @@ void SortTracksAction::execute(ParamsHostCRef const&,
 void SortTracksAction::execute(ParamsDeviceCRef const&,
                                StateDeviceRef& states) const
 {
-    if (track_order_ == TrackOrder::partition_status)
+    switch (track_order_)
     {
-        detail::partition_tracks_by_status(states);
+        case TrackOrder::partition_status:
+            detail::partition_tracks_by_status(states);
+            break;
+        case TrackOrder::sort_step_limit_action:
+            detail::sort_tracks_by_action_id(states);
+            break;
+        default:
+            break;
     }
 }
 

@@ -85,6 +85,12 @@ void partition_tracks_by_status(
             states.sim.status[AllItems<TrackStatus, MemSpace::device>{}]});
     CELER_DEVICE_CHECK_ERROR();
 }
+
+template<>
+void sort_tracks_by_action_id(
+    CoreStateData<Ownership::reference, MemSpace::device> const& states)
+{
+}
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
