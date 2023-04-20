@@ -169,11 +169,11 @@ void NestedTest::build_vecgeom()
     CELER_EXPECT(!physical_.empty());
 #if CELERITAS_USE_VECGEOM
     auto geo = std::make_shared<VecgeomParams>(physical_.front());
+#else
+    [[maybe_unused]] int geo;
 #endif
 #if CELERITAS_GEO == CELERITAS_GEO_VECGEOM
     geo_params_ = std::move(geo);
-#else
-    (void)sizeof(geo);
 #endif
 }
 
