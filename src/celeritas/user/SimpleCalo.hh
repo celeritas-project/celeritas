@@ -31,11 +31,11 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     //!@{
     //! \name Type aliases
     using VecLabel = std::vector<Label>;
-    using Energy = units::MevEnergy;
+    using EnergyUnits = units::Mev;
     template<MemSpace M>
-    using EnergyRef
-        = celeritas::Collection<Energy, Ownership::reference, M, DetectorId>;
-    using VecEnergy = std::vector<Energy>;
+    using DetectorRef
+        = celeritas::Collection<real_type, Ownership::reference, M, DetectorId>;
+    using VecReal = std::vector<real_type>;
     //!@}
 
   public:
@@ -69,12 +69,12 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     //! Number of distinct sensitive volumes
     DetectorId::size_type num_detectors() const { return volume_ids_.size(); }
 
-    // Get tallied stream-local data (throw if not available)
+    // Get tallied stream-local data (throw if not available) [EnergyUnits]
     template<MemSpace M>
-    EnergyRef<M> const& energy_deposition(StreamId) const;
+    DetectorRef<M> const& energy_deposition(StreamId) const;
 
     // Get accumulated energy deposition over all streams and host/device
-    VecEnergy calc_total_energy_deposition() const;
+    VecReal calc_total_energy_deposition() const;
 
     //// MUTATORS ////
 

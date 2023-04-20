@@ -83,10 +83,7 @@ auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
     }
 
     RunResult result;
-    for (auto energy : calo_->calc_total_energy_deposition())
-    {
-        result.edep.push_back(energy.value());
-    }
+    result.edep = calo_->calc_total_energy_deposition();
     calo_->clear();
 
     return result;

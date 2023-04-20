@@ -57,12 +57,12 @@ CELER_FUNCTION void SimpleCaloLauncher::operator()(TrackSlotId tid)
         return;
     }
 
-    static_assert(std::is_same_v<NativeRef<StepStateData>::Energy,
-                                 NativeRef<SimpleCaloStateData>::Energy>);
+    static_assert(std::is_same_v<NativeRef<StepStateData>::Energy::unit_type,
+                                 NativeRef<SimpleCaloStateData>::EnergyUnits>);
     real_type edep = step.energy_deposition[tid].value();
     CELER_ASSERT(edep > 0);
     CELER_ASSERT(det < calo.energy_deposition.size());
-    atomic_add(&(*calo.energy_deposition[det]), edep);
+    atomic_add(&calo.energy_deposition[det], edep);
 }
 
 //---------------------------------------------------------------------------//

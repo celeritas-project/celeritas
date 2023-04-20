@@ -25,7 +25,7 @@ void resize(SimpleCaloStateData<Ownership::value, M>* state,
 {
     CELER_EXPECT(params);
     resize(&state->energy_deposition, params.num_detectors);
-    fill({}, &state->energy_deposition);
+    fill(real_type(0), &state->energy_deposition);
     state->num_track_slots = num_track_slots;
     CELER_ENSURE(*state);
 }

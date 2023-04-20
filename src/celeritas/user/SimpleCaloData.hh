@@ -51,12 +51,12 @@ struct SimpleCaloStateData
 
     template<class T>
     using DetItems = celeritas::Collection<T, W, M, DetectorId>;
-    using Energy = units::MevEnergy;
+    using EnergyUnits = units::Mev;
 
     //// DATA ////
 
     // Energy indexed by detector ID
-    DetItems<Energy> energy_deposition;
+    DetItems<real_type> energy_deposition;
 
     // Number of track slots (unused during calculation)
     size_type num_track_slots{};

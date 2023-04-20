@@ -33,13 +33,10 @@ namespace {
 //! Helper function for accumulating energy from host and device for all streams
 struct SumEnergy
 {
-    using Energy = SimpleCalo::Energy;
+    std::vector<real_type>* result;
+    std::vector<real_type> temp_host;
 
-    std::vector<Energy>* result;
-    std::vector<Energy> temp_host;
-
-    explicit SumEnergy(std::vector<Energy>* r)
-        : result(r)
+    explicit SumEnergy(std::vector<real_type>* r) : result(r)
     {
         CELER_EXPECT(result);
     }
@@ -51,7 +48,7 @@ struct SumEnergy
         CELER_EXPECT(state.energy_deposition.size() == result->size());
         for (auto detid : range(state.energy_deposition.size()))
         {
-            *(*result)[detid] += *state.energy_deposition[DetectorId{detid}];
+            (*result)[detid] += state.energy_deposition[DetectorId{detid}];
         }
     }
 
@@ -69,7 +66,7 @@ struct SumEnergy
 
         for (auto detid : range(state.energy_deposition.size()))
         {
-            *(*result)[detid] += *temp_host[detid];
+            (*result)[detid] += temp_host[detid];
         }
     }
 };
@@ -226,14 +223,9 @@ void SimpleCalo::output(JsonPimpl* j) const
 
     // Save results
     {
-        std::vector<double> edep;
-        for (Energy e : this->calc_total_energy_deposition())
-        {
-            edep.push_back(e.value());
-        }
-        obj["energy_deposition"] = std::move(edep);
+        obj["energy_deposition"] = this->calc_total_energy_deposition();
         obj["_units"] = {
-            {"energy_deposition", Energy::unit_type::label()},
+            {"energy_deposition", EnergyUnits::label()},
         };
     }
 
@@ -249,7 +241,7 @@ void SimpleCalo::output(JsonPimpl* j) const
  */
 template<MemSpace M>
 auto SimpleCalo::energy_deposition(StreamId stream_id) const
-    -> EnergyRef<M> const&
+    -> DetectorRef<M> const&
 {
     CELER_EXPECT(stream_id < store_.num_streams());
     auto* result = store_.state<M>(stream_id);
@@ -266,10 +258,13 @@ auto SimpleCalo::energy_deposition(StreamId stream_id) const
  * This accessor is useful only when integrating over events and over cores. It
  * also integrates over devices in case you happen to be running Celeritas on
  * both host and device for some weird reason.
+ *
+ * The index in the vector corresponds to the detector ID and is in the same
+ * order as the input labels.
  */
-auto SimpleCalo::calc_total_energy_deposition() const -> VecEnergy
+auto SimpleCalo::calc_total_energy_deposition() const -> VecReal
 {
-    VecEnergy result(this->num_detectors(), zero_quantity());
+    VecReal result(this->num_detectors(), real_type{0});
 
     this->apply_to_all_streams(store_, SumEnergy{&result});
     return result;
@@ -281,8 +276,9 @@ auto SimpleCalo::calc_total_energy_deposition() const -> VecEnergy
  */
 void SimpleCalo::clear()
 {
-    this->apply_to_all_streams(store_,
-        [](auto& state) { fill(Energy{0}, &state.energy_deposition); });
+    this->apply_to_all_streams(store_, [](auto& state) {
+        fill(real_type(0), &state.energy_deposition);
+    });
 }
 
 //---------------------------------------------------------------------------//
