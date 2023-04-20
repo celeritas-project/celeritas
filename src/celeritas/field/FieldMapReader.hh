@@ -15,15 +15,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load the CMS magnetic field map.
+ * Load a RZ magnetic field map.
  *
- * The CMS magnetic field map (cmsExp.mag.3_8T) is extracted from the CMS
- * software (CMSSW) and stores r-z components of magnetic field values of
- * the CMS detector at the cm-unit grid point in the range of r[0:900] and
- * z[-1600:1600]. The format of input is CMSFieldMapInput where idx_r and
- * idx_z are indices of the 2-dimensional array[idx_z][idx_r], respectively.
- * The map is used only for the purpose of a standalone simulation with the
- * CMS detector geometry and is not a part of CMSSW.
+ * A volume-based RZ magnetic field map stores r-z components of magnetic
+ * field values of a cylindrical detector at the cm-unit grid point in the
+ * range of r[0:FieldMapParameters::num_grid_r] and
+ * z[-FieldMapParameters::num_grid_z:FieldMapParameters::num_grid_z]. The
+ * format of input is FieldMapRecord where idx_r and idx_z are indices of
+ * the 2-dimensional array[idx_z][idx_r], respectively.
  *
  */
 class FieldMapReader
@@ -33,19 +32,11 @@ class FieldMapReader
     using result_type = FieldMapInput;
     //!@}
 
-    // Input format
-    struct CMSFieldMapInput
-    {
-        int idx_z;  //! index of z grid
-        int idx_r;  //! index of r grid
-        FieldMapElement value;  //! z and r components of the field
-    };
-
   public:
     // Construct the reader using the path of the map file
     FieldMapReader(FieldMapParameters const& params, std::string file_name);
 
-    // Read the volume-based CMS magnetic field map
+    // Read volume-based RZ magnetic field map data
     result_type operator()() const;
 
   private:
