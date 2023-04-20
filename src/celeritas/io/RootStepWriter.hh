@@ -12,12 +12,35 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "celeritas/ext/RootUniquePtr.hh"
-#include "celeritas/io/RootFileManager.hh"
-#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/user/StepInterface.hh"
+
+class TTree;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class ParticleParams;
+class RootFileManager;
+
+//---------------------------------------------------------------------------//
+//! Input to \c make_write_filter (below) for filtering ROOT MC truth output
+struct SimpleRootFilterInput
+{
+    static constexpr size_type unspecified = -1;
+
+    std::vector<size_type> track_id;
+    size_type event_id = unspecified;
+    size_type parent_id = unspecified;
+    size_type action_id = unspecified;
+
+    //! True if any filtering is being applied
+    explicit operator bool() const
+    {
+        return !track_id.empty() || event_id != unspecified
+               || parent_id != unspecified || action_id != unspecified;
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Write "MC truth" data to ROOT at every step.
@@ -112,6 +135,12 @@ class RootStepWriter final : public StepInterface
     TStepData tstep_;  // Members are used as refs of the TTree branches
     std::function<bool(TStepData const&)> filter_;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+// Create a write filter for some simple IDs
+RootStepWriter::WriteFilter make_write_filter(SimpleRootFilterInput const&);
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT

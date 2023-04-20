@@ -20,6 +20,7 @@
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/io/RootFileManager.hh"
+#include "celeritas/io/RootStepWriter.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
@@ -41,32 +42,6 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 /*!
- * Write when event ID matches and either track ID or parent ID matches, or
- * when action ID matches.
- */
-struct MCTruthFilter
-{
-    using size_type = celeritas::size_type;
-
-    static constexpr size_type unspecified()
-    {
-        return static_cast<size_type>(-1);
-    }
-
-    std::vector<size_type> track_id;
-    size_type event_id = unspecified();
-    size_type parent_id = unspecified();
-    size_type action_id = unspecified();
-
-    explicit operator bool() const
-    {
-        return !track_id.empty() || event_id != unspecified()
-               || parent_id != unspecified() || action_id != unspecified();
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Input for a single run.
  */
 struct LDemoArgs
@@ -84,7 +59,7 @@ struct LDemoArgs
     std::string mctruth_filename;  //!< Path to ROOT MC truth event data
 
     // Optional filter for ROOT MC truth data
-    MCTruthFilter mctruth_filter;
+    celeritas::SimpleRootFilterInput mctruth_filter;
 
     // Optional setup options for generating primaries programmatically
     celeritas::PrimaryGeneratorOptions primary_gen_options;
@@ -146,19 +121,21 @@ void to_json(nlohmann::json& j, LDemoArgs const& value);
 void from_json(nlohmann::json const& j, LDemoArgs& value);
 
 // Store LDemoArgs to ROOT file when ROOT is available
-void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& cargs);
+void write_to_root(LDemoArgs const& cargs,
+                   celeritas::RootFileManager* root_manager);
 
 // Store CoreParams to ROOT file when ROOT is available
-void to_root(celeritas::RootFileManager& root_manager,
-             celeritas::CoreParams const& core_params);
+void write_to_root(celeritas::CoreParams const& core_params,
+                   celeritas::RootFileManager* root_manager);
 
 #if !CELERITAS_USE_ROOT
-inline void to_root(celeritas::RootFileManager&, LDemoArgs const&)
+inline void write_to_root(LDemoArgs const&, celeritas::RootFileManager*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void to_root(celeritas::RootFileManager&, celeritas::CoreParams const&)
+inline void
+write_to_root(celeritas::CoreParams const&, celeritas::RootFileManager*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

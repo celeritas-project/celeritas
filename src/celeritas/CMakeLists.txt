@@ -159,6 +159,7 @@ endif()
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     ext/GeantPhysicsOptionsIO.json.cc
+    io/RootStepWriterIO.json.cc
     field/FieldDriverOptionsIO.json.cc
     phys/PrimaryGeneratorOptionsIO.json.cc
   )

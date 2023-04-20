@@ -11,6 +11,11 @@
 #include <TFile.h>
 #include <TTree.h>
 
+#include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/ScopedMem.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -20,10 +25,14 @@ namespace celeritas
 RootFileManager::RootFileManager(char const* filename)
 {
     CELER_EXPECT(filename);
+
+    CELER_LOG(info) << "Opening ROOT file at " << filename;
+    ScopedMem record_mem("RootImporter.open");
+    ScopedTimeLog scoped_time;
+
     tfile_.reset(TFile::Open(filename, "recreate"));
     CELER_VALIDATE(tfile_->IsOpen(),
-                   << "ROOT file at " << filename
-                   << " did not open correctly.");
+                   << "failed to open ROOT file at '" << filename << "'");
 }
 
 //---------------------------------------------------------------------------//

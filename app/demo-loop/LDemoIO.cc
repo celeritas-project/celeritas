@@ -31,6 +31,7 @@
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/RootStepWriterIO.json.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -140,80 +141,47 @@ void to_json(nlohmann::json& j, LDemoArgs const& v)
 
 void from_json(nlohmann::json const& j, LDemoArgs& v)
 {
-    j.at("geometry_filename").get_to(v.geometry_filename);
-    j.at("physics_filename").get_to(v.physics_filename);
-    if (j.contains("hepmc3_filename"))
-    {
-        j.at("hepmc3_filename").get_to(v.hepmc3_filename);
-    }
-    if (j.contains("mctruth_filename"))
-    {
-        j.at("mctruth_filename").get_to(v.mctruth_filename);
-    }
-    if (j.contains("mctruth_filter"))
-    {
-        auto const& jfilter = j.at("mctruth_filter");
-        get_optional(jfilter, "event_id", v.mctruth_filter.event_id);
-        get_optional(jfilter, "track_id", v.mctruth_filter.track_id);
-        get_optional(jfilter, "parent_id", v.mctruth_filter.parent_id);
-        get_optional(jfilter, "action_id", v.mctruth_filter.action_id);
+#define LDIO_LOAD_OPTION(NAME)          \
+    do                                  \
+    {                                   \
+        if (j.contains(#NAME))          \
+            j.at(#NAME).get_to(v.NAME); \
+    } while (0)
+#define LDIO_LOAD_REQUIRED(NAME) j.at(#NAME).get_to(v.NAME)
 
-        if (v.mctruth_filter)
-        {
-            CELER_VALIDATE(!v.mctruth_filename.empty(),
-                           << "missing 'mctruth_filename' when "
-                              "'mctruth_filter' was specified");
-        }
-    }
-    if (j.contains("primary_gen_options"))
-    {
-        j.at("primary_gen_options").get_to(v.primary_gen_options);
-    }
+    LDIO_LOAD_REQUIRED(geometry_filename);
+    LDIO_LOAD_REQUIRED(physics_filename);
+    LDIO_LOAD_OPTION(hepmc3_filename);
+    LDIO_LOAD_OPTION(mctruth_filename);
+    LDIO_LOAD_OPTION(mctruth_filter);
+    LDIO_LOAD_OPTION(primary_gen_options);
+    LDIO_LOAD_OPTION(seed);
+    LDIO_LOAD_OPTION(max_num_tracks);
+    LDIO_LOAD_OPTION(track_order);
+    LDIO_LOAD_OPTION(max_steps);
+    LDIO_LOAD_REQUIRED(initializer_capacity);
+    LDIO_LOAD_REQUIRED(max_events);
+    LDIO_LOAD_REQUIRED(secondary_stack_factor);
+    LDIO_LOAD_REQUIRED(enable_diagnostics);
+    LDIO_LOAD_REQUIRED(use_device);
+    LDIO_LOAD_OPTION(sync);
+    LDIO_LOAD_OPTION(step_limiter);
+    LDIO_LOAD_OPTION(brem_combined);
+    LDIO_LOAD_OPTION(energy_diag);
+    LDIO_LOAD_OPTION(geant_options);
+#undef LDIO_LOAD_OPTION
+#undef LDIO_LOAD_REQUIRED
+
     CELER_VALIDATE(v.hepmc3_filename.empty() != !v.primary_gen_options,
                    << "either a HepMC3 filename or options to generate "
                       "primaries must be provided (but not both)");
-
-    j.at("seed").get_to(v.seed);
-    j.at("max_num_tracks").get_to(v.max_num_tracks);
-    if (j.contains("track_order"))
-    {
-        j.at("track_order").get_to(v.track_order);
-    }
-    if (j.contains("max_steps"))
-    {
-        j.at("max_steps").get_to(v.max_steps);
-    }
-
-    j.at("initializer_capacity").get_to(v.initializer_capacity);
-    j.at("max_events").get_to(v.max_events);
-    j.at("secondary_stack_factor").get_to(v.secondary_stack_factor);
-    j.at("enable_diagnostics").get_to(v.enable_diagnostics);
-    j.at("use_device").get_to(v.use_device);
-    j.at("sync").get_to(v.sync);
-    if (j.contains("mag_field"))
-    {
-        j.at("mag_field").get_to(v.mag_field);
-    }
-    if (v.mag_field != LDemoArgs::no_field() && j.contains("field_options"))
-    {
-        j.at("field_options").get_to(v.field_options);
-    }
-    if (j.contains("step_limiter"))
-    {
-        j.at("step_limiter").get_to(v.step_limiter);
-    }
-
-    j.at("brem_combined").get_to(v.brem_combined);
-
-    if (j.contains("energy_diag"))
-    {
-        j.at("energy_diag").get_to(v.energy_diag);
-    }
-
-    if (j.contains("geant_options"))
-    {
-        j.at("geant_options").get_to(v.geant_options);
-    }
+    CELER_VALIDATE(!v.mctruth_filter || !v.mctruth_filename.empty(),
+                   << "'mctruth_filter' cannot be specified without providing "
+                      "'mctruth_filename'");
+    CELER_VALIDATE(v.mag_field == LDemoArgs::no_field()
+                       || !j.contains("field_options"),
+                   << "'field_options' cannot be specified without providing "
+                      "'mag_field'");
 }
 //!@}
 
