@@ -8,8 +8,8 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/field/FieldMapData.hh"
 #include "celeritas/field/FieldMapReader.hh"
-#include "celeritas/field/MagFieldMap.hh"
 #include "celeritas/field/MapField.hh"
+#include "celeritas/field/MapFieldParams.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
 
@@ -88,7 +88,7 @@ TEST(CMSParameterizedFieldTest, all)
 
 TEST(CMSMapField, all)
 {
-    std::unique_ptr<MagFieldMap> field_map;
+    std::unique_ptr<MapFieldParams> field_map;
     {
         FieldMapParameters params;
         params.delta_grid = units::meter;
@@ -99,7 +99,7 @@ TEST(CMSMapField, all)
         FieldMapReader load_map(
             params,
             test::Test::test_data_path("celeritas", "cmsFieldMap.tiny"));
-        field_map = std::make_unique<MagFieldMap>(load_map);
+        field_map = std::make_unique<MapFieldParams>(load_map);
     }
 
     MapField calc_field(field_map->host_ref());
@@ -115,7 +115,7 @@ TEST(CMSMapField, all)
         Real3 field = calc_field(Real3{i * delta_r, i * delta_r, i * delta_z});
         for (real_type f : field)
         {
-            actual.push_back(f / units::tesla);
+            actual.push_back(f);
         }
     }
 
