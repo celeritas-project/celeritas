@@ -175,8 +175,8 @@ TEST_F(TestEm3NoMsc, setup)
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
         "initialize-tracks",
-        "sort-tracks-start",
         "pre-step",
+        "sort-tracks-start",
         "along-step-general-linear",
         "physics-discrete-select",
         "scat-klein-nishina",
@@ -310,8 +310,8 @@ TEST_F(TestEm3Msc, setup)
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
         "initialize-tracks",
-        "sort-tracks-start",
         "pre-step",
+        "sort-tracks-start",
         "along-step-general-linear",
         "physics-discrete-select",
         "scat-klein-nishina",
@@ -477,8 +477,8 @@ TEST_F(TestEm15MscField, setup)
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
         "initialize-tracks",
-        "sort-tracks-start",
         "pre-step",
+        "sort-tracks-start",
         "along-step-uniform-msc",
         "physics-discrete-select",
         "scat-klein-nishina",
@@ -581,8 +581,8 @@ TEST_F(OneSteelSphere, setup)
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
         "initialize-tracks",
-        "sort-tracks-start",
         "pre-step",
+        "sort-tracks-start",
         "along-step-general-linear",
         "physics-discrete-select",
         "scat-klein-nishina",
