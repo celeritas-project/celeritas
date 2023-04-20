@@ -16,8 +16,6 @@
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the value of magnetic field based on a volume-based RZ field map.
@@ -100,5 +98,4 @@ CELER_FUNCTION auto MapField::operator()(Real3 const& pos) const -> Real3
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

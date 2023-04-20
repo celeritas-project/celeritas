@@ -13,8 +13,6 @@
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
 /*!
  * Load the CMS magnetic field map.
@@ -58,5 +56,4 @@ class FieldMapReader
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

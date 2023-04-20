@@ -17,8 +17,6 @@
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
 /*!
  * Construct the reader using an environment variable to get the volume-based
@@ -68,5 +66,4 @@ FieldMapReader::result_type FieldMapReader::operator()() const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

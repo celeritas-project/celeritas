@@ -13,8 +13,6 @@
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
 /*!
  * FieldMap (2-dimensional RZ map) parameters
@@ -96,5 +94,4 @@ struct FieldMapData
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

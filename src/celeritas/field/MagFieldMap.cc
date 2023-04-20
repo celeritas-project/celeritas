@@ -12,8 +12,6 @@
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a user-defined field map.
@@ -53,5 +51,4 @@ void MagFieldMap::build_data(ReadMap const& load_map, HostValue* host_data)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

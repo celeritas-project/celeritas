@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
 /*!
  * Set up a 2D MagFieldMap.
@@ -51,5 +49,4 @@ class MagFieldMap
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas
