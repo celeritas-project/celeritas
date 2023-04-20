@@ -246,7 +246,6 @@ celeritas_add_library(testcel_celeritas
   celeritas/SimpleTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
-  celeritas/user/ExampleCalorimeters.cc
   celeritas/user/ExampleMctruth.cc
   celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc

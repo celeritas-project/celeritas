@@ -92,6 +92,7 @@ list(APPEND SOURCES
   track/TrackInitParams.cc
   user/DetectorSteps.cc
   user/SimpleCalo.cc
+  user/SimpleCaloData.cc
   user/StepCollector.cc
   user/detail/SimpleCaloImpl.cc
 )

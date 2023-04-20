@@ -15,12 +15,12 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/user/SimpleCalo.hh"
 
 #include "../SimpleTestBase.hh"
 #include "../TestEm15Base.hh"
 #include "../TestEm3Base.hh"
 #include "CaloTestBase.hh"
-#include "ExampleCalorimeters.hh"
 #include "ExampleMctruth.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
@@ -134,11 +134,11 @@ class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
 
 TEST_F(KnStepCollectorTestBase, mixing_types)
 {
-    auto calos = std::make_shared<ExampleCalorimeters>(
-        *this->geometry(), std::vector<std::string>{"inner"});
+    auto calo = std::make_shared<SimpleCalo>(
+        std::vector<Label>{"inner"}, *this->geometry(), 1);
     auto mctruth = std::make_shared<ExampleMctruth>();
 
-    StepCollector::VecInterface interfaces = {calos, mctruth};
+    StepCollector::VecInterface interfaces = {calo, mctruth};
 
     EXPECT_THROW((StepCollector{std::move(interfaces),
                                 this->geometry(),
