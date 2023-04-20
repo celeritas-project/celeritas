@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/MagFieldMap.cc
+//! \file celeritas/field/MapFieldParams.cc
 //---------------------------------------------------------------------------//
-#include "MagFieldMap.hh"
+#include "MapFieldParams.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionBuilder.hh"
@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Construct from a user-defined field map.
  */
-MagFieldMap::MagFieldMap(ReadMap load_map)
+MapFieldParams::MapFieldParams(ReadMap load_map)
 {
     CELER_ENSURE(load_map);
 
@@ -30,9 +30,9 @@ MagFieldMap::MagFieldMap(ReadMap load_map)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an input map to a MagFieldMap and store to FieldMapData.
+ * Convert an input map to a MapFieldParams and store to FieldMapData.
  */
-void MagFieldMap::build_data(ReadMap const& load_map, HostValue* host_data)
+void MapFieldParams::build_data(ReadMap const& load_map, HostValue* host_data)
 {
     CELER_EXPECT(load_map);
     FieldMapInput result = load_map();

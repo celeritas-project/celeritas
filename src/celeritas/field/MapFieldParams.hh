@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/MagFieldMap.hh
+//! \file celeritas/field/MapFieldParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,9 +17,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up a 2D MagFieldMap.
+ * Set up a 2D MapFieldParams.
  */
-class MagFieldMap
+class MapFieldParams
 {
   public:
     //@{
@@ -31,7 +31,7 @@ class MagFieldMap
 
   public:
     // Construct with a magnetic field map
-    explicit MagFieldMap(ReadMap load_map);
+    explicit MapFieldParams(ReadMap load_map);
 
     //! Access field map data on the host
     HostRef const& host_ref() const { return mirror_.host(); }
