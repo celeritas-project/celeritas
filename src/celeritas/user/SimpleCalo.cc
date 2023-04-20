@@ -7,19 +7,24 @@
 //---------------------------------------------------------------------------//
 #include "SimpleCalo.hh"
 
+#include <functional>
 #include <vector>
 
+#include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
+#include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/io/Join.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+
+#include "detail/SimpleCaloImpl.hh"
+
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
 #    include "corecel/cont/LabelIO.json.hh"
 #    include "corecel/io/JsonPimpl.hh"
 #endif
-#include "corecel/data/CollectionAlgorithms.hh"
-
-#include "detail/SimpleCaloImpl.hh"
 
 namespace celeritas
 {
@@ -70,20 +75,71 @@ struct SumEnergy
 };
 
 //---------------------------------------------------------------------------//
+VolumeId find_volume_fuzzy(GeoParams const& geo, Label const& label)
+{
+    if (auto id = geo.find_volume(label))
+    {
+        // Exact match
+        return id;
+    }
+
+    // Fall back to skipping the extension: look for all possible matches
+    auto all_ids = geo.find_volumes(label.name);
+    if (all_ids.size() == 1)
+    {
+        CELER_LOG(warning) << "Failed to exactly match " << celeritas_geometry
+                           << " volume from volume '" << label << "'; found '"
+                           << geo.id_to_label(all_ids.front())
+                           << "' by omitting the extension";
+        return all_ids.front();
+    }
+    if (all_ids.size() > 1)
+    {
+        CELER_LOG(warning)
+            << "Multiple volumes '"
+            << join(all_ids.begin(),
+                    all_ids.end(),
+                    "', '",
+                    [&geo](VolumeId v) { return geo.id_to_label(v); })
+            << "' match the name '" << label.name
+            << "': returning the last one";
+        return all_ids.back();
+    }
+    return {};
+}
+
+//---------------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with sensitive regions.
  */
-SimpleCalo::SimpleCalo(VecLabel labels, SPConstGeo geo, size_type num_streams)
+SimpleCalo::SimpleCalo(VecLabel labels,
+                       GeoParams const& geo,
+                       size_type num_streams)
     : volume_labels_{std::move(labels)}, store_{{}, num_streams}
 {
     CELER_EXPECT(!labels.empty());
-    CELER_EXPECT(geo);
     CELER_EXPECT(num_streams > 0);
 
-    // XXX map labels to IDs
+    // Map labels to volume IDs
+    volume_ids_.resize(volume_labels_.size());
+    std::vector<std::reference_wrapper<Label>> missing;
+    for (auto i : range(volume_labels_.size()))
+    {
+        volume_ids_[i] = find_volume_fuzzy(geo, volume_labels_[i]);
+        if (!volume_ids_[i])
+        {
+            missing.emplace_back(volume_labels_[i]);
+        }
+    }
+    CELER_VALIDATE(missing.empty(),
+                   << "failed to find " << celeritas_geometry
+                   << " volume(s) for labels '"
+                   << join(missing.begin(), missing.end(), "', '"));
+
+    this->reset();
 
     CELER_ENSURE(volume_ids_.size() == volume_labels_.size());
     CELER_ENSURE(store_);
@@ -225,7 +281,7 @@ void SimpleCalo::reset()
 
 //---------------------------------------------------------------------------//
 template<class S, class F>
-void SimpleCalo::apply_to_all_streams(S& store, F&& func)
+void SimpleCalo::apply_to_all_streams(S&& store, F&& func)
 {
     // Accumulate on host
     for (StreamId s : range(StreamId{store.num_streams()}))

@@ -31,7 +31,6 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     //!@{
     //! \name Type aliases
     using VecLabel = std::vector<Label>;
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
     using Energy = units::MevEnergy;
     template<MemSpace M>
     using EnergyRef
@@ -41,7 +40,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
   public:
     // Construct with sensitive regions
-    SimpleCalo(VecLabel labels, SPConstGeo geo, size_type max_streams);
+    SimpleCalo(VecLabel labels, GeoParams const& geo, size_type max_streams);
 
     //!@{
     //! \name Step interface

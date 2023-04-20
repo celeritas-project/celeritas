@@ -66,7 +66,9 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
             << join(all_ids.begin(),
                     all_ids.end(),
                     "', '",
-                    [this](VolumeId v) { return geo.id_to_label(v); })
+                    [&geo = this->geo](VolumeId v) {
+                        return geo.id_to_label(v);
+                    })
             << "' match the Geant4 volume with extension omitted: returning "
                "the last one";
         return all_ids.back();
