@@ -43,7 +43,7 @@ FieldMapReader::result_type FieldMapReader::operator()() const
     {
         int idx_z;  //! index of z grid
         int idx_r;  //! index of r grid
-        FieldMapElement value;  //! z and r components of the field
+        FieldMapElement value;  //! z and r components of the field in tesla
     };
 
     result.params = params_;

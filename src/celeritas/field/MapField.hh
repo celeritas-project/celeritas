@@ -54,13 +54,11 @@ MapField::MapField(FieldMapRef const& shared) : shared_(shared) {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Retrieve the magnetic field value for the given position.
+ * Retrieve the magnetic field value (in tesla) for the given position.
  */
 CELER_FUNCTION auto MapField::operator()(Real3 const& pos) const -> Real3
 {
     CELER_ENSURE(shared_);
-
-    using units::tesla;
 
     Real3 value{0, 0, 0};
 
@@ -84,15 +82,15 @@ CELER_FUNCTION auto MapField::operator()(Real3 const& pos) const -> Real3
     real_type low = shared_.fieldmap[shared_.id(iz, ir)].value_z;
     real_type high = shared_.fieldmap[shared_.id(iz + 1, ir)].value_z;
 
-    value[2] = tesla * (low + (high - low) * dz * scale);
+    value[2] = low + (high - low) * dz * scale;
 
     // x and y components
     low = shared_.fieldmap[shared_.id(iz, ir)].value_r;
     high = shared_.fieldmap[shared_.id(iz, ir + 1)].value_r;
 
     real_type tmp = (r != 0) ? (low + (high - low) * dr * scale) / r : low;
-    value[0] = tesla * tmp * pos[0];
-    value[1] = tesla * tmp * pos[1];
+    value[0] = tmp * pos[0];
+    value[1] = tmp * pos[1];
 
     return value;
 }
