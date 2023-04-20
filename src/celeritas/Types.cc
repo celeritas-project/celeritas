@@ -34,8 +34,8 @@ char const* to_cstring(ActionOrder value)
 {
     static EnumStringMapper<ActionOrder> const to_cstring_impl{
         "start",
-        "sort_start",
         "pre",
+        "sort_start",
         "along",
         "pre_post",
         "post",
