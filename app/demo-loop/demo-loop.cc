@@ -124,8 +124,7 @@ make_root_step_writer_filter(LDemoArgs const& args)
  * data to the ROOT file when a valid ROOT MC truth file is provided.
  */
 std::shared_ptr<RootFileManager>
-init_root_mctruth_output(LDemoArgs const& run_args,
-                         TransporterBase const* transport_ptr)
+init_root_mctruth_output(LDemoArgs const& run_args, CoreParams const& params)
 {
     std::shared_ptr<RootFileManager> root_manager;
 
@@ -142,18 +141,18 @@ init_root_mctruth_output(LDemoArgs const& run_args,
         = std::make_shared<RootFileManager>(run_args.mctruth_filename.c_str());
     auto step_writer = std::make_shared<RootStepWriter>(
         root_manager,
-        transport_ptr->params().particle(),
+        params.particle(),
         StepSelection::all(),
         make_root_step_writer_filter(run_args));
     auto step_collector = std::make_shared<StepCollector>(
         StepCollector::VecInterface{step_writer},
-        transport_ptr->params().geometry(),
-        transport_ptr->params().max_streams(),
-        transport_ptr->params().action_reg().get());
+        params.geometry(),
+        params.max_streams(),
+        params.action_reg().get());
 
     // Store input and CoreParams data
     to_root(*root_manager, run_args);
-    to_root(*root_manager, transport_ptr->params());
+    to_root(*root_manager, params);
 
     return root_manager;
 }
@@ -194,12 +193,15 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     // Start timer for overall execution
     Stopwatch get_setup_time;
 
+    // Construct core parameters
+    auto core_params = build_core_params(run_args, output);
+
     // Load all the problem data and create transporter
-    auto transport_ptr = build_transporter(run_args, output);
+    auto transport_ptr = build_transporter(run_args, core_params);
     double const setup_time = get_setup_time();
 
     // Initialize RootFileManager and store input data if requested
-    auto root_manager = init_root_mctruth_output(run_args, transport_ptr.get());
+    auto root_manager = init_root_mctruth_output(run_args, *core_params);
 
     // Run all the primaries
     TransporterResult result;
@@ -208,7 +210,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     {
         std::mt19937 rng;
         auto generate_event = PrimaryGenerator<std::mt19937>::from_options(
-            transport_ptr->params().particle(), run_args.primary_gen_options);
+            core_params->particle(), run_args.primary_gen_options);
         auto event = generate_event(rng);
         while (!event.empty())
         {
@@ -219,7 +221,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     else
     {
         EventReader read_event(run_args.hepmc3_filename.c_str(),
-                               transport_ptr->params().particle());
+                               core_params->particle());
         auto event = read_event();
         while (!event.empty())
         {

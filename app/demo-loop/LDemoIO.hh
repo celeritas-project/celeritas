@@ -132,10 +132,15 @@ struct LDemoArgs
     }
 };
 
+// Build core params
+std::shared_ptr<celeritas::CoreParams>
+build_core_params(LDemoArgs const& args,
+                  std::shared_ptr<celeritas::OutputRegistry> outreg);
+
 // Build transporter from input arguments
 std::unique_ptr<TransporterBase>
 build_transporter(LDemoArgs const& args,
-                  std::shared_ptr<celeritas::OutputRegistry> const& outreg);
+                  std::shared_ptr<celeritas::CoreParams const>);
 
 void to_json(nlohmann::json& j, LDemoArgs const& value);
 void from_json(nlohmann::json const& j, LDemoArgs& value);

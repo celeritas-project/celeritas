@@ -218,7 +218,8 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
 //!@}
 
 //---------------------------------------------------------------------------//
-CoreParams::Input load_core_params(LDemoArgs const& args)
+std::shared_ptr<CoreParams>
+build_core_params(LDemoArgs const& args, std::shared_ptr<OutputRegistry> outreg)
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
     ScopedMem record_mem("demo_loop.load_core_params");
@@ -242,6 +243,7 @@ CoreParams::Input load_core_params(LDemoArgs const& args)
 
     // Create action manager
     params.action_reg = std::make_shared<ActionRegistry>();
+    params.output_reg = std::move(outreg);
 
     // Load geometry
     params.geometry
@@ -361,7 +363,7 @@ CoreParams::Input load_core_params(LDemoArgs const& args)
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
-    return params;
+    return std::make_shared<CoreParams>(std::move(params));
 }
 
 //---------------------------------------------------------------------------//
@@ -370,9 +372,8 @@ CoreParams::Input load_core_params(LDemoArgs const& args)
  */
 std::unique_ptr<TransporterBase>
 build_transporter(LDemoArgs const& args,
-                  std::shared_ptr<OutputRegistry> const& outreg)
+                  std::shared_ptr<CoreParams const> params)
 {
-    CELER_EXPECT(outreg);
     using celeritas::MemSpace;
 
     // Save constants from args
@@ -388,12 +389,7 @@ build_transporter(LDemoArgs const& args,
     input.energy_diag = args.energy_diag;
 
     // Create core params
-    input.params = [&args, &outreg] {
-        auto params = load_core_params(args);
-        params.output_reg = outreg;
-        CELER_ASSERT(params);
-        return std::make_shared<CoreParams>(std::move(params));
-    }();
+    input.params = std::move(params);
 
     std::unique_ptr<TransporterBase> result;
 
