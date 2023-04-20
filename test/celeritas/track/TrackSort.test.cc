@@ -171,7 +171,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
             ActionId::size_type aid_current{
                 step_limit[tid_current].action.unchecked_get()},
                 aid_next{step_limit[tid_next].action.unchecked_get()};
-            EXPECT_TRUE(aid_current <= aid_next)
+            EXPECT_LE(aid_current, aid_next)
                 << aid_current << " is larger than " << aid_next;
         }
     };
@@ -219,7 +219,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
             ActionId::size_type aid_current{
                 step_limit[tid_current].action.unchecked_get()},
                 aid_next{step_limit[tid_next].action.unchecked_get()};
-            EXPECT_TRUE(aid_current <= aid_next)
+            EXPECT_LE(aid_current, aid_next)
                 << aid_current << " is larger than " << aid_next;
         }
     };
