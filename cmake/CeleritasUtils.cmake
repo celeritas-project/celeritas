@@ -80,20 +80,21 @@ CMake configuration utility functions for Celeritas.
 
     celeritas_define_options(<var> <doc>)
 
-  This will set <var> to the first item of the list ``${<var>_OPTIONS}``. It
-  will validate that the selection is one of the list and default to the first
-  item in the list.
+  If <var> is not yet set, this will set it to the first item of the list
+  ``${<var>_OPTIONS}``.  Otherwise It will validate that the pre-existing
+  selection is one of the list.
 
-.. command:: celeritas_generate_option_macros
+.. command:: celeritas_generate_option_config
 
-  Generate preprocessor macros for the given option list.::
+  Generate ``#define`` macros for the given option list.::
 
-    celeritas_generate_option_macros(<var>)
+    celeritas_generate_option_config(<var>)
 
   This requires the list of ``<var>_OPTIONS`` to be set and ``<var>`` to be set,
-  and it creates a string in the parent scope called ``<var>_MACROS``
+  and it creates a string in the parent scope called ``<var>_CONFIG`` for use in
+  a configure file (such as ``celeritas_config.h``).
 
-  The resulting macro list starts a counter counter from 1 because undefined
+  The resulting macro list starts its counter 1 because undefined
   macros have the implicit value of 0 in the C preprocessor. Thus any
   unavailable options (e.g. CELERITAS_USE_CURAND when HIP is in use) will
   implicitly be zero.
@@ -289,7 +290,7 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
-function(celeritas_generate_option_macros var)
+function(celeritas_generate_option_config var)
   # Add disabled options first
   set(_options)
   foreach(_val IN LISTS ${var}_DISABLED_OPTIONS)
@@ -313,7 +314,7 @@ function(celeritas_generate_option_macros var)
   )
 
   # Set in parent scope
-  set(${var}_MACROS "${_result}" PARENT_SCOPE)
+  set(${var}_CONFIG "${_result}" PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#

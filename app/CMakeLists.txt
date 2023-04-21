@@ -185,7 +185,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
     Celeritas::celeritas
     nlohmann_json::nlohmann_json
   )
-  if(CELERITAS_USE_CUDA AND CELERITAS_DEBUG AND CELERITAS_GEO STREQUAL "VecGeom")
+  if(CELERITAS_GEO STREQUAL "VecGeom")
     list(APPEND _rasterizer_libs VecGeom::vecgeom)
   endif()
   celeritas_target_link_libraries(demo-rasterizer ${_rasterizer_libs})

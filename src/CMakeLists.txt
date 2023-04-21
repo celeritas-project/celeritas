@@ -28,13 +28,13 @@ set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
 set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
-# Set CELERITAS_RNG_MACROS to a numeric table of RNG options and the selection.
-# Start counter from 1 because undefined macros have the implicit value of 0 in
+# Set CELERITAS_RNG_CONFIG to a numeric table of RNG options and the selection.
+# Start counter from 1 because undefined config have the implicit value of 0 in
 # the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
 # when HIP is in use) will implicitly be zero.
-celeritas_generate_option_macros(CELERITAS_RNG)
-# Same, but with CELERITAS_GEO_MACROS
-celeritas_generate_option_macros(CELERITAS_GEO)
+celeritas_generate_option_config(CELERITAS_RNG)
+# Same, but with CELERITAS_GEO_CONFIG
+celeritas_generate_option_config(CELERITAS_GEO)
 celeritas_configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
 
 #----------------------------------------------------------------------------#
