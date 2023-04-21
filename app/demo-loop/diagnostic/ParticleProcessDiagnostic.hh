@@ -63,7 +63,7 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
     void mid_step(ParamsRef const&, StateRef const& states) final;
 
     // Collect diagnostic results
-    void get_result(TransporterResult* result) final;
+    void get_result(RunnerResult* result) final;
 
     // Get particle-process and number of times the interaction occured
     std::unordered_map<std::string, size_type> particle_processes() const;
@@ -178,7 +178,7 @@ void ParticleProcessDiagnostic<M>::mid_step(ParamsRef const&,
  * Collect the diagnostic results.
  */
 template<MemSpace M>
-void ParticleProcessDiagnostic<M>::get_result(TransporterResult* result)
+void ParticleProcessDiagnostic<M>::get_result(RunnerResult* result)
 {
     result->process = this->particle_processes();
 }

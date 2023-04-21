@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/LDemoIO.root.cc
+//! \file demo-loop/RootOutput.cc
 //---------------------------------------------------------------------------//
-#include "LDemoIO.hh"
+#include "RootOutput.hh"
 
 #include <string>
 #include <vector>
@@ -14,6 +14,9 @@
 #include <TTree.h>
 
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/CoreParams.hh"
+
+#include "RunnerInput.hh"
 
 namespace demo_loop
 {
@@ -21,12 +24,12 @@ namespace demo_loop
 /*!
  * Store input information to the ROOT MC truth output file.
  */
-void write_to_root(LDemoArgs const& cargs,
+void write_to_root(RunnerInput const& cargs,
                    celeritas::RootFileManager* root_manager)
 {
     CELER_EXPECT(cargs);
 
-    auto& args = const_cast<LDemoArgs&>(cargs);
+    auto& args = const_cast<RunnerInput&>(cargs);
     auto tree_input = root_manager->make_tree("input", "input");
 
     // Problem definition
