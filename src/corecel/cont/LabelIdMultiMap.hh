@@ -13,8 +13,8 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Label.hh"
 
-#include "Label.hh"
 #include "Range.hh"
 #include "Span.hh"
 

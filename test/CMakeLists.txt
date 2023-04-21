@@ -146,6 +146,7 @@ celeritas_add_test(corecel/grid/UniformGrid.test.cc)
 # IO
 set(CELERITASTEST_PREFIX corecel/io)
 celeritas_add_test(corecel/io/EnumStringMapper.test.cc)
+celeritas_add_test(corecel/io/Label.test.cc)
 celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputRegistry.test.cc

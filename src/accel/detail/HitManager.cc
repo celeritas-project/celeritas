@@ -15,8 +15,8 @@
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/cont/Label.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
