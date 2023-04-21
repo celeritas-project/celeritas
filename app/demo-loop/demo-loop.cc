@@ -27,7 +27,6 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -63,33 +62,25 @@ namespace
 void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
     ScopedMem record_mem("demo_loop.run");
+
     // Read input options
-    auto inp = nlohmann::json::parse(*is);
-
-    if (inp.contains("cuda_heap_size"))
-    {
-        int heapSize = inp.at("cuda_heap_size").get<int>();
-        celeritas::set_cuda_heap_size(heapSize);
-    }
-    if (inp.contains("cuda_stack_size"))
-    {
-        celeritas::set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
-    }
-    if (inp.contains("environ"))
-    {
-        Environment environ;
-        // Specify env variables
-        inp["environ"].get_to(environ);
-        celeritas::environment().merge(environ);
-    }
-
-    // For now, only do a single run
-    auto run_args = inp.get<LDemoArgs>();
+    auto run_args = nlohmann::json::parse(*is).get<LDemoArgs>();
     output->insert(std::make_shared<OutputInterfaceAdapter<LDemoArgs>>(
         OutputInterface::Category::input,
         "*",
         std::make_shared<LDemoArgs>(run_args)));
     CELER_EXPECT(run_args);
+
+    // Process global optoins
+    if (run_args.cuda_heap_size != LDemoArgs::unspecified)
+    {
+        celeritas::set_cuda_heap_size(run_args.cuda_heap_size);
+    }
+    if (run_args.cuda_stack_size != LDemoArgs::unspecified)
+    {
+        celeritas::set_cuda_stack_size(run_args.cuda_stack_size);
+    }
+    celeritas::environment().merge(run_args.environ);
 
     // Start timer for overall execution
     Stopwatch get_setup_time;

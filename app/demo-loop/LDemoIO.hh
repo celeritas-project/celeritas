@@ -15,7 +15,9 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Label.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
@@ -43,6 +45,8 @@ namespace demo_loop
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
+ *
+ * TODO: change to RunnerInput and move to Runner.hh
  */
 struct LDemoArgs
 {
@@ -51,6 +55,12 @@ struct LDemoArgs
     using size_type = celeritas::size_type;
 
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
+    static constexpr size_type unspecified{static_cast<size_type>(-1)};
+
+    // Global environment
+    size_type cuda_heap_size = unspecified;
+    size_type cuda_stack_size = unspecified;
+    celeritas::Environment environ;  //!< Supplement existing env variables
 
     // Problem definition
     std::string geometry_filename;  //!< Path to GDML file
