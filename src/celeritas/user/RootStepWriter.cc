@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "RootStepWriter.hh"
 
+#include <algorithm>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -15,6 +16,8 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+namespace celeritas
+{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -64,8 +67,6 @@ bool srf_match(size_type step_trk_id, std::vector<size_type> const& vec_trk_id)
 //---------------------------------------------------------------------------//
 }  // namespace
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Construct writer with user-defined data filtering.
