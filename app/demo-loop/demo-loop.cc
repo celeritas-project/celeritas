@@ -77,8 +77,10 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     }
     if (inp.contains("environ"))
     {
+        Environment environ;
         // Specify env variables
-        inp["environ"].get_to(celeritas::environment());
+        inp["environ"].get_to(environ);
+        celeritas::environment().merge(environ);
     }
 
     // For now, only do a single run
