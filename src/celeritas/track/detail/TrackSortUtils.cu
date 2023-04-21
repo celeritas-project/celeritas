@@ -88,7 +88,6 @@ struct step_limit_comparator
 
 }  // namespace
 
-template<>
 void partition_tracks_by_status(
     CoreStateData<Ownership::reference, MemSpace::device> const& states)
 {
@@ -104,7 +103,6 @@ void partition_tracks_by_status(
     CELER_DEVICE_CHECK_ERROR();
 }
 
-template<>
 void sort_tracks_by_action_id(
     CoreStateData<Ownership::reference, MemSpace::device> const& states)
 {

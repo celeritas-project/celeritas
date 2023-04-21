@@ -38,7 +38,6 @@ void shuffle_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slot
     std::shuffle(track_slots.begin(), track_slots.end(), g);
 }
 
-template<>
 void partition_tracks_by_status(
     CoreStateData<Ownership::reference, MemSpace::host> const& states)
 {
@@ -53,7 +52,6 @@ void partition_tracks_by_status(
                    });
 }
 
-template<>
 void sort_tracks_by_action_id(
     CoreStateData<Ownership::reference, MemSpace::host> const& states)
 {
