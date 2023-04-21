@@ -60,31 +60,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-//!@{
-//! I/O routines for JSON
-void to_json(nlohmann::json& j, EnergyDiagInput const& v)
-{
-    j = nlohmann::json{{"axis", std::string(1, v.axis)},
-                       {"min", v.min},
-                       {"max", v.max},
-                       {"num_bins", v.num_bins}};
-}
-
-void from_json(nlohmann::json const& j, EnergyDiagInput& v)
-{
-    std::string temp_axis;
-    j.at("axis").get_to(temp_axis);
-    CELER_VALIDATE(temp_axis.size() == 1,
-                   << "axis spec has length " << temp_axis.size()
-                   << " (must be a single character)");
-    v.axis = temp_axis.front();
-    j.at("min").get_to(v.min);
-    j.at("max").get_to(v.max);
-    j.at("num_bins").get_to(v.num_bins);
-}
-//!@}
-
-//---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
  */
@@ -125,7 +100,6 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
 
     LDIO_LOAD_OPTION(step_limiter);
     LDIO_LOAD_OPTION(brem_combined);
-    LDIO_LOAD_OPTION(energy_diag);
     LDIO_LOAD_OPTION(track_order);
     LDIO_LOAD_OPTION(geant_options);
 
@@ -197,10 +171,6 @@ void to_json(nlohmann::json& j, LDemoArgs const& v)
     LDIO_SAVE_OPTION(step_limiter);
     LDIO_SAVE_OPTION(brem_combined);
 
-    if (v.enable_diagnostics)
-    {
-        LDIO_SAVE_REQUIRED(energy_diag);
-    }
     LDIO_SAVE_OPTION(track_order);
     if (ends_with(v.physics_filename, ".gdml"))
     {
@@ -380,7 +350,6 @@ build_transporter(LDemoArgs const& args,
     input.max_steps = args.max_steps;
     input.enable_diagnostics = args.enable_diagnostics;
     input.sync = args.sync;
-    input.energy_diag = args.energy_diag;
 
     // Create core params
     input.params = std::move(params);

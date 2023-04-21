@@ -89,9 +89,6 @@ struct LDemoArgs
     // Options for physics
     bool brem_combined{true};
 
-    // Diagnostic input
-    EnergyDiagInput energy_diag;
-
     // Track init options
     celeritas::TrackOrder track_order{celeritas::TrackOrder::unsorted};
 

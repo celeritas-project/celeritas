@@ -36,18 +36,6 @@ template<celeritas::MemSpace M>
 class Diagnostic;
 
 //---------------------------------------------------------------------------//
-struct EnergyDiagInput
-{
-    using size_type = celeritas::size_type;
-    using real_type = celeritas::real_type;
-
-    char axis{'z'};
-    real_type min{-700};
-    real_type max{700};
-    size_type num_bins{1024};
-};
-
-//---------------------------------------------------------------------------//
 //! Input parameters to the transporter.
 struct TransporterInput
 {
@@ -70,7 +58,6 @@ struct TransporterInput
 
     // Diagnostic setup
     bool enable_diagnostics{true};
-    EnergyDiagInput energy_diag;
 
     // Threading (TODO)
     celeritas::StreamId stream_id{0};
@@ -139,9 +126,12 @@ struct DiagnosticStore
  *
  * We might want to change this so that the transport result gets accumulated
  * over multiple calls rather than combining for a single operation, so
- * diagnostics would be an acessor and the "call" operator would be renamed
+ * diagnostics would be an accessor and the "call" operator would be renamed
  * "transport". Such a change would imply making the diagnostics part of the
  * input parameters, which (for simplicity) isn't done yet.
+ *
+ * NOTE: there should be one transporter per "thread" state using shared
+ * params.
  */
 class TransporterBase
 {
