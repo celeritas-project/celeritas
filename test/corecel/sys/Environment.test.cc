@@ -51,7 +51,7 @@ TEST(EnvironmentTest, global)
     EXPECT_EQ("1", getenv("ENVTEST_ONE"));
 }
 
-TEST(EnvironmentTest, json)
+TEST(EnvironmentTest, TEST_IF_CELERITAS_JSON(json))
 {
 #if CELERITAS_USE_JSON
     // Pre-set one environment variable
@@ -72,8 +72,6 @@ TEST(EnvironmentTest, json)
             = R"json([{"ENVTEST_CUSTOM":"custom","ENVTEST_ONE":"111111","ENVTEST_ZERO":"0"}])json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
-#else
-    GTEST_SKIP() << "JSON is disabled";
 #endif
 }
 
