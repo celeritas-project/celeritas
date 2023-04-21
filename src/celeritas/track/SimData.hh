@@ -99,6 +99,12 @@ struct SimTrackInitializer
 
     TrackStatus status{TrackStatus::inactive};
     StepLimit step_limit;
+
+    //! True if assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return track_id && event_id;
+    }
 };
 
 //---------------------------------------------------------------------------//
