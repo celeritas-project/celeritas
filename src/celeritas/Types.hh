@@ -105,8 +105,9 @@ enum class TrackStatus : std::int_least8_t
 enum class ActionOrder
 {
     start,  //!< Initialize tracks
-    pre,  //!< Pre-step physics and setup
     sort_start,  //!< Sort track slots for GPU optimization
+    pre,  //!< Pre-step physics and setup
+    sort_pre,  //!< Sort track slots for GPU optimization
     along,  //!< Along-step
     pre_post,  //!< Discrete selection kernel
     post,  //!< After step
