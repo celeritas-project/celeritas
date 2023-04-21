@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/StreamStore.hh
+//! \file corecel/data/RaggedRightIndexer.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -27,7 +27,7 @@ namespace celeritas
  *
  *  flattened = [a1, a2, b1, b2, b3, c1]
  *
- *  Within this array, element b3 has "flattened" index of 4 and "ragged
+ *  Within this array, element b3 has a "flattened" index of 4 and "ragged
  * indices" of [1, 2]
  */
 template<class T, size_type N>
@@ -42,7 +42,7 @@ class RaggedRightIndexer
     //!@}
 
   public:
-    // Construct with the an array denoting the sizes of each dimension
+    // Construct with the an array denoting the size of each dimension
     explicit inline CELER_FUNCTION RaggedRightIndexer(Sizes const& sizes);
 
     //// METHODS ////
@@ -65,7 +65,7 @@ class RaggedRightIndexer
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from array denoting the sizes of each dimension
+ * Construct from array denoting the size of each dimension.
  */
 template<class T, size_type N>
 CELER_FUNCTION RaggedRightIndexer<T, N>::RaggedRightIndexer(Sizes const& sizes)
@@ -83,7 +83,7 @@ CELER_FUNCTION RaggedRightIndexer<T, N>::RaggedRightIndexer(Sizes const& sizes)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert ragged indices to a flattened index
+ * Convert ragged indices to a flattened index.
  */
 template<class T, size_type N>
 CELER_FUNCTION typename RaggedRightIndexer<T, N>::index_type
@@ -97,7 +97,7 @@ RaggedRightIndexer<T, N>::flattened_index(RaggedIndices ri) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a flattened index into ragged indices
+ * Convert a flattened index into ragged indices.
  */
 template<class T, size_type N>
 CELER_FUNCTION typename RaggedRightIndexer<T, N>::RaggedIndices

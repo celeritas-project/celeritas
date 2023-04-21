@@ -132,7 +132,7 @@ CELER_FUNCTION auto NonuniformGrid<T>::operator[](size_type i) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the index of the given value (must be in bounds)
+ * Find the index of the given value (must be in bounds).
  *
  * Find the value bin such that values[result] <= value < values[result +
  * 1]. The given value *must* be in range, because out-of-bounds values usually
@@ -148,9 +148,9 @@ CELER_FUNCTION size_type NonuniformGrid<T>::find(value_type value) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the index (must be in bounds), and whether the value is on an edge
+ * Find the index (must be in bounds), and whether the value is on an edge.
  *
- * This method behaves the same as the "find" method, accept it also
+ * This method behaves the same as the "find" method, except it also
  * returns a bool denoting whether or not the value is coincident with the
  * lower edge of the bin.
  */
@@ -159,14 +159,14 @@ CELER_FUNCTION typename NonuniformGrid<T>::result_type
 NonuniformGrid<T>::find_edge(value_type value) const
 {
     auto iter = this->find_impl(value);
-    return {iter - data_.begin(), *iter == value};
+    return {static_cast<size_type>(iter - data_.begin()), *iter == value};
 }
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Return iterator for bin corresponding to value (must be in bounds)
+ * Return iterator for bin corresponding to value (must be in bounds).
  */
 template<class T>
 CELER_FUNCTION typename NonuniformGrid<T>::Data::iterator

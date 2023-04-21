@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/StreamStore.hh
+//! \file corecel/data/HyperslabIndexer.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -32,7 +32,7 @@ class HyperslabIndexer
     //!@}
 
   public:
-    // Construct with the an array denoting the size of each dimension
+    // Construct with an array denoting the size of each dimension
     explicit inline CELER_FUNCTION HyperslabIndexer(Coords const& dims);
 
     //// METHODS ////
@@ -53,7 +53,7 @@ class HyperslabIndexer
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from array denoting the sizes of each dimension
+ * Construct from array denoting the sizes of each dimension.
  */
 template<class T, size_type N>
 CELER_FUNCTION HyperslabIndexer<T, N>::HyperslabIndexer(Coords const& dims)

@@ -33,7 +33,7 @@ RectArrayInserter::RectArrayInserter(Data* orange_data)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a simple unit and return its ID.
+ * Create a rect array unit and return its ID.
  */
 RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
 {

@@ -145,18 +145,18 @@ OrangeParams::OrangeParams(OrangeInput input)
         auto get_num_surfaces = Overload{
             [](UnitInput const& u) -> size_type { return u.surfaces.size(); },
             [](RectArrayInput const& r) -> size_type {
-                return r.daughters.size();
-            }};
-
-        auto get_num_volumes = Overload{
-            [](UnitInput const& u) -> size_type { return u.volumes.size(); },
-            [](RectArrayInput const& r) -> size_type {
                 return std::accumulate(r.grid.begin(),
                                        r.grid.end(),
                                        size_type(0),
                                        [](size_type acc, const auto& vec) {
                                            return acc + vec.size();
                                        });
+            }};
+
+        auto get_num_volumes = Overload{
+            [](UnitInput const& u) -> size_type { return u.volumes.size(); },
+            [](RectArrayInput const& r) -> size_type {
+                return r.daughters.size();
             }};
 
         for (auto const& u : input.universes)
@@ -168,11 +168,11 @@ OrangeParams::OrangeParams(OrangeInput input)
             auto volume_offset
                 = host_data.universe_indexer_data.volumes[AllVals{}].back();
 
-            auto surfs = std::visit(get_num_surfaces, u);
-            auto vols = std::visit(get_num_volumes, u);
+            auto num_surfs = std::visit(get_num_surfaces, u);
+            auto num_vols = std::visit(get_num_volumes, u);
 
-            ui_surf.push_back(surface_offset + surfs);
-            ui_vol.push_back(volume_offset + vols);
+            ui_surf.push_back(surface_offset + num_surfs);
+            ui_vol.push_back(volume_offset + num_vols);
         }
     }
 
@@ -391,7 +391,7 @@ void OrangeParams::process_metadata(OrangeInput const& input)
         [&surface_labels](RectArrayInput const& r) {
             for (auto ax : range(Axis::size_))
             {
-                for (auto i : range(r.grid[to_int(ax)].size() - 1))
+                for (auto i : range(r.grid[to_int(ax)].size()))
                 {
                     Label sl;
                     sl.name = std::string("{" + std::string(1, to_char(ax))
