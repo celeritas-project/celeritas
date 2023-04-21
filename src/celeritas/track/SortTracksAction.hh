@@ -54,6 +54,11 @@ class SortTracksAction final : public ExplicitActionInterface
     ActionOrder order() const final { return action_order_; }
 
   private:
+    template<MemSpace M>
+    void
+    execute_impl(CoreParamsData<Ownership::const_reference, M> const& params,
+                 CoreStateData<Ownership::reference, M>& states) const;
+
     ActionId id_;
     ActionOrder action_order_;
     TrackOrder track_order_;
