@@ -36,6 +36,7 @@ char const* to_cstring(ActionOrder value)
         "start",
         "sort_start",
         "pre",
+        "sort_pre",
         "along",
         "pre_post",
         "post",

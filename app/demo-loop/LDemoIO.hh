@@ -33,11 +33,12 @@ namespace celeritas
 class OutputRegistry;
 class CoreParams;
 
-NLOHMANN_JSON_SERIALIZE_ENUM(TrackOrder,
-                             {{TrackOrder::unsorted, "unsorted"},
-                              {TrackOrder::shuffled, "shuffled"},
-                              {TrackOrder::partition_status,
-                               "partition-status"}})
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    TrackOrder,
+    {{TrackOrder::unsorted, "unsorted"},
+     {TrackOrder::shuffled, "shuffled"},
+     {TrackOrder::partition_status, "partition-status"},
+     {TrackOrder::sort_step_limit_action, "action-id"}})
 }
 
 namespace demo_loop

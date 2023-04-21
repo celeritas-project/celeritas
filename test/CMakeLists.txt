@@ -371,13 +371,13 @@ else()
   set(_filter)
 endif()
 celeritas_add_test(celeritas/global/AlongStep.test.cc
-  NT 1 ${_optional_geant4_env} ${_filter}
+  NT 1 ${_optional_geant4_env} ${_needs_geo} ${_filter}
 )
 celeritas_add_test(celeritas/global/KernelContextException.test.cc NT 1
-  LINK_LIBRARIES ${_optional_json_link}
+  LINK_LIBRARIES ${_optional_json_link} ${_needs_geo}
 )
 celeritas_add_test(celeritas/global/Stepper.test.cc
-  GPU NT 4 ${_needs_geant4}
+  GPU NT 4 ${_needs_geant4} ${_needs_geo}
   FILTER
     # NOTE: these can be run in the same invocation once Geant4 reload works
     "TestEm3NoMsc.*"
@@ -454,14 +454,14 @@ endif()
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_add_test(celeritas/track/Sim.test.cc ${_needs_geant4})
-celeritas_add_test(celeritas/track/TrackSort.test.cc GPU ${_needs_geant4})
+celeritas_add_test(celeritas/track/TrackSort.test.cc GPU ${_needs_geant4} ${_needs_geo})
 celeritas_add_device_test(celeritas/track/TrackInit ${_needs_device})
 
 #-------------------------------------#
 # User
 set(CELERITASTEST_PREFIX celeritas/user)
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
-celeritas_add_test(celeritas/user/StepCollector.test.cc ${_optional_geant4_env})
+celeritas_add_test(celeritas/user/StepCollector.test.cc ${_optional_geant4_env} ${_needs_geo})
 
 #-----------------------------------------------------------------------------#
 # ACCELERITAS TESTS
