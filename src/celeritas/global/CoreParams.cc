@@ -157,12 +157,24 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
         input_.action_reg->next_id()));
 
-    // Construct sort tracks action
-    input_.action_reg->insert(std::make_shared<SortTracksAction>(
-        input_.action_reg->next_id(),
-        ActionOrder::sort_start,
-        input_.init->host_ref().track_order));
+    if (input_.init->host_ref().track_order == TrackOrder::partition_status)
+    {
+        // Construct sort tracks action for start-step
+        input_.action_reg->insert(std::make_shared<SortTracksAction>(
+            input_.action_reg->next_id(),
+            ActionOrder::sort_start,
+            input_.init->host_ref().track_order));
+    }
 
+    if (input_.init->host_ref().track_order
+        == TrackOrder::sort_step_limit_action)
+    {
+        // Construct sort tracks action for pre-step
+        input_.action_reg->insert(std::make_shared<SortTracksAction>(
+            input_.action_reg->next_id(),
+            ActionOrder::sort_pre,
+            input_.init->host_ref().track_order));
+    }
     // Construct extend from secondaries action
     input_.action_reg->insert(std::make_shared<ExtendFromSecondariesAction>(
         input_.action_reg->next_id()));

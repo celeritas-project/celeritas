@@ -24,6 +24,8 @@ std::string SortTracksAction::label() const
     {
         case ActionOrder::sort_start:
             return "sort-tracks-start";
+        case ActionOrder::sort_pre:
+            return "sort-tracks-pre";
         default:
             return "sort-tracks";
     }
@@ -61,11 +63,8 @@ void SortTracksAction::execute_impl(
         case TrackOrder::sort_step_limit_action:
             detail::sort_tracks_by_action_id(states);
             break;
-        // TODO: Do not instantiate the action in the first place and check
-        // here with CELER_ASSERT_UNREACHABLE()
-        case TrackOrder::shuffled:
-        case TrackOrder::unsorted:
-            break;
+        default:
+            CELER_ASSERT_UNREACHABLE();
     }
 }
 

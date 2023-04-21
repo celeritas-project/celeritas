@@ -176,7 +176,6 @@ TEST_F(TestEm3NoMsc, setup)
     static char const* const expected_actions[] = {
         "initialize-tracks",
         "pre-step",
-        "sort-tracks-start",
         "along-step-general-linear",
         "physics-discrete-select",
         "scat-klein-nishina",
@@ -311,7 +310,6 @@ TEST_F(TestEm3Msc, setup)
     static char const* const expected_actions[] = {
         "initialize-tracks",
         "pre-step",
-        "sort-tracks-start",
         "along-step-general-linear",
         "physics-discrete-select",
         "scat-klein-nishina",
@@ -478,7 +476,6 @@ TEST_F(TestEm15MscField, setup)
     static char const* const expected_actions[] = {
         "initialize-tracks",
         "pre-step",
-        "sort-tracks-start",
         "along-step-uniform-msc",
         "physics-discrete-select",
         "scat-klein-nishina",
@@ -582,7 +579,6 @@ TEST_F(OneSteelSphere, setup)
     static char const* const expected_actions[] = {
         "initialize-tracks",
         "pre-step",
-        "sort-tracks-start",
         "along-step-general-linear",
         "physics-discrete-select",
         "scat-klein-nishina",
