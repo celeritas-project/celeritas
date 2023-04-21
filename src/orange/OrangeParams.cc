@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <initializer_list>
+#include <numeric>
 #include <utility>
 #include <vector>
 
