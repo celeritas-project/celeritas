@@ -16,13 +16,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Label.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/phys/Model.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/RootStepWriter.hh"
 
@@ -30,15 +28,10 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class OutputRegistry;
 class CoreParams;
-
-NLOHMANN_JSON_SERIALIZE_ENUM(
-    TrackOrder,
-    {{TrackOrder::unsorted, "unsorted"},
-     {TrackOrder::shuffled, "shuffled"},
-     {TrackOrder::partition_status, "partition-status"},
-     {TrackOrder::sort_step_limit_action, "action-id"}})
+//---------------------------------------------------------------------------//
 }
 
 namespace demo_loop

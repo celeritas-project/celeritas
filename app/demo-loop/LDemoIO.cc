@@ -45,6 +45,18 @@
 
 using namespace celeritas;
 
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    TrackOrder,
+    {{TrackOrder::unsorted, "unsorted"},
+     {TrackOrder::shuffled, "shuffled"},
+     {TrackOrder::partition_status, "partition-status"},
+     {TrackOrder::sort_step_limit_action, "action-id"}})
+}  // namespace celeritas
+//---------------------------------------------------------------------------//
+
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
