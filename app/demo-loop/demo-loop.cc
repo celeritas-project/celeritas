@@ -35,16 +35,11 @@
 #include "RunnerInput.hh"
 #include "RunnerInputIO.json.hh"
 
-using std::cerr;
-using std::cout;
-using std::endl;
-using namespace demo_loop;
-using namespace celeritas;
-
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-//! Save data to json
+//!@{
+//! Save data to JSON
 inline void to_json(nlohmann::json& j, RunTimingResult const& v)
 {
     j = nlohmann::json{{"steps", v.steps},
@@ -63,14 +58,20 @@ inline void to_json(nlohmann::json& j, RunnerResult const& v)
                        {"steps", v.steps},
                        {"time", v.time}};
 }
+//!@}
+
 namespace
 {
 //---------------------------------------------------------------------------//
 /*!
  * Run, launch, and output.
  */
-void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
+void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
 {
+    using celeritas::OutputInterface;
+    using celeritas::OutputInterfaceAdapter;
+    using celeritas::ScopedMem;
+
     ScopedMem record_mem("demo_loop.run");
 
     // Read input options and save a copy for output
@@ -80,12 +81,12 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
         OutputInterface::Category::input, "*", run_input));
 
     // Create runner and save setup time
-    Stopwatch get_setup_time;
-    Runner run(*run_input, output);
+    celeritas::Stopwatch get_setup_time;
+    Runner run_stream(*run_input, output);
     double const setup_time = get_setup_time();
 
     // Run on a single thread
-    RunnerResult result = run(StreamId{0});
+    RunnerResult result = run_stream(celeritas::StreamId{0});
     result.time.setup = setup_time;
 
     // TODO: convert individual results into OutputInterface so we don't have
@@ -103,6 +104,12 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
  */
 int main(int argc, char* argv[])
 {
+    using celeritas::MpiCommunicator;
+    using celeritas::ScopedMpiInit;
+    using std::cerr;
+    using std::cout;
+    using std::endl;
+
     ScopedMpiInit scoped_mpi(&argc, &argv);
 
     MpiCommunicator comm = [] {
@@ -150,20 +157,20 @@ int main(int argc, char* argv[])
     }
 
     // Set up output
-    auto output = std::make_shared<OutputRegistry>();
+    auto output = std::make_shared<celeritas::OutputRegistry>();
 
     int return_code = EXIT_SUCCESS;
     try
     {
-        run(instream, output);
+        demo_loop::run(instream, output);
     }
     catch (std::exception const& e)
     {
         CELER_LOG(critical)
             << "While running input at " << filename << ": " << e.what();
         return_code = EXIT_FAILURE;
-        output->insert(
-            std::make_shared<ExceptionOutput>(std::current_exception()));
+        output->insert(std::make_shared<celeritas::ExceptionOutput>(
+            std::current_exception()));
     }
 
     // Write system properties and (if available) results
