@@ -149,7 +149,7 @@ void Runner::build_core_params(RunnerInput const& inp,
                                SPOutputRegistry&& outreg)
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
-    ScopedMem record_mem("Runner.load_core_params");
+    ScopedMem record_mem("Runner.build_core_params");
     CoreParams::Input params;
     ImportData const imported = [&inp] {
         if (ends_with(inp.physics_filename, ".root"))
@@ -319,6 +319,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
  */
 void Runner::build_primaries(RunnerInput const& inp)
 {
+    ScopedMem record_mem("Runner.build_primaries");
     if (inp.primary_gen_options)
     {
         std::mt19937 rng;
