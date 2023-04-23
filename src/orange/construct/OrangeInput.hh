@@ -12,7 +12,7 @@
 #include <variant>
 #include <vector>
 
-#include "corecel/cont/Label.hh"
+#include "corecel/io/Label.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
@@ -136,9 +136,6 @@ struct RectArrayInput
 struct OrangeInput
 {
     std::vector<std::variant<UnitInput, RectArrayInput>> universes;
-
-    std::vector<UniverseType> universe_types;
-    std::vector<size_type> universe_indices;
 
     // TODO: Calculate automatically in Shift by traversing the parent/daughter
     // tree

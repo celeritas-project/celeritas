@@ -17,10 +17,10 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.json.hh"
-#include "corecel/cont/Label.hh"
-#include "corecel/cont/LabelIO.json.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/Label.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "orange/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
@@ -265,22 +265,15 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
 
     value.universes.reserve(universes.size());
 
-    size_type simple_unit_index = 0;
-    size_type rect_array_index = 0;
-
     for (auto const& uni : universes)
     {
         auto uni_type = uni.at("_type").get<std::string>();
         if (uni_type == "simple unit")
         {
-            value.universe_types.push_back(UniverseType::simple);
-            value.universe_indices.push_back(simple_unit_index++);
             value.universes.push_back(uni.get<UnitInput>());
         }
         else if (uni_type == "rectangular array")
         {
-            value.universe_types.push_back(UniverseType::rect_array);
-            value.universe_indices.push_back(rect_array_index++);
             value.universes.push_back(uni.get<RectArrayInput>());
         }
         else if (uni_type == "hexagonal array")

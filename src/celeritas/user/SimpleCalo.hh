@@ -9,7 +9,6 @@
 
 #include <vector>
 
-#include "corecel/cont/Label.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/StreamStore.hh"
 #include "corecel/io/OutputInterface.hh"
@@ -21,6 +20,9 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+struct Label;
+
 //---------------------------------------------------------------------------//
 /*!
  * Accumulate energy deposition in volumes.

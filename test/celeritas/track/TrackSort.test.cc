@@ -23,6 +23,9 @@ namespace celeritas
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+// TEST HARNESS
+//---------------------------------------------------------------------------//
 
 using celeritas::units::MevEnergy;
 
@@ -41,6 +44,25 @@ class TestTrackPartitionEm3Stepper : public TestEm3NoMsc
     }
 };
 
+#define TestTrackSortActionIdEm3Stepper \
+    TEST_IF_CELERITAS_GEANT(TestTrackSortActionIdEm3Stepper)
+class TestTrackSortActionIdEm3Stepper : public TestEm3NoMsc
+{
+  protected:
+    auto build_init() -> SPConstTrackInit override
+    {
+        TrackInitParams::Input input;
+        input.capacity = 4096;
+        input.max_events = 4096;
+        input.track_order = TrackOrder::sort_step_limit_action;
+        return std::make_shared<TrackInitParams>(input);
+    }
+};
+
+//---------------------------------------------------------------------------//
+// TESTS
+//---------------------------------------------------------------------------//
+
 TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
 {
     size_type num_primaries = 8;
@@ -51,7 +73,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     // Initialize some primaries and take a step
     auto primaries = this->make_primaries(num_primaries);
     step(make_span(primaries));
-    auto check_is_partitioned = [&step]() {
+    auto check_is_partitioned = [&step] {
         auto span = step.core_data()
                         .states.track_slots[AllItems<TrackSlotId::size_type>{}];
         return std::is_partitioned(
@@ -93,7 +115,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     // Initialize some primaries and take a step
     auto primaries = this->make_primaries(num_primaries);
     step(make_span(primaries));
-    auto check_is_partitioned = [&step]() {
+    auto check_is_partitioned = [&step] {
         // copy to host
         auto core_ref = step.core_data();
         Collection<TrackSlotId::size_type, Ownership::value, MemSpace::host, ThreadId>
@@ -125,6 +147,95 @@ TEST_F(TestTrackPartitionEm3Stepper,
         detail::partition_tracks_by_status(step.core_data().states);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
+        step();
+    }
+}
+
+TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
+{
+    size_type num_primaries = 8;
+    size_type num_tracks = 128;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+
+    // Initialize some primaries and take a step
+    auto primaries = this->make_primaries(num_primaries);
+    step(make_span(primaries));
+    auto check_is_sorted = [&step] {
+        auto& step_limit = step.core_data().states.sim.step_limit;
+        auto& track_slots = step.core_data().states.track_slots;
+        for (celeritas::size_type i = 0; i < track_slots.size() - 1; ++i)
+        {
+            TrackSlotId tid_current{track_slots[ThreadId{i}]},
+                tid_next{track_slots[ThreadId{i + 1}]};
+            ActionId::size_type aid_current{
+                step_limit[tid_current].action.unchecked_get()},
+                aid_next{step_limit[tid_next].action.unchecked_get()};
+            EXPECT_LE(aid_current, aid_next)
+                << aid_current << " is larger than " << aid_next;
+        }
+    };
+    // A step can change the step-limit action, so we need to redo the sorting
+    // after taking a step.
+    for (auto i = 0; i < 10; ++i)
+    {
+        detail::sort_tracks_by_action_id(step.core_data().states);
+        check_is_sorted();
+        step();
+    }
+    step(make_span(primaries));
+    for (auto i = 0; i < 10; ++i)
+    {
+        detail::sort_tracks_by_action_id(step.core_data().states);
+        check_is_sorted();
+        step();
+    }
+}
+
+TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
+{
+    size_type num_primaries = 8;
+    // Num tracks is low enough to hit capacity
+    size_type num_tracks = num_primaries * 800;
+
+    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
+
+    // Initialize some primaries and take a step
+    auto primaries = this->make_primaries(num_primaries);
+    step(make_span(primaries));
+    auto check_is_sorted = [&step] {
+        // copy to host
+        auto core_ref = step.core_data();
+        Collection<TrackSlotId::size_type, Ownership::value, MemSpace::host, ThreadId>
+            track_slots;
+        track_slots = core_ref.states.track_slots;
+        StateCollection<StepLimit, Ownership::value, MemSpace::host> step_limit;
+        step_limit = core_ref.states.sim.step_limit;
+
+        for (celeritas::size_type i = 0; i < track_slots.size() - 1; ++i)
+        {
+            TrackSlotId tid_current{track_slots[ThreadId{i}]},
+                tid_next{track_slots[ThreadId{i + 1}]};
+            ActionId::size_type aid_current{
+                step_limit[tid_current].action.unchecked_get()},
+                aid_next{step_limit[tid_next].action.unchecked_get()};
+            EXPECT_LE(aid_current, aid_next)
+                << aid_current << " is larger than " << aid_next;
+        }
+    };
+    // A step can change the step-limit action, so we need to redo the sorting
+    // after taking a step.
+    for (auto i = 0; i < 10; ++i)
+    {
+        detail::sort_tracks_by_action_id(step.core_data().states);
+        check_is_sorted();
+        step();
+    }
+    step(make_span(primaries));
+    for (auto i = 0; i < 10; ++i)
+    {
+        detail::sort_tracks_by_action_id(step.core_data().states);
+        check_is_sorted();
         step();
     }
 }

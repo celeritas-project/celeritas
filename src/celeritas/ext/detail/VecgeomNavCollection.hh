@@ -85,6 +85,7 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
     // Obtain reference from host memory
     VecgeomNavCollection&
     operator=(VecgeomNavCollection<Ownership::value, MemSpace::host>& other);
+    // Default assignment
     VecgeomNavCollection& operator=(VecgeomNavCollection const&) = default;
 
     // Get the navigation state for a given track slot
@@ -147,6 +148,10 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
     using NavState = vecgeom::NavigationState;
 
     vecgeom::NavStatePoolView pool_view = {nullptr, 0, 0};
+
+    // Default construct and copy construct
+    VecgeomNavCollection() = default;
+    VecgeomNavCollection(VecgeomNavCollection const& other) = default;
 
     // Assign from device value
     VecgeomNavCollection&

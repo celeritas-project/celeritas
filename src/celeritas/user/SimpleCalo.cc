@@ -14,6 +14,7 @@
 #include "celeritas_config.h"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 
@@ -22,8 +23,8 @@
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
-#    include "corecel/cont/LabelIO.json.hh"
 #    include "corecel/io/JsonPimpl.hh"
+#    include "corecel/io/LabelIO.json.hh"
 #endif
 
 namespace celeritas

@@ -21,12 +21,13 @@ namespace demo_loop
 /*!
  * Store input information to the ROOT MC truth output file.
  */
-void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& cargs)
+void write_to_root(LDemoArgs const& cargs,
+                   celeritas::RootFileManager* root_manager)
 {
     CELER_EXPECT(cargs);
 
     auto& args = const_cast<LDemoArgs&>(cargs);
-    auto tree_input = root_manager.make_tree("input", "input");
+    auto tree_input = root_manager->make_tree("input", "input");
 
     // Problem definition
     tree_input->Branch("geometry_filename", &args.geometry_filename);
@@ -63,13 +64,13 @@ void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& cargs)
  * other parameters are needed for future debugging/analyses, this function can
  * easily be expanded.
  */
-void to_root(celeritas::RootFileManager& root_manager,
-             celeritas::CoreParams const& core_params)
+void write_to_root(celeritas::CoreParams const& core_params,
+                   celeritas::RootFileManager* root_manager)
 {
     auto const& action_reg = *core_params.action_reg();
 
     // Initialize CoreParams TTree
-    auto tree_params = root_manager.make_tree("core_params", "core_params");
+    auto tree_params = root_manager->make_tree("core_params", "core_params");
 
     // Store labels
     std::vector<std::string> action_labels;

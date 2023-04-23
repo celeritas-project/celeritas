@@ -21,17 +21,17 @@
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
-#    include "corecel/cont/LabelIO.json.hh"
+#    include "corecel/io/LabelIO.json.hh"
 #endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from shared geometry data.
+ * Construct from shared material data.
  */
-MaterialParamsOutput::MaterialParamsOutput(SPConstMaterialParams geo)
-    : material_(std::move(geo))
+MaterialParamsOutput::MaterialParamsOutput(SPConstMaterialParams material)
+    : material_(std::move(material))
 {
     CELER_EXPECT(material_);
 }

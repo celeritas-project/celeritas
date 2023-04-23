@@ -27,7 +27,7 @@ class MaterialParamsOutput final : public OutputInterface
     //!@}
 
   public:
-    // Construct from shared materialmetry data
+    // Construct from shared material data
     explicit MaterialParamsOutput(SPConstMaterialParams material);
 
     //! Category of data to write

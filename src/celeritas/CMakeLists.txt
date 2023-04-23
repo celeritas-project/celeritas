@@ -164,6 +164,7 @@ if(CELERITAS_USE_JSON)
     ext/GeantPhysicsOptionsIO.json.cc
     field/FieldDriverOptionsIO.json.cc
     phys/PrimaryGeneratorOptionsIO.json.cc
+    user/RootStepWriterIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
@@ -206,8 +207,8 @@ if(CELERITAS_USE_ROOT)
     ext/RootImporter.cc
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
-    io/RootFileManager.cc
-    io/RootStepWriter.cc
+    ext/RootFileManager.cc
+    user/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 

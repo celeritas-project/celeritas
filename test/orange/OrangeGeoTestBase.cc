@@ -18,7 +18,7 @@
 #include "orange/Types.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/construct/SurfaceInputBuilder.hh"
-#include "orange/detail/UnitIndexer.hh"
+#include "orange/detail/UniverseIndexer.hh"
 #include "orange/surf/Sphere.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/SurfaceIO.hh"
@@ -46,8 +46,6 @@ OrangeInput to_input(UnitInput u)
 {
     OrangeInput result;
     result.universes.push_back(std::move(u));
-    result.universe_types.push_back(celeritas::UniverseType::simple);
-    result.universe_indices.push_back(0);
     return result;
 }
 
@@ -288,7 +286,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalSurfaceId surfid) const
     if (!surfid)
         return "[none]";
 
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
     return params_->id_to_label(ui.global_surface(uid, surfid)).name;
 }
 
@@ -311,7 +309,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
     if (!volid)
         return "[none]";
 
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
     return params_->id_to_label(ui.global_volume(uid, volid)).name;
 }
 
