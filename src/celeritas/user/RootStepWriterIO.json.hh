@@ -9,12 +9,12 @@
 
 #include <nlohmann/json.hpp>
 
-#include "RootStepWriter.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct SimpleRootFilterInput;
 
+//---------------------------------------------------------------------------//
 // Read options from JSON
 void from_json(nlohmann::json const& j, SimpleRootFilterInput& opts);
 

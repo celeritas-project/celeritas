@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "Runner.hh"
 
+#include <functional>
 #include <memory>
+#include <random>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -16,7 +18,9 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -24,6 +28,7 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
@@ -40,10 +45,12 @@
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
+#include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/StepCollector.hh"
 #include "celeritas/user/StepData.hh"
 
