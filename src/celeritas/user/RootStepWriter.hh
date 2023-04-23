@@ -157,7 +157,8 @@ inline void RootStepWriter::execute(StateHostRef const&)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline RootStepWriter::WriteFilter make_write_filter(SimpleRootFilterInput const&)
+inline RootStepWriter::WriteFilter
+make_write_filter(SimpleRootFilterInput const&)
 {
     return nullptr;
 }
