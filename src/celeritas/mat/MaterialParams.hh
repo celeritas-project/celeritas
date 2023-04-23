@@ -14,11 +14,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Label.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
