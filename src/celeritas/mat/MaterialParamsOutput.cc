@@ -21,7 +21,7 @@
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
-#    include "corecel/cont/LabelIO.json.hh"
+#    include "corecel/io/LabelIO.json.hh"
 #endif
 
 namespace celeritas
