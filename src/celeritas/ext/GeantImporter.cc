@@ -80,17 +80,16 @@ namespace
 //---------------------------------------------------------------------------//
 decltype(auto) em_basic_particles()
 {
-    static const std::unordered_set<PDGNumber> particles = {pdg::electron(),
-                                                            pdg::positron(),
-                                                            pdg::gamma()};
+    static const std::unordered_set<PDGNumber> particles
+        = {pdg::electron(), pdg::positron(), pdg::gamma()};
     return particles;
 }
 
 //---------------------------------------------------------------------------//
 decltype(auto) em_ex_particles()
 {
-    static const std::unordered_set<PDGNumber> particles = {pdg::mu_minus(),
-                                                            pdg::mu_plus()};
+    static const std::unordered_set<PDGNumber> particles
+        = {pdg::mu_minus(), pdg::mu_plus()};
     return particles;
 }
 

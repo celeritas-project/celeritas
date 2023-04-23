@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/io/RootFileManager.hh
+//! \file celeritas/ext/RootFileManager.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -49,7 +49,8 @@ inline RootFileManager::RootFileManager(char const*)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline UPRootWritable<TTree> RootFileManager::make_tree(char const*, char const*)
+inline UPRootWritable<TTree>
+RootFileManager::make_tree(char const*, char const*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

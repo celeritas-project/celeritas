@@ -25,6 +25,8 @@
 namespace celeritas
 {
 struct Primary;
+template<MemSpace M>
+class Stepper;
 }
 
 namespace demo_loop
@@ -69,6 +71,9 @@ struct TransporterInput
     // Diagnostic setup
     bool enable_diagnostics{true};
     EnergyDiagInput energy_diag;
+
+    // Threading (TODO)
+    celeritas::StreamId stream_id{0};
 
     //! True if all params are assigned
     explicit operator bool() const
@@ -153,13 +158,6 @@ class TransporterBase
 
     // Transport the input primaries and all secondaries produced
     virtual TransporterResult operator()(SpanConstPrimary primaries) = 0;
-
-    //! Access input parameters (TODO hacky)
-    CoreParams const& params() const { return *input_.params; }
-
-  protected:
-    // TODO: these protected data are a hack for now
-    TransporterInput input_;
 };
 
 //---------------------------------------------------------------------------//
@@ -177,8 +175,10 @@ class Transporter final : public TransporterBase
     TransporterResult operator()(SpanConstPrimary primaries) final;
 
   private:
+    std::shared_ptr<celeritas::Stepper<M>> stepper_;
     std::shared_ptr<DiagnosticStore> diagnostics_;
     celeritas::ActionId diagnostic_action_;
+    celeritas::size_type max_steps_;
 };
 
 //---------------------------------------------------------------------------//
