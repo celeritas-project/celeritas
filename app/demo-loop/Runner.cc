@@ -16,6 +16,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -51,6 +52,7 @@
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/RootStepWriter.hh"
+#include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/StepCollector.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -371,6 +373,18 @@ void Runner::build_step_collectors(RunnerInput const& inp)
             core_params_->particle(),
             StepSelection::all(),
             make_write_filter(inp.mctruth_filter)));
+    }
+    if (!inp.simple_calo.empty())
+    {
+        auto simple_calo
+            = std::make_shared<SimpleCalo>(inp.simple_calo,
+                                           *core_params_->geometry(),
+                                           core_params_->max_streams());
+
+        // Add to step interfaces
+        step_interfaces.push_back(simple_calo);
+        // Add to output interface
+        core_params_->output_reg()->insert(simple_calo);
     }
 
     if (!step_interfaces.empty())

@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/io/Label.hh"
 #include "corecel/io/Repr.hh"
 #include "celeritas/phys/Primary.hh"
 

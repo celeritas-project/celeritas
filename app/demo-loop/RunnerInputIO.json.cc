@@ -10,6 +10,7 @@
 #include <string>
 
 #include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
 #include "celeritas/Types.hh"
@@ -53,10 +54,13 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_REQUIRED(geometry_filename);
     LDIO_LOAD_REQUIRED(physics_filename);
     LDIO_LOAD_OPTION(hepmc3_filename);
-    LDIO_LOAD_OPTION(mctruth_filename);
 
-    LDIO_LOAD_OPTION(mctruth_filter);
     LDIO_LOAD_OPTION(primary_gen_options);
+
+    LDIO_LOAD_OPTION(mctruth_filename);
+    LDIO_LOAD_OPTION(mctruth_filter);
+    LDIO_LOAD_OPTION(simple_calo);
+    LDIO_LOAD_REQUIRED(enable_diagnostics);
 
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_OPTION(max_num_tracks);
@@ -64,7 +68,6 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_REQUIRED(initializer_capacity);
     LDIO_LOAD_REQUIRED(max_events);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
-    LDIO_LOAD_REQUIRED(enable_diagnostics);
     LDIO_LOAD_REQUIRED(use_device);
     LDIO_LOAD_OPTION(sync);
 
@@ -114,16 +117,18 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_REQUIRED(geometry_filename);
     LDIO_SAVE_REQUIRED(physics_filename);
     LDIO_SAVE_OPTION(hepmc3_filename);
-    LDIO_SAVE_OPTION(mctruth_filename);
-
-    if (!v.mctruth_filename.empty())
-    {
-        LDIO_SAVE_REQUIRED(mctruth_filter);
-    }
     if (v.hepmc3_filename.empty())
     {
         LDIO_SAVE_REQUIRED(primary_gen_options);
     }
+
+    LDIO_SAVE_OPTION(mctruth_filename);
+    if (!v.mctruth_filename.empty())
+    {
+        LDIO_SAVE_REQUIRED(mctruth_filter);
+    }
+    LDIO_SAVE_OPTION(simple_calo);
+    LDIO_SAVE_REQUIRED(enable_diagnostics);
 
     LDIO_SAVE_OPTION(seed);
     LDIO_SAVE_OPTION(max_num_tracks);
@@ -131,7 +136,6 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_REQUIRED(initializer_capacity);
     LDIO_SAVE_REQUIRED(max_events);
     LDIO_SAVE_REQUIRED(secondary_stack_factor);
-    LDIO_SAVE_REQUIRED(enable_diagnostics);
     LDIO_SAVE_REQUIRED(use_device);
     LDIO_SAVE_OPTION(sync);
 
