@@ -51,7 +51,6 @@ inline void to_json(nlohmann::json& j, RunnerResult const& v)
     j = nlohmann::json{{"initializers", v.initializers},
                        {"active", v.active},
                        {"alive", v.alive},
-                       {"edep", v.edep},
                        {"process", v.process},
                        {"steps", v.steps},
                        {"time", v.time}};
