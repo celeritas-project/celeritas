@@ -94,7 +94,6 @@ list(APPEND SOURCES
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
-  user/detail/SimpleCaloImpl.cc
 )
 
 #-----------------------------------------------------------------------------#
@@ -265,6 +264,7 @@ celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
+celeritas_polysource(user/detail/SimpleCaloImpl)
 
 #-----------------------------------------------------------------------------#
 # Auto-generated code
