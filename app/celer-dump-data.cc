@@ -5,13 +5,14 @@
 //---------------------------------------------------------------------------//
 //! \file celer-dump-data.cc
 //---------------------------------------------------------------------------//
+#include <algorithm>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <string>
-#include <utility>
+#include <unordered_map>
 #include <vector>
 
 #include "corecel/cont/Range.hh"
@@ -22,6 +23,7 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"

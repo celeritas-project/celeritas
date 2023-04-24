@@ -102,7 +102,7 @@ class StepDiagnostic : public Diagnostic<M>
     void mid_step(ParamsRef const&, StateRef const& states) final;
 
     // Collect diagnostic results
-    void get_result(TransporterResult* result) final;
+    void get_result(RunnerResult* result) final;
 
     // Get distribution of steps per track for each particle type
     std::unordered_map<std::string, std::vector<size_type>> steps();
@@ -222,7 +222,7 @@ void StepDiagnostic<M>::mid_step(ParamsRef const&, StateRef const& states)
  * Collect the diagnostic results.
  */
 template<MemSpace M>
-void StepDiagnostic<M>::get_result(TransporterResult* result)
+void StepDiagnostic<M>::get_result(RunnerResult* result)
 {
     result->steps = this->steps();
 }

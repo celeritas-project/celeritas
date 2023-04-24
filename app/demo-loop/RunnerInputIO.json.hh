@@ -3,23 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/RootStepWriterIO.json.hh
+//! \file demo-loop/RunnerInputIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-namespace celeritas
+#include "RunnerInput.hh"
+
+namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-struct SimpleRootFilterInput;
+
+void to_json(nlohmann::json& j, RunnerInput const& value);
+void from_json(nlohmann::json const& j, RunnerInput& value);
 
 //---------------------------------------------------------------------------//
-// Read options from JSON
-void from_json(nlohmann::json const& j, SimpleRootFilterInput& opts);
-
-// Write options to JSON
-void to_json(nlohmann::json& j, SimpleRootFilterInput const& opts);
-
-//---------------------------------------------------------------------------//
-}  // namespace celeritas
+}  // namespace demo_loop

@@ -18,6 +18,7 @@
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/grid/VectorUtils.hh"
@@ -128,7 +129,7 @@ Transporter<M>::Transporter(TransporterInput inp) : max_steps_(inp.max_steps)
     CoreParams const& params = *inp.params;
 
     // Create diagnostics
-    // TODO: move to LDemoIO as it's part of the shared setup
+    // TODO: these should be actions with StreamStores
     if (inp.enable_diagnostics)
     {
         diagnostics_ = std::make_shared<DiagnosticStore>();
@@ -167,7 +168,7 @@ Transporter<M>::Transporter(TransporterInput inp) : max_steps_(inp.max_steps)
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
+RunnerResult Transporter<M>::operator()(SpanConstPrimary primaries)
 {
     Stopwatch get_transport_time;
 
