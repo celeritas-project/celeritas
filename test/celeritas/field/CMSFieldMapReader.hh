@@ -10,6 +10,7 @@
 #include <string>
 
 #include "FieldMapData.hh"
+#include "RZFieldInput.hh"
 
 namespace celeritas
 {
@@ -27,21 +28,14 @@ namespace test
  * The map is used only for the purpose of a standalone simulation with the
  * CMS detector geometry and is not a part of CMSSW.
  *
+ * \deprecated Use RZFieldInput and the associated JSON IO functions instead.
  */
 class CMSFieldMapReader
 {
     //!@{
     //! \name Type aliases
-    using result_type = FieldMapInput;
+    using result_type = RZFieldInput;
     //!@}
-
-    // Input format
-    struct CMSFieldMapInput
-    {
-        int idx_z;  //! index of z grid
-        int idx_r;  //! index of r grid
-        FieldMapElement value;  //! z and r components of the field
-    };
 
   public:
     // Construct the reader using the path of the map file

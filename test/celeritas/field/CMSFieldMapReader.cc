@@ -20,6 +20,16 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+
+// Input format
+struct CMSFieldMapInput
+{
+    int idx_z;  //! index of z grid
+    int idx_r;  //! index of r grid
+    FieldMapElement value;  //! z and r components of the field
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Construct the reader using an environment variable to get the volume-based
  * CMS magnetic field map data.
@@ -36,11 +46,14 @@ CMSFieldMapReader::CMSFieldMapReader(FieldMapParameters const& params,
 /*!
  * Read the CMS volume-based magnetic field map data.
  */
-CMSFieldMapReader::result_type CMSFieldMapReader::operator()() const
+auto CMSFieldMapReader::operator()() const -> result_type
 {
     result_type result;
 
-    result.params = params_;
+    result.num_grid_z = params_.num_grid_z;
+    result.num_grid_r = params_.num_grid_r;
+    result.delta_grid = params_.delta_grid;
+    result.offset_z = params_.offset_z;
 
     // Store field values from the map file
     std::ifstream ifile_(file_name_,
@@ -52,15 +65,17 @@ CMSFieldMapReader::result_type CMSFieldMapReader::operator()() const
 
     CMSFieldMapInput fd;
     std::ifstream::pos_type fsize = ifile_.tellg();
-    size_type ngrid = fsize / sizeof(CMSFieldMapInput);
+    size_type ngrid = fsize / sizeof(CMSFieldMapInput) / 2;
     ifile_.seekg(0, std::ios::beg);
 
-    result.data.reserve(ngrid);
+    result.field_z.resize(ngrid);
+    result.field_r.resize(ngrid);
 
-    for ([[maybe_unused]] auto i : range(ngrid))
+    for (auto i : range(ngrid))
     {
         ifile_.read(reinterpret_cast<char*>(&fd), sizeof(CMSFieldMapInput));
-        result.data.push_back(fd.value);
+        result.field_z[i] = fd.value.value_z;
+        result.field_r[i] = fd.value.value_r;
     }
     ifile_.close();
 

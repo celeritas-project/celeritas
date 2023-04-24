@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/Fields.test.cc
 //---------------------------------------------------------------------------//
+#include <fstream>
+
 #include "corecel/cont/Range.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
@@ -88,8 +90,7 @@ TEST(CMSParameterizedFieldTest, all)
 
 TEST(CMSMapField, all)
 {
-    std::unique_ptr<MagFieldMap> field_map;
-    {
+    MagFieldMap field_map = [] {
         FieldMapParameters params;
         params.delta_grid = units::meter;
         params.num_grid_r = 9 + 1;  //! [0:9]
@@ -99,10 +100,13 @@ TEST(CMSMapField, all)
         CMSFieldMapReader load_map(
             params,
             test::Test::test_data_path("celeritas", "cmsFieldMap.tiny"));
-        field_map = std::make_unique<MagFieldMap>(load_map);
-    }
+        auto inp = load_map();
+        auto outfilename = "cms-field-map-tiny.json";
+        std::ofstream(outfilename) << inp;
+        return MagFieldMap(inp);
+    }();
 
-    CMSMapField calc_field(field_map->host_ref());
+    CMSMapField calc_field(field_map.host_ref());
 
     int const nsamples = 8;
     real_type delta_z = 25.0;
