@@ -264,9 +264,9 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
-function(celeritas_error_incompatible_option msg var new_value)
-  message(SEND_ERROR "${msg} (${var}=${${var}}):"
-    "  run `cmake -D${var}=${new_value}` for a possible fix"
+function(celeritas_error_incompatible_option  msg var new_value)
+  message(SEND_ERROR "Invalid setting ${var}=${${var}}: ${msg}
+    Possible fix: cmake -D${var}=${new_value} ${CMAKE_BINARY_DIR}"
   )
 endfunction()
 
@@ -298,8 +298,9 @@ function(celeritas_define_options var doc)
 
   list(FIND ${var}_OPTIONS "${${var}}" _index)
   if(_index EQUAL -1)
+    string(JOIN "," _optlist ${${var}_OPTIONS})
     celeritas_error_incompatible_option(
-      "Invalid selection not in list: \"${${var}_OPTIONS}\""
+      "valid options are {${_optlist}} "
       "${var}" "${_default}"
     )
   endif()

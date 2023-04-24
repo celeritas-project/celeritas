@@ -218,8 +218,7 @@ if(CELERITAS_USE_VecGeom)
 
   if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
     celeritas_error_incompatible_option(
-      "CUDA mismatch between the VecGeom installation "
-      "at ${VECGEOM_INSTALL_DIR} and Celeritas"
+      "VecGeom installation at ${VECGEOM_INSTALL_DIR} is not CUDA-enabled"
       CELERITAS_USE_CUDA
       "${VecGeom_CUDA_FOUND}"
     )
@@ -235,7 +234,8 @@ if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
   if(NOT GTest_FOUND)
     celeritas_error_incompatible_option(
       "Googletest (GTest) is required for testing but was not found"
-      "CELERITAS_BUILD_TESTS" OFF
+      CELERITAS_BUILD_TESTS
+      OFF
     )
   endif()
 endif()
@@ -260,7 +260,8 @@ if(CELERITAS_BUILD_DOCS)
   if(NOT Doxygen_FOUND)
     celeritas_error_incompatible_option(
       "Doxygen is required for building documentation but was not found"
-      "CELERITAS_BUILD_DOCS" OFF
+      CELERITAS_BUILD_DOCS
+      OFF
     )
   endif()
 endif()
