@@ -231,6 +231,11 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 # CELERITAS TESTS
 #-----------------------------------------------------------------------------#
 
+set(_extra_sources)
+if(CELERITAS_USE_JSON)
+  list(APPEND _extra_sources "celeritas/field/RZFieldInputIO.json.cc")
+endif()
+
 celeritas_add_library(testcel_celeritas
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
@@ -251,6 +256,7 @@ celeritas_add_library(testcel_celeritas
   celeritas/user/ExampleMctruth.cc
   celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
+  ${_extra_sources}
 )
 celeritas_target_link_libraries(testcel_celeritas
   PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link}
@@ -324,10 +330,10 @@ celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 # Field
 set(CELERITASTEST_PREFIX celeritas/field)
 
+
 celeritas_add_test(celeritas/field/Fields.test.cc
 SOURCES
   celeritas/field/MagFieldMap.cc
-  celeritas/field/CMSFieldMapReader.cc
 )
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
