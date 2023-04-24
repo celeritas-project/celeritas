@@ -216,10 +216,12 @@ endif()
 if(CELERITAS_USE_VecGeom)
   find_package(VecGeom 1.1.17 REQUIRED)
 
-  if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND))
-    message(SEND_ERROR "CUDA mismatch between the VecGeom installation "
-      "at ${VECGEOM_INSTALL_DIR} (VecGeom_CUDA_FOUND=${VecGeom_CUDA_FOUND}) "
-      "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
+  if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
+    celeritas_error_incompatible_option(
+      "CUDA mismatch between the VecGeom installation "
+      "at ${VECGEOM_INSTALL_DIR} and Celeritas"
+      CELERITAS_USE_CUDA
+      "${VecGeom_CUDA_FOUND}"
     )
   endif()
   if(NOT VecGeom_GDML_FOUND)
@@ -231,10 +233,10 @@ if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
   # TODO: download and build GTest as a subproject if not available
   find_package(GTest)
   if(NOT GTest_FOUND)
-    message(SEND_ERROR "Googletest (GTest) is required for testing: setting "
-      "CELERITAS_BUILD_TESTS=OFF for next build")
-    set(CELERITAS_BUILD_TESTS OFF CACHE BOOL
-      "Disabled because of missing GTest" FORCE)
+    celeritas_error_incompatible_option(
+      "Googletest (GTest) is required for testing but was not found"
+      "CELERITAS_BUILD_TESTS" OFF
+    )
   endif()
 endif()
 
@@ -256,10 +258,10 @@ if(CELERITAS_BUILD_DOCS)
     endif()
   endif()
   if(NOT Doxygen_FOUND)
-    message(SEND_ERROR "Doxygen is required for building documentation: setting "
-      "CELERITAS_BUILD_DOCS=OFF for next build")
-    set(CELERITAS_BUILD_DOCS OFF CACHE BOOL
-      "Disabled because of missing Doxygen" FORCE)
+    celeritas_error_incompatible_option(
+      "Doxygen is required for building documentation but was not found"
+      "CELERITAS_BUILD_DOCS" OFF
+    )
   endif()
 endif()
 

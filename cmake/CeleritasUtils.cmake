@@ -64,6 +64,14 @@ CMake configuration utility functions for Celeritas.
   The ``<input>`` must be a relative path to the current source directory, and
   the ``<output>` path is configured to the project build "include" directory.
 
+.. comand:: celeritas_error_incompatible_option
+
+  Print a descriptive failure message about conflicting cmake options.
+
+    celeritas_error_incompatible_option(<msg> <var> <conflict_var> <new_value>)
+
+  Here the recommendation will be to change conflict_var to new_value.
+
 .. command:: celeritas_setup_option
 
   Add a single compile time option value to the list::
@@ -256,6 +264,14 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
+function(celeritas_error_incompatible_option msg var new_value)
+  message(SEND_ERROR "${msg} (${var}=${${var}}):"
+    "  run `cmake -D${var}=${new_value}` for a possible fix"
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
 macro(celeritas_setup_option var option) #[condition]
   if(${ARGC} EQUAL 2)
     # always-on-option
@@ -282,9 +298,10 @@ function(celeritas_define_options var doc)
 
   list(FIND ${var}_OPTIONS "${${var}}" _index)
   if(_index EQUAL -1)
-    message(SEND_ERROR "Invalid value ${var}=${${var}}: must be "
-      "${${var}_OPTIONS}; overriding for next configure")
-    set(${var} "${_default}" CACHE STRING "${doc}" FORCE)
+    celeritas_error_incompatible_option(
+      "Invalid selection not in list: \"${${var}_OPTIONS}\""
+      "${var}" "${_default}"
+    )
   endif()
 endfunction()
 
