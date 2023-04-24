@@ -182,7 +182,7 @@ auto SimpleCalo::filters() const -> Filters
 /*!
  * Process detector tallies (CPU).
  */
-void SimpleCalo::process_steps(HostWTFStepState state)
+void SimpleCalo::process_steps(HostStepState state)
 {
     detail::simple_calo_accum(
         state.steps,
@@ -193,7 +193,7 @@ void SimpleCalo::process_steps(HostWTFStepState state)
 /*!
  * Process detector tallies (GPU).
  */
-void SimpleCalo::process_steps(DeviceWTFStepState state)
+void SimpleCalo::process_steps(DeviceStepState state)
 {
     detail::simple_calo_accum(
         state.steps,

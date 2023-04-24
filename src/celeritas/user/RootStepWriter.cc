@@ -127,7 +127,7 @@ void RootStepWriter::set_auto_flush(long num_entries)
 /*!
  * Collect step data and fill the ROOT TTree for all active threads.
  */
-void RootStepWriter::process_steps(HostWTFStepState state)
+void RootStepWriter::process_steps(HostStepState state)
 {
 #define RSW_STORE(ATTR, GETTER)                                          \
     do                                                                   \

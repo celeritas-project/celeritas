@@ -75,7 +75,7 @@ void StepGatherAction<P>::execute(ParamsHostCRef const& params,
 
     if (P == StepPoint::post)
     {
-        WTFStepState<MemSpace::host> cb_state{step_state, state.stream_id};
+        StepState<MemSpace::host> cb_state{step_state, state.stream_id};
         for (auto const& sp_callback : callbacks_)
         {
             sp_callback->process_steps(cb_state);
@@ -100,7 +100,7 @@ void StepGatherAction<P>::execute(ParamsDeviceCRef const& params,
 
     if (P == StepPoint::post)
     {
-        WTFStepState<MemSpace::device> cb_state{step_state, state.stream_id};
+        StepState<MemSpace::device> cb_state{step_state, state.stream_id};
         for (auto const& sp_callback : callbacks_)
         {
             sp_callback->process_steps(cb_state);

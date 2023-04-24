@@ -52,10 +52,10 @@ class HitManager final : public StepInterface
     StepSelection selection() const final { return selection_; }
 
     // Process CPU-generated hits
-    void process_steps(HostWTFStepState) final;
+    void process_steps(HostStepState) final;
 
     // Process device-generated hits
-    void process_steps(DeviceWTFStepState) final;
+    void process_steps(DeviceStepState) final;
 
     // Destroy local data to avoid Geant4 crashes
     void finalize();

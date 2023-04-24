@@ -17,7 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-struct WTFStepState
+struct StepState
 {
     //! Host pointer to externally owned step state data reference
     StepStateData<Ownership::reference, M> const& steps;
@@ -44,8 +44,8 @@ class StepInterface
   public:
     //@{
     //! \name Type aliases
-    using HostWTFStepState = WTFStepState<MemSpace::host>;
-    using DeviceWTFStepState = WTFStepState<MemSpace::device>;
+    using HostStepState = StepState<MemSpace::host>;
+    using DeviceStepState = StepState<MemSpace::device>;
     using StateDeviceRef = DeviceRef<StepStateData>;
     using MapVolumeDetector = std::map<VolumeId, DetectorId>;
     //@}
@@ -67,10 +67,10 @@ class StepInterface
     virtual StepSelection selection() const = 0;
 
     //! Process CPU-generated hit data
-    virtual void process_steps(HostWTFStepState) = 0;
+    virtual void process_steps(HostStepState) = 0;
 
     //! Process device-generated hit data
-    virtual void process_steps(DeviceWTFStepState) = 0;
+    virtual void process_steps(DeviceStepState) = 0;
 
     // TODO: hook for end-of-event and/or end-of-run
 

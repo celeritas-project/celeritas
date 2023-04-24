@@ -149,7 +149,7 @@ auto HitManager::filters() const -> Filters
 /*!
  * Process detector tallies (CPU).
  */
-void HitManager::process_steps(HostWTFStepState state)
+void HitManager::process_steps(HostStepState state)
 {
     auto&& process_hits = this->get_local_hit_processor(state.stream_id);
     process_hits(state.steps);
@@ -159,7 +159,7 @@ void HitManager::process_steps(HostWTFStepState state)
 /*!
  * Process detector tallies (GPU).
  */
-void HitManager::process_steps(DeviceWTFStepState state)
+void HitManager::process_steps(DeviceStepState state)
 {
     auto&& process_hits = this->get_local_hit_processor(state.stream_id);
     process_hits(state.steps);

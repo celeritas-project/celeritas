@@ -106,10 +106,10 @@ class RootStepWriter final : public StepInterface
     void set_auto_flush(long num_entries);
 
     // Process step data on the host and fill step tree
-    void process_steps(HostWTFStepState) final;
+    void process_steps(HostStepState) final;
 
     // Device execution is not currently implemented
-    void process_steps(DeviceWTFStepState) final
+    void process_steps(DeviceStepState) final
     {
         CELER_NOT_IMPLEMENTED("RootStepWriter with device data");
     }
@@ -149,7 +149,7 @@ inline RootStepWriter::RootStepWriter(SPRootFileManager,
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void RootStepWriter::process_steps(HostWTFStepState)
+inline void RootStepWriter::process_steps(HostStepState)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

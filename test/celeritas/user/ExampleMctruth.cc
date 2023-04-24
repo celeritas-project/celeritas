@@ -43,7 +43,7 @@ StepSelection ExampleMctruth::selection() const
 }
 
 //---------------------------------------------------------------------------//
-void ExampleMctruth::process_steps(HostWTFStepState state)
+void ExampleMctruth::process_steps(HostStepState state)
 {
     auto& data = state.steps;
     for (auto tid : range(TrackSlotId{data.size()}))
