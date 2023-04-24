@@ -330,7 +330,7 @@ set(_geo_args GPU ${_needs_geo}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
 endif()
-if(CELERITAS_GEO STREQUAL "VecGeom")
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
 else()
   list(APPEND _geo_args LINK_LIBRARIES Celeritas::orange)

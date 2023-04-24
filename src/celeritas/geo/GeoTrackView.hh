@@ -9,18 +9,18 @@
 #pragma once
 
 #include "celeritas_config.h"
-#if CELERITAS_GEO == CELERITAS_GEO_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 #    include "celeritas/ext/VecgeomTrackView.hh"
-#elif CELERITAS_GEO == CELERITAS_GEO_ORANGE
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeTrackView.hh"
 #endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#if CELERITAS_GEO == CELERITAS_GEO_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 using GeoTrackView = VecgeomTrackView;
-#elif CELERITAS_GEO == CELERITAS_GEO_ORANGE
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 using GeoTrackView = OrangeTrackView;
 #endif
 //---------------------------------------------------------------------------//

@@ -13,10 +13,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#if CELERITAS_GEO == CELERITAS_GEO_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 class VecgeomParams;
 using GeoParams = VecgeomParams;
-#elif CELERITAS_GEO == CELERITAS_GEO_ORANGE
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 class OrangeParams;
 using GeoParams = OrangeParams;
 #endif

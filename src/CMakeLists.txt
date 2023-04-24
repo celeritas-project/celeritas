@@ -28,13 +28,14 @@ set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
 set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
-# Set CELERITAS_RNG_CONFIG to a numeric table of RNG options and the selection.
+# Set CELERITAS_CORE_RNG_CONFIG to a numeric table of RNG options and the
+# selection.
 # Start counter from 1 because undefined config have the implicit value of 0 in
 # the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
 # when HIP is in use) will implicitly be zero.
-celeritas_generate_option_config(CELERITAS_RNG)
-# Same, but with CELERITAS_GEO_CONFIG
-celeritas_generate_option_config(CELERITAS_GEO)
+celeritas_generate_option_config(CELERITAS_CORE_RNG)
+# Same, but with CELERITAS_CORE_GEO_CONFIG
+celeritas_generate_option_config(CELERITAS_CORE_GEO)
 celeritas_configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
 
 #----------------------------------------------------------------------------#
@@ -53,7 +54,7 @@ endif()
 
 set(CELERITAS_CMAKE_STRINGS)
 set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-foreach(_var BUILD_TYPE GEO HOSTNAME RNG)
+foreach(_var BUILD_TYPE CORE_GEO CORE_RNG HOSTNAME)
   set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
   string(APPEND CELERITAS_CMAKE_STRINGS

@@ -98,7 +98,7 @@ list(APPEND SOURCES
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_RNG STREQUAL "CURAND")
+if(CELERITAS_CORE_RNG STREQUAL "CURAND")
   list(APPEND PUBLIC_DEPS Celeritas::DeviceToolkit)
 endif()
 
@@ -239,7 +239,7 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
 endif()
 
-if(CELERITAS_GEO STREQUAL "ORANGE")
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   list(APPEND PUBLIC_DEPS Celeritas::orange)
 endif()
 

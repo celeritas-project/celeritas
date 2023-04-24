@@ -172,7 +172,7 @@ void NestedTest::build_vecgeom()
 #else
     [[maybe_unused]] int geo;
 #endif
-#if CELERITAS_GEO == CELERITAS_GEO_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
     geo_params_ = std::move(geo);
 #endif
 }
@@ -215,7 +215,7 @@ void NestedTest::build_orange()
     input.max_level = 1;
     input.universes.push_back(std::move(ui));
     auto geo = std::make_shared<OrangeParams>(std::move(input));
-#if CELERITAS_GEO == CELERITAS_GEO_ORANGE
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
     geo_params_ = std::move(geo);
 #else
     (void)sizeof(geo);
@@ -236,7 +236,7 @@ class IntersectionTest : public GeantVolumeMapperTestBase
     bool suffix_{false};
 };
 
-#if CELERITAS_GEO == CELERITAS_GEO_ORANGE
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    define SKIP_IF_ORANGE(NAME) DISABLED_##NAME
 #else
 #    define SKIP_IF_ORANGE(NAME) NAME
@@ -258,7 +258,7 @@ TEST_F(NestedTest, unique)
         EXPECT_EQ(names_[i], geo_params_->id_to_label(vol_id).name);
     }
 
-    if (CELERITAS_GEO == CELERITAS_GEO_ORANGE)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         static std::string const expected_messages[]
             = {"Failed to exactly match ORANGE volume from Geant4 volume "

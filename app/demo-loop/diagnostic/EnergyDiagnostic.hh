@@ -232,7 +232,7 @@ EnergyDiagnosticLauncher<M>::operator()(TrackSlotId tid) const
     // Create grid from EnergyBinPointers
     celeritas::NonuniformGrid<real_type> grid(pointers_.bounds);
 
-#if CELERITAS_GEO == CELERITAS_GEO_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
     real_type pos = states_.geometry.pos[tid][static_cast<int>(pointers_.axis)];
 #else
     celeritas::LevelStateAccessor lsa(
@@ -251,7 +251,7 @@ EnergyDiagnosticLauncher<M>::operator()(TrackSlotId tid) const
         // XXX at the time being the "step" we've hacked into here may not be
         // the same as the geometry step or the true step.
 
-#if CELERITAS_GEO == CELERITAS_GEO_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
         real_type dir
             = states_.geometry.dir[tid][static_cast<int>(pointers_.axis)];
 #else

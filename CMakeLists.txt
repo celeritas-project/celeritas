@@ -101,13 +101,13 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   unset(_default_build_type)
 endif()
 
-# Define CELERITAS_RNG option for random number generator selection
-celeritas_setup_option(CELERITAS_RNG xorwow)
-celeritas_setup_option(CELERITAS_RNG cuRAND CELERITAS_USE_CUDA)
-celeritas_setup_option(CELERITAS_RNG hipRAND CELERITAS_USE_HIP)
+# Define CELERITAS_CORE_RNG option for random number generator selection
+celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
+celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
+celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
 # TODO: allow wrapper to standard library RNG when not building for device?
 # TODO: maybe even add wrapper to Geant4 RNG??
-celeritas_define_options(CELERITAS_RNG
+celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
 
 # Runtime geometry selection: default to VecGeom if available
@@ -115,9 +115,9 @@ set(_allow_vecgeom FALSE)
 if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
   set(_allow_vecgeom TRUE)
 endif()
-celeritas_setup_option(CELERITAS_GEO VecGeom _allow_vecgeom)
-celeritas_setup_option(CELERITAS_GEO ORANGE)
-celeritas_define_options(CELERITAS_GEO "Celeritas runtime geometry")
+celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
+celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
+celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
 cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
   "Use kernel launch bounds generated from launch-bounds.json" "OFF"
