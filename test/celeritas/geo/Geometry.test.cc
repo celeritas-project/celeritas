@@ -208,7 +208,7 @@ TEST_F(SimpleCmsTest, output)
 
     if (!CELERITAS_USE_JSON)
     {
-        EXPECT_THROW(to_string(out), celeritas::DebugError);
+        EXPECT_EQ(R"json("output unavailable")json", to_string(out));
     }
     else if (CELERITAS_GEO == CELERITAS_GEO_VECGEOM)
     {

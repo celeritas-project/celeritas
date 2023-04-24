@@ -15,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/UrbanMscParams.hh"
@@ -40,8 +41,21 @@
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/user/RootStepWriterIO.json.hh"
 
 using namespace celeritas;
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    TrackOrder,
+    {{TrackOrder::unsorted, "unsorted"},
+     {TrackOrder::shuffled, "shuffled"},
+     {TrackOrder::partition_status, "partition-status"},
+     {TrackOrder::sort_step_limit_action, "action-id"}})
+}  // namespace celeritas
+//---------------------------------------------------------------------------//
 
 namespace demo_loop
 {
@@ -69,156 +83,137 @@ void from_json(nlohmann::json const& j, EnergyDiagInput& v)
     j.at("num_bins").get_to(v.num_bins);
 }
 //!@}
-//---------------------------------------------------------------------------//
-
-namespace
-{
-//---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-//! Get optional values from json.
-template<class T>
-void get_optional(nlohmann::json const& j, char const* key, T& value)
-{
-    if (j.contains(key))
-    {
-        j.at(key).get_to(value);
-    }
-}
 
 //---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
-//!@{
-//! I/O routines for JSON and ROOT
-void to_json(nlohmann::json& j, LDemoArgs const& v)
-{
-    j = nlohmann::json{{"geometry_filename", v.geometry_filename},
-                       {"physics_filename", v.physics_filename},
-                       {"seed", v.seed},
-                       {"max_num_tracks", v.max_num_tracks},
-                       {"max_steps", v.max_steps},
-                       {"track_order", v.track_order},
-                       {"initializer_capacity", v.initializer_capacity},
-                       {"max_events", v.max_events},
-                       {"secondary_stack_factor", v.secondary_stack_factor},
-                       {"enable_diagnostics", v.enable_diagnostics},
-                       {"use_device", v.use_device},
-                       {"sync", v.sync},
-                       {"mag_field", v.mag_field},
-                       {"brem_combined", v.brem_combined}};
-    if (v.mag_field != LDemoArgs::no_field())
-    {
-        j["field_options"] = v.field_options;
-    }
-    if (v.enable_diagnostics)
-    {
-        j["energy_diag"] = v.energy_diag;
-    }
-    if (v.step_limiter > 0)
-    {
-        j["step_limiter"] = v.step_limiter;
-    }
-    if (ends_with(v.physics_filename, ".gdml"))
-    {
-        j["geant_options"] = v.geant_options;
-    }
-    if (v.primary_gen_options)
-    {
-        j["primary_gen_options"] = v.primary_gen_options;
-    }
-    if (!v.hepmc3_filename.empty())
-    {
-        j["hepmc3_filename"] = v.hepmc3_filename;
-    }
-    if (!v.mctruth_filename.empty())
-    {
-        j["mctruth_filename"] = v.mctruth_filename;
-    }
-}
-
+/*!
+ * Read options from JSON.
+ */
 void from_json(nlohmann::json const& j, LDemoArgs& v)
 {
-    j.at("geometry_filename").get_to(v.geometry_filename);
-    j.at("physics_filename").get_to(v.physics_filename);
-    if (j.contains("hepmc3_filename"))
-    {
-        j.at("hepmc3_filename").get_to(v.hepmc3_filename);
-    }
-    if (j.contains("mctruth_filename"))
-    {
-        j.at("mctruth_filename").get_to(v.mctruth_filename);
-    }
-    if (j.contains("mctruth_filter"))
-    {
-        auto const& jfilter = j.at("mctruth_filter");
-        get_optional(jfilter, "event_id", v.mctruth_filter.event_id);
-        get_optional(jfilter, "track_id", v.mctruth_filter.track_id);
-        get_optional(jfilter, "parent_id", v.mctruth_filter.parent_id);
-        get_optional(jfilter, "action_id", v.mctruth_filter.action_id);
+#define LDIO_LOAD_OPTION(NAME)          \
+    do                                  \
+    {                                   \
+        if (j.contains(#NAME))          \
+            j.at(#NAME).get_to(v.NAME); \
+    } while (0)
+#define LDIO_LOAD_REQUIRED(NAME) j.at(#NAME).get_to(v.NAME)
 
-        if (v.mctruth_filter)
-        {
-            CELER_VALIDATE(!v.mctruth_filename.empty(),
-                           << "missing 'mctruth_filename' when "
-                              "'mctruth_filter' was specified");
-        }
-    }
-    if (j.contains("primary_gen_options"))
-    {
-        j.at("primary_gen_options").get_to(v.primary_gen_options);
-    }
+    LDIO_LOAD_OPTION(cuda_heap_size);
+    LDIO_LOAD_OPTION(cuda_stack_size);
+    LDIO_LOAD_OPTION(environ);
+
+    LDIO_LOAD_REQUIRED(geometry_filename);
+    LDIO_LOAD_REQUIRED(physics_filename);
+    LDIO_LOAD_OPTION(hepmc3_filename);
+    LDIO_LOAD_OPTION(mctruth_filename);
+
+    LDIO_LOAD_OPTION(mctruth_filter);
+    LDIO_LOAD_OPTION(primary_gen_options);
+
+    LDIO_LOAD_OPTION(seed);
+    LDIO_LOAD_OPTION(max_num_tracks);
+    LDIO_LOAD_OPTION(max_steps);
+    LDIO_LOAD_REQUIRED(initializer_capacity);
+    LDIO_LOAD_REQUIRED(max_events);
+    LDIO_LOAD_REQUIRED(secondary_stack_factor);
+    LDIO_LOAD_REQUIRED(enable_diagnostics);
+    LDIO_LOAD_REQUIRED(use_device);
+    LDIO_LOAD_OPTION(sync);
+
+    LDIO_LOAD_OPTION(mag_field);
+    LDIO_LOAD_OPTION(field_options);
+
+    LDIO_LOAD_OPTION(step_limiter);
+    LDIO_LOAD_OPTION(brem_combined);
+    LDIO_LOAD_OPTION(energy_diag);
+    LDIO_LOAD_OPTION(track_order);
+    LDIO_LOAD_OPTION(geant_options);
+
+#undef LDIO_LOAD_OPTION
+#undef LDIO_LOAD_REQUIRED
+
     CELER_VALIDATE(v.hepmc3_filename.empty() != !v.primary_gen_options,
                    << "either a HepMC3 filename or options to generate "
                       "primaries must be provided (but not both)");
-
-    j.at("seed").get_to(v.seed);
-    j.at("max_num_tracks").get_to(v.max_num_tracks);
-    if (j.contains("track_order"))
-    {
-        j.at("track_order").get_to(v.track_order);
-    }
-    if (j.contains("max_steps"))
-    {
-        j.at("max_steps").get_to(v.max_steps);
-    }
-
-    j.at("initializer_capacity").get_to(v.initializer_capacity);
-    j.at("max_events").get_to(v.max_events);
-    j.at("secondary_stack_factor").get_to(v.secondary_stack_factor);
-    j.at("enable_diagnostics").get_to(v.enable_diagnostics);
-    j.at("use_device").get_to(v.use_device);
-    j.at("sync").get_to(v.sync);
-    if (j.contains("mag_field"))
-    {
-        j.at("mag_field").get_to(v.mag_field);
-    }
-    if (v.mag_field != LDemoArgs::no_field() && j.contains("field_options"))
-    {
-        j.at("field_options").get_to(v.field_options);
-    }
-    if (j.contains("step_limiter"))
-    {
-        j.at("step_limiter").get_to(v.step_limiter);
-    }
-
-    j.at("brem_combined").get_to(v.brem_combined);
-
-    if (j.contains("energy_diag"))
-    {
-        j.at("energy_diag").get_to(v.energy_diag);
-    }
-
-    if (j.contains("geant_options"))
-    {
-        j.at("geant_options").get_to(v.geant_options);
-    }
+    CELER_VALIDATE(!v.mctruth_filter || !v.mctruth_filename.empty(),
+                   << "'mctruth_filter' cannot be specified without providing "
+                      "'mctruth_filename'");
+    CELER_VALIDATE(v.mag_field == LDemoArgs::no_field()
+                       || !j.contains("field_options"),
+                   << "'field_options' cannot be specified without providing "
+                      "'mag_field'");
 }
-//!@}
 
 //---------------------------------------------------------------------------//
-CoreParams::Input load_core_params(LDemoArgs const& args)
+/*!
+ * Save options to JSON.
+ */
+void to_json(nlohmann::json& j, LDemoArgs const& v)
+{
+    j = nlohmann::json::object();
+    LDemoArgs const default_args;
+#define LDIO_SAVE_OPTION(NAME)           \
+    do                                   \
+    {                                    \
+        if (v.NAME != default_args.NAME) \
+            j[#NAME] = v.NAME;           \
+    } while (0)
+#define LDIO_SAVE_REQUIRED(NAME) j[#NAME] = v.NAME
+
+    LDIO_SAVE_OPTION(cuda_heap_size);
+    LDIO_SAVE_OPTION(cuda_stack_size);
+    LDIO_SAVE_REQUIRED(environ);
+
+    LDIO_SAVE_REQUIRED(geometry_filename);
+    LDIO_SAVE_REQUIRED(physics_filename);
+    LDIO_SAVE_OPTION(hepmc3_filename);
+    LDIO_SAVE_OPTION(mctruth_filename);
+
+    if (!v.mctruth_filename.empty())
+    {
+        LDIO_SAVE_REQUIRED(mctruth_filter);
+    }
+    if (v.hepmc3_filename.empty())
+    {
+        LDIO_SAVE_REQUIRED(primary_gen_options);
+    }
+
+    LDIO_SAVE_OPTION(seed);
+    LDIO_SAVE_OPTION(max_num_tracks);
+    LDIO_SAVE_OPTION(max_steps);
+    LDIO_SAVE_REQUIRED(initializer_capacity);
+    LDIO_SAVE_REQUIRED(max_events);
+    LDIO_SAVE_REQUIRED(secondary_stack_factor);
+    LDIO_SAVE_REQUIRED(enable_diagnostics);
+    LDIO_SAVE_REQUIRED(use_device);
+    LDIO_SAVE_OPTION(sync);
+
+    LDIO_SAVE_OPTION(mag_field);
+    if (v.mag_field != LDemoArgs::no_field())
+    {
+        LDIO_SAVE_REQUIRED(field_options);
+    }
+
+    LDIO_SAVE_OPTION(step_limiter);
+    LDIO_SAVE_OPTION(brem_combined);
+
+    if (v.enable_diagnostics)
+    {
+        LDIO_SAVE_REQUIRED(energy_diag);
+    }
+    LDIO_SAVE_OPTION(track_order);
+    if (ends_with(v.physics_filename, ".gdml"))
+    {
+        LDIO_SAVE_REQUIRED(geant_options);
+    }
+
+#undef LDIO_SAVE_OPTION
+#undef LDIO_SAVE_REQUIRED
+}
+
+//---------------------------------------------------------------------------//
+std::shared_ptr<CoreParams>
+build_core_params(LDemoArgs const& args, std::shared_ptr<OutputRegistry> outreg)
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
     ScopedMem record_mem("demo_loop.load_core_params");
@@ -242,6 +237,7 @@ CoreParams::Input load_core_params(LDemoArgs const& args)
 
     // Create action manager
     params.action_reg = std::make_shared<ActionRegistry>();
+    params.output_reg = std::move(outreg);
 
     // Load geometry
     params.geometry
@@ -361,7 +357,7 @@ CoreParams::Input load_core_params(LDemoArgs const& args)
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
-    return params;
+    return std::make_shared<CoreParams>(std::move(params));
 }
 
 //---------------------------------------------------------------------------//
@@ -370,9 +366,8 @@ CoreParams::Input load_core_params(LDemoArgs const& args)
  */
 std::unique_ptr<TransporterBase>
 build_transporter(LDemoArgs const& args,
-                  std::shared_ptr<OutputRegistry> const& outreg)
+                  std::shared_ptr<CoreParams const> params)
 {
-    CELER_EXPECT(outreg);
     using celeritas::MemSpace;
 
     // Save constants from args
@@ -388,12 +383,7 @@ build_transporter(LDemoArgs const& args,
     input.energy_diag = args.energy_diag;
 
     // Create core params
-    input.params = [&args, &outreg] {
-        auto params = load_core_params(args);
-        params.output_reg = outreg;
-        CELER_ASSERT(params);
-        return std::make_shared<CoreParams>(std::move(params));
-    }();
+    input.params = std::move(params);
 
     std::unique_ptr<TransporterBase> result;
 

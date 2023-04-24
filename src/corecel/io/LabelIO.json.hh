@@ -3,12 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/cont/LabelIO.json.hh
+//! \file corecel/io/LabelIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <sstream>
 #include <nlohmann/json.hpp>
+
+#include "Label.hh"
 
 namespace celeritas
 {
