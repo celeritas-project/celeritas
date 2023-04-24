@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
 #include "../SimpleCaloData.hh"
@@ -24,7 +24,7 @@ void simple_calo_accum(HostRef<StepStateData> const& step,
 void simple_calo_accum(DeviceRef<StepStateData> const& step,
                        DeviceRef<SimpleCaloStateData>& calo);
 
-#if !CELERITAS_USE_DEVICE
+#if !CELER_USE_DEVICE
 inline void simple_calo_accum(DeviceRef<StepStateData> const&,
                               DeviceRef<SimpleCaloStateData>&)
 {
