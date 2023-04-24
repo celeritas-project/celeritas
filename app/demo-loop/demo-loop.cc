@@ -27,20 +27,19 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/EventReader.hh"
-#include "celeritas/io/RootFileManager.hh"
-#include "celeritas/io/RootStepWriter.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
+#include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/StepCollector.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -58,148 +57,70 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- *`RootStepWriterFilter` helper functions.
- */
-bool rsw_filter_match(size_type step_attr_id, size_type filter_id)
-{
-    return filter_id == MCTruthFilter::unspecified()
-           || step_attr_id == filter_id;
-}
-
-bool rsw_filter_match(size_type step_trk_id,
-                      std::vector<size_type> const& vec_trk_id)
-{
-    if (vec_trk_id.empty())
-    {
-        // No track ID filter specified
-        return true;
-    }
-    else
-    {
-        auto iter
-            = std::find(vec_trk_id.begin(), vec_trk_id.end(), step_trk_id);
-        // True if step track ID is in the list of IDs
-        return iter != vec_trk_id.end();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * `RootStepWriter` filter.
- *
- * Write if any combination of event ID, track ID, and/or parent ID match, or
- * if the action ID matches. If no fields are specified or are set to -1, all
- * steps are stored.
- */
-std::function<bool(RootStepWriter::TStepData const&)>
-make_root_step_writer_filter(LDemoArgs const& args)
-{
-    std::function<bool(RootStepWriter::TStepData const&)> rsw_filter;
-
-    if (args.mctruth_filter)
-    {
-        rsw_filter = [opts = args.mctruth_filter](
-                         RootStepWriter::TStepData const& step) {
-            if (opts.action_id != MCTruthFilter::unspecified())
-            {
-                return step.action_id == opts.action_id;
-            }
-            return (rsw_filter_match(step.event_id, opts.event_id)
-                    && rsw_filter_match(step.track_id, opts.track_id)
-                    && rsw_filter_match(step.parent_id, opts.parent_id));
-        };
-    }
-    else
-    {
-        // No filtering; store all the data
-        rsw_filter = [](RootStepWriter::TStepData const&) { return true; };
-    }
-
-    return rsw_filter;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize `RootFileManager`, set up step data collection, and write input
- * data to the ROOT file when a valid ROOT MC truth file is provided.
- */
-std::shared_ptr<RootFileManager>
-init_root_mctruth_output(LDemoArgs const& run_args,
-                         TransporterBase const* transport_ptr)
-{
-    std::shared_ptr<RootFileManager> root_manager;
-
-    if (run_args.mctruth_filename.empty())
-    {
-        // return uninitialized root manager
-        return root_manager;
-    }
-
-    CELER_LOG(info) << "Writing ROOT MC truth output at "
-                    << run_args.mctruth_filename;
-
-    root_manager
-        = std::make_shared<RootFileManager>(run_args.mctruth_filename.c_str());
-    auto step_writer = std::make_shared<RootStepWriter>(
-        root_manager,
-        transport_ptr->params().particle(),
-        StepSelection::all(),
-        make_root_step_writer_filter(run_args));
-    auto step_collector = std::make_shared<StepCollector>(
-        StepCollector::VecInterface{step_writer},
-        transport_ptr->params().geometry(),
-        transport_ptr->params().max_streams(),
-        transport_ptr->params().action_reg().get());
-
-    // Store input and CoreParams data
-    to_root(*root_manager, run_args);
-    to_root(*root_manager, transport_ptr->params());
-
-    return root_manager;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Run, launch, and output.
  */
 void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
     ScopedMem record_mem("demo_loop.run");
+
     // Read input options
-    auto inp = nlohmann::json::parse(*is);
-
-    if (inp.contains("cuda_heap_size"))
-    {
-        int heapSize = inp.at("cuda_heap_size").get<int>();
-        set_cuda_heap_size(heapSize);
-    }
-    if (inp.contains("cuda_stack_size"))
-    {
-        celeritas::set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
-    }
-    if (inp.contains("environ"))
-    {
-        // Specify env variables
-        inp["environ"].get_to(celeritas::environment());
-    }
-
-    // For now, only do a single run
-    auto run_args = inp.get<LDemoArgs>();
-    CELER_EXPECT(run_args);
+    auto run_args = nlohmann::json::parse(*is).get<LDemoArgs>();
     output->insert(std::make_shared<OutputInterfaceAdapter<LDemoArgs>>(
         OutputInterface::Category::input,
         "*",
         std::make_shared<LDemoArgs>(run_args)));
+    CELER_EXPECT(run_args);
+
+    // Process global optoins
+    if (run_args.cuda_heap_size != LDemoArgs::unspecified)
+    {
+        celeritas::set_cuda_heap_size(run_args.cuda_heap_size);
+    }
+    if (run_args.cuda_stack_size != LDemoArgs::unspecified)
+    {
+        celeritas::set_cuda_stack_size(run_args.cuda_stack_size);
+    }
+    celeritas::environment().merge(run_args.environ);
 
     // Start timer for overall execution
     Stopwatch get_setup_time;
 
-    // Load all the problem data and create transporter
-    auto transport_ptr = build_transporter(run_args, output);
-    double const setup_time = get_setup_time();
+    // Construct core parameters
+    auto core_params = build_core_params(run_args, output);
 
     // Initialize RootFileManager and store input data if requested
-    auto root_manager = init_root_mctruth_output(run_args, transport_ptr.get());
+    std::shared_ptr<RootFileManager> root_manager;
+    std::shared_ptr<StepCollector> step_collector;
+    StepCollector::VecInterface step_interfaces;
+    if (!run_args.mctruth_filename.empty())
+    {
+        root_manager = std::make_shared<RootFileManager>(
+            run_args.mctruth_filename.c_str());
+
+        // Store input and CoreParams data
+        write_to_root(run_args, root_manager.get());
+        write_to_root(*core_params, root_manager.get());
+
+        // Create root step writer
+        step_interfaces.push_back(std::make_shared<RootStepWriter>(
+            root_manager,
+            core_params->particle(),
+            StepSelection::all(),
+            make_write_filter(run_args.mctruth_filter)));
+    }
+
+    if (!step_interfaces.empty())
+    {
+        step_collector
+            = std::make_unique<StepCollector>(std::move(step_interfaces),
+                                              core_params->geometry(),
+                                              core_params->max_streams(),
+                                              core_params->action_reg().get());
+    }
+
+    // Load all the problem data and create transporter
+    auto transport_ptr = build_transporter(run_args, core_params);
+    double const setup_time = get_setup_time();
 
     // Run all the primaries
     TransporterResult result;
@@ -208,7 +129,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     {
         std::mt19937 rng;
         auto generate_event = PrimaryGenerator<std::mt19937>::from_options(
-            transport_ptr->params().particle(), run_args.primary_gen_options);
+            core_params->particle(), run_args.primary_gen_options);
         auto event = generate_event(rng);
         while (!event.empty())
         {
@@ -219,7 +140,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     else
     {
         EventReader read_event(run_args.hepmc3_filename.c_str(),
-                               transport_ptr->params().particle());
+                               core_params->particle());
         auto event = read_event();
         while (!event.empty())
         {

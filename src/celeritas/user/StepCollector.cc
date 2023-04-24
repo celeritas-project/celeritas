@@ -13,9 +13,9 @@
 #include <utility>
 
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/cont/Label.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/user/StepInterface.hh"

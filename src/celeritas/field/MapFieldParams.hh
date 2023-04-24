@@ -12,6 +12,7 @@
 #include "corecel/data/CollectionMirror.hh"
 
 #include "FieldMapData.hh"
+#include "RZFieldInput.hh"
 
 namespace celeritas
 {
@@ -24,14 +25,14 @@ class MapFieldParams
   public:
     //@{
     //! Type aliases
-    using ReadMap = std::function<FieldMapInput()>;
     using HostRef = HostCRef<FieldMapData>;
     using DeviceRef = DeviceCRef<FieldMapData>;
+    using Input = RZFieldInput;
     //@}
 
   public:
     // Construct with a magnetic field map
-    explicit MapFieldParams(ReadMap load_map);
+    explicit MapFieldParams(Input const& inp);
 
     //! Access field map data on the host
     HostRef const& host_ref() const { return mirror_.host(); }
@@ -42,10 +43,6 @@ class MapFieldParams
   private:
     // Host/device storage and reference
     CollectionMirror<FieldMapData> mirror_;
-
-  private:
-    using HostValue = HostVal<FieldMapData>;
-    void build_data(ReadMap const&, HostValue*);
 };
 
 //---------------------------------------------------------------------------//

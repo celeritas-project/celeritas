@@ -12,7 +12,7 @@
 #include <variant>
 #include <vector>
 
-#include "corecel/cont/Label.hh"
+#include "corecel/io/Label.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"

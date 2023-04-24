@@ -66,7 +66,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 #define GPO_LOAD_OPTION(NAME)                 \
     do                                        \
     {                                         \
-        if (j.count(#NAME))                   \
+        if (j.contains(#NAME))                \
             j.at(#NAME).get_to(options.NAME); \
     } while (0)
     GPO_LOAD_OPTION(coulomb_scattering);

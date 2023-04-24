@@ -69,13 +69,8 @@ TEST_F(VolumeViewTest, one_volume)
     }
 }
 
-TEST_F(VolumeViewTest, five_volumes)
+TEST_F(VolumeViewTest, TEST_IF_CELERITAS_JSON(five_volumes))
 {
-    if (!CELERITAS_USE_JSON)
-    {
-        GTEST_SKIP() << "JSON is not enabled";
-    }
-
     this->build_geometry("five-volumes.org.json");
 
     std::vector<size_type> num_faces;

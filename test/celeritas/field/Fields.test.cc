@@ -5,9 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/Fields.test.cc
 //---------------------------------------------------------------------------//
+#include <fstream>
+
 #include "corecel/cont/Range.hh"
 #include "celeritas/field/FieldMapData.hh"
-#include "celeritas/field/FieldMapReader.hh"
 #include "celeritas/field/MapField.hh"
 #include "celeritas/field/MapFieldParams.hh"
 #include "celeritas/field/UniformField.hh"
@@ -86,23 +87,22 @@ TEST(CMSParameterizedFieldTest, all)
     EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 
-TEST(CMSMapField, all)
+class CMSMapFieldTest : public ::celeritas::test::Test
 {
-    std::unique_ptr<MapFieldParams> field_map;
-    {
-        FieldMapParameters params;
-        params.delta_grid = units::meter;
-        params.num_grid_r = 9 + 1;  //! [0:9]
-        params.num_grid_z = 2 * 16 + 1;  //! [-16:16]
-        params.offset_z = 16 * units::meter;
+};
 
-        FieldMapReader load_map(
-            params,
-            test::Test::test_data_path("celeritas", "cmsFieldMap.tiny"));
-        field_map = std::make_unique<MapFieldParams>(load_map);
-    }
+TEST_F(CMSMapFieldTest, all)
+{
+    MapFieldParams field_map = [this] {
+        // Read input file from JSON
+        RZFieldInput inp;
+        auto filename
+            = this->test_data_path("celeritas", "cms-tiny.field.json");
+        std::ifstream(filename) >> inp;
+        return MapFieldParams(inp);
+    }();
 
-    MapField calc_field(field_map->host_ref());
+    MapField calc_field(field_map.host_ref());
 
     int const nsamples = 8;
     real_type delta_z = 25.0;
