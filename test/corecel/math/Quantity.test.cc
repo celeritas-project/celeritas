@@ -188,18 +188,6 @@ TEST(QuantityTest, math)
     }
 }
 
-TEST(QuantityTest, inplace_math)
-{
-    using RevInt = Quantity<TwoPi, int>;
-
-    RevInt a{4};
-    *a += 6;
-    EXPECT_EQ(10, *a);
-    EXPECT_EQ(12, *a + *RevInt{2});
-    RevInt const b{5};
-    EXPECT_EQ(5, *b);
-}
-
 TEST(QuantityTest, swappiness)
 {
     using Dozen = Quantity<DozenUnit, int>;

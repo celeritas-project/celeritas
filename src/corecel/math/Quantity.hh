@@ -97,14 +97,12 @@ using AccessorResultType = typename AccessorTraits<T>::result_type;
  * The label is used solely for outputting to JSON.
  *
  * \note The Quantity is designed to be a simple "strong type" class, not a
- * complex mathematical class. To operate on quantities, you should use
+ * complex mathematical class. To operate on quantities, you must use
  `value_as`
  * (to operate within the Quantity's unit system) or `native_value_from` (to
  * operate in the Celeritas native unit system), use the resulting numeric
  * values in your mathematical expressions, then return a new Quantity class
- * with the resulting value and correct type. In cases where the types are
- * \em known to be consistent, the \c std::optional -like \c value and \c
- * operator* functions can be used to access the underlying value.
+ * with the resulting value and correct type.
  */
 template<class UnitT, class ValueT = real_type>
 class Quantity
@@ -140,8 +138,6 @@ class Quantity
 
     CELER_DEFINE_QACCESS(value, &)
     CELER_DEFINE_QACCESS(value, const&)
-    CELER_DEFINE_QACCESS(operator*, &)
-    CELER_DEFINE_QACCESS(operator*, const&)
 #undef CELER_DEFINE_QACCESS
     //!@}
 
