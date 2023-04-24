@@ -15,7 +15,7 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Label.hh"
+#include "corecel/io/Label.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
