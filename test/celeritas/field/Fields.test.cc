@@ -9,8 +9,8 @@
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/field/FieldMapData.hh"
-#include "celeritas/field/MapField.hh"
 #include "celeritas/field/MapFieldParams.hh"
+#include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
 
@@ -87,11 +87,11 @@ TEST(CMSParameterizedFieldTest, all)
     EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 
-class CMSMapFieldTest : public ::celeritas::test::Test
+class RZMapFieldTest : public ::celeritas::test::Test
 {
 };
 
-TEST_F(CMSMapFieldTest, all)
+TEST_F(RZMapFieldTest, all)
 {
     MapFieldParams field_map = [this] {
         // Read input file from JSON
@@ -102,7 +102,7 @@ TEST_F(CMSMapFieldTest, all)
         return MapFieldParams(inp);
     }();
 
-    MapField calc_field(field_map.host_ref());
+    RZMapField calc_field(field_map.host_ref());
 
     int const nsamples = 8;
     real_type delta_z = 25.0;

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/MapField.hh
+//! \file celeritas/field/RZMapField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,7 +20,7 @@ namespace celeritas
 /*!
  * Evaluate the value of magnetic field based on a volume-based RZ field map.
  */
-class MapField
+class RZMapField
 {
   public:
     //!@{
@@ -32,7 +32,7 @@ class MapField
   public:
     // Construct with the shared map data (FieldMapData)
     CELER_FUNCTION
-    explicit MapField(FieldMapRef const& shared);
+    explicit RZMapField(FieldMapRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
@@ -50,13 +50,13 @@ class MapField
  * Construct with the shared magnetic field map data (FieldMapData).
  */
 CELER_FUNCTION
-MapField::MapField(FieldMapRef const& shared) : shared_(shared) {}
+RZMapField::RZMapField(FieldMapRef const& shared) : shared_(shared) {}
 
 //---------------------------------------------------------------------------//
 /*!
  * Retrieve the magnetic field value (in tesla) for the given position.
  */
-CELER_FUNCTION auto MapField::operator()(Real3 const& pos) const -> Real3
+CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
 {
     CELER_ENSURE(shared_);
 
