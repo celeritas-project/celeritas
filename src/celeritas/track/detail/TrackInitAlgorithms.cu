@@ -54,9 +54,10 @@ template<>
 size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts)
 {
     // Copy the last element to the host
-    size_type partial1{};
-    Copier<size_type, MemSpace::host> copy_to_temp{{&partial1, 1}};
+    size_type temp{};
+    Copier<size_type, MemSpace::host> copy_to_temp{{&temp, 1}};
     copy_to_temp(MemSpace::device, {counts.data() + counts.size() - 1, 1});
+    size_type const last_element = temp;
 
     thrust::exclusive_scan(
         thrust::device_pointer_cast(counts.data()),
@@ -66,13 +67,11 @@ size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts)
     CELER_DEVICE_CHECK_ERROR();
 
     // Copy the last element (the sum of all elements but the last) to the host
-    size_type partial2{};
-    copy_last_element_to(MemSpace::host, {&partial2, 1});
+    copy_to_temp(MemSpace::device, {counts.data() + counts.size() - 1, 1});
 
-    return partial1 + partial2;
+    return temp + last_element;
 }
 
 //---------------------------------------------------------------------------//
-#undef LAUNCH_KERNEL
 }  // namespace detail
 }  // namespace celeritas
