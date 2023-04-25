@@ -8,9 +8,9 @@
 #include <fstream>
 
 #include "corecel/cont/Range.hh"
-#include "celeritas/field/FieldMapData.hh"
-#include "celeritas/field/MapFieldParams.hh"
 #include "celeritas/field/RZMapField.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
 
@@ -93,13 +93,13 @@ class RZMapFieldTest : public ::celeritas::test::Test
 
 TEST_F(RZMapFieldTest, all)
 {
-    MapFieldParams field_map = [this] {
+    RZMapFieldParams field_map = [this] {
         // Read input file from JSON
-        RZFieldInput inp;
+        RZMapFieldInput inp;
         auto filename
             = this->test_data_path("celeritas", "cms-tiny.field.json");
         std::ifstream(filename) >> inp;
-        return MapFieldParams(inp);
+        return RZMapFieldParams(inp);
     }();
 
     RZMapField calc_field(field_map.host_ref());

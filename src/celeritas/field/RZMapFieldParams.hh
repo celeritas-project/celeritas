@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/MapFieldParams.hh
+//! \file celeritas/field/RZMapFieldParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,28 +11,30 @@
 
 #include "corecel/data/CollectionMirror.hh"
 
-#include "FieldMapData.hh"
-#include "RZFieldInput.hh"
+#include "RZMapFieldData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct RZMapFieldInput;
+
+//---------------------------------------------------------------------------//
 /*!
- * Set up a 2D MapFieldParams.
+ * Set up a 2D RZMapFieldParams.
  */
-class MapFieldParams
+class RZMapFieldParams
 {
   public:
     //@{
     //! Type aliases
-    using HostRef = HostCRef<FieldMapData>;
-    using DeviceRef = DeviceCRef<FieldMapData>;
-    using Input = RZFieldInput;
+    using HostRef = HostCRef<RZMapFieldParamsData>;
+    using DeviceRef = DeviceCRef<RZMapFieldParamsData>;
+    using Input = RZMapFieldInput;
     //@}
 
   public:
     // Construct with a magnetic field map
-    explicit MapFieldParams(Input const& inp);
+    explicit RZMapFieldParams(Input const& inp);
 
     //! Access field map data on the host
     HostRef const& host_ref() const { return mirror_.host(); }
@@ -42,7 +44,7 @@ class MapFieldParams
 
   private:
     // Host/device storage and reference
-    CollectionMirror<FieldMapData> mirror_;
+    CollectionMirror<RZMapFieldParamsData> mirror_;
 };
 
 //---------------------------------------------------------------------------//

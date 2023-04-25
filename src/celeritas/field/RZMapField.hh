@@ -12,7 +12,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Units.hh"
 
-#include "FieldMapData.hh"
+#include "RZMapFieldData.hh"
 
 namespace celeritas
 {
@@ -26,13 +26,13 @@ class RZMapField
     //!@{
     //! \name Type aliases
     using Real3 = Array<real_type, 3>;
-    using FieldMapRef = NativeCRef<FieldMapData>;
+    using FieldParamsRef = NativeCRef<RZMapFieldParamsData>;
     //!@}
 
   public:
-    // Construct with the shared map data (FieldMapData)
+    // Construct with the shared map data
     CELER_FUNCTION
-    explicit RZMapField(FieldMapRef const& shared);
+    explicit RZMapField(FieldParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
@@ -40,17 +40,17 @@ class RZMapField
 
   private:
     // Shared constant field map
-    FieldMapRef const& shared_;
+    FieldParamsRef const& params_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with the shared magnetic field map data (FieldMapData).
+ * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-RZMapField::RZMapField(FieldMapRef const& shared) : shared_(shared) {}
+RZMapField::RZMapField(FieldParamsRef const& params) : params_(params) {}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -58,35 +58,35 @@ RZMapField::RZMapField(FieldMapRef const& shared) : shared_(shared) {}
  */
 CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
 {
-    CELER_ENSURE(shared_);
+    CELER_ENSURE(params_);
 
     Real3 value{0, 0, 0};
 
     real_type r = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
     real_type z = pos[2];
 
-    real_type scale = 1 / shared_.params.delta_grid;
+    real_type scale = 1 / params_.params.delta_grid;
 
     size_type ir = static_cast<size_type>(r * scale);
     size_type iz
-        = static_cast<size_type>((z + shared_.params.offset_z) * scale);
+        = static_cast<size_type>((z + params_.params.offset_z) * scale);
 
-    real_type dr = r - static_cast<real_type>(ir) * shared_.params.delta_grid;
-    real_type dz = z + shared_.params.offset_z
-                   - static_cast<real_type>(iz) * shared_.params.delta_grid;
+    real_type dr = r - static_cast<real_type>(ir) * params_.params.delta_grid;
+    real_type dz = z + params_.params.offset_z
+                   - static_cast<real_type>(iz) * params_.params.delta_grid;
 
-    if (!shared_.valid(iz, ir))
+    if (!params_.valid(iz, ir))
         return value;
 
     // z component
-    real_type low = shared_.fieldmap[shared_.id(iz, ir)].value_z;
-    real_type high = shared_.fieldmap[shared_.id(iz + 1, ir)].value_z;
+    real_type low = params_.fieldmap[params_.id(iz, ir)].value_z;
+    real_type high = params_.fieldmap[params_.id(iz + 1, ir)].value_z;
 
     value[2] = low + (high - low) * dz * scale;
 
     // x and y components
-    low = shared_.fieldmap[shared_.id(iz, ir)].value_r;
-    high = shared_.fieldmap[shared_.id(iz, ir + 1)].value_r;
+    low = params_.fieldmap[params_.id(iz, ir)].value_r;
+    high = params_.fieldmap[params_.id(iz, ir + 1)].value_r;
 
     real_type tmp = (r != 0) ? (low + (high - low) * dr * scale) / r : low;
     value[0] = tmp * pos[0];
