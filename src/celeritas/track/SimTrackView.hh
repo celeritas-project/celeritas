@@ -98,6 +98,9 @@ class SimTrackView
     // Limiting step and action to take
     CELER_FORCEINLINE_FUNCTION StepLimit const& step_limit() const;
 
+    // Mutable access to step limit (TODO: hack)
+    CELER_FORCEINLINE_FUNCTION StepLimit& step_limit();
+
     //// PARAMETER DATA ////
 
     // Particle-dependent parameters for killing looping tracks
@@ -350,6 +353,15 @@ CELER_FUNCTION TrackStatus SimTrackView::status() const
  * Get the current limiting step and action.
  */
 CELER_FUNCTION StepLimit const& SimTrackView::step_limit() const
+{
+    return states_.step_limit[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Mutable access to step limit.
+ */
+CELER_FUNCTION StepLimit& SimTrackView::step_limit()
 {
     return states_.step_limit[track_slot_];
 }

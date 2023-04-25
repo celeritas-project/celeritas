@@ -78,6 +78,9 @@ class PhysicsStepView
     // Sampled element for discrete interaction
     CELER_FORCEINLINE_FUNCTION ElementComponentId element() const;
 
+    // Mutable access to MSC step data (TODO: hack)
+    inline CELER_FUNCTION MscStep& msc_step();
+
     // Retrieve MSC step data
     inline CELER_FUNCTION MscStep const& msc_step() const;
 
@@ -217,6 +220,15 @@ CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
 CELER_FUNCTION ElementComponentId PhysicsStepView::element() const
 {
     return this->state().element;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Mutable access to MSC step data (TODO: hack)
+ */
+CELER_FUNCTION MscStep& PhysicsStepView::msc_step()
+{
+    return states_.msc_step[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

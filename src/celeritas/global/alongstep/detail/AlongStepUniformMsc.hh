@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
@@ -15,8 +16,8 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"
+#include "celeritas/global/alongstep/AlongStep.hh"
 
-#include "AlongStepNeutral.hh"
 #include "MeanELoss.hh"  // IWYU pragma: associated
 
 namespace celeritas

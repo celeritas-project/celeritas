@@ -87,7 +87,7 @@ struct MscStep
     static CELER_CONSTEXPR_FUNCTION real_type small_step_alpha() { return 0; }
 
     bool is_displaced{true};  //!< Flag for the lateral displacement
-    real_type true_path{};  //!< True path length due to the msc  [cm]
+    real_type true_path{};  //!< True path length due to the msc [cm]
     real_type geom_path{};  //!< Geometrical path length [cm]
     real_type alpha = small_step_alpha();  //!< Scaled MFP slope [cm^-1]
 };

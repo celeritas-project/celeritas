@@ -13,7 +13,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/field/LinearPropagator.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/global/alongstep/AlongStep.hh"
+
+#include "../AlongStep.hh"
 
 namespace celeritas
 {

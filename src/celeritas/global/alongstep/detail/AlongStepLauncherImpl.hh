@@ -58,7 +58,7 @@ CELER_FUNCTION void
 AlongStepLauncherImpl<M, P, E, F>::operator()(ThreadId thread) const
 {
     CELER_ASSERT(thread < this->core_state.size());
-    const celeritas::CoreTrackView track(
+    celeritas::CoreTrackView const track(
         this->core_params, this->core_state, thread);
 
     {
