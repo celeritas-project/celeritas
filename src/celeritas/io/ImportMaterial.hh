@@ -22,7 +22,6 @@ namespace celeritas
 enum class ImportMaterialState
 {
     other,
-    not_defined [[deprecated]] = other,
     solid,
     liquid,
     gas,
