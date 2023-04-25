@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/RootStepWriterIO.json.hh
+//! \file celeritas/field/RZFieldInputIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,15 +11,17 @@
 
 namespace celeritas
 {
+namespace test
+{
 //---------------------------------------------------------------------------//
-struct SimpleRootFilterInput;
+struct RZFieldInput;
+
+// Read field from JSON
+void from_json(nlohmann::json const& j, RZFieldInput& opts);
+
+// Write field to JSON
+void to_json(nlohmann::json& j, RZFieldInput const& opts);
 
 //---------------------------------------------------------------------------//
-// Read options from JSON
-void from_json(nlohmann::json const& j, SimpleRootFilterInput& opts);
-
-// Write options to JSON
-void to_json(nlohmann::json& j, SimpleRootFilterInput const& opts);
-
-//---------------------------------------------------------------------------//
+}  // namespace test
 }  // namespace celeritas

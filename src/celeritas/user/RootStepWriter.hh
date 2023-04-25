@@ -26,7 +26,7 @@ class RootFileManager;
 //! Input to \c make_write_filter (below) for filtering ROOT MC truth output
 struct SimpleRootFilterInput
 {
-    static constexpr size_type unspecified = -1;
+    static inline constexpr size_type unspecified{static_cast<size_type>(-1)};
 
     std::vector<size_type> track_id;
     size_type event_id = unspecified;
@@ -57,17 +57,14 @@ class RootStepWriter final : public StepInterface
 {
   public:
     // Unspecified step attribute data value
-    static constexpr size_type unspecified()
-    {
-        return static_cast<size_type>(-1);
-    }
+    static inline constexpr size_type unspecified{static_cast<size_type>(-1)};
 
     //! Truth step point data; Naming convention must match StepPointStateData
     struct TStepPoint
     {
-        size_type volume_id = unspecified();
-        real_type energy = unspecified();  //!< [MeV]
-        real_type time = unspecified();  //!< [s]
+        size_type volume_id = unspecified;
+        real_type energy = 0;  //!< [MeV]
+        real_type time = 0;  //!< [s]
         std::array<real_type, 3> pos{0, 0, 0};  //!< [cm]
         std::array<real_type, 3> dir{0, 0, 0};
     };
@@ -75,14 +72,14 @@ class RootStepWriter final : public StepInterface
     //! Truth step data; Naming convention must match StepStateData
     struct TStepData
     {
-        size_type event_id = unspecified();
-        size_type track_id = unspecified();
-        size_type parent_id = unspecified();
-        size_type action_id = unspecified();
-        size_type track_step_count = unspecified();
-        int particle = unspecified();  //!< PDG number
-        real_type energy_deposition = unspecified();  //!< [MeV]
-        real_type step_length = unspecified();  //!< [cm]
+        size_type event_id = unspecified;
+        size_type track_id = unspecified;
+        size_type parent_id = unspecified;
+        size_type action_id = unspecified;
+        size_type track_step_count = unspecified;
+        int particle = 0;  //!< PDG number
+        real_type energy_deposition = 0;  //!< [MeV]
+        real_type step_length = 0;  //!< [cm]
         EnumArray<StepPoint, TStepPoint> points;
     };
 

@@ -8,50 +8,55 @@
 #include <cstdlib>
 #include <exception>
 #include <fstream>
-#include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <memory>
-#include <random>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Assert.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/Environment.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/RootFileManager.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/io/EventReader.hh"
-#include "celeritas/phys/Primary.hh"
-#include "celeritas/phys/PrimaryGenerator.hh"
-#include "celeritas/phys/PrimaryGeneratorOptions.hh"
-#include "celeritas/user/RootStepWriter.hh"
-#include "celeritas/user/StepCollector.hh"
-#include "celeritas/user/StepData.hh"
 
-#include "LDemoIO.hh"
-#include "Transporter.hh"
-#include "Transporter.json.hh"
+#include "Runner.hh"
+#include "RunnerInput.hh"
+#include "RunnerInputIO.json.hh"
 
-using std::cerr;
-using std::cout;
-using std::endl;
-using namespace demo_loop;
-using namespace celeritas;
+namespace demo_loop
+{
+//---------------------------------------------------------------------------//
+//!@{
+//! Save data to JSON
+inline void to_json(nlohmann::json& j, RunTimingResult const& v)
+{
+    j = nlohmann::json{{"steps", v.steps},
+                       {"total", v.total},
+                       {"setup", v.setup},
+                       {"actions", v.actions}};
+}
+
+inline void to_json(nlohmann::json& j, RunnerResult const& v)
+{
+    j = nlohmann::json{{"initializers", v.initializers},
+                       {"active", v.active},
+                       {"alive", v.alive},
+                       {"edep", v.edep},
+                       {"process", v.process},
+                       {"steps", v.steps},
+                       {"time", v.time}};
+}
+//!@}
 
 namespace
 {
@@ -59,107 +64,37 @@ namespace
 /*!
  * Run, launch, and output.
  */
-void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
+void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
 {
+    using celeritas::OutputInterface;
+    using celeritas::OutputInterfaceAdapter;
+    using celeritas::ScopedMem;
+
     ScopedMem record_mem("demo_loop.run");
 
-    // Read input options
-    auto run_args = nlohmann::json::parse(*is).get<LDemoArgs>();
-    output->insert(std::make_shared<OutputInterfaceAdapter<LDemoArgs>>(
-        OutputInterface::Category::input,
-        "*",
-        std::make_shared<LDemoArgs>(run_args)));
-    CELER_EXPECT(run_args);
+    // Read input options and save a copy for output
+    auto run_input = std::make_shared<RunnerInput>();
+    nlohmann::json::parse(*is).get_to(*run_input);
+    output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
+        OutputInterface::Category::input, "*", run_input));
 
-    // Process global optoins
-    if (run_args.cuda_heap_size != LDemoArgs::unspecified)
-    {
-        celeritas::set_cuda_heap_size(run_args.cuda_heap_size);
-    }
-    if (run_args.cuda_stack_size != LDemoArgs::unspecified)
-    {
-        celeritas::set_cuda_stack_size(run_args.cuda_stack_size);
-    }
-    celeritas::environment().merge(run_args.environ);
-
-    // Start timer for overall execution
-    Stopwatch get_setup_time;
-
-    // Construct core parameters
-    auto core_params = build_core_params(run_args, output);
-
-    // Initialize RootFileManager and store input data if requested
-    std::shared_ptr<RootFileManager> root_manager;
-    std::shared_ptr<StepCollector> step_collector;
-    StepCollector::VecInterface step_interfaces;
-    if (!run_args.mctruth_filename.empty())
-    {
-        root_manager = std::make_shared<RootFileManager>(
-            run_args.mctruth_filename.c_str());
-
-        // Store input and CoreParams data
-        write_to_root(run_args, root_manager.get());
-        write_to_root(*core_params, root_manager.get());
-
-        // Create root step writer
-        step_interfaces.push_back(std::make_shared<RootStepWriter>(
-            root_manager,
-            core_params->particle(),
-            StepSelection::all(),
-            make_write_filter(run_args.mctruth_filter)));
-    }
-
-    if (!step_interfaces.empty())
-    {
-        step_collector
-            = std::make_unique<StepCollector>(std::move(step_interfaces),
-                                              core_params->geometry(),
-                                              core_params->max_streams(),
-                                              core_params->action_reg().get());
-    }
-
-    // Load all the problem data and create transporter
-    auto transport_ptr = build_transporter(run_args, core_params);
+    // Create runner and save setup time
+    celeritas::Stopwatch get_setup_time;
+    Runner run_stream(*run_input, output);
     double const setup_time = get_setup_time();
 
-    // Run all the primaries
-    TransporterResult result;
-    std::vector<Primary> primaries;
-    if (run_args.primary_gen_options)
-    {
-        std::mt19937 rng;
-        auto generate_event = PrimaryGenerator<std::mt19937>::from_options(
-            core_params->particle(), run_args.primary_gen_options);
-        auto event = generate_event(rng);
-        while (!event.empty())
-        {
-            primaries.insert(primaries.end(), event.begin(), event.end());
-            event = generate_event(rng);
-        }
-    }
-    else
-    {
-        EventReader read_event(run_args.hepmc3_filename.c_str(),
-                               core_params->particle());
-        auto event = read_event();
-        while (!event.empty())
-        {
-            primaries.insert(primaries.end(), event.begin(), event.end());
-            event = read_event();
-        }
-    }
-
-    // Transport
-    result = (*transport_ptr)(make_span(primaries));
-
+    // Run on a single thread
+    RunnerResult result = run_stream(celeritas::StreamId{0});
     result.time.setup = setup_time;
 
     // TODO: convert individual results into OutputInterface so we don't have
     // to use this ugly "global" hack
-    output->insert(OutputInterfaceAdapter<TransporterResult>::from_rvalue_ref(
+    output->insert(OutputInterfaceAdapter<RunnerResult>::from_rvalue_ref(
         OutputInterface::Category::result, "*", std::move(result)));
 }
+//---------------------------------------------------------------------------//
 }  // namespace
+}  // namespace demo_loop
 
 //---------------------------------------------------------------------------//
 /*!
@@ -167,7 +102,12 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
  */
 int main(int argc, char* argv[])
 {
-    ScopedRootErrorHandler scoped_root_error;
+    using celeritas::MpiCommunicator;
+    using celeritas::ScopedMpiInit;
+    using std::cerr;
+    using std::cout;
+    using std::endl;
+
     ScopedMpiInit scoped_mpi(&argc, &argv);
 
     MpiCommunicator comm = [] {
@@ -215,20 +155,20 @@ int main(int argc, char* argv[])
     }
 
     // Set up output
-    auto output = std::make_shared<OutputRegistry>();
+    auto output = std::make_shared<celeritas::OutputRegistry>();
 
     int return_code = EXIT_SUCCESS;
     try
     {
-        run(instream, output);
+        demo_loop::run(instream, output);
     }
     catch (std::exception const& e)
     {
         CELER_LOG(critical)
             << "While running input at " << filename << ": " << e.what();
         return_code = EXIT_FAILURE;
-        output->insert(
-            std::make_shared<ExceptionOutput>(std::current_exception()));
+        output->insert(std::make_shared<celeritas::ExceptionOutput>(
+            std::current_exception()));
     }
 
     // Write system properties and (if available) results

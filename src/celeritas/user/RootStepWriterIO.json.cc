@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "RootStepWriterIO.json.hh"
 
+#include <string>
+
+#include "RootStepWriter.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

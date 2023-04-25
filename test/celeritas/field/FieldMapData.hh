@@ -39,20 +39,6 @@ struct FieldMapElement
 
 //---------------------------------------------------------------------------//
 /*!
- * FieldMap input data.
- *
- * A vector of size [num_grid_z*num_grid_r] which stores data
- * for the equivalent 2-dimensional RZ-array[num_grid_z][num_grid_r] and
- * associated parameters
- */
-struct FieldMapInput
-{
-    FieldMapParameters params;
-    std::vector<FieldMapElement> data;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Device data for interpolating field values.
  */
 template<Ownership W, MemSpace M>

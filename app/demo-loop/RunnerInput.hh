@@ -1,21 +1,15 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/LDemoIO.hh
+//! \file demo-loop/RunnerInput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <celeritas/Types.hh>
-#include <nlohmann/json.hpp>
-
-#include "celeritas_config.h"
-#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/Environment.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
@@ -23,25 +17,25 @@
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/RootStepWriter.hh"
 
-#include "Transporter.hh"
-
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
-class OutputRegistry;
-class CoreParams;
-//---------------------------------------------------------------------------//
-}
-
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
+struct EnergyDiagInput
+{
+    using size_type = celeritas::size_type;
+    using real_type = celeritas::real_type;
+
+    char axis{'z'};
+    real_type min{-700};
+    real_type max{700};
+    size_type num_bins{1024};
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
- *
- * TODO: change to RunnerInput and move to Runner.hh
  */
-struct LDemoArgs
+struct RunnerInput
 {
     using real_type = celeritas::real_type;
     using Real3 = celeritas::Real3;
@@ -51,8 +45,8 @@ struct LDemoArgs
     static constexpr size_type unspecified{static_cast<size_type>(-1)};
 
     // Global environment
-    size_type cuda_heap_size = unspecified;
-    size_type cuda_stack_size = unspecified;
+    size_type cuda_heap_size{unspecified};
+    size_type cuda_stack_size{unspecified};
     celeritas::Environment environ;  //!< Supplement existing env variables
 
     // Problem definition
@@ -70,7 +64,7 @@ struct LDemoArgs
     // Control
     unsigned int seed{};
     size_type max_num_tracks{};
-    size_type max_steps = TransporterInput::no_max_steps();
+    size_type max_steps{unspecified};
     size_type initializer_capacity{};
     size_type max_events{};
     real_type secondary_stack_factor{};
@@ -106,40 +100,6 @@ struct LDemoArgs
                && (mag_field == no_field() || field_options);
     }
 };
-
-// Build core params
-std::shared_ptr<celeritas::CoreParams>
-build_core_params(LDemoArgs const& args,
-                  std::shared_ptr<celeritas::OutputRegistry> outreg);
-
-// Build transporter from input arguments
-std::unique_ptr<TransporterBase>
-build_transporter(LDemoArgs const& args,
-                  std::shared_ptr<celeritas::CoreParams const>);
-
-void to_json(nlohmann::json& j, LDemoArgs const& value);
-void from_json(nlohmann::json const& j, LDemoArgs& value);
-
-// Store LDemoArgs to ROOT file when ROOT is available
-void write_to_root(LDemoArgs const& cargs,
-                   celeritas::RootFileManager* root_manager);
-
-// Store CoreParams to ROOT file when ROOT is available
-void write_to_root(celeritas::CoreParams const& core_params,
-                   celeritas::RootFileManager* root_manager);
-
-#if !CELERITAS_USE_ROOT
-inline void write_to_root(LDemoArgs const&, celeritas::RootFileManager*)
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-inline void
-write_to_root(celeritas::CoreParams const&, celeritas::RootFileManager*)
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace demo_loop
