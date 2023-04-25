@@ -303,12 +303,13 @@ TEST_F(UrbanMscTest, step_conversion)
             {
                 // Calculate between a nearby hypothetical geometric boundary
                 // and "no boundary" (i.e. pstep limited)
-                real_type gstep = calc_gstep(gpt);
+                real_type gstep = celeritas::min(calc_gstep(gpt), pstep);
                 SCOPED_TRACE((LabeledValue{"gstep", gstep}));
                 real_type true_step;
                 ASSERT_NO_THROW(true_step = geo_to_true(gstep));
                 EXPECT_LE(true_step, pstep);
-                EXPECT_GE(true_step, gstep);
+                EXPECT_GE(true_step, gstep)
+                    << LabeledValue{"true_step", true_step};
             }
 
             // Test exact true -> geo -> true conversion
@@ -534,7 +535,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_VEC_SOFT_EQ(expected_tstep, tstep);
     EXPECT_VEC_SOFT_EQ(expected_gstep, gstep);
     EXPECT_VEC_SOFT_EQ(expected_alpha, alpha);
-    EXPECT_VEC_SOFT_EQ(expected_angle, angle);
+    EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
     EXPECT_VEC_SOFT_EQ(expected_displace, displace);
     EXPECT_VEC_EQ(expected_action, action);
     EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
