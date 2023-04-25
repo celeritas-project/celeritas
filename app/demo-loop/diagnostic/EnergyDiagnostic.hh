@@ -56,7 +56,7 @@ class EnergyDiagnostic : public Diagnostic<M>
     void mid_step(ParamsRef const& params, StateRef const& states) final;
 
     // Collect diagnostic results
-    void get_result(TransporterResult* result) final;
+    void get_result(RunnerResult* result) final;
 
     // Get vector of binned energy deposition
     std::vector<real_type> energy_deposition();
@@ -184,7 +184,7 @@ void EnergyDiagnostic<M>::mid_step(ParamsRef const& params,
  * Collect the diagnostic results.
  */
 template<MemSpace M>
-void EnergyDiagnostic<M>::get_result(TransporterResult* result)
+void EnergyDiagnostic<M>::get_result(RunnerResult* result)
 {
     result->edep = this->energy_deposition();
 }

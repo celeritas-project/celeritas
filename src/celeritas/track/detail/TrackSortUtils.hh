@@ -13,6 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {
@@ -48,6 +49,23 @@ void shuffle_track_slots<MemSpace::device>(
     Span<TrackSlotId::size_type> track_slots);
 
 //---------------------------------------------------------------------------//
+// Sort tracks
+
+void partition_tracks_by_status(
+    CoreStateData<Ownership::reference, MemSpace::host> const& states);
+
+void partition_tracks_by_status(
+    CoreStateData<Ownership::reference, MemSpace::device> const& states);
+
+//---------------------------------------------------------------------------//
+
+void sort_tracks_by_action_id(
+    CoreStateData<Ownership::reference, MemSpace::host> const& states);
+
+void sort_tracks_by_action_id(
+    CoreStateData<Ownership::reference, MemSpace::device> const& states);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
@@ -59,6 +77,18 @@ inline void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
 
 template<>
 inline void shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline void partition_tracks_by_status(
+    CoreStateData<Ownership::reference, MemSpace::device> const&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline void sort_tracks_by_action_id(
+    CoreStateData<Ownership::reference, MemSpace::device> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

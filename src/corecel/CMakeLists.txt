@@ -14,12 +14,12 @@ set(PUBLIC_DEPS)
 
 list(APPEND SOURCES
   Assert.cc
-  cont/Label.cc
   data/Copier.cc
   data/DeviceAllocation.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc
+  io/Label.cc
   io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc

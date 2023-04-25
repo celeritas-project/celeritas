@@ -75,6 +75,12 @@ class UniversesTest : public OrangeTest
     void SetUp() override { this->build_geometry("universes.org.json"); }
 };
 
+#define RectArrayTest TEST_IF_CELERITAS_JSON(RectArrayTest)
+class RectArrayTest : public OrangeTest
+{
+    void SetUp() override { this->build_geometry("rect_array.org.json"); }
+};
+
 #define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)
 class Geant4Testem15Test : public OrangeTest
 {

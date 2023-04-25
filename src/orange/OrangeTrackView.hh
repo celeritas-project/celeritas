@@ -16,7 +16,7 @@
 #include "OrangeTypes.hh"
 #include "Translator.hh"
 #include "detail/LevelStateAccessor.hh"
-#include "detail/UnitIndexer.hh"
+#include "detail/UniverseIndexer.hh"
 #include "univ/SimpleUnitTracker.hh"
 #include "univ/UniverseTypeTraits.hh"
 #include "univ/detail/Types.hh"
@@ -332,7 +332,7 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
 CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 {
     auto lsa = this->make_lsa();
-    detail::UnitIndexer ui(params_.unit_indexer_data);
+    detail::UniverseIndexer ui(params_.universe_indexer_data);
     return ui.global_volume(lsa.universe(), lsa.vol());
 }
 
@@ -346,7 +346,7 @@ CELER_FUNCTION SurfaceId OrangeTrackView::surface_id() const
     {
         auto lsa = this->make_lsa(this->surface_level());
         CELER_ASSERT(lsa.surf());
-        detail::UnitIndexer ui(params_.unit_indexer_data);
+        detail::UniverseIndexer ui(params_.universe_indexer_data);
         return ui.global_surface(lsa.universe(), lsa.surf());
     }
     else
@@ -485,7 +485,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     this->surface_level() = this->next_surface_level();
 
     auto lsa = this->make_lsa(this->surface_level());
-    detail::UnitIndexer ui(params_.unit_indexer_data);
+    detail::UniverseIndexer ui(params_.universe_indexer_data);
     lsa.surf() = ui.local_surface(this->next_surface_id()).surface;
     lsa.sense() = this->next_surface().unchecked_sense();
 
@@ -676,7 +676,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         // dotted with the surface normal changes (i.e. heading from inside to
         // outside or vice versa).
         auto tracker = this->make_tracker(UniverseId{0});
-        detail::UnitIndexer ui(params_.unit_indexer_data);
+        detail::UniverseIndexer ui(params_.universe_indexer_data);
         const Real3 normal = tracker.normal(
             this->pos(), ui.local_surface(this->surface_id()).surface);
 
@@ -817,7 +817,7 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     // If there is a valid next surface, convert it from local to global
     if (isect)
     {
-        detail::UnitIndexer ui(params_.unit_indexer_data);
+        detail::UniverseIndexer ui(params_.universe_indexer_data);
         this->next_surface() = celeritas::detail::OnSurface(
             ui.global_surface(this->make_lsa(min_level).universe(),
                               isect.surface.id()),
@@ -858,8 +858,8 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
  */
 CELER_FUNCTION SimpleUnitTracker OrangeTrackView::make_tracker(UniverseId id) const
 {
-    CELER_EXPECT(id < params_.universe_type.size());
-    CELER_EXPECT(id.unchecked_get() == params_.universe_index[id]);
+    CELER_EXPECT(id < params_.universe_types.size());
+    CELER_EXPECT(id.unchecked_get() == params_.universe_indices[id]);
 
     using TraitsT = UniverseTypeTraits<UniverseType::simple>;
     using IdT = OpaqueId<typename TraitsT::record_type>;

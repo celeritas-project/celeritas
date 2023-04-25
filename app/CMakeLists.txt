@@ -213,7 +213,8 @@ endif()
 if(CELERITAS_BUILD_DEMOS)
   set(_demo_loop_src
     demo-loop/demo-loop.cc
-    demo-loop/LDemoIO.cc
+    demo-loop/RunnerInputIO.json.cc
+    demo-loop/Runner.cc
     demo-loop/Transporter.cc
     demo-loop/diagnostic/EnergyDiagnostic.cc
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
@@ -240,7 +241,7 @@ if(CELERITAS_BUILD_DEMOS)
     list(APPEND _demo_loop_libs OpenMP::OpenMP_CXX)
   endif()
   if(CELERITAS_USE_ROOT)
-    list(APPEND _demo_loop_src demo-loop/LDemoIO.root.cc)
+    list(APPEND _demo_loop_src demo-loop/RootOutput.cc)
     list(APPEND _demo_loop_libs ROOT::Core ROOT::Tree)
   endif()
 

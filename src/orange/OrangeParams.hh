@@ -12,10 +12,10 @@
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Label.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/io/Label.hh"
 
 #include "BoundingBox.hh"
 #include "OrangeData.hh"
@@ -108,6 +108,12 @@ class OrangeParams
 
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;
+
+  private:
+    //// HELPER METHODS ////
+
+    // Get surface and volume labels for all universes.
+    void process_metadata(OrangeInput const& input);
 };
 
 //---------------------------------------------------------------------------//

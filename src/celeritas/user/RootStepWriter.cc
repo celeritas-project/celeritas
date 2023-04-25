@@ -3,16 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/io/RootStepWriter.cc
+//! \file celeritas/user/RootStepWriter.cc
 //---------------------------------------------------------------------------//
 #include "RootStepWriter.hh"
 
+#include <algorithm>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
 
 #include "corecel/Assert.hh"
+#include "celeritas/ext/RootFileManager.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
+namespace celeritas
+{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -35,26 +40,54 @@ void copy_if_selected(celeritas::Real3 const& src, std::array<double, 3>& dst)
 }
 
 //---------------------------------------------------------------------------//
+//!@{
+//! SimpleRootFilter helpers: true if unspecified or matching.
+bool srf_match(size_type step_attr_id, size_type filter_id)
+{
+    return filter_id == SimpleRootFilterInput::unspecified
+           || step_attr_id == filter_id;
+}
+
+bool srf_match(size_type step_trk_id, std::vector<size_type> const& vec_trk_id)
+{
+    if (vec_trk_id.empty())
+    {
+        // No track ID filter specified
+        return true;
+    }
+    else
+    {
+        auto iter
+            = std::find(vec_trk_id.begin(), vec_trk_id.end(), step_trk_id);
+        // True if step track ID is in the list of IDs
+        return iter != vec_trk_id.end();
+    }
+}
+//!@}
+//---------------------------------------------------------------------------//
 }  // namespace
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Construct writer with user-defined data filtering.
  */
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
-                               SPParticleParams particle_params,
+                               SPParticleParams particles,
                                StepSelection selection,
                                WriteFilter filter)
-    : StepInterface()
-    , root_manager_(root_manager)
-    , particles_(particle_params)
+    : root_manager_(std::move(root_manager))
+    , particles_(std::move(particles))
     , selection_(selection)
-    , filter_(filter)
-
+    , filter_(std::move(filter))
 {
     CELER_EXPECT(root_manager_);
+
+    if (!filter_)
+    {
+        // Write all data by default
+        filter_ = [](RootStepWriter::TStepData const&) { return true; };
+    }
+
     this->make_tree();
 }
 
@@ -68,8 +101,7 @@ RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
     : RootStepWriter(std::move(root_manager),
                      std::move(particle_params),
                      std::move(selection),
-                     [](RootStepWriter::TStepData const&) { return true; })
-
+                     nullptr)
 {
 }
 
@@ -192,6 +224,26 @@ void RootStepWriter::make_tree()
     RSW_CREATE_BRANCH(points[StepPoint::post].time, "post_time");
 
 #undef RSW_CREATE_BRANCH
+}
+
+//---------------------------------------------------------------------------//
+RootStepWriter::WriteFilter make_write_filter(SimpleRootFilterInput const& inp)
+{
+    if (!inp)
+    {
+        // No filtering
+        return nullptr;
+    }
+
+    return [inp](RootStepWriter::TStepData const& step) {
+        if (inp.action_id != SimpleRootFilterInput::unspecified)
+        {
+            return step.action_id == inp.action_id;
+        }
+        return (srf_match(step.event_id, inp.event_id)
+                && srf_match(step.track_id, inp.track_id)
+                && srf_match(step.parent_id, inp.parent_id));
+    };
 }
 
 //---------------------------------------------------------------------------//

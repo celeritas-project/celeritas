@@ -5,15 +5,16 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/Fields.test.cc
 //---------------------------------------------------------------------------//
+#include <fstream>
+
 #include "corecel/cont/Range.hh"
+#include "celeritas/field/RZMapField.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
 
-#include "CMSFieldMapReader.hh"
-#include "CMSMapField.hh"
 #include "CMSParameterizedField.hh"
-#include "FieldMapData.hh"
-#include "MagFieldMap.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -86,23 +87,22 @@ TEST(CMSParameterizedFieldTest, all)
     EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 
-TEST(CMSMapField, all)
+class RZMapFieldTest : public ::celeritas::test::Test
 {
-    std::unique_ptr<MagFieldMap> field_map;
-    {
-        FieldMapParameters params;
-        params.delta_grid = units::meter;
-        params.num_grid_r = 9 + 1;  //! [0:9]
-        params.num_grid_z = 2 * 16 + 1;  //! [-16:16]
-        params.offset_z = 16 * units::meter;
+};
 
-        CMSFieldMapReader load_map(
-            params,
-            test::Test::test_data_path("celeritas", "cmsFieldMap.tiny"));
-        field_map = std::make_unique<MagFieldMap>(load_map);
-    }
+TEST_F(RZMapFieldTest, all)
+{
+    RZMapFieldParams field_map = [this] {
+        // Read input file from JSON
+        RZMapFieldInput inp;
+        auto filename
+            = this->test_data_path("celeritas", "cms-tiny.field.json");
+        std::ifstream(filename) >> inp;
+        return RZMapFieldParams(inp);
+    }();
 
-    CMSMapField calc_field(field_map->host_ref());
+    RZMapField calc_field(field_map.host_ref());
 
     int const nsamples = 8;
     real_type delta_z = 25.0;
@@ -115,6 +115,7 @@ TEST(CMSMapField, all)
         Real3 field = calc_field(Real3{i * delta_r, i * delta_r, i * delta_z});
         for (real_type f : field)
         {
+            // Reference result is in [T]: convert from native units
             actual.push_back(f / units::tesla);
         }
     }
@@ -143,7 +144,7 @@ TEST(CMSMapField, all)
                                                0.016614892251046,
                                                0.016614892251046,
                                                3.757196366787};
-    EXPECT_VEC_SOFT_EQ(expected_field, actual);
+    EXPECT_VEC_NEAR(expected_field, actual, 1e-7);
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

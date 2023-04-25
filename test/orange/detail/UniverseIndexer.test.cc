@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/UnitIndexer.test.cc
+//! \file orange/detail/UniverseIndexer.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/detail/UnitIndexer.hh"
+#include "orange/detail/UniverseIndexer.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
@@ -13,24 +13,24 @@
 
 #include "celeritas_test.hh"
 
-using UnitIndexer = celeritas::detail::UnitIndexer;
+using UniverseIndexer = celeritas::detail::UniverseIndexer;
 
 namespace celeritas
 {
 namespace test
 {
-class UnitIndexerTest : public Test
+class UniverseIndexerTest : public Test
 {
   public:
     using CollectionHostRef
-        = UnitIndexerData<Ownership::const_reference, MemSpace::host>;
+        = UniverseIndexerData<Ownership::const_reference, MemSpace::host>;
     using VecSize = std::vector<size_type>;
 
     CollectionHostRef const& host_ref() const { return data_.host(); }
 
     void set_data(VecSize surfaces, VecSize volumes)
     {
-        UnitIndexerData<Ownership::value, MemSpace::host> data;
+        UniverseIndexerData<Ownership::value, MemSpace::host> data;
 
         auto cb_s = make_builder(&data.surfaces);
         cb_s.insert_back(surfaces.begin(), surfaces.end());
@@ -38,19 +38,19 @@ class UnitIndexerTest : public Test
         auto cb_v = make_builder(&data.volumes);
         cb_v.insert_back(volumes.begin(), volumes.end());
 
-        data_ = CollectionMirror<UnitIndexerData>{std::move(data)};
+        data_ = CollectionMirror<UniverseIndexerData>{std::move(data)};
     }
 
   protected:
-    CollectionMirror<UnitIndexerData> data_;
+    CollectionMirror<UniverseIndexerData> data_;
 };
 
 //---------------------------------------------------------------------------//
 
-TEST_F(UnitIndexerTest, single)
+TEST_F(UniverseIndexerTest, single)
 {
     this->set_data({0, 4}, {0, 10});
-    UnitIndexer indexer(this->host_ref());
+    UniverseIndexer indexer(this->host_ref());
 
     EXPECT_EQ(1, indexer.num_universes());
     EXPECT_EQ(4, indexer.num_surfaces());
@@ -81,10 +81,10 @@ TEST_F(UnitIndexerTest, single)
     EXPECT_EQ(LocalVolumeId(3), local_v.volume);
 }
 
-TEST_F(UnitIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
+TEST_F(UniverseIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
     this->set_data({0, 4}, {0, 10});
-    UnitIndexer indexer(this->host_ref());
+    UniverseIndexer indexer(this->host_ref());
 
     EXPECT_THROW(indexer.global_surface(UniverseId{0}, LocalSurfaceId{4}),
                  DebugError);
@@ -99,7 +99,7 @@ TEST_F(UnitIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
     EXPECT_THROW(indexer.local_volume(VolumeId(10)), DebugError);
 }
 
-TEST_F(UnitIndexerTest, multi)
+TEST_F(UniverseIndexerTest, multi)
 {
     // One universe has zero surfaces
     const std::vector<size_type> surfaces_per_uni{4, 1, 0, 1};
@@ -109,7 +109,7 @@ TEST_F(UnitIndexerTest, multi)
     std::vector<size_type> volumes = {0, 1, 2, 3, 5};
 
     this->set_data(surfaces, volumes);
-    UnitIndexer indexer(this->host_ref());
+    UniverseIndexer indexer(this->host_ref());
 
     EXPECT_EQ(6, indexer.num_surfaces());
     EXPECT_EQ(5, indexer.num_volumes());

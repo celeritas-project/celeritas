@@ -35,8 +35,10 @@ void CaloTestBase::SetUp()
 
     StepCollector::VecInterface interfaces = {example_calos_};
 
-    collector_ = std::make_shared<StepCollector>(
-        std::move(interfaces), this->geometry(), this->action_reg().get());
+    collector_ = std::make_shared<StepCollector>(std::move(interfaces),
+                                                 this->geometry(),
+                                                 /* num_streams = */ 1,
+                                                 this->action_reg().get());
 }
 
 //---------------------------------------------------------------------------//

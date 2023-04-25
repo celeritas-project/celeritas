@@ -36,7 +36,7 @@ class UnitInserter
     // Construct from full parameter data
     UnitInserter(Data* orange_data);
 
-    // Create a simple unit and return its ID
+    // Create a simple unit and store in in OrangeParamsData
     SimpleUnitId operator()(UnitInput const& inp);
 
   private:
@@ -51,7 +51,7 @@ class UnitInserter
     insert_volume(SurfacesRecord const& unit, VolumeInput const& v);
 
     void process_daughter(VolumeRecord* vol_record,
-                          UnitInput::Daughter const& daughter_input);
+                          DaughterInput const& daughter_input);
 };
 
 //---------------------------------------------------------------------------//

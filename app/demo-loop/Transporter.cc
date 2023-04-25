@@ -9,7 +9,6 @@
 
 #include <csignal>
 #include <memory>
-#include <type_traits>
 #include <utility>
 
 #include "corecel/Assert.hh"
@@ -19,6 +18,7 @@
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/grid/VectorUtils.hh"
@@ -39,18 +39,16 @@ namespace
 // HELPER CLASSES AND FUNCTIONS
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-using MemTag = std::integral_constant<MemSpace, M>;
-
-DiagnosticStore::VecUPDiag<MemSpace::host>&
-get_diag_ref(DiagnosticStore& params, MemTag<MemSpace::host>)
+decltype(auto) get_diag_ref(DiagnosticStore& params)
 {
-    return params.host;
-}
-
-DiagnosticStore::VecUPDiag<MemSpace::device>&
-get_diag_ref(DiagnosticStore& params, MemTag<MemSpace::device>)
-{
-    return params.device;
+    if constexpr (M == MemSpace::host)
+    {
+        return (params.host);
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        return (params.device);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -124,24 +122,24 @@ TransporterBase::~TransporterBase() = default;
  * Construct from persistent problem data.
  */
 template<MemSpace M>
-Transporter<M>::Transporter(TransporterInput inp)
+Transporter<M>::Transporter(TransporterInput inp) : max_steps_(inp.max_steps)
 {
-    TransporterBase::input_ = std::move(inp);
-    CELER_EXPECT(input_);
+    CELER_EXPECT(inp);
 
-    CoreParams const& params = *input_.params;
+    CoreParams const& params = *inp.params;
 
     // Create diagnostics
-    if (input_.enable_diagnostics)
+    // TODO: these should be actions with StreamStores
+    if (inp.enable_diagnostics)
     {
         diagnostics_ = std::make_shared<DiagnosticStore>();
-        auto& diag = get_diag_ref(*diagnostics_, MemTag<M>{});
+        auto& diag = get_diag_ref<M>(*diagnostics_);
         diag.push_back(std::make_unique<StepDiagnostic<M>>(
-            get_ref<M>(params), params.particle(), input_.num_track_slots, 200));
+            get_ref<M>(params), params.particle(), inp.num_track_slots, 200));
         diag.push_back(std::make_unique<ParticleProcessDiagnostic<M>>(
             get_ref<M>(params), params.particle(), params.physics()));
         {
-            auto const& ediag = input_.energy_diag;
+            auto const& ediag = inp.energy_diag;
             CELER_VALIDATE(ediag.axis >= 'x' && ediag.axis <= 'z',
                            << "Invalid axis '" << ediag.axis
                            << "' (must be x, y, or z)");
@@ -155,6 +153,14 @@ Transporter<M>::Transporter(TransporterInput inp)
         params.action_reg()->insert(std::make_shared<DiagnosticActionAdapter>(
             diagnostic_action_, diagnostics_));
     }
+
+    // Create stepper
+    StepperInput step_input;
+    step_input.params = inp.params;
+    step_input.num_track_slots = inp.num_track_slots;
+    step_input.stream_id = inp.stream_id;
+    step_input.sync = inp.sync;
+    stepper_ = std::make_shared<Stepper<M>>(std::move(step_input));
 }
 
 //---------------------------------------------------------------------------//
@@ -162,19 +168,12 @@ Transporter<M>::Transporter(TransporterInput inp)
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
+RunnerResult Transporter<M>::operator()(SpanConstPrimary primaries)
 {
     Stopwatch get_transport_time;
 
     // Initialize results
     TransporterResult result;
-    if (input_.max_steps != input_.no_max_steps())
-    {
-        result.time.steps.reserve(input_.max_steps);
-        result.initializers.reserve(input_.max_steps);
-        result.active.reserve(input_.max_steps);
-        result.alive.reserve(input_.max_steps);
-    }
     auto append_track_counts = [&result](StepperResult const& track_counts) {
         result.initializers.push_back(track_counts.queued);
         result.active.push_back(track_counts.active);
@@ -185,17 +184,10 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
     CELER_LOG(status) << "Transporting";
 
-    StepperInput input;
-    input.params = input_.params;
-    input.num_track_slots = input_.num_track_slots;
-    // TODO: change when doing multithreading on the front end
-    input.stream_id = StreamId{0};
-    input.sync = input_.sync;
-    Stepper<M> step(std::move(input));
-
     Stopwatch get_step_time;
-    size_type remaining_steps = input_.max_steps;
+    size_type remaining_steps = max_steps_;
 
+    auto& step = *stepper_;
     // Copy primaries to device and transport the first step
     auto track_counts = step(primaries);
     append_track_counts(track_counts);
@@ -205,7 +197,7 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
     {
         if (CELER_UNLIKELY(--remaining_steps == 0))
         {
-            CELER_LOG(error) << "Exceeded step count of " << input_.max_steps
+            CELER_LOG(error) << "Exceeded step count of " << max_steps_
                              << ": aborting transport loop";
             break;
         }
@@ -224,9 +216,9 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
     }
 
     // Save kernel timing if host or synchronization is enabled
-    if (M == MemSpace::host || input_.sync)
+    auto const& action_seq = step.actions();
+    if (M == MemSpace::host || action_seq.sync())
     {
-        auto const& action_seq = step.actions();
         auto const& action_ptrs = action_seq.actions();
         auto const& times = action_seq.accum_time();
 
@@ -242,7 +234,7 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
     {
         CELER_LOG(status) << "Finalizing diagnostic data";
         // Collect results from diagnostics
-        for (auto& diagnostic : get_diag_ref(*diagnostics_, MemTag<M>{}))
+        for (auto& diagnostic : get_diag_ref<M>(*diagnostics_))
         {
             diagnostic->get_result(&result);
         }

@@ -79,9 +79,10 @@ auto Environment::load_from_getenv(key_type const& key) -> mapped_type const&
     CELER_ENSURE(ordered_.size() == vars_.size());
     return iter->second;
 }
+
 //---------------------------------------------------------------------------//
 /*!
- * Set environment variables en masse.
+ * Set a single environment variable that hasn't yet been set.
  *
  * Existing environment variables will *not* be overwritten.
  */
@@ -93,6 +94,28 @@ void Environment::insert(value_type const& value)
         ordered_.push_back(std::ref(*iter));
     }
     CELER_ENSURE(ordered_.size() == vars_.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Remove all entries.
+ */
+void Environment::clear()
+{
+    vars_.clear();
+    ordered_.clear();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert but don't override from another environment.
+ */
+void Environment::merge(Environment const& other)
+{
+    for (auto const& kv : other.ordered_environment())
+    {
+        this->insert(kv);
+    }
 }
 
 //---------------------------------------------------------------------------//

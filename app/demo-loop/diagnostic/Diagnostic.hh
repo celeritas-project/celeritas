@@ -15,10 +15,12 @@ using celeritas::Ownership;
 
 namespace demo_loop
 {
-struct TransporterResult;
+struct RunnerResult;
 //---------------------------------------------------------------------------//
 /*!
  * Interface for on-device data access at different stages of a simulation.
+ *
+ * \deprecated This must be replaced with actions and step collectors.
  */
 template<MemSpace M>
 class Diagnostic
@@ -35,7 +37,7 @@ class Diagnostic
     virtual void mid_step(ParamsRef const&, StateRef const&) {}
 
     // Collect results from diagnostic
-    virtual void get_result(TransporterResult*) {}
+    virtual void get_result(RunnerResult*) {}
 };
 
 //---------------------------------------------------------------------------//

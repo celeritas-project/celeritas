@@ -104,6 +104,9 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
     {
         if (secondary)
         {
+            CELER_ASSERT(secondary.energy > zero_quantity()
+                         && is_soft_unit_vector(secondary.direction));
+
             // Particles should not be making secondaries while crossing a
             // surface
             GeoTrackView geo(params_.geometry, states_.geometry, tid);
@@ -128,6 +131,7 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
             ti.geo.dir = secondary.direction;
             ti.particle.particle_id = secondary.particle_id;
             ti.particle.energy = secondary.energy;
+            CELER_ASSERT(ti);
 
             if (!initialized && sim.status() != TrackStatus::alive)
             {
