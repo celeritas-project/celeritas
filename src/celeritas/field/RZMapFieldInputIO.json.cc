@@ -3,21 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/RZFieldInputIO.json.cc
+//! \file celeritas/field/RZMapFieldInputIO.json.cc
 //---------------------------------------------------------------------------//
-#include "RZFieldInputIO.json.hh"
+#include "RZMapFieldInputIO.json.hh"
 
-#include "RZFieldInput.hh"
+#include "RZMapFieldInput.hh"
 
 namespace celeritas
-{
-namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
  * Read field from JSON.
  */
-void from_json(nlohmann::json const& j, RZFieldInput& inp)
+void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
 {
 #define RZFI_LOAD(NAME) j.at(#NAME).get_to(inp.NAME)
     RZFI_LOAD(num_grid_z);
@@ -33,7 +31,7 @@ void from_json(nlohmann::json const& j, RZFieldInput& inp)
 /*!
  * Write field to JSON.
  */
-void to_json(nlohmann::json& j, RZFieldInput const& inp)
+void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
 {
 #define RZFI_KEY_VALUE(NAME) {#NAME, inp.NAME}
     j = {
@@ -49,7 +47,7 @@ void to_json(nlohmann::json& j, RZFieldInput const& inp)
 
 //---------------------------------------------------------------------------//
 // Helper to read the field from a file or stream.
-std::istream& operator>>(std::istream& is, RZFieldInput& inp)
+std::istream& operator>>(std::istream& is, RZMapFieldInput& inp)
 {
     auto j = nlohmann::json::parse(is);
     j.get_to(inp);
@@ -58,7 +56,7 @@ std::istream& operator>>(std::istream& is, RZFieldInput& inp)
 
 //---------------------------------------------------------------------------//
 // Helper to write the field to a file or stream.
-std::ostream& operator<<(std::ostream& os, RZFieldInput const& inp)
+std::ostream& operator<<(std::ostream& os, RZMapFieldInput const& inp)
 {
     nlohmann::json j = inp;
     os << j.dump(0);
@@ -66,5 +64,4 @@ std::ostream& operator<<(std::ostream& os, RZFieldInput const& inp)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

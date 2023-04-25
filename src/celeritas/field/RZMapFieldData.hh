@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/FieldMapData.hh
+//! \file celeritas/field/RZMapFieldData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,8 +12,6 @@
 #include "corecel/data/Collection.hh"
 
 namespace celeritas
-{
-namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -42,7 +40,7 @@ struct FieldMapElement
  * Device data for interpolating field values.
  */
 template<Ownership W, MemSpace M>
-struct FieldMapData
+struct RZMapFieldParamsData
 {
     //! Parameters of FieldMap
     FieldMapParameters params;
@@ -72,7 +70,7 @@ struct FieldMapData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    FieldMapData& operator=(FieldMapData<W2, M2> const& other)
+    RZMapFieldParamsData& operator=(RZMapFieldParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         params = other.params;
@@ -82,5 +80,4 @@ struct FieldMapData
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

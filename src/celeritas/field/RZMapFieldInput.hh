@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/RZFieldInput.hh
+//! \file celeritas/field/RZMapFieldInput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,8 +13,6 @@
 #include "celeritas_config.h"
 
 namespace celeritas
-{
-namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -26,7 +24,7 @@ namespace test
  *
  * The field values are all indexed with R having stride 1: [Z][R]
  */
-struct RZFieldInput
+struct RZMapFieldInput
 {
     unsigned int num_grid_z{};
     unsigned int num_grid_r{};
@@ -42,30 +40,29 @@ struct RZFieldInput
  *
  * Example to read from a file:
  * \code
-   RZFieldInput inp;
+   RZMapFieldInput inp;
    std::ifstream("foo.json") >> inp;
  * \endcode
  */
-std::istream& operator>>(std::istream& is, RZFieldInput&);
+std::istream& operator>>(std::istream& is, RZMapFieldInput&);
 
 //---------------------------------------------------------------------------//
 /*!
  * Helper to write the field to a file or stream.
  */
-std::ostream& operator<<(std::ostream& os, RZFieldInput const&);
+std::ostream& operator<<(std::ostream& os, RZMapFieldInput const&);
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_JSON
-inline std::istream& operator>>(std::istream&, RZFieldInput&)
+inline std::istream& operator>>(std::istream&, RZMapFieldInput&)
 {
     CELER_NOT_CONFIGURED("JSON");
 }
-inline std::ostream& operator<<(std::ostream&, RZFieldInput const&)
+inline std::ostream& operator<<(std::ostream&, RZMapFieldInput const&)
 {
     CELER_NOT_CONFIGURED("JSON");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

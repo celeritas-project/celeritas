@@ -3,22 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/MagFieldMap.cc
+//! \file celeritas/field/RZMapFieldParams.cc
 //---------------------------------------------------------------------------//
-#include "MagFieldMap.hh"
+#include "RZMapFieldParams.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/Units.hh"
+
+#include "RZMapFieldInput.hh"
 
 namespace celeritas
-{
-namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a user-defined field map.
  */
-MagFieldMap::MagFieldMap(RZFieldInput const& inp)
+RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
 {
     CELER_VALIDATE(inp.num_grid_z >= 2,
                    << "invalid field parameter (num_grid_z=" << inp.num_grid_z
@@ -39,7 +40,7 @@ MagFieldMap::MagFieldMap(RZFieldInput const& inp)
         << "): should be " << inp.field_z.size());
 
     auto host_data = [&inp] {
-        HostVal<FieldMapData> host;
+        HostVal<RZMapFieldParamsData> host;
 
         host.params.num_grid_r = inp.num_grid_r;
         host.params.num_grid_z = inp.num_grid_z;
@@ -50,19 +51,19 @@ MagFieldMap::MagFieldMap(RZFieldInput const& inp)
         fieldmap.reserve(inp.field_z.size());
         for (auto i : range(inp.field_z.size()))
         {
+            // Save field vector, converting from Tesla to native units
             FieldMapElement el;
-            el.value_z = inp.field_z[i];
-            el.value_r = inp.field_r[i];
+            el.value_z = inp.field_z[i] * units::tesla;
+            el.value_r = inp.field_r[i] * units::tesla;
             fieldmap.push_back(el);
         }
         return host;
     }();
 
     // Move to mirrored data, copying to device
-    mirror_ = CollectionMirror<FieldMapData>{std::move(host_data)};
+    mirror_ = CollectionMirror<RZMapFieldParamsData>{std::move(host_data)};
     CELER_ENSURE(this->mirror_);
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas
