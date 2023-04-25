@@ -115,7 +115,8 @@ TEST_F(RZMapFieldTest, all)
         Real3 field = calc_field(Real3{i * delta_r, i * delta_r, i * delta_z});
         for (real_type f : field)
         {
-            actual.push_back(f);
+            // Reference result is in [T]: convert from native units
+            actual.push_back(f / units::tesla);
         }
     }
 
@@ -143,7 +144,7 @@ TEST_F(RZMapFieldTest, all)
                                                0.016614892251046,
                                                0.016614892251046,
                                                3.757196366787};
-    EXPECT_VEC_SOFT_EQ(expected_field, actual);
+    EXPECT_VEC_NEAR(expected_field, actual, 1e-7);
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

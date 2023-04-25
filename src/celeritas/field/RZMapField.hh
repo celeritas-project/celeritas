@@ -54,7 +54,11 @@ RZMapField::RZMapField(FieldParamsRef const& params) : params_(params) {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Retrieve the magnetic field value (in tesla) for the given position.
+ * Calculate the magnetic field vector for the given position.
+ *
+ * This does a 2-D interpolation on the input grid and reconstructs the
+ * magnetic field vector from the stored R and Z components of the field. The
+ * result is in the native Celeritas unit system.
  */
 CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
 {

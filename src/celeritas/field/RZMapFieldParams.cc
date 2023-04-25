@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/Units.hh"
 
 #include "RZMapFieldInput.hh"
 
@@ -50,9 +51,10 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
         fieldmap.reserve(inp.field_z.size());
         for (auto i : range(inp.field_z.size()))
         {
+            // Save field vector, converting from Tesla to native units
             FieldMapElement el;
-            el.value_z = inp.field_z[i];
-            el.value_r = inp.field_r[i];
+            el.value_z = inp.field_z[i] * units::tesla;
+            el.value_r = inp.field_r[i] * units::tesla;
             fieldmap.push_back(el);
         }
         return host;
