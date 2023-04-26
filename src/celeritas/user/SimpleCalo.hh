@@ -46,9 +46,9 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
     //!@{
     //! \name Step interface
-    // Selection of data required for this interface
+    // Map volume names to detector IDs and exclude tracks with no deposition
     Filters filters() const final;
-    // Selection of data required for this interface
+    // Save energy deposition and pre-step volume
     StepSelection selection() const final;
     // Process CPU-generated hits
     void process_steps(HostStepState) final;

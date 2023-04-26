@@ -422,6 +422,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) const
 template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) -> SpanT
 {
+    CELER_EXPECT(*ps.begin() <= *ps.end());
     CELER_EXPECT(*ps.end() < this->size() + 1);
     typename CollectionTraitsT::pointer data = this->storage().data();
     return {data + ps.begin()->unchecked_get(),

@@ -38,7 +38,7 @@ struct Copier
     Span<T> dst;
     static constexpr auto dstmem = M;
 
-    inline void operator()(MemSpace dstmem, Span<T const> src) const;
+    inline void operator()(MemSpace srcmem, Span<T const> src) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -51,7 +51,7 @@ void copy_bytes(MemSpace dstmem,
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy data to the given destination and memory space.
+ * Copy data from the given source and memory space.
  */
 template<class T, MemSpace M>
 void Copier<T, M>::operator()(MemSpace srcmem, Span<T const> src) const

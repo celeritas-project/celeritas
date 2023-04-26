@@ -153,18 +153,6 @@ SimpleCalo::SimpleCalo(VecLabel labels,
 /*!
  * Map volume names to detector IDs and exclude tracks with no deposition.
  */
-auto SimpleCalo::selection() const -> StepSelection
-{
-    StepSelection result;
-    result.energy_deposition = true;
-    result.points[StepPoint::pre].volume_id = true;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Map volume names to detector IDs and exclude tracks with no deposition.
- */
 auto SimpleCalo::filters() const -> Filters
 {
     Filters result;
@@ -175,6 +163,18 @@ auto SimpleCalo::filters() const -> Filters
     }
     result.nonzero_energy_deposition = true;
 
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Only save energy deposition and pre-step volume.
+ */
+auto SimpleCalo::selection() const -> StepSelection
+{
+    StepSelection result;
+    result.energy_deposition = true;
+    result.points[StepPoint::pre].volume_id = true;
     return result;
 }
 

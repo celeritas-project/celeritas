@@ -33,7 +33,8 @@ namespace celeritas
    StreamStore<FooParams, FooState> store{host_val, num_streams};
    assert(store);
 
-   execute_kernel(store.params(), store.state<Memspace::host>(StreamId{0}))
+   execute_kernel(store.params(), store.state<Memspace::host>(StreamId{0},
+ state_size))
 
    if (auto* state = store.state<Memspace::device>(StreamId{1}))
    {
