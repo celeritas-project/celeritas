@@ -117,7 +117,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     step(make_span(primaries));
     auto check_is_partitioned = [&step] {
         // copy to host
-        auto core_ref = step.core_data();
+        auto const& core_ref = step.core_data();
         Collection<TrackSlotId::size_type, Ownership::value, MemSpace::host, ThreadId>
             track_slots;
         track_slots = core_ref.states.track_slots;

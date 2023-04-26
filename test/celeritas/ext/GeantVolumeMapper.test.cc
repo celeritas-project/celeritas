@@ -12,23 +12,24 @@
 #include <vector>
 
 #include "celeritas_config.h"
+#include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/geo/GeoParams.hh"
 
 #include "celeritas_test.hh"
 
 #if CELERITAS_USE_GEANT4
 #    include <G4LogicalVolume.hh>
-#    include <G4LogicalVolumeStore.hh>
 #    include <G4Material.hh>
 #    include <G4NistManager.hh>
 #    include <G4Orb.hh>
 #    include <G4PVPlacement.hh>
-#    include <G4PhysicalVolumeStore.hh>
-#    include <G4SolidStore.hh>
 #    include <G4SubtractionSolid.hh>
 #    include <G4ThreeVector.hh>
 #    include <G4VPhysicalVolume.hh>
 #    include <G4VSolid.hh>
+#endif
+#if CELERITAS_USE_VECGEOM
+#    include "celeritas/ext/VecgeomParams.hh"
 #endif
 
 #include "corecel/io/Logger.hh"
@@ -78,11 +79,10 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
     // Clean up geometry at destruction
     void TearDown() override
     {
-#if CELERITAS_USE_GEANT4
-        G4PhysicalVolumeStore::Clean();
-        G4LogicalVolumeStore::Clean();
-        G4SolidStore::Clean();
-#endif
+        if (CELERITAS_USE_GEANT4)
+        {
+            reset_geant_geometry();
+        }
         geo_params_.reset();
     }
 
@@ -95,14 +95,9 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
         }
         CELER_ASSERT(!logical_.empty());
 
-        if (CELERITAS_USE_VECGEOM)
-        {
-            this->build_vecgeom();
-        }
-        else
-        {
-            this->build_orange();
-        }
+        this->build_vecgeom();
+        this->build_orange();
+
         CELER_ENSURE(geo_params_);
     }
 
@@ -172,7 +167,14 @@ void NestedTest::build_g4()
 void NestedTest::build_vecgeom()
 {
     CELER_EXPECT(!physical_.empty());
-    geo_params_ = std::make_shared<GeoParams>(physical_.front());
+#if CELERITAS_USE_VECGEOM
+    auto geo = std::make_shared<VecgeomParams>(physical_.front());
+#else
+    [[maybe_unused]] int geo;
+#endif
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+    geo_params_ = std::move(geo);
+#endif
 }
 
 void NestedTest::build_orange()
@@ -213,12 +215,11 @@ void NestedTest::build_orange()
     input.max_level = 1;
     input.universes.push_back(std::move(ui));
     auto geo = std::make_shared<OrangeParams>(std::move(input));
-#if !CELERITAS_USE_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
     geo_params_ = std::move(geo);
 #else
     (void)sizeof(geo);
 #endif
-    CELER_ENSURE(geo_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -235,7 +236,7 @@ class IntersectionTest : public GeantVolumeMapperTestBase
     bool suffix_{false};
 };
 
-#if !CELERITAS_USE_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    define SKIP_IF_ORANGE(NAME) DISABLED_##NAME
 #else
 #    define SKIP_IF_ORANGE(NAME) NAME
@@ -257,11 +258,7 @@ TEST_F(NestedTest, unique)
         EXPECT_EQ(names_[i], geo_params_->id_to_label(vol_id).name);
     }
 
-    if (CELERITAS_USE_VECGEOM)
-    {
-        EXPECT_EQ(0, messages_.size());
-    }
-    else
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         static std::string const expected_messages[]
             = {"Failed to exactly match ORANGE volume from Geant4 volume "
@@ -273,6 +270,10 @@ TEST_F(NestedTest, unique)
                "Failed to exactly match ORANGE volume from Geant4 volume "
                "'inner'; found 'inner@global' by omitting the extension"};
         EXPECT_VEC_EQ(expected_messages, messages_);
+    }
+    else
+    {
+        EXPECT_EQ(0, messages_.size());
     }
 }
 

@@ -88,7 +88,7 @@ VolumeId find_volume_fuzzy(GeoParams const& geo, Label const& label)
         if (!label.ext.empty())
         {
             CELER_LOG(warning)
-                << "Failed to exactly match " << celeritas_geometry
+                << "Failed to exactly match " << celeritas_core_geo
                 << " volume from volume '" << label << "'; found '"
                 << geo.id_to_label(all_ids.front())
                 << "' by omitting the extension";
@@ -137,7 +137,7 @@ SimpleCalo::SimpleCalo(VecLabel labels,
         }
     }
     CELER_VALIDATE(missing.empty(),
-                   << "failed to find " << celeritas_geometry
+                   << "failed to find " << celeritas_core_geo
                    << " volume(s) for labels '"
                    << join(missing.begin(), missing.end(), "', '"));
 

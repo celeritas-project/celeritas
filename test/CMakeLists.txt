@@ -231,11 +231,6 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 # CELERITAS TESTS
 #-----------------------------------------------------------------------------#
 
-set(_extra_sources)
-if(CELERITAS_USE_JSON)
-  list(APPEND _extra_sources "celeritas/field/RZFieldInputIO.json.cc")
-endif()
-
 celeritas_add_library(testcel_celeritas
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
@@ -255,7 +250,6 @@ celeritas_add_library(testcel_celeritas
   celeritas/user/ExampleMctruth.cc
   celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
-  ${_extra_sources}
 )
 celeritas_target_link_libraries(testcel_celeritas
   PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link}
@@ -293,22 +287,8 @@ celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
 set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
-  set(_vg_geant)
-  if(CELERITAS_USE_Geant4)
-    set(_vg_geant
-      ${_needs_geant4}
-      FILTER
-        "-*Geant*"
-        "FourLevelsGeantTest.*"
-        "SolidsGeantTest.*"
-    )
-  else()
-    set(_vg_geant ${_optional_geant4_env})
-  endif()
-
   celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom
-    ${_vg_geant}
   )
 endif()
 
@@ -329,11 +309,7 @@ celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 # Field
 set(CELERITASTEST_PREFIX celeritas/field)
 
-
-celeritas_add_test(celeritas/field/Fields.test.cc
-SOURCES
-  celeritas/field/MagFieldMap.cc
-)
+celeritas_add_test(celeritas/field/Fields.test.cc)
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
 celeritas_add_test(celeritas/field/FieldPropagator.test.cc ${_needs_geo})
@@ -349,8 +325,10 @@ set(_geo_args GPU ${_needs_geo}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
 endif()
-if(CELERITAS_USE_VecGeom)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
+else()
+  list(APPEND _geo_args LINK_LIBRARIES Celeritas::orange)
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 

@@ -8,13 +8,13 @@
 #include <fstream>
 
 #include "corecel/cont/Range.hh"
+#include "celeritas/field/RZMapField.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
 
-#include "CMSMapField.hh"
 #include "CMSParameterizedField.hh"
-#include "FieldMapData.hh"
-#include "MagFieldMap.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -87,22 +87,22 @@ TEST(CMSParameterizedFieldTest, all)
     EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 
-class CMSMapFieldTest : public ::celeritas::test::Test
+class RZMapFieldTest : public ::celeritas::test::Test
 {
 };
 
-TEST_F(CMSMapFieldTest, all)
+TEST_F(RZMapFieldTest, all)
 {
-    MagFieldMap field_map = [this] {
+    RZMapFieldParams field_map = [this] {
         // Read input file from JSON
-        RZFieldInput inp;
+        RZMapFieldInput inp;
         auto filename
             = this->test_data_path("celeritas", "cms-tiny.field.json");
         std::ifstream(filename) >> inp;
-        return MagFieldMap(inp);
+        return RZMapFieldParams(inp);
     }();
 
-    CMSMapField calc_field(field_map.host_ref());
+    RZMapField calc_field(field_map.host_ref());
 
     int const nsamples = 8;
     real_type delta_z = 25.0;
@@ -115,6 +115,7 @@ TEST_F(CMSMapFieldTest, all)
         Real3 field = calc_field(Real3{i * delta_r, i * delta_r, i * delta_z});
         for (real_type f : field)
         {
+            // Reference result is in [T]: convert from native units
             actual.push_back(f / units::tesla);
         }
     }
@@ -143,7 +144,7 @@ TEST_F(CMSMapFieldTest, all)
                                                0.016614892251046,
                                                0.016614892251046,
                                                3.757196366787};
-    EXPECT_VEC_SOFT_EQ(expected_field, actual);
+    EXPECT_VEC_NEAR(expected_field, actual, 1e-7);
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

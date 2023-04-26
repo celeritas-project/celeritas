@@ -429,7 +429,7 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
 
     if (this->is_ci_build())
     {
-        if (CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
         {
             EXPECT_EQ(66, result.num_step_iters());
             EXPECT_SOFT_EQ(56.125, result.calc_avg_steps_per_primary());

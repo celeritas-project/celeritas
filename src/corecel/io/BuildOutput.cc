@@ -48,8 +48,9 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_SAVE_CFG(CELERITAS_LAUNCH_BOUNDS);
 #    undef CO_SAVE_CFG
         cfg["CELERITAS_BUILD_TYPE"] = celeritas_build_type;
+        cfg["CELERITAS_CORE_GEO"] = celeritas_core_geo;
         cfg["CELERITAS_HOSTNAME"] = celeritas_hostname;
-        cfg["CELERITAS_RNG"] = celeritas_rng;
+        cfg["CELERITAS_CORE_RNG"] = celeritas_core_rng;
         if constexpr (CELERITAS_USE_GEANT4)
         {
             cfg["CLHEP_VERSION"] = celeritas_clhep_version;

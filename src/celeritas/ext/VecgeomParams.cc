@@ -50,7 +50,7 @@ VecgeomParams::VecgeomParams(std::string const& filename)
 
     ScopedMem record_mem("VecgeomParams.construct");
     {
-        ScopedMem record_mem("VecgeomParams.load_gdml");
+        ScopedMem record_mem("VecgeomParams.load_geant_geometry");
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
         vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
     }

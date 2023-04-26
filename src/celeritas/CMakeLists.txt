@@ -49,6 +49,8 @@ list(APPEND SOURCES
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
+  field/RZMapFieldParams.cc
+  field/RZMapFieldInputIO.json.cc
   geo/GeoMaterialParams.cc
   geo/GeoParamsOutput.cc
   global/ActionInterface.cc
@@ -100,7 +102,7 @@ list(APPEND SOURCES
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_RNG STREQUAL "CURAND")
+if(CELERITAS_CORE_RNG STREQUAL "CURAND")
   list(APPEND PUBLIC_DEPS Celeritas::DeviceToolkit)
 endif()
 
@@ -112,7 +114,7 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
-    ext/LoadGdml.cc
+    ext/GeantGeoUtils.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
@@ -132,8 +134,6 @@ if(CELERITAS_USE_Geant4)
       ext/detail/GeantGeoConverter.cc
     )
     list(APPEND _cg4_libs VecGeom::vecgeom)
-  else()
-    list(APPEND _cg4_libs Celeritas::orange)
   endif()
 
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
@@ -241,7 +241,9 @@ if(CELERITAS_USE_VecGeom)
   # to resolve the symbols generate by the `nvcc -dlink` of
   # one of the executable.
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
-else()
+endif()
+
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   list(APPEND PUBLIC_DEPS Celeritas::orange)
 endif()
 
