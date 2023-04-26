@@ -11,6 +11,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/io/LogContextException.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -80,11 +81,13 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         auto const& prestep_action
             = dynamic_cast<ExplicitActionInterface const&>(
                 *am.action(prestep_action_id));
-        prestep_action.execute(core_params, core_states);
+        CELER_TRY_HANDLE(prestep_action.execute(core_params, core_states),
+                         log_context_exception);
 
         // Call along-step action
         auto const& along_step = *this->along_step();
-        along_step.execute(core_params, core_states);
+        CELER_TRY_HANDLE(along_step.execute(core_params, core_states),
+                         log_context_exception);
     }
 
     // Process output

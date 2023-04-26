@@ -13,6 +13,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/io/LogContextException.hh"
 #include "celeritas/SimpleTestBase.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -458,7 +459,8 @@ TEST_F(TrackInitSecondaryTest, secondaries_action)
     const size_type num_iter = 4;
     for ([[maybe_unused]] size_type i : range(num_iter))
     {
-        actions_.execute(core_params, core_state);
+        CELER_TRY_HANDLE(actions_.execute(core_params, core_state),
+                         log_context_exception);
         auto result = get_result(core_state);
 
         // Slots 5 and 6 are always vacant because these tracks are killed with

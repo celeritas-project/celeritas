@@ -20,6 +20,7 @@ list(APPEND SOURCES
   io/ColorUtils.cc
   io/ExceptionOutput.cc
   io/Label.cc
+  io/LogContextException.cc
   io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
