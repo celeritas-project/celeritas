@@ -64,6 +64,7 @@ void CaloTestBase::RunResult::print_expected() const
 /*!
  * Run a number of tracks.
  */
+template<MemSpace M>
 auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
 {
     StepperInput step_inp;
@@ -71,7 +72,7 @@ auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
     step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_tracks;
 
-    Stepper<MemSpace::host> step(step_inp);
+    Stepper<M> step(step_inp);
 
     // Initial step
     auto primaries = this->make_primaries(num_tracks);
@@ -88,6 +89,7 @@ auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
 
     return result;
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Get output from the example calorimeter.
@@ -97,6 +99,12 @@ std::string CaloTestBase::output() const
     // See OutputInterface.hh
     return to_string(*calo_);
 }
+
+//---------------------------------------------------------------------------//
+template CaloTestBase::RunResult
+    CaloTestBase::run<MemSpace::device>(size_type, size_type);
+template CaloTestBase::RunResult
+    CaloTestBase::run<MemSpace::host>(size_type, size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

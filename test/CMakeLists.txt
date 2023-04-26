@@ -467,7 +467,7 @@ celeritas_add_device_test(celeritas/track/TrackInit ${_needs_device})
 # User
 set(CELERITASTEST_PREFIX celeritas/user)
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
-celeritas_add_test(celeritas/user/StepCollector.test.cc ${_optional_geant4_env} ${_needs_geo})
+celeritas_add_test(celeritas/user/StepCollector.test.cc GPU ${_optional_geant4_env} ${_needs_geo})
 
 #-----------------------------------------------------------------------------#
 # ACCELERITAS TESTS

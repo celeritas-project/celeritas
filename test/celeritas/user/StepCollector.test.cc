@@ -225,7 +225,7 @@ TEST_F(KnMctruthTest, two_step)
 
 TEST_F(KnCaloTest, single_event)
 {
-    auto result = this->run(1, 64);
+    auto result = this->run<MemSpace::host>(1, 64);
 
     static double const expected_edep[] = {0.00043564799352598};
     EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
@@ -291,11 +291,18 @@ TEST_F(TestEm3MctruthTest, four_step)
 
 TEST_F(TestEm3CaloTest, thirtytwo_step)
 {
-    auto result = this->run(256, 32);
+    auto result = this->run<MemSpace::host>(256, 32);
 
-    PRINT_EXPECTED(result.edep);
     static double const expected_edep[]
         = {1548.8862372467, 113.80254412772, 32.259504023678};
+    EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+}
+
+TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
+{
+    auto result = this->run<MemSpace::device>(1024, 4);
+
+    static double const expected_edep[] = {1557.5843684091, 0, 0};
     EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
 }
 
