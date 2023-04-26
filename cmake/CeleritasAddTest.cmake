@@ -249,7 +249,7 @@ function(celeritas_add_test SOURCE_FILE)
     ${ARGN}
   )
   if(PARSE_UNPARSED_ARGUMENTS)
-    message(SEND_ERROR "Unknown keywords given to scale_add_regression_tests(): "
+    message(SEND_ERROR "Unknown keywords given to celeritas_add_test(): "
             "\"${PARSE_UNPARSED_ARGUMENTS}\"")
   endif()
 
@@ -262,7 +262,7 @@ function(celeritas_add_test SOURCE_FILE)
   endif()
 
   if(PARSE_INPUTS)
-    message(FATAL_ERROR "INPUTS argument to celeritas_add_test is not implemented" )
+    message(FATAL_ERROR "INPUTS argument to celeritas_add_test is not implemented")
   endif()
 
   if(NOT PARSE_NP)

@@ -11,8 +11,8 @@
 
 // IWYU pragma: begin_exports
 // Alias core RNG type using on compile-time RNG selection
-#if (CELERITAS_RNG == CELERITAS_RNG_CURAND) \
-    || (CELERITAS_RNG == CELERITAS_RNG_HIPRAND)
+#if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_CURAND) \
+    || (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_HIPRAND)
 #    include "CuHipRngData.hh"
 namespace celeritas
 {
@@ -21,7 +21,7 @@ using RngParamsData = CuHipRngParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using RngStateData = CuHipRngStateData<W, M>;
 }  // namespace celeritas
-#elif (CELERITAS_RNG == CELERITAS_RNG_XORWOW)
+#elif (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
 #    include "XorwowRngData.hh"
 namespace celeritas
 {

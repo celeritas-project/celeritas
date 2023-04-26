@@ -52,7 +52,7 @@ CELER_FORCEINLINE_FUNCTION int physid(celeritas::GeoTrackView const& geo)
 {
     if (geo.is_outside())
         return 0;
-#if CELERITAS_USE_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
     return geo.volume_physid();
 #else
     return geo.volume_id().get();
@@ -66,10 +66,10 @@ GCheckOutput run_cpu(SPConstGeo const& geo_params,
                      int max_steps);
 
 //! Run tracking on the GPU
-GCheckOutput run_gpu(GCheckInput init);
+GCheckOutput run_gpu(GCheckInput const& init);
 
 #if !CELERITAS_USE_CUDA
-inline GCheckOutput run_gpu(GCheckInput)
+inline GCheckOutput run_gpu(GCheckInput const&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

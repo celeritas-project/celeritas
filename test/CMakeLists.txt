@@ -288,22 +288,8 @@ celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
 set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
-  set(_vg_geant)
-  if(CELERITAS_USE_Geant4)
-    set(_vg_geant
-      ${_needs_geant4}
-      FILTER
-        "-*Geant*"
-        "FourLevelsGeantTest.*"
-        "SolidsGeantTest.*"
-    )
-  else()
-    set(_vg_geant ${_optional_geant4_env})
-  endif()
-
   celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom
-    ${_vg_geant}
   )
 endif()
 
@@ -340,8 +326,10 @@ set(_geo_args GPU ${_needs_geo}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
 endif()
-if(CELERITAS_USE_VecGeom)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
+else()
+  list(APPEND _geo_args LINK_LIBRARIES Celeritas::orange)
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 

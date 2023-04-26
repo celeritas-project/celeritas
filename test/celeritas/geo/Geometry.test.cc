@@ -165,7 +165,7 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 
 TEST_F(TestEm3Test, host)
 {
-    if (CELERITAS_USE_VECGEOM)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         EXPECT_TRUE(this->geometry()->supports_safety());
     }
@@ -210,7 +210,7 @@ TEST_F(SimpleCmsTest, output)
     {
         EXPECT_EQ(R"json("output unavailable")json", to_string(out));
     }
-    else if (CELERITAS_USE_VECGEOM)
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         EXPECT_EQ(
             R"json({"bbox":[[-1000.001,-1000.001,-2000.001],[1000.001,1000.001,2000.001]],"supports_safety":true,"surfaces":{"label":[]},"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",

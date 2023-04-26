@@ -9,21 +9,21 @@
 #pragma once
 
 #include "celeritas_config.h"
-#if CELERITAS_USE_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 #    include "celeritas/ext/VecgeomData.hh"
-#else
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeData.hh"
 #endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#if CELERITAS_USE_VECGEOM
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 template<Ownership W, MemSpace M>
 using GeoParamsData = VecgeomParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using GeoStateData = VecgeomStateData<W, M>;
-#else
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 template<Ownership W, MemSpace M>
 using GeoParamsData = OrangeParamsData<W, M>;
 template<Ownership W, MemSpace M>

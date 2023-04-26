@@ -11,7 +11,7 @@ cmake_policy(VERSION 3.12...3.22)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 find_package(Celeritas 0.3 REQUIRED)
 
-if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_Geant4)
+if(NOT CELERITAS_USE_Geant4 OR NOT (CELERITAS_CORE_GEO STREQUAL "VecGeom"))
   message(SEND_ERROR "This example requires VecGeom and Geant4 support "
     "to be enabled in Celeritas")
 endif()

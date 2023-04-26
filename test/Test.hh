@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <string>
+#include <string_view>
 #include <gtest/gtest.h>
 
 namespace celeritas
@@ -27,10 +28,11 @@ class Test : public ::testing::Test
     Test() = default;
 
     // Generate test-unique filename
-    std::string make_unique_filename(char const* ext = "");
+    std::string make_unique_filename(std::string_view ext = {});
 
     // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    static std::string test_data_path(char const* subdir, char const* filename);
+    static std::string
+    test_data_path(std::string_view subdir, std::string_view filename);
 
     // True if CELER_TEST_STRICT is set (under CI)
     static bool strict_testing();

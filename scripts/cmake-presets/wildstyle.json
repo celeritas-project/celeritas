@@ -63,8 +63,7 @@
       "displayName": "Everything in release mode",
       "inherits": [".ndebug", "vecgeom"],
       "cacheVariables": {
-        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_RNG": "XORWOW"
+        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -72,8 +71,7 @@
       "displayName": "Everything in release mode",
       "inherits": [".reldeb", "vecgeom"],
       "cacheVariables": {
-        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_RNG": "XORWOW"
+        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
