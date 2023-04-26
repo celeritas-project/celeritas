@@ -7,7 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 #include "CoreTrackData.hh"
 #include "detail/TrackLauncherImpl.hh"
@@ -16,19 +20,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return a function-like class to launch a "Track"-dependent function.
+ * Function-like class to launch a CoreTrackView-dependent function.
  *
  * This class should be used primarily by generated kernel functions:
  *
  * \code
-__global__ void foo_kernel(CoreDeviceRef const data)
+__global__ void foo_kernel(CoreDeviceRef const data, OtherData const other)
 {
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < states.size()))
-        return;
-
-    auto launch = make_track_launcher(data, foo_track);
-    launch(tid);
+    TrackLauncher launch{data, apply_to_track, other};
+    launch(KernelParamCalculator::thread_id());
 }
 \endcode
  *
@@ -36,29 +36,63 @@ __global__ void foo_kernel(CoreDeviceRef const data)
  * view:
  *
  * \code
-inline CELER_FUNCTION void foo_track(celeritas::CoreTrackView const& track)
+inline CELER_FUNCTION void apply_to_track(
+    CoreTrackView const& track,
+    OtherData const& other)
 {
     // ...
 }
    \endcode
+ * It will call the function with *all* thread slots.
  */
-template<class F>
-[[deprecated]] CELER_FUNCTION detail::TrackLauncher<F>
-make_track_launcher(CoreRef<MemSpace::native> const& data, F&& call_with_track)
+template<class... Ts>
+class TrackLauncher
 {
-    return {data.params,
-            const_cast<NativeRef<CoreStateData>&>(data.states),
-            ::celeritas::forward<F>(call_with_track)};
-}
+  public:
+    //!@{
+    //! \name Type aliases
+    using ParamsRef = NativeCRef<CoreParamsData>;
+    using StateRef = NativeRef<CoreStateData>;
+    //!@}
 
-template<class F>
-CELER_FUNCTION detail::TrackLauncher<F>
-make_track_launcher(NativeCRef<CoreParamsData> const& params,
-                    NativeRef<CoreStateData> const& state,
-                    F&& call_with_track)
-{
-    return {params, state, ::celeritas::forward<F>(call_with_track)};
-}
+  public:
+    CELER_FUNCTION
+    TrackLauncher(ParamsRef const& params, StateRef const& state, Ts&&... args)
+        : params_{params}
+        , state_{state}
+        , launch_impl_{celeritas::forward<Ts>(args)...}
+    {
+    }
+
+    CELER_FUNCTION void operator()(ThreadId thread) const
+    {
+        CELER_EXPECT(thread);
+#if CELER_DEVICE_COMPILE
+        if (!(thread < state_.size()))
+        {
+            return;
+        }
+#else
+        CELER_EXPECT(thread < state_.size());
+#endif
+        CoreTrackView const track(params_, state_, thread);
+
+        return launch_impl_(track);
+    }
+
+  private:
+    ParamsRef const& params_;
+    StateRef const& state_;
+    detail::TrackLauncherImpl<Ts...> launch_impl_;
+};
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class... Ts>
+TrackLauncher(NativeCRef<CoreParamsData> const&,
+              NativeRef<CoreStateData> const&,
+              Ts...) -> TrackLauncher<Ts...>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

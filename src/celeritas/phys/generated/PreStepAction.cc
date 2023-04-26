@@ -27,7 +27,7 @@ void PreStepAction::execute(ParamsHostCRef const& params, StateHostRef& state) c
     CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_track_launcher(params, state, detail::pre_step_track);
+    TrackLauncher launch{params, state, detail::pre_step_track};
     #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {

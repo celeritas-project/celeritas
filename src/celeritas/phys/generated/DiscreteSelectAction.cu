@@ -27,12 +27,8 @@ __global__ void discrete_select_kernel(
     DeviceRef<CoreStateData> const state
 )
 {
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < state.size()))
-        return;
-
-    auto launch = make_track_launcher(params, state, detail::discrete_select_track);
-    launch(tid);
+    TrackLauncher launch{params, state, detail::discrete_select_track};
+    launch(KernelParamCalculator::thread_id());
 }
 }  // namespace
 

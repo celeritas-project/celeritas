@@ -27,7 +27,7 @@ void BoundaryAction::execute(ParamsHostCRef const& params, StateHostRef& state) 
     CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_track_launcher(params, state, detail::boundary_track);
+    TrackLauncher launch{params, state, detail::boundary_track};
     #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {
