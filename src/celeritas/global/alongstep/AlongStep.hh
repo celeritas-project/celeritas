@@ -23,10 +23,10 @@ namespace celeritas
  * \tparam EH Energy loss helper, e.g. \c detail::TrackNoEloss
  */
 template<class MH, class MP, class EH>
-inline CELER_FUNCTION void along_step(MH&& msc,
+inline CELER_FUNCTION void along_step(CoreTrackView const& track,
+                                      MH&& msc,
                                       MP&& make_propagator,
-                                      EH&& eloss,
-                                      CoreTrackView const& track)
+                                      EH&& eloss)
 {
     detail::apply_msc_step_limit<MH&>(track, msc);
     detail::apply_propagation<MP&>(track, make_propagator);

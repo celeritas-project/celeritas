@@ -12,8 +12,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
 #include "detail/AlongStepGeneralLinear.hh"
 
 namespace celeritas
@@ -27,16 +27,8 @@ along_step_general_linear_kernel(DeviceCRef<CoreParamsData> const params,
                                  DeviceCRef<UrbanMscData> const msc_params,
                                  DeviceCRef<FluctuationData> const fluct)
 {
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < state.size()))
-        return;
-
-    auto launch = make_along_step_launcher(params,
-                                           state,
-                                           msc_params,
-                                           NoData{},
-                                           fluct,
-                                           detail::along_step_general_linear);
+    auto launch = make_alive_track_launcher(
+        params, state, detail::along_step_general_linear, msc_params, fluct);
     launch(tid);
 }
 //---------------------------------------------------------------------------//

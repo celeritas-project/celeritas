@@ -85,18 +85,15 @@ struct NoELoss
  * a complete EM shower simulation because it currently applies to *all*
  * particles as opposed to just neutral ones.
  *
- * This will be called by \c make_along_step_launcher inside a generated
+ * This will be called by \c make_alive_track_launcher inside a generated
  * kernel:
  * \code
- * auto launch = make_along_step_launcher(
- *     NoData{}, NoData{}, NoData{},
- *     along_step_neutral);
+ * auto launch = make_alive_track_launcher(params, state, along_step_neutral);
  * \endcode
  */
-inline CELER_FUNCTION void
-along_step_neutral(NoData, NoData, NoData, CoreTrackView const& track)
+inline CELER_FUNCTION void along_step_neutral(CoreTrackView const& track)
 {
-    return along_step(NoMsc{}, LinearPropagatorFactory{}, NoELoss{}, track);
+    return along_step(track, NoMsc{}, LinearPropagatorFactory{}, NoELoss{});
 }
 
 //---------------------------------------------------------------------------//
