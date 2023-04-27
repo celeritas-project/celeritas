@@ -16,7 +16,7 @@
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/Label.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -71,6 +71,7 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     GeantVolumeMapper g4_to_celer{geo};
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
     CELER_ASSERT(lv_store);
+    std::vector<G4LogicalVolume*> missing_lv;
     for (G4LogicalVolume* lv : *lv_store)
     {
         CELER_ASSERT(lv);
@@ -83,10 +84,11 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
         }
 
         auto id = g4_to_celer(*lv);
-        CELER_VALIDATE(id,
-                       << "failed to find a unique " << celeritas_core_geo
-                       << " volume corresponding to Geant4 volume '"
-                       << lv->GetName() << "'");
+        if (!id)
+        {
+            missing_lv.push_back(lv);
+            continue;
+        }
         CELER_LOG(debug) << "Mapped sensitive detector '" << sd->GetName()
                          << "' (logical volume '" << lv->GetName() << "') to "
                          << celeritas_core_geo << " volume '"
@@ -96,6 +98,15 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
         geant_vols.push_back(lv);
         vecgeom_vols_.push_back(id);
     }
+    CELER_VALIDATE(missing_lv.empty(),
+                   << "failed to find unique " << celeritas_core_geo
+                   << " volume(s) corresponding to Geant4 volume(s) "
+                   << join_stream(missing_lv.begin(),
+                                  missing_lv.end(),
+                                  ", ",
+                                  [](std::ostream& os, G4LogicalVolume* lv) {
+                                      os << '\'' << lv->GetName() << '\'';
+                                  }));
     CELER_VALIDATE(!vecgeom_vols_.empty(),
                    << "no sensitive detectors were found");
 
@@ -138,20 +149,20 @@ auto HitManager::filters() const -> Filters
 /*!
  * Process detector tallies (CPU).
  */
-void HitManager::execute(StateHostRef const& data)
+void HitManager::process_steps(HostStepState state)
 {
-    auto&& process_hits = this->get_local_hit_processor();
-    process_hits(data);
+    auto&& process_hits = this->get_local_hit_processor(state.stream_id);
+    process_hits(state.steps);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Process detector tallies (GPU).
  */
-void HitManager::execute(StateDeviceRef const& data)
+void HitManager::process_steps(DeviceStepState state)
 {
-    auto&& process_hits = this->get_local_hit_processor();
-    process_hits(data);
+    auto&& process_hits = this->get_local_hit_processor(state.stream_id);
+    process_hits(state.steps);
 }
 
 //---------------------------------------------------------------------------//
@@ -175,18 +186,20 @@ void HitManager::finalize()
 /*!
  * Ensure the local hit processor exists, and return it.
  */
-HitProcessor& HitManager::get_local_hit_processor()
+HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
 {
-    int local_thread = G4Threading::G4GetThreadId();
-    CELER_ASSERT(static_cast<std::size_t>(local_thread) < processors_.size());
-    if (CELER_UNLIKELY(!processors_[local_thread]))
+    CELER_EXPECT(sid.get()
+                 == static_cast<size_type>(G4Threading::G4GetThreadId()));
+    CELER_EXPECT(sid < processors_.size());
+
+    if (CELER_UNLIKELY(!processors_[sid.unchecked_get()]))
     {
         CELER_LOG_LOCAL(debug) << "Allocating hit processor";
         // Allocate the hit processor locally
-        processors_[local_thread] = std::make_unique<HitProcessor>(
+        processors_[sid.unchecked_get()] = std::make_unique<HitProcessor>(
             geant_vols_, selection_, locate_touchable_);
     }
-    return *processors_[local_thread];
+    return *processors_[sid.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

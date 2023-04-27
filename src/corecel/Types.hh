@@ -88,5 +88,18 @@ using NativeRef = S<Ownership::reference, MemSpace::native>;
 
 //!@}
 #endif
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS (HOST)
+//---------------------------------------------------------------------------//
+
+//! Get a string corresponding to a memory space
+inline constexpr char const* to_cstring(MemSpace m)
+{
+    return m == MemSpace::host     ? "host"
+           : m == MemSpace::device ? "device"
+                                   : nullptr;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

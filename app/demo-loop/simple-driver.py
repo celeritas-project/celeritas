@@ -54,6 +54,10 @@ if not use_vecgeom:
     print("Replacing .gdml extension since VecGeom is disabled", file=stderr)
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
+simple_calo = []
+if not rootout_filename:
+    simple_calo = ["si_tracker", "em_calorimeter"]
+
 num_tracks = 128*32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
 max_steps = 512 if geant_options['msc'] else 128
@@ -76,6 +80,7 @@ inp = {
     'max_events': 1000,
     'secondary_stack_factor': 3,
     'enable_diagnostics': True,
+    'simple_calo': simple_calo,
     'sync': True,
     'brem_combined': True,
     'geant_options': geant_options,

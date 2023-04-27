@@ -26,7 +26,8 @@ namespace test
  *
  * \post The given input file exists. (ifstream is used to check this)
  */
-std::string Test::test_data_path(std::string_view subdir, std::string_view filename)
+std::string
+Test::test_data_path(std::string_view subdir, std::string_view filename)
 {
     std::ostringstream os;
     os << testdetail::source_dir << "/test/" << subdir << "/data/" << filename;

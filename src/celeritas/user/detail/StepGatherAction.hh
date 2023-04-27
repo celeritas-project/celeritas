@@ -88,5 +88,12 @@ class StepGatherAction final : public ExplicitActionInterface
 };
 
 //---------------------------------------------------------------------------//
+template<StepPoint P>
+void step_gather_device(DeviceCRef<CoreParamsData> const&,
+                        DeviceRef<CoreStateData>&,
+                        DeviceCRef<StepParamsData> const&,
+                        DeviceRef<StepStateData>&);
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

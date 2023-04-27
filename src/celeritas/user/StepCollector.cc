@@ -51,6 +51,7 @@ StepCollector::StepCollector(VecInterface callbacks,
             return static_cast<bool>(i);
         }));
     CELER_EXPECT(geo);
+    CELER_EXPECT(num_streams > 0);
     CELER_EXPECT(action_registry);
 
     // Loop over callbacks to take union of step selections

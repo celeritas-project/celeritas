@@ -178,9 +178,9 @@ struct CollectionAssigner<Ownership::value, MemSpace::host>
     {
         CollectionStorage<T, Ownership::value, MemSpace::host> result{
             std::vector<T>(source.data.size())};
-        Copier<T, MemSpace::device> copy{
-            {source.data.data(), source.data.size()}};
-        copy(MemSpace::host, {result.data.data(), result.data.size()});
+        Copier<T, MemSpace::host> copy{
+            {result.data.data(), result.data.size()}};
+        copy(MemSpace::device, {source.data.data(), source.data.size()});
         return result;
     }
 };

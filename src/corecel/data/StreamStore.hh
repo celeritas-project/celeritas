@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -25,6 +27,23 @@ namespace celeritas
  * This requires a templated ParamsData and StateData. Hopefully this
  * frankenstein of a class will be replaced by a std::any-like data container
  * owned by each (possibly thread-local) State.
+ *
+ * Usage:
+ * \code
+   StreamStore<FooParams, FooState> store{host_val, num_streams};
+   assert(store);
+
+   execute_kernel(store.params(), store.state<Memspace::host>(StreamId{0},
+ state_size))
+
+   if (auto* state = store.state<Memspace::device>(StreamId{1}))
+   {
+       cout << "Have device data for stream 1" << endl;
+   }
+   \endcode
+ *
+ * There is some additional complexity in the "state" accessors to allow for
+ * const correctness.
  */
 template<template<Ownership, MemSpace> class P, template<Ownership, MemSpace> class S>
 class StreamStore
@@ -47,6 +66,9 @@ class StreamStore
     //! Whether the instance is ready for storing data
     explicit operator bool() const { return num_streams_ > 0; }
 
+    //! Number of streams being stored
+    StreamId::size_type num_streams() const { return num_streams_; }
+
     // Get references to the params data
     template<MemSpace M>
     inline P<Ownership::const_reference, M> const& params() const;
@@ -56,6 +78,20 @@ class StreamStore
     template<MemSpace M>
     inline S<Ownership::reference, M>&
     state(StreamId stream_id, size_type size);
+
+    //! Get a pointer to the state data, null if not allocated
+    template<MemSpace M>
+    S<Ownership::reference, M> const* state(StreamId stream_id) const
+    {
+        return StreamStore::stateptr_impl<M>(*this, stream_id);
+    }
+
+    //! Get a mutable pointer to the state data, null if not allocated
+    template<MemSpace M>
+    S<Ownership::reference, M>* state(StreamId stream_id)
+    {
+        return StreamStore::stateptr_impl<M>(*this, stream_id);
+    }
 
   private:
     //// TYPES ////
@@ -68,24 +104,46 @@ class StreamStore
     //// DATA ////
 
     CollectionMirror<P> params_;
-    size_type num_streams_{0};
+    StreamId::size_type num_streams_{0};
     VecSS<MemSpace::host> host_states_;
     VecSS<MemSpace::device> device_states_;
 
     //// FUNCTIONS ////
 
-    template<MemSpace M>
-    decltype(auto) states()
+    template<MemSpace M, class Self>
+    static constexpr decltype(auto) states_impl(Self&& self)
     {
         if constexpr (M == MemSpace::host)
         {
             // Extra parens needed to return reference instead of copy
-            return (host_states_);
+            return (self.host_states_);
         }
         else if constexpr (M == MemSpace::device)
         {
-            return (device_states_);
+            return (self.device_states_);
         }
+    }
+
+    template<MemSpace M, class Self>
+    static decltype(auto) stateptr_impl(Self&& self, StreamId stream_id)
+    {
+        CELER_EXPECT(stream_id < self.num_streams_ || !self);
+        using result_type = std::add_pointer_t<
+            decltype(StreamStore::states_impl<M>(self).front().ref())>;
+        if (!self)
+        {
+            return result_type{nullptr};
+        }
+
+        auto& state_vec = StreamStore::states_impl<M>(self);
+        CELER_ASSERT(state_vec.size() == self.num_streams_);
+        auto& state_store = state_vec[stream_id.unchecked_get()];
+        if (!state_store)
+        {
+            return result_type{nullptr};
+        }
+
+        return &state_store.ref();
     }
 };
 
@@ -135,7 +193,7 @@ StreamStore<P, S>::state(StreamId stream_id, size_type size)
     CELER_EXPECT(*this);
     CELER_EXPECT(stream_id < num_streams_);
 
-    auto& state_vec = this->states<M>();
+    auto& state_vec = StreamStore::states_impl<M>(*this);
     CELER_ASSERT(state_vec.size() == num_streams_);
     auto& state_store = state_vec[stream_id.unchecked_get()];
     if (CELER_UNLIKELY(!state_store))

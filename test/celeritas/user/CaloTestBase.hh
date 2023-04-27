@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/io/Label.hh"
 #include "corecel/io/Repr.hh"
 #include "celeritas/phys/Primary.hh"
 
@@ -18,13 +19,13 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class OutputRegistry;
 class StepCollector;
+class SimpleCalo;
 
 namespace test
 {
 //---------------------------------------------------------------------------//
-class ExampleCalorimeters;
-
 class CaloTestBase : virtual public StepCollectorTestBase
 {
   public:
@@ -46,11 +47,16 @@ class CaloTestBase : virtual public StepCollectorTestBase
 
     virtual VecString get_detector_names() const = 0;
 
+    template<MemSpace M>
     RunResult run(size_type num_tracks, size_type num_steps);
 
+    // Get JSON output from the simple calo interface
+    std::string output() const;
+
   protected:
-    std::shared_ptr<ExampleCalorimeters> example_calos_;
+    std::shared_ptr<SimpleCalo> calo_;
     std::shared_ptr<StepCollector> collector_;
+    std::shared_ptr<OutputRegistry> output_;
 };
 
 //---------------------------------------------------------------------------//

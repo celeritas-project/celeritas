@@ -10,6 +10,7 @@
 #include <string>
 
 #include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
 #include "celeritas/Types.hh"
@@ -33,31 +34,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-//!@{
-//! I/O routines for JSON
-void to_json(nlohmann::json& j, EnergyDiagInput const& v)
-{
-    j = nlohmann::json{{"axis", std::string(1, v.axis)},
-                       {"min", v.min},
-                       {"max", v.max},
-                       {"num_bins", v.num_bins}};
-}
-
-void from_json(nlohmann::json const& j, EnergyDiagInput& v)
-{
-    std::string temp_axis;
-    j.at("axis").get_to(temp_axis);
-    CELER_VALIDATE(temp_axis.size() == 1,
-                   << "axis spec has length " << temp_axis.size()
-                   << " (must be a single character)");
-    v.axis = temp_axis.front();
-    j.at("min").get_to(v.min);
-    j.at("max").get_to(v.max);
-    j.at("num_bins").get_to(v.num_bins);
-}
-//!@}
-
-//---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
  */
@@ -78,10 +54,13 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_REQUIRED(geometry_filename);
     LDIO_LOAD_REQUIRED(physics_filename);
     LDIO_LOAD_OPTION(hepmc3_filename);
-    LDIO_LOAD_OPTION(mctruth_filename);
 
-    LDIO_LOAD_OPTION(mctruth_filter);
     LDIO_LOAD_OPTION(primary_gen_options);
+
+    LDIO_LOAD_OPTION(mctruth_filename);
+    LDIO_LOAD_OPTION(mctruth_filter);
+    LDIO_LOAD_OPTION(simple_calo);
+    LDIO_LOAD_REQUIRED(enable_diagnostics);
 
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_OPTION(max_num_tracks);
@@ -89,7 +68,6 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_REQUIRED(initializer_capacity);
     LDIO_LOAD_REQUIRED(max_events);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
-    LDIO_LOAD_REQUIRED(enable_diagnostics);
     LDIO_LOAD_REQUIRED(use_device);
     LDIO_LOAD_OPTION(sync);
 
@@ -98,7 +76,6 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(step_limiter);
     LDIO_LOAD_OPTION(brem_combined);
-    LDIO_LOAD_OPTION(energy_diag);
     LDIO_LOAD_OPTION(track_order);
     LDIO_LOAD_OPTION(geant_options);
 
@@ -140,16 +117,18 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_REQUIRED(geometry_filename);
     LDIO_SAVE_REQUIRED(physics_filename);
     LDIO_SAVE_OPTION(hepmc3_filename);
-    LDIO_SAVE_OPTION(mctruth_filename);
-
-    if (!v.mctruth_filename.empty())
-    {
-        LDIO_SAVE_REQUIRED(mctruth_filter);
-    }
     if (v.hepmc3_filename.empty())
     {
         LDIO_SAVE_REQUIRED(primary_gen_options);
     }
+
+    LDIO_SAVE_OPTION(mctruth_filename);
+    if (!v.mctruth_filename.empty())
+    {
+        LDIO_SAVE_REQUIRED(mctruth_filter);
+    }
+    LDIO_SAVE_OPTION(simple_calo);
+    LDIO_SAVE_REQUIRED(enable_diagnostics);
 
     LDIO_SAVE_OPTION(seed);
     LDIO_SAVE_OPTION(max_num_tracks);
@@ -157,7 +136,6 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_REQUIRED(initializer_capacity);
     LDIO_SAVE_REQUIRED(max_events);
     LDIO_SAVE_REQUIRED(secondary_stack_factor);
-    LDIO_SAVE_REQUIRED(enable_diagnostics);
     LDIO_SAVE_REQUIRED(use_device);
     LDIO_SAVE_OPTION(sync);
 
@@ -170,10 +148,6 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_OPTION(step_limiter);
     LDIO_SAVE_OPTION(brem_combined);
 
-    if (v.enable_diagnostics)
-    {
-        LDIO_SAVE_REQUIRED(energy_diag);
-    }
     LDIO_SAVE_OPTION(track_order);
     if (celeritas::ends_with(v.physics_filename, ".gdml"))
     {

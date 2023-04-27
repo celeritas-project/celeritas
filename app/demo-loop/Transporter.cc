@@ -25,7 +25,6 @@
 #include "celeritas/phys/Model.hh"
 
 #include "diagnostic/Diagnostic.hh"
-#include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"
 #include "diagnostic/StepDiagnostic.hh"
 
@@ -138,15 +137,6 @@ Transporter<M>::Transporter(TransporterInput inp) : max_steps_(inp.max_steps)
             get_ref<M>(params), params.particle(), inp.num_track_slots, 200));
         diag.push_back(std::make_unique<ParticleProcessDiagnostic<M>>(
             get_ref<M>(params), params.particle(), params.physics()));
-        {
-            auto const& ediag = inp.energy_diag;
-            CELER_VALIDATE(ediag.axis >= 'x' && ediag.axis <= 'z',
-                           << "Invalid axis '" << ediag.axis
-                           << "' (must be x, y, or z)");
-            diag.push_back(std::make_unique<EnergyDiagnostic<M>>(
-                linspace(ediag.min, ediag.max, ediag.num_bins + 1),
-                static_cast<Axis>(ediag.axis - 'x')));
-        }
 
         // Add diagnostic adapters to action manager
         diagnostic_action_ = params.action_reg()->next_id();

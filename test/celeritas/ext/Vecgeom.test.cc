@@ -71,7 +71,6 @@ class VecgeomTestBase : public ::celeritas::test::Test
     };
 
   public:
-
     //! Lazily construct and access the geometry
     SPGeometry const& geometry();
 
@@ -247,7 +246,8 @@ auto VecgeomTestBase::load_vgdml(std::string_view filename) const -> SPGeometry
 }
 
 //---------------------------------------------------------------------------//
-auto VecgeomTestBase::load_g4_gdml(std::string_view filename) const -> SPGeometry
+auto VecgeomTestBase::load_g4_gdml(std::string_view filename) const
+    -> SPGeometry
 {
     return std::make_shared<VecgeomParams>(::celeritas::load_geant_geometry(
         this->test_data_path("celeritas", filename)));

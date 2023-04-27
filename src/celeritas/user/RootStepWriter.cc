@@ -8,6 +8,7 @@
 #include "RootStepWriter.hh"
 
 #include <algorithm>
+#include <cstring>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -34,7 +35,7 @@ void copy_if_selected(const T1& src, T2& dst)
 /*!
  * Copy StepPointStateData Real3 position and direction to TStepPoint arrays.
  */
-void copy_if_selected(celeritas::Real3 const& src, std::array<double, 3>& dst)
+void copy_if_selected(Real3 const& src, std::array<double, 3>& dst)
 {
     std::memcpy(&dst, &src, sizeof(src));
 }
@@ -107,8 +108,10 @@ RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the number of entries (i.e. number of steps) stored in memory before
- * ROOT flushes the data to disk. Default is ~32MB of compressed data.
+ * Set the number of entries before flushing to disk.
+ *
+ * This sets the number of steps stored in memory before ROOT flushes the data
+ * to disk. Default is ~32MB of compressed data.
  *
  * See `SetAutoFlush` in ROOT TTree Class reference for details:
  * https://root.cern.ch/doc/master/classTTree.html
@@ -124,31 +127,31 @@ void RootStepWriter::set_auto_flush(long num_entries)
 /*!
  * Collect step data and fill the ROOT TTree for all active threads.
  */
-void RootStepWriter::execute(StateHostRef const& steps)
+void RootStepWriter::process_steps(HostStepState state)
 {
-#define RSW_STORE(ATTR, GETTER)                                    \
-    do                                                             \
-    {                                                              \
-        if (selection_.ATTR)                                       \
-        {                                                          \
-            copy_if_selected(steps.ATTR[tid] GETTER, tstep_.ATTR); \
-        }                                                          \
+#define RSW_STORE(ATTR, GETTER)                                          \
+    do                                                                   \
+    {                                                                    \
+        if (selection_.ATTR)                                             \
+        {                                                                \
+            copy_if_selected(state.steps.ATTR[tid] GETTER, tstep_.ATTR); \
+        }                                                                \
     } while (0)
 
-    CELER_EXPECT(steps);
+    CELER_EXPECT(state.steps);
     tstep_ = TStepData();
 
     // Loop over track slots and fill TTree
-    for (auto const tid : range(TrackSlotId{steps.size()}))
+    for (auto const tid : range(TrackSlotId{state.steps.size()}))
     {
-        if (!steps.track_id[tid])
+        if (!state.steps.track_id[tid])
         {
             // Track id not found; skip inactive track slot
             continue;
         }
 
         // Track id is always set
-        tstep_.track_id = steps.track_id[tid].unchecked_get();
+        tstep_.track_id = state.steps.track_id[tid].unchecked_get();
 
         RSW_STORE(event_id, .get());
         RSW_STORE(parent_id, .unchecked_get());
@@ -158,8 +161,9 @@ void RootStepWriter::execute(StateHostRef const& steps)
         RSW_STORE(track_step_count, /* no getter */);
         if (selection_.particle)
         {
-            copy_if_selected(particles_->id_to_pdg(steps.particle[tid]).get(),
-                             tstep_.particle);
+            copy_if_selected(
+                particles_->id_to_pdg(state.steps.particle[tid]).get(),
+                tstep_.particle);
         }
 
         for (auto const sp : range(StepPoint::size_))
@@ -182,7 +186,9 @@ void RootStepWriter::execute(StateHostRef const& steps)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create steps tree. In order to have the option to individually select any
+ * Create steps tree.
+ *
+ * In order to have the option to individually select any
  * member of `StepStateData` (StepData.hh) to be stored into the ROOT file
  * *and* not need any dictionary for ROOT I/O, we cannot store an MC truth step
  * object. Therefore, the data is flattened so that each member of `TStepData`

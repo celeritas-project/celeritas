@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/io/Label.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
@@ -53,13 +54,15 @@ struct RunnerInput
     std::string geometry_filename;  //!< Path to GDML file
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
     std::string hepmc3_filename;  //!< Path to HepMC3 event data
-    std::string mctruth_filename;  //!< Path to ROOT MC truth event data
-
-    // Optional filter for ROOT MC truth data
-    celeritas::SimpleRootFilterInput mctruth_filter;
 
     // Optional setup options for generating primaries programmatically
     celeritas::PrimaryGeneratorOptions primary_gen_options;
+
+    // Diagnostics and output
+    std::string mctruth_filename;  //!< Path to ROOT MC truth event data
+    celeritas::SimpleRootFilterInput mctruth_filter;
+    std::vector<celeritas::Label> simple_calo;
+    bool enable_diagnostics{};  // DEPRECATED
 
     // Control
     unsigned int seed{};
@@ -68,7 +71,6 @@ struct RunnerInput
     size_type initializer_capacity{};
     size_type max_events{};
     real_type secondary_stack_factor{};
-    bool enable_diagnostics{};
     bool use_device{};
     bool sync{};
 
@@ -82,9 +84,6 @@ struct RunnerInput
 
     // Options for physics
     bool brem_combined{true};
-
-    // Diagnostic input
-    EnergyDiagInput energy_diag;
 
     // Track init options
     celeritas::TrackOrder track_order{celeritas::TrackOrder::unsorted};

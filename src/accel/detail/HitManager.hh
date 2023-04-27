@@ -52,10 +52,10 @@ class HitManager final : public StepInterface
     StepSelection selection() const final { return selection_; }
 
     // Process CPU-generated hits
-    void execute(StateHostRef const&) final;
+    void process_steps(HostStepState) final;
 
     // Process device-generated hits
-    void execute(StateDeviceRef const&) final;
+    void process_steps(DeviceStepState) final;
 
     // Destroy local data to avoid Geant4 crashes
     void finalize();
@@ -69,7 +69,7 @@ class HitManager final : public StepInterface
     std::vector<std::unique_ptr<HitProcessor>> processors_;
 
     // Ensure thread-local hit processor exists and return it
-    HitProcessor& get_local_hit_processor();
+    HitProcessor& get_local_hit_processor(StreamId);
 };
 
 //---------------------------------------------------------------------------//

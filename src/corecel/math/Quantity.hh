@@ -128,8 +128,18 @@ class Quantity
     //! Construct implicitly from a unitless quantity
     CELER_CONSTEXPR_FUNCTION Quantity(Unitless uq) : value_(uq.value_) {}
 
-    //! Get numeric value, discarding units
-    CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
+    //!@{
+    //! Access the underlying numeric value, discarding units
+#define CELER_DEFINE_QACCESS(FUNC, QUAL)                          \
+    CELER_CONSTEXPR_FUNCTION value_type QUAL FUNC() QUAL noexcept \
+    {                                                             \
+        return value_;                                            \
+    }
+
+    CELER_DEFINE_QACCESS(value, &)
+    CELER_DEFINE_QACCESS(value, const&)
+#undef CELER_DEFINE_QACCESS
+    //!@}
 
   private:
     value_type value_{};

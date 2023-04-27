@@ -400,7 +400,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
     -> reference_type
 {
     CELER_EXPECT(i < this->size());
-    return this->storage()[i.get()];
+    return this->storage()[i.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -412,7 +412,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) const
     -> const_reference_type
 {
     CELER_EXPECT(i < this->size());
-    return this->storage()[i.get()];
+    return this->storage()[i.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -422,9 +422,11 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) const
 template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) -> SpanT
 {
+    CELER_EXPECT(*ps.begin() <= *ps.end());
     CELER_EXPECT(*ps.end() < this->size() + 1);
     typename CollectionTraitsT::pointer data = this->storage().data();
-    return {data + ps.begin()->get(), data + ps.end()->get()};
+    return {data + ps.begin()->unchecked_get(),
+            data + ps.end()->unchecked_get()};
 }
 
 //---------------------------------------------------------------------------//
@@ -435,9 +437,11 @@ template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) const
     -> SpanConstT
 {
+    CELER_EXPECT(*ps.begin() <= *ps.end());
     CELER_EXPECT(*ps.end() < this->size() + 1);
     typename CollectionTraitsT::const_pointer data = this->storage().data();
-    return {data + ps.begin()->get(), data + ps.end()->get()};
+    return {data + ps.begin()->unchecked_get(),
+            data + ps.end()->unchecked_get()};
 }
 
 //---------------------------------------------------------------------------//

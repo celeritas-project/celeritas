@@ -49,8 +49,8 @@ inline void extend_from_primaries(
     // Allocate memory and copy primaries
     Collection<Primary, Ownership::value, M> primaries;
     resize(&primaries, host_primaries.size());
-    Copier<Primary, MemSpace::host> copy{host_primaries};
-    copy(M, primaries[AllItems<Primary, M>{}]);
+    Copier<Primary, M> copy_to_temp{primaries[AllItems<Primary, M>{}]};
+    copy_to_temp(MemSpace::host, host_primaries);
 
     // Create track initializers from primaries
     generated::process_primaries(

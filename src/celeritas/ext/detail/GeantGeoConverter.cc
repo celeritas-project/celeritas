@@ -715,8 +715,8 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
     if (!unplaced_volume)
     {
         CELER_LOG(error) << "Unsupported shape for G4 solid "
-                        << shape->GetName().c_str() << ", of type "
-                        << shape->GetEntityType().c_str();
+                         << shape->GetName().c_str() << ", of type "
+                         << shape->GetEntityType().c_str();
         unplaced_volume = new GenericSolid<G4VSolid>(shape);
         CELER_LOG(debug) << " -- capacity = "
                          << unplaced_volume->Capacity() / ipow<3>(scale);

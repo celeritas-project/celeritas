@@ -46,16 +46,12 @@ namespace
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    explicit DetectorConstruction(G4VPhysicalVolume* world)
-        : world_{world}
+    explicit DetectorConstruction(G4VPhysicalVolume* world) : world_{world}
     {
         CELER_ENSURE(world_);
     }
 
-    G4VPhysicalVolume* Construct() override
-    {
-        return world_;
-    }
+    G4VPhysicalVolume* Construct() override { return world_; }
 
   private:
     G4VPhysicalVolume* world_;

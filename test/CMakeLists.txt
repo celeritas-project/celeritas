@@ -247,7 +247,6 @@ celeritas_add_library(testcel_celeritas
   celeritas/SimpleTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
-  celeritas/user/ExampleCalorimeters.cc
   celeritas/user/ExampleMctruth.cc
   celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
@@ -446,7 +445,7 @@ celeritas_add_device_test(celeritas/track/TrackInit ${_needs_device})
 # User
 set(CELERITASTEST_PREFIX celeritas/user)
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
-celeritas_add_test(celeritas/user/StepCollector.test.cc ${_optional_geant4_env} ${_needs_geo})
+celeritas_add_test(celeritas/user/StepCollector.test.cc GPU ${_optional_geant4_env} ${_needs_geo})
 
 #-----------------------------------------------------------------------------#
 # ACCELERITAS TESTS
