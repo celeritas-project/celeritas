@@ -22,8 +22,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply Urban multiple scattering to a track.
@@ -246,5 +244,4 @@ UrbanMsc::is_geo_limited(CoreTrackView const& track, StepLimit const& limit)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

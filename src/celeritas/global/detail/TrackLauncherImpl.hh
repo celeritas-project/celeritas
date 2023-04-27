@@ -42,9 +42,9 @@ struct TrackLauncherImpl<F, T1>
     F call_with_track;
     T1 arg1;
 
-    CELER_FUNCTION void operator()(CoreTrackView const& track) const
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
     {
-        return this->call_with_track(track, arg1);
+        return this->call_with_track(track, celeritas::forward<T1>(arg1));
     }
 };
 
@@ -56,9 +56,10 @@ struct TrackLauncherImpl<F, T1, T2>
     T1 arg1;
     T2 arg2;
 
-    CELER_FUNCTION void operator()(CoreTrackView const& track) const
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
     {
-        return this->call_with_track(track, arg1, arg2);
+        return this->call_with_track(
+            track, celeritas::forward<T1>(arg1), celeritas::forward<T2>(arg2));
     }
 };
 
@@ -71,9 +72,12 @@ struct TrackLauncherImpl<F, T1, T2, T3>
     T2 arg2;
     T3 arg3;
 
-    CELER_FUNCTION void operator()(CoreTrackView const& track) const
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
     {
-        return this->call_with_track(track, arg1, arg2, arg3);
+        return this->call_with_track(track,
+                                     celeritas::forward<T1>(arg1),
+                                     celeritas::forward<T2>(arg2),
+                                     celeritas::forward<T3>(arg3));
     }
 };
 
@@ -87,9 +91,13 @@ struct TrackLauncherImpl<F, T1, T2, T3, T4>
     T3 arg3;
     T4 arg4;
 
-    CELER_FUNCTION void operator()(CoreTrackView const& track) const
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
     {
-        return this->call_with_track(track, arg1, arg2, arg3, arg4);
+        return this->call_with_track(track,
+                                     celeritas::forward<T1>(arg1),
+                                     celeritas::forward<T2>(arg2),
+                                     celeritas::forward<T3>(arg3),
+                                     celeritas::forward<T4>(arg4));
     }
 };
 

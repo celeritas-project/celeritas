@@ -29,7 +29,7 @@ along_step_general_linear_kernel(DeviceCRef<CoreParamsData> const params,
 {
     auto launch = make_active_track_launcher(
         params, state, detail::along_step_general_linear, msc_params, fluct);
-    launch(tid);
+    launch(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//
 }  // namespace

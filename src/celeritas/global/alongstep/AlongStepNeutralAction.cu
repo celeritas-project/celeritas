@@ -27,7 +27,7 @@ along_step_neutral_kernel(DeviceCRef<CoreParamsData> const params,
 {
     auto launch = make_active_track_launcher(
         params, state, detail::along_step_neutral);
-    launch(tid);
+    launch(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//
 }  // namespace

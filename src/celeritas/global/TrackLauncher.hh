@@ -118,7 +118,7 @@ class ConditionalTrackLauncher
     {
     }
 
-    CELER_FUNCTION void operator()(ThreadId thread) const
+    CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread);
 #if CELER_DEVICE_COMPILE
@@ -130,7 +130,7 @@ class ConditionalTrackLauncher
         CELER_EXPECT(thread < state_.size());
 #endif
         CoreTrackView const track(params_, state_, thread);
-        if (!this->applies_(track.make_sim_view()))
+        if (!applies_(track.make_sim_view()))
         {
             return;
         }
@@ -164,7 +164,7 @@ ConditionalTrackLauncher(NativeCRef<CoreParamsData> const&,
  * Return a track launcher that only applies to alive tracks.
  */
 template<class... Ts>
-decltype(auto)
+inline CELER_FUNCTION decltype(auto)
 make_active_track_launcher(NativeCRef<CoreParamsData> const& params,
                            NativeRef<CoreStateData> const& state,
                            Ts&&... args)
@@ -185,7 +185,7 @@ make_active_track_launcher(NativeCRef<CoreParamsData> const& params,
  * DiscreteSelectActionImpl.
  */
 template<class... Ts>
-decltype(auto)
+inline CELER_FUNCTION decltype(auto)
 make_action_track_launcher(NativeCRef<CoreParamsData> const& params,
                            NativeRef<CoreStateData> const& state,
                            ActionId action,
