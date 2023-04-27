@@ -94,13 +94,19 @@ struct ApplyPropagation
 
             // Kill the track if it's stable and below the threshold energy or
             // above the threshold number of steps allowed while looping.
-            if (particle.is_stable()
-                && sim.is_looping(particle.particle_id(), particle.energy()))
-            {
-                step_limit.action = track.abandon_looping_action();
+            step_limit.action = [&track, &particle, &sim] {
+                if (particle.is_stable()
+                    && sim.is_looping(particle.particle_id(), particle.energy()))
+                {
+                    return track.abandon_looping_action();
+                }
+                return track.propagation_limit_action();
+            }();
 
-                // TODO: move the code below into a separate kernel?
-                // If the track is looping (or if it's a stuck track that waa
+            if (step_limit.action == track.abandon_looping_action())
+            {
+                // TODO: move this branch into a separate post-step kernel.
+                // If the track is looping (or if it's a stuck track that was
                 // flagged as looping), deposit the energy locally.
                 auto deposited = particle.energy().value();
                 if (particle.is_antiparticle())
@@ -114,10 +120,6 @@ struct ApplyPropagation
 
                 // Mark that this track was abandoned while looping
                 sim.status(TrackStatus::killed);
-            }
-            else
-            {
-                step_limit.action = track.propagation_limit_action();
             }
         }
         else if (p.boundary)
