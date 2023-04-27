@@ -12,6 +12,7 @@
 #include <memory>
 #include <G4ThreeVector.hh>
 
+#include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -117,5 +118,22 @@ class UniformAlongStepFactory : public AlongStepFactoryInterface
     FieldFunction get_field_;
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Create an along-step method for a two-dimensional (r-z in the cylindical
+ * coordinate system) map field (RZMapField).
+ */
+class RZMapFieldAlongStepFactory : public AlongStepFactoryInterface
+{
+  public:
+    // Construct with a two-dimensional (r-z) field map
+    explicit RZMapFieldAlongStepFactory(RZMapFieldInput const& field_map);
+
+    // Emit an along-step action
+    result_type operator()(argument_type input) const final;
+
+  private:
+    const RZMapFieldInput field_map_;
+};
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
