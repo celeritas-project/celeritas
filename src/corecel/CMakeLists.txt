@@ -53,6 +53,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     data/detail/Filler.cu
     sys/KernelParamCalculator.device.cc
+    sys/ScopedDeviceProfiling.device.cc
   )
 endif()
 
