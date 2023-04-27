@@ -11,6 +11,8 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 
+#include "FieldDriverOptions.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -45,6 +47,9 @@ struct RZMapFieldParamsData
     //! Parameters of FieldMap
     FieldMapParameters params;
 
+    //! Options for FieldDriver
+    FieldDriverOptions options;
+
     //! Index of FieldMap Collection
     using ElementId = ItemId<size_type>;
 
@@ -74,6 +79,7 @@ struct RZMapFieldParamsData
     {
         CELER_EXPECT(other);
         params = other.params;
+        options = other.options;
         fieldmap = other.fieldmap;
         return *this;
     }
