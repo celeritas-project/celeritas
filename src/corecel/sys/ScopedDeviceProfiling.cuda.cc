@@ -3,17 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/ScopedDeviceProfiling.device.cc
+//! \file corecel/sys/ScopedDeviceProfiling.cuda.cc
 //---------------------------------------------------------------------------//
 #include "ScopedDeviceProfiling.hh"
 
 #include "celeritas_config.h"
 #include "corecel/device_runtime_api.h"
 
-#if CELERITAS_USE_CUDA
 // Profiler API isn't included with regular CUDA API headers
-#    include <cuda_profiler_api.h>
-#endif
+#include <cuda_profiler_api.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -32,7 +30,7 @@ ScopedDeviceProfiling::ScopedDeviceProfiling()
     {
         try
         {
-            CELER_DEVICE_CALL_PREFIX(ProfilerStart());
+            CELER_CUDA_CALL(cudaProfilerStart());
         }
         catch (RuntimeError const& e)
         {
@@ -53,7 +51,7 @@ ScopedDeviceProfiling::~ScopedDeviceProfiling()
     {
         try
         {
-            CELER_DEVICE_CALL_PREFIX(ProfilerStop());
+            CELER_CUDA_CALL(cudaProfilerStop());
         }
         catch (RuntimeError const& e)
         {

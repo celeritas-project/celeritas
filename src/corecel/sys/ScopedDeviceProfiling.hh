@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
+#include "celeritas_config.h"
 
 #include "Device.hh"
 
@@ -18,9 +18,10 @@ namespace celeritas
  * RAII class for CUDA/HIP profiling flags .
  *
  * This should be instantiated in a single-thread context. If celeritas::device
- * is enabled, it will call \c (cuda|hip)ProfilerStart at construction and
- * \c \\1ProfilerStop at destruction. If device support is disabled, this class
- * is a null-op.
+ * is enabled, it will call \c cudaProfilerStart at construction and
+ * \c cudaProfilerStop at destruction. If device support is disabled, this
+ * class is a null-op. HIP support for the profiler start/stop macros is
+ * deprecated so we do not support it at present.
  *
  * This is useful for wrapping the main stepper/transport loop for profiling to
  * allow ignoring of VecGeom instantiation kernels.
@@ -38,7 +39,7 @@ class ScopedDeviceProfiling
 };
 
 //---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
+#if !CELERITAS_USE_CUDA
 inline ScopedDeviceProfiling::ScopedDeviceProfiling()
 {
     (void)sizeof(activated_);
