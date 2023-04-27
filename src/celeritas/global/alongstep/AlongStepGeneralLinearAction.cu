@@ -27,7 +27,7 @@ along_step_general_linear_kernel(DeviceCRef<CoreParamsData> const params,
                                  DeviceCRef<UrbanMscData> const msc_params,
                                  DeviceCRef<FluctuationData> const fluct)
 {
-    auto launch = make_alive_track_launcher(
+    auto launch = make_active_track_launcher(
         params, state, detail::along_step_general_linear, msc_params, fluct);
     launch(tid);
 }

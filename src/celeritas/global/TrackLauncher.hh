@@ -165,12 +165,12 @@ ConditionalTrackLauncher(NativeCRef<CoreParamsData> const&,
  */
 template<class... Ts>
 decltype(auto)
-make_alive_track_launcher(NativeCRef<CoreParamsData> const& params,
-                          NativeRef<CoreStateData> const& state,
-                          Ts&&... args)
+make_active_track_launcher(NativeCRef<CoreParamsData> const& params,
+                           NativeRef<CoreStateData> const& state,
+                           Ts&&... args)
 {
     return ConditionalTrackLauncher{
-        params, state, detail::applies_alive, celeritas::forward<Ts>(args)...};
+        params, state, detail::applies_active, celeritas::forward<Ts>(args)...};
 }
 
 //---------------------------------------------------------------------------//

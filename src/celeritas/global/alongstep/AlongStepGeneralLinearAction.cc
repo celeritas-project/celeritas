@@ -76,11 +76,11 @@ void AlongStepGeneralLinearAction::execute(ParamsHostCRef const& params,
     CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_alive_track_launcher(params,
-                                            state,
-                                            detail::along_step_general_linear,
-                                            host_data_.msc,
-                                            host_data_.fluct);
+    auto launch = make_active_track_launcher(params,
+                                             state,
+                                             detail::along_step_general_linear,
+                                             host_data_.msc,
+                                             host_data_.fluct);
 
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)

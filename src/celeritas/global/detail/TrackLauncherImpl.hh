@@ -99,9 +99,9 @@ struct TrackLauncherImpl<F, T1, T2, T3, T4>
 /*!
  * Condition for ConditionalTrackLauncher for active tracks.
  */
-inline CELER_FUNCTION bool applies_alive(SimTrackView const& sim)
+inline CELER_FUNCTION bool applies_active(SimTrackView const& sim)
 {
-    return sim.status() == TrackStatus::alive;
+    return sim.status() != TrackStatus::inactive;
 }
 
 //---------------------------------------------------------------------------//

@@ -52,11 +52,11 @@ void AlongStepUniformMscAction::execute(ParamsHostCRef const& params,
     CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_alive_track_launcher(params,
-                                            state,
-                                            detail::along_step_uniform_msc,
-                                            host_data_.msc,
-                                            field_params_);
+    auto launch = make_active_track_launcher(params,
+                                             state,
+                                             detail::along_step_uniform_msc,
+                                             host_data_.msc,
+                                             field_params_);
 
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)

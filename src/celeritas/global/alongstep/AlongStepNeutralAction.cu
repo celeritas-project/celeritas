@@ -25,8 +25,8 @@ __global__ void
 along_step_neutral_kernel(DeviceCRef<CoreParamsData> const params,
                           DeviceRef<CoreStateData> const state)
 {
-    auto launch
-        = make_alive_track_launcher(params, state, detail::along_step_neutral);
+    auto launch = make_active_track_launcher(
+        params, state, detail::along_step_neutral);
     launch(tid);
 }
 //---------------------------------------------------------------------------//
