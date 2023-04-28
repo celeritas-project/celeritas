@@ -96,10 +96,11 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
  *
  * The action will embed the field propagator with a RZMapField
  */
-RZMapFieldAlongStepFactory::RZMapFieldAlongStepFactory(
-    RZMapFieldInput const& field_map)
-    : field_map_(field_map)
+RZMapFieldAlongStepFactory::RZMapFieldAlongStepFactory(std::string filename)
 {
+    CELER_EXPECT(!filename.empty());
+
+    std::ifstream(filename) >> field_map_;
     CELER_EXPECT(field_map_);
 }
 
@@ -108,11 +109,14 @@ auto RZMapFieldAlongStepFactory::operator()(
 {
     CELER_LOG(info) << "Creating along-step action with a RZMapField";
 
-    return std::make_shared<AlongStepRZMapFieldMscAction>(
+    return celeritas::AlongStepRZMapFieldMscAction::from_params(
         input.action_id,
+        *input.material,
+        *input.particle,
         field_map_,
-        UrbanMscParams::from_import(
-            *input.particle, *input.material, *input.imported));
+        celeritas::UrbanMscParams::from_import(
+            *input.particle, *input.material, *input.imported),
+        input.imported->em_params.energy_loss_fluct);
 }
 
 //---------------------------------------------------------------------------//

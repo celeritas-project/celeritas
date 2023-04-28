@@ -10,6 +10,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include <G4ThreeVector.hh>
 
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -126,14 +127,14 @@ class UniformAlongStepFactory : public AlongStepFactoryInterface
 class RZMapFieldAlongStepFactory : public AlongStepFactoryInterface
 {
   public:
-    // Construct with a two-dimensional (r-z) field map
-    explicit RZMapFieldAlongStepFactory(RZMapFieldInput const& field_map);
+    // Construct with a two-dimensional (r-z) field map with input json file
+    explicit RZMapFieldAlongStepFactory(std::string filename);
 
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
 
   private:
-    const RZMapFieldInput field_map_;
+    RZMapFieldInput field_map_;
 };
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
