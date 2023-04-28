@@ -20,6 +20,7 @@ list(APPEND SOURCES
   io/ColorUtils.cc
   io/ExceptionOutput.cc
   io/Label.cc
+  io/LogContextException.cc
   io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
@@ -52,6 +53,11 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     data/detail/Filler.cu
     sys/KernelParamCalculator.device.cc
+  )
+endif()
+if(CELERITAS_USE_CUDA)
+  list(APPEND SOURCES
+    sys/ScopedDeviceProfiling.cuda.cc
   )
 endif()
 
