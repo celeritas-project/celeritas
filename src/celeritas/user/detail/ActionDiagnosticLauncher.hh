@@ -50,10 +50,15 @@ CELER_FUNCTION void ActionDiagnosticLauncher::operator()(ThreadId tid)
     CELER_EXPECT(tid < state.size());
 
     celeritas::CoreTrackView const track(params, state, tid);
+    auto sim = track.make_sim_view();
+    if (sim.status() == TrackStatus::inactive)
+    {
+        return;
+    }
+    ActionId aid = sim.step_limit().action;
+    CELER_ASSERT(aid);
     ParticleId pid = track.make_particle_view().particle_id();
     CELER_ASSERT(pid);
-    ActionId aid = track.make_sim_view().step_limit().action;
-    CELER_ASSERT(aid);
     size_type num_particles = track.make_physics_view().num_particles();
 
     BinId bin{aid.unchecked_get() * num_particles + pid.unchecked_get()};

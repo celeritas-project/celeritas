@@ -60,6 +60,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(mctruth_filename);
     LDIO_LOAD_OPTION(mctruth_filter);
     LDIO_LOAD_OPTION(simple_calo);
+    LDIO_LOAD_OPTION(action_diagnostic);
     LDIO_LOAD_REQUIRED(enable_diagnostics);
 
     LDIO_LOAD_OPTION(seed);
@@ -128,6 +129,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
         LDIO_SAVE_REQUIRED(mctruth_filter);
     }
     LDIO_SAVE_OPTION(simple_calo);
+    LDIO_SAVE_OPTION(action_diagnostic);
     LDIO_SAVE_REQUIRED(enable_diagnostics);
 
     LDIO_SAVE_OPTION(seed);

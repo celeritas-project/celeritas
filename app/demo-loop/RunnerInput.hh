@@ -21,18 +21,6 @@
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-struct EnergyDiagInput
-{
-    using size_type = celeritas::size_type;
-    using real_type = celeritas::real_type;
-
-    char axis{'z'};
-    real_type min{-700};
-    real_type max{700};
-    size_type num_bins{1024};
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
  */
@@ -62,6 +50,7 @@ struct RunnerInput
     std::string mctruth_filename;  //!< Path to ROOT MC truth event data
     celeritas::SimpleRootFilterInput mctruth_filter;
     std::vector<celeritas::Label> simple_calo;
+    bool action_diagnostic{};
     bool enable_diagnostics{};  // DEPRECATED
 
     // Control
