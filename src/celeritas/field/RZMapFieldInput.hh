@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <fstream>
 #include <iosfwd>
 #include <vector>
 
@@ -30,7 +31,7 @@ struct RZMapFieldInput
     unsigned int num_grid_z{};
     unsigned int num_grid_r{};
     double delta_grid{};  //!< Grid spacing [cm]
-    double offset_z{};  //!< Negative offset of the lower z coordinate [cm]
+    double offset_z{};  //!< Offset of the lower z coordinate [cm]
     std::vector<double> field_z;  //!< Flattened Z field component [tesla]
     std::vector<double> field_r;  //!< Flattened R field component [tesla]
 
@@ -42,7 +43,7 @@ struct RZMapFieldInput
             && (num_grid_r >= 2)
             && (delta_grid > 0)
             && (offset_z >= 0)
-            && (field_z.size() == num_grid_z*num_grid_r)
+            && (field_z.size() == num_grid_z * num_grid_r)
             && (field_r.size() == field_z.size());
         // clang-format on
     }
