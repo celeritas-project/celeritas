@@ -12,6 +12,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/em/FluctuationParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 
 #include "AlongStepLauncher.hh"
@@ -26,7 +28,8 @@ __global__ void
 along_step_field_msc_kernel(DeviceCRef<CoreParamsData> const params,
                             DeviceRef<CoreStateData> const state,
                             DeviceCRef<UrbanMscData> const msc_data,
-                            DeviceCRef<RZMapFieldParamsData> const field_data)
+                            DeviceCRef<RZMapFieldParamsData> const field_data,
+                            DeviceCRef<FluctuationData> const fluct)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < state.size()))
@@ -36,7 +39,7 @@ along_step_field_msc_kernel(DeviceCRef<CoreParamsData> const params,
                                            state,
                                            msc_data,
                                            field_data,
-                                           NoData{},
+                                           fluct,
                                            detail::along_step_mapfield_msc);
     launch(tid);
 }
@@ -56,8 +59,9 @@ void AlongStepRZMapFieldMscAction::execute(ParamsDeviceCRef const& params,
                         state.size(),
                         params,
                         state,
-                        device_data_.msc,
-                        field_->device_ref());
+                        msc_->device_ref(),
+                        field_->device_ref(),
+                        fluct_->device_ref());
 }
 
 //---------------------------------------------------------------------------//

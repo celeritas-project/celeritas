@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/field/RZMapFieldData.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -21,6 +22,7 @@
 namespace celeritas
 {
 class UrbanMscParams;
+class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
@@ -34,13 +36,23 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
   public:
     //!@{
     //! \name Type aliases
+    using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
     using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
     using SPConstFieldParams = std::shared_ptr<RZMapFieldParams const>;
     //!@}
 
   public:
+    static std::shared_ptr<AlongStepRZMapFieldMscAction>
+    from_params(ActionId id,
+                MaterialParams const& materials,
+                ParticleParams const& particles,
+                RZMapFieldInput const& field_input,
+                SPConstMsc const& msc,
+                bool eloss_fluctuation);
+
     // Construct with next action ID, optional MSC, magnetic field
     AlongStepRZMapFieldMscAction(ActionId id,
+                                 SPConstFluctuations fluct,
                                  RZMapFieldInput const& input,
                                  SPConstMsc msc);
 
@@ -78,21 +90,9 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
 
   private:
     ActionId id_;
+    SPConstFluctuations fluct_;
     SPConstMsc msc_;
     SPConstFieldParams field_;
-
-    // TODO: kind of hacky way to support msc being optional
-    // (required because we have to pass "empty" refs if they're missing)
-    template<MemSpace M>
-    struct ExternalRefs
-    {
-        UrbanMscData<Ownership::const_reference, M> msc;
-
-        ExternalRefs(SPConstMsc const& msc_params);
-    };
-
-    ExternalRefs<MemSpace::host> host_data_;
-    ExternalRefs<MemSpace::device> device_data_;
 };
 
 //---------------------------------------------------------------------------//

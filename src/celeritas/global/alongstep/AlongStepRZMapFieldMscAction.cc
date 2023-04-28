@@ -15,6 +15,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
+#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/global/CoreTrackData.hh"
@@ -28,11 +29,36 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct the along-step action from input parameters.
+ */
+std::shared_ptr<AlongStepRZMapFieldMscAction>
+AlongStepRZMapFieldMscAction::from_params(ActionId id,
+                                          MaterialParams const& materials,
+                                          ParticleParams const& particles,
+                                          RZMapFieldInput const& field_input,
+                                          SPConstMsc const& msc,
+                                          bool eloss_fluctuation)
+{
+    SPConstFluctuations fluct;
+    if (eloss_fluctuation)
+    {
+        fluct = std::make_shared<FluctuationParams>(particles, materials);
+    }
+
+    return std::make_shared<AlongStepRZMapFieldMscAction>(
+        id, std::move(fluct), field_input, msc);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with next action ID and optional energy loss parameters.
  */
 AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
-    ActionId id, RZMapFieldInput const& input, SPConstMsc msc)
-    : id_(id), msc_(std::move(msc)), host_data_(msc_), device_data_(msc_)
+    ActionId id,
+    SPConstFluctuations fluct,
+    RZMapFieldInput const& input,
+    SPConstMsc msc)
+    : id_(id), fluct_(std::move(fluct)), msc_(std::move(msc))
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(input);
@@ -56,9 +82,9 @@ void AlongStepRZMapFieldMscAction::execute(ParamsHostCRef const& params,
 
     auto launch = make_along_step_launcher(params,
                                            state,
-                                           host_data_.msc,
+                                           msc_->host_ref(),
                                            field_->host_ref(),
-                                           NoData{},
+                                           fluct_->host_ref(),
                                            detail::along_step_mapfield_msc);
 
 #pragma omp parallel for
@@ -70,26 +96,6 @@ void AlongStepRZMapFieldMscAction::execute(ParamsHostCRef const& params,
             KernelContextException(params, state, ThreadId{i}, this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Save references from host/device data.
- */
-template<MemSpace M>
-AlongStepRZMapFieldMscAction::ExternalRefs<M>::ExternalRefs(
-    SPConstMsc const& msc_params)
-{
-    if (M == MemSpace::device && !celeritas::device())
-    {
-        // Skip device copy if disabled
-        return;
-    }
-
-    if (msc_params)
-    {
-        msc = get_ref<M>(*msc_params);
-    }
 }
 
 //---------------------------------------------------------------------------//

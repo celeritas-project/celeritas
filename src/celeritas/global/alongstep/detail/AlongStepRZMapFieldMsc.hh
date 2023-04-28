@@ -17,7 +17,7 @@
 #include "celeritas/field/RZMapFieldData.hh"
 
 #include "AlongStepNeutral.hh"
-#include "MeanELoss.hh"  // IWYU pragma: associated
+#include "FluctELoss.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -31,7 +31,7 @@ namespace detail
 inline CELER_FUNCTION void
 along_step_mapfield_msc(NativeCRef<UrbanMscData> const& msc,
                         NativeCRef<RZMapFieldParamsData> const& field,
-                        NoData,
+                        NativeCRef<FluctuationData> const& fluct,
                         CoreTrackView const& track)
 {
     return along_step(
@@ -40,7 +40,7 @@ along_step_mapfield_msc(NativeCRef<UrbanMscData> const& msc,
             return make_mag_field_propagator<DormandPrinceStepper>(
                 RZMapField(field), field.options, particle, geo);
         },
-        MeanELoss{},
+        FluctELoss{fluct},
         track);
 }
 
