@@ -131,6 +131,7 @@ celeritas_add_device_test(corecel/data/Collection)
 celeritas_add_test(corecel/data/Copier.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
+celeritas_add_device_test(corecel/data/ObserverPtr)
 celeritas_add_device_test(corecel/data/StackAllocator)
 
 # Grid
