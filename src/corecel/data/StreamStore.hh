@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 
@@ -203,6 +204,34 @@ StreamStore<P, S>::state(StreamId stream_id, size_type size)
 
     CELER_ENSURE(state_store.size() == size);
     return state_store.ref();
+}
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a function to all streams.
+ */
+template<class S, class F>
+void apply_to_all_streams(S&& store, F&& func)
+{
+    // Apply on host
+    for (StreamId s : range(StreamId{store.num_streams()}))
+    {
+        if (auto* state = store.template state<MemSpace::host>(s))
+        {
+            func(*state);
+        }
+    }
+
+    // Apply on device
+    for (StreamId s : range(StreamId{store.num_streams()}))
+    {
+        if (auto* state = store.template state<MemSpace::device>(s))
+        {
+            func(*state);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

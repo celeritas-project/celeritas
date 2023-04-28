@@ -267,7 +267,7 @@ auto SimpleCalo::calc_total_energy_deposition() const -> VecReal
 {
     VecReal result(this->num_detectors(), real_type{0});
 
-    this->apply_to_all_streams(store_, SumEnergy{&result});
+    apply_to_all_streams(store_, SumEnergy{&result});
     return result;
 }
 
@@ -277,32 +277,9 @@ auto SimpleCalo::calc_total_energy_deposition() const -> VecReal
  */
 void SimpleCalo::clear()
 {
-    this->apply_to_all_streams(store_, [](auto& state) {
+    apply_to_all_streams(store_, [](auto& state) {
         fill(real_type(0), &state.energy_deposition);
     });
-}
-
-//---------------------------------------------------------------------------//
-template<class S, class F>
-void SimpleCalo::apply_to_all_streams(S&& store, F&& func)
-{
-    // Accumulate on host
-    for (StreamId s : range(StreamId{store.num_streams()}))
-    {
-        if (auto* state = store.template state<MemSpace::host>(s))
-        {
-            func(*state);
-        }
-    }
-
-    // Accumulate on device into temporary
-    for (StreamId s : range(StreamId{store.num_streams()}))
-    {
-        if (auto* state = store.template state<MemSpace::device>(s))
-        {
-            func(*state);
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//

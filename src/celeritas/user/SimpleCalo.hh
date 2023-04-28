@@ -89,9 +89,6 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     VecLabel volume_labels_;
     std::vector<VolumeId> volume_ids_;
     StoreT store_;
-
-    template<class S, class F>
-    static void apply_to_all_streams(S&& store, F&&);
 };
 
 //---------------------------------------------------------------------------//
