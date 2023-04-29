@@ -214,6 +214,18 @@ size_type ActionDiagnostic::num_bins() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Reset diagnostic results.
+ */
+void ActionDiagnostic::clear()
+{
+    CELER_EXPECT(*store_);
+
+    apply_to_all_streams(
+        *store_, [](auto& state) { fill(size_type(0), &state.counts); });
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Build the storage for diagnostic parameters and stream-dependent states.
  */
 void ActionDiagnostic::build_stream_store() const

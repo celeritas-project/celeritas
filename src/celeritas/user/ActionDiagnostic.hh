@@ -82,6 +82,9 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     // Number of tally bins (number of particles x number of actions)
     size_type num_bins() const;
 
+    // Reset diagnostic results
+    void clear();
+
   private:
     using StoreT
         = StreamStore<ActionDiagnosticParamsData, ActionDiagnosticStateData>;
