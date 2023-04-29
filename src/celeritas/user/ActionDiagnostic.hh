@@ -25,7 +25,7 @@ class ActionRegistry;
 
 //---------------------------------------------------------------------------//
 /*!
- * Tally particle/action ID combinations at the end of each step.
+ * Tally post-step actions for each particle type.
  */
 class ActionDiagnostic final : public ExplicitActionInterface,
                                public OutputInterface
@@ -34,20 +34,20 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     //!@{
     //! \name Type aliases
     using SPConstActionRegistry = std::shared_ptr<ActionRegistry const>;
-    using SPConstParticle = std::shared_ptr<celeritas::ParticleParams const>;
+    using SPConstParticle = std::shared_ptr<ParticleParams const>;
     using MapStringCount = std::unordered_map<std::string, size_type>;
     using VecCount = std::vector<size_type>;
     //!@}
 
   public:
-    //! Construct with ID, action, and particle data
+    //! Construct with action registry and particle data
     ActionDiagnostic(ActionId id,
                      SPConstActionRegistry action_reg,
                      SPConstParticle particle,
                      size_type num_streams);
 
     //! Default destructor
-    ~ActionDiagnostic() = default;
+    ~ActionDiagnostic();
 
     //!@{
     //! \name ExplicitAction interface
@@ -74,12 +74,12 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     //!@}
 
     // Return the diagnostic results accumulated over all streams
-    MapStringCount particle_actions() const;
+    MapStringCount actions() const;
 
     // Get the tallied actions accumulated over all streams
-    VecCount calc_particle_actions() const;
+    VecCount calc_actions() const;
 
-    // Number of tally bins (number of particles x number of actions)
+    // Number of tally bins (number of particles times number of actions)
     size_type num_bins() const;
 
     // Reset diagnostic results

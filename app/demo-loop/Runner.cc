@@ -79,7 +79,7 @@ Runner::Runner(RunnerInput const& inp,
     ScopedRootErrorHandler scoped_root_error;
     this->build_core_params(inp, std::move(output));
     this->build_step_collectors(inp);
-    this->build_diagnostic_actions(inp);
+    this->build_diagnostics(inp);
     this->build_transporter_input(inp);
     this->build_primaries(inp);
     use_device_ = inp.use_device;
@@ -403,7 +403,7 @@ void Runner::build_step_collectors(RunnerInput const& inp)
 /*!
  * Construct diagnostic actions/outputs.
  */
-void Runner::build_diagnostic_actions(RunnerInput const& inp)
+void Runner::build_diagnostics(RunnerInput const& inp)
 {
     if (inp.action_diagnostic)
     {

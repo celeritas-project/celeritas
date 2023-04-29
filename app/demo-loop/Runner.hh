@@ -119,7 +119,7 @@ class Runner
     void setup_globals(RunnerInput const&) const;
     void build_core_params(RunnerInput const&, SPOutputRegistry&&);
     void build_step_collectors(RunnerInput const&);
-    void build_diagnostic_actions(RunnerInput const&);
+    void build_diagnostics(RunnerInput const&);
     void build_transporter_input(RunnerInput const&);
     void build_primaries(RunnerInput const&);
 };

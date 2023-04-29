@@ -74,11 +74,11 @@ struct SumCounts
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with ID, action, and particle data.
+ * Construct with action registry and particle data.
  *
- * Since the total number of actions is needed for the diagnostic params data,
- * the construction of the stream storage is deferred until all actions have
- * been registered.
+ * The total number of registered actions is needed in the diagnostic params
+ * data, so the construction of the stream storage is deferred until all
+ * actions have been registered.
  */
 ActionDiagnostic::ActionDiagnostic(ActionId id,
                                    SPConstActionRegistry action_reg,
@@ -95,6 +95,10 @@ ActionDiagnostic::ActionDiagnostic(ActionId id,
     CELER_EXPECT(particle_);
     CELER_EXPECT(num_streams > 0);
 }
+
+//---------------------------------------------------------------------------//
+//! Default destructor
+ActionDiagnostic::~ActionDiagnostic() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -146,7 +150,7 @@ void ActionDiagnostic::output(JsonPimpl* j) const
     using json = nlohmann::json;
 
     auto obj = json::object();
-    obj["actions"] = this->particle_actions();
+    obj["actions"] = this->actions();
     j->obj = std::move(obj);
 #else
     (void)sizeof(j);
@@ -156,18 +160,21 @@ void ActionDiagnostic::output(JsonPimpl* j) const
 //---------------------------------------------------------------------------//
 /*!
  * Return the diagnostic results accumulated over all streams.
+ *
+ * This builds a map of particle/action combinations to the number of
+ * occurances over all events.
  */
-auto ActionDiagnostic::particle_actions() const -> MapStringCount
+auto ActionDiagnostic::actions() const -> MapStringCount
 {
     CELER_EXPECT(*store_);
 
-    MapStringCount result;
+    auto const& params = store_->params<MemSpace::host>();
 
-    // Get the data accumulated over all host/device streams
-    auto counts = this->calc_particle_actions();
+    // Get the raw data accumulated over all host/device streams
+    auto counts = this->calc_actions();
 
     // Map particle ID/action ID to name and store counts
-    auto const& params = store_->params<MemSpace::host>();
+    MapStringCount result;
     for (ActionId aid : range(ActionId{params.num_actions}))
     {
         for (ParticleId pid : range(ParticleId{params.num_particles}))
@@ -177,10 +184,9 @@ auto ActionDiagnostic::particle_actions() const -> MapStringCount
 
             if (counts[bin] > 0)
             {
-                // Accumulate the result for this action
                 std::string label = action_reg_->id_to_label(aid) + " "
                                     + particle_->id_to_label(pid);
-                result[label] += counts[bin];
+                result[label] = counts[bin];
             }
         }
     }
@@ -191,7 +197,7 @@ auto ActionDiagnostic::particle_actions() const -> MapStringCount
 /*!
  * Get the tallied actions accumulated over all streams.
  */
-auto ActionDiagnostic::calc_particle_actions() const -> VecCount
+auto ActionDiagnostic::calc_actions() const -> VecCount
 {
     CELER_EXPECT(*store_);
 
@@ -202,7 +208,7 @@ auto ActionDiagnostic::calc_particle_actions() const -> VecCount
 
 //---------------------------------------------------------------------------//
 /*!
- * Number of tally bins (number of particles x number of actions).
+ * Number of tally bins (number of particles times number of actions).
  */
 size_type ActionDiagnostic::num_bins() const
 {

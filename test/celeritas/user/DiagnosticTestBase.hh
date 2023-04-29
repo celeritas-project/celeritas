@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ActionDiagnosticTestBase.hh
+//! \file celeritas/user/DiagnosticTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,7 +24,7 @@ class ActionDiagnostic;
 namespace test
 {
 //---------------------------------------------------------------------------//
-class ActionDiagnosticTestBase : virtual public StepCollectorTestBase
+class DiagnosticTestBase : virtual public StepCollectorTestBase
 {
   public:
     //!@{
@@ -34,22 +34,22 @@ class ActionDiagnosticTestBase : virtual public StepCollectorTestBase
 
     struct RunResult
     {
-        std::vector<size_type> counts;
+        std::vector<size_type> action_counts;
 
         void print_expected() const;
     };
 
   public:
     // Default destructor
-    ~ActionDiagnosticTestBase();
+    ~DiagnosticTestBase();
 
     void SetUp() override;
 
     template<MemSpace M>
     RunResult run(size_type num_tracks, size_type num_steps);
 
-    // Get JSON output
-    std::string output() const;
+    // Get JSON output from the action diagnostic
+    std::string action_output() const;
 
   protected:
     std::shared_ptr<ActionDiagnostic> action_diagnostic_;
