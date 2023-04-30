@@ -530,21 +530,10 @@ TEST_F(TestEm15MscField, TEST_IF_CELER_DEVICE(device))
     auto result = this->run(step, num_primaries);
     if (this->is_ci_build())
     {
-        if (CELERITAS_USE_CUDA)
-        {
-            EXPECT_EQ(17, result.num_step_iters());
-            EXPECT_SOFT_EQ(34, result.calc_avg_steps_per_primary());
-            EXPECT_EQ(5, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({1, 10}), result.calc_queue_hwm());
-        }
-        else
-        {
-            // FIXME: HIP has different results in ndebug for this problem!!
-            EXPECT_EQ(21, result.num_step_iters());
-            EXPECT_SOFT_EQ(41.625, result.calc_avg_steps_per_primary());
-            EXPECT_EQ(9, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({7, 11}), result.calc_queue_hwm());
-        }
+        EXPECT_EQ(17, result.num_step_iters());
+        EXPECT_SOFT_EQ(34, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(5, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({1, 10}), result.calc_queue_hwm());
     }
     else
     {
