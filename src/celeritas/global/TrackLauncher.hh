@@ -30,7 +30,7 @@ __global__ void foo_kernel(CoreParamsRef const params,
                            CoreParamsRef const state,
                            OtherData const other)
 {
-    TrackLauncher launch{params, state, apply_to_track, other};
+    TrackLauncher launch{params, state, apply_to_track, OtherView{other}};
     launch(KernelParamCalculator::thread_id());
 }
 \endcode
@@ -41,12 +41,17 @@ __global__ void foo_kernel(CoreParamsRef const params,
  * \code
 inline CELER_FUNCTION void apply_to_track(
     CoreTrackView const& track,
-    OtherData const& other)
+    OtherView const& other)
 {
     // ...
 }
    \endcode
- * It will call the function with *all* thread slots.
+ *
+ * It will call the function with *all* thread slots, including inactive.
+ *
+ * \note The ThreadId can be no greater than the state size on CPU (since we
+ * always loop over the exact range), but on GPU we automatically ignore thread
+ * IDs outside the valid bounds to simplify the kernel.
  */
 template<class... Ts>
 class TrackLauncher
@@ -96,6 +101,9 @@ class TrackLauncher
  * The condition C must have the signature \code
  * <bool(SimTrackView const&)>
   \endcode
+ *
+ * see \c make_active_track_launcher for an example where this is used to apply
+ * only to active (or killed) tracks.
  */
 template<class C, class... Ts>
 class ConditionalTrackLauncher
