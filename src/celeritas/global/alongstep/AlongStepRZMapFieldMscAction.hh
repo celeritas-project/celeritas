@@ -47,8 +47,7 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
                 MaterialParams const& materials,
                 ParticleParams const& particles,
                 RZMapFieldInput const& field_input,
-                SPConstMsc const& msc,
-                bool eloss_fluctuation);
+                SPConstMsc const& msc);
 
     // Construct with next action ID, optional MSC, magnetic field
     AlongStepRZMapFieldMscAction(ActionId id,

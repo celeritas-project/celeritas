@@ -36,14 +36,10 @@ AlongStepRZMapFieldMscAction::from_params(ActionId id,
                                           MaterialParams const& materials,
                                           ParticleParams const& particles,
                                           RZMapFieldInput const& field_input,
-                                          SPConstMsc const& msc,
-                                          bool eloss_fluctuation)
+                                          SPConstMsc const& msc)
 {
-    SPConstFluctuations fluct;
-    if (eloss_fluctuation)
-    {
-        fluct = std::make_shared<FluctuationParams>(particles, materials);
-    }
+    SPConstFluctuations fluct
+        = std::make_shared<FluctuationParams>(particles, materials);
 
     return std::make_shared<AlongStepRZMapFieldMscAction>(
         id, std::move(fluct), field_input, msc);
@@ -62,6 +58,8 @@ AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(input);
+    CELER_EXPECT(fluct_);
+    CELER_EXPECT(msc_);
 
     field_ = std::make_shared<RZMapFieldParams>(input);
 }
