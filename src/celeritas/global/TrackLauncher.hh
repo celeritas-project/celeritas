@@ -149,15 +149,17 @@ class ConditionalTrackLauncher
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class... Ts>
-TrackLauncher(NativeCRef<CoreParamsData> const&,
-              NativeRef<CoreStateData> const&,
-              Ts...) -> TrackLauncher<Ts...>;
+CELER_FUNCTION TrackLauncher(NativeCRef<CoreParamsData> const&,
+                             NativeRef<CoreStateData> const&,
+                             Ts...)
+    ->TrackLauncher<Ts...>;
 
 template<class C, class... Ts>
-ConditionalTrackLauncher(NativeCRef<CoreParamsData> const&,
-                         NativeRef<CoreStateData> const&,
-                         C,
-                         Ts...) -> ConditionalTrackLauncher<C, Ts...>;
+CELER_FUNCTION ConditionalTrackLauncher(NativeCRef<CoreParamsData> const&,
+                                        NativeRef<CoreStateData> const&,
+                                        C,
+                                        Ts...)
+    ->ConditionalTrackLauncher<C, Ts...>;
 
 //---------------------------------------------------------------------------//
 /*!
