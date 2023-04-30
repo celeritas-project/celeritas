@@ -10,16 +10,15 @@
 
 #include <functional>
 #include <memory>
-#include <string>
 #include <G4ThreeVector.hh>
 
-#include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 namespace celeritas
 {
 struct ImportData;
+struct RZMapFieldInput;
 class CutoffParams;
 class FluctuationParams;
 class GeoMaterialParams;
@@ -127,14 +126,20 @@ class UniformAlongStepFactory : public AlongStepFactoryInterface
 class RZMapFieldAlongStepFactory : public AlongStepFactoryInterface
 {
   public:
-    // Construct with a two-dimensional (r-z) field map with input json file
-    explicit RZMapFieldAlongStepFactory(std::string filename);
+    //!@{
+    //! \name Type aliases
+    using RZMapFieldFunction = std::function<RZMapFieldInput()>;
+    //!@}
+
+  public:
+    // Construct with a function to return RZMapFieldInput
+    explicit RZMapFieldAlongStepFactory(RZMapFieldFunction f);
 
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
 
   private:
-    RZMapFieldInput field_map_;
+    RZMapFieldFunction get_fieldmap_;
 };
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

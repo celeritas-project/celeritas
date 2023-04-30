@@ -94,14 +94,12 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
 /*!
  * Emit an along-step action with a non-uniform magnetic field.
  *
- * The action will embed the field propagator with a RZMapField
+ * The action will embed the field propagator with a RZMapField.
  */
-RZMapFieldAlongStepFactory::RZMapFieldAlongStepFactory(std::string filename)
+RZMapFieldAlongStepFactory::RZMapFieldAlongStepFactory(RZMapFieldFunction f)
+    : get_fieldmap_(std::move(f))
 {
-    CELER_EXPECT(!filename.empty());
-
-    std::ifstream(filename) >> field_map_;
-    CELER_EXPECT(field_map_);
+    CELER_EXPECT(get_fieldmap_);
 }
 
 auto RZMapFieldAlongStepFactory::operator()(
@@ -113,10 +111,9 @@ auto RZMapFieldAlongStepFactory::operator()(
         input.action_id,
         *input.material,
         *input.particle,
-        field_map_,
+        get_fieldmap_(),
         celeritas::UrbanMscParams::from_import(
-            *input.particle, *input.material, *input.imported),
-        input.imported->em_params.energy_loss_fluct);
+            *input.particle, *input.material, *input.imported));
 }
 
 //---------------------------------------------------------------------------//
