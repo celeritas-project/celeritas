@@ -26,9 +26,11 @@ namespace celeritas
  * This class should be used primarily by generated kernel functions:
  *
  * \code
-__global__ void foo_kernel(CoreDeviceRef const data, OtherData const other)
+__global__ void foo_kernel(CoreParamsRef const params,
+                           CoreParamsRef const state,
+                           OtherData const other)
 {
-    TrackLauncher launch{data, apply_to_track, other};
+    TrackLauncher launch{params, state, apply_to_track, other};
     launch(KernelParamCalculator::thread_id());
 }
 \endcode
