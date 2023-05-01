@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {
@@ -29,9 +30,22 @@ struct RZMapFieldInput
     unsigned int num_grid_z{};
     unsigned int num_grid_r{};
     double delta_grid{};  //!< Grid spacing [cm]
-    double offset_z{};  //!< Lower z coordinate [cm]
+    double offset_z{};  //!< Offset of the lower z coordinate [cm]
     std::vector<double> field_z;  //!< Flattened Z field component [tesla]
     std::vector<double> field_r;  //!< Flattened R field component [tesla]
+
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        // clang-format off
+        return (num_grid_z >= 2)
+            && (num_grid_r >= 2)
+            && (delta_grid > 0)
+            && (offset_z >= 0)
+            && (field_z.size() == num_grid_z * num_grid_r)
+            && (field_r.size() == field_z.size());
+        // clang-format on
+    }
 };
 
 //---------------------------------------------------------------------------//
