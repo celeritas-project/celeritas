@@ -22,6 +22,7 @@
 #include "OrangeTypes.hh"
 
 class G4VPhysicalVolume;
+class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -76,6 +77,9 @@ class OrangeParams
 
     // Get the volume ID corresponding to a unique label
     VolumeId find_volume(Label const& label) const;
+
+    // Get the volume ID corresponding to a Geant4 logical volume
+    VolumeId find_volume(G4LogicalVolume const* volume) const;
 
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(std::string const& name) const;
