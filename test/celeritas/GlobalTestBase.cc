@@ -7,8 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "GlobalTestBase.hh"
 
-#include <iostream>
+#include <cstdio>
 #include <fstream>
+#include <iostream>
+#include <string>
+#include <unistd.h>
 
 #include "celeritas_config.h"
 #include "corecel/io/JsonPimpl.hh"
@@ -39,9 +42,19 @@ GlobalTestBase::~GlobalTestBase()
 {
     if (this->HasFailure() && !this->output_reg()->empty())
     {
-        std::cerr << "Writing diagnostic output to screen because test failed:\n";
-        this->write_output(std::cout);
-        std::cout << std::endl;
+        std::string destination = "screen";
+        std::ostream* os = &std::cout;
+        std::ofstream ofile;
+        if (isatty(fileno(stderr)))
+        {
+            destination = this->make_unique_filename(".json");
+            ofile.open(destination, std::ios_base::out | std::ios_base::trunc);
+            os = &ofile;
+        }
+
+        std::cerr << "Writing diagnostic output to " << destination
+                  << " because test failed\n";
+        this->write_output(*os);
     }
 }
 
