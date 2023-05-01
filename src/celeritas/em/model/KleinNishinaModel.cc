@@ -69,13 +69,13 @@ auto KleinNishinaModel::micro_xs(Applicability) const -> MicroXsBuilders
 void KleinNishinaModel::execute(CoreParams const& params,
                                 CoreStateHost& state) const
 {
-    generated::klein_nishina_interact(this->host_ref(), params, state);
+    generated::klein_nishina_interact(params, state, this->host_ref());
 }
 
 void KleinNishinaModel::execute(CoreParams const& params,
                                 CoreStateDevice& state) const
 {
-    generated::klein_nishina_interact(this->device_ref(), params, state);
+    generated::klein_nishina_interact(params, state, this->device_ref());
 }
 
 //---------------------------------------------------------------------------//

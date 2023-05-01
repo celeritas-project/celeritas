@@ -27,16 +27,16 @@ namespace celeritas
 namespace generated
 {
 void mu_bremsstrahlung_interact(
-    celeritas::MuBremsstrahlungHostRef const& model_data,
     celeritas::CoreParams const& params,
-    celeritas::CoreState<MemSpace::host>& state)
+    celeritas::CoreState<MemSpace::host>& state,
+    celeritas::MuBremsstrahlungHostRef const& model_data)
 {
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        params.ref<MemSpace::native>(), state.ref(), model_data,
-        celeritas::mu_bremsstrahlung_interact_track);
+        params.ref<MemSpace::native>(), state.ref(),
+        celeritas::mu_bremsstrahlung_interact_track, model_data);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)
     {

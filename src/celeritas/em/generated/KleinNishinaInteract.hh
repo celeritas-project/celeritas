@@ -25,20 +25,20 @@ namespace celeritas
 namespace generated
 {
 void klein_nishina_interact(
-    celeritas::KleinNishinaHostRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::host>&);
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::KleinNishinaHostRef const&);
 
 void klein_nishina_interact(
-    celeritas::KleinNishinaDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&);
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::KleinNishinaDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void klein_nishina_interact(
-    celeritas::KleinNishinaDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&)
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::KleinNishinaDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

@@ -27,16 +27,16 @@ namespace celeritas
 namespace generated
 {
 void moller_bhabha_interact(
-    celeritas::MollerBhabhaHostRef const& model_data,
     celeritas::CoreParams const& params,
-    celeritas::CoreState<MemSpace::host>& state)
+    celeritas::CoreState<MemSpace::host>& state,
+    celeritas::MollerBhabhaHostRef const& model_data)
 {
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        params.ref<MemSpace::native>(), state.ref(), model_data,
-        celeritas::moller_bhabha_interact_track);
+        params.ref<MemSpace::native>(), state.ref(),
+        celeritas::moller_bhabha_interact_track, model_data);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)
     {

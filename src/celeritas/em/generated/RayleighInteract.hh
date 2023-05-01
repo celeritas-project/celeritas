@@ -25,20 +25,20 @@ namespace celeritas
 namespace generated
 {
 void rayleigh_interact(
-    celeritas::RayleighHostRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::host>&);
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::RayleighHostRef const&);
 
 void rayleigh_interact(
-    celeritas::RayleighDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&);
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::RayleighDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void rayleigh_interact(
-    celeritas::RayleighDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&)
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::RayleighDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

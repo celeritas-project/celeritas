@@ -25,20 +25,20 @@ namespace celeritas
 namespace generated
 {
 void moller_bhabha_interact(
-    celeritas::MollerBhabhaHostRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::host>&);
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::MollerBhabhaHostRef const&);
 
 void moller_bhabha_interact(
-    celeritas::MollerBhabhaDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&);
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::MollerBhabhaDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void moller_bhabha_interact(
-    celeritas::MollerBhabhaDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&)
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::MollerBhabhaDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

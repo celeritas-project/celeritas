@@ -27,16 +27,16 @@ namespace celeritas
 namespace generated
 {
 void eplusgg_interact(
-    celeritas::EPlusGGHostRef const& model_data,
     celeritas::CoreParams const& params,
-    celeritas::CoreState<MemSpace::host>& state)
+    celeritas::CoreState<MemSpace::host>& state,
+    celeritas::EPlusGGHostRef const& model_data)
 {
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        params.ref<MemSpace::native>(), state.ref(), model_data,
-        celeritas::eplusgg_interact_track);
+        params.ref<MemSpace::native>(), state.ref(),
+        celeritas::eplusgg_interact_track, model_data);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)
     {

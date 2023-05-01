@@ -30,8 +30,8 @@ struct InteractionLauncherImpl
 
     NativeCRef<CoreParamsData> const& params;
     NativeRef<CoreStateData> const& states;
-    D const& model_data;
     F call_with_track;
+    D const& model_data;
 
     //// METHODS ////
 

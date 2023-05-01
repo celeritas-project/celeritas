@@ -92,13 +92,13 @@ auto CombinedBremModel::micro_xs(Applicability) const -> MicroXsBuilders
 void CombinedBremModel::execute(CoreParams const& params,
                                 CoreStateHost& state) const
 {
-    generated::combined_brem_interact(this->host_ref(), params, state);
+    generated::combined_brem_interact(params, state, this->host_ref());
 }
 
 void CombinedBremModel::execute(CoreParams const& params,
                                 CoreStateDevice& state) const
 {
-    generated::combined_brem_interact(this->device_ref(), params, state);
+    generated::combined_brem_interact(params, state, this->device_ref());
 }
 
 //!@}

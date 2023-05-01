@@ -65,13 +65,13 @@ auto EPlusGGModel::micro_xs(Applicability) const -> MicroXsBuilders
  */
 void EPlusGGModel::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    generated::eplusgg_interact(this->host_ref(), params, state);
+    generated::eplusgg_interact(params, state, this->host_ref());
 }
 
 void EPlusGGModel::execute(CoreParams const& params,
                            CoreStateDevice& state) const
 {
-    generated::eplusgg_interact(this->device_ref(), params, state);
+    generated::eplusgg_interact(params, state, this->device_ref());
 }
 
 //!@}

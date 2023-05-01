@@ -82,13 +82,13 @@ auto MuBremsstrahlungModel::micro_xs(Applicability applic) const
 void MuBremsstrahlungModel::execute(CoreParams const& params,
                                     CoreStateHost& state) const
 {
-    generated::mu_bremsstrahlung_interact(this->host_ref(), params, state);
+    generated::mu_bremsstrahlung_interact(params, state, this->host_ref());
 }
 
 void MuBremsstrahlungModel::execute(CoreParams const& params,
                                     CoreStateDevice& state) const
 {
-    generated::mu_bremsstrahlung_interact(this->device_ref(), params, state);
+    generated::mu_bremsstrahlung_interact(params, state, this->device_ref());
 }
 
 //!@}

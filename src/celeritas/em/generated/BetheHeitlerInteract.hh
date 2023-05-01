@@ -25,20 +25,20 @@ namespace celeritas
 namespace generated
 {
 void bethe_heitler_interact(
-    celeritas::BetheHeitlerHostRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::host>&);
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::BetheHeitlerHostRef const&);
 
 void bethe_heitler_interact(
-    celeritas::BetheHeitlerDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&);
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::BetheHeitlerDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void bethe_heitler_interact(
-    celeritas::BetheHeitlerDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&)
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::BetheHeitlerDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

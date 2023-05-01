@@ -25,20 +25,20 @@ namespace celeritas
 namespace generated
 {
 void eplusgg_interact(
-    celeritas::EPlusGGHostRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::host>&);
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::EPlusGGHostRef const&);
 
 void eplusgg_interact(
-    celeritas::EPlusGGDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&);
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::EPlusGGDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void eplusgg_interact(
-    celeritas::EPlusGGDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&)
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::EPlusGGDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

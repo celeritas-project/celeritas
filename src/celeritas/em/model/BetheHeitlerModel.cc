@@ -75,7 +75,7 @@ auto BetheHeitlerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 void BetheHeitlerModel::execute(CoreParams const& params,
                                 CoreStateHost& state) const
 {
-    generated::bethe_heitler_interact(this->host_ref(), params, state);
+    generated::bethe_heitler_interact(params, state, this->host_ref());
 }
 /*!
  * Apply the interaction kernel.
@@ -83,7 +83,7 @@ void BetheHeitlerModel::execute(CoreParams const& params,
 void BetheHeitlerModel::execute(CoreParams const& params,
                                 CoreStateDevice& state) const
 {
-    generated::bethe_heitler_interact(this->device_ref(), params, state);
+    generated::bethe_heitler_interact(params, state, this->device_ref());
 }
 
 //!@}

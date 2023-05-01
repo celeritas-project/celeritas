@@ -106,13 +106,13 @@ auto LivermorePEModel::micro_xs(Applicability) const -> MicroXsBuilders
 void LivermorePEModel::execute(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    generated::livermore_pe_interact(this->host_ref(), params, state);
+    generated::livermore_pe_interact(params, state, this->host_ref());
 }
 
 void LivermorePEModel::execute(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    generated::livermore_pe_interact(this->device_ref(), params, state);
+    generated::livermore_pe_interact(params, state, this->device_ref());
 }
 
 //!@}

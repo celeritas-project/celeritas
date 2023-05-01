@@ -25,20 +25,20 @@ namespace celeritas
 namespace generated
 {
 void seltzer_berger_interact(
-    celeritas::SeltzerBergerHostRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::host>&);
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::SeltzerBergerHostRef const&);
 
 void seltzer_berger_interact(
-    celeritas::SeltzerBergerDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&);
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::SeltzerBergerDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void seltzer_berger_interact(
-    celeritas::SeltzerBergerDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&)
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::SeltzerBergerDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

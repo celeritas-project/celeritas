@@ -128,13 +128,13 @@ auto SeltzerBergerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 void SeltzerBergerModel::execute(CoreParams const& params,
                                  CoreStateHost& state) const
 {
-    generated::seltzer_berger_interact(this->host_ref(), params, state);
+    generated::seltzer_berger_interact(params, state, this->host_ref());
 }
 
 void SeltzerBergerModel::execute(CoreParams const& params,
                                  CoreStateDevice& state) const
 {
-    generated::seltzer_berger_interact(this->device_ref(), params, state);
+    generated::seltzer_berger_interact(params, state, this->device_ref());
 }
 
 //!@}

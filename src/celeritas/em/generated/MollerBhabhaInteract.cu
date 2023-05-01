@@ -34,32 +34,31 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 moller_bhabha_interact_kernel(
-    celeritas::MollerBhabhaDeviceRef const model_data,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const params,
-    celeritas::DeviceRef<celeritas::CoreStateData> const state)
+    celeritas::DeviceRef<celeritas::CoreStateData> const state,
+    celeritas::MollerBhabhaDeviceRef const model_data)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < state.size()))
         return;
 
     auto launch = celeritas::make_interaction_launcher(
-        params, state, model_data,
-        celeritas::moller_bhabha_interact_track);
+        params, state, celeritas::moller_bhabha_interact_track, model_data);
     launch(tid);
 }
 }  // namespace
 
 void moller_bhabha_interact(
-    celeritas::MollerBhabhaDeviceRef const& model_data,
     celeritas::CoreParams const& params,
-    celeritas::CoreState<MemSpace::device>& state)
+    celeritas::CoreState<MemSpace::device>& state,
+    celeritas::MollerBhabhaDeviceRef const& model_data)
 {
     CELER_EXPECT(model_data);
 
     CELER_LAUNCH_KERNEL(moller_bhabha_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        model_data, params.ref<MemSpace::native>(), state.ref());
+                        params.ref<MemSpace::native>(), state.ref(), model_data);
 }
 
 }  // namespace generated

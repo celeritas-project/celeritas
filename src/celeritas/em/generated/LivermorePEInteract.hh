@@ -25,20 +25,20 @@ namespace celeritas
 namespace generated
 {
 void livermore_pe_interact(
-    celeritas::LivermorePEHostRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::host>&);
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::LivermorePEHostRef const&);
 
 void livermore_pe_interact(
-    celeritas::LivermorePEDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&);
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::LivermorePEDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void livermore_pe_interact(
-    celeritas::LivermorePEDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::CoreState<MemSpace::device>&)
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::LivermorePEDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
