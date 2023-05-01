@@ -152,7 +152,14 @@ VolumeId VecgeomParams::find_volume(Label const& label) const
  */
 VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
 {
-    return g4log_volid_map_.find(volume)->second;
+    VolumeId result{};
+    if (volume)
+    {
+        auto iter = g4log_volid_map_.find(volume);
+        if (iter != g4log_volid_map_.end())
+            result = iter->second;
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
