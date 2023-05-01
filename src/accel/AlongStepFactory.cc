@@ -14,6 +14,7 @@
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/global/alongstep/AlongStepRZMapFieldMscAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"
 
@@ -87,6 +88,32 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
                 *input.particle, *input.material, *input.imported),
             input.imported->em_params.energy_loss_fluct);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Emit an along-step action with a non-uniform magnetic field.
+ *
+ * The action will embed the field propagator with a RZMapField.
+ */
+RZMapFieldAlongStepFactory::RZMapFieldAlongStepFactory(RZMapFieldFunction f)
+    : get_fieldmap_(std::move(f))
+{
+    CELER_EXPECT(get_fieldmap_);
+}
+
+auto RZMapFieldAlongStepFactory::operator()(
+    AlongStepFactoryInput const& input) const -> result_type
+{
+    CELER_LOG(info) << "Creating along-step action with a RZMapField";
+
+    return celeritas::AlongStepRZMapFieldMscAction::from_params(
+        input.action_id,
+        *input.material,
+        *input.particle,
+        get_fieldmap_(),
+        celeritas::UrbanMscParams::from_import(
+            *input.particle, *input.material, *input.imported));
 }
 
 //---------------------------------------------------------------------------//
