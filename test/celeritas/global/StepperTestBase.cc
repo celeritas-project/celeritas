@@ -81,8 +81,6 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
 auto StepperTestBase::run(StepperInterface& step,
                           size_type num_primaries) const -> RunResult
 {
-    CELER_EXPECT(step);
-
     // Perform first step
     auto primaries = this->make_primaries(num_primaries);
     StepperResult counts;

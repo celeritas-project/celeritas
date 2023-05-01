@@ -20,6 +20,8 @@
 #include "celeritas/random/RngParamsFwd.hh"
 #include "celeritas/track/TrackInitData.hh"
 
+#include "CoreState.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -88,9 +90,6 @@ class StepperInterface
     // Transport existing states and these new primaries
     virtual StepperResult operator()(SpanConstPrimary primaries) = 0;
 
-    //! Whether the stepper is assigned/valid
-    virtual explicit operator bool() const = 0;
-
     //! Get action sequence for timing diagnostics
     virtual ActionSequence const& actions() const = 0;
 
@@ -128,15 +127,6 @@ class Stepper final : public StepperInterface
     // Construct with problem parameters and setup options
     explicit Stepper(Input input);
 
-    //!@{
-    //! Prohibit copying but allow moving and empty construction
-    Stepper() = default;
-    Stepper(Stepper&&) = default;
-    Stepper(Stepper const&) = delete;
-    Stepper& operator=(Stepper&&) = default;
-    Stepper& operator=(Stepper const&) = delete;
-    //!@}
-
     // Default destructor
     ~Stepper();
 
@@ -146,22 +136,18 @@ class Stepper final : public StepperInterface
     // Transport existing states and these new primaries
     StepperResult operator()(SpanConstPrimary primaries) final;
 
-    //! Whether the stepper is assigned/valid
-    explicit operator bool() const final { return static_cast<bool>(states_); }
-
     //! Get action sequence for timing diagnostics
     ActionSequence const& actions() const final { return *actions_; }
 
     //! Access core data, primarily for debugging
-    StateRef const& state_ref() const { return states_.ref(); }
+    StateRef const& state_ref() const { return state_.ref(); }
 
   private:
     // Params and call sequence
     std::shared_ptr<CoreParams const> params_;
     std::shared_ptr<detail::ActionSequence> actions_;
-
     // State data
-    CollectionStateStore<CoreStateData, M> states_;
+    CoreState<M> state_;
 };
 
 //---------------------------------------------------------------------------//

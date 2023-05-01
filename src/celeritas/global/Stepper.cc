@@ -29,15 +29,10 @@ namespace celeritas
  * Construct with problem parameters and setup options.
  */
 template<MemSpace M>
-Stepper<M>::Stepper(Input input) : params_(std::move(input.params))
+Stepper<M>::Stepper(Input input)
+    : params_(std::move(input.params))
+    , state_(*params_, input.stream_id, input.num_track_slots)
 {
-    CELER_EXPECT(params_);
-    CELER_VALIDATE(input.stream_id, << "stream ID is not set");
-    CELER_VALIDATE(input.num_track_slots > 0,
-                   << "number of track slots is not set");
-    states_ = CollectionStateStore<CoreStateData, M>(
-        params_->host_ref(), input.stream_id, input.num_track_slots);
-
     // Create action sequence
     {
         ActionSequence::Options opts;
@@ -64,15 +59,13 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
-    CELER_EXPECT(*this);
-
-    actions_->execute(params_->ref<M>(), states_.ref());
+    actions_->execute(params_->ref<M>(), state_.ref());
 
     // Get the number of track initializers and active tracks
     auto const& init = this->state_ref().init;
     result_type result;
     result.active = init.num_active;
-    result.alive = states_.size() - init.vacancies.size();
+    result.alive = state_.size() - init.vacancies.size();
     result.queued = init.initializers.size();
 
     return result;
@@ -85,11 +78,10 @@ auto Stepper<M>::operator()() -> result_type
 template<MemSpace M>
 auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 {
-    CELER_EXPECT(*this);
     CELER_EXPECT(!primaries.empty());
 
     size_type num_initializers = this->state_ref().init.initializers.size();
-    size_type init_capacity = states_.ref().init.initializers.capacity();
+    size_type init_capacity = state_.ref().init.initializers.capacity();
     CELER_VALIDATE(primaries.size() + num_initializers <= init_capacity,
                    << "insufficient initializer capacity (" << init_capacity
                    << ") with size (" << num_initializers
@@ -105,7 +97,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << " exceeds max_events=" << params_->init()->max_events());
 
     // Create track initializers
-    extend_from_primaries(params_->ref<M>(), states_.ref(), primaries);
+    extend_from_primaries(params_->ref<M>(), state_.ref(), primaries);
 
     return (*this)();
 }

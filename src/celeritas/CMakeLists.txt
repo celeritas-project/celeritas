@@ -57,6 +57,7 @@ list(APPEND SOURCES
   global/ActionRegistry.cc
   global/ActionRegistryOutput.cc
   global/CoreParams.cc
+  global/CoreState.cc
   global/CoreTrackData.cc
   global/KernelContextException.cc
   global/Stepper.cc
