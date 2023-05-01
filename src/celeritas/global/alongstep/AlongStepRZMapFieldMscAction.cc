@@ -17,7 +17,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
-#include "celeritas/field/RZMapField.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
@@ -62,10 +62,6 @@ AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
 
     field_ = std::make_shared<RZMapFieldParams>(input);
 }
-
-//---------------------------------------------------------------------------//
-//! Default destructor
-AlongStepRZMapFieldMscAction::~AlongStepRZMapFieldMscAction() = default;
 
 //---------------------------------------------------------------------------//
 /*!

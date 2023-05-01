@@ -12,7 +12,6 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
-#include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
@@ -22,7 +21,6 @@
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepImpl.hh"
-#include "detail/AlongStepUniformMsc.hh"
 #include "detail/MeanELoss.hh"
 
 namespace celeritas
@@ -83,8 +81,8 @@ along_step_update_time_kernel(DeviceCRef<CoreParamsData> const params,
 
 //---------------------------------------------------------------------------//
 __global__ void
-along_step_apply_eloss_kernel(DeviceCRef<CoreParamsData> const params,
-                              DeviceRef<CoreStateData> const state)
+along_step_apply_mean_eloss_kernel(DeviceCRef<CoreParamsData> const params,
+                                   DeviceRef<CoreStateData> const state)
 {
     using detail::MeanELoss;
 
@@ -137,7 +135,7 @@ void AlongStepUniformMscAction::execute(ParamsDeviceCRef const& params,
                         state.size(),
                         params,
                         state);
-    CELER_LAUNCH_KERNEL(along_step_apply_eloss,
+    CELER_LAUNCH_KERNEL(along_step_apply_mean_eloss,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params,
