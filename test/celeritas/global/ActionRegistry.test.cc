@@ -13,13 +13,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-// Fake definition of CoreRef
-template<MemSpace M>
-struct CoreRef
-{
-};
-
 namespace test
 {
 //---------------------------------------------------------------------------//

@@ -19,8 +19,5 @@ struct CoreParamsData;
 template<Ownership W, MemSpace M>
 struct CoreStateData;
 
-template<MemSpace M>
-struct CoreRef;
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

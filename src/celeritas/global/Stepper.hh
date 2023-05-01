@@ -119,6 +119,12 @@ template<MemSpace M>
 class Stepper final : public StepperInterface
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using StateRef = CoreStateData<Ownership::reference, M>;
+    //!@}
+
+  public:
     // Construct with problem parameters and setup options
     explicit Stepper(Input input);
 
@@ -146,8 +152,8 @@ class Stepper final : public StepperInterface
     //! Get action sequence for timing diagnostics
     ActionSequence const& actions() const final { return *actions_; }
 
-    //! Access core data for debugging
-    CoreRef<M> const& core_data() const { return core_ref_; }
+    //! Access core data, primarily for debugging
+    StateRef const& state_ref() const { return states_.ref(); }
 
   private:
     // Params and call sequence
@@ -156,9 +162,6 @@ class Stepper final : public StepperInterface
 
     // State data
     CollectionStateStore<CoreStateData, M> states_;
-
-    // Combined param/state for action calls
-    CoreRef<M> core_ref_;
 };
 
 //---------------------------------------------------------------------------//
