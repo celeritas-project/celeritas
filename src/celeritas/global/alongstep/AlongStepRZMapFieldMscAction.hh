@@ -15,7 +15,6 @@
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/field/RZMapFieldData.hh"
-#include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -26,10 +25,11 @@ class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
+struct RZMapFieldInput;
 
 //---------------------------------------------------------------------------//
 /*!
- * Along-step kernel with optional MSC and a RZMapField.
+ * Along-step kernel with MSC, energy loss fluctuations, and a RZMapField.
  */
 class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
 {
@@ -55,9 +55,6 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
                                  RZMapFieldInput const& input,
                                  SPConstMsc msc);
 
-    // Default destructor
-    ~AlongStepRZMapFieldMscAction();
-
     // Launch kernel with host data
     void execute(ParamsHostCRef const&, StateHostRef&) const final;
 
@@ -68,7 +65,7 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the interaction kernel
-    std::string label() const final { return "along-step-mapfield-msc"; }
+    std::string label() const final { return "along-step-rzmap-msc"; }
 
     //! Name of the model, for user interaction
     std::string description() const final
@@ -85,7 +82,7 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
     bool has_msc() const { return static_cast<bool>(msc_); }
 
     //! Field map data
-    SPConstFieldParams field() const { return field_; }
+    SPConstFieldParams const& field() const { return field_; }
 
   private:
     ActionId id_;

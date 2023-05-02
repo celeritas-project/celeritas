@@ -85,7 +85,7 @@ void {clsname}::execute(ParamsHostCRef const& params, StateHostRef& state) const
     CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_track_launcher(params, state, detail::{func}_track);
+    TrackLauncher launch{{params, state, detail::{func}_track}};
     #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {{
@@ -123,12 +123,8 @@ __global__ void{launch_bounds}{func}_kernel(
     DeviceRef<CoreStateData> const state
 )
 {{
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < state.size()))
-        return;
-
-    auto launch = make_track_launcher(params, state, detail::{func}_track);
-    launch(tid);
+    TrackLauncher launch{{params, state, detail::{func}_track}};
+    launch(KernelParamCalculator::thread_id());
 }}
 }}  // namespace
 

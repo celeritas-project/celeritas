@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
@@ -15,8 +16,8 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"
+#include "celeritas/global/alongstep/AlongStep.hh"
 
-#include "AlongStepNeutral.hh"
 #include "MeanELoss.hh"  // IWYU pragma: associated
 
 namespace celeritas
@@ -29,19 +30,18 @@ namespace detail
  * magnetic field.
  */
 inline CELER_FUNCTION void
-along_step_uniform_msc(NativeCRef<UrbanMscData> const& msc,
-                       UniformFieldParams const& field,
-                       NoData,
-                       CoreTrackView const& track)
+along_step_uniform_msc(CoreTrackView const& track,
+                       NativeCRef<UrbanMscData> const& msc,
+                       UniformFieldParams const& field)
 {
     return along_step(
+        track,
         UrbanMsc{msc},
         [&field](ParticleTrackView const& particle, GeoTrackView* geo) {
             return make_mag_field_propagator<DormandPrinceStepper>(
                 UniformField(field.field), field.options, particle, geo);
         },
-        MeanELoss{},
-        track);
+        MeanELoss{});
 }
 
 //---------------------------------------------------------------------------//

@@ -9,7 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
@@ -17,27 +17,112 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-/*!
- * Function-like class to launch a "Track"-dependent function from core data.
- *
- * This class should be used primarily by generated kernel functions.
- */
-template<class F>
-struct TrackLauncher
-{
-    //// DATA ////
+// TrackLauncherImpl
+//---------------------------------------------------------------------------//
+//! Lazy implementation that replaces tuple + apply
+template<class F, class... Ts>
+struct TrackLauncherImpl;
 
-    NativeCRef<CoreParamsData> const& params;
-    NativeRef<CoreStateData> const& state;
+//---------------------------------------------------------------------------//
+template<class F>
+struct TrackLauncherImpl<F>
+{
     F call_with_track;
 
-    //// METHODS ////
-
-    CELER_FUNCTION void operator()(ThreadId thread) const
+    CELER_FUNCTION void operator()(CoreTrackView const& track) const
     {
-        CELER_ASSERT(thread < this->state.size());
-        const celeritas::CoreTrackView track(this->params, this->state, thread);
-        this->call_with_track(track);
+        return this->call_with_track(track);
+    }
+};
+
+//---------------------------------------------------------------------------//
+template<class F, class T1>
+struct TrackLauncherImpl<F, T1>
+{
+    F call_with_track;
+    T1 arg1;
+
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
+    {
+        return this->call_with_track(track, celeritas::forward<T1>(arg1));
+    }
+};
+
+//---------------------------------------------------------------------------//
+template<class F, class T1, class T2>
+struct TrackLauncherImpl<F, T1, T2>
+{
+    F call_with_track;
+    T1 arg1;
+    T2 arg2;
+
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
+    {
+        return this->call_with_track(
+            track, celeritas::forward<T1>(arg1), celeritas::forward<T2>(arg2));
+    }
+};
+
+//---------------------------------------------------------------------------//
+template<class F, class T1, class T2, class T3>
+struct TrackLauncherImpl<F, T1, T2, T3>
+{
+    F call_with_track;
+    T1 arg1;
+    T2 arg2;
+    T3 arg3;
+
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
+    {
+        return this->call_with_track(track,
+                                     celeritas::forward<T1>(arg1),
+                                     celeritas::forward<T2>(arg2),
+                                     celeritas::forward<T3>(arg3));
+    }
+};
+
+//---------------------------------------------------------------------------//
+template<class F, class T1, class T2, class T3, class T4>
+struct TrackLauncherImpl<F, T1, T2, T3, T4>
+{
+    F call_with_track;
+    T1 arg1;
+    T2 arg2;
+    T3 arg3;
+    T4 arg4;
+
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
+    {
+        return this->call_with_track(track,
+                                     celeritas::forward<T1>(arg1),
+                                     celeritas::forward<T2>(arg2),
+                                     celeritas::forward<T3>(arg3),
+                                     celeritas::forward<T4>(arg4));
+    }
+};
+
+//---------------------------------------------------------------------------//
+// CONDITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Condition for ConditionalTrackLauncher for active tracks.
+ */
+inline CELER_FUNCTION bool applies_active(SimTrackView const& sim)
+{
+    return sim.status() != TrackStatus::inactive;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply only to tracks with the given action ID.
+ */
+struct IsStepActionEqual
+{
+    ActionId action;
+
+    CELER_FUNCTION bool operator()(SimTrackView const& sim) const
+    {
+        return sim.step_limit().action == this->action;
     }
 };
 

@@ -19,9 +19,9 @@
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
+#include "celeritas/global/TrackLauncher.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
-#include "AlongStepLauncher.hh"
 #include "detail/AlongStepGeneralLinear.hh"
 
 namespace celeritas
@@ -76,12 +76,11 @@ void AlongStepGeneralLinearAction::execute(ParamsHostCRef const& params,
     CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_along_step_launcher(params,
-                                           state,
-                                           host_data_.msc,
-                                           NoData{},
-                                           host_data_.fluct,
-                                           detail::along_step_general_linear);
+    auto launch = make_active_track_launcher(params,
+                                             state,
+                                             detail::along_step_general_linear,
+                                             host_data_.msc,
+                                             host_data_.fluct);
 
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)

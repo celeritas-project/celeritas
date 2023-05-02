@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
@@ -15,8 +16,8 @@
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldData.hh"
+#include "celeritas/global/alongstep/AlongStep.hh"
 
-#include "AlongStepNeutral.hh"
 #include "FluctELoss.hh"  // IWYU pragma: associated
 
 namespace celeritas
@@ -29,19 +30,19 @@ namespace detail
  * magnetic field (RZMapField).
  */
 inline CELER_FUNCTION void
-along_step_mapfield_msc(NativeCRef<UrbanMscData> const& msc,
+along_step_mapfield_msc(CoreTrackView const& track,
+                        NativeCRef<UrbanMscData> const& msc,
                         NativeCRef<RZMapFieldParamsData> const& field,
-                        NativeCRef<FluctuationData> const& fluct,
-                        CoreTrackView const& track)
+                        NativeCRef<FluctuationData> const& fluct)
 {
     return along_step(
+        track,
         UrbanMsc{msc},
         [&](ParticleTrackView const& particle, GeoTrackView* geo) {
             return make_mag_field_propagator<DormandPrinceStepper>(
                 RZMapField(field), field.options, particle, geo);
         },
-        FluctELoss{fluct},
-        track);
+        FluctELoss{fluct});
 }
 
 //---------------------------------------------------------------------------//

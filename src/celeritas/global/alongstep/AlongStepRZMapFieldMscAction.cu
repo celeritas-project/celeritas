@@ -14,35 +14,99 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/data/FluctuationData.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/em/msc/UrbanMsc.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/MakeMagFieldPropagator.hh"
+#include "celeritas/field/RZMapField.hh"
+#include "celeritas/field/RZMapFieldData.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
-#include "detail/AlongStepRZMapFieldMsc.hh"
+#include "detail/AlongStepImpl.hh"
+#include "detail/FluctELoss.hh"
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
+// TODO: these are now "unique" if MSC is in use: reuse across along-step
 __global__ void
-along_step_field_msc_kernel(DeviceCRef<CoreParamsData> const params,
-                            DeviceRef<CoreStateData> const state,
-                            DeviceCRef<UrbanMscData> const msc_data,
-                            DeviceCRef<RZMapFieldParamsData> const field_data,
-                            DeviceCRef<FluctuationData> const fluct)
+along_step_apply_msc_step_limit_kernel(DeviceCRef<CoreParamsData> const params,
+                                       DeviceRef<CoreStateData> const state,
+                                       DeviceCRef<UrbanMscData> const msc_data)
 {
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < state.size()))
-        return;
-
-    auto launch = make_along_step_launcher(params,
-                                           state,
-                                           msc_data,
-                                           field_data,
-                                           fluct,
-                                           detail::along_step_mapfield_msc);
-    launch(tid);
+    auto launch
+        = make_active_track_launcher(params,
+                                     state,
+                                     detail::apply_msc_step_limit<UrbanMsc>,
+                                     UrbanMsc{msc_data});
+    launch(KernelParamCalculator::thread_id());
 }
+
+//---------------------------------------------------------------------------//
+__global__ void along_step_apply_rzmap_propagation_kernel(
+    DeviceCRef<CoreParamsData> const params,
+    DeviceRef<CoreStateData> const state,
+    DeviceCRef<RZMapFieldParamsData> const field)
+{
+    auto launch = make_active_track_launcher(
+        params,
+        state,
+        detail::ApplyPropagation{},
+        [&field](ParticleTrackView const& particle, GeoTrackView* geo) {
+            return make_mag_field_propagator<DormandPrinceStepper>(
+                RZMapField(field), field.options, particle, geo);
+        });
+    launch(KernelParamCalculator::thread_id());
+}
+
+//---------------------------------------------------------------------------//
+__global__ void
+along_step_apply_msc_kernel(DeviceCRef<CoreParamsData> const params,
+                            DeviceRef<CoreStateData> const state,
+                            DeviceCRef<UrbanMscData> const msc_data)
+{
+    auto launch = make_active_track_launcher(
+        params, state, detail::apply_msc<UrbanMsc>, UrbanMsc{msc_data});
+    launch(KernelParamCalculator::thread_id());
+}
+
+//---------------------------------------------------------------------------//
+__global__ void
+along_step_update_time_kernel(DeviceCRef<CoreParamsData> const params,
+                              DeviceRef<CoreStateData> const state)
+{
+    auto launch
+        = make_active_track_launcher(params, state, detail::update_time);
+    launch(KernelParamCalculator::thread_id());
+}
+
+//---------------------------------------------------------------------------//
+__global__ void
+along_step_apply_fluct_eloss_kernel(DeviceCRef<CoreParamsData> const params,
+                                    DeviceRef<CoreStateData> const state,
+                                    NativeCRef<FluctuationData> const fluct)
+{
+    using detail::FluctELoss;
+
+    auto launch = make_active_track_launcher(
+        params, state, detail::apply_eloss<FluctELoss>, FluctELoss{fluct});
+    launch(KernelParamCalculator::thread_id());
+}
+
+//---------------------------------------------------------------------------//
+__global__ void
+along_step_update_track_kernel(DeviceCRef<CoreParamsData> const params,
+                               DeviceRef<CoreStateData> const state)
+{
+    auto launch
+        = make_active_track_launcher(params, state, detail::update_track);
+    launch(KernelParamCalculator::thread_id());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -54,14 +118,40 @@ void AlongStepRZMapFieldMscAction::execute(ParamsDeviceCRef const& params,
                                            StateDeviceRef& state) const
 {
     CELER_EXPECT(params && state);
-    CELER_LAUNCH_KERNEL(along_step_field_msc,
+    CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params,
                         state,
-                        msc_->device_ref(),
-                        field_->device_ref(),
+                        msc_->device_ref());
+    CELER_LAUNCH_KERNEL(along_step_apply_rzmap_propagation,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params,
+                        state,
+                        field_->device_ref());
+    CELER_LAUNCH_KERNEL(along_step_apply_msc,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params,
+                        state,
+                        msc_->device_ref());
+    CELER_LAUNCH_KERNEL(along_step_update_time,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params,
+                        state);
+    CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params,
+                        state,
                         fluct_->device_ref());
+    CELER_LAUNCH_KERNEL(along_step_update_track,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params,
+                        state);
 }
 
 //---------------------------------------------------------------------------//

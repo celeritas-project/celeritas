@@ -14,8 +14,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
 #include "detail/AlongStepNeutral.hh"
 
 namespace celeritas
@@ -39,8 +39,8 @@ void AlongStepNeutralAction::execute(ParamsHostCRef const& params,
     CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_along_step_launcher(
-        params, state, NoData{}, NoData{}, NoData{}, detail::along_step_neutral);
+    auto launch = make_active_track_launcher(
+        params, state, detail::along_step_neutral);
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {

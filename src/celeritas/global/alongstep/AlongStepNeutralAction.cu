@@ -12,8 +12,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
 #include "detail/AlongStepNeutral.hh"
 
 namespace celeritas
@@ -25,13 +25,9 @@ __global__ void
 along_step_neutral_kernel(DeviceCRef<CoreParamsData> const params,
                           DeviceRef<CoreStateData> const state)
 {
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < state.size()))
-        return;
-
-    auto launch = make_along_step_launcher(
-        params, state, NoData{}, NoData{}, NoData{}, detail::along_step_neutral);
-    launch(tid);
+    auto launch = make_active_track_launcher(
+        params, state, detail::along_step_neutral);
+    launch(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//
 }  // namespace

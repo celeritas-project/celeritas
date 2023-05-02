@@ -17,12 +17,11 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
-#include "celeritas/field/RZMapField.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/alongstep/AlongStepLauncher.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
 #include "detail/AlongStepRZMapFieldMsc.hh"
 
 namespace celeritas
@@ -65,10 +64,6 @@ AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
 }
 
 //---------------------------------------------------------------------------//
-//! Default destructor
-AlongStepRZMapFieldMscAction::~AlongStepRZMapFieldMscAction() = default;
-
-//---------------------------------------------------------------------------//
 /*!
  * Launch the along-step action on host.
  */
@@ -78,12 +73,12 @@ void AlongStepRZMapFieldMscAction::execute(ParamsHostCRef const& params,
     CELER_EXPECT(params && state);
     MultiExceptionHandler capture_exception;
 
-    auto launch = make_along_step_launcher(params,
-                                           state,
-                                           msc_->host_ref(),
-                                           field_->host_ref(),
-                                           fluct_->host_ref(),
-                                           detail::along_step_mapfield_msc);
+    auto launch = make_active_track_launcher(params,
+                                             state,
+                                             detail::along_step_mapfield_msc,
+                                             msc_->host_ref(),
+                                             field_->host_ref(),
+                                             fluct_->host_ref());
 
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)

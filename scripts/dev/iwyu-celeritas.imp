@@ -1,7 +1,6 @@
 [
-  { include: ["\"celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh\"", private, "\"celeritas/global/alongstep/AlongStepLauncher.hh\"", public ] },
   { include: ["\"celeritas/phys/detail/InteractionLauncherImpl.hh\"",           private, "\"celeritas/phys/InteractionLauncher.hh\"", public ] },
-  { include: ["\"celeritas/global/detail/TrackLauncherImpl.hh\"",                private, "\"celeritas/global/TrackLauncher.hh\"", public ] },
+  { include: ["\"celeritas/global/detail/TrackLauncherImpl.hh\"",               private, "\"celeritas/global/TrackLauncher.hh\"", public ] },
   { include: ["\"corecel/cont/detail/RangeImpl.hh\"",                           private, "\"corecel/cont/Range.hh\"", public ] },
   { include: ["\"corecel/cont/detail/SpanImpl.hh\"",                            private, "\"corecel/cont/Span.hh\"", public ] },
   { include: ["\"corecel/data/detail/CollectionImpl.hh\"",                      private, "\"corecel/data/Collection.hh\"", public ] },
