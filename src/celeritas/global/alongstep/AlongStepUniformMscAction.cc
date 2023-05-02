@@ -17,9 +17,8 @@
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/alongstep/AlongStepLauncher.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
 #include "detail/AlongStepUniformMsc.hh"
 
 namespace celeritas
@@ -53,12 +52,11 @@ void AlongStepUniformMscAction::execute(ParamsHostCRef const& params,
     CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_along_step_launcher(params,
-                                           state,
-                                           host_data_.msc,
-                                           field_params_,
-                                           NoData{},
-                                           detail::along_step_uniform_msc);
+    auto launch = make_active_track_launcher(params,
+                                             state,
+                                             detail::along_step_uniform_msc,
+                                             host_data_.msc,
+                                             field_params_);
 
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)

@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 
 #include "corecel/cont/Span.hh"
+#include "corecel/io/LogContextException.hh"
 #include "corecel/io/Repr.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
@@ -84,7 +85,9 @@ auto StepperTestBase::run(StepperInterface& step,
 
     // Perform first step
     auto primaries = this->make_primaries(num_primaries);
-    auto counts = step(make_span(primaries));
+    StepperResult counts;
+    CELER_TRY_HANDLE(counts = step(make_span(primaries)),
+                     log_context_exception);
     EXPECT_EQ(num_primaries, counts.active);
     EXPECT_EQ(num_primaries, counts.alive);
 
@@ -97,7 +100,7 @@ auto StepperTestBase::run(StepperInterface& step,
 
     while (counts)
     {
-        counts = step();
+        CELER_TRY_HANDLE(counts = step(), log_context_exception);
         result.active.push_back(counts.active);
         result.queued.push_back(counts.queued);
         accum_steps += counts.active;

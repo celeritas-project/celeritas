@@ -24,6 +24,7 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/ScopedDeviceProfiling.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -82,7 +83,10 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
     double const setup_time = get_setup_time();
 
     // Run on a single thread
-    RunnerResult result = run_stream(celeritas::StreamId{0});
+    RunnerResult result = [&run_stream] {
+        celeritas::ScopedDeviceProfiling profile_this;
+        return run_stream(celeritas::StreamId{0});
+    }();
     result.time.setup = setup_time;
 
     // TODO: convert individual results into OutputInterface so we don't have

@@ -1,33 +1,38 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/AlongStepUniformMscAction.cu
+//! \file celeritas/global/alongstep/AlongStepRZMapFieldMscAction.cu
 //---------------------------------------------------------------------------//
-#include "AlongStepUniformMscAction.hh"
+#include "AlongStepRZMapFieldMscAction.hh"
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/em/FluctuationParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
-#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
-#include "celeritas/field/UniformField.hh"
+#include "celeritas/field/RZMapField.hh"
+#include "celeritas/field/RZMapFieldData.hh"
+#include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepImpl.hh"
-#include "detail/MeanELoss.hh"
+#include "detail/FluctELoss.hh"
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
+// TODO: these are now "unique" if MSC is in use: reuse across along-step
 __global__ void
 along_step_apply_msc_step_limit_kernel(DeviceCRef<CoreParamsData> const params,
                                        DeviceRef<CoreStateData> const state,
@@ -42,10 +47,10 @@ along_step_apply_msc_step_limit_kernel(DeviceCRef<CoreParamsData> const params,
 }
 
 //---------------------------------------------------------------------------//
-__global__ void along_step_apply_uniform_propagation_kernel(
+__global__ void along_step_apply_rzmap_propagation_kernel(
     DeviceCRef<CoreParamsData> const params,
     DeviceRef<CoreStateData> const state,
-    UniformFieldParams const field)
+    DeviceCRef<RZMapFieldParamsData> const field)
 {
     auto launch = make_active_track_launcher(
         params,
@@ -53,7 +58,7 @@ __global__ void along_step_apply_uniform_propagation_kernel(
         detail::ApplyPropagation{},
         [&field](ParticleTrackView const& particle, GeoTrackView* geo) {
             return make_mag_field_propagator<DormandPrinceStepper>(
-                UniformField(field.field), field.options, particle, geo);
+                RZMapField(field), field.options, particle, geo);
         });
     launch(KernelParamCalculator::thread_id());
 }
@@ -81,13 +86,14 @@ along_step_update_time_kernel(DeviceCRef<CoreParamsData> const params,
 
 //---------------------------------------------------------------------------//
 __global__ void
-along_step_apply_mean_eloss_kernel(DeviceCRef<CoreParamsData> const params,
-                                   DeviceRef<CoreStateData> const state)
+along_step_apply_fluct_eloss_kernel(DeviceCRef<CoreParamsData> const params,
+                                    DeviceRef<CoreStateData> const state,
+                                    NativeCRef<FluctuationData> const fluct)
 {
-    using detail::MeanELoss;
+    using detail::FluctELoss;
 
     auto launch = make_active_track_launcher(
-        params, state, detail::apply_eloss<MeanELoss>, MeanELoss{});
+        params, state, detail::apply_eloss<FluctELoss>, FluctELoss{fluct});
     launch(KernelParamCalculator::thread_id());
 }
 
@@ -108,8 +114,8 @@ along_step_update_track_kernel(DeviceCRef<CoreParamsData> const params,
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepUniformMscAction::execute(ParamsDeviceCRef const& params,
-                                        StateDeviceRef& state) const
+void AlongStepRZMapFieldMscAction::execute(ParamsDeviceCRef const& params,
+                                           StateDeviceRef& state) const
 {
     CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
@@ -117,29 +123,30 @@ void AlongStepUniformMscAction::execute(ParamsDeviceCRef const& params,
                         state.size(),
                         params,
                         state,
-                        device_data_.msc);
-    CELER_LAUNCH_KERNEL(along_step_apply_uniform_propagation,
+                        msc_->device_ref());
+    CELER_LAUNCH_KERNEL(along_step_apply_rzmap_propagation,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params,
                         state,
-                        field_params_);
+                        field_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_apply_msc,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params,
                         state,
-                        device_data_.msc);
+                        msc_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_update_time,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params,
                         state);
-    CELER_LAUNCH_KERNEL(along_step_apply_mean_eloss,
+    CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params,
-                        state);
+                        state,
+                        fluct_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_update_track,
                         celeritas::device().default_block_size(),
                         state.size(),

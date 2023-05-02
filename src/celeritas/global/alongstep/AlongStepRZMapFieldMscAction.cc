@@ -1,28 +1,28 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/AlongStepGeneralLinearAction.cc
+//! \file celeritas/global/alongstep/AlongStepRZMapFieldMscAction.cc
 //---------------------------------------------------------------------------//
-#include "AlongStepGeneralLinearAction.hh"
+#include "AlongStepRZMapFieldMscAction.hh"
 
 #include <utility>
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "celeritas/Types.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
-#include "celeritas/phys/PhysicsParams.hh"
 
-#include "detail/AlongStepGeneralLinear.hh"
+#include "detail/AlongStepRZMapFieldMsc.hh"
 
 namespace celeritas
 {
@@ -30,57 +30,55 @@ namespace celeritas
 /*!
  * Construct the along-step action from input parameters.
  */
-std::shared_ptr<AlongStepGeneralLinearAction>
-AlongStepGeneralLinearAction::from_params(ActionId id,
+std::shared_ptr<AlongStepRZMapFieldMscAction>
+AlongStepRZMapFieldMscAction::from_params(ActionId id,
                                           MaterialParams const& materials,
                                           ParticleParams const& particles,
-                                          SPConstMsc const& msc,
-                                          bool eloss_fluctuation)
+                                          RZMapFieldInput const& field_input,
+                                          SPConstMsc const& msc)
 {
-    SPConstFluctuations fluct;
-    if (eloss_fluctuation)
-    {
-        fluct = std::make_shared<FluctuationParams>(particles, materials);
-    }
+    SPConstFluctuations fluct
+        = std::make_shared<FluctuationParams>(particles, materials);
 
-    return std::make_shared<AlongStepGeneralLinearAction>(
-        id, std::move(fluct), msc);
+    return std::make_shared<AlongStepRZMapFieldMscAction>(
+        id, std::move(fluct), field_input, msc);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with next action ID and optional energy loss parameters.
  */
-AlongStepGeneralLinearAction::AlongStepGeneralLinearAction(
-    ActionId id, SPConstFluctuations fluct, SPConstMsc msc)
-    : id_(id)
-    , fluct_(std::move(fluct))
-    , msc_(std::move(msc))
-    , host_data_(fluct_, msc_)
-    , device_data_(fluct_, msc_)
+AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
+    ActionId id,
+    SPConstFluctuations fluct,
+    RZMapFieldInput const& input,
+    SPConstMsc msc)
+    : id_(id), fluct_(std::move(fluct)), msc_(std::move(msc))
 {
     CELER_EXPECT(id_);
-}
+    CELER_EXPECT(input);
+    CELER_EXPECT(fluct_);
+    CELER_EXPECT(msc_);
 
-//---------------------------------------------------------------------------//
-//! Default destructor
-AlongStepGeneralLinearAction::~AlongStepGeneralLinearAction() = default;
+    field_ = std::make_shared<RZMapFieldParams>(input);
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepGeneralLinearAction::execute(ParamsHostCRef const& params,
+void AlongStepRZMapFieldMscAction::execute(ParamsHostCRef const& params,
                                            StateHostRef& state) const
 {
     CELER_EXPECT(params && state);
-
     MultiExceptionHandler capture_exception;
+
     auto launch = make_active_track_launcher(params,
                                              state,
-                                             detail::along_step_general_linear,
-                                             host_data_.msc,
-                                             host_data_.fluct);
+                                             detail::along_step_mapfield_msc,
+                                             msc_->host_ref(),
+                                             field_->host_ref(),
+                                             fluct_->host_ref());
 
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
@@ -91,30 +89,6 @@ void AlongStepGeneralLinearAction::execute(ParamsHostCRef const& params,
             KernelContextException(params, state, ThreadId{i}, this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Save references from host/device data.
- */
-template<MemSpace M>
-AlongStepGeneralLinearAction::ExternalRefs<M>::ExternalRefs(
-    SPConstFluctuations const& fluct_params, SPConstMsc const& msc_params)
-{
-    if (M == MemSpace::device && !celeritas::device())
-    {
-        // Skip device copy if disabled
-        return;
-    }
-
-    if (fluct_params)
-    {
-        fluct = get_ref<M>(*fluct_params);
-    }
-    if (msc_params)
-    {
-        msc = get_ref<M>(*msc_params);
-    }
 }
 
 //---------------------------------------------------------------------------//

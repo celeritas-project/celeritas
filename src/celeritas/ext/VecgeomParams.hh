@@ -18,6 +18,7 @@
 #include "VecgeomData.hh"
 
 class G4VPhysicalVolume;
+class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -73,6 +74,9 @@ class VecgeomParams
     // Get the volume ID corresponding to a unique label
     VolumeId find_volume(Label const& label) const;
 
+    // Get the volume ID corresponding to a Geant4 logical volume
+    VolumeId find_volume(G4LogicalVolume const* volume) const;
+
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(std::string const& name) const;
 
@@ -100,6 +104,8 @@ class VecgeomParams
 
     // Host metadata/access
     LabelIdMultiMap<VolumeId> vol_labels_;
+    std::map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
+
     BoundingBox bbox_;
 
     // Host/device storage and reference

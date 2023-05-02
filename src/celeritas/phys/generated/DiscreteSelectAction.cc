@@ -27,7 +27,7 @@ void DiscreteSelectAction::execute(ParamsHostCRef const& params, StateHostRef& s
     CELER_EXPECT(params && state);
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_track_launcher(params, state, detail::discrete_select_track);
+    TrackLauncher launch{params, state, detail::discrete_select_track};
     #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {
