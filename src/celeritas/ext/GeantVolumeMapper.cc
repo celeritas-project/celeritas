@@ -27,6 +27,12 @@ namespace celeritas
  */
 VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
 {
+    if (VolumeId id = geo.find_volume(&lv))
+    {
+        // Volume is mapped from an externally loaded Geant4 geometry
+        return id;
+    }
+
     // Convert volume name to GPU geometry ID
     auto label = Label::from_geant(lv.GetName());
     if (label.ext.empty())

@@ -19,6 +19,8 @@
 #include <VecGeom/base/TypeMap.h>
 #include <VecGeom/management/GeoManager.h>
 
+#include "celeritas/ext/VecgeomData.hh"
+
 class G4LogicalVolume;
 class G4AffineTransformation;
 class G4VPhysicalVolume;
@@ -42,6 +44,7 @@ class GeantGeoConverter
     using LogicalVolume = vecgeom::LogicalVolume;
     using VPlacedVolume = vecgeom::VPlacedVolume;
     using VUnplacedVolume = vecgeom::VUnplacedVolume;
+    using VolumeId = celeritas::OpaqueId<struct Volume>;
     //!@}
 
   public:
@@ -63,6 +66,14 @@ class GeantGeoConverter
      */
     VPlacedVolume const& operator()(G4VPhysicalVolume const*);
 
+    /*!
+     * Map between G4LogicalVolume* and volume IDs.
+     */
+    std::map<G4LogicalVolume const*, celeritas::VolumeId> get_g4logvol_id_map()
+    {
+        return std::move(g4logvol_id_map_);
+    }
+
   private:
     //// TYPES ////
 
@@ -79,6 +90,8 @@ class GeantGeoConverter
     std::map<G4LogicalVolume const*, LogicalVolume const*> logical_volume_map_;
 
     std::vector<Transformation3D const*> replica_transformations_;
+
+    std::map<G4LogicalVolume const*, celeritas::VolumeId> g4logvol_id_map_;
 
     //// HELPER FUNCTIONS ////
 

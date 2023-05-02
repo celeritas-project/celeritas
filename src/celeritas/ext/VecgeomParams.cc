@@ -78,6 +78,8 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
         ScopedMem record_mem("VecgeomParams.convert");
         detail::GeantGeoConverter convert;
         convert(world);
+        // save the logicalVolume ID map before converter goes out of scope
+        g4log_volid_map_ = convert.get_g4logvol_id_map();
         CELER_ASSERT(vecgeom::GeoManager::Instance().GetWorld());
     }
 #else
@@ -142,6 +144,22 @@ auto VecgeomParams::find_volume(std::string const& name) const -> VolumeId
 VolumeId VecgeomParams::find_volume(Label const& label) const
 {
     return vol_labels_.find(label);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Locate the volume ID corresponding to a Geant4 logical volume.
+ */
+VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
+{
+    VolumeId result{};
+    if (volume)
+    {
+        auto iter = g4log_volid_map_.find(volume);
+        if (iter != g4log_volid_map_.end())
+            result = iter->second;
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

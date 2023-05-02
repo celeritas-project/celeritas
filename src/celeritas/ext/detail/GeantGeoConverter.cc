@@ -98,6 +98,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "celeritas/ext/VecgeomData.hh"
 
 #include "GenericSolid.hh"
 
@@ -287,6 +288,10 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
     LogicalVolume* const vg_logvol
         = new LogicalVolume(clean_name.c_str(), unplaced);
     logical_volume_map_[g4_logvol] = vg_logvol;
+
+    // Fill helper maps
+    VolumeId volid{vg_logvol->id()};
+    g4logvol_id_map_[g4_logvol] = volid;
 
     // can be used to make a cross check for dimensions and other properties
     // make a cross check using cubic volume property
