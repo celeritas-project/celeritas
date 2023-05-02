@@ -76,8 +76,8 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                                            CoreStateHost& state) const
 {
     MultiExceptionHandler capture_exception;
-    auto launch = make_active_track_launcher(params.ref<MemSpace::native>(),
-                                             state.ref(),
+    auto launch = make_active_track_launcher(*params.ptr<MemSpace::native>(),
+                                             *state.ptr(),
                                              detail::along_step_general_linear,
                                              host_data_.msc,
                                              host_data_.fluct);

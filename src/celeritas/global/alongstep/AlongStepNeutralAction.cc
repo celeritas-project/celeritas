@@ -39,8 +39,8 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
                                      CoreStateHost& state) const
 {
     MultiExceptionHandler capture_exception;
-    auto launch = make_active_track_launcher(params.ref<MemSpace::native>(),
-                                             state.ref(),
+    auto launch = make_active_track_launcher(*params.ptr<MemSpace::native>(),
+                                             *state.ptr(),
                                              detail::along_step_neutral);
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)

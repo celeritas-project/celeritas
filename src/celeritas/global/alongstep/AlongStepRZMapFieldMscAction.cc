@@ -73,8 +73,8 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
 {
     MultiExceptionHandler capture_exception;
 
-    auto launch = make_active_track_launcher(params.ref<MemSpace::native>(),
-                                             state.ref(),
+    auto launch = make_active_track_launcher(*params.ptr<MemSpace::native>(),
+                                             *state.ptr(),
                                              detail::along_step_mapfield_msc,
                                              msc_->host_ref(),
                                              field_->host_ref(),

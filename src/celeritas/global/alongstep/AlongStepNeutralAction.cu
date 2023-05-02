@@ -24,11 +24,11 @@ namespace
 {
 //---------------------------------------------------------------------------//
 __global__ void
-along_step_neutral_kernel(DeviceCRef<CoreParamsData> const params,
-                          DeviceRef<CoreStateData> const state)
+along_step_neutral_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
+                          RefPtr<CoreStateData, MemSpace::device> const state)
 {
     auto launch = make_active_track_launcher(
-        params, state, detail::along_step_neutral);
+        *params, *state, detail::along_step_neutral);
     launch(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//
@@ -44,8 +44,8 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
     CELER_LAUNCH_KERNEL(along_step_neutral,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params.ref<MemSpace::native>(),
-                        state.ref());
+                        params.ptr<MemSpace::native>(),
+                        state.ptr());
 }
 
 //---------------------------------------------------------------------------//
