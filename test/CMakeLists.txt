@@ -51,6 +51,7 @@ if(CELERITAS_USE_HIP)
     celeritas/track/MockInteractAction.cu
     corecel/cont/Range.test.cu
     corecel/data/Collection.test.cu
+    corecel/data/ObserverPtr.test.cu
     corecel/data/StackAllocator.test.cu
     corecel/math/NumericLimits.test.cu
     orange/surf/SurfaceAction.test.cu
