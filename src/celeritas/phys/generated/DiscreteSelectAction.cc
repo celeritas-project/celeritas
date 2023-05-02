@@ -27,7 +27,7 @@ namespace generated
 void DiscreteSelectAction::execute(CoreParams const& params, CoreStateHost& state) const
 {
     MultiExceptionHandler capture_exception;
-    TrackLauncher launch{params.ref<MemSpace::native>(), state.ref(), detail::discrete_select_track};
+    TrackLauncher launch{*params.ptr<MemSpace::native>(), *state.ptr(), detail::discrete_select_track};
     #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {

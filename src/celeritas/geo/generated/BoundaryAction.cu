@@ -25,11 +25,11 @@ namespace generated
 namespace
 {
 __global__ void boundary_kernel(
-    DeviceCRef<CoreParamsData> const params,
-    DeviceRef<CoreStateData> const state
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state
 )
 {
-    TrackLauncher launch{params, state, detail::boundary_track};
+    TrackLauncher launch{*params, *state, detail::boundary_track};
     launch(KernelParamCalculator::thread_id());
 }
 }  // namespace
@@ -39,8 +39,8 @@ void BoundaryAction::execute(CoreParams const& params, CoreStateDevice& state) c
     CELER_LAUNCH_KERNEL(boundary,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params.ref<MemSpace::native>(),
-                        state.ref());
+                        params.ptr<MemSpace::native>(),
+                        state.ptr());
 }
 
 }  // namespace generated
