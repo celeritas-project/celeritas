@@ -48,12 +48,17 @@ void DiagnosticTestBase::SetUp()
 //! Print the expected result
 void DiagnosticTestBase::RunResult::print_expected() const
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static const size_type expected_action_counts[] = "
-         << repr(this->action_counts)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_action_counts, result.action_counts);\n"
-            "/*** END CODE ***/\n";
+    cout
+        << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+           "static const size_type expected_actions[] = "
+        << repr(this->actions)
+        << ";\n"
+           "EXPECT_VEC_EQ(expected_actions, result.actions);\n"
+           "static char const* expected_nonzero_actions[] = "
+        << repr(this->nonzero_actions)
+        << ";\n"
+           "EXPECT_VEC_EQ(expected_nonzero_actions, result.nonzero_actions);\n"
+           "/*** END CODE ***/\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -81,7 +86,16 @@ auto DiagnosticTestBase::run(size_type num_tracks, size_type num_steps)
     }
 
     RunResult result;
-    result.action_counts = action_diagnostic_->calc_actions();
+
+    // Save action diagnostic results
+    for (auto const& vec : action_diagnostic_->calc_actions())
+    {
+        result.actions.insert(result.actions.end(), vec.begin(), vec.end());
+    }
+    for (auto const& [label, _] : action_diagnostic_->calc_actions_map())
+    {
+        result.nonzero_actions.push_back(label);
+    }
 
     return result;
 }

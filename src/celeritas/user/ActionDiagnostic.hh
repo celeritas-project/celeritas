@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "corecel/data/StreamStore.hh"
@@ -35,8 +35,9 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     //! \name Type aliases
     using SPConstActionRegistry = std::shared_ptr<ActionRegistry const>;
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
-    using MapStringCount = std::unordered_map<std::string, size_type>;
+    using MapStringCount = std::map<std::string, size_type>;
     using VecCount = std::vector<size_type>;
+    using VecVecCount = std::vector<VecCount>;
     //!@}
 
   public:
@@ -73,11 +74,11 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     void output(JsonPimpl*) const final;
     //!@}
 
-    // Return the diagnostic results accumulated over all streams
-    MapStringCount actions() const;
+    // Get the nonzero diagnostic results accumulated over all streams
+    MapStringCount calc_actions_map() const;
 
-    // Get the tallied actions accumulated over all streams
-    VecCount calc_actions() const;
+    // Get the diagnostic results accumulated over all streams
+    VecVecCount calc_actions() const;
 
     // Number of tally bins (number of particles times number of actions)
     size_type num_bins() const;

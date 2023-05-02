@@ -141,7 +141,10 @@ void ActionDiagnostic::output(JsonPimpl* j) const
     using json = nlohmann::json;
 
     auto obj = json::object();
-    obj["actions"] = this->actions();
+
+    obj["actions"] = this->calc_actions();
+    obj["_index"] = {"action", "particle"};
+
     j->obj = std::move(obj);
 #else
     (void)sizeof(j);
@@ -150,34 +153,28 @@ void ActionDiagnostic::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the diagnostic results accumulated over all streams.
+ * Get the nonzero diagnostic results accumulated over all streams.
  *
  * This builds a map of particle/action combinations to the number of
  * occurances over all events.
  */
-auto ActionDiagnostic::actions() const -> MapStringCount
+auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
 {
-    CELER_EXPECT(*store_);
-
-    auto const& params = store_->params<MemSpace::host>();
-
-    // Get the raw data accumulated over all host/device streams
-    auto counts = this->calc_actions();
+    // Counts indexed as [action][particle]
+    auto action_vec = this->calc_actions();
 
     // Map particle ID/action ID to name and store counts
     MapStringCount result;
-    for (ActionId aid : range(ActionId{params.num_actions}))
+    for (auto action : range(ActionId(action_vec.size())))
     {
-        for (ParticleId pid : range(ParticleId{params.num_particles}))
+        auto const& particle_vec = action_vec[action.get()];
+        for (auto particle : range(ParticleId(particle_vec.size())))
         {
-            size_type bin = aid.get() * particle_->size() + pid.get();
-            CELER_ASSERT(bin < counts.size());
-
-            if (counts[bin] > 0)
+            if (particle_vec[particle.get()] > 0)
             {
-                std::string label = action_reg_->id_to_label(aid) + " "
-                                    + particle_->id_to_label(pid);
-                result[label] = counts[bin];
+                std::string label = action_reg_->id_to_label(action) + " "
+                                    + particle_->id_to_label(particle);
+                result[label] = particle_vec[particle.get()];
             }
         }
     }
@@ -186,14 +183,25 @@ auto ActionDiagnostic::actions() const -> MapStringCount
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the tallied actions accumulated over all streams.
+ * Get the diagnostic results accumulated over all streams.
  */
-auto ActionDiagnostic::calc_actions() const -> VecCount
+auto ActionDiagnostic::calc_actions() const -> VecVecCount
 {
     CELER_EXPECT(*store_);
 
-    VecCount result(this->num_bins(), 0);
-    apply_to_all_streams(*store_, SumCounts{&result});
+    // Get the raw data accumulated over all host/device streams
+    VecCount counts(this->num_bins(), 0);
+    apply_to_all_streams(*store_, SumCounts{&counts});
+
+    auto const& params = store_->params<MemSpace::host>();
+
+    VecVecCount result(params.num_actions);
+    for (auto i : range(result.size()))
+    {
+        auto start = counts.begin() + i * params.num_particles;
+        CELER_ASSERT(start + params.num_particles <= counts.end());
+        result[i] = {start, start + params.num_particles};
+    }
     return result;
 }
 

@@ -83,37 +83,86 @@ TEST_F(TestEm3DiagnosticTest, host)
     // Check action diagnostic results
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
-        static const size_type expected_action_counts[] = {
-            0u,  0u, 0u, 0u, 0u,  0u,   0u,    1580u, 1168u, 0u,   1019u, 55u,
-            0u,  0u, 0u, 0u, 22u, 90u,  283u,  0u,    0u,    575u, 0u,    0u,
-            19u, 0u, 0u, 0u, 0u,  127u, 0u,    20u,   14u,   0u,   467u,  386u,
-            0u,  0u, 0u, 0u, 0u,  0u,   1769u, 289u,  284u,  0u,   15u,   10u,
-            0u,  0u, 0u, 0u, 0u,  0u,   0u,    0u,    0u};
-        EXPECT_VEC_EQ(expected_action_counts, result.action_counts);
+        static char const* expected_nonzero_actions[]
+            = {"annihil-2-gamma e+",
+               "brems-combined e+",
+               "brems-combined e-",
+               "conv-bethe-heitler gamma",
+               "eloss-range e+",
+               "eloss-range e-",
+               "geo-boundary e+",
+               "geo-boundary e-",
+               "geo-boundary gamma",
+               "geo-propagation-limit e+",
+               "geo-propagation-limit e-",
+               "ioni-moller-bhabha e+",
+               "ioni-moller-bhabha e-",
+               "msc-range e+",
+               "msc-range e-",
+               "photoel-livermore gamma",
+               "physics-integral-rejected e+",
+               "physics-integral-rejected e-",
+               "scat-klein-nishina gamma"};
+        EXPECT_VEC_EQ(expected_nonzero_actions, result.nonzero_actions);
 
-        if (CELERITAS_USE_JSON)
+        if (this->is_ci_build())
         {
-            EXPECT_EQ(
-                R"json({"actions":{"annihil-2-gamma e+":127,"brems-combined e+":386,"brems-combined e-":467,"conv-bethe-heitler gamma":19,"eloss-range e+":55,"eloss-range e-":1019,"geo-boundary e+":284,"geo-boundary e-":289,"geo-boundary gamma":1769,"geo-propagation-limit e+":10,"geo-propagation-limit e-":15,"ioni-moller-bhabha e+":14,"ioni-moller-bhabha e-":20,"msc-range e+":1168,"msc-range e-":1580,"photoel-livermore gamma":575,"physics-integral-rejected e+":90,"physics-integral-rejected e-":22,"scat-klein-nishina gamma":283}})json",
-                this->action_output());
+            static const size_type expected_actions[] = {
+                0u,    0u,   0u,    0u,   0u,   0u,   0u,  1580u, 1168u, 0u,
+                1019u, 55u,  0u,    0u,   0u,   0u,   22u, 90u,   283u,  0u,
+                0u,    575u, 0u,    0u,   19u,  0u,   0u,  0u,    0u,    127u,
+                0u,    20u,  14u,   0u,   467u, 386u, 0u,  0u,    0u,    0u,
+                0u,    0u,   1769u, 289u, 284u, 0u,   15u, 10u,   0u,    0u,
+                0u,    0u,   0u,    0u,   0u,   0u,   0u};
+            EXPECT_VEC_EQ(expected_actions, result.actions);
+
+            if (CELERITAS_USE_JSON)
+            {
+                EXPECT_EQ(
+                    R"json({"_index":["action","particle"],"actions":[[0,0,0],[0,0,0],[0,1580,1168],[0,1019,55],[0,0,0],[0,22,90],[283,0,0],[575,0,0],[19,0,0],[0,0,127],[0,20,14],[0,467,386],[0,0,0],[0,0,0],[1769,289,284],[0,15,10],[0,0,0],[0,0,0],[0,0,0]]})json",
+                    this->action_output());
+            }
         }
     }
     else
     {
         // ORANGE results are slightly different
-        static const size_type expected_action_counts[] = {
-            0u,  0u, 0u, 0u, 0u,  0u,   0u,    1549u, 1186u, 0u,   1010u, 59u,
-            0u,  0u, 0u, 0u, 24u, 87u,  298u,  0u,    0u,    567u, 0u,    0u,
-            19u, 0u, 0u, 0u, 0u,  124u, 0u,    19u,   15u,   0u,   476u,  391u,
-            0u,  0u, 0u, 0u, 0u,  0u,   1813u, 281u,  274u,  0u,   0u,    0u,
-            0u,  0u, 0u, 0u, 0u,  0u,   0u,    0u,    0u};
-        EXPECT_VEC_EQ(expected_action_counts, result.action_counts);
+        static char const* expected_nonzero_actions[]
+            = {"annihil-2-gamma e+",
+               "brems-combined e+",
+               "brems-combined e-",
+               "conv-bethe-heitler gamma",
+               "eloss-range e+",
+               "eloss-range e-",
+               "geo-boundary e+",
+               "geo-boundary e-",
+               "geo-boundary gamma",
+               "ioni-moller-bhabha e+",
+               "ioni-moller-bhabha e-",
+               "msc-range e+",
+               "msc-range e-",
+               "photoel-livermore gamma",
+               "physics-integral-rejected e+",
+               "physics-integral-rejected e-",
+               "scat-klein-nishina gamma"};
+        EXPECT_VEC_EQ(expected_nonzero_actions, result.nonzero_actions);
 
-        if (CELERITAS_USE_JSON)
+        if (this->is_ci_build())
         {
-            EXPECT_EQ(
-                R"json({"actions":{"annihil-2-gamma e+":124,"brems-combined e+":391,"brems-combined e-":476,"conv-bethe-heitler gamma":19,"eloss-range e+":59,"eloss-range e-":1010,"geo-boundary e+":274,"geo-boundary e-":281,"geo-boundary gamma":1813,"ioni-moller-bhabha e+":15,"ioni-moller-bhabha e-":19,"msc-range e+":1186,"msc-range e-":1549,"photoel-livermore gamma":567,"physics-integral-rejected e+":87,"physics-integral-rejected e-":24,"scat-klein-nishina gamma":298}})json",
-                this->action_output());
+            static const size_type expected_actions[] = {
+                0u,    0u,   0u,    0u,   0u,   0u,   0u,  1549u, 1186u, 0u,
+                1010u, 59u,  0u,    0u,   0u,   0u,   24u, 87u,   298u,  0u,
+                0u,    567u, 0u,    0u,   19u,  0u,   0u,  0u,    0u,    124u,
+                0u,    19u,  15u,   0u,   476u, 391u, 0u,  0u,    0u,    0u,
+                0u,    0u,   1813u, 281u, 274u, 0u,   0u,  0u,    0u,    0u,
+                0u,    0u,   0u,    0u,   0u,   0u,   0u};
+            EXPECT_VEC_EQ(expected_actions, result.actions);
+
+            if (CELERITAS_USE_JSON)
+            {
+                std::cout << this->action_output() << std::endl;
+                EXPECT_EQ(R"json()json", this->action_output());
+            }
         }
     }
 }
@@ -123,19 +172,39 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
     auto result = this->run<MemSpace::device>(1024, 4);
 
     // Check action diagnostic results
-    static const size_type expected_action_counts[]
-        = {0u, 0u, 0u, 0u, 0u, 0u,  0u, 998u, 904u, 0u, 0u,   0u,
-           0u, 0u, 0u, 0u, 2u, 12u, 1u, 0u,   0u,   0u, 0u,   0u,
-           2u, 0u, 0u, 0u, 0u, 10u, 0u, 21u,  20u,  0u, 508u, 572u,
-           0u, 0u, 0u, 0u, 0u, 0u,  7u, 521u, 518u, 0u, 0u,   0u,
-           0u, 0u, 0u, 0u, 0u, 0u,  0u, 0u,   0u};
-    EXPECT_VEC_EQ(expected_action_counts, result.action_counts);
+    static char const* expected_nonzero_actions[]
+        = {"annihil-2-gamma e+",
+           "brems-combined e+",
+           "brems-combined e-",
+           "conv-bethe-heitler gamma",
+           "geo-boundary e+",
+           "geo-boundary e-",
+           "geo-boundary gamma",
+           "ioni-moller-bhabha e+",
+           "ioni-moller-bhabha e-",
+           "msc-range e+",
+           "msc-range e-",
+           "physics-integral-rejected e+",
+           "physics-integral-rejected e-",
+           "scat-klein-nishina gamma"};
+    EXPECT_VEC_EQ(expected_nonzero_actions, result.nonzero_actions);
 
-    if (CELERITAS_USE_JSON)
+    if (this->is_ci_build())
     {
-        EXPECT_EQ(
-            R"json({"actions":{"annihil-2-gamma e+":10,"brems-combined e+":572,"brems-combined e-":508,"conv-bethe-heitler gamma":2,"geo-boundary e+":518,"geo-boundary e-":521,"geo-boundary gamma":7,"ioni-moller-bhabha e+":20,"ioni-moller-bhabha e-":21,"msc-range e+":904,"msc-range e-":998,"physics-integral-rejected e+":12,"physics-integral-rejected e-":2,"scat-klein-nishina gamma":1}})json",
-            this->action_output());
+        static const size_type expected_actions[]
+            = {0u, 0u, 0u, 0u, 0u, 0u,  0u, 998u, 904u, 0u, 0u,   0u,
+               0u, 0u, 0u, 0u, 2u, 12u, 1u, 0u,   0u,   0u, 0u,   0u,
+               2u, 0u, 0u, 0u, 0u, 10u, 0u, 21u,  20u,  0u, 508u, 572u,
+               0u, 0u, 0u, 0u, 0u, 0u,  7u, 521u, 518u, 0u, 0u,   0u,
+               0u, 0u, 0u, 0u, 0u, 0u,  0u, 0u,   0u};
+        EXPECT_VEC_EQ(expected_actions, result.actions);
+
+        if (CELERITAS_USE_JSON)
+        {
+            EXPECT_EQ(
+                R"json({"_index":["action","particle"],"actions":[[0,0,0],[0,0,0],[0,998,904],[0,0,0],[0,0,0],[0,2,12],[1,0,0],[0,0,0],[2,0,0],[0,0,10],[0,21,20],[0,508,572],[0,0,0],[0,0,0],[7,521,518],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]})json",
+                this->action_output());
+        }
     }
 }
 

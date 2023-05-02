@@ -34,7 +34,8 @@ class DiagnosticTestBase : virtual public StepCollectorTestBase
 
     struct RunResult
     {
-        std::vector<size_type> action_counts;
+        std::vector<size_type> actions;
+        std::vector<std::string> nonzero_actions;
 
         void print_expected() const;
     };

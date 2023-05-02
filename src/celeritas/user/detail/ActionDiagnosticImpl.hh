@@ -28,13 +28,14 @@ tally_action(CoreTrackView const& track,
 
     CELER_EXPECT(data);
 
-    ActionId aid = track.make_sim_view().step_limit().action;
-    CELER_ASSERT(aid);
-    ParticleId pid = track.make_particle_view().particle_id();
-    CELER_ASSERT(pid);
-    size_type num_particles = track.make_physics_view().num_particles();
+    auto action = track.make_sim_view().step_limit().action;
+    CELER_ASSERT(action);
+    auto particle = track.make_particle_view().particle_id();
+    CELER_ASSERT(particle);
+    auto num_particles = track.make_physics_view().num_particles();
 
-    BinId bin{aid.unchecked_get() * num_particles + pid.unchecked_get()};
+    BinId bin{action.unchecked_get() * num_particles
+              + particle.unchecked_get()};
     CELER_ASSERT(bin < data.counts.size());
     celeritas::atomic_add(&data.counts[bin], size_type(1));
 }
