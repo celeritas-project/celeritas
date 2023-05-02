@@ -52,10 +52,10 @@ class RelativisticBremModel final : public Model
     MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel to host data
-    void execute(CoreParams const&, StateHostRef&) const final;
+    void execute(CoreParams const&, CoreStateHost&) const final;
 
     // Apply the interaction kernel to device data
-    void execute(CoreParams const&, StateDeviceRef&) const final;
+    void execute(CoreParams const&, CoreStateDevice&) const final;
 
     // ID of the model
     ActionId action_id() const final;

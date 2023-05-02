@@ -16,6 +16,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -58,15 +59,14 @@ std::string StepGatherAction<P>::description() const
  */
 template<StepPoint P>
 void StepGatherAction<P>::execute(CoreParams const& params,
-                                  StateHostRef& state) const
+                                  CoreStateHost& state) const
 {
-    CELER_EXPECT(state);
     auto const& step_state
-        = storage_->obj.state<MemSpace::host>(state.stream_id, state.size());
+        = storage_->obj.state<MemSpace::host>(state.stream_id(), state.size());
 
     MultiExceptionHandler capture_exception;
     StepGatherLauncher<P> launch{params.ref<MemSpace::native>(),
-                                 state,
+                                 state.ref(),
                                  storage_->obj.params<MemSpace::host>(),
                                  step_state};
 #pragma omp parallel for
@@ -78,7 +78,7 @@ void StepGatherAction<P>::execute(CoreParams const& params,
 
     if (P == StepPoint::post)
     {
-        StepState<MemSpace::host> cb_state{step_state, state.stream_id};
+        StepState<MemSpace::host> cb_state{step_state, state.stream_id()};
         for (auto const& sp_callback : callbacks_)
         {
             sp_callback->process_steps(cb_state);
@@ -92,20 +92,18 @@ void StepGatherAction<P>::execute(CoreParams const& params,
  */
 template<StepPoint P>
 void StepGatherAction<P>::execute(CoreParams const& params,
-                                  StateDeviceRef& state) const
+                                  CoreStateDevice& state) const
 {
-    CELER_EXPECT(state);
-
-    auto& step_state
-        = storage_->obj.state<MemSpace::device>(state.stream_id, state.size());
+    auto& step_state = storage_->obj.state<MemSpace::device>(state.stream_id(),
+                                                             state.size());
     step_gather_device<P>(params.ref<MemSpace::device>(),
-                          state,
+                          state.ref(),
                           storage_->obj.params<MemSpace::device>(),
                           step_state);
 
     if (P == StepPoint::post)
     {
-        StepState<MemSpace::device> cb_state{step_state, state.stream_id};
+        StepState<MemSpace::device> cb_state{step_state, state.stream_id()};
         for (auto const& sp_callback : callbacks_)
         {
             sp_callback->process_steps(cb_state);

@@ -33,9 +33,13 @@ HH_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/{dir}/data/{class}Data.hh" // IWYU pragma: associated
-#include "celeritas/global/CoreTrackDataFwd.hh"
 
-namespace celeritas {{ class CoreParams; }}
+namespace celeritas
+{{
+class CoreParams;
+template<MemSpace M>
+class CoreState;
+}}
 
 namespace {namespace}
 {{
@@ -44,18 +48,18 @@ namespace generated
 void {func}_interact(
     {namespace}::{class}HostRef const&,
     celeritas::CoreParams const&,
-    celeritas::HostRef<celeritas::CoreStateData>&);
+    celeritas::CoreState<MemSpace::host>&);
 
 void {func}_interact(
     {namespace}::{class}DeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::DeviceRef<celeritas::CoreStateData>&);
+    celeritas::CoreState<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void {func}_interact(
     {namespace}::{class}DeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::DeviceRef<celeritas::CoreStateData>&)
+    celeritas::CoreState<MemSpace::device>&)
 {{
     CELER_ASSERT_UNREACHABLE();
 }}
@@ -75,6 +79,7 @@ CC_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/{dir}/launcher/{class}Launcher.hh" // IWYU pragma: associated
 #include "celeritas/phys/InteractionLauncher.hh"
@@ -88,14 +93,13 @@ namespace generated
 void {func}_interact(
     {namespace}::{class}HostRef const& model_data,
     celeritas::CoreParams const& params,
-    celeritas::HostRef<celeritas::CoreStateData>& state)
+    celeritas::CoreState<MemSpace::host>& state)
 {{
-    CELER_EXPECT(state);
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        params.ref<MemSpace::native>(), state, model_data,
+        params.ref<MemSpace::native>(), state.ref(), model_data,
         {namespace}::{func}_interact_track);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)
@@ -103,7 +107,7 @@ void {func}_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{{i}}),
             capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(), state, ThreadId{{i}}, "{func}"));
+            KernelContextException(params.ref<MemSpace::host>(), state.ref(), ThreadId{{i}}, "{func}"));
     }}
     log_and_rethrow(std::move(capture_exception));
 }}
@@ -121,6 +125,7 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/{dir}/launcher/{class}Launcher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
@@ -149,15 +154,14 @@ __global__ void{launch_bounds}{func}_interact_kernel(
 void {func}_interact(
     {namespace}::{class}DeviceRef const& model_data,
     celeritas::CoreParams const& params,
-    celeritas::DeviceRef<celeritas::CoreStateData>& state)
+    celeritas::CoreState<MemSpace::device>& state)
 {{
-    CELER_EXPECT(state);
     CELER_EXPECT(model_data);
 
     CELER_LAUNCH_KERNEL({func}_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        model_data, params.ref<MemSpace::native>(), state);
+                        model_data, params.ref<MemSpace::native>(), state.ref());
 }}
 
 }}  // namespace generated

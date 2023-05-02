@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
 namespace celeritas
@@ -35,9 +36,9 @@ std::string SortTracksAction::label() const
  * Execute the action with host data
  */
 void SortTracksAction::execute(CoreParams const& params,
-                               StateHostRef& states) const
+                               CoreStateHost& state) const
 {
-    return this->execute_impl(params, states);
+    return this->execute_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
@@ -45,23 +46,22 @@ void SortTracksAction::execute(CoreParams const& params,
  * Execute the action with device data
  */
 void SortTracksAction::execute(CoreParams const& params,
-                               StateDeviceRef& states) const
+                               CoreStateDevice& state) const
 {
-    return this->execute_impl(params, states);
+    return this->execute_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-void SortTracksAction::execute_impl(
-    CoreParams const&, CoreStateData<Ownership::reference, M>& states) const
+void SortTracksAction::execute_impl(CoreParams const&, CoreState<M>& state) const
 {
     switch (track_order_)
     {
         case TrackOrder::partition_status:
-            detail::partition_tracks_by_status(states);
+            detail::partition_tracks_by_status(state.ref());
             break;
         case TrackOrder::sort_step_limit_action:
-            detail::sort_tracks_by_action_id(states);
+            detail::sort_tracks_by_action_id(state.ref());
             break;
         default:
             CELER_ASSERT_UNREACHABLE();

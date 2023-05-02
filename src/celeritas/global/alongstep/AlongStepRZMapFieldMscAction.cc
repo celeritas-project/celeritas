@@ -19,6 +19,7 @@
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
@@ -68,13 +69,12 @@ AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
  * Launch the along-step action on host.
  */
 void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
-                                           StateHostRef& state) const
+                                           CoreStateHost& state) const
 {
-    CELER_EXPECT(state);
     MultiExceptionHandler capture_exception;
 
     auto launch = make_active_track_launcher(params.ref<MemSpace::native>(),
-                                             state,
+                                             state.ref(),
                                              detail::along_step_mapfield_msc,
                                              msc_->host_ref(),
                                              field_->host_ref(),
@@ -87,7 +87,7 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
             launch(ThreadId{i}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(),
-                                   state,
+                                   state.ref(),
                                    ThreadId{i},
                                    this->label()));
     }

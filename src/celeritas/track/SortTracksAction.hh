@@ -34,10 +34,10 @@ class SortTracksAction final : public ExplicitActionInterface
     ~SortTracksAction() = default;
 
     //! Execute the action with host data
-    void execute(CoreParams const& params, StateHostRef& states) const final;
+    void execute(CoreParams const& params, CoreStateHost& state) const final;
 
     //! Execute the action with device data
-    void execute(CoreParams const& params, StateDeviceRef& states) const final;
+    void execute(CoreParams const& params, CoreStateDevice& state) const final;
 
     //! ID of the action
     ActionId action_id() const final { return id_; }
@@ -46,15 +46,14 @@ class SortTracksAction final : public ExplicitActionInterface
     std::string label() const final;
 
     //! Description of the action for user interaction
-    std::string description() const final { return "sort tracks states"; }
+    std::string description() const final { return "sort tracks state.ref()"; }
 
     //! Dependency ordering of the action
     ActionOrder order() const final { return action_order_; }
 
   private:
     template<MemSpace M>
-    void execute_impl(CoreParams const& params,
-                      CoreStateData<Ownership::reference, M>& states) const;
+    void execute_impl(CoreParams const& params, CoreState<M>& state) const;
 
     ActionId id_;
     ActionOrder action_order_;

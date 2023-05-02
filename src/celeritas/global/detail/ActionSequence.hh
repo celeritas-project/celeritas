@@ -54,8 +54,7 @@ class ActionSequence
 
     // Launch all actions with the given memory space.
     template<MemSpace M>
-    void execute(CoreParams const& params,
-                 CoreStateData<Ownership::reference, M>& state);
+    void execute(CoreParams const& params, CoreState<M>& state);
 
     //// ACCESSORS ////
 

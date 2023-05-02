@@ -105,14 +105,13 @@ along_step_update_track_kernel(DeviceCRef<CoreParamsData> const params,
  * Launch the along-step action on device.
  */
 void AlongStepGeneralLinearAction::execute(CoreParams const& params,
-                                           StateDeviceRef& state) const
+                                           CoreStateDevice& state) const
 {
-    CELER_EXPECT(state);
     CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state,
+                        state.ref(),
                         device_data_.msc);
     CELER_LAUNCH_KERNEL(along_step_apply_linear_propagation,
                         celeritas::device().default_block_size(),
@@ -123,7 +122,7 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state,
+                        state.ref(),
                         device_data_.msc);
     CELER_LAUNCH_KERNEL(along_step_update_time,
                         celeritas::device().default_block_size(),
@@ -134,7 +133,7 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state,
+                        state.ref(),
                         device_data_.fluct);
     CELER_LAUNCH_KERNEL(along_step_update_track,
                         celeritas::device().default_block_size(),

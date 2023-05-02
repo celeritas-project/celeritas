@@ -15,6 +15,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/em/launcher/RayleighLauncher.hh" // IWYU pragma: associated
 #include "celeritas/phys/InteractionLauncher.hh"
@@ -28,14 +29,13 @@ namespace generated
 void rayleigh_interact(
     celeritas::RayleighHostRef const& model_data,
     celeritas::CoreParams const& params,
-    celeritas::HostRef<celeritas::CoreStateData>& state)
+    celeritas::CoreState<MemSpace::host>& state)
 {
-    CELER_EXPECT(state);
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        params.ref<MemSpace::native>(), state, model_data,
+        params.ref<MemSpace::native>(), state.ref(), model_data,
         celeritas::rayleigh_interact_track);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)
@@ -43,7 +43,7 @@ void rayleigh_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(), state, ThreadId{i}, "rayleigh"));
+            KernelContextException(params.ref<MemSpace::host>(), state.ref(), ThreadId{i}, "rayleigh"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

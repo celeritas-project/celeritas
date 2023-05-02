@@ -28,7 +28,6 @@ HH_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {{
@@ -42,17 +41,17 @@ public:
   using ConcreteAction::ConcreteAction;
 
   // Launch kernel with host data
-  void execute(CoreParams const&, StateHostRef&) const final;
+  void execute(CoreParams const&, CoreStateHost&) const final;
 
   // Launch kernel with device data
-  void execute(CoreParams const&, StateDeviceRef&) const final;
+  void execute(CoreParams const&, CoreStateDevice&) const final;
 
   //! Dependency ordering of the action
   ActionOrder order() const final {{ return ActionOrder::{actionorder}; }}
 }};
 
 #if !CELER_USE_DEVICE
-inline void {clsname}::execute(CoreParams const&, StateDeviceRef&) const
+inline void {clsname}::execute(CoreParams const&, CoreStateDevice&) const
 {{
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }}
@@ -73,6 +72,7 @@ CC_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "../detail/{clsname}Impl.hh" // IWYU pragma: associated
@@ -81,19 +81,17 @@ namespace celeritas
 {{
 namespace generated
 {{
-void {clsname}::execute(CoreParams const& params, StateHostRef& state) const
+void {clsname}::execute(CoreParams const& params, CoreStateHost& state) const
 {{
-    CELER_EXPECT(state);
-
     MultiExceptionHandler capture_exception;
-    TrackLauncher launch{{params.ref<MemSpace::native>(), state, detail::{func}_track}};
+    TrackLauncher launch{{params.ref<MemSpace::native>(), state.ref(), detail::{func}_track}};
     #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {{
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{{i}}),
             capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(), state, ThreadId{{i}}, this->label()));
+            KernelContextException(params.ref<MemSpace::host>(), state.ref(), ThreadId{{i}}, this->label()));
     }}
     log_and_rethrow(std::move(capture_exception));
 }}
@@ -129,14 +127,13 @@ __global__ void{launch_bounds}{func}_kernel(
 }}
 }}  // namespace
 
-void {clsname}::execute(CoreParams const& params, StateDeviceRef& state) const
+void {clsname}::execute(CoreParams const& params, CoreStateDevice& state) const
 {{
-    CELER_EXPECT(state);
     CELER_LAUNCH_KERNEL({func},
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state);
+                        state.ref());
 }}
 
 }}  // namespace generated

@@ -14,6 +14,7 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/em/launcher/RelativisticBremLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
@@ -42,15 +43,14 @@ __global__ void relativistic_brem_interact_kernel(
 void relativistic_brem_interact(
     celeritas::RelativisticBremDeviceRef const& model_data,
     celeritas::CoreParams const& params,
-    celeritas::DeviceRef<celeritas::CoreStateData>& state)
+    celeritas::CoreState<MemSpace::device>& state)
 {
-    CELER_EXPECT(state);
     CELER_EXPECT(model_data);
 
     CELER_LAUNCH_KERNEL(relativistic_brem_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        model_data, params.ref<MemSpace::native>(), state);
+                        model_data, params.ref<MemSpace::native>(), state.ref());
 }
 
 }  // namespace generated

@@ -67,15 +67,15 @@ auto KleinNishinaModel::micro_xs(Applicability) const -> MicroXsBuilders
  * Apply the interaction kernel.
  */
 void KleinNishinaModel::execute(CoreParams const& params,
-                                StateHostRef& states) const
+                                CoreStateHost& state) const
 {
-    generated::klein_nishina_interact(this->host_ref(), params, states);
+    generated::klein_nishina_interact(this->host_ref(), params, state);
 }
 
 void KleinNishinaModel::execute(CoreParams const& params,
-                                StateDeviceRef& states) const
+                                CoreStateDevice& state) const
 {
-    generated::klein_nishina_interact(this->device_ref(), params, states);
+    generated::klein_nishina_interact(this->device_ref(), params, state);
 }
 
 //---------------------------------------------------------------------------//

@@ -12,9 +12,10 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "celeritas/phys/ParticleParams.hh"
-+ #include "celeritas/global/CoreParams.hh"
 
 #include "detail/StepDiagnosticImpl.hh"
 
@@ -58,16 +59,13 @@ StepDiagnostic::~StepDiagnostic() = default;
 /*!
  * Execute action with host data.
  */
-void StepDiagnostic::execute(CoreParams const& params, StateHostRef& state)
-    const
+void StepDiagnostic::execute(CoreParams const& params,
+                             CoreStateHost& state) const
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(state);
-
     MultiExceptionHandler capture_exception;
     auto launch = make_active_track_launcher(
         params.ref<MemSpace::native>(),
-        state,
+        state.ref(),
         detail::tally_steps,
         store_.params<MemSpace::host>(),
         store_.state<MemSpace::host>(state.stream_id, this->state_size()));

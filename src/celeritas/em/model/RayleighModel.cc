@@ -82,15 +82,15 @@ auto RayleighModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void RayleighModel::execute(CoreParams const& params, StateHostRef& states) const
+void RayleighModel::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    generated::rayleigh_interact(this->host_ref(), params, states);
+    generated::rayleigh_interact(this->host_ref(), params, state);
 }
 
 void RayleighModel::execute(CoreParams const& params,
-                            StateDeviceRef& states) const
+                            CoreStateDevice& state) const
 {
-    generated::rayleigh_interact(this->device_ref(), params, states);
+    generated::rayleigh_interact(this->device_ref(), params, state);
 }
 
 //!@}

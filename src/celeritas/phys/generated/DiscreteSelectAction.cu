@@ -32,14 +32,13 @@ __global__ void discrete_select_kernel(
 }
 }  // namespace
 
-void DiscreteSelectAction::execute(CoreParams const& params, StateDeviceRef& state) const
+void DiscreteSelectAction::execute(CoreParams const& params, CoreStateDevice& state) const
 {
-    CELER_EXPECT(state);
     CELER_LAUNCH_KERNEL(discrete_select,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state);
+                        state.ref());
 }
 
 }  // namespace generated

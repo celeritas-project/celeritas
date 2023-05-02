@@ -14,7 +14,10 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class CoreParams;
+template<MemSpace M>
+class CoreState;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -70,16 +73,16 @@ class ExplicitActionInterface : public virtual ActionInterface
   public:
     //@{
     //! \name Type aliases
-    using StateDeviceRef = DeviceRef<CoreStateData>;
-    using StateHostRef = HostRef<CoreStateData>;
+    using CoreStateHost = CoreState<MemSpace::host>;
+    using CoreStateDevice = CoreState<MemSpace::device>;
     //@}
 
   public:
     //! Execute the action with host data
-    virtual void execute(CoreParams const&, StateHostRef&) const = 0;
+    virtual void execute(CoreParams const&, CoreStateHost&) const = 0;
 
     //! Execute the action with device data
-    virtual void execute(CoreParams const&, StateDeviceRef&) const = 0;
+    virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
 
     //! Dependency ordering of the action
     virtual ActionOrder order() const = 0;
@@ -102,8 +105,8 @@ class ExplicitActionInterface : public virtual ActionInterface
       // Construct with ID and label
       using ConcreteAction::ConcreteAction;
 
-      void execute(CoreParams const&, StateHostRef&) const final;
-      void execute(CoreParams const&, StateDeviceRef&) const final;
+      void execute(CoreParams const&, CoreStateHost&) const final;
+      void execute(CoreParams const&, CoreStateDevice&) const final;
 
       ActionOrder order() const final { return ActionOrder::post; }
   };

@@ -32,14 +32,13 @@ __global__ void boundary_kernel(
 }
 }  // namespace
 
-void BoundaryAction::execute(CoreParams const& params, StateDeviceRef& state) const
+void BoundaryAction::execute(CoreParams const& params, CoreStateDevice& state) const
 {
-    CELER_EXPECT(state);
     CELER_LAUNCH_KERNEL(boundary,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state);
+                        state.ref());
 }
 
 }  // namespace generated

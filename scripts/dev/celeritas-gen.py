@@ -192,7 +192,6 @@ inline void resize({capabbr}TestStateData<Ownership::value, M>* state,
                    const HostCRef<{capabbr}TestParamsData>&     params,
                    {corecel_ns}size_type                             size)
 {{
-    CELER_EXPECT(state);
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
     // FIXME

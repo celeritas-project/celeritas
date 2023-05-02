@@ -15,6 +15,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
@@ -50,14 +51,13 @@ MockInteractAction::MockInteractAction(
 
 //---------------------------------------------------------------------------//
 void MockInteractAction::execute(CoreParams const& params,
-                                 StateHostRef& state) const
+                                 CoreStateHost& state) const
 {
-    CELER_EXPECT(state);
     CELER_EXPECT(state.size() == data_.host_ref().size());
 
     MultiExceptionHandler capture_exception;
     auto launch = make_active_track_launcher(params.ref<MemSpace::native>(),
-                                             state,
+                                             state.ref(),
                                              apply_mock_interact,
                                              data_.host_ref());
 #ifdef _OPENMP
@@ -69,7 +69,7 @@ void MockInteractAction::execute(CoreParams const& params,
             launch(ThreadId{i}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(),
-                                   state,
+                                   state.ref(),
                                    ThreadId{i},
                                    this->label()));
     }

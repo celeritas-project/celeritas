@@ -126,15 +126,15 @@ auto SeltzerBergerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
  * Apply the interaction kernel.
  */
 void SeltzerBergerModel::execute(CoreParams const& params,
-                                 StateHostRef& states) const
+                                 CoreStateHost& state) const
 {
-    generated::seltzer_berger_interact(this->host_ref(), params, states);
+    generated::seltzer_berger_interact(this->host_ref(), params, state);
 }
 
 void SeltzerBergerModel::execute(CoreParams const& params,
-                                 StateDeviceRef& states) const
+                                 CoreStateDevice& state) const
 {
-    generated::seltzer_berger_interact(this->device_ref(), params, states);
+    generated::seltzer_berger_interact(this->device_ref(), params, state);
 }
 
 //!@}

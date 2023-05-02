@@ -11,12 +11,13 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
-+ #include "celeritas/global/CoreParams.hh"
 
 #include "detail/StepDiagnosticImpl.hh"
 
-    namespace celeritas
+namespace celeritas
 {
 namespace
 {
@@ -39,18 +40,15 @@ tally_steps_kernel(DeviceCRef<CoreParamsData> const params,
 /*!
  * Execute action with device data.
  */
-void StepDiagnostic::execute(CoreParams const& params, StateDeviceRef& state)
-    const
+void StepDiagnostic::execute(CoreParams const& params,
+                             CoreStateDevice& state) const
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(state);
-
     CELER_LAUNCH_KERNEL(
         tally_steps,
         celeritas::device().default_block_size(),
         state.size(),
         params.ref<MemSpace::device>(),
-        state,
+        state.ref(),
         store_.params<MemSpace::device>(),
         store_.state<MemSpace::device>(state.stream_id, this->state_size()));
 }

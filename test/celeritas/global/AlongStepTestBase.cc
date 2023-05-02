@@ -9,13 +9,13 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/PhysicsStepUtils.hh"
@@ -34,10 +34,9 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     CELER_EXPECT(num_tracks > 0);
 
     // Create states (single thread)
-    CollectionStateStore<CoreStateData, MemSpace::host> states{
-        this->core()->host_ref(), StreamId{0}, num_tracks};
+    CoreState<MemSpace::host> state{*this->core(), StreamId{0}, num_tracks};
     auto& core_params = this->core()->host_ref();
-    auto& core_states = states.ref();
+    auto& core_states = state.ref();
     CELER_ASSERT(core_states);
 
     {
@@ -57,8 +56,8 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         }
 
         // Primary -> track initializer -> track
-        extend_from_primaries(*this->core(), core_states, make_span(primaries));
-        initialize_tracks(*this->core(), core_states);
+        extend_from_primaries(*this->core(), state, make_span(primaries));
+        initialize_tracks(*this->core(), state);
     }
 
     // Set remaining MFP and cached MSC range properties
@@ -81,12 +80,12 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         auto const& prestep_action
             = dynamic_cast<ExplicitActionInterface const&>(
                 *am.action(prestep_action_id));
-        CELER_TRY_HANDLE(prestep_action.execute(*this->core(), core_states),
+        CELER_TRY_HANDLE(prestep_action.execute(*this->core(), state),
                          LogContextException{this->output_reg().get()});
 
         // Call along-step action
         auto const& along_step = *this->along_step();
-        CELER_TRY_HANDLE(along_step.execute(*this->core(), core_states),
+        CELER_TRY_HANDLE(along_step.execute(*this->core(), state),
                          LogContextException{this->output_reg().get()});
     }
 

@@ -59,7 +59,7 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
-    actions_->execute(*params_, state_.ref());
+    actions_->execute(*params_, state_);
 
     // Get the number of track initializers and active tracks
     auto const& init = this->state_ref().init;
@@ -97,7 +97,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << " exceeds max_events=" << params_->init()->max_events());
 
     // Create track initializers
-    extend_from_primaries(*params_, state_.ref(), primaries);
+    extend_from_primaries(*params_, state_, primaries);
 
     return (*this)();
 }

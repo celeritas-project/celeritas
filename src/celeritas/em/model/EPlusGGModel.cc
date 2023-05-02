@@ -63,15 +63,15 @@ auto EPlusGGModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void EPlusGGModel::execute(CoreParams const& params, StateHostRef& states) const
+void EPlusGGModel::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    generated::eplusgg_interact(this->host_ref(), params, states);
+    generated::eplusgg_interact(this->host_ref(), params, state);
 }
 
 void EPlusGGModel::execute(CoreParams const& params,
-                           StateDeviceRef& states) const
+                           CoreStateDevice& state) const
 {
-    generated::eplusgg_interact(this->device_ref(), params, states);
+    generated::eplusgg_interact(this->device_ref(), params, state);
 }
 
 //!@}

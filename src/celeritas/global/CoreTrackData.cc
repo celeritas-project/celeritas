@@ -21,7 +21,6 @@ void resize(CoreStateData<Ownership::value, M>* state,
             StreamId stream_id,
             size_type size)
 {
-    CELER_EXPECT(state);
     CELER_EXPECT(params);
     CELER_EXPECT(stream_id);
     CELER_EXPECT(size > 0);

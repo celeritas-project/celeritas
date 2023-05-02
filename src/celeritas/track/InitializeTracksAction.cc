@@ -18,9 +18,9 @@ namespace celeritas
  * Execute the action with host data
  */
 void InitializeTracksAction::execute(CoreParams const& params,
-                                     StateHostRef& states) const
+                                     CoreStateHost& state) const
 {
-    initialize_tracks(params, states);
+    initialize_tracks(params, state);
 }
 
 //---------------------------------------------------------------------------//
@@ -28,9 +28,9 @@ void InitializeTracksAction::execute(CoreParams const& params,
  * Execute the action with device data
  */
 void InitializeTracksAction::execute(CoreParams const& params,
-                                     StateDeviceRef& states) const
+                                     CoreStateDevice& state) const
 {
-    initialize_tracks(params, states);
+    initialize_tracks(params, state);
 }
 
 }  // namespace celeritas

@@ -12,9 +12,13 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/RayleighData.hh" // IWYU pragma: associated
-#include "celeritas/global/CoreTrackDataFwd.hh"
 
-namespace celeritas { class CoreParams; }
+namespace celeritas
+{
+class CoreParams;
+template<MemSpace M>
+class CoreState;
+}
 
 namespace celeritas
 {
@@ -23,18 +27,18 @@ namespace generated
 void rayleigh_interact(
     celeritas::RayleighHostRef const&,
     celeritas::CoreParams const&,
-    celeritas::HostRef<celeritas::CoreStateData>&);
+    celeritas::CoreState<MemSpace::host>&);
 
 void rayleigh_interact(
     celeritas::RayleighDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::DeviceRef<celeritas::CoreStateData>&);
+    celeritas::CoreState<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void rayleigh_interact(
     celeritas::RayleighDeviceRef const&,
     celeritas::CoreParams const&,
-    celeritas::DeviceRef<celeritas::CoreStateData>&)
+    celeritas::CoreState<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

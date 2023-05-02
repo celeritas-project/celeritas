@@ -80,15 +80,15 @@ auto MuBremsstrahlungModel::micro_xs(Applicability applic) const
  * Apply the interaction kernel.
  */
 void MuBremsstrahlungModel::execute(CoreParams const& params,
-                                    StateHostRef& states) const
+                                    CoreStateHost& state) const
 {
-    generated::mu_bremsstrahlung_interact(this->host_ref(), params, states);
+    generated::mu_bremsstrahlung_interact(this->host_ref(), params, state);
 }
 
 void MuBremsstrahlungModel::execute(CoreParams const& params,
-                                    StateDeviceRef& states) const
+                                    CoreStateDevice& state) const
 {
-    generated::mu_bremsstrahlung_interact(this->device_ref(), params, states);
+    generated::mu_bremsstrahlung_interact(this->device_ref(), params, state);
 }
 
 //!@}

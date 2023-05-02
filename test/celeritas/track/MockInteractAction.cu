@@ -11,6 +11,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "MockInteractImpl.hh"
@@ -39,16 +40,15 @@ __global__ void mock_interact_kernel(DeviceCRef<CoreParamsData> const params,
 //---------------------------------------------------------------------------//
 
 void MockInteractAction::execute(CoreParams const& params,
-                                 StateDeviceRef& state) const
+                                 CoreStateDevice& state) const
 {
-    CELER_EXPECT(params && state);
     CELER_EXPECT(state.size() == data_.device_ref().size());
 
     CELER_LAUNCH_KERNEL(mock_interact,
                         device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state,
+                        state.ref(),
                         data_.device_ref());
 }
 

@@ -14,6 +14,7 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/em/launcher/MollerBhabhaLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
@@ -51,15 +52,14 @@ moller_bhabha_interact_kernel(
 void moller_bhabha_interact(
     celeritas::MollerBhabhaDeviceRef const& model_data,
     celeritas::CoreParams const& params,
-    celeritas::DeviceRef<celeritas::CoreStateData>& state)
+    celeritas::CoreState<MemSpace::device>& state)
 {
-    CELER_EXPECT(state);
     CELER_EXPECT(model_data);
 
     CELER_LAUNCH_KERNEL(moller_bhabha_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        model_data, params.ref<MemSpace::native>(), state);
+                        model_data, params.ref<MemSpace::native>(), state.ref());
 }
 
 }  // namespace generated

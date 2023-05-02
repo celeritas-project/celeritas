@@ -15,6 +15,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "../detail/DiscreteSelectActionImpl.hh" // IWYU pragma: associated
@@ -23,19 +24,17 @@ namespace celeritas
 {
 namespace generated
 {
-void DiscreteSelectAction::execute(CoreParams const& params, StateHostRef& state) const
+void DiscreteSelectAction::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    CELER_EXPECT(state);
-
     MultiExceptionHandler capture_exception;
-    TrackLauncher launch{params.ref<MemSpace::native>(), state, detail::discrete_select_track};
+    TrackLauncher launch{params.ref<MemSpace::native>(), state.ref(), detail::discrete_select_track};
     #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(), state, ThreadId{i}, this->label()));
+            KernelContextException(params.ref<MemSpace::host>(), state.ref(), ThreadId{i}, this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }

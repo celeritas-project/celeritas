@@ -27,10 +27,10 @@ class ExtendFromSecondariesAction final : public ExplicitActionInterface
     ~ExtendFromSecondariesAction() = default;
 
     // Execute the action with host data
-    void execute(CoreParams const& params, StateHostRef& states) const final;
+    void execute(CoreParams const& params, CoreStateHost& state) const final;
 
     // Execute the action with device data
-    void execute(CoreParams const& params, StateDeviceRef& states) const final;
+    void execute(CoreParams const& params, CoreStateDevice& state) const final;
 
     //! ID of the action
     ActionId action_id() const final { return id_; }
