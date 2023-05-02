@@ -42,7 +42,7 @@ class ObserverPtr
     //!@{
     //! Construct a pointer
     constexpr ObserverPtr() noexcept = default;
-    CELER_CONSTEXPR_FUNCTION ObserverPtr(nullptr_t) noexcept {}
+    CELER_CONSTEXPR_FUNCTION ObserverPtr(std::nullptr_t) noexcept {}
     CELER_CONSTEXPR_FUNCTION explicit ObserverPtr(pointer ptr) noexcept
         : ptr_{ptr}
     {
@@ -136,25 +136,25 @@ CELER_DEFINE_OBSPTR_CMP(>=)
 
 template<class T, MemSpace M>
 CELER_CONSTEXPR_FUNCTION bool
-operator==(ObserverPtr<T, M> const& lhs, nullptr_t) noexcept
+operator==(ObserverPtr<T, M> const& lhs, std::nullptr_t) noexcept
 {
     return !static_cast<bool>(lhs);
 }
 template<class T, MemSpace M>
 CELER_CONSTEXPR_FUNCTION bool
-operator!=(ObserverPtr<T, M> const& lhs, nullptr_t) noexcept
+operator!=(ObserverPtr<T, M> const& lhs, std::nullptr_t) noexcept
 {
     return static_cast<bool>(lhs);
 }
 template<class T, MemSpace M>
 CELER_CONSTEXPR_FUNCTION bool
-operator==(nullptr_t, ObserverPtr<T, M> const& rhs) noexcept
+operator==(std::nullptr_t, ObserverPtr<T, M> const& rhs) noexcept
 {
     return !static_cast<bool>(rhs);
 }
 template<class T, MemSpace M>
 CELER_CONSTEXPR_FUNCTION bool
-operator!=(nullptr_t, ObserverPtr<T, M> const& rhs) noexcept
+operator!=(std::nullptr_t, ObserverPtr<T, M> const& rhs) noexcept
 {
     return static_cast<bool>(rhs);
 }
