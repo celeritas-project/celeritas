@@ -13,6 +13,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepNeutral.hh"
@@ -44,7 +45,7 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state);
+                        state.ref());
 }
 
 //---------------------------------------------------------------------------//

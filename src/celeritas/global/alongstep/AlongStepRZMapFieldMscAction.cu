@@ -22,6 +22,8 @@
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldData.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepImpl.hh"
@@ -139,7 +141,7 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state);
+                        state.ref());
     CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
                         celeritas::device().default_block_size(),
                         state.size(),
@@ -150,7 +152,7 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state);
+                        state.ref());
 }
 
 //---------------------------------------------------------------------------//

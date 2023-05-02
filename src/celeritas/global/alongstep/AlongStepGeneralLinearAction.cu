@@ -17,6 +17,7 @@
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"  // IWYU pragma: associated
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepImpl.hh"
@@ -117,7 +118,7 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state);
+                        state.ref());
     CELER_LAUNCH_KERNEL(along_step_apply_msc,
                         celeritas::device().default_block_size(),
                         state.size(),
@@ -128,7 +129,7 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state);
+                        state.ref());
     CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
                         celeritas::device().default_block_size(),
                         state.size(),
@@ -139,7 +140,7 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
-                        state);
+                        state.ref());
 }
 
 //---------------------------------------------------------------------------//
