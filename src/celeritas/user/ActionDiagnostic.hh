@@ -103,4 +103,16 @@ class ActionDiagnostic final : public ExplicitActionInterface,
 };
 
 //---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+
+#if !CELER_USE_DEVICE
+inline void
+ActionDiagnostic::execute(ParamsDeviceCRef const&, StateDeviceRef&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

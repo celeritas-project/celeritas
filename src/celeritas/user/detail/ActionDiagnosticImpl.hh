@@ -7,33 +7,37 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
-#include "celeritas/global/CoreTrackData.hh"
-
-#include "../ActionDiagnosticData.hh"
+#include "corecel/math/Atomics.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-void tally_action(HostCRef<CoreParamsData> const&,
-                  HostRef<CoreStateData> const&,
-                  HostRef<ActionDiagnosticStateData>&);
-
-void tally_action(DeviceCRef<CoreParamsData> const&,
-                  DeviceRef<CoreStateData> const&,
-                  DeviceRef<ActionDiagnosticStateData>&);
-
-#if !CELER_USE_DEVICE
-inline void tally_action(DeviceCRef<CoreParamsData> const&,
-                         DeviceRef<CoreStateData> const&,
-                         DeviceRef<ActionDiagnosticStateData>&)
+/*!
+ * Tally post-step actions by particle type.
+ */
+inline CELER_FUNCTION void
+tally_action(CoreTrackView const& track,
+             NativeRef<ActionDiagnosticStateData>&& data)
 {
-    CELER_NOT_CONFIGURED("CUDA or HIP");
+    using BinId = ItemId<size_type>;
+
+    CELER_EXPECT(data);
+
+    ActionId aid = track.make_sim_view().step_limit().action;
+    CELER_ASSERT(aid);
+    ParticleId pid = track.make_particle_view().particle_id();
+    CELER_ASSERT(pid);
+    size_type num_particles = track.make_physics_view().num_particles();
+
+    BinId bin{aid.unchecked_get() * num_particles + pid.unchecked_get()};
+    CELER_ASSERT(bin < data.counts.size());
+    celeritas::atomic_add(&data.counts[bin], size_type(1));
 }
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

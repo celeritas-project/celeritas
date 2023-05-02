@@ -10,7 +10,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/TrackLauncher.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "detail/ActionDiagnosticImpl.hh"
@@ -114,30 +117,18 @@ void ActionDiagnostic::execute(ParamsHostCRef const& params,
     {
         this->build_stream_store();
     }
-    detail::tally_action(
+    MultiExceptionHandler capture_exception;
+    auto launch = make_active_track_launcher(
         params,
         state,
+        detail::tally_action,
         store_->state<MemSpace::host>(state.stream_id, this->num_bins()));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Execute action with device data.
- */
-void ActionDiagnostic::execute(ParamsDeviceCRef const& params,
-                               StateDeviceRef& state) const
-{
-    CELER_EXPECT(params);
-    CELER_EXPECT(state);
-
-    if (!(*store_))
+#pragma omp parallel for
+    for (ThreadId::size_type i = 0; i < state.size(); ++i)
     {
-        this->build_stream_store();
+        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
     }
-    detail::tally_action(
-        params,
-        state,
-        store_->state<MemSpace::device>(state.stream_id, this->num_bins()));
+    log_and_rethrow(std::move(capture_exception));
 }
 
 //---------------------------------------------------------------------------//
