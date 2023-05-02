@@ -9,6 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
@@ -26,6 +27,7 @@ class CoreState
     //!@{
     //! \name Type aliases
     using Ref = CoreStateData<Ownership::reference, M>;
+    using Ptr = ObserverPtr<Ref, M>;
     using size_type = TrackSlotId::size_type;
     //!@}
 
@@ -47,10 +49,37 @@ class CoreState
     //! Get a reference to the mutable state data
     Ref const& ref() const { return states_.ref(); }
 
+    // Get a native-memspace pointer to the mutable state data
+    inline Ptr ptr();
+
   private:
     // State data
     CollectionStateStore<CoreStateData, M> states_;
+
+    // Copy of state ref in device memory
+    DeviceVector<Ref> device_ref_vec_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a native pointer to a NativeCRef.
+ *
+ * This way, CUDA kernels only need to copy a pointer in the kernel arguments,
+ * rather than the entire (rather large) DeviceRef object.
+ */
+template<MemSpace M>
+auto CoreState<M>::ptr() -> Ptr
+{
+    if constexpr (M == MemSpace::host)
+    {
+        return make_observer(&this->ref());
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        CELER_ENSURE(!device_ref_vec_.empty());
+        return make_observer(device_ref_vec_);
+    }
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
