@@ -50,11 +50,10 @@ apply_msc_step_limit(CoreTrackView const& track, MH&& msc)
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply MSC step limiters.
+ * Apply propagaion.
  *
- * TODO: think about integrating this into the pre-step sequence. Maybe the
- * geo/phys path transformation would be best suited to the \c
- * apply_propagation step?
+ * This is a tiny helper class to facilitate use of \c make_track_launcher. It
+ * should probably be cleaned up later.
  */
 struct ApplyPropagation
 {
@@ -162,9 +161,9 @@ template<class MH>
 inline CELER_FUNCTION void apply_msc(CoreTrackView const& track, MH&& msc)
 {
     auto sim = track.make_sim_view();
-    if (CELER_UNLIKELY(sim.status() == TrackStatus::killed))
+    if (sim.status() == TrackStatus::killed)
     {
-        // Active but killed during propagation: return early
+        // Active track killed during propagation: don't apply MSC
         return;
     }
 
