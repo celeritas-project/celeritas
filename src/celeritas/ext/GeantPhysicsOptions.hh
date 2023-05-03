@@ -16,6 +16,7 @@ namespace celeritas
 //! Brems selection (TODO: make bitset)
 enum class BremsModelSelection
 {
+    none,
     seltzer_berger,
     relativistic,
     all,
@@ -81,7 +82,7 @@ enum class RelaxationSelection
 struct GeantPhysicsOptions
 {
     //// Physics list ////
-    // Gamma
+    // Gammas
     bool coulomb_scattering{false};
     bool compton_scattering{true};
     bool photoelectric{true};
@@ -92,9 +93,8 @@ struct GeantPhysicsOptions
     // Electrons and positrons
     bool ionization{true};
     bool annihilation{true};
-    bool brems{true};
     BremsModelSelection brems_selection{BremsModelSelection::all};
-    MscModelSelection msc{MscModelSelection::urban};
+    MscModelSelection msc{MscModelSelection::urban_extended};
     RelaxationSelection relaxation{RelaxationSelection::none};
 
     //// Physics options ////
@@ -107,13 +107,13 @@ struct GeantPhysicsOptions
     units::MevEnergy max_energy{100 * 1e6};  // 100 TeV
     real_type linear_loss_limit{0.01};
     units::MevEnergy lowest_electron_energy{0.001};  // 1 keV
+    bool apply_cuts{false};
 
     // Multiple scattering parameters
     real_type msc_range_factor{0.04};
     real_type msc_safety_factor{0.6};
     real_type msc_lambda_limit{0.1};  // 1 mm
 
-    bool apply_cuts{false};
     bool verbose{false};
 };
 
@@ -131,7 +131,6 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.gamma_general == b.gamma_general
            && a.ionization == b.ionization
            && a.annihilation == b.annihilation
-           && a.brems == b.brems
            && a.brems_selection == b.brems_selection
            && a.msc == b.msc
            && a.relaxation == b.relaxation
@@ -144,10 +143,10 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.max_energy == b.max_energy
            && a.linear_loss_limit == b.linear_loss_limit
            && a.lowest_electron_energy == b.lowest_electron_energy
+           && a.apply_cuts == b.apply_cuts
            && a.msc_range_factor == b.msc_range_factor
            && a.msc_safety_factor == b.msc_safety_factor
            && a.msc_lambda_limit == b.msc_lambda_limit
-           && a.apply_cuts == b.apply_cuts
            && a.verbose == b.verbose;
     // clang-format on
 }

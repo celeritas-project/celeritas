@@ -18,6 +18,7 @@ namespace celeritas
 char const* to_cstring(BremsModelSelection value)
 {
     static EnumStringMapper<BremsModelSelection> const to_cstring_impl{
+        "none",
         "seltzer_berger",
         "relativistic",
         "all",

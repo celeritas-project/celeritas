@@ -234,16 +234,13 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
 
-    if (options_.annihilation)
+    if (options_.annihilation && p == G4Positron::Positron())
     {
-        if (p == G4Positron::Positron())
-        {
-            // e+e- annihilation: G4eeToTwoGammaModel
-            physics_list->RegisterProcess(new G4eplusAnnihilation(), p);
+        // e+e- annihilation: G4eeToTwoGammaModel
+        physics_list->RegisterProcess(new G4eplusAnnihilation(), p);
 
-            CELER_LOG(debug) << "Loaded pair annihilation with "
-                                "G4eplusAnnihilation";
-        }
+        CELER_LOG(debug) << "Loaded pair annihilation with "
+                            "G4eplusAnnihilation";
     }
 
     if (options_.ionization)
@@ -256,7 +253,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         CELER_LOG(debug) << "Loaded ionization with G4MollerBhabhaModel";
     }
 
-    if (options_.brems)
+    if (options_.brems_selection != BremsModelSelection::none)
     {
         physics_list->RegisterProcess(
             new GeantBremsstrahlungProcess(options_.brems_selection), p);

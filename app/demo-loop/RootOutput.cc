@@ -13,10 +13,12 @@
 #include <TFile.h>
 #include <TTree.h>
 
+#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 
 #include "RunnerInput.hh"
+#include "RunnerInputIO.json.hh"
 
 namespace demo_loop
 {
@@ -29,58 +31,25 @@ void write_to_root(RunnerInput const& cargs,
 {
     CELER_EXPECT(cargs);
 
-    auto& args = const_cast<RunnerInput&>(cargs);
-    auto tree_input = root_manager->make_tree("input", "input");
-
-    // Problem definition
-    tree_input->Branch("geometry_filename", &args.geometry_filename);
-    tree_input->Branch("physics_filename", &args.physics_filename);
-    tree_input->Branch("hepmc3_filename", &args.hepmc3_filename);
-
-    // Control
-    tree_input->Branch("seed", &args.seed);
-    tree_input->Branch("max_num_tracks", &args.max_num_tracks);
-    tree_input->Branch("max_steps", &args.max_steps);
-    tree_input->Branch("initializer_capacity", &args.initializer_capacity);
-    tree_input->Branch("max_events", &args.max_events);
-    tree_input->Branch("secondary_stack_factor", &args.secondary_stack_factor);
-    tree_input->Branch("use_device", &args.use_device);
-    tree_input->Branch("sync", &args.sync);
-    tree_input->Branch("step_limiter", &args.step_limiter);
-    tree_input->Branch("combined_brem", &args.brem_combined);
-
     // Physics list
-    auto& phys = args.geant_options;
-    tree_input->Branch("coulomb_scattering", &phys.coulomb_scattering);
-    tree_input->Branch("compton_scattering", &phys.compton_scattering);
-    tree_input->Branch("photoelectric", &phys.photoelectric);
-    tree_input->Branch("rayleigh_scattering", &phys.rayleigh_scattering);
-    tree_input->Branch("gamma_conversion", &phys.gamma_conversion);
-    tree_input->Branch("gamma_general", &phys.gamma_general);
-    tree_input->Branch("ionization", &phys.ionization);
-    tree_input->Branch("annihilation", &phys.annihilation);
-    tree_input->Branch("brems", &phys.brems);
-    tree_input->Branch(
-        "brems_selection", &phys.brems_selection, "brems_selection/I");
-    tree_input->Branch("msc", &phys.msc, "msc/I");
-    tree_input->Branch("relaxation", &phys.relaxation, "relaxation/I");
-    tree_input->Branch("eloss_fluctuation", &phys.eloss_fluctuation);
-    tree_input->Branch("lpm", &phys.lpm);
-    tree_input->Branch("integral_approach", &phys.integral_approach);
-    tree_input->Branch("min_energy", &phys.min_energy.value());
-    tree_input->Branch("max_energy", &phys.max_energy.value());
-    tree_input->Branch("linear_loss_limit", &phys.linear_loss_limit);
-    tree_input->Branch("lowest_electron_energy",
-                       &phys.lowest_electron_energy.value());
-    tree_input->Branch("msc_range_factor", &phys.msc_range_factor);
-    tree_input->Branch("msc_safety_factor", &phys.msc_safety_factor);
-    tree_input->Branch("msc_lambda_limit", &phys.msc_lambda_limit);
-    tree_input->Branch("apply_cuts", &phys.apply_cuts);
+    auto const& gpo = cargs.geant_options;
+    nlohmann::json json_phys;
+    to_json(json_phys, gpo);
+    std::string str_phys(json_phys.dump());
 
-    // TODO Add magnetic field information?
+    auto tree_phys
+        = root_manager->make_tree("physics_options", "physics_options");
+    tree_phys->Branch("physics_options", &str_phys);
+    tree_phys->Fill();  // Writing happens at destruction
 
-    // Fill tree (writing happens at destruction)
-    tree_input->Fill();
+    // Input
+    nlohmann::json json_inp;
+    to_json(json_inp, cargs);
+    std::string str_input(json_inp.dump());
+
+    auto tree_input = root_manager->make_tree("input", "input");
+    tree_input->Branch("input", &str_input);
+    tree_input->Fill();  // Writing happens at destruction
 }
 
 //---------------------------------------------------------------------------//
