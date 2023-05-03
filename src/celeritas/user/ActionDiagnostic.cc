@@ -26,55 +26,6 @@
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Helper function for accumulating data from host and device for all streams
-struct SumCounts
-{
-    std::vector<size_type>* result;
-    std::vector<size_type> temp_host;
-
-    explicit SumCounts(std::vector<size_type>* r) : result(r)
-    {
-        CELER_EXPECT(result);
-    }
-
-    // Transfer host data
-    void operator()(ActionDiagnosticStateData<Ownership::reference,
-                                              MemSpace::host> const& state)
-    {
-        using BinId = ItemId<size_type>;
-
-        CELER_EXPECT(state.counts.size() == result->size());
-        for (auto bin : range(state.counts.size()))
-        {
-            (*result)[bin] += state.counts[BinId{bin}];
-        }
-    }
-
-    // Transfer device data
-    void operator()(ActionDiagnosticStateData<Ownership::reference,
-                                              MemSpace::device> const& state)
-    {
-        CELER_EXPECT(state.counts.size() == result->size());
-
-        if (temp_host.empty())
-        {
-            temp_host.resize(result->size());
-        }
-        copy_to_host(state.counts, make_span(temp_host));
-
-        for (auto bin : range(state.counts.size()))
-        {
-            (*result)[bin] += temp_host[bin];
-        }
-    }
-};
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with action registry and particle data.
@@ -191,7 +142,8 @@ auto ActionDiagnostic::calc_actions() const -> VecVecCount
 
     // Get the raw data accumulated over all host/device streams
     VecCount counts(this->num_bins(), 0);
-    apply_to_all_streams(*store_, SumCounts{&counts});
+    accumulate_over_streams(
+        *store_, [](auto& state) { return state.counts; }, &counts);
 
     auto const& params = store_->params<MemSpace::host>();
 

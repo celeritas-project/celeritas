@@ -16,6 +16,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#include "Collection.hh"
 #include "CollectionMirror.hh"
 #include "CollectionStateStore.hh"
 
@@ -230,6 +231,51 @@ void apply_to_all_streams(S&& store, F&& func)
         if (auto* state = store.template state<MemSpace::device>(s))
         {
             func(*state);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Accumulate data over all streams.
+ */
+template<class S, class F, class T>
+void accumulate_over_streams(S&& store, F&& func, std::vector<T>* result)
+{
+    std::vector<T> temp_host;
+
+    // Accumulate on host
+    for (StreamId s : range(StreamId{store.num_streams()}))
+    {
+        if (auto* state = store.template state<MemSpace::host>(s))
+        {
+            auto data = func(*state)[AllItems<T>{}];
+            CELER_EXPECT(data.size() == result->size());
+            for (auto i : range(data.size()))
+            {
+                (*result)[i] += data[i];
+            }
+        }
+    }
+
+    // Accumulate on device
+    for (StreamId s : range(StreamId{store.num_streams()}))
+    {
+        if (auto* state = store.template state<MemSpace::device>(s))
+        {
+            auto data = func(*state);
+            CELER_EXPECT(data.size() == result->size());
+
+            if (temp_host.empty())
+            {
+                temp_host.resize(result->size());
+            }
+            copy_to_host(data, make_span(temp_host));
+
+            for (auto i : range(data.size()))
+            {
+                (*result)[i] += temp_host[i];
+            }
         }
     }
 }
