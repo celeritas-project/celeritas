@@ -44,13 +44,38 @@ void write_to_root(RunnerInput const& cargs,
     tree_input->Branch("initializer_capacity", &args.initializer_capacity);
     tree_input->Branch("max_events", &args.max_events);
     tree_input->Branch("secondary_stack_factor", &args.secondary_stack_factor);
-    tree_input->Branch("enable_diagnostics", &args.enable_diagnostics);
     tree_input->Branch("use_device", &args.use_device);
     tree_input->Branch("sync", &args.sync);
     tree_input->Branch("step_limiter", &args.step_limiter);
-
-    // Options for physics processes and models
     tree_input->Branch("combined_brem", &args.brem_combined);
+
+    // Physics list
+    auto& phys = args.geant_options;
+    tree_input->Branch("coulomb_scattering", &phys.coulomb_scattering);
+    tree_input->Branch("compton_scattering", &phys.compton_scattering);
+    tree_input->Branch("photoelectric", &phys.photoelectric);
+    tree_input->Branch("rayleigh_scattering", &phys.rayleigh_scattering);
+    tree_input->Branch("gamma_conversion", &phys.gamma_conversion);
+    tree_input->Branch("gamma_general", &phys.gamma_general);
+    tree_input->Branch("ionization", &phys.ionization);
+    tree_input->Branch("annihilation", &phys.annihilation);
+    tree_input->Branch("brems", &phys.brems);
+    tree_input->Branch(
+        "brems_selection", &phys.brems_selection, "brems_selection/I");
+    tree_input->Branch("msc", &phys.msc, "msc/I");
+    tree_input->Branch("relaxation", &phys.relaxation, "relaxation/I");
+    tree_input->Branch("eloss_fluctuation", &phys.eloss_fluctuation);
+    tree_input->Branch("lpm", &phys.lpm);
+    tree_input->Branch("integral_approach", &phys.integral_approach);
+    tree_input->Branch("min_energy", &phys.min_energy.value());
+    tree_input->Branch("max_energy", &phys.max_energy.value());
+    tree_input->Branch("linear_loss_limit", &phys.linear_loss_limit);
+    tree_input->Branch("lowest_electron_energy",
+                       &phys.lowest_electron_energy.value());
+    tree_input->Branch("msc_range_factor", &phys.msc_range_factor);
+    tree_input->Branch("msc_safety_factor", &phys.msc_safety_factor);
+    tree_input->Branch("msc_lambda_limit", &phys.msc_lambda_limit);
+    tree_input->Branch("apply_cuts", &phys.apply_cuts);
 
     // TODO Add magnetic field information?
 

@@ -77,17 +77,18 @@ Runner::Runner(RunnerInput const& inp,
 
     ScopedRootErrorHandler scoped_root_error;
     this->build_core_params(inp, std::move(output));
-    this->build_step_collectors(inp);
-    this->build_transporter_input(inp);
-    this->build_primaries(inp);
-    use_device_ = inp.use_device;
-
-    if (root_manager_)
+    if (!inp.mctruth_filename.empty())
     {
-        // Store input and CoreParams data
+        // Create ROOT file, step collector, and store input information
+        root_manager_
+            = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
+        this->build_step_collectors(inp);
         write_to_root(inp, root_manager_.get());
         write_to_root(*core_params_, root_manager_.get());
     }
+    this->build_transporter_input(inp);
+    this->build_primaries(inp);
+    use_device_ = inp.use_device;
 
     CELER_ENSURE(core_params_);
 }
@@ -359,21 +360,14 @@ void Runner::build_primaries(RunnerInput const& inp)
  */
 void Runner::build_step_collectors(RunnerInput const& inp)
 {
-    std::shared_ptr<RootFileManager> root_manager_;
-    std::shared_ptr<StepCollector> step_collector_;
+    // Create root step writer
     StepCollector::VecInterface step_interfaces;
-    if (!inp.mctruth_filename.empty())
-    {
-        root_manager_
-            = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
+    step_interfaces.push_back(std::make_shared<RootStepWriter>(
+        root_manager_,
+        core_params_->particle(),
+        StepSelection::all(),
+        make_write_filter(inp.mctruth_filter)));
 
-        // Create root step writer
-        step_interfaces.push_back(std::make_shared<RootStepWriter>(
-            root_manager_,
-            core_params_->particle(),
-            StepSelection::all(),
-            make_write_filter(inp.mctruth_filter)));
-    }
     if (!inp.simple_calo.empty())
     {
         auto simple_calo
