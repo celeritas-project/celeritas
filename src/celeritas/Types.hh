@@ -105,10 +105,11 @@ enum class TrackStatus : std::int_least8_t
 enum class ActionOrder
 {
     start,  //!< Initialize tracks
-    sort_start,  //!< Sort track slots for GPU optimization
+    sort_start,  //!< Sort track slots after initialization
     pre,  //!< Pre-step physics and setup
-    sort_pre,  //!< Sort track slots for GPU optimization
+    sort_pre,  //!< Sort track slots after setting pre-step
     along,  //!< Along-step
+    sort_along,  //!< Sort track slots after determining first step action
     pre_post,  //!< Discrete selection kernel
     post,  //!< After step
     post_post,  //!< User actions after boundary crossing, collision
@@ -129,11 +130,13 @@ enum class StepPoint
 //! Ordering / sorting of tracks on GPU
 enum class TrackOrder
 {
-    unsorted,  //!< Don't do any sorting, tracks are in an arbitrary order
-    shuffled,  //!< Tracks are shuffled at the start ot the simulation
+    unsorted,  //!< Don't do any sorting: tracks are in an arbitrary order
+    shuffled,  //!< Tracks are shuffled at the start of the simulation
     partition_status,  //!< Tracks are partitioned by status at the start of
                        //!< each step
-    sort_step_limit_action,  //!< Sort by the step limit action id.
+    sort_along_step_action,  //!< Sort only by the along-step action id
+    sort_step_limit_action,  //!< Sort only by the step limit action id
+    sort_action,  //!< Sort by along-step id, then post-step ID
     size_
 };
 
@@ -163,6 +166,9 @@ char const* to_cstring(MatterState);
 
 // Get a string corresponding to a surface type
 char const* to_cstring(ActionOrder);
+
+// Get a string corresponding to a track ordering policy
+char const* to_cstring(TrackOrder);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

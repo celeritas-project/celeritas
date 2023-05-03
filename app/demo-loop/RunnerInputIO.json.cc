@@ -11,6 +11,7 @@
 
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/StringEnumMapper.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
 #include "celeritas/Types.hh"
@@ -22,12 +23,19 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-NLOHMANN_JSON_SERIALIZE_ENUM(
-    TrackOrder,
-    {{TrackOrder::unsorted, "unsorted"},
-     {TrackOrder::shuffled, "shuffled"},
-     {TrackOrder::partition_status, "partition-status"},
-     {TrackOrder::sort_step_limit_action, "action-id"}})
+void from_json(nlohmann::json const& j, TrackOrder& value)
+{
+    static auto const from_string
+        = StringEnumMapper<TrackOrder>::from_cstring_func(to_cstring,
+                                                          "track order");
+    value = from_string(j.get<std::string>());
+}
+
+void to_json(nlohmann::json& j, TrackOrder const& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
 
