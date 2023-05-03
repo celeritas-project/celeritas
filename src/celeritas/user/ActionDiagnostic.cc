@@ -42,7 +42,6 @@ ActionDiagnostic::ActionDiagnostic(ActionId id,
     , action_reg_(action_reg)
     , particle_(particle)
     , num_streams_(num_streams)
-    , store_(std::make_unique<StoreT>())
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(action_reg_);
@@ -64,7 +63,7 @@ void ActionDiagnostic::execute(ParamsHostCRef const& params,
     CELER_EXPECT(params);
     CELER_EXPECT(state);
 
-    if (!(*store_))
+    if (!store_)
     {
         this->build_stream_store();
     }
@@ -73,7 +72,7 @@ void ActionDiagnostic::execute(ParamsHostCRef const& params,
         params,
         state,
         detail::tally_action,
-        store_->state<MemSpace::host>(state.stream_id, this->num_bins()));
+        store_.state<MemSpace::host>(state.stream_id, this->num_bins()));
 #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < state.size(); ++i)
     {
@@ -138,14 +137,14 @@ auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
  */
 auto ActionDiagnostic::calc_actions() const -> VecVecCount
 {
-    CELER_EXPECT(*store_);
+    CELER_EXPECT(store_);
 
     // Get the raw data accumulated over all host/device streams
     VecCount counts(this->num_bins(), 0);
     accumulate_over_streams(
-        *store_, [](auto& state) { return state.counts; }, &counts);
+        store_, [](auto& state) { return state.counts; }, &counts);
 
-    auto const& params = store_->params<MemSpace::host>();
+    auto const& params = store_.params<MemSpace::host>();
 
     VecVecCount result(params.num_actions);
     for (auto i : range(result.size()))
@@ -163,9 +162,9 @@ auto ActionDiagnostic::calc_actions() const -> VecVecCount
  */
 size_type ActionDiagnostic::num_bins() const
 {
-    CELER_EXPECT(*store_);
+    CELER_EXPECT(store_);
 
-    auto const& params = store_->params<MemSpace::host>();
+    auto const& params = store_.params<MemSpace::host>();
     return params.num_actions * params.num_particles;
 }
 
@@ -175,10 +174,10 @@ size_type ActionDiagnostic::num_bins() const
  */
 void ActionDiagnostic::clear()
 {
-    CELER_EXPECT(*store_);
+    CELER_EXPECT(store_);
 
     apply_to_all_streams(
-        *store_, [](auto& state) { fill(size_type(0), &state.counts); });
+        store_, [](auto& state) { fill(size_type(0), &state.counts); });
 }
 
 //---------------------------------------------------------------------------//
@@ -187,14 +186,14 @@ void ActionDiagnostic::clear()
  */
 void ActionDiagnostic::build_stream_store() const
 {
-    CELER_EXPECT(!(*store_));
+    CELER_EXPECT(!store_);
 
     HostVal<ActionDiagnosticParamsData> host_params;
     host_params.num_actions = action_reg_->num_actions();
     host_params.num_particles = particle_->size();
-    *store_ = {std::move(host_params), num_streams_};
+    store_ = {std::move(host_params), num_streams_};
 
-    CELER_ENSURE(*store_);
+    CELER_ENSURE(store_);
 }
 
 //---------------------------------------------------------------------------//

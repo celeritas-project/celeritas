@@ -42,7 +42,7 @@ void ActionDiagnostic::execute(ParamsDeviceCRef const& params,
     CELER_EXPECT(params);
     CELER_EXPECT(state);
 
-    if (!(*store_))
+    if (!store_)
     {
         this->build_stream_store();
     }
@@ -52,7 +52,7 @@ void ActionDiagnostic::execute(ParamsDeviceCRef const& params,
         state.size(),
         params,
         state,
-        store_->state<MemSpace::device>(state.stream_id, this->num_bins()));
+        store_.state<MemSpace::device>(state.stream_id, this->num_bins()));
 }
 
 //---------------------------------------------------------------------------//

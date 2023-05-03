@@ -89,13 +89,12 @@ class ActionDiagnostic final : public ExplicitActionInterface,
   private:
     using StoreT
         = StreamStore<ActionDiagnosticParamsData, ActionDiagnosticStateData>;
-    using UPStoreT = std::unique_ptr<StoreT>;
 
     ActionId id_;
     SPConstActionRegistry action_reg_;
     SPConstParticle particle_;
     size_type num_streams_;
-    UPStoreT store_;
+    mutable StoreT store_;
 
     //// HELPER METHODS ////
 
