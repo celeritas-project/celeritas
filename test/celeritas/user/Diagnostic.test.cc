@@ -160,8 +160,9 @@ TEST_F(TestEm3DiagnosticTest, host)
 
             if (CELERITAS_USE_JSON)
             {
-                std::cout << this->action_output() << std::endl;
-                EXPECT_EQ(R"json()json", this->action_output());
+                EXPECT_EQ(
+                    R"json({"_index":["action","particle"],"actions":[[0,0,0],[0,0,0],[0,1549,1186],[0,1010,59],[0,0,0],[0,24,87],[298,0,0],[567,0,0],[19,0,0],[0,0,124],[0,19,15],[0,476,391],[0,0,0],[0,0,0],[1813,281,274],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]})json",
+                    this->action_output());
             }
         }
     }
