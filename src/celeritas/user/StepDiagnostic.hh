@@ -3,11 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ActionDiagnostic.hh
+//! \file celeritas/user/StepDiagnostic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <map>
 #include <vector>
 
 #include "corecel/data/StreamStore.hh"
@@ -15,40 +14,36 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
-#include "ActionDiagnosticData.hh"
+#include "StepDiagnosticData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ParticleParams;
-class ActionRegistry;
 
 //---------------------------------------------------------------------------//
 /*!
  * Tally post-step actions for each particle type.
  */
-class ActionDiagnostic final : public ExplicitActionInterface,
-                               public OutputInterface
+class StepDiagnostic final : public ExplicitActionInterface,
+                             public OutputInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstActionRegistry = std::shared_ptr<ActionRegistry const>;
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
-    using MapStringCount = std::map<std::string, size_type>;
-    using VecCount = std::vector<size_type>;
-    using VecVecCount = std::vector<VecCount>;
+    using VecVecCount = std::vector<std::vector<size_type>>;
     //!@}
 
   public:
-    //! Construct with action registry and particle data
-    ActionDiagnostic(ActionId id,
-                     SPConstActionRegistry action_reg,
-                     SPConstParticle particle,
-                     size_type num_streams);
+    //! Construct with particle data
+    StepDiagnostic(ActionId id,
+                   SPConstParticle particle,
+                   size_type max_bins,
+                   size_type num_streams);
 
     //! Default destructor
-    ~ActionDiagnostic();
+    ~StepDiagnostic();
 
     //!@{
     //! \name ExplicitAction interface
@@ -59,11 +54,11 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     //! ID of the action
     ActionId action_id() const final { return id_; }
     //! Short name for the action
-    std::string label() const final { return "action-diagnostic"; }
+    std::string label() const final { return "step-diagnostic"; }
     //! Description of the action for user interaction
-    std::string description() const final { return "Action diagnostic"; }
+    std::string description() const final { return "Step diagnostic"; }
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::post; }
+    ActionOrder order() const final { return ActionOrder::post_post; }
     //!@}
 
     //!@{
@@ -74,13 +69,10 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     void output(JsonPimpl*) const final;
     //!@}
 
-    // Get the nonzero diagnostic results accumulated over all streams
-    MapStringCount calc_actions_map() const;
-
     // Get the diagnostic results accumulated over all streams
-    VecVecCount calc_actions() const;
+    VecVecCount calc_steps() const;
 
-    // Diagnostic state data size (number of particles times number of actions)
+    // Size of diagnostic state data (number of bins times number of particles)
     size_type state_size() const;
 
     // Reset diagnostic results
@@ -88,18 +80,11 @@ class ActionDiagnostic final : public ExplicitActionInterface,
 
   private:
     using StoreT
-        = StreamStore<ActionDiagnosticParamsData, ActionDiagnosticStateData>;
+        = StreamStore<StepDiagnosticParamsData, StepDiagnosticStateData>;
 
     ActionId id_;
-    SPConstActionRegistry action_reg_;
-    SPConstParticle particle_;
     size_type num_streams_;
     mutable StoreT store_;
-
-    //// HELPER METHODS ////
-
-    // Build the storage for diagnostic parameters and stream-dependent states
-    void build_stream_store() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -108,7 +93,7 @@ class ActionDiagnostic final : public ExplicitActionInterface,
 
 #if !CELER_USE_DEVICE
 inline void
-ActionDiagnostic::execute(ParamsDeviceCRef const&, StateDeviceRef&) const
+StepDiagnostic::execute(ParamsDeviceCRef const&, StateDeviceRef&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

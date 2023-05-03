@@ -72,7 +72,7 @@ void ActionDiagnostic::execute(ParamsHostCRef const& params,
         params,
         state,
         detail::tally_action,
-        store_.state<MemSpace::host>(state.stream_id, this->num_bins()));
+        store_.state<MemSpace::host>(state.stream_id, this->state_size()));
 #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < state.size(); ++i)
     {
@@ -140,7 +140,7 @@ auto ActionDiagnostic::calc_actions() const -> VecVecCount
     CELER_EXPECT(store_);
 
     // Get the raw data accumulated over all host/device streams
-    VecCount counts(this->num_bins(), 0);
+    VecCount counts(this->state_size(), 0);
     accumulate_over_streams(
         store_, [](auto& state) { return state.counts; }, &counts);
 
@@ -158,9 +158,9 @@ auto ActionDiagnostic::calc_actions() const -> VecVecCount
 
 //---------------------------------------------------------------------------//
 /*!
- * Number of tally bins (number of particles times number of actions).
+ * Diagnostic state data size (number of particles times number of actions).
  */
-size_type ActionDiagnostic::num_bins() const
+size_type ActionDiagnostic::state_size() const
 {
     CELER_EXPECT(store_);
 

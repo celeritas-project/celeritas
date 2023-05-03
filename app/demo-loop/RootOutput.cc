@@ -44,7 +44,6 @@ void write_to_root(RunnerInput const& cargs,
     tree_input->Branch("initializer_capacity", &args.initializer_capacity);
     tree_input->Branch("max_events", &args.max_events);
     tree_input->Branch("secondary_stack_factor", &args.secondary_stack_factor);
-    tree_input->Branch("enable_diagnostics", &args.enable_diagnostics);
     tree_input->Branch("use_device", &args.use_device);
     tree_input->Branch("sync", &args.sync);
     tree_input->Branch("step_limiter", &args.step_limiter);

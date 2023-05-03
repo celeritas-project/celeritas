@@ -93,6 +93,7 @@ list(APPEND SOURCES
   track/SortTracksAction.cc
   track/TrackInitParams.cc
   user/ActionDiagnosticData.cc
+  user/StepDiagnosticData.cc
   user/DetectorSteps.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
@@ -269,6 +270,7 @@ celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
 celeritas_polysource(user/ActionDiagnostic)
+celeritas_polysource(user/StepDiagnostic)
 celeritas_polysource(user/detail/SimpleCaloImpl)
 
 #-----------------------------------------------------------------------------#
