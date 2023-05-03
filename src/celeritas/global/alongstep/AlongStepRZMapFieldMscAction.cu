@@ -38,13 +38,15 @@ namespace
 __global__ void along_step_apply_msc_step_limit_kernel(
     CRefPtr<CoreParamsData, MemSpace::device> const params,
     RefPtr<CoreStateData, MemSpace::device> const state,
+    ActionId const along_step_id,
     DeviceCRef<UrbanMscData> const msc_data)
 {
-    auto launch
-        = make_active_track_launcher(*params,
-                                     *state,
-                                     detail::apply_msc_step_limit<UrbanMsc>,
-                                     UrbanMsc{msc_data});
+    auto launch = make_along_step_track_launcher(
+        *params,
+        *state,
+        along_step_id,
+        detail::apply_msc_step_limit<UrbanMsc>,
+        UrbanMsc{msc_data});
     launch(KernelParamCalculator::thread_id());
 }
 
@@ -52,11 +54,13 @@ __global__ void along_step_apply_msc_step_limit_kernel(
 __global__ void along_step_apply_rzmap_propagation_kernel(
     CRefPtr<CoreParamsData, MemSpace::device> const params,
     RefPtr<CoreStateData, MemSpace::device> const state,
+    ActionId const along_step_id,
     DeviceCRef<RZMapFieldParamsData> const field)
 {
-    auto launch = make_active_track_launcher(
+    auto launch = make_along_step_track_launcher(
         *params,
         *state,
+        along_step_id,
         detail::ApplyPropagation{},
         [&field](ParticleTrackView const& particle, GeoTrackView* geo) {
             return make_mag_field_propagator<DormandPrinceStepper>(
@@ -69,20 +73,25 @@ __global__ void along_step_apply_rzmap_propagation_kernel(
 __global__ void along_step_apply_msc_kernel(
     CRefPtr<CoreParamsData, MemSpace::device> const params,
     RefPtr<CoreStateData, MemSpace::device> const state,
+    ActionId const along_step_id,
     DeviceCRef<UrbanMscData> const msc_data)
 {
-    auto launch = make_active_track_launcher(
-        *params, *state, detail::apply_msc<UrbanMsc>, UrbanMsc{msc_data});
+    auto launch = make_along_step_track_launcher(*params,
+                                                 *state,
+                                                 along_step_id,
+                                                 detail::apply_msc<UrbanMsc>,
+                                                 UrbanMsc{msc_data});
     launch(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//
 __global__ void along_step_update_time_kernel(
     CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state)
+    RefPtr<CoreStateData, MemSpace::device> const state,
+    ActionId const along_step_id)
 {
-    auto launch
-        = make_active_track_launcher(*params, *state, detail::update_time);
+    auto launch = make_along_step_track_launcher(
+        *params, *state, along_step_id, detail::update_time);
     launch(KernelParamCalculator::thread_id());
 }
 
@@ -90,22 +99,28 @@ __global__ void along_step_update_time_kernel(
 __global__ void along_step_apply_fluct_eloss_kernel(
     CRefPtr<CoreParamsData, MemSpace::device> const params,
     RefPtr<CoreStateData, MemSpace::device> const state,
+    ActionId const along_step_id,
     NativeCRef<FluctuationData> const fluct)
 {
     using detail::FluctELoss;
 
-    auto launch = make_active_track_launcher(
-        *params, *state, detail::apply_eloss<FluctELoss>, FluctELoss{fluct});
+    auto launch
+        = make_along_step_track_launcher(*params,
+                                         *state,
+                                         along_step_id,
+                                         detail::apply_eloss<FluctELoss>,
+                                         FluctELoss{fluct});
     launch(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//
 __global__ void along_step_update_track_kernel(
     CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state)
+    RefPtr<CoreStateData, MemSpace::device> const state,
+    ActionId const along_step_id)
 {
-    auto launch
-        = make_active_track_launcher(*params, *state, detail::update_track);
+    auto launch = make_along_step_track_launcher(
+        *params, *state, along_step_id, detail::update_track);
     launch(KernelParamCalculator::thread_id());
 }
 
@@ -124,35 +139,41 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                         state.size(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
+                        this->action_id(),
                         msc_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_apply_rzmap_propagation,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
+                        this->action_id(),
                         field_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_apply_msc,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
+                        this->action_id(),
                         msc_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_update_time,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ptr<MemSpace::native>(),
-                        state.ptr());
+                        state.ptr(),
+                        this->action_id());
     CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
+                        this->action_id(),
                         fluct_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_update_track,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ptr<MemSpace::native>(),
-                        state.ptr());
+                        state.ptr(),
+                        this->action_id());
 }
 
 //---------------------------------------------------------------------------//

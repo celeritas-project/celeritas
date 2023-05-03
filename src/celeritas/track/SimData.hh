@@ -120,6 +120,7 @@ struct SimStateData
     using Items = celeritas::StateCollection<T, W, M>;
 
     //// DATA ////
+
     Items<TrackId> track_ids;  //!< Unique ID for this track
     Items<TrackId> parent_ids;  //!< ID of parent that created it
     Items<EventId> event_ids;  //!< ID of originating event
@@ -130,7 +131,10 @@ struct SimStateData
                             //!< [s]
 
     Items<TrackStatus> status;
+    // TODO: separate into post-step action, distance
     Items<StepLimit> step_limit;
+    Items<ActionId> along_step_action;
+
     //// METHODS ////
 
     //! Check whether the interface is assigned
@@ -138,7 +142,8 @@ struct SimStateData
     {
         return !track_ids.empty() && !parent_ids.empty() && !event_ids.empty()
                && !num_steps.empty() && !num_looping_steps.empty()
-               && !time.empty() && !status.empty() && !step_limit.empty();
+               && !time.empty() && !status.empty() && !step_limit.empty()
+               && !along_step_action.empty();
     }
 
     //! State size
@@ -160,6 +165,7 @@ struct SimStateData
         time = other.time;
         status = other.status;
         step_limit = other.step_limit;
+        along_step_action = other.along_step_action;
         return *this;
     }
 };
@@ -190,6 +196,7 @@ void resize(SimStateData<Ownership::value, M>* data, size_type size)
     fill(TrackStatus::inactive, &data->status);
 
     resize(&data->step_limit, size);
+    resize(&data->along_step_action, size);
 
     CELER_ENSURE(*data);
 }

@@ -83,6 +83,9 @@ class CoreTrackView
     // Action ID for being abandoned while looping
     inline CELER_FUNCTION ActionId abandon_looping_action() const;
 
+    // HACK: return scalars (maybe have a struct for all actions?)
+    inline CELER_FUNCTION CoreScalars const& core_scalars() const;
+
   private:
     StateRef const& states_;
     ParamsRef const& params_;
@@ -239,6 +242,17 @@ CELER_FUNCTION ActionId CoreTrackView::propagation_limit_action() const
 CELER_FUNCTION ActionId CoreTrackView::abandon_looping_action() const
 {
     return params_.scalars.abandon_looping_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get access to all the core scalars.
+ *
+ * TODO: maybe have a struct for all actions to simplify the class?
+ */
+CELER_FUNCTION CoreScalars const& CoreTrackView::core_scalars() const
+{
+    return params_.scalars;
 }
 
 //---------------------------------------------------------------------------//
