@@ -82,12 +82,12 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
             = dynamic_cast<ExplicitActionInterface const&>(
                 *am.action(prestep_action_id));
         CELER_TRY_HANDLE(prestep_action.execute(core_params, core_states),
-                         log_context_exception);
+                         LogContextException{this->output_reg().get()});
 
         // Call along-step action
         auto const& along_step = *this->along_step();
         CELER_TRY_HANDLE(along_step.execute(core_params, core_states),
-                         log_context_exception);
+                         LogContextException{this->output_reg().get()});
     }
 
     // Process output

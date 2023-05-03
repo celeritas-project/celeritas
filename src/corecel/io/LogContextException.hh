@@ -11,6 +11,24 @@
 
 namespace celeritas
 {
+class OutputRegistry;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Log an exception's context and optionally save to an output registry.
+ *
+ * Example:
+ * \code
+    CELER_TRY_HANDLE(step(), LogContextException{this->output_reg().get()});
+   \endcode
+ */
+struct LogContextException
+{
+    void operator()(std::exception_ptr p);
+
+    OutputRegistry* out{nullptr};
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Log any RichContextException and rethrow the embedded pointer.
@@ -22,7 +40,10 @@ namespace celeritas
  CELER_TRY_HANDLE(step(), log_context_exception);
    \endcode
  */
-void log_context_exception(std::exception_ptr p);
+inline void log_context_exception(std::exception_ptr p)
+{
+    return LogContextException{}(p);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

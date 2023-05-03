@@ -427,7 +427,8 @@ TYPED_TEST(TypedTrackInitTest, secondaries_action)
     const size_type num_iter = 4;
     for ([[maybe_unused]] size_type i : range(num_iter))
     {
-        CELER_TRY_HANDLE(apply_actions(), log_context_exception);
+        CELER_TRY_HANDLE(apply_actions(),
+                         LogContextException{this->output_reg().get()});
         auto result = RunResult::from_state(core_state);
 
         // Slots 5 and 6 are always vacant because these tracks are killed with
