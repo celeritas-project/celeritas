@@ -72,6 +72,10 @@ TEST(TypeDemanglerTest, demangled_typeid_name)
     EXPECT_EQ("int", int_type);
     EXPECT_EQ("float", flt_type);
 #endif
+
+    EXPECT_EQ(int_type, demangled_type(3));
+    int const myint{1234};
+    EXPECT_EQ(int_type, demangled_type(myint));
 }
 
 TEST(TypeDemanglerTest, static_types)
