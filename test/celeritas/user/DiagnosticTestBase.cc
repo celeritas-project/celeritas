@@ -14,6 +14,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
+#include "celeritas/user/StepDiagnostic.hh"
 
 using std::cout;
 
@@ -26,22 +27,30 @@ DiagnosticTestBase::~DiagnosticTestBase() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct action diagnostic at setup time.
+ * Construct diagnostics at setup time.
  */
 void DiagnosticTestBase::SetUp()
 {
     size_type num_streams = 1;
 
+    // Create action diagnostic
     action_diagnostic_
         = std::make_shared<ActionDiagnostic>(this->action_reg()->next_id(),
                                              this->action_reg(),
                                              this->particle(),
                                              num_streams);
-
     // Add to action registry
     this->action_reg()->insert(action_diagnostic_);
     // Add to output interface
     this->output_reg()->insert(action_diagnostic_);
+
+    // Create step diagnostic
+    step_diagnostic_ = std::make_shared<StepDiagnostic>(
+        this->action_reg()->next_id(), this->particle(), 20, num_streams);
+    // Add to action registry
+    this->action_reg()->insert(step_diagnostic_);
+    // Add to output interface
+    this->output_reg()->insert(step_diagnostic_);
 }
 
 //---------------------------------------------------------------------------//
@@ -58,7 +67,23 @@ void DiagnosticTestBase::RunResult::print_expected() const
         << repr(this->nonzero_actions)
         << ";\n"
            "EXPECT_VEC_EQ(expected_nonzero_actions, result.nonzero_actions);\n"
+           "static const size_type expected_steps[] = "
+        << repr(this->steps)
+        << ";\n"
+           "EXPECT_VEC_EQ(expected_steps, result.steps);\n"
            "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
+//! Print the expected result
+void DiagnosticTestBase::print_expected() const
+{
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+         << "EXPECT_EQ(R\"json(" << this->action_output()
+         << ")json\",this->action_output());\n"
+         << "EXPECT_EQ(R\"json(" << this->step_output()
+         << ")json\",this->step_output());\n"
+            "/*** END CODE ***/\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -97,6 +122,12 @@ auto DiagnosticTestBase::run(size_type num_tracks, size_type num_steps)
         result.nonzero_actions.push_back(label);
     }
 
+    // Save step diagnostic results
+    for (auto const& vec : step_diagnostic_->calc_steps())
+    {
+        result.steps.insert(result.steps.end(), vec.begin(), vec.end());
+    }
+
     return result;
 }
 
@@ -108,6 +139,16 @@ std::string DiagnosticTestBase::action_output() const
 {
     // See OutputInterface.hh
     return to_string(*action_diagnostic_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get output from the step diagnostic.
+ */
+std::string DiagnosticTestBase::step_output() const
+{
+    // See OutputInterface.hh
+    return to_string(*step_diagnostic_);
 }
 
 //---------------------------------------------------------------------------//
