@@ -31,24 +31,20 @@ void write_to_root(RunnerInput const& cargs,
 {
     CELER_EXPECT(cargs);
 
+    // Input
+    nlohmann::json json_inp;
+    to_json(json_inp, cargs);
+    std::string str_input(json_inp.dump());
+
     // Physics list
     auto const& gpo = cargs.geant_options;
     nlohmann::json json_phys;
     to_json(json_phys, gpo);
     std::string str_phys(json_phys.dump());
 
-    auto tree_phys
-        = root_manager->make_tree("physics_options", "physics_options");
-    tree_phys->Branch("physics_options", &str_phys);
-    tree_phys->Fill();  // Writing happens at destruction
-
-    // Input
-    nlohmann::json json_inp;
-    to_json(json_inp, cargs);
-    std::string str_input(json_inp.dump());
-
     auto tree_input = root_manager->make_tree("input", "input");
     tree_input->Branch("input", &str_input);
+    tree_input->Branch("physics_options", &str_phys);
     tree_input->Fill();  // Writing happens at destruction
 }
 
