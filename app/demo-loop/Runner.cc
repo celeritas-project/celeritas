@@ -79,10 +79,11 @@ Runner::Runner(RunnerInput const& inp,
     this->build_core_params(inp, std::move(output));
     if (!inp.mctruth_filename.empty())
     {
-        // Create ROOT file, step collector, and store input information
+        // Initialize ROOT file and step collector
         root_manager_
             = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
         this->build_step_collectors(inp);
+        // Store input and core params information
         write_to_root(inp, root_manager_.get());
         write_to_root(*core_params_, root_manager_.get());
     }

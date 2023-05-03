@@ -215,20 +215,18 @@ void GeantPhysicsList::add_gamma_processes()
 /*!
  * Add EM processes for electrons and positrons.
  *
- * | Processes                    | Model classes             |
- * | ---------------------------- | --------------------------|
- * | Pair annihilation            | G4eeToTwoGammaModel       |
- * | Ionization                   | G4MollerBhabhaModel       |
- * | Bremsstrahlung (low E)       | G4SeltzerBergerModel      |
- * | Bremsstrahlung (high E)      | G4eBremsstrahlungRelModel |
- * | Coulomb scattering           | G4eCoulombScatteringModel |
- * | Multiple scattering (low E)  | G4UrbanMscModel           |
- * | Multiple scattering (high E) | G4WentzelVIModel          |
+ * | Processes                    | Model classes                |
+ * | ---------------------------- | ---------------------------- |
+ * | Pair annihilation            | G4eeToTwoGammaModel          |
+ * | Ionization                   | G4MollerBhabhaModel          |
+ * | Bremsstrahlung (low E)       | G4SeltzerBergerModel         |
+ * | Bremsstrahlung (high E)      | G4eBremsstrahlungRelModel    |
+ * | Coulomb scattering           | G4eCoulombScatteringModel    |
+ * | Multiple scattering (low E)  | G4UrbanMscModel              |
+ * | Multiple scattering (low E)  | G4GoudsmitSaundersonMscModel |
+ * | Multiple scattering (high E) | G4WentzelVIModel             |
  *
  * \note
- * - Bremsstrahlung models are selected manually at compile time using
- *   \c GeantBremsstrahlungProcess::ModelSelection and need to be updated
- *   accordingly.
  * - Coulomb scattering and multiple scattering (high E) are currently
  *   disabled.
  */
@@ -327,6 +325,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
         if (options_.msc == MscModelSelection::goudsmit_saunderson)
         {
+            // Multiple scattering: Goudsmit-Saunderson (low E)
             auto model = std::make_unique<G4GoudsmitSaundersonMscModel>();
             process->SetEmModel(model.release());
 
