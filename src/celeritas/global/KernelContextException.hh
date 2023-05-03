@@ -50,6 +50,11 @@ class KernelContextException : public RichContextException
                            ThreadId tid,
                            std::string&& label);
 
+    //! Construct with combined track data
+    [[deprecated]] KernelContextException(CoreHostRef const& data,
+                                          ThreadId tid,
+                                          std::string&& label);
+
     // This class type
     char const* type() const final;
 

@@ -155,6 +155,10 @@ struct CoreRef
     CELER_FUNCTION operator bool() const { return params && states; }
 };
 
+// TODO: DEPRECATED TYPE ALIASES
+[[deprecated]] typedef CoreRef<MemSpace::host> CoreHostRef;
+[[deprecated]] typedef CoreRef<MemSpace::device> CoreDeviceRef;
+
 //---------------------------------------------------------------------------//
 /*!
  * Resize states in host code.

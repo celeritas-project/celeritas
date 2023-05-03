@@ -54,6 +54,17 @@ std::ostream& operator<<(std::ostream& os, OpaqueId<V, S> const& v)
 /*!
  * Construct with track data and kernel label.
  */
+KernelContextException::KernelContextException(CoreHostRef const& data,
+                                               ThreadId thread,
+                                               std::string&& label)
+    : KernelContextException(data.params, data.states, thread, std::move(label))
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with track data and kernel label.
+ */
 KernelContextException::KernelContextException(
     HostCRef<CoreParamsData> const& params,
     HostRef<CoreStateData> const& states,
