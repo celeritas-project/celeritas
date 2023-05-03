@@ -87,7 +87,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
-        detail::partition_tracks_by_status(step.state_ref());
+        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -95,7 +95,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::partition_tracks_by_status(step.state_ref());
+        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -135,7 +135,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
-        detail::partition_tracks_by_status(step.state_ref());
+        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -143,7 +143,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::partition_tracks_by_status(step.state_ref());
+        detail::sort_tracks(step.state_ref(), TrackOrder::partition_status);
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -178,14 +178,16 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
     // after taking a step.
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks_by_action_id(step.state_ref());
+        detail::sort_tracks(step.state_ref(),
+                            TrackOrder::sort_step_limit_action);
         check_is_sorted();
         step();
     }
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks_by_action_id(step.state_ref());
+        detail::sort_tracks(step.state_ref(),
+                            TrackOrder::sort_step_limit_action);
         check_is_sorted();
         step();
     }
@@ -226,14 +228,16 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
     // after taking a step.
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks_by_action_id(step.state_ref());
+        detail::sort_tracks(step.state_ref(),
+                            TrackOrder::sort_step_limit_action);
         check_is_sorted();
         step();
     }
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks_by_action_id(step.state_ref());
+        detail::sort_tracks(step.state_ref(),
+                            TrackOrder::sort_step_limit_action);
         check_is_sorted();
         step();
     }

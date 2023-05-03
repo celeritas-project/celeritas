@@ -18,14 +18,61 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/ObserverPtr.device.hh"
+#include "corecel/data/ObserverPtr.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+
+template<class T>
+using StateItems
+    = celeritas::StateCollection<T, Ownership::reference, MemSpace::device>;
+
+template<class T>
+using ThreadItems
+    = Collection<T, Ownership::reference, MemSpace::device, ThreadId>;
+
+using TrackSlots = ThreadItems<TrackSlotId::size_type>;
+
+//---------------------------------------------------------------------------//
+
+template<class F>
+void partition_impl(TrackSlots const& track_slots, F&& func)
+{
+    auto start = device_pointer_cast(track_slots.data());
+    thrust::partition(thrust::device,
+                      start,
+                      start + track_slots.size(),
+                      std::forward<F>(func));
+    CELER_DEVICE_CHECK_ERROR();
+}
+
+//---------------------------------------------------------------------------//
+
+template<class F>
+void sort_impl(TrackSlots const& track_slots, F&& func)
+{
+    auto start = device_pointer_cast(track_slots.data());
+    thrust::sort(thrust::device,
+                 start,
+                 start + track_slots.size(),
+                 std::forward<F>(func));
+    CELER_DEVICE_CHECK_ERROR();
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
- * Initialize default threads to track_slots mapping, track_slots[i] = i
+ * Initialize default threads to track_slots mapping, track_slots[i] = i.
+ *
+ * TODO: move to global/detail
  */
 template<>
 void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots)
@@ -37,8 +84,11 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots
     CELER_DEVICE_CHECK_ERROR();
 }
 
+//---------------------------------------------------------------------------//
 /*!
- * Shuffle track slots
+ * Shuffle track slots.
+ *
+ * TODO: move to global/detail
  */
 template<>
 void shuffle_track_slots<MemSpace::device>(
@@ -47,76 +97,35 @@ void shuffle_track_slots<MemSpace::device>(
     using result_type = thrust::default_random_engine::result_type;
     thrust::default_random_engine g{
         static_cast<result_type>(track_slots.size())};
-    thrust::shuffle(
-        thrust::device,
-        thrust::device_pointer_cast(track_slots.data()),
-        thrust::device_pointer_cast(track_slots.data() + track_slots.size()),
-        g);
+    auto start = thrust::device_pointer_cast(track_slots.data());
+    thrust::shuffle(thrust::device, start, start + track_slots.size(), g);
     CELER_DEVICE_CHECK_ERROR();
 }
 
-namespace
+//---------------------------------------------------------------------------//
+/*!
+ * Sort or partition tracks.
+ */
+void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
 {
-struct alive_predicate
-{
-    using SpanT = Span<TrackStatus>;
-    SpanT status_;
-
-    CELER_FUNCTION explicit alive_predicate(SpanT status) : status_{status} {}
-    CELER_FUNCTION bool
-    operator()(TrackSlotId::size_type const& track_slot) const
+    switch (order)
     {
-        return status_[track_slot] == TrackStatus::alive;
+        case TrackOrder::partition_status:
+            return partition_impl(states.track_slots,
+                                  alive_predicate{states.sim.status.data()});
+        case TrackOrder::sort_along_step_action:
+            return sort_impl(
+                states.track_slots,
+                along_action_comparator{states.sim.along_step_action.data()});
+        case TrackOrder::sort_step_limit_action:
+            return sort_impl(
+                states.track_slots,
+                step_limit_comparator{states.sim.step_limit.data()});
+        default:
+            CELER_ASSERT_UNREACHABLE();
     }
-};
-
-struct step_limit_comparator
-{
-    using SpanT = Span<StepLimit>;
-    SpanT step_limit_;
-
-    CELER_FUNCTION explicit step_limit_comparator(SpanT step_limit)
-        : step_limit_{step_limit}
-    {
-    }
-    CELER_FUNCTION bool operator()(TrackSlotId::size_type const& a,
-                                   TrackSlotId::size_type const& b) const
-    {
-        return step_limit_[a].action < step_limit_[b].action;
-    }
-};
-
-}  // namespace
-
-void partition_tracks_by_status(
-    CoreStateData<Ownership::reference, MemSpace::device> const& states)
-{
-    CELER_EXPECT(states.size() > 0);
-    Span track_slots{
-        states.track_slots[AllItems<TrackSlotId::size_type, MemSpace::device>{}]};
-    thrust::partition(
-        thrust::device,
-        thrust::device_pointer_cast(track_slots.begin()),
-        thrust::device_pointer_cast(track_slots.end()),
-        alive_predicate{
-            states.sim.status[AllItems<TrackStatus, MemSpace::device>{}]});
-    CELER_DEVICE_CHECK_ERROR();
 }
 
-void sort_tracks_by_action_id(
-    CoreStateData<Ownership::reference, MemSpace::device> const& states)
-{
-    CELER_EXPECT(states.size() > 0);
-    Span track_slots{
-        states.track_slots[AllItems<TrackSlotId::size_type, MemSpace::device>{}]};
-    thrust::sort(
-        thrust::device,
-        thrust::device_pointer_cast(track_slots.begin()),
-        thrust::device_pointer_cast(track_slots.end()),
-        step_limit_comparator{
-            states.sim.step_limit[AllItems<StepLimit, MemSpace::device>{}]});
-    CELER_DEVICE_CHECK_ERROR();
-}
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

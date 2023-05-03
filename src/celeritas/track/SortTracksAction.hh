@@ -15,20 +15,15 @@ namespace celeritas
 /*!
  * Sort tracks according to a given strategy specified by TrackOrder.
  *
- * This action can be applied at different stage of a simulation step, as
- * specified by the ActionOrder. This should not have any impact on simulation
- * output, it is only useful for accelerator optimizations.
+ * This action can be applied at different stage of a simulation step,
+ * automatically determined by TrackOrder. This should not have any impact on
+ * simulation output: it is only useful for accelerator optimizations.
  */
 class SortTracksAction final : public ExplicitActionInterface
 {
   public:
-    //! Construct with explicit Id, action order and track order
-    explicit SortTracksAction(ActionId id,
-                              ActionOrder action_order,
-                              TrackOrder track_order)
-        : id_(id), action_order_(action_order), track_order_(track_order)
-    {
-    }
+    // Construct with action ID and sort criteria
+    SortTracksAction(ActionId id, TrackOrder track_order);
 
     //! Default destructor
     ~SortTracksAction() = default;
@@ -46,17 +41,14 @@ class SortTracksAction final : public ExplicitActionInterface
     std::string label() const final;
 
     //! Description of the action for user interaction
-    std::string description() const final { return "sort tracks state.ref()"; }
+    std::string description() const final { return "sort tracks states"; }
 
     //! Dependency ordering of the action
     ActionOrder order() const final { return action_order_; }
 
   private:
-    template<MemSpace M>
-    void execute_impl(CoreParams const& params, CoreState<M>& state) const;
-
     ActionId id_;
-    ActionOrder action_order_;
+    ActionOrder action_order_{ActionOrder::size_};
     TrackOrder track_order_;
 };
 

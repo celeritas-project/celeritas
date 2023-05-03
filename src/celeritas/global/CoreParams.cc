@@ -209,21 +209,23 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     // TrackOrder doesn't have to be an argument right now and could be
     // captured but we're eventually expecting different TrackOrder for
     // different ActionOrder
-    auto insert_sort_tracks_action = [this](const ActionOrder action_order,
-                                            const TrackOrder track_order) {
+    auto insert_sort_tracks_action = [this](const TrackOrder track_order) {
         input_.action_reg->insert(std::make_shared<SortTracksAction>(
-            input_.action_reg->next_id(), action_order, track_order));
+            input_.action_reg->next_id(), track_order));
     };
     const TrackOrder track_order{input_.init->host_ref().track_order};
     switch (track_order)
     {
         case TrackOrder::partition_status:
-            // Construct sort tracks action for start-step
-            insert_sort_tracks_action(ActionOrder::sort_start, track_order);
-            break;
         case TrackOrder::sort_step_limit_action:
-            // Construct sort tracks action for pre-step
-            insert_sort_tracks_action(ActionOrder::sort_pre, track_order);
+        case TrackOrder::sort_along_step_action:
+            // Sort with just the given track order
+            insert_sort_tracks_action(track_order);
+            break;
+        case TrackOrder::sort_action:
+            // Sort twice
+            insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
+            insert_sort_tracks_action(TrackOrder::sort_along_step_action);
             break;
         default:
             break;
