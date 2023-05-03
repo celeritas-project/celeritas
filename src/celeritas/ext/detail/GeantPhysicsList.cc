@@ -166,7 +166,7 @@ void GeantPhysicsList::add_gamma_processes()
         }
     };
 
-    if (true)
+    if (options_.compton_scattering)
     {
         // Compton Scattering: G4KleinNishinaCompton
         auto compton_scattering = std::make_unique<G4ComptonScattering>();
@@ -175,7 +175,7 @@ void GeantPhysicsList::add_gamma_processes()
                             "G4KleinNishinaCompton";
     }
 
-    if (true)
+    if (options_.photoelectric)
     {
         // Photoelectric effect: G4LivermorePhotoElectricModel
         auto pe = std::make_unique<G4PhotoElectricEffect>();
@@ -193,7 +193,7 @@ void GeantPhysicsList::add_gamma_processes()
                             "G4LivermoreRayleighModel";
     }
 
-    if (true)
+    if (options_.gamma_conversion)
     {
         // Gamma conversion: G4PairProductionRelModel
         auto gamma_conversion = std::make_unique<G4GammaConversion>();
@@ -236,16 +236,19 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
 
-    if (p == G4Positron::Positron())
+    if (options_.annihilation)
     {
-        // e+e- annihilation: G4eeToTwoGammaModel
-        physics_list->RegisterProcess(new G4eplusAnnihilation(), p);
+        if (p == G4Positron::Positron())
+        {
+            // e+e- annihilation: G4eeToTwoGammaModel
+            physics_list->RegisterProcess(new G4eplusAnnihilation(), p);
 
-        CELER_LOG(debug) << "Loaded pair annihilation with "
-                            "G4eplusAnnihilation";
+            CELER_LOG(debug) << "Loaded pair annihilation with "
+                                "G4eplusAnnihilation";
+        }
     }
 
-    if (true)
+    if (options_.ionization)
     {
         // e-e+ ionization: G4MollerBhabhaModel
         auto ionization = std::make_unique<G4eIonisation>();
@@ -255,14 +258,14 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         CELER_LOG(debug) << "Loaded ionization with G4MollerBhabhaModel";
     }
 
-    if (true)
+    if (options_.brems)
     {
         physics_list->RegisterProcess(
-            new GeantBremsstrahlungProcess(options_.brems), p);
+            new GeantBremsstrahlungProcess(options_.brems_selection), p);
 
         auto msg = CELER_LOG(debug);
         msg << "Loaded Bremsstrahlung with ";
-        switch (options_.brems)
+        switch (options_.brems_selection)
         {
             case BremsModelSelection::seltzer_berger:
                 msg << "G4SeltzerBergerModel";
