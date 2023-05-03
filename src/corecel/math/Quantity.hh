@@ -31,13 +31,15 @@ struct UnitlessQuantity
 template<class T>
 struct AccessorTraits;
 
+//! \cond
 //! Access the return type using AccessorTraits<decltype(&Foo::bar)>
-template<typename ResultType, typename ClassType>
+template<class ResultType, class ClassType>
 struct AccessorTraits<ResultType (ClassType::*)() const>
 {
     using type = ClassType;
     using result_type = ResultType;
 };
+//! \endcond
 
 //! Get the result type of a class accessor
 template<class T>
