@@ -7,13 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "GlobalTestBase.hh"
 
-#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <unistd.h>
 
 #include "celeritas_config.h"
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -45,7 +44,7 @@ GlobalTestBase::~GlobalTestBase()
         std::string destination = "screen";
         std::ostream* os = &std::cout;
         std::ofstream ofile;
-        if (isatty(fileno(stderr)))
+        if (celeritas::use_color())
         {
             destination = this->make_unique_filename(".json");
             ofile.open(destination, std::ios_base::out | std::ios_base::trunc);
