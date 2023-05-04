@@ -25,7 +25,6 @@
 #include "celeritas/phys/Model.hh"
 
 #include "diagnostic/Diagnostic.hh"
-#include "diagnostic/ParticleProcessDiagnostic.hh"
 #include "diagnostic/StepDiagnostic.hh"
 
 using namespace celeritas;
@@ -135,8 +134,6 @@ Transporter<M>::Transporter(TransporterInput inp) : max_steps_(inp.max_steps)
         auto& diag = get_diag_ref<M>(*diagnostics_);
         diag.push_back(std::make_unique<StepDiagnostic<M>>(
             get_ref<M>(params), params.particle(), inp.num_track_slots, 200));
-        diag.push_back(std::make_unique<ParticleProcessDiagnostic<M>>(
-            get_ref<M>(params), params.particle(), params.physics()));
 
         // Add diagnostic adapters to action manager
         diagnostic_action_ = params.action_reg()->next_id();

@@ -64,7 +64,6 @@ struct RunnerResult
     using size_type = celeritas::size_type;
     using VecCount = std::vector<size_type>;
     using VecReal = std::vector<real_type>;
-    using MapStringCount = std::unordered_map<std::string, size_type>;
     using MapStringVecCount = std::unordered_map<std::string, VecCount>;
     //!@}
 
@@ -73,7 +72,6 @@ struct RunnerResult
     VecCount initializers;  //!< Num starting track initializers
     VecCount active;  //!< Num tracks active at beginning of step
     VecCount alive;  //!< Num living tracks at end of step
-    MapStringCount process;  //!< Count of particle/process interactions
     MapStringVecCount steps;  //!< Distribution of steps
     RunTimingResult time;  //!< Timing information
 };
@@ -121,6 +119,7 @@ class Runner
     void setup_globals(RunnerInput const&) const;
     void build_core_params(RunnerInput const&, SPOutputRegistry&&);
     void build_step_collectors(RunnerInput const&);
+    void build_diagnostics(RunnerInput const&);
     void build_transporter_input(RunnerInput const&);
     void build_primaries(RunnerInput const&);
 };

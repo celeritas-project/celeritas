@@ -87,6 +87,7 @@ inp = {
     'max_events': 1000,
     'secondary_stack_factor': 3,
     'enable_diagnostics': True,
+    'action_diagnostic': True,
     'simple_calo': simple_calo,
     'sync': True,
     'brem_combined': True,
