@@ -23,13 +23,13 @@ namespace detail
  */
 inline CELER_FUNCTION void
 tally_steps(CoreTrackView const& track,
-            NativeCRef<ParticleTallyParamsData>&& params,
-            NativeRef<ParticleTallyStateData>&& state)
+            NativeCRef<ParticleTallyParamsData> const& params,
+            NativeRef<ParticleTallyStateData> const& state)
 {
-    using BinId = ItemId<size_type>;
-
     CELER_EXPECT(params);
     CELER_EXPECT(state);
+
+    using BinId = ItemId<size_type>;
 
     // Tally the number of steps if the track was killed
     auto sim = track.make_sim_view();

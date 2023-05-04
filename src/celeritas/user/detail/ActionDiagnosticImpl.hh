@@ -22,13 +22,13 @@ namespace detail
  */
 inline CELER_FUNCTION void
 tally_action(CoreTrackView const& track,
-             NativeCRef<ParticleTallyParamsData>&& params,
-             NativeRef<ParticleTallyStateData>&& state)
+             NativeCRef<ParticleTallyParamsData> const& params,
+             NativeRef<ParticleTallyStateData> const& state)
 {
-    using BinId = ItemId<size_type>;
-
     CELER_EXPECT(params);
     CELER_EXPECT(state);
+
+    using BinId = ItemId<size_type>;
 
     auto action = track.make_sim_view().step_limit().action;
     CELER_ASSERT(action);

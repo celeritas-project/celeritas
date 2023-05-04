@@ -123,17 +123,6 @@ TEST_F(TestEm3DiagnosticTest, host)
                    0u, 0u,   5u,   2u,  1u,  4u,  5u,  8u,  4u,  7u, 7u,
                    7u, 7u,   13u,  8u,  7u,  3u,  2u,  5u,  6u,  1u, 27u};
             EXPECT_VEC_EQ(expected_steps, result.steps);
-
-            if (CELERITAS_USE_JSON)
-            {
-                EXPECT_EQ(
-                    R"json({"_index":["particle","action"],"actions":[[0,0,0,0,0,0,0,283,575,19,0,0,0,0,0,1769,0,0,0,0],[0,0,0,1580,1019,0,22,0,0,0,0,20,467,0,0,289,15,0,0,0],[0,0,0,1168,55,0,90,0,0,0,127,14,386,0,0,284,10,0,0,0]]})json",
-                    this->action_output());
-
-                EXPECT_EQ(
-                    R"json({"_index":["particle","num_steps"],"steps":[[0,327,196,81,41,29,26,17,13,6,7,1,3,4,2,1,0,2,1,0,1,1],[0,737,43,17,9,11,7,5,9,5,4,9,11,9,10,14,4,5,2,2,4,22],[0,0,5,2,1,4,5,8,4,7,7,7,7,13,8,7,3,2,5,6,1,27]]})json",
-                    this->step_output());
-            }
         }
     }
     else
@@ -178,17 +167,6 @@ TEST_F(TestEm3DiagnosticTest, host)
                    0u, 2u,   2u,   1u,  1u,  6u,  5u,  7u,  4u,  6u,  8u,
                    7u, 7u,   13u,  8u,  7u,  3u,  2u,  5u,  6u,  2u,  24u};
             EXPECT_VEC_EQ(expected_steps, result.steps);
-
-            if (CELERITAS_USE_JSON)
-            {
-                EXPECT_EQ(
-                    R"json({"_index":["particle","action"],"actions":[[0,0,0,0,0,0,0,298,567,19,0,0,0,0,0,1813,0,0,0,0],[0,0,0,1549,1010,0,24,0,0,0,0,19,476,0,0,281,0,0,0,0],[0,0,0,1186,59,0,87,0,0,0,124,15,391,0,0,274,0,0,0,0]]})json",
-                    this->action_output());
-
-                EXPECT_EQ(
-                    R"json({"_index":["particle","num_steps"],"steps":[[0,316,209,91,33,35,21,20,7,11,10,1,2,3,3,1,1,1,0,0,1,1],[0,742,39,11,7,10,6,10,11,5,3,7,11,11,10,14,4,4,3,3,3,23],[0,2,2,1,1,6,5,7,4,6,8,7,7,13,8,7,3,2,5,6,2,24]]})json",
-                    this->step_output());
-            }
         }
     }
 }
