@@ -77,14 +77,6 @@ Runner::Runner(RunnerInput const& inp,
 
     ScopedRootErrorHandler scoped_root_error;
     this->build_core_params(inp, std::move(output));
-    if (!inp.mctruth_filename.empty())
-    {
-        // Initialize ROOT file; Store input and core params
-        root_manager_
-            = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
-        write_to_root(inp, root_manager_.get());
-        write_to_root(*core_params_, root_manager_.get());
-    }
     this->build_step_collectors(inp);
     this->build_transporter_input(inp);
     this->build_primaries(inp);
@@ -361,8 +353,14 @@ void Runner::build_primaries(RunnerInput const& inp)
 void Runner::build_step_collectors(RunnerInput const& inp)
 {
     StepCollector::VecInterface step_interfaces;
-    if (root_manager_)
+    if (!inp.mctruth_filename.empty())
     {
+        // Initialize ROOT file; Store input and core params
+        root_manager_
+            = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
+        write_to_root(inp, root_manager_.get());
+        write_to_root(*core_params_, root_manager_.get());
+
         // Create root step writer
         step_interfaces.push_back(std::make_shared<RootStepWriter>(
             root_manager_,
@@ -370,6 +368,7 @@ void Runner::build_step_collectors(RunnerInput const& inp)
             StepSelection::all(),
             make_write_filter(inp.mctruth_filter)));
     }
+
     if (!inp.simple_calo.empty())
     {
         auto simple_calo

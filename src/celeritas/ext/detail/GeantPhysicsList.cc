@@ -253,14 +253,14 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         CELER_LOG(debug) << "Loaded ionization with G4MollerBhabhaModel";
     }
 
-    if (options_.brems_selection != BremsModelSelection::none)
+    if (options_.brems != BremsModelSelection::none)
     {
         physics_list->RegisterProcess(
-            new GeantBremsstrahlungProcess(options_.brems_selection), p);
+            new GeantBremsstrahlungProcess(options_.brems), p);
 
         auto msg = CELER_LOG(debug);
         msg << "Loaded Bremsstrahlung with ";
-        switch (options_.brems_selection)
+        switch (options_.brems)
         {
             case BremsModelSelection::seltzer_berger:
                 msg << "G4SeltzerBergerModel";

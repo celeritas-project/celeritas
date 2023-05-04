@@ -62,7 +62,7 @@ enum class RelaxationSelection
  * - \c ionization: enable e- and e+ ionization process
  * - \c annihilation: enable e-e+ annihilation process
  * - \c brems: enable Bremsstrahlung process selection
- * - \c brems_selection: Bremsstrahlung model selection
+ * - \c brems: Bremsstrahlung model selection
  * - \c msc: Multiple scattering model selection
  * - \c relaxation: Atomic relaxation selection
  * - \c em_bins_per_decade: number of log-spaced energy bins per factor of 10
@@ -93,7 +93,7 @@ struct GeantPhysicsOptions
     // Electrons and positrons
     bool ionization{true};
     bool annihilation{true};
-    BremsModelSelection brems_selection{BremsModelSelection::all};
+    BremsModelSelection brems{BremsModelSelection::all};
     MscModelSelection msc{MscModelSelection::urban_extended};
     RelaxationSelection relaxation{RelaxationSelection::none};
 
@@ -131,7 +131,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.gamma_general == b.gamma_general
            && a.ionization == b.ionization
            && a.annihilation == b.annihilation
-           && a.brems_selection == b.brems_selection
+           && a.brems == b.brems
            && a.msc == b.msc
            && a.relaxation == b.relaxation
            // Physics options

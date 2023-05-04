@@ -78,7 +78,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 
     GPO_LOAD_OPTION(ionization);
     GPO_LOAD_OPTION(annihilation);
-    GPO_LOAD_OPTION(brems_selection);
+    GPO_LOAD_OPTION(brems);
     GPO_LOAD_OPTION(msc);
     GPO_LOAD_OPTION(relaxation);
 
@@ -118,7 +118,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
 
     GPO_SAVE_OPTION(ionization);
     GPO_SAVE_OPTION(annihilation);
-    GPO_SAVE_OPTION(brems_selection);
+    GPO_SAVE_OPTION(brems);
     GPO_SAVE_OPTION(msc);
     GPO_SAVE_OPTION(relaxation);
 
