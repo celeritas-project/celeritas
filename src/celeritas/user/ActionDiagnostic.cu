@@ -20,12 +20,14 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-__global__ void tally_action_kernel(DeviceCRef<CoreParamsData> const params,
-                                    DeviceRef<CoreStateData> const state,
-                                    DeviceRef<ActionDiagnosticStateData> data)
+__global__ void
+tally_action_kernel(DeviceCRef<CoreParamsData> const params,
+                    DeviceRef<CoreStateData> const state,
+                    DeviceCRef<ParticleTallyParamsData> ad_params,
+                    DeviceRef<ParticleTallyStateData> ad_state)
 {
     auto launch = make_active_track_launcher(
-        params, state, detail::tally_action, data);
+        params, state, detail::tally_action, ad_params, ad_state);
     launch(KernelParamCalculator::thread_id());
 }
 
@@ -52,6 +54,7 @@ void ActionDiagnostic::execute(ParamsDeviceCRef const& params,
         state.size(),
         params,
         state,
+        store_.params<MemSpace::device>(),
         store_.state<MemSpace::device>(state.stream_id, this->state_size()));
 }
 

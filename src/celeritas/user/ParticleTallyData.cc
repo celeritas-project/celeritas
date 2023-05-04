@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ActionDiagnosticData.cc
+//! \file celeritas/user/ParticleTallyData.cc
 //---------------------------------------------------------------------------//
-#include "ActionDiagnosticData.hh"
+#include "ParticleTallyData.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
@@ -15,30 +15,30 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Resize based on number of actions and particle types.
+ * Resize based on number of bins and particle types.
  */
 template<MemSpace M>
-inline void resize(ActionDiagnosticStateData<Ownership::value, M>* state,
-                   HostCRef<ActionDiagnosticParamsData> const& params,
+inline void resize(ParticleTallyStateData<Ownership::value, M>* state,
+                   HostCRef<ParticleTallyParamsData> const& params,
                    StreamId,
                    size_type)
 {
     CELER_EXPECT(params);
-    resize(&state->counts, params.num_actions * params.num_particles);
+    resize(&state->counts, params.num_bins * params.num_particles);
     fill(size_type(0), &state->counts);
 }
 
 //---------------------------------------------------------------------------//
 // Explicit instantiations
 template void
-resize(ActionDiagnosticStateData<Ownership::value, MemSpace::host>* state,
-       HostCRef<ActionDiagnosticParamsData> const& params,
+resize(ParticleTallyStateData<Ownership::value, MemSpace::host>* state,
+       HostCRef<ParticleTallyParamsData> const& params,
        StreamId,
        size_type);
 
 template void
-resize(ActionDiagnosticStateData<Ownership::value, MemSpace::device>* state,
-       HostCRef<ActionDiagnosticParamsData> const& params,
+resize(ParticleTallyStateData<Ownership::value, MemSpace::device>* state,
+       HostCRef<ParticleTallyParamsData> const& params,
        StreamId,
        size_type);
 

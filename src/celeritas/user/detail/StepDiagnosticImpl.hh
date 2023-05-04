@@ -23,8 +23,8 @@ namespace detail
  */
 inline CELER_FUNCTION void
 tally_steps(CoreTrackView const& track,
-            NativeCRef<StepDiagnosticParamsData>&& params,
-            NativeRef<StepDiagnosticStateData>&& state)
+            NativeCRef<ParticleTallyParamsData>&& params,
+            NativeRef<ParticleTallyStateData>&& state)
 {
     using BinId = ItemId<size_type>;
 

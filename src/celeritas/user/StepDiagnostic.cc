@@ -41,7 +41,7 @@ StepDiagnostic::StepDiagnostic(ActionId id,
     CELER_EXPECT(num_streams_ > 0);
 
     // Add two extra bins for underflow and overflow
-    HostVal<StepDiagnosticParamsData> host_params;
+    HostVal<ParticleTallyParamsData> host_params;
     host_params.num_bins = max_steps + 2;
     host_params.num_particles = particle->size();
     store_ = {std::move(host_params), num_streams_};

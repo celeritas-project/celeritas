@@ -23,8 +23,8 @@ namespace
 __global__ void
 tally_steps_kernel(DeviceCRef<CoreParamsData> const params,
                    DeviceRef<CoreStateData> const state,
-                   DeviceCRef<StepDiagnosticParamsData> sd_params,
-                   DeviceRef<StepDiagnosticStateData> sd_state)
+                   DeviceCRef<ParticleTallyParamsData> sd_params,
+                   DeviceRef<ParticleTallyStateData> sd_state)
 {
     auto launch = make_active_track_launcher(
         params, state, detail::tally_steps, sd_params, sd_state);

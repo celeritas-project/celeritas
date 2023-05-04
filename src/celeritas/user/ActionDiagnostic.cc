@@ -72,6 +72,7 @@ void ActionDiagnostic::execute(ParamsHostCRef const& params,
         params,
         state,
         detail::tally_action,
+        store_.params<MemSpace::host>(),
         store_.state<MemSpace::host>(state.stream_id, this->state_size()));
 #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < state.size(); ++i)
@@ -93,7 +94,7 @@ void ActionDiagnostic::output(JsonPimpl* j) const
     auto obj = json::object();
 
     obj["actions"] = this->calc_actions();
-    obj["_index"] = {"action", "particle"};
+    obj["_index"] = {"particle", "action"};
 
     j->obj = std::move(obj);
 #else
@@ -110,21 +111,21 @@ void ActionDiagnostic::output(JsonPimpl* j) const
  */
 auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
 {
-    // Counts indexed as [action][particle]
-    auto action_vec = this->calc_actions();
+    // Counts indexed as [particle][action]
+    auto particle_vec = this->calc_actions();
 
     // Map particle ID/action ID to name and store counts
     MapStringCount result;
-    for (auto action : range(ActionId(action_vec.size())))
+    for (auto particle : range(ParticleId(particle_vec.size())))
     {
-        auto const& particle_vec = action_vec[action.get()];
-        for (auto particle : range(ParticleId(particle_vec.size())))
+        auto const& action_vec = particle_vec[particle.get()];
+        for (auto action : range(ActionId(action_vec.size())))
         {
-            if (particle_vec[particle.get()] > 0)
+            if (action_vec[action.get()] > 0)
             {
                 std::string label = action_reg_->id_to_label(action) + " "
                                     + particle_->id_to_label(particle);
-                result[label] = particle_vec[particle.get()];
+                result[label] = action_vec[action.get()];
             }
         }
     }
@@ -146,12 +147,12 @@ auto ActionDiagnostic::calc_actions() const -> VecVecCount
 
     auto const& params = store_.params<MemSpace::host>();
 
-    VecVecCount result(params.num_actions);
+    VecVecCount result(params.num_particles);
     for (auto i : range(result.size()))
     {
-        auto start = counts.begin() + i * params.num_particles;
-        CELER_ASSERT(start + params.num_particles <= counts.end());
-        result[i] = {start, start + params.num_particles};
+        auto start = counts.begin() + i * params.num_bins;
+        CELER_ASSERT(start + params.num_bins <= counts.end());
+        result[i] = {start, start + params.num_bins};
     }
     return result;
 }
@@ -165,7 +166,7 @@ size_type ActionDiagnostic::state_size() const
     CELER_EXPECT(store_);
 
     auto const& params = store_.params<MemSpace::host>();
-    return params.num_actions * params.num_particles;
+    return params.num_bins * params.num_particles;
 }
 
 //---------------------------------------------------------------------------//
@@ -188,8 +189,8 @@ void ActionDiagnostic::build_stream_store() const
 {
     CELER_EXPECT(!store_);
 
-    HostVal<ActionDiagnosticParamsData> host_params;
-    host_params.num_actions = action_reg_->num_actions();
+    HostVal<ParticleTallyParamsData> host_params;
+    host_params.num_bins = action_reg_->num_actions();
     host_params.num_particles = particle_->size();
     store_ = {std::move(host_params), num_streams_};
 

@@ -92,8 +92,7 @@ list(APPEND SOURCES
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc
-  user/ActionDiagnosticData.cc
-  user/StepDiagnosticData.cc
+  user/ParticleTallyData.cc
   user/DetectorSteps.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc

@@ -14,7 +14,7 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
-#include "StepDiagnosticData.hh"
+#include "ParticleTallyData.hh"
 
 namespace celeritas
 {
@@ -79,8 +79,7 @@ class StepDiagnostic final : public ExplicitActionInterface,
     void clear();
 
   private:
-    using StoreT
-        = StreamStore<StepDiagnosticParamsData, StepDiagnosticStateData>;
+    using StoreT = StreamStore<ParticleTallyParamsData, ParticleTallyStateData>;
 
     ActionId id_;
     size_type num_streams_;
