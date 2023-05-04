@@ -51,6 +51,7 @@
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/StepCollector.hh"
@@ -78,6 +79,7 @@ Runner::Runner(RunnerInput const& inp,
     ScopedRootErrorHandler scoped_root_error;
     this->build_core_params(inp, std::move(output));
     this->build_step_collectors(inp);
+    this->build_diagnostics(inp);
     this->build_transporter_input(inp);
     this->build_primaries(inp);
     use_device_ = inp.use_device;
@@ -394,6 +396,27 @@ void Runner::build_step_collectors(RunnerInput const& inp)
             core_params_->geometry(),
             core_params_->max_streams(),
             core_params_->action_reg().get());
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct diagnostic actions/outputs.
+ */
+void Runner::build_diagnostics(RunnerInput const& inp)
+{
+    if (inp.action_diagnostic)
+    {
+        auto action_diagnostic = std::make_shared<ActionDiagnostic>(
+            core_params_->action_reg()->next_id(),
+            core_params_->action_reg(),
+            core_params_->particle(),
+            core_params_->max_streams());
+
+        // Add to action registry
+        core_params_->action_reg()->insert(action_diagnostic);
+        // Add to output interface
+        core_params_->output_reg()->insert(action_diagnostic);
     }
 }
 
