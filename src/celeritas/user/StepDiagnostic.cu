@@ -23,13 +23,13 @@ namespace
 {
 //---------------------------------------------------------------------------//
 __global__ void
-tally_steps_kernel(DeviceCRef<CoreParamsData> const params,
-                   DeviceRef<CoreStateData> const state,
+tally_steps_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
+                   RefPtr<CoreStateData, MemSpace::device> const state,
                    DeviceCRef<ParticleTallyParamsData> sd_params,
                    DeviceRef<ParticleTallyStateData> sd_state)
 {
     auto launch = make_active_track_launcher(
-        params, state, detail::tally_steps, sd_params, sd_state);
+        *params, *state, detail::tally_steps, sd_params, sd_state);
     launch(KernelParamCalculator::thread_id());
 }
 
@@ -47,8 +47,8 @@ void StepDiagnostic::execute(CoreParams const& params,
         tally_steps,
         celeritas::device().default_block_size(),
         state.size(),
-        params.ref<MemSpace::native>(),
-        state.ref(),
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
         store_.params<MemSpace::device>(),
         store_.state<MemSpace::device>(state.stream_id(), this->state_size()));
 }

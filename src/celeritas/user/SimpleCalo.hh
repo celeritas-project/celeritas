@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/data/StreamStore.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "celeritas/Quantities.hh"
