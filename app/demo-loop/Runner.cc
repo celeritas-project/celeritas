@@ -69,8 +69,7 @@ namespace demo_loop
 /*!
  * Construct on all threads from a JSON input and shared output manager.
  */
-Runner::Runner(RunnerInput const& inp,
-               std::shared_ptr<celeritas::OutputRegistry> output)
+Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
 {
     CELER_EXPECT(output);
 
@@ -78,13 +77,24 @@ Runner::Runner(RunnerInput const& inp,
 
     ScopedRootErrorHandler scoped_root_error;
     this->build_core_params(inp, std::move(output));
-    this->build_step_collectors(inp);
     this->build_diagnostics(inp);
+    this->build_step_collectors(inp);
     this->build_transporter_input(inp);
     this->build_primaries(inp);
     use_device_ = inp.use_device;
 
     CELER_ENSURE(core_params_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Workaround: custom deleters should take care of writing and closing.
+ * \note if \c this->build_diagnostics(inp) is not called at construction, it
+ * works without the need of a destructors.
+ */
+Runner::~Runner()
+{
+    root_manager_->close();
 }
 
 //---------------------------------------------------------------------------//
@@ -357,7 +367,7 @@ void Runner::build_step_collectors(RunnerInput const& inp)
     StepCollector::VecInterface step_interfaces;
     if (!inp.mctruth_filename.empty())
     {
-        // Initialize ROOT file; Store input and core params
+        // Initialize ROOT file
         root_manager_
             = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
         write_to_root(inp, root_manager_.get());

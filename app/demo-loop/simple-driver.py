@@ -37,7 +37,7 @@ geant_options = {
     'ionization': True,
     'annihilation': True,
     'brems': "all",
-    'msc': "urban" if use_vecgeom else "none",
+    'msc': "urban_extended" if use_vecgeom else "none",
     'eloss_fluctuation': True,
     'lpm': True,
 }
