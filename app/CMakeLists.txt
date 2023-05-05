@@ -86,7 +86,6 @@ endif()
 
 if(CELERITAS_USE_HIP)
   set_source_files_properties(
-    demo-loop/diagnostic/StepDiagnostic.cu
     demo-interactor/KNDemoKernel.cu
     demo-interactor/KNDemoKernel.thrust.cu
     PROPERTIES LANGUAGE HIP
@@ -223,14 +222,7 @@ if(CELERITAS_BUILD_DEMOS)
     demo-loop/RunnerInputIO.json.cc
     demo-loop/Runner.cc
     demo-loop/Transporter.cc
-    demo-loop/diagnostic/StepDiagnostic.cc
   )
-
-  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-    list(APPEND _demo_loop_src
-      demo-loop/diagnostic/StepDiagnostic.cu
-    )
-  endif()
 
   set(_demo_loop_libs
     Celeritas::celeritas

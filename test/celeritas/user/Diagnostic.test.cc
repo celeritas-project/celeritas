@@ -13,7 +13,6 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
-#include "celeritas/user/ActionDiagnostic.hh"
 
 #include "../TestEm3Base.hh"
 #include "DiagnosticTestBase.hh"
@@ -107,21 +106,23 @@ TEST_F(TestEm3DiagnosticTest, host)
 
         if (this->is_ci_build())
         {
-            static const size_type expected_actions[] = {
-                0u,    0u,   0u,    0u,   0u,   0u,   0u,  1580u, 1168u, 0u,
-                1019u, 55u,  0u,    0u,   0u,   0u,   22u, 90u,   283u,  0u,
-                0u,    575u, 0u,    0u,   19u,  0u,   0u,  0u,    0u,    127u,
-                0u,    20u,  14u,   0u,   467u, 386u, 0u,  0u,    0u,    0u,
-                0u,    0u,   1769u, 289u, 284u, 0u,   15u, 10u,   0u,    0u,
-                0u,    0u,   0u,    0u,   0u,   0u,   0u};
+            static const size_type expected_actions[]
+                = {0u,   0u,  0u,   0u,    0u,    0u,    0u,  283u, 575u, 19u,
+                   0u,   0u,  0u,   0u,    0u,    1769u, 0u,  0u,   0u,   0u,
+                   0u,   0u,  0u,   1580u, 1019u, 0u,    22u, 0u,   0u,   0u,
+                   0u,   20u, 467u, 0u,    0u,    289u,  15u, 0u,   0u,   0u,
+                   0u,   0u,  0u,   1168u, 55u,   0u,    90u, 0u,   0u,   0u,
+                   127u, 14u, 386u, 0u,    0u,    284u,  10u, 0u,   0u,   0u};
             EXPECT_VEC_EQ(expected_actions, result.actions);
 
-            if (CELERITAS_USE_JSON)
-            {
-                EXPECT_EQ(
-                    R"json({"_index":["action","particle"],"actions":[[0,0,0],[0,0,0],[0,1580,1168],[0,1019,55],[0,0,0],[0,22,90],[283,0,0],[575,0,0],[19,0,0],[0,0,127],[0,20,14],[0,467,386],[0,0,0],[0,0,0],[1769,289,284],[0,15,10],[0,0,0],[0,0,0],[0,0,0]]})json",
-                    this->action_output());
-            }
+            static const size_type expected_steps[]
+                = {0u, 327u, 196u, 81u, 41u, 29u, 26u, 17u, 13u, 6u, 7u,
+                   1u, 3u,   4u,   2u,  1u,  0u,  2u,  1u,  0u,  1u, 1u,
+                   0u, 737u, 43u,  17u, 9u,  11u, 7u,  5u,  9u,  5u, 4u,
+                   9u, 11u,  9u,   10u, 14u, 4u,  5u,  2u,  2u,  4u, 22u,
+                   0u, 0u,   5u,   2u,  1u,  4u,  5u,  8u,  4u,  7u, 7u,
+                   7u, 7u,   13u,  8u,  7u,  3u,  2u,  5u,  6u,  1u, 27u};
+            EXPECT_VEC_EQ(expected_steps, result.steps);
         }
     }
     else
@@ -149,21 +150,23 @@ TEST_F(TestEm3DiagnosticTest, host)
 
         if (this->is_ci_build())
         {
-            static const size_type expected_actions[] = {
-                0u,    0u,   0u,    0u,   0u,   0u,   0u,  1549u, 1186u, 0u,
-                1010u, 59u,  0u,    0u,   0u,   0u,   24u, 87u,   298u,  0u,
-                0u,    567u, 0u,    0u,   19u,  0u,   0u,  0u,    0u,    124u,
-                0u,    19u,  15u,   0u,   476u, 391u, 0u,  0u,    0u,    0u,
-                0u,    0u,   1813u, 281u, 274u, 0u,   0u,  0u,    0u,    0u,
-                0u,    0u,   0u,    0u,   0u,   0u,   0u};
+            static const size_type expected_actions[]
+                = {0u,   0u,  0u,   0u,    0u,    0u,    0u,  298u, 567u, 19u,
+                   0u,   0u,  0u,   0u,    0u,    1813u, 0u,  0u,   0u,   0u,
+                   0u,   0u,  0u,   1549u, 1010u, 0u,    24u, 0u,   0u,   0u,
+                   0u,   19u, 476u, 0u,    0u,    281u,  0u,  0u,   0u,   0u,
+                   0u,   0u,  0u,   1186u, 59u,   0u,    87u, 0u,   0u,   0u,
+                   124u, 15u, 391u, 0u,    0u,    274u,  0u,  0u,   0u,   0u};
             EXPECT_VEC_EQ(expected_actions, result.actions);
 
-            if (CELERITAS_USE_JSON)
-            {
-                EXPECT_EQ(
-                    R"json({"_index":["action","particle"],"actions":[[0,0,0],[0,0,0],[0,1549,1186],[0,1010,59],[0,0,0],[0,24,87],[298,0,0],[567,0,0],[19,0,0],[0,0,124],[0,19,15],[0,476,391],[0,0,0],[0,0,0],[1813,281,274],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]})json",
-                    this->action_output());
-            }
+            static const size_type expected_steps[]
+                = {0u, 316u, 209u, 91u, 33u, 35u, 21u, 20u, 7u,  11u, 10u,
+                   1u, 2u,   3u,   3u,  1u,  1u,  1u,  0u,  0u,  1u,  1u,
+                   0u, 742u, 39u,  11u, 7u,  10u, 6u,  10u, 11u, 5u,  3u,
+                   7u, 11u,  11u,  10u, 14u, 4u,  4u,  3u,  3u,  3u,  23u,
+                   0u, 2u,   2u,   1u,  1u,  6u,  5u,  7u,  4u,  6u,  8u,
+                   7u, 7u,   13u,  8u,  7u,  3u,  2u,  5u,  6u,  2u,  24u};
+            EXPECT_VEC_EQ(expected_steps, result.steps);
         }
     }
 }
@@ -193,18 +196,29 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
     if (this->is_ci_build())
     {
         static const size_type expected_actions[]
-            = {0u, 0u, 0u, 0u, 0u, 0u,  0u, 998u, 904u, 0u, 0u,   0u,
-               0u, 0u, 0u, 0u, 2u, 12u, 1u, 0u,   0u,   0u, 0u,   0u,
-               2u, 0u, 0u, 0u, 0u, 10u, 0u, 21u,  20u,  0u, 508u, 572u,
-               0u, 0u, 0u, 0u, 0u, 0u,  7u, 521u, 518u, 0u, 0u,   0u,
-               0u, 0u, 0u, 0u, 0u, 0u,  0u, 0u,   0u};
+            = {0u, 0u, 0u,  0u,  0u,   0u, 0u, 1u,   0u,   2u, 0u,  0u,
+               0u, 0u, 0u,  7u,  0u,   0u, 0u, 0u,   0u,   0u, 0u,  998u,
+               0u, 0u, 2u,  0u,  0u,   0u, 0u, 21u,  508u, 0u, 0u,  521u,
+               0u, 0u, 0u,  0u,  0u,   0u, 0u, 904u, 0u,   0u, 12u, 0u,
+               0u, 0u, 10u, 20u, 572u, 0u, 0u, 518u, 0u,   0u, 0u,  0u};
         EXPECT_VEC_EQ(expected_actions, result.actions);
+
+        static const size_type expected_steps[] = {
+            0u, 2u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 1u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 3u, 0u, 0u,
+            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+        EXPECT_VEC_EQ(expected_steps, result.steps);
 
         if (CELERITAS_USE_JSON)
         {
             EXPECT_EQ(
-                R"json({"_index":["action","particle"],"actions":[[0,0,0],[0,0,0],[0,998,904],[0,0,0],[0,0,0],[0,2,12],[1,0,0],[0,0,0],[2,0,0],[0,0,10],[0,21,20],[0,508,572],[0,0,0],[0,0,0],[7,521,518],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]})json",
+                R"json({"_index":["particle","action"],"actions":[[0,0,0,0,0,0,0,1,0,2,0,0,0,0,0,7,0,0,0,0],[0,0,0,998,0,0,2,0,0,0,0,21,508,0,0,521,0,0,0,0],[0,0,0,904,0,0,12,0,0,0,10,20,572,0,0,518,0,0,0,0]]})json",
                 this->action_output());
+
+            EXPECT_EQ(
+                R"json({"_index":["particle","num_steps"],"steps":[[0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
+                this->step_output());
         }
     }
 }

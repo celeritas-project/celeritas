@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ActionDiagnostic.cu
+//! \file celeritas/user/StepDiagnostic.cu
 //---------------------------------------------------------------------------//
-#include "ActionDiagnostic.hh"
+#include "StepDiagnostic.hh"
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Types.hh"
@@ -13,7 +13,7 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
-#include "detail/ActionDiagnosticImpl.hh"
+#include "detail/StepDiagnosticImpl.hh"
 
 namespace celeritas
 {
@@ -21,13 +21,13 @@ namespace
 {
 //---------------------------------------------------------------------------//
 __global__ void
-tally_action_kernel(DeviceCRef<CoreParamsData> const params,
-                    DeviceRef<CoreStateData> const state,
-                    DeviceCRef<ParticleTallyParamsData> ad_params,
-                    DeviceRef<ParticleTallyStateData> ad_state)
+tally_steps_kernel(DeviceCRef<CoreParamsData> const params,
+                   DeviceRef<CoreStateData> const state,
+                   DeviceCRef<ParticleTallyParamsData> sd_params,
+                   DeviceRef<ParticleTallyStateData> sd_state)
 {
     auto launch = make_active_track_launcher(
-        params, state, detail::tally_action, ad_params, ad_state);
+        params, state, detail::tally_steps, sd_params, sd_state);
     launch(KernelParamCalculator::thread_id());
 }
 
@@ -38,18 +38,14 @@ tally_action_kernel(DeviceCRef<CoreParamsData> const params,
 /*!
  * Execute action with device data.
  */
-void ActionDiagnostic::execute(ParamsDeviceCRef const& params,
-                               StateDeviceRef& state) const
+void StepDiagnostic::execute(ParamsDeviceCRef const& params,
+                             StateDeviceRef& state) const
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);
 
-    if (!store_)
-    {
-        this->build_stream_store();
-    }
     CELER_LAUNCH_KERNEL(
-        tally_action,
+        tally_steps,
         celeritas::device().default_block_size(),
         state.size(),
         params,

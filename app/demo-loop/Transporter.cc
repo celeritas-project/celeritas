@@ -17,100 +17,16 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/phys/Model.hh"
 
-#include "diagnostic/Diagnostic.hh"
-#include "diagnostic/StepDiagnostic.hh"
-
 using namespace celeritas;
 
 namespace demo_loop
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// HELPER CLASSES AND FUNCTIONS
-//---------------------------------------------------------------------------//
-template<MemSpace M>
-decltype(auto) get_diag_ref(DiagnosticStore& params)
-{
-    if constexpr (M == MemSpace::host)
-    {
-        return (params.host);
-    }
-    else if constexpr (M == MemSpace::device)
-    {
-        return (params.device);
-    }
-}
-
-//---------------------------------------------------------------------------//
-//! Adapt a vector of diagnostics to the Action interface
-class DiagnosticActionAdapter final : public ExplicitActionInterface
-{
-  public:
-    using SPDiagnostics = std::shared_ptr<DiagnosticStore>;
-
-  public:
-    DiagnosticActionAdapter(ActionId id, SPDiagnostics diag)
-        : id_(id), diagnostics_(diag)
-    {
-        CELER_EXPECT(id_);
-        CELER_EXPECT(diagnostics_);
-    }
-
-    //! Execute the action with host data
-    void execute(ParamsHostCRef const& params, StateHostRef& states) const final
-    {
-        this->execute_impl(params, states, diagnostics_->host);
-    }
-
-    //! Execute the action with device data
-    void
-    execute(ParamsDeviceCRef const& params, StateDeviceRef& states) const final
-    {
-        this->execute_impl(params, states, diagnostics_->device);
-    }
-
-    //!@{
-    //! \name Action interface
-    ActionId action_id() const final { return id_; }
-    std::string label() const final { return "diagnostics"; }
-    std::string description() const final
-    {
-        return "diagnostics after post-step";
-    }
-    ActionOrder order() const final { return ActionOrder::post_post; }
-    //!@}
-
-  private:
-    ActionId id_;
-    SPDiagnostics diagnostics_;
-
-    template<MemSpace M>
-    using VecUPDiag = DiagnosticStore::VecUPDiag<M>;
-
-    template<MemSpace M>
-    void
-    execute_impl(CoreParamsData<Ownership::const_reference, M> const& params,
-                 CoreStateData<Ownership::reference, M> const& states,
-                 VecUPDiag<M> const& diagnostics) const
-    {
-        for (auto const& diag_ptr : diagnostics)
-        {
-            diag_ptr->mid_step(params, states);
-        }
-    }
-};
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 //! Default virtual destructor
 TransporterBase::~TransporterBase() = default;
@@ -123,23 +39,6 @@ template<MemSpace M>
 Transporter<M>::Transporter(TransporterInput inp) : max_steps_(inp.max_steps)
 {
     CELER_EXPECT(inp);
-
-    CoreParams const& params = *inp.params;
-
-    // Create diagnostics
-    // TODO: these should be actions with StreamStores
-    if (inp.enable_diagnostics)
-    {
-        diagnostics_ = std::make_shared<DiagnosticStore>();
-        auto& diag = get_diag_ref<M>(*diagnostics_);
-        diag.push_back(std::make_unique<StepDiagnostic<M>>(
-            get_ref<M>(params), params.particle(), inp.num_track_slots, 200));
-
-        // Add diagnostic adapters to action manager
-        diagnostic_action_ = params.action_reg()->next_id();
-        params.action_reg()->insert(std::make_shared<DiagnosticActionAdapter>(
-            diagnostic_action_, diagnostics_));
-    }
 
     // Create stepper
     StepperInput step_input;
@@ -214,16 +113,6 @@ RunnerResult Transporter<M>::operator()(SpanConstPrimary primaries)
         {
             auto&& label = action_ptrs[i]->label();
             result.time.actions[label] = times[i];
-        }
-    }
-
-    if (diagnostics_)
-    {
-        CELER_LOG(status) << "Finalizing diagnostic data";
-        // Collect results from diagnostics
-        for (auto& diagnostic : get_diag_ref<M>(*diagnostics_))
-        {
-            diagnostic->get_result(&result);
         }
     }
     result.time.total = get_transport_time();

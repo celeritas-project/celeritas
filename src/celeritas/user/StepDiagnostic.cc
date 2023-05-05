@@ -3,20 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ActionDiagnostic.cc
+//! \file celeritas/user/StepDiagnostic.cc
 //---------------------------------------------------------------------------//
-#include "ActionDiagnostic.hh"
+#include "StepDiagnostic.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "detail/ActionDiagnosticImpl.hh"
+#include "detail/StepDiagnosticImpl.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -28,50 +27,47 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action registry and particle data.
- *
- * The total number of registered actions is needed in the diagnostic params
- * data, so the construction of the stream storage is deferred until all
- * actions have been registered.
+ * Construct with particle data.
  */
-ActionDiagnostic::ActionDiagnostic(ActionId id,
-                                   SPConstActionRegistry action_reg,
-                                   SPConstParticle particle,
-                                   size_type num_streams)
-    : id_(id)
-    , action_reg_(action_reg)
-    , particle_(particle)
-    , num_streams_(num_streams)
+StepDiagnostic::StepDiagnostic(ActionId id,
+                               SPConstParticle particle,
+                               size_type max_steps,
+                               size_type num_streams)
+    : id_(id), num_streams_(num_streams)
 {
     CELER_EXPECT(id_);
-    CELER_EXPECT(action_reg_);
-    CELER_EXPECT(particle_);
-    CELER_EXPECT(num_streams > 0);
+    CELER_EXPECT(particle);
+    CELER_EXPECT(max_steps > 0);
+    CELER_EXPECT(num_streams_ > 0);
+
+    // Add two extra bins for underflow and overflow
+    HostVal<ParticleTallyParamsData> host_params;
+    host_params.num_bins = max_steps + 2;
+    host_params.num_particles = particle->size();
+    store_ = {std::move(host_params), num_streams_};
+
+    CELER_ENSURE(store_);
 }
 
 //---------------------------------------------------------------------------//
 //! Default destructor
-ActionDiagnostic::~ActionDiagnostic() = default;
+StepDiagnostic::~StepDiagnostic() = default;
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute action with host data.
  */
-void ActionDiagnostic::execute(ParamsHostCRef const& params,
-                               StateHostRef& state) const
+void StepDiagnostic::execute(ParamsHostCRef const& params,
+                             StateHostRef& state) const
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);
 
-    if (!store_)
-    {
-        this->build_stream_store();
-    }
     MultiExceptionHandler capture_exception;
     auto launch = make_active_track_launcher(
         params,
         state,
-        detail::tally_action,
+        detail::tally_steps,
         store_.params<MemSpace::host>(),
         store_.state<MemSpace::host>(state.stream_id, this->state_size()));
 #pragma omp parallel for
@@ -86,15 +82,15 @@ void ActionDiagnostic::execute(ParamsHostCRef const& params,
 /*!
  * Write output to the given JSON object.
  */
-void ActionDiagnostic::output(JsonPimpl* j) const
+void StepDiagnostic::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
 
-    obj["actions"] = this->calc_actions();
-    obj["_index"] = {"particle", "action"};
+    obj["steps"] = this->calc_steps();
+    obj["_index"] = {"particle", "num_steps"};
 
     j->obj = std::move(obj);
 #else
@@ -104,44 +100,12 @@ void ActionDiagnostic::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the nonzero diagnostic results accumulated over all streams.
- *
- * This builds a map of particle/action combinations to the number of
- * occurances over all events.
- */
-auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
-{
-    // Counts indexed as [particle][action]
-    auto particle_vec = this->calc_actions();
-
-    // Map particle ID/action ID to name and store counts
-    MapStringCount result;
-    for (auto particle : range(ParticleId(particle_vec.size())))
-    {
-        auto const& action_vec = particle_vec[particle.get()];
-        for (auto action : range(ActionId(action_vec.size())))
-        {
-            if (action_vec[action.get()] > 0)
-            {
-                std::string label = action_reg_->id_to_label(action) + " "
-                                    + particle_->id_to_label(particle);
-                result[label] = action_vec[action.get()];
-            }
-        }
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the diagnostic results accumulated over all streams.
  */
-auto ActionDiagnostic::calc_actions() const -> VecVecCount
+auto StepDiagnostic::calc_steps() const -> VecVecCount
 {
-    CELER_EXPECT(store_);
-
     // Get the raw data accumulated over all host/device streams
-    VecCount counts(this->state_size(), 0);
+    std::vector<size_type> counts(this->state_size(), 0);
     accumulate_over_streams(
         store_, [](auto& state) { return state.counts; }, &counts);
 
@@ -159,12 +123,10 @@ auto ActionDiagnostic::calc_actions() const -> VecVecCount
 
 //---------------------------------------------------------------------------//
 /*!
- * Diagnostic state data size (number of particles times number of actions).
+ * Size of diagnostic state data (number of bins times number of particles)
  */
-size_type ActionDiagnostic::state_size() const
+size_type StepDiagnostic::state_size() const
 {
-    CELER_EXPECT(store_);
-
     auto const& params = store_.params<MemSpace::host>();
     return params.num_bins * params.num_particles;
 }
@@ -173,28 +135,10 @@ size_type ActionDiagnostic::state_size() const
 /*!
  * Reset diagnostic results.
  */
-void ActionDiagnostic::clear()
+void StepDiagnostic::clear()
 {
-    CELER_EXPECT(store_);
-
     apply_to_all_streams(
         store_, [](auto& state) { fill(size_type(0), &state.counts); });
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build the storage for diagnostic parameters and stream-dependent states.
- */
-void ActionDiagnostic::build_stream_store() const
-{
-    CELER_EXPECT(!store_);
-
-    HostVal<ParticleTallyParamsData> host_params;
-    host_params.num_bins = action_reg_->num_actions();
-    host_params.num_particles = particle_->size();
-    store_ = {std::move(host_params), num_streams_};
-
-    CELER_ENSURE(store_);
 }
 
 //---------------------------------------------------------------------------//

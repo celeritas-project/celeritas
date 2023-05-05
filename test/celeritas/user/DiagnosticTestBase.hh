@@ -20,6 +20,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionDiagnostic;
+class StepDiagnostic;
 
 namespace test
 {
@@ -36,6 +37,7 @@ class DiagnosticTestBase : virtual public StepCollectorTestBase
     {
         std::vector<size_type> actions;
         std::vector<std::string> nonzero_actions;
+        std::vector<size_type> steps;
 
         void print_expected() const;
     };
@@ -52,8 +54,15 @@ class DiagnosticTestBase : virtual public StepCollectorTestBase
     // Get JSON output from the action diagnostic
     std::string action_output() const;
 
+    // Get JSON output from the step diagnostic
+    std::string step_output() const;
+
+    // Print expected results
+    void print_expected() const;
+
   protected:
     std::shared_ptr<ActionDiagnostic> action_diagnostic_;
+    std::shared_ptr<StepDiagnostic> step_diagnostic_;
 };
 
 //---------------------------------------------------------------------------//
