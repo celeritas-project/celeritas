@@ -476,9 +476,6 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
     size_type num_tracks = 128;
     Input inp;
     {
-        // This track takes ~150k substeps in the field propagator before
-        // reaching a boundary.
-        SCOPED_TRACE("electron taking large step in vacuum");
         inp.particle_id = this->particle()->find(pdg::electron());
         inp.energy = MevEnergy{0.697421113579829943};
         inp.phys_mfp = 0.0493641564748481393;
@@ -486,13 +483,10 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
         inp.direction = {-0.680265923322200705,
                          0.731921125057842015,
                          -0.0391118941072485030};
-        // Step limited by distance to interaction = 2.49798914193346685e21
+
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(26.416514842342753, result.step);
-        EXPECT_EQ(0, result.eloss);
-        EXPECT_EQ(0, result.mfp);
-        EXPECT_EQ("geo-propagation-limit", result.action);
-        EXPECT_DOUBLE_EQ(1, result.alive);
+        EXPECT_SOFT_EQ(4.1632770456107515, result.displacement);
+        EXPECT_SOFT_EQ(-0.5944548582004926, result.angle);
     }
 }
 
@@ -503,7 +497,6 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
     size_type num_tracks = 1024;
     Input inp;
     {
-        SCOPED_TRACE("range-limited electron in field near boundary");
         inp.particle_id = this->particle()->find(pdg::electron());
         inp.energy = MevEnergy{1.76660104663773580e-3};
         // The track is taking its second step in the EM calorimeter, so uses
@@ -514,11 +507,8 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
         inp.direction = {
             -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
-        // Range = 6.41578930992857482e-06
-        EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
-        EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
-        EXPECT_EQ("eloss-range", result.action);
-        EXPECT_DOUBLE_EQ(0, result.alive);
+        EXPECT_SOFT_EQ(6.113290482072715e-07, result.displacement);
+        EXPECT_SOFT_EQ(0.99999999288499986, result.angle);
     }
 }
 //---------------------------------------------------------------------------//
