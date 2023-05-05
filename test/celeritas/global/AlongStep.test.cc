@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/AlongStep.test.cc
 //---------------------------------------------------------------------------//
+#include <fstream>
+
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/TestEm3Base.hh"
 #include "celeritas/em/UrbanMscParams.hh"
@@ -87,6 +89,46 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
     size_type bpd_{14};
     bool msc_{true};
     bool fluct_{false};
+};
+
+class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
+{
+  public:
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = SimpleCmsTestBase::build_geant_options();
+        opts.em_bins_per_decade = bpd_;
+        opts.eloss_fluctuation = fluct_;
+        opts.msc = MscModelSelection::urban;
+        return opts;
+    }
+
+    SPConstAction build_along_step() override
+    {
+        auto& action_reg = *this->action_reg();
+
+        auto msc = UrbanMscParams::from_import(
+            *this->particle(), *this->material(), this->imported_data());
+        CELER_ASSERT(msc);
+
+        RZMapFieldInput field_map;
+        auto filename
+            = this->test_data_path("celeritas", "cms-tiny.field.json");
+        std::ifstream(filename) >> field_map;
+
+        auto result
+            = AlongStepRZMapFieldMscAction::from_params(action_reg.next_id(),
+                                                        *this->material(),
+                                                        *this->particle(),
+                                                        field_map,
+                                                        msc);
+        action_reg.insert(result);
+        return result;
+    }
+
+    size_type bpd_{14};
+    bool msc_{true};
+    bool fluct_{true};
 };
 
 //---------------------------------------------------------------------------//
@@ -402,6 +444,57 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
 }
 
 TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
+{
+    bpd_ = 56;
+
+    size_type num_tracks = 1024;
+    Input inp;
+    {
+        SCOPED_TRACE("range-limited electron in field near boundary");
+        inp.particle_id = this->particle()->find(pdg::electron());
+        inp.energy = MevEnergy{1.76660104663773580e-3};
+        // The track is taking its second step in the EM calorimeter, so uses
+        // the cached MSC range values from the previous step
+        inp.msc_range = {8.43525996595540601e-4, 0.04, 1.34976131122020193e-5};
+        inp.position = {
+            59.3935490766840459, -109.988210668881749, -81.7228237502843484};
+        inp.direction = {
+            -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
+        auto result = this->run(inp, num_tracks);
+        // Range = 6.41578930992857482e-06
+        EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
+        EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
+        EXPECT_EQ("eloss-range", result.action);
+        EXPECT_DOUBLE_EQ(0, result.alive);
+    }
+}
+
+TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
+{
+    size_type num_tracks = 128;
+    Input inp;
+    {
+        // This track takes ~150k substeps in the field propagator before
+        // reaching a boundary.
+        SCOPED_TRACE("electron taking large step in vacuum");
+        inp.particle_id = this->particle()->find(pdg::electron());
+        inp.energy = MevEnergy{0.697421113579829943};
+        inp.phys_mfp = 0.0493641564748481393;
+        inp.position = {-33.3599681684743388, 1.43414625226707426, -700.000001};
+        inp.direction = {-0.680265923322200705,
+                         0.731921125057842015,
+                         -0.0391118941072485030};
+        // Step limited by distance to interaction = 2.49798914193346685e21
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(26.416514842342753, result.step);
+        EXPECT_EQ(0, result.eloss);
+        EXPECT_EQ(0, result.mfp);
+        EXPECT_EQ("geo-propagation-limit", result.action);
+        EXPECT_DOUBLE_EQ(1, result.alive);
+    }
+}
+
+TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
 {
     bpd_ = 56;
 
