@@ -141,6 +141,7 @@ class VecgeomTrackView
     Real3& pos_;
     Real3& dir_;
     real_type& next_step_;
+    real_type& safety_;
     //!@}
 
     //// HELPER FUNCTIONS ////
@@ -148,8 +149,11 @@ class VecgeomTrackView
     // Whether any next distance-to-boundary has been found
     inline CELER_FUNCTION bool has_next_step() const;
 
-    //! Get a reference to the current volume
+    // Get a reference to the current volume
     inline CELER_FUNCTION Volume const& volume() const;
+
+    // Recalculate the safety distance
+    inline CELER_FUNCTION void update_safety();
 };
 
 //---------------------------------------------------------------------------//
@@ -168,6 +172,7 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
     , next_step_(states.next_step[tid])
+    , safety_(states.safety[tid])
 {
 }
 
@@ -200,6 +205,9 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     detail::BVHNavigator::LocatePointIn(
         worldvol, detail::to_vector(pos_), vgstate_, contains_point);
 
+    // Calculate safety distance
+    this->update_safety();
+
     CELER_ENSURE(!this->has_next_step());
     return *this;
 }
@@ -216,12 +224,14 @@ CELER_FUNCTION
 VecgeomTrackView& VecgeomTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+    CELER_EXPECT(!init.other.is_on_boundary());
 
     if (this != &init.other)
     {
         // Copy the navigation state and position from the parent state
         init.other.vgstate_.CopyTo(&vgstate_);
         pos_ = init.other.pos_;
+        safety_ = init.other.safety_;
     }
 
     // Set up the next state and initialize the direction
@@ -287,9 +297,9 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 {
     CELER_EXPECT(max_step > 0);
 
-    if (next_step_ > max_step)
+    if (max(next_step_, safety_) > max_step)
     {
-        // Cached next step is beyond the given step
+        // Cached next step (or nearest boundary) is beyond the given step
         Propagation result;
         result.distance = max_step;
         result.boundary = false;
@@ -363,17 +373,16 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the safety at the current position.
+ * Find the nearest distance to *any* boundary.
+ *
+ * \note We might be able to optimize whether to update the safety distance,
+ * since some of the use cases
  */
 CELER_FUNCTION real_type VecgeomTrackView::find_safety()
 {
     CELER_EXPECT(!this->is_outside());
-    real_type safety = detail::BVHNavigator::ComputeSafety(
-        detail::to_vector(this->pos()), vgstate_);
 
-    // TODO: ComputeSafety can return negative safety distances: clamp it to
-    // zero until we debug the underlying cause.
-    return max<real_type>(safety, 0);
+    return max<real_type>(safety_, 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -387,8 +396,9 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
 
     // Move next step
     axpy(next_step_, dir_, &pos_);
-    next_step_ = 0.;
-    vgstate_.SetBoundaryState(true);  // XXX
+    next_step_ = 0;
+    safety_ = 0;
+    vgstate_.SetBoundaryState(true);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -427,14 +437,20 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
  */
 CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
-    CELER_EXPECT(this->has_next_step());
-    CELER_EXPECT(dist > 0 && dist <= next_step_);
+    CELER_EXPECT(this->has_next_step() || dist < safety_);
+    CELER_EXPECT(dist > 0 && dist <= max(next_step_, safety_));
     CELER_EXPECT(dist != next_step_ || !vgnext_.IsOnBoundary());
 
     // Move and update next_step_
     axpy(dist, dir_, &pos_);
     next_step_ -= dist;
     vgstate_.SetBoundaryState(false);
+
+    safety_ -= dist;
+    if (safety_ <= 0)
+    {
+        this->update_safety();
+    }
 
     CELER_ENSURE(!this->is_on_boundary());
 }
@@ -448,9 +464,15 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
  */
 CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
 {
+    safety_ -= celeritas::distance(pos, pos_);
     pos_ = pos;
     next_step_ = 0;
     vgstate_.SetBoundaryState(false);
+
+    if (safety_ <= 0)
+    {
+        this->update_safety();
+    }
 
     CELER_ENSURE(!this->is_on_boundary());
 }
@@ -489,6 +511,25 @@ CELER_FUNCTION vecgeom::LogicalVolume const& VecgeomTrackView::volume() const
     vecgeom::VPlacedVolume const* physvol_ptr = vgstate_.Top();
     CELER_ENSURE(physvol_ptr);
     return *physvol_ptr->GetLogicalVolume();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the nearest distance to *any* boundary.
+ *
+ * \note We might be able to optimize whether to update the safety distance,
+ * since some of the use cases
+ */
+CELER_FUNCTION void VecgeomTrackView::update_safety()
+{
+    CELER_EXPECT(!this->is_on_boundary());
+    if (this->is_outside())
+    {
+        safety_ = 0;
+        return;
+    }
+    safety_ = detail::BVHNavigator::ComputeSafety(detail::to_vector(pos_),
+                                                  vgstate_);
 }
 
 //---------------------------------------------------------------------------//
