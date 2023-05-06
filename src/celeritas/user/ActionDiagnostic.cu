@@ -54,7 +54,7 @@ void ActionDiagnostic::execute(CoreParams const& params,
         params.ref<MemSpace::native>(),
         state.ref(),
         store_.params<MemSpace::device>(),
-        store_.state<MemSpace::device>(state.stream_id, this->state_size()));
+        store_.state<MemSpace::device>(state.stream_id(), this->state_size()));
 }
 
 //---------------------------------------------------------------------------//

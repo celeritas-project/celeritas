@@ -72,7 +72,7 @@ void ActionDiagnostic::execute(CoreParams const& params,
         state.ref(),
         detail::tally_action,
         store_.params<MemSpace::host>(),
-        store_.state<MemSpace::host>(state.stream_id, this->state_size()));
+        store_.state<MemSpace::host>(state.stream_id(), this->state_size()));
 #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < state.size(); ++i)
     {
