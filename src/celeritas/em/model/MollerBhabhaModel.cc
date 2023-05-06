@@ -10,6 +10,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MollerBhabhaData.hh"
 #include "celeritas/em/generated/MollerBhabhaInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
@@ -77,16 +78,16 @@ auto MollerBhabhaModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void MollerBhabhaModel::execute(ParamsDeviceCRef const& params,
-                                StateDeviceRef& states) const
-{
-    generated::moller_bhabha_interact(data_, params, states);
-}
-
-void MollerBhabhaModel::execute(ParamsHostCRef const& params,
+void MollerBhabhaModel::execute(CoreParams const& params,
                                 StateHostRef& states) const
 {
-    generated::moller_bhabha_interact(data_, params, states);
+    generated::moller_bhabha_interact(this->host_ref(), params, states);
+}
+
+void MollerBhabhaModel::execute(CoreParams const& params,
+                                StateDeviceRef& states) const
+{
+    generated::moller_bhabha_interact(this->device_ref(), params, states);
 }
 
 //!@}

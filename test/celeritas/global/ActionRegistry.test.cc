@@ -28,11 +28,11 @@ class MyExplicitAction final : public ExplicitActionInterface
     std::string label() const final { return "explicit"; }
     std::string description() const final { return "explicit action test"; }
 
-    void execute(ParamsHostCRef const&, StateHostRef&) const final
+    void execute(CoreParams const&, StateHostRef&) const final
     {
         ++host_count_;
     }
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final
+    void execute(CoreParams const&, StateDeviceRef&) const final
     {
         ++device_count_;
     }

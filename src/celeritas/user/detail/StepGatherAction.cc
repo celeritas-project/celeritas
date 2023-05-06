@@ -15,6 +15,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -56,16 +57,18 @@ std::string StepGatherAction<P>::description() const
  * Gather step attributes from host data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(ParamsHostCRef const& params,
+void StepGatherAction<P>::execute(CoreParams const& params,
                                   StateHostRef& state) const
 {
-    CELER_EXPECT(params && state);
+    CELER_EXPECT(state);
     auto const& step_state
         = storage_->obj.state<MemSpace::host>(state.stream_id, state.size());
 
     MultiExceptionHandler capture_exception;
-    StepGatherLauncher<P> launch{
-        params, state, storage_->obj.params<MemSpace::host>(), step_state};
+    StepGatherLauncher<P> launch{params.ref<MemSpace::native>(),
+                                 state,
+                                 storage_->obj.params<MemSpace::host>(),
+                                 step_state};
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {
@@ -88,15 +91,17 @@ void StepGatherAction<P>::execute(ParamsHostCRef const& params,
  * Gather step attributes from GPU data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(ParamsDeviceCRef const& params,
+void StepGatherAction<P>::execute(CoreParams const& params,
                                   StateDeviceRef& state) const
 {
-    CELER_EXPECT(params && state);
+    CELER_EXPECT(state);
 
     auto& step_state
         = storage_->obj.state<MemSpace::device>(state.stream_id, state.size());
-    step_gather_device<P>(
-        params, state, storage_->obj.params<MemSpace::device>(), step_state);
+    step_gather_device<P>(params.ref<MemSpace::device>(),
+                          state,
+                          storage_->obj.params<MemSpace::device>(),
+                          step_state);
 
     if (P == StepPoint::post)
     {

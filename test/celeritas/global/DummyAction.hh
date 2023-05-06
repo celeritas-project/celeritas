@@ -20,11 +20,11 @@ class DummyAction final : public ExplicitActionInterface, public ConcreteAction
     // Construct with ID and label
     using ConcreteAction::ConcreteAction;
 
-    void execute(ParamsHostCRef const&, StateHostRef&) const final
+    void execute(CoreParams const&, StateHostRef&) const final
     {
         ++num_execute_host_;
     }
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final
+    void execute(CoreParams const&, StateDeviceRef&) const final
     {
         ++num_execute_device_;
     }

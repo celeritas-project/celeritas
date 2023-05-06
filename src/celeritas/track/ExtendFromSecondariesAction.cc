@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Execute the action with host data
  */
-void ExtendFromSecondariesAction::execute(ParamsHostCRef const& params,
+void ExtendFromSecondariesAction::execute(CoreParams const& params,
                                           StateHostRef& states) const
 {
     extend_from_secondaries(params, states);
@@ -27,7 +27,7 @@ void ExtendFromSecondariesAction::execute(ParamsHostCRef const& params,
 /*!
  * Execute the action with device data
  */
-void ExtendFromSecondariesAction::execute(ParamsDeviceCRef const& params,
+void ExtendFromSecondariesAction::execute(CoreParams const& params,
                                           StateDeviceRef& states) const
 {
     extend_from_secondaries(params, states);

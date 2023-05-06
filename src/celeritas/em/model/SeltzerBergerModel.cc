@@ -24,6 +24,7 @@
 #include "celeritas/em/generated/SeltzerBergerInteract.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -124,17 +125,18 @@ auto SeltzerBergerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void SeltzerBergerModel::execute(ParamsDeviceCRef const& params,
+void SeltzerBergerModel::execute(CoreParams const& params,
+                                 StateHostRef& states) const
+{
+    generated::seltzer_berger_interact(this->host_ref(), params, states);
+}
+
+void SeltzerBergerModel::execute(CoreParams const& params,
                                  StateDeviceRef& states) const
 {
     generated::seltzer_berger_interact(this->device_ref(), params, states);
 }
 
-void SeltzerBergerModel::execute(ParamsHostCRef const& params,
-                                 StateHostRef& states) const
-{
-    generated::seltzer_berger_interact(this->host_ref(), params, states);
-}
 //!@}
 //---------------------------------------------------------------------------//
 /*!

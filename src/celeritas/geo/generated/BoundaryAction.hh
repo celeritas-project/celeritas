@@ -25,17 +25,17 @@ public:
   using ConcreteAction::ConcreteAction;
 
   // Launch kernel with host data
-  void execute(ParamsHostCRef const&, StateHostRef&) const final;
+  void execute(CoreParams const&, StateHostRef&) const final;
 
   // Launch kernel with device data
-  void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+  void execute(CoreParams const&, StateDeviceRef&) const final;
 
   //! Dependency ordering of the action
   ActionOrder order() const final { return ActionOrder::post; }
 };
 
 #if !CELER_USE_DEVICE
-inline void BoundaryAction::execute(ParamsDeviceCRef const&, StateDeviceRef&) const
+inline void BoundaryAction::execute(CoreParams const&, StateDeviceRef&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

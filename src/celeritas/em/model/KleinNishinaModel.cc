@@ -9,6 +9,7 @@
 
 #include "corecel/math/Quantity.hh"
 #include "celeritas/em/generated/KleinNishinaInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
 
@@ -65,16 +66,16 @@ auto KleinNishinaModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void KleinNishinaModel::execute(ParamsDeviceCRef const& params,
-                                StateDeviceRef& states) const
-{
-    generated::klein_nishina_interact(data_, params, states);
-}
-
-void KleinNishinaModel::execute(ParamsHostCRef const& params,
+void KleinNishinaModel::execute(CoreParams const& params,
                                 StateHostRef& states) const
 {
-    generated::klein_nishina_interact(data_, params, states);
+    generated::klein_nishina_interact(this->host_ref(), params, states);
+}
+
+void KleinNishinaModel::execute(CoreParams const& params,
+                                StateDeviceRef& states) const
+{
+    generated::klein_nishina_interact(this->device_ref(), params, states);
 }
 
 //---------------------------------------------------------------------------//

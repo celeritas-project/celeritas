@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Execute the action with host data
  */
-void InitializeTracksAction::execute(ParamsHostCRef const& params,
+void InitializeTracksAction::execute(CoreParams const& params,
                                      StateHostRef& states) const
 {
     initialize_tracks(params, states);
@@ -27,7 +27,7 @@ void InitializeTracksAction::execute(ParamsHostCRef const& params,
 /*!
  * Execute the action with device data
  */
-void InitializeTracksAction::execute(ParamsDeviceCRef const& params,
+void InitializeTracksAction::execute(CoreParams const& params,
                                      StateDeviceRef& states) const
 {
     initialize_tracks(params, states);

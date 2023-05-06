@@ -53,9 +53,9 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     //!@{
     //! \name ExplicitAction interface
     // Execute action with host data
-    void execute(ParamsHostCRef const&, StateHostRef&) const final;
+    void execute(CoreParams const&, StateHostRef&) const final;
     // Execute action with device data
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+    void execute(CoreParams const&, StateDeviceRef&) const final;
     //! ID of the action
     ActionId action_id() const final { return id_; }
     //! Short name for the action
@@ -106,8 +106,7 @@ class ActionDiagnostic final : public ExplicitActionInterface,
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-inline void
-ActionDiagnostic::execute(ParamsDeviceCRef const&, StateDeviceRef&) const
+inline void ActionDiagnostic::execute(CoreParams const&, StateDeviceRef&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

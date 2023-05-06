@@ -89,6 +89,11 @@ auto StepperTestBase::run(StepperInterface& step,
     EXPECT_EQ(num_primaries, counts.active);
     EXPECT_EQ(num_primaries, counts.alive);
 
+    if (this->HasFailure())
+    {
+        return {};
+    }
+
     RunResult result;
     result.active = {counts.active};
     result.queued = {counts.queued};

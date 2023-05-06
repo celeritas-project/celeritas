@@ -18,12 +18,12 @@
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepRZMapFieldMsc.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -67,13 +67,13 @@ AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepRZMapFieldMscAction::execute(ParamsHostCRef const& params,
+void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                                            StateHostRef& state) const
 {
-    CELER_EXPECT(params && state);
+    CELER_EXPECT(state);
     MultiExceptionHandler capture_exception;
 
-    auto launch = make_active_track_launcher(params,
+    auto launch = make_active_track_launcher(params.ref<MemSpace::native>(),
                                              state,
                                              detail::along_step_mapfield_msc,
                                              msc_->host_ref(),
@@ -86,7 +86,10 @@ void AlongStepRZMapFieldMscAction::execute(ParamsHostCRef const& params,
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(params, state, ThreadId{i}, this->label()));
+            KernelContextException(params.ref<MemSpace::host>(),
+                                   state,
+                                   ThreadId{i},
+                                   this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }

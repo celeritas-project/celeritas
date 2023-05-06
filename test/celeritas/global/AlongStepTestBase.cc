@@ -38,7 +38,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         this->core()->host_ref(), StreamId{0}, num_tracks};
     auto& core_params = this->core()->host_ref();
     auto& core_states = states.ref();
-    CELER_ASSERT(core_params && core_states);
+    CELER_ASSERT(core_states);
 
     {
         // Create primary from input (separate event IDs)
@@ -57,8 +57,8 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         }
 
         // Primary -> track initializer -> track
-        extend_from_primaries(core_params, core_states, make_span(primaries));
-        initialize_tracks(core_params, core_states);
+        extend_from_primaries(*this->core(), core_states, make_span(primaries));
+        initialize_tracks(*this->core(), core_states);
     }
 
     // Set remaining MFP and cached MSC range properties
@@ -81,12 +81,12 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         auto const& prestep_action
             = dynamic_cast<ExplicitActionInterface const&>(
                 *am.action(prestep_action_id));
-        CELER_TRY_HANDLE(prestep_action.execute(core_params, core_states),
+        CELER_TRY_HANDLE(prestep_action.execute(*this->core(), core_states),
                          LogContextException{this->output_reg().get()});
 
         // Call along-step action
         auto const& along_step = *this->along_step();
-        CELER_TRY_HANDLE(along_step.execute(core_params, core_states),
+        CELER_TRY_HANDLE(along_step.execute(*this->core(), core_states),
                          LogContextException{this->output_reg().get()});
     }
 

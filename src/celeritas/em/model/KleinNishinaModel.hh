@@ -30,10 +30,10 @@ class KleinNishinaModel final : public Model
     MicroXsBuilders micro_xs(Applicability) const final;
 
     //! Apply the interaction kernel to host data
-    void execute(ParamsHostCRef const&, StateHostRef&) const final;
+    void execute(CoreParams const&, StateHostRef&) const final;
 
     // Apply the interaction kernel to device data
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+    void execute(CoreParams const&, StateDeviceRef&) const final;
 
     // ID of the model
     ActionId action_id() const final;
@@ -46,6 +46,12 @@ class KleinNishinaModel final : public Model
     {
         return "Klein-Nishina Compton scattering";
     }
+
+    //!@{
+    //! Access model data
+    KleinNishinaData const& host_ref() const { return data_; }
+    KleinNishinaData const& device_ref() const { return data_; }
+    //!@}
 
   private:
     KleinNishinaData data_;

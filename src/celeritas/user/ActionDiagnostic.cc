@@ -15,6 +15,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "celeritas/phys/ParticleParams.hh"
++ #include "celeritas/global/CoreParams.hh"
 
 #include "detail/ActionDiagnosticImpl.hh"
 
@@ -24,7 +25,7 @@
 #    include "corecel/io/LabelIO.json.hh"
 #endif
 
-namespace celeritas
+    namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -57,8 +58,8 @@ ActionDiagnostic::~ActionDiagnostic() = default;
 /*!
  * Execute action with host data.
  */
-void ActionDiagnostic::execute(ParamsHostCRef const& params,
-                               StateHostRef& state) const
+void ActionDiagnostic::execute(CoreParams const& params, StateHostRef& state)
+    const
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);
@@ -69,7 +70,7 @@ void ActionDiagnostic::execute(ParamsHostCRef const& params,
     }
     MultiExceptionHandler capture_exception;
     auto launch = make_active_track_launcher(
-        params,
+        params.ref<MemSpace::native>(),
         state,
         detail::tally_action,
         store_.params<MemSpace::host>(),

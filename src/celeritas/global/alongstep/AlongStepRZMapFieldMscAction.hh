@@ -56,10 +56,10 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
                                  SPConstMsc msc);
 
     // Launch kernel with host data
-    void execute(ParamsHostCRef const&, StateHostRef&) const final;
+    void execute(CoreParams const&, StateHostRef&) const final;
 
     // Launch kernel with device data
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+    void execute(CoreParams const&, StateDeviceRef&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
@@ -96,8 +96,8 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-inline void AlongStepRZMapFieldMscAction::execute(ParamsDeviceCRef const&,
-                                                  StateDeviceRef&) const
+inline void
+AlongStepRZMapFieldMscAction::execute(CoreParams const&, StateDeviceRef&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

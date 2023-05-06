@@ -14,24 +14,26 @@
 #include "celeritas/em/data/RayleighData.hh" // IWYU pragma: associated
 #include "celeritas/global/CoreTrackDataFwd.hh"
 
+namespace celeritas { class CoreParams; }
+
 namespace celeritas
 {
 namespace generated
 {
 void rayleigh_interact(
     celeritas::RayleighHostRef const&,
-    celeritas::HostCRef<celeritas::CoreParamsData> const&,
+    celeritas::CoreParams const&,
     celeritas::HostRef<celeritas::CoreStateData>&);
 
 void rayleigh_interact(
     celeritas::RayleighDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::CoreParams const&,
     celeritas::DeviceRef<celeritas::CoreStateData>&);
 
 #if !CELER_USE_DEVICE
 inline void rayleigh_interact(
     celeritas::RayleighDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::CoreParams const&,
     celeritas::DeviceRef<celeritas::CoreStateData>&)
 {
     CELER_ASSERT_UNREACHABLE();

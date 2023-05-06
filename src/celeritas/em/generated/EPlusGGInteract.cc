@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/em/launcher/EPlusGGLauncher.hh" // IWYU pragma: associated
 #include "celeritas/phys/InteractionLauncher.hh"
@@ -26,15 +27,15 @@ namespace generated
 {
 void eplusgg_interact(
     celeritas::EPlusGGHostRef const& model_data,
-    celeritas::HostCRef<celeritas::CoreParamsData> const& params,
+    celeritas::CoreParams const& params,
     celeritas::HostRef<celeritas::CoreStateData>& state)
 {
-    CELER_EXPECT(params && state);
+    CELER_EXPECT(state);
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        params, state, model_data,
+        params.ref<MemSpace::native>(), state, model_data,
         celeritas::eplusgg_interact_track);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)
@@ -42,7 +43,7 @@ void eplusgg_interact(
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(params, state, ThreadId{i}, "eplusgg"));
+            KernelContextException(params.ref<MemSpace::host>(), state, ThreadId{i}, "eplusgg"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

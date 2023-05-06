@@ -285,7 +285,7 @@ void {lowabbr}_test(
     CELER_LAUNCH_KERNEL({lowabbr}_test,
                         {corecel_ns}device().default_block_size(),
                         state.size(),
-                        params,
+                        params.ref<MemSpace::native>(),
                         state);
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());

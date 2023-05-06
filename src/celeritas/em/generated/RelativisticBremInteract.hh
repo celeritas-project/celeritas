@@ -14,24 +14,26 @@
 #include "celeritas/em/data/RelativisticBremData.hh" // IWYU pragma: associated
 #include "celeritas/global/CoreTrackDataFwd.hh"
 
+namespace celeritas { class CoreParams; }
+
 namespace celeritas
 {
 namespace generated
 {
 void relativistic_brem_interact(
     celeritas::RelativisticBremHostRef const&,
-    celeritas::HostCRef<celeritas::CoreParamsData> const&,
+    celeritas::CoreParams const&,
     celeritas::HostRef<celeritas::CoreStateData>&);
 
 void relativistic_brem_interact(
     celeritas::RelativisticBremDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::CoreParams const&,
     celeritas::DeviceRef<celeritas::CoreStateData>&);
 
 #if !CELER_USE_DEVICE
 inline void relativistic_brem_interact(
     celeritas::RelativisticBremDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::CoreParams const&,
     celeritas::DeviceRef<celeritas::CoreStateData>&)
 {
     CELER_ASSERT_UNREACHABLE();

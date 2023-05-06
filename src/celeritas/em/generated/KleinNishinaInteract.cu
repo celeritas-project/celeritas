@@ -13,6 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/em/launcher/KleinNishinaLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
@@ -49,16 +50,16 @@ klein_nishina_interact_kernel(
 
 void klein_nishina_interact(
     celeritas::KleinNishinaDeviceRef const& model_data,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const& params,
+    celeritas::CoreParams const& params,
     celeritas::DeviceRef<celeritas::CoreStateData>& state)
 {
-    CELER_EXPECT(params && state);
+    CELER_EXPECT(state);
     CELER_EXPECT(model_data);
 
     CELER_LAUNCH_KERNEL(klein_nishina_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        model_data, params, state);
+                        model_data, params.ref<MemSpace::native>(), state);
 }
 
 }  // namespace generated

@@ -14,24 +14,26 @@
 #include "celeritas/em/data/MuBremsstrahlungData.hh" // IWYU pragma: associated
 #include "celeritas/global/CoreTrackDataFwd.hh"
 
+namespace celeritas { class CoreParams; }
+
 namespace celeritas
 {
 namespace generated
 {
 void mu_bremsstrahlung_interact(
     celeritas::MuBremsstrahlungHostRef const&,
-    celeritas::HostCRef<celeritas::CoreParamsData> const&,
+    celeritas::CoreParams const&,
     celeritas::HostRef<celeritas::CoreStateData>&);
 
 void mu_bremsstrahlung_interact(
     celeritas::MuBremsstrahlungDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::CoreParams const&,
     celeritas::DeviceRef<celeritas::CoreStateData>&);
 
 #if !CELER_USE_DEVICE
 inline void mu_bremsstrahlung_interact(
     celeritas::MuBremsstrahlungDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
+    celeritas::CoreParams const&,
     celeritas::DeviceRef<celeritas::CoreStateData>&)
 {
     CELER_ASSERT_UNREACHABLE();

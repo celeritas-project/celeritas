@@ -80,9 +80,8 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
  * The given action ID \em must be an explicit action.
  */
 template<MemSpace M>
-void ActionSequence::execute(
-    CoreParamsData<Ownership::const_reference, M> const& params,
-    CoreStateData<Ownership::reference, M>& state)
+void ActionSequence::execute(CoreParams const& params,
+                             CoreStateData<Ownership::reference, M>& state)
 {
     if (M == MemSpace::host || options_.sync)
     {
@@ -112,12 +111,12 @@ void ActionSequence::execute(
 // Explicit template instantiation
 //---------------------------------------------------------------------------//
 
-template void ActionSequence::execute(
-    CoreParamsData<Ownership::const_reference, MemSpace::host> const&,
-    CoreStateData<Ownership::reference, MemSpace::host>&);
-template void ActionSequence::execute(
-    CoreParamsData<Ownership::const_reference, MemSpace::device> const&,
-    CoreStateData<Ownership::reference, MemSpace::device>&);
+template void
+ActionSequence::execute(CoreParams const&,
+                        CoreStateData<Ownership::reference, MemSpace::host>&);
+template void
+ActionSequence::execute(CoreParams const&,
+                        CoreStateData<Ownership::reference, MemSpace::device>&);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

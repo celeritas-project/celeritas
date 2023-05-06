@@ -48,8 +48,8 @@ class MockModel final : public Model
     explicit MockModel(Input data);
     SetApplicability applicability() const final;
     MicroXsBuilders micro_xs(Applicability range) const final;
-    void execute(ParamsHostCRef const&, StateHostRef&) const final;
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+    void execute(CoreParams const&, StateHostRef&) const final;
+    void execute(CoreParams const&, StateDeviceRef&) const final;
     ActionId action_id() const final { return data_.id; }
     std::string label() const final;
     std::string description() const final;

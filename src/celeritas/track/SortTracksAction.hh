@@ -34,12 +34,10 @@ class SortTracksAction final : public ExplicitActionInterface
     ~SortTracksAction() = default;
 
     //! Execute the action with host data
-    void
-    execute(ParamsHostCRef const& params, StateHostRef& states) const final;
+    void execute(CoreParams const& params, StateHostRef& states) const final;
 
     //! Execute the action with device data
-    void execute(ParamsDeviceCRef const& params,
-                 StateDeviceRef& states) const final;
+    void execute(CoreParams const& params, StateDeviceRef& states) const final;
 
     //! ID of the action
     ActionId action_id() const final { return id_; }
@@ -55,9 +53,8 @@ class SortTracksAction final : public ExplicitActionInterface
 
   private:
     template<MemSpace M>
-    void
-    execute_impl(CoreParamsData<Ownership::const_reference, M> const& params,
-                 CoreStateData<Ownership::reference, M>& states) const;
+    void execute_impl(CoreParams const& params,
+                      CoreStateData<Ownership::reference, M>& states) const;
 
     ActionId id_;
     ActionOrder action_order_;

@@ -34,26 +34,26 @@ std::string SortTracksAction::label() const
 /*!
  * Execute the action with host data
  */
-void SortTracksAction::execute(ParamsHostCRef const& params,
+void SortTracksAction::execute(CoreParams const& params,
                                StateHostRef& states) const
 {
-    execute_impl(params, states);
+    return this->execute_impl(params, states);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data
  */
-void SortTracksAction::execute(ParamsDeviceCRef const& params,
+void SortTracksAction::execute(CoreParams const& params,
                                StateDeviceRef& states) const
 {
-    execute_impl(params, states);
+    return this->execute_impl(params, states);
 }
 
+//---------------------------------------------------------------------------//
 template<MemSpace M>
 void SortTracksAction::execute_impl(
-    CoreParamsData<Ownership::const_reference, M> const&,
-    CoreStateData<Ownership::reference, M>& states) const
+    CoreParams const&, CoreStateData<Ownership::reference, M>& states) const
 {
     switch (track_order_)
     {
@@ -68,4 +68,5 @@ void SortTracksAction::execute_impl(
     }
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

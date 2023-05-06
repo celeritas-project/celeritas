@@ -10,6 +10,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/generated/EPlusGGInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
 
@@ -62,16 +63,15 @@ auto EPlusGGModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void EPlusGGModel::execute(ParamsDeviceCRef const& params,
-                           StateDeviceRef& states) const
+void EPlusGGModel::execute(CoreParams const& params, StateHostRef& states) const
 {
-    generated::eplusgg_interact(data_, params, states);
+    generated::eplusgg_interact(this->host_ref(), params, states);
 }
 
-void EPlusGGModel::execute(ParamsHostCRef const& params,
-                           StateHostRef& states) const
+void EPlusGGModel::execute(CoreParams const& params,
+                           StateDeviceRef& states) const
 {
-    generated::eplusgg_interact(data_, params, states);
+    generated::eplusgg_interact(this->device_ref(), params, states);
 }
 
 //!@}

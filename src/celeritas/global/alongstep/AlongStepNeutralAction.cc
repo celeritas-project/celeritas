@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
@@ -33,29 +34,31 @@ AlongStepNeutralAction::AlongStepNeutralAction(ActionId id) : id_(id)
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepNeutralAction::execute(ParamsHostCRef const& params,
+void AlongStepNeutralAction::execute(CoreParams const& params,
                                      StateHostRef& state) const
 {
-    CELER_EXPECT(params && state);
+    CELER_EXPECT(state);
 
     MultiExceptionHandler capture_exception;
     auto launch = make_active_track_launcher(
-        params, state, detail::along_step_neutral);
+        params.ref<MemSpace::native>(), state, detail::along_step_neutral);
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(params, state, ThreadId{i}, this->label()));
+            KernelContextException(params.ref<MemSpace::host>(),
+                                   state,
+                                   ThreadId{i},
+                                   this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void AlongStepNeutralAction::execute(ParamsDeviceCRef const&,
-                                     StateDeviceRef&) const
+void AlongStepNeutralAction::execute(CoreParams const&, StateDeviceRef&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
