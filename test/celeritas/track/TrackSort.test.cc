@@ -74,13 +74,12 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     auto primaries = this->make_primaries(num_primaries);
     step(make_span(primaries));
     auto check_is_partitioned = [&step] {
-        auto span = step.core_data()
-                        .states.track_slots[AllItems<TrackSlotId::size_type>{}];
+        auto span
+            = step.state_ref().track_slots[AllItems<TrackSlotId::size_type>{}];
         return std::is_partitioned(
             span.begin(),
             span.end(),
-            [&status = step.core_data().states.sim.status](
-                auto const track_slot) {
+            [&status = step.state_ref().sim.status](auto const track_slot) {
                 return status[TrackSlotId{track_slot}] == TrackStatus::alive;
             });
     };
@@ -88,7 +87,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
-        detail::partition_tracks_by_status(step.core_data().states);
+        detail::partition_tracks_by_status(step.state_ref());
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -96,7 +95,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::partition_tracks_by_status(step.core_data().states);
+        detail::partition_tracks_by_status(step.state_ref());
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -117,12 +116,12 @@ TEST_F(TestTrackPartitionEm3Stepper,
     step(make_span(primaries));
     auto check_is_partitioned = [&step] {
         // copy to host
-        auto const& core_ref = step.core_data();
+        auto const& state_ref = step.state_ref();
         Collection<TrackSlotId::size_type, Ownership::value, MemSpace::host, ThreadId>
             track_slots;
-        track_slots = core_ref.states.track_slots;
+        track_slots = state_ref.track_slots;
         StateCollection<TrackStatus, Ownership::value, MemSpace::host> track_status;
-        track_status = core_ref.states.sim.status;
+        track_status = state_ref.sim.status;
 
         // check for partitioned tracks
         auto span = track_slots[AllItems<TrackSlotId::size_type>{}];
@@ -136,7 +135,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
-        detail::partition_tracks_by_status(step.core_data().states);
+        detail::partition_tracks_by_status(step.state_ref());
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -144,7 +143,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::partition_tracks_by_status(step.core_data().states);
+        detail::partition_tracks_by_status(step.state_ref());
         EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
                                                "partitioned by status";
         step();
@@ -162,8 +161,8 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
     auto primaries = this->make_primaries(num_primaries);
     step(make_span(primaries));
     auto check_is_sorted = [&step] {
-        auto& step_limit = step.core_data().states.sim.step_limit;
-        auto& track_slots = step.core_data().states.track_slots;
+        auto& step_limit = step.state_ref().sim.step_limit;
+        auto& track_slots = step.state_ref().track_slots;
         for (celeritas::size_type i = 0; i < track_slots.size() - 1; ++i)
         {
             TrackSlotId tid_current{track_slots[ThreadId{i}]},
@@ -179,14 +178,14 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
     // after taking a step.
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks_by_action_id(step.core_data().states);
+        detail::sort_tracks_by_action_id(step.state_ref());
         check_is_sorted();
         step();
     }
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks_by_action_id(step.core_data().states);
+        detail::sort_tracks_by_action_id(step.state_ref());
         check_is_sorted();
         step();
     }
@@ -205,12 +204,12 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
     step(make_span(primaries));
     auto check_is_sorted = [&step] {
         // copy to host
-        auto core_ref = step.core_data();
+        auto const& state_ref = step.state_ref();
         Collection<TrackSlotId::size_type, Ownership::value, MemSpace::host, ThreadId>
             track_slots;
-        track_slots = core_ref.states.track_slots;
+        track_slots = state_ref.track_slots;
         StateCollection<StepLimit, Ownership::value, MemSpace::host> step_limit;
-        step_limit = core_ref.states.sim.step_limit;
+        step_limit = state_ref.sim.step_limit;
 
         for (celeritas::size_type i = 0; i < track_slots.size() - 1; ++i)
         {
@@ -227,14 +226,14 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
     // after taking a step.
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks_by_action_id(step.core_data().states);
+        detail::sort_tracks_by_action_id(step.state_ref());
         check_is_sorted();
         step();
     }
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
-        detail::sort_tracks_by_action_id(step.core_data().states);
+        detail::sort_tracks_by_action_id(step.state_ref());
         check_is_sorted();
         step();
     }

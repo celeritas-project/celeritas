@@ -42,11 +42,7 @@ G4VPhysicalVolume* load_geant_geometry(std::string const& filename)
     G4GDMLParser gdml_parser;
     gdml_parser.SetStripFlag(false);
 
-    constexpr bool validate_gdml_schema = false;
-    {
-        ScopedTimeAndRedirect scoped_time("G4GDMLParser::Read");
-        gdml_parser.Read(filename, validate_gdml_schema);
-    }
+    gdml_parser.Read(filename, /* validate_gdml_schema = */ false);
 
     G4VPhysicalVolume* result(gdml_parser.GetWorldVolume());
     CELER_ENSURE(result);

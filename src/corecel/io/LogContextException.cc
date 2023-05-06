@@ -9,13 +9,19 @@
 
 #include "corecel/Assert.hh"
 
+#include "ExceptionOutput.hh"
 #include "Logger.hh"
+#include "OutputRegistry.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-void log_context_exception(std::exception_ptr eptr)
+void LogContextException::operator()(std::exception_ptr eptr)
 {
+    if (this->out)
+    {
+        this->out->insert(std::make_shared<ExceptionOutput>(eptr));
+    }
     try
     {
         std::rethrow_exception(eptr);
@@ -30,7 +36,9 @@ void log_context_exception(std::exception_ptr eptr)
         }
         catch (...)
         {
-            return log_context_exception(std::current_exception());
+            // Prevent reregistration of the exception
+            this->out = nullptr;
+            return (*this)(std::current_exception());
         }
     }
 }

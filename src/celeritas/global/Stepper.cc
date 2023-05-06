@@ -29,15 +29,10 @@ namespace celeritas
  * Construct with problem parameters and setup options.
  */
 template<MemSpace M>
-Stepper<M>::Stepper(Input input) : params_(std::move(input.params))
+Stepper<M>::Stepper(Input input)
+    : params_(std::move(input.params))
+    , state_(*params_, input.stream_id, input.num_track_slots)
 {
-    CELER_EXPECT(params_);
-    CELER_VALIDATE(input.stream_id, << "stream ID is not set");
-    CELER_VALIDATE(input.num_track_slots > 0,
-                   << "number of track slots is not set");
-    states_ = CollectionStateStore<CoreStateData, M>(
-        params_->host_ref(), input.stream_id, input.num_track_slots);
-
     // Create action sequence
     {
         ActionSequence::Options opts;
@@ -45,9 +40,6 @@ Stepper<M>::Stepper(Input input) : params_(std::move(input.params))
         actions_
             = std::make_shared<ActionSequence>(*params_->action_reg(), opts);
     }
-
-    core_ref_.params = get_ref<M>(*params_);
-    core_ref_.states = states_.ref();
 
     CELER_ENSURE(actions_ && *actions_);
 }
@@ -67,15 +59,14 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
-    CELER_EXPECT(*this);
-
-    actions_->execute(core_ref_.params, core_ref_.states);
+    actions_->execute(params_->ref<M>(), state_.ref());
 
     // Get the number of track initializers and active tracks
+    auto const& init = this->state_ref().init;
     result_type result;
-    result.active = core_ref_.states.init.num_active;
-    result.alive = states_.size() - core_ref_.states.init.vacancies.size();
-    result.queued = core_ref_.states.init.initializers.size();
+    result.active = init.num_active;
+    result.alive = state_.size() - init.vacancies.size();
+    result.queued = init.initializers.size();
 
     return result;
 }
@@ -87,15 +78,13 @@ auto Stepper<M>::operator()() -> result_type
 template<MemSpace M>
 auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 {
-    CELER_EXPECT(*this);
     CELER_EXPECT(!primaries.empty());
 
-    CELER_VALIDATE(primaries.size() + core_ref_.states.init.initializers.size()
-                       <= core_ref_.states.init.initializers.capacity(),
-                   << "insufficient initializer capacity ("
-                   << core_ref_.states.init.initializers.capacity()
-                   << ") with size ("
-                   << core_ref_.states.init.initializers.size()
+    size_type num_initializers = this->state_ref().init.initializers.size();
+    size_type init_capacity = state_.ref().init.initializers.capacity();
+    CELER_VALIDATE(primaries.size() + num_initializers <= init_capacity,
+                   << "insufficient initializer capacity (" << init_capacity
+                   << ") with size (" << num_initializers
                    << ") for primaries (" << primaries.size() << ")");
     auto max_id
         = std::max_element(primaries.begin(),
@@ -108,7 +97,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << " exceeds max_events=" << params_->init()->max_events());
 
     // Create track initializers
-    extend_from_primaries(core_ref_.params, core_ref_.states, primaries);
+    extend_from_primaries(params_->ref<M>(), state_.ref(), primaries);
 
     return (*this)();
 }

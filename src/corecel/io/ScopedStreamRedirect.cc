@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "ScopedStreamRedirect.hh"
 
-#include <cctype>
-
 #include "corecel/Assert.hh"
+#include "corecel/io/StringUtils.hh"
+
+#include "StringUtils.hh"
 
 namespace celeritas
 {
@@ -43,7 +44,7 @@ std::string ScopedStreamRedirect::str()
     input_stream_->flush();
 
     std::string result = temp_stream_.str();
-    while (!result.empty() && std::isspace(result.back()))
+    while (!result.empty() && is_ignored_trailing(result.back()))
     {
         result.pop_back();
     }

@@ -13,6 +13,7 @@
 #include "corecel/cont/Span.hh"
 
 #include "DeviceAllocation.hh"
+#include "ObserverPtr.hh"
 
 namespace celeritas
 {
@@ -197,6 +198,23 @@ CELER_FUNCTION Span<T> make_span(DeviceVector<T>& dv)
 {
     static_assert(sizeof(T) == 0, "Cannot 'make_span' from a device vector");
     return {dv.data(), dv.size()};
+}
+
+//---------------------------------------------------------------------------//
+//! Create an observer pointer from a device vector.
+template<class T>
+ObserverPtr<T, MemSpace::device> make_observer(DeviceVector<T>& vec) noexcept
+{
+    return ObserverPtr<T, MemSpace::device>{vec.data()};
+}
+
+//---------------------------------------------------------------------------//
+//! Create an observer pointer from a pointer in the native memspace.
+template<class T>
+ObserverPtr<T const, MemSpace::device>
+make_observer(DeviceVector<T> const& vec) noexcept
+{
+    return ObserverPtr<T const, MemSpace::device>{vec.data()};
 }
 
 //---------------------------------------------------------------------------//

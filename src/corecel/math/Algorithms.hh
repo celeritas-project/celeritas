@@ -68,6 +68,18 @@ CELER_FORCEINLINE_FUNCTION void trivial_swap(T& a, T& b) noexcept
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Exchange values on host or device.
+ */
+template<class T, class U = T>
+CELER_FORCEINLINE_FUNCTION T exchange(T& dst, U&& src)
+{
+    T orig = std::move(dst);
+    dst = std::forward<U>(src);
+    return orig;
+}
+
+//---------------------------------------------------------------------------//
 // Replace/extend <functional>
 //---------------------------------------------------------------------------//
 /*!

@@ -12,6 +12,7 @@
 #include <G4strstreambuf.hh>
 
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 
 namespace celeritas
 {
@@ -69,16 +70,8 @@ G4int GeantLoggerAdapter::ReceiveG4cerr(G4String const& str)
  */
 G4int GeantLoggerAdapter::log_impl(G4String const& str, LogLevel level)
 {
-    G4String temp(str);
-    // Strip trailing whitespace
-    while (!temp.empty()
-           && std::isspace(static_cast<unsigned char>(temp.back())))
-    {
-        temp.pop_back();
-    }
-
     // Output with dummy file/line
-    ::celeritas::world_logger()({"Geant4", 0}, level) << temp;
+    ::celeritas::world_logger()({"Geant4", 0}, level) << trim(str);
 
     // 0 for success, -1 for failure
     return 0;

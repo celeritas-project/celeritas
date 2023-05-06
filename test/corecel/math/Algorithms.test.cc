@@ -64,14 +64,18 @@ TEST(UtilityTest, move)
 
 TEST(UtilityTest, trivial_swap)
 {
-    // Test trivial type swapping
-    {
-        int a = 1;
-        int b = 2;
-        trivial_swap(a, b);
-        EXPECT_EQ(2, a);
-        EXPECT_EQ(1, b);
-    }
+    int a = 1;
+    int b = 2;
+    trivial_swap(a, b);
+    EXPECT_EQ(2, a);
+    EXPECT_EQ(1, b);
+}
+
+TEST(UtilityTest, exchange)
+{
+    int dst = 456;
+    EXPECT_EQ(456, exchange(dst, 123));
+    EXPECT_EQ(123, dst);
 }
 
 //---------------------------------------------------------------------------//

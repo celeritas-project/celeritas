@@ -5,96 +5,56 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/TrackInit.test.cc
 //---------------------------------------------------------------------------//
-#include "TrackInit.test.hh"
-
 #include <algorithm>
+#include <initializer_list>
 #include <numeric>
 #include <vector>
 
 #include "corecel/cont/Span.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/Ref.hh"
 #include "corecel/io/LogContextException.hh"
 #include "celeritas/SimpleTestBase.hh"
-#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
-#include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/TrackInitUtils.hh"
 
+#include "MockInteractAction.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
 namespace test
 {
-using TrackInitDeviceValue
-    = TrackInitStateData<Ownership::value, MemSpace::device>;
-
 //---------------------------------------------------------------------------//
-// TESTING INTERFACE
+// TEST RESULT
 //---------------------------------------------------------------------------//
 
-ITTestInput::ITTestInput(std::vector<size_type>& host_alloc_size,
-                         std::vector<char>& host_alive)
-    : alloc_size(host_alloc_size.size()), alive(host_alive.size())
+struct RunResult
 {
-    CELER_EXPECT(host_alloc_size.size() == host_alive.size());
-    alloc_size.copy_to_device(make_span(host_alloc_size));
-    alive.copy_to_device(make_span(host_alive));
-}
+    std::vector<unsigned int> track_ids;
+    std::vector<int> parent_ids;
+    std::vector<unsigned int> init_ids;
+    std::vector<size_type> vacancies;
 
-ITTestInputData ITTestInput::device_ref() const
-{
-    ITTestInputData result;
-    result.alloc_size = alloc_size.device_ref();
-    result.alive = alive.device_ref();
-    return result;
-}
+    template<MemSpace M>
+    static RunResult from_state(CoreStateData<Ownership::reference, M>&);
 
-//! Wrap interact kernel in an post step Action
-class InteractAction final : public ExplicitActionInterface
-{
-  public:
-    InteractAction(ActionId id,
-                   std::vector<size_type> alloc,
-                   std::vector<char> alive)
-        : id_(id), input_(alloc, alive)
-    {
-    }
-
-    // Launch kernel with host data, should never be called
-    void execute(ParamsHostCRef const&, StateHostRef&) const final
-    {
-        CELER_NOT_IMPLEMENTED("InteractAction is device-only");
-    };
-
-    void
-    execute(ParamsDeviceCRef const& params, StateDeviceRef& states) const final
-    {
-        interact(params, states, input_.device_ref());
-    }
-
-    ActionId action_id() const final { return id_; }
-    std::string label() const final { return "interact"; }
-    std::string description() const final { return "interact kernel"; }
-
-    ActionOrder order() const final { return ActionOrder::along; }
-
-  private:
-    ActionId id_;
-    ITTestInput input_;
+    // Print code for the expected attributes
+    void print_expected() const;
 };
 
-//! Copy results to host
-ITTestOutput get_result(DeviceRef<CoreStateData>& states)
+//---------------------------------------------------------------------------//
+
+template<MemSpace M>
+RunResult RunResult::from_state(CoreStateData<Ownership::reference, M>& states)
 {
     CELER_EXPECT(states);
 
-    ITTestOutput result;
+    RunResult result;
 
     // Copy track initializer data to host
     HostVal<TrackInitStateData> data;
@@ -113,7 +73,7 @@ ITTestOutput get_result(DeviceRef<CoreStateData>& states)
     }
 
     // Copy sim states to host
-    SimStateData<Ownership::value, MemSpace::host> sim;
+    HostVal<SimStateData> sim;
     sim = states.sim;
 
     // Store the track IDs and parent IDs
@@ -130,19 +90,11 @@ ITTestOutput get_result(DeviceRef<CoreStateData>& states)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-#define TrackInitTest TEST_IF_CELER_DEVICE(TrackInitTest)
-
 class TrackInitTest : public SimpleTestBase
 {
   protected:
-    void SetUp() override
-    {
-        core_params = this->core()->device_ref();
-        CELER_ENSURE(core_params);
-    }
-
     //! Create primary particles
-    std::vector<Primary> generate_primaries(size_type num_primaries)
+    std::vector<Primary> make_primaries(size_type num_primaries) const
     {
         std::vector<Primary> result;
         for (unsigned int i = 0; i < num_primaries; ++i)
@@ -160,87 +112,89 @@ class TrackInitTest : public SimpleTestBase
         return result;
     }
 
+    // Reserve extra space for secondaries
+    real_type secondary_stack_factor() const override { return 8; }
+};
+
+//---------------------------------------------------------------------------//
+
+template<class T>
+class TypedTrackInitTest : public TrackInitTest
+{
+  public:
+    // Memspace for this class instance
+    static constexpr MemSpace M = T::value;
+
     //! Create mutable state data
     void build_states(size_type num_tracks)
     {
-        CELER_EXPECT(core_params);
-
-        // Allocate state data
-        resize(
-            &device_states, this->core()->host_ref(), StreamId{0}, num_tracks);
-        core_state = device_states;
-
-        CELER_ENSURE(core_state);
+        CELER_EXPECT(num_tracks > 0);
+        state_store_ = CollectionStateStore<CoreStateData, M>(
+            this->core()->host_ref(), StreamId{0}, num_tracks);
     }
 
-    //! Copy results to host
-    ITTestOutput get_result(DeviceRef<CoreStateData>& states)
+    CoreParamsData<Ownership::const_reference, M> const& core_params() const
     {
-        CELER_EXPECT(states);
-
-        ITTestOutput result;
-
-        // Copy track initializer data to host
-        HostVal<TrackInitStateData> data;
-        data = states.init;
-
-        // Store the IDs of the vacant track slots
-        for (TrackSlotId const& v : data.vacancies.data())
-        {
-            result.vacancies.push_back(v.unchecked_get());
-        }
-
-        // Store the track IDs of the initializers
-        for (auto const& init : data.initializers.data())
-        {
-            result.init_ids.push_back(init.sim.track_id.get());
-        }
-
-        // Copy sim states to host
-        SimStateData<Ownership::value, MemSpace::host> sim;
-        sim = states.sim;
-
-        // Store the track IDs and parent IDs
-        for (auto tid : range(TrackSlotId{sim.size()}))
-        {
-            result.track_ids.push_back(sim.track_ids[tid].unchecked_get());
-            result.parent_ids.push_back(sim.parent_ids[tid].unchecked_get());
-        }
-
-        return result;
+        return get_ref<M>(*this->core());
     }
 
-    CoreStateData<Ownership::value, MemSpace::device> device_states;
-    DeviceCRef<CoreParamsData> core_params;
-    DeviceRef<CoreStateData> core_state;
+    CoreStateData<Ownership::reference, M>& core_state()
+    {
+        return state_store_.ref();
+    }
+
+  private:
+    CollectionStateStore<CoreStateData, M> state_store_;
 };
+
+using HostType = std::integral_constant<MemSpace, MemSpace::host>;
+using DeviceType = std::integral_constant<MemSpace, MemSpace::device>;
+
+#if CELER_USE_DEVICE
+using MemspaceTypes = ::testing::Types<HostType, DeviceType>;
+#else
+using MemspaceTypes = ::testing::Types<HostType>;
+#endif
+
+struct MemspaceTypeString
+{
+    template<class U>
+    static std::string GetName(int)
+    {
+        return celeritas::to_cstring(U::value);
+    }
+};
+
+TYPED_TEST_SUITE(TypedTrackInitTest, MemspaceTypes, MemspaceTypeString);
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(TrackInitTest, run)
+TYPED_TEST(TypedTrackInitTest, run)
 {
     const size_type num_primaries = 12;
     const size_type num_tracks = 10;
 
-    build_states(num_tracks);
+    this->build_states(num_tracks);
+    auto& core_params = this->core_params();
+    auto& core_state = this->core_state();
 
     // Check that all of the track slots were marked as empty
     {
-        auto result = get_result(core_state);
+        auto result = RunResult::from_state(core_state);
         static unsigned int const expected_vacancies[]
             = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
     }
 
     // Create track initializers on device from primary particles
-    auto primaries = generate_primaries(num_primaries);
+    auto primaries = this->make_primaries(num_primaries);
     extend_from_primaries(core_params, core_state, make_span(primaries));
 
     // Check the track IDs of the track initializers created from primaries
     {
-        auto result = get_result(core_state);
+        auto result = RunResult::from_state(core_state);
         static unsigned int const expected_track_ids[]
             = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
         EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
@@ -251,7 +205,7 @@ TEST_F(TrackInitTest, run)
 
     // Check the track IDs and parent IDs of the initialized tracks
     {
-        auto result = get_result(core_state);
+        auto result = RunResult::from_state(core_state);
         static unsigned int const expected_track_ids[]
             = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
         EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
@@ -262,21 +216,24 @@ TEST_F(TrackInitTest, run)
         EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     }
 
-    // Allocate input device data (number of secondaries to produce for each
-    // track and whether the track survives the interaction)
-    std::vector<size_type> alloc = {1, 1, 0, 0, 1, 1, 0, 0, 2, 1};
-    std::vector<char> alive = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0};
-    ITTestInput input(alloc, alive);
+    auto interact = [] {
+        // Number of secondaries to produce for each track and whether the
+        // track survives the interaction
+        std::vector<size_type> const alloc = {1, 1, 0, 0, 1, 1, 0, 0, 2, 1};
+        std::vector<bool> const alive = {
+            false, true, false, true, false, true, false, true, false, false};
+        return MockInteractAction{ActionId{0}, alloc, alive};
+    }();
 
     // Launch kernel to process interactions
-    interact(core_params, core_state, input.device_ref());
+    interact.execute(core_params, core_state);
 
     // Launch a kernel to create track initializers from secondaries
     extend_from_secondaries(core_params, core_state);
 
     // Check the vacancies
     {
-        auto result = get_result(core_state);
+        auto result = RunResult::from_state(core_state);
         static unsigned int const expected_vacancies[] = {2, 6};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
     }
@@ -287,7 +244,7 @@ TEST_F(TrackInitTest, run)
     // used for the track initializers, just check that there is the correct
     // number and they are in the correct range.
     {
-        auto result = get_result(core_state);
+        auto result = RunResult::from_state(core_state);
         EXPECT_TRUE(std::all_of(std::begin(result.init_ids),
                                 std::end(result.init_ids),
                                 [](unsigned int id) { return id <= 18; }));
@@ -303,7 +260,7 @@ TEST_F(TrackInitTest, run)
 
     // Check the track IDs and parent IDs of the initialized tracks
     {
-        auto result = get_result(core_state);
+        auto result = RunResult::from_state(core_state);
         EXPECT_TRUE(std::all_of(std::begin(result.track_ids),
                                 std::end(result.track_ids),
                                 [](unsigned int id) { return id <= 18; }));
@@ -323,34 +280,38 @@ TEST_F(TrackInitTest, run)
     }
 }
 
-TEST_F(TrackInitTest, primaries)
+TYPED_TEST(TypedTrackInitTest, primaries)
 {
     const size_type num_sets = 4;
     const size_type num_primaries = 16;
     const size_type num_tracks = 16;
 
-    build_states(num_tracks);
+    this->build_states(num_tracks);
+    auto& core_params = this->core_params();
+    auto& core_state = this->core_state();
 
     // Kill half the tracks in each interaction and don't produce secondaries
-    std::vector<size_type> alloc(num_tracks, 0);
-    std::vector<char> alive(num_tracks);
-    for (size_type i = 0; i < num_tracks; ++i)
-    {
-        alive[i] = i % 2;
-    }
-    ITTestInput input(alloc, alive);
+    auto interact = [] {
+        std::vector<size_type> alloc(num_tracks, 0);
+        std::vector<bool> alive(num_tracks);
+        for (size_type i = 0; i < num_tracks; ++i)
+        {
+            alive[i] = i % 2;
+        }
+        return MockInteractAction{ActionId{0}, alloc, alive};
+    }();
 
     for (size_type i = 0; i < num_sets; ++i)
     {
         // Create track initializers on device from primary particles
-        auto primaries = generate_primaries(num_primaries);
+        auto primaries = this->make_primaries(num_primaries);
         extend_from_primaries(core_params, core_state, make_span(primaries));
 
         // Initialize tracks on device
         initialize_tracks(core_params, core_state);
 
         // Launch kernel that will kill half the tracks
-        interact(core_params, core_state, input.device_ref());
+        interact.execute(core_params, core_state);
 
         // Find vacancies and create track initializers from secondaries
         extend_from_secondaries(core_params, core_state);
@@ -368,100 +329,107 @@ TEST_F(TrackInitTest, primaries)
     static unsigned int const expected_init_ids[]
         = {0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 0u, 1u, 2u, 3u,
            4u, 5u, 6u, 7u, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u};
-    auto result = get_result(core_state);
+    auto result = RunResult::from_state(core_state);
     EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
     EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
     EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
 }
 
-#define TrackInitSecondaryTest TEST_IF_CELER_DEVICE(TrackInitSecondaryTest)
-
-class TrackInitSecondaryTest : public TrackInitTest
+TYPED_TEST(TypedTrackInitTest, secondaries)
 {
-  protected:
-    real_type secondary_stack_factor() const final { return 8; }
-};
+    const size_type num_groups = 32;
+    const size_type num_tracks = 8 * num_groups;
+    this->build_states(num_tracks);
+    auto& core_params = this->core_params();
+    auto& core_state = this->core_state();
 
-TEST_F(TrackInitSecondaryTest, secondaries)
-{
-    const size_type num_primaries = 512;
-    const size_type num_tracks = 512;
-
-    build_states(num_tracks);
-
-    // Allocate input device data (number of secondaries to produce for each
-    // track and whether the track survives the interaction)
-    std::vector<size_type> alloc = {1, 1, 2, 0, 0, 0, 0, 0};
-    std::vector<char> alive = {1, 0, 0, 1, 1, 0, 0, 1};
-    size_type base_size = alive.size();
-    for (size_type i = 0; i < num_tracks / base_size - 1; ++i)
-    {
-        alloc.insert(alloc.end(), alloc.begin(), alloc.begin() + base_size);
-        alive.insert(alive.end(), alive.begin(), alive.begin() + base_size);
-    }
-    ITTestInput input(alloc, alive);
+    auto interact = [] {
+        size_type const nsec_inp[] = {1, 1, 2, 0, 0, 0, 0, 0};
+        bool const alive_inp[]
+            = {true, false, false, true, true, false, false, true};
+        std::vector<size_type> nsec;
+        std::vector<bool> alive;
+        for (size_type i = 0; i < num_groups; ++i)
+        {
+            nsec.insert(nsec.end(), std::begin(nsec_inp), std::end(nsec_inp));
+            alive.insert(
+                alive.end(), std::begin(alive_inp), std::end(alive_inp));
+        }
+        return MockInteractAction{ActionId{0}, nsec, alive};
+    }();
 
     // Create track initializers on device from primary particles
-    auto primaries = generate_primaries(num_primaries);
+    const size_type num_primaries = num_tracks;
+    auto primaries = this->make_primaries(num_primaries);
     extend_from_primaries(core_params, core_state, make_span(primaries));
     EXPECT_EQ(num_primaries, core_state.init.initializers.size());
 
     const size_type num_iter = 16;
     for ([[maybe_unused]] size_type i : range(num_iter))
     {
+        SCOPED_TRACE(i);
         // All queued initializers are converted to tracks
         initialize_tracks(core_params, core_state);
         ASSERT_EQ(0, core_state.init.initializers.size());
+        EXPECT_EQ(0, core_state.init.vacancies.size());
 
         // Launch kernel to process interactions
-        interact(core_params, core_state, input.device_ref());
+        interact.execute(core_params, core_state);
 
         // Launch a kernel to create track initializers from secondaries
         extend_from_secondaries(core_params, core_state);
-        ASSERT_EQ(128, core_state.init.initializers.size())
-            << "iteration " << i;
-        ASSERT_EQ(128, core_state.init.vacancies.size());
+        EXPECT_EQ(num_groups * 2, core_state.init.initializers.size());
+        EXPECT_EQ(num_groups * 2, core_state.init.vacancies.size());
+
+        // Number of secondaries *excludes* in-place secondaries: this is
+        // really the number of initializers to be consumed
+        EXPECT_EQ(num_groups * (1 + 0 + 1), core_state.init.num_secondaries);
+        if (this->HasFailure())
+        {
+            FAIL() << "Aborting loop";
+        }
     }
 }
 
-TEST_F(TrackInitSecondaryTest, secondaries_action)
+TYPED_TEST(TypedTrackInitTest, secondaries_action)
 {
     // Basic setup
     const size_type num_primaries = 8;
     const size_type num_tracks = 8;
 
-    build_states(num_tracks);
+    std::vector<bool> const alive
+        = {true, false, false, true, true, false, false, true};
 
-    // Create Actions
-    ActionRegistry action_reg;
-    action_reg.insert(
-        std::make_shared<InitializeTracksAction>(action_reg.next_id()));
-    action_reg.insert(
-        std::make_shared<ExtendFromSecondariesAction>(action_reg.next_id()));
+    this->build_states(num_tracks);
+    auto& core_params = this->core_params();
+    auto& core_state = this->core_state();
 
-    // Create Interaction Action (number of secondaries to produce for each
-    // track and whether the track survives the interaction)
-    std::vector<size_type> alloc = {1, 1, 2, 0, 0, 0, 0, 0};
-    std::vector<char> alive = {1, 0, 0, 1, 1, 0, 0, 1};
-    action_reg.insert(
-        std::make_shared<InteractAction>(action_reg.next_id(), alloc, alive));
-
-    detail::ActionSequence::Options opts;
-    detail::ActionSequence actions_(action_reg, opts);
+    // Create actions
+    std::vector<std::shared_ptr<ExplicitActionInterface>> actions = {
+        std::make_shared<InitializeTracksAction>(ActionId{0}),
+        std::make_shared<MockInteractAction>(
+            ActionId{1}, std::vector<size_type>{1, 1, 2, 0, 0, 0, 0, 0}, alive),
+        std::make_shared<ExtendFromSecondariesAction>(ActionId{2})};
 
     // Create track initializers on device from primary particles
-    // TODO: will eventually become an action.
-    auto primaries = generate_primaries(num_primaries);
+    auto primaries = this->make_primaries(num_primaries);
     extend_from_primaries(core_params, core_state, make_span(primaries));
     EXPECT_EQ(num_primaries, core_state.init.initializers.size());
+
+    auto apply_actions = [&actions, &core_params, &core_state] {
+        for (const auto& ea_interface : actions)
+        {
+            ea_interface->execute(core_params, core_state);
+        }
+    };
 
     const size_type num_iter = 4;
     for ([[maybe_unused]] size_type i : range(num_iter))
     {
-        CELER_TRY_HANDLE(actions_.execute(core_params, core_state),
-                         log_context_exception);
-        auto result = get_result(core_state);
+        CELER_TRY_HANDLE(apply_actions(),
+                         LogContextException{this->output_reg().get()});
+        auto result = RunResult::from_state(core_state);
 
         // Slots 5 and 6 are always vacant because these tracks are killed with
         // no secondaries

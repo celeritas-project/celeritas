@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -44,10 +45,9 @@ std::string get_json_str(KernelContextException const& e)
 #endif
 }
 
-ThreadId find_thread(CoreRef<MemSpace::host> const& data, TrackSlotId track)
+ThreadId find_thread(HostRef<CoreStateData> const& state, TrackSlotId track)
 {
-    Span track_slots{
-        data.states.track_slots[AllItems<TrackSlotId::size_type>{}]};
+    Span track_slots{state.track_slots[AllItems<TrackSlotId::size_type>{}]};
     auto idx = std::distance(
         track_slots.begin(),
         std::find(track_slots.begin(), track_slots.end(), track.get()));
@@ -129,7 +129,7 @@ TEST_F(KernelContextExceptionTest, typical)
             "1",
             e.what());
 
-        EXPECT_EQ(find_thread(step.core_data(), TrackSlotId{15}), e.thread());
+        EXPECT_EQ(find_thread(step.state_ref(), TrackSlotId{15}), e.thread());
         EXPECT_EQ(TrackSlotId{15}, e.track_slot());
         EXPECT_EQ(EventId{1}, e.event());
         EXPECT_EQ(TrackId{3}, e.track());
@@ -159,9 +159,9 @@ TEST_F(KernelContextExceptionTest, typical)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data().params,
-                               step.core_data().states,
-                               find_thread(step.core_data(), TrackSlotId{15}),
+        KernelContextException(this->core()->ref<MemSpace::host>(),
+                               step.state_ref(),
+                               find_thread(step.state_ref(), TrackSlotId{15}),
                                "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
@@ -195,9 +195,9 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data().params,
-                               step.core_data().states,
-                               find_thread(step.core_data(), TrackSlotId{1}),
+        KernelContextException(this->core()->ref<MemSpace::host>(),
+                               step.state_ref(),
+                               find_thread(step.state_ref(), TrackSlotId{1}),
                                "test-kernel"));
     EXPECT_TRUE(this->caught_debug);
     EXPECT_TRUE(this->caught_kce);
@@ -223,8 +223,8 @@ TEST_F(KernelContextExceptionTest, bad_thread)
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
         this->check_exception,
-        KernelContextException(step.core_data().params,
-                               step.core_data().states,
+        KernelContextException(this->core()->ref<MemSpace::host>(),
+                               step.state_ref(),
                                ThreadId{},
                                "dumb-kernel"));
     EXPECT_TRUE(this->caught_debug);
