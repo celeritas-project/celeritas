@@ -93,6 +93,8 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
     bool fluct_{false};
 };
 
+#define SimpleCmsRZFieldAlongStepTest \
+    TEST_IF_CELERITAS_GEANT(SimpleCmsRZFieldAlongStepTest)
 class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
 {
   public:
