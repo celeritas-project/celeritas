@@ -351,6 +351,8 @@ if(CELERITAS_USE_Geant4)
       "Em3AlongStepTest.fluct_nomsc"
       "SimpleCmsAlongStepTest.msc_field"
       "SimpleCmsAlongStepTest.msc_field_finegrid"
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
 else()
   set(_filter)
