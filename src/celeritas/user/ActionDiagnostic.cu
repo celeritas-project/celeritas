@@ -11,6 +11,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/ActionDiagnosticImpl.hh"
@@ -38,12 +40,9 @@ tally_action_kernel(DeviceCRef<CoreParamsData> const params,
 /*!
  * Execute action with device data.
  */
-void ActionDiagnostic::execute(ParamsDeviceCRef const& params,
-                               StateDeviceRef& state) const
+void ActionDiagnostic::execute(CoreParams const& params,
+                               CoreStateDevice& state) const
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(state);
-
     if (!store_)
     {
         this->build_stream_store();
@@ -52,10 +51,10 @@ void ActionDiagnostic::execute(ParamsDeviceCRef const& params,
         tally_action,
         celeritas::device().default_block_size(),
         state.size(),
-        params,
-        state,
+        params.ref<MemSpace::native>(),
+        state.ref(),
         store_.params<MemSpace::device>(),
-        store_.state<MemSpace::device>(state.stream_id, this->state_size()));
+        store_.state<MemSpace::device>(state.stream_id(), this->state_size()));
 }
 
 //---------------------------------------------------------------------------//

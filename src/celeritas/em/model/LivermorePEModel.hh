@@ -49,10 +49,10 @@ class LivermorePEModel final : public Model
     MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel on host
-    void execute(ParamsHostCRef const&, StateHostRef&) const final;
+    void execute(CoreParams const&, CoreStateHost&) const final;
 
     // Apply the interaction kernel on device
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+    void execute(CoreParams const&, CoreStateDevice&) const final;
 
     // ID of the model
     ActionId action_id() const final;

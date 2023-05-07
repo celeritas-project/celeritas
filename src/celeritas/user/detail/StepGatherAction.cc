@@ -15,6 +15,8 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -56,16 +58,17 @@ std::string StepGatherAction<P>::description() const
  * Gather step attributes from host data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(ParamsHostCRef const& params,
-                                  StateHostRef& state) const
+void StepGatherAction<P>::execute(CoreParams const& params,
+                                  CoreStateHost& state) const
 {
-    CELER_EXPECT(params && state);
     auto const& step_state
-        = storage_->obj.state<MemSpace::host>(state.stream_id, state.size());
+        = storage_->obj.state<MemSpace::host>(state.stream_id(), state.size());
 
     MultiExceptionHandler capture_exception;
-    StepGatherLauncher<P> launch{
-        params, state, storage_->obj.params<MemSpace::host>(), step_state};
+    StepGatherLauncher<P> launch{params.ref<MemSpace::native>(),
+                                 state.ref(),
+                                 storage_->obj.params<MemSpace::host>(),
+                                 step_state};
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {
@@ -75,7 +78,7 @@ void StepGatherAction<P>::execute(ParamsHostCRef const& params,
 
     if (P == StepPoint::post)
     {
-        StepState<MemSpace::host> cb_state{step_state, state.stream_id};
+        StepState<MemSpace::host> cb_state{step_state, state.stream_id()};
         for (auto const& sp_callback : callbacks_)
         {
             sp_callback->process_steps(cb_state);
@@ -88,19 +91,19 @@ void StepGatherAction<P>::execute(ParamsHostCRef const& params,
  * Gather step attributes from GPU data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(ParamsDeviceCRef const& params,
-                                  StateDeviceRef& state) const
+void StepGatherAction<P>::execute(CoreParams const& params,
+                                  CoreStateDevice& state) const
 {
-    CELER_EXPECT(params && state);
-
-    auto& step_state
-        = storage_->obj.state<MemSpace::device>(state.stream_id, state.size());
-    step_gather_device<P>(
-        params, state, storage_->obj.params<MemSpace::device>(), step_state);
+    auto& step_state = storage_->obj.state<MemSpace::device>(state.stream_id(),
+                                                             state.size());
+    step_gather_device<P>(params.ref<MemSpace::device>(),
+                          state.ref(),
+                          storage_->obj.params<MemSpace::device>(),
+                          step_state);
 
     if (P == StepPoint::post)
     {
-        StepState<MemSpace::device> cb_state{step_state, state.stream_id};
+        StepState<MemSpace::device> cb_state{step_state, state.stream_id()};
         for (auto const& sp_callback : callbacks_)
         {
             sp_callback->process_steps(cb_state);

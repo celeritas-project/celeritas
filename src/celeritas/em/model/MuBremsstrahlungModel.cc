@@ -11,6 +11,7 @@
 
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/generated/MuBremsstrahlungInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
@@ -78,16 +79,16 @@ auto MuBremsstrahlungModel::micro_xs(Applicability applic) const
 /*!
  * Apply the interaction kernel.
  */
-void MuBremsstrahlungModel::execute(ParamsDeviceCRef const& params,
-                                    StateDeviceRef& states) const
+void MuBremsstrahlungModel::execute(CoreParams const& params,
+                                    CoreStateHost& state) const
 {
-    generated::mu_bremsstrahlung_interact(data_, params, states);
+    generated::mu_bremsstrahlung_interact(params, state, this->host_ref());
 }
 
-void MuBremsstrahlungModel::execute(ParamsHostCRef const& params,
-                                    StateHostRef& states) const
+void MuBremsstrahlungModel::execute(CoreParams const& params,
+                                    CoreStateDevice& state) const
 {
-    generated::mu_bremsstrahlung_interact(data_, params, states);
+    generated::mu_bremsstrahlung_interact(params, state, this->device_ref());
 }
 
 //!@}

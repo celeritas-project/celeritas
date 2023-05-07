@@ -13,6 +13,8 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -24,7 +26,7 @@
 #    include "corecel/io/LabelIO.json.hh"
 #endif
 
-namespace celeritas
+    namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -57,23 +59,20 @@ ActionDiagnostic::~ActionDiagnostic() = default;
 /*!
  * Execute action with host data.
  */
-void ActionDiagnostic::execute(ParamsHostCRef const& params,
-                               StateHostRef& state) const
+void ActionDiagnostic::execute(CoreParams const& params,
+                               CoreStateHost& state) const
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(state);
-
     if (!store_)
     {
         this->build_stream_store();
     }
     MultiExceptionHandler capture_exception;
     auto launch = make_active_track_launcher(
-        params,
-        state,
+        params.ref<MemSpace::native>(),
+        state.ref(),
         detail::tally_action,
         store_.params<MemSpace::host>(),
-        store_.state<MemSpace::host>(state.stream_id, this->state_size()));
+        store_.state<MemSpace::host>(state.stream_id(), this->state_size()));
 #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < state.size(); ++i)
     {

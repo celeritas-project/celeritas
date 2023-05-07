@@ -40,11 +40,11 @@ template<class D, class F>
 CELER_FUNCTION detail::InteractionLauncherImpl<D, F>
 make_interaction_launcher(NativeCRef<CoreParamsData> const& params,
                           NativeRef<CoreStateData> const& states,
-                          D const& model_data,
-                          F&& call_with_track)
+                          F&& call_with_track,
+                          D const& model_data)
 {
     return {
-        params, states, model_data, ::celeritas::forward<F>(call_with_track)};
+        params, states, ::celeritas::forward<F>(call_with_track), model_data};
 }
 
 //---------------------------------------------------------------------------//

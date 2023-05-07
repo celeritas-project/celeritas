@@ -13,6 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/em/launcher/RayleighLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
@@ -32,33 +34,31 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 rayleigh_interact_kernel(
-    celeritas::RayleighDeviceRef const model_data,
     celeritas::DeviceCRef<celeritas::CoreParamsData> const params,
-    celeritas::DeviceRef<celeritas::CoreStateData> const state)
+    celeritas::DeviceRef<celeritas::CoreStateData> const state,
+    celeritas::RayleighDeviceRef const model_data)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < state.size()))
         return;
 
     auto launch = celeritas::make_interaction_launcher(
-        params, state, model_data,
-        celeritas::rayleigh_interact_track);
+        params, state, celeritas::rayleigh_interact_track, model_data);
     launch(tid);
 }
 }  // namespace
 
 void rayleigh_interact(
-    celeritas::RayleighDeviceRef const& model_data,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const& params,
-    celeritas::DeviceRef<celeritas::CoreStateData>& state)
+    celeritas::CoreParams const& params,
+    celeritas::CoreState<MemSpace::device>& state,
+    celeritas::RayleighDeviceRef const& model_data)
 {
-    CELER_EXPECT(params && state);
     CELER_EXPECT(model_data);
 
     CELER_LAUNCH_KERNEL(rayleigh_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        model_data, params, state);
+                        params.ref<MemSpace::native>(), state.ref(), model_data);
 }
 
 }  // namespace generated

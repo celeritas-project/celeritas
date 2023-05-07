@@ -19,6 +19,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/generated/LivermorePEInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
@@ -102,16 +103,16 @@ auto LivermorePEModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void LivermorePEModel::execute(ParamsDeviceCRef const& params,
-                               StateDeviceRef& states) const
+void LivermorePEModel::execute(CoreParams const& params,
+                               CoreStateHost& state) const
 {
-    generated::livermore_pe_interact(this->device_ref(), params, states);
+    generated::livermore_pe_interact(params, state, this->host_ref());
 }
 
-void LivermorePEModel::execute(ParamsHostCRef const& params,
-                               StateHostRef& states) const
+void LivermorePEModel::execute(CoreParams const& params,
+                               CoreStateDevice& state) const
 {
-    generated::livermore_pe_interact(this->host_ref(), params, states);
+    generated::livermore_pe_interact(params, state, this->device_ref());
 }
 
 //!@}

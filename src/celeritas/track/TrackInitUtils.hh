@@ -14,6 +14,8 @@
 #include "corecel/data/Copier.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
 #include "TrackInitData.hh"
@@ -32,15 +34,13 @@ namespace celeritas
  * Create track initializers from a vector of host primary particles.
  */
 template<MemSpace M>
-inline void extend_from_primaries(
-    CoreParamsData<Ownership::const_reference, M> const& core_params,
-    CoreStateData<Ownership::reference, M>& core_states,
-    Span<Primary const> host_primaries)
+inline void extend_from_primaries(CoreParams const& core_params,
+                                  CoreState<M>& core_state,
+                                  Span<Primary const> host_primaries)
 {
-    CELER_EXPECT(core_params && core_states);
     CELER_EXPECT(!host_primaries.empty());
 
-    auto& data = core_states.init.initializers;
+    auto& data = core_state.ref().init.initializers;
     CELER_ASSERT(host_primaries.size() + data.size() <= data.capacity());
 
     // Resizing the initializers is a non-const operation, but the only one.
@@ -53,8 +53,9 @@ inline void extend_from_primaries(
     copy_to_temp(MemSpace::host, host_primaries);
 
     // Create track initializers from primaries
-    generated::process_primaries(
-        core_params, core_states, primaries[AllItems<Primary, M>{}]);
+    generated::process_primaries(core_params.ref<M>(),
+                                 core_state.ref(),
+                                 primaries[AllItems<Primary, M>{}]);
 }
 
 //---------------------------------------------------------------------------//
@@ -67,13 +68,10 @@ inline void extend_from_primaries(
  * any track initializers remaining from previous steps using the position.
  */
 template<MemSpace M>
-inline void initialize_tracks(
-    CoreParamsData<Ownership::const_reference, M> const& core_params,
-    CoreStateData<Ownership::reference, M>& core_states)
+inline void
+initialize_tracks(CoreParams const& core_params, CoreState<M>& core_state)
 {
-    CELER_EXPECT(core_params && core_states);
-
-    auto& data = core_states.init;
+    auto& data = core_state.ref().init;
 
     // The number of new tracks to initialize is the smaller of the number of
     // empty slots in the track vector and the number of track initializers
@@ -84,14 +82,15 @@ inline void initialize_tracks(
         // Launch a kernel to initialize tracks on device
         auto num_vacancies
             = min(data.vacancies.size(), data.initializers.size());
-        generated::init_tracks(core_params, core_states, num_vacancies);
+        generated::init_tracks(
+            core_params.ref<M>(), core_state.ref(), num_vacancies);
         // Resizing initializers/vacancies is a non-const operation
         data.initializers.resize(data.initializers.size() - num_tracks);
         data.vacancies.resize(data.vacancies.size() - num_tracks);
     }
 
     // Store number of active tracks (a non-const operation)
-    data.num_active = core_states.size() - data.vacancies.size();
+    data.num_active = core_state.size() - data.vacancies.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -152,20 +151,17 @@ inline void initialize_tracks(
    \endverbatim
  */
 template<MemSpace M>
-inline void extend_from_secondaries(
-    CoreParamsData<Ownership::const_reference, M> const& core_params,
-    CoreStateData<Ownership::reference, M>& core_states)
+inline void
+extend_from_secondaries(CoreParams const& core_params, CoreState<M>& core_state)
 {
-    CELER_EXPECT(core_params && core_states);
-
-    TrackInitStateData<Ownership::reference, M>& data = core_states.init;
+    TrackInitStateData<Ownership::reference, M>& data = core_state.ref().init;
 
     // Resize the vector of vacancies to be equal to the number of tracks
-    data.vacancies.resize(core_states.size());
+    data.vacancies.resize(core_state.size());
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
-    generated::locate_alive(core_params, core_states);
+    generated::locate_alive(core_params.ref<M>(), core_state.ref());
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
@@ -192,7 +188,7 @@ inline void extend_from_secondaries(
 
     // Launch a kernel to create track initializers from secondaries
     data.initializers.resize(data.initializers.size() + data.num_secondaries);
-    generated::process_secondaries(core_params, core_states);
+    generated::process_secondaries(core_params.ref<M>(), core_state.ref());
 }
 
 //---------------------------------------------------------------------------//

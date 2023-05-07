@@ -32,9 +32,9 @@ class MockInteractAction final : public ExplicitActionInterface
                        std::vector<bool> const& alive);
 
     // Run on host
-    void execute(ParamsHostCRef const&, StateHostRef&) const final;
+    void execute(CoreParams const&, CoreStateHost&) const final;
     // Run on device
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+    void execute(CoreParams const&, CoreStateDevice&) const final;
 
     ActionId action_id() const final { return id_; }
     std::string label() const final { return "mock-interact"; }
@@ -53,7 +53,7 @@ class MockInteractAction final : public ExplicitActionInterface
 
 #if !CELER_USE_DEVICE
 inline void
-MockInteractAction::execute(ParamsDeviceCRef const&, StateDeviceRef&) const
+MockInteractAction::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

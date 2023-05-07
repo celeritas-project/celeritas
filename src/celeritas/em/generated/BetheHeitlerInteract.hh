@@ -12,27 +12,33 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/BetheHeitlerData.hh" // IWYU pragma: associated
-#include "celeritas/global/CoreTrackDataFwd.hh"
+
+namespace celeritas
+{
+class CoreParams;
+template<MemSpace M>
+class CoreState;
+}
 
 namespace celeritas
 {
 namespace generated
 {
 void bethe_heitler_interact(
-    celeritas::BetheHeitlerHostRef const&,
-    celeritas::HostCRef<celeritas::CoreParamsData> const&,
-    celeritas::HostRef<celeritas::CoreStateData>&);
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::BetheHeitlerHostRef const&);
 
 void bethe_heitler_interact(
-    celeritas::BetheHeitlerDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData>&);
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::BetheHeitlerDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void bethe_heitler_interact(
-    celeritas::BetheHeitlerDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData>&)
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::BetheHeitlerDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

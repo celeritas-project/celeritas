@@ -13,6 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "../detail/DiscreteSelectActionImpl.hh"
 
@@ -32,14 +34,13 @@ __global__ void discrete_select_kernel(
 }
 }  // namespace
 
-void DiscreteSelectAction::execute(ParamsDeviceCRef const& params, StateDeviceRef& state) const
+void DiscreteSelectAction::execute(CoreParams const& params, CoreStateDevice& state) const
 {
-    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(discrete_select,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state);
+                        params.ref<MemSpace::native>(),
+                        state.ref());
 }
 
 }  // namespace generated

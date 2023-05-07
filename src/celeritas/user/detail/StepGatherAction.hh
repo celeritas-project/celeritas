@@ -52,10 +52,10 @@ class StepGatherAction final : public ExplicitActionInterface
     StepGatherAction(ActionId id, SPStepStorage storage, VecInterface callbacks);
 
     // Launch kernel with host data
-    void execute(ParamsHostCRef const&, StateHostRef&) const final;
+    void execute(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+    void execute(CoreParams const&, CoreStateDevice&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
