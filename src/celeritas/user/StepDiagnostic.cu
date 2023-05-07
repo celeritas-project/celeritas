@@ -47,7 +47,7 @@ void StepDiagnostic::execute(CoreParams const& params,
         tally_steps,
         celeritas::device().default_block_size(),
         state.size(),
-        params.ref<MemSpace::device>(),
+        params.ref<MemSpace::native>(),
         state.ref(),
         store_.params<MemSpace::device>(),
         store_.state<MemSpace::device>(state.stream_id(), this->state_size()));
