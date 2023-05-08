@@ -189,7 +189,7 @@ void ActionDiagnostic::clear()
  * Build the storage for diagnostic parameters and stream-dependent states.
  *
  * This must be done lazily (after construction!) because the action diagnostic
- * may be created after other actions.
+ * will be created *before* all actions are defined in the \c ActionRegistry.
  */
 void ActionDiagnostic::build_stream_store() const
 {
