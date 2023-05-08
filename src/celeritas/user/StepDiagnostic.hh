@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "corecel/data/StreamStore.hh"
