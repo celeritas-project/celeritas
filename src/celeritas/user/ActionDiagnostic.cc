@@ -37,7 +37,7 @@
  * actions have been registered.
  */
 ActionDiagnostic::ActionDiagnostic(ActionId id,
-                                   SPConstActionRegistry action_reg,
+                                   WPConstActionRegistry action_reg,
                                    SPConstParticle particle,
                                    size_type num_streams)
     : id_(id)
@@ -46,7 +46,7 @@ ActionDiagnostic::ActionDiagnostic(ActionId id,
     , num_streams_(num_streams)
 {
     CELER_EXPECT(id_);
-    CELER_EXPECT(action_reg_);
+    CELER_EXPECT(!action_reg_.expired());
     CELER_EXPECT(particle_);
     CELER_EXPECT(num_streams > 0);
 }
@@ -113,6 +113,10 @@ auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
     // Counts indexed as [particle][action]
     auto particle_vec = this->calc_actions();
 
+    // Get a shared pointer to the action registry
+    auto sp_action_reg = action_reg_.lock();
+    CELER_ASSERT(sp_action_reg);
+
     // Map particle ID/action ID to name and store counts
     MapStringCount result;
     for (auto particle : range(ParticleId(particle_vec.size())))
@@ -122,7 +126,7 @@ auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
         {
             if (action_vec[action.get()] > 0)
             {
-                std::string label = action_reg_->id_to_label(action) + " "
+                std::string label = sp_action_reg->id_to_label(action) + " "
                                     + particle_->id_to_label(particle);
                 result[label] = action_vec[action.get()];
             }
@@ -183,13 +187,19 @@ void ActionDiagnostic::clear()
 //---------------------------------------------------------------------------//
 /*!
  * Build the storage for diagnostic parameters and stream-dependent states.
+ *
+ * This must be done lazily (after construction!) because the action diagnostic
+ * may be created after other actions.
  */
 void ActionDiagnostic::build_stream_store() const
 {
     CELER_EXPECT(!store_);
 
+    auto sp_action_reg = action_reg_.lock();
+    CELER_ASSERT(sp_action_reg);
+
     HostVal<ParticleTallyParamsData> host_params;
-    host_params.num_bins = action_reg_->num_actions();
+    host_params.num_bins = sp_action_reg->num_actions();
     host_params.num_particles = particle_->size();
     store_ = {std::move(host_params), num_streams_};
 

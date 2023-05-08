@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <vector>
 
 #include "corecel/data/StreamStore.hh"
@@ -33,7 +34,7 @@ class ActionDiagnostic final : public ExplicitActionInterface,
   public:
     //!@{
     //! \name Type aliases
-    using SPConstActionRegistry = std::shared_ptr<ActionRegistry const>;
+    using WPConstActionRegistry = std::weak_ptr<ActionRegistry const>;
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
     using MapStringCount = std::map<std::string, size_type>;
     using VecCount = std::vector<size_type>;
@@ -43,7 +44,7 @@ class ActionDiagnostic final : public ExplicitActionInterface,
   public:
     //! Construct with action registry and particle data
     ActionDiagnostic(ActionId id,
-                     SPConstActionRegistry action_reg,
+                     WPConstActionRegistry action_reg,
                      SPConstParticle particle,
                      size_type num_streams);
 
@@ -90,7 +91,7 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     using StoreT = StreamStore<ParticleTallyParamsData, ParticleTallyStateData>;
 
     ActionId id_;
-    SPConstActionRegistry action_reg_;
+    WPConstActionRegistry action_reg_;
     SPConstParticle particle_;
     size_type num_streams_;
     mutable StoreT store_;
