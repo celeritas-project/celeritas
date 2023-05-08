@@ -9,8 +9,6 @@
 
 #include <string>
 #include <vector>
-#include <TBranch.h>
-#include <TFile.h>
 #include <TTree.h>
 
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
