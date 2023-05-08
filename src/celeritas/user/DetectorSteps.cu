@@ -112,7 +112,6 @@ void copy_steps<MemSpace::device>(
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {
     CELER_EXPECT(output);
-    CELER_EXPECT(state);
 
     // Copy the original detector IDs
     thrust::device_vector<DetectorId> orig_ids;

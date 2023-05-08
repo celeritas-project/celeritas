@@ -192,7 +192,6 @@ inline void resize({capabbr}TestStateData<Ownership::value, M>* state,
                    const HostCRef<{capabbr}TestParamsData>&     params,
                    {corecel_ns}size_type                             size)
 {{
-    CELER_EXPECT(state);
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
     // FIXME
@@ -285,7 +284,7 @@ void {lowabbr}_test(
     CELER_LAUNCH_KERNEL({lowabbr}_test,
                         {corecel_ns}device().default_block_size(),
                         state.size(),
-                        params,
+                        params.ref<MemSpace::native>(),
                         state);
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());

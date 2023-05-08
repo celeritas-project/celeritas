@@ -17,20 +17,20 @@ namespace celeritas
 /*!
  * Execute the action with host data
  */
-void ExtendFromSecondariesAction::execute(ParamsHostCRef const& params,
-                                          StateHostRef& states) const
+void ExtendFromSecondariesAction::execute(CoreParams const& params,
+                                          CoreStateHost& state) const
 {
-    extend_from_secondaries(params, states);
+    extend_from_secondaries(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data
  */
-void ExtendFromSecondariesAction::execute(ParamsDeviceCRef const& params,
-                                          StateDeviceRef& states) const
+void ExtendFromSecondariesAction::execute(CoreParams const& params,
+                                          CoreStateDevice& state) const
 {
-    extend_from_secondaries(params, states);
+    extend_from_secondaries(params, state);
 }
 
 }  // namespace celeritas

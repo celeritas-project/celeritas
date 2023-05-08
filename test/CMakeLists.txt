@@ -48,9 +48,10 @@ if(CELERITAS_USE_HIP)
     celeritas/phys/Physics.test.cu
     celeritas/random/RngEngine.test.cu
     celeritas/random/curand/CurandPerformance.test.cu
-    celeritas/track/TrackInit.test.cu
+    celeritas/track/MockInteractAction.cu
     corecel/cont/Range.test.cu
     corecel/data/Collection.test.cu
+    corecel/data/ObserverPtr.test.cu
     corecel/data/StackAllocator.test.cu
     corecel/math/NumericLimits.test.cu
     orange/surf/SurfaceAction.test.cu
@@ -70,9 +71,6 @@ function(celeritas_add_device_test base)
   celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
-if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
-  set(_needs_device DISABLE)
-endif()
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
 endif()
@@ -134,6 +132,7 @@ celeritas_add_device_test(corecel/data/Collection)
 celeritas_add_test(corecel/data/Copier.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
+celeritas_add_device_test(corecel/data/ObserverPtr)
 celeritas_add_device_test(corecel/data/StackAllocator)
 
 # Grid
@@ -252,6 +251,7 @@ celeritas_add_library(testcel_celeritas
   celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
 )
+
 celeritas_target_link_libraries(testcel_celeritas
   PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link}
 )
@@ -351,6 +351,8 @@ if(CELERITAS_USE_Geant4)
       "Em3AlongStepTest.fluct_nomsc"
       "SimpleCmsAlongStepTest.msc_field"
       "SimpleCmsAlongStepTest.msc_field_finegrid"
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
 else()
   set(_filter)
@@ -440,7 +442,17 @@ endif()
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_add_test(celeritas/track/Sim.test.cc ${_needs_geant4})
 celeritas_add_test(celeritas/track/TrackSort.test.cc GPU ${_needs_geant4} ${_needs_geo})
-celeritas_add_device_test(celeritas/track/TrackInit ${_needs_device})
+
+set(_trackinit_sources
+  celeritas/track/MockInteractAction.cc
+)
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  list(APPEND _trackinit_sources
+    celeritas/track/MockInteractAction.cu
+  )
+endif()
+
+celeritas_add_test(celeritas/track/TrackInit.test.cc GPU SOURCES ${_trackinit_sources})
 
 #-------------------------------------#
 # User

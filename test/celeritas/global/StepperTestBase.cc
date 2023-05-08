@@ -81,15 +81,18 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
 auto StepperTestBase::run(StepperInterface& step,
                           size_type num_primaries) const -> RunResult
 {
-    CELER_EXPECT(step);
-
     // Perform first step
     auto primaries = this->make_primaries(num_primaries);
     StepperResult counts;
     CELER_TRY_HANDLE(counts = step(make_span(primaries)),
-                     log_context_exception);
+                     LogContextException{this->output_reg().get()});
     EXPECT_EQ(num_primaries, counts.active);
     EXPECT_EQ(num_primaries, counts.alive);
+
+    if (this->HasFailure())
+    {
+        return {};
+    }
 
     RunResult result;
     result.active = {counts.active};
@@ -100,7 +103,8 @@ auto StepperTestBase::run(StepperInterface& step,
 
     while (counts)
     {
-        CELER_TRY_HANDLE(counts = step(), log_context_exception);
+        CELER_TRY_HANDLE(counts = step(),
+                         LogContextException{this->output_reg().get()});
         result.active.push_back(counts.active);
         result.queued.push_back(counts.queued);
         accum_steps += counts.active;

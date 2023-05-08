@@ -11,6 +11,7 @@
 
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/generated/BetheHeitlerInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
@@ -71,20 +72,20 @@ auto BetheHeitlerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 
 //---------------------------------------------------------------------------//
 //!@{
+void BetheHeitlerModel::execute(CoreParams const& params,
+                                CoreStateHost& state) const
+{
+    generated::bethe_heitler_interact(params, state, this->host_ref());
+}
 /*!
  * Apply the interaction kernel.
  */
-void BetheHeitlerModel::execute(ParamsDeviceCRef const& params,
-                                StateDeviceRef& states) const
+void BetheHeitlerModel::execute(CoreParams const& params,
+                                CoreStateDevice& state) const
 {
-    generated::bethe_heitler_interact(data_, params, states);
+    generated::bethe_heitler_interact(params, state, this->device_ref());
 }
 
-void BetheHeitlerModel::execute(ParamsHostCRef const& params,
-                                StateHostRef& states) const
-{
-    generated::bethe_heitler_interact(data_, params, states);
-}
 //!@}
 //---------------------------------------------------------------------------//
 /*!

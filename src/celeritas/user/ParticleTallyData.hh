@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ActionDiagnosticData.hh
+//! \file celeritas/user/ParticleTallyData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,12 +17,12 @@ namespace celeritas
  * Shared diagnostic attributes.
  */
 template<Ownership W, MemSpace M>
-struct ActionDiagnosticParamsData
+struct ParticleTallyParamsData
 {
     //// DATA ////
 
-    //! Number of actions
-    size_type num_actions{0};
+    //! Number of tally bins
+    size_type num_bins{0};
     //! Number of particle types
     size_type num_particles{0};
 
@@ -31,16 +31,16 @@ struct ActionDiagnosticParamsData
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return num_actions > 0 && num_particles > 0;
+        return num_bins > 0 && num_particles > 0;
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    ActionDiagnosticParamsData&
-    operator=(ActionDiagnosticParamsData<W2, M2> const& other)
+    ParticleTallyParamsData&
+    operator=(ParticleTallyParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        num_actions = other.num_actions;
+        num_bins = other.num_bins;
         num_particles = other.num_particles;
         return *this;
     }
@@ -48,13 +48,12 @@ struct ActionDiagnosticParamsData
 
 //---------------------------------------------------------------------------//
 /*!
- * Number of occurrances of each action accumulated over tracks.
+ * State data for accumulating results for each particle type.
  *
- * Actions are tallied separately for each particle type. \c counts is indexed
- * as action ID * number of particle types + particle ID.
+ * \counts is indexed as particle_id * num_bins + bin_index.
  */
 template<Ownership W, MemSpace M>
-struct ActionDiagnosticStateData
+struct ParticleTallyStateData
 {
     //// TYPES ////
 
@@ -63,7 +62,6 @@ struct ActionDiagnosticStateData
 
     //// DATA ////
 
-    //! Number of occurrances of each action for each particle type
     Items<size_type> counts;
 
     //// METHODS ////
@@ -76,8 +74,7 @@ struct ActionDiagnosticStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
-    ActionDiagnosticStateData&
-    operator=(ActionDiagnosticStateData<W2, M2>& other)
+    ParticleTallyStateData& operator=(ParticleTallyStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         counts = other.counts;
@@ -88,10 +85,10 @@ struct ActionDiagnosticStateData
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-// Resize based on number of actions and particle types
+// Resize based on number of bins and particle types
 template<MemSpace M>
-void resize(ActionDiagnosticStateData<Ownership::value, M>* state,
-            HostCRef<ActionDiagnosticParamsData> const& params,
+void resize(ParticleTallyStateData<Ownership::value, M>* state,
+            HostCRef<ParticleTallyParamsData> const& params,
             StreamId,
             size_type);
 

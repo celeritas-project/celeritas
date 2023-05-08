@@ -14,6 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/em/generated/RayleighInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -81,16 +82,15 @@ auto RayleighModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void RayleighModel::execute(ParamsDeviceCRef const& params,
-                            StateDeviceRef& states) const
+void RayleighModel::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    generated::rayleigh_interact(this->device_ref(), params, states);
+    generated::rayleigh_interact(params, state, this->host_ref());
 }
 
-void RayleighModel::execute(ParamsHostCRef const& params,
-                            StateHostRef& states) const
+void RayleighModel::execute(CoreParams const& params,
+                            CoreStateDevice& state) const
 {
-    generated::rayleigh_interact(this->host_ref(), params, states);
+    generated::rayleigh_interact(params, state, this->device_ref());
 }
 
 //!@}

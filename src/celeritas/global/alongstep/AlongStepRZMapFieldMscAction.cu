@@ -22,6 +22,8 @@
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldData.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepImpl.hh"
@@ -114,44 +116,43 @@ along_step_update_track_kernel(DeviceCRef<CoreParamsData> const params,
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepRZMapFieldMscAction::execute(ParamsDeviceCRef const& params,
-                                           StateDeviceRef& state) const
+void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
+                                           CoreStateDevice& state) const
 {
-    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state,
+                        params.ref<MemSpace::native>(),
+                        state.ref(),
                         msc_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_apply_rzmap_propagation,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state,
+                        params.ref<MemSpace::native>(),
+                        state.ref(),
                         field_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_apply_msc,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state,
+                        params.ref<MemSpace::native>(),
+                        state.ref(),
                         msc_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_update_time,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state);
+                        params.ref<MemSpace::native>(),
+                        state.ref());
     CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state,
+                        params.ref<MemSpace::native>(),
+                        state.ref(),
                         fluct_->device_ref());
     CELER_LAUNCH_KERNEL(along_step_update_track,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state);
+                        params.ref<MemSpace::native>(),
+                        state.ref());
 }
 
 //---------------------------------------------------------------------------//

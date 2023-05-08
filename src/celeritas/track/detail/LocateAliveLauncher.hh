@@ -111,6 +111,7 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(TrackSlotId tid) const
         // the index so it can be used later to initialize a new track
         states_.init.vacancies[tid.unchecked_get()] = tid;
     }
+
     states_.init.secondary_counts[tid] = num_secondaries;
 }
 

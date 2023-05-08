@@ -51,7 +51,8 @@ struct RunnerInput
     celeritas::SimpleRootFilterInput mctruth_filter;
     std::vector<celeritas::Label> simple_calo;
     bool action_diagnostic{};
-    bool enable_diagnostics{};  // DEPRECATED
+    bool step_diagnostic{};
+    size_type step_diagnostic_maxsteps{};
 
     // Control
     unsigned int seed{};
@@ -88,6 +89,7 @@ struct RunnerInput
                && max_num_tracks > 0 && max_steps > 0
                && initializer_capacity > 0 && max_events > 0
                && secondary_stack_factor > 0
+               && (step_diagnostic_maxsteps > 0 || !step_diagnostic)
                && (mag_field == no_field() || field_options);
     }
 };

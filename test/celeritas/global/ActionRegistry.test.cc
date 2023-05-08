@@ -13,13 +13,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-// Fake definition of CoreRef
-template<MemSpace M>
-struct CoreRef
-{
-};
-
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -35,11 +28,11 @@ class MyExplicitAction final : public ExplicitActionInterface
     std::string label() const final { return "explicit"; }
     std::string description() const final { return "explicit action test"; }
 
-    void execute(ParamsHostCRef const&, StateHostRef&) const final
+    void execute(CoreParams const&, CoreStateHost&) const final
     {
         ++host_count_;
     }
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final
+    void execute(CoreParams const&, CoreStateDevice&) const final
     {
         ++device_count_;
     }

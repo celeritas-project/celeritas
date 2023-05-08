@@ -39,7 +39,6 @@ class KernelContextException : public RichContextException
   public:
     //!@{
     //! \name Type aliases
-    using CoreHostRef = CoreRef<MemSpace::host>;
     using Energy = units::MevEnergy;
     //!@}
 
@@ -49,11 +48,6 @@ class KernelContextException : public RichContextException
                            HostRef<CoreStateData> const& states,
                            ThreadId tid,
                            std::string&& label);
-
-    //! Construct with combined track data
-    [[deprecated]] KernelContextException(CoreHostRef const& data,
-                                          ThreadId tid,
-                                          std::string&& label);
 
     // This class type
     char const* type() const final;

@@ -80,7 +80,6 @@ void copy_steps<MemSpace::host>(
     StepStateData<Ownership::reference, MemSpace::host> const& state)
 {
     CELER_EXPECT(output);
-    CELER_EXPECT(state);
 
     // Get the number of threads that are active and in a detector
     size_type size = count_num_valid(state.detector);

@@ -12,6 +12,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepNeutral.hh"
@@ -36,15 +38,14 @@ along_step_neutral_kernel(DeviceCRef<CoreParamsData> const params,
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepNeutralAction::execute(ParamsDeviceCRef const& params,
-                                     StateDeviceRef& state) const
+void AlongStepNeutralAction::execute(CoreParams const& params,
+                                     CoreStateDevice& state) const
 {
-    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(along_step_neutral,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state);
+                        params.ref<MemSpace::native>(),
+                        state.ref());
 }
 
 //---------------------------------------------------------------------------//

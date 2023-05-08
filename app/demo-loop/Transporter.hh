@@ -31,8 +31,6 @@ class CoreParams;
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-template<celeritas::MemSpace M>
-class Diagnostic;
 struct RunnerInput;
 
 //---------------------------------------------------------------------------//
@@ -50,9 +48,6 @@ struct TransporterInput
     // Loop control
     size_type max_steps{};
 
-    // Diagnostic setup
-    bool enable_diagnostics{true};
-
     celeritas::StreamId stream_id{0};
 
     //! True if all params are assigned
@@ -60,18 +55,6 @@ struct TransporterInput
     {
         return params && num_track_slots > 0 && max_steps > 0;
     }
-};
-
-//---------------------------------------------------------------------------//
-//! Hack: help adapt demo-loop diagnostics to Transporter/Action
-struct DiagnosticStore
-{
-    using MemSpace = celeritas::MemSpace;
-    template<MemSpace M>
-    using VecUPDiag = std::vector<std::unique_ptr<Diagnostic<M>>>;
-
-    VecUPDiag<MemSpace::host> host;
-    VecUPDiag<MemSpace::device> device;
 };
 
 //---------------------------------------------------------------------------//
@@ -121,8 +104,6 @@ class Transporter final : public TransporterBase
 
   private:
     std::shared_ptr<celeritas::Stepper<M>> stepper_;
-    std::shared_ptr<DiagnosticStore> diagnostics_;
-    celeritas::ActionId diagnostic_action_;
     celeritas::size_type max_steps_;
 };
 

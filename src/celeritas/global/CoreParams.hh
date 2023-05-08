@@ -52,8 +52,10 @@ class CoreParams
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
 
-    using HostRef = HostCRef<CoreParamsData>;
-    using DeviceRef = DeviceCRef<CoreParamsData>;
+    template<MemSpace M>
+    using ConstRef = CoreParamsData<Ownership::const_reference, M>;
+    using HostRef = ConstRef<MemSpace::host>;
+    using DeviceRef = ConstRef<MemSpace::device>;
     //!@}
 
     struct Input
@@ -105,11 +107,18 @@ class CoreParams
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
     //!@}
 
-    // Access properties on the host
-    inline HostRef const& host_ref() const;
+    //! Access properties on the host
+    HostRef const& host_ref() const { return this->ref<MemSpace::host>(); }
 
-    // Access properties on the device
-    inline DeviceRef const& device_ref() const;
+    //! Access properties on the device
+    DeviceRef const& device_ref() const
+    {
+        return this->ref<MemSpace::device>();
+    }
+
+    // Access a host object with properties in the given memory space
+    template<MemSpace M>
+    inline ConstRef<M> const& ref() const;
 
     //! Maximum number of streams
     size_type max_streams() const { return input_.max_streams; }
@@ -124,25 +133,24 @@ class CoreParams
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Access properties on the host.
- */
-auto CoreParams::host_ref() const -> HostRef const&
-{
-    CELER_ENSURE(host_ref_);
-    return host_ref_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access properties on the device.
+ * Access properties in the given memspace.
  *
- * This will raise an exception if \c celeritas::device is null (and device
- * data wasn't set).
+ * Accessing MemSpace::device will raise an exception if \c celeritas::device
+ * is null (and device data wasn't set).
  */
-auto CoreParams::device_ref() const -> DeviceRef const&
+template<MemSpace M>
+auto CoreParams::ref() const -> ConstRef<M> const&
 {
-    CELER_ENSURE(device_ref_);
-    return device_ref_;
+    if constexpr (M == MemSpace::host)
+    {
+        CELER_ENSURE(host_ref_);
+        return host_ref_;
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        CELER_ENSURE(device_ref_);
+        return device_ref_;
+    }
 }
 
 //---------------------------------------------------------------------------//

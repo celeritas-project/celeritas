@@ -141,26 +141,6 @@ struct CoreStateData
 
 //---------------------------------------------------------------------------//
 /*!
- * Reference to core parameters and states.
- *
- * This is passed via \c ExplicitActionInterface::execute to launch kernels.
- */
-template<MemSpace M>
-struct CoreRef
-{
-    CoreParamsData<Ownership::const_reference, M> params;
-    CoreStateData<Ownership::reference, M> states;
-
-    //! True if assigned
-    CELER_FUNCTION operator bool() const { return params && states; }
-};
-
-// TODO: DEPRECATED TYPE ALIASES
-[[deprecated]] typedef CoreRef<MemSpace::host> CoreHostRef;
-[[deprecated]] typedef CoreRef<MemSpace::device> CoreDeviceRef;
-
-//---------------------------------------------------------------------------//
-/*!
  * Resize states in host code.
  *
  * Initialize threads to track slots mapping.

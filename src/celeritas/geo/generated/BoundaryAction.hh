@@ -11,7 +11,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {
@@ -25,17 +24,17 @@ public:
   using ConcreteAction::ConcreteAction;
 
   // Launch kernel with host data
-  void execute(ParamsHostCRef const&, StateHostRef&) const final;
+  void execute(CoreParams const&, CoreStateHost&) const final;
 
   // Launch kernel with device data
-  void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+  void execute(CoreParams const&, CoreStateDevice&) const final;
 
   //! Dependency ordering of the action
   ActionOrder order() const final { return ActionOrder::post; }
 };
 
 #if !CELER_USE_DEVICE
-inline void BoundaryAction::execute(ParamsDeviceCRef const&, StateDeviceRef&) const
+inline void BoundaryAction::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

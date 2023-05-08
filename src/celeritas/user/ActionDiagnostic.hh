@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <vector>
 
 #include "corecel/data/StreamStore.hh"
@@ -15,7 +16,7 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
-#include "ActionDiagnosticData.hh"
+#include "ParticleTallyData.hh"
 
 namespace celeritas
 {
@@ -33,7 +34,7 @@ class ActionDiagnostic final : public ExplicitActionInterface,
   public:
     //!@{
     //! \name Type aliases
-    using SPConstActionRegistry = std::shared_ptr<ActionRegistry const>;
+    using WPConstActionRegistry = std::weak_ptr<ActionRegistry const>;
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
     using MapStringCount = std::map<std::string, size_type>;
     using VecCount = std::vector<size_type>;
@@ -43,7 +44,7 @@ class ActionDiagnostic final : public ExplicitActionInterface,
   public:
     //! Construct with action registry and particle data
     ActionDiagnostic(ActionId id,
-                     SPConstActionRegistry action_reg,
+                     WPConstActionRegistry action_reg,
                      SPConstParticle particle,
                      size_type num_streams);
 
@@ -53,9 +54,9 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     //!@{
     //! \name ExplicitAction interface
     // Execute action with host data
-    void execute(ParamsHostCRef const&, StateHostRef&) const final;
+    void execute(CoreParams const&, CoreStateHost&) const final;
     // Execute action with device data
-    void execute(ParamsDeviceCRef const&, StateDeviceRef&) const final;
+    void execute(CoreParams const&, CoreStateDevice&) const final;
     //! ID of the action
     ActionId action_id() const final { return id_; }
     //! Short name for the action
@@ -80,18 +81,17 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     // Get the diagnostic results accumulated over all streams
     VecVecCount calc_actions() const;
 
-    // Number of tally bins (number of particles times number of actions)
-    size_type num_bins() const;
+    // Diagnostic state data size (number of particles times number of actions)
+    size_type state_size() const;
 
     // Reset diagnostic results
     void clear();
 
   private:
-    using StoreT
-        = StreamStore<ActionDiagnosticParamsData, ActionDiagnosticStateData>;
+    using StoreT = StreamStore<ParticleTallyParamsData, ParticleTallyStateData>;
 
     ActionId id_;
-    SPConstActionRegistry action_reg_;
+    WPConstActionRegistry action_reg_;
     SPConstParticle particle_;
     size_type num_streams_;
     mutable StoreT store_;
@@ -107,8 +107,7 @@ class ActionDiagnostic final : public ExplicitActionInterface,
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-inline void
-ActionDiagnostic::execute(ParamsDeviceCRef const&, StateDeviceRef&) const
+inline void ActionDiagnostic::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

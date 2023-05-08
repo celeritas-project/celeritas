@@ -17,20 +17,20 @@ namespace celeritas
 /*!
  * Execute the action with host data
  */
-void InitializeTracksAction::execute(ParamsHostCRef const& params,
-                                     StateHostRef& states) const
+void InitializeTracksAction::execute(CoreParams const& params,
+                                     CoreStateHost& state) const
 {
-    initialize_tracks(params, states);
+    initialize_tracks(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data
  */
-void InitializeTracksAction::execute(ParamsDeviceCRef const& params,
-                                     StateDeviceRef& states) const
+void InitializeTracksAction::execute(CoreParams const& params,
+                                     CoreStateDevice& state) const
 {
-    initialize_tracks(params, states);
+    initialize_tracks(params, state);
 }
 
 }  // namespace celeritas

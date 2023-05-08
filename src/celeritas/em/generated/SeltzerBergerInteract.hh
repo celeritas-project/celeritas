@@ -12,27 +12,33 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh" // IWYU pragma: associated
-#include "celeritas/global/CoreTrackDataFwd.hh"
+
+namespace celeritas
+{
+class CoreParams;
+template<MemSpace M>
+class CoreState;
+}
 
 namespace celeritas
 {
 namespace generated
 {
 void seltzer_berger_interact(
-    celeritas::SeltzerBergerHostRef const&,
-    celeritas::HostCRef<celeritas::CoreParamsData> const&,
-    celeritas::HostRef<celeritas::CoreStateData>&);
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::SeltzerBergerHostRef const&);
 
 void seltzer_berger_interact(
-    celeritas::SeltzerBergerDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData>&);
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::SeltzerBergerDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void seltzer_berger_interact(
-    celeritas::SeltzerBergerDeviceRef const&,
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const&,
-    celeritas::DeviceRef<celeritas::CoreStateData>&)
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::SeltzerBergerDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

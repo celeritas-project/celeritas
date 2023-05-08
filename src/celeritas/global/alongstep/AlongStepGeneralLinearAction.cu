@@ -16,6 +16,8 @@
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"  // IWYU pragma: associated
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepImpl.hh"
@@ -103,43 +105,42 @@ along_step_update_track_kernel(DeviceCRef<CoreParamsData> const params,
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepGeneralLinearAction::execute(ParamsDeviceCRef const& params,
-                                           StateDeviceRef& state) const
+void AlongStepGeneralLinearAction::execute(CoreParams const& params,
+                                           CoreStateDevice& state) const
 {
-    CELER_EXPECT(params && state);
     CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state,
+                        params.ref<MemSpace::native>(),
+                        state.ref(),
                         device_data_.msc);
     CELER_LAUNCH_KERNEL(along_step_apply_linear_propagation,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state);
+                        params.ref<MemSpace::native>(),
+                        state.ref());
     CELER_LAUNCH_KERNEL(along_step_apply_msc,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state,
+                        params.ref<MemSpace::native>(),
+                        state.ref(),
                         device_data_.msc);
     CELER_LAUNCH_KERNEL(along_step_update_time,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state);
+                        params.ref<MemSpace::native>(),
+                        state.ref());
     CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state,
+                        params.ref<MemSpace::native>(),
+                        state.ref(),
                         device_data_.fluct);
     CELER_LAUNCH_KERNEL(along_step_update_track,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params,
-                        state);
+                        params.ref<MemSpace::native>(),
+                        state.ref());
 }
 
 //---------------------------------------------------------------------------//

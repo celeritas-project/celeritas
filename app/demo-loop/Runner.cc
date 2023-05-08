@@ -56,6 +56,7 @@
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/StepCollector.hh"
 #include "celeritas/user/StepData.hh"
+#include "celeritas/user/StepDiagnostic.hh"
 
 #include "RootOutput.hh"
 #include "RunnerInput.hh"
@@ -321,7 +322,6 @@ void Runner::build_transporter_input(RunnerInput const& inp)
     transporter_input_ = std::make_shared<TransporterInput>();
     transporter_input_->num_track_slots = inp.max_num_tracks;
     transporter_input_->max_steps = inp.max_steps;
-    transporter_input_->enable_diagnostics = inp.enable_diagnostics;
     transporter_input_->sync = inp.sync;
     transporter_input_->params = core_params_;
 }
@@ -422,6 +422,20 @@ void Runner::build_diagnostics(RunnerInput const& inp)
         core_params_->action_reg()->insert(action_diagnostic);
         // Add to output interface
         core_params_->output_reg()->insert(action_diagnostic);
+    }
+
+    if (inp.step_diagnostic)
+    {
+        auto step_diagnostic = std::make_shared<StepDiagnostic>(
+            core_params_->action_reg()->next_id(),
+            core_params_->particle(),
+            inp.step_diagnostic_maxsteps,
+            core_params_->max_streams());
+
+        // Add to action registry
+        core_params_->action_reg()->insert(step_diagnostic);
+        // Add to output interface
+        core_params_->output_reg()->insert(step_diagnostic);
     }
 }
 

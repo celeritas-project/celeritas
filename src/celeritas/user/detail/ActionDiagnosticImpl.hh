@@ -22,22 +22,23 @@ namespace detail
  */
 inline CELER_FUNCTION void
 tally_action(CoreTrackView const& track,
-             NativeRef<ActionDiagnosticStateData>&& data)
+             NativeCRef<ParticleTallyParamsData> const& params,
+             NativeRef<ParticleTallyStateData> const& state)
 {
-    using BinId = ItemId<size_type>;
+    CELER_EXPECT(params);
+    CELER_EXPECT(state);
 
-    CELER_EXPECT(data);
+    using BinId = ItemId<size_type>;
 
     auto action = track.make_sim_view().step_limit().action;
     CELER_ASSERT(action);
     auto particle = track.make_particle_view().particle_id();
     CELER_ASSERT(particle);
-    auto num_particles = track.make_physics_view().num_particles();
 
-    BinId bin{action.unchecked_get() * num_particles
-              + particle.unchecked_get()};
-    CELER_ASSERT(bin < data.counts.size());
-    celeritas::atomic_add(&data.counts[bin], size_type(1));
+    BinId bin{particle.unchecked_get() * params.num_bins
+              + action.unchecked_get()};
+    CELER_ASSERT(bin < state.counts.size());
+    celeritas::atomic_add(&state.counts[bin], size_type(1));
 }
 
 //---------------------------------------------------------------------------//

@@ -60,11 +60,8 @@ struct RunnerResult
 {
     //!@{
     //! \name Type aliases
-    using real_type = celeritas::real_type;
     using size_type = celeritas::size_type;
     using VecCount = std::vector<size_type>;
-    using VecReal = std::vector<real_type>;
-    using MapStringVecCount = std::unordered_map<std::string, VecCount>;
     //!@}
 
     //// DATA ////
@@ -72,7 +69,6 @@ struct RunnerResult
     VecCount initializers;  //!< Num starting track initializers
     VecCount active;  //!< Num tracks active at beginning of step
     VecCount alive;  //!< Num living tracks at end of step
-    MapStringVecCount steps;  //!< Distribution of steps
     RunTimingResult time;  //!< Timing information
 };
 
