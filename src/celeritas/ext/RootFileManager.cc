@@ -59,7 +59,7 @@ RootFileManager::make_tree(char const* name, char const* title)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write TFile to disk.
+ * Manually write TFile.
  */
 void RootFileManager::write()
 {

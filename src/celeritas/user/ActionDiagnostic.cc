@@ -26,7 +26,7 @@
 #    include "corecel/io/LabelIO.json.hh"
 #endif
 
-    namespace celeritas
+namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!

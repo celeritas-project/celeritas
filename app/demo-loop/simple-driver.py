@@ -28,11 +28,18 @@ run_name = (path.splitext(path.basename(geometry_filename))[0]
             + ('-gpu' if use_device else '-cpu'))
 
 geant_options = {
-    'rayleigh': True,
-    'eloss_fluctuation': True,
+    'coulomb_scattering': False,
+    'compton_scattering': True,
+    'photoelectric': True,
+    'rayleigh_scattering': True,
+    'gamma_conversion': True,
+    'gamma_general': False,
+    'ionization': True,
+    'annihilation': True,
     'brems': "all",
+    'msc': "urban_extended" if use_vecgeom else "none",
+    'eloss_fluctuation': True,
     'lpm': True,
-    'msc': "urban" if use_vecgeom else "none",
 }
 
 if geant_exp_exe:

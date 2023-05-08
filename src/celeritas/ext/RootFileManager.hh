@@ -35,7 +35,7 @@ class RootFileManager
     // Create tree by passing a name and title
     UPRootWritable<TTree> make_tree(char const* name, char const* title);
 
-    // Write TFile
+    // Manually write TFile
     void write();
 
   public:

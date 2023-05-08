@@ -166,7 +166,7 @@ void GeantPhysicsList::add_gamma_processes()
         }
     };
 
-    if (true)
+    if (options_.compton_scattering)
     {
         // Compton Scattering: G4KleinNishinaCompton
         auto compton_scattering = std::make_unique<G4ComptonScattering>();
@@ -175,7 +175,7 @@ void GeantPhysicsList::add_gamma_processes()
                             "G4KleinNishinaCompton";
     }
 
-    if (true)
+    if (options_.photoelectric)
     {
         // Photoelectric effect: G4LivermorePhotoElectricModel
         auto pe = std::make_unique<G4PhotoElectricEffect>();
@@ -193,7 +193,7 @@ void GeantPhysicsList::add_gamma_processes()
                             "G4LivermoreRayleighModel";
     }
 
-    if (true)
+    if (options_.gamma_conversion)
     {
         // Gamma conversion: G4PairProductionRelModel
         auto gamma_conversion = std::make_unique<G4GammaConversion>();
@@ -215,20 +215,18 @@ void GeantPhysicsList::add_gamma_processes()
 /*!
  * Add EM processes for electrons and positrons.
  *
- * | Processes                    | Model classes             |
- * | ---------------------------- | --------------------------|
- * | Pair annihilation            | G4eeToTwoGammaModel       |
- * | Ionization                   | G4MollerBhabhaModel       |
- * | Bremsstrahlung (low E)       | G4SeltzerBergerModel      |
- * | Bremsstrahlung (high E)      | G4eBremsstrahlungRelModel |
- * | Coulomb scattering           | G4eCoulombScatteringModel |
- * | Multiple scattering (low E)  | G4UrbanMscModel           |
- * | Multiple scattering (high E) | G4WentzelVIModel          |
+ * | Processes                    | Model classes                |
+ * | ---------------------------- | ---------------------------- |
+ * | Pair annihilation            | G4eeToTwoGammaModel          |
+ * | Ionization                   | G4MollerBhabhaModel          |
+ * | Bremsstrahlung (low E)       | G4SeltzerBergerModel         |
+ * | Bremsstrahlung (high E)      | G4eBremsstrahlungRelModel    |
+ * | Coulomb scattering           | G4eCoulombScatteringModel    |
+ * | Multiple scattering (low E)  | G4UrbanMscModel              |
+ * | Multiple scattering (low E)  | G4GoudsmitSaundersonMscModel |
+ * | Multiple scattering (high E) | G4WentzelVIModel             |
  *
  * \note
- * - Bremsstrahlung models are selected manually at compile time using
- *   \c GeantBremsstrahlungProcess::ModelSelection and need to be updated
- *   accordingly.
  * - Coulomb scattering and multiple scattering (high E) are currently
  *   disabled.
  */
@@ -236,7 +234,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
 
-    if (p == G4Positron::Positron())
+    if (options_.annihilation && p == G4Positron::Positron())
     {
         // e+e- annihilation: G4eeToTwoGammaModel
         physics_list->RegisterProcess(new G4eplusAnnihilation(), p);
@@ -245,7 +243,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
                             "G4eplusAnnihilation";
     }
 
-    if (true)
+    if (options_.ionization)
     {
         // e-e+ ionization: G4MollerBhabhaModel
         auto ionization = std::make_unique<G4eIonisation>();
@@ -255,7 +253,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         CELER_LOG(debug) << "Loaded ionization with G4MollerBhabhaModel";
     }
 
-    if (true)
+    if (options_.brems != BremsModelSelection::none)
     {
         physics_list->RegisterProcess(
             new GeantBremsstrahlungProcess(options_.brems), p);
@@ -324,6 +322,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
         if (options_.msc == MscModelSelection::goudsmit_saunderson)
         {
+            // Multiple scattering: Goudsmit-Saunderson (low E)
             auto model = std::make_unique<G4GoudsmitSaundersonMscModel>();
             process->SetEmModel(model.release());
 

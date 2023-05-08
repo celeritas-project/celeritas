@@ -70,8 +70,7 @@ namespace demo_loop
 /*!
  * Construct on all threads from a JSON input and shared output manager.
  */
-Runner::Runner(RunnerInput const& inp,
-               std::shared_ptr<celeritas::OutputRegistry> output)
+Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
 {
     CELER_EXPECT(output);
 
@@ -79,15 +78,14 @@ Runner::Runner(RunnerInput const& inp,
 
     ScopedRootErrorHandler scoped_root_error;
     this->build_core_params(inp, std::move(output));
-    this->build_step_collectors(inp);
     this->build_diagnostics(inp);
+    this->build_step_collectors(inp);
     this->build_transporter_input(inp);
     this->build_primaries(inp);
     use_device_ = inp.use_device;
 
     if (root_manager_)
     {
-        // Store input and CoreParams data
         write_to_root(inp, root_manager_.get());
         write_to_root(*core_params_, root_manager_.get());
     }
@@ -361,11 +359,10 @@ void Runner::build_primaries(RunnerInput const& inp)
  */
 void Runner::build_step_collectors(RunnerInput const& inp)
 {
-    std::shared_ptr<RootFileManager> root_manager_;
-    std::shared_ptr<StepCollector> step_collector_;
     StepCollector::VecInterface step_interfaces;
     if (!inp.mctruth_filename.empty())
     {
+        // Initialize ROOT file
         root_manager_
             = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
 
@@ -376,6 +373,7 @@ void Runner::build_step_collectors(RunnerInput const& inp)
             StepSelection::all(),
             make_write_filter(inp.mctruth_filter)));
     }
+
     if (!inp.simple_calo.empty())
     {
         auto simple_calo

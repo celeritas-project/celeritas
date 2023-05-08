@@ -23,6 +23,7 @@
 #include <G4VEmModel.hh>
 #include <G4eBremsstrahlungRelModel.hh>
 
+#include "corecel/Assert.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 
 using CLHEP::GeV;
@@ -40,6 +41,9 @@ GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(ModelSelection selection)
     , is_initialized_(false)
     , model_selection_(selection)
 {
+    CELER_VALIDATE(selection != ModelSelection::none,
+                   << "Cannot initialize GeantBremsstrahlungProcess with "
+                      "BremsModelSelection::none.");
     SetProcessSubType(G4EmProcessSubType::fBremsstrahlung);
     SetSecondaryParticle(G4Gamma::Gamma());
     SetIonisation(false);

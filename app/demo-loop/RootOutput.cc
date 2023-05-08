@@ -9,14 +9,14 @@
 
 #include <string>
 #include <vector>
-#include <TBranch.h>
-#include <TFile.h>
 #include <TTree.h>
 
+#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 
 #include "RunnerInput.hh"
+#include "RunnerInputIO.json.hh"
 
 namespace demo_loop
 {
@@ -29,32 +29,13 @@ void write_to_root(RunnerInput const& cargs,
 {
     CELER_EXPECT(cargs);
 
-    auto& args = const_cast<RunnerInput&>(cargs);
+    std::string str_input(nlohmann::json(cargs).dump());
+    std::string str_phys(nlohmann::json(cargs.geant_options).dump());
+
     auto tree_input = root_manager->make_tree("input", "input");
-
-    // Problem definition
-    tree_input->Branch("geometry_filename", &args.geometry_filename);
-    tree_input->Branch("physics_filename", &args.physics_filename);
-    tree_input->Branch("hepmc3_filename", &args.hepmc3_filename);
-
-    // Control
-    tree_input->Branch("seed", &args.seed);
-    tree_input->Branch("max_num_tracks", &args.max_num_tracks);
-    tree_input->Branch("max_steps", &args.max_steps);
-    tree_input->Branch("initializer_capacity", &args.initializer_capacity);
-    tree_input->Branch("max_events", &args.max_events);
-    tree_input->Branch("secondary_stack_factor", &args.secondary_stack_factor);
-    tree_input->Branch("use_device", &args.use_device);
-    tree_input->Branch("sync", &args.sync);
-    tree_input->Branch("step_limiter", &args.step_limiter);
-
-    // Options for physics processes and models
-    tree_input->Branch("combined_brem", &args.brem_combined);
-
-    // TODO Add magnetic field information?
-
-    // Fill tree (writing happens at destruction)
-    tree_input->Fill();
+    tree_input->Branch("input", &str_input);
+    tree_input->Branch("geant_otions", &str_phys);
+    tree_input->Fill();  // Writing happens at destruction
 }
 
 //---------------------------------------------------------------------------//

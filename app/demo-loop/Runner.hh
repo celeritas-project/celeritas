@@ -112,6 +112,7 @@ class Runner
     std::vector<celeritas::Primary> primaries_;
 
     //// HELPER FUNCTIONS ////
+
     void setup_globals(RunnerInput const&) const;
     void build_core_params(RunnerInput const&, SPOutputRegistry&&);
     void build_step_collectors(RunnerInput const&);
