@@ -89,17 +89,6 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
 
 //---------------------------------------------------------------------------//
 /*!
- * Workaround: custom deleters should take care of writing and closing.
- * \note if \c this->build_diagnostics(inp) is not called at construction, it
- * works without the need of a destructors.
- */
-Runner::~Runner()
-{
-    root_manager_->close();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Run on a single stream/thread, returning the transport result.
  *
  * This will partition the input primaries among all the streams.
@@ -371,6 +360,7 @@ void Runner::build_step_collectors(RunnerInput const& inp)
         root_manager_
             = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
         write_to_root(inp, root_manager_.get());
+        // Must be called after all actions were added to action_registry
         write_to_root(*core_params_, root_manager_.get());
 
         // Create root step writer

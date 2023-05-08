@@ -93,9 +93,6 @@ class Runner
     // Construct on all threads from a JSON input and shared output manager
     Runner(RunnerInput const& inp, SPOutputRegistry output);
 
-    // Write and close ROOT file at destruction
-    ~Runner();
-
     // Run on a single stream/thread, returning the transport result
     RunnerResult operator()(StreamId s) const;
 
