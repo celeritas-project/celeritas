@@ -84,6 +84,12 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
     this->build_primaries(inp);
     use_device_ = inp.use_device;
 
+    if (root_manager_)
+    {
+        write_to_root(inp, root_manager_.get());
+        write_to_root(*core_params_, root_manager_.get());
+    }
+
     CELER_ENSURE(core_params_);
 }
 
@@ -359,9 +365,6 @@ void Runner::build_step_collectors(RunnerInput const& inp)
         // Initialize ROOT file
         root_manager_
             = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
-        write_to_root(inp, root_manager_.get());
-        // Must be called after all actions were added to action_registry
-        write_to_root(*core_params_, root_manager_.get());
 
         // Create root step writer
         step_interfaces.push_back(std::make_shared<RootStepWriter>(

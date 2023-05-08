@@ -59,15 +59,13 @@ RootFileManager::make_tree(char const* name, char const* title)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write TFile to disk and close it.
+ * Manually write TFile.
  */
-void RootFileManager::close()
+void RootFileManager::write()
 {
     CELER_EXPECT(tfile_->IsOpen());
     int write_status = tfile_->Write();
     CELER_ENSURE(write_status);
-    tfile_->Close();
-    CELER_ENSURE(!tfile_->IsOpen());
 }
 
 //---------------------------------------------------------------------------//
