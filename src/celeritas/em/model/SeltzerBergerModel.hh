@@ -84,10 +84,10 @@ class SeltzerBergerModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "brems-sb"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the post-step action
     std::string description() const final
     {
-        return "Seltzer-Berger bremsstrahlung";
+        return "interact by Seltzer-Berger bremsstrahlung";
     }
 
     //! Access SB data on the host

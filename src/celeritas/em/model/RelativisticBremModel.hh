@@ -63,10 +63,10 @@ class RelativisticBremModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "brems-rel"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the post-step action
     std::string description() const final
     {
-        return "Relativistic bremsstrahlung";
+        return "interact by relativistic bremsstrahlung";
     }
 
     //! Access data on the host

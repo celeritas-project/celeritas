@@ -83,6 +83,15 @@ void ActionDiagnostic::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a long description of the action.
+ */
+std::string ActionDiagnostic::description() const
+{
+    return "accumulate post-step action counters";
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Write output to the given JSON object.
  */
 void ActionDiagnostic::output(JsonPimpl* j) const

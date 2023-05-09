@@ -70,10 +70,10 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
     //! Short name for the along-step kernel
     std::string label() const final { return "along-step-general-linear"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the action
     std::string description() const final
     {
-        return "along-step for particles with no field";
+        return "apply along-step for particles with no field";
     }
 
     //! Dependency ordering of the action
