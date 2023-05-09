@@ -298,11 +298,18 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
     if (!dynamic_cast<UnplacedScaledShape const*>(vg_logvol->GetUnplacedVolume())
         && !dynamic_cast<G4BooleanSolid const*>(g4_logvol->GetSolid()))
     {
-        auto v1 = vg_logvol->GetUnplacedVolume()->Capacity() / ipow<3>(scale);
-        auto v2 = g4_logvol->GetSolid()->GetCubicVolume();
+        auto vg_cap = vg_logvol->GetUnplacedVolume()->Capacity();
+        CELER_ASSERT(vg_cap > 0);
+        auto g4_cap = g4_logvol->GetSolid()->GetCubicVolume() * ipow<3>(scale);
 
-        CELER_ASSERT(v1 > 0.);
-        CELER_ASSERT(SoftEqual{0.01}(v1, v2));
+        if (CELER_UNLIKELY(!SoftEqual{0.01}(vg_cap, g4_cap)))
+        {
+            CELER_LOG(warning)
+                << "Volume " << g4_logvol->GetName() << " (VecGeom volume ID "
+                << volid.get()
+                << ") conversion may have failed: VecGeom/G4 volume ratio is "
+                << vg_cap / g4_cap;
+        }
     }
     return vg_logvol;
 }
