@@ -26,6 +26,14 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Base class for identifying "generic" VecGeom volumes.
+ */
+class GenericSolidBase : public vecgeom::VUnplacedVolume
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * A generic VecGeom solid converted from a Geant4 geometry.
  *
  * Some complex geometry functionalities in Geant4 don't have equivalents yet
@@ -33,7 +41,7 @@ namespace detail
  * when it makes sense to use some functionality from the original G4 shape.
  */
 template<typename S>
-class GenericSolid : public vecgeom::VUnplacedVolume
+class GenericSolid : public GenericSolidBase
 {
   private:
     //!@{
