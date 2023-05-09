@@ -540,7 +540,7 @@ class SolidsTest : public VecgeomTestBase
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SolidsTest, DISABLED_dump)
+TEST_F(SolidsTest, dump)
 {
     this->geometry();
     auto const& geomgr = vecgeom::GeoManager::Instance();
@@ -572,8 +572,9 @@ TEST_F(SolidsTest, accessors)
     EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}), bbox.lower());
     EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), bbox.upper());
 
-    ASSERT_EQ(25, geom.num_volumes());
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{geom.num_volumes() - 1}).name);
+    ASSERT_EQ(27, geom.num_volumes());
+    EXPECT_EQ("trd1_refl",
+              geom.id_to_label(VolumeId{geom.num_volumes() - 1}).name);
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{5}).name);
     EXPECT_EQ("trap1", geom.id_to_label(VolumeId{9}).name);
@@ -599,6 +600,8 @@ TEST_F(SolidsTest, trace)
                                                        "trd1",
                                                        "World",
                                                        "parabol1",
+                                                       "World",
+                                                       "trd1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {20,
@@ -614,7 +617,9 @@ TEST_F(SolidsTest, trace)
                                                        30,
                                                        88.786678713601,
                                                        42.426642572799,
-                                                       203.7866787136};
+                                                       88.7866787136,
+                                                       30,
+                                                       85};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -680,9 +685,9 @@ TEST_F(SolidsTest, trace)
                                                        80,
                                                        68.125,
                                                        33.75,
-                                                       108.125,
-                                                       55.928620358185,
-                                                       29.071379641815,
+                                                       57.5193323464911,
+                                                       50.6056676535089,
+                                                       85,
                                                        80,
                                                        40,
                                                        45,
@@ -827,7 +832,7 @@ class SolidsGeantTest : public VecgeomTestBase
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SolidsGeantTest, DISABLED_dump)
+TEST_F(SolidsGeantTest, dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
@@ -857,11 +862,11 @@ TEST_F(SolidsGeantTest, accessors)
     EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}), bbox.lower());
     EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), bbox.upper());
 
-    ASSERT_EQ(25, geom.num_volumes());
+    ASSERT_EQ(28, geom.num_volumes());
     EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("b500_bool_left", geom.id_to_label(VolumeId{9}).name);
+    EXPECT_EQ("[unused]", geom.id_to_label(VolumeId{9}).name);
 }
 
 //---------------------------------------------------------------------------//
@@ -884,6 +889,8 @@ TEST_F(SolidsGeantTest, trace)
                                                        "trd1",
                                                        "World",
                                                        "parabol1",
+                                                       "World",
+                                                       "trd1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {20,
@@ -899,7 +906,9 @@ TEST_F(SolidsGeantTest, trace)
                                                        30,
                                                        88.786678713601,
                                                        42.426642572799,
-                                                       203.7866787136};
+                                                       88.7866787136,
+                                                       30,
+                                                       85};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -965,9 +974,9 @@ TEST_F(SolidsGeantTest, trace)
                                                        80,
                                                        68.125,
                                                        33.75,
-                                                       108.125,
-                                                       55.928620358185,
-                                                       29.071379641815,
+                                                       57.5193323464911,
+                                                       50.6056676535089,
+                                                       85,
                                                        80,
                                                        40,
                                                        45,

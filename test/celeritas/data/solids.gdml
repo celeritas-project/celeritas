@@ -58,7 +58,9 @@ acceptance of all terms of the Geant4 Software license.
   <position name="posParab1"     x="-3750" y="    0" z="0" unit="mm" />
   <position name="posArb8b"      x="-3750" y="-1250" z="0" unit="mm" />
 
-  <position name="posTessel1"    x="-5000" y="    0" z="0" unit="mm" />
+  <position name="posTessel1"    x="-5000" y=" 1250" z="0" unit="mm" />
+  <position name="posDirect"     x="-5000" y="    0" z="0" unit="mm" />
+  <position name="posReflect"    x="-5000" y="-1250" z="0" unit="mm" />
 
   <position name="v0" unit="mm"  x=" 400" y=" 400" z="-500" />
   <position name="v1" unit="mm"  x="-400" y=" 400" z="-500" />
@@ -66,8 +68,8 @@ acceptance of all terms of the Geant4 Software license.
   <position name="v3" unit="mm"  x="-400" y="-400" z="-500" />
   <position name="v4" unit="mm"  x=" 400" y="-400" z="-500" />
 
-  <rotation name="rotatebyx" x="HALFPI" aunit="rad"/>
-  <rotation name="rotatebyy" y="90"     aunit="deg"/>
+  <rotation name="rotatebyx" x="0.5236" y="0" z="0"/>
+  <rotation name="rotatebyy" y="30"     aunit="deg"/>
   <rotation name="rotatebyall" x="HALFPI" y="HALFPI" z="HALFPI"/>
 
   <constant name="wextent" value="2000."/>
@@ -346,6 +348,19 @@ acceptance of all terms of the Geant4 Software license.
      <volumeref ref="trd1"/>
      <positionref ref="posTrd1"/>
      <rotationref ref="norot"/>
+   </physvol>
+
+   <physvol name="reflNormal">
+     <volumeref ref="trd1"/>
+     <positionref ref="posDirect"/>
+     <rotationref ref="rotatebyx"/>
+   </physvol>
+
+   <physvol name="reflected">
+     <volumeref ref="trd1"/>
+     <positionref ref="posReflect"/>
+     <rotationref ref="rotatebyx"/>
+     <scale x="1" y="1" z="-1"/>
    </physvol>
 
    <physvol>
