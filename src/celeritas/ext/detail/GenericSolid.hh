@@ -16,6 +16,8 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 #include <VecGeom/volumes/UnplacedVolume.h>
 
+#include "corecel/Assert.hh"
+
 #include "GenericPlacedVolume.hh"
 
 namespace celeritas
@@ -209,12 +211,12 @@ class GenericSolid : public vecgeom::VUnplacedVolume
     }
     DevicePtr<CudaUnplacedVolume> CopyToGpu() const
     {
-        return {};
+        CELER_NOT_IMPLEMENTED("GenericSolid with CUDA");
     }
     DevicePtr<CudaUnplacedVolume>
     CopyToGpu(DevicePtr<CudaUnplacedVolume> const) const
     {
-        return {};
+        CELER_NOT_IMPLEMENTED("GenericSolid with CUDA");
     }
     //! @}
 #endif
