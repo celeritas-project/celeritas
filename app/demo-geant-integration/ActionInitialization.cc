@@ -76,7 +76,7 @@ void ActionInitialization::Build() const
                       init_celeritas_});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
-    this->SetUserAction(new EventAction{transport});
+    this->SetUserAction(new EventAction{params_, transport});
     // Tracking action offloads tracks to device and kills them
     this->SetUserAction(new TrackingAction{params_, transport});
 }
