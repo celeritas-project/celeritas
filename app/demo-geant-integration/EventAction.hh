@@ -11,6 +11,7 @@
 #include <G4UserEventAction.hh>
 
 #include "accel/LocalTransporter.hh"
+#include "accel/SharedParams.hh"
 
 namespace demo_geant
 {
@@ -26,16 +27,18 @@ class EventAction final : public G4UserEventAction
   public:
     //!@{
     //! \name Type aliases
+    using SPConstParams = std::shared_ptr<const celeritas::SharedParams>;
     using SPTransporter = std::shared_ptr<celeritas::LocalTransporter>;
     //!@}
 
   public:
-    explicit EventAction(SPTransporter transport);
+    EventAction(SPConstParams params, SPTransporter transport);
 
     void BeginOfEventAction(G4Event const* event) final;
     void EndOfEventAction(G4Event const* event) final;
 
   private:
+    SPConstParams params_;
     SPTransporter transport_;
 };
 

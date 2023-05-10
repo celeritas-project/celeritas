@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "KernelContextException.hh"
 
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/JsonPimpl.hh"
 #if CELERITAS_USE_JSON
@@ -33,19 +34,6 @@ void insert_if_valid(char const* key,
     }
 }
 #endif
-template<class V, class S>
-std::ostream& operator<<(std::ostream& os, OpaqueId<V, S> const& v)
-{
-    if (v)
-    {
-        os << v.unchecked_get();
-    }
-    else
-    {
-        os << '?';
-    }
-    return os;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace
