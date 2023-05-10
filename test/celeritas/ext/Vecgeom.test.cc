@@ -18,6 +18,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Version.hh"
+#include "celeritas/LazyGeoManager.hh"
 #include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
@@ -53,11 +54,11 @@ auto const vecgeom_version
  *
  * Test cases should be matched to unique geometries.
  */
-class VecgeomTestBase : public ::celeritas::test::Test
+class VecgeomTestBase : public ::celeritas::test::Test, private LazyGeoManager
 {
   public:
     //!@{
-    using SPGeometry = std::shared_ptr<VecgeomParams>;
+    using SPConstGeo = std::shared_ptr<VecgeomParams const>;
     using HostStateStore
         = CollectionStateStore<VecgeomStateData, MemSpace::host>;
     //!@}
@@ -72,7 +73,7 @@ class VecgeomTestBase : public ::celeritas::test::Test
 
   public:
     //! Lazily construct and access the geometry
-    SPGeometry const& geometry();
+    SPConstGeo const& geometry();
 
     //! Create a host track view
     VecgeomTrackView make_geo_track_view();
@@ -81,93 +82,40 @@ class VecgeomTestBase : public ::celeritas::test::Test
     TrackingResult track(Real3 const& pos, Real3 const& dir);
 
     //! Build the geometry
-    virtual SPGeometry build_geometry() = 0;
+    virtual SPConstGeo build_geometry() = 0;
 
     //! Helper function: build with VecGeom using VGDML
-    SPGeometry load_vgdml(std::string_view filename) const;
+    SPConstGeo load_vgdml(std::string_view filename) const;
 
     //! Helper function: build via Geant4 GDML reader
-    SPGeometry load_g4_gdml(std::string_view filename) const;
+    SPConstGeo load_g4_gdml(std::string_view filename) const;
 
   private:
+    SPConstGeo geo_;
     HostStateStore host_state_;
 
-    struct LazyGeo;
-    class CleanupGeoEnvironment;
-    static LazyGeo& lazy_geo();
-    static void reset_geometry();
+    SPConstGeoI build_fresh_geometry(std::string_view) final
+    {
+        return this->build_geometry();
+    }
 };
 
 //---------------------------------------------------------------------------//
-// Geometry class management
-//---------------------------------------------------------------------------//
-
-struct VecgeomTestBase::LazyGeo
+auto VecgeomTestBase::geometry() -> SPConstGeo const&
 {
-    std::string case_name{};
-    SPGeometry geometry{};
-};
-
-class VecgeomTestBase::CleanupGeoEnvironment : public ::testing::Environment
-{
-  public:
-    void SetUp() override {}
-    void TearDown() override { VecgeomTestBase::reset_geometry(); }
-};
-
-void VecgeomTestBase::reset_geometry()
-{
-    auto& lazy = VecgeomTestBase::lazy_geo();
-    if (lazy.geometry)
+    if (!geo_)
     {
-        CELER_LOG(debug) << "Destroying '" << lazy.case_name << "' geometry";
-        lazy.geometry.reset();
-        if (CELERITAS_USE_GEANT4)
-        {
-            reset_geant_geometry();
-        }
-    }
-}
+        // Get filename based on unit test name
+        ::testing::TestInfo const* const test_info
+            = ::testing::UnitTest::GetInstance()->current_test_info();
+        CELER_ASSERT(test_info);
 
-auto VecgeomTestBase::lazy_geo() -> LazyGeo&
-{
-    static bool registered_cleanup = false;
-    if (!registered_cleanup)
-    {
-        // Always reset geometry at end of testing before global destructors.
-        CELER_LOG(debug) << "Registering CleanupGeoEnvironment";
-        ::testing::AddGlobalTestEnvironment(new CleanupGeoEnvironment());
-        registered_cleanup = true;
+        geo_ = std::dynamic_pointer_cast<VecgeomParams const>(
+            this->get_geometry(test_info->test_case_name()));
+        CELER_ASSERT(geo_);
     }
 
-    // Delayed initialization
-    static LazyGeo lg;
-    return lg;
-}
-
-//---------------------------------------------------------------------------//
-auto VecgeomTestBase::geometry() -> SPGeometry const&
-{
-    // Get filename based on unit test name
-    ::testing::TestInfo const* const test_info
-        = ::testing::UnitTest::GetInstance()->current_test_info();
-    CELER_ASSERT(test_info);
-
-    // Convert test case to lowercase
-    std::string case_name = test_info->test_case_name();
-    LazyGeo& lg = VecgeomTestBase::lazy_geo();
-    if (lg.case_name != case_name)
-    {
-        // Deallocate old geometry
-        lg = {};
-    }
-    if (!lg.geometry)
-    {
-        lg.geometry = this->build_geometry();
-        lg.case_name = case_name;
-        CELER_ASSERT(lg.geometry);
-    }
-    return lg.geometry;
+    return geo_;
 }
 
 //---------------------------------------------------------------------------//
@@ -239,7 +187,7 @@ void VecgeomTestBase::TrackingResult::print_expected()
 }
 
 //---------------------------------------------------------------------------//
-auto VecgeomTestBase::load_vgdml(std::string_view filename) const -> SPGeometry
+auto VecgeomTestBase::load_vgdml(std::string_view filename) const -> SPConstGeo
 {
     return std::make_shared<VecgeomParams>(
         this->test_data_path("celeritas", filename));
@@ -247,7 +195,7 @@ auto VecgeomTestBase::load_vgdml(std::string_view filename) const -> SPGeometry
 
 //---------------------------------------------------------------------------//
 auto VecgeomTestBase::load_g4_gdml(std::string_view filename) const
-    -> SPGeometry
+    -> SPConstGeo
 {
     return std::make_shared<VecgeomParams>(::celeritas::load_geant_geometry(
         this->test_data_path("celeritas", filename)));
@@ -260,7 +208,7 @@ auto VecgeomTestBase::load_g4_gdml(std::string_view filename) const
 class FourLevelsTest : public VecgeomTestBase
 {
   public:
-    SPGeometry build_geometry() final
+    SPConstGeo build_geometry() final
     {
         return this->load_vgdml("four-levels.gdml");
     }
@@ -532,7 +480,7 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 class SolidsTest : public VecgeomTestBase
 {
   public:
-    SPGeometry build_geometry() final
+    SPConstGeo build_geometry() final
     {
         return this->load_vgdml("solids.gdml");
     }
@@ -701,7 +649,7 @@ TEST_F(SolidsTest, trace)
 class FourLevelsGeantTest : public VecgeomTestBase
 {
   public:
-    SPGeometry build_geometry() final
+    SPConstGeo build_geometry() final
     {
         return this->load_g4_gdml("four-levels.gdml");
     }
@@ -819,7 +767,7 @@ TEST_F(FourLevelsGeantTest, tracking)
 class SolidsGeantTest : public VecgeomTestBase
 {
   public:
-    SPGeometry build_geometry() final
+    SPConstGeo build_geometry() final
     {
         return this->load_g4_gdml("solids.gdml");
     }
