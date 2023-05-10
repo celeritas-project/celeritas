@@ -15,6 +15,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -68,15 +69,21 @@ void ActionDiagnostic::execute(CoreParams const& params,
     }
     MultiExceptionHandler capture_exception;
     auto launch = make_active_track_launcher(
-        params.ref<MemSpace::native>(),
-        state.ref(),
+        *params.ptr<MemSpace::native>(),
+        *state.ptr(),
         detail::tally_action,
         store_.params<MemSpace::host>(),
         store_.state<MemSpace::host>(state.stream_id(), this->state_size()));
 #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < state.size(); ++i)
     {
-        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE_CONTEXT(
+            launch(ThreadId{i}),
+            capture_exception,
+            KernelContextException(params.ref<MemSpace::host>(),
+                                   state.ref(),
+                                   ThreadId{i},
+                                   this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }

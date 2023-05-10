@@ -22,7 +22,12 @@ namespace demo_geant
 /*!
  * Construct with thread-local Celeritas data.
  */
-EventAction::EventAction(SPTransporter transport) : transport_(transport) {}
+EventAction::EventAction(SPConstParams params, SPTransporter transport)
+    : params_(params), transport_(transport)
+{
+    CELER_EXPECT(params_);
+    CELER_EXPECT(transport_);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -47,7 +52,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
     CELER_EXPECT(event);
 
     // Transport any tracks left in the buffer
-    celeritas::ExceptionConverter call_g4exception{"celer0004"};
+    celeritas::ExceptionConverter call_g4exception{"celer0004", params_.get()};
     CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
 
     if (GlobalSetup::Instance()->GetWriteSDHits())

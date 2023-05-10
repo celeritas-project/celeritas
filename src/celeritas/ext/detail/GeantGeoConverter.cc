@@ -275,6 +275,14 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
 
     VUnplacedVolume const* unplaced;
     unplaced = this->convert(g4_logvol->GetSolid());
+    bool const is_unknown_solid
+        = dynamic_cast<GenericSolidBase const*>(unplaced);
+    if (is_unknown_solid)
+    {
+        CELER_LOG(info) << "Unsupported solid belongs to logical volume '"
+                        << g4_logvol->GetName() << "'@"
+                        << static_cast<void const*>(g4_logvol);
+    }
 
     // add 0x suffix, unless already provided from GDML through Geant4 parser
     static G4GDMLWriteStructure gdml_mangler;
@@ -295,14 +303,23 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
 
     // can be used to make a cross check for dimensions and other properties
     // make a cross check using cubic volume property
-    if (!dynamic_cast<UnplacedScaledShape const*>(vg_logvol->GetUnplacedVolume())
-        && !dynamic_cast<G4BooleanSolid const*>(g4_logvol->GetSolid()))
+    if (!dynamic_cast<GenericSolidBase const*>(vg_logvol->GetUnplacedVolume())
+        && !dynamic_cast<UnplacedScaledShape const*>(
+            vg_logvol->GetUnplacedVolume())
+        && !is_unknown_solid)
     {
-        auto v1 = vg_logvol->GetUnplacedVolume()->Capacity() / ipow<3>(scale);
-        auto v2 = g4_logvol->GetSolid()->GetCubicVolume();
+        auto vg_cap = vg_logvol->GetUnplacedVolume()->Capacity();
+        CELER_ASSERT(vg_cap > 0);
+        auto g4_cap = g4_logvol->GetSolid()->GetCubicVolume() * ipow<3>(scale);
 
-        CELER_ASSERT(v1 > 0.);
-        CELER_ASSERT(SoftEqual{0.01}(v1, v2));
+        if (CELER_UNLIKELY(!SoftEqual{0.01}(vg_cap, g4_cap)))
+        {
+            CELER_LOG(error)
+                << "Volume " << g4_logvol->GetName() << " (VecGeom volume ID "
+                << volid.get()
+                << ") conversion may have failed: VecGeom/G4 volume ratio is "
+                << vg_cap / g4_cap;
+        }
     }
     return vg_logvol;
 }
@@ -707,21 +724,20 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
     else if (auto refl = dynamic_cast<G4ReflectedSolid const*>(shape))
     {
         G4VSolid* underlyingSolid = refl->GetConstituentMovedSolid();
-        CELER_LOG(debug)
-            << " Reflected solid found: "
-            << " volume: " << refl->GetName()
-            << " type = " << refl->GetEntityType()
-            << "   -- underlying solid: " << underlyingSolid->GetName()
-            << " type = " << underlyingSolid->GetEntityType();
+        CELER_ASSERT(underlyingSolid);
+        CELER_LOG(error) << "Encountered unsupported reflected solid '"
+                         << refl->GetName() << "' (underlying "
+                         << underlyingSolid->GetEntityType() << " solid is '"
+                         << underlyingSolid->GetName() << "')";
         unplaced_volume = new GenericSolid<G4ReflectedSolid>(refl);
     }
 
     // New volumes should be implemented here...
     if (!unplaced_volume)
     {
-        CELER_LOG(error) << "Unsupported shape for G4 solid "
-                         << shape->GetName().c_str() << ", of type "
-                         << shape->GetEntityType().c_str();
+        CELER_LOG(error) << "Encountered unsupported shape for G4 solid '"
+                         << shape->GetName() << "' of type "
+                         << shape->GetEntityType();
         unplaced_volume = new GenericSolid<G4VSolid>(shape);
         CELER_LOG(debug) << " -- capacity = "
                          << unplaced_volume->Capacity() / ipow<3>(scale);

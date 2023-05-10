@@ -35,7 +35,7 @@ void relativistic_brem_interact(
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        params.ref<MemSpace::native>(), state.ref(),
+        params.ptr<MemSpace::native>(), state.ptr(),
         celeritas::relativistic_brem_interact_track, model_data);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)

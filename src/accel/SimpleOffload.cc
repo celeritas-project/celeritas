@@ -117,7 +117,7 @@ void SimpleOffload::PreUserTrackingAction(G4Track* track)
         != params_->OffloadParticles().end())
     {
         // Celeritas is transporting this track
-        ExceptionConverter call_g4exception{"celer0003"};
+        ExceptionConverter call_g4exception{"celer0003", params_};
         CELER_TRY_HANDLE(local_->Push(*track), call_g4exception);
         track->SetTrackStatus(fStopAndKill);
     }
@@ -132,7 +132,7 @@ void SimpleOffload::EndOfEventAction(G4Event const*)
     if (!*this)
         return;
 
-    ExceptionConverter call_g4exception{"celer0004"};
+    ExceptionConverter call_g4exception{"celer0004", params_};
     CELER_TRY_HANDLE(local_->Flush(), call_g4exception);
 }
 

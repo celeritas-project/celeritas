@@ -16,12 +16,22 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 #include <VecGeom/volumes/UnplacedVolume.h>
 
+#include "corecel/Assert.hh"
+
 #include "GenericPlacedVolume.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Base class for identifying "generic" VecGeom volumes.
+ */
+class GenericSolidBase : public vecgeom::VUnplacedVolume
+{
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * A generic VecGeom solid converted from a Geant4 geometry.
@@ -31,7 +41,7 @@ namespace detail
  * when it makes sense to use some functionality from the original G4 shape.
  */
 template<typename S>
-class GenericSolid : public vecgeom::VUnplacedVolume
+class GenericSolid : public GenericSolidBase
 {
   private:
     //!@{
@@ -209,12 +219,12 @@ class GenericSolid : public vecgeom::VUnplacedVolume
     }
     DevicePtr<CudaUnplacedVolume> CopyToGpu() const
     {
-        return {};
+        CELER_NOT_IMPLEMENTED("GenericSolid with CUDA");
     }
     DevicePtr<CudaUnplacedVolume>
     CopyToGpu(DevicePtr<CudaUnplacedVolume> const) const
     {
-        return {};
+        CELER_NOT_IMPLEMENTED("GenericSolid with CUDA");
     }
     //! @}
 #endif

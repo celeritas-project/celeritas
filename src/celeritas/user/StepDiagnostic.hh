@@ -48,9 +48,9 @@ class StepDiagnostic final : public ExplicitActionInterface,
 
     //!@{
     //! \name ExplicitAction interface
-    // Execute action with host data
+    // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
-    // Execute action with device data
+    // Launch kernel with device data
     void execute(CoreParams const&, CoreStateDevice&) const final;
     //! ID of the action
     ActionId action_id() const final { return id_; }
