@@ -10,6 +10,8 @@
 #include <memory>
 
 #include "corecel/Assert.hh"
+#include "corecel/data/DeviceVector.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/random/RngParamsFwd.hh"
@@ -54,6 +56,9 @@ class CoreParams
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
+    template<MemSpace M>
+    using ConstPtr = ObserverPtr<ConstRef<M> const, M>;
+
     using HostRef = ConstRef<MemSpace::host>;
     using DeviceRef = ConstRef<MemSpace::device>;
     //!@}
@@ -120,6 +125,10 @@ class CoreParams
     template<MemSpace M>
     inline ConstRef<M> const& ref() const;
 
+    // Access a native pointer to properties in the native memory space
+    template<MemSpace M>
+    inline ConstPtr<M> ptr() const;
+
     //! Maximum number of streams
     size_type max_streams() const { return input_.max_streams; }
 
@@ -127,6 +136,9 @@ class CoreParams
     Input input_;
     HostRef host_ref_;
     DeviceRef device_ref_;
+
+    // Copy of DeviceRef in device memory
+    DeviceVector<DeviceRef> device_ref_vec_;
 };
 
 //---------------------------------------------------------------------------//
@@ -150,6 +162,27 @@ auto CoreParams::ref() const -> ConstRef<M> const&
     {
         CELER_ENSURE(device_ref_);
         return device_ref_;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a native pointer to a NativeCRef.
+ *
+ * This way, CUDA kernels only need to copy a pointer in the kernel arguments,
+ * rather than the entire (rather large) DeviceRef object.
+ */
+template<MemSpace M>
+auto CoreParams::ptr() const -> ConstPtr<M>
+{
+    if constexpr (M == MemSpace::host)
+    {
+        return make_observer(&host_ref_);
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        CELER_ENSURE(!device_ref_vec_.empty());
+        return make_observer(device_ref_vec_);
     }
 }
 

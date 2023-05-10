@@ -189,6 +189,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     if (celeritas::device())
     {
         device_ref_ = build_params_refs<MemSpace::device>(input_, scalars);
+        // Copy device ref to device global memory
+        device_ref_vec_ = DeviceVector<DeviceRef>(1);
+        device_ref_vec_.copy_to_device({&device_ref_, 1});
     }
 
 #if CELERITAS_USE_JSON

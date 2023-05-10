@@ -59,14 +59,16 @@ RunResult RunResult::from_state(CoreState<M>& state)
     data = state.ref().init;
 
     // Store the IDs of the vacant track slots
-    for (TrackSlotId const& v : data.vacancies.data())
+    for (auto tid : range(TrackSlotId{data.scalars.num_vacancies}))
     {
-        result.vacancies.push_back(v.unchecked_get());
+        result.vacancies.push_back(data.vacancies[tid].unchecked_get());
     }
 
     // Store the track IDs of the initializers
-    for (auto const& init : data.initializers.data())
+    for (auto init_id :
+         range(ItemId<TrackInitializer>{data.scalars.num_initializers}))
     {
+        auto const& init = data.initializers[init_id];
         result.init_ids.push_back(init.sim.track_id.get());
     }
 
@@ -307,8 +309,8 @@ TYPED_TEST(TypedTrackInitTest, primaries)
         // Find vacancies and create track initializers from secondaries
         extend_from_secondaries(*this->core(), this->state());
         auto& init = this->state().ref().init;
-        EXPECT_EQ(i * num_tracks / 2, init.initializers.size());
-        EXPECT_EQ(num_tracks / 2, init.vacancies.size());
+        EXPECT_EQ(i * num_tracks / 2, init.scalars.num_initializers);
+        EXPECT_EQ(num_tracks / 2, init.scalars.num_vacancies);
     }
 
     // Check the results
@@ -353,7 +355,7 @@ TYPED_TEST(TypedTrackInitTest, secondaries)
     const size_type num_primaries = num_tracks;
     auto primaries = this->make_primaries(num_primaries);
     extend_from_primaries(*this->core(), this->state(), make_span(primaries));
-    EXPECT_EQ(num_primaries, this->state().ref().init.initializers.size());
+    EXPECT_EQ(num_primaries, this->state().ref().init.scalars.num_initializers);
 
     const size_type num_iter = 16;
     for ([[maybe_unused]] size_type i : range(num_iter))
@@ -363,20 +365,20 @@ TYPED_TEST(TypedTrackInitTest, secondaries)
 
         // All queued initializers are converted to tracks
         initialize_tracks(*this->core(), this->state());
-        ASSERT_EQ(0, init.initializers.size());
-        EXPECT_EQ(0, init.vacancies.size());
+        ASSERT_EQ(0, init.scalars.num_initializers);
+        EXPECT_EQ(0, init.scalars.num_vacancies);
 
         // Launch kernel to process interactions
         interact.execute(*this->core(), this->state());
 
         // Launch a kernel to create track initializers from secondaries
         extend_from_secondaries(*this->core(), this->state());
-        EXPECT_EQ(num_groups * 2, init.initializers.size());
-        EXPECT_EQ(num_groups * 2, init.vacancies.size());
+        EXPECT_EQ(num_groups * 2, init.scalars.num_initializers);
+        EXPECT_EQ(num_groups * 2, init.scalars.num_vacancies);
 
         // Number of secondaries *excludes* in-place secondaries: this is
         // really the number of initializers to be consumed
-        EXPECT_EQ(num_groups * (1 + 0 + 1), init.num_secondaries);
+        EXPECT_EQ(num_groups * (1 + 0 + 1), init.scalars.num_secondaries);
         if (this->HasFailure())
         {
             FAIL() << "Aborting loop";
@@ -405,7 +407,7 @@ TYPED_TEST(TypedTrackInitTest, secondaries_action)
     // Create track initializers on device from primary particles
     auto primaries = this->make_primaries(num_primaries);
     extend_from_primaries(*this->core(), this->state(), make_span(primaries));
-    EXPECT_EQ(num_primaries, this->state().ref().init.initializers.size());
+    EXPECT_EQ(num_primaries, this->state().ref().init.scalars.num_initializers);
 
     auto apply_actions = [&actions, this] {
         for (const auto& ea_interface : actions)
