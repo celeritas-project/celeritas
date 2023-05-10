@@ -18,7 +18,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-TEST(HyerslabIndexerTest, 2D)
+TEST(HyperslabIndexerTest, 2D)
 {
     HyperslabIndexer<size_type, 2> hi({3, 4});
 
@@ -35,7 +35,7 @@ TEST(HyerslabIndexerTest, 2D)
     }
 }
 
-TEST(HyerslabIndexerTest, 3D)
+TEST(HyperslabIndexerTest, 3D)
 {
     HyperslabIndexer<size_type, 3> hi({3, 4, 5});
 
@@ -55,7 +55,7 @@ TEST(HyerslabIndexerTest, 3D)
     }
 }
 
-TEST(HyerslabIndexerTest, 4D)
+TEST(HyperslabIndexerTest, 4D)
 {
     HyperslabIndexer<size_type, 4> hi({4, 6, 3, 2});
 
@@ -78,7 +78,7 @@ TEST(HyerslabIndexerTest, 4D)
     }
 }
 
-TEST(HyerslabIndexerTest, 5D_with_ones)
+TEST(HyperslabIndexerTest, 5D_with_ones)
 {
     HyperslabIndexer<size_type, 5> hi({3, 1, 4, 1, 5});
 
@@ -99,7 +99,7 @@ TEST(HyerslabIndexerTest, 5D_with_ones)
 }
 
 #if CELERITAS_DEBUG
-TEST(HyerslabIndexerTest, error)
+TEST(HyperslabIndexerTest, error)
 {
     EXPECT_THROW((HyperslabIndexer<size_type, 3>({2, 0, 3})), DebugError);
 }
