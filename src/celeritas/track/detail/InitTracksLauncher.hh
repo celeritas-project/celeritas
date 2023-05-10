@@ -81,12 +81,12 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
     // parent they can copy the geometry state from.
     auto const& data = states_.init;
     ItemId<TrackInitializer> idx{
-        fill_before_index(data.scalars.num_initializers, tid)};
+        index_before(data.scalars.num_initializers, tid)};
     TrackInitializer const& init = data.initializers[idx];
 
     // Thread ID of vacant track where the new track will be initialized
     TrackSlotId vacancy = [&] {
-        TrackSlotId idx{fill_before_index(data.scalars.num_vacancies, tid)};
+        TrackSlotId idx{index_before(data.scalars.num_vacancies, tid)};
         return data.vacancies[idx];
     }();
 
@@ -111,7 +111,7 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
             // Copy the geometry state from the parent for improved
             // performance
             TrackSlotId parent_id = data.parents[TrackSlotId{
-                fill_before_index(data.parents.size(), tid)}];
+                index_before(data.parents.size(), tid)}];
             GeoTrackView parent(params_.geometry, states_.geometry, parent_id);
             geo = GeoTrackView::DetailedInitializer{parent, init.geo.dir};
         }
