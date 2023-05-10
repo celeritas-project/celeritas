@@ -287,13 +287,15 @@ void VecgeomParams::build_metadata()
                 = vg_manager.FindLogicalVolume(vol_idx);
             CELER_ASSERT(vol);
 
-            auto label = Label::from_geant(vol->GetLabel());
-            if (label.name.empty())
-            {
-                // Many VGDML imported IDs seem to be empty for CMS
-                label.name = "[unused]";
-                label.ext = std::to_string(vol_idx);
-            }
+            auto label = [vol] {
+                auto const& label = vol->GetLabel();
+                if (starts_with(label, "[TEMP]"))
+                {
+                    // Temporary logical volume not directly used in transport
+                    return Label{};
+                }
+                return Label::from_geant(vol->GetLabel());
+            }();
 
             result[vol_idx] = std::move(label);
         }

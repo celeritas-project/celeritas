@@ -35,7 +35,7 @@ namespace celeritas
  * the IDs corresponding to a label may be noncontiguous.
  *
  * Duplicate labels are allowed but will be added to a list of duplicate IDs
- * that can be warned about downstream.
+ * that can be warned about downstream. Empty labels will be ignored.
  *
  * If no sublabels or labels are available, an empty span or "false" OpaqueId
  * will be returned.
@@ -120,7 +120,7 @@ LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
     {
         Label const& prev = keys_[id_data_[idx - 1].unchecked_get()];
         Label const& cur = keys_[id_data_[idx].unchecked_get()];
-        if (prev == cur)
+        if (prev == cur && !cur.empty())
         {
             if (duplicates_.empty()
                 || keys_[duplicates_.back().unchecked_get()] != prev)

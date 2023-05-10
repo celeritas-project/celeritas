@@ -689,8 +689,11 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
         CELER_ASSERT(rightunplaced != nullptr);
 
         // the problem is that I can only place logical volumes
-        std::string left_label{left->GetName() + "_bool_left"};
-        std::string right_label{right->GetName() + "_bool_right"};
+        auto const& solid_name = boolean->GetName();
+        std::string left_label{"[TEMP]@" + solid_name + "/left/"
+                               + left->GetName()};
+        std::string right_label{"[TEMP]@" + solid_name + "/right/"
+                                + right->GetName()};
         VPlacedVolume* const leftplaced
             = (new LogicalVolume(left_label.c_str(), leftunplaced))
                   ->Place(lefttrans);
