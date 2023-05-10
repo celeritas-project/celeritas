@@ -10,7 +10,6 @@
 #include <G4GDMLWriteStructure.hh>
 #include <G4LogicalVolume.hh>
 #include <G4MaterialCutsCouple.hh>
-#include <G4ReflectionFactory.hh>
 #include <G4VSolid.hh>
 
 #include "corecel/Assert.hh"
@@ -81,22 +80,7 @@ GeantVolumeVisitor::generate_name(G4LogicalVolume const& logical_volume)
     // uniquely identifiable in VecGeom. Reuse the same instance to reduce
     // overhead: note that the method isn't const correct.
     static G4GDMLWriteStructure temp_writer;
-    auto const* refl_factory = G4ReflectionFactory::Instance();
-    if (auto const* lv = refl_factory->GetConstituentLV(
-            const_cast<G4LogicalVolume*>(&logical_volume)))
-    {
-        // If this is a reflected volume, generate the name based on the
-        // constituent volume and re-add the reflection extension after the
-        // final pointer so the name will match the GDML name.
-        name = lv->GetName();
-        name = temp_writer.GenerateName(name, lv)
-               + refl_factory->GetVolumesNameExtension();
-    }
-    else
-    {
-        name = temp_writer.GenerateName(name, &logical_volume);
-    }
-    return name;
+    return temp_writer.GenerateName(name, &logical_volume);
 }
 
 //---------------------------------------------------------------------------//
