@@ -69,8 +69,8 @@ CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
     CELER_ASSERT(primaries_.size()
                  <= data_.scalars.num_initializers + tid.get());
 
-    ItemId<TrackInitializer> idx{fill_after_index(
-        data_.scalars.num_initializers - primaries_.size(), tid)};
+    ItemId<TrackInitializer> idx{
+        index_after(data_.scalars.num_initializers - primaries_.size(), tid)};
     TrackInitializer& ti = data_.initializers[idx];
     Primary const& primary = primaries_[tid.unchecked_get()];
 

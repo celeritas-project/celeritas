@@ -43,9 +43,6 @@ size_type remove_if_alive(
  *
  * The input size is one greater than the number of track slots so that the
  * final element will be the total accumulated value.
- *
- * \todo We should probably replace this with inclusive_scan so that the sizes
- * can be consistent?
  */
 size_type exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::host> const& counts)

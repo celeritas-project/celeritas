@@ -33,9 +33,8 @@ CELER_CONSTEXPR_FUNCTION TrackSlotId occupied()
 }
 
 //---------------------------------------------------------------------------//
-//! Get an initializer index a certain number of threads from the end
-CELER_FORCEINLINE_FUNCTION size_type fill_before_index(size_type size,
-                                                       ThreadId tid)
+//! Get an initializer index where thread 0 has the last valid element
+CELER_FORCEINLINE_FUNCTION size_type index_before(size_type size, ThreadId tid)
 {
     CELER_EXPECT(tid.get() + 1 <= size);
     return size - tid.unchecked_get() - 1;
@@ -43,8 +42,7 @@ CELER_FORCEINLINE_FUNCTION size_type fill_before_index(size_type size,
 
 //---------------------------------------------------------------------------//
 //! Get an initializer index a certain number of threads past the end
-CELER_FORCEINLINE_FUNCTION size_type fill_after_index(size_type size,
-                                                      ThreadId tid)
+CELER_FORCEINLINE_FUNCTION size_type index_after(size_type size, ThreadId tid)
 {
     CELER_EXPECT(tid);
     return size + tid.unchecked_get();
