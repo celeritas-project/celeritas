@@ -16,6 +16,8 @@
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
+#include "corecel/Assert.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -79,13 +81,13 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
 
     virtual void Contains(SOA3D<Precision> const&, bool* const) const override
     {
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
-    virtual bool
 
+    virtual bool
     Contains(Vector3D<Precision> const&, Vector3D<Precision>&) const override
     {
-        assert(false);
-        return false;
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
 
     virtual bool
@@ -170,8 +172,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
                         Vector3D<Precision> const&,
                         Precision const /*step_max = kInfLength*/) const override
     {
-        assert(false);
-        return 0;
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
 
     virtual void DistanceToOut(SOA3D<Precision> const&,
@@ -179,6 +180,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
                                Precision const* const,
                                Precision* const) const override
     {
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
 
     virtual void DistanceToOut(SOA3D<Precision> const&,
@@ -187,6 +189,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
                                Precision* const,
                                int* const) const override
     {
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
 
     virtual Precision
@@ -198,6 +201,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     virtual void
     SafetyToOut(SOA3D<Precision> const&, Precision* const) const override
     {
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
 
     // define this interface in case we don't have the Scalar interface
@@ -206,12 +210,12 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
                      Vector3D<Real_v> const&,
                      Real_v const /*step_max = kInfLength*/) const override
     {
-        return Real_v{0.};
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
 
     virtual Real_v SafetyToOutVec(Vector3D<Real_v> const&) const override
     {
-        return Real_v{0.};
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
     //!@}
 
@@ -223,7 +227,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
 
     virtual VPlacedVolume const* ConvertToUnspecialized() const override
     {
-        return nullptr;
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
 
 #ifdef VECGEOM_ROOT
@@ -278,14 +282,14 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
               DevicePtr<CudaTransformation3D> const,
               DevicePtr<CudaVPlacedVolume> const) const
     {
-        return {};
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
 
     DevicePtr<CudaVPlacedVolume>
     CopyToGpu(DevicePtr<CudaLogicalVolume> const,
               DevicePtr<CudaTransformation3D> const) const
     {
-        return {};
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
 
     void CopyManyToGpu(std::vector<VPlacedVolume const*> const&,
@@ -293,6 +297,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
                        std::vector<DevicePtr<CudaTransformation3D>> const&,
                        std::vector<DevicePtr<CudaVPlacedVolume>> const&) const
     {
+        CELER_NOT_IMPLEMENTED("GenericPlacedVolume");
     }
     //!@}
 #endif  // VECGEOM_CUDA_INTERFACE
