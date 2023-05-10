@@ -88,35 +88,35 @@ PhysicsParams::PhysicsParams(Input inp)
         auto& action_reg = *inp.action_registry;
 
         auto pre_step_action = make_shared<generated::PreStepAction>(
-            action_reg.next_id(), "pre-step", "beginning of step physics");
+            action_reg.next_id(), "pre-step", "update beginning-of-step state");
         inp.action_registry->insert(pre_step_action);
         pre_step_action_ = std::move(pre_step_action);
 
         auto msc_action = make_shared<ImplicitPhysicsAction>(
             action_reg.next_id(),
             "msc-range",
-            "range limitation due to multiple scattering");
+            "limit range due to multiple scattering");
         action_reg.insert(msc_action);
         msc_action_ = std::move(msc_action);
 
         auto range_action = make_shared<ImplicitPhysicsAction>(
             action_reg.next_id(),
             "eloss-range",
-            "range limitation due to energy loss");
+            "limit range due to energy loss");
         action_reg.insert(range_action);
         range_action_ = std::move(range_action);
 
         auto discrete_action = make_shared<generated::DiscreteSelectAction>(
             action_reg.next_id(),
             "physics-discrete-select",
-            "discrete interaction");
+            "select a discrete interaction");
         inp.action_registry->insert(discrete_action);
         discrete_action_ = std::move(discrete_action);
 
         auto integral_action = make_shared<ImplicitPhysicsAction>(
             action_reg.next_id(),
             "physics-integral-rejected",
-            "rejection by integral cross section");
+            "reject by integral cross section");
         inp.action_registry->insert(integral_action);
         integral_rejection_action_ = std::move(integral_action);
 
@@ -127,7 +127,7 @@ PhysicsParams::PhysicsParams(Input inp)
         auto failure_action = make_shared<ImplicitPhysicsAction>(
             action_reg.next_id(),
             "physics-failure",
-            "interaction sampling failure");
+            "mark a track that failed to sample an interaction");
         inp.action_registry->insert(failure_action);
         failure_action_ = std::move(failure_action);
     }

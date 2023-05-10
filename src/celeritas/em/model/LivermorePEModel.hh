@@ -60,10 +60,10 @@ class LivermorePEModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "photoel-livermore"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the post-step action
     std::string description() const final
     {
-        return "Livermore photoelectric effect";
+        return "interact by Livermore photoelectric effect";
     }
 
     //! Access data on the host

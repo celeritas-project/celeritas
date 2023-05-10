@@ -60,8 +60,11 @@ class RayleighModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "scat-rayleigh"; }
 
-    //! Name of the model, for user interaction
-    std::string description() const final { return "Rayleigh scattering"; }
+    //! Short description of the post-step action
+    std::string description() const final
+    {
+        return "interact by Rayleigh scattering";
+    }
 
     //! Access Rayleigh data on the host
     HostRef const& host_ref() const { return mirror_.host(); }

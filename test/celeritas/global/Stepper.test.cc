@@ -323,6 +323,22 @@ TEST_F(TestEm3Msc, setup)
         "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
+
+    static char const* const expected_actions_desc[]
+        = {"initialize track states",
+           "update beginning-of-step state",
+           "apply along-step for particles with no field",
+           "select a discrete interaction",
+           "interact by Compton scattering (simple Klein-Nishina)",
+           "interact by Livermore photoelectric effect",
+           "interact by Bethe-Heitler gamma conversion",
+           "interact by positron annihilation yielding two gammas",
+           "interact by Moller+Bhabha ionization",
+           "interact by bremsstrahlung (combined SB/relativistic, e+/-)",
+           "cross a geometry boundary",
+           "count the number of executions",
+           "create secondary track initializers"};
+    EXPECT_VEC_EQ(expected_actions_desc, result.actions_desc);
 }
 
 TEST_F(TestEm3Msc, host)

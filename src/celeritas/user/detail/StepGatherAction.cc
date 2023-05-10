@@ -48,9 +48,10 @@ StepGatherAction<P>::StepGatherAction(ActionId id,
 template<StepPoint P>
 std::string StepGatherAction<P>::description() const
 {
-    return P == StepPoint::pre    ? "pre-step state gather"
-           : P == StepPoint::post ? "post-step state gather"
-                                  : "";
+    std::string result = "gather ";
+    result += P == StepPoint::pre ? "pre" : "post";
+    result += "-step steps/hits";
+    return result;
 }
 
 //---------------------------------------------------------------------------//

@@ -41,10 +41,10 @@ class KleinNishinaModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "scat-klein-nishina"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the post-step action
     std::string description() const final
     {
-        return "Klein-Nishina Compton scattering";
+        return "interact by Compton scattering (simple Klein-Nishina)";
     }
 
     //!@{
