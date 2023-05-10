@@ -77,6 +77,19 @@ struct Propagation
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
+//! Convert Axis enum value to int
+CELER_CONSTEXPR_FUNCTION int to_int(Axis a)
+{
+    return static_cast<int>(a);
+}
+
+//! Convert int to Axis enum value
+inline CELER_FUNCTION Axis to_axis(int a)
+{
+    CELER_EXPECT(a >= 0 && a < 3);
+    return static_cast<Axis>(a);
+}
+
 //! Get the lowercase name of the axis.
 inline constexpr char to_char(Axis ax)
 {

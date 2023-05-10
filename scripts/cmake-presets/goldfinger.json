@@ -9,9 +9,10 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
         "CELERITAS_USE_CUDA":    {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_HIP":     {"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_USE_JSON":     {"type": "BOOL",   "value": "ON"},
-        "CELERITAS_USE_Geant4":   {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
         "CMAKE_BUILD_TYPE":      {"type": "STRING", "value": "Debug"},
@@ -27,13 +28,11 @@
     {
       "name": "iwyu",
       "displayName": "Include-what-you-use (see scripts/dev/run-iwyu.sh)",
-      "inherits": [".base", "minimal"],
+      "inherits": [".base"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"}
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -60,7 +59,8 @@
       "inherits": [".reldeb", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "ON"}
       }
     },
     {
@@ -69,7 +69,8 @@
       "inherits": [".ndebug", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "ON"}
       }
     }
   ],

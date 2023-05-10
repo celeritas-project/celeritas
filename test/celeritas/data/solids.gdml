@@ -28,52 +28,50 @@ acceptance of all terms of the Geant4 Software license.
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
  <define>
-  <constant name="HALFPI" value="pi/2."/>
-  <constant name="PI" value="1.*pi"/>
-  <constant name="TWOPI" value="2.*pi"/>
-  <expression name="customangle">2*(HALFPI+0.2*PI)</expression>
-  <position name="center" x="0" y="0" z="0"/>
-  <rotation name="identity" x="0" y="0" z="0" />
-  <position name="shiftbyx" x="-500"/>
-  <position name="pos1" x="-250"/>
-  <position name="pos2" x="-125"/>
-  <position name="pos3" x="125"/>
-  <position name="pos4" x="250"/>
-  <position name="pos11"  x="-250" y=" 125"/>
-  <position name="pos21"  x="-125" y=" 125"/>
-  <position name="pos31"  x=" 125" y=" 125"/>
-  <position name="pos41"  x=" 250" y=" 125"/>
-  <position name="pos412"  x=" 250" y=" 225"/>
-  <position name="pos51"  x=" 550" y=" 125"/>
-  <position name="pos61"  x=" 550" y="-125"/>
-  <position name="pos71"  x=" 550" y=" 0"/>
-  <position name="pos81"  x="-550" y=" 125"/>
-  <position name="pos91"  x="-550" y="-125"/>
-  <position name="pos101" x="-550" />
-  <position name="pos201"  x=" 750" y=" 0"/>
-  <position name="pos301"  x=" 750" y=" 125"/>
-  <position name="pos401"  x=" 750" y="-125"/>
-  <position name="pos501"  x="-750" y="-125"/>
-  <position name="pos502"  x="-750" y="-225"/>
-  <position name="pos601"  x="-750" y=" 125"/>
-  <position name="pos701"  x="-750" y=" 0"/>
-  <position name="pos801"  x="950"  y=" 125"/>
-  <position name="pos901"  x="950"  y="-125"/>
-  <position name="pos1001"  x="950" y="0"/>
-  <position name="pos1002"  x="950" y="125"/>
-  <position name="pos1003"  x="950" y="-125"/>
-  <rotation name="rotatebyx" x="HALFPI"/>
-  <rotation name="rotatebyall" x="HALFPI" y="PI" z="TWOPI"/>
-  <position name="v0" unit="mm" x="10" y="10" z="0" />
-  <position name="v1" unit="mm" x="-10" y="10" z="0" />
-  <position name="v2" unit="mm" x="0" y="0" z="20" />
-  <position name="v3" unit="mm" x="-10" y="-10" z="0" />
-  <position name="v4" unit="mm" x="10" y="-10" z="0" />
-  <quantity name="ro" type="density" unit="g/cm3" value="1234.00"/>
-  <quantity name="sizeoft500" type="length" unit="mm" value="500.0"/>
-  <quantity name="wextent" type="length" value="10000.0" unit="mm"/>
-  <position name="shiftbysizeoft500" x="500.0"/>
-  <position name="unionidentitypos" x="25."/>
+  <constant name="HALFPI" value="1.5707963267948966"/>
+  <constant name="PI"     value="3.1415926535897932"/>
+  <constant name="TWOPI"  value="6.2831853071795864"/>
+  <position name="center"     x="0" y="0" z="0"/>
+  <rotation name="norot"      x="0" y="0" z="0"/>
+
+  <position name="posBool1"   x="0" y=" 1250" z="0" unit="mm" />
+  <position name="posTetrah1" x="0" y="-1250" z="0" unit="mm" />
+
+  <position name="posTube100"    x="-1250" y=" 1250" z="0" unit="mm" />
+  <position name="posCone1"      x="-1250" y="    0" z="0" unit="mm" />
+  <position name="posTrap1"      x="-1250" y="-1250" z="0" unit="mm" />
+  <position name="posTorus1"     x=" 1250" y=" 1250" z="0" unit="mm" />
+  <position name="posSphere1"    x=" 1250" y="    0" z="0" unit="mm" />
+  <position name="posOrb1"       x=" 1250" y="-1250" z="0" unit="mm" />
+
+  <position name="posPara1"      x="-2500" y=" 1250" z="0" unit="mm" />
+  <position name="posTrd1"       x="-2500" y="    0" z="0" unit="mm" />
+  <position name="posArb8a"      x="-2500" y="-1250" z="0" unit="mm" />
+  <position name="posPolyhedr1"  x=" 2500" y=" 1250" z="0" unit="mm" />
+  <position name="posPolycone1"  x=" 2500" y="    0" z="0" unit="mm" />
+  <position name="posGenPocone1" x=" 2500" y="-1250" z="0" unit="mm" />
+
+  <position name="posEllcone1"   x=" 3750" y=" 1250" z="0" unit="mm" />
+  <position name="posEllipso1"   x=" 3750" y="    0" z="0" unit="mm" />
+  <position name="posEllTube1"   x=" 3750" y="-1250" z="0" unit="mm" />
+  <position name="posHype1"      x="-3750" y=" 1250" z="0" unit="mm" />
+  <position name="posParab1"     x="-3750" y="    0" z="0" unit="mm" />
+  <position name="posArb8b"      x="-3750" y="-1250" z="0" unit="mm" />
+
+  <position name="posTessel1"    x="-5000" y="    0" z="0" unit="mm" />
+
+  <position name="v0" unit="mm"  x=" 400" y=" 400" z="-500" />
+  <position name="v1" unit="mm"  x="-400" y=" 400" z="-500" />
+  <position name="v2" unit="mm"  x="   0" y="   0" z=" 500" />
+  <position name="v3" unit="mm"  x="-400" y="-400" z="-500" />
+  <position name="v4" unit="mm"  x=" 400" y="-400" z="-500" />
+
+  <rotation name="rotatebyx" x="HALFPI" aunit="rad"/>
+  <rotation name="rotatebyy" y="90"     aunit="deg"/>
+  <rotation name="rotatebyall" x="HALFPI" y="HALFPI" z="HALFPI"/>
+
+  <constant name="wextent" value="2000."/>
+  <position name="unionidentitypos" x="25." y="0" z="0"/>
  </define>
 
  <materials>
@@ -88,379 +86,368 @@ acceptance of all terms of the Geant4 Software license.
    <composite n="1" ref="Oxygen"/>
   </material>
   <material name="Air">
-   <D value="1.290" unit="mg/cm3"/>
+   <D value="0.0001"/>
    <fraction n="0.7" ref="Nitrogen"/>
    <fraction n="0.3" ref="Oxygen"/>
   </material>
  </materials>
 
  <solids>
-  <box name="WorldBox" x="wextent" y="wextent" z="wextent"/>
+  <box name="WorldBox" lunit="mm" x="12000" y="6000" z="1500"/>
 
-  <box name="b100" x="10.0" y="10.0" z="10.0"/>
-  <box name="b500" x="50.0" y="50.0" z="50.0"/>
+  <box name="b100" lunit="mm" x="200.0" y="200.0" z="200.0"/>
+  <box name="b500" lunit="mm" x="500.0" y="500.0" z="500.0"/>
 
-  <cone name="c1" z="111.0" rmax1="22.0" rmax2="33.0" deltaphi="TWOPI" aunit="rad"/>
+  <cone name="c1" lunit="mm" aunit="rad" z="500.0" rmax1="300.0" rmax2="240.0" deltaphi="TWOPI"/>
+  <!--cone name="c1" lunit="mm" aunit="rad" z="111.0" rmax1="22.0" rmax2="33.0" startphi="-157" deltaphi="-57"/-->
 
-  <para name="pa1" x="10.0" y="10.0" z="10.0" alpha="30.0" theta="30.0" phi="30.0" aunit="deg"/>
+  <para name="pa1" lunit="mm" x="600" y="700" z="800" alpha="30.0" theta="30.0" phi="30.0" aunit="deg"/>
 
-  <sphere name="s1" rmax="50.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
+  <sphere name="sphe1" lunit="mm" aunit="rad" rmax="400.0" startphi="-4.0" deltaphi="3.2" starttheta="0.8" deltatheta="2.1"/>
 
-  <arb8 name="arb81" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0"
-             v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0"
-	     v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-35.0" />
-  <arb8 name="arb82" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0"
-             v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0"
-	     v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-15.0" />
-  <trap name="trap1" z="100.0" theta="60.0" phi="60.0"
-                             y1="10.0"    x1="10.0" x2="10.0"
-                             alpha1="30.0"  y2="10.0" x3="10.0"
-                             x4="10.0"    alpha2="30.0" aunit="deg"/>
-  <trd name="trd1" x1="10.0" x2="10.0" y1="10.0" y2="20.0" z="30.0"/>
-  <tube name="t1000" z="1000.0" rmax="100.0" deltaphi="TWOPI" aunit="rad"/>
-  <tube name="t400" z="200.0" rmax="50.0" deltaphi="customangle" aunit="rad"/>
-  <tube name="t100" z="100.0" rmax="10.0" deltaphi="TWOPI" aunit="rad"/>
+  <paraboloid name="parab1" lunit="mm" rlo="1" rhi="300" dz="400"/>
 
-  <union name="u1">
-   <first ref="b500"/>  <second ref="b100"/>
-   <positionref ref="unionidentitypos" />
-   <rotation name="unionidentityrot"/>
-   <firstpositionref ref= "center"/>
+  <arb8 name="arb81" lunit="mm" dz="500.0" v1x="-450.0" v1y="-450.0" v2x="-450.0" v2y="450.0"
+      v3x="450.0"  v3y="450.0" v4x="450.0" v4y="-450.0" v5x="-350.0" v5y="-350.0"
+      v6x="-350.0" v6y="350.0" v7x="350.0" v7y="350.0"  v8x="350.0"  v8y="-550.0" />
+
+  <arb8 name="arb82" lunit="mm" dz="500.0" v1x="-450.0" v1y="-450.0" v2x="-450.0" v2y="450.0"
+      v3x="450.0"  v3y="450.0" v4x="450.0" v4y="-450.0" v5x="-350.0" v5y="-350.0"
+      v6x="-350.0" v6y="350.0" v7x="350.0" v7y="350.0"  v8x="350.0"  v8y="-150.0" />
+
+  <trap name="trap1" lunit="mm" aunit="deg" theta="10.0" phi="-30.0" z="800"
+      y1="720.0" x1="600.0" x2="300.0"  alpha1="-10.0"
+      y2="360.0" x3="300.0" x4="150.0"  alpha2="-10.0"/>
+
+  <trd name="trd1" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
+
+  <tube name="t100" lunit="mm" aunit="rad" z="500.0" rmax="200.0" rmin="160" startphi="HALFPI" deltaphi="PI"/>
+  <!--tube name="t100" lunit="mm" aunit="deg" z="500.0" rmax="200.0" rmin="160" startphi="-157" deltaphi="-57"/-->
+
+  <union name="union1">
+    <first ref="b500"/>  <second ref="b100"/>
+    <positionref ref="unionidentitypos"/>
+    <rotation name="norot"/>
+    <firstpositionref ref="center"/>
   </union>
   <subtraction name="sub1">
-   <first ref="u1"/> <second ref="b100"/>
-   <position  name="subidentitypos" x="-25."  />
-   <rotation name="subidentityrot"/>
+    <first ref="union1"/> <second ref="b100"/>
+    <position  name="subidentitypos" x="-25."  />
+    <rotation name="subidentityrot"/>
   </subtraction>
 
-  <polycone aunit="degree" name="testpoly" deltaphi="360.0" startphi="0.0">
-    <zplane z="10.0" rmin="1.0" rmax="5.0"/>
-    <zplane z="100.0" rmin="10.0" rmax="30.0"/>
+  <!--tessellated name="testtessel">
+    <triangular vertex1="v0" vertex2="v1" vertex3="v2"/>
+    <triangular vertex1="v1" vertex2="v3" vertex3="v2"/>
+    <triangular vertex1="v3" vertex2="v4" vertex3="v2"/>
+    <triangular vertex1="v4" vertex2="v0" vertex3="v2"/>
+    <quadrangular vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v0" />
+  </tessellated-->
+
+  <!--torus name="shTorus1" lunit="mm" aunit="deg" rmin="80.0" rmax="100.0" rtor="300.0" startphi="10" deltaphi="270"/-->
+
+  <orb name="shOrb1" lunit="mm" r="400.0"/>
+
+  <polycone name="testpolyc" lunit="mm" aunit="deg" deltaphi="270.0" startphi="0.0">
+    <zplane z="-500.0" rmin="160.0" rmax="250.0"/>
+    <zplane z="   0.0" rmin=" 80.0" rmax="100.0"/>
+    <zplane z=" 500.0" rmin="180.0" rmax="200.0"/>
   </polycone>
 
-  <genericPolycone aunit="degree" name="testgenpoly" deltaphi="360.0" startphi="0.0">
-    <rzpoint r="0.0" z="10.0" />
-    <rzpoint r="5.0" z="20.0" />
-    <rzpoint r="0.0" z="30.0" />
+  <genericPolycone name="testgenpoly" lunit="mm" aunit="deg" deltaphi="240.0" startphi="0.0">
+    <rzpoint r="300.0" z="-500.0" />
+    <rzpoint r="450.0" z="   0.0" />
+    <rzpoint r="500.0" z=" 500.0" />
+    <rzpoint r="350.0" z=" 500.0" />
+    <rzpoint r="300.0" z="   0.0" />
+    <rzpoint r="200.0" z="-500.0" />
   </genericPolycone>
+  <!--polycone name="testgenpoly" lunit="mm" aunit="deg" deltaphi="240.0" startphi="0.0">
+    <zplane z="-500.0" rmin="200.0" rmax="300.0"/>
+    <zplane z="   0.0" rmin="300.0" rmax="450.0"/>
+    <zplane z=" 500.0" rmin="350.0" rmax="500.0"/>
+  </polycone-->
 
-  <tessellated  aunit="degree" lunit="mm" name="testtessel">
-     <triangular vertex1="v0" vertex2="v1" vertex3="v2"/>
-     <triangular vertex1="v1" vertex2="v3" vertex3="v2"/>
-     <triangular vertex1="v3" vertex2="v4" vertex3="v2"/>
-     <triangular vertex1="v4" vertex2="v0" vertex3="v2"/>
-     <quadrangular vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v0" />
-  </tessellated>
-
-  <torus name="testtorus" rmin="0.0" rmax="10.0" rtor="80.0" startphi="0.0" deltaphi="TWOPI"/>
-
-  <orb name="testorb" r="50.0"/>
-  <polyhedra aunit="degree" deltaphi="90." lunit="mm" name="testph" numsides="3" startphi="0." >
-     <zplane z="10.0" rmin="1.0" rmax="5.0"/>
-     <zplane z="100.0" rmin="10.0" rmax="30.0"/>
+  <polyhedra name="testph" lunit="mm" aunit="deg" deltaphi="270." numsides="6" startphi="180." >
+     <zplane z="-500.0" rmin="50.0" rmax="250.0"/>
+     <zplane z=" 500.0" rmin="80.0" rmax="360.0"/>
   </polyhedra>
-  <genericPolyhedra aunit="degree" deltaphi="90." lunit="mm" name="testgenph" numsides="3" startphi="0." >
-    <rzpoint r="0.0" z="10.0" />
-    <rzpoint r="5.0" z="20.0" />
-    <rzpoint r="0.0" z="30.0" />
-  </genericPolyhedra>
 
-  <hype name="testhype" rmin="10.0" rmax="30.0" inst="10.0" outst="20.0" z="50.0"/>
+  <hype name="testhype" lunit="mm" aunit="deg" rmin="200.0" rmax="240.0" z="1000" inst="20.0" outst="25.0"/>
 
-  <eltube name="testeltube" dx="30.0" dy="50.0" dz="40.0"/>
-  <ellipsoid name="testellipsoid" ax="10" by="15" cz="20" zcut2="4" lunit="mm"/>
-  <elcone name="testelcone" dx="1" dy="1.5" zmax="2" zcut="1.5" lunit="mm"/>
-  <paraboloid name="testparaboloid" rlo="10" rhi="15" dz="20" lunit="mm"/>
+  <ellipsoid name="testellipsoid" lunit="mm" ax="200" by="300" cz="400" zcut2="280"/>
+  <eltube    name="testelltube"   lunit="mm" dx="200" dy="300" dz="400"/>
 
-  <tet name="testtet" vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v2" />
+  <!-- ellipCone:  dx,dy are slopes: dx = a/zmax and dy = b/zmax, where ellipCone equation is:
+       (x/a)^2 + (y/b)^2 = (z-zmax)^2
+     - see Geant4 application developers manual  -->
+  <elcone    name="testellcone"   lunit="mm" dx="0.10" dy="0.15" zmax="500" zcut="200"/>
 
-  <twistedbox name="ttwistedbox" PhiTwist="1" x="30" y="30" z="30" aunit="rad" lunit="mm"/>
-  <twistedtrd name="ttwistedtrd" PhiTwist="1" x1="9" x2="8" y1="6" y2="5" z="10" aunit="rad" lunit="mm"/>
-  <twistedtrap name="ttwistedtrap" PhiTwist="1" z="10" Theta="1" Phi="2" y1="15" y2="15" x1="10" x2="10" x3="10" x4="10" Alph="1" aunit="rad" lunit="mm"/>
-  <twistedtubs name="ttwistedtubs" endinnerrad="10" endouterrad="15" zlen="40" phi="90." twistedangle="1" aunit="degree" lunit="mm"/>
+  <tet name="testtet" vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v2"/>
+  <!--trd name="testtet" lunit="mm" x1="400" y1="400" x2="1" y2="1" z="500"/-->
  </solids>
 
  <structure>
-  <volume name="vol0">
+  <volume name="box500">
    <materialref ref="Water"/>
-   <solidref ref="b100"/>
+   <solidref ref="b500"/>
   </volume>
 
-  <volume name="vol1">
+  <volume name="cone1">
    <materialref ref="Water"/>
    <solidref ref="c1"/>
   </volume>
 
-  <volume name="vol2">
+  <volume name="para1">
    <materialref ref="Water"/>
    <solidref ref="pa1"/>
   </volume>
 
-  <volume name="vol3">
+  <volume name="sphere1">
    <materialref ref="Water"/>
-   <solidref ref="s1"/>
+   <solidref ref="sphe1"/>
   </volume>
 
-  <volume name="vol4">
+  <volume name="parabol1">
+   <materialref ref="Water"/>
+   <solidref ref="parab1"/>
+  </volume>
+
+  <volume name="trap1">
    <materialref ref="Water"/>
    <solidref ref="trap1"/>
   </volume>
 
-  <volume name="vol11">
+  <volume name="trd1">
    <materialref ref="Water"/>
    <solidref ref="trd1"/>
   </volume>
 
-  <volume name="vol21">
+  <volume name="tube100">
    <materialref ref="Water"/>
    <solidref ref="t100"/>
   </volume>
-  <volume name="vol31">
+  <volume name="boolean1">
    <materialref ref="Water"/>
    <solidref ref="sub1"/>
   </volume>
 
-  <volume name="vol41">
+  <volume name="polycone1">
    <materialref ref="Water"/>
-   <solidref ref="testpoly"/>
+   <solidref ref="testpolyc"/>
   </volume>
 
-  <volume name="vol412">
+  <volume name="genPocone1">
    <materialref ref="Water"/>
    <solidref ref="testgenpoly"/>
   </volume>
 
-   <volume name="vol51">
+   <volume name="ellipsoid1">
    <materialref ref="Water"/>
    <solidref ref="testellipsoid"/>
   </volume>
 
-  <volume name="vol61">
+  <volume name="tetrah1">
    <materialref ref="Water"/>
    <solidref ref="testtet"/>
   </volume>
 
-  <volume name="vol71">
-   <materialref ref="Water"/>
-   <solidref ref="ttwistedbox"/>
-  </volume>
-
-  <volume name="vol81">
-   <materialref ref="Water"/>
-   <solidref ref="ttwistedtrd"/>
-  </volume>
-
-  <volume name="vol91">
-   <materialref ref="Water"/>
-   <solidref ref="ttwistedtrap"/>
-  </volume>
-
-  <volume name="vol101">
-   <materialref ref="Water"/>
-   <solidref ref="ttwistedtubs"/>
-  </volume>
-  <volume name="vol201">
+  <!--volume name="tessel1">
    <materialref ref="Water"/>
    <solidref ref="testtessel"/>
-  </volume>
-  <volume name="vol301">
+  </volume-->
+
+  <!--volume name="torus1">
    <materialref ref="Water"/>
-   <solidref ref="testtorus"/>
-  </volume>
-  <volume name="vol401">
+   <solidref ref="shTorus1"/>
+  </volume-->
+
+  <volume name="orb1">
    <materialref ref="Water"/>
-   <solidref ref="testorb"/>
+   <solidref ref="shOrb1"/>
   </volume>
-  <volume name="vol501">
+
+  <volume name="polyhedr1">
    <materialref ref="Water"/>
    <solidref ref="testph"/>
   </volume>
-  <volume name="vol502">
+
+  <!--volume name="genPohedr1">
    <materialref ref="Water"/>
    <solidref ref="testgenph"/>
-   </volume>
-  <volume name="vol601">
+   </volume-->
+
+  <volume name="hype1">
    <materialref ref="Water"/>
    <solidref ref="testhype"/>
   </volume>
-  <volume name="vol701">
+
+  <volume name="elltube1">
    <materialref ref="Water"/>
-   <solidref ref="testeltube"/>
+   <solidref ref="testelltube"/>
   </volume>
-  <volume name="vol1001">
+
+  <volume name="ellcone1">
    <materialref ref="Water"/>
-   <solidref ref="testelcone"/>
+   <solidref ref="testellcone"/>
   </volume>
-  <volume name="vol1002">
+
+  <volume name="arb8b">
    <materialref ref="Water"/>
    <solidref ref="arb81"/>
   </volume>
-  <volume name="vol1003">
+
+  <volume name="arb8a">
    <materialref ref="Water"/>
    <solidref ref="arb82"/>
   </volume>
+
   <volume name="World">
    <materialref ref="Air"/>
    <solidref ref="WorldBox"/>
 
    <physvol>
-     <volumeref ref="vol0"/>
+     <volumeref ref="box500"/>
      <positionref ref="center"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol1"/>
-     <positionref ref="pos1"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="cone1"/>
+     <positionref ref="posCone1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol2"/>
-     <positionref ref="pos2"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="para1"/>
+     <positionref ref="posPara1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol3"/>
-     <positionref ref="pos3"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="sphere1"/>
+     <positionref ref="posSphere1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol4"/>
-     <positionref ref="pos4"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="parabol1"/>
+     <positionref ref="posParab1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol11"/>
-     <positionref ref="pos11"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="trap1"/>
+     <positionref ref="posTrap1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol21"/>
-     <positionref ref="pos21"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="trd1"/>
+     <positionref ref="posTrd1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol31"/>
-     <positionref ref="pos31"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="tube100"/>
+     <positionref ref="posTube100"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol41"/>
-     <positionref ref="pos41"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="boolean1"/>
+     <positionref ref="posBool1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
-  <physvol>
-     <volumeref ref="vol412"/>
-     <positionref ref="pos412"/>
-     <rotationref ref="identity"/>
-   </physvol>
-
-    <physvol>
-     <volumeref ref="vol51"/>
-     <positionref ref="pos51"/>
-     <rotationref ref="identity"/>
-   </physvol>
+   <!--physvol>
+     <volumeref ref="torus1"/>
+     <positionref ref="posTorus1"/>
+     <rotationref ref="norot"/>
+   </physvol-->
 
    <physvol>
-     <volumeref ref="vol61"/>
-     <positionref ref="pos61"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="orb1"/>
+     <positionref ref="posOrb1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol71"/>
-     <positionref ref="pos71"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="polycone1"/>
+     <positionref ref="posPolycone1"/>
+     <rotationref ref="norot"/>
+   </physvol>
+
+
+   <physvol>
+     <volumeref ref="hype1"/>
+     <positionref ref="posHype1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol81"/>
-     <positionref ref="pos81"/>
-     <rotationref ref="identity"/>
-   </physvol>
-   <physvol>
-     <volumeref ref="vol91"/>
-     <positionref ref="pos91"/>
-     <rotationref ref="identity"/>
-   </physvol>
-   <physvol>
-     <volumeref ref="vol101"/>
-     <positionref ref="pos101"/>
-     <rotationref ref="identity"/>
-   </physvol>
-   <physvol>
-     <volumeref ref="vol201"/>
-     <positionref ref="pos201"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="polyhedr1"/>
+     <positionref ref="posPolyhedr1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol301"/>
-     <positionref ref="pos301"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="tetrah1"/>
+     <positionref ref="posTetrah1"/>
+     <rotationref ref="rotatebyy"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol401"/>
-     <positionref ref="pos401"/>
-     <rotationref ref="identity"/>
-   </physvol>
-
-    <physvol>
-     <volumeref ref="vol501"/>
-     <positionref ref="pos501"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="arb8a"/>
+     <positionref ref="posArb8a"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol502"/>
-     <positionref ref="pos502"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="arb8b"/>
+     <positionref ref="posArb8b"/>
+     <rotationref ref="norot"/>
+   </physvol>
+
+   <!--physvol>
+     <volumeref ref="tessel1"/>
+     <positionref ref="posTessel1"/>
+     <rotationref ref="rotatebyy"/>
+   </physvol-->
+
+   <physvol>
+     <volumeref ref="ellipsoid1"/>
+     <positionref ref="posEllipso1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol601"/>
-     <positionref ref="pos601"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="elltube1"/>
+     <positionref ref="posEllTube1"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
-     <volumeref ref="vol701"/>
-     <positionref ref="pos701"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="ellcone1"/>
+     <positionref ref="posEllcone1"/>
+     <rotationref ref="norot"/>
    </physvol>
+
    <physvol>
-     <volumeref ref="vol1001"/>
-     <positionref ref="pos1001"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="genPocone1"/>
+     <positionref ref="posGenPocone1"/>
+     <rotationref ref="norot"/>
    </physvol>
-   <physvol>
-     <volumeref ref="vol1002"/>
-     <positionref ref="pos1002"/>
-     <rotationref ref="identity"/>
-   </physvol>
-   <physvol>
-     <volumeref ref="vol1003"/>
-     <positionref ref="pos1003"/>
-     <rotationref ref="identity"/>
-   </physvol>
+
+   <!--physvol>
+     <volumeref ref="genPohedr1"/>
+     <positionref ref="posGenPohedr1"/>
+     <rotationref ref="norot"/>
+   </physvol-->
   </volume>
-
  </structure>
 
  <setup name="Default" version="1.0">
   <world ref="World"/>
  </setup>
 </gdml>
-
-
-
-

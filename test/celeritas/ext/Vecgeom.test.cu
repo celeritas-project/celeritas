@@ -63,7 +63,7 @@ __global__ void vgg_test_kernel(DeviceCRef<VecgeomParamsData> const params,
 }  // namespace
 
 //! Run on device and return results
-VGGTestOutput vgg_test(VGGTestInput input)
+VGGTestOutput vgg_test(VGGTestInput const& input)
 {
     CELER_EXPECT(input.params);
     CELER_EXPECT(input.state);

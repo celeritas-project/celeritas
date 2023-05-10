@@ -12,8 +12,8 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/Interpolator.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "celeritas/grid/Interpolator.hh"
 
 namespace celeritas
 {

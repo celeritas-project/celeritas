@@ -17,6 +17,7 @@
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/generated/CombinedBremInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 
 #include "../interactor/detail/PhysicsConstants.hh"
 #include "RelativisticBremModel.hh"
@@ -88,14 +89,16 @@ auto CombinedBremModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void CombinedBremModel::execute(CoreDeviceRef const& data) const
+void CombinedBremModel::execute(CoreParams const& params,
+                                CoreStateHost& state) const
 {
-    generated::combined_brem_interact(this->device_ref(), data);
+    generated::combined_brem_interact(params, state, this->host_ref());
 }
 
-void CombinedBremModel::execute(CoreHostRef const& data) const
+void CombinedBremModel::execute(CoreParams const& params,
+                                CoreStateDevice& state) const
 {
-    generated::combined_brem_interact(this->host_ref(), data);
+    generated::combined_brem_interact(params, state, this->device_ref());
 }
 
 //!@}

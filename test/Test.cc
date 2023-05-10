@@ -26,7 +26,8 @@ namespace test
  *
  * \post The given input file exists. (ifstream is used to check this)
  */
-std::string Test::test_data_path(char const* subdir, char const* filename)
+std::string
+Test::test_data_path(std::string_view subdir, std::string_view filename)
 {
     std::ostringstream os;
     os << testdetail::source_dir << "/test/" << subdir << "/data/" << filename;
@@ -41,10 +42,8 @@ std::string Test::test_data_path(char const* subdir, char const* filename)
 /*!
  * Generate test-unique filename.
  */
-std::string Test::make_unique_filename(char const* ext)
+std::string Test::make_unique_filename(std::string_view ext)
 {
-    CELER_EXPECT(ext);
-
     // Get filename based on unit test name
     ::testing::TestInfo const* const test_info
         = ::testing::UnitTest::GetInstance()->current_test_info();

@@ -15,7 +15,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-// Write device diagnostics to JSON
+// Write one kernel's attributes to json
+void to_json(nlohmann::json& j, KernelAttributes const& md);
+// Write all kernels to JSON
 void to_json(nlohmann::json& j, KernelRegistry const& diagnostics);
 
 //---------------------------------------------------------------------------//

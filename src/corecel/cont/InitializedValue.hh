@@ -116,9 +116,14 @@ class InitializedValue
     //!@{
     //! \name Conversion
 
-    //! Implicit reference to stored type
+    //! Implicit reference to stored value
     operator T const&() const noexcept { return value_; }
     operator T&() noexcept { return value_; }
+
+    //! Explicit reference to stored value
+    T const& value() const& { return value_; }
+    T& value() & { return value_; }
+    T&& value() && { return value_; }
 
     //!@}
 

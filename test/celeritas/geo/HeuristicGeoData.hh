@@ -122,7 +122,6 @@ inline void resize(HeuristicGeoStateData<Ownership::value, M>* state,
                    HostCRef<HeuristicGeoParamsData> const& params,
                    size_type size)
 {
-    CELER_EXPECT(state);
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
     resize(&state->geometry, params.geometry, size);

@@ -13,9 +13,9 @@
 #include <utility>
 
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/cont/Label.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -41,6 +41,7 @@ enum class HasDetectors
  */
 StepCollector::StepCollector(VecInterface callbacks,
                              SPConstGeo geo,
+                             size_type num_streams,
                              ActionRegistry* action_registry)
     : storage_(std::make_shared<detail::StepStorage>())
 {
@@ -50,6 +51,7 @@ StepCollector::StepCollector(VecInterface callbacks,
             return static_cast<bool>(i);
         }));
     CELER_EXPECT(geo);
+    CELER_EXPECT(num_streams > 0);
     CELER_EXPECT(action_registry);
 
     // Loop over callbacks to take union of step selections
@@ -125,8 +127,7 @@ StepCollector::StepCollector(VecInterface callbacks,
             host_data.nonzero_energy_deposition = nonzero_energy_deposition;
         }
 
-        storage_->params
-            = CollectionMirror<StepParamsData>(std::move(host_data));
+        storage_->obj = {std::move(host_data), num_streams};
     }
 
     if (selection.points[StepPoint::pre] || !detector_map.empty())
@@ -158,7 +159,7 @@ StepCollector& StepCollector::operator=(StepCollector&&) = default;
  */
 StepSelection const& StepCollector::selection() const
 {
-    return storage_->params.host_ref().selection;
+    return storage_->obj.params<MemSpace::host>().selection;
 }
 
 //---------------------------------------------------------------------------//

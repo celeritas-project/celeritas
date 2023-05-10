@@ -14,12 +14,13 @@ set(PUBLIC_DEPS)
 
 list(APPEND SOURCES
   Assert.cc
-  cont/Label.cc
   data/Copier.cc
   data/DeviceAllocation.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc
+  io/Label.cc
+  io/LogContextException.cc
   io/Logger.cc
   io/LoggerTypes.cc
   io/OutputInterface.cc
@@ -32,6 +33,8 @@ list(APPEND SOURCES
   sys/Device.cc
   sys/Environment.cc
   sys/KernelRegistry.cc
+  sys/MemRegistry.cc
+  sys/ScopedMem.cc
   sys/MpiCommunicator.cc
   sys/MultiExceptionHandler.cc
   sys/ScopedMpiInit.cc
@@ -52,12 +55,18 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     sys/KernelParamCalculator.device.cc
   )
 endif()
+if(CELERITAS_USE_CUDA)
+  list(APPEND SOURCES
+    sys/ScopedDeviceProfiling.cuda.cc
+  )
+endif()
 
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     AssertIO.json.cc
     sys/DeviceIO.json.cc
     sys/KernelRegistryIO.json.cc
+    sys/MemRegistryIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()

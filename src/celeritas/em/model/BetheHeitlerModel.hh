@@ -43,10 +43,10 @@ class BetheHeitlerModel final : public Model
     MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel on host
-    void execute(CoreHostRef const&) const final;
+    void execute(CoreParams const&, CoreStateHost&) const final;
 
     // Apply the interaction kernel on device
-    void execute(CoreDeviceRef const&) const final;
+    void execute(CoreParams const&, CoreStateDevice&) const final;
 
     // ID of the model
     ActionId action_id() const final;
@@ -60,8 +60,14 @@ class BetheHeitlerModel final : public Model
         return "Bethe-Heitler gamma conversion";
     }
 
+    //!@{
+    //! Access model data
+    BetheHeitlerData const& host_ref() const { return data_; }
+    BetheHeitlerData const& device_ref() const { return data_; }
+    //!@}
+
   private:
-    BetheHeitlerData interface_;
+    BetheHeitlerData data_;
     ImportedModelAdapter imported_;
 };
 

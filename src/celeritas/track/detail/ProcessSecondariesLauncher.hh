@@ -47,8 +47,8 @@ class ProcessSecondariesLauncher
   public:
     // Construct with shared and state data
     CELER_FUNCTION
-    ProcessSecondariesLauncher(CoreRef<M> const& core_data)
-        : params_(core_data.params), states_(core_data.states)
+    ProcessSecondariesLauncher(ParamsRef const& params, StateRef const& states)
+        : params_(params), states_(states)
     {
         CELER_EXPECT(params_);
         CELER_EXPECT(states_);
@@ -89,8 +89,9 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
 
     // Offset in the vector of track initializers
     auto const& data = states_.init;
-    CELER_ASSERT(data.secondary_counts[tid] <= data.num_secondaries);
-    size_type offset = data.num_secondaries - data.secondary_counts[tid];
+    CELER_ASSERT(data.secondary_counts[tid] <= data.scalars.num_secondaries);
+    size_type offset = data.scalars.num_secondaries
+                       - data.secondary_counts[tid];
 
     // A new track was initialized from a secondary in the parent's track slot
     bool initialized = false;
@@ -158,8 +159,11 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
             else
             {
                 // Store the track initializer
-                CELER_ASSERT(offset > 0 && offset <= data.initializers.size());
-                data.initializers[data.initializers.size() - offset] = ti;
+                CELER_ASSERT(offset > 0
+                             && offset <= data.scalars.num_initializers);
+                data.initializers[ItemId<TrackInitializer>{
+                    data.scalars.num_initializers - offset}]
+                    = ti;
 
                 // Store the thread ID of the secondary's parent if the
                 // secondary could be initialized in the next step

@@ -10,10 +10,10 @@
 #include <iostream>
 
 #include "corecel/cont/Span.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/StepCollector.hh"
-
-#include "ExampleCalorimeters.hh"
 
 using std::cout;
 
@@ -26,17 +26,26 @@ CaloTestBase::~CaloTestBase() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct example callback and step collector at setup time.
+ * Construct calorimeters and step collector at setup time.
  */
 void CaloTestBase::SetUp()
 {
-    example_calos_ = std::make_shared<ExampleCalorimeters>(
-        *this->geometry(), this->get_detector_names());
+    size_type num_streams = 1;
 
-    StepCollector::VecInterface interfaces = {example_calos_};
+    std::vector<Label> labels;
+    for (auto&& name : this->get_detector_names())
+    {
+        labels.push_back(name);
+    }
+    calo_ = std::make_shared<SimpleCalo>(
+        std::move(labels), *this->geometry(), num_streams);
 
-    collector_ = std::make_shared<StepCollector>(
-        std::move(interfaces), this->geometry(), this->action_reg().get());
+    StepCollector::VecInterface interfaces = {calo_};
+
+    collector_ = std::make_shared<StepCollector>(std::move(interfaces),
+                                                 this->geometry(),
+                                                 num_streams,
+                                                 this->action_reg().get());
 }
 
 //---------------------------------------------------------------------------//
@@ -55,6 +64,7 @@ void CaloTestBase::RunResult::print_expected() const
 /*!
  * Run a number of tracks.
  */
+template<MemSpace M>
 auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
 {
     StepperInput step_inp;
@@ -62,7 +72,7 @@ auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
     step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_tracks;
 
-    Stepper<MemSpace::host> step(step_inp);
+    Stepper<M> step(step_inp);
 
     // Initial step
     auto primaries = this->make_primaries(num_tracks);
@@ -74,12 +84,27 @@ auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
     }
 
     RunResult result;
-    auto edep = example_calos_->deposition();
-    result.edep.assign(edep.begin(), edep.end());
-    example_calos_->clear();
+    result.edep = calo_->calc_total_energy_deposition();
+    calo_->clear();
 
     return result;
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get output from the example calorimeter.
+ */
+std::string CaloTestBase::output() const
+{
+    // See OutputInterface.hh
+    return to_string(*calo_);
+}
+
+//---------------------------------------------------------------------------//
+template CaloTestBase::RunResult
+    CaloTestBase::run<MemSpace::device>(size_type, size_type);
+template CaloTestBase::RunResult
+    CaloTestBase::run<MemSpace::host>(size_type, size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

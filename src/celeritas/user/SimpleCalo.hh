@@ -1,0 +1,96 @@
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/user/SimpleCalo.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include <vector>
+
+#include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/StreamStore.hh"
+#include "corecel/io/OutputInterface.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/geo/GeoParamsFwd.hh"
+#include "celeritas/user/StepInterface.hh"
+
+#include "SimpleCaloData.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+struct Label;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Accumulate energy deposition in volumes.
+ */
+class SimpleCalo final : public StepInterface, public OutputInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecLabel = std::vector<Label>;
+    using EnergyUnits = units::Mev;
+    template<MemSpace M>
+    using DetectorRef
+        = celeritas::Collection<real_type, Ownership::reference, M, DetectorId>;
+    using VecReal = std::vector<real_type>;
+    //!@}
+
+  public:
+    // Construct with sensitive regions
+    SimpleCalo(VecLabel labels, GeoParams const& geo, size_type max_streams);
+
+    //!@{
+    //! \name Step interface
+    // Map volume names to detector IDs and exclude tracks with no deposition
+    Filters filters() const final;
+    // Save energy deposition and pre-step volume
+    StepSelection selection() const final;
+    // Process CPU-generated hits
+    void process_steps(HostStepState) final;
+    // Process device-generated hits
+    void process_steps(DeviceStepState) final;
+    //!@}
+
+    //!@{
+    //! \name Output interface
+    // Category of data to write
+    Category category() const final { return Category::result; }
+    // Key for the entry inside the category.
+    std::string label() const final { return "simple_calo"; }
+    // Write output to the given JSON object
+    void output(JsonPimpl*) const final;
+    //!@}
+
+    //// ACCESSORS ////
+
+    //! Number of distinct sensitive volumes
+    DetectorId::size_type num_detectors() const { return volume_ids_.size(); }
+
+    // Get tallied stream-local data (throw if not available) [EnergyUnits]
+    template<MemSpace M>
+    DetectorRef<M> const& energy_deposition(StreamId) const;
+
+    // Get accumulated energy deposition over all streams and host/device
+    VecReal calc_total_energy_deposition() const;
+
+    //// MUTATORS ////
+
+    // Reset energy deposition to zero, usually at the start of an event
+    void clear();
+
+  private:
+    using StoreT = StreamStore<SimpleCaloParamsData, SimpleCaloStateData>;
+
+    VecLabel volume_labels_;
+    std::vector<VolumeId> volume_ids_;
+    StoreT store_;
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas

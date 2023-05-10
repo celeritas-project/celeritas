@@ -57,7 +57,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     CELER_LOG_LOCAL(status) << "Loading detector geometry";
 
     G4GDMLParser gdml_parser;
-    gdml_parser.SetStripFlag(false);
+    gdml_parser.SetStripFlag(GlobalSetup::Instance()->StripGDMLPointers());
 
     std::string const& filename = GlobalSetup::Instance()->GetGeometryFile();
     if (filename.empty())
@@ -77,7 +77,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         {
             if (aux.type == "SensDet")
             {
-                detectors_.emplace_back(lv_vecaux.first, aux.value);
+                detectors_.insert({aux.value, lv_vecaux.first});
             }
         }
     }
@@ -89,14 +89,32 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 //---------------------------------------------------------------------------//
 void DetectorConstruction::ConstructSDandField()
 {
-    CELER_LOG_LOCAL(debug) << "Loading sensitive detectors";
+    CELER_LOG_LOCAL(status) << "Loading sensitive detectors";
 
     G4SDManager* sd_manager = G4SDManager::GetSDMpointer();
 
-    for (auto& lv_name : detectors_)
+    auto iter = detectors_.begin();
+    while (iter != detectors_.end())
     {
-        auto detector = std::make_unique<SensitiveDetector>(lv_name.second);
-        lv_name.first->SetSensitiveDetector(detector.get());
+        // Find the end of the current range of keys
+        auto stop = iter;
+        do
+        {
+            ++stop;
+        } while (stop != detectors_.end() && iter->first == stop->first);
+
+        // Create one detector for all the volumes
+        auto detector = std::make_unique<SensitiveDetector>(iter->first);
+
+        // Attach sensitive detectors
+        for (; iter != stop; ++iter)
+        {
+            CELER_LOG_LOCAL(debug) << "Attaching " << iter->first << " to "
+                                   << iter->second->GetName();
+            iter->second->SetSensitiveDetector(detector.get());
+        }
+
+        // Hand SD to the manager
         sd_manager->AddNewDetector(detector.release());
     }
 }

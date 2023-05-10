@@ -15,13 +15,13 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/alongstep/AlongStepLauncher.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
 #include "detail/AlongStepUniformMsc.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -47,24 +47,26 @@ AlongStepUniformMscAction::~AlongStepUniformMscAction() = default;
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepUniformMscAction::execute(CoreHostRef const& data) const
+void AlongStepUniformMscAction::execute(CoreParams const& params,
+                                        CoreStateHost& state) const
 {
-    CELER_EXPECT(data);
-
     MultiExceptionHandler capture_exception;
-    auto launch = make_along_step_launcher(data,
-                                           host_data_.msc,
-                                           field_params_,
-                                           NoData{},
-                                           detail::along_step_uniform_msc);
+    auto launch = make_active_track_launcher(*params.ptr<MemSpace::native>(),
+                                             *state.ptr(),
+                                             detail::along_step_uniform_msc,
+                                             host_data_.msc,
+                                             field_params_);
 
 #pragma omp parallel for
-    for (size_type i = 0; i < data.states.size(); ++i)
+    for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(data, ThreadId{i}, this->label()));
+            KernelContextException(params.ref<MemSpace::host>(),
+                                   state.ref(),
+                                   ThreadId{i},
+                                   this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }

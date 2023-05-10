@@ -51,6 +51,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
@@ -79,17 +80,16 @@ namespace
 //---------------------------------------------------------------------------//
 decltype(auto) em_basic_particles()
 {
-    static const std::unordered_set<PDGNumber> particles = {pdg::electron(),
-                                                            pdg::positron(),
-                                                            pdg::gamma()};
+    static const std::unordered_set<PDGNumber> particles
+        = {pdg::electron(), pdg::positron(), pdg::gamma()};
     return particles;
 }
 
 //---------------------------------------------------------------------------//
 decltype(auto) em_ex_particles()
 {
-    static const std::unordered_set<PDGNumber> particles = {pdg::mu_minus(),
-                                                            pdg::mu_plus()};
+    static const std::unordered_set<PDGNumber> particles
+        = {pdg::mu_minus(), pdg::mu_plus()};
     return particles;
 }
 
@@ -658,6 +658,7 @@ GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
  */
 ImportData GeantImporter::operator()(DataSelection const& selected)
 {
+    ScopedMem record_mem("GeantImporter.load");
     ImportData imported;
 
     {
@@ -731,7 +732,9 @@ GeantImporter::import_volumes(bool unique_volumes) const
     visitor.visit(*world_->GetLogicalVolume());
 
     auto volumes = visitor.build_volume_vector();
-    CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes";
+    CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes with "
+                     << (unique_volumes ? "uniquified" : "original")
+                     << " names";
     return volumes;
 }
 

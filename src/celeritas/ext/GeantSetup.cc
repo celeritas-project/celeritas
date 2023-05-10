@@ -28,8 +28,9 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/ScopedMem.hh"
 
-#include "LoadGdml.hh"
+#include "GeantGeoUtils.hh"
 #include "detail/GeantExceptionHandler.hh"
 #include "detail/GeantLoggerAdapter.hh"
 #include "detail/GeantPhysicsList.hh"
@@ -45,20 +46,15 @@ namespace
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    explicit DetectorConstruction(UPG4PhysicalVolume world)
-        : world_{std::move(world)}
+    explicit DetectorConstruction(G4VPhysicalVolume* world) : world_{world}
     {
         CELER_ENSURE(world_);
     }
 
-    G4VPhysicalVolume* Construct() override
-    {
-        CELER_EXPECT(world_);
-        return world_.release();
-    }
+    G4VPhysicalVolume* Construct() override { return world_; }
 
   private:
-    UPG4PhysicalVolume world_;
+    G4VPhysicalVolume* world_;
 };
 
 //---------------------------------------------------------------------------//
@@ -93,6 +89,7 @@ int get_num_threads(G4RunManager const& runman)
 GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
+    ScopedMem record_setup_mem("GeantSetup.construct");
 
     {
         // Run manager writes output that cannot be redirected...
@@ -133,13 +130,11 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         ScopedTimeLog scoped_time;
 
         // Load GDML and save a copy of the pointer
-        auto world = load_gdml(gdml_filename);
-        CELER_ASSERT(world);
-        world_ = world.get();
+        world_ = load_geant_geometry(gdml_filename);
+        CELER_ASSERT(world_);
 
         // Construct the geometry
-        auto detector
-            = std::make_unique<DetectorConstruction>(std::move(world));
+        auto detector = std::make_unique<DetectorConstruction>(world_);
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
@@ -149,6 +144,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 
     {
         CELER_LOG(status) << "Initializing Geant4 physics tables";
+        ScopedMem record_mem("GeantSetup.initialize");
         ScopedTimeLog scoped_time;
 
         run_manager_->Initialize();

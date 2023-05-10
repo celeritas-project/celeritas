@@ -11,14 +11,14 @@
 
 // IWYU pragma: begin_exports
 // Alias core RNG type using on compile-time RNG selection
-#if (CELERITAS_RNG == CELERITAS_RNG_CURAND) \
-    || (CELERITAS_RNG == CELERITAS_RNG_HIPRAND)
+#if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_CURAND) \
+    || (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_HIPRAND)
 #    include "CuHipRngEngine.hh"
 namespace celeritas
 {
 using RngEngine = CuHipRngEngine;
 }
-#elif (CELERITAS_RNG == CELERITAS_RNG_XORWOW)
+#elif (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
 #    include "XorwowRngEngine.hh"
 namespace celeritas
 {

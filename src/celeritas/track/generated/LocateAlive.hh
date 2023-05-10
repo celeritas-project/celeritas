@@ -11,13 +11,15 @@ namespace generated
 {
 
 void locate_alive(
-    CoreHostRef const& core_data);
+    HostCRef<CoreParamsData> const& core_params,
+    HostRef<CoreStateData> const& core_states);
 
 void locate_alive(
-    CoreDeviceRef const& core_data);
+    DeviceCRef<CoreParamsData> const& core_params,
+    DeviceRef<CoreStateData> const& core_states);
 
 #if !CELER_USE_DEVICE
-inline void locate_alive(CoreDeviceRef const&)
+inline void locate_alive(DeviceCRef<CoreParamsData> const&, DeviceRef<CoreStateData> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

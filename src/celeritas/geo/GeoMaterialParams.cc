@@ -19,6 +19,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/detail/Joined.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/io/ImportData.hh"
@@ -90,6 +91,8 @@ GeoMaterialParams::GeoMaterialParams(Input input)
                                  return !m
                                         || m < input.materials->num_materials();
                              }));
+
+    ScopedMem record_mem("GeoMaterialParams.construct");
 
     if (!input.volume_labels.empty())
     {

@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleData.hh"  // IWYU pragma: associated
@@ -75,6 +76,8 @@ ParticleParams::from_import(ImportData const& data)
  */
 ParticleParams::ParticleParams(Input const& input)
 {
+    ScopedMem record_mem("ParticleParams.construct");
+
     md_.reserve(input.size());
 
     // Build elements and materials on host.

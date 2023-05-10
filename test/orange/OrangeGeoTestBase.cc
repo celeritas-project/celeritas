@@ -14,9 +14,11 @@
 #include "celeritas_config.h"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
+#include "orange/OrangeParams.hh"
 #include "orange/Types.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/construct/SurfaceInputBuilder.hh"
+#include "orange/detail/UniverseIndexer.hh"
 #include "orange/surf/Sphere.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/SurfaceIO.hh"
@@ -43,7 +45,7 @@ struct ToStream
 OrangeInput to_input(UnitInput u)
 {
     OrangeInput result;
-    result.units.push_back(std::move(u));
+    result.universes.push_back(std::move(u));
     return result;
 }
 
@@ -76,6 +78,10 @@ std::vector<Sense> OrangeGeoTestBase::string_to_senses(std::string const& s)
     });
     return result;
 }
+
+//---------------------------------------------------------------------------//
+//! Default constructor
+OrangeGeoTestBase::OrangeGeoTestBase() = default;
 
 //---------------------------------------------------------------------------//
 //! Default destructor
@@ -181,9 +187,19 @@ auto OrangeGeoTestBase::host_state() -> HostStateRef const&
     CELER_EXPECT(params_);
     if (!host_state_)
     {
-        host_state_ = HostStateStore(this->params().host_ref(), 1);
+        host_state_ = HostStateStore(this->host_params(), 1);
     }
     return host_state_.ref();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the params data on the host.
+ */
+auto OrangeGeoTestBase::host_params() const -> HostParamsRef const&
+{
+    CELER_EXPECT(params_);
+    return params_->host_ref();
 }
 
 //---------------------------------------------------------------------------//
@@ -198,11 +214,12 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     CELER_EXPECT(params_);
 
     // TODO: update when multiple units are in play
-    auto const& host_ref = this->params().host_ref();
-    CELER_ASSERT(host_ref.simple_unit.size() == 1);
+    auto const& host_ref = this->host_params();
+    CELER_ASSERT(host_ref.simple_units.size() == 1);
 
     os << "# Surfaces\n";
-    Surfaces surfaces(host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
+    Surfaces surfaces(host_ref,
+                      host_ref.simple_units[SimpleUnitId{0}].surfaces);
     auto surf_to_stream = make_surface_action(surfaces, ToStream{os});
 
     // Loop over all surfaces and apply
@@ -213,6 +230,16 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
         surf_to_stream(id);
         os << '\n';
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the number of volumes.
+ */
+VolumeId::size_type OrangeGeoTestBase::num_volumes() const
+{
+    CELER_EXPECT(params_);
+    return params_->num_volumes();
 }
 
 //---------------------------------------------------------------------------//
@@ -259,7 +286,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalSurfaceId surfid) const
     if (!surfid)
         return "[none]";
 
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
     return params_->id_to_label(ui.global_surface(uid, surfid)).name;
 }
 
@@ -282,7 +309,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
     if (!volid)
         return "[none]";
 
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
     return params_->id_to_label(ui.global_volume(uid, volid)).name;
 }
 

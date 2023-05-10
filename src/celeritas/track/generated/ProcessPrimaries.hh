@@ -12,15 +12,17 @@ namespace generated
 {
 
 void process_primaries(
-    CoreHostRef const& core_data,
+    HostCRef<CoreParamsData> const& core_params,
+    HostRef<CoreStateData> const& core_states,
     Span<const Primary> const primaries);
 
 void process_primaries(
-    CoreDeviceRef const& core_data,
+    DeviceCRef<CoreParamsData> const& core_params,
+    DeviceRef<CoreStateData> const& core_states,
     Span<const Primary> const primaries);
 
 #if !CELER_USE_DEVICE
-inline void process_primaries(CoreDeviceRef const&, Span<const Primary> const)
+inline void process_primaries(DeviceCRef<CoreParamsData> const&, DeviceRef<CoreStateData> const&, Span<const Primary> const)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

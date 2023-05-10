@@ -12,24 +12,33 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/MollerBhabhaData.hh" // IWYU pragma: associated
-#include "celeritas/global/CoreTrackData.hh"
+
+namespace celeritas
+{
+class CoreParams;
+template<MemSpace M>
+class CoreState;
+}
 
 namespace celeritas
 {
 namespace generated
 {
 void moller_bhabha_interact(
-    celeritas::MollerBhabhaHostRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::host> const&);
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::MollerBhabhaHostRef const&);
 
 void moller_bhabha_interact(
-    celeritas::MollerBhabhaDeviceRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::device> const&);
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::MollerBhabhaDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void moller_bhabha_interact(
-    celeritas::MollerBhabhaDeviceRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::device> const&)
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::MollerBhabhaDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

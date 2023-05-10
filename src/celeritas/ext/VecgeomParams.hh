@@ -12,11 +12,13 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
+#include "orange/BoundingBox.hh"
 #include "orange/Types.hh"
 
 #include "VecgeomData.hh"
 
 class G4VPhysicalVolume;
+class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -49,6 +51,12 @@ class VecgeomParams
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const { return true; }
 
+    //! Outer bounding box of geometry
+    BoundingBox const& bbox() const { return bbox_; }
+
+    //! Maximum nested geometry depth
+    int max_depth() const { return host_ref_.max_depth; }
+
     //// VOLUMES ////
 
     //! Number of volumes
@@ -66,11 +74,11 @@ class VecgeomParams
     // Get the volume ID corresponding to a unique label
     VolumeId find_volume(Label const& label) const;
 
+    // Get the volume ID corresponding to a Geant4 logical volume
+    VolumeId find_volume(G4LogicalVolume const* volume) const;
+
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(std::string const& name) const;
-
-    //! Maximum nested geometry depth
-    int max_depth() const { return host_ref_.max_depth; }
 
     //// SURFACES (NOT APPLICABLE FOR VECGEOM) ////
 
@@ -88,7 +96,7 @@ class VecgeomParams
     //! Access geometry data on host
     inline HostRef const& host_ref() const;
 
-    //! Access geometry data on host
+    //! Access geometry data on device
     inline DeviceRef const& device_ref() const;
 
   private:
@@ -96,6 +104,9 @@ class VecgeomParams
 
     // Host metadata/access
     LabelIdMultiMap<VolumeId> vol_labels_;
+    std::map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
+
+    BoundingBox bbox_;
 
     // Host/device storage and reference
     HostRef host_ref_;

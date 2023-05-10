@@ -17,9 +17,11 @@ namespace celeritas
 /*!
  * Fill the collection with the given value.
  */
-template<class T, MemSpace M, class I>
-void fill(T const& value, Collection<T, Ownership::value, M, I>* col)
+template<class T, Ownership W, MemSpace M, class I>
+void fill(T&& value, Collection<T, W, M, I>* col)
 {
+    static_assert(W != Ownership::const_reference,
+                  "const references cannot be filled");
     CELER_EXPECT(col);
     detail::Filler<T, M> fill_impl{value};
     fill_impl((*col)[AllItems<T, M>{}]);
@@ -33,8 +35,8 @@ template<class T, Ownership W, MemSpace M, class I, std::size_t E>
 void copy_to_host(Collection<T, W, M, I> const& src, Span<T, E> dst)
 {
     CELER_EXPECT(src.size() == dst.size());
-    Copier<T, M> copy_impl{src[AllItems<T, M>{}]};
-    copy_impl(MemSpace::host, dst);
+    Copier<T, MemSpace::host> copy_to_result{dst};
+    copy_to_result(M, src[AllItems<T, M>{}]);
 }
 
 //---------------------------------------------------------------------------//

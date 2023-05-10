@@ -13,7 +13,8 @@ combination of [static RST documentation](doc/index.rst) and Doxygen-markup
 comments in the source code itself. The full [Celeritas user
 documentation][user-docs] (including selected code documentation incorporated
 by Breathe) and the [Celeritas code documentation][dev-docs] are mirrored on
-our GitHub pages site. You can generate these yourself by
+our GitHub pages site. You can generate these yourself (if the necessary
+prerequisites are installed) by
 setting the `CELERITAS_BUILD_DOCS=ON` configuration option and running `ninja
 doc` (user) or `ninja doxygen` (developer). A continuously updated version of
 the [static Celeritas user documentation][rtd] (without API documentation) is
@@ -46,7 +47,8 @@ development.
 
 As an example, if you have the [Spack][spack] package manager
 installed and want to do development on a CUDA system with Volta-class graphics
-cards, execute the following steps:
+cards, execute the following steps from within the cloned Celeritas source
+directory:
 ```console
 # Set up CUDA (optional)
 $ spack external find cuda
@@ -97,4 +99,7 @@ If using Celeritas in your work, we ask that you cite the code using its
 
 Additional references for code implementation details, benchmark problem
 results, etc., can be found in our continually evolving [citation
-file](doc/_static/celeritas.bib).
+file](doc/_static/celeritas.bib). An [exhaustive list of Celeritas presentations
+](https://github.com/celeritas-project/celeritas-docs/blob/main/presentations/presentations.bib)
+authored by (or with content authored by) core team members is available in our
+documents repo.

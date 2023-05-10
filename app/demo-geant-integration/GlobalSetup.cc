@@ -59,6 +59,13 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("false");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("stripGDMLPointers",
+                                                strip_gdml_pointers_);
+        cmd.SetGuidance(
+            "Remove pointer suffix from input logical volume names");
+        cmd.SetDefaultValue("false");
+    }
+    {
         auto& cmd = messenger_->DeclareProperty("outputFile",
                                                 options_->output_file);
         cmd.SetGuidance("Set the JSON output file name");

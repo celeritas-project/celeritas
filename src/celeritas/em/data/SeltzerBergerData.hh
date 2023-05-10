@@ -11,9 +11,9 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/TwodGridData.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/TwodGridData.hh"
 
 #include "ElectronBremsData.hh"
 

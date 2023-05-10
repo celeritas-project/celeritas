@@ -10,6 +10,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MollerBhabhaData.hh"
 #include "celeritas/em/generated/MollerBhabhaInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
@@ -24,18 +25,18 @@ MollerBhabhaModel::MollerBhabhaModel(ActionId id,
                                      ParticleParams const& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.action = id;
-    interface_.ids.electron = particles.find(pdg::electron());
-    interface_.ids.positron = particles.find(pdg::positron());
+    data_.ids.action = id;
+    data_.ids.electron = particles.find(pdg::electron());
+    data_.ids.positron = particles.find(pdg::positron());
 
-    CELER_VALIDATE(interface_.ids.electron && interface_.ids.positron,
+    CELER_VALIDATE(data_.ids.electron && data_.ids.positron,
                    << "missing electron and/or positron particles "
                       "(required for "
                    << this->description() << ")");
 
-    interface_.electron_mass = particles.get(interface_.ids.electron).mass();
+    data_.electron_mass = particles.get(data_.ids.electron).mass();
 
-    CELER_ENSURE(interface_);
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -50,11 +51,11 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
 
     Applicability electron_applic, positron_applic;
 
-    electron_applic.particle = interface_.ids.electron;
+    electron_applic.particle = data_.ids.electron;
     electron_applic.lower = zero_quantity();
-    electron_applic.upper = units::MevEnergy{interface_.max_valid_energy()};
+    electron_applic.upper = units::MevEnergy{data_.max_valid_energy()};
 
-    positron_applic.particle = interface_.ids.positron;
+    positron_applic.particle = data_.ids.positron;
     positron_applic.lower = zero_quantity();
     positron_applic.upper = electron_applic.upper;
 
@@ -77,14 +78,16 @@ auto MollerBhabhaModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void MollerBhabhaModel::execute(CoreDeviceRef const& data) const
+void MollerBhabhaModel::execute(CoreParams const& params,
+                                CoreStateHost& state) const
 {
-    generated::moller_bhabha_interact(interface_, data);
+    generated::moller_bhabha_interact(params, state, this->host_ref());
 }
 
-void MollerBhabhaModel::execute(CoreHostRef const& data) const
+void MollerBhabhaModel::execute(CoreParams const& params,
+                                CoreStateDevice& state) const
 {
-    generated::moller_bhabha_interact(interface_, data);
+    generated::moller_bhabha_interact(params, state, this->device_ref());
 }
 
 //!@}
@@ -94,7 +97,7 @@ void MollerBhabhaModel::execute(CoreHostRef const& data) const
  */
 ActionId MollerBhabhaModel::action_id() const
 {
-    return interface_.ids.action;
+    return data_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

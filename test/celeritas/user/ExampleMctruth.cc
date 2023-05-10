@@ -43,8 +43,9 @@ StepSelection ExampleMctruth::selection() const
 }
 
 //---------------------------------------------------------------------------//
-void ExampleMctruth::execute(StateHostRef const& data)
+void ExampleMctruth::process_steps(HostStepState state)
 {
+    auto& data = state.steps;
     for (auto tid : range(TrackSlotId{data.size()}))
     {
         TrackId track = data.track_id[tid];

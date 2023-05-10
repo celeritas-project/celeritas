@@ -61,6 +61,12 @@ class Environment
     //! Get an ordered (by access) vector of key/value pairs
     VecKVRef const& ordered_environment() const { return ordered_; }
 
+    // Remove all entries
+    void clear();
+
+    // Insert (not overriding!) from another environment
+    void merge(Environment const& other);
+
   private:
     std::unordered_map<key_type, mapped_type> vars_;
     VecKVRef ordered_;

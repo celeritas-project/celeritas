@@ -13,6 +13,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#include "ObserverPtr.hh"
 #include "detail/CollectionImpl.hh"
 
 namespace celeritas
@@ -136,8 +137,8 @@ using ItemRange = Range<OpaqueId<T, Size>>;
 template<class T1, class T2>
 class ItemMap
 {
-    static_assert(detail::IsOpaqueId<T1>::value, "T1 isn't opaque ID");
-    static_assert(detail::IsOpaqueId<T2>::value, "T2 isn't opaque ID");
+    static_assert(detail::IsOpaqueId<T1>::value, "T1 is not OpaqueID");
+    static_assert(detail::IsOpaqueId<T2>::value, "T2 is not OpaqueID");
 
   public:
     //!@{
@@ -163,7 +164,7 @@ class ItemMap
         return range_[id.unchecked_get()];
     }
 
-    //! Wheter the underlying Range<T2> is empty
+    //! Whether the underlying Range<T2> is empty
     CELER_FORCEINLINE_FUNCTION bool empty() const { return range_.empty(); }
 
     //! Size of the underlying Range<T2>
@@ -231,18 +232,20 @@ class Collection
                   "Collection element is not trivially destructible");
 #endif
 
-    using CollectionTraitsT = detail::CollectionTraits<T, W>;
+    using const_value_type =
+        typename detail::CollectionTraits<T, W>::const_type;
 
   public:
     //!@{
     //! \name Type aliases
-    using SpanT = typename CollectionTraitsT::SpanT;
-    using SpanConstT = typename CollectionTraitsT::SpanConstT;
-    using reference_type = typename CollectionTraitsT::reference_type;
-    using const_reference_type =
-        typename CollectionTraitsT::const_reference_type;
+    using value_type = typename detail::CollectionTraits<T, W>::type;
+    using SpanT = Span<value_type>;
+    using SpanConstT = Span<const_value_type>;
+    using pointer = ObserverPtr<value_type, M>;
+    using const_pointer = ObserverPtr<const_value_type, M>;
+    using reference_type = value_type&;
+    using const_reference_type = const_value_type&;
     using size_type = typename I::size_type;
-    using value_type = T;
     using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;
     using AllItemsT = AllItems<T, M>;
@@ -303,6 +306,14 @@ class Collection
     CELER_FORCEINLINE_FUNCTION bool empty() const
     {
         return this->storage().empty();
+    }
+    CELER_FORCEINLINE_FUNCTION pointer data()
+    {
+        return pointer{this->storage().data()};
+    }
+    CELER_FORCEINLINE_FUNCTION const_pointer data() const
+    {
+        return const_pointer{this->storage().data()};
     }
     //!@}
 
@@ -400,7 +411,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
     -> reference_type
 {
     CELER_EXPECT(i < this->size());
-    return this->storage()[i.get()];
+    return this->storage()[i.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -412,7 +423,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) const
     -> const_reference_type
 {
     CELER_EXPECT(i < this->size());
-    return this->storage()[i.get()];
+    return this->storage()[i.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -422,9 +433,11 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) const
 template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) -> SpanT
 {
+    CELER_EXPECT(*ps.begin() <= *ps.end());
     CELER_EXPECT(*ps.end() < this->size() + 1);
-    typename CollectionTraitsT::pointer data = this->storage().data();
-    return {data + ps.begin()->get(), data + ps.end()->get()};
+    auto* data = this->storage().data();
+    return {data + ps.begin()->unchecked_get(),
+            data + ps.end()->unchecked_get()};
 }
 
 //---------------------------------------------------------------------------//
@@ -435,9 +448,11 @@ template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) const
     -> SpanConstT
 {
+    CELER_EXPECT(*ps.begin() <= *ps.end());
     CELER_EXPECT(*ps.end() < this->size() + 1);
-    typename CollectionTraitsT::const_pointer data = this->storage().data();
-    return {data + ps.begin()->get(), data + ps.end()->get()};
+    auto* data = this->storage().data();
+    return {data + ps.begin()->unchecked_get(),
+            data + ps.end()->unchecked_get()};
 }
 
 //---------------------------------------------------------------------------//

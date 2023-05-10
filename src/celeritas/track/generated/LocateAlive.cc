@@ -19,17 +19,18 @@ namespace celeritas
 namespace generated
 {
 void locate_alive(
-    CoreHostRef const& core_data)
+    HostCRef<CoreParamsData> const& core_params,
+    HostRef<CoreStateData> const& core_states)
 {
     MultiExceptionHandler capture_exception;
-    detail::LocateAliveLauncher<MemSpace::host> launch(core_data);
+    detail::LocateAliveLauncher<MemSpace::host> launch(core_params, core_states);
     #pragma omp parallel for
-    for (ThreadId::size_type i = 0; i < core_data.states.size(); ++i)
+    for (ThreadId::size_type i = 0; i < core_states.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "locate_alive"));
+            KernelContextException(core_params, core_states, ThreadId{i}, "locate_alive"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

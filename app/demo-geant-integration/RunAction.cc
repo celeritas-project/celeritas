@@ -54,9 +54,10 @@ void RunAction::BeginOfRunAction(G4Run const* run)
     {
         // This worker (or master thread) is responsible for initializing
         // celeritas
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
-            // For testing purposes, pass the GDML input filename to Celeritas
+            // To allow ORANGE to work for testing purposes, pass the GDML
+            // input filename to Celeritas
             const_cast<celeritas::SetupOptions&>(*options_).geometry_file
                 = GlobalSetup::Instance()->GetGeometryFile();
         }

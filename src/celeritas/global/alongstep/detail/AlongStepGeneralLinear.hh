@@ -23,13 +23,12 @@ namespace detail
  * Implementation of the "along step" action with MSC and eloss fluctuation.
  */
 inline CELER_FUNCTION void
-along_step_general_linear(NativeCRef<UrbanMscData> const& msc,
-                          NoData,
-                          NativeCRef<FluctuationData> const& fluct,
-                          CoreTrackView const& track)
+along_step_general_linear(CoreTrackView const& track,
+                          NativeCRef<UrbanMscData> const& msc,
+                          NativeCRef<FluctuationData> const& fluct)
 {
     return along_step(
-        UrbanMsc{msc}, LinearPropagatorFactory{}, FluctELoss{fluct}, track);
+        track, UrbanMsc{msc}, LinearPropagatorFactory{}, FluctELoss{fluct});
 }
 
 //---------------------------------------------------------------------------//

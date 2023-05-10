@@ -40,8 +40,7 @@ class TestInterface final : public OutputInterface
 #if CELERITAS_USE_JSON
         json->obj = value_;
 #else
-        (void)sizeof(json);
-        (void)sizeof(value_);
+        (void)sizeof(json, value_);
 #endif
     }
 
@@ -71,7 +70,7 @@ class MockKernelContextException : public RichContextException
         json->obj["event"] = event_;
         json->obj["track"] = track_;
 #else
-        (void)sizeof(json);
+        (void)sizeof(json, thread_, event_, track_);
 #endif
     }
 
@@ -152,7 +151,7 @@ TEST_F(OutputRegistryTest, minimal)
     }
 }
 
-TEST_F(OutputRegistryTest, build_output)
+TEST_F(OutputRegistryTest, TEST_IF_CELERITAS_JSON(build_output))
 {
     OutputRegistry reg;
     reg.insert(std::make_shared<celeritas::BuildOutput>());

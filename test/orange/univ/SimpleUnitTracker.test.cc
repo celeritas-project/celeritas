@@ -18,6 +18,8 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "orange/OrangeGeoTestBase.hh"
+#include "orange/OrangeParams.hh"
+#include "orange/detail/UniverseIndexer.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
@@ -159,7 +161,7 @@ LocalState
 SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir, char const* vol)
 {
     LocalState state = this->make_state(pos, dir);
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
     state.volume = ui.local_volume(this->find_volume(vol)).volume;
     return state;
 }
@@ -188,7 +190,7 @@ LocalState SimpleUnitTrackerTest::make_state(
     }
 
     LocalState state = this->make_state(pos, dir);
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
     state.volume = ui.local_volume(this->find_volume(vol)).volume;
     // *Intentionally* flip the sense because we're looking for the
     // post-crossing volume. This is normally done by the multi-level
@@ -225,7 +227,7 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
     HostStateStore states(this->setup_heuristic_states(num_tracks));
 
     // Set up for host run
-    InitializingLauncher<> calc_init{this->params().host_ref(), states.ref()};
+    InitializingLauncher<> calc_init{this->host_params(), states.ref()};
 
     // Loop over all track slots
     Stopwatch get_time;
@@ -266,7 +268,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
 {
     CELER_EXPECT(num_tracks > 0);
     StateHostValue result;
-    resize(&result, this->params().host_ref(), num_tracks);
+    resize(&result, this->host_params(), num_tracks);
     auto result_ref = make_ref(result);
 
     std::mt19937 rng;
@@ -355,7 +357,7 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
 
 TEST_F(DetailTest, bumpcalculator)
 {
-    detail::BumpCalculator calc_bump(this->params().host_ref().scalars);
+    detail::BumpCalculator calc_bump(this->host_params().scalars);
     EXPECT_SOFT_EQ(1e-8, calc_bump(Real3{0, 0, 0}));
     EXPECT_SOFT_EQ(1e-8, calc_bump(Real3{1e-14, 0, 0}));
     EXPECT_SOFT_EQ(1e-2, calc_bump(Real3{0, 0, 1e6}));
@@ -364,7 +366,7 @@ TEST_F(DetailTest, bumpcalculator)
 
 TEST_F(OneVolumeTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     {
         // Anywhere is valid
@@ -377,7 +379,7 @@ TEST_F(OneVolumeTest, initialize)
 
 TEST_F(OneVolumeTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     {
         auto state = this->make_state({1, 2, 3}, {0, 0, 1}, "infinite");
@@ -393,8 +395,8 @@ TEST_F(OneVolumeTest, intersect)
 
 TEST_F(OneVolumeTest, safety)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
 
     EXPECT_SOFT_EQ(
         inf,
@@ -428,7 +430,7 @@ TEST_F(OneVolumeTest, heuristic_init)
 
 TEST_F(TwoVolumeTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("In the inner sphere");
@@ -455,7 +457,7 @@ TEST_F(TwoVolumeTest, initialize)
 
 TEST_F(TwoVolumeTest, cross_boundary)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("Crossing the boundary from the inside");
@@ -477,7 +479,7 @@ TEST_F(TwoVolumeTest, cross_boundary)
 
 TEST_F(TwoVolumeTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("Inside");
@@ -584,8 +586,8 @@ TEST_F(TwoVolumeTest, intersect)
 
 TEST_F(TwoVolumeTest, safety)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
     LocalVolumeId outside
         = ui.local_volume(this->find_volume("outside")).volume;
     LocalVolumeId inside = ui.local_volume(this->find_volume("inside")).volume;
@@ -606,7 +608,7 @@ TEST_F(TwoVolumeTest, safety)
 
 TEST_F(TwoVolumeTest, normal)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     if (CELERITAS_DEBUG)
     {
@@ -655,7 +657,7 @@ TEST_F(TwoVolumeTest, heuristic_init)
 
 TEST_F(FieldLayersTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("Exterior");
@@ -679,7 +681,7 @@ TEST_F(FieldLayersTest, initialize)
 
 TEST_F(FieldLayersTest, cross_boundary)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     // Test crossing into and out of the "background" with varying levels
     // of numerical imprecision
@@ -707,7 +709,7 @@ TEST_F(FieldLayersTest, cross_boundary)
 
 TEST_F(FieldLayersTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("straightforward");
@@ -768,7 +770,7 @@ TEST_F(FiveVolumesTest, properties)
 
 TEST_F(FiveVolumesTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
     {
         SCOPED_TRACE("Exterior");
         auto init = tracker.initialize(
@@ -808,7 +810,7 @@ TEST_F(FiveVolumesTest, initialize)
 
 TEST_F(FiveVolumesTest, cross_boundary)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("Crossing the boundary from the inside of 'e'");
@@ -881,7 +883,7 @@ TEST_F(FiveVolumesTest, cross_boundary)
 
 TEST_F(FiveVolumesTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("internal surface for a");
@@ -919,8 +921,8 @@ TEST_F(FiveVolumesTest, intersect)
 
 TEST_F(FiveVolumesTest, safety)
 {
-    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
-    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
     LocalVolumeId a = ui.local_volume(this->find_volume("a")).volume;
     LocalVolumeId d = ui.local_volume(this->find_volume("d")).volume;
 

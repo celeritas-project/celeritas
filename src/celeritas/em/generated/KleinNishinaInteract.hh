@@ -12,24 +12,33 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/em/data/KleinNishinaData.hh" // IWYU pragma: associated
-#include "celeritas/global/CoreTrackData.hh"
+
+namespace celeritas
+{
+class CoreParams;
+template<MemSpace M>
+class CoreState;
+}
 
 namespace celeritas
 {
 namespace generated
 {
 void klein_nishina_interact(
-    celeritas::KleinNishinaHostRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::host> const&);
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::host>&,
+    celeritas::KleinNishinaHostRef const&);
 
 void klein_nishina_interact(
-    celeritas::KleinNishinaDeviceRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::device> const&);
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::KleinNishinaDeviceRef const&);
 
 #if !CELER_USE_DEVICE
 inline void klein_nishina_interact(
-    celeritas::KleinNishinaDeviceRef const&,
-    celeritas::CoreRef<celeritas::MemSpace::device> const&)
+    celeritas::CoreParams const&,
+    celeritas::CoreState<MemSpace::device>&,
+    celeritas::KleinNishinaDeviceRef const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

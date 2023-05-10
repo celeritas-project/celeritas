@@ -54,6 +54,7 @@ class StepCollector
     // Construct with options and register pre/post-step actions
     StepCollector(VecInterface callbacks,
                   SPConstGeo geo,
+                  size_type max_streams,
                   ActionRegistry* action_registry);
 
     // Default destructor and move

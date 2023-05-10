@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Label.hh"
+#include "corecel/io/Label.hh"
 
 #include "OrangeInput.hh"
 

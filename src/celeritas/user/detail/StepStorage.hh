@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StreamStore.hh"
 
 #include "../StepData.hh"
 
@@ -17,46 +16,11 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-/*!
- * Step storage shared across multiple actions.
- */
 struct StepStorage
 {
-    //// TYPES ////
+    using StoreT = StreamStore<StepParamsData, StepStateData>;
 
-    template<MemSpace M>
-    using StepStateCollection = CollectionStateStore<StepStateData, M>;
-    template<MemSpace M>
-    using VecSSC = std::vector<StepStateCollection<M>>;
-
-    //// DATA ////
-
-    // Parameter data
-    CollectionMirror<StepParamsData> params;
-
-    // State data
-    struct
-    {
-        VecSSC<MemSpace::host> host;
-        VecSSC<MemSpace::device> device;
-    } states;
-
-    //// METHODS ////
-
-    template<MemSpace M>
-    decltype(auto) get_states()
-    {
-        if constexpr (M == MemSpace::host)
-        {
-            // NOTE: parens are necessary to return a reference instead of a
-            // value
-            return (states.host);
-        }
-        else
-        {
-            return (states.device);
-        }
-    }
+    StoreT obj;
 };
 
 //---------------------------------------------------------------------------//

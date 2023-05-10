@@ -86,7 +86,30 @@ using NativeCRef = P<Ownership::const_reference, MemSpace::native>;
 template<template<Ownership, MemSpace> class S>
 using NativeRef = S<Ownership::reference, MemSpace::native>;
 
+template<class T, MemSpace M>
+class ObserverPtr;
+
+//! Pointer to same-memory *const* collection group
+template<template<Ownership, MemSpace> class P, MemSpace M>
+using CRefPtr = ObserverPtr<P<Ownership::const_reference, M> const, M>;
+//! Pointer to same-memory *mutable* collection group
+template<template<Ownership, MemSpace> class S, MemSpace M>
+using RefPtr = ObserverPtr<S<Ownership::reference, M>, M>;
+
 //!@}
 #endif
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS (HOST)
+//---------------------------------------------------------------------------//
+
+//! Get a string corresponding to a memory space
+inline constexpr char const* to_cstring(MemSpace m)
+{
+    return m == MemSpace::host     ? "host"
+           : m == MemSpace::device ? "device"
+                                   : nullptr;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

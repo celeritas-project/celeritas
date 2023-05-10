@@ -74,7 +74,7 @@ namespace generated
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{{i}}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{{i}}, "{funcname}"));
+            KernelContextException(core_params, core_states, ThreadId{{i}}, "{funcname}"));
     }}
     log_and_rethrow(std::move(capture_exception));
 }}
@@ -196,29 +196,33 @@ LANG = {
 DEFS = {
     "InitTracks": KernelDefinition(
         Function("init_tracks", ParamList([
-            Param("Core{Memspace}Ref", "core_data"),
+            Param("{Memspace}CRef<CoreParamsData>", "core_params"),
+            Param("{Memspace}Ref<CoreStateData>", "core_states"),
             Param("size_type", "num_vacancies"),
         ])),
         "num_vacancies",
         []),
     "LocateAlive": KernelDefinition(
         Function("locate_alive", ParamList([
-            Param("Core{Memspace}Ref", "core_data"),
+            Param("{Memspace}CRef<CoreParamsData>", "core_params"),
+            Param("{Memspace}Ref<CoreStateData>", "core_states"),
         ])),
-        "core_data.states.size()",
+        "core_states.size()",
         []),
     "ProcessPrimaries": KernelDefinition(
         Function("process_primaries", ParamList([
-            Param("Core{Memspace}Ref", "core_data"),
+            Param("{Memspace}CRef<CoreParamsData>", "core_params"),
+            Param("{Memspace}Ref<CoreStateData>", "core_states"),
             Param("Span<const Primary>", "primaries"),
         ])),
         "primaries.size()",
         ["corecel/cont/Span.hh", "celeritas/phys/Primary.hh"]),
     "ProcessSecondaries": KernelDefinition(
         Function("process_secondaries", ParamList([
-            Param("Core{Memspace}Ref", "core_data"),
+            Param("{Memspace}CRef<CoreParamsData>", "core_params"),
+            Param("{Memspace}Ref<CoreStateData>", "core_states"),
         ])),
-        "core_data.states.size()",
+        "core_states.size()",
         []),
 }
 

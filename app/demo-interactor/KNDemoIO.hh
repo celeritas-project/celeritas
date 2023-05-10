@@ -11,8 +11,8 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Types.hh"
-#include "celeritas/grid/UniformGrid.hh"
-#include "celeritas/grid/UniformGridData.hh"
+#include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/UniformGridData.hh"
 
 #include "KNDemoKernel.hh"
 

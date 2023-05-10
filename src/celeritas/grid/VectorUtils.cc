@@ -10,8 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-
-#include "Interpolator.hh"
+#include "corecel/grid/Interpolator.hh"
 
 namespace celeritas
 {

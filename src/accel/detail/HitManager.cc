@@ -8,7 +8,6 @@
 #include "HitManager.hh"
 
 #include <utility>
-#include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
@@ -16,14 +15,13 @@
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/cont/Label.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/ext/detail/GeantVolumeVisitor.hh"
+#include "celeritas/ext/GeantVolumeMapper.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
-#include "celeritas/io/ImportVolume.hh"
 #include "accel/SetupOptions.hh"
 
 #include "HitProcessor.hh"
@@ -42,6 +40,7 @@ void update_selection(StepPointSelection* selection,
     selection->pos = options.position;
     selection->energy = options.kinetic_energy;
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -68,12 +67,11 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     // Logical volumes to pass to hit processor
     std::vector<G4LogicalVolume*> geant_vols;
 
-    // Helper class to extract GDML names+labels from Geant4 volume
-    GeantVolumeVisitor visitor(true);
-
-    // Loop over all logical volumes
+    // Loop over all logical volumes and map detectors to Volume IDS
+    GeantVolumeMapper g4_to_celer{geo};
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
     CELER_ASSERT(lv_store);
+    std::vector<G4LogicalVolume*> missing_lv;
     for (G4LogicalVolume* lv : *lv_store)
     {
         CELER_ASSERT(lv);
@@ -85,50 +83,30 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
             continue;
         }
 
-        // Convert volume name to GPU geometry ID
-        auto label = Label::from_geant(lv->GetName());
-        if (label.ext.empty())
-        {
-            // Label doesn't have a pointer address attached: we probably need
-            // to regenerate to match the exported GDML file
-            label = Label::from_geant(visitor.generate_name(*lv));
-        }
-
-        auto id = geo.find_volume(label);
+        auto id = g4_to_celer(*lv);
         if (!id)
         {
-            // Fallback to skipping the extension
-            id = geo.find_volume(label.name);
-            if (id)
-            {
-                CELER_LOG(warning)
-                    << "Failed to find " << celeritas_geometry
-                    << " volume corresponding to Geant4 volume '"
-                    << lv->GetName() << "'; found '" << geo.id_to_label(id)
-                    << "' by omitting the extension";
-            }
-            else
-            {
-                // Try regenerating the name even if we *did* have a pointer
-                // address attached (in case the original volume name already
-                // had a pointer suffix and we added another)
-                label = Label::from_geant(visitor.generate_name(*lv));
-                id = geo.find_volume(label.name);
-            }
+            missing_lv.push_back(lv);
+            continue;
         }
-        CELER_VALIDATE(id,
-                       << "failed to find " << celeritas_geometry
-                       << " volume corresponding to Geant4 volume '"
-                       << lv->GetName() << "'");
         CELER_LOG(debug) << "Mapped sensitive detector '" << sd->GetName()
                          << "' (logical volume '" << lv->GetName() << "') to "
-                         << celeritas_geometry << " volume '"
+                         << celeritas_core_geo << " volume '"
                          << geo.id_to_label(id) << "'";
 
         // Add Geant4 volume and corresponding volume ID to list
         geant_vols.push_back(lv);
         vecgeom_vols_.push_back(id);
     }
+    CELER_VALIDATE(missing_lv.empty(),
+                   << "failed to find unique " << celeritas_core_geo
+                   << " volume(s) corresponding to Geant4 volume(s) "
+                   << join_stream(missing_lv.begin(),
+                                  missing_lv.end(),
+                                  ", ",
+                                  [](std::ostream& os, G4LogicalVolume* lv) {
+                                      os << '\'' << lv->GetName() << '\'';
+                                  }));
     CELER_VALIDATE(!vecgeom_vols_.empty(),
                    << "no sensitive detectors were found");
 
@@ -171,20 +149,20 @@ auto HitManager::filters() const -> Filters
 /*!
  * Process detector tallies (CPU).
  */
-void HitManager::execute(StateHostRef const& data)
+void HitManager::process_steps(HostStepState state)
 {
-    auto&& process_hits = this->get_local_hit_processor();
-    process_hits(data);
+    auto&& process_hits = this->get_local_hit_processor(state.stream_id);
+    process_hits(state.steps);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Process detector tallies (GPU).
  */
-void HitManager::execute(StateDeviceRef const& data)
+void HitManager::process_steps(DeviceStepState state)
 {
-    auto&& process_hits = this->get_local_hit_processor();
-    process_hits(data);
+    auto&& process_hits = this->get_local_hit_processor(state.stream_id);
+    process_hits(state.steps);
 }
 
 //---------------------------------------------------------------------------//
@@ -208,18 +186,20 @@ void HitManager::finalize()
 /*!
  * Ensure the local hit processor exists, and return it.
  */
-HitProcessor& HitManager::get_local_hit_processor()
+HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
 {
-    int local_thread = G4Threading::G4GetThreadId();
-    CELER_ASSERT(static_cast<std::size_t>(local_thread) < processors_.size());
-    if (CELER_UNLIKELY(!processors_[local_thread]))
+    CELER_EXPECT(sid.get()
+                 == static_cast<size_type>(G4Threading::G4GetThreadId()));
+    CELER_EXPECT(sid < processors_.size());
+
+    if (CELER_UNLIKELY(!processors_[sid.unchecked_get()]))
     {
         CELER_LOG_LOCAL(debug) << "Allocating hit processor";
         // Allocate the hit processor locally
-        processors_[local_thread] = std::make_unique<HitProcessor>(
+        processors_[sid.unchecked_get()] = std::make_unique<HitProcessor>(
             geant_vols_, selection_, locate_touchable_);
     }
-    return *processors_[local_thread];
+    return *processors_[sid.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

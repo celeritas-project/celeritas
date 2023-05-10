@@ -9,12 +9,12 @@
 
 #include <nlohmann/json.hpp>
 
-#include "GeantPhysicsOptions.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct GeantPhysicsOptions;
 
+//---------------------------------------------------------------------------//
 // Read options from JSON
 void from_json(nlohmann::json const& j, GeantPhysicsOptions& opts);
 

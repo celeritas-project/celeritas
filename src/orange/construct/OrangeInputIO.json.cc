@@ -17,12 +17,12 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.json.hh"
-#include "corecel/cont/Label.hh"
-#include "corecel/cont/LabelIO.json.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/Label.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/StringEnumMapper.hh"
-#include "orange/BoundingBox.hh"
+#include "orange/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
 
@@ -154,8 +154,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     // Parse bbox
     if (j.contains("bbox"))
     {
-        auto bbox = j.at("bbox").get<Array<Real3, 2>>();
-        value.bbox = {bbox[0], bbox[1]};
+        j.at("bbox").get_to(value.bbox);
     }
 
     // Read scalars, including optional flags
@@ -223,18 +222,69 @@ void from_json(nlohmann::json const& j, UnitInput& value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Read a rectangular array universe definition from an ORANGE input file.
+ */
+void from_json(nlohmann::json const& j, RectArrayInput& value)
+{
+    j.at("md").at("name").get_to(value.label);
+
+    for (auto ax : range(Axis::size_))
+    {
+        value.grid[to_int(ax)]
+            = j.at(std::string(1, to_char(ax))).get<std::vector<real_type>>();
+        CELER_VALIDATE(value.grid[to_int(ax)].size() >= 2,
+                       << "axis " << to_char(ax)
+                       << " does must have at least two grid points");
+    }
+
+    // Read daughters universes/translations
+    {
+        auto daughters = j.at("daughters").get<std::vector<size_type>>();
+        auto translations = j.at("translations").get<std::vector<real_type>>();
+
+        CELER_VALIDATE(3 * daughters.size() == translations.size(),
+                       << "field 'daughters' is not 3x length of "
+                          "'parent_cells'");
+
+        for (auto i : range(daughters.size()))
+        {
+            value.daughters.push_back({UniverseId{daughters[i]},
+                                       make_translation(Span<real_type const>(
+                                           translations.data() + 3 * i, 3))});
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Read a partially preprocessed geometry definition from an ORANGE JSON file.
  */
 void from_json(nlohmann::json const& j, OrangeInput& value)
 {
     auto const& universes = j.at("universes");
 
-    value.units.reserve(universes.size());
+    value.universes.reserve(universes.size());
+
     for (auto const& uni : universes)
     {
-        CELER_VALIDATE(uni.at("_type").get<std::string>() == "simple unit",
-                       << "unsupported universe type '" << uni["_type"] << "'");
-        value.units.push_back(uni.get<UnitInput>());
+        auto uni_type = uni.at("_type").get<std::string>();
+        if (uni_type == "simple unit")
+        {
+            value.universes.push_back(uni.get<UnitInput>());
+        }
+        else if (uni_type == "rectangular array")
+        {
+            value.universes.push_back(uni.get<RectArrayInput>());
+        }
+        else if (uni_type == "hexagonal array")
+        {
+            CELER_NOT_IMPLEMENTED("hexagonal array universes");
+        }
+        else
+        {
+            CELER_VALIDATE(
+                false, << "unsupported universe type '" << uni_type << "'");
+        }
     }
 }
 

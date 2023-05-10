@@ -91,6 +91,9 @@ class CollectionStateStore
     size_type size() const { return val_.size(); }
 
     // Get a reference to the mutable state data
+    inline Ref& ref();
+
+    // Get a reference to the mutable state data
     inline Ref const& ref() const;
 
   private:
@@ -202,6 +205,17 @@ auto CollectionStateStore<S, M>::operator=(S<W2, M2> const& other)
     // Save reference
     ref_ = val_;
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reference to the mutable state data.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+auto CollectionStateStore<S, M>::ref() -> Ref&
+{
+    CELER_EXPECT(*this);
+    return ref_;
 }
 
 //---------------------------------------------------------------------------//

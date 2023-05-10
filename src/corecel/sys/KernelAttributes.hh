@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
@@ -42,6 +43,11 @@ struct KernelAttributes
     // Derivative but useful occupancy information
     unsigned int max_warps_per_eu{0};  //!< Occupancy (execution unit)
     double occupancy{0};  //!< Fractional occupancy (CU)
+
+    // Resource limits at first call
+    std::size_t stack_size{0};  //!< CUDA Dynamic per-thread stack limit [b]
+    std::size_t heap_size{0};  //!< Dynamic malloc heap size [b]
+    std::size_t print_buffer_size{0};  //!< FIFO buffer size for printf [b]
 };
 
 //---------------------------------------------------------------------------//
@@ -85,6 +91,20 @@ KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
     result.occupancy
         = static_cast<double>(num_blocks * result.threads_per_block)
           / static_cast<double>(d.max_threads_per_cu());
+
+    // Get size limits
+    if constexpr (CELERITAS_USE_CUDA)
+    {
+        // Stack size limit is CUDA-only
+        CELER_CUDA_CALL(
+            cudaDeviceGetLimit(&result.stack_size, cudaLimitStackSize));
+        // HIP throws 'limit is not supported on this architecture'
+        CELER_CUDA_CALL(cudaDeviceGetLimit(&result.print_buffer_size,
+                                           cudaLimitPrintfFifoSize));
+    }
+    CELER_DEVICE_CALL_PREFIX(DeviceGetLimit(
+        &result.heap_size, CELER_DEVICE_PREFIX(LimitMallocHeapSize)));
+
 #else
     (void)sizeof(func);
     CELER_ASSERT_UNREACHABLE();

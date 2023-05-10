@@ -16,12 +16,14 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Label.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/grid/UniformGrid.hh"
+#include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/data/AtomicRelaxationData.hh"
@@ -32,7 +34,6 @@
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
-#include "celeritas/grid/UniformGrid.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridData.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
@@ -78,6 +79,8 @@ PhysicsParams::PhysicsParams(Input inp)
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);
+
+    ScopedMem record_mem("PhysicsParams.construct");
 
     // Create actions (order matters due to accessors in PhysicsParamsScalars)
     {

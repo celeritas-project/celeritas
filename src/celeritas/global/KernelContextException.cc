@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "KernelContextException.hh"
 
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/JsonPimpl.hh"
 #if CELERITAS_USE_JSON
@@ -33,19 +34,6 @@ void insert_if_valid(char const* key,
     }
 }
 #endif
-template<class V, class S>
-std::ostream& operator<<(std::ostream& os, OpaqueId<V, S> const& v)
-{
-    if (v)
-    {
-        os << v.unchecked_get();
-    }
-    else
-    {
-        os << '?';
-    }
-    return os;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -54,9 +42,11 @@ std::ostream& operator<<(std::ostream& os, OpaqueId<V, S> const& v)
 /*!
  * Construct with track data and kernel label.
  */
-KernelContextException::KernelContextException(CoreHostRef const& data,
-                                               ThreadId thread,
-                                               std::string&& label)
+KernelContextException::KernelContextException(
+    HostCRef<CoreParamsData> const& params,
+    HostRef<CoreStateData> const& states,
+    ThreadId thread,
+    std::string&& label)
     : thread_(thread), label_(std::move(label))
 {
     try
@@ -67,7 +57,7 @@ KernelContextException::KernelContextException(CoreHostRef const& data,
             // detailed debug information
             throw std::exception();
         }
-        CoreTrackView core(data.params, data.states, thread);
+        CoreTrackView core(params, states, thread);
         this->initialize(core);
     }
     catch (...)

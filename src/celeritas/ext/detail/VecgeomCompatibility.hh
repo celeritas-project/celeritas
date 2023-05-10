@@ -19,7 +19,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Copy a length-3 span into a Vector3D
+ * Create a Vector3D from a length-3 span.
  */
 template<class T>
 CELER_FUNCTION inline auto to_vector(Span<T, 3> s)
@@ -29,12 +29,25 @@ CELER_FUNCTION inline auto to_vector(Span<T, 3> s)
 }
 
 //---------------------------------------------------------------------------//
-// Copy a length-3 array into a Vector3D
+/*!
+ * Create a Vector3D from a length-3 array.
+ */
 template<class T>
 CELER_FUNCTION inline auto to_vector(Array<T, 3> const& arr)
     -> vecgeom::Vector3D<T>
 {
     return to_vector(celeritas::make_span<T, 3>(arr));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a length-3 array from a VecGeom vector.
+ */
+template<class T>
+CELER_FUNCTION inline auto to_array(vecgeom::Vector3D<T> const& arr)
+    -> Array<T, 3>
+{
+    return {arr[0], arr[1], arr[2]};
 }
 
 //---------------------------------------------------------------------------//

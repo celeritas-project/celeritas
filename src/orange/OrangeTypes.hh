@@ -33,20 +33,23 @@ using logic_int = unsigned short int;
 //! Identifier for a daughter universe
 using DaughterId = OpaqueId<struct Daughter>;
 
-//! Identifier for a face local to a particular volume (internal use only)
+//! Identifier for a face within a volume
 using FaceId = OpaqueId<struct Face>;
 
-//! Identifier for the current "level", i.e. depth of embedded universe
+//! Identifier for the current "level", i.e., depth of embedded universe
 using LevelId = OpaqueId<struct Level>;
 
-//! Local Identifier for a surface within within a universe
+//! Local identifier for a surface within a universe
 using LocalSurfaceId = OpaqueId<struct LocalSurface>;
 
-//! Local identifier for a geometry volume in a universe
+//! Local identifier for a geometry volume within a universe
 using LocalVolumeId = OpaqueId<struct LocalVolume>;
 
 //! Opaque index for "simple unit" data
 using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
+
+//! Opaque index for rectilinear array data
+using RectArrayId = OpaqueId<struct RectArrayRecord>;
 
 //! Translation of a single embedded universe
 using Translation = Real3;
@@ -122,12 +125,13 @@ enum class SurfaceType : unsigned char
 enum class UniverseType : unsigned char
 {
     simple,
-#if 0
     rect_array,
+#if 0
     hex_array,
     dode_array,
     ...
 #endif
+    size_  //!< Sentinel value for number of universe types
 };
 
 //---------------------------------------------------------------------------//
@@ -323,7 +327,7 @@ CELER_CONSTEXPR_FUNCTION bool is_operator_token(logic_int lv)
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 //! Get a printable character corresponding to a sense.
-inline static constexpr char to_char(Sense s)
+inline constexpr char to_char(Sense s)
 {
     return s == Sense::inside ? '-' : '+';
 }
@@ -334,7 +338,7 @@ char const* to_cstring(SurfaceType);
 //! Get a printable character corresponding to an operator.
 namespace logic
 {
-inline static constexpr char to_char(OperatorToken tok)
+inline constexpr char to_char(OperatorToken tok)
 {
     return is_operator_token(tok) ? "*|&~"[tok - lbegin] : '\a';
 }

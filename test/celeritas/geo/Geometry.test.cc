@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoParamsOutput.hh"
 
 #include "HeuristicGeoTestBase.hh"
 #include "celeritas_test.hh"
@@ -164,7 +165,7 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 
 TEST_F(TestEm3Test, host)
 {
-    if (CELERITAS_USE_VECGEOM)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         EXPECT_TRUE(this->geometry()->supports_safety());
     }
@@ -198,6 +199,33 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
     // Results were generated with ORANGE
     real_type tol = CELERITAS_USE_VECGEOM ? 0.025 : 1e-3;
     this->run_device(512, tol);
+}
+
+TEST_F(SimpleCmsTest, output)
+{
+    GeoParamsOutput out(this->geometry());
+    EXPECT_EQ("geometry", out.label());
+
+    if (!CELERITAS_USE_JSON)
+    {
+        EXPECT_EQ(R"json("output unavailable")json", to_string(out));
+    }
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    {
+        EXPECT_EQ(
+            R"json({"bbox":[[-1000.001,-1000.001,-2000.001],[1000.001,1000.001,2000.001]],"supports_safety":true,"surfaces":{"label":[]},"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
+            to_string(out))
+            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
+            << ")json\"\n/******/";
+    }
+    else
+    {
+        EXPECT_EQ(
+            R"json({"bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"supports_safety":false,"surfaces":{"label":["world_box.mx@global","world_box.px@global","world_box.my@global","world_box.py@global","world_box.mz@global","world_box.pz@global","guide_tube.coz@global","crystal_em_calorimeter_outer.mz@global","crystal_em_calorimeter_outer.pz@global","silicon_tracker_outer.coz@global","crystal_em_calorimeter_outer.coz@global","hadron_calorimeter_outer.coz@global","superconducting_solenoid_outer.coz@global","iron_muon_chambers_outer.coz@global"]},"volumes":{"label":["[EXTERIOR]@global","vacuum_tube@global","si_tracker@global","em_calorimeter@global","had_calorimeter@global","sc_solenoid@global","fe_muon_chambers@global","world@global"]}})json",
+            to_string(out))
+            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
+            << ")json\"\n/******/";
+    }
 }
 
 //---------------------------------------------------------------------------//

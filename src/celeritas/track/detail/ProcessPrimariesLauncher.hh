@@ -19,6 +19,8 @@
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
 
+#include "Utils.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -33,14 +35,17 @@ class ProcessPrimariesLauncher
   public:
     //!@{
     //! \name Type aliases
+    using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
+    using StateRef = CoreStateData<Ownership::reference, M>;
     using TrackInitStateRef = TrackInitStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION ProcessPrimariesLauncher(CoreRef<M> const& core_data,
+    CELER_FUNCTION ProcessPrimariesLauncher(ParamsRef const&,
+                                            StateRef const& states,
                                             Span<Primary const> primaries)
-        : data_(core_data.states.init), primaries_(primaries)
+        : data_(states.init), primaries_(primaries)
     {
         CELER_EXPECT(data_);
     }
@@ -60,11 +65,14 @@ class ProcessPrimariesLauncher
 template<MemSpace M>
 CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
 {
-    Primary const& primary = primaries_[tid.get()];
+    CELER_EXPECT(tid < primaries_.size());
+    CELER_ASSERT(primaries_.size()
+                 <= data_.scalars.num_initializers + tid.get());
 
-    CELER_ASSERT(primaries_.size() <= data_.initializers.size() + tid.get());
-    TrackInitializer& ti = data_.initializers[data_.initializers.size()
-                                              - primaries_.size() + tid.get()];
+    ItemId<TrackInitializer> idx{
+        index_after(data_.scalars.num_initializers - primaries_.size(), tid)};
+    TrackInitializer& ti = data_.initializers[idx];
+    Primary const& primary = primaries_[tid.unchecked_get()];
 
     // Construct a track initializer from a primary particle
     ti.sim.track_id = primary.track_id;

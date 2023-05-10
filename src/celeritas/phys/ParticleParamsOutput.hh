@@ -6,6 +6,7 @@
 //! \file celeritas/phys/ParticleParamsOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
+
 #include <memory>
 
 #include "corecel/io/OutputInterface.hh"

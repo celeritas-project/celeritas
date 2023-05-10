@@ -12,20 +12,18 @@
 #include <unordered_map>
 #include <vector>
 
-// Source dependencies
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "orange/OrangeData.hh"
-#include "orange/OrangeParams.hh"
 #include "celeritas/Types.hh"
 
-// Test dependencies
 #include "Test.hh"
 
 namespace celeritas
 {
 struct UnitInput;
+class OrangeParams;
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -37,7 +35,8 @@ class OrangeGeoTestBase : public Test
   public:
     //!@{
     //! \name Type aliases
-    using HostStateRef = OrangeStateData<Ownership::reference, MemSpace::host>;
+    using HostStateRef = HostRef<OrangeStateData>;
+    using HostParamsRef = HostCRef<OrangeParamsData>;
     using Params = OrangeParams;
     //!@}
 
@@ -62,9 +61,9 @@ class OrangeGeoTestBase : public Test
     static std::vector<Sense> string_to_senses(std::string const& s);
 
     // Default constructor
-    OrangeGeoTestBase() = default;
+    OrangeGeoTestBase();
 
-    // Destructor
+    // Default destructor
     ~OrangeGeoTestBase();
 
     // Load `test/orange/data/{filename}` JSON input
@@ -88,6 +87,9 @@ class OrangeGeoTestBase : public Test
 
     // Lazily create and get a single-serving host state
     HostStateRef const& host_state();
+
+    // Access the host data
+    HostParamsRef const& host_params() const;
 
     //// QUERYING ////
 
@@ -113,11 +115,7 @@ class OrangeGeoTestBase : public Test
     void describe(std::ostream& os) const;
 
     //! Number of volumes
-    VolumeId::size_type num_volumes() const
-    {
-        CELER_EXPECT(params_);
-        return params_->num_volumes();
-    }
+    VolumeId::size_type num_volumes() const;
 
   private:
     //// TYPES ////

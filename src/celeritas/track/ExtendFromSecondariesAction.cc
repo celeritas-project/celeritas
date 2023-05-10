@@ -17,23 +17,20 @@ namespace celeritas
 /*!
  * Execute the action with host data
  */
-void ExtendFromSecondariesAction::execute(CoreHostRef const& core) const
+void ExtendFromSecondariesAction::execute(CoreParams const& params,
+                                          CoreStateHost& state) const
 {
-    extend_from_secondaries(core);
+    extend_from_secondaries(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data
  */
-void ExtendFromSecondariesAction::execute(
-    [[maybe_unused]] CoreDeviceRef const& core) const
+void ExtendFromSecondariesAction::execute(CoreParams const& params,
+                                          CoreStateDevice& state) const
 {
-#if !CELER_USE_DEVICE
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-#else
-    extend_from_secondaries(core);
-#endif
+    extend_from_secondaries(params, state);
 }
 
 }  // namespace celeritas

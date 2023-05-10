@@ -9,10 +9,9 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-
-#include "UniformGridData.hh"
 
 namespace celeritas
 {

@@ -12,8 +12,10 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
 #include "detail/AlongStepNeutral.hh"
 
 namespace celeritas
@@ -21,15 +23,13 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-__global__ void along_step_neutral_kernel(CoreDeviceRef const data)
+__global__ void
+along_step_neutral_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
+                          RefPtr<CoreStateData, MemSpace::device> const state)
 {
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < data.states.size()))
-        return;
-
-    auto launch = make_along_step_launcher(
-        data, NoData{}, NoData{}, NoData{}, detail::along_step_neutral);
-    launch(tid);
+    auto launch = make_active_track_launcher(
+        *params, *state, detail::along_step_neutral);
+    launch(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -38,13 +38,14 @@ __global__ void along_step_neutral_kernel(CoreDeviceRef const data)
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepNeutralAction::execute(CoreDeviceRef const& data) const
+void AlongStepNeutralAction::execute(CoreParams const& params,
+                                     CoreStateDevice& state) const
 {
-    CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(along_step_neutral,
                         celeritas::device().default_block_size(),
-                        data.states.size(),
-                        data);
+                        state.size(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr());
 }
 
 //---------------------------------------------------------------------------//

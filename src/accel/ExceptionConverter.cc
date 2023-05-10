@@ -16,8 +16,18 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/OpaqueIdIO.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/QuantityIO.hh"
 #include "corecel/sys/Environment.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/KernelContextException.hh"
+#include "celeritas/phys/ParticleParams.hh"
+
+#include "SharedParams.hh"
 
 namespace celeritas
 {
@@ -65,6 +75,67 @@ std::string strip_source_dir(std::string const& filename)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Write a detailed state message.
+ */
+void log_state(Logger::Message& msg,
+               KernelContextException const& kce,
+               SharedParams const* params)
+{
+    auto core_params = [params]() -> CoreParams const* {
+        if (!params)
+            return nullptr;
+        if (!*params)
+            return nullptr;
+        return params->Params().get();
+    }();
+
+    if (core_params && kce.particle())
+    {
+        auto const& par_params = *core_params->particle();
+        msg << "\n- Particle type: " << par_params.id_to_label(kce.particle())
+            << " (PDG=" << par_params.id_to_pdg(kce.particle()).get()
+            << ",  ID=" << kce.particle() << ')';
+    }
+    else
+    {
+        msg << "\n- Particle type ID: " << kce.particle();
+    }
+    msg << "\n- Energy: " << kce.energy() << "\n- Position: " << kce.pos()
+        << " (cm)"
+        << "\n- Direction: " << kce.dir();
+
+    if (core_params && kce.volume())
+    {
+        auto const& geo_params = *core_params->geometry();
+        msg << "\n- Volume: " << geo_params.id_to_label(kce.volume())
+            << " (ID=" << kce.volume() << ')';
+    }
+    else
+    {
+        msg << "\n- Volume ID: " << kce.volume();
+    }
+
+    if (core_params && kce.surface())
+    {
+        auto const& geo_params = *core_params->geometry();
+        msg << "\n- Surface: " << geo_params.id_to_label(kce.surface())
+            << " (ID=" << kce.surface() << ')';
+    }
+    else
+    {
+        msg << "\n- Surface ID: " << kce.surface();
+    }
+
+    if (core_params && kce.surface())
+    {
+        msg << "\n- Next surface: " << kce.next_surface();
+    }
+
+    msg << "\n- Step counter: " << kce.num_steps();
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -79,8 +150,28 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
     }
     catch (RichContextException const& e)
     {
-        CELER_LOG_LOCAL(critical)
-            << "The following error is from: " << e.what();
+        {
+            auto msg = CELER_LOG_LOCAL(critical);
+            msg << "The following error is from: " << e.what();
+            if (auto* kce = dynamic_cast<KernelContextException const*>(&e))
+            {
+                // Try to write a detailed message with particle state
+                try
+                {
+                    log_state(msg, *kce, params_);
+                }
+                catch (std::exception const& e)
+                {
+                    // Error writing the state
+                    msg << "\n[error while exporting state: " << e.what()
+                        << "]";
+                }
+                catch (...)
+                {
+                    /* Do nothing */
+                }
+            }
+        }
         try
         {
             std::rethrow_if_nested(e);

@@ -186,7 +186,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
         test_values.push_back(values[i]);
     }
 
-#if CELERITAS_RNG == CELERITAS_RNG_CURAND
+#if CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_CURAND
     static unsigned int const expected_test_values[] = {165860337u,
                                                         3006138920u,
                                                         2161337536u,
@@ -196,7 +196,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
                                                         4122784086u,
                                                         473544901u,
                                                         2822849608u};
-#elif CELERITAS_RNG == CELERITAS_RNG_HIPRAND
+#elif CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_HIPRAND
     static unsigned int const expected_test_values[] = {2191810108u,
                                                         1563840703u,
                                                         1491406143u,
@@ -206,7 +206,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
                                                         1303634785u,
                                                         964015610u,
                                                         4033624067u};
-#elif CELERITAS_RNG == CELERITAS_RNG_XORWOW
+#elif CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW
     static unsigned int const expected_test_values[] = {492039014u,
                                                         3443467310u,
                                                         2732308719u,
@@ -235,13 +235,13 @@ class DeviceRngEngineFloatTest : public DeviceRngEngineTest
 void check_expected_float_samples(std::vector<float> const& v)
 {
     ASSERT_LE(2, v.size());
-#if CELERITAS_RNG == CELERITAS_RNG_CURAND
+#if CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_CURAND
     EXPECT_FLOAT_EQ(0.038617369f, v[0]);
     EXPECT_FLOAT_EQ(0.411269426f, v[1]);
-#elif CELERITAS_RNG == CELERITAS_RNG_HIPRAND
+#elif CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_HIPRAND
     EXPECT_FLOAT_EQ(0.51032054f, v[0]);
     EXPECT_FLOAT_EQ(0.22727294f, v[1]);
-#elif CELERITAS_RNG == CELERITAS_RNG_XORWOW
+#elif CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW
     EXPECT_FLOAT_EQ(0.11456176f, v[0]);
     EXPECT_FLOAT_EQ(0.71564859f, v[1]);
 #else
@@ -252,13 +252,13 @@ void check_expected_float_samples(std::vector<float> const& v)
 void check_expected_float_samples(std::vector<double> const& v)
 {
     ASSERT_LE(2, v.size());
-#if CELERITAS_RNG == CELERITAS_RNG_CURAND
+#if CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_CURAND
     EXPECT_DOUBLE_EQ(0.283318433931184, v[0]);
     EXPECT_DOUBLE_EQ(0.653335242131673, v[1]);
-#elif CELERITAS_RNG == CELERITAS_RNG_HIPRAND
+#elif CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_HIPRAND
     EXPECT_DOUBLE_EQ(0.22503638759639666, v[0]);
     EXPECT_DOUBLE_EQ(0.73006306995055248, v[1]);
-#elif CELERITAS_RNG == CELERITAS_RNG_XORWOW
+#elif CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW
     EXPECT_DOUBLE_EQ(0.11456196141430341, v[0]);
     EXPECT_DOUBLE_EQ(0.71564819382390976, v[1]);
 #else

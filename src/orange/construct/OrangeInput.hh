@@ -7,10 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <unordered_map>  // IWYU pragma: export
+#include <variant>
 #include <vector>
 
-#include "corecel/cont/Label.hh"
+#include "corecel/io/Label.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
@@ -74,16 +76,21 @@ struct VolumeInput
 
 //---------------------------------------------------------------------------//
 /*!
+ * Input definition a daughter universe embedded in a parent cell
+ */
+struct DaughterInput
+{
+    UniverseId universe_id;
+    Translation translation;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Input definition for a unit.
  */
 struct UnitInput
 {
-    struct Daughter
-    {
-        UniverseId universe_id;
-        Translation translation;
-    };
-    using MapVolumeDaughter = std::unordered_map<LocalVolumeId, Daughter>;
+    using MapVolumeDaughter = std::unordered_map<LocalVolumeId, DaughterInput>;
 
     SurfaceInput surfaces;
     std::vector<VolumeInput> volumes;
@@ -99,11 +106,36 @@ struct UnitInput
 
 //---------------------------------------------------------------------------//
 /*!
+ * Input definition for a rectangular array universe.
+ */
+struct RectArrayInput
+{
+    // Grid boundaries in x, y, and z
+    Array<std::vector<double>, 3> grid;
+
+    // Daughters in each cell [x][y][z]
+    std::vector<DaughterInput> daughters;
+
+    // Unit metadata
+    Label label;
+
+    //! Whether the universe definition is valid
+    explicit operator bool() const
+    {
+        return !daughters.empty()
+               && std::all_of(grid.begin(), grid.end(), [](auto& v) {
+                      return v.size() >= 2;
+                  });
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Construction definition for a full ORANGE geometry.
  */
 struct OrangeInput
 {
-    std::vector<UnitInput> units;
+    std::vector<std::variant<UnitInput, RectArrayInput>> universes;
 
     // TODO: Calculate automatically in Shift by traversing the parent/daughter
     // tree
@@ -113,7 +145,10 @@ struct OrangeInput
     // or maybe std::variant when we require C++17
 
     //! Whether the unit definition is valid
-    explicit operator bool() const { return !units.empty() && max_level > 0; }
+    explicit operator bool() const
+    {
+        return !universes.empty() && max_level > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//

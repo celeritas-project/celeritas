@@ -28,27 +28,29 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 init_tracks_kernel(
-    CoreDeviceRef const core_data,
+    DeviceCRef<CoreParamsData> const core_params,
+    DeviceRef<CoreStateData> const core_states,
     size_type const num_vacancies)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < num_vacancies))
         return;
 
-    detail::InitTracksLauncher<MemSpace::device> launch(core_data, num_vacancies);
+    detail::InitTracksLauncher<MemSpace::device> launch(core_params, core_states, num_vacancies);
     launch(tid);
 }
 }  // namespace
 
 void init_tracks(
-    CoreDeviceRef const& core_data,
+    DeviceCRef<CoreParamsData> const& core_params,
+    DeviceRef<CoreStateData> const& core_states,
     size_type const num_vacancies)
 {
     CELER_LAUNCH_KERNEL(
         init_tracks,
         celeritas::device().default_block_size(),
         num_vacancies,
-        core_data, num_vacancies);
+        core_params, core_states, num_vacancies);
 }
 
 }  // namespace generated

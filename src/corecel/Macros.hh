@@ -71,7 +71,7 @@
 #    define CELER_UNLIKELY(COND) __builtin_expect(!!(COND), 0)
 #else
 // No other compilers seem to have a similar builtin
-#    define CELER_UNLIKELY(COND) COND
+#    define CELER_UNLIKELY(COND) (COND)
 #endif
 
 /*!

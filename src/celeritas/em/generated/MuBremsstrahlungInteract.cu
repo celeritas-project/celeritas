@@ -13,6 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/em/launcher/MuBremsstrahlungLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
@@ -25,32 +27,35 @@ namespace generated
 namespace
 {
 __global__ void mu_bremsstrahlung_interact_kernel(
+    celeritas::CRefPtr<celeritas::CoreParamsData, MemSpace::device> const params,
+    celeritas::RefPtr<celeritas::CoreStateData, MemSpace::device> const state,
     celeritas::MuBremsstrahlungDeviceRef const model_data,
-    celeritas::CoreRef<MemSpace::device> const core_data)
+    celeritas::size_type size)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (!(tid < core_data.states.size()))
+    if (!(tid < size))
         return;
 
     auto launch = celeritas::make_interaction_launcher(
-        core_data,
-        model_data,
-        celeritas::mu_bremsstrahlung_interact_track);
+        params, state, celeritas::mu_bremsstrahlung_interact_track, model_data);
     launch(tid);
 }
 }  // namespace
 
 void mu_bremsstrahlung_interact(
-    celeritas::MuBremsstrahlungDeviceRef const& model_data,
-    celeritas::CoreRef<MemSpace::device> const& core_data)
+    celeritas::CoreParams const& params,
+    celeritas::CoreState<MemSpace::device>& state,
+    celeritas::MuBremsstrahlungDeviceRef const& model_data)
 {
-    CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
 
     CELER_LAUNCH_KERNEL(mu_bremsstrahlung_interact,
                         celeritas::device().default_block_size(),
-                        core_data.states.size(),
-                        model_data, core_data);
+                        state.size(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr(),
+                        model_data,
+                        state.size());
 }
 
 }  // namespace generated

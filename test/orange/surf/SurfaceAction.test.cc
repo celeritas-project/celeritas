@@ -18,6 +18,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeGeoTestBase.hh"
+#include "orange/OrangeParams.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/surf/SurfaceIO.hh"
@@ -157,8 +158,9 @@ struct GetTypeSize
 TEST_F(SurfaceActionTest, string)
 {
     // Create functor
-    auto const& host_ref = this->params().host_ref();
-    Surfaces surfaces(host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
+    auto const& host_ref = this->host_params();
+    Surfaces surfaces(host_ref,
+                      host_ref.simple_units[SimpleUnitId{0}].surfaces);
     auto surf_to_string = make_surface_action(surfaces, ToString{});
 
     // Loop over all surfaces and apply
@@ -184,7 +186,7 @@ TEST_F(SurfaceActionTest, string)
 
 TEST_F(SurfaceActionTest, host_distances)
 {
-    auto const& host_ref = this->params().host_ref();
+    auto const& host_ref = this->host_params();
 
     // Create states and sample uniform box, isotropic direction
     HostVal<OrangeMiniStateData> states;
@@ -226,7 +228,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
     {
         // Initialize on host
         HostVal<OrangeMiniStateData> host_states;
-        resize(&host_states, this->params().host_ref(), 1024);
+        resize(&host_states, this->host_params(), 1024);
         this->fill_uniform_box(host_states.pos[AllItems<Real3>{}]);
         this->fill_isotropic(host_states.dir[AllItems<Real3>{}]);
 

@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackDataFwd.hh"
 
 #include "detail/InteractionLauncherImpl.hh"
 
@@ -37,12 +38,14 @@ inline CELER_FUNCTION Interaction foo_interact(
  * filtering the tracks. We could improve this interface later.
  */
 template<class D, class F>
-CELER_FUNCTION detail::InteractionLauncherImpl<D, F>
-make_interaction_launcher(CoreRef<MemSpace::native> const& core_data,
-                          D const& model_data,
-                          F&& call_with_track)
+CELER_FUNCTION detail::InteractionLauncherImpl<D, F> make_interaction_launcher(
+    CRefPtr<CoreParamsData, MemSpace::native> const& params,
+    RefPtr<CoreStateData, MemSpace::native> const& states,
+    F&& call_with_track,
+    D const& model_data)
 {
-    return {core_data, model_data, ::celeritas::forward<F>(call_with_track)};
+    return {
+        *params, *states, ::celeritas::forward<F>(call_with_track), model_data};
 }
 
 //---------------------------------------------------------------------------//

@@ -48,9 +48,10 @@ if(CELERITAS_USE_HIP)
     celeritas/phys/Physics.test.cu
     celeritas/random/RngEngine.test.cu
     celeritas/random/curand/CurandPerformance.test.cu
-    celeritas/track/TrackInit.test.cu
+    celeritas/track/MockInteractAction.cu
     corecel/cont/Range.test.cu
     corecel/data/Collection.test.cu
+    corecel/data/ObserverPtr.test.cu
     corecel/data/StackAllocator.test.cu
     corecel/math/NumericLimits.test.cu
     orange/surf/SurfaceAction.test.cu
@@ -70,9 +71,6 @@ function(celeritas_add_device_test base)
   celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
-if(NOT CELERITAS_USE_CUDA)
-  set(_needs_cuda DISABLE)
-endif()
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
 endif()
@@ -134,11 +132,20 @@ celeritas_add_device_test(corecel/data/Collection)
 celeritas_add_test(corecel/data/Copier.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
+celeritas_add_device_test(corecel/data/ObserverPtr)
 celeritas_add_device_test(corecel/data/StackAllocator)
+
+# Grid
+set(CELERITASTEST_PREFIX corecel/grid)
+celeritas_add_test(corecel/grid/Interpolator.test.cc)
+celeritas_add_test(corecel/grid/NonuniformGrid.test.cc)
+celeritas_add_test(corecel/grid/TwodGridCalculator.test.cc)
+celeritas_add_test(corecel/grid/UniformGrid.test.cc)
 
 # IO
 set(CELERITASTEST_PREFIX corecel/io)
 celeritas_add_test(corecel/io/EnumStringMapper.test.cc)
+celeritas_add_test(corecel/io/Label.test.cc)
 celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputRegistry.test.cc
@@ -195,7 +202,7 @@ celeritas_add_test(orange/Orange.test.cc)
 celeritas_add_test(orange/Translator.test.cc)
 
 # Base detail
-celeritas_add_test(orange/detail/UnitIndexer.test.cc)
+celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 
 #-------------------------------------#
 # Surfaces
@@ -239,11 +246,12 @@ celeritas_add_library(testcel_celeritas
   celeritas/SimpleTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
-  celeritas/user/ExampleCalorimeters.cc
+  celeritas/user/DiagnosticTestBase.cc
   celeritas/user/ExampleMctruth.cc
   celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
 )
+
 celeritas_target_link_libraries(testcel_celeritas
   PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link}
 )
@@ -281,8 +289,8 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
   celeritas_add_device_test(celeritas/ext/Vecgeom
-    ${_optional_geant4_env}
-    LINK_LIBRARIES VecGeom::vecgeom)
+    LINK_LIBRARIES VecGeom::vecgeom
+  )
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
@@ -294,17 +302,15 @@ celeritas_add_test(celeritas/ext/GeantImporter.test.cc
     "OneSteelSphere.*"
     "OneSteelSphereGG.*"
   )
+celeritas_add_test(celeritas/ext/GeantVolumeMapper.test.cc ${_needs_geant4}
+  LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 
 #-------------------------------------#
 # Field
 set(CELERITASTEST_PREFIX celeritas/field)
 
-celeritas_add_test(celeritas/field/Fields.test.cc
-SOURCES
-  celeritas/field/MagFieldMap.cc
-  celeritas/field/CMSFieldMapReader.cc
-)
+celeritas_add_test(celeritas/field/Fields.test.cc)
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
 celeritas_add_test(celeritas/field/FieldPropagator.test.cc ${_needs_geo})
@@ -320,11 +326,10 @@ set(_geo_args GPU ${_needs_geo}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
 endif()
-if(CELERITAS_USE_VecGeom)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
 else()
-  # FIXME: backscattering (or field direction change) into volume crashes ORANGE
-  list(APPEND _geo_args DISABLE)
+  list(APPEND _geo_args LINK_LIBRARIES Celeritas::orange)
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 
@@ -346,18 +351,20 @@ if(CELERITAS_USE_Geant4)
       "Em3AlongStepTest.fluct_nomsc"
       "SimpleCmsAlongStepTest.msc_field"
       "SimpleCmsAlongStepTest.msc_field_finegrid"
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
 else()
   set(_filter)
 endif()
 celeritas_add_test(celeritas/global/AlongStep.test.cc
-  NT 1 ${_optional_geant4_env} ${_filter}
+  NT 1 ${_optional_geant4_env} ${_needs_geo} ${_filter}
 )
 celeritas_add_test(celeritas/global/KernelContextException.test.cc NT 1
-  LINK_LIBRARIES ${_optional_json_link}
+  LINK_LIBRARIES ${_optional_json_link} ${_needs_geo}
 )
 celeritas_add_test(celeritas/global/Stepper.test.cc
-  GPU NT 4 ${_needs_geant4}
+  GPU NT 4 ${_needs_geant4} ${_needs_geo}
   FILTER
     # NOTE: these can be run in the same invocation once Geant4 reload works
     "TestEm3NoMsc.*"
@@ -372,13 +379,9 @@ celeritas_add_test(celeritas/global/Stepper.test.cc
 set(CELERITASTEST_PREFIX celeritas/grid)
 celeritas_add_test(celeritas/grid/GenericXsCalculator.test.cc)
 celeritas_add_test(celeritas/grid/GridIdFinder.test.cc)
-celeritas_add_test(celeritas/grid/Interpolator.test.cc)
 celeritas_add_test(celeritas/grid/InverseRangeCalculator.test.cc)
-celeritas_add_test(celeritas/grid/NonuniformGrid.test.cc)
 celeritas_add_test(celeritas/grid/PolyEvaluator.test.cc)
 celeritas_add_test(celeritas/grid/RangeCalculator.test.cc)
-celeritas_add_test(celeritas/grid/TwodGridCalculator.test.cc)
-celeritas_add_test(celeritas/grid/UniformGrid.test.cc)
 celeritas_add_test(celeritas/grid/ValueGridBuilder.test.cc)
 celeritas_add_test(celeritas/grid/ValueGridInserter.test.cc)
 celeritas_add_test(celeritas/grid/VectorUtils.test.cc)
@@ -438,13 +441,25 @@ endif()
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_add_test(celeritas/track/Sim.test.cc ${_needs_geant4})
-celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
+celeritas_add_test(celeritas/track/TrackSort.test.cc GPU ${_needs_geant4} ${_needs_geo})
+
+set(_trackinit_sources
+  celeritas/track/MockInteractAction.cc
+)
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  list(APPEND _trackinit_sources
+    celeritas/track/MockInteractAction.cu
+  )
+endif()
+
+celeritas_add_test(celeritas/track/TrackInit.test.cc GPU SOURCES ${_trackinit_sources})
 
 #-------------------------------------#
 # User
 set(CELERITASTEST_PREFIX celeritas/user)
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
-celeritas_add_test(celeritas/user/StepCollector.test.cc ${_optional_geant4_env})
+celeritas_add_test(celeritas/user/StepCollector.test.cc GPU ${_optional_geant4_env} ${_needs_geo})
+celeritas_add_test(celeritas/user/Diagnostic.test.cc GPU ${_needs_geant4} ${_needs_geo})
 
 #-----------------------------------------------------------------------------#
 # ACCELERITAS TESTS

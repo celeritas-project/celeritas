@@ -86,7 +86,8 @@ enum class MatterState
     unspecified = 0,
     solid,
     liquid,
-    gas
+    gas,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -104,7 +105,9 @@ enum class TrackStatus : std::int_least8_t
 enum class ActionOrder
 {
     start,  //!< Initialize tracks
+    sort_start,  //!< Sort track slots for GPU optimization
     pre,  //!< Pre-step physics and setup
+    sort_pre,  //!< Sort track slots for GPU optimization
     along,  //!< Along-step
     pre_post,  //!< Discrete selection kernel
     post,  //!< After step
@@ -126,8 +129,11 @@ enum class StepPoint
 //! Ordering / sorting of tracks on GPU
 enum class TrackOrder
 {
-    unsorted,
-    shuffled,
+    unsorted,  //!< Don't do any sorting, tracks are in an arbitrary order
+    shuffled,  //!< Tracks are shuffled at the start ot the simulation
+    partition_status,  //!< Tracks are partitioned by status at the start of
+                       //!< each step
+    sort_step_limit_action,  //!< Sort by the step limit action id.
     size_
 };
 
@@ -148,14 +154,12 @@ struct StepLimit
     }
 };
 
-//! Placeholder for helper functions whose interface requires data
-struct NoData
-{
-};
-
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
+
+// Get a string corresponding to a material state
+char const* to_cstring(MatterState);
 
 // Get a string corresponding to a surface type
 char const* to_cstring(ActionOrder);

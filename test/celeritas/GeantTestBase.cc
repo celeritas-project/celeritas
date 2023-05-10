@@ -65,7 +65,7 @@ class GeantTestBase::CleanupGeantEnvironment : public ::testing::Environment
 //! Whether Geant4 dependencies match those on the CI build
 bool GeantTestBase::is_ci_build()
 {
-    return cstring_equal(celeritas_rng, "XORWOW")
+    return cstring_equal(celeritas_core_rng, "xorwow")
            && cstring_equal(celeritas_clhep_version, "2.4.6.0")
            && cstring_equal(celeritas_geant4_version, "11.0.3");
 }
@@ -106,7 +106,7 @@ G4VPhysicalVolume const* GeantTestBase::get_world_volume()
 auto GeantTestBase::build_init() -> SPConstTrackInit
 {
     TrackInitParams::Input input;
-    input.capacity = 4096;
+    input.capacity = 4096 * 2;
     input.max_events = 4096;
     return std::make_shared<TrackInitParams>(input);
 }
@@ -219,7 +219,7 @@ auto GeantTestBase::import_helper() -> ImportHelper&
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, PrintableBuildConf const&)
 {
-    os << "RNG=\"" << celeritas_rng << "\", CLHEP=\""
+    os << "RNG=\"" << celeritas_core_rng << "\", CLHEP=\""
        << celeritas_clhep_version << "\", Geant4=\""
        << celeritas_geant4_version << '"';
     return os;

@@ -9,11 +9,11 @@
 
 #include <cmath>
 
+#include "corecel/grid/TwodGridCalculator.hh"
+#include "corecel/grid/TwodSubgridCalculator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
-#include "celeritas/grid/TwodGridCalculator.hh"
-#include "celeritas/grid/TwodSubgridCalculator.hh"
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
 
 namespace celeritas

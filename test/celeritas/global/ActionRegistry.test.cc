@@ -13,13 +13,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-// Fake definition of CoreRef
-template<MemSpace M>
-struct CoreRef
-{
-};
-
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -35,8 +28,14 @@ class MyExplicitAction final : public ExplicitActionInterface
     std::string label() const final { return "explicit"; }
     std::string description() const final { return "explicit action test"; }
 
-    void execute(CoreHostRef const&) const final { ++host_count_; }
-    void execute(CoreDeviceRef const&) const final { ++device_count_; }
+    void execute(CoreParams const&, CoreStateHost&) const final
+    {
+        ++host_count_;
+    }
+    void execute(CoreParams const&, CoreStateDevice&) const final
+    {
+        ++device_count_;
+    }
 
     int host_count() const { return host_count_; }
     int device_count() const { return device_count_; }
@@ -120,8 +119,10 @@ TEST_F(ActionRegistryTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json([{"label":"impl1"},{"description":"explicit action test","label":"explicit"},{"description":"the second implicit action","label":"impl2"}])json",
-            to_string(out));
+            R"json({"description":["","explicit action test","the second implicit action"],"label":["impl1","explicit","impl2"]})json",
+            to_string(out))
+            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
+            << ")json\"\n/******/";
     }
 }
 

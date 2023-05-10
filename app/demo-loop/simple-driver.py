@@ -28,11 +28,18 @@ run_name = (path.splitext(path.basename(geometry_filename))[0]
             + ('-gpu' if use_device else '-cpu'))
 
 geant_options = {
-    'rayleigh': True,
-    'eloss_fluctuation': True,
+    'coulomb_scattering': False,
+    'compton_scattering': True,
+    'photoelectric': True,
+    'rayleigh_scattering': True,
+    'gamma_conversion': True,
+    'gamma_general': False,
+    'ionization': True,
+    'annihilation': True,
     'brems': "all",
+    'msc': "urban_extended" if use_vecgeom else "none",
+    'eloss_fluctuation': True,
     'lpm': True,
-    'msc': "urban" if use_vecgeom else "none",
 }
 
 if geant_exp_exe:
@@ -53,6 +60,10 @@ else:
 if not use_vecgeom:
     print("Replacing .gdml extension since VecGeom is disabled", file=stderr)
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
+
+simple_calo = []
+if not rootout_filename:
+    simple_calo = ["si_tracker", "em_calorimeter"]
 
 num_tracks = 128*32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
@@ -75,7 +86,10 @@ inp = {
     'initializer_capacity': 100 * max([num_tracks, num_primaries]),
     'max_events': 1000,
     'secondary_stack_factor': 3,
-    'enable_diagnostics': True,
+    'action_diagnostic': True,
+    'step_diagnostic': True,
+    'step_diagnostic_maxsteps': 200,
+    'simple_calo': simple_calo,
     'sync': True,
     'brem_combined': True,
     'geant_options': geant_options,

@@ -11,6 +11,7 @@
 
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/generated/MuBremsstrahlungInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
@@ -31,19 +32,17 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId id,
                 {pdg::mu_minus(), pdg::mu_plus()})
 {
     CELER_EXPECT(id);
-    interface_.ids.action = id;
-    interface_.ids.gamma = particles.find(pdg::gamma());
-    interface_.ids.mu_minus = particles.find(pdg::mu_minus());
-    interface_.ids.mu_plus = particles.find(pdg::mu_plus());
+    data_.ids.action = id;
+    data_.ids.gamma = particles.find(pdg::gamma());
+    data_.ids.mu_minus = particles.find(pdg::mu_minus());
+    data_.ids.mu_plus = particles.find(pdg::mu_plus());
 
-    CELER_VALIDATE(interface_.ids.gamma && interface_.ids.mu_minus
-                       && interface_.ids.mu_plus,
+    CELER_VALIDATE(data_.ids.gamma && data_.ids.mu_minus && data_.ids.mu_plus,
                    << "missing muon and/or gamma particles (required for "
                    << this->description() << ")");
 
-    interface_.electron_mass
-        = particles.get(particles.find(pdg::electron())).mass();
-    CELER_ENSURE(interface_);
+    data_.electron_mass = particles.get(particles.find(pdg::electron())).mass();
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -54,11 +53,11 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 {
     Applicability mu_minus_applic, mu_plus_applic;
 
-    mu_minus_applic.particle = interface_.ids.mu_minus;
+    mu_minus_applic.particle = data_.ids.mu_minus;
     mu_minus_applic.lower = zero_quantity();
-    mu_minus_applic.upper = interface_.max_incident_energy();
+    mu_minus_applic.upper = data_.max_incident_energy();
 
-    mu_plus_applic.particle = interface_.ids.mu_plus;
+    mu_plus_applic.particle = data_.ids.mu_plus;
     mu_plus_applic.lower = mu_minus_applic.lower;
     mu_plus_applic.upper = mu_minus_applic.upper;
 
@@ -80,14 +79,16 @@ auto MuBremsstrahlungModel::micro_xs(Applicability applic) const
 /*!
  * Apply the interaction kernel.
  */
-void MuBremsstrahlungModel::execute(CoreDeviceRef const& data) const
+void MuBremsstrahlungModel::execute(CoreParams const& params,
+                                    CoreStateHost& state) const
 {
-    generated::mu_bremsstrahlung_interact(interface_, data);
+    generated::mu_bremsstrahlung_interact(params, state, this->host_ref());
 }
 
-void MuBremsstrahlungModel::execute(CoreHostRef const& data) const
+void MuBremsstrahlungModel::execute(CoreParams const& params,
+                                    CoreStateDevice& state) const
 {
-    generated::mu_bremsstrahlung_interact(interface_, data);
+    generated::mu_bremsstrahlung_interact(params, state, this->device_ref());
 }
 
 //!@}
@@ -97,7 +98,7 @@ void MuBremsstrahlungModel::execute(CoreHostRef const& data) const
  */
 ActionId MuBremsstrahlungModel::action_id() const
 {
-    return interface_.ids.action;
+    return data_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

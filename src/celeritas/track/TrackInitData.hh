@@ -78,68 +78,18 @@ struct TrackInitializer
 
 //---------------------------------------------------------------------------//
 /*!
- * StateCollection with a fixed capacity and dynamic size.
- *
- * The allocation (storage) is fixed-size and cannot be increased.
+ * Host-accessible scalar data.
  */
-template<class T, Ownership W, MemSpace M>
-struct ResizableData
+struct TrackInitScalars
 {
-    //// TYPES ////
+    // Initialization input
+    size_type num_initializers{};
+    size_type num_vacancies{};
 
-    using CollectionT = Collection<T, W, M>;
-    using size_type = typename CollectionT::size_type;
-    using reference_type = typename CollectionT::reference_type;
-    using SpanT = typename CollectionT::SpanT;
-
-    //// DATA ////
-
-    CollectionT storage;
-    size_type count{};
-
-    //// METHODS ////
-
-    //! Whether the underlying allocation has been made
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return !storage.empty();
-    }
-
-    //! Capacity of allocated storage
-    CELER_FUNCTION size_type capacity() const { return storage.size(); }
-
-    //! Number of elements
-    CELER_FUNCTION size_type size() const { return count; }
-
-    //! Change the size without changing capacity
-    CELER_FUNCTION void resize(size_type size)
-    {
-        CELER_EXPECT(size <= this->capacity());
-        count = size;
-    }
-
-    //! Access a single element
-    CELER_FUNCTION reference_type operator[](size_type i) const
-    {
-        CELER_EXPECT(i < this->size());
-        return storage[ItemId<T>{i}];
-    }
-
-    //! View to the data (up to *resized* count)
-    CELER_FUNCTION SpanT data()
-    {
-        return storage[ItemRange<T>{ItemId<T>{0}, ItemId<T>{this->size()}}];
-    }
-
-    //! Assign from another resizeable data
-    template<Ownership W2, MemSpace M2>
-    ResizableData& operator=(ResizableData<T, W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        storage = other.storage;
-        count = other.count;
-        return *this;
-    }
+    // Diagnostic output
+    size_type num_secondaries{};  //!< Number of secondaries produced in a step
+    size_type num_active{};  //!< Number of active tracks at start of a step
+    size_type num_alive{};  //!< Number of alive tracks at end of step
 };
 
 //---------------------------------------------------------------------------//
@@ -158,6 +108,8 @@ struct ResizableData
  * - \c track_counters stores the total number of particles that have been
  *   created per event.
  * - \c secondary_counts stores the number of secondaries created by each track
+ *   (with one remainder at the end for storing the accumulated number of
+ *   secondaries)
  */
 template<Ownership W, MemSpace M>
 struct TrackInitStateData
@@ -165,30 +117,32 @@ struct TrackInitStateData
     //// TYPES ////
 
     template<class T>
+    using StateItems = StateCollection<T, W, M>;
+    template<class T>
     using EventItems = Collection<T, W, M, EventId>;
     template<class T>
-    using ResizableItems = ResizableData<T, W, M>;
-    template<class T>
-    using StateItems = StateCollection<T, W, M>;
+    using Items = Collection<T, W, M>;
 
     //// DATA ////
 
-    ResizableItems<TrackInitializer> initializers;
-    ResizableItems<TrackSlotId> vacancies;
     StateItems<TrackSlotId> parents;
     StateItems<size_type> secondary_counts;
+    StateItems<TrackSlotId> vacancies;
     EventItems<TrackId::size_type> track_counters;
 
-    size_type num_secondaries{};  //!< Number of secondaries produced in a step
-    size_type num_active{}; //!< Number of active tracks at start of a step
+    // Storage (size is "capacity", not "currently used": see TrackInitScalars)
+    Items<TrackInitializer> initializers;
+
+    TrackInitScalars scalars;
 
     //// METHODS ////
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return initializers && vacancies && !parents.empty()
-               && !secondary_counts.empty() && !track_counters.empty();
+        return !parents.empty() && secondary_counts.size() == parents.size() + 1
+               && !track_counters.empty() && vacancies.size() == parents.size()
+               && !initializers.empty();
     }
 
     //! Assign from another set of data
@@ -196,12 +150,16 @@ struct TrackInitStateData
     TrackInitStateData& operator=(TrackInitStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        initializers = other.initializers;
+
         parents = other.parents;
-        vacancies = other.vacancies;
         secondary_counts = other.secondary_counts;
         track_counters = other.track_counters;
-        num_secondaries = other.num_secondaries;
+
+        vacancies = other.vacancies;
+        initializers = other.initializers;
+
+        scalars = other.scalars;
+
         return *this;
     }
 };
@@ -230,26 +188,26 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
     // Allocate device data
-    resize(&data->initializers.storage, params.capacity);
     resize(&data->parents, size);
-    resize(&data->secondary_counts, size);
+    resize(&data->secondary_counts, size + 1);
     resize(&data->track_counters, params.max_events);
-
-    // Start with an empty vector of track initializers
-    data->initializers.resize(0);
-
-    // Initialize vacancies to mark all track slots as empty
-    Collection<TrackSlotId, Ownership::value, MemSpace::host> vacancies;
-    resize(&vacancies, size);
-    for (auto i : range(size))
-    {
-        vacancies[OpaqueId<TrackSlotId>{i}] = TrackSlotId{i};
-    }
-    data->vacancies.storage = vacancies;
-    data->vacancies.resize(size);
 
     // Initialize the track counter for each event to zero
     fill(size_type(0), &data->track_counters);
+
+    // Initialize vacancies to mark all track slots as empty
+    StateCollection<TrackSlotId, Ownership::value, MemSpace::host> vacancies;
+    resize(&vacancies, size);
+    for (auto i : range(size))
+    {
+        vacancies[TrackSlotId{i}] = TrackSlotId{i};
+    }
+    data->vacancies = std::move(vacancies);
+    data->scalars.num_vacancies = size;
+
+    // Reserve space for initializers
+    resize(&data->initializers, params.capacity);
+    data->scalars.num_initializers = 0;
 
     CELER_ENSURE(*data);
 }

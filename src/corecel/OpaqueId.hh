@@ -96,26 +96,25 @@ class OpaqueId
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-//! Test equality
-template<class V, class S>
-CELER_CONSTEXPR_FUNCTION bool operator==(OpaqueId<V, S> lhs, OpaqueId<V, S> rhs)
-{
-    return lhs.unchecked_get() == rhs.unchecked_get();
-}
+#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                             \
+    template<class V, class S>                                       \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(OpaqueId<V, S> lhs, \
+                                                 OpaqueId<V, S> rhs) \
+    {                                                                \
+        return lhs.unchecked_get() TOKEN rhs.unchecked_get();        \
+    }
 
-//! Test inequality
-template<class V, class S>
-CELER_CONSTEXPR_FUNCTION bool operator!=(OpaqueId<V, S> lhs, OpaqueId<V, S> rhs)
-{
-    return !(lhs == rhs);
-}
+//!@{
+//! Comparison for OpaqueId
+CELER_DEFINE_OPAQUEID_CMP(==)
+CELER_DEFINE_OPAQUEID_CMP(!=)
+CELER_DEFINE_OPAQUEID_CMP(<)
+CELER_DEFINE_OPAQUEID_CMP(>)
+CELER_DEFINE_OPAQUEID_CMP(<=)
+CELER_DEFINE_OPAQUEID_CMP(>=)
+//!@}
 
-//! Allow less-than comparison for sorting
-template<class V, class S>
-CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, OpaqueId<V, S> rhs)
-{
-    return lhs.unchecked_get() < rhs.unchecked_get();
-}
+#undef CELER_DEFINE_OPAQUEID_CMP
 
 //! Allow less-than comparison with *integer* for container comparison
 template<class V, class S, class U>

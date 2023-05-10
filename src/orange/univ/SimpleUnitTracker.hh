@@ -138,7 +138,7 @@ class SimpleUnitTracker
  */
 CELER_FUNCTION
 SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
-    : params_(params), unit_record_(params.simple_unit[suid])
+    : params_(params), unit_record_(params.simple_units[suid])
 {
     CELER_EXPECT(params_);
 }
@@ -227,14 +227,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
         return {volid, get_surface(vol, logic_state.face)};
     }
 
-    if (unit_record_.background)
-    {
-        // In the background volume on the surface equal to the face ID
-        return {unit_record_.background, state.surface};
-    }
-
-    // Not found
-    return {};
+    return {unit_record_.background, state.surface};
 }
 
 //---------------------------------------------------------------------------//

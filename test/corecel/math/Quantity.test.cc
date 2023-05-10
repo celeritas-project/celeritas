@@ -209,7 +209,7 @@ TEST(QuantityTest, swappiness)
     EXPECT_EQ(144, native_value_from(gross));
 }
 
-TEST(QuantityTest, io)
+TEST(QuantityTest, TEST_IF_CELERITAS_JSON(io))
 {
 #if CELERITAS_USE_JSON
     using Dozen = Quantity<DozenUnit, int>;
@@ -242,8 +242,6 @@ TEST(QuantityTest, io)
         static char const expected[] = R"json([2,"dozen"])json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
-#else
-    GTEST_SKIP() << "JSON is disabled";
 #endif
 }
 

@@ -12,10 +12,12 @@
 #include "corecel/Assert.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
 #include "detail/AlongStepNeutral.hh"
 
 namespace celeritas
@@ -33,27 +35,30 @@ AlongStepNeutralAction::AlongStepNeutralAction(ActionId id) : id_(id)
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepNeutralAction::execute(CoreHostRef const& data) const
+void AlongStepNeutralAction::execute(CoreParams const& params,
+                                     CoreStateHost& state) const
 {
-    CELER_EXPECT(data);
-
     MultiExceptionHandler capture_exception;
-    auto launch = make_along_step_launcher(
-        data, NoData{}, NoData{}, NoData{}, detail::along_step_neutral);
+    auto launch = make_active_track_launcher(*params.ptr<MemSpace::native>(),
+                                             *state.ptr(),
+                                             detail::along_step_neutral);
 #pragma omp parallel for
-    for (size_type i = 0; i < data.states.size(); ++i)
+    for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(data, ThreadId{i}, this->label()));
+            KernelContextException(params.ref<MemSpace::host>(),
+                                   state.ref(),
+                                   ThreadId{i},
+                                   this->label()));
     }
     log_and_rethrow(std::move(capture_exception));
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void AlongStepNeutralAction::execute(CoreDeviceRef const&) const
+void AlongStepNeutralAction::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

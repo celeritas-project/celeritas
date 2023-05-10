@@ -30,10 +30,10 @@ class EPlusGGModel final : public Model
     MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel on host
-    void execute(CoreHostRef const&) const final;
+    void execute(CoreParams const&, CoreStateHost&) const final;
 
     // Apply the interaction kernel on device
-    void execute(CoreDeviceRef const&) const final;
+    void execute(CoreParams const&, CoreStateDevice&) const final;
 
     // ID of the model
     ActionId action_id() const final;
@@ -47,11 +47,14 @@ class EPlusGGModel final : public Model
         return "Positron annihilation yielding two gammas";
     }
 
-    // Access data on device
-    EPlusGGData device_ref() const { return interface_; }
+    //!@{
+    //! Access model data
+    EPlusGGData const& host_ref() const { return data_; }
+    EPlusGGData const& device_ref() const { return data_; }
+    //!@}
 
   private:
-    EPlusGGData interface_;
+    EPlusGGData data_;
 };
 
 //---------------------------------------------------------------------------//

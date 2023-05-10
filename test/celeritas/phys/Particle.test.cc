@@ -93,8 +93,10 @@ TEST_F(ParticleTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json([{"label":"electron","pdg":11},{"label":"gamma","pdg":22},{"label":"neutron","pdg":2112},{"label":"positron","pdg":-11}])json",
-            to_string(out));
+            R"json({"_units":{"charge":"e","mass":"MeV/c^2"},"charge":[-1.0,0.0,0.0,1.0],"decay_constant":[0.0,0.0,0.0011371389583807142,0.0],"is_antiparticle":[false,false,false,true],"label":["electron","gamma","neutron","positron"],"mass":[0.5109989461,0.0,939.565413,0.5109989461],"pdg":[11,22,2112,-11]})json",
+            to_string(out))
+            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
+            << ")json\"\n/******/";
     }
 }
 

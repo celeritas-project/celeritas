@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/grid/TwodSubgridCalculator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
-#include "celeritas/grid/TwodSubgridCalculator.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 
 #include "SBEnergyDistHelper.hh"

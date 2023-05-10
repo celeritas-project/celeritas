@@ -11,6 +11,7 @@
 
 namespace celeritas
 {
+class SharedParams;
 //---------------------------------------------------------------------------//
 /*!
  * Translate Celeritas C++ exceptions into Geant4 G4Exception calls.
@@ -32,7 +33,10 @@ namespace celeritas
 class ExceptionConverter
 {
   public:
-    // Construct with "error code"
+    // Construct with "error code" and optional pointer to shared params
+    inline ExceptionConverter(char const* err_code, SharedParams const* params);
+
+    // Construct with just an "error code"
     inline explicit ExceptionConverter(char const* err_code);
 
     // Capture the current exception and convert it to a G4Exception call
@@ -40,6 +44,7 @@ class ExceptionConverter
 
   private:
     char const* err_code_;
+    SharedParams const* params_{nullptr};
 
     void convert_device_exceptions(std::exception_ptr p) const;
 };
@@ -48,10 +53,24 @@ class ExceptionConverter
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with an error code and shared parameters.
+ *
+ * The error code is reported to the Geant4 exception manager. The shared
+ * parameters are used to translate internal particle data if an exception
+ * occurs.
+ */
+ExceptionConverter::ExceptionConverter(char const* err_code,
+                                       SharedParams const* params)
+    : err_code_{err_code}, params_(params)
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with an error code for dispatching to Geant4.
  */
 ExceptionConverter::ExceptionConverter(char const* err_code)
-    : err_code_{err_code}
+    : ExceptionConverter(err_code, nullptr)
 {
 }
 

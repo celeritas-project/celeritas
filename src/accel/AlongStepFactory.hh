@@ -18,6 +18,7 @@
 namespace celeritas
 {
 struct ImportData;
+struct RZMapFieldInput;
 class CutoffParams;
 class FluctuationParams;
 class GeoMaterialParams;
@@ -117,5 +118,28 @@ class UniformAlongStepFactory : public AlongStepFactoryInterface
     FieldFunction get_field_;
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Create an along-step method for a two-dimensional (r-z in the cylindical
+ * coordinate system) map field (RZMapField).
+ */
+class RZMapFieldAlongStepFactory : public AlongStepFactoryInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using RZMapFieldFunction = std::function<RZMapFieldInput()>;
+    //!@}
+
+  public:
+    // Construct with a function to return RZMapFieldInput
+    explicit RZMapFieldAlongStepFactory(RZMapFieldFunction f);
+
+    // Emit an along-step action
+    result_type operator()(argument_type input) const final;
+
+  private:
+    RZMapFieldFunction get_fieldmap_;
+};
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

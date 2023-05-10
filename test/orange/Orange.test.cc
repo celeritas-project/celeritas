@@ -31,11 +31,11 @@ class OrangeTest : public OrangeGeoTestBase
     {
         if (!host_state_)
         {
-            host_state_ = HostStateStore(this->params().host_ref(), 1);
+            host_state_ = HostStateStore(this->host_params(), 1);
         }
 
         return OrangeTrackView(
-            this->params().host_ref(), host_state_.ref(), TrackSlotId{0});
+            this->host_params(), host_state_.ref(), TrackSlotId{0});
     }
 
   private:
@@ -73,6 +73,12 @@ class FiveVolumesTest : public OrangeTest
 class UniversesTest : public OrangeTest
 {
     void SetUp() override { this->build_geometry("universes.org.json"); }
+};
+
+#define RectArrayTest TEST_IF_CELERITAS_JSON(RectArrayTest)
+class RectArrayTest : public OrangeTest
+{
+    void SetUp() override { this->build_geometry("rect_array.org.json"); }
 };
 
 #define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)

@@ -26,16 +26,12 @@ namespace detail
 template<class D, class F>
 struct InteractionLauncherImpl
 {
-    //!@{
-    //! \name Type aliases
-    using CoreRefNative = CoreRef<MemSpace::native>;
-    //!@}
-
     //// DATA ////
 
-    CoreRefNative const& core_data;
-    D const& model_data;
+    NativeCRef<CoreParamsData> const& params;
+    NativeRef<CoreStateData> const& states;
     F call_with_track;
+    D const& model_data;
 
     //// METHODS ////
 
@@ -52,9 +48,8 @@ template<class D, class F>
 CELER_FUNCTION void
 InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
 {
-    CELER_ASSERT(thread < this->core_data.states.size());
-    const celeritas::CoreTrackView track(
-        this->core_data.params, this->core_data.states, thread);
+    CELER_ASSERT(thread < this->states.size());
+    const celeritas::CoreTrackView track(this->params, this->states, thread);
 
     auto sim = track.make_sim_view();
     if (sim.step_limit().action != model_data.ids.action)
@@ -96,7 +91,7 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
                     // below the production cut -- deposit the energy locally
                     // and clear the secondary
                     deposition += secondary.energy.value();
-                    ParticleView particle{this->core_data.params.particles,
+                    ParticleView particle{this->params.particles,
                                           secondary.particle_id};
                     if (particle.is_antiparticle())
                     {

@@ -37,10 +37,10 @@ struct VGGTestOutput
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-VGGTestOutput vgg_test(VGGTestInput);
+VGGTestOutput vgg_test(VGGTestInput const&);
 
 #if !CELERITAS_USE_CUDA
-inline VGGTestOutput vgg_test(VGGTestInput)
+inline VGGTestOutput vgg_test(VGGTestInput const&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

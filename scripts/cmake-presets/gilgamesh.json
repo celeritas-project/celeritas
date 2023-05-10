@@ -1,0 +1,78 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": ".base",
+      "hidden": true,
+      "inherits": ["full"],
+      "binaryDir": "${sourceDir}/build-${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": ".nvhpc",
+      "hidden": true,
+      "inherits": [".base"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/packages/nvhpc/22.7_cuda11.7/Linux_x86_64/22.7/compilers/bin/nvc++",
+        "CMAKE_CXX_FLAGS": "-stdpar -Minfo=stdpar",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-nvphc/.spack-env/view",
+        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": ".rocm",
+      "hidden": true,
+      "inherits": [".base"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/opt/rocm-5.5.0/bin/amdclang++",
+        "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx90a"},
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-rocm/.spack-env/view",
+        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "nv-reldeb",
+      "displayName": "Gilgamesh without debugging",
+      "inherits": [".reldeb", ".nvhpc"]
+    },
+    {
+      "name": "rocm-ndebug",
+      "displayName": "Gilgamesh without debugging for ROCM",
+      "inherits": [".ndebug", ".rocm"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": ".base",
+      "configurePreset": ".base",
+      "jobs": 24,
+      "nativeToolOptions": ["-k0"]
+    },
+    {"name": "nv-reldeb", "configurePreset": "nv-reldeb", "inherits": ".base"},
+    {"name": "rocm-ndebug", "configurePreset": "rocm-ndebug", "inherits": ".base"}
+  ],
+  "testPresets": [
+    {
+      "name": ".base",
+      "configurePreset": ".base",
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+    },
+    {"name": "nv-reldeb", "configurePreset": "nv-reldeb", "inherits": ".base"},
+    {"name": "rocm-ndebug", "configurePreset": "rocm-ndebug", "inherits": ".base"}
+  ]
+}

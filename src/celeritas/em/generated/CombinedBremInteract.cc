@@ -14,6 +14,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/em/launcher/CombinedBremLauncher.hh" // IWYU pragma: associated
 #include "celeritas/phys/InteractionLauncher.hh"
@@ -25,24 +27,23 @@ namespace celeritas
 namespace generated
 {
 void combined_brem_interact(
-    celeritas::CombinedBremHostRef const& model_data,
-    celeritas::CoreRef<MemSpace::host> const& core_data)
+    celeritas::CoreParams const& params,
+    celeritas::CoreState<MemSpace::host>& state,
+    celeritas::CombinedBremHostRef const& model_data)
 {
-    CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        core_data,
-        model_data,
-        celeritas::combined_brem_interact_track);
+        params.ptr<MemSpace::native>(), state.ptr(),
+        celeritas::combined_brem_interact_track, model_data);
     #pragma omp parallel for
-    for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
+    for (celeritas::size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             launch(ThreadId{i}),
             capture_exception,
-            KernelContextException(core_data, ThreadId{i}, "combined_brem"));
+            KernelContextException(params.ref<MemSpace::host>(), state.ref(), ThreadId{i}, "combined_brem"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

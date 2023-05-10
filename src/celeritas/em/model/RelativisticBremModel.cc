@@ -17,6 +17,7 @@
 #include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/generated/RelativisticBremInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -100,14 +101,16 @@ auto RelativisticBremModel::micro_xs(Applicability applic) const
 /*!
  * Apply the interaction kernel.
  */
-void RelativisticBremModel::execute(CoreDeviceRef const& data) const
+void RelativisticBremModel::execute(CoreParams const& params,
+                                    CoreStateHost& state) const
 {
-    generated::relativistic_brem_interact(this->device_ref(), data);
+    generated::relativistic_brem_interact(params, state, this->host_ref());
 }
 
-void RelativisticBremModel::execute(CoreHostRef const& data) const
+void RelativisticBremModel::execute(CoreParams const& params,
+                                    CoreStateDevice& state) const
 {
-    generated::relativistic_brem_interact(this->host_ref(), data);
+    generated::relativistic_brem_interact(params, state, this->device_ref());
 }
 
 //!@}

@@ -12,17 +12,17 @@
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Label.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/io/Label.hh"
 
 #include "BoundingBox.hh"
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
-#include "detail/UnitIndexer.hh"
 
 class G4VPhysicalVolume;
+class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -58,6 +58,9 @@ class OrangeParams
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const { return supports_safety_; }
 
+    //! Outer bounding box of geometry
+    BoundingBox const& bbox() const { return bbox_; }
+
     //// VOLUMES ////
 
     //! Number of volumes
@@ -75,11 +78,11 @@ class OrangeParams
     // Get the volume ID corresponding to a unique label
     VolumeId find_volume(Label const& label) const;
 
+    // Get the volume ID corresponding to a Geant4 logical volume
+    VolumeId find_volume(G4LogicalVolume const* volume) const;
+
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(std::string const& name) const;
-
-    //! Outer bounding box of geometry
-    BoundingBox const& bbox() const { return bbox_; }
 
     //// SURFACES ////
 
@@ -109,6 +112,12 @@ class OrangeParams
 
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;
+
+  private:
+    //// HELPER METHODS ////
+
+    // Get surface and volume labels for all universes.
+    void process_metadata(OrangeInput const& input);
 };
 
 //---------------------------------------------------------------------------//

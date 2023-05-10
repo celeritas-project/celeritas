@@ -114,11 +114,21 @@ Building Celeritas
 ==================
 
 Once the Celeritas Spack environment has been installed, set your shell's environment
-variables (``PATH``, ``CMAKE_PREFIX_PATH``, ...) by activating it. Then, you
-can configure, build, and test using the provided helper script:
+variables (``PATH``, ``CMAKE_PREFIX_PATH``, ...) by activating it.
+
+To clone the latest development version of Celeritas:
 
 .. code-block:: console
 
+   $ git clone https://github.com/celeritas-project/celeritas.git
+
+or download it from the GitHub-generated `zip file`_.
+
+, you can configure, build, and test using the provided helper script:
+
+.. code-block:: console
+
+   $ cd celeritas
    $ spack env activate celeritas
    $ ./scripts/build.sh base
 
@@ -126,10 +136,13 @@ or manually with:
 
 .. code-block:: console
 
+   $ cd celeritas
    $ spack env activate celeritas
    $ mkdir build && cd build
    $ cmake ..
    $ make && ctest
+
+.. _zip file: https://github.com/celeritas-project/celeritas/archive/refs/heads/develop.zip
 
 CMake Presets
 =============

@@ -11,15 +11,17 @@ namespace generated
 {
 
 void init_tracks(
-    CoreHostRef const& core_data,
+    HostCRef<CoreParamsData> const& core_params,
+    HostRef<CoreStateData> const& core_states,
     size_type const num_vacancies);
 
 void init_tracks(
-    CoreDeviceRef const& core_data,
+    DeviceCRef<CoreParamsData> const& core_params,
+    DeviceRef<CoreStateData> const& core_states,
     size_type const num_vacancies);
 
 #if !CELER_USE_DEVICE
-inline void init_tracks(CoreDeviceRef const&, size_type const)
+inline void init_tracks(DeviceCRef<CoreParamsData> const&, DeviceRef<CoreStateData> const&, size_type const)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

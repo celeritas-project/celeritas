@@ -82,7 +82,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
     {
         CELER_EXPECT(count > 0);
         HostStates result;
-        resize(&result, params_.host_ref(), count);
+        resize(&result, params_.host_ref(), StreamId{0}, count);
 
         // Fill with bogus data
         int i = 0;

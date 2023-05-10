@@ -13,6 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "../detail/PreStepActionImpl.hh"
 
@@ -31,25 +33,23 @@ __launch_bounds__(1024, 4)
 __launch_bounds__(1024, 7)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
-pre_step_kernel(CoreDeviceRef const data
+pre_step_kernel(
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state
 )
 {
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < data.states.size()))
-        return;
-
-    auto launch = make_track_launcher(data, detail::pre_step_track);
-    launch(tid);
+    TrackLauncher launch{*params, *state, detail::pre_step_track};
+    launch(KernelParamCalculator::thread_id());
 }
 }  // namespace
 
-void PreStepAction::execute(CoreDeviceRef const& data) const
+void PreStepAction::execute(CoreParams const& params, CoreStateDevice& state) const
 {
-    CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(pre_step,
                         celeritas::device().default_block_size(),
-                        data.states.size(),
-                        data);
+                        state.size(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr());
 }
 
 }  // namespace generated

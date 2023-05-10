@@ -100,9 +100,9 @@ struct VecgeomStateData
     template<Ownership W2, MemSpace M2>
     VecgeomStateData& operator=(VecgeomStateData<W2, M2>& other)
     {
-        static_assert(M2 == M && W2 == Ownership::value
-                          && W == Ownership::reference,
-                      "Only supported assignment is from value to reference");
+        static_assert(M2 == M && W == Ownership::reference,
+                      "Only supported assignment is from the same memspace to "
+                      "a reference");
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;

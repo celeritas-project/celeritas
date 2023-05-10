@@ -23,18 +23,12 @@ namespace detail
 template<StepPoint P>
 struct StepGatherLauncher
 {
-    //!@{
-    //! \name Type aliases
-    using CoreRefNative = CoreRef<MemSpace::native>;
-    using StepParamsRefNative = NativeCRef<StepParamsData>;
-    using StepStateRefNative = NativeRef<StepStateData>;
-    //!@}
-
     //// DATA ////
 
-    CoreRefNative const& core_data;
-    StepParamsRefNative const& step_params;
-    StepStateRefNative const& step_state;
+    NativeCRef<CoreParamsData> const& core_params;
+    NativeRef<CoreStateData> const& core_state;
+    NativeCRef<StepParamsData> const& step_params;
+    NativeRef<StepStateData> const& step_state;
 
     //// METHODS ////
 
@@ -50,10 +44,10 @@ struct StepGatherLauncher
 template<StepPoint P>
 CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
 {
-    CELER_ASSERT(thread < this->core_data.states.size());
+    CELER_ASSERT(thread < this->core_state.size());
 
     celeritas::CoreTrackView const track(
-        this->core_data.params, this->core_data.states, thread);
+        this->core_params, this->core_state, thread);
 
 #define SGL_SET_IF_SELECTED(ATTR, VALUE)                          \
     do                                                            \

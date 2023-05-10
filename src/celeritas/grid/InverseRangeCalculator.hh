@@ -11,12 +11,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/Interpolator.hh"
+#include "corecel/grid/NonuniformGrid.hh"
+#include "corecel/grid/UniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Quantity.hh"
 
-#include "Interpolator.hh"
-#include "NonuniformGrid.hh"
-#include "UniformGrid.hh"
 #include "XsGridData.hh"
 
 namespace celeritas

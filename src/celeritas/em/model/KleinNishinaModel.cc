@@ -9,6 +9,7 @@
 
 #include "corecel/math/Quantity.hh"
 #include "celeritas/em/generated/KleinNishinaInteract.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
 
@@ -22,19 +23,18 @@ KleinNishinaModel::KleinNishinaModel(ActionId id,
                                      ParticleParams const& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.action = id;
-    interface_.ids.electron = particles.find(pdg::electron());
-    interface_.ids.gamma = particles.find(pdg::gamma());
+    data_.ids.action = id;
+    data_.ids.electron = particles.find(pdg::electron());
+    data_.ids.gamma = particles.find(pdg::gamma());
 
-    CELER_VALIDATE(interface_.ids.electron && interface_.ids.gamma,
+    CELER_VALIDATE(data_.ids.electron && data_.ids.gamma,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
                    << this->description() << ")");
-    interface_.inv_electron_mass
-        = 1
-          / value_as<KleinNishinaData::Mass>(
-              particles.get(interface_.ids.electron).mass());
-    CELER_ENSURE(interface_);
+    data_.inv_electron_mass = 1
+                              / value_as<KleinNishinaData::Mass>(
+                                  particles.get(data_.ids.electron).mass());
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -44,7 +44,7 @@ KleinNishinaModel::KleinNishinaModel(ActionId id,
 auto KleinNishinaModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
-    photon_applic.particle = interface_.ids.gamma;
+    photon_applic.particle = data_.ids.gamma;
     photon_applic.lower = zero_quantity();
     photon_applic.upper = max_quantity();
 
@@ -66,14 +66,16 @@ auto KleinNishinaModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void KleinNishinaModel::execute(CoreDeviceRef const& data) const
+void KleinNishinaModel::execute(CoreParams const& params,
+                                CoreStateHost& state) const
 {
-    generated::klein_nishina_interact(interface_, data);
+    generated::klein_nishina_interact(params, state, this->host_ref());
 }
 
-void KleinNishinaModel::execute(CoreHostRef const& data) const
+void KleinNishinaModel::execute(CoreParams const& params,
+                                CoreStateDevice& state) const
 {
-    generated::klein_nishina_interact(interface_, data);
+    generated::klein_nishina_interact(params, state, this->device_ref());
 }
 
 //---------------------------------------------------------------------------//
@@ -82,7 +84,7 @@ void KleinNishinaModel::execute(CoreHostRef const& data) const
  */
 ActionId KleinNishinaModel::action_id() const
 {
-    return interface_.ids.action;
+    return data_.ids.action;
 }
 
 //!@}

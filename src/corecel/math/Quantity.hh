@@ -27,6 +27,24 @@ struct UnitlessQuantity
     T value_;  //!< Special nonnumeric value
 };
 
+//! Helper class for getting attributes about a member function
+template<class T>
+struct AccessorTraits;
+
+//! \cond
+//! Access the return type using AccessorTraits<decltype(&Foo::bar)>
+template<class ResultType, class ClassType>
+struct AccessorTraits<ResultType (ClassType::*)() const>
+{
+    using type = ClassType;
+    using result_type = ResultType;
+};
+//! \endcond
+
+//! Get the result type of a class accessor
+template<class T>
+using AccessorResultType = typename AccessorTraits<T>::result_type;
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 
@@ -112,8 +130,18 @@ class Quantity
     //! Construct implicitly from a unitless quantity
     CELER_CONSTEXPR_FUNCTION Quantity(Unitless uq) : value_(uq.value_) {}
 
-    //! Get numeric value, discarding units
-    CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
+    //!@{
+    //! Access the underlying numeric value, discarding units
+#define CELER_DEFINE_QACCESS(FUNC, QUAL)                          \
+    CELER_CONSTEXPR_FUNCTION value_type QUAL FUNC() QUAL noexcept \
+    {                                                             \
+        return value_;                                            \
+    }
+
+    CELER_DEFINE_QACCESS(value, &)
+    CELER_DEFINE_QACCESS(value, const&)
+#undef CELER_DEFINE_QACCESS
+    //!@}
 
   private:
     value_type value_{};
@@ -324,6 +352,21 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Quantity<SrcUnitT, ValueT> quant)
     static_assert(std::is_same<Q, Quantity<SrcUnitT, ValueT>>::value,
                   "quantity units do not match");
     return quant.value();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the label for a unit returned from a class accessor.
+ *
+ * Example:
+ * \code
+   cout << accessor_unit_label<&ParticleView::mass>() << endl;
+   \endcode
+ */
+template<class T>
+inline char const* accessor_unit_label()
+{
+    return detail::AccessorResultType<T>::unit_type::label();
 }
 
 //---------------------------------------------------------------------------//

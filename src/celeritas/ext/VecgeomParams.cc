@@ -17,6 +17,7 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "celeritas_config.h"
+#include "celeritas/ext/detail/VecgeomCompatibility.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
@@ -28,9 +29,10 @@
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedMem.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
-#include "detail/GeantGeoExporter.hh"
+#include "detail/GeantGeoConverter.hh"
 
 namespace celeritas
 {
@@ -40,13 +42,15 @@ namespace celeritas
  */
 VecgeomParams::VecgeomParams(std::string const& filename)
 {
-    CELER_LOG(info) << "Loading VecGeom geometry from GDML at " << filename;
+    CELER_LOG(status) << "Loading VecGeom geometry from GDML at " << filename;
     if (!ends_with(filename, ".gdml"))
     {
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
+    ScopedMem record_mem("VecgeomParams.construct");
     {
+        ScopedMem record_mem("VecgeomParams.load_geant_geometry");
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
         vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
     }
@@ -62,25 +66,21 @@ VecgeomParams::VecgeomParams(std::string const& filename)
 //---------------------------------------------------------------------------//
 /*!
  * Translate a geometry from Geant4.
- *
- * At present this just exports the geometry to GDML, then loads it through the
- * VGDML reader.
  */
 VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 {
     CELER_EXPECT(world);
+    ScopedMem record_mem("VecgeomParams.construct");
+
+    // Convert the geometry to VecGeom
 #if CELERITAS_USE_GEANT4
-    auto filename = detail::GeantGeoExporter::make_tmpfile_name();
-    CELER_LOG(debug) << "Temporary file for Geant4 export: " << filename;
     {
-        // Export file from Geant4
-        detail::GeantGeoExporter export_to(world);
-        export_to(filename);
-    }
-    {
-        // Import file into VecGeom
-        ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
-        vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
+        ScopedMem record_mem("VecgeomParams.convert");
+        detail::GeantGeoConverter convert;
+        convert(world);
+        // save the logicalVolume ID map before converter goes out of scope
+        g4log_volid_map_ = convert.get_g4logvol_id_map();
+        CELER_ASSERT(vecgeom::GeoManager::Instance().GetWorld());
     }
 #else
     CELER_NOT_CONFIGURED("Geant4");
@@ -148,6 +148,22 @@ VolumeId VecgeomParams::find_volume(Label const& label) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Locate the volume ID corresponding to a Geant4 logical volume.
+ */
+VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
+{
+    VolumeId result{};
+    if (volume)
+    {
+        auto iter = g4log_volid_map_.find(volume);
+        if (iter != g4log_volid_map_.end())
+            result = iter->second;
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get zero or more volume IDs corresponding to a name.
  *
  * This is useful for volumes that are repeated in the geometry with different
@@ -166,6 +182,7 @@ auto VecgeomParams::find_volumes(std::string const& name) const
 void VecgeomParams::build_tracking()
 {
     CELER_LOG(status) << "Initializing tracking information";
+    ScopedMem record_mem("VecgeomParams.build_tracking");
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
@@ -231,6 +248,7 @@ void VecgeomParams::build_tracking()
  */
 void VecgeomParams::build_data()
 {
+    ScopedMem record_mem("VecgeomParams.build_data");
     // Save host data
     auto& vg_manager = vecgeom::GeoManager::Instance();
     host_ref_.world_volume = vg_manager.GetWorld();
@@ -254,29 +272,34 @@ void VecgeomParams::build_data()
  */
 void VecgeomParams::build_metadata()
 {
-    auto& vg_manager = vecgeom::GeoManager::Instance();
-    CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
+    ScopedMem record_mem("VecgeomParams.build_metadata");
+    // Construct volume labels
+    vol_labels_ = LabelIdMultiMap<VolumeId>([] {
+        auto& vg_manager = vecgeom::GeoManager::Instance();
+        CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
 
-    std::vector<Label> labels(vg_manager.GetRegisteredVolumesCount());
+        std::vector<Label> result(vg_manager.GetRegisteredVolumesCount());
 
-    for (auto vol_idx : range<VolumeId::size_type>(labels.size()))
-    {
-        // Get label
-        vecgeom::LogicalVolume const* vol
-            = vg_manager.FindLogicalVolume(vol_idx);
-        CELER_ASSERT(vol);
-
-        auto label = Label::from_geant(vol->GetLabel());
-        if (label.name.empty())
+        for (auto vol_idx : range<VolumeId::size_type>(result.size()))
         {
-            // Many VGDML imported IDs seem to be empty for CMS
-            label.name = "[unused]";
-            label.ext = std::to_string(vol_idx);
-        }
+            // Get label
+            vecgeom::LogicalVolume const* vol
+                = vg_manager.FindLogicalVolume(vol_idx);
+            CELER_ASSERT(vol);
 
-        labels[vol_idx] = std::move(label);
-    }
-    vol_labels_ = LabelIdMultiMap<VolumeId>(std::move(labels));
+            auto label = Label::from_geant(vol->GetLabel());
+            if (label.name.empty())
+            {
+                // Many VGDML imported IDs seem to be empty for CMS
+                label.name = "[unused]";
+                label.ext = std::to_string(vol_idx);
+            }
+
+            result[vol_idx] = std::move(label);
+        }
+        return result;
+    }());
+
     // Check for duplicates
     {
         auto vol_dupes = vol_labels_.duplicates();
@@ -294,6 +317,21 @@ void VecgeomParams::build_metadata()
                                               streamed_label);
         }
     }
+
+    // Save world bbox
+    bbox_ = [] {
+        using namespace vecgeom;
+
+        // Get world logical volume
+        VPlacedVolume const* pv = GeoManager::Instance().GetWorld();
+
+        // Calculate bounding box
+        Vector3D<real_type> lower, upper;
+        ABBoxManager::Instance().ComputeABBox(pv, &lower, &upper);
+
+        return BoundingBox{detail::to_array(lower), detail::to_array(upper)};
+    }();
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

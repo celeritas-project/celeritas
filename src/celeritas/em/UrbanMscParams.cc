@@ -19,6 +19,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
@@ -74,6 +75,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                Options options)
 {
     using units::MevEnergy;
+
+    ScopedMem record_mem("UrbanMscParams.construct");
 
     HostVal<UrbanMscData> host_data;
 

@@ -7,7 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
+#ifndef CELER_DEVICE_COMPILE
+#    include <vector>
+
+#    include "../DeviceVector.hh"
+#endif
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
@@ -15,7 +19,6 @@
 #include "corecel/cont/Span.hh"
 
 #include "../Copier.hh"
-#include "../DeviceVector.hh"
 #include "DisabledStorage.hh"
 
 namespace celeritas
@@ -26,36 +29,24 @@ namespace detail
 template<class T, Ownership W>
 struct CollectionTraits
 {
-    using SpanT = Span<T>;
-    using SpanConstT = Span<T const>;
-    using pointer = T*;
-    using const_pointer = T const*;
-    using reference_type = T&;
-    using const_reference_type = T const&;
+    using type = T;
+    using const_type = T const;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
 struct CollectionTraits<T, Ownership::reference>
 {
-    using SpanT = Span<T>;
-    using SpanConstT = Span<T>;
-    using pointer = T*;
-    using const_pointer = T*;
-    using reference_type = T&;
-    using const_reference_type = T&;
+    using type = T;
+    using const_type = T;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
 struct CollectionTraits<T, Ownership::const_reference>
 {
-    using SpanT = Span<T const>;
-    using SpanConstT = Span<T const>;
-    using pointer = T const*;
-    using const_pointer = T const*;
-    using reference_type = T const&;
-    using const_reference_type = T const&;
+    using type = T const;
+    using const_type = T const;
 };
 
 //---------------------------------------------------------------------------//
@@ -63,7 +54,7 @@ struct CollectionTraits<T, Ownership::const_reference>
 template<class T, Ownership W, MemSpace M>
 struct CollectionStorage
 {
-    using type = typename CollectionTraits<T, W>::SpanT;
+    using type = Span<typename CollectionTraits<T, W>::type>;
     type data;
 };
 
@@ -178,9 +169,9 @@ struct CollectionAssigner<Ownership::value, MemSpace::host>
     {
         CollectionStorage<T, Ownership::value, MemSpace::host> result{
             std::vector<T>(source.data.size())};
-        Copier<T, MemSpace::device> copy{
-            {source.data.data(), source.data.size()}};
-        copy(MemSpace::host, {result.data.data(), result.data.size()});
+        Copier<T, MemSpace::host> copy{
+            {result.data.data(), result.data.size()}};
+        copy(MemSpace::device, {source.data.data(), source.data.size()});
         return result;
     }
 };

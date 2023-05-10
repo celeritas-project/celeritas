@@ -49,30 +49,31 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 
     // Save models
     {
-        auto models = json::array();
+        auto label = json::array();
+        auto process_id = json::array();
 
         for (auto id : range(ModelId{physics_->num_models()}))
         {
             Model const& m = *physics_->model(id);
-
-            models.push_back(
-                {{"label", m.label()},
-                 {"process", physics_->process_id(id).unchecked_get()}});
+            label.push_back(m.label());
+            process_id.push_back(physics_->process_id(id).unchecked_get());
         }
-        obj["models"] = std::move(models);
+        obj["models"] = {
+            {"label", std::move(label)},
+            {"process_id", std::move(process_id)},
+        };
     }
 
     // Save processes
     {
-        auto processes = json::array();
+        auto label = json::array();
 
         for (auto id : range(ProcessId{physics_->num_processes()}))
         {
             Process const& p = *physics_->process(id);
-
-            processes.push_back({{"label", p.label()}});
+            label.push_back(p.label());
         }
-        obj["processes"] = std::move(processes);
+        obj["processes"] = {{"label", std::move(label)}};
     }
 
     // Save options

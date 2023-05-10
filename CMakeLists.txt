@@ -76,9 +76,6 @@ endif()
 if(CMAKE_VERSION VERSION_LESS 3.22 AND CELERITAS_USE_HIP)
   message(WARNING "HIP support is immature; CMake 3.22+ is recommended.")
 endif()
-if(CELERITAS_USE_HIP AND CELERITAS_USE_VecGeom)
-  message(SEND_ERROR "HIP is incompatible with VecGeom.")
-endif()
 
 # Library
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
@@ -104,27 +101,23 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   unset(_default_build_type)
 endif()
 
-# RNG selection
-set(CELERITAS_RNG_OPTIONS XORWOW)
-if(CELERITAS_USE_CUDA)
-  list(APPEND CELERITAS_RNG_OPTIONS CURAND)
-elseif(CELERITAS_USE_HIP)
-  list(APPEND CELERITAS_RNG_OPTIONS HIPRAND)
-elseif(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
-  # TODO: allow wrapper to standard library RNG when not building for device?
-  # TODO: maybe even add wrapper to Geant4 RNG??
-endif()
-list(GET CELERITAS_RNG_OPTIONS 0 _DEFAULT_RNG)
-set(CELERITAS_RNG "${_DEFAULT_RNG}" CACHE STRING
+# Define CELERITAS_CORE_RNG option for random number generator selection
+celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
+celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
+celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
+# TODO: allow wrapper to standard library RNG when not building for device?
+# TODO: maybe even add wrapper to Geant4 RNG??
+celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
-set_property(CACHE CELERITAS_RNG PROPERTY STRINGS "${CELERITAS_RNG_OPTIONS}")
-list(FIND CELERITAS_RNG_OPTIONS "${CELERITAS_RNG}" _rng_index)
-if(_rng_index EQUAL -1)
-  message(SEND_ERROR "Invalid value CELERITAS_RNG=${CELERITAS_RNG}: must be "
-    "${CELERITAS_RNG_OPTIONS}; overriding for next configure")
-  set(CELERITAS_RNG "${_DEFAULT_RNG}" CACHE STRING
-    "Celeritas runtime random number generator" FORCE)
+
+# Runtime geometry selection: default to VecGeom if available
+set(_allow_vecgeom FALSE)
+if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
+  set(_allow_vecgeom TRUE)
 endif()
+celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
+celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
+celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
 cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
   "Use kernel launch bounds generated from launch-bounds.json" "OFF"
@@ -180,12 +173,7 @@ elseif(CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
-  # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
-  # Save and restore include directories around the call -- even though as a
-  # standalone project Celeritas will never have directory-level includes
-  get_directory_property(_include_dirs INCLUDE_DIRECTORIES)
   find_package(Geant4 REQUIRED)
-  set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${_include_dirs}")
 endif()
 
 if(CELERITAS_USE_HepMC3 AND NOT HepMC3_FOUND)
@@ -228,11 +216,11 @@ endif()
 if(CELERITAS_USE_VecGeom)
   find_package(VecGeom 1.1.17 REQUIRED)
 
-  if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
-      OR (NOT CELERITAS_USE_CUDA AND VecGeom_CUDA_FOUND))
-    message(SEND_ERROR "CUDA mismatch between the VecGeom installation "
-      "at ${VECGEOM_INSTALL_DIR} (VecGeom_CUDA_FOUND=${VecGeom_CUDA_FOUND}) "
-      "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
+  if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
+    celeritas_error_incompatible_option(
+      "VecGeom installation at ${VECGEOM_INSTALL_DIR} is not CUDA-enabled"
+      CELERITAS_USE_CUDA
+      "${VecGeom_CUDA_FOUND}"
     )
   endif()
   if(NOT VecGeom_GDML_FOUND)
@@ -244,16 +232,17 @@ if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
   # TODO: download and build GTest as a subproject if not available
   find_package(GTest)
   if(NOT GTest_FOUND)
-    message(SEND_ERROR "Googletest (GTest) is required for testing: setting "
-      "CELERITAS_BUILD_TESTS=OFF for next build")
-    set(CELERITAS_BUILD_TESTS OFF CACHE BOOL
-      "Disabled because of missing GTest" FORCE)
+    celeritas_error_incompatible_option(
+      "Googletest (GTest) is required for testing but was not found"
+      CELERITAS_BUILD_TESTS
+      OFF
+    )
   endif()
 endif()
 
 if(CELERITAS_BUILD_DOCS)
   if(NOT Doxygen_FOUND)
-    find_package(Doxygen REQUIRED)
+    find_package(Doxygen)
   endif()
 
   if(Python_FOUND)
@@ -264,13 +253,16 @@ if(CELERITAS_BUILD_DOCS)
     celeritas_check_python_module(CELERITAS_USE_Breathe breathe)
     celeritas_check_python_module(CELERITAS_USE_SphinxBibtex "sphinxcontrib.bibtex")
     celeritas_check_python_module(CELERITAS_USE_SphinxRtdTheme "sphinx_rtd_theme")
-    find_program(LATEXMK_EXECUTABLE latexmk)
+    if(CELERITAS_USE_Breathe)
+      find_program(LATEXMK_EXECUTABLE latexmk)
+    endif()
   endif()
-  if(NOT Sphinx_FOUND AND NOT Doxygen_FOUND)
-    message(SEND_ERROR "Sphinx and/or Doxygen are required for docs: setting "
-      "CELERITAS_BUILD_DOCS=OFF for next build")
-    set(CELERITAS_BUILD_DOCS OFF CACHE BOOL
-      "Disabled because of missing Doxygen/Sphinx" FORCE)
+  if(NOT Doxygen_FOUND)
+    celeritas_error_incompatible_option(
+      "Doxygen is required for building documentation but was not found"
+      CELERITAS_BUILD_DOCS
+      OFF
+    )
   endif()
 endif()
 

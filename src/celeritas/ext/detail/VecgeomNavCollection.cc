@@ -43,10 +43,12 @@ void VecgeomNavCollection<Ownership::value, MemSpace::host>::resize(
 /*!
  * Get a reference to host value data.
  */
-void VecgeomNavCollection<Ownership::reference, MemSpace::host>::operator=(
+auto VecgeomNavCollection<Ownership::reference, MemSpace::host>::operator=(
     VecgeomNavCollection<Ownership::value, MemSpace::host>& other)
+    -> VecgeomNavCollection&
 {
     nav_state = make_span(other.nav_state);
+    return *this;
 }
 
 //---------------------------------------------------------------------------//
@@ -95,12 +97,14 @@ void VecgeomNavCollection<Ownership::value, MemSpace::device>::resize(
 /*!
  * Copy the GPU pointer from the host-managed pool.
  */
-void VecgeomNavCollection<Ownership::reference, MemSpace::device>::operator=(
+auto VecgeomNavCollection<Ownership::reference, MemSpace::device>::operator=(
     VecgeomNavCollection<Ownership::value, MemSpace::device>& other)
+    -> VecgeomNavCollection&
 {
     CELER_ASSERT(other);
     pool_view = vecgeom::NavStatePoolView{
         (char*)other.ptr, other.max_depth, (int)other.size};
+    return *this;
 }
 
 //---------------------------------------------------------------------------//

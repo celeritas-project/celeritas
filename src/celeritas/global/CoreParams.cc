@@ -19,11 +19,15 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/geo/GeoParamsOutput.hh"
 #include "celeritas/geo/generated/BoundaryAction.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
+#include "celeritas/mat/MaterialParamsOutput.hh"
 #include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/ParticleParamsOutput.hh"
@@ -33,6 +37,7 @@
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
 #include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
+#include "celeritas/track/SortTracksAction.hh"
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
@@ -43,6 +48,7 @@
 #    include "corecel/sys/DeviceIO.json.hh"
 #    include "corecel/sys/EnvironmentIO.json.hh"
 #    include "corecel/sys/KernelRegistryIO.json.hh"
+#    include "corecel/sys/MemRegistryIO.json.hh"
 #endif
 
 namespace celeritas
@@ -120,6 +126,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
+    ScopedMem record_mem("CoreParams.construct");
+
     CoreScalars scalars;
 
     // Construct geometry action
@@ -149,6 +157,29 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
         input_.action_reg->next_id()));
 
+    // TrackOrder doesn't have to be an argument right now and could be
+    // captured but we're eventually expecting different TrackOrder for
+    // different ActionOrder
+    auto insert_sort_tracks_action = [this](const ActionOrder action_order,
+                                            const TrackOrder track_order) {
+        input_.action_reg->insert(std::make_shared<SortTracksAction>(
+            input_.action_reg->next_id(), action_order, track_order));
+    };
+    const TrackOrder track_order{input_.init->host_ref().track_order};
+    switch (track_order)
+    {
+        case TrackOrder::partition_status:
+            // Construct sort tracks action for start-step
+            insert_sort_tracks_action(ActionOrder::sort_start, track_order);
+            break;
+        case TrackOrder::sort_step_limit_action:
+            // Construct sort tracks action for pre-step
+            insert_sort_tracks_action(ActionOrder::sort_pre, track_order);
+            break;
+        default:
+            break;
+    }
+
     // Construct extend from secondaries action
     input_.action_reg->insert(std::make_shared<ExtendFromSecondariesAction>(
         input_.action_reg->next_id()));
@@ -158,6 +189,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     if (celeritas::device())
     {
         device_ref_ = build_params_refs<MemSpace::device>(input_, scalars);
+        // Copy device ref to device global memory
+        device_ref_vec_ = DeviceVector<DeviceRef>(1);
+        device_ref_vec_.copy_to_device({&device_ref_, 1});
     }
 
 #if CELERITAS_USE_JSON
@@ -169,12 +203,18 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             OutputInterface::Category::system,
             "kernels",
             celeritas::kernel_registry()));
+    input_.output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
+        OutputInterface::Category::system, "memory", celeritas::mem_registry()));
     input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
-    input_.output_reg->insert(std::make_shared<BuildOutput>());
 #endif
+    input_.output_reg->insert(std::make_shared<BuildOutput>());
 
     // Save core diagnostic information
+    input_.output_reg->insert(
+        std::make_shared<GeoParamsOutput>(input_.geometry));
+    input_.output_reg->insert(
+        std::make_shared<MaterialParamsOutput>(input_.material));
     input_.output_reg->insert(
         std::make_shared<ParticleParamsOutput>(input_.particle));
     input_.output_reg->insert(

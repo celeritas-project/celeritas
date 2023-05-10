@@ -22,12 +22,12 @@ TEST(DeviceVectorTest, all)
     EXPECT_EQ(0, vec.size());
     EXPECT_TRUE(vec.empty());
 
-#if !CELER_USE_DEVICE
-    // Can't allocate
-    EXPECT_THROW(Vec_t(1234), DebugError);
-    cout << "CUDA is disabled; skipping remainder of test." << endl;
-    return;
-#endif
+    if (!CELER_USE_DEVICE)
+    {
+        // Test that allocation fails
+        EXPECT_THROW(Vec_t(1234), DebugError);
+        return;
+    }
 
     vec = Vec_t(1024);
     EXPECT_EQ(1024, vec.size());

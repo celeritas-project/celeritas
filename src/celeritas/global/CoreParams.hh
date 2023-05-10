@@ -10,6 +10,8 @@
 #include <memory>
 
 #include "corecel/Assert.hh"
+#include "corecel/data/DeviceVector.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/random/RngParamsFwd.hh"
@@ -52,8 +54,13 @@ class CoreParams
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
 
-    using HostRef = HostCRef<CoreParamsData>;
-    using DeviceRef = DeviceCRef<CoreParamsData>;
+    template<MemSpace M>
+    using ConstRef = CoreParamsData<Ownership::const_reference, M>;
+    template<MemSpace M>
+    using ConstPtr = ObserverPtr<ConstRef<M> const, M>;
+
+    using HostRef = ConstRef<MemSpace::host>;
+    using DeviceRef = ConstRef<MemSpace::device>;
     //!@}
 
     struct Input
@@ -105,11 +112,22 @@ class CoreParams
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
     //!@}
 
-    // Access properties on the host
-    inline HostRef const& host_ref() const;
+    //! Access properties on the host
+    HostRef const& host_ref() const { return this->ref<MemSpace::host>(); }
 
-    // Access properties on the device
-    inline DeviceRef const& device_ref() const;
+    //! Access properties on the device
+    DeviceRef const& device_ref() const
+    {
+        return this->ref<MemSpace::device>();
+    }
+
+    // Access a host object with properties in the given memory space
+    template<MemSpace M>
+    inline ConstRef<M> const& ref() const;
+
+    // Access a native pointer to properties in the native memory space
+    template<MemSpace M>
+    inline ConstPtr<M> ptr() const;
 
     //! Maximum number of streams
     size_type max_streams() const { return input_.max_streams; }
@@ -118,31 +136,54 @@ class CoreParams
     Input input_;
     HostRef host_ref_;
     DeviceRef device_ref_;
+
+    // Copy of DeviceRef in device memory
+    DeviceVector<DeviceRef> device_ref_vec_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Access properties on the host.
+ * Access properties in the given memspace.
+ *
+ * Accessing MemSpace::device will raise an exception if \c celeritas::device
+ * is null (and device data wasn't set).
  */
-auto CoreParams::host_ref() const -> HostRef const&
+template<MemSpace M>
+auto CoreParams::ref() const -> ConstRef<M> const&
 {
-    CELER_ENSURE(host_ref_);
-    return host_ref_;
+    if constexpr (M == MemSpace::host)
+    {
+        CELER_ENSURE(host_ref_);
+        return host_ref_;
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        CELER_ENSURE(device_ref_);
+        return device_ref_;
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Access properties on the device.
+ * Access a native pointer to a NativeCRef.
  *
- * This will raise an exception if \c celeritas::device is null (and device
- * data wasn't set).
+ * This way, CUDA kernels only need to copy a pointer in the kernel arguments,
+ * rather than the entire (rather large) DeviceRef object.
  */
-auto CoreParams::device_ref() const -> DeviceRef const&
+template<MemSpace M>
+auto CoreParams::ptr() const -> ConstPtr<M>
 {
-    CELER_ENSURE(device_ref_);
-    return device_ref_;
+    if constexpr (M == MemSpace::host)
+    {
+        return make_observer(&host_ref_);
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        CELER_ENSURE(!device_ref_vec_.empty());
+        return make_observer(device_ref_vec_);
+    }
 }
 
 //---------------------------------------------------------------------------//

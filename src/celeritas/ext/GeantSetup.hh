@@ -70,7 +70,7 @@ class GeantSetup
     using RMUniquePtr = std::unique_ptr<G4RunManager, RMDeleter>;
 
     RMUniquePtr run_manager_{nullptr};
-    G4VPhysicalVolume const* world_{nullptr};
+    G4VPhysicalVolume* world_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

@@ -10,10 +10,10 @@
 #include "celeritas_config.h"
 
 // IWYU pragma: begin_exports
-#if (CELERITAS_RNG == CELERITAS_RNG_CURAND) \
-    || (CELERITAS_RNG == CELERITAS_RNG_HIPRAND)
+#if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_CURAND) \
+    || (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_HIPRAND)
 #    include "CuHipRngParams.hh"
-#elif (CELERITAS_RNG == CELERITAS_RNG_XORWOW)
+#elif (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
 #    include "XorwowRngParams.hh"
 #endif
 

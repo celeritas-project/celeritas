@@ -118,9 +118,9 @@ struct CalcSenseDistanceLauncher
 
     CELER_FUNCTION void operator()(TrackSlotId tid) const
     {
-        CELER_EXPECT(this->params.simple_unit.size() == 1);
+        CELER_EXPECT(this->params.simple_units.size() == 1);
         Surfaces surfaces(this->params,
-                          this->params.simple_unit[SimpleUnitId{0}].surfaces);
+                          this->params.simple_units[SimpleUnitId{0}].surfaces);
 
         auto calc_sense_dist = make_surface_action(
             surfaces,

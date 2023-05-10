@@ -22,6 +22,7 @@ namespace celeritas
 inline void from_json(nlohmann::json const& j, Environment& value)
 {
     CELER_ASSERT(j.is_object());
+    value.clear();
     for (auto const& el : j.items())
     {
         value.insert({el.key(), el.value().get<std::string>()});

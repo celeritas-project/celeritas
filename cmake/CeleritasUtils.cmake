@@ -64,6 +64,48 @@ CMake configuration utility functions for Celeritas.
   The ``<input>`` must be a relative path to the current source directory, and
   the ``<output>` path is configured to the project build "include" directory.
 
+.. comand:: celeritas_error_incompatible_option
+
+  Print a descriptive failure message about conflicting cmake options.
+
+    celeritas_error_incompatible_option(<msg> <var> <conflict_var> <new_value>)
+
+  Here the recommendation will be to change conflict_var to new_value.
+
+.. command:: celeritas_setup_option
+
+  Add a single compile time option value to the list::
+
+    celeritas_setup_option(<var> <option> [conditional])
+
+  This appends ``<option>`` to the list ``<var>_OPTIONS`` if ``${conditional}``
+  is true or the argument is not provided; and to ``<var>_DISABLED_OPTIONS`` if
+  the variable is present and false.
+
+.. command:: celeritas_define_options
+
+  Set up CMake variables for defining configure-time option switches::
+
+    celeritas_define_options(<var> <doc>)
+
+  If <var> is not yet set, this will set it to the first item of the list
+  ``${<var>_OPTIONS}``.  Otherwise It will validate that the pre-existing
+  selection is one of the list.
+
+.. command:: celeritas_generate_option_config
+
+  Generate ``#define`` macros for the given option list.::
+
+    celeritas_generate_option_config(<var>)
+
+  This requires the list of ``<var>_OPTIONS`` to be set and ``<var>`` to be set,
+  and it creates a string in the parent scope called ``<var>_CONFIG`` for use in
+  a configure file (such as ``celeritas_config.h``).
+
+  The resulting macro list starts its counter 1 because undefined
+  macros have the implicit value of 0 in the C preprocessor. Thus any
+  unavailable options (e.g. CELERITAS_USE_CURAND when HIP is in use) will
+  implicitly be zero.
 
 #]=======================================================================]
 include_guard(GLOBAL)
@@ -218,6 +260,79 @@ function(celeritas_configure_file input output)
   configure_file("${input}"
     "${CELERITAS_HEADER_CONFIG_DIRECTORY}/${output}"
     ${ARGN})
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_error_incompatible_option  msg var new_value)
+  message(SEND_ERROR "Invalid setting ${var}=${${var}}: ${msg}
+    Possible fix: cmake -D${var}=${new_value} ${CMAKE_BINARY_DIR}"
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+macro(celeritas_setup_option var option) #[condition]
+  if(${ARGC} EQUAL 2)
+    # always-on-option
+    list(APPEND ${var}_OPTIONS ${option})
+  elseif(${ARGV2})
+    # variable evaluates to true
+    list(APPEND ${var}_OPTIONS ${option})
+  else()
+    list(APPEND ${var}_DISABLED_OPTIONS ${option})
+  endif()
+endmacro()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_define_options var doc)
+  if(NOT ${var}_OPTIONS)
+    message(FATAL_ERROR "${var}_OPTIONS has no options")
+  endif()
+  mark_as_advanced(${var}_OPTIONS)
+
+  list(GET ${var}_OPTIONS 0 _default)
+  set(${var} "${_default}" CACHE STRING "${doc}")
+  set_property(CACHE ${var} PROPERTY STRINGS "${${var}_OPTIONS}")
+
+  list(FIND ${var}_OPTIONS "${${var}}" _index)
+  if(_index EQUAL -1)
+    string(JOIN "," _optlist ${${var}_OPTIONS})
+    celeritas_error_incompatible_option(
+      "valid options are {${_optlist}} "
+      "${var}" "${_default}"
+    )
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_generate_option_config var)
+  # Add disabled options first
+  set(_options)
+  foreach(_val IN LISTS ${var}_DISABLED_OPTIONS)
+    string(TOUPPER "${_val}" _val)
+    list(APPEND _options "#define ${var}_${_val} 0")
+  endforeach()
+
+  # Add available options
+  set(_counter 1)
+  foreach(_val IN LISTS ${var}_OPTIONS)
+    string(TOUPPER "${_val}" _val)
+    list(APPEND _options "#define ${var}_${_val} ${_counter}")
+    math(EXPR _counter "${_counter} + 1")
+  endforeach()
+
+  # Add selected option
+  string(TOUPPER "${${var}}" _val)
+  string(JOIN "\n" _result
+    ${_options}
+    "#define ${var} ${var}_${_val}"
+  )
+
+  # Set in parent scope
+  set(${var}_CONFIG "${_result}" PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#

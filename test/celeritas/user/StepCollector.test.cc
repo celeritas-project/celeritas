@@ -15,12 +15,12 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/user/SimpleCalo.hh"
 
 #include "../SimpleTestBase.hh"
 #include "../TestEm15Base.hh"
 #include "../TestEm3Base.hh"
 #include "CaloTestBase.hh"
-#include "ExampleCalorimeters.hh"
 #include "ExampleMctruth.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
@@ -134,14 +134,15 @@ class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
 
 TEST_F(KnStepCollectorTestBase, mixing_types)
 {
-    auto calos = std::make_shared<ExampleCalorimeters>(
-        *this->geometry(), std::vector<std::string>{"inner"});
+    auto calo = std::make_shared<SimpleCalo>(
+        std::vector<Label>{"inner"}, *this->geometry(), 1);
     auto mctruth = std::make_shared<ExampleMctruth>();
 
-    StepCollector::VecInterface interfaces = {calos, mctruth};
+    StepCollector::VecInterface interfaces = {calo, mctruth};
 
     EXPECT_THROW((StepCollector{std::move(interfaces),
                                 this->geometry(),
+                                /* num_streams = */ 1,
                                 this->action_reg().get()}),
                  celeritas::RuntimeError);
 }
@@ -151,8 +152,10 @@ TEST_F(KnStepCollectorTestBase, multiple_interfaces)
     // Add mctruth twice so each step is doubly written
     auto mctruth = std::make_shared<ExampleMctruth>();
     StepCollector::VecInterface interfaces = {mctruth, mctruth};
-    auto collector = std::make_shared<StepCollector>(
-        std::move(interfaces), this->geometry(), this->action_reg().get());
+    auto collector = std::make_shared<StepCollector>(std::move(interfaces),
+                                                     this->geometry(),
+                                                     /* num_streams = */ 1,
+                                                     this->action_reg().get());
 
     // Do one step with two tracks
     {
@@ -222,7 +225,7 @@ TEST_F(KnMctruthTest, two_step)
 
 TEST_F(KnCaloTest, single_event)
 {
-    auto result = this->run(1, 64);
+    auto result = this->run<MemSpace::host>(1, 64);
 
     static double const expected_edep[] = {0.00043564799352598};
     EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
@@ -288,11 +291,18 @@ TEST_F(TestEm3MctruthTest, four_step)
 
 TEST_F(TestEm3CaloTest, thirtytwo_step)
 {
-    auto result = this->run(256, 32);
+    auto result = this->run<MemSpace::host>(256, 32);
 
-    PRINT_EXPECTED(result.edep);
     static double const expected_edep[]
         = {1548.8862372467, 113.80254412772, 32.259504023678};
+    EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+}
+
+TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
+{
+    auto result = this->run<MemSpace::device>(1024, 4);
+
+    static double const expected_edep[] = {1557.5843684091, 0, 0};
     EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
 }
 

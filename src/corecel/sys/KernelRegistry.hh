@@ -77,9 +77,11 @@ class KernelRegistry
 
     //// ACCESSORS ////
 
+    // TODO: rename to size
     // Number of kernel diagnostics available
     KernelId::size_type num_kernels() const;
 
+    // TODO: rename to get
     // Access kernel data for a single kernel
     KernelMetadata const& kernel(KernelId id) const;
 

@@ -139,32 +139,6 @@ struct CoreStateData
     }
 };
 
-// TODO: DEPRECATED TYPE ALIASES
-using CoreParamsDeviceRef = DeviceCRef<CoreParamsData>;
-using CoreParamsHostRef = HostCRef<CoreParamsData>;
-using CoreStateDeviceRef = DeviceRef<CoreStateData>;
-using CoreStateHostRef = HostRef<CoreStateData>;
-
-//---------------------------------------------------------------------------//
-/*!
- * Reference to core parameters and states.
- *
- * This is passed via \c ExplicitActionInterface::execute to launch kernels.
- */
-template<MemSpace M>
-struct CoreRef
-{
-    CoreParamsData<Ownership::const_reference, M> params;
-    CoreStateData<Ownership::reference, M> states;
-
-    //! True if assigned
-    CELER_FUNCTION operator bool() const { return params && states; }
-};
-
-// TODO: DEPRECATED TYPE ALIASES
-using CoreHostRef = CoreRef<MemSpace::host>;
-using CoreDeviceRef = CoreRef<MemSpace::device>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Resize states in host code.

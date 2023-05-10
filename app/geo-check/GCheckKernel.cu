@@ -65,9 +65,9 @@ __global__ void gcheck_kernel(const GeoParamsCRefDevice params,
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
 /*!
- *  Run tracking on the GPU
+ * Run tracking on the GPU.
  */
-GCheckOutput run_gpu(GCheckInput input)
+GCheckOutput run_gpu(GCheckInput const& input)
 {
     CELER_EXPECT(input.params);
     CELER_EXPECT(input.state);

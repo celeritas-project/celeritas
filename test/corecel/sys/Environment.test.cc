@@ -21,7 +21,8 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
+// WARNING: this test will only pass through CTest because our CMake script
+// sets a bunch of environment variables.
 TEST(EnvironmentTest, local)
 {
     Environment env;
@@ -51,7 +52,27 @@ TEST(EnvironmentTest, global)
     EXPECT_EQ("1", getenv("ENVTEST_ONE"));
 }
 
-TEST(EnvironmentTest, json)
+TEST(EnvironmentTest, merge)
+{
+    Environment sys;
+    sys.insert({"FOO", "foo"});
+    sys.insert({"BAR", "bar"});
+    Environment input;
+    input.insert({"FOO", "foo2"});
+    input.insert({"BAZ", "baz"});
+    sys.merge(input);
+
+    std::ostringstream os;
+    os << sys;
+    EXPECT_EQ(R"({
+  FOO: 'foo',
+  BAR: 'bar',
+  BAZ: 'baz',
+})",
+              os.str());
+}
+
+TEST(EnvironmentTest, TEST_IF_CELERITAS_JSON(json))
 {
 #if CELERITAS_USE_JSON
     // Pre-set one environment variable
@@ -69,11 +90,9 @@ TEST(EnvironmentTest, json)
         // Save environment
         nlohmann::json out{env};
         static char const expected[]
-            = R"json([{"ENVTEST_CUSTOM":"custom","ENVTEST_ONE":"111111","ENVTEST_ZERO":"0"}])json";
+            = R"json([{"ENVTEST_CUSTOM":"custom","ENVTEST_ONE":"111111","ENVTEST_ZERO":"000000"}])json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
-#else
-    GTEST_SKIP() << "JSON is disabled";
 #endif
 }
 

@@ -20,10 +20,13 @@ namespace celeritas
 /*!
  * Copy spans of data.
  *
- * Example of copying data from host to device:
+ * The destination (which can be a reusable buffer) is the constructor
+ * argument, and the source of the data to copy is the function argument.
+ *
+ * Example of copying data from device to host:
  * \code
-    Copier<int, MemSpace::host> copy_from_host_to{host_ints};
-    copy_from_host_to(MemSpace::device, device_ints);
+    Copier<int, MemSpace::host> copy_to_host{host_ints};
+    copy_to_host(MemSpace::device, device_ints);
  * \endcode
  */
 template<class T, MemSpace M>
@@ -32,9 +35,10 @@ struct Copier
     static_assert(std::is_trivially_copyable<T>::value,
                   "Data is not trivially copyable");
 
-    Span<T const> src;
+    Span<T> dst;
+    static constexpr auto dstmem = M;
 
-    inline void operator()(MemSpace dstmem, Span<T> dst) const;
+    inline void operator()(MemSpace srcmem, Span<T const> src) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -47,13 +51,13 @@ void copy_bytes(MemSpace dstmem,
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy data to the given destination and memory space.
+ * Copy data from the given source and memory space.
  */
 template<class T, MemSpace M>
-void Copier<T, M>::operator()(MemSpace dstmem, Span<T> dst) const
+void Copier<T, M>::operator()(MemSpace srcmem, Span<T const> src) const
 {
     CELER_EXPECT(src.size() == dst.size());
-    copy_bytes(dstmem, dst.data(), M, src.data(), src.size() * sizeof(T));
+    copy_bytes(dstmem, dst.data(), srcmem, src.data(), src.size() * sizeof(T));
 }
 
 //---------------------------------------------------------------------------//

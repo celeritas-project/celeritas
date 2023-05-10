@@ -53,15 +53,15 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
     VolumeView make_volume_view(LocalVolumeId v) const
     {
         CELER_EXPECT(v);
-        auto const& host_ref = this->params().host_ref();
-        return VolumeView{host_ref, host_ref.simple_unit[SimpleUnitId{0}], v};
+        auto const& host_ref = this->host_params();
+        return VolumeView{host_ref, host_ref.simple_units[SimpleUnitId{0}], v};
     }
 
     Surfaces make_surfaces() const
     {
-        auto const& host_ref = this->params().host_ref();
+        auto const& host_ref = this->host_params();
         return Surfaces(host_ref,
-                        host_ref.simple_unit[SimpleUnitId{0}].surfaces);
+                        host_ref.simple_units[SimpleUnitId{0}].surfaces);
     }
 
     //! Access the shared CPU storage space for senses

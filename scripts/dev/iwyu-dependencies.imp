@@ -1,14 +1,6 @@
 [
-  { include: ["<G4String.icc>", private, "<G4String.hh>", public ] },
-  { include: ["<G4LogicalVolume.icc>", private,      "<G4LogicalVolume.hh>", public ] },
-  { include: ["<G4ParticleDefinition.icc>", private, "<G4ParticleDefinition.hh>", public ] },
-  { include: ["<G4ProcessManager.icc>", private,     "<G4ProcessManager.hh>", public ] },
-  { include: ["<G4ProcessVector.icc>", private,      "<G4ProcessVector.hh>", public ] },
-  { include: ["<G4VPhysicalVolume.icc>", private,    "<G4VPhysicalVolume.hh>", public ] },
-  { include: ["<G4VSolid.icc>", private,             "<G4VSolid.hh>", public ] },
-  { include: ["<G4GDMLParser.icc>", private,         "<G4GDMLParser.hh>", public ] },
-  { include: ["<G4PhysicsVector.icc>", private,      "<G4PhysicsVector.hh>", public ] },
-  { include: ["<CLHEP/Units/SystemOfUnits.h>", private,      "<G4SystemOfUnits.hh>", public ] },
+  { include: ["<G4CollectionNameVector.hh>", private, "<G4SDManager.hh>", public ] },
+  { include: ["<tls.hh>", private, "<G4Types.hh>", public ] },
   { include: ["<nlohmann/json_fwd.hpp>", private, "<nlohmann/json.hpp>", public ] },
   { include: ["@<nlohmann/detail/.*>", private, "<nlohmann/json.hpp>", public ] },
 ]

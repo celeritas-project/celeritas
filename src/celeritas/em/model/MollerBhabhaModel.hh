@@ -31,10 +31,10 @@ class MollerBhabhaModel final : public Model
     MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel on host
-    void execute(CoreHostRef const&) const final;
+    void execute(CoreParams const&, CoreStateHost&) const final;
 
     // Apply the interaction kernel on device
-    void execute(CoreDeviceRef const&) const final;
+    void execute(CoreParams const&, CoreStateDevice&) const final;
 
     // ID of the model
     ActionId action_id() const final;
@@ -48,8 +48,14 @@ class MollerBhabhaModel final : public Model
         return "Moller+Bhabha scattering";
     }
 
+    //!@{
+    //! Access model data
+    MollerBhabhaData const& host_ref() const { return data_; }
+    MollerBhabhaData const& device_ref() const { return data_; }
+    //!@}
+
   private:
-    MollerBhabhaData interface_;
+    MollerBhabhaData data_;
 };
 
 //---------------------------------------------------------------------------//

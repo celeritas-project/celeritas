@@ -12,31 +12,97 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/em/msc/UrbanMsc.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/field/MakeMagFieldPropagator.hh"
+#include "celeritas/field/UniformField.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackLauncher.hh"
 
-#include "AlongStepLauncher.hh"
-#include "detail/AlongStepUniformMsc.hh"
+#include "detail/AlongStepImpl.hh"
+#include "detail/MeanELoss.hh"
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
-__global__ void
-along_step_uniform_msc_kernel(CoreRef<MemSpace::device> const track_data,
-                              DeviceCRef<UrbanMscData> const msc_data,
-                              UniformFieldParams const field_params)
+__global__ void along_step_apply_msc_step_limit_kernel(
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state,
+    DeviceCRef<UrbanMscData> const msc_data)
 {
-    auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < track_data.states.size()))
-        return;
-
-    auto launch = make_along_step_launcher(track_data,
-                                           msc_data,
-                                           field_params,
-                                           NoData{},
-                                           detail::along_step_uniform_msc);
-    launch(tid);
+    auto launch
+        = make_active_track_launcher(*params,
+                                     *state,
+                                     detail::apply_msc_step_limit<UrbanMsc>,
+                                     UrbanMsc{msc_data});
+    launch(KernelParamCalculator::thread_id());
 }
+
+//---------------------------------------------------------------------------//
+__global__ void along_step_apply_uniform_propagation_kernel(
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state,
+    UniformFieldParams const field)
+{
+    auto launch = make_active_track_launcher(
+        *params,
+        *state,
+        detail::ApplyPropagation{},
+        [&field](ParticleTrackView const& particle, GeoTrackView* geo) {
+            return make_mag_field_propagator<DormandPrinceStepper>(
+                UniformField(field.field), field.options, particle, geo);
+        });
+    launch(KernelParamCalculator::thread_id());
+}
+
+//---------------------------------------------------------------------------//
+__global__ void along_step_apply_msc_kernel(
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state,
+    DeviceCRef<UrbanMscData> const msc_data)
+{
+    auto launch = make_active_track_launcher(
+        *params, *state, detail::apply_msc<UrbanMsc>, UrbanMsc{msc_data});
+    launch(KernelParamCalculator::thread_id());
+}
+
+//---------------------------------------------------------------------------//
+__global__ void along_step_update_time_kernel(
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state)
+{
+    auto launch
+        = make_active_track_launcher(*params, *state, detail::update_time);
+    launch(KernelParamCalculator::thread_id());
+}
+
+//---------------------------------------------------------------------------//
+__global__ void along_step_apply_mean_eloss_kernel(
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state)
+{
+    using detail::MeanELoss;
+
+    auto launch = make_active_track_launcher(
+        *params, *state, detail::apply_eloss<MeanELoss>, MeanELoss{});
+    launch(KernelParamCalculator::thread_id());
+}
+
+//---------------------------------------------------------------------------//
+__global__ void along_step_update_track_kernel(
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state)
+{
+    auto launch
+        = make_active_track_launcher(*params, *state, detail::update_track);
+    launch(KernelParamCalculator::thread_id());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -44,15 +110,42 @@ along_step_uniform_msc_kernel(CoreRef<MemSpace::device> const track_data,
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepUniformMscAction::execute(CoreDeviceRef const& data) const
+void AlongStepUniformMscAction::execute(CoreParams const& params,
+                                        CoreStateDevice& state) const
 {
-    CELER_EXPECT(data);
-    CELER_LAUNCH_KERNEL(along_step_uniform_msc,
+    CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
                         celeritas::device().default_block_size(),
-                        data.states.size(),
-                        data,
-                        device_data_.msc,
+                        state.size(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr(),
+                        device_data_.msc);
+    CELER_LAUNCH_KERNEL(along_step_apply_uniform_propagation,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr(),
                         field_params_);
+    CELER_LAUNCH_KERNEL(along_step_apply_msc,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr(),
+                        device_data_.msc);
+    CELER_LAUNCH_KERNEL(along_step_update_time,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr());
+    CELER_LAUNCH_KERNEL(along_step_apply_mean_eloss,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr());
+    CELER_LAUNCH_KERNEL(along_step_update_track,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr());
 }
 
 //---------------------------------------------------------------------------//

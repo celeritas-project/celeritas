@@ -1,0 +1,107 @@
+! Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+! See the top-level COPYRIGHT file for details.
+! SPDX-License-Identifier: (Apache-2.0 OR MIT)
+[GEOMETRY]
+global "global"
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+[UNIVERSE=general T]
+interior "outer"
+
+[UNIVERSE][SHAPE=cuboid outer]
+faces -1.5 1.5 -1.5 1.5 -2.5 2.5
+
+![UNIVERSE][SHAPE=prism triangle]
+!num_sides 3
+!apothem 0.6
+!extents -5 5
+!
+![UNIVERSE][CELL tri]
+!comp 2
+!shapes -triangle
+
+[UNIVERSE][CELL Tfill]
+comp 1
+!shapes -outer +triangle
+shapes -outer
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+[UNIVERSE=general H]
+interior "outer"
+
+[UNIVERSE][SHAPE=cuboid outer]
+faces -1.5 1.5 -1.5 1.5 0 5
+
+![UNIVERSE][SHAPE=prism hexagon]
+!num_sides 6
+!apothem 1.0
+!extents -5 5
+!
+![UNIVERSE][CELL hex]
+!comp 3
+!shapes -hexagon
+
+[UNIVERSE][CELL Hfill]
+comp 1
+!shapes -outer +hexagon
+shapes -outer
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+[UNIVERSE=general C]
+interior "outer"
+
+[UNIVERSE][SHAPE=cuboid outer]
+! Note that the X dimension is different, and the Y origin is translated
+faces 0 6 0 3 0 5
+
+![UNIVERSE][SHAPE=cyl cylinder]
+!radius 1.2
+!extents -5 5
+!origin 3 1.5 0
+!axis z
+!
+![UNIVERSE][CELL cyl]
+!comp 4
+!shapes -cylinder
+
+[UNIVERSE][CELL Cfill]
+comp 1
+!shapes -outer +cylinder
+shapes -outer
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+! (3 + 3 + 6) x (3 + 3) x (10)
+[UNIVERSE=array arr]
+nx 3
+ny 4
+nz 2
+! Each level is laid out on screen like it is in xy
+! "top" level on screen is highest Z level
+fill  T H C
+      H T C
+      T H C
+      H T C
+! Lower axial level
+      H T C
+      H T C
+      T H C
+      T H C
+origin -6 -3 -5
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+[UNIVERSE=general global]
+interior "outer"
+
+[UNIVERSE][SHAPE=cuboid outer]
+faces -12 12 -4 10 -5 5
+
+[UNIVERSE][HOLE arrfill]
+fill arr
+
+! [UNIVERSE][HOLE arrfill2]
+! fill arr
+! translate 5 6 0
+
+[UNIVERSE][CELL interior]
+comp 0
+shapes +arrfill -outer ! +arrfill2

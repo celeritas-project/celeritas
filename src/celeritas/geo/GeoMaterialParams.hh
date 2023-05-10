@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/Label.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
 

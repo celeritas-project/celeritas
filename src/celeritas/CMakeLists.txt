@@ -49,11 +49,15 @@ list(APPEND SOURCES
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
+  field/RZMapFieldParams.cc
+  field/RZMapFieldInputIO.json.cc
   geo/GeoMaterialParams.cc
+  geo/GeoParamsOutput.cc
   global/ActionInterface.cc
   global/ActionRegistry.cc
   global/ActionRegistryOutput.cc
   global/CoreParams.cc
+  global/CoreState.cc
   global/CoreTrackData.cc
   global/KernelContextException.cc
   global/Stepper.cc
@@ -70,6 +74,7 @@ list(APPEND SOURCES
   io/LivermorePEReader.cc
   io/SeltzerBergerReader.cc
   mat/MaterialParams.cc
+  mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
@@ -86,8 +91,12 @@ list(APPEND SOURCES
   track/ExtendFromSecondariesAction.cc
   track/InitializeTracksAction.cc
   track/SimParams.cc
+  track/SortTracksAction.cc
   track/TrackInitParams.cc
+  user/ParticleTallyData.cc
   user/DetectorSteps.cc
+  user/SimpleCalo.cc
+  user/SimpleCaloData.cc
   user/StepCollector.cc
 )
 
@@ -95,7 +104,7 @@ list(APPEND SOURCES
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_RNG STREQUAL "CURAND")
+if(CELERITAS_CORE_RNG STREQUAL "CURAND")
   list(APPEND PUBLIC_DEPS Celeritas::DeviceToolkit)
 endif()
 
@@ -106,13 +115,13 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_Geant4)
-  celeritas_add_object_library(celeritas_geant4
-    ext/LoadGdml.cc
+  set(_cg4_sources
+    ext/GeantGeoUtils.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
+    ext/GeantVolumeMapper.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantExceptionHandler.cc
-    ext/detail/GeantGeoExporter.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
@@ -120,9 +129,18 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeantVolumeVisitor.cc
   )
-  target_link_libraries(celeritas_geant4
-    PRIVATE Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES}
-  )
+  set(_cg4_libs Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES})
+
+  if(CELERITAS_USE_VecGeom)
+    list(APPEND _cg4_sources
+      ext/detail/GeantGeoConverter.cc
+    )
+    list(APPEND _cg4_libs VecGeom::vecgeom)
+  endif()
+
+  celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
+  target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})
+
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_geant4>)
   list(APPEND PRIVATE_DEPS celeritas_geant4)
 endif()
@@ -147,6 +165,7 @@ if(CELERITAS_USE_JSON)
     ext/GeantPhysicsOptionsIO.json.cc
     field/FieldDriverOptionsIO.json.cc
     phys/PrimaryGeneratorOptionsIO.json.cc
+    user/RootStepWriterIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
@@ -189,8 +208,8 @@ if(CELERITAS_USE_ROOT)
     ext/RootImporter.cc
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
-    io/RootFileManager.cc
-    io/RootStepWriter.cc
+    ext/RootFileManager.cc
+    user/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 
@@ -224,7 +243,9 @@ if(CELERITAS_USE_VecGeom)
   # to resolve the symbols generate by the `nvcc -dlink` of
   # one of the executable.
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
-else()
+endif()
+
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   list(APPEND PUBLIC_DEPS Celeritas::orange)
 endif()
 
@@ -244,9 +265,13 @@ celeritas_polysource(user/detail/StepGatherAction)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
+celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
+celeritas_polysource(user/ActionDiagnostic)
+celeritas_polysource(user/StepDiagnostic)
+celeritas_polysource(user/detail/SimpleCaloImpl)
 
 #-----------------------------------------------------------------------------#
 # Auto-generated code

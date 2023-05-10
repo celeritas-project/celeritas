@@ -11,7 +11,6 @@
 #include <iostream>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/data/Ref.hh"
@@ -152,8 +151,8 @@ auto HeuristicGeoTestBase::get_avg_path(PathLengthRef<M> path,
     -> std::vector<real_type>
 {
     std::vector<real_type> result(path.size());
-    Copier<real_type, M> copy_to{path[AllItems<real_type, M>{}]};
-    copy_to(MemSpace::host, make_span(result));
+    Copier<real_type, MemSpace::host> copy_to_host{make_span(result)};
+    copy_to_host(M, path[AllItems<real_type, M>{}]);
 
     return this->get_avg_path_impl(result, num_states);
 }
