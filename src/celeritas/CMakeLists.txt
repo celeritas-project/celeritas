@@ -50,7 +50,6 @@ list(APPEND SOURCES
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
   field/RZMapFieldParams.cc
-  field/RZMapFieldInputIO.json.cc
   geo/GeoMaterialParams.cc
   geo/GeoParamsOutput.cc
   global/ActionInterface.cc
@@ -164,6 +163,7 @@ if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     ext/GeantPhysicsOptionsIO.json.cc
     field/FieldDriverOptionsIO.json.cc
+    field/RZMapFieldInputIO.json.cc
     phys/PrimaryGeneratorOptionsIO.json.cc
     user/RootStepWriterIO.json.cc
   )
