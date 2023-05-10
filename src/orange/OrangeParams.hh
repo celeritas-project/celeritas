@@ -10,19 +10,17 @@
 #include <string>
 #include <vector>
 
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/io/Label.hh"
 
 #include "BoundingBox.hh"
+#include "GeoParamsInterface.hh"
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
 
 class G4VPhysicalVolume;
-class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -35,14 +33,13 @@ struct OrangeInput;
  * This class initializes and manages the data used by ORANGE (surfaces,
  * volumes) and provides a host-based interface for them.
  */
-class OrangeParams
+class OrangeParams final : public GeoParamsInterface
 {
   public:
     //!@{
     //! \name Type aliases
     using HostRef = HostCRef<OrangeParamsData>;
     using DeviceRef = DeviceCRef<OrangeParamsData>;
-    using SpanConstVolumeId = Span<VolumeId const>;
     //!@}
 
   public:
@@ -56,44 +53,47 @@ class OrangeParams
     explicit OrangeParams(OrangeInput input);
 
     //! Whether safety distance calculations are accurate and precise
-    bool supports_safety() const { return supports_safety_; }
+    bool supports_safety() const final { return supports_safety_; }
 
     //! Outer bounding box of geometry
-    BoundingBox const& bbox() const { return bbox_; }
+    BoundingBox const& bbox() const final { return bbox_; }
 
     //// VOLUMES ////
 
     //! Number of volumes
-    VolumeId::size_type num_volumes() const { return vol_labels_.size(); }
+    VolumeId::size_type num_volumes() const final
+    {
+        return vol_labels_.size();
+    }
 
     // Get the label for a placed volume ID
-    Label const& id_to_label(VolumeId vol_id) const;
+    Label const& id_to_label(VolumeId vol_id) const final;
 
     // Get the volume ID corresponding to a unique name
-    inline VolumeId find_volume(char const* name) const;
+    inline VolumeId find_volume(char const* name) const final;
 
     // Get the volume ID corresponding to a unique name
-    VolumeId find_volume(std::string const& name) const;
+    VolumeId find_volume(std::string const& name) const final;
 
     // Get the volume ID corresponding to a unique label
-    VolumeId find_volume(Label const& label) const;
+    VolumeId find_volume(Label const& label) const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
-    VolumeId find_volume(G4LogicalVolume const* volume) const;
+    inline VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
     // Get zero or more volume IDs corresponding to a name
-    SpanConstVolumeId find_volumes(std::string const& name) const;
+    SpanConstVolumeId find_volumes(std::string const& name) const final;
 
     //// SURFACES ////
 
     // Get the label for a placed volume ID
-    Label const& id_to_label(SurfaceId surf_id) const;
+    Label const& id_to_label(SurfaceId surf_id) const final;
 
     // Get the surface ID corresponding to a unique label name
-    SurfaceId find_surface(std::string const& name) const;
+    SurfaceId find_surface(std::string const& name) const final;
 
     //! Number of distinct surfaces
-    SurfaceId::size_type num_surfaces() const { return surf_labels_.size(); }
+    inline SurfaceId::size_type num_surfaces() const final;
 
     //// DATA ACCESS ////
 
@@ -132,6 +132,26 @@ class OrangeParams
 VolumeId OrangeParams::find_volume(char const* name) const
 {
     return this->find_volume(std::string{name});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Locate the volume ID corresponding to a Geant4 volume.
+ *
+ * TODO: To be properly implemented, as it requires a future Geant4 converter.
+ */
+VolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
+{
+    return VolumeId{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of distinct surfaces.
+ */
+SurfaceId::size_type OrangeParams::num_surfaces() const
+{
+    return surf_labels_.size();
 }
 
 //---------------------------------------------------------------------------//

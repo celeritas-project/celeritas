@@ -11,14 +11,13 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
-#include "corecel/cont/Span.hh"
 #include "orange/BoundingBox.hh"
+#include "orange/GeoParamsInterface.hh"
 #include "orange/Types.hh"
 
 #include "VecgeomData.hh"
 
 class G4VPhysicalVolume;
-class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -28,14 +27,13 @@ namespace celeritas
  *
  * The model defines the shapes, volumes, etc.
  */
-class VecgeomParams
+class VecgeomParams final : public GeoParamsInterface
 {
   public:
     //!@{
     //! \name Type aliases
     using HostRef = HostCRef<VecgeomParamsData>;
     using DeviceRef = DeviceCRef<VecgeomParamsData>;
-    using SpanConstVolumeId = Span<VolumeId const>;
     //!@}
 
   public:
@@ -49,10 +47,10 @@ class VecgeomParams
     ~VecgeomParams();
 
     //! Whether safety distance calculations are accurate and precise
-    bool supports_safety() const { return true; }
+    bool supports_safety() const final { return true; }
 
     //! Outer bounding box of geometry
-    BoundingBox const& bbox() const { return bbox_; }
+    BoundingBox const& bbox() const final { return bbox_; }
 
     //! Maximum nested geometry depth
     int max_depth() const { return host_ref_.max_depth; }
@@ -60,36 +58,39 @@ class VecgeomParams
     //// VOLUMES ////
 
     //! Number of volumes
-    VolumeId::size_type num_volumes() const { return vol_labels_.size(); }
+    VolumeId::size_type num_volumes() const final
+    {
+        return vol_labels_.size();
+    }
 
     // Get the label for a placed volume ID
-    Label const& id_to_label(VolumeId vol_id) const;
+    Label const& id_to_label(VolumeId vol_id) const final;
 
     // Get the volume ID corresponding to a unique name
-    inline VolumeId find_volume(char const* name) const;
+    inline VolumeId find_volume(char const* name) const final;
 
     // Get the volume ID corresponding to a unique label name
-    VolumeId find_volume(std::string const& name) const;
+    VolumeId find_volume(std::string const& name) const final;
 
     // Get the volume ID corresponding to a unique label
-    VolumeId find_volume(Label const& label) const;
+    VolumeId find_volume(Label const& label) const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
-    VolumeId find_volume(G4LogicalVolume const* volume) const;
+    VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
     // Get zero or more volume IDs corresponding to a name
-    SpanConstVolumeId find_volumes(std::string const& name) const;
+    SpanConstVolumeId find_volumes(std::string const& name) const final;
 
     //// SURFACES (NOT APPLICABLE FOR VECGEOM) ////
 
     // Get the label for a placed volume ID
-    inline Label const& id_to_label(SurfaceId) const;
+    inline Label const& id_to_label(SurfaceId) const final;
 
     // Get the surface ID corresponding to a unique label name
-    inline SurfaceId find_surface(std::string const& name) const;
+    inline SurfaceId find_surface(std::string const& name) const final;
 
     //! Number of distinct surfaces
-    size_type num_surfaces() const { return 0; }
+    size_type num_surfaces() const final { return 0; }
 
     //// DATA ACCESS ////
 
