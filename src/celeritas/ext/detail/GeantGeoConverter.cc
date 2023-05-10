@@ -275,6 +275,14 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
 
     VUnplacedVolume const* unplaced;
     unplaced = this->convert(g4_logvol->GetSolid());
+    bool const is_unknown_solid
+        = dynamic_cast<GenericSolidBase const*>(unplaced);
+    if (is_unknown_solid)
+    {
+        CELER_LOG(info) << "Unsupported solid belongs to logical volume '"
+                        << g4_logvol->GetName() << "'@"
+                        << static_cast<void const*>(g4_logvol);
+    }
 
     // add 0x suffix, unless already provided from GDML through Geant4 parser
     static G4GDMLWriteStructure gdml_mangler;
@@ -298,7 +306,7 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
     if (!dynamic_cast<GenericSolidBase const*>(vg_logvol->GetUnplacedVolume())
         && !dynamic_cast<UnplacedScaledShape const*>(
             vg_logvol->GetUnplacedVolume())
-        && !dynamic_cast<G4BooleanSolid const*>(g4_logvol->GetSolid()))
+        && !is_unknown_solid)
     {
         auto vg_cap = vg_logvol->GetUnplacedVolume()->Capacity();
         CELER_ASSERT(vg_cap > 0);
@@ -727,7 +735,7 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
     // New volumes should be implemented here...
     if (!unplaced_volume)
     {
-        CELER_LOG(error) << "Encountered nsupported shape for G4 solid '"
+        CELER_LOG(error) << "Encountered unsupported shape for G4 solid '"
                          << shape->GetName() << "' of type "
                          << shape->GetEntityType();
         unplaced_volume = new GenericSolid<G4VSolid>(shape);
