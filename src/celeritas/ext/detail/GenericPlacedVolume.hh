@@ -231,10 +231,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     }
 
 #ifdef VECGEOM_ROOT
-    virtual TGeoShape const* ConvertToRoot() const override
-    {
-        return nullptr;
-    }
+    virtual TGeoShape const* ConvertToRoot() const override { return nullptr; }
 #endif
 
     //! Dispatch to VecGeom function for shape's bounding box in its local
@@ -272,10 +269,7 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
     //
     // These implementations are required when CUDA is enabled.
     // A trivialimplementation is okay, since won't be called from GPU.
-    virtual size_t DeviceSizeOf() const override
-    {
-        return 0;
-    }
+    virtual size_t DeviceSizeOf() const override { return 0; }
 
     DevicePtr<CudaVPlacedVolume>
     CopyToGpu(DevicePtr<CudaLogicalVolume> const,

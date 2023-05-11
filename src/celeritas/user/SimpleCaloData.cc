@@ -19,9 +19,9 @@ namespace celeritas
  */
 template<MemSpace M>
 void resize(SimpleCaloStateData<Ownership::value, M>* state,
-                   HostCRef<SimpleCaloParamsData> const& params,
-                   StreamId,
-                   size_type num_track_slots)
+            HostCRef<SimpleCaloParamsData> const& params,
+            StreamId,
+            size_type num_track_slots)
 {
     CELER_EXPECT(params);
     resize(&state->energy_deposition, params.num_detectors);

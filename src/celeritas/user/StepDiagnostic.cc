@@ -86,6 +86,15 @@ void StepDiagnostic::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a long description of the action.
+ */
+std::string StepDiagnostic::description() const
+{
+    return "accumulate total step counters";
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Write output to the given JSON object.
  */
 void StepDiagnostic::output(JsonPimpl* j) const

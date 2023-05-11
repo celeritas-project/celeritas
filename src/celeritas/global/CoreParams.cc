@@ -156,21 +156,23 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     scalars.boundary_action = input_.action_reg->next_id();
     input_.action_reg->insert(
         std::make_shared<celeritas::generated::BoundaryAction>(
-            scalars.boundary_action, "geo-boundary", "Boundary crossing"));
+            scalars.boundary_action,
+            "geo-boundary",
+            "cross a geometry boundary"));
 
     // Construct implicit limit for propagator pausing midstep
     scalars.propagation_limit_action = input_.action_reg->next_id();
     input_.action_reg->insert(std::make_shared<ImplicitGeometryAction>(
         scalars.propagation_limit_action,
         "geo-propagation-limit",
-        "Propagation substep/range limit"));
+        "pause due to propagation misbehavior"));
 
     // Construct action for killed looping tracks
     scalars.abandon_looping_action = input_.action_reg->next_id();
-    input_.action_reg->insert(
-        std::make_shared<ImplicitSimAction>(scalars.abandon_looping_action,
-                                            "abandon-looping",
-                                            "Abandoned looping track"));
+    input_.action_reg->insert(std::make_shared<ImplicitSimAction>(
+        scalars.abandon_looping_action,
+        "kill-looping",
+        "kill due to too many field substeps"));
 
     // Define neutral and user-provided along-step actions
     std::shared_ptr<AlongStepNeutralAction const> along_step_neutral;

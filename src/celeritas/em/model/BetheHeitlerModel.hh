@@ -54,10 +54,10 @@ class BetheHeitlerModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "conv-bethe-heitler"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the post-step action
     std::string description() const final
     {
-        return "Bethe-Heitler gamma conversion";
+        return "interact by Bethe-Heitler gamma conversion";
     }
 
     //!@{

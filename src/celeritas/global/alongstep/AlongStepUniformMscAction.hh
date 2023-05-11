@@ -56,10 +56,10 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
     //! Short name for the interaction kernel
     std::string label() const final { return "along-step-uniform-msc"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the action
     std::string description() const final
     {
-        return "along-step in a uniform field with Urban MSC";
+        return "apply along-step in a uniform field with Urban MSC";
     }
 
     //! Dependency ordering of the action

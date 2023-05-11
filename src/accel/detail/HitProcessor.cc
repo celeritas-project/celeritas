@@ -294,7 +294,7 @@ bool HitProcessor::update_touchable(Real3 const& pos,
     // Check that physical and logical volumes are consistent
     G4VPhysicalVolume* pv = touchable->GetVolume(0);
     CELER_ASSERT(pv);
-    if (!CELER_UNLIKELY(pv->GetLogicalVolume() != lv))
+    if (!CELER_UNLIKELY((pv->GetLogicalVolume() != lv)))
     {
         return true;
     }

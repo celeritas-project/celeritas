@@ -61,8 +61,8 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     ActionId action_id() const final { return id_; }
     //! Short name for the action
     std::string label() const final { return "action-diagnostic"; }
-    //! Description of the action for user interaction
-    std::string description() const final { return "Action diagnostic"; }
+    // Description of the action for user interaction
+    std::string description() const final;
     //! Dependency ordering of the action
     ActionOrder order() const final { return ActionOrder::post; }
     //!@}

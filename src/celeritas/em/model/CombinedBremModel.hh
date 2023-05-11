@@ -30,7 +30,7 @@ class ParticleParams;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch a combined model of SeltzerBergerModel at the low energy
- * and RelativisticBremModel at the hight energy for e+/e- Bremsstrahlung.
+ * and RelativisticBremModel at the high energy for e+/e- Bremsstrahlung.
  */
 class CombinedBremModel final : public Model
 {
@@ -70,10 +70,10 @@ class CombinedBremModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "brems-combined"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the post-step action
     std::string description() const final
     {
-        return "SB+relativistic electron+positron bremsstrahlung";
+        return "interact by bremsstrahlung (combined SB/relativistic, e+/-)";
     }
 
     //! Access data on the host

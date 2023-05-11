@@ -21,17 +21,23 @@ class CoreState;
 
 //---------------------------------------------------------------------------//
 /*!
- * Pure abstract interface for an end-of-step action.
+ * Pure abstract interface for an action that could happen to a track.
  *
- * The action ID is used to select between post-step actions such as discrete
- * processes, geometry boundary, and range limitation. Only "explicit" actions
- * (see \c ExplicitActionInterface ) call kernels; otherwise the action should
- * be a placeholder for ending the step without any additional state change
- * (see \c ImplicitActionInterface ).
+ * An action represents a possible state point or state change for a track.
+ * Explicit actions (see \c ExplicitActionInterface ) call kernels that change
+ * the state (discrete processes, geometry boundary), and *implicit* actions
+ * (see \c ImplicitActionInterface ) are placeholders for different reasons to
+ * pause the state or mark it for future modification (range limitation,
+ * propagation loop limit).
  *
- * The ActionInterface provides a no-overhead virtual interface for gathering
- * metadata. The ExplicitActionInterface provides additional interfaces for
- * launching kernels.
+ * The \c ActionInterface provides a no-overhead virtual interface for
+ * gathering metadata. The \c ExplicitActionInterface provides additional
+ * interfaces for launching kernels.
+ *
+ * The label should be a brief lowercase hyphen-separated string, with perhaps
+ * some sort of category being the first token.
+ *
+ * The description should be a verb phrase (lowercase start).
  */
 class ActionInterface
 {

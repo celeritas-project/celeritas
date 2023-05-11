@@ -41,10 +41,10 @@ class EPlusGGModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "annihil-2-gamma"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the post-step action
     std::string description() const final
     {
-        return "Positron annihilation yielding two gammas";
+        return "interact by positron annihilation yielding two gammas";
     }
 
     //!@{

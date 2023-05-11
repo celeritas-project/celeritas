@@ -56,8 +56,8 @@ class StepDiagnostic final : public ExplicitActionInterface,
     ActionId action_id() const final { return id_; }
     //! Short name for the action
     std::string label() const final { return "step-diagnostic"; }
-    //! Description of the action for user interaction
-    std::string description() const final { return "Step diagnostic"; }
+    // Description of the action for user interaction
+    std::string description() const final;
     //! Dependency ordering of the action
     ActionOrder order() const final { return ActionOrder::post_post; }
     //!@}
