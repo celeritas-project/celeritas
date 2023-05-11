@@ -55,17 +55,13 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
 
     //// VOLUMES ////
 
-    //! Number of volumes
-    VolumeId::size_type num_volumes() const final
-    {
-        return vol_labels_.size();
-    }
+    // Number of volumes
+    inline VolumeId::size_type num_volumes() const final;
 
     // Get the label for a placed volume ID
     Label const& id_to_label(VolumeId vol_id) const final;
 
-    // Get the volume ID corresponding to a unique name
-    inline VolumeId find_volume(char const* name) const final;
+    using GeoParamsSurfaceInterface::find_volume;
 
     // Get the volume ID corresponding to a unique name
     VolumeId find_volume(std::string const& name) const final;
@@ -119,18 +115,6 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Find the unique volume corresponding to a unique name.
- *
- * This method is here to disambiguate the implicit std::string and Label
- * constructors.
- */
-VolumeId OrangeParams::find_volume(char const* name) const
-{
-    return this->find_volume(std::string{name});
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Locate the volume ID corresponding to a Geant4 volume.
  *
  * TODO: To be properly implemented, as it requires a future Geant4 converter.
@@ -138,6 +122,15 @@ VolumeId OrangeParams::find_volume(char const* name) const
 VolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
 {
     return VolumeId{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of volumes.
+ */
+VolumeId::size_type OrangeParams::num_volumes() const
+{
+    return vol_labels_.size();
 }
 
 //---------------------------------------------------------------------------//

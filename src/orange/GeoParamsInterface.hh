@@ -45,9 +45,6 @@ class GeoParamsInterface
     virtual Label const& id_to_label(VolumeId vol_id) const = 0;
 
     //! Get the volume ID corresponding to a unique name
-    virtual VolumeId find_volume(char const* name) const = 0;
-
-    //! Get the volume ID corresponding to a unique name
     virtual VolumeId find_volume(std::string const& name) const = 0;
 
     //! Get the volume ID corresponding to a unique label
@@ -58,6 +55,11 @@ class GeoParamsInterface
 
     //! Get zero or more volume IDs corresponding to a name
     virtual SpanConstVolumeId find_volumes(std::string const& name) const = 0;
+
+    //// HELPER FUNCTIONS ////
+
+    // Get the volume ID corresponding to a unique name
+    inline VolumeId find_volume(char const* name) const;
 
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
@@ -82,6 +84,20 @@ class GeoParamsSurfaceInterface : public GeoParamsInterface
     //! Number of distinct surfaces
     virtual SurfaceId::size_type num_surfaces() const = 0;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Find the unique volume corresponding to a unique name.
+ *
+ * This method is here to disambiguate the implicit std::string and Label
+ * constructors.
+ */
+VolumeId GeoParamsInterface::find_volume(char const* name) const
+{
+    return this->find_volume(std::string{name});
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

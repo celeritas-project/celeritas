@@ -61,8 +61,7 @@ class VecgeomParams final : public GeoParamsInterface,
     // Get the label for a placed volume ID
     Label const& id_to_label(VolumeId vol_id) const final;
 
-    // Get the volume ID corresponding to a unique name
-    inline VolumeId find_volume(char const* name) const final;
+    using GeoParamsInterface::find_volume;
 
     // Get the volume ID corresponding to a unique label name
     VolumeId find_volume(std::string const& name) const final;
@@ -106,20 +105,6 @@ class VecgeomParams final : public GeoParamsInterface,
     // Construct labels and other host-only metadata
     void build_metadata();
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Find the unique volume corresponding to a unique name.
- *
- * This method is here to disambiguate the implicit std::string and Label
- * constructors.
- */
-VolumeId VecgeomParams::find_volume(char const* name) const
-{
-    return this->find_volume(std::string{name});
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
