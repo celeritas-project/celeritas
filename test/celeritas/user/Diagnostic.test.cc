@@ -107,12 +107,13 @@ TEST_F(TestEm3DiagnosticTest, host)
         if (this->is_ci_build())
         {
             static const size_type expected_actions[]
-                = {0u,   0u,  0u,   0u,    0u,    0u,    0u,  283u, 575u, 19u,
-                   0u,   0u,  0u,   0u,    0u,    1769u, 0u,  0u,   0u,   0u,
-                   0u,   0u,  0u,   1580u, 1019u, 0u,    22u, 0u,   0u,   0u,
-                   0u,   20u, 467u, 0u,    0u,    289u,  15u, 0u,   0u,   0u,
-                   0u,   0u,  0u,   1168u, 55u,   0u,    90u, 0u,   0u,   0u,
-                   127u, 14u, 386u, 0u,    0u,    284u,  10u, 0u,   0u,   0u};
+                = {0u,    0u,  0u, 0u,   0u,  0u,  0u,    283u,  575u,
+                   19u,   0u,  0u, 0u,   0u,  0u,  1769u, 0u,    0u,
+                   0u,    0u,  0u, 0u,   0u,  0u,  1580u, 1019u, 0u,
+                   22u,   0u,  0u, 0u,   0u,  20u, 467u,  0u,    0u,
+                   289u,  15u, 0u, 0u,   0u,  0u,  0u,    0u,    0u,
+                   1168u, 55u, 0u, 90u,  0u,  0u,  0u,    127u,  14u,
+                   386u,  0u,  0u, 284u, 10u, 0u,  0u,    0u,    0u};
             EXPECT_VEC_EQ(expected_actions, result.actions);
 
             static const size_type expected_steps[]
@@ -151,14 +152,16 @@ TEST_F(TestEm3DiagnosticTest, host)
         if (this->is_ci_build())
         {
             static const size_type expected_actions[]
-                = {0u,   0u,  0u,   0u,    0u,    0u,    0u,  298u, 567u, 19u,
-                   0u,   0u,  0u,   0u,    0u,    1813u, 0u,  0u,   0u,   0u,
-                   0u,   0u,  0u,   1549u, 1010u, 0u,    24u, 0u,   0u,   0u,
-                   0u,   19u, 476u, 0u,    0u,    281u,  0u,  0u,   0u,   0u,
-                   0u,   0u,  0u,   1186u, 59u,   0u,    87u, 0u,   0u,   0u,
-                   124u, 15u, 391u, 0u,    0u,    274u,  0u,  0u,   0u,   0u};
+                = {0u,    0u,  0u, 0u,   0u, 0u,  0u,    298u,  567u,
+                   19u,   0u,  0u, 0u,   0u, 0u,  1813u, 0u,    0u,
+                   0u,    0u,  0u, 0u,   0u, 0u,  1549u, 1010u, 0u,
+                   24u,   0u,  0u, 0u,   0u, 19u, 476u,  0u,    0u,
+                   281u,  0u,  0u, 0u,   0u, 0u,  0u,    0u,    0u,
+                   1186u, 59u, 0u, 87u,  0u, 0u,  0u,    124u,  15u,
+                   391u,  0u,  0u, 274u, 0u, 0u,  0u,    0u,    0u};
             EXPECT_VEC_EQ(expected_actions, result.actions);
 
+            // ORANGE resuts are slightly different
             static const size_type expected_steps[]
                 = {0u, 316u, 209u, 91u, 33u, 35u, 21u, 20u, 7u,  11u, 10u,
                    1u, 2u,   3u,   3u,  1u,  1u,  1u,  0u,  0u,  1u,  1u,
@@ -195,12 +198,12 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
 
     if (this->is_ci_build())
     {
-        static const size_type expected_actions[]
-            = {0u, 0u, 0u,  0u,  0u,   0u, 0u, 1u,   0u,   2u, 0u,  0u,
-               0u, 0u, 0u,  7u,  0u,   0u, 0u, 0u,   0u,   0u, 0u,  998u,
-               0u, 0u, 2u,  0u,  0u,   0u, 0u, 21u,  508u, 0u, 0u,  521u,
-               0u, 0u, 0u,  0u,  0u,   0u, 0u, 904u, 0u,   0u, 12u, 0u,
-               0u, 0u, 10u, 20u, 572u, 0u, 0u, 518u, 0u,   0u, 0u,  0u};
+        static const size_type expected_actions[] = {
+            0u,  0u,  0u,   0u, 0u, 0u,   0u,   1u,   0u, 2u,  0u,   0u,   0u,
+            0u,  0u,  7u,   0u, 0u, 0u,   0u,   0u,   0u, 0u,  0u,   998u, 0u,
+            0u,  2u,  0u,   0u, 0u, 0u,   21u,  508u, 0u, 0u,  521u, 0u,   0u,
+            0u,  0u,  0u,   0u, 0u, 0u,   904u, 0u,   0u, 12u, 0u,   0u,   0u,
+            10u, 20u, 572u, 0u, 0u, 518u, 0u,   0u,   0u, 0u,  0u};
         EXPECT_VEC_EQ(expected_actions, result.actions);
 
         static const size_type expected_steps[] = {
@@ -213,7 +216,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         if (CELERITAS_USE_JSON)
         {
             EXPECT_EQ(
-                R"json({"_index":["particle","action"],"actions":[[0,0,0,0,0,0,0,1,0,2,0,0,0,0,0,7,0,0,0,0],[0,0,0,998,0,0,2,0,0,0,0,21,508,0,0,521,0,0,0,0],[0,0,0,904,0,0,12,0,0,0,10,20,572,0,0,518,0,0,0,0]]})json",
+                R"json({"_index":["particle","action"],"actions":[[0,0,0,0,0,0,0,1,0,2,0,0,0,0,0,7,0,0,0,0,0],[0,0,0,998,0,0,2,0,0,0,0,21,508,0,0,521,0,0,0,0,0],[0,0,0,904,0,0,12,0,0,0,10,20,572,0,0,518,0,0,0,0,0]]})json",
                 this->action_output());
 
             EXPECT_EQ(

@@ -17,6 +17,35 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+
+template<class T>
+using ThreadItems
+    = Collection<T, Ownership::reference, MemSpace::host, ThreadId>;
+
+using TrackSlots = ThreadItems<TrackSlotId::size_type>;
+
+template<class F>
+void partition_impl(TrackSlots const& track_slots, F&& func)
+{
+    auto* start = track_slots.data().get();
+    std::partition(start, start + track_slots.size(), std::forward<F>(func));
+}
+
+//---------------------------------------------------------------------------//
+
+template<class F>
+void sort_impl(TrackSlots const& track_slots, F&& func)
+{
+    auto* start = track_slots.data().get();
+    std::sort(start, start + track_slots.size(), std::forward<F>(func));
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Initialize default threads to track_slots mapping, track_slots[i] = i
@@ -38,34 +67,30 @@ void shuffle_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slot
     std::shuffle(track_slots.begin(), track_slots.end(), g);
 }
 
-void partition_tracks_by_status(
-    CoreStateData<Ownership::reference, MemSpace::host> const& states)
+//---------------------------------------------------------------------------//
+/*!
+ * Sort or partition tracks.
+ */
+void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
 {
-    CELER_EXPECT(states.size() > 0);
-    Span track_slots{
-        states.track_slots[AllItems<TrackSlotId::size_type, MemSpace::host>{}]};
-    std::partition(track_slots.begin(),
-                   track_slots.end(),
-                   [&status = states.sim.status](auto const track_slot) {
-                       return status[TrackSlotId{track_slot}]
-                              == TrackStatus::alive;
-                   });
+    switch (order)
+    {
+        case TrackOrder::partition_status:
+            return partition_impl(states.track_slots,
+                                  alive_predicate{states.sim.status.data()});
+        case TrackOrder::sort_along_step_action:
+            return sort_impl(
+                states.track_slots,
+                along_action_comparator{states.sim.along_step_action.data()});
+        case TrackOrder::sort_step_limit_action:
+            return sort_impl(
+                states.track_slots,
+                step_limit_comparator{states.sim.step_limit.data()});
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
 }
 
-void sort_tracks_by_action_id(
-    CoreStateData<Ownership::reference, MemSpace::host> const& states)
-{
-    CELER_EXPECT(states.size() > 0);
-    Span track_slots{
-        states.track_slots[AllItems<TrackSlotId::size_type, MemSpace::host>{}]};
-    std::sort(
-        track_slots.begin(),
-        track_slots.end(),
-        [&step_limit = states.sim.step_limit](auto const& a, auto const& b) {
-            return step_limit[TrackSlotId{a}].action
-                   < step_limit[TrackSlotId{b}].action;
-        });
-}
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

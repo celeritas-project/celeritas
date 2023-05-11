@@ -10,8 +10,10 @@
 #include <type_traits>
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
@@ -24,6 +26,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 
 // Initialize default threads to track_slots mapping, track_slots[i] = i
+// TODO: move to global/detail and overload using ObserverPtr
 template<MemSpace M,
          typename Size,
          typename = std::enable_if_t<std::is_unsigned_v<Size>>>
@@ -36,6 +39,7 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots
 
 //---------------------------------------------------------------------------//
 // Shuffle tracks
+// TODO: move to global/detail and overload using ObserverPtr
 template<MemSpace M,
          typename Size,
          typename = std::enable_if_t<std::is_unsigned_v<Size>>>
@@ -49,21 +53,43 @@ void shuffle_track_slots<MemSpace::device>(
     Span<TrackSlotId::size_type> track_slots);
 
 //---------------------------------------------------------------------------//
-// Sort tracks
+// Sort or partition tracks
 
-void partition_tracks_by_status(
-    CoreStateData<Ownership::reference, MemSpace::host> const& states);
-
-void partition_tracks_by_status(
-    CoreStateData<Ownership::reference, MemSpace::device> const& states);
+void sort_tracks(HostRef<CoreStateData> const&, TrackOrder);
+void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder);
 
 //---------------------------------------------------------------------------//
+// HELPER CLASSES
+//---------------------------------------------------------------------------//
+struct alive_predicate
+{
+    ObserverPtr<TrackStatus const> status_;
 
-void sort_tracks_by_action_id(
-    CoreStateData<Ownership::reference, MemSpace::host> const& states);
+    CELER_FUNCTION bool operator()(unsigned int track_slot) const
+    {
+        return status_.get()[track_slot] == TrackStatus::alive;
+    }
+};
 
-void sort_tracks_by_action_id(
-    CoreStateData<Ownership::reference, MemSpace::device> const& states);
+struct step_limit_comparator
+{
+    ObserverPtr<StepLimit const> step_limit_;
+
+    CELER_FUNCTION bool operator()(unsigned int a, unsigned int b) const
+    {
+        return step_limit_.get()[a].action < step_limit_.get()[b].action;
+    }
+};
+
+struct along_action_comparator
+{
+    ObserverPtr<ActionId const> action_;
+
+    CELER_FUNCTION bool operator()(unsigned int a, unsigned int b) const
+    {
+        return action_.get()[a] < action_.get()[b];
+    }
+};
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -81,14 +107,7 @@ inline void shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-inline void partition_tracks_by_status(
-    CoreStateData<Ownership::reference, MemSpace::device> const&)
-{
-    CELER_NOT_CONFIGURED("CUDA or HIP");
-}
-
-inline void sort_tracks_by_action_id(
-    CoreStateData<Ownership::reference, MemSpace::device> const&)
+inline void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

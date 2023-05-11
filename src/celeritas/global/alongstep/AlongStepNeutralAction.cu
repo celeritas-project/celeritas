@@ -25,10 +25,11 @@ namespace
 //---------------------------------------------------------------------------//
 __global__ void
 along_step_neutral_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
-                          RefPtr<CoreStateData, MemSpace::device> const state)
+                          RefPtr<CoreStateData, MemSpace::device> const state,
+                          ActionId const along_step_id)
 {
-    auto launch = make_active_track_launcher(
-        *params, *state, detail::along_step_neutral);
+    auto launch = make_along_step_track_launcher(
+        *params, *state, along_step_id, detail::along_step_neutral);
     launch(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//
@@ -45,7 +46,8 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
                         celeritas::device().default_block_size(),
                         state.size(),
                         params.ptr<MemSpace::native>(),
-                        state.ptr());
+                        state.ptr(),
+                        this->action_id());
 }
 
 //---------------------------------------------------------------------------//

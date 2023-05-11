@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/BuildOutput.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -42,6 +43,7 @@
 
 #include "ActionInterface.hh"
 #include "ActionRegistry.hh"  // IWYU pragma: keep
+#include "alongstep/AlongStepNeutralAction.hh"
 
 #if CELERITAS_USE_JSON
 #    include "corecel/io/OutputInterfaceAdapter.hh"
@@ -80,6 +82,26 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
 
     CELER_ENSURE(ref);
     return ref;
+}
+
+//---------------------------------------------------------------------------//
+
+ActionId find_along_step_id(ActionRegistry const& reg)
+{
+    for (auto aidx : range(reg.num_actions()))
+    {
+        // Get abstract action shared pointer and see if it's explicit
+        auto const& base = reg.action(ActionId{aidx});
+        if (auto expl
+            = std::dynamic_pointer_cast<ExplicitActionInterface const>(base))
+        {
+            if (expl->order() == ActionOrder::along)
+            {
+                return expl->action_id();
+            }
+        }
+    }
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -152,6 +174,33 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         "kill-looping",
         "kill due to too many field substeps"));
 
+    // Define neutral and user-provided along-step actions
+    std::shared_ptr<AlongStepNeutralAction const> along_step_neutral;
+    scalars.along_step_user_action = find_along_step_id(*input_.action_reg);
+    if (scalars.along_step_user_action)
+    {
+        // Test whether user-provided action is neutral
+        along_step_neutral
+            = std::dynamic_pointer_cast<AlongStepNeutralAction const>(
+                input_.action_reg->action(scalars.along_step_user_action));
+    }
+
+    if (!along_step_neutral)
+    {
+        // Create neutral action if one doesn't exist
+        along_step_neutral = std::make_shared<AlongStepNeutralAction>(
+            input_.action_reg->next_id());
+        input_.action_reg->insert(along_step_neutral);
+    }
+    scalars.along_step_neutral_action = along_step_neutral->action_id();
+    if (!scalars.along_step_user_action)
+    {
+        // Use newly created neutral action by default
+        CELER_LOG(warning) << "No along-step action specified: using neutral "
+                              "particle propagation";
+        scalars.along_step_user_action = scalars.along_step_neutral_action;
+    }
+
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
 
@@ -162,21 +211,23 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     // TrackOrder doesn't have to be an argument right now and could be
     // captured but we're eventually expecting different TrackOrder for
     // different ActionOrder
-    auto insert_sort_tracks_action = [this](const ActionOrder action_order,
-                                            const TrackOrder track_order) {
+    auto insert_sort_tracks_action = [this](const TrackOrder track_order) {
         input_.action_reg->insert(std::make_shared<SortTracksAction>(
-            input_.action_reg->next_id(), action_order, track_order));
+            input_.action_reg->next_id(), track_order));
     };
     const TrackOrder track_order{input_.init->host_ref().track_order};
     switch (track_order)
     {
         case TrackOrder::partition_status:
-            // Construct sort tracks action for start-step
-            insert_sort_tracks_action(ActionOrder::sort_start, track_order);
-            break;
         case TrackOrder::sort_step_limit_action:
-            // Construct sort tracks action for pre-step
-            insert_sort_tracks_action(ActionOrder::sort_pre, track_order);
+        case TrackOrder::sort_along_step_action:
+            // Sort with just the given track order
+            insert_sort_tracks_action(track_order);
+            break;
+        case TrackOrder::sort_action:
+            // Sort twice
+            insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
+            insert_sort_tracks_action(TrackOrder::sort_along_step_action);
             break;
         default:
             break;
