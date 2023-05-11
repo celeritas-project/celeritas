@@ -11,7 +11,7 @@ include(CeleritasAddTest)
 #-----------------------------------------------------------------------------#
 
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
-configure_file(testdetail/TestConfig.cc.in TestConfig.cc @ONLY)
+configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 celeritas_add_library(testcel_harness
   Test.cc
@@ -19,7 +19,6 @@ celeritas_add_library(testcel_harness
   testdetail/NonMasterResultPrinter.cc
   testdetail/ParallelHandler.cc
   testdetail/TestMainImpl.cc
-  "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 target_compile_features(testcel_harness PUBLIC cxx_std_14)
 celeritas_target_link_libraries(testcel_harness

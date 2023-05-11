@@ -16,11 +16,8 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
-#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/random/RngParams.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
