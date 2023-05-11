@@ -9,6 +9,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/detail/FindInterp.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Units.hh"
 
@@ -41,6 +43,9 @@ class RZMapField
   private:
     // Shared constant field map
     FieldParamsRef const& params_;
+
+    const UniformGrid grid_r_;
+    const UniformGrid grid_z_;
 };
 
 //---------------------------------------------------------------------------//
@@ -50,7 +55,12 @@ class RZMapField
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-RZMapField::RZMapField(FieldParamsRef const& params) : params_(params) {}
+RZMapField::RZMapField(FieldParamsRef const& params)
+    : params_(params)
+    , grid_r_(params_.grids.data_r)
+    , grid_z_(params_.grids.data_z)
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -67,17 +77,15 @@ CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
     Real3 value{0, 0, 0};
 
     real_type r = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
-    real_type z = pos[2];
 
-    real_type scale = 1 / params_.params.delta_grid;
+    // Find interpolation points for given r and z
+    detail::FindInterp<real_type> interp_r
+        = detail::find_interp<UniformGrid>(grid_r_, r);
+    detail::FindInterp<real_type> interp_z
+        = detail::find_interp<UniformGrid>(grid_z_, pos[2]);
 
-    size_type ir = static_cast<size_type>(r * scale);
-    size_type iz
-        = static_cast<size_type>((z + params_.params.offset_z) * scale);
-
-    real_type dr = r - static_cast<real_type>(ir) * params_.params.delta_grid;
-    real_type dz = z + params_.params.offset_z
-                   - static_cast<real_type>(iz) * params_.params.delta_grid;
+    size_type ir = interp_r.index;
+    size_type iz = interp_z.index;
 
     if (!params_.valid(iz, ir))
         return value;
@@ -85,14 +93,13 @@ CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
     // z component
     real_type low = params_.fieldmap[params_.id(iz, ir)].value_z;
     real_type high = params_.fieldmap[params_.id(iz + 1, ir)].value_z;
-
-    value[2] = low + (high - low) * dz * scale;
+    value[2] = low + (high - low) * interp_z.fraction;
 
     // x and y components
     low = params_.fieldmap[params_.id(iz, ir)].value_r;
     high = params_.fieldmap[params_.id(iz, ir + 1)].value_r;
-
-    real_type tmp = (r != 0) ? (low + (high - low) * dr * scale) / r : low;
+    real_type tmp = (r != 0) ? (low + (high - low) * interp_r.fraction) / r
+                             : low;
     value[0] = tmp * pos[0];
     value[1] = tmp * pos[1];
 

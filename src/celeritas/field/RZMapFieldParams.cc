@@ -27,9 +27,15 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
     CELER_VALIDATE(inp.num_grid_r >= 2,
                    << "invalid field parameter (num_grid_r=" << inp.num_grid_r
                    << ")");
-    CELER_VALIDATE(inp.delta_grid > 0,
-                   << "invalid field parameter (delta_grid=" << inp.delta_grid
-                   << ")");
+    CELER_VALIDATE(inp.min_r >= 0,
+                   << "invalid field parameter (min_r=" << inp.min_r << ")");
+    CELER_VALIDATE(inp.max_r > inp.min_r,
+                   << "invalid field parameter (max_r=" << inp.max_r
+                   << " <= min_r= " << inp.min_r << ")");
+    CELER_VALIDATE(inp.max_z > inp.min_z,
+                   << "invalid field parameter (max_z=" << inp.max_z
+                   << " <= min_z= " << inp.min_z << ")");
+
     CELER_VALIDATE(
         inp.field_z.size() == inp.num_grid_z * inp.num_grid_r,
         << "invalid field length (field_z size=" << inp.field_z.size()
@@ -42,10 +48,10 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
     auto host_data = [&inp] {
         HostVal<RZMapFieldParamsData> host;
 
-        host.params.num_grid_r = inp.num_grid_r;
-        host.params.num_grid_z = inp.num_grid_z;
-        host.params.delta_grid = inp.delta_grid;
-        host.params.offset_z = inp.offset_z;
+        host.grids.data_r = UniformGridData::from_bounds(
+            inp.min_r, inp.max_r, inp.num_grid_r);
+        host.grids.data_z = UniformGridData::from_bounds(
+            inp.min_z, inp.max_z, inp.num_grid_z);
 
         auto fieldmap = make_builder(&host.fieldmap);
         fieldmap.reserve(inp.field_z.size());
