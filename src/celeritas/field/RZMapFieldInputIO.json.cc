@@ -20,8 +20,10 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
 #define RZFI_LOAD(NAME) j.at(#NAME).get_to(inp.NAME)
     RZFI_LOAD(num_grid_z);
     RZFI_LOAD(num_grid_r);
-    RZFI_LOAD(delta_grid);
-    RZFI_LOAD(offset_z);
+    RZFI_LOAD(min_z);
+    RZFI_LOAD(min_r);
+    RZFI_LOAD(max_z);
+    RZFI_LOAD(max_r);
     RZFI_LOAD(field_z);
     RZFI_LOAD(field_r);
 #undef RZFI_LOAD
@@ -37,8 +39,10 @@ void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
     j = {
         RZFI_KEY_VALUE(num_grid_z),
         RZFI_KEY_VALUE(num_grid_r),
-        RZFI_KEY_VALUE(delta_grid),
-        RZFI_KEY_VALUE(offset_z),
+        RZFI_KEY_VALUE(min_z),
+        RZFI_KEY_VALUE(min_r),
+        RZFI_KEY_VALUE(max_z),
+        RZFI_KEY_VALUE(max_r),
         RZFI_KEY_VALUE(field_z),
         RZFI_KEY_VALUE(field_r),
     };
