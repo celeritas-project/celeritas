@@ -487,8 +487,8 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
                          -0.0391118941072485030};
 
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(4.1632770456107515, result.displacement);
-        EXPECT_SOFT_EQ(-0.5944548582004926, result.angle);
+        EXPECT_SOFT_EQ(4.1632771293464517, result.displacement);
+        EXPECT_SOFT_EQ(-0.59445466152831616, result.angle);
     }
 }
 

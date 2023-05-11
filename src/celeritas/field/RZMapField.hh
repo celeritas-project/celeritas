@@ -78,15 +78,15 @@ CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
 
     real_type r = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
 
+    if (!params_.valid(pos[2], r))
+        return value;
+
     // Find interpolation points for given r and z
     FindInterp<real_type> interp_r = find_interp<UniformGrid>(grid_r_, r);
     FindInterp<real_type> interp_z = find_interp<UniformGrid>(grid_z_, pos[2]);
 
     size_type ir = interp_r.index;
     size_type iz = interp_z.index;
-
-    if (!params_.valid(iz, ir))
-        return value;
 
     // z component
     real_type low = params_.fieldmap[params_.id(iz, ir)].value_z;

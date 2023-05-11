@@ -32,8 +32,8 @@ struct FieldMapGridData
  */
 struct FieldMapElement
 {
-    float value_z;
-    float value_r;
+    real_type value_z;
+    real_type value_r;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,11 +62,12 @@ struct RZMapFieldParamsData
         return !fieldmap.empty();
     }
 
-    inline CELER_FUNCTION bool valid(size_type idx_z, size_type idx_r) const
+    inline CELER_FUNCTION bool valid(real_type z, real_type r) const
     {
         CELER_EXPECT(grids.data_z);
         CELER_EXPECT(grids.data_r);
-        return (idx_z < grids.data_z.size && idx_r < grids.data_r.size);
+        return (z >= grids.data_z.front && z <= grids.data_z.back
+                && r >= grids.data_r.front && r <= grids.data_r.back);
     }
 
     inline CELER_FUNCTION ElementId id(int idx_z, int idx_r) const
