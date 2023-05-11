@@ -119,7 +119,7 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
         {
             return "---";
         }
-        // Only call this function if the egeomtry supports surfaces
+        // Only call this function if the geometry supports surfaces
         return dynamic_cast<GeoParamsSurfaceInterface const&>(*this->geometry())
             .id_to_label(geo.surface_id())
             .name;

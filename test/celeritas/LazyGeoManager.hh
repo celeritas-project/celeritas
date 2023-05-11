@@ -18,9 +18,10 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Templated base class for creating a persistent geometry.
+ * Base class for managing a persistent singleton geometry.
  *
- * \tparam GP Host Geometry Params class
+ * This class automatically cleans up after all tests are done executing, and
+ * ensures that only one geometry at a time is loaded.
  */
 class LazyGeoManager
 {
