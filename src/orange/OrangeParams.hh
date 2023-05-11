@@ -33,7 +33,7 @@ struct OrangeInput;
  * This class initializes and manages the data used by ORANGE (surfaces,
  * volumes) and provides a host-based interface for them.
  */
-class OrangeParams final : public GeoParamsInterface
+class OrangeParams final : public GeoParamsSurfaceInterface
 {
   public:
     //!@{

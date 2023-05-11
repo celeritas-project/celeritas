@@ -59,7 +59,19 @@ class GeoParamsInterface
     //! Get zero or more volume IDs corresponding to a name
     virtual SpanConstVolumeId find_volumes(std::string const& name) const = 0;
 
-    //// SURFACES ////
+  protected:
+    // Protected destructor prevents deletion of pointer-to-interface
+    ~GeoParamsInterface() = default;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Interface class for a host geometry that supports surfaces.
+ */
+class GeoParamsSurfaceInterface : public GeoParamsInterface
+{
+  public:
+    using GeoParamsInterface::id_to_label;
 
     //! Get the label for a placed volume ID
     virtual Label const& id_to_label(SurfaceId surf_id) const = 0;
@@ -69,10 +81,6 @@ class GeoParamsInterface
 
     //! Number of distinct surfaces
     virtual SurfaceId::size_type num_surfaces() const = 0;
-
-  protected:
-    // Protected destructor prevents deletion of pointer-to-interface
-    ~GeoParamsInterface() = default;
 };
 
 //---------------------------------------------------------------------------//

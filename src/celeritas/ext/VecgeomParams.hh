@@ -81,17 +81,6 @@ class VecgeomParams final : public GeoParamsInterface
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(std::string const& name) const final;
 
-    //// SURFACES (NOT APPLICABLE FOR VECGEOM) ////
-
-    // Get the label for a placed volume ID
-    inline Label const& id_to_label(SurfaceId) const final;
-
-    // Get the surface ID corresponding to a unique label name
-    inline SurfaceId find_surface(std::string const& name) const final;
-
-    //! Number of distinct surfaces
-    size_type num_surfaces() const final { return 0; }
-
     //// DATA ACCESS ////
 
     //! Access geometry data on host
@@ -135,24 +124,6 @@ class VecgeomParams final : public GeoParamsInterface
 VolumeId VecgeomParams::find_volume(char const* name) const
 {
     return this->find_volume(std::string{name});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * No surface IDs are defined in vecgeom.
- */
-Label const& VecgeomParams::id_to_label(SurfaceId) const
-{
-    CELER_NOT_IMPLEMENTED("surfaces in VecGeom");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * No surface IDs are defined in vecgeom.
- */
-SurfaceId VecgeomParams::find_surface(std::string const&) const
-{
-    return {};
 }
 
 //---------------------------------------------------------------------------//

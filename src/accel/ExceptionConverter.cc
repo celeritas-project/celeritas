@@ -118,11 +118,14 @@ void log_state(Logger::Message& msg,
 
     if (core_params && kce.surface())
     {
-        auto const& geo_params = *core_params->geometry();
-        msg << "\n- Surface: " << geo_params.id_to_label(kce.surface())
-            << " (ID=" << kce.surface() << ')';
+        if (auto* geo = dynamic_cast<GeoParamsSurfaceInterface const*>(
+                core_params->geometry().get()))
+        {
+            msg << "\n- Surface: " << geo->id_to_label(kce.surface())
+                << " (ID=" << kce.surface() << ')';
+        }
     }
-    else
+    else if (kce.surface())
     {
         msg << "\n- Surface ID: " << kce.surface();
     }
