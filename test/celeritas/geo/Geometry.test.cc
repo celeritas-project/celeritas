@@ -213,7 +213,7 @@ TEST_F(SimpleCmsTest, output)
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         EXPECT_EQ(
-            R"json({"bbox":[[-1000.001,-1000.001,-2000.001],[1000.001,1000.001,2000.001]],"supports_safety":true,"surfaces":{"label":[]},"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
+            R"json({"bbox":[[-1000.001,-1000.001,-2000.001],[1000.001,1000.001,2000.001]],"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
             to_string(out))
             << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
             << ")json\"\n/******/";
