@@ -147,12 +147,12 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
 
     if (this->is_ci_build())
     {
-        static const size_type expected_actions[]
-            = {0u, 0u, 0u,  0u,  0u,   0u, 0u, 1u,   0u,   2u, 0u,  0u,
-               0u, 0u, 0u,  7u,  0u,   0u, 0u, 0u,   0u,   0u, 0u,  998u,
-               0u, 0u, 2u,  0u,  0u,   0u, 0u, 21u,  508u, 0u, 0u,  521u,
-               0u, 0u, 0u,  0u,  0u,   0u, 0u, 904u, 0u,   0u, 12u, 0u,
-               0u, 0u, 10u, 20u, 572u, 0u, 0u, 518u, 0u,   0u, 0u,  0u};
+        static const size_type expected_actions[] = {
+            0u,  0u,  0u,   0u, 0u, 0u,   0u,   1u,   0u, 2u,  0u,   0u,   0u,
+            0u,  0u,  7u,   0u, 0u, 0u,   0u,   0u,   0u, 0u,  0u,   998u, 0u,
+            0u,  2u,  0u,   0u, 0u, 0u,   21u,  508u, 0u, 0u,  521u, 0u,   0u,
+            0u,  0u,  0u,   0u, 0u, 0u,   904u, 0u,   0u, 12u, 0u,   0u,   0u,
+            10u, 20u, 572u, 0u, 0u, 518u, 0u,   0u,   0u, 0u,  0u};
         EXPECT_VEC_EQ(expected_actions, result.actions);
 
         static const size_type expected_steps[] = {
@@ -165,7 +165,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         if (CELERITAS_USE_JSON)
         {
             EXPECT_EQ(
-                R"json({"_index":["particle","action"],"actions":[[0,0,0,0,0,0,0,1,0,2,0,0,0,0,0,7,0,0,0,0],[0,0,0,998,0,0,2,0,0,0,0,21,508,0,0,521,0,0,0,0],[0,0,0,904,0,0,12,0,0,0,10,20,572,0,0,518,0,0,0,0]]})json",
+                R"json({"_index":["particle","action"],"actions":[[0,0,0,0,0,0,0,1,0,2,0,0,0,0,0,7,0,0,0,0,0],[0,0,0,998,0,0,2,0,0,0,0,21,508,0,0,521,0,0,0,0,0],[0,0,0,904,0,0,12,0,0,0,10,20,572,0,0,518,0,0,0,0,0]]})json",
                 this->action_output());
 
             EXPECT_EQ(
