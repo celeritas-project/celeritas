@@ -34,11 +34,11 @@ __launch_bounds__(1024, 7)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 pre_step_kernel(
-    DeviceCRef<CoreParamsData> const params,
-    DeviceRef<CoreStateData> const state
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state
 )
 {
-    TrackLauncher launch{params, state, detail::pre_step_track};
+    TrackLauncher launch{*params, *state, detail::pre_step_track};
     launch(KernelParamCalculator::thread_id());
 }
 }  // namespace
@@ -48,8 +48,8 @@ void PreStepAction::execute(CoreParams const& params, CoreStateDevice& state) co
     CELER_LAUNCH_KERNEL(pre_step,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params.ref<MemSpace::native>(),
-                        state.ref());
+                        params.ptr<MemSpace::native>(),
+                        state.ptr());
 }
 
 }  // namespace generated

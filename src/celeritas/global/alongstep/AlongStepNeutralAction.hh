@@ -40,10 +40,10 @@ class AlongStepNeutralAction final : public ExplicitActionInterface
     //! Short name for the along-step kernel
     std::string label() const final { return "along-step-neutral"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the action
     std::string description() const final
     {
-        return "along-step for neutral particles";
+        return "apply along-step for neutral particles";
     }
 
     //! Dependency ordering of the action

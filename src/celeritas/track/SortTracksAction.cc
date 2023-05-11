@@ -7,65 +7,99 @@
 //---------------------------------------------------------------------------//
 #include "SortTracksAction.hh"
 
+#include <algorithm>
+#include <iterator>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/track/detail/TrackSortUtils.hh"
+
+#include "detail/TrackSortUtils.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+bool is_sort_trackorder(TrackOrder to)
+{
+    static TrackOrder const allowed[] = {
+        TrackOrder::partition_status,
+        TrackOrder::sort_step_limit_action,
+        TrackOrder::sort_along_step_action,
+        TrackOrder::sort_action,
+    };
+    return std::find(std::begin(allowed), std::end(allowed), to)
+           != std::end(allowed);
+}
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with sort ordering and track order policy.
+ */
+SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
+    : id_(id), track_order_(track_order)
+{
+    CELER_EXPECT(id_);
+    CELER_VALIDATE(is_sort_trackorder(track_order_),
+                   << "track ordering policy '" << to_cstring(track_order)
+                   << "' should not sort tracks");
+    CELER_EXPECT(track_order != TrackOrder::sort_action);
+    action_order_ = [track_order = track_order_] {
+        switch (track_order)
+        {
+            case TrackOrder::partition_status:
+                // Sort *after* setting status
+                return ActionOrder::sort_start;
+            case TrackOrder::sort_along_step_action:
+                // Sort *before* along-step action, i.e. *after* pre-step
+                return ActionOrder::sort_pre;
+            case TrackOrder::sort_step_limit_action:
+                // Sort *before* post-step action, i.e. *after* along-step
+                return ActionOrder::sort_along;
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+    }();
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Short name for the action
  */
 std::string SortTracksAction::label() const
 {
-    switch (action_order_)
-    {
-        case ActionOrder::sort_start:
-            return "sort-tracks-start";
-        case ActionOrder::sort_pre:
-            return "sort-tracks-pre";
-        default:
-            return "sort-tracks";
-    }
-}
-//---------------------------------------------------------------------------//
-/*!
- * Execute the action with host data
- */
-void SortTracksAction::execute(CoreParams const& params,
-                               CoreStateHost& state) const
-{
-    return this->execute_impl(params, state);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Execute the action with device data
- */
-void SortTracksAction::execute(CoreParams const& params,
-                               CoreStateDevice& state) const
-{
-    return this->execute_impl(params, state);
-}
-
-//---------------------------------------------------------------------------//
-template<MemSpace M>
-void SortTracksAction::execute_impl(CoreParams const&, CoreState<M>& state) const
-{
     switch (track_order_)
     {
         case TrackOrder::partition_status:
-            detail::partition_tracks_by_status(state.ref());
-            break;
+            return "sort-tracks-partition-status";
+        case TrackOrder::sort_along_step_action:
+            return "sort-tracks-along-step";
         case TrackOrder::sort_step_limit_action:
-            detail::sort_tracks_by_action_id(state.ref());
-            break;
+            return "sort-tracks-post-step";
         default:
             CELER_ASSERT_UNREACHABLE();
     }
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Execute the action with host data.
+ */
+void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
+{
+    detail::sort_tracks(state.ref(), track_order_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute the action with device data.
+ */
+void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
+{
+    detail::sort_tracks(state.ref(), track_order_);
 }
 
 //---------------------------------------------------------------------------//

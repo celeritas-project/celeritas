@@ -72,6 +72,7 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
     for (auto const& sp_action : action_seq.actions())
     {
         result.actions.push_back(sp_action->label());
+        result.actions_desc.push_back(sp_action->description());
     }
 
     return result;
@@ -186,6 +187,10 @@ void StepperTestBase::SetupCheckResult::print_expected() const
          << repr(this->actions)
          << ";\n"
             "EXPECT_VEC_EQ(expected_actions, result.actions);\n"
+            "static const char* const expected_actions_desc[] = "
+         << repr(this->actions_desc)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_actions_desc, result.actions_desc);\n"
             "/*** END CODE ***/\n";
 }
 

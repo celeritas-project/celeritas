@@ -8,6 +8,7 @@
 #include "TrackInitAlgorithms.hh"
 
 #include <algorithm>
+#include <numeric>
 
 #include "Utils.hh"
 
@@ -19,17 +20,17 @@ namespace detail
 /*!
  * Remove all elements in the vacancy vector that were flagged as active
  * tracks.
+ *
+ * \return New size of the vacancy vector
  */
-template<>
-size_type remove_if_alive<MemSpace::host>(Span<TrackSlotId> vacancies)
+size_type remove_if_alive(
+    StateCollection<TrackSlotId, Ownership::reference, MemSpace::host> const&
+        vacancies)
 {
-    auto end = std::remove_if(vacancies.data(),
-                              vacancies.data() + vacancies.size(),
-                              IsEqual{occupied()});
-
-    // New size of the vacancy vector
-    size_type result = end - vacancies.data();
-    return result;
+    auto* start = static_cast<TrackSlotId*>(vacancies.data());
+    auto* stop
+        = std::remove_if(start, start + vacancies.size(), IsEqual{occupied()});
+    return stop - start;
 }
 
 //---------------------------------------------------------------------------//
@@ -40,20 +41,31 @@ size_type remove_if_alive<MemSpace::host>(Span<TrackSlotId> vacancies)
  * array elements, i.e., \f$ y_i = \sum_{j=0}^{i-1} x_j \f$,
  * where \f$ y_0 = 0 \f$, and stores the result in the input array.
  *
- * The return value is the sum of all elements in the input array.
+ * The input size is one greater than the number of track slots so that the
+ * final element will be the total accumulated value.
  */
-template<>
-size_type exclusive_scan_counts<MemSpace::host>(Span<size_type> counts)
+size_type exclusive_scan_counts(
+    StateCollection<size_type, Ownership::reference, MemSpace::host> const& counts)
 {
-    // TODO: Use std::exclusive_scan when C++17 is adopted
+    CELER_EXPECT(!counts.empty());
+    auto* data = static_cast<size_type*>(counts.data());
+#ifdef __cpp_lib_parallel_algorithm
+    auto* stop
+        = std::exclusive_scan(data, data + counts.size(), data, size_type{0});
+#else
+    // Standard library shipped with GCC 8.5 does not include exclusive_scan
+    // (I guess it's *too* exclusive)
     size_type acc = 0;
-    for (auto& count_i : counts)
+    auto* const stop = data + counts.size();
+    for (; data != stop; ++data)
     {
-        size_type current = count_i;
-        count_i = acc;
+        size_type current = *data;
+        *data = acc;
         acc += current;
     }
-    return acc;
+#endif
+    // Return the final value
+    return *(stop - 1);
 }
 
 //---------------------------------------------------------------------------//

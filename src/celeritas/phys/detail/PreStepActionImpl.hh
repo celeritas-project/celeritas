@@ -9,6 +9,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
@@ -48,7 +49,7 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
         step.secondaries({});
 #endif
 
-        // Clear step limit and associated action for an empty track slot
+        // Clear step limit and actions for an empty track slot
         sim.reset_step_limit();
         return;
     }
@@ -73,8 +74,20 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
     // Calculate physics step limits and total macro xs
     auto mat = track.make_material_view();
     auto particle = track.make_particle_view();
-    StepLimit limit = calc_physics_step_limit(mat, particle, phys, step);
-    sim.reset_step_limit(limit);
+    sim.reset_step_limit(calc_physics_step_limit(mat, particle, phys, step));
+
+    // Initialize along-step action based on particle charge:
+    // This should eventually be dependent on region, energy, etc.
+    sim.along_step_action() = [&particle, &scalars = track.core_scalars()] {
+        if (particle.charge() == zero_quantity())
+        {
+            return scalars.along_step_neutral_action;
+        }
+        else
+        {
+            return scalars.along_step_user_action;
+        }
+    }();
 }
 
 //---------------------------------------------------------------------------//

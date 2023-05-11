@@ -213,10 +213,7 @@ class GenericSolid : public GenericSolidBase
     //
     // These implementations are required when CUDA is enabled.
     // A trivialimplementation is okay, since won't be called from GPU.
-    size_t DeviceSizeOf() const
-    {
-        return 0;
-    }
+    size_t DeviceSizeOf() const { return 0; }
     DevicePtr<CudaUnplacedVolume> CopyToGpu() const
     {
         CELER_NOT_IMPLEMENTED("GenericSolid with CUDA");

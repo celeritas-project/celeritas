@@ -38,10 +38,28 @@ char const* to_cstring(ActionOrder value)
         "pre",
         "sort_pre",
         "along",
+        "sort_along",
         "pre_post",
         "post",
         "post_post",
         "end",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to a track ordering policy.
+ */
+char const* to_cstring(TrackOrder value)
+{
+    static EnumStringMapper<TrackOrder> const to_cstring_impl{
+        "unsorted",
+        "shuffled",
+        "partition_status",
+        "sort_along_step_action",
+        "sort_step_limit_action",
+        "sort_action",
     };
     return to_cstring_impl(value);
 }

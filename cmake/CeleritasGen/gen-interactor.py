@@ -99,7 +99,7 @@ void {func}_interact(
 
     celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
-        params.ref<MemSpace::native>(), state.ref(),
+        params.ptr<MemSpace::native>(), state.ptr(),
         {namespace}::{func}_interact_track, model_data);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)
@@ -129,6 +129,8 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "celeritas/{dir}/launcher/{class}Launcher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
+using celeritas::MemSpace;
+
 namespace {namespace}
 {{
 namespace generated
@@ -136,12 +138,13 @@ namespace generated
 namespace
 {{
 __global__ void{launch_bounds}{func}_interact_kernel(
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const params,
-    celeritas::DeviceRef<celeritas::CoreStateData> const state,
-    {namespace}::{class}DeviceRef const model_data)
+    celeritas::CRefPtr<celeritas::CoreParamsData, MemSpace::device> const params,
+    celeritas::RefPtr<celeritas::CoreStateData, MemSpace::device> const state,
+    {namespace}::{class}DeviceRef const model_data,
+    celeritas::size_type size)
 {{
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (!(tid < state.size()))
+    if (!(tid < size))
         return;
 
     auto launch = celeritas::make_interaction_launcher(
@@ -160,7 +163,10 @@ void {func}_interact(
     CELER_LAUNCH_KERNEL({func}_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params.ref<MemSpace::native>(), state.ref(), model_data);
+                        params.ptr<MemSpace::native>(),
+                        state.ptr(),
+                        model_data,
+                        state.size());
 }}
 
 }}  // namespace generated

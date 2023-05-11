@@ -18,6 +18,8 @@
 #include "celeritas/em/launcher/MollerBhabhaLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
+using celeritas::MemSpace;
+
 namespace celeritas
 {
 namespace generated
@@ -34,12 +36,13 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 moller_bhabha_interact_kernel(
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const params,
-    celeritas::DeviceRef<celeritas::CoreStateData> const state,
-    celeritas::MollerBhabhaDeviceRef const model_data)
+    celeritas::CRefPtr<celeritas::CoreParamsData, MemSpace::device> const params,
+    celeritas::RefPtr<celeritas::CoreStateData, MemSpace::device> const state,
+    celeritas::MollerBhabhaDeviceRef const model_data,
+    celeritas::size_type size)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (!(tid < state.size()))
+    if (!(tid < size))
         return;
 
     auto launch = celeritas::make_interaction_launcher(
@@ -58,7 +61,10 @@ void moller_bhabha_interact(
     CELER_LAUNCH_KERNEL(moller_bhabha_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params.ref<MemSpace::native>(), state.ref(), model_data);
+                        params.ptr<MemSpace::native>(),
+                        state.ptr(),
+                        model_data,
+                        state.size());
 }
 
 }  // namespace generated

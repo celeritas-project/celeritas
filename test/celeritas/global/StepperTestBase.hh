@@ -49,6 +49,7 @@ class StepperTestBase : virtual public GlobalTestBase
     {
         std::vector<std::string> processes;
         std::vector<std::string> actions;
+        std::vector<std::string> actions_desc;
 
         // Print code for the expected attributes
         void print_expected() const;

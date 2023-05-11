@@ -211,4 +211,22 @@ make_action_track_launcher(NativeCRef<CoreParamsData> const& params,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return a track launcher that only applies for the given along-step action.
+ */
+template<class... Ts>
+inline CELER_FUNCTION decltype(auto)
+make_along_step_track_launcher(NativeCRef<CoreParamsData> const& params,
+                               NativeRef<CoreStateData> const& state,
+                               ActionId action,
+                               Ts&&... args)
+{
+    CELER_EXPECT(action);
+    return ConditionalTrackLauncher{params,
+                                    state,
+                                    detail::IsAlongStepActionEqual{action},
+                                    celeritas::forward<Ts>(args)...};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -28,6 +28,13 @@ CoreState<M>::CoreState(CoreParams const& params,
 
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
+
+    if constexpr (M == MemSpace::device)
+    {
+        device_ref_vec_ = DeviceVector<Ref>(1);
+        device_ref_vec_.copy_to_device({&this->ref(), 1});
+    }
+
     CELER_ENSURE(states_);
 }
 

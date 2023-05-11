@@ -20,7 +20,8 @@ namespace celeritas
 template<class T, Ownership W, MemSpace M, class I>
 void fill(T&& value, Collection<T, W, M, I>* col)
 {
-    static_assert(W != Ownership::const_reference, "const references cannot be filled");
+    static_assert(W != Ownership::const_reference,
+                  "const references cannot be filled");
     CELER_EXPECT(col);
     detail::Filler<T, M> fill_impl{value};
     fill_impl((*col)[AllItems<T, M>{}]);
