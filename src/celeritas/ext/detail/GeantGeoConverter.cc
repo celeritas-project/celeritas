@@ -39,6 +39,7 @@
 #include <G4Polyhedra.hh>
 #include <G4PropagatorInField.hh>
 #include <G4ReflectedSolid.hh>
+#include <G4ReflectionFactory.hh>
 #include <G4RotationMatrix.hh>
 #include <G4Sphere.hh>
 #include <G4SubtractionSolid.hh>
@@ -295,14 +296,14 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
 
     LogicalVolume* const vg_logvol
         = new LogicalVolume(clean_name.c_str(), unplaced);
-    logical_volume_map_[g4_logvol] = vg_logvol;
-
-    // Fill helper maps
     VolumeId volid{vg_logvol->id()};
+
+    // Save to helper maps
+    logical_volume_map_[g4_logvol] = vg_logvol;
     g4logvol_id_map_[g4_logvol] = volid;
 
-    // can be used to make a cross check for dimensions and other properties
-    // make a cross check using cubic volume property
+    // Cross check geometry using cubic volume property: very slow for union
+    // solids and a few others
     if (!dynamic_cast<GenericSolidBase const*>(vg_logvol->GetUnplacedVolume())
         && !dynamic_cast<UnplacedScaledShape const*>(
             vg_logvol->GetUnplacedVolume())
@@ -314,13 +315,23 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
 
         if (CELER_UNLIKELY(!SoftEqual{0.01}(vg_cap, g4_cap)))
         {
-            CELER_LOG(error)
-                << "Volume " << g4_logvol->GetName() << " (VecGeom volume ID "
-                << volid.get()
+            CELER_LOG(warning)
+                << "Solid type '" << g4_logvol->GetSolid()->GetEntityType()
+                << "' in logical volume '" << g4_logvol->GetName()
+                << "' (VecGeom volume ID " << volid.get()
                 << ") conversion may have failed: VecGeom/G4 volume ratio is "
                 << vg_cap / g4_cap;
         }
     }
+
+    if (auto const* lv = G4ReflectionFactory::Instance()->GetConstituentLV(
+            const_cast<G4LogicalVolume*>(g4_logvol)))
+    {
+        // The *constituent* (unreflected) logical volume is actually tied to
+        // the sensitive detectors: save this as well
+        g4logvol_id_map_[lv] = volid;
+    }
+
     return vg_logvol;
 }
 

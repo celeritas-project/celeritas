@@ -74,13 +74,11 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
 std::string
 GeantVolumeVisitor::generate_name(G4LogicalVolume const& logical_volume)
 {
-    std::string name = logical_volume.GetName();
-
     // Run the LV through the GDML export name generator so that the volume is
     // uniquely identifiable in VecGeom. Reuse the same instance to reduce
     // overhead: note that the method isn't const correct.
     static G4GDMLWriteStructure temp_writer;
-    return temp_writer.GenerateName(name, &logical_volume);
+    return temp_writer.GenerateName(logical_volume.GetName(), &logical_volume);
 }
 
 //---------------------------------------------------------------------------//
