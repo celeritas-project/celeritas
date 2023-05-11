@@ -13,6 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/io/Label.hh"
 
 #include "BoundingBox.hh"
@@ -33,15 +34,9 @@ struct OrangeInput;
  * This class initializes and manages the data used by ORANGE (surfaces,
  * volumes) and provides a host-based interface for them.
  */
-class OrangeParams final : public GeoParamsSurfaceInterface
+class OrangeParams final : public GeoParamsSurfaceInterface,
+                           public ParamsDataInterface<OrangeParamsData>
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using HostRef = HostCRef<OrangeParamsData>;
-    using DeviceRef = DeviceCRef<OrangeParamsData>;
-    //!@}
-
   public:
     // Construct from a JSON file (if JSON is enabled)
     explicit OrangeParams(std::string const& json_filename);
@@ -98,10 +93,10 @@ class OrangeParams final : public GeoParamsSurfaceInterface
     //// DATA ACCESS ////
 
     //! Reference to CPU geometry data
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host(); }
 
     //! Reference to managed GPU geometry data
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     // Host metadata/access

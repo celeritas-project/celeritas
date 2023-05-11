@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/GeoParamsInterface.hh"
 #include "orange/Types.hh"
@@ -27,15 +28,9 @@ namespace celeritas
  *
  * The model defines the shapes, volumes, etc.
  */
-class VecgeomParams final : public GeoParamsInterface
+class VecgeomParams final : public GeoParamsInterface,
+                            public ParamsDataInterface<VecgeomParamsData>
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using HostRef = HostCRef<VecgeomParamsData>;
-    using DeviceRef = DeviceCRef<VecgeomParamsData>;
-    //!@}
-
   public:
     // Construct from a GDML filename
     explicit VecgeomParams(std::string const& gdml_filename);
@@ -84,10 +79,10 @@ class VecgeomParams final : public GeoParamsInterface
     //// DATA ACCESS ////
 
     //! Access geometry data on host
-    inline HostRef const& host_ref() const;
+    HostRef const& host_ref() const final { return host_ref_; }
 
     //! Access geometry data on device
-    inline DeviceRef const& device_ref() const;
+    DeviceRef const& device_ref() const final { return device_ref_; }
 
   private:
     //// DATA ////
@@ -124,26 +119,6 @@ class VecgeomParams final : public GeoParamsInterface
 VolumeId VecgeomParams::find_volume(char const* name) const
 {
     return this->find_volume(std::string{name});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access geometry data on host.
- */
-auto VecgeomParams::host_ref() const -> HostRef const&
-{
-    CELER_ENSURE(host_ref_);
-    return host_ref_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access geometry data on device.
- */
-auto VecgeomParams::device_ref() const -> DeviceRef const&
-{
-    CELER_ENSURE(device_ref_);
-    return device_ref_;
 }
 
 //---------------------------------------------------------------------------//

@@ -12,6 +12,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -36,16 +37,14 @@ struct ImportData;
  * `volume_to_mat` and indicate a mapping for the geometry's volume IDs.
  * Otherwise, the array is required to have exactly one entry per volume ID.
  */
-class GeoMaterialParams
+class GeoMaterialParams final
+    : public ParamsDataInterface<GeoMaterialParamsData>
 {
   public:
     //!@{
     //! \name Type aliases
     using SPConstGeo = std::shared_ptr<GeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
-
-    using HostRef = HostCRef<GeoMaterialParamsData>;
-    using DeviceRef = DeviceCRef<GeoMaterialParamsData>;
     //!@}
 
     //! Input parameters
@@ -68,10 +67,10 @@ class GeoMaterialParams
     explicit GeoMaterialParams(Input);
 
     //! Access material properties on the host
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host(); }
 
     //! Access material properties on the device
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     CollectionMirror<GeoMaterialParamsData> data_;
