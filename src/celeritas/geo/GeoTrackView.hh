@@ -15,13 +15,5 @@
 #    include "orange/OrangeTrackView.hh"
 #endif
 
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-using GeoTrackView = VecgeomTrackView;
-#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-using GeoTrackView = OrangeTrackView;
-#endif
-//---------------------------------------------------------------------------//
-}  // namespace celeritas
+// Include type alias for Geo track view
+#include "GeoParamsFwd.hh"  // IWYU pragma: export

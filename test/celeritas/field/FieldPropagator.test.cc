@@ -16,8 +16,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
-#include "celeritas/OnlyGeoTestBase.hh"
+#include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
@@ -51,78 +50,28 @@ using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class FieldPropagatorTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
+class FieldPropagatorTestBase : public GenericCoreGeoTestBase
 {
   public:
-    SPConstParticle build_particle() override
-    {
-        using namespace units;
+    using SPConstParticle = std::shared_ptr<ParticleParams const>;
 
-        // Create particle defs
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
-        ParticleParams::Input defs = {
-            {"electron",
-             pdg::electron(),
-             MevMass{0.5109989461},
-             ElementaryCharge{-1},
-             stable},
-            {"positron",
-             pdg::positron(),
-             MevMass{0.5109989461},
-             ElementaryCharge{1},
-             stable},
-            {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
-        return std::make_shared<ParticleParams>(std::move(defs));
+    void SetUp() override;
+
+    SPConstParticle const& particle() const
+    {
+        CELER_ENSURE(particle_);
+        return particle_;
     }
 
-    void SetUp() override
+    ParticleTrackView make_particle_view(PDGNumber pdg, MevEnergy energy)
     {
-        geo_state_ = GeoStateStore(this->geometry()->host_ref(), 1);
-        par_state_ = ParStateStore(this->particle()->host_ref(), 1);
-    }
-
-    ParticleTrackView init_particle(ParticleId id, MevEnergy energy)
-    {
-        CELER_EXPECT(id && energy > zero_quantity());
+        CELER_EXPECT(pdg && energy > zero_quantity());
+        ParticleId pid = this->particle()->find(pdg);
+        CELER_ASSERT(pid);
         ParticleTrackView view{
             this->particle()->host_ref(), par_state_.ref(), TrackSlotId{0}};
-        view = {id, energy};
+        view = {pid, energy};
         return view;
-    }
-
-    GeoTrackView make_geo_view()
-    {
-        return {this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0}};
-    }
-
-    GeoTrackView init_geo(Real3 const& pos, Real3 dir)
-    {
-        normalize_direction(&dir);
-        GeoTrackView view = this->make_geo_view();
-        view = {pos, dir};
-        return view;
-    }
-
-    std::string volume_name(GeoTrackView const& geo) const
-    {
-        if (geo.is_outside())
-        {
-            return "[OUTSIDE]";
-        }
-        return this->geometry()->id_to_label(geo.volume_id()).name;
-    }
-
-    std::string surface_name(GeoTrackView const& geo) const
-    {
-        CELER_EXPECT(!CELERITAS_USE_VECGEOM);
-        if (!geo.is_on_boundary())
-        {
-            return "---";
-        }
-        // Only call this function if the geometry supports surfaces
-        return dynamic_cast<GeoParamsSurfaceInterface const&>(*this->geometry())
-            .id_to_label(geo.surface_id())
-            .name;
     }
 
     template<class Field>
@@ -136,18 +85,57 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
                   * field_strength);
     }
 
+    // Overload with the base filename of the geometry
+    virtual std::string_view geometry_basename() const = 0;
+
+    SPConstGeo build_geometry() final
+    {
+        // Construct filename:
+        // ${SOURCE}/test/celeritas/data/${basename}${fileext}
+        auto ext = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+                       ? ".gdml"sv
+                       : ".org.json"sv;
+        auto filename = std::string{this->geometry_basename()}
+                        + std::string{ext};
+        std::string test_file = this->test_data_path("celeritas", filename);
+        return std::make_shared<GeoParams>(test_file);
+    }
+
   private:
     //// TYPE ALIASES ////
     template<template<Ownership, MemSpace> class T>
     using HostStateStore = CollectionStateStore<T, MemSpace::host>;
-    using GeoStateStore = HostStateStore<GeoStateData>;
     using ParStateStore = HostStateStore<ParticleStateData>;
 
     //// DATA ////
 
-    GeoStateStore geo_state_;
+    std::shared_ptr<ParticleParams const> particle_;
     ParStateStore par_state_;
 };
+
+void FieldPropagatorTestBase::SetUp()
+{
+    // Create particle defs
+    using namespace units;
+    constexpr auto stable = ParticleRecord::stable_decay_constant();
+    ParticleParams::Input defs
+        = {{"electron",
+            pdg::electron(),
+            MevMass{0.5109989461},
+            ElementaryCharge{-1},
+            stable},
+           {"positron",
+            pdg::positron(),
+            MevMass{0.5109989461},
+            ElementaryCharge{1},
+            stable},
+           {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
+    particle_ = std::make_shared<ParticleParams>(std::move(defs));
+
+    par_state_ = ParStateStore(particle_->host_ref(), 1);
+}
+
+//---------------------------------------------------------------------------//
 
 class TwoBoxTest : public FieldPropagatorTestBase
 {
@@ -219,9 +207,9 @@ TEST_F(TwoBoxTest, electron_interior)
     // Initialize position and direction so its curved track is centered about
     // the origin, moving counterclockwise from the right
     const real_type radius{3.8085385437789383};
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10.9181415106});
-    auto geo = this->init_geo({radius, 0, 0}, {0, 1, 0});
+    auto particle
+        = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
+    auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
     UniformZField field(1.0 * units::tesla);
 
     // Check expected field curvature and geometry cell
@@ -302,9 +290,8 @@ TEST_F(TwoBoxTest, positron_interior)
     // Initialize position and direction so its curved track (radius 1) is
     // centered about the origin, moving *clockwise* from the right
     const real_type radius{1.0};
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::positron()), MevEnergy{10});
-    auto geo = this->init_geo({radius, 0, 0}, {0, -1, 0});
+    auto particle = this->make_particle_view(pdg::positron(), MevEnergy{10});
+    auto geo = this->make_geo_track_view({radius, 0, 0}, {0, -1, 0});
     UniformZField field(unit_radius_field_strength);
 
     // Check expected field curvature
@@ -325,8 +312,7 @@ TEST_F(TwoBoxTest, positron_interior)
 // Gamma in magnetic field should have a linear path
 TEST_F(TwoBoxTest, gamma_interior)
 {
-    auto particle = this->init_particle(this->particle()->find(pdg::gamma()),
-                                        MevEnergy{1});
+    auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
 
     // Construct field (shape and magnitude shouldn't matter)
     UniformZField field(1234.5);
@@ -336,7 +322,7 @@ TEST_F(TwoBoxTest, gamma_interior)
 
     // Propagate inside box
     {
-        auto geo = this->init_geo({0, 0, 0}, {0, 0, 1});
+        auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
 
@@ -349,7 +335,7 @@ TEST_F(TwoBoxTest, gamma_interior)
     }
     // Move to boundary
     {
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
 
@@ -363,14 +349,14 @@ TEST_F(TwoBoxTest, gamma_interior)
     }
     // Cross boundary
     {
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
     }
     // Move in new region
     {
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
 
@@ -387,8 +373,7 @@ TEST_F(TwoBoxTest, gamma_interior)
 // Field really shouldn't matter to a gamma right?
 TEST_F(TwoBoxTest, gamma_pathological)
 {
-    auto particle = this->init_particle(this->particle()->find(pdg::gamma()),
-                                        MevEnergy{1});
+    auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
 
     // Construct field (shape and magnitude shouldn't matter)
     HorribleZField field{1.2345 * units::tesla, 5};
@@ -398,7 +383,7 @@ TEST_F(TwoBoxTest, gamma_pathological)
 
     // Propagate inside box
     {
-        auto geo = this->init_geo({0, 0, -2}, {0, 0, 1});
+        auto geo = this->make_geo_track_view({0, 0, -2}, {0, 0, 1});
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
 
@@ -414,14 +399,13 @@ TEST_F(TwoBoxTest, gamma_pathological)
 // Gamma exits the inner volume
 TEST_F(TwoBoxTest, gamma_exit)
 {
-    auto particle = this->init_particle(this->particle()->find(pdg::gamma()),
-                                        MevEnergy{1});
+    auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
     UniformZField field(12345.6);
     FieldDriverOptions driver_options;
 
     {
         SCOPED_TRACE("Exact boundary");
-        auto geo = this->init_geo({2, 4.75, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({2, 4.75, 0}, {0, 1, 0});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -441,7 +425,7 @@ TEST_F(TwoBoxTest, gamma_exit)
         SCOPED_TRACE(
             "Reported distance is based on requested step, not actual "
             "boundary, to avoid an extra substep");
-        auto geo = this->init_geo({2, 4.749, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({2, 4.749, 0}, {0, 1, 0});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -460,7 +444,7 @@ TEST_F(TwoBoxTest, gamma_exit)
     for (real_type d : {0.5, 1e4})
     {
         SCOPED_TRACE("Long step");
-        auto geo = this->init_geo({2, 4.749, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({2, 4.749, 0}, {0, 1, 0});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -480,13 +464,12 @@ TEST_F(TwoBoxTest, gamma_exit)
 
 TEST_F(TwoBoxTest, electron_super_small_step)
 {
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{2});
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{2});
     UniformZField field(1 * units::tesla);
     FieldDriverOptions driver_options;
     for (real_type delta : {1e-14, 1e-8, 1e-2, 0.1})
     {
-        auto geo = this->init_geo({90, 90, 90}, {1, 0, 0});
+        auto geo = this->make_geo_track_view({90, 90, 90}, {1, 0, 0});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -501,8 +484,7 @@ TEST_F(TwoBoxTest, electron_super_small_step)
 // Electron takes small steps up to and from a boundary
 TEST_F(TwoBoxTest, electron_small_step)
 {
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10});
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
     FieldDriverOptions driver_options;
     constexpr real_type delta = 1e-7;
@@ -510,7 +492,8 @@ TEST_F(TwoBoxTest, electron_small_step)
     {
         SCOPED_TRACE("Small step *not quite* to boundary");
 
-        auto geo = this->init_geo({5 - delta - 1.0e-5, 0, 0}, {1, 0, 0});
+        auto geo
+            = this->make_geo_track_view({5 - delta - 1.0e-5, 0, 0}, {1, 0, 0});
         EXPECT_FALSE(geo.is_on_boundary());
 
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
@@ -526,7 +509,7 @@ TEST_F(TwoBoxTest, electron_small_step)
     {
         SCOPED_TRACE("Small step *almost* to boundary");
 
-        auto geo = this->init_geo({5 - 2 * delta, 0, 0}, {1, 0, 0});
+        auto geo = this->make_geo_track_view({5 - 2 * delta, 0, 0}, {1, 0, 0});
         EXPECT_FALSE(geo.is_on_boundary());
 
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
@@ -544,7 +527,7 @@ TEST_F(TwoBoxTest, electron_small_step)
     {
         SCOPED_TRACE("Small step intersected by boundary");
 
-        auto geo = this->init_geo({5 - delta, 0, 0}, {1, 0, 0});
+        auto geo = this->make_geo_track_view({5 - delta, 0, 0}, {1, 0, 0});
         EXPECT_FALSE(geo.is_on_boundary());
 
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
@@ -561,7 +544,7 @@ TEST_F(TwoBoxTest, electron_small_step)
     {
         SCOPED_TRACE("Cross boundary");
 
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -569,7 +552,7 @@ TEST_F(TwoBoxTest, electron_small_step)
     {
         SCOPED_TRACE("Small step from boundary");
 
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_TRUE(geo.is_on_boundary());
 
         // Starting on the boundary, take a step smaller than driver's minimum
@@ -589,15 +572,14 @@ TEST_F(TwoBoxTest, electron_small_step)
 // Electron will be tangent to the boundary at the top of its curved path.
 TEST_F(TwoBoxTest, electron_tangent)
 {
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10});
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
     FieldDriverOptions driver_options;
 
     {
         SCOPED_TRACE("Nearly quarter turn close to boundary");
 
-        auto geo = this->init_geo({1, 4, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({1, 4, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(0.49 * pi);
@@ -612,7 +594,7 @@ TEST_F(TwoBoxTest, electron_tangent)
     {
         SCOPED_TRACE("Short step tangent to boundary");
 
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(0.02 * pi);
@@ -629,13 +611,12 @@ TEST_F(TwoBoxTest, electron_tangent)
 // Electron crosses and reenters
 TEST_F(TwoBoxTest, electron_cross)
 {
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10});
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(0.5 * unit_radius_field_strength);
     FieldDriverOptions driver_options;
 
     {
-        auto geo = this->init_geo({2, 4, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({2, 4, 0}, {0, 1, 0});
         EXPECT_SOFT_EQ(2.0, this->calc_field_curvature(particle, geo, field));
     }
     const real_type circ = 2.0 * 2 * pi;
@@ -643,7 +624,7 @@ TEST_F(TwoBoxTest, electron_cross)
     {
         SCOPED_TRACE("Exit (twelfth of a turn)");
 
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(pi);
@@ -657,7 +638,7 @@ TEST_F(TwoBoxTest, electron_cross)
     {
         SCOPED_TRACE("Cross boundary");
 
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -665,7 +646,7 @@ TEST_F(TwoBoxTest, electron_cross)
     {
         SCOPED_TRACE("Reenter (1/3 turn)");
 
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(circ);
@@ -679,14 +660,14 @@ TEST_F(TwoBoxTest, electron_cross)
     {
         SCOPED_TRACE("Cross boundary");
 
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         geo.cross_boundary();
         EXPECT_EQ("inner", this->volume_name(geo));
     }
     {
         SCOPED_TRACE("Return to start (2/3 turn)");
 
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(7. / 12. * circ);
@@ -701,8 +682,7 @@ TEST_F(TwoBoxTest, electron_cross)
 // Electron barely crosses boundary
 TEST_F(TwoBoxTest, electron_tangent_cross)
 {
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10});
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
     FieldDriverOptions driver_options;
 
@@ -714,7 +694,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         real_type dy = 1.1 * driver_options.delta_chord;
 
-        auto geo = this->init_geo({1, 4 + dy, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({1, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(circ);
@@ -742,7 +722,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         real_type dy = 0.9 * driver_options.delta_chord;
 
-        auto geo = this->init_geo({1, 4 + dy, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({1, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(circ);
@@ -756,8 +736,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
 TEST_F(TwoBoxTest, electron_corner_hit)
 {
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10});
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
     FieldDriverOptions driver_options;
 
@@ -769,7 +748,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         real_type dy = 1.1 * driver_options.delta_chord;
 
-        auto geo = this->init_geo({-4, 4 + dy, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({-4, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(circ);
@@ -797,7 +776,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         real_type dy = 0.001 * driver_options.delta_chord;
 
-        auto geo = this->init_geo({-4, 4 + dy, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({-4, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(circ);
@@ -825,7 +804,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         real_type dy = -0.001 * driver_options.delta_chord;
 
-        auto geo = this->init_geo({-4, 4 + dy, 0}, {0, 1, 0});
+        auto geo = this->make_geo_track_view({-4, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(circ);
@@ -847,8 +826,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 // Endpoint of a step is very close to the boundary.
 TEST_F(TwoBoxTest, electron_step_endpoint)
 {
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10});
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
     FieldDriverOptions driver_options;
     driver_options.delta_intersection = 0.1;
@@ -873,7 +851,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         Real3 start_pos{-5 + dx, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        auto geo = this->init_geo(start_pos, {0, 1, 0});
+        auto geo = this->make_geo_track_view(start_pos, {0, 1, 0});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -907,7 +885,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         Real3 start_pos{-5 + dx, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        auto geo = this->init_geo(start_pos, {0, 1, 0});
+        auto geo = this->make_geo_track_view(start_pos, {0, 1, 0});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -931,7 +909,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         Real3 start_pos{-5 - dx, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        auto geo = this->init_geo(start_pos, {0, 1, 0});
+        auto geo = this->make_geo_track_view(start_pos, {0, 1, 0});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -951,8 +929,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
 // Electron barely crosses boundary
 TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
 {
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10});
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
 
     UniformZField field(unit_radius_field_strength * 100);
     const real_type radius = 0.01;
@@ -976,9 +953,9 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
                       5 + miss_distance - radius + radius * sintheta,
                       0};
             Real3 dir{-sintheta, costheta, 0};
-            this->init_geo(pos, dir);
+            this->make_geo_track_view(pos, dir);
         }
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
 
         EXPECT_SOFT_EQ(radius,
@@ -1040,12 +1017,11 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
 // with decreasing radius
 TEST_F(TwoBoxTest, nonuniform_field)
 {
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10});
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     ReluZField field{unit_radius_field_strength};
     FieldDriverOptions driver_options;
 
-    this->init_geo({-2.0, 0, 0}, {0, 1, 1});
+    this->make_geo_track_view({-2.0, 0, 0}, {0, 1, 1});
 
     static const Real3 expected_all_pos[]
         = {{-2.082588410019, 0.698321021704, 0.70710499699532},
@@ -1058,7 +1034,7 @@ TEST_F(TwoBoxTest, nonuniform_field)
            {-2.6941223485135, 0.6137455428308, 5}};
     for (Real3 const& pos : expected_all_pos)
     {
-        auto geo = this->make_geo_view();
+        auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         propagate(1.0);
@@ -1071,9 +1047,9 @@ TEST_F(TwoBoxTest, nonuniform_field)
 TEST_F(LayersTest, revolutions_through_layers)
 {
     const real_type radius{3.8085385437789383};
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10.9181415106});
-    auto geo = this->init_geo({radius, 0, 0}, {0, 1, 0});
+    auto particle
+        = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
+    auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
     UniformZField field(1.0 * units::tesla);
 
     // Build propagator
@@ -1121,9 +1097,9 @@ TEST_F(LayersTest, revolutions_through_cms_field)
     // Scale the test radius with the approximated center value of the
     // parameterized field (3.8 units::tesla)
     real_type radius = 3.8085386036 / 3.8;
-    auto particle = this->init_particle(
-        this->particle()->find(pdg::electron()), MevEnergy{10.9181415106});
-    auto geo = this->init_geo({radius, -10, 0}, {0, 1, 0});
+    auto particle
+        = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
+    auto geo = this->make_geo_track_view({radius, -10, 0}, {0, 1, 0});
 
     CMSParameterizedField field;
     FieldDriverOptions driver_options;
@@ -1159,12 +1135,12 @@ TEST_F(LayersTest, revolutions_through_cms_field)
 
 TEST_F(SimpleCmsTest, electron_stuck)
 {
-    auto particle = this->init_particle(this->particle()->find(pdg::electron()),
-                                        MevEnergy{4.25402379798713e-01});
+    auto particle = this->make_particle_view(pdg::electron(),
+                                             MevEnergy{4.25402379798713e-01});
     UniformZField field(1 * units::tesla);
     FieldDriverOptions driver_options;
 
-    auto geo = this->init_geo(
+    auto geo = this->make_geo_track_view(
         {-2.43293925496543e+01, -1.75522265870979e+01, 2.80918346435833e+02},
         {7.01343313647855e-01, -6.43327996599957e-01, 3.06996164784077e-01});
 
@@ -1230,21 +1206,20 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
     UniformZField field(1 * units::tesla);
     FieldDriverOptions driver_options;
 
-    auto geo = this->init_geo({1.23254142755319734e+02,
-                               -2.08186543568394598e+01,
-                               -4.08262349901495583e+01},
-                              {-2.59700373666105766e-01,
-                               -8.11661685885768147e-01,
-                               -5.23221772848529443e-01});
+    auto geo = this->make_geo_track_view({1.23254142755319734e+02,
+                                          -2.08186543568394598e+01,
+                                          -4.08262349901495583e+01},
+                                         {-2.59700373666105766e-01,
+                                          -8.11661685885768147e-01,
+                                          -5.23221772848529443e-01});
 
     auto calc_radius
         = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
 
     bool successful_reentry = false;
     {
-        auto particle
-            = this->init_particle(this->particle()->find(pdg::electron()),
-                                  MevEnergy{3.27089632881079409e-02});
+        auto particle = this->make_particle_view(
+            pdg::electron(), MevEnergy{3.27089632881079409e-02});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -1273,9 +1248,8 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         }
     }
     {
-        auto particle
-            = this->init_particle(this->particle()->find(pdg::electron()),
-                                  MevEnergy{3.25917780979408864e-02});
+        auto particle = this->make_particle_view(
+            pdg::electron(), MevEnergy{3.25917780979408864e-02});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate

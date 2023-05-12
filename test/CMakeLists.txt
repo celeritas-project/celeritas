@@ -237,6 +237,7 @@ celeritas_add_library(testcel_celeritas
   celeritas/phys/MockModel.cc
   celeritas/phys/MockProcess.cc
   celeritas/GeantTestBase.cc
+  celeritas/GenericGeoTestBase.cc
   celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
   celeritas/ImportedDataTestBase.cc
@@ -253,7 +254,7 @@ celeritas_add_library(testcel_celeritas
 )
 
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link}
+  PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link} Celeritas::orange
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas

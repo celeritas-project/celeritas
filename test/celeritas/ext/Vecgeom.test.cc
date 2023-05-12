@@ -11,14 +11,11 @@
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/ArrayIO.hh"
-#include "corecel/data/CollectionStateStore.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Version.hh"
-#include "celeritas/LazyGeoManager.hh"
+#include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
@@ -54,152 +51,23 @@ auto const vecgeom_version
  *
  * Test cases should be matched to unique geometries.
  */
-class VecgeomTestBase : public ::celeritas::test::Test, private LazyGeoManager
+class VecgeomTestBase : public GenericVecgeomTestBase
 {
   public:
-    //!@{
-    using SPConstGeo = std::shared_ptr<VecgeomParams const>;
-    using HostStateStore
-        = CollectionStateStore<VecgeomStateData, MemSpace::host>;
-    //!@}
-
-    struct TrackingResult
-    {
-        std::vector<std::string> volumes;
-        std::vector<real_type> distances;
-
-        void print_expected();
-    };
-
-  public:
-    //! Lazily construct and access the geometry
-    SPConstGeo const& geometry();
-
-    //! Create a host track view
-    VecgeomTrackView make_geo_track_view();
-
-    //! Find linear segments until outside
-    TrackingResult track(Real3 const& pos, Real3 const& dir);
-
-    //! Build the geometry
-    virtual SPConstGeo build_geometry() = 0;
-
     //! Helper function: build with VecGeom using VGDML
-    SPConstGeo load_vgdml(std::string_view filename) const;
+    SPConstGeo load_vgdml(std::string_view filename) const
+    {
+        return std::make_shared<VecgeomParams>(
+            this->test_data_path("celeritas", filename));
+    }
 
     //! Helper function: build via Geant4 GDML reader
-    SPConstGeo load_g4_gdml(std::string_view filename) const;
-
-  private:
-    SPConstGeo geo_;
-    HostStateStore host_state_;
-
-    SPConstGeoI build_fresh_geometry(std::string_view) final
+    SPConstGeo load_g4_gdml(std::string_view filename) const
     {
-        return this->build_geometry();
+        return std::make_shared<VecgeomParams>(::celeritas::load_geant_geometry(
+            this->test_data_path("celeritas", filename)));
     }
 };
-
-//---------------------------------------------------------------------------//
-auto VecgeomTestBase::geometry() -> SPConstGeo const&
-{
-    if (!geo_)
-    {
-        // Get filename based on unit test name
-        ::testing::TestInfo const* const test_info
-            = ::testing::UnitTest::GetInstance()->current_test_info();
-        CELER_ASSERT(test_info);
-
-        geo_ = std::dynamic_pointer_cast<VecgeomParams const>(
-            this->get_geometry(test_info->test_case_name()));
-        CELER_ASSERT(geo_);
-    }
-
-    return geo_;
-}
-
-//---------------------------------------------------------------------------//
-auto VecgeomTestBase::make_geo_track_view() -> VecgeomTrackView
-{
-    if (!host_state_)
-    {
-        host_state_ = HostStateStore(this->geometry()->host_ref(), 1);
-    }
-    return VecgeomTrackView(
-        this->geometry()->host_ref(), host_state_.ref(), TrackSlotId(0));
-}
-
-//---------------------------------------------------------------------------//
-auto VecgeomTestBase::track(Real3 const& pos, Real3 const& dir)
-    -> TrackingResult
-{
-    auto const& params = *this->geometry();
-
-    TrackingResult result;
-
-    VecgeomTrackView geo = this->make_geo_track_view();
-    geo = {pos, dir};
-
-    if (geo.is_outside())
-    {
-        // Initial step is outside but may approach insidfe
-        result.volumes.push_back("[OUTSIDE]");
-        auto next = geo.find_next_step();
-        result.distances.push_back(next.distance);
-        if (next.boundary)
-        {
-            geo.move_to_boundary();
-            geo.cross_boundary();
-            EXPECT_TRUE(geo.is_on_boundary());
-        }
-    }
-
-    while (!geo.is_outside())
-    {
-        result.volumes.push_back(params.id_to_label(geo.volume_id()).name);
-        auto next = geo.find_next_step();
-        result.distances.push_back(next.distance);
-        if (!next.boundary)
-        {
-            // Failure to find the next boundary while inside the geometry
-            ADD_FAILURE();
-            result.volumes.push_back("[NO INTERCEPT]");
-            break;
-        }
-        geo.move_to_boundary();
-        geo.cross_boundary();
-    }
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-void VecgeomTestBase::TrackingResult::print_expected()
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-         << "static const char* const expected_volumes[] = "
-         << repr(this->volumes) << ";\n"
-         << "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
-         << "static const real_type expected_distances[] = "
-         << repr(this->distances) << ";\n"
-         << "EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);\n"
-         << "/*** END CODE ***/\n";
-}
-
-//---------------------------------------------------------------------------//
-auto VecgeomTestBase::load_vgdml(std::string_view filename) const -> SPConstGeo
-{
-    return std::make_shared<VecgeomParams>(
-        this->test_data_path("celeritas", filename));
-}
-
-//---------------------------------------------------------------------------//
-auto VecgeomTestBase::load_g4_gdml(std::string_view filename) const
-    -> SPConstGeo
-{
-    return std::make_shared<VecgeomParams>(::celeritas::load_geant_geometry(
-        this->test_data_path("celeritas", filename)));
-}
 
 //---------------------------------------------------------------------------//
 // FOUR-LEVELS TEST
