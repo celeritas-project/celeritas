@@ -9,9 +9,9 @@
 
 #include "corecel/data/Collection.hh"
 
+#include "FindInterp.hh"
 #include "NonuniformGrid.hh"
 #include "TwodGridData.hh"
-#include "detail/FindInterp.hh"
 
 namespace celeritas
 {
@@ -29,7 +29,7 @@ class TwodSubgridCalculator
     //! \name Type aliases
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
-    using InterpT = detail::FindInterp<real_type>;
+    using InterpT = FindInterp<real_type>;
     //!@}
 
   public:
@@ -95,7 +95,7 @@ CELER_FUNCTION real_type TwodSubgridCalculator::operator()(real_type y) const
     NonuniformGrid<real_type> const y_grid{grids_.y, storage_};
     CELER_EXPECT(y >= y_grid.front() && y < y_grid.back());
 
-    const InterpT y_loc = detail::find_interp(y_grid, y);
+    const InterpT y_loc = find_interp(y_grid, y);
     auto at_corner = [this, y_loc](size_type xo, size_type yo) -> real_type {
         return this->at(x_loc_.index + xo, y_loc.index + yo);
     };

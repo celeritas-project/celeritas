@@ -10,8 +10,8 @@
 
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/FindInterp.hh"
 #include "corecel/grid/UniformGrid.hh"
-#include "corecel/grid/detail/FindInterp.hh"
 
 #include "celeritas_test.hh"
 
@@ -29,24 +29,24 @@ TEST(Detail, FindInterp)
     const UniformGrid grid(data);
 
     {
-        auto interp = detail::find_interp(grid, 1.0);
+        auto interp = find_interp(grid, 1.0);
         EXPECT_EQ(0, interp.index);
         EXPECT_SOFT_EQ(0.0, interp.fraction);
     }
     {
-        auto interp = detail::find_interp(grid, 3.0);
+        auto interp = find_interp(grid, 3.0);
         EXPECT_EQ(1, interp.index);
         EXPECT_SOFT_EQ(0.0, interp.fraction);
     }
     {
-        auto interp = detail::find_interp(grid, 4.0);
+        auto interp = find_interp(grid, 4.0);
         EXPECT_EQ(1, interp.index);
         EXPECT_SOFT_EQ(0.5, interp.fraction);
     }
 #if CELERITAS_DEBUG
-    EXPECT_THROW(detail::find_interp(grid, 0.999), DebugError);
-    EXPECT_THROW(detail::find_interp(grid, 5.0), DebugError);
-    EXPECT_THROW(detail::find_interp(grid, 5.001), DebugError);
+    EXPECT_THROW(find_interp(grid, 0.999), DebugError);
+    EXPECT_THROW(find_interp(grid, 5.0), DebugError);
+    EXPECT_THROW(find_interp(grid, 5.001), DebugError);
 #endif
 }  // namespace test
 //---------------------------------------------------------------------------//
