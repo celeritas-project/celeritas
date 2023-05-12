@@ -17,8 +17,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
+#include "GeoFwd.hh"
 #include "GeoMaterialData.hh"
-#include "GeoParamsFwd.hh"
 
 namespace celeritas
 {

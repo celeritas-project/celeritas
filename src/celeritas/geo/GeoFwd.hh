@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/GeoParamsFwd.hh
+//! \file celeritas/geo/GeoFwd.hh
 //! \brief Forward-declare configure-time geometry implementation
 //---------------------------------------------------------------------------//
 #pragma once

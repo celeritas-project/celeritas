@@ -16,4 +16,4 @@
 #endif
 
 // Include type alias for Geo track view
-#include "GeoParamsFwd.hh"  // IWYU pragma: export
+#include "GeoFwd.hh"  // IWYU pragma: export

@@ -10,7 +10,7 @@
 #include <type_traits>
 
 #include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/geo/GeoParamsFwd.hh"
+#include "celeritas/geo/GeoFwd.hh"
 
 #include "LazyGeoManager.hh"
 #include "Test.hh"

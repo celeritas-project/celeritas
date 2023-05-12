@@ -11,7 +11,7 @@
 
 #include "corecel/io/OutputInterface.hh"
 
-#include "GeoParamsFwd.hh"  // IWYU pragma: keep
+#include "GeoFwd.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
