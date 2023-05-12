@@ -75,7 +75,10 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos, Real3 dir)
 class SimpleCmsRoot : public RootTestBase, public GeoMaterialTestBase
 {
   public:
-    char const* geometry_basename() const override { return "simple-cms"; }
+    std::string_view geometry_basename() const override
+    {
+        return "simple-cms"sv;
+    }
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 };

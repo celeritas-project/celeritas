@@ -66,7 +66,10 @@ class LinearPropagatorTestBase : public GlobalGeoTestBase,
 
 class SimpleCmsTest : public LinearPropagatorTestBase
 {
-    char const* geometry_basename() const override { return "simple-cms"; }
+    std::string_view geometry_basename() const override
+    {
+        return "simple-cms"sv;
+    }
 };
 
 //---------------------------------------------------------------------------//

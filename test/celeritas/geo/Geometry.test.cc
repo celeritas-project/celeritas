@@ -21,7 +21,10 @@ namespace test
 class TestEm3Test : public HeuristicGeoTestBase
 {
   protected:
-    char const* geometry_basename() const override { return "testem3-flat"; }
+    std::string_view geometry_basename() const override
+    {
+        return "testem3-flat"sv;
+    }
 
     HeuristicGeoScalars build_scalars() const final
     {
@@ -91,7 +94,10 @@ auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 class SimpleCmsTest : public HeuristicGeoTestBase
 {
   protected:
-    char const* geometry_basename() const override { return "simple-cms"; }
+    std::string_view geometry_basename() const override
+    {
+        return "simple-cms"sv;
+    }
 
     HeuristicGeoScalars build_scalars() const final
     {
@@ -132,7 +138,10 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 class ThreeSpheresTest : public HeuristicGeoTestBase
 {
   protected:
-    char const* geometry_basename() const override { return "three-spheres"; }
+    std::string_view geometry_basename() const override
+    {
+        return "three-spheres"sv;
+    }
 
     HeuristicGeoScalars build_scalars() const final
     {

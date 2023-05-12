@@ -216,7 +216,10 @@ void GeantImporterTest::ImportXsSummary::print_expected() const
 //---------------------------------------------------------------------------//
 class FourSteelSlabsEmStandard : public GeantImporterTest
 {
-    char const* geometry_basename() const final { return "four-steel-slabs"; }
+    std::string_view geometry_basename() const override
+    {
+        return "four-steel-slabs"sv;
+    }
 
     GeantPhysicsOptions build_geant_options() const override
     {
@@ -241,7 +244,10 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
 class TestEm3 : public GeantImporterTest
 {
   protected:
-    char const* geometry_basename() const final { return "testem3-flat"; }
+    std::string_view geometry_basename() const override
+    {
+        return "testem3-flat"sv;
+    }
 
     GeantPhysicsOptions build_geant_options() const override
     {
@@ -257,7 +263,10 @@ class TestEm3 : public GeantImporterTest
 class OneSteelSphere : public GeantImporterTest
 {
   protected:
-    char const* geometry_basename() const final { return "one-steel-sphere"; }
+    std::string_view geometry_basename() const override
+    {
+        return "one-steel-sphere"sv;
+    }
 
     GeantPhysicsOptions build_geant_options() const override
     {

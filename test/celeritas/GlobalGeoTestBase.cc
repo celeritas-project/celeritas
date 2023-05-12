@@ -21,11 +21,8 @@ namespace test
 //---------------------------------------------------------------------------//
 auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
 {
-    char const* basename_cstr = this->geometry_basename();
-    CELER_ASSERT(basename_cstr);
-    // Reuse or get the geometry (see LazyGeoBuilder)
     return std::dynamic_pointer_cast<GeoParams const>(
-        this->get_geometry(basename_cstr));
+        this->get_geometry(this->geometry_basename()));
 }
 
 //---------------------------------------------------------------------------//

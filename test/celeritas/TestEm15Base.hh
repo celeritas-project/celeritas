@@ -20,7 +20,7 @@ namespace test
 class TestEm15Base : public GeantTestBase
 {
   protected:
-    char const* geometry_basename() const override { return "testem15"; }
+    std::string_view geometry_basename() const override { return "testem15"; }
 };
 
 //---------------------------------------------------------------------------//

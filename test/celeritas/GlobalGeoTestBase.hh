@@ -31,7 +31,7 @@ class GlobalGeoTestBase : virtual public GlobalTestBase, private LazyGeoManager
 {
   public:
     // Overload with the base filename of the geometry
-    virtual char const* geometry_basename() const = 0;
+    virtual std::string_view geometry_basename() const = 0;
 
     // Construct a geometry that's persistent across tests
     SPConstGeo build_geometry() override;

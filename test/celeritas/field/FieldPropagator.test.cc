@@ -151,17 +151,26 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
 
 class TwoBoxTest : public FieldPropagatorTestBase
 {
-    char const* geometry_basename() const override { return "two-boxes"; }
+    std::string_view geometry_basename() const override
+    {
+        return "two-boxes"sv;
+    }
 };
 
 class LayersTest : public FieldPropagatorTestBase
 {
-    char const* geometry_basename() const override { return "field-layers"; }
+    std::string_view geometry_basename() const override
+    {
+        return "field-layers"sv;
+    }
 };
 
 class SimpleCmsTest : public FieldPropagatorTestBase
 {
-    char const* geometry_basename() const override { return "simple-cms"; }
+    std::string_view geometry_basename() const override
+    {
+        return "simple-cms"sv;
+    }
 };
 
 //---------------------------------------------------------------------------//
