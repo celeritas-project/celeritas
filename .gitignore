@@ -4,6 +4,7 @@
 *.temp.org.xml
 *~
 .DS_Store
+.idea
 .nfs*
 .vscode
 /build*
