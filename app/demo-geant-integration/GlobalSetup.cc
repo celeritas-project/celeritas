@@ -63,7 +63,7 @@ GlobalSetup::GlobalSetup()
                                                 strip_gdml_pointers_);
         cmd.SetGuidance(
             "Remove pointer suffix from input logical volume names");
-        cmd.SetDefaultValue("false");
+        cmd.SetDefaultValue("true");
     }
     {
         auto& cmd = messenger_->DeclareProperty("outputFile",

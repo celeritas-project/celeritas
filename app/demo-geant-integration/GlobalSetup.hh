@@ -73,7 +73,7 @@ class GlobalSetup
     std::string event_file_;
     int root_buffer_size_{128000};
     bool write_sd_hits_{false};
-    bool strip_gdml_pointers_{false};
+    bool strip_gdml_pointers_{true};
     G4ThreeVector field_;
 
     std::unique_ptr<G4GenericMessenger> messenger_;

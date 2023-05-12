@@ -57,7 +57,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     CELER_LOG_LOCAL(status) << "Loading detector geometry";
 
     G4GDMLParser gdml_parser;
-    gdml_parser.SetStripFlag(GlobalSetup::Instance()->StripGDMLPointers());
+    gdml_parser.SetStripFlag(true);
+    if (!GlobalSetup::Instance()->StripGDMLPointers())
+    {
+        // DEPRECATED: remove in 1.0?
+        CELER_LOG(warning) << "Ignoring deprecated 'stripGDMLPointers false'";
+    }
 
     std::string const& filename = GlobalSetup::Instance()->GetGeometryFile();
     if (filename.empty())

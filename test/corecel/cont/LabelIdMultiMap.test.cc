@@ -56,7 +56,7 @@ TEST(LabelIdMultiMapTest, empty)
 
 TEST(LabelIdMultiMapTest, no_ext_with_duplicates)
 {
-    CatMultiMap cats{VecLabel{{"dexter", "andy", "loki", "", "", ""}}};
+    CatMultiMap cats{VecLabel{{"dexter", "andy", "loki", "bob", "bob", "bob"}}};
     EXPECT_EQ(6, cats.size());
     EXPECT_EQ(CatId{}, cats.find("nyoka"));
     EXPECT_EQ(CatId{0}, cats.find("dexter"));
@@ -66,6 +66,13 @@ TEST(LabelIdMultiMapTest, no_ext_with_duplicates)
 
     static const CatId expected_duplicates[] = {CatId{3}, CatId{4}, CatId{5}};
     EXPECT_VEC_EQ(expected_duplicates, cats.duplicates());
+}
+
+TEST(LabelIdMultiMapTest, empty_duplicates)
+{
+    CatMultiMap cats{VecLabel{{"dexter", "andy", "loki", "", ""}}};
+    EXPECT_EQ(5, cats.size());
+    EXPECT_EQ(0, cats.duplicates().size());
 }
 
 TEST(LabelIdMultiMapTest, some_labels)
