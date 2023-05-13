@@ -204,7 +204,10 @@ TEST_F(CutoffParamsTest, apply_post_interaction)
 class CutoffParamsImportTest : public RootTestBase
 {
   protected:
-    char const* geometry_basename() const final { return "four-steel-slabs"; }
+    std::string_view geometry_basename() const override
+    {
+        return "four-steel-slabs"sv;
+    }
 
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }

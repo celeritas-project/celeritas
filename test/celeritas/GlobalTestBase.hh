@@ -12,7 +12,7 @@
 #include <string>
 
 #include "corecel/Assert.hh"
-#include "celeritas/geo/GeoParamsFwd.hh"
+#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 
 #include "Test.hh"

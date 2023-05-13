@@ -9,6 +9,7 @@
 #pragma once
 
 #include <iostream>
+#include <string_view>
 
 #include "celeritas_config.h"
 
@@ -20,3 +21,4 @@
 
 using std::cout;
 using std::endl;
+using namespace std::literals::string_view_literals;

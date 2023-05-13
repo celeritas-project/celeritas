@@ -13,6 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 
+#include "ParamsDataInterface.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -46,7 +48,7 @@ namespace celeritas
  * \endcode
  */
 template<template<Ownership, MemSpace> class P>
-class CollectionMirror
+class CollectionMirror : public ParamsDataInterface<P>
 {
   public:
     //!@{
@@ -66,20 +68,19 @@ class CollectionMirror
     //! Whether the data is assigned
     explicit operator bool() const { return static_cast<bool>(host_); }
 
-    // Get references to data after construction
-    template<MemSpace M>
-    inline P<Ownership::const_reference, M> const& ref() const;
-
     //!@{
     //! Deprecated alias to ref
     HostRef const& host() const { return this->host_ref(); }
     DeviceRef const& device() const { return this->device_ref(); }
-    HostRef const& host_ref() const { return this->ref<MemSpace::host>(); }
-    DeviceRef const& device_ref() const
-    {
-        return this->ref<MemSpace::device>();
-    }
     //!@}
+
+    //! Access data on host
+    HostRef const& host_ref() const final { return host_ref_; }
+
+    //! Access data on device
+    DeviceRef const& device_ref() const final { return device_ref_; }
+
+    using ParamsDataInterface<P>::ref;
 
   private:
     HostValue host_;
@@ -106,32 +107,6 @@ CollectionMirror<P>::CollectionMirror(HostValue&& host)
         device_ = host_;
         device_ref_ = device_;
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get references to data after construction.
- *
- * Calling with "device" memspace will raise an exception if \c
- * celeritas::device is null (and device data wasn't set).
- */
-template<template<Ownership, MemSpace> class P>
-template<MemSpace M>
-P<Ownership::const_reference, M> const& CollectionMirror<P>::ref() const
-{
-    if constexpr (M == MemSpace::host)
-    {
-        return host_ref_;
-    }
-    else if constexpr (M == MemSpace::device)
-    {
-        CELER_ENSURE(device_ref_);
-        return device_ref_;
-    }
-    // "error #128-D: loop is not reachable"
-#ifndef __NVCC__
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 //---------------------------------------------------------------------------//

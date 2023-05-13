@@ -11,14 +11,14 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
-#include "corecel/cont/Span.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "orange/BoundingBox.hh"
+#include "orange/GeoParamsInterface.hh"
 #include "orange/Types.hh"
 
 #include "VecgeomData.hh"
 
 class G4VPhysicalVolume;
-class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -28,16 +28,9 @@ namespace celeritas
  *
  * The model defines the shapes, volumes, etc.
  */
-class VecgeomParams
+class VecgeomParams final : public GeoParamsInterface,
+                            public ParamsDataInterface<VecgeomParamsData>
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using HostRef = HostCRef<VecgeomParamsData>;
-    using DeviceRef = DeviceCRef<VecgeomParamsData>;
-    using SpanConstVolumeId = Span<VolumeId const>;
-    //!@}
-
   public:
     // Construct from a GDML filename
     explicit VecgeomParams(std::string const& gdml_filename);
@@ -49,10 +42,10 @@ class VecgeomParams
     ~VecgeomParams();
 
     //! Whether safety distance calculations are accurate and precise
-    bool supports_safety() const { return true; }
+    bool supports_safety() const final { return true; }
 
     //! Outer bounding box of geometry
-    BoundingBox const& bbox() const { return bbox_; }
+    BoundingBox const& bbox() const final { return bbox_; }
 
     //! Maximum nested geometry depth
     int max_depth() const { return host_ref_.max_depth; }
@@ -60,44 +53,35 @@ class VecgeomParams
     //// VOLUMES ////
 
     //! Number of volumes
-    VolumeId::size_type num_volumes() const { return vol_labels_.size(); }
+    VolumeId::size_type num_volumes() const final
+    {
+        return vol_labels_.size();
+    }
 
     // Get the label for a placed volume ID
-    Label const& id_to_label(VolumeId vol_id) const;
+    Label const& id_to_label(VolumeId vol_id) const final;
 
-    // Get the volume ID corresponding to a unique name
-    inline VolumeId find_volume(char const* name) const;
+    using GeoParamsInterface::find_volume;
 
     // Get the volume ID corresponding to a unique label name
-    VolumeId find_volume(std::string const& name) const;
+    VolumeId find_volume(std::string const& name) const final;
 
     // Get the volume ID corresponding to a unique label
-    VolumeId find_volume(Label const& label) const;
+    VolumeId find_volume(Label const& label) const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
-    VolumeId find_volume(G4LogicalVolume const* volume) const;
+    VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
     // Get zero or more volume IDs corresponding to a name
-    SpanConstVolumeId find_volumes(std::string const& name) const;
-
-    //// SURFACES (NOT APPLICABLE FOR VECGEOM) ////
-
-    // Get the label for a placed volume ID
-    inline Label const& id_to_label(SurfaceId) const;
-
-    // Get the surface ID corresponding to a unique label name
-    inline SurfaceId find_surface(std::string const& name) const;
-
-    //! Number of distinct surfaces
-    size_type num_surfaces() const { return 0; }
+    SpanConstVolumeId find_volumes(std::string const& name) const final;
 
     //// DATA ACCESS ////
 
     //! Access geometry data on host
-    inline HostRef const& host_ref() const;
+    HostRef const& host_ref() const final { return host_ref_; }
 
     //! Access geometry data on device
-    inline DeviceRef const& device_ref() const;
+    DeviceRef const& device_ref() const final { return device_ref_; }
 
   private:
     //// DATA ////
@@ -121,58 +105,6 @@ class VecgeomParams
     // Construct labels and other host-only metadata
     void build_metadata();
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Find the unique volume corresponding to a unique name.
- *
- * This method is here to disambiguate the implicit std::string and Label
- * constructors.
- */
-VolumeId VecgeomParams::find_volume(char const* name) const
-{
-    return this->find_volume(std::string{name});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * No surface IDs are defined in vecgeom.
- */
-Label const& VecgeomParams::id_to_label(SurfaceId) const
-{
-    CELER_NOT_IMPLEMENTED("surfaces in VecGeom");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * No surface IDs are defined in vecgeom.
- */
-SurfaceId VecgeomParams::find_surface(std::string const&) const
-{
-    return {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access geometry data on host.
- */
-auto VecgeomParams::host_ref() const -> HostRef const&
-{
-    CELER_ENSURE(host_ref_);
-    return host_ref_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access geometry data on device.
- */
-auto VecgeomParams::device_ref() const -> DeviceRef const&
-{
-    CELER_ENSURE(device_ref_);
-    return device_ref_;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

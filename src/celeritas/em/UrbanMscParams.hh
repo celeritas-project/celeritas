@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 
 namespace celeritas
@@ -32,13 +33,11 @@ struct ImportMscModel;
  * extend this to be an interface since it's an interchangeable component of
  * the along-step kernel(s).
  */
-class UrbanMscParams
+class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
 {
   public:
     //!@{
     //! \name Type aliases
-    using HostRef = HostCRef<UrbanMscData>;
-    using DeviceRef = DeviceCRef<UrbanMscData>;
     using VecImportMscModel = std::vector<ImportMscModel>;
     //!@}
 
@@ -67,10 +66,10 @@ class UrbanMscParams
     // along-step kernels?
 
     //! Access UrbanMsc data on the host
-    HostRef const& host_ref() const { return mirror_.host(); }
+    HostRef const& host_ref() const final { return mirror_.host(); }
 
     //! Access UrbanMsc data on the device
-    DeviceRef const& device_ref() const { return mirror_.device(); }
+    DeviceRef const& device_ref() const final { return mirror_.device(); }
 
   private:
     // Host/device storage and reference

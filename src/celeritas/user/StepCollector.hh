@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoParamsFwd.hh"
+#include "celeritas/geo/GeoFwd.hh"
 
 #include "StepInterface.hh"
 

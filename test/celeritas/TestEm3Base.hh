@@ -24,7 +24,10 @@ namespace test
 class TestEm3Base : public GeantTestBase
 {
   protected:
-    char const* geometry_basename() const override { return "testem3-flat"; }
+    std::string_view geometry_basename() const override
+    {
+        return "testem3-flat";
+    }
 
     ProcessBuilderOptions build_process_options() const override
     {

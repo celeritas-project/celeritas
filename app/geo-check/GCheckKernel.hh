@@ -16,7 +16,7 @@
 #include "corecel/Types.hh"
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoParamsFwd.hh"
+#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
 namespace geo_check

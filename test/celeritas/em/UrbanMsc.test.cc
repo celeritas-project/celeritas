@@ -92,7 +92,10 @@ class UrbanMscTest : public ::celeritas::test::RootTestBase
     using Action = MscInteraction::Action;
 
   protected:
-    char const* geometry_basename() const final { return "four-steel-slabs"; }
+    std::string_view geometry_basename() const final
+    {
+        return "four-steel-slabs"sv;
+    }
 
     void SetUp() override
     {

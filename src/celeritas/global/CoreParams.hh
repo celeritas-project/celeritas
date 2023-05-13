@@ -12,7 +12,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.hh"
-#include "celeritas/geo/GeoParamsFwd.hh"
+#include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 
@@ -37,7 +38,7 @@ class TrackInitParams;
 /*!
  * Global parameters required to run a problem.
  */
-class CoreParams
+class CoreParams final : public ParamsDataInterface<CoreParamsData>
 {
   public:
     //!@{
@@ -58,9 +59,6 @@ class CoreParams
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
     template<MemSpace M>
     using ConstPtr = ObserverPtr<ConstRef<M> const, M>;
-
-    using HostRef = ConstRef<MemSpace::host>;
-    using DeviceRef = ConstRef<MemSpace::device>;
     //!@}
 
     struct Input
@@ -112,18 +110,14 @@ class CoreParams
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
     //!@}
 
-    //! Access properties on the host
-    HostRef const& host_ref() const { return this->ref<MemSpace::host>(); }
+    //! Access data on the host
+    HostRef const& host_ref() const final { return host_ref_; }
 
-    //! Access properties on the device
-    DeviceRef const& device_ref() const
-    {
-        return this->ref<MemSpace::device>();
-    }
+    //! Access data on the device
+    DeviceRef const& device_ref() const final { return device_ref_; }
 
-    // Access a host object with properties in the given memory space
-    template<MemSpace M>
-    inline ConstRef<M> const& ref() const;
+    // Access host pointers to core data
+    using ParamsDataInterface<CoreParamsData>::ref;
 
     // Access a native pointer to properties in the native memory space
     template<MemSpace M>
@@ -143,28 +137,6 @@ class CoreParams
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Access properties in the given memspace.
- *
- * Accessing MemSpace::device will raise an exception if \c celeritas::device
- * is null (and device data wasn't set).
- */
-template<MemSpace M>
-auto CoreParams::ref() const -> ConstRef<M> const&
-{
-    if constexpr (M == MemSpace::host)
-    {
-        CELER_ENSURE(host_ref_);
-        return host_ref_;
-    }
-    else if constexpr (M == MemSpace::device)
-    {
-        CELER_ENSURE(device_ref_);
-        return device_ref_;
-    }
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Access a native pointer to a NativeCRef.

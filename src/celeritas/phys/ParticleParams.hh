@@ -15,6 +15,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
@@ -44,15 +45,9 @@ struct ImportData;
  * https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf
  * It should be used to identify particle types during construction time.
  */
-class ParticleParams
+class ParticleParams final : public ParamsDataInterface<ParticleParamsData>
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using HostRef = HostCRef<ParticleParamsData>;
-    using DeviceRef = DeviceCRef<ParticleParamsData>;
-    //!@}
-
     //! Define a particle's input data
     struct ParticleInput
     {
@@ -94,10 +89,10 @@ class ParticleParams
     ParticleView get(ParticleId id) const;
 
     //! Access material properties on the host
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host(); }
 
     //! Access material properties on the device
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     // Saved copy of metadata

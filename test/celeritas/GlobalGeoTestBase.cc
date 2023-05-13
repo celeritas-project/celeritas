@@ -9,10 +9,9 @@
 
 #include <memory>
 #include <string>
-#include <gtest/gtest.h>
+#include <string_view>
 
 #include "celeritas_config.h"
-#include "corecel/io/Logger.hh"
 #include "celeritas/geo/GeoParams.hh"
 
 namespace celeritas
@@ -20,86 +19,32 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-struct GlobalGeoTestBase::LazyGeo
-{
-    std::string basename{};
-    SPConstGeo geo{};
-};
-
-class GlobalGeoTestBase::CleanupGeoEnvironment : public ::testing::Environment
-{
-  public:
-    void SetUp() override {}
-    void TearDown() override { GlobalGeoTestBase::reset_geometry(); }
-};
-
-//---------------------------------------------------------------------------//
 auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
 {
-    auto& lazy = GlobalGeoTestBase::lazy_geo();
-
-    // Construct filename
-    char const* basename_cstr = this->geometry_basename();
-    CELER_ASSERT(basename_cstr);
-    std::string basename{basename_cstr};
-    CELER_ASSERT(!basename.empty());
-
-    if (basename != lazy.basename)
-    {
-        // Construct filename:
-        // ${SOURCE}/test/celeritas/data/${basename}${fileext}
-        char const* ext = CELERITAS_USE_VECGEOM ? ".gdml" : ".org.json";
-        auto filename = basename + ext;
-        std::string test_file
-            = this->test_data_path("celeritas", filename.c_str());
-
-        // MUST reset geometry before trying to build a new one
-        // since VecGeom is all full of globals
-        GlobalGeoTestBase::reset_geometry();
-        lazy.geo = std::make_shared<GeoParams>(test_file.c_str());
-        lazy.basename = std::move(basename);
-    }
-
-    return lazy.geo;
+    return std::dynamic_pointer_cast<GeoParams const>(
+        this->get_geometry(this->geometry_basename()));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Destroy the geometry if needed.
+ * Construct a new geometry.
+ *
+ * This only occurs after any existing built geometries have been cleared. The
+ * argument is the geometry basename.
  */
-void GlobalGeoTestBase::reset_geometry()
+auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
+    -> SPConstGeoI
 {
-    auto& lazy = GlobalGeoTestBase::lazy_geo();
-    if (lazy.geo)
-    {
-        CELER_LOG(debug) << "Destroying '" << lazy.basename << "' geometry";
-        lazy.geo.reset();
-    }
-}
+    using namespace std::literals;
 
-//---------------------------------------------------------------------------//
-auto GlobalGeoTestBase::lazy_geo() -> LazyGeo&
-{
-    static bool registered_cleanup = false;
-    if (!registered_cleanup)
-    {
-        /*! Always reset geometry at end of testing before global destructors.
-         *
-         * This is needed because VecGeom stores its objects as static globals,
-         * and only makes those objects visible with references/raw data. Thus
-         * we can't guarantee that the GeoParams destructor is calling a valid
-         * global VecGeom pointer when it destructs, since static
-         * initialization/destruction order is undefined across translation
-         * units.
-         */
-        CELER_LOG(debug) << "Registering CleanupGeoEnvironment";
-        ::testing::AddGlobalTestEnvironment(new CleanupGeoEnvironment());
-        registered_cleanup = true;
-    }
-
-    // Delayed initialization
-    static LazyGeo lg;
-    return lg;
+    // Construct filename:
+    // ${SOURCE}/test/celeritas/data/${basename}${fileext}
+    auto ext = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+                   ? ".gdml"sv
+                   : ".org.json"sv;
+    auto filename = std::string{basename} + std::string{ext};
+    std::string test_file = this->test_data_path("celeritas", filename);
+    return std::make_shared<GeoParams>(test_file);
 }
 
 //---------------------------------------------------------------------------//

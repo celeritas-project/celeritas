@@ -35,6 +35,15 @@ set(_DOXYGEN_EXTRA_SOURCE
   "${PROJECT_BINARY_DIR}/include/celeritas_cmake_strings.h"
   "${PROJECT_BINARY_DIR}/include/celeritas_version.h"
 )
+if(CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS)
+  # Add documentation for Celeritas test harnesses
+  list(APPEND _DOXYGEN_TEST_SOURCE
+    "${PROJECT_SOURCE_DIR}/test"
+  )
+  list(APPEND DOXYGEN_EXCLUDE_PATTERNS "*.test.hh" "*.test.cc" "*.test.cu")
+else()
+  set(_DOXYGEN_TEST_SOURCE)
+endif()
 
 # Documentation usage
 set(DOXYGEN_FULL_PATH_NAMES NO)
@@ -69,6 +78,7 @@ set(DOXYGEN_REFERENCES_LINK_SOURCE YES)
 doxygen_add_docs(doxygen
   "${PROJECT_SOURCE_DIR}/src"
   ${_DOXYGEN_EXTRA_SOURCE}
+  ${_DOXYGEN_TEST_SOURCE}
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating Doxygen to doc/doxygen-html/index.html"
 )

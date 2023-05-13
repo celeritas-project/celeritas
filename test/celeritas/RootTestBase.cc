@@ -25,14 +25,14 @@ auto RootTestBase::imported_data() const -> ImportData const&
         std::string geometry_basename;
         ImportData imported;
     } i;
-    std::string geo_basename = this->geometry_basename();
+    auto geo_basename = this->geometry_basename();
     if (i.geometry_basename != geo_basename)
     {
         ScopedRootErrorHandler scoped_root_error;
 
         i.geometry_basename = geo_basename;
-        std::string root_inp = this->test_data_path(
-            "celeritas", (i.geometry_basename + ".root").c_str());
+        std::string root_inp
+            = this->test_data_path("celeritas", i.geometry_basename + ".root");
 
         RootImporter import(root_inp.c_str());
         i.imported = import();
