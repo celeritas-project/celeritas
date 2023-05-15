@@ -36,6 +36,9 @@ auto RootTestBase::imported_data() const -> ImportData const&
 
         RootImporter import(root_inp.c_str());
         i.imported = import();
+
+        // Raise an exception if non-fatal errors were encountered
+        scoped_root_error.throw_if_errors();
     }
     CELER_ENSURE(i.imported);
     return i.imported;
