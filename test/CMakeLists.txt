@@ -334,8 +334,13 @@ else()
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 
+if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
+  set(_needs_geant_or_root DISABLE)
+else()
+  set(_needs_geant_or_root)
+endif()
 celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
-  ${_needs_root} ${_needs_geo})
+  ${_needs_geant_or_root} ${_needs_geo} ${_optional_geant4_env})
 
 #-------------------------------------#
 # Global
