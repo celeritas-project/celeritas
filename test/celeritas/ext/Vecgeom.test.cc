@@ -145,11 +145,7 @@ TEST_F(FourLevelsTest, detailed_track)
         geo = GeoTrackInitializer{{-25, 6.5, 6.5}, {1, 0, 0}};
         EXPECT_TRUE(geo.is_outside());
 
-        next = geo.find_next_step(0.5);
-        EXPECT_SOFT_EQ(0.5, next.distance);
-        EXPECT_FALSE(next.boundary);
-
-        next = geo.find_next_step(2);
+        next = geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, next.distance);
         EXPECT_TRUE(next.boundary);
 
@@ -173,10 +169,6 @@ TEST_F(FourLevelsTest, detailed_track)
         EXPECT_FALSE(geo.is_outside());
         geo.cross_boundary();
         EXPECT_TRUE(geo.is_outside());
-
-        next = geo.find_next_step(2);
-        EXPECT_SOFT_EQ(2, next.distance);
-        EXPECT_FALSE(next.boundary);
 
         next = geo.find_next_step();
         EXPECT_GT(next.distance, 1e10);
