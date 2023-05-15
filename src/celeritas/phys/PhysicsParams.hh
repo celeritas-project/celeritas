@@ -16,6 +16,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
@@ -107,7 +108,7 @@ struct PhysicsParamsOptions
  * - "integral-rejected": do not apply a discrete interaction
  * - "failure": model failed to allocate secondaries
  */
-class PhysicsParams
+class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
 {
   public:
     //!@{
@@ -122,9 +123,6 @@ class PhysicsParams
     using SpanConstProcessId = Span<ProcessId const>;
     using ActionIdRange = Range<ActionId>;
     using Options = PhysicsParamsOptions;
-
-    using HostRef = celeritas::HostCRef<PhysicsParamsData>;
-    using DeviceRef = celeritas::DeviceCRef<PhysicsParamsData>;
     //!@}
 
     //! Physics parameter construction arguments
@@ -173,10 +171,10 @@ class PhysicsParams
     SpanConstProcessId processes(ParticleId) const;
 
     //! Access physics properties on the host
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host(); }
 
     //! Access physics properties on the device
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     using SPAction = std::shared_ptr<ConcreteAction>;

@@ -53,16 +53,16 @@ class ActionDiagnostic final : public ExplicitActionInterface,
 
     //!@{
     //! \name ExplicitAction interface
-    // Execute action with host data
+    // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
-    // Execute action with device data
+    // Launch kernel with device data
     void execute(CoreParams const&, CoreStateDevice&) const final;
     //! ID of the action
     ActionId action_id() const final { return id_; }
     //! Short name for the action
     std::string label() const final { return "action-diagnostic"; }
-    //! Description of the action for user interaction
-    std::string description() const final { return "Action diagnostic"; }
+    // Description of the action for user interaction
+    std::string description() const final;
     //! Dependency ordering of the action
     ActionOrder order() const final { return ActionOrder::post; }
     //!@}

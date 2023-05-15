@@ -9,6 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 
 #include "XorwowRngData.hh"
 
@@ -18,15 +19,8 @@ namespace celeritas
 /*!
  * Shared data for XORWOW pseudo-random number generator.
  */
-class XorwowRngParams
+class XorwowRngParams final : public ParamsDataInterface<XorwowRngParamsData>
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using HostRef = HostCRef<XorwowRngParamsData>;
-    using DeviceRef = DeviceCRef<XorwowRngParamsData>;
-    //!@}
-
   public:
     // Construct with a low-entropy seed
     explicit XorwowRngParams(unsigned int seed);
@@ -35,10 +29,10 @@ class XorwowRngParams
     // explicit XorwowRngParams(const std::string& hexstring);
 
     //! Access material properties on the host
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host(); }
 
     //! Access material properties on the device
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     // Host/device storage and reference

@@ -18,6 +18,8 @@
 #include "celeritas/em/launcher/MuBremsstrahlungLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
+using celeritas::MemSpace;
+
 namespace celeritas
 {
 namespace generated
@@ -25,12 +27,13 @@ namespace generated
 namespace
 {
 __global__ void mu_bremsstrahlung_interact_kernel(
-    celeritas::DeviceCRef<celeritas::CoreParamsData> const params,
-    celeritas::DeviceRef<celeritas::CoreStateData> const state,
-    celeritas::MuBremsstrahlungDeviceRef const model_data)
+    celeritas::CRefPtr<celeritas::CoreParamsData, MemSpace::device> const params,
+    celeritas::RefPtr<celeritas::CoreStateData, MemSpace::device> const state,
+    celeritas::MuBremsstrahlungDeviceRef const model_data,
+    celeritas::size_type size)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (!(tid < state.size()))
+    if (!(tid < size))
         return;
 
     auto launch = celeritas::make_interaction_launcher(
@@ -49,7 +52,10 @@ void mu_bremsstrahlung_interact(
     CELER_LAUNCH_KERNEL(mu_bremsstrahlung_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params.ref<MemSpace::native>(), state.ref(), model_data);
+                        params.ptr<MemSpace::native>(),
+                        state.ptr(),
+                        model_data,
+                        state.size());
 }
 
 }  // namespace generated

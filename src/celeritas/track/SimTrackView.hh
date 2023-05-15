@@ -101,6 +101,12 @@ class SimTrackView
     // Mutable access to step limit (TODO: hack)
     CELER_FORCEINLINE_FUNCTION StepLimit& step_limit();
 
+    // Access along-step action to take
+    inline CELER_FUNCTION ActionId along_step_action() const;
+
+    // Mutable access to along-step action to take (TODO: hack
+    inline CELER_FUNCTION ActionId& along_step_action();
+
     //// PARAMETER DATA ////
 
     // Particle-dependent parameters for killing looping tracks
@@ -141,7 +147,8 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.num_looping_steps[track_slot_] = 0;
     states_.time[track_slot_] = other.time;
     states_.status[track_slot_] = other.status;
-    states_.step_limit[track_slot_] = other.step_limit;
+    states_.step_limit[track_slot_] = {};
+    states_.along_step_action[track_slot_] = {};
     return *this;
 }
 
@@ -222,6 +229,7 @@ CELER_FUNCTION void SimTrackView::reset_step_limit()
     limit.step = numeric_limits<real_type>::infinity();
     limit.action = {};
     this->reset_step_limit(limit);
+    this->along_step_action() = {};
 }
 
 //---------------------------------------------------------------------------//
@@ -271,6 +279,26 @@ CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
         states_.step_limit[track_slot_] = sl;
     }
     return is_limiting;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access along-step action to take.
+ */
+CELER_FUNCTION ActionId SimTrackView::along_step_action() const
+{
+    return states_.along_step_action[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Mutable access to along-step action to take.
+ *
+ * (TODO: hack)
+ */
+CELER_FUNCTION ActionId& SimTrackView::along_step_action()
+{
+    return states_.along_step_action[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

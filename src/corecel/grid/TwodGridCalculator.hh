@@ -10,9 +10,9 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
 
+#include "FindInterp.hh"
 #include "TwodGridData.hh"
 #include "TwodSubgridCalculator.hh"
-#include "detail/FindInterp.hh"
 
 namespace celeritas
 {
@@ -94,7 +94,7 @@ TwodGridCalculator::operator()(real_type x) const
 {
     NonuniformGrid<real_type> const x_grid{grids_.x, storage_};
     CELER_EXPECT(x >= x_grid.front() && x < x_grid.back());
-    return {grids_, storage_, detail::find_interp(x_grid, x)};
+    return {grids_, storage_, find_interp(x_grid, x)};
 }
 
 //---------------------------------------------------------------------------//

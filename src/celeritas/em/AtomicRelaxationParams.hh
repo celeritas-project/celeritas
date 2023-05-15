@@ -12,6 +12,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/io/ImportAtomicRelaxation.hh"
 #include "celeritas/phys/AtomicNumber.hh"
@@ -28,13 +29,12 @@ class ParticleParams;
 /*!
  * Data management for the EADL transition data for atomic relaxation.
  */
-class AtomicRelaxationParams
+class AtomicRelaxationParams final
+    : public ParamsDataInterface<AtomicRelaxParamsData>
 {
   public:
     //@{
     //! Type aliases
-    using HostRef = HostCRef<AtomicRelaxParamsData>;
-    using DeviceRef = DeviceCRef<AtomicRelaxParamsData>;
     using MevEnergy = units::MevEnergy;
     using ReadData = std::function<ImportAtomicRelaxation(AtomicNumber)>;
     using SPConstCutoffs = std::shared_ptr<CutoffParams const>;
@@ -55,11 +55,11 @@ class AtomicRelaxationParams
     // Construct with a vector of element identifiers
     explicit AtomicRelaxationParams(Input const& inp);
 
-    // Access EADL data on the host
-    HostRef const& host_ref() const { return data_.host(); }
+    //! Access EADL data on the host
+    HostRef const& host_ref() const final { return data_.host(); }
 
-    // Access EADL data on the device
-    DeviceRef const& device_ref() const { return data_.device(); }
+    //! Access EADL data on the device
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     // Whether to simulate non-radiative transitions

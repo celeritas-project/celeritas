@@ -84,7 +84,7 @@ namespace generated
 void {clsname}::execute(CoreParams const& params, CoreStateHost& state) const
 {{
     MultiExceptionHandler capture_exception;
-    TrackLauncher launch{{params.ref<MemSpace::native>(), state.ref(), detail::{func}_track}};
+    TrackLauncher launch{{*params.ptr<MemSpace::native>(), *state.ptr(), detail::{func}_track}};
     #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {{
@@ -120,11 +120,11 @@ namespace generated
 namespace
 {{
 __global__ void{launch_bounds}{func}_kernel(
-    DeviceCRef<CoreParamsData> const params,
-    DeviceRef<CoreStateData> const state
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state
 )
 {{
-    TrackLauncher launch{{params, state, detail::{func}_track}};
+    TrackLauncher launch{{*params, *state, detail::{func}_track}};
     launch(KernelParamCalculator::thread_id());
 }}
 }}  // namespace
@@ -134,8 +134,8 @@ void {clsname}::execute(CoreParams const& params, CoreStateDevice& state) const
     CELER_LAUNCH_KERNEL({func},
                         celeritas::device().default_block_size(),
                         state.size(),
-                        params.ref<MemSpace::native>(),
-                        state.ref());
+                        params.ptr<MemSpace::native>(),
+                        state.ptr());
 }}
 
 }}  // namespace generated

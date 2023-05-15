@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "celeritas_config.h"
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
 namespace celeritas
@@ -29,8 +30,10 @@ struct RZMapFieldInput
 {
     unsigned int num_grid_z{};
     unsigned int num_grid_r{};
-    double delta_grid{};  //!< Grid spacing [cm]
-    double offset_z{};  //!< Offset of the lower z coordinate [cm]
+    double min_z{};  //!< Lower z coordinate [cm]
+    double min_r{};  //!< Lower r coordinate [cm]
+    double max_z{};  //!< Last z coordinate [cm]
+    double max_r{};  //!< Last r coordinate [cm]
     std::vector<double> field_z;  //!< Flattened Z field component [tesla]
     std::vector<double> field_r;  //!< Flattened R field component [tesla]
 
@@ -40,8 +43,9 @@ struct RZMapFieldInput
         // clang-format off
         return (num_grid_z >= 2)
             && (num_grid_r >= 2)
-            && (delta_grid > 0)
-            && (offset_z >= 0)
+            && (min_r >= 0)
+            && (max_z > min_z)
+            && (max_r > min_r)
             && (field_z.size() == num_grid_z * num_grid_r)
             && (field_r.size() == field_z.size());
         // clang-format on

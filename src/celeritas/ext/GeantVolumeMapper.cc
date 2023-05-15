@@ -55,7 +55,8 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv) const
     {
         CELER_LOG(warning) << "Failed to exactly match " << celeritas_core_geo
                            << " volume from Geant4 volume '" << lv.GetName()
-                           << "'; found '" << geo.id_to_label(all_ids.front())
+                           << "'@" << static_cast<void const*>(&lv)
+                           << "; found '" << geo.id_to_label(all_ids.front())
                            << "' by omitting the extension";
         return all_ids.front();
     }

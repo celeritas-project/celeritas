@@ -10,10 +10,11 @@
 #include <vector>
 
 #include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/data/StreamStore.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/geo/GeoParamsFwd.hh"
+#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/StepInterface.hh"
 
 #include "SimpleCaloData.hh"

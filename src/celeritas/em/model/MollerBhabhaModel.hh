@@ -42,10 +42,10 @@ class MollerBhabhaModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "ioni-moller-bhabha"; }
 
-    //! Name of the model, for user interaction
+    //! Short description of the post-step action
     std::string description() const final
     {
-        return "Moller+Bhabha scattering";
+        return "interact by Moller+Bhabha ionization";
     }
 
     //!@{

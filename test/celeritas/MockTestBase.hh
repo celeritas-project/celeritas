@@ -66,7 +66,10 @@ class MockTestBase : virtual public GlobalGeoTestBase
     }
 
   protected:
-    char const* geometry_basename() const override { return "three-spheres"; }
+    std::string_view geometry_basename() const override
+    {
+        return "three-spheres";
+    }
 
     SPConstMaterial build_material() override;
     SPConstGeoMaterial build_geomaterial() override;

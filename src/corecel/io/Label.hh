@@ -61,6 +61,9 @@ struct Label
     {
     }
 
+    //! Whether both the label and extension are empty
+    bool empty() const { return name.empty() && ext.empty(); }
+
     //// STATIC METHODS ////
 
     // Construct a label from a Geant4 pointer-appended name

@@ -10,7 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
@@ -19,36 +19,30 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
-template<MemSpace M>
-size_type remove_if_alive(Span<TrackSlotId> vacancies);
-
-template<>
-size_type remove_if_alive<MemSpace::host>(Span<TrackSlotId> vacancies);
-template<>
-size_type remove_if_alive<MemSpace::device>(Span<TrackSlotId> vacancies);
+size_type remove_if_alive(
+    StateCollection<TrackSlotId, Ownership::reference, MemSpace::host> const&);
+size_type remove_if_alive(
+    StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&);
 
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
-template<MemSpace M>
-size_type exclusive_scan_counts(Span<size_type> counts);
-
-template<>
-size_type exclusive_scan_counts<MemSpace::host>(Span<size_type> counts);
-template<>
-size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts);
+size_type exclusive_scan_counts(
+    StateCollection<size_type, Ownership::reference, MemSpace::host> const&);
+size_type exclusive_scan_counts(
+    StateCollection<size_type, Ownership::reference, MemSpace::device> const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-template<>
-inline size_type remove_if_alive<MemSpace::device>(Span<TrackSlotId>)
+inline size_type remove_if_alive(
+    StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-template<>
-inline size_type exclusive_scan_counts<MemSpace::device>(Span<size_type>)
+inline size_type exclusive_scan_counts(
+    StateCollection<size_type, Ownership::reference, MemSpace::device> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

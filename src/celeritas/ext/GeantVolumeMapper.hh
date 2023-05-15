@@ -9,7 +9,7 @@
 
 #include "celeritas_config.h"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoParamsFwd.hh"
+#include "celeritas/geo/GeoFwd.hh"
 
 // Geant4 forward declaration
 class G4LogicalVolume;  // IWYU pragma: keep

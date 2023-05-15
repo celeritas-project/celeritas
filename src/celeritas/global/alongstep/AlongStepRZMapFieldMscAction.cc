@@ -73,12 +73,14 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
 {
     MultiExceptionHandler capture_exception;
 
-    auto launch = make_active_track_launcher(params.ref<MemSpace::native>(),
-                                             state.ref(),
-                                             detail::along_step_mapfield_msc,
-                                             msc_->host_ref(),
-                                             field_->host_ref(),
-                                             fluct_->host_ref());
+    auto launch
+        = make_along_step_track_launcher(*params.ptr<MemSpace::native>(),
+                                         *state.ptr(),
+                                         this->action_id(),
+                                         detail::along_step_mapfield_msc,
+                                         msc_->host_ref(),
+                                         field_->host_ref(),
+                                         fluct_->host_ref());
 
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)

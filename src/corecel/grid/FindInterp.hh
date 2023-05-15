@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/grid/detail/FindInterp.hh
+//! \file corecel/grid/FindInterp.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,8 +12,6 @@
 #include "corecel/Types.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -59,5 +57,4 @@ find_interp(Grid const& grid, typename Grid::value_type value)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

@@ -37,8 +37,8 @@ namespace test
 class SequenceEngine
 {
   public:
-    //@{
-    //! Typedefs
+    //!@{
+    //! \name Type aliases
     using result_type = std::uint32_t;
     using VecResult = std::vector<result_type>;
     using LimitsT = std::numeric_limits<result_type>;

@@ -127,5 +127,21 @@ struct IsStepActionEqual
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Apply only to tracks with the given action ID.
+ */
+struct IsAlongStepActionEqual
+{
+    ActionId action;
+
+    CELER_FUNCTION bool operator()(SimTrackView const& sim) const
+    {
+        CELER_EXPECT(applies_active(sim)
+                     == static_cast<bool>(sim.along_step_action()));
+        return sim.along_step_action() == this->action;
+    }
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

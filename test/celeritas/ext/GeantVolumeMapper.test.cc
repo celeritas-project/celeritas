@@ -66,7 +66,10 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
         if (lev > LogLevel::info)
         {
             static const std::regex delete_ansi("\033\\[[0-9;]*m");
-            messages_.push_back(std::regex_replace(msg, delete_ansi, ""));
+            static const std::regex subs_ptr("0x[0-9a-f]+");
+            msg = std::regex_replace(msg, delete_ansi, "");
+            msg = std::regex_replace(msg, subs_ptr, "0x1234abcd");
+            messages_.push_back(std::move(msg));
         }
     }
 
@@ -260,15 +263,19 @@ TEST_F(NestedTest, unique)
 
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
-        static std::string const expected_messages[]
+        static char const* const expected_messages[]
             = {"Failed to exactly match ORANGE volume from Geant4 volume "
-               "'world'; found 'world@global' by omitting the extension",
+               "'world'@0x1234abcd; found 'world@global' by omitting the "
+               "extension",
                "Failed to exactly match ORANGE volume from Geant4 volume "
-               "'outer'; found 'outer@global' by omitting the extension",
+               "'outer'@0x1234abcd; found 'outer@global' by omitting the "
+               "extension",
                "Failed to exactly match ORANGE volume from Geant4 volume "
-               "'middle'; found 'middle@global' by omitting the extension",
+               "'middle'@0x1234abcd; found 'middle@global' by omitting the "
+               "extension",
                "Failed to exactly match ORANGE volume from Geant4 volume "
-               "'inner'; found 'inner@global' by omitting the extension"};
+               "'inner'@0x1234abcd; found 'inner@global' by omitting the "
+               "extension"};
         EXPECT_VEC_EQ(expected_messages, messages_);
     }
     else

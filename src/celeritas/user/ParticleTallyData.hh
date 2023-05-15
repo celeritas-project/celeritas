@@ -50,7 +50,7 @@ struct ParticleTallyParamsData
 /*!
  * State data for accumulating results for each particle type.
  *
- * \counts is indexed as particle_id * num_bins + bin_index.
+ * \c counts is indexed as particle_id * num_bins + bin_index.
  */
 template<Ownership W, MemSpace M>
 struct ParticleTallyStateData

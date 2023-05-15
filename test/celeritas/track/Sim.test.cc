@@ -32,7 +32,10 @@ class SimTest : public GeantTestBase
     using MevEnergy = units::MevEnergy;
 
   protected:
-    char const* geometry_basename() const final { return "four-steel-slabs"; }
+    std::string_view geometry_basename() const override
+    {
+        return "four-steel-slabs"sv;
+    }
 
     void SetUp() override
     {

@@ -11,7 +11,7 @@ include(CeleritasAddTest)
 #-----------------------------------------------------------------------------#
 
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
-configure_file(testdetail/TestConfig.cc.in TestConfig.cc @ONLY)
+configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 celeritas_add_library(testcel_harness
   Test.cc
@@ -19,7 +19,6 @@ celeritas_add_library(testcel_harness
   testdetail/NonMasterResultPrinter.cc
   testdetail/ParallelHandler.cc
   testdetail/TestMainImpl.cc
-  "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 target_compile_features(testcel_harness PUBLIC cxx_std_14)
 celeritas_target_link_libraries(testcel_harness
@@ -238,9 +237,11 @@ celeritas_add_library(testcel_celeritas
   celeritas/phys/MockModel.cc
   celeritas/phys/MockProcess.cc
   celeritas/GeantTestBase.cc
+  celeritas/GenericGeoTestBase.cc
   celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
   celeritas/ImportedDataTestBase.cc
+  celeritas/LazyGeoManager.cc
   celeritas/MockTestBase.cc
   celeritas/RootTestBase.cc
   celeritas/SimpleTestBase.cc
@@ -253,7 +254,7 @@ celeritas_add_library(testcel_celeritas
 )
 
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link}
+  PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link} Celeritas::orange
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas

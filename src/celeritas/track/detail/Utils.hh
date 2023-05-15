@@ -10,7 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/NumericLimits.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
@@ -33,11 +33,19 @@ CELER_CONSTEXPR_FUNCTION TrackSlotId occupied()
 }
 
 //---------------------------------------------------------------------------//
-//! Get a track slot ID a certain number of threads from the end
-CELER_FORCEINLINE_FUNCTION size_type from_back(size_type size, ThreadId tid)
+//! Get an initializer index where thread 0 has the last valid element
+CELER_FORCEINLINE_FUNCTION size_type index_before(size_type size, ThreadId tid)
 {
     CELER_EXPECT(tid.get() + 1 <= size);
-    return size - tid.get() - 1;
+    return size - tid.unchecked_get() - 1;
+}
+
+//---------------------------------------------------------------------------//
+//! Get an initializer index a certain number of threads past the end
+CELER_FORCEINLINE_FUNCTION size_type index_after(size_type size, ThreadId tid)
+{
+    CELER_EXPECT(tid);
+    return size + tid.unchecked_get();
 }
 
 //---------------------------------------------------------------------------//

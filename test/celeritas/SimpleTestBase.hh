@@ -22,7 +22,7 @@ namespace test
 class SimpleTestBase : virtual public GlobalGeoTestBase
 {
   protected:
-    char const* geometry_basename() const override { return "two-boxes"; }
+    std::string_view geometry_basename() const override { return "two-boxes"; }
 
     virtual real_type secondary_stack_factor() const { return 1.0; }
 

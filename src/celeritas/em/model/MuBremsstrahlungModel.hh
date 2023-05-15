@@ -53,8 +53,11 @@ class MuBremsstrahlungModel final : public Model
     //! Short name for the interaction kernel
     std::string label() const final { return "brems-muon"; }
 
-    //! Name of the model, for user interaction
-    std::string description() const final { return "Muon bremsstrahlung"; }
+    //! Short description of the post-step action
+    std::string description() const final
+    {
+        return "interact by bremsstrahlung (muon)";
+    }
 
     //!@{
     //! Access model data

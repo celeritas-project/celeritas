@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/UniformGridData.hh"
 
 #include "FieldDriverOptions.hh"
 
@@ -17,14 +18,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * FieldMap (2-dimensional RZ map) parameters
+ * FieldMap (2-dimensional RZ map) grid data
  */
-struct FieldMapParameters
+struct FieldMapGridData
 {
-    size_type num_grid_r;
-    size_type num_grid_z;
-    real_type delta_grid;
-    real_type offset_z;
+    UniformGridData data_z;
+    UniformGridData data_r;
 };
 
 //---------------------------------------------------------------------------//
@@ -33,8 +32,8 @@ struct FieldMapParameters
  */
 struct FieldMapElement
 {
-    float value_z;
-    float value_r;
+    real_type value_z;
+    real_type value_r;
 };
 
 //---------------------------------------------------------------------------//
@@ -44,8 +43,8 @@ struct FieldMapElement
 template<Ownership W, MemSpace M>
 struct RZMapFieldParamsData
 {
-    //! Parameters of FieldMap
-    FieldMapParameters params;
+    //! Grids of FieldMap
+    FieldMapGridData grids;
 
     //! Options for FieldDriver
     FieldDriverOptions options;
@@ -63,14 +62,18 @@ struct RZMapFieldParamsData
         return !fieldmap.empty();
     }
 
-    inline CELER_FUNCTION bool valid(size_type idx_z, size_type idx_r) const
+    inline CELER_FUNCTION bool valid(real_type z, real_type r) const
     {
-        return (idx_z < params.num_grid_z && idx_r < params.num_grid_r);
+        CELER_EXPECT(grids.data_z);
+        CELER_EXPECT(grids.data_r);
+        return (z >= grids.data_z.front && z <= grids.data_z.back
+                && r >= grids.data_r.front && r <= grids.data_r.back);
     }
 
     inline CELER_FUNCTION ElementId id(int idx_z, int idx_r) const
     {
-        return ElementId(idx_z * params.num_grid_r + idx_r);
+        CELER_EXPECT(grids.data_r);
+        return ElementId(idx_z * grids.data_r.size + idx_r);
     }
 
     //! Assign from another set of data
@@ -78,7 +81,7 @@ struct RZMapFieldParamsData
     RZMapFieldParamsData& operator=(RZMapFieldParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        params = other.params;
+        grids = other.grids;
         options = other.options;
         fieldmap = other.fieldmap;
         return *this;

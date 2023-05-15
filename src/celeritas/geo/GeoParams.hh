@@ -16,4 +16,4 @@
 #endif
 
 // Include type alias for GeoParams
-#include "GeoParamsFwd.hh"  // IWYU pragma: export
+#include "GeoFwd.hh"  // IWYU pragma: export
