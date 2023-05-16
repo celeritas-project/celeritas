@@ -14,6 +14,48 @@
 
 namespace celeritas
 {
+
+//---------------------------------------------------------------------------//
+/*!
+ * Class for storing offset data for RaggedRightIndexer
+ */
+template<size_type N>
+class RaggedRightIndexerData
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using Sizes = Array<size_type, N>;
+    using Offsets = Array<size_type, N + 1>;
+    //!@}
+
+  public:
+    //! Construct with the an array denoting the size of each dimension.
+    explicit CELER_FORCEINLINE_FUNCTION RaggedRightIndexerData(Sizes sizes)
+    {
+        CELER_EXPECT(sizes.size() > 0);
+        offsets_[0] = 0;
+
+        for (auto i : range(N))
+        {
+            CELER_EXPECT(sizes[i] > 0);
+            offsets_[i + 1] = sizes[i] + offsets_[i];
+        }
+    }
+
+    //! Default for unassigned/lazy construction
+    RaggedRightIndexerData() = default;
+
+    //! Access offsets
+    CELER_FORCEINLINE_FUNCTION Offsets const& offsets() const
+    {
+        return offsets_;
+    }
+
+  private:
+    Offsets offsets_;
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Class for indexing into flattened, ragged-right, 2D data.
@@ -30,89 +72,80 @@ namespace celeritas
  *  Within this array, element b3 has a "flattened" index of 4 and "ragged
  * indices" of [1, 2]
  */
-template<class T, size_type N>
+template<size_type N>
 class RaggedRightIndexer
 {
   public:
     //!@{
     //! \name Type aliases
-    using index_type = T;
-    using Sizes = Array<index_type, N>;
-    using RaggedIndices = Array<index_type, 2>;
+    using Coords = Array<size_type, 2>;
     //!@}
 
   public:
-    // Construct with the an array denoting the size of each dimension
-    explicit inline CELER_FUNCTION RaggedRightIndexer(Sizes const& sizes);
+    // Construct from RaggedRightIndexerData
+    explicit inline CELER_FUNCTION
+    RaggedRightIndexer(RaggedRightIndexerData<N> const& rrd);
 
     //// METHODS ////
 
-    //! Convert ragged indices to a flattened index
-    inline CELER_FUNCTION index_type
-    flattened_index(RaggedIndices ragged_indices) const;
+    // Convert ragged indices to a flattened index
+    inline CELER_FUNCTION size_type index(Coords coords) const;
 
-    //! Convert a flattened index into ragged indices
-    inline CELER_FUNCTION RaggedIndices
-    ragged_indices(index_type flattened_index) const;
+    // Convert a flattened index into ragged indices
+    inline CELER_FUNCTION Coords coords(size_type index) const;
 
   private:
     //// DATA ////
 
-    Array<index_type, N + 1> offsets_;
+    RaggedRightIndexerData<N> const& rrd_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from array denoting the size of each dimension.
+ * Construct fom RaggedRightIndexerData
  */
-template<class T, size_type N>
-CELER_FUNCTION RaggedRightIndexer<T, N>::RaggedRightIndexer(Sizes const& sizes)
+template<size_type N>
+CELER_FUNCTION
+RaggedRightIndexer<N>::RaggedRightIndexer(RaggedRightIndexerData<N> const& rrd)
+    : rrd_(rrd)
 {
-    CELER_EXPECT(sizes.size() > 0);
-
-    offsets_[0] = 0;
-
-    for (auto i : range(N))
-    {
-        CELER_EXPECT(sizes[i] > 0);
-        offsets_[i + 1] = sizes[i] + offsets_[i];
-    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert ragged indices to a flattened index.
  */
-template<class T, size_type N>
-CELER_FUNCTION typename RaggedRightIndexer<T, N>::index_type
-RaggedRightIndexer<T, N>::flattened_index(RaggedIndices ri) const
+template<size_type N>
+CELER_FUNCTION size_type RaggedRightIndexer<N>::index(Coords ri) const
 {
+    auto const& offsets = rrd_.offsets();
     CELER_EXPECT(ri[0] < N);
-    CELER_EXPECT(ri[1] < offsets_[ri[0] + 1] - offsets_[ri[0]]);
+    CELER_EXPECT(ri[1] < offsets[ri[0] + 1] - offsets[ri[0]]);
 
-    return offsets_[ri[0]] + ri[1];
+    return offsets[ri[0]] + ri[1];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert a flattened index into ragged indices.
  */
-template<class T, size_type N>
-CELER_FUNCTION typename RaggedRightIndexer<T, N>::RaggedIndices
-RaggedRightIndexer<T, N>::ragged_indices(index_type flattened_index) const
+template<size_type N>
+CELER_FUNCTION typename RaggedRightIndexer<N>::Coords
+RaggedRightIndexer<N>::coords(size_type index) const
 {
-    CELER_EXPECT(flattened_index < offsets_.back());
-    CELER_EXPECT(flattened_index >= 0);
+    auto const& offsets = rrd_.offsets();
+    CELER_EXPECT(index < offsets.back());
+    CELER_EXPECT(index >= 0);
 
-    index_type i = 0;
-    while (flattened_index >= offsets_[i + 1])
+    size_type i = 0;
+    while (index >= offsets[i + 1])
     {
         ++i;
     }
 
-    return RaggedIndices{i, flattened_index - offsets_[i]};
+    return Coords{i, index - offsets[i]};
 }
 
 //---------------------------------------------------------------------------//

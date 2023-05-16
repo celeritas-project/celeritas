@@ -18,44 +18,44 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-TEST(HyerslabIndexerTest, basic)
+TEST(RaggedRightIndexerTest, basic)
 {
-    using RRI = RaggedRightIndexer<size_type, 4>;
-    using RI = RRI::RaggedIndices;
+    using RRI = RaggedRightIndexer<4>;
+    using RRD = RaggedRightIndexerData<4>;
+    using RC = RRI::Coords;
 
-    RRI rri({3, 4, 1, 2});
+    RRD rrd({3, 4, 1, 2});
+    RRI rri(rrd);
 
     // Flattened to ragged
-    EXPECT_EQ(RI({0, 0}), rri.ragged_indices(0));
-    EXPECT_EQ(RI({0, 1}), rri.ragged_indices(1));
-    EXPECT_EQ(RI({0, 2}), rri.ragged_indices(2));
-    EXPECT_EQ(RI({1, 0}), rri.ragged_indices(3));
-    EXPECT_EQ(RI({1, 1}), rri.ragged_indices(4));
-    EXPECT_EQ(RI({1, 2}), rri.ragged_indices(5));
-    EXPECT_EQ(RI({1, 3}), rri.ragged_indices(6));
-    EXPECT_EQ(RI({2, 0}), rri.ragged_indices(7));
-    EXPECT_EQ(RI({3, 0}), rri.ragged_indices(8));
-    EXPECT_EQ(RI({3, 1}), rri.ragged_indices(9));
+    EXPECT_EQ(RC({0, 0}), rri.coords(0));
+    EXPECT_EQ(RC({0, 1}), rri.coords(1));
+    EXPECT_EQ(RC({0, 2}), rri.coords(2));
+    EXPECT_EQ(RC({1, 0}), rri.coords(3));
+    EXPECT_EQ(RC({1, 1}), rri.coords(4));
+    EXPECT_EQ(RC({1, 2}), rri.coords(5));
+    EXPECT_EQ(RC({1, 3}), rri.coords(6));
+    EXPECT_EQ(RC({2, 0}), rri.coords(7));
+    EXPECT_EQ(RC({3, 0}), rri.coords(8));
+    EXPECT_EQ(RC({3, 1}), rri.coords(9));
 
     // Ragged to flattened
-    EXPECT_EQ(0, rri.flattened_index(RI({0, 0})));
-    EXPECT_EQ(1, rri.flattened_index(RI({0, 1})));
-    EXPECT_EQ(2, rri.flattened_index(RI({0, 2})));
-    EXPECT_EQ(3, rri.flattened_index(RI({1, 0})));
-    EXPECT_EQ(4, rri.flattened_index(RI({1, 1})));
-    EXPECT_EQ(5, rri.flattened_index(RI({1, 2})));
-    EXPECT_EQ(6, rri.flattened_index(RI({1, 3})));
-    EXPECT_EQ(7, rri.flattened_index(RI({2, 0})));
-    EXPECT_EQ(8, rri.flattened_index(RI({3, 0})));
-    EXPECT_EQ(9, rri.flattened_index(RI({3, 1})));
+    EXPECT_EQ(0, rri.index(RC({0, 0})));
+    EXPECT_EQ(1, rri.index(RC({0, 1})));
+    EXPECT_EQ(2, rri.index(RC({0, 2})));
+    EXPECT_EQ(3, rri.index(RC({1, 0})));
+    EXPECT_EQ(4, rri.index(RC({1, 1})));
+    EXPECT_EQ(5, rri.index(RC({1, 2})));
+    EXPECT_EQ(6, rri.index(RC({1, 3})));
+    EXPECT_EQ(7, rri.index(RC({2, 0})));
+    EXPECT_EQ(8, rri.index(RC({3, 0})));
+    EXPECT_EQ(9, rri.index(RC({3, 1})));
 }
 
-#if CELERITAS_DEBUG
-TEST(HyerslabIndexerTest, error)
+TEST(RaggedRightIndexerTest, TEST_IF_CELERITAS_DEBUG(error))
 {
-    EXPECT_THROW((RaggedRightIndexer<size_type, 3>({2, 0, 3})), DebugError);
+    EXPECT_THROW((RaggedRightIndexerData<3>({2, 0, 1})), DebugError);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace test

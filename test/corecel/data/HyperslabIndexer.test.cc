@@ -20,7 +20,8 @@ namespace test
 
 TEST(HyperslabIndexerTest, 2D)
 {
-    HyperslabIndexer<size_type, 2> hi({3, 4});
+    HyperslabIndexer<2> hi({3, 4});
+    HyperslabInverseIndexer<2> hii({3, 4});
 
     size_type index = 0;
     for (size_type i : range(3))
@@ -28,8 +29,8 @@ TEST(HyperslabIndexerTest, 2D)
         for (size_type j : range(4))
         {
             Array<size_type, 2> coords{i, j};
-            EXPECT_EQ(coords, hi.coords(index));
-            EXPECT_EQ(index, hi.index(coords));
+            EXPECT_EQ(index, hi(coords));
+            EXPECT_EQ(coords, hii(index));
             index++;
         }
     }
@@ -37,7 +38,8 @@ TEST(HyperslabIndexerTest, 2D)
 
 TEST(HyperslabIndexerTest, 3D)
 {
-    HyperslabIndexer<size_type, 3> hi({3, 4, 5});
+    HyperslabIndexer<3> hi({3, 4, 5});
+    HyperslabInverseIndexer<3> hii({3, 4, 5});
 
     size_type index = 0;
     for (size_type i : range(3))
@@ -47,8 +49,8 @@ TEST(HyperslabIndexerTest, 3D)
             for (size_type k : range(5))
             {
                 Array<size_type, 3> coords{i, j, k};
-                EXPECT_EQ(coords, hi.coords(index));
-                EXPECT_EQ(index, hi.index(coords));
+                EXPECT_EQ(index, hi(coords));
+                EXPECT_EQ(coords, hii(index));
                 index++;
             }
         }
@@ -57,7 +59,8 @@ TEST(HyperslabIndexerTest, 3D)
 
 TEST(HyperslabIndexerTest, 4D)
 {
-    HyperslabIndexer<size_type, 4> hi({4, 6, 3, 2});
+    HyperslabIndexer<4> hi({4, 6, 3, 2});
+    HyperslabInverseIndexer<4> hii({4, 6, 3, 2});
 
     size_type index = 0;
     for (size_type i : range(4))
@@ -69,8 +72,8 @@ TEST(HyperslabIndexerTest, 4D)
                 for (size_type l : range(2))
                 {
                     Array<size_type, 4> coords{i, j, k, l};
-                    EXPECT_EQ(coords, hi.coords(index));
-                    EXPECT_EQ(index, hi.index(coords));
+                    EXPECT_EQ(index, hi(coords));
+                    EXPECT_EQ(coords, hii(index));
                     index++;
                 }
             }
@@ -80,7 +83,8 @@ TEST(HyperslabIndexerTest, 4D)
 
 TEST(HyperslabIndexerTest, 5D_with_ones)
 {
-    HyperslabIndexer<size_type, 5> hi({3, 1, 4, 1, 5});
+    HyperslabIndexer<5> hi({3, 1, 4, 1, 5});
+    HyperslabInverseIndexer<5> hii({3, 1, 4, 1, 5});
 
     size_type index = 0;
     for (size_type i : range(3))
@@ -90,20 +94,18 @@ TEST(HyperslabIndexerTest, 5D_with_ones)
             for (size_type k : range(5))
             {
                 Array<size_type, 5> coords{i, 0, j, 0, k};
-                EXPECT_EQ(coords, hi.coords(index));
-                EXPECT_EQ(index, hi.index(coords));
+                EXPECT_EQ(index, hi(coords));
+                EXPECT_EQ(coords, hii(index));
                 index++;
             }
         }
     }
 }
 
-#if CELERITAS_DEBUG
-TEST(HyperslabIndexerTest, error)
+TEST(HyperslabIndexerTest, TEST_IF_CELERITAS_DEBUG(error))
 {
-    EXPECT_THROW((HyperslabIndexer<size_type, 3>({2, 0, 3})), DebugError);
+    EXPECT_THROW((HyperslabIndexer<3>({2, 0, 3})), DebugError);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace test

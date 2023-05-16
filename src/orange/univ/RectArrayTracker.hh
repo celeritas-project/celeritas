@@ -33,10 +33,11 @@ class RectArrayTracker
     using Intersection = detail::Intersection;
     using LocalState = detail::LocalState;
     using Grid = NonuniformGrid<real_type>;
-    using VolumeIndexer = HyperslabIndexer<size_type, 3>;
-    using Coords = VolumeIndexer::Coords;
-    using SurfaceIndexer = RaggedRightIndexer<size_type, 3>;
-    using RaggedIndices = SurfaceIndexer::RaggedIndices;
+    using VolumeIndexer = HyperslabIndexer<3>;
+    using VolumeInverseIndexer = HyperslabInverseIndexer<3>;
+    using SurfaceIndexerData = RaggedRightIndexerData<3>;
+    using SurfaceIndexer = RaggedRightIndexer<3>;
+    using Coords = Array<size_type, 3>;
     //!@}
 
   public:
@@ -98,15 +99,14 @@ class RectArrayTracker
     //// DATA ////
     ParamsRef const& params_;
     RectArrayRecord const& record_;
-    Coords dims_;
+    Array<size_type, 3> dims_;
+    SurfaceIndexerData surface_indexer_data_;
 
     //// METHODS ////
 
     template<class F>
     inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
                                                       F) const;
-
-    inline CELER_FUNCTION SurfaceIndexer make_surface_indexer() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -125,6 +125,12 @@ RectArrayTracker::RectArrayTracker(ParamsRef const& params, RectArrayId rid)
     {
         dims_[to_int(ax)] = record_.grid[to_int(ax)].size() - 1;
     }
+
+    SurfaceIndexerData::Sizes sizes{dims_[to_int(Axis::x)] + 1,
+                                    dims_[to_int(Axis::y)] + 1,
+                                    dims_[to_int(Axis::z)] + 1};
+
+    surface_indexer_data_ = SurfaceIndexerData(sizes);
 }
 
 //---------------------------------------------------------------------------//
@@ -167,8 +173,8 @@ CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
         }
     }
 
-    VolumeIndexer indexer(dims_);
-    return {LocalVolumeId{indexer.index(coords)}, {}};
+    VolumeIndexer vi(dims_);
+    return {LocalVolumeId{vi(coords)}, {}};
 }
 
 //---------------------------------------------------------------------------//
@@ -183,11 +189,12 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
 
     // Find the coords of the current volume
     VolumeIndexer vi(dims_);
-    auto coords = vi.coords(state.volume.unchecked_get());
+    VolumeInverseIndexer vii(dims_);
+    auto coords = vii(state.volume.unchecked_get());
 
     // Find the index of axis (x/y/z) we are about to cross:
-    auto si = this->make_surface_indexer();
-    auto ax_idx = si.ragged_indices(state.surface.id().unchecked_get())[0];
+    SurfaceIndexer si(surface_indexer_data_);
+    auto ax_idx = si.coords(state.surface.id().unchecked_get())[0];
 
     // Value for incrementing the axial coordinate upon crossing
     int inc = (state.surface.sense() == Sense::outside) ? -1 : 1;
@@ -204,7 +211,7 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
     else
     {
         coords[ax_idx] += inc;
-        return {LocalVolumeId(vi.index(coords)), new_surface};
+        return {LocalVolumeId(vi(coords)), new_surface};
     }
 }
 
@@ -249,8 +256,8 @@ CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
 {
     CELER_EXPECT(volid && volid.get() < this->num_volumes());
 
-    VolumeIndexer vi(dims_);
-    auto coords = vi.coords(volid.unchecked_get());
+    VolumeInverseIndexer vii(dims_);
+    auto coords = vii(volid.unchecked_get());
 
     real_type min_dist = numeric_limits<real_type>::infinity();
 
@@ -278,8 +285,8 @@ CELER_FUNCTION auto RectArrayTracker::normal([[maybe_unused]] Real3 const& pos,
                                              LocalSurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf && surf.get() < this->num_surfaces());
-    auto si = this->make_surface_indexer();
-    size_type ax = si.ragged_indices(surf.get())[0];
+    SurfaceIndexer si(surface_indexer_data_);
+    size_type ax = si.coords(surf.get())[0];
 
     Real3 normal{0., 0., 0.};
     normal[ax] = 1.0;
@@ -311,12 +318,12 @@ RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 
-    VolumeIndexer volume_indexer(dims_);
-    auto coords = volume_indexer.coords(state.volume.unchecked_get());
+    VolumeInverseIndexer vii(dims_);
+    auto coords = vii(state.volume.unchecked_get());
 
     Intersection result;
     Sense sense;
-    auto surface_indexer = this->make_surface_indexer();
+    SurfaceIndexer surface_indexer(surface_indexer_data_);
 
     for (auto ax : range(Axis::size_))
     {
@@ -342,26 +349,13 @@ RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
             result.distance = dist;
 
             sense = dir > 0 ? Sense::inside : Sense::outside;
-            auto local_surface
-                = LocalSurfaceId(surface_indexer.flattened_index(RaggedIndices{
-                    static_cast<size_type>(to_int(ax)), target_coord}));
+            auto local_surface = LocalSurfaceId(surface_indexer.index(
+                {static_cast<size_type>(to_int(ax)), target_coord}));
             result.surface = detail::OnLocalSurface(local_surface, sense);
         }
     }
 
     return (is_valid(result.distance)) ? result : Intersection{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate distance-to-intercept for the next surface.
- */
-CELER_FUNCTION auto RectArrayTracker::make_surface_indexer() const
-    -> SurfaceIndexer
-{
-    return SurfaceIndexer({dims_[to_int(Axis::x)] + 1,
-                           dims_[to_int(Axis::y)] + 1,
-                           dims_[to_int(Axis::z)] + 1});
 }
 
 //---------------------------------------------------------------------------//
