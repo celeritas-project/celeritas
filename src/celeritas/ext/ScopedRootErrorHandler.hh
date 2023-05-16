@@ -41,8 +41,10 @@ class ScopedRootErrorHandler
 inline ScopedRootErrorHandler::ScopedRootErrorHandler()
 {
     (void)sizeof(previous_);
+    (void)sizeof(prev_errored_);
 }
 inline ScopedRootErrorHandler::~ScopedRootErrorHandler() {}
+inline ScopedRootErrorHandler::throw_if_errors() const {}
 //!@}
 #endif
 
