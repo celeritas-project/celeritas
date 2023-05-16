@@ -125,6 +125,11 @@ class OrangeTrackView
     StateRef const& states_;
     TrackSlotId track_slot_;
 
+    // Temporary next-step data
+    real_type next_step_{0};
+    detail::OnSurface next_surface_{};
+    LevelId next_surface_level_{};
+
     //// STATE ASSESSORS ////
 
     // The current level
@@ -221,9 +226,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    // Clear local data
-    this->clear_next_step();
-
     // Create local state
     detail::LocalState local;
     local.pos = init.pos;
@@ -305,9 +307,6 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
         this->level() = states_.level[init.other.track_slot_];
         this->surface_level() = states_.surface_level[init.other.track_slot_];
     }
-
-    // Clear step and surface info
-    this->clear_next_step();
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -405,18 +404,9 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
         return {0, true};
     }
 
-    if (!this->next_surface() && this->next_step() != no_intersection())
-    {
-        // Reset a previously found truncated distance
-        this->clear_next_step();
-    }
-
-    if (!this->has_next_step())
-    {
-        auto tracker = this->make_tracker(UniverseId{0});
-        auto isect = tracker.intersect(this->make_local_state(LevelId{0}));
-        this->find_next_step_impl(isect);
-    }
+    auto tracker = this->make_tracker(UniverseId{0});
+    auto isect = tracker.intersect(this->make_local_state(LevelId{0}));
+    this->find_next_step_impl(isect);
 
     Propagation result;
     result.distance = this->next_step();
@@ -726,7 +716,7 @@ CELER_FUNCTION LevelId& OrangeTrackView::surface_level()
  */
 CELER_FUNCTION real_type& OrangeTrackView::next_step()
 {
-    return states_.next_step[track_slot_];
+    return next_step_;
 }
 
 /*!
@@ -734,7 +724,7 @@ CELER_FUNCTION real_type& OrangeTrackView::next_step()
  */
 CELER_FUNCTION detail::OnSurface& OrangeTrackView::next_surface()
 {
-    return states_.next_surface[track_slot_];
+    return next_surface_;
 }
 
 /*!
@@ -742,7 +732,7 @@ CELER_FUNCTION detail::OnSurface& OrangeTrackView::next_surface()
  */
 CELER_FUNCTION LevelId& OrangeTrackView::next_surface_level()
 {
-    return states_.next_surface_level[track_slot_];
+    return next_surface_level_;
 }
 
 //---------------------------------------------------------------------------//
@@ -769,7 +759,7 @@ CELER_FUNCTION LevelId const& OrangeTrackView::surface_level() const
  */
 CELER_FUNCTION real_type const& OrangeTrackView::next_step() const
 {
-    return states_.next_step[track_slot_];
+    return next_step_;
 }
 
 /*!
@@ -777,7 +767,7 @@ CELER_FUNCTION real_type const& OrangeTrackView::next_step() const
  */
 CELER_FUNCTION detail::OnSurface const& OrangeTrackView::next_surface() const
 {
-    return states_.next_surface[track_slot_];
+    return next_surface_;
 }
 
 /*!
@@ -785,7 +775,7 @@ CELER_FUNCTION detail::OnSurface const& OrangeTrackView::next_surface() const
  */
 CELER_FUNCTION LevelId const& OrangeTrackView::next_surface_level() const
 {
-    return states_.next_surface_level[track_slot_];
+    return next_surface_level_;
 }
 
 //---------------------------------------------------------------------------//
@@ -932,7 +922,7 @@ OrangeTrackView::make_local_state(LevelId level) const
  */
 CELER_FUNCTION bool OrangeTrackView::has_next_step() const
 {
-    return states_.next_step[track_slot_] != 0;
+    return next_step_ != 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -944,9 +934,7 @@ CELER_FUNCTION bool OrangeTrackView::has_next_step() const
  */
 CELER_FUNCTION void OrangeTrackView::clear_next_step()
 {
-    states_.next_step[track_slot_] = 0;
-    states_.next_surface[track_slot_] = {};
-    states_.next_surface_level[track_slot_] = {};
+    next_step_ = 0;
 }
 
 //---------------------------------------------------------------------------//

@@ -80,119 +80,57 @@ TEST_F(TestEm3DiagnosticTest, host)
     auto result = this->run<MemSpace::host>(256, 32);
 
     // Check action diagnostic results
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-    {
-        static char const* const expected_nonzero_action_keys[]
-            = {"annihil-2-gamma e+",
-               "brems-combined e+",
-               "brems-combined e-",
-               "conv-bethe-heitler gamma",
-               "eloss-range e+",
-               "eloss-range e-",
-               "geo-boundary e+",
-               "geo-boundary e-",
-               "geo-boundary gamma",
-               "geo-propagation-limit e+",
-               "geo-propagation-limit e-",
-               "ioni-moller-bhabha e+",
-               "ioni-moller-bhabha e-",
-               "msc-range e+",
-               "msc-range e-",
-               "photoel-livermore gamma",
-               "physics-integral-rejected e+",
-               "physics-integral-rejected e-",
-               "scat-klein-nishina gamma"};
-        EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
+    static char const* const expected_nonzero_action_keys[]
+        = {"annihil-2-gamma e+",
+           "brems-combined e+",
+           "brems-combined e-",
+           "conv-bethe-heitler gamma",
+           "eloss-range e+",
+           "eloss-range e-",
+           "geo-boundary e+",
+           "geo-boundary e-",
+           "geo-boundary gamma",
+           "ioni-moller-bhabha e+",
+           "ioni-moller-bhabha e-",
+           "msc-range e+",
+           "msc-range e-",
+           "photoel-livermore gamma",
+           "physics-integral-rejected e+",
+           "physics-integral-rejected e-",
+           "scat-klein-nishina gamma"};
+    EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
-        if (this->is_ci_build())
-        {
-            static size_type const expected_nonzero_action_counts[] = {127u,
-                                                                       386u,
-                                                                       467u,
-                                                                       19u,
-                                                                       55u,
-                                                                       1019u,
-                                                                       284u,
-                                                                       289u,
-                                                                       1769u,
-                                                                       10u,
-                                                                       15u,
-                                                                       14u,
-                                                                       20u,
-                                                                       1168u,
-                                                                       1580u,
-                                                                       575u,
-                                                                       90u,
-                                                                       22u,
-                                                                       283u};
-            EXPECT_VEC_EQ(expected_nonzero_action_counts,
-                          result.nonzero_action_counts);
-
-            static size_type const expected_steps[]
-                = {0u, 327u, 196u, 81u, 41u, 29u, 26u, 17u, 13u, 6u, 7u,
-                   1u, 3u,   4u,   2u,  1u,  0u,  2u,  1u,  0u,  1u, 1u,
-                   0u, 737u, 43u,  17u, 9u,  11u, 7u,  5u,  9u,  5u, 4u,
-                   9u, 11u,  9u,   10u, 14u, 4u,  5u,  2u,  2u,  4u, 22u,
-                   0u, 0u,   5u,   2u,  1u,  4u,  5u,  8u,  4u,  7u, 7u,
-                   7u, 7u,   13u,  8u,  7u,  3u,  2u,  5u,  6u,  1u, 27u};
-            EXPECT_VEC_EQ(expected_steps, result.steps);
-        }
-    }
-    else
+    if (this->is_ci_build())
     {
+        static size_type const expected_nonzero_action_counts[] = {124u,
+                                                                   391u,
+                                                                   476u,
+                                                                   19u,
+                                                                   59u,
+                                                                   1010u,
+                                                                   274u,
+                                                                   281u,
+                                                                   1813u,
+                                                                   15u,
+                                                                   19u,
+                                                                   1186u,
+                                                                   1549u,
+                                                                   567u,
+                                                                   87u,
+                                                                   24u,
+                                                                   298u};
+        EXPECT_VEC_EQ(expected_nonzero_action_counts,
+                      result.nonzero_action_counts);
+
         // ORANGE results are slightly different
-        static char const* const expected_nonzero_action_keys[]
-            = {"annihil-2-gamma e+",
-               "brems-combined e+",
-               "brems-combined e-",
-               "conv-bethe-heitler gamma",
-               "eloss-range e+",
-               "eloss-range e-",
-               "geo-boundary e+",
-               "geo-boundary e-",
-               "geo-boundary gamma",
-               "ioni-moller-bhabha e+",
-               "ioni-moller-bhabha e-",
-               "msc-range e+",
-               "msc-range e-",
-               "photoel-livermore gamma",
-               "physics-integral-rejected e+",
-               "physics-integral-rejected e-",
-               "scat-klein-nishina gamma"};
-        EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
-
-        if (this->is_ci_build())
-        {
-            static size_type const expected_nonzero_action_counts[] = {124u,
-                                                                       391u,
-                                                                       476u,
-                                                                       19u,
-                                                                       59u,
-                                                                       1010u,
-                                                                       274u,
-                                                                       281u,
-                                                                       1813u,
-                                                                       15u,
-                                                                       19u,
-                                                                       1186u,
-                                                                       1549u,
-                                                                       567u,
-                                                                       87u,
-                                                                       24u,
-                                                                       298u};
-            EXPECT_VEC_EQ(expected_nonzero_action_counts,
-                          result.nonzero_action_counts);
-
-            // ORANGE results are slightly different
-            static size_type const expected_steps[]
-                = {0u, 316u, 209u, 91u, 33u, 35u, 21u, 20u, 7u,  11u, 10u,
-                   1u, 2u,   3u,   3u,  1u,  1u,  1u,  0u,  0u,  1u,  1u,
-                   0u, 742u, 39u,  11u, 7u,  10u, 6u,  10u, 11u, 5u,  3u,
-                   7u, 11u,  11u,  10u, 14u, 4u,  4u,  3u,  3u,  3u,  23u,
-                   0u, 2u,   2u,   1u,  1u,  6u,  5u,  7u,  4u,  6u,  8u,
-                   7u, 7u,   13u,  8u,  7u,  3u,  2u,  5u,  6u,  2u,  24u};
-            EXPECT_VEC_EQ(expected_steps, result.steps);
-        }
+        static size_type const expected_steps[]
+            = {0u, 316u, 209u, 91u, 33u, 35u, 21u, 20u, 7u,  11u, 10u,
+               1u, 2u,   3u,   3u,  1u,  1u,  1u,  0u,  0u,  1u,  1u,
+               0u, 742u, 39u,  11u, 7u,  10u, 6u,  10u, 11u, 5u,  3u,
+               7u, 11u,  11u,  10u, 14u, 4u,  4u,  3u,  3u,  3u,  23u,
+               0u, 2u,   2u,   1u,  1u,  6u,  5u,  7u,  4u,  6u,  8u,
+               7u, 7u,   13u,  8u,  7u,  3u,  2u,  5u,  6u,  2u,  24u};
+        EXPECT_VEC_EQ(expected_steps, result.steps);
     }
 }
 

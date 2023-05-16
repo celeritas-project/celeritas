@@ -84,8 +84,6 @@ class KernelContextException : public RichContextException
     VolumeId volume() const { return volume_; }
     //! Surface
     SurfaceId surface() const { return surface_; }
-    //! Next surface
-    SurfaceId next_surface() const { return next_surface_; }
     //!@}
 
     //! Label of the kernel that died
@@ -104,7 +102,6 @@ class KernelContextException : public RichContextException
     Real3 dir_;
     VolumeId volume_;
     SurfaceId surface_;
-    SurfaceId next_surface_;
 
     std::string label_;
     std::string what_;

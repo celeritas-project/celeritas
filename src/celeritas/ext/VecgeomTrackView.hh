@@ -37,6 +37,9 @@ namespace celeritas
  * \code
     VecgeomTrackView geom(vg_params_ref, vg_state_ref, trackslot_id);
    \endcode
+ *
+ * The "next distance" is cached as part of `find_next_step`, but it is only
+ * used when the immediate next call is `move_to_boundary`.
  */
 class VecgeomTrackView
 {
@@ -88,7 +91,6 @@ class VecgeomTrackView
     //!@{
     //! VecGeom states are never "on" a surface
     CELER_FUNCTION SurfaceId surface_id() const { return {}; }
-    CELER_FUNCTION SurfaceId next_surface_id() const { return {}; }
     //!@}
 
     // Whether the track is outside the valid geometry region
@@ -139,8 +141,10 @@ class VecgeomTrackView
     NavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
-    real_type& next_step_;
     //!@}
+
+    // Temporary data
+    real_type next_step_{0};
 
     //// HELPER FUNCTIONS ////
 
@@ -169,7 +173,6 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     , vgnext_(states.vgnext.at(params_.max_depth, tid))
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
-    , next_step_(states.next_step[tid])
 {
 }
 
@@ -189,7 +192,6 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // Initialize position/direction
     pos_ = init.pos;
     dir_ = init.dir;
-    next_step_ = 0;
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
@@ -202,7 +204,6 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     detail::BVHNavigator::LocatePointIn(
         worldvol, detail::to_vector(pos_), vgstate_, contains_point);
 
-    CELER_ENSURE(!this->has_next_step());
     return *this;
 }
 
@@ -228,7 +229,6 @@ VecgeomTrackView& VecgeomTrackView::operator=(DetailedInitializer const& init)
 
     // Set up the next state and initialize the direction
     dir_ = init.dir;
-    next_step_ = 0;
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -312,36 +312,21 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
 
-    if (next_step_ > max_step)
+    // Use BVH navigator to find internal distance
+    next_step_ = detail::BVHNavigator::ComputeStepAndNextVolume(
+        detail::to_vector(pos_),
+        detail::to_vector(dir_),
+        max_step,
+        vgstate_,
+        vgnext_);
+    next_step_ = max(next_step_, this->extra_push());
+    if (!this->is_next_boundary())
     {
-        // Cached next step is beyond the given step
-        return {max_step, false};
-    }
-    else if (0 < next_step_ && next_step_ < max_step
-             && !this->is_next_boundary())
-    {
-        // Reset a previously found truncated distance
-        next_step_ = 0;
-    }
-
-    if (!this->has_next_step())
-    {
-        // Use BVH navigator to find internal distance
-        next_step_ = detail::BVHNavigator::ComputeStepAndNextVolume(
-            detail::to_vector(pos_),
-            detail::to_vector(dir_),
-            max_step,
-            vgstate_,
-            vgnext_);
-        next_step_ = max(next_step_, this->extra_push());
-        if (!this->is_next_boundary())
-        {
-            // Soft equivalence between distance and max step is because the
-            // BVH navigator subtracts and then re-adds a bump distance to the
-            // step
-            CELER_ASSERT(soft_equal(next_step_, max_step));
-            next_step_ = max_step;
-        }
+        // Soft equivalence between distance and max step is because the
+        // BVH navigator subtracts and then re-adds a bump distance to the
+        // step
+        CELER_ASSERT(soft_equal(next_step_, max_step));
+        next_step_ = max_step;
     }
 
     Propagation result;
