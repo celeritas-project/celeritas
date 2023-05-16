@@ -19,43 +19,29 @@
 namespace
 {
 //---------------------------------------------------------------------------//
-// Use an environment variable to disable signals
-bool determine_allow_signals()
-{
-    if (!celeritas::getenv("CELER_DISABLE_SIGNALS").empty())
-    {
-        CELER_LOG(info)
-            << "Disabling signal support since the 'CELER_DISABLE_SIGNALS' "
-               "environment variable is present and non-empty";
-        return false;
-    }
-    return true;
-}
-
-//---------------------------------------------------------------------------//
 // Bitset of signals that have been called
-volatile sig_atomic_t celer_signal_bits = 0;
+volatile sig_atomic_t celer_signal_bits_ = 0;
 
 //---------------------------------------------------------------------------//
 //! Set the bit corresponding to a signal
 extern "C" void celer_set_signal(int signal)
 {
     CELER_ASSERT(signal >= 0 && signal < static_cast<int>(sizeof(int) * 8 - 1));
-    celer_signal_bits |= (1 << signal);
+    celer_signal_bits_ |= (1 << signal);
 }
 
 //---------------------------------------------------------------------------//
 //! Clear the bit(s) corresponding to one or more signals
 void celer_clr_signal(int mask)
 {
-    celer_signal_bits &= ~mask;
+    celer_signal_bits_ &= ~mask;
 }
 
 //---------------------------------------------------------------------------//
 //! Return whether the bit corresponding to any of the given signalsis set
 bool celer_chk_signal(int mask)
 {
-    return celer_signal_bits & mask;
+    return celer_signal_bits_ & mask;
 }
 
 //---------------------------------------------------------------------------//
@@ -69,7 +55,16 @@ namespace celeritas
  */
 bool ScopedSignalHandler::allow_signals()
 {
-    static bool result = determine_allow_signals();
+    static bool const result = [] {
+        if (!celeritas::getenv("CELER_DISABLE_SIGNALS").empty())
+        {
+            CELER_LOG(info) << "Disabling signal support since the "
+                               "'CELER_DISABLE_SIGNALS' "
+                               "environment variable is present and non-empty";
+            return false;
+        }
+        return true;
+    }();
     return result;
 }
 
