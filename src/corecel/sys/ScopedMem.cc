@@ -27,11 +27,13 @@ namespace celeritas
 {
 namespace
 {
+//---------------------------------------------------------------------------//
 struct MemResult
 {
     std::size_t hwm{0};
     std::size_t resident{0};  // unused, not available on linux
 };
+
 //---------------------------------------------------------------------------//
 //! Return high water mark and possibly resident memory [bytes]
 MemResult get_cpu_mem()
