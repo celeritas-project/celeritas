@@ -81,7 +81,7 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
     this->build_diagnostics(inp);
     this->build_step_collectors(inp);
     this->build_transporter_input(inp);
-    this->build_primaries(inp);
+    this->build_events(inp);
     use_device_ = inp.use_device;
 
     if (root_manager_)
@@ -99,9 +99,10 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
  *
  * This will partition the input primaries among all the streams.
  */
-auto Runner::operator()(StreamId stream_id) const -> RunnerResult
+RunnerResult Runner::operator()(StreamId stream_id, EventId event_id) const
 {
     CELER_EXPECT(stream_id < this->num_streams());
+    CELER_EXPECT(event_id < this->num_events());
 
     auto transport = [this, stream_id]() -> std::unique_ptr<TransporterBase> {
         // Thread-local transporter input
@@ -123,9 +124,7 @@ auto Runner::operator()(StreamId stream_id) const -> RunnerResult
         }
     }();
 
-    // TODO: partition primaries among streams
-    CELER_ASSERT(stream_id == StreamId{0});
-    return (*transport)(make_span(primaries_));
+    return (*transport)(make_span(events_[event_id.get()]));
 }
 
 //---------------------------------------------------------------------------//
@@ -135,6 +134,15 @@ auto Runner::operator()(StreamId stream_id) const -> RunnerResult
 StreamId::size_type Runner::num_streams() const
 {
     return core_params_->max_streams();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Total number of events.
+ */
+size_type Runner::num_events() const
+{
+    return events_.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -300,6 +308,27 @@ void Runner::build_core_params(RunnerInput const& inp,
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
+    // Store the number of simultaneous threads/tasks per process
+    params.max_streams = [&inp] {
+        std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
+        if (!nt_str.empty())
+        {
+            std::size_t idx;
+            auto num_threads = std::stoi(nt_str, &idx);
+            if (!inp.use_device && idx == nt_str.size())
+            {
+                CELER_LOG(warning)
+                    << "Using " << num_threads
+                    << " threads for each nested parallel region";
+            }
+            return num_threads;
+        }
+        return 1;
+    }();
+    CELER_VALIDATE(inp.mctruth_filename.empty() || params.max_streams == 1,
+                   << "MC truth output is only supported with a single "
+                      "stream.");
+
     core_params_ = std::make_shared<CoreParams>(std::move(params));
 }
 
@@ -323,11 +352,11 @@ void Runner::build_transporter_input(RunnerInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct on all threads from a JSON input and shared output manager.
+ * Read events from a HepMC3 file or build using a primary generator.
  */
-void Runner::build_primaries(RunnerInput const& inp)
+void Runner::build_events(RunnerInput const& inp)
 {
-    ScopedMem record_mem("Runner.build_primaries");
+    ScopedMem record_mem("Runner.build_events");
     if (inp.primary_gen_options)
     {
         std::mt19937 rng;
@@ -336,7 +365,7 @@ void Runner::build_primaries(RunnerInput const& inp)
         auto event = generate_event(rng);
         while (!event.empty())
         {
-            primaries_.insert(primaries_.end(), event.begin(), event.end());
+            events_.push_back(event);
             event = generate_event(rng);
         }
     }
@@ -347,7 +376,7 @@ void Runner::build_primaries(RunnerInput const& inp)
         auto event = read_event();
         while (!event.empty())
         {
-            primaries_.insert(primaries_.end(), event.begin(), event.end());
+            events_.push_back(event);
             event = read_event();
         }
     }

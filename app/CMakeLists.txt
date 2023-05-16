@@ -221,6 +221,7 @@ if(CELERITAS_BUILD_DEMOS)
     demo-loop/demo-loop.cc
     demo-loop/RunnerInputIO.json.cc
     demo-loop/Runner.cc
+    demo-loop/RunnerOutput.cc
     demo-loop/Transporter.cc
   )
 
@@ -306,8 +307,14 @@ if(CELERITAS_BUILD_DEMOS)
       "CELER_LOG=debug"
       "CELER_DISABLE_DEVICE=1"
       "CELER_DISABLE_PARALLEL=1"
-      ${_omp_env}
     )
+    if(CELERITAS_USE_OpenMP)
+      if(CELERITAS_USE_ROOT)
+        list(APPEND _env "OMP_NUM_THREADS=1,4")
+      else()
+        list(APPEND _env "OMP_NUM_THREADS=2,2")
+      endif()
+    endif()
     if(NOT CELERITAS_CORE_GEO STREQUAL "VecGeom")
       list(APPEND _env "CELER_DISABLE_VECGEOM=1")
     endif()

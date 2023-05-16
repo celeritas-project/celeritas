@@ -18,7 +18,6 @@
 #include "celeritas/Types.hh"
 
 #include "Runner.hh"
-#include "RunnerInput.hh"
 
 namespace celeritas
 {
@@ -30,9 +29,6 @@ class CoreParams;
 
 namespace demo_loop
 {
-//---------------------------------------------------------------------------//
-struct RunnerInput;
-
 //---------------------------------------------------------------------------//
 //! Input parameters to the transporter.
 struct TransporterInput
@@ -105,6 +101,7 @@ class Transporter final : public TransporterBase
   private:
     std::shared_ptr<celeritas::Stepper<M>> stepper_;
     celeritas::size_type max_steps_;
+    bool time_stream_;
 };
 
 //---------------------------------------------------------------------------//

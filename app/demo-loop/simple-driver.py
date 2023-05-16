@@ -134,6 +134,6 @@ with open(outfilename, 'w') as f:
     json.dump(j, f, indent=1)
 print("Results written to", outfilename, file=stderr)
 
-time = j['result']['time'].copy()
+time = j['result']['runner']['time'].copy()
 time.pop('steps')
 print(json.dumps(time, indent=1))

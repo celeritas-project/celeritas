@@ -33,43 +33,39 @@ struct TransporterInput;
 
 //---------------------------------------------------------------------------//
 /*!
- * Simulation timing results.
- *
- * TODO: maybe a timer diagnostic class could help out here?
- * or another OutputRegistry.
- */
-struct RunTimingResult
-{
-    using real_type = celeritas::real_type;
-    using VecReal = std::vector<real_type>;
-    using MapStrReal = std::unordered_map<std::string, real_type>;
-
-    VecReal steps;  //!< Real time per step
-    real_type total{};  //!< Total simulation time
-    real_type setup{};  //!< One-time initialization cost
-    MapStrReal actions{};  //!< Accumulated action timing
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Tallied result and timing from transporting a set of primaries.
- *
- * TODO: these should be migrated to OutputInterface classes.
+ * Tallied result and timing from transporting a single event.
  */
 struct RunnerResult
 {
-    //!@{
-    //! \name Type aliases
+    using real_type = celeritas::real_type;
     using size_type = celeritas::size_type;
+    using MapStrReal = std::unordered_map<std::string, real_type>;
+    using VecReal = std::vector<real_type>;
     using VecCount = std::vector<size_type>;
-    //!@}
-
-    //// DATA ////
 
     VecCount initializers;  //!< Num starting track initializers
     VecCount active;  //!< Num tracks active at beginning of step
     VecCount alive;  //!< Num living tracks at end of step
-    RunTimingResult time;  //!< Timing information
+    MapStrReal action_times{};  //!< Accumulated action timing
+    VecReal step_times;  //!< Real time per step
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Results from transporting all events.
+ */
+struct SimulationResult
+{
+    //!@{
+    //! \name Type aliases
+    using real_type = celeritas::real_type;
+    //!@}
+
+    //// DATA ////
+
+    real_type total_time{};  //!< Total simulation time
+    real_type setup_time{};  //!< One-time initialization cost
+    std::vector<RunnerResult> events;  //< Results tallied for each event
 };
 
 //---------------------------------------------------------------------------//
@@ -84,7 +80,9 @@ class Runner
   public:
     //!@{
     //! \name Type aliases
+    using EventId = celeritas::EventId;
     using StreamId = celeritas::StreamId;
+    using size_type = celeritas::size_type;
     using Input = RunnerInput;
     using SPOutputRegistry = std::shared_ptr<celeritas::OutputRegistry>;
     //!@}
@@ -94,12 +92,19 @@ class Runner
     Runner(RunnerInput const& inp, SPOutputRegistry output);
 
     // Run on a single stream/thread, returning the transport result
-    RunnerResult operator()(StreamId s) const;
+    RunnerResult operator()(StreamId, EventId) const;
 
     // Number of streams supported
     StreamId::size_type num_streams() const;
 
+    // Total number of events
+    size_type num_events() const;
+
   private:
+    //// TYPES ////
+
+    using VecEvent = std::vector<std::vector<celeritas::Primary>>;
+
     //// DATA ////
 
     std::shared_ptr<celeritas::CoreParams> core_params_;
@@ -109,7 +114,7 @@ class Runner
     // Transporter inputs
     bool use_device_{};
     std::shared_ptr<TransporterInput> transporter_input_;
-    std::vector<celeritas::Primary> primaries_;
+    VecEvent events_;
 
     //// HELPER FUNCTIONS ////
 
@@ -118,7 +123,7 @@ class Runner
     void build_step_collectors(RunnerInput const&);
     void build_diagnostics(RunnerInput const&);
     void build_transporter_input(RunnerInput const&);
-    void build_primaries(RunnerInput const&);
+    void build_events(RunnerInput const&);
 };
 
 //---------------------------------------------------------------------------//
