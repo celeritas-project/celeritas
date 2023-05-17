@@ -89,8 +89,6 @@ class GeantGeoConverter
 
     std::map<G4LogicalVolume const*, LogicalVolume const*> logical_volume_map_;
 
-    std::vector<Transformation3D const*> replica_transformations_;
-
     std::map<G4LogicalVolume const*, celeritas::VolumeId> g4logvol_id_map_;
 
     //// HELPER FUNCTIONS ////

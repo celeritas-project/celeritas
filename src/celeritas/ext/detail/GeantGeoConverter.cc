@@ -205,13 +205,7 @@ VPlacedVolume const* GeantGeoConverter::convert(G4VPhysicalVolume const* node,
         return placed_volume;
     }
 
-    // TODO: replica volumes - place all replicas here
-    // for (auto& transf : replica_transformations_)
-    //{
-    //    VPlacedVolume const* placed_volume
-    //        = logical_volume->Place(node->GetName(), transformation);
-    //    vgvector.push_back(placed_volume);
-    //}
+    // TODO: place replica volumes
 
     //.. find the placed volume corresponding to this G4VPhysicalVolume
     unsigned int last = mother->GetIdCount();
@@ -317,8 +311,6 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
                                                  rr.zz());
         auto* transf2 = make_transformation(g4pv_kid->GetTranslation(),
                                             g4pv_kid->GetRotation());
-        CELER_LOG(info) << " -- trf : " << transformation;
-        CELER_LOG(info) << " -- trf2: " << *transf2;
         CELER_ASSERT(*transf2 == transformation);
 
         auto g4lv_kid = g4pv_kid->GetLogicalVolume();
@@ -764,7 +756,7 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
                          << shape->GetName() << "' of type "
                          << shape->GetEntityType();
         unplaced_volume = new GenericSolid<G4VSolid>(shape);
-        CELER_LOG(info) << " Unsupported volume -- capacity = "
+        CELER_LOG(info) << "Unsupported volume capacity = "
                         << unplaced_volume->Capacity() / ipow<3>(scale);
     }
 

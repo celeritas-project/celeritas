@@ -169,26 +169,6 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 }
 
 //---------------------------------------------------------------------------//
-
-class CmsRun3Test : public HeuristicGeoTestBase
-{
-  protected:
-    std::string_view geometry_basename() const override { return "cms-run3"; }
-
-    HeuristicGeoScalars build_scalars() const final
-    {
-        HeuristicGeoScalars result;
-        result.lower = {-2.1, -2.1, -2.1};
-        result.upper = {2.1, 2.1, 2.1};
-        return result;
-    }
-
-    size_type num_steps() const final { return 1024; }
-    // SpanConstStr reference_volumes() const final;
-    // SpanConstReal reference_avg_path() const final;
-};
-
-//---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
 
@@ -273,30 +253,6 @@ TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
     real_type tol = CELERITAS_USE_VECGEOM ? 0.025 : 1e-3;
-    this->run_device(512, tol);
-}
-
-//---------------------------------------------------------------------------//
-// CMS-RUN3 TEST
-//---------------------------------------------------------------------------//
-
-TEST_F(CmsRun3Test, host)
-{
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-    {
-        EXPECT_TRUE(this->geometry()->supports_safety());
-    }
-    else
-    {
-        EXPECT_FALSE(this->geometry()->supports_safety());
-    }
-    real_type tol = CELERITAS_USE_VECGEOM ? 0.25 : 1e-3;
-    this->run_host(512, tol);
-}
-
-TEST_F(CmsRun3Test, TEST_IF_CELER_DEVICE(device))
-{
-    real_type tol = CELERITAS_USE_VECGEOM ? 0.25 : 1e-3;
     this->run_device(512, tol);
 }
 

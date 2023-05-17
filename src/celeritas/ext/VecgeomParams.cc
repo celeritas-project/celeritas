@@ -218,7 +218,7 @@ void VecgeomParams::build_tracking()
         CELER_LOG(debug) << "Converting to CUDA geometry";
         {
             ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
-            cuda_manager.set_verbose(3);
+            // cuda_manager.set_verbose(1);
             cuda_manager.LoadGeometry();
             CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         }
