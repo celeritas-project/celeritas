@@ -51,8 +51,8 @@ class VecgeomTrackView
     //! Helper struct for initializing from an existing geometry state
     struct DetailedInitializer
     {
-        VecgeomTrackView& other;  //!< Existing geometry
-        Real3 dir;  //!< New direction
+        VecgeomTrackView const& other;  //!< Existing geometry
+        Real3 const& dir;  //!< New direction
     };
 
   public:

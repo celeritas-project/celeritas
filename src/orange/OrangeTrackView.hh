@@ -59,8 +59,8 @@ class OrangeTrackView
     //! Helper struct for initializing from an existing geometry state
     struct DetailedInitializer
     {
-        OrangeTrackView& other;  //!< Existing geometry
-        Real3 dir;  //!< New direction
+        OrangeTrackView const& other;  //!< Existing geometry
+        Real3 const& dir;  //!< New direction
     };
 
   public:
@@ -289,15 +289,22 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
     for (auto i : range(states_.level[init.other.track_slot_] + 1))
     {
-        // Copy all data accessed via LSA
+        // Copy all data accessed via LSA except for direction
         auto lsa = this->make_lsa(LevelId{i});
-        lsa = init.other.make_lsa(LevelId{i});
+        if (this != &init.other)
+        {
+            lsa = init.other.make_lsa(LevelId{i});
+        }
+        // TODO: apply rotation when we use Transform instead of Translate
         lsa.dir() = init.dir;
     }
 
-    // Copy init track's position but update the direction
-    this->level() = states_.level[init.other.track_slot_];
-    this->surface_level() = states_.surface_level[init.other.track_slot_];
+    if (this != &init.other)
+    {
+        // Copy init track's position but update the direction
+        this->level() = states_.level[init.other.track_slot_];
+        this->surface_level() = states_.surface_level[init.other.track_slot_];
+    }
 
     // Clear step and surface info
     this->clear_next_step();
