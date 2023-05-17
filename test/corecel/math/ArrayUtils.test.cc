@@ -62,6 +62,13 @@ TEST(ArrayUtilsTest, norm)
                    norm(Array<double, 3>{2, 3, 4}));
 }
 
+TEST(ArrayUtilsTest, distance_sq)
+{
+    EXPECT_SOFT_EQ(
+        4.0 + 9.0 + 16.0,
+        distance_sq(Array<double, 3>{3, 4, 5}, Array<double, 3>{1, 1, 1}));
+}
+
 TEST(ArrayUtilsTest, distance)
 {
     EXPECT_SOFT_EQ(

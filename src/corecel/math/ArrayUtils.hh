@@ -43,6 +43,12 @@ template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T norm(Array<T, N> const& vec);
 
 //---------------------------------------------------------------------------//
+// Calculate the square of the distance between two points
+template<class T, size_type N>
+[[nodiscard]] inline CELER_FUNCTION T distance_sq(Array<T, N> const& x,
+                                                  Array<T, N> const& y);
+
+//---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) distance between two points
 template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
@@ -129,14 +135,24 @@ CELER_FUNCTION T norm(Array<T, N> const& v)
  * Calculate the Euclidian (2) distance between two points.
  */
 template<class T, size_type N>
-CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)
+CELER_FUNCTION T distance_sq(Array<T, N> const& x, Array<T, N> const& y)
 {
     T dist_sq = 0;
     for (size_type i = 0; i != N; ++i)
     {
         dist_sq += ipow<2>(y[i] - x[i]);
     }
-    return std::sqrt(dist_sq);
+    return dist_sq;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the Euclidian (2) distance between two points.
+ */
+template<class T, size_type N>
+CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)
+{
+    return std::sqrt(distance_sq(x, y));
 }
 
 //---------------------------------------------------------------------------//
