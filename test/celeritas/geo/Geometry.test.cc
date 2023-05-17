@@ -173,7 +173,7 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 class CmsRun3Test : public HeuristicGeoTestBase
 {
   protected:
-    char const* geometry_basename() const override { return "cms-run3"; }
+    std::string_view geometry_basename() const override { return "cms-run3"; }
 
     HeuristicGeoScalars build_scalars() const final
     {
