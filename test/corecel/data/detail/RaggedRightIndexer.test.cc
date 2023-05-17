@@ -6,7 +6,7 @@
 //! \file corecel/data/RaggedRightIndexer.test.cc
 //---------------------------------------------------------------------------//
 
-#include "corecel/data/RaggedRightIndexer.hh"
+#include "corecel/data/detail/RaggedRightIndexer.hh"
 
 #include "corecel/cont/Range.hh"
 

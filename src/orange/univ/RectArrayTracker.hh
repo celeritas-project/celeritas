@@ -9,7 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/HyperslabIndexer.hh"
-#include "corecel/data/RaggedRightIndexer.hh"
+#include "corecel/data/detail/RaggedRightIndexer.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
@@ -157,7 +157,7 @@ CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
         if (pos < grid.front() || pos > grid.back())
         {
             // Outside the rect array
-            return {record_.background, {}};
+            return {{}, {}};
         }
         else
         {
@@ -171,7 +171,7 @@ CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
             else
             {
                 // On boundary
-                return {record_.background, {}};
+                return {{}, {}};
             }
         }
     }
@@ -209,7 +209,7 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
         || (coords[ax_idx] == dims_[ax_idx] - 1 && inc == 1))
     {
         // crossimg out
-        return {record_.background, new_surface};
+        return {{}, new_surface};
     }
     else
     {

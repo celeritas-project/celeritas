@@ -156,8 +156,6 @@ struct RectArrayRecord
     // Daughter data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, DaughterId> daughters;
 
-    LocalVolumeId background{};  //!< Default if not in any other volume
-
     //! Cursory check for validity
     explicit CELER_FUNCTION operator bool() const
     {

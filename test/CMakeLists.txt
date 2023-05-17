@@ -134,8 +134,8 @@ celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
 celeritas_add_device_test(corecel/data/ObserverPtr)
 celeritas_add_test(corecel/data/HyperslabIndexer.test.cc GPU)
-celeritas_add_test(corecel/data/RaggedRightIndexer.test.cc GPU)
 celeritas_add_device_test(corecel/data/StackAllocator)
+celeritas_add_test(corecel/data/detail/RaggedRightIndexer.test.cc GPU)
 
 # Grid
 set(CELERITASTEST_PREFIX corecel/grid)
