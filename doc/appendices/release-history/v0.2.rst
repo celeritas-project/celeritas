@@ -2,6 +2,44 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+
+.. _release_v0.2.2:
+
+Version 0.2.2
+=============
+
+*Released 2023/05/16*
+
+Version 0.2.2 will be the last release in the v0.2 series and includes
+a few minor bug fixes. Additional fixes on the v0.3 develop branch require
+enhancements specific to the new code base, so those were not backported.
+
+
+Bug fixes
+---------
+
+* Fix hit mapping when using GDML geometry with pointers *(@sethrj, #672)*
+* Fail fast instead of giving wrong answers for multithreading *(@sethrj, #691)*
+* Fix a few edge cases in field propagation *(@amandalund, #700)*
+
+Reviewers: @stognini *(1)*, @amandalund *(1)*, @sethrj *(1)*
+
+Documentation improvements
+--------------------------
+
+* Reenable and patch up HIP tests *(@sethrj, #711)*
+
+Reviewers: @amandalund *(1)*
+
+Minor internal changes
+----------------------
+
+* Update CI VecGeom to 1.2.2 *(@sethrj, #682)*
+
+Reviewers: @pcanal *(1)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.2.1...v0.2.2
+
 .. _release_v0.2.1:
 
 Version 0.2.1
