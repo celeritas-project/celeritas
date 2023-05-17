@@ -107,8 +107,10 @@ CMake configuration utility functions for Celeritas.
     celeritas_define_options(<var> <doc>)
 
   If <var> is not yet set, this will set it to the first item of the list
-  ``${<var>_OPTIONS}``.  Otherwise It will validate that the pre-existing
-  selection is one of the list.
+  ``${<var>_OPTIONS}`` *without* storing it in the cache, so that it will be
+  set locally but will not persist if other CMake options change.  If provided
+  by the user, this command will validate that the pre-existing selection is one
+  of the list.
 
 .. command:: celeritas_generate_option_config
 
@@ -337,17 +339,23 @@ function(celeritas_define_options var doc)
   endif()
   mark_as_advanced(${var}_OPTIONS)
 
-  list(GET ${var}_OPTIONS 0 _default)
-  set(${var} "${_default}" CACHE STRING "${doc}")
+  set(${var} "" CACHE STRING "${doc}")
   set_property(CACHE ${var} PROPERTY STRINGS "${${var}_OPTIONS}")
 
-  list(FIND ${var}_OPTIONS "${${var}}" _index)
-  if(_index EQUAL -1)
-    string(JOIN "," _optlist ${${var}_OPTIONS})
-    celeritas_error_incompatible_option(
-      "valid options are {${_optlist}} "
-      "${var}" "${_default}"
-    )
+  if("${${var}}" STREQUAL "")
+    # Dynamic default option: set as core variable in parent scope
+    list(GET ${var}_OPTIONS 0 _default)
+    set(${var} "${_default}" PARENT_SCOPE)
+  else()
+    # User-provided value: check against list
+    list(FIND ${var}_OPTIONS "${${var}}" _index)
+    if(_index EQUAL -1)
+      string(JOIN "," _optlist ${${var}_OPTIONS})
+      celeritas_error_incompatible_option(
+        "valid options are {${_optlist}} "
+        "${var}" "${_default}"
+      )
+    endif()
   endif()
 endfunction()
 
@@ -371,6 +379,9 @@ function(celeritas_generate_option_config var)
 
   # Add selected option
   string(TOUPPER "${${var}}" _val)
+  if(NOT _val)
+    message(FATAL_ERROR "Option configuration '${var}' is undefined")
+  endif()
   string(JOIN "\n" _result
     ${_options}
     "#define ${var} ${var}_${_val}"
