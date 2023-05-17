@@ -89,6 +89,9 @@ class ParticleTrackView
     // Whether the particle is stable
     CELER_FORCEINLINE_FUNCTION bool is_stable() const;
 
+    // Whether it uses safety distance due to fields or MSC
+    CELER_FORCEINLINE_FUNCTION bool use_safety() const;
+
     //// DERIVED PROPERTIES (indirection plus calculation) ////
 
     // Square of fraction of lightspeed [unitless]
@@ -251,6 +254,17 @@ CELER_FUNCTION bool ParticleTrackView::is_antiparticle() const
 CELER_FUNCTION bool ParticleTrackView::is_stable() const
 {
     return this->decay_constant() == ParticleRecord::stable_decay_constant();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether particle needs to calculate safety distances.
+ *
+ * Currently this is hardcoded to whether the particle uses a nonzero charge.
+ */
+CELER_FUNCTION bool ParticleTrackView::use_safety() const
+{
+    return this->charge() != zero_quantity();
 }
 
 //---------------------------------------------------------------------------//
