@@ -161,10 +161,12 @@ CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
         }
         else
         {
-            auto result = grid.find_edge(pos);
-            if (!result.on_edge)
+            size_type index = grid.find(pos);
+            bool edge = grid[index] == pos;
+
+            if (!edge)
             {
-                coords[to_int(ax)] = result.cell;
+                coords[to_int(ax)] = index;
             }
             else
             {

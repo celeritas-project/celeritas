@@ -64,26 +64,6 @@ TEST_F(NonuniformGridTest, find)
     EXPECT_THROW(grid.find(10), DebugError);
 #endif
 }
-
-TEST_F(NonuniformGridTest, find_edge)
-{
-    GridT grid(irange, ref);
-    using result_type = GridT::result_type;
-
-#if CELERITAS_DEBUG
-    EXPECT_THROW(grid.find(-1), DebugError);
-#endif
-    EXPECT_EQ(0, grid.find(0));
-    EXPECT_EQ(result_type({1, true}), grid.find_edge(1));
-    EXPECT_EQ(result_type({1, false}), grid.find_edge(2));
-    EXPECT_EQ(result_type({2, true}), grid.find_edge(3));
-    EXPECT_EQ(result_type({3, false}), grid.find_edge(4));
-#if CELERITAS_DEBUG
-    EXPECT_THROW(grid.find(7), DebugError);
-    EXPECT_THROW(grid.find(10), DebugError);
-#endif
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
