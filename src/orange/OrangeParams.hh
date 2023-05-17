@@ -61,7 +61,9 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     // Get the label for a placed volume ID
     Label const& id_to_label(VolumeId vol_id) const final;
 
+    //! \cond
     using GeoParamsSurfaceInterface::find_volume;
+    //! \endcond
 
     // Get the volume ID corresponding to a unique name
     VolumeId find_volume(std::string const& name) const final;
