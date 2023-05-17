@@ -64,7 +64,7 @@ class OrangeTrackView
     };
 
   public:
-    // Construct from params and state params
+    // Construct from params and state
     inline CELER_FUNCTION OrangeTrackView(ParamsRef const& params,
                                           StateRef const& states,
                                           TrackSlotId tid);
@@ -489,6 +489,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     lsa.sense() = this->next_surface().unchecked_sense();
 
     this->clear_next_step();
+    CELER_ENSURE(this->is_on_boundary());
 }
 
 //---------------------------------------------------------------------------//
