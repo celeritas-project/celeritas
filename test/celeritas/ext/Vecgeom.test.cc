@@ -683,6 +683,7 @@ TEST_F(SolidsGeantTest, accessors)
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
     EXPECT_EQ("", geom.id_to_label(VolumeId{9}).name);
+    EXPECT_EQ("boolean1", geom.id_to_label(VolumeId{16}).name);
 }
 
 //---------------------------------------------------------------------------//
