@@ -17,7 +17,7 @@ namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
- * Class for storing offset data for RaggedRightIndexer
+ * Class for storing offset data for RaggedRightIndexer.
  */
 template<size_type N>
 class RaggedRightIndexerData
@@ -58,7 +58,7 @@ class RaggedRightIndexerData
 
 //---------------------------------------------------------------------------//
 /*!
- * Class for indexing into flattened, ragged-right, 2D data.
+ * Index into flattened, ragged-right, 2D data, from index to coords
  *
  * For example, consider three arrays of different sizes:
  *  A = [a1, a2]
@@ -69,8 +69,7 @@ class RaggedRightIndexerData
  *
  *  flattened = [a1, a2, b1, b2, b3, c1]
  *
- *  Within this array, element b3 has a "flattened" index of 4 and "ragged
- * indices" of [1, 2]
+ *  Within this array, index of 4 (element b3) returns coords [1, 2].
  */
 template<size_type N>
 class RaggedRightIndexer
@@ -89,10 +88,47 @@ class RaggedRightIndexer
     //// METHODS ////
 
     // Convert ragged indices to a flattened index
-    inline CELER_FUNCTION size_type index(Coords coords) const;
+    inline CELER_FUNCTION size_type operator()(Coords coords) const;
+
+  private:
+    //// DATA ////
+
+    RaggedRightIndexerData<N> const& rrd_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Index into flattened, ragged-right, 2D data, from coords to index
+ *
+ * For example, consider three arrays of different sizes:
+ *  A = [a1, a2]
+ *  B = [b1, b2, b3]
+ *  C = [c1]
+ *
+ *  Flattening them into a single array gives
+ *
+ *  flattened = [a1, a2, b1, b2, b3, c1]
+ *
+ *  Within this array, coords [1, 2] (element b3) returns index 4.
+ */
+template<size_type N>
+class RaggedRightInverseIndexer
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using Coords = Array<size_type, 2>;
+    //!@}
+
+  public:
+    // Construct from RaggedRightIndexerData
+    explicit inline CELER_FUNCTION
+    RaggedRightInverseIndexer(RaggedRightIndexerData<N> const& rrd);
+
+    //// METHODS ////
 
     // Convert a flattened index into ragged indices
-    inline CELER_FUNCTION Coords coords(size_type index) const;
+    inline CELER_FUNCTION Coords operator()(size_type index) const;
 
   private:
     //// DATA ////
@@ -118,13 +154,24 @@ RaggedRightIndexer<N>::RaggedRightIndexer(RaggedRightIndexerData<N> const& rrd)
  * Convert ragged indices to a flattened index.
  */
 template<size_type N>
-CELER_FUNCTION size_type RaggedRightIndexer<N>::index(Coords ri) const
+CELER_FUNCTION size_type RaggedRightIndexer<N>::operator()(Coords coords) const
 {
     auto const& offsets = rrd_.offsets();
-    CELER_EXPECT(ri[0] < N);
-    CELER_EXPECT(ri[1] < offsets[ri[0] + 1] - offsets[ri[0]]);
+    CELER_EXPECT(coords[0] < N);
+    CELER_EXPECT(coords[1] < offsets[coords[0] + 1] - offsets[coords[0]]);
 
-    return offsets[ri[0]] + ri[1];
+    return offsets[coords[0]] + coords[1];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct fom RaggedRightIndexerData
+ */
+template<size_type N>
+CELER_FUNCTION RaggedRightInverseIndexer<N>::RaggedRightInverseIndexer(
+    RaggedRightIndexerData<N> const& rrd)
+    : rrd_(rrd)
+{
 }
 
 //---------------------------------------------------------------------------//
@@ -132,8 +179,8 @@ CELER_FUNCTION size_type RaggedRightIndexer<N>::index(Coords ri) const
  * Convert a flattened index into ragged indices.
  */
 template<size_type N>
-CELER_FUNCTION typename RaggedRightIndexer<N>::Coords
-RaggedRightIndexer<N>::coords(size_type index) const
+CELER_FUNCTION typename RaggedRightInverseIndexer<N>::Coords
+RaggedRightInverseIndexer<N>::operator()(size_type index) const
 {
     auto const& offsets = rrd_.offsets();
     CELER_EXPECT(index < offsets.back());

@@ -37,6 +37,7 @@ class RectArrayTracker
     using VolumeInverseIndexer = HyperslabInverseIndexer<3>;
     using SurfaceIndexerData = RaggedRightIndexerData<3>;
     using SurfaceIndexer = RaggedRightIndexer<3>;
+    using SurfaceInverseIndexer = RaggedRightInverseIndexer<3>;
     using Coords = Array<size_type, 3>;
     //!@}
 
@@ -193,8 +194,8 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
     auto coords = vii(state.volume.unchecked_get());
 
     // Find the index of axis (x/y/z) we are about to cross:
-    SurfaceIndexer si(surface_indexer_data_);
-    auto ax_idx = si.coords(state.surface.id().unchecked_get())[0];
+    SurfaceInverseIndexer sii(surface_indexer_data_);
+    auto ax_idx = sii(state.surface.id().unchecked_get())[0];
 
     // Value for incrementing the axial coordinate upon crossing
     int inc = (state.surface.sense() == Sense::outside) ? -1 : 1;
@@ -285,8 +286,8 @@ CELER_FUNCTION auto RectArrayTracker::normal([[maybe_unused]] Real3 const& pos,
                                              LocalSurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf && surf.get() < this->num_surfaces());
-    SurfaceIndexer si(surface_indexer_data_);
-    size_type ax = si.coords(surf.get())[0];
+    SurfaceInverseIndexer sii(surface_indexer_data_);
+    size_type ax = sii(surf.get())[0];
 
     Real3 normal{0., 0., 0.};
     normal[ax] = 1.0;
@@ -323,7 +324,7 @@ RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
 
     Intersection result;
     Sense sense;
-    SurfaceIndexer surface_indexer(surface_indexer_data_);
+    SurfaceIndexer si(surface_indexer_data_);
 
     for (auto ax : range(Axis::size_))
     {
@@ -349,8 +350,8 @@ RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
             result.distance = dist;
 
             sense = dir > 0 ? Sense::inside : Sense::outside;
-            auto local_surface = LocalSurfaceId(surface_indexer.index(
-                {static_cast<size_type>(to_int(ax)), target_coord}));
+            auto local_surface = LocalSurfaceId(
+                si({static_cast<size_type>(to_int(ax)), target_coord}));
             result.surface = detail::OnLocalSurface(local_surface, sense);
         }
     }

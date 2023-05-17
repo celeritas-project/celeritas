@@ -20,36 +20,36 @@ namespace test
 
 TEST(RaggedRightIndexerTest, basic)
 {
-    using RRI = RaggedRightIndexer<4>;
     using RRD = RaggedRightIndexerData<4>;
-    using RC = RRI::Coords;
+    using Coords = Array<size_type, 2>;
 
     RRD rrd({3, 4, 1, 2});
-    RRI rri(rrd);
-
-    // Flattened to ragged
-    EXPECT_EQ(RC({0, 0}), rri.coords(0));
-    EXPECT_EQ(RC({0, 1}), rri.coords(1));
-    EXPECT_EQ(RC({0, 2}), rri.coords(2));
-    EXPECT_EQ(RC({1, 0}), rri.coords(3));
-    EXPECT_EQ(RC({1, 1}), rri.coords(4));
-    EXPECT_EQ(RC({1, 2}), rri.coords(5));
-    EXPECT_EQ(RC({1, 3}), rri.coords(6));
-    EXPECT_EQ(RC({2, 0}), rri.coords(7));
-    EXPECT_EQ(RC({3, 0}), rri.coords(8));
-    EXPECT_EQ(RC({3, 1}), rri.coords(9));
+    RaggedRightIndexer<4> rri(rrd);
+    RaggedRightInverseIndexer<4> rrii(rrd);
 
     // Ragged to flattened
-    EXPECT_EQ(0, rri.index(RC({0, 0})));
-    EXPECT_EQ(1, rri.index(RC({0, 1})));
-    EXPECT_EQ(2, rri.index(RC({0, 2})));
-    EXPECT_EQ(3, rri.index(RC({1, 0})));
-    EXPECT_EQ(4, rri.index(RC({1, 1})));
-    EXPECT_EQ(5, rri.index(RC({1, 2})));
-    EXPECT_EQ(6, rri.index(RC({1, 3})));
-    EXPECT_EQ(7, rri.index(RC({2, 0})));
-    EXPECT_EQ(8, rri.index(RC({3, 0})));
-    EXPECT_EQ(9, rri.index(RC({3, 1})));
+    EXPECT_EQ(0, rri(Coords({0, 0})));
+    EXPECT_EQ(1, rri(Coords({0, 1})));
+    EXPECT_EQ(2, rri(Coords({0, 2})));
+    EXPECT_EQ(3, rri(Coords({1, 0})));
+    EXPECT_EQ(4, rri(Coords({1, 1})));
+    EXPECT_EQ(5, rri(Coords({1, 2})));
+    EXPECT_EQ(6, rri(Coords({1, 3})));
+    EXPECT_EQ(7, rri(Coords({2, 0})));
+    EXPECT_EQ(8, rri(Coords({3, 0})));
+    EXPECT_EQ(9, rri(Coords({3, 1})));
+
+    // Flattened to ragged
+    EXPECT_EQ(Coords({0, 0}), rrii(0));
+    EXPECT_EQ(Coords({0, 1}), rrii(1));
+    EXPECT_EQ(Coords({0, 2}), rrii(2));
+    EXPECT_EQ(Coords({1, 0}), rrii(3));
+    EXPECT_EQ(Coords({1, 1}), rrii(4));
+    EXPECT_EQ(Coords({1, 2}), rrii(5));
+    EXPECT_EQ(Coords({1, 3}), rrii(6));
+    EXPECT_EQ(Coords({2, 0}), rrii(7));
+    EXPECT_EQ(Coords({3, 0}), rrii(8));
+    EXPECT_EQ(Coords({3, 1}), rrii(9));
 }
 
 TEST(RaggedRightIndexerTest, TEST_IF_CELERITAS_DEBUG(error))
