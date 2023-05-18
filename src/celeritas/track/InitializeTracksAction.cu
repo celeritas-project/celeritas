@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
@@ -42,6 +43,7 @@ void InitializeTracksAction::launch_impl(CoreParams const& params,
         init_tracks,
         celeritas::device().default_block_size(),
         num_new_tracks,
+        celeritas::device().stream(state.stream_id()).get(),
         detail::InitTracksLauncher{params.ptr<MemSpace::device>(),
                                    state.ptr(),
                                    num_new_tracks,

@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Stream.hh"
 
 #include "SimpleCaloLauncher.hh"  // IWYU pragma: associated
 
@@ -53,6 +54,7 @@ void simple_calo_accum(DeviceRef<StepStateData> const& step,
     CELER_LAUNCH_KERNEL(simple_calo_accum,
                         celeritas::device().default_block_size(),
                         step.size(),
+                        celeritas::device().stream(step.stream_id).get(),
                         step,
                         calo);
 }

@@ -43,6 +43,7 @@ RangeTestOutput rangedev_test(RangeTestInput input)
     CELER_LAUNCH_KERNEL(rangedev_test,
                         input.threads_per_block,
                         input.num_threads,
+                        0,
                         input.a,
                         thrust::raw_pointer_cast(x_dev.data()),
                         thrust::raw_pointer_cast(y_dev.data()),

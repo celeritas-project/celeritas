@@ -252,6 +252,9 @@ struct StepStateData
     StateItems<ParticleId> particle;
     StateItems<Energy> energy_deposition;
 
+    //! Unique identifier for "thread-local" data.
+    StreamId stream_id;
+
     //// METHODS ////
 
     //! True if constructed and correctly sized
@@ -265,7 +268,7 @@ struct StepStateData
                && right_sized(event_id) && right_sized(parent_id)
                && right_sized(track_step_count) && right_sized(action_id)
                && right_sized(step_length) && right_sized(particle)
-               && right_sized(energy_deposition);
+               && right_sized(energy_deposition) && stream_id;
     }
 
     //! State size
@@ -294,6 +297,7 @@ struct StepStateData
         step_length = other.step_length;
         particle = other.particle;
         energy_deposition = other.energy_deposition;
+        stream_id = other.stream_id;
         return *this;
     }
 };
@@ -335,11 +339,13 @@ inline void resize(StepPointStateData<Ownership::value, M>* state,
 template<MemSpace M>
 inline void resize(StepStateData<Ownership::value, M>* state,
                    HostCRef<StepParamsData> const& params,
-                   StreamId,
+                   StreamId stream_id,
                    size_type size)
 {
     CELER_EXPECT(state->size() == 0);
     CELER_EXPECT(size > 0);
+
+    state->stream_id = stream_id;
 
     for (auto sp : range(StepPoint::size_))
     {

@@ -86,9 +86,19 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
     result.setup_time = get_setup_time();
     result.events.resize(run_stream.num_events());
 
+    // Allocate device streams, or use the default stream if there is only one.
+    size_type num_streams = run_stream.num_streams();
+    if (run_input->use_device && !run_input->default_stream && num_streams > 1)
+    {
+        CELER_ASSERT(celeritas::device());
+        celeritas::device().create_streams(num_streams);
+    }
+
     celeritas::Stopwatch get_transport_time;
     if (run_input->merge_events)
     {
+        celeritas::ScopedDeviceProfiling profile_this;
+
         // Run all events simultaneously on a single stream
         result.events.front() = run_stream();
     }
@@ -104,7 +114,7 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
         // level of nesting to a single parallel region (over events) and
         // deactivate any deeper nested parallel regions.
         omp_set_max_active_levels(1);
-#pragma omp parallel for num_threads(run_stream.num_streams())
+#    pragma omp parallel for num_threads(num_streams)
 #endif
         for (size_type event = 0; event < run_stream.num_events(); ++event)
         {

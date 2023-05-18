@@ -28,7 +28,7 @@ using ThreadItems
 using TrackSlots = ThreadItems<TrackSlotId::size_type>;
 
 template<class F>
-void partition_impl(TrackSlots const& track_slots, F&& func)
+void partition_impl(TrackSlots const& track_slots, F&& func, StreamId)
 {
     auto* start = track_slots.data().get();
     std::partition(start, start + track_slots.size(), std::forward<F>(func));
@@ -37,7 +37,7 @@ void partition_impl(TrackSlots const& track_slots, F&& func)
 //---------------------------------------------------------------------------//
 
 template<class F>
-void sort_impl(TrackSlots const& track_slots, F&& func)
+void sort_impl(TrackSlots const& track_slots, F&& func, StreamId)
 {
     auto* start = track_slots.data().get();
     std::sort(start, start + track_slots.size(), std::forward<F>(func));
@@ -77,15 +77,18 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
     {
         case TrackOrder::partition_status:
             return partition_impl(states.track_slots,
-                                  alive_predicate{states.sim.status.data()});
+                                  alive_predicate{states.sim.status.data()},
+                                  states.stream_id);
         case TrackOrder::sort_along_step_action:
             return sort_impl(
                 states.track_slots,
-                along_action_comparator{states.sim.along_step_action.data()});
+                along_action_comparator{states.sim.along_step_action.data()},
+                states.stream_id);
         case TrackOrder::sort_step_limit_action:
             return sort_impl(
                 states.track_slots,
-                step_limit_comparator{states.sim.step_limit.data()});
+                step_limit_comparator{states.sim.step_limit.data()},
+                states.stream_id);
         default:
             CELER_ASSERT_UNREACHABLE();
     }

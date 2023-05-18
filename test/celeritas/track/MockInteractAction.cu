@@ -47,6 +47,7 @@ void MockInteractAction::execute(CoreParams const& params,
     CELER_LAUNCH_KERNEL(mock_interact,
                         device().default_block_size(),
                         state.size(),
+                        0,
                         params.ref<MemSpace::native>(),
                         state.ref(),
                         data_.device_ref());
