@@ -65,6 +65,12 @@ void sort_impl(TrackSlots const& track_slots, F&& func)
     CELER_DEVICE_CHECK_ERROR();
 }
 
+template<class F>
+void tracks_per_action(DeviceRef<CoreStateData> const& states,
+                       F&& action_accessor)
+{
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
