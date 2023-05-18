@@ -43,6 +43,8 @@ void sort_impl(TrackSlots const& track_slots, F&& func)
     std::sort(start, start + track_slots.size(), std::forward<F>(func));
 }
 
+// PRE: action_accessor is sorted, i.e. i <= j ==> action_accessor(i) <=
+// action_accessor(j)
 template<class F>
 void tracks_per_action(HostRef<CoreStateData> const& states,
                        F&& action_accessor)

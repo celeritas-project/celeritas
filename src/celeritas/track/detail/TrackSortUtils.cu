@@ -65,6 +65,8 @@ void sort_impl(TrackSlots const& track_slots, F&& func)
     CELER_DEVICE_CHECK_ERROR();
 }
 
+// PRE: action_accessor is sorted, i.e. i <= j ==> action_accessor(i) <=
+// action_accessor(j)
 template<class F>
 void tracks_per_action(DeviceRef<CoreStateData> const& states,
                        F&& action_accessor)
