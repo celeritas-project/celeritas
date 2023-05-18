@@ -29,49 +29,44 @@ namespace detail
 /*!
  * Create track initializers from primary particles.
  */
-template<MemSpace M>
-class ProcessPrimariesLauncher
+struct ProcessPrimariesLauncher
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef = CoreStateData<Ownership::reference, M>;
-    using TrackInitStateRef = TrackInitStateData<Ownership::reference, M>;
-    //!@}
+    //// TYPES ////
 
-  public:
-    // Construct with shared and state data
-    CELER_FUNCTION ProcessPrimariesLauncher(ParamsRef const&,
-                                            StateRef const& states,
-                                            Span<Primary const> primaries)
-        : data_(states.init), primaries_(primaries)
-    {
-        CELER_EXPECT(data_);
-    }
+    using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
+
+    //// DATA ////
+
+    StatePtr state_;
+    Span<Primary const> primaries_;
+
+    //// FUNCTIONS ////
 
     // Create track initializers from primaries
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
-
-  private:
-    TrackInitStateRef const& data_;
-    Span<Primary const> primaries_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Create track initializers from primaries.
  */
-template<MemSpace M>
-CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void ProcessPrimariesLauncher::operator()(ThreadId tid) const
 {
+#if CELER_DEVICE_COMPILE
+    CELER_EXPECT(tid);
+    if (!(tid < primaries_.size()))
+    {
+        return;
+    }
+#else
     CELER_EXPECT(tid < primaries_.size());
-    CELER_ASSERT(primaries_.size()
-                 <= data_.scalars.num_initializers + tid.get());
+#endif
+    auto& counters = state_->init.scalars;
+    CELER_ASSERT(primaries_.size() <= counters.num_initializers + tid.get());
 
     ItemId<TrackInitializer> idx{
-        index_after(data_.scalars.num_initializers - primaries_.size(), tid)};
-    TrackInitializer& ti = data_.initializers[idx];
+        index_after(counters.num_initializers - primaries_.size(), tid)};
+    TrackInitializer& ti = state_->init.initializers[idx];
     Primary const& primary = primaries_[tid.unchecked_get()];
 
     // Construct a track initializer from a primary particle
@@ -86,8 +81,8 @@ CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
     ti.particle.energy = primary.energy;
 
     // Update per-event counter of number of tracks created
-    CELER_ASSERT(ti.sim.event_id < data_.track_counters.size());
-    atomic_add(&data_.track_counters[ti.sim.event_id], size_type{1});
+    CELER_ASSERT(ti.sim.event_id < state_->init.track_counters.size());
+    atomic_add(&state_->init.track_counters[ti.sim.event_id], size_type{1});
 }
 
 //---------------------------------------------------------------------------//

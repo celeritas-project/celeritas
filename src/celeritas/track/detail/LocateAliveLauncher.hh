@@ -33,7 +33,6 @@ namespace detail
  */
 struct LocateAliveLauncher
 {
-    //!@{
     //// TYPES ////
 
     using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;

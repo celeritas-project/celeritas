@@ -9,11 +9,13 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/ExecuteAction.hh"
 
-#include "generated/ProcessPrimaries.hh"
+#include "detail/ProcessPrimariesLauncher.hh"
 
 namespace celeritas
 {
@@ -53,12 +55,39 @@ void ExtendFromPrimariesAction::execute_impl(CoreParams const& core_params,
 
     // Create track initializers from primaries
     core_state.ref().init.scalars.num_initializers += primaries.size();
-    generated::process_primaries(
-        core_params.ref<M>(), core_state.ref(), primaries);
+    this->process_primaries(core_params, core_state, primaries);
 
     // Mark that the primaries have been processed
     core_state.clear_primaries();
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to process secondary particles.
+ *
+ * This fills the TrackInit \c vacancies and \c secondary_counts arrays.
+ */
+void ExtendFromPrimariesAction::process_primaries(
+    CoreParams const& params,
+    CoreStateHost& state,
+    Span<Primary const> primaries) const
+{
+    execute_action(*this,
+                   Range{ThreadId(primaries.size())},
+                   params,
+                   state,
+                   detail::ProcessPrimariesLauncher{state.ptr(), primaries});
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void ExtendFromPrimariesAction::process_primaries(CoreParams const&,
+                                                  CoreStateDevice&,
+                                                  Span<Primary const>) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

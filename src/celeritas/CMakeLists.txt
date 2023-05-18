@@ -87,7 +87,6 @@ list(APPEND SOURCES
   random/CuHipRngData.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
-  track/ExtendFromPrimariesAction.cc
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc
@@ -268,6 +267,7 @@ celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
+celeritas_polysource(track/ExtendFromPrimariesAction)
 celeritas_polysource(track/ExtendFromSecondariesAction)
 celeritas_polysource(track/InitializeTracksAction)
 celeritas_polysource(user/ActionDiagnostic)
@@ -293,13 +293,6 @@ macro(celeritas_gen_action basedir class func order)
   )
 endmacro()
 
-macro(celeritas_gen_trackinit class)
-  celeritas_gen(SOURCES
-    "gen-trackinit.py" "track/generated/${class}"
-    --class ${class}
-  )
-endmacro()
-
 celeritas_gen_interactor("BetheHeitler" "bethe_heitler")
 celeritas_gen_interactor("CombinedBrem" "combined_brem")
 celeritas_gen_interactor("EPlusGG" "eplusgg")
@@ -314,8 +307,6 @@ celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select" "pre_post")
 celeritas_gen_action("phys" "PreStepAction" "pre_step" "pre")
 celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
-
-celeritas_gen_trackinit("ProcessPrimaries")
 
 #-----------------------------------------------------------------------------#
 # Create library
