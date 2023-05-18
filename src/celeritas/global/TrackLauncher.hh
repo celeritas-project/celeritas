@@ -172,6 +172,8 @@ CELER_FUNCTION ConditionalTrackLauncher(NativeCRef<CoreParamsData> const&,
     ->ConditionalTrackLauncher<C, Ts...>;
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
  * Return a track launcher that only applies to alive tracks.
  */

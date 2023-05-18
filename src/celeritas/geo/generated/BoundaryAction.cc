@@ -10,13 +10,8 @@
 
 #include <utility>
 
-#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
-#include "celeritas/global/KernelContextException.hh"
+#include "celeritas/global/ExecuteAction.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "../detail/BoundaryActionImpl.hh" // IWYU pragma: associated
 
@@ -24,20 +19,18 @@ namespace celeritas
 {
 namespace generated
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Launch the boundary action on host.
+ */
 void BoundaryAction::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    MultiExceptionHandler capture_exception;
-    TrackLauncher launch{*params.ptr<MemSpace::native>(), *state.ptr(), detail::boundary_track};
-    #pragma omp parallel for
-    for (size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(), state.ref(), ThreadId{i}, this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+    return ::celeritas::execute_action(
+        *this, params, state,
+        TrackLauncher{*params.ptr<MemSpace::native>(), *state.ptr(),
+                      detail::boundary_track});
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace generated
 }  // namespace celeritas
