@@ -11,11 +11,11 @@
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/ExecuteAction.hh"
 
+#include "detail/LocateAliveLauncher.hh"
+#include "detail/ProcessSecondariesLauncher.hh"
 #include "detail/TrackInitAlgorithms.hh"
-#include "generated/LocateAlive.hh"
-#include "generated/ProcessSecondaries.hh"
 
 namespace celeritas
 {
@@ -51,7 +51,7 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
-    generated::locate_alive(core_params.ref<M>(), core_state.ref());
+    this->locate_alive(core_params, core_state);
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
@@ -77,8 +77,60 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
 
     // Launch a kernel to create track initializers from secondaries
     init.scalars.num_alive = core_state.size() - init.scalars.num_vacancies;
-    generated::process_secondaries(core_params.ref<M>(), core_state.ref());
+    this->process_secondaries(core_params, core_state);
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to locate alive particles.
+ *
+ * This fills the TrackInit \c vacancies and \c secondary_counts arrays.
+ */
+void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
+                                               CoreStateHost& core_state) const
+{
+    execute_action(*this,
+                   core_params,
+                   core_state,
+                   detail::LocateAliveLauncher{
+                       core_params.ptr<MemSpace::native>(), core_state.ptr()});
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void ExtendFromSecondariesAction::locate_alive(CoreParams const&,
+                                               CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to process secondary particles.
+ *
+ * This fills the TrackInit \c vacancies and \c secondary_counts arrays.
+ */
+void ExtendFromSecondariesAction::process_secondaries(
+    CoreParams const& core_params, CoreStateHost& core_state) const
+{
+    execute_action(
+        *this,
+        core_params,
+        core_state,
+        detail::ProcessSecondariesLauncher{core_params.ptr<MemSpace::native>(),
+                                           core_state.ptr(),
+                                           core_state.ref().init.scalars});
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void ExtendFromSecondariesAction::process_secondaries(CoreParams const&,
+                                                      CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

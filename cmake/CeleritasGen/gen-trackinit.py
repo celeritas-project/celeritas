@@ -194,13 +194,6 @@ LANG = {
 }
 
 DEFS = {
-    "LocateAlive": KernelDefinition(
-        Function("locate_alive", ParamList([
-            Param("{Memspace}CRef<CoreParamsData>", "core_params"),
-            Param("{Memspace}Ref<CoreStateData>", "core_states"),
-        ])),
-        "core_states.size()",
-        []),
     "ProcessPrimaries": KernelDefinition(
         Function("process_primaries", ParamList([
             Param("{Memspace}CRef<CoreParamsData>", "core_params"),
@@ -209,13 +202,6 @@ DEFS = {
         ])),
         "primaries.size()",
         ["corecel/cont/Span.hh", "celeritas/phys/Primary.hh"]),
-    "ProcessSecondaries": KernelDefinition(
-        Function("process_secondaries", ParamList([
-            Param("{Memspace}CRef<CoreParamsData>", "core_params"),
-            Param("{Memspace}Ref<CoreStateData>", "core_states"),
-        ])),
-        "core_states.size()",
-        []),
 }
 
 def transformed_param_types(params, apply, **kwargs):

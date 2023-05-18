@@ -85,7 +85,7 @@ void InitializeTracksAction::launch_impl(CoreParams const& core_params,
         core_state,
         detail::InitTracksLauncher{core_params.ptr<MemSpace::native>(),
                                    core_state.ptr(),
-                                   num_new_tracks},
+                                   num_new_tracks,
                                    core_state.ref().init.scalars});
 }
 

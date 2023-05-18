@@ -31,25 +31,20 @@ namespace detail
  * produced secondaries, the empty track slot is filled with the first
  * secondary.
  */
-template<MemSpace M>
-class LocateAliveLauncher
+struct LocateAliveLauncher
 {
-  public:
     //!@{
-    //! \name Type aliases
-    using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef = CoreStateData<Ownership::reference, M>;
-    //!@}
+    //// TYPES ////
 
-  public:
-    // Construct with shared and state data
-    CELER_FUNCTION
-    LocateAliveLauncher(ParamsRef const& params, StateRef const& states)
-        : params_(params), states_(states)
-    {
-        CELER_EXPECT(params_);
-        CELER_EXPECT(states_);
-    }
+    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
+    using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
+
+    //// DATA ////
+
+    ParamsPtr params_;
+    StatePtr state_;
+
+    //// FUNCTIONS ////
 
     // Determine which tracks are alive and count secondaries
     inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
@@ -60,26 +55,31 @@ class LocateAliveLauncher
         // remapping should be performed
         return (*this)(TrackSlotId{tid.unchecked_get()});
     }
-
-  private:
-    ParamsRef const& params_;
-    StateRef const& states_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Determine which tracks are alive and count secondaries.
  */
-template<MemSpace M>
-CELER_FUNCTION void LocateAliveLauncher<M>::operator()(TrackSlotId tid) const
+CELER_FUNCTION void LocateAliveLauncher::operator()(TrackSlotId tid) const
 {
+#if CELER_DEVICE_COMPILE
+    CELER_EXPECT(tid);
+    if (!(tid < state_->size()))
+    {
+        return;
+    }
+#else
+    CELER_EXPECT(tid < state_->size());
+#endif
+
     // Count the number of secondaries produced by each track
     size_type num_secondaries{0};
-    SimTrackView sim(params_.sim, states_.sim, tid);
+    SimTrackView sim(params_->sim, state_->sim, tid);
 
     if (sim.status() != TrackStatus::inactive)
     {
-        PhysicsStepView phys(params_.physics, states_.physics, tid);
+        PhysicsStepView phys(params_->physics, state_->physics, tid);
         for (auto const& secondary : phys.secondaries())
         {
             if (secondary)
@@ -89,7 +89,7 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(TrackSlotId tid) const
         }
     }
 
-    states_.init.vacancies[tid] = [&] {
+    state_->init.vacancies[tid] = [&] {
         if (sim.status() == TrackStatus::alive)
         {
             // The track is alive: mark this track slot as occupied
@@ -113,7 +113,7 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(TrackSlotId tid) const
             return tid;
         }
     }();
-    states_.init.secondary_counts[tid] = num_secondaries;
+    state_->init.secondary_counts[tid] = num_secondaries;
 }
 
 //---------------------------------------------------------------------------//

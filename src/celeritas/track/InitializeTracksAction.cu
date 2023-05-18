@@ -34,18 +34,18 @@ __global__ void init_tracks_kernel(detail::InitTracksLauncher launch)
 /*!
  * Launch a (host) kernel to initialize tracks.
  */
-void InitializeTracksAction::launch_impl(CoreParams const& core_params,
-                                         CoreStateDevice& core_state,
+void InitializeTracksAction::launch_impl(CoreParams const& params,
+                                         CoreStateDevice& state,
                                          size_type num_new_tracks) const
 {
     CELER_LAUNCH_KERNEL(
         init_tracks,
         celeritas::device().default_block_size(),
         num_new_tracks,
-        detail::InitTracksLauncher{core_params.ptr<MemSpace::device>(),
-                                   core_states.ptr(),
+        detail::InitTracksLauncher{params.ptr<MemSpace::device>(),
+                                   state.ptr(),
                                    num_new_tracks,
-                                   core_state.ref().init.scalars});
+                                   state.ref().init.scalars});
 }
 
 //---------------------------------------------------------------------------//
