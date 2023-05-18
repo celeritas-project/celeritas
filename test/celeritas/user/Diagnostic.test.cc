@@ -106,14 +106,13 @@ TEST_F(TestEm3DiagnosticTest, host)
 
         if (this->is_ci_build())
         {
-            static const size_type expected_actions[]
-                = {0u,    0u,  0u, 0u,   0u,  0u,  0u,    283u,  575u,
-                   19u,   0u,  0u, 0u,   0u,  0u,  1769u, 0u,    0u,
-                   0u,    0u,  0u, 0u,   0u,  0u,  1580u, 1019u, 0u,
-                   22u,   0u,  0u, 0u,   0u,  20u, 467u,  0u,    0u,
-                   289u,  15u, 0u, 0u,   0u,  0u,  0u,    0u,    0u,
-                   1168u, 55u, 0u, 90u,  0u,  0u,  0u,    127u,  14u,
-                   386u,  0u,  0u, 284u, 10u, 0u,  0u,    0u,    0u};
+            static const size_type expected_actions[] = {
+                0u,  0u,   0u, 0u,    0u,    0u, 0u,    283u, 575u, 19u, 0u,
+                0u,  0u,   0u, 0u,    0u,    0u, 1769u, 0u,   0u,   0u,  0u,
+                0u,  0u,   0u, 1580u, 1019u, 0u, 22u,   0u,   0u,   0u,  0u,
+                20u, 467u, 0u, 0u,    0u,    0u, 289u,  15u,  0u,   0u,  0u,
+                0u,  0u,   0u, 1168u, 55u,   0u, 90u,   0u,   0u,   0u,  127u,
+                14u, 386u, 0u, 0u,    0u,    0u, 284u,  10u,  0u,   0u,  0u};
             EXPECT_VEC_EQ(expected_actions, result.actions);
 
             static const size_type expected_steps[]
