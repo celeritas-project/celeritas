@@ -15,9 +15,11 @@ namespace celeritas
 /*!
  * Initialize track states.
  *
- * Provides Action interface to `celeritas::initialize_tracks`.
- *
- * \sa celeritas::initialize_tracks
+ * Tracks created from secondaries produced in this action will have the
+ * geometry state copied over from the parent instead of initialized from the
+ * position. If there are more empty slots than new secondaries, they will be
+ * filled by any track initializers remaining from previous steps using the
+ * position.
  */
 class InitializeTracksAction final : public ExplicitActionInterface
 {
@@ -48,6 +50,10 @@ class InitializeTracksAction final : public ExplicitActionInterface
 
   private:
     ActionId id_;
+
+    template<MemSpace M>
+    void
+    execute_impl(CoreParams const& core_params, CoreState<M>& core_state) const;
 };
 
 //---------------------------------------------------------------------------//

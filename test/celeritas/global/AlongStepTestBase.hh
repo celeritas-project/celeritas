@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+template<MemSpace>
+class CoreState;
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -65,6 +67,10 @@ class AlongStepTestBase : virtual public GlobalTestBase
     };
 
     RunResult run(Input const&, size_type num_tracks = 1);
+
+  private:
+    void
+    execute_action(std::string const& label, CoreState<MemSpace::host>& state);
 };
 
 //---------------------------------------------------------------------------//

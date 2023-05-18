@@ -90,7 +90,7 @@ RunResult RunResult::from_state(CoreState<M>& state)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class TrackInitTest : public SimpleTestBase
+class TrackInitTestBase : public SimpleTestBase
 {
   protected:
     //! Create primary particles
@@ -119,7 +119,7 @@ class TrackInitTest : public SimpleTestBase
 //---------------------------------------------------------------------------//
 
 template<class T>
-class TypedTrackInitTest : public TrackInitTest
+class TrackInitTest : public TrackInitTestBase
 {
   public:
     // Memspace for this class instance
@@ -161,13 +161,13 @@ struct MemspaceTypeString
     }
 };
 
-TYPED_TEST_SUITE(TypedTrackInitTest, MemspaceTypes, MemspaceTypeString);
+TYPED_TEST_SUITE(TrackInitTest, MemspaceTypes, MemspaceTypeString);
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TYPED_TEST(TypedTrackInitTest, run)
+TYPED_TEST(TrackInitTest, run)
 {
     const size_type num_primaries = 12;
     const size_type num_tracks = 10;
@@ -195,7 +195,7 @@ TYPED_TEST(TypedTrackInitTest, run)
     }
 
     // Initialize the primary tracks on device
-    initialize_tracks(*this->core(), this->state());
+    InitializeTracksAction{ActionId{0}}.execute(*this->core(), this->state());
 
     // Check the track IDs and parent IDs of the initialized tracks
     {
@@ -216,14 +216,15 @@ TYPED_TEST(TypedTrackInitTest, run)
         std::vector<size_type> const alloc = {1, 1, 0, 0, 1, 1, 0, 0, 2, 1};
         std::vector<bool> const alive = {
             false, true, false, true, false, true, false, true, false, false};
-        return MockInteractAction{ActionId{0}, alloc, alive};
+        return MockInteractAction{ActionId{1}, alloc, alive};
     }();
 
     // Launch kernel to process interactions
     interact.execute(*this->core(), this->state());
 
     // Launch a kernel to create track initializers from secondaries
-    extend_from_secondaries(*this->core(), this->state());
+    ExtendFromSecondariesAction{ActionId{2}}.execute(*this->core(),
+                                                     this->state());
 
     // Check the vacancies
     {
@@ -250,7 +251,7 @@ TYPED_TEST(TypedTrackInitTest, run)
     }
 
     // Initialize secondaries on device
-    initialize_tracks(*this->core(), this->state());
+    InitializeTracksAction{ActionId{0}}.execute(*this->core(), this->state());
 
     // Check the track IDs and parent IDs of the initialized tracks
     {
@@ -274,13 +275,15 @@ TYPED_TEST(TypedTrackInitTest, run)
     }
 }
 
-TYPED_TEST(TypedTrackInitTest, primaries)
+TYPED_TEST(TrackInitTest, primaries)
 {
     const size_type num_sets = 4;
     const size_type num_primaries = 16;
     const size_type num_tracks = 16;
 
     this->build_states(num_tracks);
+
+    InitializeTracksAction initialize{ActionId{0}};
 
     // Kill half the tracks in each interaction and don't produce secondaries
     auto interact = [] {
@@ -290,8 +293,10 @@ TYPED_TEST(TypedTrackInitTest, primaries)
         {
             alive[i] = i % 2;
         }
-        return MockInteractAction{ActionId{0}, alloc, alive};
+        return MockInteractAction{ActionId{1}, alloc, alive};
     }();
+
+    ExtendFromSecondariesAction extend_from_secondaries{ActionId{2}};
 
     for (size_type i = 0; i < num_sets; ++i)
     {
@@ -301,13 +306,13 @@ TYPED_TEST(TypedTrackInitTest, primaries)
             *this->core(), this->state(), make_span(primaries));
 
         // Initialize tracks on device
-        initialize_tracks(*this->core(), this->state());
+        initialize.execute(*this->core(), this->state());
 
         // Launch kernel that will kill half the tracks
         interact.execute(*this->core(), this->state());
 
         // Find vacancies and create track initializers from secondaries
-        extend_from_secondaries(*this->core(), this->state());
+        extend_from_secondaries.execute(*this->core(), this->state());
         auto& init = this->state().ref().init;
         EXPECT_EQ(i * num_tracks / 2, init.scalars.num_initializers);
         EXPECT_EQ(num_tracks / 2, init.scalars.num_vacancies);
@@ -330,63 +335,7 @@ TYPED_TEST(TypedTrackInitTest, primaries)
     EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
 }
 
-TYPED_TEST(TypedTrackInitTest, secondaries)
-{
-    const size_type num_groups = 32;
-    const size_type num_tracks = 8 * num_groups;
-    this->build_states(num_tracks);
-
-    auto interact = [] {
-        size_type const nsec_inp[] = {1, 1, 2, 0, 0, 0, 0, 0};
-        bool const alive_inp[]
-            = {true, false, false, true, true, false, false, true};
-        std::vector<size_type> nsec;
-        std::vector<bool> alive;
-        for (size_type i = 0; i < num_groups; ++i)
-        {
-            nsec.insert(nsec.end(), std::begin(nsec_inp), std::end(nsec_inp));
-            alive.insert(
-                alive.end(), std::begin(alive_inp), std::end(alive_inp));
-        }
-        return MockInteractAction{ActionId{0}, nsec, alive};
-    }();
-
-    // Create track initializers on device from primary particles
-    const size_type num_primaries = num_tracks;
-    auto primaries = this->make_primaries(num_primaries);
-    extend_from_primaries(*this->core(), this->state(), make_span(primaries));
-    EXPECT_EQ(num_primaries, this->state().ref().init.scalars.num_initializers);
-
-    const size_type num_iter = 16;
-    for ([[maybe_unused]] size_type i : range(num_iter))
-    {
-        SCOPED_TRACE(i);
-        auto& init = this->state().ref().init;
-
-        // All queued initializers are converted to tracks
-        initialize_tracks(*this->core(), this->state());
-        ASSERT_EQ(0, init.scalars.num_initializers);
-        EXPECT_EQ(0, init.scalars.num_vacancies);
-
-        // Launch kernel to process interactions
-        interact.execute(*this->core(), this->state());
-
-        // Launch a kernel to create track initializers from secondaries
-        extend_from_secondaries(*this->core(), this->state());
-        EXPECT_EQ(num_groups * 2, init.scalars.num_initializers);
-        EXPECT_EQ(num_groups * 2, init.scalars.num_vacancies);
-
-        // Number of secondaries *excludes* in-place secondaries: this is
-        // really the number of initializers to be consumed
-        EXPECT_EQ(num_groups * (1 + 0 + 1), init.scalars.num_secondaries);
-        if (this->HasFailure())
-        {
-            FAIL() << "Aborting loop";
-        }
-    }
-}
-
-TYPED_TEST(TypedTrackInitTest, secondaries_action)
+TYPED_TEST(TrackInitTest, extend_from_secondaries)
 {
     // Basic setup
     const size_type num_primaries = 8;

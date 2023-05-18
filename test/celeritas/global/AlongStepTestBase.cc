@@ -55,10 +55,12 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
             primaries[i].track_id = TrackId{i};
         }
 
-        // Primary -> track initializer -> track
+        // Construct track initializers
         extend_from_primaries(*this->core(), state, make_span(primaries));
-        initialize_tracks(*this->core(), state);
     }
+
+    // Construct tracks
+    this->execute_action("initialize-tracks", state);
 
     // Set remaining MFP and cached MSC range properties
     for (auto tid : range(ThreadId{num_tracks}))
@@ -72,22 +74,13 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         }
     }
 
-    auto const& am = *this->action_reg();
-    {
-        // Call pre-step action to set range, physics step
-        auto prestep_action_id = am.find_action("pre-step");
-        CELER_ASSERT(prestep_action_id);
-        auto const& prestep_action
-            = dynamic_cast<ExplicitActionInterface const&>(
-                *am.action(prestep_action_id));
-        CELER_TRY_HANDLE(prestep_action.execute(*this->core(), state),
-                         LogContextException{this->output_reg().get()});
+    // Call pre-step action to set range, physics step
+    this->execute_action("pre-step", state);
 
-        // Call along-step action
-        auto const& along_step = *this->along_step();
-        CELER_TRY_HANDLE(along_step.execute(*this->core(), state),
-                         LogContextException{this->output_reg().get()});
-    }
+    // Call along-step action
+    auto const& along_step = *this->along_step();
+    CELER_TRY_HANDLE(along_step.execute(*this->core(), state),
+                     LogContextException{this->output_reg().get()});
 
     // Process output
     RunResult result;
@@ -120,22 +113,26 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     result.mfp *= norm;
     result.alive *= norm;
 
+    auto action_id_label = [&areg = *this->action_reg()](ActionId aid) {
+        return areg.id_to_label(aid);
+    };
     if (actions.size() == 1)
     {
-        result.action = am.id_to_label(actions.begin()->first);
+        result.action = action_id_label(actions.begin()->first);
     }
     else
     {
         // Stochastic action from along-step!
         std::ostringstream os;
         os << '{'
-           << join_stream(actions.begin(),
-                          actions.end(),
-                          ", ",
-                          [&am, norm](std::ostream& os, auto const& kv) {
-                              os << '"' << am.id_to_label(kv.first)
-                                 << "\": " << kv.second * norm;
-                          })
+           << join_stream(
+                  actions.begin(),
+                  actions.end(),
+                  ", ",
+                  [&action_id_label, norm](std::ostream& os, auto const& kv) {
+                      os << '"' << action_id_label(kv.first)
+                         << "\": " << kv.second * norm;
+                  })
            << '}';
     }
 
@@ -172,6 +169,23 @@ void AlongStepTestBase::RunResult::print_expected() const
     cout << "EXPECT_EQ(" << repr(this->action)
          << ", result.action);\n"
             "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
+void AlongStepTestBase::execute_action(std::string const& label,
+                                       CoreState<MemSpace::host>& state)
+{
+    auto const& areg = *this->action_reg();
+
+    // Call pre-step action to set range, physics step
+    auto prestep_action_id = areg.find_action(label);
+    CELER_VALIDATE(prestep_action_id, << "no '" << label << "' action found");
+    auto const* prestep_action = dynamic_cast<ExplicitActionInterface const*>(
+        areg.action(prestep_action_id).get());
+    CELER_VALIDATE(prestep_action,
+                   << "action '" << label << "' cannot execute");
+    CELER_TRY_HANDLE(prestep_action->execute(*this->core(), state),
+                     LogContextException{this->output_reg().get()});
 }
 
 //---------------------------------------------------------------------------//
