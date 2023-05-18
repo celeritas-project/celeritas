@@ -72,10 +72,11 @@ void tracks_per_action(HostRef<CoreStateData> const& states,
         offsets[first.get()] = ThreadId{0};
     }
     // offsets.size() == num_actions + 1, have the last offsets be the # of
-    // threads for backfilling in case the last actions are not present
+    // tracks for backfilling correct values in case the last actions are not
+    // present
     offsets.back() = ThreadId{states.size()};
 
-    // in case some actions where not found, have them "start" at the next
+    // in case some actions were not found, have them "start" at the next
     // action offset.
     for (auto thread_id = offsets.end() - 2; thread_id >= offsets.begin();
          --thread_id)
