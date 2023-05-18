@@ -194,14 +194,6 @@ LANG = {
 }
 
 DEFS = {
-    "InitTracks": KernelDefinition(
-        Function("init_tracks", ParamList([
-            Param("{Memspace}CRef<CoreParamsData>", "core_params"),
-            Param("{Memspace}Ref<CoreStateData>", "core_states"),
-            Param("size_type", "num_vacancies"),
-        ])),
-        "num_vacancies",
-        []),
     "LocateAlive": KernelDefinition(
         Function("locate_alive", ParamList([
             Param("{Memspace}CRef<CoreParamsData>", "core_params"),

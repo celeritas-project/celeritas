@@ -89,7 +89,6 @@ list(APPEND SOURCES
   random/XorwowRngParams.cc
   track/ExtendFromPrimariesAction.cc
   track/ExtendFromSecondariesAction.cc
-  track/InitializeTracksAction.cc
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc
@@ -270,6 +269,7 @@ celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
+celeritas_polysource(track/InitializeTracksAction)
 celeritas_polysource(user/ActionDiagnostic)
 celeritas_polysource(user/StepDiagnostic)
 celeritas_polysource(user/detail/SimpleCaloImpl)
@@ -315,7 +315,6 @@ celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select" "pre_post")
 celeritas_gen_action("phys" "PreStepAction" "pre_step" "pre")
 celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
 
-celeritas_gen_trackinit("InitTracks")
 celeritas_gen_trackinit("LocateAlive")
 celeritas_gen_trackinit("ProcessPrimaries")
 celeritas_gen_trackinit("ProcessSecondaries")

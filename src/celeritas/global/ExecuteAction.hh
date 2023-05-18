@@ -26,15 +26,18 @@ namespace celeritas
  */
 template<class F>
 void execute_action(ExplicitActionInterface const& action,
+                    Range<ThreadId> threads,
                     celeritas::CoreParams const& params,
                     celeritas::CoreState<MemSpace::host>& state,
                     F&& apply_track)
 {
     MultiExceptionHandler capture_exception;
+    size_type const start{threads.begin()->unchecked_get()};
+    size_type const stop{threads.end()->unchecked_get()};
 #ifdef _OPENMP
 #    pragma omp parallel for
 #endif
-    for (size_type i = 0; i < state.size(); ++i)
+    for (size_type i = start; i < stop; ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             apply_track(ThreadId{i}),
@@ -45,6 +48,23 @@ void execute_action(ExplicitActionInterface const& action,
                                    action.label()));
     }
     log_and_rethrow(std::move(capture_exception));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to run an action in parallel on CPU over all states.
+ */
+template<class F>
+void execute_action(ExplicitActionInterface const& action,
+                    celeritas::CoreParams const& params,
+                    celeritas::CoreState<MemSpace::host>& state,
+                    F&& apply_track)
+{
+    return execute_action(action,
+                          Range<ThreadId>{ThreadId{0}, ThreadId{state.size()}},
+                          params,
+                          state,
+                          std::forward<F>(apply_track));
 }
 
 //---------------------------------------------------------------------------//

@@ -130,8 +130,8 @@ class ConditionalTrackLauncher
 
     CELER_FUNCTION void operator()(ThreadId thread)
     {
-        CELER_EXPECT(thread);
 #if CELER_DEVICE_COMPILE
+        CELER_EXPECT(thread);
         if (!(thread < state_.size()))
         {
             return;
