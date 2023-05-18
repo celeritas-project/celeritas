@@ -151,17 +151,16 @@ TEST_F(TestEm3DiagnosticTest, host)
 
         if (this->is_ci_build())
         {
-            static const size_type expected_actions[]
-                = {0u,    0u,  0u, 0u,   0u, 0u,  0u,    298u,  567u,
-                   19u,   0u,  0u, 0u,   0u, 0u,  1813u, 0u,    0u,
-                   0u,    0u,  0u, 0u,   0u, 0u,  1549u, 1010u, 0u,
-                   24u,   0u,  0u, 0u,   0u, 19u, 476u,  0u,    0u,
-                   281u,  0u,  0u, 0u,   0u, 0u,  0u,    0u,    0u,
-                   1186u, 59u, 0u, 87u,  0u, 0u,  0u,    124u,  15u,
-                   391u,  0u,  0u, 274u, 0u, 0u,  0u,    0u,    0u};
+            static const size_type expected_actions[] = {
+                0u,  0u,   0u, 0u,    0u,    0u, 0u,    298u, 567u, 19u, 0u,
+                0u,  0u,   0u, 0u,    0u,    0u, 1813u, 0u,   0u,   0u,  0u,
+                0u,  0u,   0u, 1549u, 1010u, 0u, 24u,   0u,   0u,   0u,  0u,
+                19u, 476u, 0u, 0u,    0u,    0u, 281u,  0u,   0u,   0u,  0u,
+                0u,  0u,   0u, 1186u, 59u,   0u, 87u,   0u,   0u,   0u,  124u,
+                15u, 391u, 0u, 0u,    0u,    0u, 274u,  0u,   0u,   0u,  0u};
             EXPECT_VEC_EQ(expected_actions, result.actions);
 
-            // ORANGE resuts are slightly different
+            // ORANGE results are slightly different
             static const size_type expected_steps[]
                 = {0u, 316u, 209u, 91u, 33u, 35u, 21u, 20u, 7u,  11u, 10u,
                    1u, 2u,   3u,   3u,  1u,  1u,  1u,  0u,  0u,  1u,  1u,

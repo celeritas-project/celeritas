@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/InitializeTracksAction.hh
+//! \file celeritas/track/ExtendFromPrimariesAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,34 +13,34 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Initialize track states.
+ * Create track initializers from queued host primary particles.
  *
- * Tracks created from secondaries produced in this action will have the
- * geometry state copied over from the parent instead of initialized from the
- * position. If there are more empty slots than new secondaries, they will be
- * filled by any track initializers remaining from previous steps using the
- * position.
+ * This will append to the queued TrackInitializer vector any primaries added
+ * with \c CoreState::insert_primaries .
  */
-class InitializeTracksAction final : public ExplicitActionInterface
+class ExtendFromPrimariesAction final : public ExplicitActionInterface
 {
   public:
     //! Construct with explicit Id
-    explicit InitializeTracksAction(ActionId id) : id_(id) {}
+    explicit ExtendFromPrimariesAction(ActionId id) : id_(id) {}
 
-    //! Execute the action with host data
+    // Execute the action with host data
     void execute(CoreParams const& params, CoreStateHost& state) const final;
 
-    //! Execute the action with device data
+    // Execute the action with device data
     void execute(CoreParams const& params, CoreStateDevice& state) const final;
 
     //! ID of the action
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string label() const final { return "initialize-tracks"; }
+    std::string label() const final { return "extend-from-primaries"; }
 
     //! Description of the action for user interaction
-    std::string description() const final { return "initialize track states"; }
+    std::string description() const final
+    {
+        return "create track initializers from primaries";
+    }
 
     //! Dependency ordering of the action
     ActionOrder order() const final { return ActionOrder::start; }

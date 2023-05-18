@@ -17,10 +17,11 @@
 #include "celeritas/SimpleTestBase.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
-#include "celeritas/track/TrackInitUtils.hh"
 
 #include "MockInteractAction.hh"
 #include "celeritas_test.hh"
@@ -139,6 +140,13 @@ class TrackInitTest : public TrackInitTestBase
         return *state_;
     }
 
+    void extend_from_primaries(Span<Primary const> primaries)
+    {
+        CELER_EXPECT(state_);
+        state_->insert_primaries(primaries);
+        ExtendFromPrimariesAction(ActionId{1}).execute(*this->core(), *state_);
+    }
+
   private:
     std::unique_ptr<CoreState<M>> state_;
 };
@@ -184,7 +192,7 @@ TYPED_TEST(TrackInitTest, run)
 
     // Create track initializers on device from primary particles
     auto primaries = this->make_primaries(num_primaries);
-    extend_from_primaries(*this->core(), this->state(), make_span(primaries));
+    this->extend_from_primaries(make_span(primaries));
 
     // Check the track IDs of the track initializers created from primaries
     {
@@ -302,8 +310,7 @@ TYPED_TEST(TrackInitTest, primaries)
     {
         // Create track initializers on device from primary particles
         auto primaries = this->make_primaries(num_primaries);
-        extend_from_primaries(
-            *this->core(), this->state(), make_span(primaries));
+        this->extend_from_primaries(make_span(primaries));
 
         // Initialize tracks on device
         initialize.execute(*this->core(), this->state());
@@ -355,7 +362,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
 
     // Create track initializers on device from primary particles
     auto primaries = this->make_primaries(num_primaries);
-    extend_from_primaries(*this->core(), this->state(), make_span(primaries));
+    this->extend_from_primaries(make_span(primaries));
     EXPECT_EQ(num_primaries, this->state().ref().init.scalars.num_initializers);
 
     auto apply_actions = [&actions, this] {

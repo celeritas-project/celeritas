@@ -74,9 +74,6 @@ class ExtendFromSecondariesAction final : public ExplicitActionInterface
     //! Construct with explicit Id
     explicit ExtendFromSecondariesAction(ActionId id) : id_(id) {}
 
-    //! Default destructor
-    ~ExtendFromSecondariesAction() = default;
-
     // Execute the action with host data
     void execute(CoreParams const& params, CoreStateHost& state) const final;
 
@@ -92,7 +89,7 @@ class ExtendFromSecondariesAction final : public ExplicitActionInterface
     //! Description of the action for user interaction
     std::string description() const final
     {
-        return "create secondary track initializers";
+        return "create track initializers from secondaries";
     }
 
     //! Dependency ordering of the action

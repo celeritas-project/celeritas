@@ -19,9 +19,9 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/PhysicsStepUtils.hh"
+#include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitParams.hh"
-#include "celeritas/track/TrackInitUtils.hh"
 
 namespace celeritas
 {
@@ -56,11 +56,11 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         }
 
         // Construct track initializers
-        extend_from_primaries(*this->core(), state, make_span(primaries));
+        this->extend_from_primaries(make_span(primaries), &state);
     }
 
     // Construct tracks
-    this->execute_action("initialize-tracks", state);
+    this->execute_action("initialize-tracks", &state);
 
     // Set remaining MFP and cached MSC range properties
     for (auto tid : range(ThreadId{num_tracks}))
@@ -75,7 +75,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     }
 
     // Call pre-step action to set range, physics step
-    this->execute_action("pre-step", state);
+    this->execute_action("pre-step", &state);
 
     // Call along-step action
     auto const& along_step = *this->along_step();
@@ -173,8 +173,9 @@ void AlongStepTestBase::RunResult::print_expected() const
 
 //---------------------------------------------------------------------------//
 void AlongStepTestBase::execute_action(std::string const& label,
-                                       CoreState<MemSpace::host>& state)
+                                       CoreState<MemSpace::host>* state)
 {
+    CELER_EXPECT(state);
     auto const& areg = *this->action_reg();
 
     // Call pre-step action to set range, physics step
@@ -184,8 +185,17 @@ void AlongStepTestBase::execute_action(std::string const& label,
         areg.action(prestep_action_id).get());
     CELER_VALIDATE(prestep_action,
                    << "action '" << label << "' cannot execute");
-    CELER_TRY_HANDLE(prestep_action->execute(*this->core(), state),
+    CELER_TRY_HANDLE(prestep_action->execute(*this->core(), *state),
                      LogContextException{this->output_reg().get()});
+}
+
+//---------------------------------------------------------------------------//
+void AlongStepTestBase::extend_from_primaries(Span<Primary const> primaries,
+                                              CoreState<MemSpace::host>* state)
+{
+    CELER_EXPECT(state);
+    state->insert_primaries(primaries);
+    this->execute_action("extend-from-primaries", state);
 }
 
 //---------------------------------------------------------------------------//
