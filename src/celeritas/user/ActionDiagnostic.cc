@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -157,7 +158,12 @@ auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
  */
 auto ActionDiagnostic::calc_actions() const -> VecVecCount
 {
-    CELER_EXPECT(store_);
+    if (!store_)
+    {
+        CELER_LOG(error) << "Tried to access action counters before executing "
+                            "any actions";
+        return {};
+    }
 
     // Get the raw data accumulated over all host/device streams
     VecCount counts(this->state_size(), 0);
