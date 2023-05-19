@@ -15,7 +15,7 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/ExecuteAction.hh"
 
-#include "detail/ProcessPrimariesLauncher.hh"
+#include "detail/ProcessPrimariesLauncher.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {

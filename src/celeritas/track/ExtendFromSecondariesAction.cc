@@ -13,9 +13,9 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/ExecuteAction.hh"
 
-#include "detail/LocateAliveLauncher.hh"
-#include "detail/ProcessSecondariesLauncher.hh"
-#include "detail/TrackInitAlgorithms.hh"
+#include "detail/LocateAliveLauncher.hh"  // IWYU pragma: associated
+#include "detail/ProcessSecondariesLauncher.hh"  // IWYU pragma: associated
+#include "detail/TrackInitAlgorithms.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
