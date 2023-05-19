@@ -41,11 +41,11 @@ void ExtendFromPrimariesAction::process_primaries(
     CoreStateDevice& state,
     Span<Primary const> primaries) const
 {
-    CELER_LAUNCH_KERNEL(
-        process_primaries,
-        celeritas::device().default_block_size(),
-        primaries.size(),
-        detail::ProcessPrimariesLauncher{state.ptr(), primaries});
+    CELER_LAUNCH_KERNEL(process_primaries,
+                        celeritas::device().default_block_size(),
+                        primaries.size(),
+                        detail::ProcessPrimariesLauncher{
+                            state.ptr(), primaries, state.counters()});
 }
 
 //---------------------------------------------------------------------------//

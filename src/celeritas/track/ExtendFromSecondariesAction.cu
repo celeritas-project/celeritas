@@ -70,7 +70,7 @@ void ExtendFromSecondariesAction::process_secondaries(
         core_state.size(),
         detail::ProcessSecondariesLauncher{core_params.ptr<MemSpace::native>(),
                                            core_state.ptr(),
-                                           core_state.ref().init.scalars});
+                                           core_state.counters()});
 }
 
 //---------------------------------------------------------------------------//

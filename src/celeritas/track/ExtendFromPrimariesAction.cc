@@ -44,21 +44,21 @@ void ExtendFromPrimariesAction::execute(CoreParams const& params,
  * Construct primaries.
  */
 template<MemSpace M>
-void ExtendFromPrimariesAction::execute_impl(CoreParams const& core_params,
-                                             CoreState<M>& core_state) const
+void ExtendFromPrimariesAction::execute_impl(CoreParams const& params,
+                                             CoreState<M>& state) const
 {
-    auto primary_range = core_state.primary_range();
+    auto primary_range = state.primary_range();
     if (primary_range.empty())
         return;
 
-    auto primaries = core_state.primary_storage()[primary_range];
+    auto primaries = state.primary_storage()[primary_range];
 
     // Create track initializers from primaries
-    core_state.ref().init.scalars.num_initializers += primaries.size();
-    this->process_primaries(core_params, core_state, primaries);
+    state.counters().num_initializers += primaries.size();
+    this->process_primaries(params, state, primaries);
 
     // Mark that the primaries have been processed
-    core_state.clear_primaries();
+    state.clear_primaries();
 }
 
 //---------------------------------------------------------------------------//
@@ -76,7 +76,8 @@ void ExtendFromPrimariesAction::process_primaries(
                    Range{ThreadId(primaries.size())},
                    params,
                    state,
-                   detail::ProcessPrimariesLauncher{state.ptr(), primaries});
+                   detail::ProcessPrimariesLauncher{
+                       state.ptr(), primaries, state.counters()});
 }
 
 //---------------------------------------------------------------------------//

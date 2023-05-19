@@ -51,7 +51,7 @@ struct InitTracksLauncher
     ParamsPtr params;
     StatePtr state;
     size_type num_new_tracks;
-    TrackInitScalars scalars;
+    CoreStateCounters counters;
 
     //// FUNCTIONS ////
 
@@ -80,12 +80,12 @@ CELER_FUNCTION void InitTracksLauncher::operator()(ThreadId tid) const
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
     auto const& data = state->init;
-    ItemId<TrackInitializer> idx{index_before(scalars.num_initializers, tid)};
+    ItemId<TrackInitializer> idx{index_before(counters.num_initializers, tid)};
     TrackInitializer const& init = data.initializers[idx];
 
     // Thread ID of vacant track where the new track will be initialized
     TrackSlotId vacancy = [&] {
-        TrackSlotId idx{index_before(scalars.num_vacancies, tid)};
+        TrackSlotId idx{index_before(counters.num_vacancies, tid)};
         return data.vacancies[idx];
     }();
 
@@ -105,7 +105,7 @@ CELER_FUNCTION void InitTracksLauncher::operator()(ThreadId tid) const
     // Initialize the geometry
     {
         GeoTrackView geo(params->geometry, state->geometry, vacancy);
-        if (tid < scalars.num_secondaries)
+        if (tid < counters.num_secondaries)
         {
             // Copy the geometry state from the parent for improved
             // performance

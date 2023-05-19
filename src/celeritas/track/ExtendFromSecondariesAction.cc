@@ -48,6 +48,7 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
                                                CoreState<M>& core_state) const
 {
     TrackInitStateData<Ownership::reference, M>& init = core_state.ref().init;
+    CoreStateCounters& counters = core_state.counters();
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
@@ -55,28 +56,28 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
-    init.scalars.num_vacancies = detail::remove_if_alive(init.vacancies);
+    counters.num_vacancies = detail::remove_if_alive(init.vacancies);
 
     // The exclusive prefix sum of the number of secondaries produced by each
     // track is used to get the start index in the vector of track initializers
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
-    init.scalars.num_secondaries
+    counters.num_secondaries
         = detail::exclusive_scan_counts(init.secondary_counts);
 
     // TODO: if we don't have space for all the secondaries, we will need to
     // buffer the current track initializers to create room
-    init.scalars.num_initializers += init.scalars.num_secondaries;
-    CELER_VALIDATE(init.scalars.num_initializers <= init.initializers.size(),
+    counters.num_initializers += counters.num_secondaries;
+    CELER_VALIDATE(counters.num_initializers <= init.initializers.size(),
                    << "insufficient capacity (" << init.initializers.size()
                    << ") for track initializers (created "
-                   << init.scalars.num_secondaries
+                   << counters.num_secondaries
                    << " new secondaries for a total capacity requirement of "
-                   << init.scalars.num_initializers << ")");
+                   << counters.num_initializers << ")");
 
     // Launch a kernel to create track initializers from secondaries
-    init.scalars.num_alive = core_state.size() - init.scalars.num_vacancies;
+    counters.num_alive = core_state.size() - counters.num_vacancies;
     this->process_secondaries(core_params, core_state);
 }
 
@@ -120,7 +121,7 @@ void ExtendFromSecondariesAction::process_secondaries(
         core_state,
         detail::ProcessSecondariesLauncher{core_params.ptr<MemSpace::native>(),
                                            core_state.ptr(),
-                                           core_state.ref().init.scalars});
+                                           core_state.counters()});
 }
 
 //---------------------------------------------------------------------------//

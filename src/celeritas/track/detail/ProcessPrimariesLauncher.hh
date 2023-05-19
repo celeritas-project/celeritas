@@ -39,6 +39,7 @@ struct ProcessPrimariesLauncher
 
     StatePtr state_;
     Span<Primary const> primaries_;
+    CoreStateCounters counters_;
 
     //// FUNCTIONS ////
 
@@ -61,11 +62,10 @@ CELER_FUNCTION void ProcessPrimariesLauncher::operator()(ThreadId tid) const
 #else
     CELER_EXPECT(tid < primaries_.size());
 #endif
-    auto& counters = state_->init.scalars;
-    CELER_ASSERT(primaries_.size() <= counters.num_initializers + tid.get());
+    CELER_ASSERT(primaries_.size() <= counters_.num_initializers + tid.get());
 
     ItemId<TrackInitializer> idx{
-        index_after(counters.num_initializers - primaries_.size(), tid)};
+        index_after(counters_.num_initializers - primaries_.size(), tid)};
     TrackInitializer& ti = state_->init.initializers[idx];
     Primary const& primary = primaries_[tid.unchecked_get()];
 

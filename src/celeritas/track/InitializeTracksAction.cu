@@ -45,7 +45,7 @@ void InitializeTracksAction::launch_impl(CoreParams const& params,
         detail::InitTracksLauncher{params.ptr<MemSpace::device>(),
                                    state.ptr(),
                                    num_new_tracks,
-                                   state.ref().init.scalars});
+                                   state.counters()});
 }
 
 //---------------------------------------------------------------------------//

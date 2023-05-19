@@ -50,24 +50,24 @@ template<MemSpace M>
 void InitializeTracksAction::execute_impl(CoreParams const& core_params,
                                           CoreState<M>& core_state) const
 {
-    auto& scalars = core_state.ref().init.scalars;
+    auto& counters = core_state.counters();
 
     // The number of new tracks to initialize is the smaller of the number of
     // empty slots in the track vector and the number of track initializers
     size_type num_new_tracks
-        = std::min(scalars.num_vacancies, scalars.num_initializers);
+        = std::min(counters.num_vacancies, counters.num_initializers);
     if (num_new_tracks > 0)
     {
         // Launch a kernel to initialize tracks
         this->launch_impl(core_params, core_state, num_new_tracks);
 
         // Update initializers/vacancies
-        scalars.num_initializers -= num_new_tracks;
-        scalars.num_vacancies -= num_new_tracks;
+        counters.num_initializers -= num_new_tracks;
+        counters.num_vacancies -= num_new_tracks;
     }
 
     // Store number of active tracks at the start of the loop
-    scalars.num_active = core_state.size() - scalars.num_vacancies;
+    counters.num_active = core_state.size() - counters.num_vacancies;
 }
 
 //---------------------------------------------------------------------------//
@@ -86,7 +86,7 @@ void InitializeTracksAction::launch_impl(CoreParams const& core_params,
         detail::InitTracksLauncher{core_params.ptr<MemSpace::native>(),
                                    core_state.ptr(),
                                    num_new_tracks,
-                                   core_state.ref().init.scalars});
+                                   core_state.counters()});
 }
 
 //---------------------------------------------------------------------------//
