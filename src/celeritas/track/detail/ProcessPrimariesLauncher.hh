@@ -37,9 +37,9 @@ struct ProcessPrimariesLauncher
 
     //// DATA ////
 
-    StatePtr state_;
-    Span<Primary const> primaries_;
-    CoreStateCounters counters_;
+    StatePtr state;
+    Span<Primary const> primaries;
+    CoreStateCounters counters;
 
     //// FUNCTIONS ////
 
@@ -55,19 +55,19 @@ CELER_FUNCTION void ProcessPrimariesLauncher::operator()(ThreadId tid) const
 {
 #if CELER_DEVICE_COMPILE
     CELER_EXPECT(tid);
-    if (!(tid < primaries_.size()))
+    if (!(tid < primaries.size()))
     {
         return;
     }
 #else
-    CELER_EXPECT(tid < primaries_.size());
+    CELER_EXPECT(tid < primaries.size());
 #endif
-    CELER_ASSERT(primaries_.size() <= counters_.num_initializers + tid.get());
+    CELER_ASSERT(primaries.size() <= counters.num_initializers + tid.get());
 
     ItemId<TrackInitializer> idx{
-        index_after(counters_.num_initializers - primaries_.size(), tid)};
-    TrackInitializer& ti = state_->init.initializers[idx];
-    Primary const& primary = primaries_[tid.unchecked_get()];
+        index_after(counters.num_initializers - primaries.size(), tid)};
+    TrackInitializer& ti = state->init.initializers[idx];
+    Primary const& primary = primaries[tid.unchecked_get()];
 
     // Construct a track initializer from a primary particle
     ti.sim.track_id = primary.track_id;
@@ -81,8 +81,8 @@ CELER_FUNCTION void ProcessPrimariesLauncher::operator()(ThreadId tid) const
     ti.particle.energy = primary.energy;
 
     // Update per-event counter of number of tracks created
-    CELER_ASSERT(ti.sim.event_id < state_->init.track_counters.size());
-    atomic_add(&state_->init.track_counters[ti.sim.event_id], size_type{1});
+    CELER_ASSERT(ti.sim.event_id < state->init.track_counters.size());
+    atomic_add(&state->init.track_counters[ti.sim.event_id], size_type{1});
 }
 
 //---------------------------------------------------------------------------//
