@@ -41,6 +41,7 @@ class GlobalSetup
     std::string const& GetEventFile() const { return event_file_; }
     int GetRootBufferSize() const { return root_buffer_size_; }
     bool GetWriteSDHits() const { return write_sd_hits_; }
+    bool GetSkipMasterSD() const { return skip_master_sd_; }
     bool StripGDMLPointers() const { return strip_gdml_pointers_; }
     //!@}
 
@@ -73,6 +74,7 @@ class GlobalSetup
     std::string event_file_;
     int root_buffer_size_{128000};
     bool write_sd_hits_{false};
+    bool skip_master_sd_{false};
     bool strip_gdml_pointers_{true};
     G4ThreeVector field_;
 

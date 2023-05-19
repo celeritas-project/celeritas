@@ -94,6 +94,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 //---------------------------------------------------------------------------//
 void DetectorConstruction::ConstructSDandField()
 {
+    if (demo_geant::GlobalSetup::Instance()->GetSkipMasterSD()
+        && G4Threading::IsMasterThread())
+    {
+        CELER_LOG_LOCAL(warning) << "Skipping SD construction on master "
+                                    "thread to emulate CMSSW";
+        return;
+    }
+
     CELER_LOG_LOCAL(status) << "Loading sensitive detectors";
 
     G4SDManager* sd_manager = G4SDManager::GetSDMpointer();

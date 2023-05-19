@@ -59,6 +59,14 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("false");
     }
     {
+        auto& cmd
+            = messenger_->DeclareProperty("skipMasterSD", skip_master_sd_);
+        cmd.SetGuidance(
+            "Emulate CMSSW by preventing SD construction on the master "
+            "thread");
+        cmd.SetDefaultValue("false");
+    }
+    {
         auto& cmd = messenger_->DeclareProperty("stripGDMLPointers",
                                                 strip_gdml_pointers_);
         cmd.SetGuidance(
