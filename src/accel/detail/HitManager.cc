@@ -65,7 +65,7 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     }
 
     // Logical volumes to pass to hit processor
-    std::vector<G4LogicalVolume*> geant_vols;
+    std::vector<G4LogicalVolume const*> geant_vols;
 
     // Loop over all logical volumes and map detectors to Volume IDS
     GeantVolumeMapper g4_to_celer{geo};
@@ -118,7 +118,7 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
                       "HitManager");
     processors_.resize(celeritas::get_num_threads(*run_man));
 
-    geant_vols_ = std::make_shared<std::vector<G4LogicalVolume*>>(
+    geant_vols_ = std::make_shared<std::vector<G4LogicalVolume const*>>(
         std::move(geant_vols));
     CELER_ENSURE(geant_vols_ && geant_vols_->size() == vecgeom_vols_.size());
 }

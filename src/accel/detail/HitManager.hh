@@ -64,7 +64,7 @@ class HitManager final : public StepInterface
     bool nonzero_energy_deposition_{};
     bool locate_touchable_{};
     StepSelection selection_;
-    std::shared_ptr<const std::vector<G4LogicalVolume*>> geant_vols_;
+    std::shared_ptr<const std::vector<G4LogicalVolume const*>> geant_vols_;
     std::vector<VolumeId> vecgeom_vols_;
     std::vector<std::unique_ptr<HitProcessor>> processors_;
 
