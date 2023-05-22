@@ -8,16 +8,24 @@
 %module "celeritas"
 
 %include <cstring.i>
+%include <std_string.i>
+%include <std_vector.i>
+
+%include "detail/macros.i"
 %feature("flatnested");
 
 //---------------------------------------------------------------------------//
 // CONFIG FILE
 //---------------------------------------------------------------------------//
 %{
+#include "celeritas_version.h"
 #include "celeritas_config.h"
+#include "celeritas_cmake_strings.h"
 %}
 
+%include "celeritas_version.h"
 %include "celeritas_config.h"
+%include "celeritas_cmake_strings.h"
 
 //---------------------------------------------------------------------------//
 // ASSERTIONS
@@ -49,7 +57,6 @@
 %include "corecel/Macros.hh"
 %include "corecel/Types.hh"
 
-%include <std_vector.i>
 %template(VecReal) std::vector<celeritas::real_type>;
 
 //---------------------------------------------------------------------------//
@@ -79,17 +86,17 @@
 //---------------------------------------------------------------------------//
 
 %{
-#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/io/ImportData.hh"
 %}
 
 namespace celeritas
 {
-%rename(table_type_to_string) to_cstring(ImportTableType);
-%rename(units_to_string) to_cstring(ImportUnits);
-%rename(vector_type_to_string) to_cstring(ImportPhysicsVectorType);
-%rename(process_type_to_string) to_cstring(ImportProcessType);
-%rename(process_class_to_string) to_cstring(ImportProcessClass);
-%rename(model_to_string) to_cstring(ImportModelClass);
+%celer_rename_to_cstring(table_type, ImportTableType);
+%celer_rename_to_cstring(units, ImportUnits);
+%celer_rename_to_cstring(vector_type, ImportPhysicsVectorType);
+%celer_rename_to_cstring(process_type, ImportProcessType);
+%celer_rename_to_cstring(process_class, ImportProcessClass);
+%celer_rename_to_cstring(model, ImportModelClass);
 %rename(process_class_to_geant_name) to_geant_name(ImportProcessClass);
 %rename(model_to_geant_name) to_geant_name(ImportModelClass);
 
@@ -126,9 +133,6 @@ namespace celeritas
 
 %include "celeritas/io/ImportData.hh"
 
-%rename(RootImportResult) celeritas::RootImporter::result_type;
-%include "celeritas/ext/RootImporter.hh"
-
 //---------------------------------------------------------------------------//
 
 %{
@@ -148,5 +152,31 @@ namespace celeritas
 %template(VecImportLivermoreSubshell) std::vector<celeritas::ImportLivermoreSubshell>;
 
 %include "celeritas/io/LivermorePEReader.hh"
+
+//---------------------------------------------------------------------------//
+// EXT
+//---------------------------------------------------------------------------//
+%{
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/RootExporter.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/GeantImporter.hh"
+%}
+
+namespace celeritas
+{
+%celer_rename_to_cstring(brems_model, BremsModelSelection);
+%celer_rename_to_cstring(msc_model, MscModelSelection);
+%celer_rename_to_cstring(relaxation_selection, RelaxationSelection);
+
+%warnfilter(362) GeantSetup::operator=;
+}
+
+%include "celeritas/ext/RootImporter.hh"
+%include "celeritas/ext/RootExporter.hh"
+%include "celeritas/ext/GeantPhysicsOptions.hh"
+%include "celeritas/ext/GeantSetup.hh"
+%include "celeritas/ext/GeantImporter.hh"
 
 // vim: set ft=lex ts=2 sw=2 sts=2 :
