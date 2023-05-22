@@ -8,6 +8,7 @@
 %module "celeritas"
 
 %include <cstring.i>
+%include <std_map.i>
 %include <std_string.i>
 %include <std_vector.i>
 
@@ -131,6 +132,17 @@ namespace celeritas
 %include "celeritas/io/ImportVolume.hh"
 %template(VecImportVolume) std::vector<celeritas::ImportVolume>;
 
+%include "celeritas/io/ImportAtomicRelaxation.hh"
+%template(VecImportAtomicTransition) std::vector<celeritas::ImportAtomicTransition>;
+
+%include "celeritas/io/ImportSBTable.hh"
+
+%include "celeritas/io/ImportLivermorePE.hh"
+%template(VecImportLivermoreSubshell) std::vector<celeritas::ImportLivermoreSubshell>;
+
+%template(MapIAR) std::map<int, celeritas::ImportAtomicRelaxation>;
+%template(MapLivermorePE) std::map<int, celeritas::ImportLivermorePE>;
+%template(MapImportSB) std::map<int, celeritas::ImportSBTable>;
 %include "celeritas/io/ImportData.hh"
 
 //---------------------------------------------------------------------------//
@@ -139,7 +151,6 @@ namespace celeritas
 #include "celeritas/io/SeltzerBergerReader.hh"
 %}
 
-%include "celeritas/io/ImportSBTable.hh"
 %include "celeritas/io/SeltzerBergerReader.hh"
 
 //---------------------------------------------------------------------------//
@@ -147,9 +158,6 @@ namespace celeritas
 %{
 #include "celeritas/io/LivermorePEReader.hh"
 %}
-
-%include "celeritas/io/ImportLivermorePE.hh"
-%template(VecImportLivermoreSubshell) std::vector<celeritas::ImportLivermoreSubshell>;
 
 %include "celeritas/io/LivermorePEReader.hh"
 
