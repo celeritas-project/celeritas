@@ -28,6 +28,7 @@
 #include <G4Proton.hh>
 #include <G4RayleighScattering.hh>
 #include <G4UrbanMscModel.hh>
+#include <G4Version.hh>
 #include <G4WentzelVIModel.hh>
 #include <G4eCoulombScatteringModel.hh>
 #include <G4eIonisation.hh>
@@ -188,7 +189,14 @@ void GeantPhysicsList::add_gamma_processes()
     if (options_.rayleigh_scattering)
     {
         // Rayleigh: G4LivermoreRayleighModel
-        add_process(new G4RayleighScattering());
+        auto rayl = std::make_unique<G4RayleighScattering>();
+        if (G4VERSION_NUMBER >= 1110)
+        {
+            // Revert MinKinEnergy to its Geant 11.0 value so that the lower
+            // and energy grids have the same log spacing
+            rayl->SetMinKinEnergyPrim(100 * CLHEP::keV);
+        }
+        add_process(rayl.release());
         CELER_LOG(debug) << "Loaded Rayleigh scattering with "
                             "G4LivermoreRayleighModel";
     }
