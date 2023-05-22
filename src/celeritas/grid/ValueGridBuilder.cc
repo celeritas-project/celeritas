@@ -12,7 +12,6 @@
 #include <utility>
 
 #include "corecel/Types.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/grid/UniformGridData.hh"
@@ -50,6 +49,11 @@ bool has_log_spacing(SpanConstReal vec)
             return false;
     }
     return true;
+}
+
+bool has_same_log_spacing(SpanConstReal first, SpanConstReal second)
+{
+    return soft_equal(calc_log_delta(first), calc_log_delta(second));
 }
 
 bool is_nonnegative(SpanConstReal vec)
@@ -105,6 +109,7 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
     CELER_EXPECT(is_contiguous_increasing(lambda_energy, lambda_prim_energy));
     CELER_EXPECT(has_log_spacing(lambda_energy)
                  && has_log_spacing(lambda_prim_energy));
+    CELER_EXPECT(has_same_log_spacing(lambda_energy, lambda_prim_energy));
     CELER_EXPECT(lambda.size() == lambda_energy.size());
     CELER_EXPECT(lambda_prim.size() == lambda_prim_energy.size());
     CELER_EXPECT(soft_equal(lambda.back(),
@@ -118,30 +123,8 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
     dst = std::copy(lambda_prim.begin(), lambda_prim.end(), dst);
     CELER_ASSERT(dst == xs.end());
 
-
-    real_type const emin = [&] {
-        real_type const log_delta_lo = calc_log_delta(lambda_energy);
-        real_type const log_delta_hi = calc_log_delta(lambda_prim_energy);
-
-        if (soft_equal(log_delta_lo, log_delta_hi))
-        {
-            // Always the case for Geant4 < 11.1
-            return lambda_energy.front();
-        }
-        real_type const adjusted
-            = lambda_energy.back()
-              / std::pow(log_delta_hi, lambda_energy.size() - 1);
-        CELER_LOG(warning)
-            << "Adjusting cross section energy lower limit from "
-            << lambda_energy.front() << " to " << adjusted
-            << " [MeV] due to unexpected grid spacing";
-
-        // Reset lower energy point based on high energy spacing
-        return adjusted;
-    }();
-
     // Construct the grid
-    return std::make_unique<ValueGridXsBuilder>(emin,
+    return std::make_unique<ValueGridXsBuilder>(lambda_energy.front(),
                                                 lambda_prim_energy.front(),
                                                 lambda_prim_energy.back(),
                                                 VecReal(std::move(xs)));
