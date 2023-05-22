@@ -20,6 +20,8 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 
 namespace celeritas
 {
@@ -65,12 +67,69 @@ void sort_impl(TrackSlots const& track_slots, F&& func)
     CELER_DEVICE_CHECK_ERROR();
 }
 
+template<class F>
+__device__ void tracks_per_action_impl(DeviceRef<CoreStateData> const& states,
+                                       F&& action_accessor)
+{
+    ThreadId tid = celeritas::KernelParamCalculator::thread_id();
+    Span<ThreadId> offsets = states.thread_offsets[AllItems<ThreadId>{}];
+
+    if (tid < states.thread_offsets.size())
+    {
+        // fill
+        offsets[tid.get()] = ThreadId{};
+    }
+
+    __syncthreads();
+
+    if ((tid < states.size()) && tid.get() != 0)
+    {
+        ActionId current_action = action_accessor(tid);
+        ActionId previous_action = action_accessor(tid - 1);
+        if (current_action && current_action != previous_action)
+        {
+            offsets[current_action.get()] = tid;
+        }
+    }
+
+    __syncthreads();
+    // TODO: on CPU? Most likely faster and no need for a barrier
+    if (tid.get() == 0)
+    {
+        offsets.back() = ThreadId{states.size()};
+        for (auto thread_id = offsets.end() - 2; thread_id >= offsets.begin();
+             --thread_id)
+        {
+            if (*thread_id == ThreadId{})
+            {
+                *thread_id = *(thread_id + 1);
+            }
+        }
+    }
+}
+
 // PRE: action_accessor is sorted, i.e. i <= j ==> action_accessor(i) <=
 // action_accessor(j)
-template<class F>
-void tracks_per_action(DeviceRef<CoreStateData> const& states,
-                       F&& action_accessor)
+__global__ void tracks_per_action_kernel(DeviceRef<CoreStateData> const states,
+                                         TrackOrder order)
 {
+    // DISPATCH here since CELER_LAUNCH_KERNEL doesn't work with templated
+    // kernels
+    switch (order)
+    {
+        case TrackOrder::sort_along_step_action:
+            return tracks_per_action_impl(
+                states,
+                along_step_action_accessor{states.sim.along_step_action.data(),
+                                           states.track_slots.data()});
+        case TrackOrder::sort_step_limit_action:
+            return tracks_per_action_impl(
+                states,
+                step_limit_action_accessor{states.sim.step_limit.data(),
+                                           states.track_slots.data()});
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -122,13 +181,26 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
             return partition_impl(states.track_slots,
                                   alive_predicate{states.sim.status.data()});
         case TrackOrder::sort_along_step_action:
-            return sort_impl(
+            sort_impl(
                 states.track_slots,
                 along_action_comparator{states.sim.along_step_action.data()});
+            CELER_LAUNCH_KERNEL(tracks_per_action,
+                                celeritas::device().default_block_size(),
+                                states.size(),
+                                states,
+                                order);
+            CELER_DEVICE_CHECK_ERROR();
+            return;
         case TrackOrder::sort_step_limit_action:
-            return sort_impl(
-                states.track_slots,
-                step_limit_comparator{states.sim.step_limit.data()});
+            sort_impl(states.track_slots,
+                      step_limit_comparator{states.sim.step_limit.data()});
+            CELER_LAUNCH_KERNEL(tracks_per_action,
+                                celeritas::device().default_block_size(),
+                                states.size(),
+                                states,
+                                order);
+            CELER_DEVICE_CHECK_ERROR();
+            return;
         default:
             CELER_ASSERT_UNREACHABLE();
     }

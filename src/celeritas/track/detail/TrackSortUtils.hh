@@ -91,6 +91,28 @@ struct along_action_comparator
     }
 };
 
+struct step_limit_action_accessor
+{
+    ObserverPtr<StepLimit const> step_limit_;
+    ObserverPtr<TrackSlotId::size_type const> track_slots_;
+
+    CELER_FUNCTION ActionId operator()(ThreadId tid) const
+    {
+        return step_limit_.get()[track_slots_.get()[tid.get()]].action;
+    }
+};
+
+struct along_step_action_accessor
+{
+    ObserverPtr<ActionId const> along_step_;
+    ObserverPtr<TrackSlotId::size_type const> track_slots_;
+
+    CELER_FUNCTION ActionId operator()(ThreadId tid) const
+    {
+        return along_step_.get()[track_slots_.get()[tid.get()]];
+    }
+};
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//

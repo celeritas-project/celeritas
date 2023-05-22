@@ -68,8 +68,7 @@ void tracks_per_action(HostRef<CoreStateData> const& states,
 
     // Initialize the offset for the 1st action range if valid, always starts
     // at 0
-    ActionId first = action_accessor(ThreadId{0});
-    if (first)
+    if (ActionId first = action_accessor(ThreadId{0}))
     {
         offsets[first.get()] = ThreadId{0};
     }
