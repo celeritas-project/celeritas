@@ -9,7 +9,12 @@
 
 #include <cctype>
 #include <memory>
-#include <G4strstreambuf.hh>
+#include <G4Version.hh>
+#if CELER_G4SSBUF
+#    include <G4strstreambuf.hh>
+#else
+#    include <G4ios.hh>
+#endif
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
@@ -23,12 +28,19 @@ namespace detail
  * Redirect geant4's stdout/cerr on construction.
  */
 GeantLoggerAdapter::GeantLoggerAdapter()
+#if CELER_G4SSBUF
     : saved_cout_(G4coutbuf.GetDestination())
     , saved_cerr_(G4cerrbuf.GetDestination())
 {
     G4coutbuf.SetDestination(this);
     G4cerrbuf.SetDestination(this);
 }
+#else
+{
+    // See Geant4 change global-V11-01-01
+    G4iosSetDestination(this);
+}
+#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -36,6 +48,7 @@ GeantLoggerAdapter::GeantLoggerAdapter()
  */
 GeantLoggerAdapter::~GeantLoggerAdapter()
 {
+#if CELER_G4SSBUF
     if (G4coutbuf.GetDestination() == this)
     {
         G4coutbuf.SetDestination(saved_cout_);
@@ -44,6 +57,9 @@ GeantLoggerAdapter::~GeantLoggerAdapter()
     {
         G4cerrbuf.SetDestination(saved_cerr_);
     }
+#else
+    G4iosSetDestination(nullptr);
+#endif
 }
 
 //---------------------------------------------------------------------------//
