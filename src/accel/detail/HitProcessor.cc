@@ -123,9 +123,13 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     detectors_.resize(detector_volumes_->size());
     for (auto i : range(detectors_.size()))
     {
-        CELER_ASSERT((*detector_volumes_)[i]);
-        detectors_[i] = (*detector_volumes_)[i]->GetSensitiveDetector();
-        CELER_ENSURE(detectors_[i]);
+        G4LogicalVolume const* lv = (*detector_volumes_)[i];
+        CELER_ASSERT(lv);
+        detectors_[i] = lv->GetSensitiveDetector();
+        CELER_VALIDATE(detectors_[i],
+                       << "no sensitive detector is attached to volume '"
+                       << lv->GetName() << "'@"
+                       << static_cast<void const*>(lv));
     }
 
     CELER_ENSURE(!detectors_.empty());

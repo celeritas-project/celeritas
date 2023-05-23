@@ -87,6 +87,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         }
     }
 
+    if (demo_geant::GlobalSetup::Instance()->GetSkipMasterSD()
+        && G4Threading::IsMasterThread())
+    {
+        // Since the worker threads don't create SDs, we have to add them
+        // ourselves.
+        auto& sd = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
+
+        for (auto& [_, lv] : detectors_)
+        {
+            sd.force_volumes.push_back(lv);
+        }
+    }
+
     // Claim ownership of world volume and pass it to the caller
     return gdml_parser.GetWorldVolume();
 }
@@ -122,8 +135,10 @@ void DetectorConstruction::ConstructSDandField()
         // Attach sensitive detectors
         for (; iter != stop; ++iter)
         {
-            CELER_LOG_LOCAL(debug) << "Attaching " << iter->first << " to "
-                                   << iter->second->GetName();
+            CELER_LOG_LOCAL(debug)
+                << "Attaching '" << iter->first << "'@" << detector.get()
+                << " to '" << iter->second->GetName() << "'@"
+                << static_cast<void const*>(iter->second);
             iter->second->SetSensitiveDetector(detector.get());
         }
 
