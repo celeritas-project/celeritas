@@ -8,6 +8,7 @@
 #include "ImportedProcessAdapter.hh"
 
 #include <algorithm>
+#include <exception>
 #include <tuple>
 #include <type_traits>
 
@@ -26,6 +27,42 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Rough helper class to hopefully help a little with debugging errors
+class IPAContextException : public RichContextException
+{
+  public:
+    IPAContextException(ParticleId id, ImportProcessClass ipc, MaterialId mid);
+
+    //! This class type
+    char const* type() const final { return "ImportProcessAdapterContext"; }
+
+    // Save context to a JSON object
+    void output(JsonPimpl*) const final {}
+
+    //! Get an explanatory message
+    char const* what() const noexcept final { return what_.c_str(); }
+
+  private:
+    std::string what_;
+};
+
+//---------------------------------------------------------------------------//
+IPAContextException::IPAContextException(ParticleId id,
+                                         ImportProcessClass ipc,
+                                         MaterialId mid)
+{
+    std::stringstream os;
+    os << "Particle ID=" << id.unchecked_get() << ", process '"
+       << to_cstring(ipc) << ", material ID=" << mid.unchecked_get();
+    what_ = os.str();
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported data.
@@ -106,7 +143,7 @@ ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
                                                SPConstParticles const& particles,
                                                ImportProcessClass process_class,
                                                SpanConstPDG pdg_numbers)
-    : imported_(std::move(imported))
+    : imported_(std::move(imported)), process_class_(process_class)
 {
     CELER_EXPECT(particles);
     CELER_EXPECT(!pdg_numbers.empty());
@@ -186,7 +223,25 @@ ImportedProcessAdapter::ImportedProcessAdapter(
 /*!
  * Get the interaction cross sections for the given material and particle.
  */
-auto ImportedProcessAdapter::step_limits(Applicability applic) const
+auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
+    -> StepLimitBuilders
+{
+    try
+    {
+        return this->step_limits_impl(std::move(applic));
+    }
+    catch (...)
+    {
+        std::throw_with_nested(IPAContextException(
+            applic.particle, process_class_, applic.material));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the interaction cross sections for the given material and particle.
+ */
+auto ImportedProcessAdapter::step_limits_impl(Applicability const& applic) const
     -> StepLimitBuilders
 {
     CELER_EXPECT(ids_.count(applic.particle));
