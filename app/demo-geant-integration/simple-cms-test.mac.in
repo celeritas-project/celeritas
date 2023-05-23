@@ -9,6 +9,6 @@
 /setup/maxNumTracks @DEMO_MAX_NUM_TRACKS@
 /setup/maxNumEvents 1024
 @DEMO_ROOT_OPTIONS@
-/setup/skipMasterSD true
+/setup/skipMasterSD false
 /setup/secondaryStackFactor 3
 /setup/initializerCapacity @DEMO_INIT_CAPACITY@
