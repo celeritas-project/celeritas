@@ -17,12 +17,38 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Register an implicit action.
+ * Register a mutable action.
+ */
+void ActionRegistry::insert_mutable(SPAction action)
+{
+    CELER_EXPECT(action);
+    if (dynamic_cast<BeginRunActionInterface*>(action.get()))
+    {
+        mutable_actions_.push_back(action);
+    }
+    return this->insert_impl(std::move(action));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Register an immutable action.
  */
 void ActionRegistry::insert(SPConstAction action)
 {
     CELER_EXPECT(action);
+    CELER_VALIDATE(!dynamic_cast<BeginRunActionInterface const*>(action.get()),
+                   << "begin-run action '" << action->label()
+                   << "' (ID=" << action->action_id().unchecked_get()
+                   << ") cannot be registered as const");
+    return this->insert_impl(std::move(action));
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Register an implicit action.
+ */
+void ActionRegistry::insert_impl(SPConstAction&& action)
+{
     auto label = action->label();
     CELER_VALIDATE(!label.empty(), << "action label is empty");
 

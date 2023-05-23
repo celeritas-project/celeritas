@@ -17,7 +17,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class MyExplicitAction final : public ExplicitActionInterface
+class MyExplicitAction final : public ExplicitActionInterface,
+                               public BeginRunActionInterface
 {
   public:
     MyExplicitAction(ActionId ai, ActionOrder ao) : action_id_(ai), order_{ao}
@@ -27,6 +28,15 @@ class MyExplicitAction final : public ExplicitActionInterface
     ActionId action_id() const final { return action_id_; }
     std::string label() const final { return "explicit"; }
     std::string description() const final { return "explicit action test"; }
+
+    void begin_run(CoreParams const&, CoreStateHost&) final
+    {
+        host_count_ = 0;
+    }
+    void begin_run(CoreParams const&, CoreStateDevice&) final
+    {
+        device_count_ = 0;
+    }
 
     void execute(CoreParams const&, CoreStateHost&) const final
     {
@@ -45,8 +55,8 @@ class MyExplicitAction final : public ExplicitActionInterface
   private:
     ActionId action_id_;
     ActionOrder order_;
-    mutable int host_count_{0};
-    mutable int device_count_{0};
+    mutable int host_count_{-100};
+    mutable int device_count_{-100};
 };
 
 class MyImplicitAction final : public ConcreteAction
@@ -75,7 +85,7 @@ class ActionRegistryTest : public Test
 
         expl_action = std::make_shared<MyExplicitAction>(mgr.next_id(),
                                                          ActionOrder::pre);
-        mgr.insert(expl_action);
+        mgr.insert_mutable(expl_action);
 
         auto impl2 = std::make_shared<MyImplicitAction>(
             mgr.next_id(), "impl2", "the second implicit action");
@@ -106,6 +116,9 @@ TEST_F(ActionRegistryTest, accessors)
     EXPECT_EQ("explicit", mgr.id_to_label(expl_id));
 
     EXPECT_STREQ("pre", to_cstring(expl_action->order()));
+
+    ASSERT_EQ(1, mgr.mutable_actions().size());
+    EXPECT_EQ(expl_action, mgr.mutable_actions().front());
 }
 
 TEST_F(ActionRegistryTest, output)

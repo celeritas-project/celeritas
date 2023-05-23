@@ -14,6 +14,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
 
 #include "ActionInterface.hh"
@@ -42,6 +43,7 @@ class ActionRegistry
   public:
     //!@{
     //! \name Type aliases
+    using SPAction = std::shared_ptr<ActionInterface>;
     using SPConstAction = std::shared_ptr<ActionInterface const>;
     //!@}
 
@@ -54,7 +56,10 @@ class ActionRegistry
     //! Get the next available action ID
     ActionId next_id() const { return ActionId(actions_.size()); }
 
-    // Register an action
+    // Register a mutable action
+    void insert_mutable(SPAction);
+
+    // Register a const action
     void insert(SPConstAction);
 
     //// ACCESSORS ////
@@ -74,12 +79,18 @@ class ActionRegistry
     // Find the action corresponding to an label
     ActionId find_action(std::string const& label) const;
 
+    // View all actions that are able to change at runtime
+    inline Span<SPAction const> mutable_actions() const;
+
   private:
     //// DATA ////
 
     std::vector<SPConstAction> actions_;
     std::vector<std::string> labels_;
     std::unordered_map<std::string, ActionId> action_ids_;
+    std::vector<SPAction> mutable_actions_;
+
+    void insert_impl(SPConstAction&&);
 };
 
 //---------------------------------------------------------------------------//
@@ -102,6 +113,15 @@ std::string const& ActionRegistry::id_to_label(ActionId id) const
 {
     CELER_EXPECT(id < actions_.size());
     return labels_[id.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * View all actions that are able to change at runtime.
+ */
+auto ActionRegistry::mutable_actions() const -> Span<SPAction const>
+{
+    return make_span(mutable_actions_);
 }
 
 //---------------------------------------------------------------------------//
