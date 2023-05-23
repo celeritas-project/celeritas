@@ -43,10 +43,6 @@ tally_action_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
 void ActionDiagnostic::execute(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    if (!store_)
-    {
-        this->build_stream_store();
-    }
     CELER_LAUNCH_KERNEL(
         tally_action,
         celeritas::device().default_block_size(),
