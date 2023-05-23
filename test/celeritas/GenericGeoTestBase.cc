@@ -166,8 +166,11 @@ auto GenericGeoTestBase<HP, S, TV>::track(Real3 const& pos, Real3 const& dir)
             result.volumes.push_back("[NO INTERCEPT]");
             break;
         }
-        geo.move_internal(next.distance / 2);
-        result.halfway_safeties.push_back(geo.find_safety());
+        if (next.distance > real_type(1e-7))
+        {
+            geo.move_internal(next.distance / 2);
+            result.halfway_safeties.push_back(geo.find_safety());
+        }
         geo.move_to_boundary();
         geo.cross_boundary();
     }

@@ -263,7 +263,7 @@ TEST_F(FourLevelsTest, safety)
 
     for (auto i : range(11))
     {
-        real_type r = 2.0 * i;
+        real_type r = 2.0 * i + 0.1;
         geo = {{r, r, r}, {1, 0, 0}};
 
         if (!geo.is_outside())
@@ -273,17 +273,17 @@ TEST_F(FourLevelsTest, safety)
         }
     }
 
-    static real_type const expected_safeties[] = {3,
-                                                  1,
-                                                  0,
-                                                  1.92820323027551,
-                                                  1.53589838486225,
-                                                  5,
-                                                  1.53589838486225,
-                                                  1.92820323027551,
-                                                  0,
-                                                  1,
-                                                  3};
+    static double const expected_safeties[] = {2.9,
+                                               0.9,
+                                               0.1,
+                                               1.7549981495186,
+                                               1.7091034656191,
+                                               4.8267949192431,
+                                               1.3626933041054,
+                                               1.9,
+                                               0.1,
+                                               1.1,
+                                               3.1};
     EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
 }
 
@@ -495,7 +495,6 @@ TEST_F(SolidsTest, trace)
                                                        9.9999995,
                                                        8.7499995,
                                                        75,
-                                                       0,
                                                        0,
                                                        11.928052271225,
                                                        43.188475615448,
