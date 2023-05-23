@@ -10,6 +10,8 @@
 #include <TFile.h>
 #include <TTree.h>
 
+#include "corecel/io/Logger.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -20,6 +22,9 @@ namespace celeritas
 template<class T>
 void RootWritableDeleter<T>::operator()(T* ptr)
 {
+    CELER_EXPECT(ptr);
+    CELER_LOG(debug) << "Writing " << ptr->ClassName() << " '"
+                     << ptr->GetName() << "'";
     ptr->Write();
     delete ptr;
 }
@@ -32,6 +37,9 @@ void RootWritableDeleter<T>::operator()(T* ptr)
 template<class T>
 void ExternDeleter<T>::operator()(T* ptr)
 {
+    CELER_EXPECT(ptr);
+    CELER_LOG(debug) << "Closing " << ptr->ClassName() << " '"
+                     << ptr->GetName() << "'";
     delete ptr;
 }
 
