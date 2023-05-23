@@ -30,6 +30,13 @@ template<Ownership, MemSpace>
 struct OrangeParamsData;
 class OrangeTrackView;
 
+class GeantGeoParams;
+template<Ownership, MemSpace>
+struct GeantGeoStateData;
+template<Ownership, MemSpace>
+struct GeantGeoParamsData;
+class GeantGeoTrackView;
+
 //---------------------------------------------------------------------------//
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 using GeoParams = VecgeomParams;

@@ -55,6 +55,10 @@ CMake configuration utility functions for Celeritas.
   the ``Celeritas::`` aliases, and is generated into the ``lib/`` build
   directory.
 
+.. command:: celeritas_add_object_library
+
+  Add an OBJECT library to reduce dependencies (e.g. includes) from other libraries.
+
 .. command:: celeritas_add_executable
 
   Create an executable and install it::
@@ -258,6 +262,19 @@ function(celeritas_add_library target)
 
   # Install all targets to lib/
   install(TARGETS ${_targets}
+    EXPORT celeritas-targets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    COMPONENT runtime
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+# Add an object library to limit the propagation of includes to the rest of the
+# library.
+function(celeritas_add_object_library target)
+  add_library(${target} OBJECT ${ARGN})
+  install(TARGETS ${target}
     EXPORT celeritas-targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"

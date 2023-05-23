@@ -79,6 +79,9 @@ endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
+if(CELERITAS_USE_VecGeom)
+  set(_optional_vecgeom_link VecGeom::vecgeom)
+endif()
 if(CELERITAS_DEBUG)
   set(_disable_if_debug DISABLE)
 endif()
@@ -229,7 +232,7 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 # CELERITAS TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(testcel_celeritas
+celeritas_add_object_library(testcel_celeritas_core
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
   celeritas/phys/InteractorHostTestBase.cc
@@ -237,7 +240,6 @@ celeritas_add_library(testcel_celeritas
   celeritas/phys/MockModel.cc
   celeritas/phys/MockProcess.cc
   celeritas/GeantTestBase.cc
-  celeritas/GenericGeoTestBase.cc
   celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
   celeritas/ImportedDataTestBase.cc
@@ -253,9 +255,28 @@ celeritas_add_library(testcel_celeritas
   celeritas/user/MctruthTestBase.cc
   celeritas/user/StepCollectorTestBase.cc
 )
+target_link_libraries(testcel_celeritas_core
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_optional_json_link}
+)
 
+# Geometry
+celeritas_add_object_library(testcel_celeritas_geo
+  celeritas/GenericGeoTestBase.cc
+)
+set(_geo_libs
+  Celeritas::orange ${_optional_vecgeom_link} ${_optional_geant4_link}
+)
+target_link_libraries(testcel_celeritas_geo
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_geo_libs}
+)
+
+celeritas_add_library(testcel_celeritas
+  $<TARGET_OBJECTS:testcel_celeritas_core>
+  $<TARGET_OBJECTS:testcel_celeritas_geo>
+)
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link} Celeritas::orange
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas
+  ${_geo_libs} ${_optional_json_link}
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas

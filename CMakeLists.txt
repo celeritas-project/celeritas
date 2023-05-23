@@ -111,9 +111,10 @@ celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
 
 # Runtime geometry selection: default to VecGeom if available
-set(_allow_vecgeom FALSE)
 if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
   set(_allow_vecgeom TRUE)
+else()
+  set(_allow_vecgeom FALSE)
 endif()
 celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
 celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
@@ -274,6 +275,11 @@ if(CELERITAS_BUILD_DOCS)
       OFF
     )
   endif()
+endif()
+
+if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
+  # Make sure modules, sub-libraries, etc. are relocatable
+  set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 endif()
 
 #----------------------------------------------------------------------------#
