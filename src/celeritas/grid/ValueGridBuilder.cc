@@ -51,11 +51,6 @@ bool has_log_spacing(SpanConstReal vec)
     return true;
 }
 
-bool has_same_log_spacing(SpanConstReal first, SpanConstReal second)
-{
-    return soft_equal(calc_log_delta(first), calc_log_delta(second));
-}
-
 bool is_nonnegative(SpanConstReal vec)
 {
     return std::all_of(
@@ -109,12 +104,19 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
     CELER_EXPECT(is_contiguous_increasing(lambda_energy, lambda_prim_energy));
     CELER_EXPECT(has_log_spacing(lambda_energy)
                  && has_log_spacing(lambda_prim_energy));
-    CELER_EXPECT(has_same_log_spacing(lambda_energy, lambda_prim_energy));
     CELER_EXPECT(lambda.size() == lambda_energy.size());
     CELER_EXPECT(lambda_prim.size() == lambda_prim_energy.size());
     CELER_EXPECT(soft_equal(lambda.back(),
                             lambda_prim.front() / lambda_prim_energy.front()));
     CELER_EXPECT(is_nonnegative(lambda) && is_nonnegative(lambda_prim));
+
+    real_type const log_delta_lo = calc_log_delta(lambda_energy);
+    real_type const log_delta_hi = calc_log_delta(lambda_prim_energy);
+    CELER_VALIDATE(
+        soft_equal(log_delta_lo, log_delta_hi),
+        << "Lower and upper energy grids have inconsistent spacing: "
+           "log delta E for lower grid is "
+        << log_delta_lo << " log(MeV) per bin but upper is " << log_delta_hi);
 
     // Concatenate the two XS vectors: insert the scaled (lambda_prim) value at
     // the coincident point.
