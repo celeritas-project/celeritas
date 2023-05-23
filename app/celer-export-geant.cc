@@ -53,7 +53,6 @@ void print_usage(char const* exec_name)
  */
 int main(int argc, char* argv[])
 {
-    ScopedRootErrorHandler scoped_root_error;
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)
@@ -132,6 +131,7 @@ int main(int argc, char* argv[])
     try
     {
         GeantImporter import(GeantSetup(gdml_input_filename, options));
+        ScopedRootErrorHandler scoped_root_error;
         RootExporter export_root(root_output_filename.c_str());
 
         GeantImporter::DataSelection selection;
@@ -141,6 +141,7 @@ int main(int argc, char* argv[])
 
         // Read data from geant, write to ROOT
         export_root(import(selection));
+        scoped_root_error.throw_if_errors();
     }
     catch (RuntimeError const& e)
     {

@@ -31,52 +31,10 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-static std::mutex& device_setter_mutex()
+std::mutex& device_setter_mutex()
 {
     static std::mutex m;
     return m;
-}
-
-int determine_num_devices()
-{
-    if (!CELER_USE_DEVICE)
-    {
-        CELER_LOG(debug) << "Disabling GPU support since CUDA and HIP are "
-                            "disabled";
-        return 0;
-    }
-
-    if (!celeritas::getenv("CELER_DISABLE_DEVICE").empty())
-    {
-        CELER_LOG(info)
-            << "Disabling GPU support since the 'CELER_DISABLE_DEVICE' "
-               "environment variable is present and non-empty";
-        return 0;
-    }
-
-    int result = -1;
-    CELER_DEVICE_CALL_PREFIX(GetDeviceCount(&result));
-    if (result == 0)
-    {
-        CELER_LOG(warning) << "Disabling GPU support since no CUDA devices "
-                              "are present";
-    }
-
-    CELER_ENSURE(result >= 0);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether to check and warn about inconsistent CUDA/Celeritas device.
- */
-bool determine_debug()
-{
-    if constexpr (CELERITAS_DEBUG)
-    {
-        return true;
-    }
-    return !celeritas::getenv("CELER_DEBUG_DEVICE").empty();
 }
 
 //---------------------------------------------------------------------------//
@@ -129,7 +87,34 @@ Device& global_device()
  */
 int Device::num_devices()
 {
-    static int const result = determine_num_devices();
+    static int const result = [] {
+        if (!CELER_USE_DEVICE)
+        {
+            CELER_LOG(debug) << "Disabling GPU support since CUDA and HIP are "
+                                "disabled";
+            return 0;
+        }
+
+        if (!celeritas::getenv("CELER_DISABLE_DEVICE").empty())
+        {
+            CELER_LOG(info)
+                << "Disabling GPU support since the 'CELER_DISABLE_DEVICE' "
+                   "environment variable is present and non-empty";
+            return 0;
+        }
+
+        int result = -1;
+        CELER_DEVICE_CALL_PREFIX(GetDeviceCount(&result));
+        if (result == 0)
+        {
+            CELER_LOG(warning)
+                << "Disabling GPU support since no CUDA devices "
+                   "are present";
+        }
+
+        CELER_ENSURE(result >= 0);
+        return result;
+    }();
     return result;
 }
 
@@ -142,7 +127,13 @@ int Device::num_devices()
  */
 bool Device::debug()
 {
-    static bool const result = determine_debug();
+    static bool const result = [] {
+        if constexpr (CELERITAS_DEBUG)
+        {
+            return true;
+        }
+        return !celeritas::getenv("CELER_DEBUG_DEVICE").empty();
+    }();
     return result;
 }
 

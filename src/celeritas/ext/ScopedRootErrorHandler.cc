@@ -19,6 +19,9 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
+bool g_has_root_errored_{false};
+
+//---------------------------------------------------------------------------//
 /*!
  * Actual ROOT Error Handler function for Celeritas
  */
@@ -37,7 +40,10 @@ void RootErrorHandler(Int_t rootlevel,
     if (rootlevel >= kWarning)
         level = LogLevel::warning;
     if (rootlevel >= kError)
+    {
         level = LogLevel::error;
+        g_has_root_errored_ = true;
+    }
     if (rootlevel >= kBreak)
         level = LogLevel::critical;
     if (rootlevel >= kSysError)
@@ -69,6 +75,7 @@ void RootErrorHandler(Int_t rootlevel,
  */
 ScopedRootErrorHandler::ScopedRootErrorHandler()
     : previous_(SetErrorHandler(RootErrorHandler))
+    , prev_errored_{g_has_root_errored_}
 {
     // Disable ROOT interception of system signals the first time we run
     [[maybe_unused]] static bool const disabled_root_backtrace = [] {
@@ -79,11 +86,27 @@ ScopedRootErrorHandler::ScopedRootErrorHandler()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Raise an exception if at least one error has been logged.
+ *
+ * Clear the error flag while throwing.
+ */
+void ScopedRootErrorHandler::throw_if_errors() const
+{
+    bool prev_errored = g_has_root_errored_;
+    g_has_root_errored_ = false;
+    CELER_VALIDATE(!prev_errored,
+                   << "ROOT encountered non-fatal errors: see log messages "
+                      "above");
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Revert to the previous ROOT error handler
  */
 ScopedRootErrorHandler::~ScopedRootErrorHandler()
 {
     SetErrorHandler(previous_);
+    g_has_root_errored_ = prev_errored_;
 }
 
 //---------------------------------------------------------------------------//
