@@ -107,8 +107,8 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
                           "execution");
         ++geant_launch_count;
 
-        // Disable geant4 signal interception
 #if G4VERSION_NUMBER >= 1070
+        // Disable geant4 signal interception
         G4Backtrace::DefaultSignals() = {};
 #endif
 

@@ -12,14 +12,13 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/ext/Convert.geant.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/alongstep/AlongStepRZMapFieldMscAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"
-
-#include "detail/Convert.hh"
 
 namespace celeritas
 {
@@ -47,9 +46,8 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
     -> result_type
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
-    Real3 field = get_field_
-                      ? detail::convert_from_geant(get_field_(), CLHEP::tesla)
-                      : Real3{0, 0, 0};
+    Real3 field = get_field_ ? convert_from_geant(get_field_(), CLHEP::tesla)
+                             : Real3{0, 0, 0};
     real_type magnitude_tesla = norm(field);
 
     if (magnitude_tesla > 0)
