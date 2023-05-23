@@ -75,6 +75,9 @@ class ActionInterface
  * This is necessary for some classes that require deferred initialization
  * (either to the class itself or the state), for example because it needs the
  * number of total actions being run.
+ *
+ * If the class itself--rather than the state--needs initialization, try to
+ * initialize in the constructor and avoid using this interface if possible.
  */
 class BeginRunActionInterface : public virtual ActionInterface
 {
