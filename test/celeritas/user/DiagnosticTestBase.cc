@@ -57,21 +57,22 @@ void DiagnosticTestBase::SetUp()
 //! Print the expected result
 void DiagnosticTestBase::RunResult::print_expected() const
 {
-    cout
-        << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-           "static const size_type expected_actions[] = "
-        << repr(this->actions)
-        << ";\n"
-           "EXPECT_VEC_EQ(expected_actions, result.actions);\n"
-           "static char const* expected_nonzero_actions[] = "
-        << repr(this->nonzero_actions)
-        << ";\n"
-           "EXPECT_VEC_EQ(expected_nonzero_actions, result.nonzero_actions);\n"
-           "static const size_type expected_steps[] = "
-        << repr(this->steps)
-        << ";\n"
-           "EXPECT_VEC_EQ(expected_steps, result.steps);\n"
-           "/*** END CODE ***/\n";
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "static char const* const expected_nonzero_action_keys[] = "
+         << repr(this->nonzero_action_keys)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_nonzero_action_keys, "
+            "result.nonzero_action_keys);\n"
+            "static size_type const expected_nonzero_action_counts[] = "
+         << repr(this->nonzero_action_counts)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_nonzero_action_counts, "
+            "result.nonzero_action_counts);\n"
+            "static size_type const expected_steps[] = "
+         << repr(this->steps)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_steps, result.steps);\n"
+            "/*** END CODE ***/\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -113,13 +114,10 @@ auto DiagnosticTestBase::run(size_type num_tracks, size_type num_steps)
     RunResult result;
 
     // Save action diagnostic results
-    for (auto const& vec : action_diagnostic_->calc_actions())
+    for (auto const& [label, count] : action_diagnostic_->calc_actions_map())
     {
-        result.actions.insert(result.actions.end(), vec.begin(), vec.end());
-    }
-    for (auto const& [label, _] : action_diagnostic_->calc_actions_map())
-    {
-        result.nonzero_actions.push_back(label);
+        result.nonzero_action_keys.push_back(label);
+        result.nonzero_action_counts.push_back(count);
     }
 
     // Save step diagnostic results

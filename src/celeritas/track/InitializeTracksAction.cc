@@ -9,28 +9,67 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/track/TrackInitUtils.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/global/CoreTrackData.hh"
+
+#include "generated/InitTracks.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Execute the action with host data
+ * Execute the action with host data.
  */
 void InitializeTracksAction::execute(CoreParams const& params,
                                      CoreStateHost& state) const
 {
-    initialize_tracks(params, state);
+    return this->execute_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Execute the action with device data
+ * Execute the action with device data.
  */
 void InitializeTracksAction::execute(CoreParams const& params,
                                      CoreStateDevice& state) const
 {
-    initialize_tracks(params, state);
+    return this->execute_impl(params, state);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize track states.
+ *
+ * Tracks created from secondaries produced in this step will have the geometry
+ * state copied over from the parent instead of initialized from the position.
+ * If there are more empty slots than new secondaries, they will be filled by
+ * any track initializers remaining from previous steps using the position.
+ */
+template<MemSpace M>
+void InitializeTracksAction::execute_impl(CoreParams const& core_params,
+                                          CoreState<M>& core_state) const
+{
+    auto& scalars = core_state.ref().init.scalars;
+
+    // The number of new tracks to initialize is the smaller of the number of
+    // empty slots in the track vector and the number of track initializers
+    size_type num_new_tracks
+        = std::min(scalars.num_vacancies, scalars.num_initializers);
+    if (num_new_tracks > 0)
+    {
+        // Launch a kernel to initialize tracks on device
+        generated::init_tracks(
+            core_params.ref<M>(), core_state.ref(), num_new_tracks);
+
+        // Update initializers/vacancies
+        scalars.num_initializers -= num_new_tracks;
+        scalars.num_vacancies -= num_new_tracks;
+    }
+
+    // Store number of active tracks at the start of the loop
+    scalars.num_active = core_state.size() - scalars.num_vacancies;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
