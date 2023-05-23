@@ -69,7 +69,15 @@ void run(std::string const& macro_filename)
     run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
     run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
 
-    demo_geant::GlobalSetup::Instance()->SetIgnoreProcesses({"CoulombScat"});
+    std::vector<std::string> ignore_processes = {"CoulombScat"};
+    if (G4VERSION_NUMBER >= 1110)
+    {
+        CELER_LOG(warning) << "Default Rayleigh scattering 'MinKinEnergyPrim' "
+                              "is not compatible between Celeritas and "
+                              "Geant4@11.1: disabling Rayleigh scattering";
+        ignore_processes.push_back("Rayl");
+    }
+    demo_geant::GlobalSetup::Instance()->SetIgnoreProcesses(ignore_processes);
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
