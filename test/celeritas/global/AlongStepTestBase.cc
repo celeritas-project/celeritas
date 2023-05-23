@@ -172,20 +172,21 @@ void AlongStepTestBase::RunResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Look up the given action and apply it to the state.
+ */
 void AlongStepTestBase::execute_action(std::string const& label,
                                        CoreState<MemSpace::host>* state)
 {
     CELER_EXPECT(state);
     auto const& areg = *this->action_reg();
 
-    // Call pre-step action to set range, physics step
-    auto prestep_action_id = areg.find_action(label);
-    CELER_VALIDATE(prestep_action_id, << "no '" << label << "' action found");
-    auto const* prestep_action = dynamic_cast<ExplicitActionInterface const*>(
-        areg.action(prestep_action_id).get());
-    CELER_VALIDATE(prestep_action,
-                   << "action '" << label << "' cannot execute");
-    CELER_TRY_HANDLE(prestep_action->execute(*this->core(), *state),
+    auto action_id = areg.find_action(label);
+    CELER_VALIDATE(action_id, << "no '" << label << "' action found");
+    auto const* expl_action = dynamic_cast<ExplicitActionInterface const*>(
+        areg.action(action_id).get());
+    CELER_VALIDATE(expl_action, << "action '" << label << "' cannot execute");
+    CELER_TRY_HANDLE(expl_action->execute(*this->core(), *state),
                      LogContextException{this->output_reg().get()});
 }
 
