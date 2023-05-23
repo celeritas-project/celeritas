@@ -49,8 +49,7 @@ class MyExplicitAction final : public ExplicitActionInterface
     mutable int device_count_{0};
 };
 
-class MyImplicitAction final : public ImplicitActionInterface,
-                               public ConcreteAction
+class MyImplicitAction final : public ConcreteAction
 {
   public:
     // Construct with ID and label

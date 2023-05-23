@@ -58,20 +58,6 @@ class ActionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Interface for an action that is handled by another class.
- *
- * These are for placeholder actions, possibly grouped with other actions, or
- * used as other flags.
- */
-class ImplicitActionInterface : public virtual ActionInterface
-{
-  protected:
-    // Protected destructor prevents deletion of pointer-to-interface
-    ~ImplicitActionInterface() = default;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Interface for an action that launches a kernel or performs an action.
  */
 class ExplicitActionInterface : public virtual ActionInterface
