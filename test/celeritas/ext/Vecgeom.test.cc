@@ -107,6 +107,7 @@ TEST_F(FourLevelsTest, detailed_track)
 {
     VecgeomTrackView geo = this->make_geo_track_view();
     geo = GeoTrackInitializer{{-10, -10, -10}, {1, 0, 0}};
+    ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
     EXPECT_FALSE(geo.is_on_boundary());
 
@@ -198,6 +199,9 @@ TEST_F(FourLevelsTest, tracking)
         static real_type const expected_distances[]
             = {5, 1, 1, 6, 1, 1, 10, 1, 1, 7};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {2.5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
         SCOPED_TRACE("From just inside outside edge");
@@ -220,6 +224,9 @@ TEST_F(FourLevelsTest, tracking)
         static real_type const expected_distances[]
             = {7 - 0.001, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {3.4995, 0.5, 0.5, 5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
         SCOPED_TRACE("Leaving world");
@@ -230,6 +237,8 @@ TEST_F(FourLevelsTest, tracking)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {5, 1, 2, 6};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {2.5, 0.5, 1, 3};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
         SCOPED_TRACE("Upward");
@@ -240,6 +249,8 @@ TEST_F(FourLevelsTest, tracking)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {5, 1, 3, 5};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {2.5, 0.5, 1.5, 2.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
 }
 
@@ -370,7 +381,7 @@ TEST_F(SolidsTest, accessors)
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{0 + offset}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{1 + offset}).name);
     EXPECT_EQ("World", geom.id_to_label(VolumeId{20 + offset}).name);
-    EXPECT_EQ("trd1_refl", geom.id_to_label(VolumeId{21 + offset}).name);
+    EXPECT_EQ("trd1_refl", geom.id_to_label(VolumeId{22 + offset}).name);
 }
 
 //---------------------------------------------------------------------------//

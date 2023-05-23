@@ -94,14 +94,10 @@ using GenericVecgeomTestBase
     = GenericGeoTestBase<VecgeomParams, VecgeomStateData, VecgeomTrackView>;
 using GenericOrangeTestBase
     = GenericGeoTestBase<OrangeParams, OrangeStateData, OrangeTrackView>;
-using GenericGeantGeoTestBase
-    = GenericGeoTestBase<GeantGeoParams, GeantGeoStateData, GeantGeoTrackView>;
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 using GenericCoreGeoTestBase = GenericVecgeomTestBase;
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 using GenericCoreGeoTestBase = GenericOrangeTestBase;
-#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-using GenericCoreGeoTestBase = GenericGeantGeoTestBase;
 #endif
 
 //---------------------------------------------------------------------------//
