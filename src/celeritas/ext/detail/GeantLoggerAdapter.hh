@@ -11,7 +11,7 @@
 #include <G4Types.hh>
 #include <G4Version.hh>
 #include <G4coutDestination.hh>
-#if G4VERSION_NUMBER >= 1111
+#if G4VERSION_NUMBER > 1111
 // No ability to include G4strstreambuf
 #    define CELER_G4SSBUF 0
 #else
