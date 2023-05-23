@@ -50,7 +50,7 @@ set_tests_properties("app/demo-rasterizer" PROPERTIES
   REQUIRED_FILES "${_driver};${_gdml_inp}"
   LABELS "app;nomemcheck;gpu"
 )
-if(NOT CELERITAS_CORE_GEO STREQUAL "VecGeom")
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   # two-boxes.org.json isn't set up in the test directory
   set_tests_properties("app/demo-rasterizer" PROPERTIES
     DISABLED true

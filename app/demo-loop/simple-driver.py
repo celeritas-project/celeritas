@@ -21,7 +21,7 @@ except ValueError:
 # We reuse the "disable device" environment variable, which prevents the GPU
 # from being initialized at runtime.
 use_device = not strtobool(environ.get('CELER_DISABLE_DEVICE', 'false'))
-use_vecgeom = not strtobool(environ.get('CELER_DISABLE_VECGEOM', 'false'))
+core_geo = environ.get('CELER_CORE_GEO', 'ORANGE').lower()
 geant_exp_exe = environ.get('CELER_EXPORT_GEANT_EXE', './celer-export-geant')
 
 run_name = (path.splitext(path.basename(geometry_filename))[0]
@@ -37,7 +37,7 @@ geant_options = {
     'ionization': True,
     'annihilation': True,
     'brems': "all",
-    'msc': "urban_extended" if use_vecgeom else "none",
+    'msc': "urban_extended" if core_geo == "vecgeom" else "none",
     'eloss_fluctuation': True,
     'lpm': True,
 }
@@ -57,7 +57,7 @@ else:
     # Load directly from Geant4 rather than ROOT file
     physics_filename = geometry_filename
 
-if not use_vecgeom:
+if core_geo == "orange":
     print("Replacing .gdml extension since VecGeom is disabled", file=stderr)
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 

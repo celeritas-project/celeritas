@@ -27,7 +27,12 @@ void resize(CoreStateData<Ownership::value, M>* state,
     CELER_VALIDATE(stream_id < params.scalars.max_streams,
                    << "multitasking stream_id=" << stream_id.unchecked_get()
                    << " exceeds max_streams=" << params.scalars.max_streams);
+#if CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
     resize(&state->geometry, params.geometry, size);
+#else
+    // Geant4 state is stream-local
+    resize(&state->geometry, params.geometry, stream_id, size);
+#endif
     resize(&state->materials, params.materials, size);
     resize(&state->particles, params.particles, size);
     resize(&state->physics, params.physics, size);

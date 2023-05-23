@@ -53,6 +53,14 @@ template<Ownership W, MemSpace M>
 using GeoParamsData = OrangeParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using GeoStateData = OrangeStateData<W, M>;
+
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+using GeoParams = GeantGeoParams;
+using GeoTrackView = GeantGeoTrackView;
+template<Ownership W, MemSpace M>
+using GeoParamsData = GeantGeoParamsData<W, M>;
+template<Ownership W, MemSpace M>
+using GeoStateData = GeantGeoStateData<W, M>;
 #endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

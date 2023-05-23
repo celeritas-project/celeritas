@@ -189,7 +189,8 @@ TEST_F(KnMctruthTest, single_step)
     EXPECT_VEC_EQ(expected_track, result.track);
     static int const expected_step[] = {1, 1, 1, 1, 1, 1, 1, 1};
     EXPECT_VEC_EQ(expected_step, result.step);
-    if (!CELERITAS_USE_VECGEOM)
+
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         static int const expected_volume[] = {1, 1, 1, 1, 1, 1, 1, 1};
         EXPECT_VEC_EQ(expected_volume, result.volume);
@@ -213,7 +214,7 @@ TEST_F(KnMctruthTest, two_step)
     EXPECT_VEC_EQ(expected_track, result.track);
     static const int expected_step[] = {1, 2, 1, 2, 1, 2, 1, 2};
     EXPECT_VEC_EQ(expected_step, result.step);
-    if (!CELERITAS_USE_VECGEOM)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         static const int expected_volume[] = {1, 1, 1, 1, 1, 2, 1, 2};
         EXPECT_VEC_EQ(expected_volume, result.volume);
@@ -251,7 +252,7 @@ TEST_F(TestEm3MctruthTest, four_step)
         EXPECT_VEC_EQ(expected_track, result.track);
         static const int expected_step[] = {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
         EXPECT_VEC_EQ(expected_step, result.step);
-        if (!CELERITAS_USE_VECGEOM)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             static const int expected_volume[] = {1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2};
             EXPECT_VEC_EQ(expected_volume, result.volume);

@@ -165,6 +165,9 @@ void NestedTest::build_g4()
 #else
     CELER_NOT_CONFIGURED("Geant4");
 #endif
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+    geo_params_ = std::make_shared<GeantGeoParams>(physical_.front());
+#endif
 }
 
 void NestedTest::build_vecgeom()
@@ -239,10 +242,10 @@ class IntersectionTest : public GeantVolumeMapperTestBase
     bool suffix_{false};
 };
 
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-#    define SKIP_IF_ORANGE(NAME) DISABLED_##NAME
+#if CELERITAS_CORE_GEO != CELERITAS_CORE_VECGEOM
+#    define SKIP_UNLESS_VECGEOM(NAME) DISABLED_##NAME
 #else
-#    define SKIP_IF_ORANGE(NAME) NAME
+#    define SKIP_UNLESS_VECGEOM(NAME) NAME
 #endif
 
 //---------------------------------------------------------------------------//
@@ -278,6 +281,13 @@ TEST_F(NestedTest, unique)
                "extension"};
         EXPECT_VEC_EQ(expected_messages, messages_);
     }
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        static char const* const expected_messages[] = {
+            "Geant4 geometry was initialized with inconsistent world volume: "
+            "given 'world_pv'@' 0x1234abcd; navigation world is unset"};
+        EXPECT_VEC_EQ(expected_messages, messages_);
+    }
     else
     {
         EXPECT_EQ(0, messages_.size());
@@ -285,7 +295,7 @@ TEST_F(NestedTest, unique)
 }
 
 // Geant4 constructed directly by user
-TEST_F(NestedTest, SKIP_IF_ORANGE(duplicated))
+TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated))
 {
     names_ = {"world", "dup", "dup", "bob"};
     this->build();
@@ -302,11 +312,14 @@ TEST_F(NestedTest, SKIP_IF_ORANGE(duplicated))
     // IDs for the unique LVs should be different
     EXPECT_NE(find_vol(*logical_[1]), find_vol(*logical_[2]));
 
-    EXPECT_EQ(0, messages_.size());
+    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
+    {
+        EXPECT_EQ(0, messages_.size());
+    }
 }
 
 // Geant4 constructed from celeritas::LoadGdml (no stripping)
-TEST_F(NestedTest, SKIP_IF_ORANGE(suffixed))
+TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(suffixed))
 {
     names_ = {"world0xabc123", "outer0x123", "inner0xabc"};
     this->build();
@@ -323,7 +336,7 @@ TEST_F(NestedTest, SKIP_IF_ORANGE(suffixed))
 }
 
 // Loaded GDML through demo app without stripping, then not stripped again
-TEST_F(NestedTest, SKIP_IF_ORANGE(duplicated_suffixed))
+TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated_suffixed))
 {
     names_ = {"world0x1", "dup0x2", "dup0x3", "bob0x4"};
     this->build();
@@ -339,7 +352,7 @@ TEST_F(NestedTest, SKIP_IF_ORANGE(duplicated_suffixed))
     }
 }
 
-TEST_F(NestedTest, SKIP_IF_ORANGE(double_prefixed))
+TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(double_prefixed))
 {
     names_ = {"world0x10xa", "outer0x20xb", "inner0x30xc"};
     this->build();
@@ -355,7 +368,7 @@ TEST_F(NestedTest, SKIP_IF_ORANGE(double_prefixed))
     }
 }
 
-TEST_F(NestedTest, SKIP_IF_ORANGE(duplicated_double_prefixed))
+TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated_double_prefixed))
 {
     names_ = {"world0x10xa", "dup0x20xb", "dup0x30xc", "bob0x40xd"};
     this->build();

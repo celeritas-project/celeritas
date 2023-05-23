@@ -237,6 +237,11 @@ endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   list(APPEND PUBLIC_DEPS Celeritas::orange)
+elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  # Core data has transient includes into vecgeom
+  list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+ list(APPEND PUBLIC_DEPS ${Geant4_LIBRARIES})
 endif()
 
 macro(celeritas_polysource filename_we)

@@ -89,6 +89,14 @@ if(NOT CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_JSON)
   set(_needs_geo DISABLE)
 endif()
 
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  set(_core_geo_lib VecGeom::vecgeom)
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  set(_core_geo_lib LINK_LIBRARIES ${Geant4_LIBRARIES})
+else()
+  set(_core_geo_lib LINK_LIBRARIES Celeritas::orange)
+endif()
+
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
 else()
@@ -341,8 +349,10 @@ set(CELERITASTEST_PREFIX celeritas/field)
 celeritas_add_test(celeritas/field/Fields.test.cc)
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
-celeritas_add_test(celeritas/field/FieldPropagator.test.cc ${_needs_geo})
-celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
+celeritas_add_test(celeritas/field/FieldPropagator.test.cc
+  ${_needs_geo} LINK_LIBRARIES ${_core_geo_lib})
+celeritas_add_test(celeritas/field/LinearPropagator.test.cc
+  ${_needs_geo} LINK_LIBRARIES  ${_core_geo_lib})
 celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
 
 #-------------------------------------#
@@ -354,12 +364,8 @@ set(_geo_args GPU ${_needs_geo}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
 endif()
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
-else()
-  list(APPEND _geo_args LINK_LIBRARIES Celeritas::orange)
-endif()
-celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
+celeritas_add_test(celeritas/geo/Geometry.test.cc
+  ${_geo_args} LINK_LIBRARIES ${_core_geo_lib})
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
   set(_needs_geant_or_root DISABLE)

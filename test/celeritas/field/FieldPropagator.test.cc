@@ -92,7 +92,7 @@ class FieldPropagatorTestBase : public GenericCoreGeoTestBase
     {
         // Construct filename:
         // ${SOURCE}/test/celeritas/data/${basename}${fileext}
-        auto ext = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+        auto ext = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
                        ? ".gdml"sv
                        : ".org.json"sv;
         auto filename = std::string{this->geometry_basename()}
@@ -535,7 +535,10 @@ TEST_F(TwoBoxTest, electron_small_step)
         auto result = propagate(2 * delta);
 
         EXPECT_LE(result.distance, 2 * delta);
-        EXPECT_SOFT_EQ(1.0000000044408872e-07, result.distance);
+        EXPECT_SOFT_NEAR(
+            1.0000000044408872e-07,
+            result.distance,
+            (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4 ? 1e-12 : 1e-8));
         EXPECT_TRUE(result.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
@@ -710,7 +713,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-5)
             << "Ending direction at " << geo.dir();
 
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ("inner_box.py", this->surface_name(geo));
         }
@@ -764,7 +767,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-5)
             << "Ending direction at " << geo.dir();
 
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ("inner_box.py", this->surface_name(geo));
         }
@@ -792,7 +795,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-4)
             << "Ending direction at " << geo.dir();
 
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ("inner_box.py", this->surface_name(geo));
         }
@@ -814,7 +817,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         EXPECT_LT(distance(Real3({-5, 5 + dy, 0}), geo.pos()), 1e-5);
         EXPECT_LT(distance(Real3({-1, 0, 0}), geo.dir()), 1e-5);
 
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ("inner_box.mx", this->surface_name(geo));
         }
@@ -1155,7 +1158,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("si_tracker", this->volume_name(geo));
         ASSERT_TRUE(geo.is_on_boundary());
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
         }
@@ -1173,7 +1176,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
         EXPECT_LE(92, stepper.count());
         EXPECT_LE(stepper.count(), 93);
         ASSERT_TRUE(geo.is_on_boundary());
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
         }
@@ -1187,7 +1190,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         ASSERT_TRUE(geo.is_on_boundary());
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
             EXPECT_SOFT_EQ(30, calc_radius());
@@ -1239,7 +1242,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
                      -5.43172303859124073e-01});
         geo.cross_boundary();
         successful_reentry = (this->volume_name(geo) == "em_calorimeter");
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             // ORANGE should successfully reenter. However, under certain
             // system configurations, VecGeom will end up in the world volume,
