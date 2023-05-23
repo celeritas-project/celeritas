@@ -132,6 +132,19 @@ auto GenericGeoTestBase<HP, S, TV>::make_geo_track_view(Real3 const& pos,
 }
 
 //---------------------------------------------------------------------------//
+// Get and initialize a single-thread host track view
+template<class HP, template<Ownership, MemSpace> class S, class TV>
+auto GenericGeoTestBase<HP, S, TV>::calc_bump_pos(GeoTrackView const& geo,
+                                                  real_type delta) const
+    -> Real3
+{
+    CELER_EXPECT(delta > 0);
+    auto pos = geo.pos();
+    axpy(delta, geo.dir(), &pos);
+    return pos;
+}
+
+//---------------------------------------------------------------------------//
 template<class HP, template<Ownership, MemSpace> class S, class TV>
 auto GenericGeoTestBase<HP, S, TV>::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
@@ -169,6 +182,7 @@ auto GenericGeoTestBase<HP, S, TV>::track(Real3 const& pos, Real3 const& dir)
         if (next.distance > real_type(1e-7))
         {
             geo.move_internal(next.distance / 2);
+            geo.find_next_step();
             result.halfway_safeties.push_back(geo.find_safety());
         }
         geo.move_to_boundary();

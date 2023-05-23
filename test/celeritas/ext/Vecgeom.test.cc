@@ -105,7 +105,7 @@ TEST_F(FourLevelsTest, accessors)
 
 TEST_F(FourLevelsTest, detailed_track)
 {
-    VecgeomTrackView geo = this->make_geo_track_view();
+    auto geo = this->make_geo_track_view();
     geo = GeoTrackInitializer{{-10, -10, -10}, {1, 0, 0}};
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
@@ -175,6 +175,58 @@ TEST_F(FourLevelsTest, detailed_track)
         EXPECT_GT(next.distance, 1e10);
         EXPECT_FALSE(next.boundary);
     }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(FourLevelsTest, reentrant_boundary)
+{
+    auto geo = this->make_geo_track_view();
+    geo = GeoTrackInitializer{{15.5, 10, 10}, {-1, 0, 0}};
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Check for surfaces: we should hit the outside of the sphere Shape2
+    auto next = geo.find_next_step(1.0);
+    EXPECT_SOFT_EQ(0.5, next.distance);
+    // Move to the boundary but scatter perpendicularly, away from the sphere
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    geo.set_dir({0, 1, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+
+    // Move a bit internally, then scatter back toward the sphere
+    next = geo.find_next_step(10.0);
+    EXPECT_SOFT_EQ(6, next.distance);
+    geo.set_dir({-1, 0, 0});
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+
+    // Move to the sphere boundary then scatter still into the sphere
+    next = geo.find_next_step(10.0);
+    EXPECT_SOFT_EQ(1e-8, next.distance);
+    EXPECT_TRUE(next.boundary);
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    geo.set_dir({0, -1, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    geo.cross_boundary();
+    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
+
+    // Travel nearly tangent to the right edge of the sphere, then scatter to
+    // still outside
+    next = geo.find_next_step(1.0);
+    EXPECT_SOFT_EQ(0.00031622777925735285, next.distance);
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    geo.set_dir({1, 0, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    geo.cross_boundary();
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
+    next = geo.find_next_step(10.0);
 }
 
 //---------------------------------------------------------------------------//
@@ -258,7 +310,7 @@ TEST_F(FourLevelsTest, tracking)
 
 TEST_F(FourLevelsTest, safety)
 {
-    VecgeomTrackView geo = this->make_geo_track_view();
+    auto geo = this->make_geo_track_view();
     std::vector<real_type> safeties;
 
     for (auto i : range(11))
