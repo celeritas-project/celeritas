@@ -35,6 +35,7 @@
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
+#include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
 #include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
@@ -105,8 +106,7 @@ ActionId find_along_step_id(ActionRegistry const& reg)
 }
 
 //---------------------------------------------------------------------------//
-class ImplicitGeometryAction final : public ImplicitActionInterface,
-                                     public ConcreteAction
+class ImplicitGeometryAction final : public ConcreteAction
 {
   public:
     // Construct with ID and label
@@ -114,8 +114,7 @@ class ImplicitGeometryAction final : public ImplicitActionInterface,
 };
 
 //---------------------------------------------------------------------------//
-class ImplicitSimAction final : public ImplicitActionInterface,
-                                public ConcreteAction
+class ImplicitSimAction final : public ConcreteAction
 {
   public:
     // Construct with ID and label
@@ -151,6 +150,14 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     ScopedMem record_mem("CoreParams.construct");
 
     CoreScalars scalars;
+
+    // Construct initialization action
+    // NOTE: due to ordering by {start, ID},
+    // ExtendFromPrimariesAction *must* precede InitializeTracksAction
+    input_.action_reg->insert(std::make_shared<ExtendFromPrimariesAction>(
+        input_.action_reg->next_id()));
+    input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
+        input_.action_reg->next_id()));
 
     // Construct geometry action
     scalars.boundary_action = input_.action_reg->next_id();
@@ -201,13 +208,6 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         scalars.along_step_user_action = scalars.along_step_neutral_action;
     }
 
-    // Save maximum number of streams
-    scalars.max_streams = input_.max_streams;
-
-    // Construct initialize tracks action
-    input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
-        input_.action_reg->next_id()));
-
     // TrackOrder doesn't have to be an argument right now and could be
     // captured but we're eventually expecting different TrackOrder for
     // different ActionOrder
@@ -236,6 +236,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     // Construct extend from secondaries action
     input_.action_reg->insert(std::make_shared<ExtendFromSecondariesAction>(
         input_.action_reg->next_id()));
+
+    // Save maximum number of streams
+    scalars.max_streams = input_.max_streams;
 
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);

@@ -334,8 +334,13 @@ else()
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 
+if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
+  set(_needs_geant_or_root DISABLE)
+else()
+  set(_needs_geant_or_root)
+endif()
 celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
-  ${_needs_root} ${_needs_geo})
+  ${_needs_geant_or_root} ${_needs_geo} ${_optional_geant4_env})
 
 #-------------------------------------#
 # Global
@@ -480,22 +485,28 @@ endif()
 # DATA UPDATE
 #-----------------------------------------------------------------------------#
 
-set(_fourslabs "${CMAKE_CURRENT_SOURCE_DIR}/celeritas/data/four-steel-slabs")
-set(_cmake_env)
-if(CELERITAS_USE_Geant4)
-  set(_cmake_env
-    "${CMAKE_COMMAND}" "-E" "env" "${_geant4_test_env}"
+function(celeritas_add_rootupdate_target target filename)
+  set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/celeritas/data/${filename}")
+  if(CELERITAS_USE_Geant4)
+    set(_cmake_env
+      "${CMAKE_COMMAND}" "-E" "env" "${_geant4_test_env}"
+    )
+  else()
+    set(_cmake_env)
+  endif()
+  add_custom_target(${target}
+    COMMAND
+      ${_cmake_env}
+      "$<TARGET_FILE:celer-export-geant>"
+      "${_basename}.gdml"
+      "${_basename}.geant.json"
+      "${_basename}.root"
+    VERBATIM
   )
-endif()
-add_custom_target(update-four-slabs
-  COMMAND
-    ${_cmake_env}
-    "$<TARGET_FILE:celer-export-geant>"
-    "${_fourslabs}.gdml"
-    "${_fourslabs}.geant.json"
-    "${_fourslabs}.root"
-  VERBATIM
-)
-add_dependencies(update-four-slabs celer-export-geant)
+  add_dependencies(${target} celer-export-geant)
+endfunction()
+
+celeritas_add_rootupdate_target(update-four-slabs four-steel-slabs)
+celeritas_add_rootupdate_target(update-simple-cms simple-cms)
 
 #-----------------------------------------------------------------------------#

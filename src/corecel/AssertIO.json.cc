@@ -31,6 +31,7 @@ void details_to_json(nlohmann::json& j, T const& d)
         j["line"] = d.line;
     }
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 

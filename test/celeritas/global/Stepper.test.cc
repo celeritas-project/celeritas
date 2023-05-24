@@ -174,6 +174,7 @@ TEST_F(TestEm3NoMsc, setup)
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
+        "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
         "along-step-general-linear",
@@ -309,6 +310,7 @@ TEST_F(TestEm3Msc, setup)
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
+        "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
         "along-step-general-linear",
@@ -327,6 +329,7 @@ TEST_F(TestEm3Msc, setup)
     EXPECT_VEC_EQ(expected_actions, result.actions);
 
     static char const* const expected_actions_desc[] = {
+        "create track initializers from primaries",
         "initialize track states",
         "update beginning-of-step state",
         "apply along-step for particles with no field",
@@ -340,7 +343,7 @@ TEST_F(TestEm3Msc, setup)
         "interact by bremsstrahlung (combined SB/relativistic, e+/-)",
         "cross a geometry boundary",
         "count the number of executions",
-        "create secondary track initializers",
+        "create track initializers from secondaries",
     };
     EXPECT_VEC_EQ(expected_actions_desc, result.actions_desc);
 }
@@ -494,6 +497,7 @@ TEST_F(TestEm15MscField, setup)
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
+        "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
         "along-step-uniform-msc",
@@ -587,6 +591,7 @@ TEST_F(OneSteelSphere, setup)
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
+        "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
         "along-step-general-linear",

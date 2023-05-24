@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "CoreState.hh"
 
+#include "corecel/data/Copier.hh"
+
 #include "CoreParams.hh"
 
 namespace celeritas
@@ -36,6 +38,27 @@ CoreState<M>::CoreState(CoreParams const& params,
     }
 
     CELER_ENSURE(states_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Inject primaries to be turned into TrackInitializers.
+ *
+ * These will be converted by the ProcessPrimaries action.
+ */
+template<MemSpace M>
+void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
+{
+    // Copy primaries
+    if (primaries_.size() < host_primaries.size())
+    {
+        primaries_ = {};
+        resize(&primaries_, host_primaries.size());
+    }
+    num_primaries_ = host_primaries.size();
+
+    Copier<Primary, M> copy_to_temp{primaries_[this->primary_range()]};
+    copy_to_temp(MemSpace::host, host_primaries);
 }
 
 //---------------------------------------------------------------------------//

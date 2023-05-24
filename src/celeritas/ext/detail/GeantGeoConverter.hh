@@ -83,13 +83,11 @@ class GeantGeoConverter
 
     // one G4 physical volume can correspond to multiple vecgeom placed volumes
     // (in case of replicas)
-    std::map<G4VPhysicalVolume const*, VecVPlacedVolume> placed_volume_map_;
+    std::map<G4VPhysicalVolume const*, VPlacedVolume const*> placed_volume_map_;
 
     std::map<G4VSolid const*, VUnplacedVolume const*> unplaced_volume_map_;
 
     std::map<G4LogicalVolume const*, LogicalVolume const*> logical_volume_map_;
-
-    std::vector<Transformation3D const*> replica_transformations_;
 
     std::map<G4LogicalVolume const*, celeritas::VolumeId> g4logvol_id_map_;
 
@@ -104,7 +102,8 @@ class GeantGeoConverter
      * Will take care not to convert anything twice by checking the
      * mapping between Geant4 and VecGeom geometry.
      */
-    VecVPlacedVolume const* convert(G4VPhysicalVolume const*);
+    VPlacedVolume const*
+    convert(G4VPhysicalVolume const*, LogicalVolume const* mother = nullptr);
 
     //! Special treatment needed for replicated volumes.
     void extract_replicated_transformations(

@@ -22,6 +22,9 @@ class ScopedRootErrorHandler
     // Install the error handler
     ScopedRootErrorHandler();
 
+    // Raise an exception if at least one error has been logged
+    void throw_if_errors() const;
+
     // Return to the previous error handler.
     ~ScopedRootErrorHandler();
 
@@ -29,6 +32,7 @@ class ScopedRootErrorHandler
     using ErrorHandlerFuncPtr = void (*)(int, bool, char const*, char const*);
 
     ErrorHandlerFuncPtr previous_;
+    bool prev_errored_;
 };
 
 #if !CELERITAS_USE_ROOT
@@ -37,8 +41,10 @@ class ScopedRootErrorHandler
 inline ScopedRootErrorHandler::ScopedRootErrorHandler()
 {
     (void)sizeof(previous_);
+    (void)sizeof(prev_errored_);
 }
 inline ScopedRootErrorHandler::~ScopedRootErrorHandler() {}
+inline void ScopedRootErrorHandler::throw_if_errors() const {}
 //!@}
 #endif
 

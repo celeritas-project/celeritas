@@ -1,0 +1,27 @@
+{
+"brems": "all",
+"compton_scattering": true,
+"coulomb_scattering": false,
+"photoelectric": false,
+"rayleigh_scattering": false,
+"gamma_conversion": false,
+"ionization": true,
+"annihilation": false,
+"eloss_fluctuation": false,
+"brems": "none",
+"msc": "urban",
+"relaxation": "none",
+"em_bins_per_decade": 5,
+"integral_approach": false,
+"lowest_electron_energy": 0.1,
+"apply_cuts": true,
+"lpm": true,
+"min_energy": [
+ 0.1,
+ "MeV"
+],
+"max_energy": [
+ 1000.0,
+ "MeV"
+]
+}

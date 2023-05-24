@@ -9,7 +9,14 @@
 
 #include <G4String.hh>
 #include <G4Types.hh>
+#include <G4Version.hh>
 #include <G4coutDestination.hh>
+#if G4VERSION_NUMBER > 1111
+// No ability to include G4strstreambuf
+#    define CELER_G4SSBUF 0
+#else
+#    define CELER_G4SSBUF 1
+#endif
 
 #include "corecel/io/LoggerTypes.hh"
 
@@ -35,8 +42,10 @@ class GeantLoggerAdapter : public G4coutDestination
   private:
     //// DATA ////
 
+#if CELER_G4SSBUF
     G4coutDestination* saved_cout_;
     G4coutDestination* saved_cerr_;
+#endif
 
     //// IMPLEMENTATION ////
     G4int log_impl(G4String const& str, LogLevel level);

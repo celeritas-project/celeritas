@@ -19,12 +19,12 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/ext/Convert.geant.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
-#include "detail/Convert.hh"
 #include "detail/HitManager.hh"
 
 namespace celeritas
@@ -93,8 +93,6 @@ void LocalTransporter::Push(G4Track const& g4track)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(event_id_);
-
-    using detail::convert_from_geant;
 
     Primary track;
 

@@ -32,8 +32,10 @@ class ActionSequence
   public:
     //!@{
     //! \name Type aliases
+    using SPBegin = std::shared_ptr<BeginRunActionInterface>;
     using SPConstExplicit = std::shared_ptr<ExplicitActionInterface const>;
-    using VecAction = std::vector<SPConstExplicit>;
+    using VecBeginAction = std::vector<SPBegin>;
+    using VecExplicitAction = std::vector<SPConstExplicit>;
     using VecDouble = std::vector<double>;
     //!@}
 
@@ -44,9 +46,6 @@ class ActionSequence
     };
 
   public:
-    // Empty sequence for delayed initialization
-    ActionSequence() = default;
-
     // Construct from an action registry and sequence options
     ActionSequence(ActionRegistry const&, Options options);
 
@@ -54,25 +53,30 @@ class ActionSequence
 
     // Launch all actions with the given memory space.
     template<MemSpace M>
+    void begin_run(CoreParams const& params, CoreState<M>& state);
+
+    // Launch all actions with the given memory space.
+    template<MemSpace M>
     void execute(CoreParams const& params, CoreState<M>& state);
 
     //// ACCESSORS ////
 
-    //! Whether the sequence is assigned/valid
-    explicit operator bool() const { return !actions_.empty(); }
-
     //! Whether synchronization is taking place
     bool sync() const { return options_.sync; }
 
+    //! Get the set of beginning-of-run actions
+    VecBeginAction const& begin_run_actions() const { return begin_run_; }
+
     //! Get the ordered vector of actions in the sequence
-    VecAction const& actions() const { return actions_; }
+    VecExplicitAction const& actions() const { return actions_; }
 
     //! Get the corresponding accumulated time, if 'sync' or host called
     VecDouble const& accum_time() const { return accum_time_; }
 
   private:
     Options options_;
-    VecAction actions_;
+    VecBeginAction begin_run_;
+    VecExplicitAction actions_;
     VecDouble accum_time_;
 };
 
