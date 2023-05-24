@@ -251,6 +251,7 @@ celeritas_add_library(testcel_celeritas
   celeritas/user/ExampleMctruth.cc
   celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
+  celeritas/user/StepCollectorTestBase.cc
 )
 
 celeritas_target_link_libraries(testcel_celeritas
