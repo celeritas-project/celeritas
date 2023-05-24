@@ -15,6 +15,7 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/ScopedGeantExceptionHandler.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
@@ -49,6 +50,7 @@ struct GeantTestBase::ImportHelper
     std::string geometry_basename{};
     GeantPhysicsOptions options{};
     GeantImportDataSelection selection{};
+    std::unique_ptr<ScopedGeantExceptionHandler> scoped_exceptions;
     ImportData imported;
 };
 
@@ -181,6 +183,7 @@ auto GeantTestBase::imported_data() const -> ImportData const&
             "celeritas", (i.geometry_basename + ".gdml").c_str());
         i.import = std::make_unique<GeantImporter>(
             GeantSetup{gdml_inp.c_str(), i.options});
+        i.scoped_exceptions = std::make_unique<ScopedGeantExceptionHandler>();
         i.imported = (*i.import)(sel);
         i.options.verbose = false;
     }
