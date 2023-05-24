@@ -27,7 +27,8 @@ namespace test
  * The "geometry basename" should be the filename without extension of a
  * geometry file inside `test/celeritas/data`.
  */
-class GlobalGeoTestBase : virtual public GlobalTestBase, private LazyGeoManager
+class GlobalGeoTestBase : virtual public GlobalTestBase,
+                          protected LazyGeoManager
 {
   public:
     // Overload with the base filename of the geometry

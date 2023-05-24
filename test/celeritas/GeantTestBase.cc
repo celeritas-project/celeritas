@@ -20,6 +20,10 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#if CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE
+#    include "celeritas/geo/GeoParams.hh"
+#endif
+
 namespace celeritas
 {
 namespace test
@@ -105,6 +109,15 @@ G4VPhysicalVolume const* GeantTestBase::get_world_volume()
 //---------------------------------------------------------------------------//
 // PROTECTED MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
+auto GeantTestBase::build_geant_options() const -> GeantPhysicsOptions
+{
+    GeantPhysicsOptions options;
+    options.em_bins_per_decade = 14;
+    options.rayleigh_scattering = false;
+    return options;
+}
+
+//---------------------------------------------------------------------------//
 auto GeantTestBase::build_init() -> SPConstTrackInit
 {
     TrackInitParams::Input input;
@@ -136,12 +149,20 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_geant_options() const -> GeantPhysicsOptions
+auto GeantTestBase::build_fresh_geometry(std::string_view filename)
+    -> SPConstGeoI
 {
-    GeantPhysicsOptions options;
-    options.em_bins_per_decade = 14;
-    options.rayleigh_scattering = false;
-    return options;
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+    // Load fake version of geometry
+    return Base::build_fresh_geometry(basename);
+#else
+    // Import geometry from Geant4
+    CELER_LOG(info) << "Importing Geant4 geometry instead of loading from "
+                    << filename;
+    auto* world = this->get_world_volume();
+    CELER_EXPECT(world);
+    return std::make_shared<GeoParams>(world);
+#endif
 }
 
 //---------------------------------------------------------------------------//

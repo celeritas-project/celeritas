@@ -11,10 +11,6 @@
 
 #include "celeritas_config.h"
 #include "corecel/io/Logger.hh"
-#if CELERITAS_USE_VECGEOM
-#    include "celeritas/ext/VecgeomParams.hh"
-#endif
-#include "orange/OrangeParams.hh"
 
 namespace celeritas
 {
