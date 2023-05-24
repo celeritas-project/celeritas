@@ -106,8 +106,7 @@ ActionId find_along_step_id(ActionRegistry const& reg)
 }
 
 //---------------------------------------------------------------------------//
-class ImplicitGeometryAction final : public ImplicitActionInterface,
-                                     public ConcreteAction
+class ImplicitGeometryAction final : public ConcreteAction
 {
   public:
     // Construct with ID and label
@@ -115,8 +114,7 @@ class ImplicitGeometryAction final : public ImplicitActionInterface,
 };
 
 //---------------------------------------------------------------------------//
-class ImplicitSimAction final : public ImplicitActionInterface,
-                                public ConcreteAction
+class ImplicitSimAction final : public ConcreteAction
 {
   public:
     // Construct with ID and label

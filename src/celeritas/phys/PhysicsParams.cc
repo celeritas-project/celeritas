@@ -55,8 +55,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-class ImplicitPhysicsAction final : public ImplicitActionInterface,
-                                    public ConcreteAction
+class ImplicitPhysicsAction final : public ConcreteAction
 {
   public:
     // Construct with ID and label

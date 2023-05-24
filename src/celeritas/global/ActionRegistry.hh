@@ -14,9 +14,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
 
 #include "ActionInterface.hh"
+#include "detail/ActionRegistryImpl.hh"
 
 namespace celeritas
 {
@@ -42,6 +44,7 @@ class ActionRegistry
   public:
     //!@{
     //! \name Type aliases
+    using SPAction = std::shared_ptr<ActionInterface>;
     using SPConstAction = std::shared_ptr<ActionInterface const>;
     //!@}
 
@@ -54,8 +57,19 @@ class ActionRegistry
     //! Get the next available action ID
     ActionId next_id() const { return ActionId(actions_.size()); }
 
-    // Register an action
-    void insert(SPConstAction);
+    //! Register a mutable action
+    template<class T, std::enable_if_t<detail::is_mutable_action_v<T>, bool> = true>
+    void insert(std::shared_ptr<T> action)
+    {
+        return this->insert_mutable_impl(std::move(action));
+    }
+
+    //! Register a const action
+    template<class T, std::enable_if_t<detail::is_const_action_v<T>, bool> = true>
+    void insert(std::shared_ptr<T> action)
+    {
+        return this->insert_const_impl(std::move(action));
+    }
 
     //// ACCESSORS ////
 
@@ -74,12 +88,20 @@ class ActionRegistry
     // Find the action corresponding to an label
     ActionId find_action(std::string const& label) const;
 
+    // View all actions that are able to change at runtime
+    inline Span<SPAction const> mutable_actions() const;
+
   private:
     //// DATA ////
 
     std::vector<SPConstAction> actions_;
     std::vector<std::string> labels_;
     std::unordered_map<std::string, ActionId> action_ids_;
+    std::vector<SPAction> mutable_actions_;
+
+    void insert_mutable_impl(SPAction&&);
+    void insert_const_impl(SPConstAction&&);
+    void insert_impl(SPConstAction&&);
 };
 
 //---------------------------------------------------------------------------//
@@ -102,6 +124,15 @@ std::string const& ActionRegistry::id_to_label(ActionId id) const
 {
     CELER_EXPECT(id < actions_.size());
     return labels_[id.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * View all actions that are able to change at runtime.
+ */
+auto ActionRegistry::mutable_actions() const -> Span<SPAction const>
+{
+    return make_span(mutable_actions_);
 }
 
 //---------------------------------------------------------------------------//

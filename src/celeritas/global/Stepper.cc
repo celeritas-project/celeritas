@@ -30,14 +30,14 @@ Stepper<M>::Stepper(Input input)
     , state_(*params_, input.stream_id, input.num_track_slots)
 {
     // Create action sequence
-    {
+    actions_ = [&] {
         ActionSequence::Options opts;
         opts.sync = input.sync;
-        actions_
-            = std::make_shared<ActionSequence>(*params_->action_reg(), opts);
-    }
+        return std::make_shared<ActionSequence>(*params_->action_reg(), opts);
+    }();
 
-    CELER_ENSURE(actions_ && *actions_);
+    // Execute beginning-of-run action
+    actions_->begin_run(*params_, state_);
 }
 
 //---------------------------------------------------------------------------//
