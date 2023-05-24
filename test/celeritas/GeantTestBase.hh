@@ -29,6 +29,8 @@ namespace test
  */
 class GeantTestBase : public ImportedDataTestBase
 {
+    using Base = ImportedDataTestBase;
+
   public:
     //!@{
     //! Whether the Geant4 configuration match a certain machine

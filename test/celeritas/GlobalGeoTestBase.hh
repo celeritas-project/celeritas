@@ -40,7 +40,7 @@ class GlobalGeoTestBase : virtual public GlobalTestBase,
     // Clear the lazy geometry
     static void reset_geometry();
 
-  private:
+  protected:
     //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP ////
 
     SPConstGeoI build_fresh_geometry(std::string_view) override;

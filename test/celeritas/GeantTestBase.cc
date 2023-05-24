@@ -156,7 +156,7 @@ auto GeantTestBase::build_fresh_geometry(std::string_view filename)
 {
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
     // Load fake version of geometry
-    return Base::build_fresh_geometry(basename);
+    return Base::build_fresh_geometry(filename);
 #else
     // Import geometry from Geant4
     CELER_LOG(info) << "Importing Geant4 geometry instead of loading from "
