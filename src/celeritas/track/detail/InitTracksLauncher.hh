@@ -132,9 +132,16 @@ CELER_FUNCTION void InitTracksLauncher::operator()(ThreadId tid) const
         }
 
         // Initialize the material
-        GeoMaterialView geo_mat(params->geo_mats);
+        auto matid
+            = GeoMaterialView(params->geo_mats).material_id(geo.volume_id());
+#if !CELER_DEVICE_COMPILE
+        // TODO: kill particle with 'error' state if this happens
+        CELER_VALIDATE(matid,
+                       << "track started in an unknown material (volume ID "
+                       << geo.volume_id().unchecked_get() << ")");
+#endif
         MaterialTrackView mat(params->materials, state->materials, vacancy);
-        mat = {geo_mat.material_id(geo.volume_id())};
+        mat = {matid};
     }
 
     // Initialize the physics state

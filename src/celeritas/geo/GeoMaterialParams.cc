@@ -126,6 +126,7 @@ GeoMaterialParams::GeoMaterialParams(Input input)
         std::vector<Label> missing_volumes;
         GeoParams const& geo = *input.geometry;
         input.volume_to_mat.assign(geo.num_volumes(), MaterialId{});
+        VolumeId::size_type num_missing{0};
         for (auto volume_id : range(VolumeId{geo.num_volumes()}))
         {
             auto iter = lab_to_id.find(geo.id_to_label(volume_id));
@@ -138,6 +139,7 @@ GeoMaterialParams::GeoMaterialParams(Input input)
 
             if (iter == lab_to_id.end())
             {
+                ++num_missing;
                 Label const& label = geo.id_to_label(volume_id);
                 if (!label.name.empty()
                     && !(label.name.front() == '[' && label.name.back() == ']'))
@@ -158,6 +160,31 @@ GeoMaterialParams::GeoMaterialParams(Input input)
                 << "Some geometry volumes do not have known material IDs: "
                 << join(missing_volumes.begin(), missing_volumes.end(), ", ");
         }
+        CELER_VALIDATE(
+            num_missing != geo.num_volumes(),
+            << "no geometry volumes matched the available materials:\n"
+               " materials: "
+            << join_stream(lab_to_id.begin(),
+                           lab_to_id.end(),
+                           ", ",
+                           [](std::ostream& os, auto&& lab_mat) {
+                               os << '{' << lab_mat.first << ',';
+                               if (lab_mat.second)
+                               {
+                                   os << lab_mat.second.unchecked_get();
+                               }
+                               else
+                               {
+                                   os << '-';
+                               }
+                               os << '}';
+                           })
+            << "\n"
+               "volumes: "
+            << join(RangeIter<VolumeId>(VolumeId{0}),
+                    RangeIter<VolumeId>(VolumeId{geo.num_volumes()}),
+                    ", ",
+                    [&geo](VolumeId vid) { return geo.id_to_label(vid); }));
     }
 
     HostValue host_data;
