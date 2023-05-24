@@ -291,7 +291,7 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
         G4RotationMatrix const& rr = *g4pv_kid->GetObjectRotation();
         G4ThreeVector tt = g4pv_kid->GetObjectTranslation();
         vecgeom::Vector3D<vecgeom::Precision> flip(1, 1, 1);
-        auto solid_kid = g4pv_kid->GetLogicalVolume()->GetSolid();
+        auto* solid_kid = g4pv_kid->GetLogicalVolume()->GetSolid();
         if (dynamic_cast<G4ReflectedSolid const*>(solid_kid))
         {
             // TODO: extend to support reflections on x,y as well
@@ -313,8 +313,8 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
                                             g4pv_kid->GetRotation());
         CELER_ASSERT(*transf2 == transformation);
 
-        auto g4lv_kid = g4pv_kid->GetLogicalVolume();
-        auto vglv_kid = this->convert(g4lv_kid);
+        auto* g4lv_kid = g4pv_kid->GetLogicalVolume();
+        auto* vglv_kid = this->convert(g4lv_kid);
         CELER_ASSERT(vglv_kid);
 
         bool placing
@@ -739,14 +739,13 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
 
     else if (auto refl = dynamic_cast<G4ReflectedSolid const*>(shape))
     {
-        G4VSolid* underlyingSolid = refl->GetConstituentMovedSolid();
-        CELER_ASSERT(underlyingSolid);
-        std::string_view PVname = refl->GetName();
-        CELER_LOG(error) << "Encountered unsupported reflected solid '"
-                         << PVname << "' (underlying "
-                         << underlyingSolid->GetEntityType() << " solid: '"
-                         << underlyingSolid->GetName() << "')";
-        unplaced_volume = this->convert(underlyingSolid);
+        G4VSolid* underlying = refl->GetConstituentMovedSolid();
+        CELER_ASSERT(underlying);
+        CELER_LOG(debug) << "Converting reflected solid '"
+                         << refl->GetName() << "' (underlying "
+                         << underlying->GetEntityType() << " solid: '"
+                         << underlying->GetName() << "')";
+        unplaced_volume = this->convert(underlying);
     }
 
     // New volumes should be implemented here...

@@ -31,12 +31,11 @@ namespace celeritas
  * - initialize (through assignment) must come first
  * - access (pos, dir, volume/surface/is_outside/is_on_boundary) good at any
  * time
- * - \c find_safety (fine at any time)
  * - \c find_next_step
- * - \c move_internal or \c move_to_boundary
+ * - \c find_safety or \c move_internal or \c move_to_boundary
  * - if on boundary, \c cross_boundary
  * - at any time, \c set_dir , but then must do \c find_next_step before any
- *   following action above
+ *   \c move or \c cross action above
  *
  * The main point is that \c find_next_step depends on the current
  * straight-line direction, \c move_to_boundary and \c move_internal (with
