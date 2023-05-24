@@ -309,10 +309,11 @@ if(CELERITAS_BUILD_DEMOS)
       "CELER_DISABLE_PARALLEL=1"
     )
     if(CELERITAS_USE_OpenMP)
+      # TODO: update when OpenMP nested parallelism is enabled
       if(CELERITAS_USE_ROOT)
-        list(APPEND _env "OMP_NUM_THREADS=1,4")
+        list(APPEND _env "OMP_NUM_THREADS=1")
       else()
-        list(APPEND _env "OMP_NUM_THREADS=2,2")
+        list(APPEND _env "OMP_NUM_THREADS=4")
       endif()
     endif()
     if(NOT CELERITAS_CORE_GEO STREQUAL "VecGeom")

@@ -99,15 +99,15 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
  *
  * This will partition the input primaries among all the streams.
  */
-RunnerResult Runner::operator()(StreamId stream_id, EventId event_id) const
+RunnerResult Runner::operator()(RunStreamEvent ids) const
 {
-    CELER_EXPECT(stream_id < this->num_streams());
-    CELER_EXPECT(event_id < this->num_events());
+    CELER_EXPECT(ids.stream < this->num_streams());
+    CELER_EXPECT(ids.event < this->num_events());
 
-    auto transport = [this, stream_id]() -> std::unique_ptr<TransporterBase> {
+    auto transport = [this, ids]() -> std::unique_ptr<TransporterBase> {
         // Thread-local transporter input
         TransporterInput local_trans_inp = *transporter_input_;
-        local_trans_inp.stream_id = stream_id;
+        local_trans_inp.stream_id = ids.stream;
 
         if (use_device_)
         {
@@ -124,7 +124,7 @@ RunnerResult Runner::operator()(StreamId stream_id, EventId event_id) const
         }
     }();
 
-    return (*transport)(make_span(events_[event_id.get()]));
+    return (*transport)(make_span(events_[ids.event.get()]));
 }
 
 //---------------------------------------------------------------------------//
@@ -309,22 +309,7 @@ void Runner::build_core_params(RunnerInput const& inp,
     }();
 
     // Store the number of simultaneous threads/tasks per process
-    params.max_streams = [&inp] {
-        std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
-        if (!nt_str.empty())
-        {
-            std::size_t idx;
-            auto num_threads = std::stoi(nt_str, &idx);
-            if (!inp.use_device && idx == nt_str.size())
-            {
-                CELER_LOG(warning)
-                    << "Using " << num_threads
-                    << " threads for each nested parallel region";
-            }
-            return num_threads;
-        }
-        return 1;
-    }();
+    params.max_streams = get_num_streams();
     CELER_VALIDATE(inp.mctruth_filename.empty() || params.max_streams == 1,
                    << "MC truth output is only supported with a single "
                       "stream.");
@@ -456,6 +441,32 @@ void Runner::build_diagnostics(RunnerInput const& inp)
         // Add to output interface
         core_params_->output_reg()->insert(step_diagnostic);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the number of streams from the OMP_NUM_THREADS environment variable.
+ *
+ * The value of OMP_NUM_THREADS should be a list of positive integers, each of
+ * which sets the number of threads for the parallel region at the
+ * corresponding nested level. The number of streams is set to the first value
+ * in the list.
+ *
+ * \note For a multithreaded CPU run, if OMP_NUM_THREADS is set to a single
+ * value, the number of threads for each nested parallel region will be set to
+ * that value.
+ */
+int get_num_streams()
+{
+    std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
+    if (!nt_str.empty())
+    {
+        auto num_threads = std::stoi(nt_str);
+        CELER_VALIDATE(num_threads > 0,
+                       << "nonpositive num_streams=" << num_threads);
+        return num_threads;
+    }
+    return 1;
 }
 
 //---------------------------------------------------------------------------//

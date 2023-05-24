@@ -79,21 +79,24 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
 
 #ifdef _OPENMP
         // Set the maximum number of nested parallel regions
-        omp_set_max_active_levels(2);
-        omp_set_nested(true);
+        // TODO: Enable nested OpenMP parallel regions for multithreaded CPU
+        // once the performance issues have been resolved. For now, limit the
+        // level of nesting to a single parallel region (over events) and
+        // deactivate any deeper nested parallel regions.
+        omp_set_max_active_levels(1);
 #endif
 #pragma omp parallel for num_threads(run_stream.num_streams())
-        for (size_type i = 0; i < run_stream.num_events(); ++i)
+        for (size_type event = 0; event < run_stream.num_events(); ++event)
         {
 #ifdef _OPENMP
-            size_type s = omp_get_thread_num();
+            size_type stream = omp_get_thread_num();
 #else
-            size_type s = 0;
+            size_type stream = 0;
 #endif
             // Run a single event on a single thread
-            CELER_TRY_HANDLE(
-                result.events[i] = run_stream(StreamId{s}, EventId{i}),
-                capture_exception);
+            CELER_TRY_HANDLE(result.events[event]
+                             = run_stream({StreamId{stream}, EventId{event}}),
+                             capture_exception);
         }
         celeritas::log_and_rethrow(std::move(capture_exception));
     }
