@@ -71,7 +71,7 @@ void RootErrorHandler(Int_t rootlevel,
 
 //---------------------------------------------------------------------------//
 /*!
- * Install the Celeritas ROOT error handler
+ * Install the Celeritas ROOT error handler.
  */
 ScopedRootErrorHandler::ScopedRootErrorHandler()
     : previous_(SetErrorHandler(RootErrorHandler))
@@ -101,7 +101,7 @@ void ScopedRootErrorHandler::throw_if_errors() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Revert to the previous ROOT error handler
+ * Revert to the previous ROOT error handler.
  */
 ScopedRootErrorHandler::~ScopedRootErrorHandler()
 {
