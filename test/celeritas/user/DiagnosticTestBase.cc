@@ -37,7 +37,7 @@ void DiagnosticTestBase::SetUp()
     action_diagnostic_
         = std::make_shared<ActionDiagnostic>(this->action_reg()->next_id());
     // Add to action registry
-    this->action_reg()->insert_mutable(action_diagnostic_);
+    this->action_reg()->insert(action_diagnostic_);
     // Add to output interface
     this->output_reg()->insert(action_diagnostic_);
 

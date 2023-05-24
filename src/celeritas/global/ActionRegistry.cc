@@ -17,9 +17,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Register a mutable action.
+ * Add action to mutable list if it has any mutable member functions.
  */
-void ActionRegistry::insert_mutable(SPAction action)
+void ActionRegistry::insert_mutable_impl(SPAction&& action)
 {
     CELER_EXPECT(action);
     if (dynamic_cast<BeginRunActionInterface*>(action.get()))
@@ -31,9 +31,9 @@ void ActionRegistry::insert_mutable(SPAction action)
 
 //---------------------------------------------------------------------------//
 /*!
- * Register an immutable action.
+ * Perform checks on an immutable action before inserting.
  */
-void ActionRegistry::insert(SPConstAction action)
+void ActionRegistry::insert_const_impl(SPConstAction&& action)
 {
     CELER_EXPECT(action);
     CELER_VALIDATE(!dynamic_cast<BeginRunActionInterface const*>(action.get()),
@@ -45,7 +45,7 @@ void ActionRegistry::insert(SPConstAction action)
 
 //---------------------------------------------------------------------------//
 /*!
- * Register an implicit action.
+ * Register an action.
  */
 void ActionRegistry::insert_impl(SPConstAction&& action)
 {

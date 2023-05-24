@@ -409,7 +409,7 @@ void Runner::build_diagnostics(RunnerInput const& inp)
             core_params_->action_reg()->next_id());
 
         // Add to action registry
-        core_params_->action_reg()->insert_mutable(action_diagnostic);
+        core_params_->action_reg()->insert(action_diagnostic);
         // Add to output interface
         core_params_->output_reg()->insert(action_diagnostic);
     }

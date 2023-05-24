@@ -18,6 +18,7 @@
 #include "celeritas/Types.hh"
 
 #include "ActionInterface.hh"
+#include "detail/ActionRegistryImpl.hh"
 
 namespace celeritas
 {
@@ -56,11 +57,19 @@ class ActionRegistry
     //! Get the next available action ID
     ActionId next_id() const { return ActionId(actions_.size()); }
 
-    // Register a mutable action
-    void insert_mutable(SPAction);
+    //! Register a mutable action
+    template<class T, std::enable_if_t<detail::is_mutable_action_v<T>, bool> = true>
+    void insert(std::shared_ptr<T> action)
+    {
+        return this->insert_mutable_impl(std::move(action));
+    }
 
-    // Register a const action
-    void insert(SPConstAction);
+    //! Register a const action
+    template<class T, std::enable_if_t<detail::is_const_action_v<T>, bool> = true>
+    void insert(std::shared_ptr<T> action)
+    {
+        return this->insert_const_impl(std::move(action));
+    }
 
     //// ACCESSORS ////
 
@@ -90,6 +99,8 @@ class ActionRegistry
     std::unordered_map<std::string, ActionId> action_ids_;
     std::vector<SPAction> mutable_actions_;
 
+    void insert_mutable_impl(SPAction&&);
+    void insert_const_impl(SPConstAction&&);
     void insert_impl(SPConstAction&&);
 };
 

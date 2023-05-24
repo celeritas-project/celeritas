@@ -85,7 +85,7 @@ class ActionRegistryTest : public Test
 
         expl_action = std::make_shared<MyExplicitAction>(mgr.next_id(),
                                                          ActionOrder::pre);
-        mgr.insert_mutable(expl_action);
+        mgr.insert(expl_action);
 
         auto impl2 = std::make_shared<MyImplicitAction>(
             mgr.next_id(), "impl2", "the second implicit action");
