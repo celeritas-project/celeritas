@@ -90,7 +90,8 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
         write_to_root(*core_params_, root_manager_.get());
     }
 
-    CELER_ENSURE(core_params_);
+    CELER_ASSERT(core_params_);
+    transporters_.resize(this->num_streams());
 }
 
 //---------------------------------------------------------------------------//
@@ -99,30 +100,34 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
  *
  * This will partition the input primaries among all the streams.
  */
-RunnerResult Runner::operator()(RunStreamEvent ids) const
+auto Runner::operator()(RunStreamEvent ids) -> RunnerResult
 {
     CELER_EXPECT(ids.stream < this->num_streams());
     CELER_EXPECT(ids.event < this->num_events());
 
-    auto transport = [this, ids]() -> std::unique_ptr<TransporterBase> {
-        // Thread-local transporter input
-        TransporterInput local_trans_inp = *transporter_input_;
-        local_trans_inp.stream_id = ids.stream;
+    auto& transport = transporters_[ids.stream.get()];
+    if (!transport)
+    {
+        transport = [this, ids]() -> std::unique_ptr<TransporterBase> {
+            // Thread-local transporter input
+            TransporterInput local_trans_inp = *transporter_input_;
+            local_trans_inp.stream_id = ids.stream;
 
-        if (use_device_)
-        {
-            CELER_VALIDATE(celeritas::device(),
-                           << "CUDA device is unavailable but GPU run was "
-                              "requested");
-            return std::make_unique<Transporter<MemSpace::device>>(
-                std::move(local_trans_inp));
-        }
-        else
-        {
-            return std::make_unique<Transporter<MemSpace::host>>(
-                std::move(local_trans_inp));
-        }
-    }();
+            if (use_device_)
+            {
+                CELER_VALIDATE(celeritas::device(),
+                               << "CUDA device is unavailable but GPU run was "
+                                  "requested");
+                return std::make_unique<Transporter<MemSpace::device>>(
+                    std::move(local_trans_inp));
+            }
+            else
+            {
+                return std::make_unique<Transporter<MemSpace::host>>(
+                    std::move(local_trans_inp));
+            }
+        }();
+    }
 
     return (*transport)(make_span(events_[ids.event.get()]));
 }

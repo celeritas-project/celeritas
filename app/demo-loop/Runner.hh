@@ -8,14 +8,14 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/phys/Primary.hh"
+
+#include "Transporter.hh"
 
 namespace celeritas
 {
@@ -29,26 +29,6 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 struct RunnerInput;
-struct TransporterInput;
-
-//---------------------------------------------------------------------------//
-/*!
- * Tallied result and timing from transporting a single event.
- */
-struct RunnerResult
-{
-    using real_type = celeritas::real_type;
-    using size_type = celeritas::size_type;
-    using MapStrReal = std::unordered_map<std::string, real_type>;
-    using VecReal = std::vector<real_type>;
-    using VecCount = std::vector<size_type>;
-
-    VecCount initializers;  //!< Num starting track initializers
-    VecCount active;  //!< Num tracks active at beginning of step
-    VecCount alive;  //!< Num living tracks at end of step
-    MapStrReal action_times{};  //!< Accumulated action timing
-    VecReal step_times;  //!< Real time per step
-};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -65,7 +45,7 @@ struct SimulationResult
 
     real_type total_time{};  //!< Total simulation time
     real_type setup_time{};  //!< One-time initialization cost
-    std::vector<RunnerResult> events;  //< Results tallied for each event
+    std::vector<TransporterResult> events;  //< Results tallied for each event
 };
 
 //---------------------------------------------------------------------------//
@@ -84,7 +64,9 @@ class Runner
     using StreamId = celeritas::StreamId;
     using size_type = celeritas::size_type;
     using Input = RunnerInput;
+    using RunnerResult = TransporterResult;
     using SPOutputRegistry = std::shared_ptr<celeritas::OutputRegistry>;
+    using UPTransporterBase = std::unique_ptr<TransporterBase>;
     //!@}
 
     //! ID of the stream and event to be run
@@ -99,7 +81,7 @@ class Runner
     Runner(RunnerInput const& inp, SPOutputRegistry output);
 
     // Run on a single stream/thread, returning the transport result
-    RunnerResult operator()(RunStreamEvent) const;
+    RunnerResult operator()(RunStreamEvent);
 
     // Number of streams supported
     StreamId::size_type num_streams() const;
@@ -118,10 +100,11 @@ class Runner
     std::shared_ptr<celeritas::RootFileManager> root_manager_;
     std::shared_ptr<celeritas::StepCollector> step_collector_;
 
-    // Transporter inputs
+    // Transporter inputs and stream-local transporters
     bool use_device_{};
     std::shared_ptr<TransporterInput> transporter_input_;
     VecEvent events_;
+    std::vector<UPTransporterBase> transporters_;
 
     //// HELPER FUNCTIONS ////
 
