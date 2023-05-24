@@ -67,16 +67,17 @@ void sort_impl(TrackSlots const& track_slots, F&& func)
     CELER_DEVICE_CHECK_ERROR();
 }
 
+// PRE: action_accessor is sorted, i.e. i <= j ==> action_accessor(i) <=
+// action_accessor(j)
 template<class F>
-CELER_FUNCTION void
-tracks_per_action_impl(DeviceRef<CoreStateData> const& states,
-                       F&& action_accessor)
+CELER_FUNCTION void tracks_per_action_impl(Span<ThreadId> offsets,
+                                           size_type size,
+                                           F&& action_accessor)
 {
     ThreadId tid = celeritas::KernelParamCalculator::thread_id();
 
-    if ((tid < states.size()) && tid.get() != 0)
+    if ((tid < size) && tid.get() != 0)
     {
-        Span<ThreadId> offsets = states.thread_offsets[AllItems<ThreadId>{}];
         ActionId current_action = action_accessor(tid);
         ActionId previous_action = action_accessor(tid - 1);
         if (current_action && current_action != previous_action)
@@ -86,23 +87,23 @@ tracks_per_action_impl(DeviceRef<CoreStateData> const& states,
     }
 }
 
-// PRE: action_accessor is sorted, i.e. i <= j ==> action_accessor(i) <=
-// action_accessor(j)
 __global__ void tracks_per_action_kernel(DeviceRef<CoreStateData> const states,
+                                         Span<ThreadId> offsets,
+                                         size_type size,
                                          TrackOrder order)
 {
-    // DISPATCH here since CELER_LAUNCH_KERNEL doesn't work with templated
-    // kernels
     switch (order)
     {
         case TrackOrder::sort_along_step_action:
             return tracks_per_action_impl(
-                states,
+                offsets,
+                size,
                 along_step_action_accessor{states.sim.along_step_action.data(),
                                            states.track_slots.data()});
         case TrackOrder::sort_step_limit_action:
             return tracks_per_action_impl(
-                states,
+                offsets,
+                size,
                 step_limit_action_accessor{states.sim.step_limit.data(),
                                            states.track_slots.data()});
         default:
@@ -112,13 +113,12 @@ __global__ void tracks_per_action_kernel(DeviceRef<CoreStateData> const states,
 
 // TODO: On host
 __global__ void
-tracks_per_action_reduce_kernel(DeviceRef<CoreStateData> const states)
+tracks_per_action_reduce_kernel(Span<ThreadId> offsets, size_type size)
 {
     ThreadId tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() == 0)
     {
-        Span<ThreadId> offsets = states.thread_offsets[AllItems<ThreadId>{}];
-        offsets.back() = ThreadId{states.size()};
+        offsets.back() = ThreadId{size};
         for (auto thread_id = offsets.end() - 2; thread_id >= offsets.begin();
              --thread_id)
         {
@@ -128,26 +128,6 @@ tracks_per_action_reduce_kernel(DeviceRef<CoreStateData> const states)
             }
         }
     }
-}
-
-void tracks_per_action(DeviceRef<CoreStateData> const& states, TrackOrder order)
-{
-    auto start = device_pointer_cast(states.thread_offsets.data());
-    thrust::fill(start, start + states.thread_offsets.size(), ThreadId{});
-    CELER_DEVICE_CHECK_ERROR();
-
-    CELER_LAUNCH_KERNEL(tracks_per_action,
-                        celeritas::device().default_block_size(),
-                        states.size(),
-                        states,
-                        order);
-    CELER_DEVICE_CHECK_ERROR();
-
-    CELER_LAUNCH_KERNEL(tracks_per_action_reduce,
-                        celeritas::device().default_block_size(),
-                        states.size(),
-                        states);
-    CELER_DEVICE_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
@@ -202,15 +182,52 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
             sort_impl(
                 states.track_slots,
                 along_action_comparator{states.sim.along_step_action.data()});
-            tracks_per_action(states, order);
             return;
         case TrackOrder::sort_step_limit_action:
             sort_impl(states.track_slots,
                       step_limit_comparator{states.sim.step_limit.data()});
-            tracks_per_action(states, order);
             return;
         default:
             CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+template<>
+void count_tracks_per_action<MemSpace::device>(
+    DeviceRef<CoreStateData> const& states,
+    Span<ThreadId> offsets,
+    size_type size,
+    TrackOrder order)
+{
+    switch (order)
+    {
+        case TrackOrder::sort_along_step_action:
+        case TrackOrder::sort_step_limit_action: {
+            // dispatch in the kernel since CELER_LAUNCH_KERNEL doesn't work
+            // with templated kernels
+            auto start = device_pointer_cast(make_observer(offsets.data()));
+            thrust::fill(start, start + offsets.size(), ThreadId{});
+            CELER_DEVICE_CHECK_ERROR();
+
+            CELER_LAUNCH_KERNEL(tracks_per_action,
+                                celeritas::device().default_block_size(),
+                                states.size(),
+                                states,
+                                offsets,
+                                size,
+                                order);
+            CELER_DEVICE_CHECK_ERROR();
+
+            CELER_LAUNCH_KERNEL(tracks_per_action_reduce,
+                                celeritas::device().default_block_size(),
+                                states.size(),
+                                offsets,
+                                size);
+            CELER_DEVICE_CHECK_ERROR();
+            return;
+        }
+        default:
+            return;
     }
 }
 

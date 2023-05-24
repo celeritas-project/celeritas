@@ -13,6 +13,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
 #include "detail/TrackSortUtils.hh"
@@ -91,6 +93,7 @@ std::string SortTracksAction::label() const
 void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
+    state.count_tracks_per_action(track_order_);
 }
 
 //---------------------------------------------------------------------------//
@@ -100,6 +103,26 @@ void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
+    state.count_tracks_per_action(track_order_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set host data at the beginning of a run
+ */
+void SortTracksAction::begin_run(CoreParams const& params, CoreStateHost& state)
+{
+    state.resize_offsets(params.action_reg()->num_actions() + 1);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set device data at the beginning of a run
+ */
+void SortTracksAction::begin_run(CoreParams const& params,
+                                 CoreStateDevice& state)
+{
+    state.resize_offsets(params.action_reg()->num_actions() + 1);
 }
 
 //---------------------------------------------------------------------------//

@@ -73,9 +73,22 @@ class CoreState
     //! Clear primaries after constructing initializers from them
     void clear_primaries() { num_primaries_ = 0; }
 
+    void resize_offsets(size_type n);
+
+    void count_tracks_per_action(TrackOrder order);
+
+    //! Get a range delimiting the [start, end) of the track partition assigned
+    //! action_id in track_slots
+    Range<ThreadId> get_action_range(ActionId action_id) const;
+
   private:
     // State data
     CollectionStateStore<CoreStateData, M> states_;
+
+    //
+    Collection<ThreadId, Ownership::value, M, ActionId> thread_offsets_;
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>
+        host_thread_offsets_;
 
     // Primaries to be added
     Collection<Primary, Ownership::value, M> primaries_;

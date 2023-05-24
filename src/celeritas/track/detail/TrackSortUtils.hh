@@ -58,6 +58,23 @@ void shuffle_track_slots<MemSpace::device>(
 void sort_tracks(HostRef<CoreStateData> const&, TrackOrder);
 void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder);
 
+template<MemSpace M>
+void count_tracks_per_action(CoreStateData<Ownership::reference, M> const&,
+                             Span<ThreadId>,
+                             size_type,
+                             TrackOrder);
+
+template<>
+void count_tracks_per_action<MemSpace::host>(HostRef<CoreStateData> const&,
+                                             Span<ThreadId>,
+                                             size_type,
+                                             TrackOrder);
+template<>
+void count_tracks_per_action<MemSpace::device>(DeviceRef<CoreStateData> const&,
+                                               Span<ThreadId>,
+                                               size_type,
+                                               TrackOrder);
+
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
 //---------------------------------------------------------------------------//
@@ -130,6 +147,13 @@ inline void shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
 }
 
 inline void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+template<>
+inline void count_tracks_per_action<MemSpace::device>(
+    DeviceRef<CoreStateData> const&, Span<ThreadId>, size_type, TrackOrder)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

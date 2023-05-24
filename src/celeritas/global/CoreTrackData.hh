@@ -105,9 +105,6 @@ struct CoreStateData
     template<class T>
     using ThreadItems = Collection<T, W, M, ThreadId>;
 
-    template<class T>
-    using ActionItems = Collection<T, W, M, ActionId>;
-
     GeoStateData<W, M> geometry;
     MaterialStateData<W, M> materials;
     ParticleStateData<W, M> particles;
@@ -116,7 +113,6 @@ struct CoreStateData
     SimStateData<W, M> sim;
     TrackInitStateData<W, M> init;
     ThreadItems<TrackSlotId::size_type> track_slots;
-    ActionItems<typename decltype(track_slots)::ItemIdT> thread_offsets;
 
     //! Unique identifier for "thread-local" data.
     StreamId stream_id;
@@ -129,15 +125,6 @@ struct CoreStateData
     {
         return geometry && materials && particles && physics && rng && sim
                && init && stream_id;
-    }
-
-    //! Get a range delimiting the [start, end) of the track partition assigned
-    //! action_id in track_slots
-    CELER_FUNCTION Range<typename decltype(thread_offsets)::value_type>
-    get_action_range(ActionId action_id) const
-    {
-        CELER_EXPECT((action_id + 1) < thread_offsets.size());
-        return {thread_offsets[action_id], thread_offsets[action_id + 1]};
     }
 
     //! Assign from another set of data
@@ -153,7 +140,6 @@ struct CoreStateData
         sim = other.sim;
         init = other.init;
         track_slots = other.track_slots;
-        thread_offsets = other.thread_offsets;
         stream_id = other.stream_id;
         return *this;
     }

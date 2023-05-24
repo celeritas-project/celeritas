@@ -35,8 +35,6 @@ void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->sim, size);
     resize(&state->init, params.init, size);
     resize(&state->track_slots, size);
-    // TODO: Get number of actions + 1 from CoreParams
-    resize(&state->thread_offsets, 32);
 
     state->stream_id = stream_id;
 

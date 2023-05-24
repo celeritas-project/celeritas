@@ -8,6 +8,7 @@
 #include "CoreState.hh"
 
 #include "corecel/data/Copier.hh"
+#include "celeritas/track/detail/TrackSortUtils.hh"
 
 #include "CoreParams.hh"
 
@@ -59,6 +60,47 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
 
     Copier<Primary, M> copy_to_temp{primaries_[this->primary_range()]};
     copy_to_temp(MemSpace::host, host_primaries);
+}
+
+template<MemSpace M>
+void CoreState<M>::count_tracks_per_action(TrackOrder order)
+{
+    detail::count_tracks_per_action<M>(states_.ref(),
+                                       thread_offsets_[AllItems<ThreadId, M>{}],
+                                       states_.ref().size(),
+                                       order);
+    if constexpr (M == MemSpace::device)
+    {
+        Copier<ThreadId, MemSpace::host> copy_to_host{
+            host_thread_offsets_[AllItems<ThreadId, MemSpace::host>{}]};
+        copy_to_host(M, thread_offsets_[AllItems<ThreadId, M>{}]);
+    }
+}
+
+template<MemSpace M>
+Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
+{
+    if constexpr (M == MemSpace::device)
+    {
+        CELER_EXPECT((action_id + 1) < host_thread_offsets_.size());
+        return {host_thread_offsets_[action_id],
+                host_thread_offsets_[action_id + 1]};
+    }
+    else if constexpr (M == MemSpace::host)
+    {
+        CELER_EXPECT((action_id + 1) < thread_offsets_.size());
+        return {thread_offsets_[action_id], thread_offsets_[action_id + 1]};
+    }
+}
+
+template<MemSpace M>
+void CoreState<M>::resize_offsets(size_type n)
+{
+    resize(&thread_offsets_, n);
+    if constexpr (M == MemSpace::device)
+    {
+        resize(&host_thread_offsets_, n);
+    }
 }
 
 //---------------------------------------------------------------------------//

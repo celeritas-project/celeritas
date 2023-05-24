@@ -43,17 +43,16 @@ void sort_impl(TrackSlots const& track_slots, F&& func)
     std::sort(start, start + track_slots.size(), std::forward<F>(func));
 }
 
-// PRE: action_accessor is sorted, i.e. i <= j ==> action_accessor(i) <=
-// action_accessor(j)
 template<class F>
-void tracks_per_action(HostRef<CoreStateData> const& states,
-                       F&& action_accessor)
+void count_tracks_per_action_impl(Span<ThreadId> offsets,
+                                  size_type size,
+                                  F&& action_accessor)
 {
-    Span<ThreadId> offsets = states.thread_offsets[AllItems<ThreadId>{}];
     std::fill(offsets.begin(), offsets.end(), ThreadId{});
+
 // won't initialize 1st action range
 #pragma omp parallel for
-    for (size_type i = 1; i < states.size(); ++i)
+    for (size_type i = 1; i < size; ++i)
     {
         ActionId current_action = action_accessor(ThreadId{i});
         if (!current_action)
@@ -75,7 +74,7 @@ void tracks_per_action(HostRef<CoreStateData> const& states,
     // offsets.size() == num_actions + 1, have the last offsets be the # of
     // tracks for backfilling correct values in case the last actions are not
     // present
-    offsets.back() = ThreadId{states.size()};
+    offsets.back() = ThreadId{size};
 
     // in case some actions were not found, have them "start" at the next
     // action offset.
@@ -128,25 +127,38 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
             sort_impl(
                 states.track_slots,
                 along_action_comparator{states.sim.along_step_action.data()});
-            tracks_per_action(
-                states,
-                [&along_step_action = states.sim.along_step_action,
-                 &track_slots = states.track_slots](ThreadId tid) -> ActionId {
-                    return along_step_action[TrackSlotId{track_slots[tid]}];
-                });
             return;
         case TrackOrder::sort_step_limit_action:
             sort_impl(states.track_slots,
                       step_limit_comparator{states.sim.step_limit.data()});
-            tracks_per_action(
-                states,
-                [&step_limit = states.sim.step_limit,
-                 &track_slots = states.track_slots](ThreadId tid) -> ActionId {
-                    return step_limit[TrackSlotId{track_slots[tid]}].action;
-                });
             return;
         default:
             CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+template<>
+void count_tracks_per_action<MemSpace::host>(HostRef<CoreStateData> const& states,
+                                             Span<ThreadId> offsets,
+                                             size_type size,
+                                             TrackOrder order)
+{
+    switch (order)
+    {
+        case TrackOrder::sort_along_step_action:
+            return count_tracks_per_action_impl(
+                offsets,
+                size,
+                along_step_action_accessor{states.sim.along_step_action.data(),
+                                           states.track_slots.data()});
+        case TrackOrder::sort_step_limit_action:
+            return count_tracks_per_action_impl(
+                offsets,
+                size,
+                step_limit_action_accessor{states.sim.step_limit.data(),
+                                           states.track_slots.data()});
+        default:
+            return;
     }
 }
 
