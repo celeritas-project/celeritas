@@ -66,7 +66,6 @@ class Runner
     using Input = RunnerInput;
     using RunnerResult = TransporterResult;
     using SPOutputRegistry = std::shared_ptr<celeritas::OutputRegistry>;
-    using UPTransporterBase = std::unique_ptr<TransporterBase>;
     //!@}
 
     //! ID of the stream and event to be run
@@ -92,6 +91,7 @@ class Runner
   private:
     //// TYPES ////
 
+    using UPTransporterBase = std::unique_ptr<TransporterBase>;
     using VecEvent = std::vector<std::vector<celeritas::Primary>>;
 
     //// DATA ////

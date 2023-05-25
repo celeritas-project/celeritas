@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ActionDiagnostic.hh"
 
+#include <mutex>
+
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
@@ -166,7 +168,7 @@ auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
  */
 auto ActionDiagnostic::calc_actions() const -> VecVecCount
 {
-    CELER_EXPECT(store_);
+    CELER_EXPECT(*this);
 
     // Get the raw data accumulated over all host/device streams
     VecCount counts(this->state_size(), 0);
@@ -191,7 +193,7 @@ auto ActionDiagnostic::calc_actions() const -> VecVecCount
  */
 size_type ActionDiagnostic::state_size() const
 {
-    CELER_EXPECT(store_);
+    CELER_EXPECT(*this);
 
     auto const& params = store_.params<MemSpace::host>();
     return params.num_bins * params.num_particles;
@@ -203,7 +205,7 @@ size_type ActionDiagnostic::state_size() const
  */
 void ActionDiagnostic::clear()
 {
-    CELER_EXPECT(store_);
+    CELER_EXPECT(*this);
 
     apply_to_all_streams(
         store_, [](auto& state) { fill(size_type(0), &state.counts); });
@@ -218,16 +220,24 @@ void ActionDiagnostic::clear()
  */
 void ActionDiagnostic::begin_run_impl(CoreParams const& params)
 {
-    CELER_EXPECT(!store_);
+    if (!*this)
+    {
+        static std::mutex initialize_mutex;
+        std::lock_guard<std::mutex> scoped_lock{initialize_mutex};
 
-    action_reg_ = params.action_reg();
-    particle_ = params.particle();
+        if (!*this)
+        {
+            action_reg_ = params.action_reg();
+            particle_ = params.particle();
 
-    HostVal<ParticleTallyParamsData> host_params;
-    host_params.num_bins = params.action_reg()->num_actions();
-    host_params.num_particles = params.particle()->size();
-    store_ = {std::move(host_params), params.max_streams()};
+            HostVal<ParticleTallyParamsData> host_params;
+            host_params.num_bins = params.action_reg()->num_actions();
+            host_params.num_particles = params.particle()->size();
+            store_ = {std::move(host_params), params.max_streams()};
 
+            initialized_ = true;
+        }
+    }
     CELER_ENSURE(store_);
 }
 

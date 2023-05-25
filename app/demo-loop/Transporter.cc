@@ -37,7 +37,7 @@ TransporterBase::~TransporterBase() = default;
  */
 template<MemSpace M>
 Transporter<M>::Transporter(TransporterInput inp)
-    : max_steps_(inp.max_steps), time_stream_(inp.params->max_streams() == 1)
+    : max_steps_(inp.max_steps), num_streams_(inp.params->max_streams())
 {
     CELER_EXPECT(inp);
 
@@ -77,7 +77,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     // Copy primaries to device and transport the first step
     auto track_counts = step(primaries);
     append_track_counts(track_counts);
-    if (time_stream_)
+    if (num_streams_ == 1)
     {
         result.step_times.push_back(get_step_time());
     }
@@ -101,16 +101,16 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         get_step_time = {};
         track_counts = step();
         append_track_counts(track_counts);
-        if (time_stream_)
+        if (num_streams_ == 1)
         {
             result.step_times.push_back(get_step_time());
         }
     }
 
-    // Save kernel timing if running with a single stream and either on the
-    // host or on the device with synchronization enabled
+    // Save kernel timing if running with a single stream and if either on the
+    // device with synchronization enabled or on the host
     auto const& action_seq = step.actions();
-    if (time_stream_ && (M == MemSpace::host || action_seq.sync()))
+    if (num_streams_ == 1 && (M == MemSpace::host || action_seq.sync()))
     {
         auto const& action_ptrs = action_seq.actions();
         auto const& times = action_seq.accum_time();

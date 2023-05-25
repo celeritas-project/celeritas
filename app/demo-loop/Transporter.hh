@@ -119,7 +119,7 @@ class Transporter final : public TransporterBase
   private:
     std::shared_ptr<celeritas::Stepper<M>> stepper_;
     celeritas::size_type max_steps_;
-    bool time_stream_;
+    celeritas::size_type num_streams_;
 };
 
 //---------------------------------------------------------------------------//
