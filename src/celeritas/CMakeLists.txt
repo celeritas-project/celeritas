@@ -294,6 +294,13 @@ macro(celeritas_gen_action basedir class func order)
   )
 endmacro()
 
+macro(celeritas_gen_sorted_action basedir class func order track_order)
+  celeritas_gen(SOURCES
+    "gen-action.py" "${basedir}/generated/${class}"
+    --class ${class} --func ${func} --actionorder ${order} --compute-kernel-params --track-order ${track_order}
+  )
+endmacro()
+
 macro(celeritas_gen_trackinit class)
   celeritas_gen(SOURCES
     "gen-trackinit.py" "track/generated/${class}"
@@ -314,7 +321,7 @@ celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 
 celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select" "pre_post")
 celeritas_gen_action("phys" "PreStepAction" "pre_step" "pre")
-celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
+celeritas_gen_sorted_action("geo" "BoundaryAction" "boundary" "post" "sort_step_limit_action")
 
 celeritas_gen_trackinit("InitTracks")
 celeritas_gen_trackinit("LocateAlive")

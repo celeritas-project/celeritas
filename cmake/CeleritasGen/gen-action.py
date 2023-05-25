@@ -142,21 +142,73 @@ void {clsname}::execute(CoreParams const& params, CoreStateDevice& state) const
 }}  // namespace celeritas
 """
 
+SORTED_CU_TEMPLATE = CLIKE_TOP + """\
+#include "{clsname}.hh"
+
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/global/KernelLaunchUtils.hh"
+#include "celeritas/global/TrackLauncher.hh"
+#include "../detail/{clsname}Impl.hh"
+
+namespace celeritas
+{{
+namespace generated
+{{
+namespace
+{{
+__global__ void{launch_bounds}{func}_kernel(
+    CRefPtr<CoreParamsData, MemSpace::device> const params,
+    RefPtr<CoreStateData, MemSpace::device> const state,
+    ThreadId const offset
+)
+{{
+    TrackLauncher launch{{*params, *state, detail::{func}_track}};
+    launch(KernelParamCalculator::thread_id() + offset.get());
+}}
+}}  // namespace
+
+void {clsname}::execute(CoreParams const& params, CoreStateDevice& state) const
+{{
+    KernelLaunchParams kernel_params = compute_launch_params(this->action_id(),
+                                                             params,
+                                                             state,
+                                                             TrackOrder::{track_order});
+    CELER_LAUNCH_KERNEL({func},
+                        celeritas::device().default_block_size(),
+                        kernel_params.num_threads,
+                        params.ptr<MemSpace::native>(),
+                        state.ptr(),
+                        kernel_params.threads_offset);
+}}
+
+}}  // namespace generated
+}}  // namespace celeritas
+"""
+
 TEMPLATES = {
     'hh': HH_TEMPLATE,
     'cc': CC_TEMPLATE,
     'cu': CU_TEMPLATE,
+    'sorted.cu': SORTED_CU_TEMPLATE, 
 }
 LANG = {
     'hh': "C++",
     'cc': "C++",
     'cu': "CUDA",
+    'sorted.cu': "CUDA",
 }
 
 def generate(**subs):
     ext = subs['ext']
     subs['modeline'] = "-*-{}-*-".format(LANG[ext])
     template = TEMPLATES[ext]
+    subs['ext'] = ext.split('.')[-1]
     script = Path(sys.argv[0])
     filename = Path("{basename}.{ext}".format(**subs))
     subs['filename'] = Path(subs['basedir']) / filename
@@ -184,9 +236,17 @@ def main():
     parser.add_argument(
         '--actionorder',
         help='Inter-kernel dependency order')
+    parser.add_argument(
+        '--compute-kernel-params',
+        action='store_true',
+        help='Adjuste grid size tracks are sorted by provided track-order')
+    parser.add_argument(
+        '--track-order',
+        help='Expected track order')
 
     kwargs = vars(parser.parse_args())
-    for ext in ['hh', 'cc', 'cu']:
+    cu_ext = 'sorted.cu' if kwargs['compute_kernel_params'] else 'cu'
+    for ext in ['hh', 'cc', cu_ext]:
         generate(ext=ext, **kwargs)
 
 if __name__ == '__main__':

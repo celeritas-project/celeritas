@@ -15,6 +15,7 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/KernelLaunchUtils.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "../detail/BoundaryActionImpl.hh"
 
@@ -26,21 +27,27 @@ namespace
 {
 __global__ void boundary_kernel(
     CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state
+    RefPtr<CoreStateData, MemSpace::device> const state,
+    ThreadId const offset
 )
 {
     TrackLauncher launch{*params, *state, detail::boundary_track};
-    launch(KernelParamCalculator::thread_id());
+    launch(KernelParamCalculator::thread_id() + offset.get());
 }
 }  // namespace
 
 void BoundaryAction::execute(CoreParams const& params, CoreStateDevice& state) const
 {
+    KernelLaunchParams kernel_params = compute_launch_params(this->action_id(),
+                                                             params,
+                                                             state,
+                                                             TrackOrder::sort_step_limit_action);
     CELER_LAUNCH_KERNEL(boundary,
                         celeritas::device().default_block_size(),
-                        state.size(),
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
-                        state.ptr());
+                        state.ptr(),
+                        kernel_params.threads_offset);
 }
 
 }  // namespace generated
