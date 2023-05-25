@@ -12,7 +12,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/generated/BetheHeitlerInteract.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/KernelLaunchUtils.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"

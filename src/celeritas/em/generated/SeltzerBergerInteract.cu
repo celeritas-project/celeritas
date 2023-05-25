@@ -51,7 +51,10 @@ void seltzer_berger_interact(
     celeritas::ActionId action)
 {
     CELER_EXPECT(model_data);
-    KernelLaunchParams kernel_params = compute_launch_params(action, params, state, TrackOrder::sort_step_limit_action);
+    KernelLaunchParams kernel_params = compute_launch_params(action,
+                                                             params,
+                                                             state,
+                                                             TrackOrder::sort_step_limit_action);
     CELER_LAUNCH_KERNEL(seltzer_berger_interact,
                         celeritas::device().default_block_size(),
                         kernel_params.num_threads,
