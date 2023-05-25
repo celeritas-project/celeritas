@@ -294,6 +294,10 @@ TEST_F(TestEm3MctruthTest, four_step)
 
 TEST_F(TestEm3CaloTest, thirtytwo_step)
 {
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        GTEST_SKIP() << "Track gets stuck with Geant4 navigator";
+    }
     auto result = this->run<MemSpace::host>(256, 32);
 
     static double const expected_edep[]

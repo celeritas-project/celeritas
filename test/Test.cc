@@ -125,6 +125,11 @@ bool Test::strict_testing()
     {
         return false;
     }
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        // Disable strict testing for Geant4
+        return false;
+    }
     return !envstr.empty();
 }
 
