@@ -7,15 +7,27 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iosfwd>
 #include <string>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
 class G4VPhysicalVolume;
+class G4VTouchable;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+//! Wrap around a touchable to get a descriptive output.
+struct PrintableNavHistory
+{
+    G4VTouchable* touch{nullptr};
+};
+
+// Print detailed information about the touchable history.
+std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh);
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//

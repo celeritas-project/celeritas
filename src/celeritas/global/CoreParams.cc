@@ -106,8 +106,7 @@ ActionId find_along_step_id(ActionRegistry const& reg)
 }
 
 //---------------------------------------------------------------------------//
-class PropagationLimitAction final : public ImplicitActionInterface,
-                                     public ConcreteAction
+class PropagationLimitAction final : public ConcreteAction
 {
   public:
     //! Construct with ID
@@ -119,8 +118,7 @@ class PropagationLimitAction final : public ImplicitActionInterface,
 };
 
 //---------------------------------------------------------------------------//
-class AbandonLoopingAction final : public ImplicitActionInterface,
-                                   public ConcreteAction
+class AbandonLoopingAction final : public ConcreteAction
 {
   public:
     //! Construct with ID

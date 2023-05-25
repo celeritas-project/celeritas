@@ -406,10 +406,7 @@ void Runner::build_diagnostics(RunnerInput const& inp)
     if (inp.action_diagnostic)
     {
         auto action_diagnostic = std::make_shared<ActionDiagnostic>(
-            core_params_->action_reg()->next_id(),
-            core_params_->action_reg(),
-            core_params_->particle(),
-            core_params_->max_streams());
+            core_params_->action_reg()->next_id());
 
         // Add to action registry
         core_params_->action_reg()->insert(action_diagnostic);

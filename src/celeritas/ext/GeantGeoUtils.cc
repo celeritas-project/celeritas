@@ -7,19 +7,50 @@
 //---------------------------------------------------------------------------//
 #include "GeantGeoUtils.hh"
 
+#include <iostream>
 #include <G4GDMLParser.hh>
+#include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4SolidStore.hh>
+#include <G4TouchableHistory.hh>
 #include <G4VPhysicalVolume.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeAndRedirect.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Print detailed information about the touchable history.
+ */
+std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
+{
+    CELER_EXPECT(pnh.touch);
+    os << '{';
+
+    G4VTouchable& touch = *pnh.touch;
+    for (int depth : range(touch.GetHistoryDepth()))
+    {
+        G4VPhysicalVolume* vol = touch.GetVolume(depth);
+        CELER_ASSERT(vol);
+        G4LogicalVolume* lv = vol->GetLogicalVolume();
+        CELER_ASSERT(lv);
+        if (depth != 0)
+        {
+            os << " -> ";
+        }
+        os << "{pv='" << vol->GetName() << "', lv=" << lv->GetInstanceID()
+           << "='" << lv->GetName() << "'}";
+    }
+    os << '}';
+    return os;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Load a gdml input file, creating a pointer owned by Geant4.
@@ -60,9 +91,19 @@ void reset_geant_geometry()
 {
     CELER_LOG(debug) << "Resetting Geant4 geometry stores";
 
-    G4PhysicalVolumeStore::Clean();
-    G4LogicalVolumeStore::Clean();
-    G4SolidStore::Clean();
+    std::string msg;
+    {
+        ScopedStreamRedirect scoped_log(&std::cout);
+
+        G4PhysicalVolumeStore::Clean();
+        G4LogicalVolumeStore::Clean();
+        G4SolidStore::Clean();
+        msg = scoped_log.str();
+    }
+    if (!msg.empty())
+    {
+        CELER_LOG(diagnostic) << "While closing Geant4 geometry: " << msg;
+    }
 }
 
 //---------------------------------------------------------------------------//

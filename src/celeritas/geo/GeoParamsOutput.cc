@@ -13,8 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-
-#include "GeoParams.hh"  // IWYU pragma: keep
+#include "orange/GeoParamsInterface.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
