@@ -16,6 +16,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/random/RngParams.hh"
@@ -30,13 +31,19 @@ namespace test
 //---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
 {
+#ifndef __APPLE__
+    // ROOT injects handlers simply by being linked on Linux systems
+    ScopedRootErrorHandler::disable_signal_handler();
+#endif
+
+    // Create output registry
     output_reg_ = std::make_shared<OutputRegistry>();
 }
 
 //---------------------------------------------------------------------------//
 GlobalTestBase::~GlobalTestBase()
 {
-    if (this->HasFailure() && !this->output_reg()->empty())
+    if (this->HasFailure() && output_reg_ && !this->output_reg()->empty())
     {
         std::string destination = "screen";
         std::ostream* os = &std::cout;
