@@ -31,11 +31,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the track states.
- *
- * The track initializers are created from either primary particles or
- * secondaries. The new tracks are inserted into empty slots (vacancies) in the
- * track vector.
+ * Create track initializers from secondaries.
  */
 struct ProcessSecondariesLauncher
 {

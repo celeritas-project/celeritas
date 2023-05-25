@@ -32,7 +32,7 @@ __global__ void init_tracks_kernel(detail::InitTracksLauncher launch)
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to initialize tracks.
+ * Launch a kernel to initialize tracks.
  */
 void InitializeTracksAction::launch_impl(CoreParams const& params,
                                          CoreStateDevice& state,

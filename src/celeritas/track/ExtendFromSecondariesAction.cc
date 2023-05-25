@@ -108,9 +108,7 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const&,
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to process secondary particles.
- *
- * This fills the TrackInit \c vacancies and \c secondary_counts arrays.
+ * Launch a (host) kernel to create track initializers from secondary particles.
  */
 void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateHost& core_state) const

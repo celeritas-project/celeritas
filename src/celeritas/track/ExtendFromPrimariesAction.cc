@@ -63,9 +63,7 @@ void ExtendFromPrimariesAction::execute_impl(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to process secondary particles.
- *
- * This fills the TrackInit \c vacancies and \c secondary_counts arrays.
+ * Launch a (host) kernel to create track initializers from primary particles.
  */
 void ExtendFromPrimariesAction::process_primaries(
     CoreParams const& params,

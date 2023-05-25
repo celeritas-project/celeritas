@@ -34,7 +34,7 @@ process_primaries_kernel(detail::ProcessPrimariesLauncher launch)
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to initialize tracks.
+ * Launch a kernel to create track initializers from primary particles.
  */
 void ExtendFromPrimariesAction::process_primaries(
     CoreParams const&,

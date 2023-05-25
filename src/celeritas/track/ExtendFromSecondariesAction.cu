@@ -40,7 +40,7 @@ process_secondaries_kernel(detail::ProcessSecondariesLauncher launch)
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to locate alive particles.
+ * Launch a kernel to locate alive particles.
  *
  * This fills the TrackInit \c vacancies and \c secondary_counts arrays.
  */
@@ -57,9 +57,7 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to process secondary particles.
- *
- * This fills the TrackInit \c vacancies and \c secondary_counts arrays.
+ * Launch a kernel to create track initializers from secondary particles.
  */
 void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateDevice& core_state) const
