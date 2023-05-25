@@ -18,6 +18,10 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
+#if CELERITAS_USE_OPENMP
+#    include <omp.h>
+#endif
+
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
@@ -31,9 +35,6 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
-#if CELERITAS_USE_OPENMP
-#    include <omp.h>
-#endif
 
 #include "Runner.hh"
 #include "RunnerInput.hh"
@@ -44,6 +45,19 @@ namespace demo_loop
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Get the OpenMP thread number.
+ */
+int get_openmp_thread()
+{
+#ifdef _OPENMP
+    return omp_get_thread_num();
+#else
+    return 0;
+#endif
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Run, launch, and output.
@@ -73,6 +87,12 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
     result.events.resize(run_stream.num_events());
 
     celeritas::Stopwatch get_transport_time;
+    if (run_input->merge_events)
+    {
+        // Run all events simultaneously on a single stream
+        result.events.front() = run_stream();
+    }
+    else
     {
         celeritas::MultiExceptionHandler capture_exception;
         celeritas::ScopedDeviceProfiling profile_this;
@@ -84,24 +104,19 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
         // level of nesting to a single parallel region (over events) and
         // deactivate any deeper nested parallel regions.
         omp_set_max_active_levels(1);
-#endif
 #pragma omp parallel for num_threads(run_stream.num_streams())
+#endif
         for (size_type event = 0; event < run_stream.num_events(); ++event)
         {
-#ifdef _OPENMP
-            size_type stream = omp_get_thread_num();
-#else
-            size_type stream = 0;
-#endif
             // Run a single event on a single thread
-            CELER_TRY_HANDLE(result.events[event]
-                             = run_stream({StreamId{stream}, EventId{event}}),
+            CELER_TRY_HANDLE(result.events[event] = run_stream(
+                                 StreamId(get_openmp_thread()), EventId(event)),
                              capture_exception);
         }
         celeritas::log_and_rethrow(std::move(capture_exception));
     }
     result.total_time = get_transport_time();
-    output->insert(std::make_shared<RunnerOutput>(result));
+    output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }
 //---------------------------------------------------------------------------//
 }  // namespace

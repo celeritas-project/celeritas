@@ -245,14 +245,6 @@ if(CELERITAS_BUILD_DEMOS)
   add_executable(demo-loop ${_demo_loop_src})
   celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})
 
-  if(NOT CELERITAS_USE_OpenMP AND
-      (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-          OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$"))
-    celeritas_target_compile_options(demo-loop
-      PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
-    )
-  endif()
-
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
@@ -311,6 +303,7 @@ if(CELERITAS_BUILD_DEMOS)
     if(CELERITAS_USE_OpenMP)
       # TODO: update when OpenMP nested parallelism is enabled
       if(CELERITAS_USE_ROOT)
+        # TODO: ROOT writer is not currently thread safe
         list(APPEND _env "OMP_NUM_THREADS=1")
       else()
         list(APPEND _env "OMP_NUM_THREADS=4")

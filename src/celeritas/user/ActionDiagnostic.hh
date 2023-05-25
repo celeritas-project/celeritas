@@ -85,9 +85,6 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     void output(JsonPimpl*) const final;
     //!@}
 
-    // Whether the shared params data has been initialized
-    explicit operator bool() const { return initialized_; }
-
     // Get the nonzero diagnostic results accumulated over all streams
     MapStringCount calc_actions_map() const;
 
@@ -104,7 +101,6 @@ class ActionDiagnostic final : public ExplicitActionInterface,
     using StoreT = StreamStore<ParticleTallyParamsData, ParticleTallyStateData>;
 
     ActionId id_;
-    bool initialized_{false};
 
     WPConstActionRegistry action_reg_;
     WPConstParticle particle_;

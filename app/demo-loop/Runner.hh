@@ -68,19 +68,15 @@ class Runner
     using SPOutputRegistry = std::shared_ptr<celeritas::OutputRegistry>;
     //!@}
 
-    //! ID of the stream and event to be run
-    struct RunStreamEvent
-    {
-        StreamId stream{};
-        EventId event{};
-    };
-
   public:
     // Construct on all threads from a JSON input and shared output manager
     Runner(RunnerInput const& inp, SPOutputRegistry output);
 
     // Run on a single stream/thread, returning the transport result
-    RunnerResult operator()(RunStreamEvent);
+    RunnerResult operator()(StreamId, EventId);
+
+    // Run all events simultaneously on a single stream
+    RunnerResult operator()();
 
     // Number of streams supported
     StreamId::size_type num_streams() const;
@@ -92,7 +88,8 @@ class Runner
     //// TYPES ////
 
     using UPTransporterBase = std::unique_ptr<TransporterBase>;
-    using VecEvent = std::vector<std::vector<celeritas::Primary>>;
+    using VecPrimary = std::vector<celeritas::Primary>;
+    using VecEvent = std::vector<VecPrimary>;
 
     //// DATA ////
 
@@ -114,13 +111,9 @@ class Runner
     void build_diagnostics(RunnerInput const&);
     void build_transporter_input(RunnerInput const&);
     void build_events(RunnerInput const&);
+    int get_num_streams(RunnerInput const&);
+    UPTransporterBase& build_transporter(StreamId);
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-// Get the number of streams from the OMP_NUM_THREADS environment variable
-int get_num_streams();
 
 //---------------------------------------------------------------------------//
 }  // namespace demo_loop

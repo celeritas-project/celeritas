@@ -91,6 +91,7 @@ inp = {
     'step_diagnostic_maxsteps': 200,
     'simple_calo': simple_calo,
     'sync': True,
+    'merge_events': False,
     'brem_combined': True,
     'geant_options': geant_options,
 }
