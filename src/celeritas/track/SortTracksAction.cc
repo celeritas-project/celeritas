@@ -21,7 +21,12 @@
 
 namespace celeritas
 {
+namespace
+{
 //---------------------------------------------------------------------------//
+/*!
+ * Checks whether the TrackOrder defines a sorting strategy.
+ */
 bool is_sort_trackorder(TrackOrder to)
 {
     static TrackOrder const allowed[] = {
@@ -33,6 +38,8 @@ bool is_sort_trackorder(TrackOrder to)
     return std::find(std::begin(allowed), std::end(allowed), to)
            != std::end(allowed);
 }
+//---------------------------------------------------------------------------//
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!

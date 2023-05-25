@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
@@ -23,7 +24,8 @@ struct KernelLaunchParams
 
 KernelLaunchParams compute_launch_params(ActionId action,
                                          CoreParams const& params,
-                                         CoreState<MemSpace::device>& state);
+                                         CoreState<MemSpace::device>& state,
+                                         TrackOrder expected);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

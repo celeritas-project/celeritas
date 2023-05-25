@@ -9,7 +9,6 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/track/SortTracksAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 namespace celeritas
@@ -18,11 +17,12 @@ namespace celeritas
 
 KernelLaunchParams compute_launch_params(ActionId action,
                                          CoreParams const& params,
-                                         CoreState<MemSpace::device>& state)
+                                         CoreState<MemSpace::device>& state,
+                                         TrackOrder expected)
 {
     KernelLaunchParams kernel_params;
 
-    if (celeritas::is_sort_trackorder(params.init()->host_ref().track_order))
+    if (params.init()->host_ref().track_order == expected)
     {
         auto action_range = state.get_action_range(action);
         kernel_params.num_threads = celeritas::ceil_to_multiple(

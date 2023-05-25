@@ -135,8 +135,8 @@ __global__ void along_step_update_track_kernel(
 void AlongStepUniformMscAction::execute(CoreParams const& params,
                                         CoreStateDevice& state) const
 {
-    KernelLaunchParams kernel_params
-        = compute_launch_params(this->action_id(), params, state);
+    KernelLaunchParams kernel_params = compute_launch_params(
+        this->action_id(), params, state, TrackOrder::sort_along_step_action);
     CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
                         celeritas::device().default_block_size(),
                         kernel_params.num_threads,
