@@ -26,7 +26,8 @@ KernelLaunchParams compute_launch_params(ActionId action,
     {
         auto action_range = state.get_action_range(action);
         kernel_params.num_threads = celeritas::ceil_to_multiple(
-            action_range.size(), celeritas::device().default_block_size());
+            action_range.size(),
+            size_type{celeritas::device().default_block_size()});
         kernel_params.threads_offset = action_range.front();
     }
     else
