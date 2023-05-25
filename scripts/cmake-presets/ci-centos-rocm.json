@@ -76,8 +76,9 @@
       "inherits": ["base"],
       "cacheVariables": {
         "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_CORE_GEO": "Geant4",
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     }
   ],
