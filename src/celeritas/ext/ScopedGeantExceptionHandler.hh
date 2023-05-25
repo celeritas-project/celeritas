@@ -33,18 +33,16 @@ class ScopedGeantExceptionHandler
     ~ScopedGeantExceptionHandler();
 
   private:
+#if CELERITAS_USE_GEANT4
     G4VExceptionHandler* previous_{nullptr};
     std::unique_ptr<G4VExceptionHandler> current_;
+#endif
 };
 
 #if !CELERITAS_USE_GEANT4
 //!@{
 //! Do nothing if Geant4 is disabled (source file will not be compiled)
-inline ScopedGeantExceptionHandler::ScopedGeantExceptionHandler()
-{
-    (void)sizeof(previous_);
-    (void)sizeof(prev_errored_);
-}
+inline ScopedGeantExceptionHandler::ScopedGeantExceptionHandler() {}
 inline ScopedGeantExceptionHandler::~ScopedGeantExceptionHandler() {}
 //!@}
 #endif
