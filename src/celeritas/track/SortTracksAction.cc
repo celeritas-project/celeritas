@@ -21,8 +21,6 @@
 
 namespace celeritas
 {
-namespace
-{
 //---------------------------------------------------------------------------//
 bool is_sort_trackorder(TrackOrder to)
 {
@@ -35,8 +33,6 @@ bool is_sort_trackorder(TrackOrder to)
     return std::find(std::begin(allowed), std::end(allowed), to)
            != std::end(allowed);
 }
-//---------------------------------------------------------------------------//
-}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!

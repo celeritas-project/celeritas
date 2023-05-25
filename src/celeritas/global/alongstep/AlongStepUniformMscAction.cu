@@ -20,6 +20,7 @@
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/KernelLaunchUtils.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
@@ -134,72 +135,53 @@ __global__ void along_step_update_track_kernel(
 void AlongStepUniformMscAction::execute(CoreParams const& params,
                                         CoreStateDevice& state) const
 {
-    // TODO: function to round up, single check with tuple
-    auto const grid_size = [&] {
-        if (params.init()->host_ref().track_order
-            == TrackOrder::sort_along_step_action)
-        {
-            auto action_range = state.get_action_range(this->action_id());
-            auto n_threads = action_range.size();
-            auto bs = celeritas::device().default_block_size();
-            return n_threads + bs - (n_threads % bs);
-        }
-        return state.size();
-    }();
-    auto const offset = [&] {
-        if (params.init()->host_ref().track_order
-            == TrackOrder::sort_along_step_action)
-        {
-            auto action_range = state.get_action_range(this->action_id());
-            return action_range.front();
-        }
-        return ThreadId{0};
-    }();
+    KernelLaunchParams kernel_params
+        = compute_launch_params(this->action_id(), params, state);
     CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
                         celeritas::device().default_block_size(),
-                        grid_size,
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id(),
-                        offset,
+                        kernel_params.threads_offset,
                         device_data_.msc);
     CELER_LAUNCH_KERNEL(along_step_apply_uniform_propagation,
                         celeritas::device().default_block_size(),
-                        grid_size,
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id(),
-                        offset,
+                        kernel_params.threads_offset,
                         field_params_);
     CELER_LAUNCH_KERNEL(along_step_apply_msc,
                         celeritas::device().default_block_size(),
-                        grid_size,
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id(),
-                        offset,
+                        kernel_params.threads_offset,
                         device_data_.msc);
     CELER_LAUNCH_KERNEL(along_step_update_time,
                         celeritas::device().default_block_size(),
-                        grid_size,
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id(),
-                        offset);
+                        kernel_params.threads_offset);
     CELER_LAUNCH_KERNEL(along_step_apply_mean_eloss,
                         celeritas::device().default_block_size(),
-                        grid_size,
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id(),
-                        offset);
+                        kernel_params.threads_offset);
     CELER_LAUNCH_KERNEL(along_step_update_track,
                         celeritas::device().default_block_size(),
-                        grid_size,
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id(),
-                        offset);
+                        kernel_params.threads_offset);
 }
 
 //---------------------------------------------------------------------------//

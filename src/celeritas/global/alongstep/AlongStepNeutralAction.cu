@@ -14,6 +14,7 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/KernelLaunchUtils.hh"
 #include "celeritas/global/TrackLauncher.hh"
 
 #include "detail/AlongStepNeutral.hh"
@@ -26,11 +27,12 @@ namespace
 __global__ void
 along_step_neutral_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
                           RefPtr<CoreStateData, MemSpace::device> const state,
-                          ActionId const along_step_id)
+                          ActionId const along_step_id,
+                          ThreadId const offset)
 {
     auto launch = make_along_step_track_launcher(
         *params, *state, along_step_id, detail::along_step_neutral);
-    launch(KernelParamCalculator::thread_id());
+    launch(KernelParamCalculator::thread_id() + offset.get());
 }
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -42,12 +44,15 @@ along_step_neutral_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params
 void AlongStepNeutralAction::execute(CoreParams const& params,
                                      CoreStateDevice& state) const
 {
+    KernelLaunchParams kernel_params
+        = compute_launch_params(this->action_id(), params, state);
     CELER_LAUNCH_KERNEL(along_step_neutral,
                         celeritas::device().default_block_size(),
-                        state.size(),
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
-                        this->action_id());
+                        this->action_id(),
+                        kernel_params.threads_offset);
 }
 
 //---------------------------------------------------------------------------//

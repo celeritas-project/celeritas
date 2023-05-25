@@ -13,6 +13,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Checks whether the TrackOrder defines a sorting strategy.
+ */
+bool is_sort_trackorder(TrackOrder to);
+
+//---------------------------------------------------------------------------//
+/*!
  * Sort tracks according to a given strategy specified by TrackOrder.
  *
  * This action can be applied at different stage of a simulation step,
@@ -37,6 +43,7 @@ class SortTracksAction final : public ExplicitActionInterface,
 
     //! Set host data at the beginning of a run
     void begin_run(CoreParams const&, CoreStateHost&) final;
+
     //! Set device data at the beginning of a run
     void begin_run(CoreParams const&, CoreStateDevice&) final;
 
