@@ -32,13 +32,15 @@ void seltzer_berger_interact(
 void seltzer_berger_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::SeltzerBergerDeviceRef const&);
+    celeritas::SeltzerBergerDeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void seltzer_berger_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::SeltzerBergerDeviceRef const&)
+    celeritas::SeltzerBergerDeviceRef const&,
+    celeritas::ActionId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

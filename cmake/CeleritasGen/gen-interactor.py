@@ -53,13 +53,15 @@ void {func}_interact(
 void {func}_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    {namespace}::{class}DeviceRef const&);
+    {namespace}::{class}DeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void {func}_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    {namespace}::{class}DeviceRef const&)
+    {namespace}::{class}DeviceRef const&,
+    celeritas::ActionId)
 {{
     CELER_ASSERT_UNREACHABLE();
 }}
@@ -126,6 +128,7 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/sys/Device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/KernelLaunchUtils.hh"
 #include "celeritas/{dir}/launcher/{class}Launcher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
@@ -141,9 +144,10 @@ __global__ void{launch_bounds}{func}_interact_kernel(
     celeritas::CRefPtr<celeritas::CoreParamsData, MemSpace::device> const params,
     celeritas::RefPtr<celeritas::CoreStateData, MemSpace::device> const state,
     {namespace}::{class}DeviceRef const model_data,
-    celeritas::size_type size)
+    celeritas::size_type size,
+    celeritas::ThreadId const offset)
 {{
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = celeritas::KernelParamCalculator::thread_id() + offset.get();
     if (!(tid < size))
         return;
 
@@ -156,17 +160,19 @@ __global__ void{launch_bounds}{func}_interact_kernel(
 void {func}_interact(
     celeritas::CoreParams const& params,
     celeritas::CoreState<MemSpace::device>& state,
-    {namespace}::{class}DeviceRef const& model_data)
+    {namespace}::{class}DeviceRef const& model_data,
+    celeritas::ActionId action)
 {{
     CELER_EXPECT(model_data);
-
+    KernelLaunchParams kernel_params = compute_launch_params(action, params, state, TrackOrder::sort_step_limit_action);
     CELER_LAUNCH_KERNEL({func}_interact,
                         celeritas::device().default_block_size(),
-                        state.size(),
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         model_data,
-                        state.size());
+                        kernel_params.num_threads,
+                        kernel_params.threads_offset);
 }}
 
 }}  // namespace generated

@@ -32,13 +32,15 @@ void combined_brem_interact(
 void combined_brem_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::CombinedBremDeviceRef const&);
+    celeritas::CombinedBremDeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void combined_brem_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::CombinedBremDeviceRef const&)
+    celeritas::CombinedBremDeviceRef const&,
+    celeritas::ActionId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

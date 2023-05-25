@@ -32,13 +32,15 @@ void moller_bhabha_interact(
 void moller_bhabha_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::MollerBhabhaDeviceRef const&);
+    celeritas::MollerBhabhaDeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void moller_bhabha_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::MollerBhabhaDeviceRef const&)
+    celeritas::MollerBhabhaDeviceRef const&,
+    celeritas::ActionId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

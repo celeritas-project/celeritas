@@ -32,13 +32,15 @@ void mu_bremsstrahlung_interact(
 void mu_bremsstrahlung_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::MuBremsstrahlungDeviceRef const&);
+    celeritas::MuBremsstrahlungDeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void mu_bremsstrahlung_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::MuBremsstrahlungDeviceRef const&)
+    celeritas::MuBremsstrahlungDeviceRef const&,
+    celeritas::ActionId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

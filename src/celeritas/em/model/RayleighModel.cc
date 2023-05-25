@@ -90,7 +90,8 @@ void RayleighModel::execute(CoreParams const& params, CoreStateHost& state) cons
 void RayleighModel::execute(CoreParams const& params,
                             CoreStateDevice& state) const
 {
-    generated::rayleigh_interact(params, state, this->device_ref());
+    generated::rayleigh_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //!@}

@@ -32,13 +32,15 @@ void bethe_heitler_interact(
 void bethe_heitler_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::BetheHeitlerDeviceRef const&);
+    celeritas::BetheHeitlerDeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void bethe_heitler_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::BetheHeitlerDeviceRef const&)
+    celeritas::BetheHeitlerDeviceRef const&,
+    celeritas::ActionId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

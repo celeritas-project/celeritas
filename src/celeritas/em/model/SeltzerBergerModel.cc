@@ -134,7 +134,8 @@ void SeltzerBergerModel::execute(CoreParams const& params,
 void SeltzerBergerModel::execute(CoreParams const& params,
                                  CoreStateDevice& state) const
 {
-    generated::seltzer_berger_interact(params, state, this->device_ref());
+    generated::seltzer_berger_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //!@}

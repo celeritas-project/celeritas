@@ -32,13 +32,15 @@ void klein_nishina_interact(
 void klein_nishina_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::KleinNishinaDeviceRef const&);
+    celeritas::KleinNishinaDeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void klein_nishina_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::KleinNishinaDeviceRef const&)
+    celeritas::KleinNishinaDeviceRef const&,
+    celeritas::ActionId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

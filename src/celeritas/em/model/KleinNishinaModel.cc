@@ -75,7 +75,8 @@ void KleinNishinaModel::execute(CoreParams const& params,
 void KleinNishinaModel::execute(CoreParams const& params,
                                 CoreStateDevice& state) const
 {
-    generated::klein_nishina_interact(params, state, this->device_ref());
+    generated::klein_nishina_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //---------------------------------------------------------------------------//

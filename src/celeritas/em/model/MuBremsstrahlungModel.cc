@@ -88,7 +88,8 @@ void MuBremsstrahlungModel::execute(CoreParams const& params,
 void MuBremsstrahlungModel::execute(CoreParams const& params,
                                     CoreStateDevice& state) const
 {
-    generated::mu_bremsstrahlung_interact(params, state, this->device_ref());
+    generated::mu_bremsstrahlung_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //!@}

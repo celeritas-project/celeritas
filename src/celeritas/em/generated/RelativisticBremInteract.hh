@@ -32,13 +32,15 @@ void relativistic_brem_interact(
 void relativistic_brem_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::RelativisticBremDeviceRef const&);
+    celeritas::RelativisticBremDeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void relativistic_brem_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::RelativisticBremDeviceRef const&)
+    celeritas::RelativisticBremDeviceRef const&,
+    celeritas::ActionId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

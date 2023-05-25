@@ -110,7 +110,8 @@ void RelativisticBremModel::execute(CoreParams const& params,
 void RelativisticBremModel::execute(CoreParams const& params,
                                     CoreStateDevice& state) const
 {
-    generated::relativistic_brem_interact(params, state, this->device_ref());
+    generated::relativistic_brem_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //!@}

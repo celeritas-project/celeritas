@@ -15,6 +15,7 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/KernelLaunchUtils.hh"
 #include "celeritas/em/launcher/RelativisticBremLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
@@ -30,9 +31,10 @@ __global__ void relativistic_brem_interact_kernel(
     celeritas::CRefPtr<celeritas::CoreParamsData, MemSpace::device> const params,
     celeritas::RefPtr<celeritas::CoreStateData, MemSpace::device> const state,
     celeritas::RelativisticBremDeviceRef const model_data,
-    celeritas::size_type size)
+    celeritas::size_type size,
+    celeritas::ThreadId const offset)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = celeritas::KernelParamCalculator::thread_id() + offset.get();
     if (!(tid < size))
         return;
 
@@ -45,17 +47,19 @@ __global__ void relativistic_brem_interact_kernel(
 void relativistic_brem_interact(
     celeritas::CoreParams const& params,
     celeritas::CoreState<MemSpace::device>& state,
-    celeritas::RelativisticBremDeviceRef const& model_data)
+    celeritas::RelativisticBremDeviceRef const& model_data,
+    celeritas::ActionId action)
 {
     CELER_EXPECT(model_data);
-
+    KernelLaunchParams kernel_params = compute_launch_params(action, params, state, TrackOrder::sort_step_limit_action);
     CELER_LAUNCH_KERNEL(relativistic_brem_interact,
                         celeritas::device().default_block_size(),
-                        state.size(),
+                        kernel_params.num_threads,
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         model_data,
-                        state.size());
+                        kernel_params.num_threads,
+                        kernel_params.threads_offset);
 }
 
 }  // namespace generated

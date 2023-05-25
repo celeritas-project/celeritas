@@ -112,7 +112,8 @@ void LivermorePEModel::execute(CoreParams const& params,
 void LivermorePEModel::execute(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    generated::livermore_pe_interact(params, state, this->device_ref());
+    generated::livermore_pe_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //!@}

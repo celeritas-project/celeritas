@@ -87,7 +87,8 @@ void MollerBhabhaModel::execute(CoreParams const& params,
 void MollerBhabhaModel::execute(CoreParams const& params,
                                 CoreStateDevice& state) const
 {
-    generated::moller_bhabha_interact(params, state, this->device_ref());
+    generated::moller_bhabha_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //!@}

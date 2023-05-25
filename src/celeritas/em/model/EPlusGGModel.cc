@@ -71,7 +71,8 @@ void EPlusGGModel::execute(CoreParams const& params, CoreStateHost& state) const
 void EPlusGGModel::execute(CoreParams const& params,
                            CoreStateDevice& state) const
 {
-    generated::eplusgg_interact(params, state, this->device_ref());
+    generated::eplusgg_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //!@}

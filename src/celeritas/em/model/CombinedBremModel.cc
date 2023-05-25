@@ -98,7 +98,8 @@ void CombinedBremModel::execute(CoreParams const& params,
 void CombinedBremModel::execute(CoreParams const& params,
                                 CoreStateDevice& state) const
 {
-    generated::combined_brem_interact(params, state, this->device_ref());
+    generated::combined_brem_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //!@}

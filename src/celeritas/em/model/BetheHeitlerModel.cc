@@ -12,6 +12,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/generated/BetheHeitlerInteract.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/KernelLaunchUtils.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
@@ -83,7 +84,8 @@ void BetheHeitlerModel::execute(CoreParams const& params,
 void BetheHeitlerModel::execute(CoreParams const& params,
                                 CoreStateDevice& state) const
 {
-    generated::bethe_heitler_interact(params, state, this->device_ref());
+    generated::bethe_heitler_interact(
+        params, state, this->device_ref(), this->action_id());
 }
 
 //!@}

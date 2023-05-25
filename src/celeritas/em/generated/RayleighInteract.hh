@@ -32,13 +32,15 @@ void rayleigh_interact(
 void rayleigh_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::RayleighDeviceRef const&);
+    celeritas::RayleighDeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void rayleigh_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::RayleighDeviceRef const&)
+    celeritas::RayleighDeviceRef const&,
+    celeritas::ActionId)
 {
     CELER_ASSERT_UNREACHABLE();
 }

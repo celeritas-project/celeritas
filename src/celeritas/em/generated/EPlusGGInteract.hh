@@ -32,13 +32,15 @@ void eplusgg_interact(
 void eplusgg_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::EPlusGGDeviceRef const&);
+    celeritas::EPlusGGDeviceRef const&,
+    celeritas::ActionId);
 
 #if !CELER_USE_DEVICE
 inline void eplusgg_interact(
     celeritas::CoreParams const&,
     celeritas::CoreState<MemSpace::device>&,
-    celeritas::EPlusGGDeviceRef const&)
+    celeritas::EPlusGGDeviceRef const&,
+    celeritas::ActionId)
 {
     CELER_ASSERT_UNREACHABLE();
 }
