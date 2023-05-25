@@ -43,6 +43,8 @@ void sort_impl(TrackSlots const& track_slots, F&& func)
     std::sort(start, start + track_slots.size(), std::forward<F>(func));
 }
 
+// PRE: action_accessor is sorted, i.e. i <= j ==> action_accessor(i) <=
+// action_accessor(j)
 template<class F>
 void count_tracks_per_action_impl(Span<ThreadId> offsets,
                                   size_type size,
@@ -50,7 +52,7 @@ void count_tracks_per_action_impl(Span<ThreadId> offsets,
 {
     std::fill(offsets.begin(), offsets.end(), ThreadId{});
 
-// won't initialize 1st action range
+    // won't initialize 1st action range
 #pragma omp parallel for
     for (size_type i = 1; i < size; ++i)
     {
@@ -58,15 +60,13 @@ void count_tracks_per_action_impl(Span<ThreadId> offsets,
         if (!current_action)
             continue;
 
-        ActionId previous_action = action_accessor(ThreadId{i - 1});
-        if (current_action != previous_action)
+        if (current_action != action_accessor(ThreadId{i - 1}))
         {
             offsets[current_action.get()] = ThreadId{i};
         }
     }
 
-    // Initialize the offset for the 1st action range if valid, always starts
-    // at 0
+    // needed if the first action range has only one element
     if (ActionId first = action_accessor(ThreadId{0}))
     {
         offsets[first.get()] = ThreadId{0};
@@ -137,10 +137,15 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
     }
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Count tracks associated to each action that was used to sort them, specified
+ * by order. Result is written in the output parameter offsets which sould be
+ * of size num_actions + 1.
+ */
 template<>
 void count_tracks_per_action<MemSpace::host>(HostRef<CoreStateData> const& states,
                                              Span<ThreadId> offsets,
-                                             size_type size,
                                              TrackOrder order)
 {
     switch (order)
@@ -148,13 +153,13 @@ void count_tracks_per_action<MemSpace::host>(HostRef<CoreStateData> const& state
         case TrackOrder::sort_along_step_action:
             return count_tracks_per_action_impl(
                 offsets,
-                size,
+                states.size(),
                 along_step_action_accessor{states.sim.along_step_action.data(),
                                            states.track_slots.data()});
         case TrackOrder::sort_step_limit_action:
             return count_tracks_per_action_impl(
                 offsets,
-                size,
+                states.size(),
                 step_limit_action_accessor{states.sim.step_limit.data(),
                                            states.track_slots.data()});
         default:

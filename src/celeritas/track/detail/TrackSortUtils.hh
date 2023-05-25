@@ -54,25 +54,23 @@ void shuffle_track_slots<MemSpace::device>(
 
 //---------------------------------------------------------------------------//
 // Sort or partition tracks
-
 void sort_tracks(HostRef<CoreStateData> const&, TrackOrder);
 void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder);
 
+//---------------------------------------------------------------------------//
+// Count tracks associated to each action
 template<MemSpace M>
 void count_tracks_per_action(CoreStateData<Ownership::reference, M> const&,
                              Span<ThreadId>,
-                             size_type,
                              TrackOrder);
 
 template<>
 void count_tracks_per_action<MemSpace::host>(HostRef<CoreStateData> const&,
                                              Span<ThreadId>,
-                                             size_type,
                                              TrackOrder);
 template<>
 void count_tracks_per_action<MemSpace::device>(DeviceRef<CoreStateData> const&,
                                                Span<ThreadId>,
-                                               size_type,
                                                TrackOrder);
 
 //---------------------------------------------------------------------------//
@@ -152,8 +150,10 @@ inline void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder)
 }
 
 template<>
-inline void count_tracks_per_action<MemSpace::device>(
-    DeviceRef<CoreStateData> const&, Span<ThreadId>, size_type, TrackOrder)
+inline void
+count_tracks_per_action<MemSpace::device>(DeviceRef<CoreStateData> const&,
+                                          Span<ThreadId>,
+                                          TrackOrder)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

@@ -35,7 +35,6 @@ void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->sim, size);
     resize(&state->init, params.init, size);
     resize(&state->track_slots, size);
-
     state->stream_id = stream_id;
 
     Span track_slots{state->track_slots[AllItems<TrackSlotId::size_type, M>{}]};

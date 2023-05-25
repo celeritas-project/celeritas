@@ -135,11 +135,11 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
                                         CoreStateDevice& state) const
 {
     // TODO: function to round up, single check with tuple
-    auto action_range = state.get_action_range(this->action_id());
     auto const grid_size = [&] {
         if (params.init()->host_ref().track_order
             == TrackOrder::sort_along_step_action)
         {
+            auto action_range = state.get_action_range(this->action_id());
             auto n_threads = action_range.size();
             auto bs = celeritas::device().default_block_size();
             return n_threads + bs - (n_threads % bs);
@@ -150,6 +150,7 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
         if (params.init()->host_ref().track_order
             == TrackOrder::sort_along_step_action)
         {
+            auto action_range = state.get_action_range(this->action_id());
             return action_range.front();
         }
         return ThreadId{0};

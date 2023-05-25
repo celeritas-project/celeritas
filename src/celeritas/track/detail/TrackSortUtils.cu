@@ -85,6 +85,11 @@ CELER_FUNCTION void tracks_per_action_impl(Span<ThreadId> offsets,
             offsets[current_action.get()] = tid;
         }
     }
+    // needed if the first action range has only one element
+    if (ActionId first; tid.get() == 0 && (first = action_accessor(tid)))
+    {
+        offsets[first.get()] = tid;
+    }
 }
 
 __global__ void tracks_per_action_kernel(DeviceRef<CoreStateData> const states,
@@ -111,7 +116,7 @@ __global__ void tracks_per_action_kernel(DeviceRef<CoreStateData> const states,
     }
 }
 
-// TODO: On host
+// TODO: On host since we're using a single thread..
 __global__ void
 tracks_per_action_reduce_kernel(Span<ThreadId> offsets, size_type size)
 {
@@ -192,11 +197,16 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
     }
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Count tracks associated to each action that was used to sort them, specified
+ * by order. Result is written in the output parameter offsets which sould be
+ * of size num_actions + 1.
+ */
 template<>
 void count_tracks_per_action<MemSpace::device>(
     DeviceRef<CoreStateData> const& states,
     Span<ThreadId> offsets,
-    size_type size,
     TrackOrder order)
 {
     switch (order)
@@ -214,7 +224,7 @@ void count_tracks_per_action<MemSpace::device>(
                                 states.size(),
                                 states,
                                 offsets,
-                                size,
+                                states.size(),
                                 order);
             CELER_DEVICE_CHECK_ERROR();
 
@@ -222,7 +232,7 @@ void count_tracks_per_action<MemSpace::device>(
                                 celeritas::device().default_block_size(),
                                 states.size(),
                                 offsets,
-                                size);
+                                states.size());
             CELER_DEVICE_CHECK_ERROR();
             return;
         }

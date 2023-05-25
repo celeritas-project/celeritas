@@ -65,10 +65,8 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
 template<MemSpace M>
 void CoreState<M>::count_tracks_per_action(TrackOrder order)
 {
-    detail::count_tracks_per_action<M>(states_.ref(),
-                                       thread_offsets_[AllItems<ThreadId, M>{}],
-                                       states_.ref().size(),
-                                       order);
+    detail::count_tracks_per_action<M>(
+        states_.ref(), thread_offsets_[AllItems<ThreadId, M>{}], order);
     if constexpr (M == MemSpace::device)
     {
         Copier<ThreadId, MemSpace::host> copy_to_host{
