@@ -116,20 +116,19 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  set(_props
-    RESOURCE_LOCK gpu
-    LABELS "app;gpu"
-  )
+  set(_props RESOURCE_LOCK gpu)
+  set(_labels app gpu)
 else()
-  set(_props LABELS "app")
+  set(_props)
+  set(_labels app)
 endif()
-
 if(NOT CELERITAS_USE_HepMC3)
   list(APPEND _props DISABLED true)
 endif()
 
 set_tests_properties("app/demo-geant-integration" PROPERTIES
   ENVIRONMENT "${_env}"
+  LABELS "${_labels}"
   ${_props}
 )
 

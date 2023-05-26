@@ -47,18 +47,18 @@ add_test(NAME "app/geo-check"
 )
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  set(_props
-    RESOURCE_LOCK gpu
-    LABELS "app;gpu"
-  )
+  set(_props RESOURCE_LOCK gpu)
+  set(_labels app gpu)
 else()
-  set(_props LABELS "app")
+  set(_props)
+  set(_labels app)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   list(APPEND _props DISABLED true)
 endif()
 set_tests_properties("app/geo-check" PROPERTIES
   ${_props}
+  LABELS "${_labels}"
 )
 
 #-----------------------------------------------------------------------------#
