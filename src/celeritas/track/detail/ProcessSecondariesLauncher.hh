@@ -95,10 +95,10 @@ ProcessSecondariesLauncher::operator()(TrackSlotId tid) const
 
     // Save the parent ID since it will be overwritten if a secondary is
     // initialized in this slot
-    const TrackId parent_id{sim.track_id()};
+    TrackId const parent_id{sim.track_id()};
 
-    PhysicsStepView phys(params->physics, state->physics, tid);
-    for (auto const& secondary : phys.secondaries())
+    PhysicsStepView const phys_step(params->physics, state->physics, tid);
+    for (auto const& secondary : phys_step.secondaries())
     {
         if (secondary)
         {

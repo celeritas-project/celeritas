@@ -115,8 +115,9 @@ CELER_FUNCTION void InitTracksLauncher::operator()(ThreadId tid) const
             // performance
             TrackSlotId parent_id = data.parents[TrackSlotId{
                 index_before(data.parents.size(), tid)}];
-            GeoTrackView parent(params->geometry, state->geometry, parent_id);
-            geo = GeoTrackView::DetailedInitializer{parent, init.geo.dir};
+            GeoTrackView const parent_geo(
+                params->geometry, state->geometry, parent_id);
+            geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
         }
         else
         {
