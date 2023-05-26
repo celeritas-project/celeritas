@@ -213,19 +213,7 @@ void count_tracks_per_action<MemSpace::device>(
             Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
             Copier<ThreadId, MemSpace::host> copy_to_host{sout};
             copy_to_host(MemSpace::device, offsets);
-
-            sout.back() = ThreadId{states.size()};
-
-            // in case some actions were not found, have them "start" at the
-            // next action offset.
-            for (auto thread_id = sout.end() - 2; thread_id >= sout.begin();
-                 --thread_id)
-            {
-                if (*thread_id == ThreadId{})
-                {
-                    *thread_id = *(thread_id + 1);
-                }
-            }
+            backfill_action_count(sout, states.size());
             return;
         }
         default:

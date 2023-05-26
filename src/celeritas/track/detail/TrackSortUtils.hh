@@ -79,6 +79,8 @@ void count_tracks_per_action<MemSpace::device>(
     Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
     TrackOrder);
 
+void backfill_action_count(Span<ThreadId>, size_type);
+
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
 //---------------------------------------------------------------------------//

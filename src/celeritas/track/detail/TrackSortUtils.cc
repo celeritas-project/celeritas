@@ -71,21 +71,7 @@ void count_tracks_per_action_impl(Span<ThreadId> offsets,
     {
         offsets[first.get()] = ThreadId{0};
     }
-    // offsets.size() == num_actions + 1, have the last offsets be the # of
-    // tracks for backfilling correct values in case the last actions are not
-    // present
-    offsets.back() = ThreadId{size};
-
-    // in case some actions were not found, have them "start" at the next
-    // action offset.
-    for (auto thread_id = offsets.end() - 2; thread_id >= offsets.begin();
-         --thread_id)
-    {
-        if (*thread_id == ThreadId{})
-        {
-            *thread_id = *(thread_id + 1);
-        }
-    }
+    backfill_action_count(offsets, size);
 }
 
 //---------------------------------------------------------------------------//
@@ -166,6 +152,25 @@ void count_tracks_per_action<MemSpace::host>(
                                            states.track_slots.data()});
         default:
             return;
+    }
+}
+
+void backfill_action_count(Span<ThreadId> offsets, size_type size)
+{
+    // offsets.size() == num_actions + 1, have the last offsets be the # of
+    // tracks for backfilling correct values in case the last actions are not
+    // present
+    offsets.back() = ThreadId{size};
+
+    // in case some actions were not found, have them "start" at the next
+    // action offset.
+    for (auto thread_id = offsets.end() - 2; thread_id >= offsets.begin();
+         --thread_id)
+    {
+        if (*thread_id == ThreadId{})
+        {
+            *thread_id = *(thread_id + 1);
+        }
     }
 }
 
