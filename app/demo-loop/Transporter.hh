@@ -8,6 +8,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -16,9 +18,6 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
-
-#include "Runner.hh"
-#include "RunnerInput.hh"
 
 namespace celeritas
 {
@@ -30,9 +29,6 @@ class CoreParams;
 
 namespace demo_loop
 {
-//---------------------------------------------------------------------------//
-struct RunnerInput;
-
 //---------------------------------------------------------------------------//
 //! Input parameters to the transporter.
 struct TransporterInput
@@ -59,6 +55,25 @@ struct TransporterInput
 
 //---------------------------------------------------------------------------//
 /*!
+ * Tallied result and timing from transporting a single event.
+ */
+struct TransporterResult
+{
+    using real_type = celeritas::real_type;
+    using size_type = celeritas::size_type;
+    using MapStrReal = std::unordered_map<std::string, real_type>;
+    using VecReal = std::vector<real_type>;
+    using VecCount = std::vector<size_type>;
+
+    VecCount initializers;  //!< Num starting track initializers
+    VecCount active;  //!< Num tracks active at beginning of step
+    VecCount alive;  //!< Num living tracks at end of step
+    MapStrReal action_times{};  //!< Accumulated action timing
+    VecReal step_times;  //!< Real time per step
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Interface class for transporting a set of primaries to completion.
  *
  * We might want to change this so that the transport result gets accumulated
@@ -78,7 +93,6 @@ class TransporterBase
     using SpanConstPrimary = celeritas::Span<const celeritas::Primary>;
     using CoreParams = celeritas::CoreParams;
     using ActionId = celeritas::ActionId;
-    using TransporterResult = RunnerResult;
     //!@}
 
   public:
@@ -105,6 +119,7 @@ class Transporter final : public TransporterBase
   private:
     std::shared_ptr<celeritas::Stepper<M>> stepper_;
     celeritas::size_type max_steps_;
+    celeritas::size_type num_streams_;
 };
 
 //---------------------------------------------------------------------------//

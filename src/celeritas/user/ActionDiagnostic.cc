@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ActionDiagnostic.hh"
 
+#include <mutex>
+
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
@@ -224,16 +226,22 @@ void ActionDiagnostic::clear()
  */
 void ActionDiagnostic::begin_run_impl(CoreParams const& params)
 {
-    CELER_EXPECT(!store_);
+    if (!store_)
+    {
+        static std::mutex initialize_mutex;
+        std::lock_guard<std::mutex> scoped_lock{initialize_mutex};
 
-    action_reg_ = params.action_reg();
-    particle_ = params.particle();
+        if (!store_)
+        {
+            action_reg_ = params.action_reg();
+            particle_ = params.particle();
 
-    HostVal<ParticleTallyParamsData> host_params;
-    host_params.num_bins = params.action_reg()->num_actions();
-    host_params.num_particles = params.particle()->size();
-    store_ = {std::move(host_params), params.max_streams()};
-
+            HostVal<ParticleTallyParamsData> host_params;
+            host_params.num_bins = params.action_reg()->num_actions();
+            host_params.num_particles = params.particle()->size();
+            store_ = {std::move(host_params), params.max_streams()};
+        }
+    }
     CELER_ENSURE(store_);
 }
 

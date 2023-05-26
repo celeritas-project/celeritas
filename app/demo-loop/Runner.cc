@@ -81,7 +81,7 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
     this->build_diagnostics(inp);
     this->build_step_collectors(inp);
     this->build_transporter_input(inp);
-    this->build_primaries(inp);
+    this->build_events(inp);
     use_device_ = inp.use_device;
 
     if (root_manager_)
@@ -90,7 +90,8 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
         write_to_root(*core_params_, root_manager_.get());
     }
 
-    CELER_ENSURE(core_params_);
+    CELER_ASSERT(core_params_);
+    transporters_.resize(this->num_streams());
 }
 
 //---------------------------------------------------------------------------//
@@ -99,33 +100,25 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
  *
  * This will partition the input primaries among all the streams.
  */
-auto Runner::operator()(StreamId stream_id) const -> RunnerResult
+auto Runner::operator()(StreamId stream, EventId event) -> RunnerResult
 {
-    CELER_EXPECT(stream_id < this->num_streams());
+    CELER_EXPECT(stream < this->num_streams());
+    CELER_EXPECT(event < this->num_events());
 
-    auto transport = [this, stream_id]() -> std::unique_ptr<TransporterBase> {
-        // Thread-local transporter input
-        TransporterInput local_trans_inp = *transporter_input_;
-        local_trans_inp.stream_id = stream_id;
+    auto& transport = this->build_transporter(stream);
+    return (*transport)(make_span(events_[event.get()]));
+}
 
-        if (use_device_)
-        {
-            CELER_VALIDATE(celeritas::device(),
-                           << "CUDA device is unavailable but GPU run was "
-                              "requested");
-            return std::make_unique<Transporter<MemSpace::device>>(
-                std::move(local_trans_inp));
-        }
-        else
-        {
-            return std::make_unique<Transporter<MemSpace::host>>(
-                std::move(local_trans_inp));
-        }
-    }();
+//---------------------------------------------------------------------------//
+/*!
+ * Run all events simultaneously on a single stream.
+ */
+auto Runner::operator()() -> RunnerResult
+{
+    CELER_EXPECT(events_.size() == 1);
 
-    // TODO: partition primaries among streams
-    CELER_ASSERT(stream_id == StreamId{0});
-    return (*transport)(make_span(primaries_));
+    auto& transport = this->build_transporter(StreamId{0});
+    return (*transport)(make_span(events_.front()));
 }
 
 //---------------------------------------------------------------------------//
@@ -135,6 +128,15 @@ auto Runner::operator()(StreamId stream_id) const -> RunnerResult
 StreamId::size_type Runner::num_streams() const
 {
     return core_params_->max_streams();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Total number of events.
+ */
+size_type Runner::num_events() const
+{
+    return events_.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -300,6 +302,12 @@ void Runner::build_core_params(RunnerInput const& inp,
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
 
+    // Store the number of simultaneous threads/tasks per process
+    params.max_streams = this->get_num_streams(inp);
+    CELER_VALIDATE(inp.mctruth_filename.empty() || params.max_streams == 1,
+                   << "MC truth output is only supported with a single "
+                      "stream.");
+
     core_params_ = std::make_shared<CoreParams>(std::move(params));
 }
 
@@ -323,11 +331,30 @@ void Runner::build_transporter_input(RunnerInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct on all threads from a JSON input and shared output manager.
+ * Read events from a HepMC3 file or build using a primary generator.
  */
-void Runner::build_primaries(RunnerInput const& inp)
+void Runner::build_events(RunnerInput const& inp)
 {
-    ScopedMem record_mem("Runner.build_primaries");
+    ScopedMem record_mem("Runner.build_events");
+
+    if (inp.merge_events)
+    {
+        // All events will be transported simultaneously on a single stream
+        events_.resize(1);
+    }
+
+    auto append = [&](VecPrimary& event) {
+        if (inp.merge_events)
+        {
+            events_.front().insert(
+                events_.front().end(), event.begin(), event.end());
+        }
+        else
+        {
+            events_.push_back(event);
+        }
+    };
+
     if (inp.primary_gen_options)
     {
         std::mt19937 rng;
@@ -336,7 +363,7 @@ void Runner::build_primaries(RunnerInput const& inp)
         auto event = generate_event(rng);
         while (!event.empty())
         {
-            primaries_.insert(primaries_.end(), event.begin(), event.end());
+            append(event);
             event = generate_event(rng);
         }
     }
@@ -347,7 +374,7 @@ void Runner::build_primaries(RunnerInput const& inp)
         auto event = read_event();
         while (!event.empty())
         {
-            primaries_.insert(primaries_.end(), event.begin(), event.end());
+            append(event);
             event = read_event();
         }
     }
@@ -427,6 +454,76 @@ void Runner::build_diagnostics(RunnerInput const& inp)
         // Add to output interface
         core_params_->output_reg()->insert(step_diagnostic);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build the transporter for the given stream.
+ */
+auto Runner::build_transporter(StreamId stream) -> UPTransporterBase&
+{
+    CELER_EXPECT(stream < this->num_streams());
+
+    auto& result = transporters_[stream.get()];
+    if (!result)
+    {
+        result = [this, stream]() -> std::unique_ptr<TransporterBase> {
+            // Thread-local transporter input
+            TransporterInput local_trans_inp = *transporter_input_;
+            local_trans_inp.stream_id = stream;
+
+            if (use_device_)
+            {
+                CELER_VALIDATE(celeritas::device(),
+                               << "CUDA device is unavailable but GPU run was "
+                                  "requested");
+                return std::make_unique<Transporter<MemSpace::device>>(
+                    std::move(local_trans_inp));
+            }
+            else
+            {
+                return std::make_unique<Transporter<MemSpace::host>>(
+                    std::move(local_trans_inp));
+            }
+        }();
+    }
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the number of streams from the OMP_NUM_THREADS environment variable.
+ *
+ * The value of OMP_NUM_THREADS should be a list of positive integers, each of
+ * which sets the number of threads for the parallel region at the
+ * corresponding nested level. The number of streams is set to the first value
+ * in the list.
+ *
+ * \note For a multithreaded CPU run, if OMP_NUM_THREADS is set to a single
+ * value, the number of threads for each nested parallel region will be set to
+ * that value.
+ */
+int Runner::get_num_streams(RunnerInput const& inp)
+{
+#ifdef _OPENMP
+    if (inp.merge_events)
+    {
+        return 1;
+    }
+
+    std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
+    if (!nt_str.empty())
+    {
+        auto num_threads = std::stoi(nt_str);
+        CELER_VALIDATE(num_threads > 0,
+                       << "nonpositive num_streams=" << num_threads);
+        return num_threads;
+    }
+#else
+    (void)sizeof(inp);
+#endif
+    return 1;
 }
 
 //---------------------------------------------------------------------------//
