@@ -49,7 +49,7 @@ if(CELERITAS_USE_ROOT)
   set(_geant_exporter_env
     "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
 endif()
-add_test(NAME "app/demo-loop"
+add_test(NAME "app/demo-loop:device"
   COMMAND "${CELER_PYTHON}"
   "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
 )
@@ -73,7 +73,7 @@ else()
   set(_needs_device DISABLED true)
 endif()
 
-set_tests_properties("app/demo-loop" PROPERTIES
+set_tests_properties("app/demo-loop:device" PROPERTIES
   ENVIRONMENT "${_env};${CELER_G4ENV}"
   RESOURCE_LOCK gpu
   REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
@@ -86,7 +86,7 @@ set_tests_properties("app/demo-loop" PROPERTIES
 if(CELERITAS_USE_ROOT)
   set(_mctruth_out "${CMAKE_CURRENT_BINARY_DIR}/mctruth_output.root")
 endif()
-add_test(NAME "app/demo-loop-cpu"
+add_test(NAME "app/demo-loop:host"
   COMMAND "${CELER_PYTHON}"
   "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
 )
@@ -109,7 +109,7 @@ endif()
 if(NOT CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND _env "CELER_DISABLE_VECGEOM=1")
 endif()
-set_tests_properties("app/demo-loop-cpu" PROPERTIES
+set_tests_properties("app/demo-loop:host" PROPERTIES
   ENVIRONMENT "${_env};${CELER_G4ENV}"
   REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
   LABELS "app;nomemcheck"

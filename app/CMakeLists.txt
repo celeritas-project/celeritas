@@ -35,7 +35,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 # Exporter
-add_executable(celer-export-geant celer-export-geant.cc)
+celeritas_add_executable(celer-export-geant celer-export-geant.cc)
 celeritas_target_link_libraries(celer-export-geant
   Celeritas::celeritas
 )
@@ -46,13 +46,13 @@ if(CELERITAS_USE_JSON)
 endif()
 
 # Reader
-add_executable(celer-dump-data celer-dump-data.cc)
+celeritas_add_executable(celer-dump-data celer-dump-data.cc)
 celeritas_target_link_libraries(celer-dump-data
   Celeritas::celeritas
 )
 
 if(CELERITAS_BUILD_DEMOS)
-  add_subdirectory(demo-interator)
+  add_subdirectory(demo-interactor)
   add_subdirectory(demo-loop)
   add_subdirectory(geo-check)
   if(CELERITAS_USE_Geant4)
