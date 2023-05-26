@@ -520,6 +520,8 @@ int Runner::get_num_streams(RunnerInput const& inp)
                        << "nonpositive num_streams=" << num_threads);
         return num_threads;
     }
+#else
+    (void)sizeof(inp);
 #endif
     return 1;
 }
