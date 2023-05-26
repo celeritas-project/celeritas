@@ -115,6 +115,9 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     using GeoTrackView = typename TraitsT::TrackView;
     using TrackingResult = GenericGeoTrackingResult;
     using GeantVolResult = GenericGeoGeantImportVolumeResult;
+
+    template<MemSpace M>
+    using GeoStateStore = typename TraitsT::template StateStore<M>;
     //!@}
 
   public:
@@ -160,8 +163,7 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     }
 
   private:
-    using HostStateStore =
-        typename TraitsT::template StateStore<MemSpace::host>;
+    using HostStateStore = GeoStateStore<MemSpace::host>;
 
     SPConstGeo geo_;
     HostStateStore host_state_;

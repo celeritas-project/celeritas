@@ -378,7 +378,7 @@ celeritas_add_test(celeritas/field/FieldDriver.test.cc)
 celeritas_add_test(celeritas/field/FieldPropagator.test.cc
   ${_needs_geo} LINK_LIBRARIES ${_core_geo_lib})
 celeritas_add_test(celeritas/field/LinearPropagator.test.cc
-  ${_needs_geo} LINK_LIBRARIES ${_geo_libs})
+  LINK_LIBRARIES ${_geo_libs})
 celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
 
 #-------------------------------------#
@@ -400,6 +400,9 @@ else()
 endif()
 celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
   ${_needs_geant_or_root} ${_needs_geo} ${_optional_geant4_env})
+
+celeritas_add_test(celeritas/geo/SafetyCache.test.cc
+  LINK_LIBRARIES ${_geo_libs})
 
 #-------------------------------------#
 # Global
