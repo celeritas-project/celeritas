@@ -34,7 +34,7 @@ class GCheckRunner
 
   public:
     // Construct with geometry
-    explicit GCheckRunner(SPConstGeo const& geometry, int max_steps, bool cuda);
+    explicit GCheckRunner(SPConstGeo const& geometry, int max_steps);
 
     // Run over some tracks
     void operator()(celeritas::GeoTrackInitializer const* init) const;
@@ -42,7 +42,6 @@ class GCheckRunner
   private:
     SPConstGeo geo_params_;
     int max_steps_;
-    bool use_cuda_;
 };
 
 //---------------------------------------------------------------------------//

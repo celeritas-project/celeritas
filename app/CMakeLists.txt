@@ -458,7 +458,6 @@ if(CELERITAS_BUILD_DEMOS)
   set(_geo_check_libs
     Celeritas::celeritas
     nlohmann_json::nlohmann_json
-    Celeritas::DeviceToolkit
   )
   if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
     list(APPEND _geo_check_libs VecGeom::vecgeom)
@@ -481,7 +480,7 @@ if(CELERITAS_BUILD_DEMOS)
       RESOURCE_LOCK gpu
       LABELS "app;gpu"
     )
-    if(NOT (CELERITAS_CORE_GEO STREQUAL "VecGeom" AND CELERITAS_USE_CUDA))
+    if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
       set_tests_properties("app/geo-check" PROPERTIES
         DISABLED true
       )
