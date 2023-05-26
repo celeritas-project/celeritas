@@ -9,7 +9,6 @@
 
 #include "corecel/Assert.hh"
 
-#include "Device.hh"
 #include "ScopedMpiInit.hh"
 
 namespace celeritas
@@ -34,22 +33,6 @@ MpiCommunicator::MpiCommunicator(MpiComm comm) : comm_(comm)
     CELER_MPI_CALL(MPI_Comm_size(comm_, &size_));
 
     CELER_ENSURE(this->rank() >= 0 && this->rank() < this->size());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize device in a round-robin fashion from a communicator.
- */
-Device make_device(MpiCommunicator const& comm)
-{
-    int num_devices = Device::num_devices();
-    if (num_devices == 0)
-    {
-        // Null device
-        return {};
-    }
-
-    return Device(comm.rank() % num_devices);
 }
 
 //---------------------------------------------------------------------------//

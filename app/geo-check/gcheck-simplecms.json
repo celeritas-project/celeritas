@@ -1,6 +1,0 @@
-{
-    "input": "../../app/data/simple-cms.gdml",
-    "max_steps": 5000,
-    "track_origin": [0, 0, 0],
-    "track_direction": [1, 1, 1]
-}

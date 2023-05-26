@@ -149,6 +149,8 @@ set(CELERITAS_HEADER_CONFIG_DIRECTORY
   "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
 set(CELERITAS_LIBRARY_OUTPUT_DIRECTORY
   "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
+set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
+  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}")
 
 #----------------------------------------------------------------------------#
 # DEPENDENCIES
@@ -238,6 +240,14 @@ if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
       OFF
     )
   endif()
+endif()
+
+if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
+  celeritas_error_incompatible_option(
+    "JSON support is required for demos but was not found"
+    CELERITAS_BUILD_DEMOS
+    OFF
+  )
 endif()
 
 if(CELERITAS_BUILD_DOCS)

@@ -1,7 +1,0 @@
-{
-    "input": "../test/celeritas/data/cms2018.gdml",
-    "max_steps": 500,
-    "track_origin": [-1012.5, 10, -856.25],
-    "track_direction": [1, 0, 0],
-    "cuda_stack_size": 65536
-}

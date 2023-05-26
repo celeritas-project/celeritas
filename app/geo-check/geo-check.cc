@@ -17,6 +17,7 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
+#include "celeritas_cmake_strings.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.json.hh"
@@ -29,7 +30,6 @@
 #include "celeritas/geo/GeoFwd.hh"
 
 #include "GCheckRunner.hh"
-#include "nlohmann/json.hpp"
 
 using namespace celeritas;
 
@@ -39,7 +39,7 @@ namespace geo_check
 /*!
  * Run, launch, and output.
  */
-void run(std::istream& is, bool use_cuda)
+void run(std::istream& is)
 {
     // Read input options
     auto inp = nlohmann::json::parse(is);
@@ -48,29 +48,21 @@ void run(std::istream& is, bool use_cuda)
     auto geo_params = std::make_shared<GeoParams>(
         inp.at("input").get<std::string>().c_str());
 
-    if (use_cuda && inp.count("cuda_stack_size"))
+    if (celeritas::device() && inp.count("cuda_stack_size"))
     {
         set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
     }
 
     GeoTrackInitializer trkinit;
-    inp.at("track_origin").get_to(trkinit.pos);
-    inp.at("track_direction").get_to(trkinit.dir);
+    inp.at("pos").get_to(trkinit.pos);
+    inp.at("dir").get_to(trkinit.dir);
     normalize_direction(&trkinit.dir);
 
     CELER_ASSERT(geo_params);
     int max_steps = inp.at("max_steps").get<int>();
 
-    // Get geometry names
-    std::vector<std::string> vol_names;
-    for (auto vol_id : celeritas::range(geo_params->num_volumes()))
-    {
-        vol_names.push_back(
-            to_string(geo_params->id_to_label(celeritas::VolumeId(vol_id))));
-    }
-
     // Construct runner, which takes over geo_params
-    GCheckRunner run(geo_params, max_steps, use_cuda);
+    GCheckRunner run(geo_params, max_steps);
     run(&trkinit);
 }
 
@@ -112,25 +104,14 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    bool use_cuda = true;
-    try
-    {
-        celeritas::activate_device(Device(0));
-        if (!celeritas::device())
-        {
-            CELER_LOG(status) << "CUDA capability is disabled.";
-        }
-    }
-    catch (std::exception const& e)
-    {
-        CELER_LOG(status) << "No GPU device available - disable CUDA.";
-        use_cuda = false;
-    }
+    celeritas::activate_device();
+    CELER_LOG(info) << "Running on " << (celeritas::device() ? "GPU" : "CPU")
+                    << " with " << celeritas_core_geo << " geometry";
 
     try
     {
         CELER_ASSERT(instream_ptr);
-        geo_check::run(*instream_ptr, use_cuda);
+        geo_check::run(*instream_ptr);
     }
     catch (std::exception const& e)
     {

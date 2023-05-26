@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
                : MpiCommunicator::comm_world());
 
     // Initialize GPU
-    celeritas::activate_device(celeritas::make_device(comm));
+    celeritas::activate_device(comm);
 
     // Create particle definitions (copies to GPU if available)
     auto particles = make_particles();
