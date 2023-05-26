@@ -130,8 +130,8 @@ class ConditionalTrackLauncher
 
     CELER_FUNCTION void operator()(ThreadId thread)
     {
-        CELER_EXPECT(thread);
 #if CELER_DEVICE_COMPILE
+        CELER_EXPECT(thread);
         if (!(thread < state_.size()))
         {
             return;
@@ -171,6 +171,8 @@ CELER_FUNCTION ConditionalTrackLauncher(NativeCRef<CoreParamsData> const&,
                                         Ts...)
     ->ConditionalTrackLauncher<C, Ts...>;
 
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
  * Return a track launcher that only applies to alive tracks.

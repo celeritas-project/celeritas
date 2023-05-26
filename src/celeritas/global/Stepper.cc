@@ -58,11 +58,10 @@ auto Stepper<M>::operator()() -> result_type
     actions_->execute(*params_, state_);
 
     // Get the number of track initializers and active tracks
-    auto const& init = this->state_ref().init;
     result_type result;
-    result.active = init.scalars.num_active;
-    result.alive = init.scalars.num_alive;
-    result.queued = init.scalars.num_initializers;
+    result.active = state_.counters().num_active;
+    result.alive = state_.counters().num_alive;
+    result.queued = state_.counters().num_initializers;
 
     return result;
 }
@@ -77,8 +76,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
     CELER_EXPECT(!primaries.empty());
 
     // Check initializer capacity
-    size_type num_initializers
-        = this->state_ref().init.scalars.num_initializers;
+    size_type num_initializers = state_.counters().num_initializers;
     size_type init_capacity = this->state_ref().init.initializers.size();
     CELER_VALIDATE(primaries.size() + num_initializers <= init_capacity,
                    << "insufficient initializer capacity (" << init_capacity

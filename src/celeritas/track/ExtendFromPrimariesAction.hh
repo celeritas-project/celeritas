@@ -7,10 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/Span.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+struct Primary;
+
 //---------------------------------------------------------------------------//
 /*!
  * Create track initializers from queued host primary particles.
@@ -49,8 +53,14 @@ class ExtendFromPrimariesAction final : public ExplicitActionInterface
     ActionId id_;
 
     template<MemSpace M>
-    void
-    execute_impl(CoreParams const& core_params, CoreState<M>& core_state) const;
+    void execute_impl(CoreParams const&, CoreState<M>&) const;
+
+    void process_primaries(CoreParams const&,
+                           CoreStateHost&,
+                           Span<Primary const>) const;
+    void process_primaries(CoreParams const&,
+                           CoreStateDevice&,
+                           Span<Primary const>) const;
 };
 
 //---------------------------------------------------------------------------//

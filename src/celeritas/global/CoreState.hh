@@ -17,6 +17,7 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 namespace celeritas
 {
@@ -59,6 +60,12 @@ class CoreState
     // Get a native-memspace pointer to the mutable state data
     inline Ptr ptr();
 
+    //! Track initialization counters
+    CoreStateCounters& counters() { return counters_; }
+
+    //! Track initialization counters
+    CoreStateCounters const& counters() const { return counters_; }
+
     //// PRIMARY STORAGE ////
 
     // Inject primaries to be turned into TrackInitializers
@@ -71,7 +78,7 @@ class CoreState
     inline PrimaryCRef primary_storage() const;
 
     //! Clear primaries after constructing initializers from them
-    void clear_primaries() { num_primaries_ = 0; }
+    void clear_primaries() { counters_.num_primaries = 0; }
 
     void resize_offsets(size_type n);
 
@@ -92,10 +99,12 @@ class CoreState
 
     // Primaries to be added
     Collection<Primary, Ownership::value, M> primaries_;
-    size_type num_primaries_{0};
 
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;
+
+    // Counters for track initialization and activity
+    CoreStateCounters counters_;
 };
 
 //---------------------------------------------------------------------------//
@@ -126,7 +135,7 @@ auto CoreState<M>::ptr() -> Ptr
 template<MemSpace M>
 auto CoreState<M>::primary_range() const -> PrimaryRange
 {
-    return {ItemId<Primary>(num_primaries_)};
+    return {ItemId<Primary>(counters_.num_primaries)};
 }
 
 //---------------------------------------------------------------------------//

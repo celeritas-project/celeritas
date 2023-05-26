@@ -78,22 +78,6 @@ struct TrackInitializer
 
 //---------------------------------------------------------------------------//
 /*!
- * Host-accessible scalar data.
- */
-struct TrackInitScalars
-{
-    // Initialization input
-    size_type num_initializers{};
-    size_type num_vacancies{};
-
-    // Diagnostic output
-    size_type num_secondaries{};  //!< Number of secondaries produced in a step
-    size_type num_active{};  //!< Number of active tracks at start of a step
-    size_type num_alive{};  //!< Number of alive tracks at end of step
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Storage for dynamic data used to initialize new tracks.
  *
  * Not all of this is technically "state" data, though it is all mutable and in
@@ -130,10 +114,9 @@ struct TrackInitStateData
     StateItems<TrackSlotId> vacancies;
     EventItems<TrackId::size_type> track_counters;
 
-    // Storage (size is "capacity", not "currently used": see TrackInitScalars)
+    // Storage (size is "capacity", not "currently used": see
+    // CoreStateCounters)
     Items<TrackInitializer> initializers;
-
-    TrackInitScalars scalars;
 
     //// METHODS ////
 
@@ -157,8 +140,6 @@ struct TrackInitStateData
 
         vacancies = other.vacancies;
         initializers = other.initializers;
-
-        scalars = other.scalars;
 
         return *this;
     }
@@ -203,11 +184,9 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
         vacancies[TrackSlotId{i}] = TrackSlotId{i};
     }
     data->vacancies = std::move(vacancies);
-    data->scalars.num_vacancies = size;
 
     // Reserve space for initializers
     resize(&data->initializers, params.capacity);
-    data->scalars.num_initializers = 0;
 
     CELER_ENSURE(*data);
 }

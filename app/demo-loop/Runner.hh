@@ -8,14 +8,14 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/phys/Primary.hh"
+
+#include "Transporter.hh"
 
 namespace celeritas
 {
@@ -29,47 +29,23 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 struct RunnerInput;
-struct TransporterInput;
 
 //---------------------------------------------------------------------------//
 /*!
- * Simulation timing results.
- *
- * TODO: maybe a timer diagnostic class could help out here?
- * or another OutputRegistry.
+ * Results from transporting all events.
  */
-struct RunTimingResult
-{
-    using real_type = celeritas::real_type;
-    using VecReal = std::vector<real_type>;
-    using MapStrReal = std::unordered_map<std::string, real_type>;
-
-    VecReal steps;  //!< Real time per step
-    real_type total{};  //!< Total simulation time
-    real_type setup{};  //!< One-time initialization cost
-    MapStrReal actions{};  //!< Accumulated action timing
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Tallied result and timing from transporting a set of primaries.
- *
- * TODO: these should be migrated to OutputInterface classes.
- */
-struct RunnerResult
+struct SimulationResult
 {
     //!@{
     //! \name Type aliases
-    using size_type = celeritas::size_type;
-    using VecCount = std::vector<size_type>;
+    using real_type = celeritas::real_type;
     //!@}
 
     //// DATA ////
 
-    VecCount initializers;  //!< Num starting track initializers
-    VecCount active;  //!< Num tracks active at beginning of step
-    VecCount alive;  //!< Num living tracks at end of step
-    RunTimingResult time;  //!< Timing information
+    real_type total_time{};  //!< Total simulation time
+    real_type setup_time{};  //!< One-time initialization cost
+    std::vector<TransporterResult> events;  //< Results tallied for each event
 };
 
 //---------------------------------------------------------------------------//
@@ -84,8 +60,11 @@ class Runner
   public:
     //!@{
     //! \name Type aliases
+    using EventId = celeritas::EventId;
     using StreamId = celeritas::StreamId;
+    using size_type = celeritas::size_type;
     using Input = RunnerInput;
+    using RunnerResult = TransporterResult;
     using SPOutputRegistry = std::shared_ptr<celeritas::OutputRegistry>;
     //!@}
 
@@ -94,22 +73,35 @@ class Runner
     Runner(RunnerInput const& inp, SPOutputRegistry output);
 
     // Run on a single stream/thread, returning the transport result
-    RunnerResult operator()(StreamId s) const;
+    RunnerResult operator()(StreamId, EventId);
+
+    // Run all events simultaneously on a single stream
+    RunnerResult operator()();
 
     // Number of streams supported
     StreamId::size_type num_streams() const;
 
+    // Total number of events
+    size_type num_events() const;
+
   private:
+    //// TYPES ////
+
+    using UPTransporterBase = std::unique_ptr<TransporterBase>;
+    using VecPrimary = std::vector<celeritas::Primary>;
+    using VecEvent = std::vector<VecPrimary>;
+
     //// DATA ////
 
     std::shared_ptr<celeritas::CoreParams> core_params_;
     std::shared_ptr<celeritas::RootFileManager> root_manager_;
     std::shared_ptr<celeritas::StepCollector> step_collector_;
 
-    // Transporter inputs
+    // Transporter inputs and stream-local transporters
     bool use_device_{};
     std::shared_ptr<TransporterInput> transporter_input_;
-    std::vector<celeritas::Primary> primaries_;
+    VecEvent events_;
+    std::vector<UPTransporterBase> transporters_;
 
     //// HELPER FUNCTIONS ////
 
@@ -118,7 +110,9 @@ class Runner
     void build_step_collectors(RunnerInput const&);
     void build_diagnostics(RunnerInput const&);
     void build_transporter_input(RunnerInput const&);
-    void build_primaries(RunnerInput const&);
+    void build_events(RunnerInput const&);
+    int get_num_streams(RunnerInput const&);
+    UPTransporterBase& build_transporter(StreamId);
 };
 
 //---------------------------------------------------------------------------//

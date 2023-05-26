@@ -63,6 +63,7 @@ struct RunnerInput
     real_type secondary_stack_factor{};
     bool use_device{};
     bool sync{};
+    bool merge_events{false};  //!< Run all events at once on a single stream
 
     // Magnetic field vector [* 1/Tesla] and associated field options
     Real3 mag_field{no_field()};

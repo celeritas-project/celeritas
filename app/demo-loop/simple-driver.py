@@ -91,6 +91,7 @@ inp = {
     'step_diagnostic_maxsteps': 200,
     'simple_calo': simple_calo,
     'sync': True,
+    'merge_events': False,
     'brem_combined': True,
     'geant_options': geant_options,
 }
@@ -134,6 +135,6 @@ with open(outfilename, 'w') as f:
     json.dump(j, f, indent=1)
 print("Results written to", outfilename, file=stderr)
 
-time = j['result']['time'].copy()
+time = j['result']['runner']['time'].copy()
 time.pop('steps')
 print(json.dumps(time, indent=1))
