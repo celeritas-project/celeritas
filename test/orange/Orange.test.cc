@@ -199,7 +199,10 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     EXPECT_FALSE(geo.is_outside());
     EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_DOUBLE_EQ(0.0, geo.find_safety());
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(geo.find_safety(), celeritas::DebugError);
+    }
 
     // Logically flip the surface into the new volume
     geo.cross_boundary();
@@ -207,7 +210,6 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     EXPECT_TRUE(geo.is_outside());
     EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_DOUBLE_EQ(0.0, geo.find_safety());
 
     // Move internally to an arbitrary position
     geo.find_next_step();

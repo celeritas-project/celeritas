@@ -111,6 +111,7 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
     // Sample multiple scattering step length
     auto msc_step = [&] {
         auto par = track.make_particle_view();
+        real_type const safety = (geo.is_on_boundary() ? 0 : geo.find_safety());
         detail::UrbanMscHelper msc_helper(msc_params_, par, phys);
         detail::UrbanMscStepLimit calc_limit(msc_params_,
                                              msc_helper,
@@ -118,7 +119,7 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
                                              &phys,
                                              phys.material_id(),
                                              geo.is_on_boundary(),
-                                             geo.find_safety(),
+                                             safety,
                                              step_limit->step);
 
         auto rng = track.make_rng_engine();

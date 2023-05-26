@@ -162,6 +162,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     CELER_EXPECT(true_path_ >= geom_path_);
     CELER_EXPECT(limit_min_ >= UrbanMscParameters::limit_min_fix()
                  || !is_displaced_);
+    CELER_EXPECT(!is_displaced_ || !geometry->is_on_boundary());
 
     skip_sampling_ = [this, &helper, &physics] {
         if (true_path_ == physics.dedx_range())
