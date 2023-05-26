@@ -18,6 +18,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/Copier.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/Device.hh"
@@ -116,25 +117,6 @@ __global__ void tracks_per_action_kernel(DeviceRef<CoreStateData> const states,
     }
 }
 
-// TODO: On host since we're using a single thread..
-__global__ void
-tracks_per_action_reduce_kernel(Span<ThreadId> offsets, size_type size)
-{
-    ThreadId tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() == 0)
-    {
-        offsets.back() = ThreadId{size};
-        for (auto thread_id = offsets.end() - 2; thread_id >= offsets.begin();
-             --thread_id)
-        {
-            if (*thread_id == ThreadId{})
-            {
-                *thread_id = *(thread_id + 1);
-            }
-        }
-    }
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -207,6 +189,7 @@ template<>
 void count_tracks_per_action<MemSpace::device>(
     DeviceRef<CoreStateData> const& states,
     Span<ThreadId> offsets,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>& out,
     TrackOrder order)
 {
     switch (order)
@@ -226,14 +209,23 @@ void count_tracks_per_action<MemSpace::device>(
                                 offsets,
                                 states.size(),
                                 order);
-            CELER_DEVICE_CHECK_ERROR();
 
-            CELER_LAUNCH_KERNEL(tracks_per_action_reduce,
-                                celeritas::device().default_block_size(),
-                                states.size(),
-                                offsets,
-                                states.size());
-            CELER_DEVICE_CHECK_ERROR();
+            Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
+            Copier<ThreadId, MemSpace::host> copy_to_host{sout};
+            copy_to_host(MemSpace::device, offsets);
+
+            sout.back() = ThreadId{states.size()};
+
+            // in case some actions were not found, have them "start" at the
+            // next action offset.
+            for (auto thread_id = sout.end() - 2; thread_id >= sout.begin();
+                 --thread_id)
+            {
+                if (*thread_id == ThreadId{})
+                {
+                    *thread_id = *(thread_id + 1);
+                }
+            }
             return;
         }
         default:

@@ -62,33 +62,40 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
     copy_to_temp(MemSpace::host, host_primaries);
 }
 
-template<MemSpace M>
-void CoreState<M>::count_tracks_per_action(TrackOrder order)
+template<>
+void CoreState<MemSpace::host>::count_tracks_per_action(TrackOrder order)
 {
-    detail::count_tracks_per_action<M>(
-        states_.ref(), thread_offsets_[AllItems<ThreadId, M>{}], order);
-    if constexpr (M == MemSpace::device)
-    {
-        Copier<ThreadId, MemSpace::host> copy_to_host{
-            host_thread_offsets_[AllItems<ThreadId, MemSpace::host>{}]};
-        copy_to_host(M, thread_offsets_[AllItems<ThreadId, M>{}]);
-    }
+    detail::count_tracks_per_action(states_.ref(),
+                                    thread_offsets_[AllItems<ThreadId>{}],
+                                    thread_offsets_,
+                                    order);
 }
 
-template<MemSpace M>
-Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
+template<>
+void CoreState<MemSpace::device>::count_tracks_per_action(TrackOrder order)
 {
-    if constexpr (M == MemSpace::device)
-    {
-        CELER_EXPECT((action_id + 1) < host_thread_offsets_.size());
-        return {host_thread_offsets_[action_id],
-                host_thread_offsets_[action_id + 1]};
-    }
-    else if constexpr (M == MemSpace::host)
-    {
-        CELER_EXPECT((action_id + 1) < thread_offsets_.size());
-        return {thread_offsets_[action_id], thread_offsets_[action_id + 1]};
-    }
+    using AllItemsIdT = AllItems<ThreadId, MemSpace::device>;
+    detail::count_tracks_per_action(states_.ref(),
+                                    thread_offsets_[AllItemsIdT{}],
+                                    host_thread_offsets_,
+                                    order);
+}
+
+template<>
+Range<ThreadId>
+CoreState<MemSpace::device>::get_action_range(ActionId action_id) const
+{
+    CELER_EXPECT((action_id + 1) < host_thread_offsets_.size());
+    return {host_thread_offsets_[action_id],
+            host_thread_offsets_[action_id + 1]};
+}
+
+template<>
+Range<ThreadId>
+CoreState<MemSpace::host>::get_action_range(ActionId action_id) const
+{
+    CELER_EXPECT((action_id + 1) < thread_offsets_.size());
+    return {thread_offsets_[action_id], thread_offsets_[action_id + 1]};
 }
 
 template<MemSpace M>

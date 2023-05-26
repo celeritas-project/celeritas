@@ -144,9 +144,11 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
  * of size num_actions + 1.
  */
 template<>
-void count_tracks_per_action<MemSpace::host>(HostRef<CoreStateData> const& states,
-                                             Span<ThreadId> offsets,
-                                             TrackOrder order)
+void count_tracks_per_action<MemSpace::host>(
+    HostRef<CoreStateData> const& states,
+    Span<ThreadId> offsets,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    TrackOrder order)
 {
     switch (order)
     {

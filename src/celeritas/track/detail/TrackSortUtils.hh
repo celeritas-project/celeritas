@@ -60,18 +60,24 @@ void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder);
 //---------------------------------------------------------------------------//
 // Count tracks associated to each action
 template<MemSpace M>
-void count_tracks_per_action(CoreStateData<Ownership::reference, M> const&,
-                             Span<ThreadId>,
-                             TrackOrder);
+void count_tracks_per_action(
+    CoreStateData<Ownership::reference, M> const&,
+    Span<ThreadId>,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    TrackOrder);
 
 template<>
-void count_tracks_per_action<MemSpace::host>(HostRef<CoreStateData> const&,
-                                             Span<ThreadId>,
-                                             TrackOrder);
+void count_tracks_per_action<MemSpace::host>(
+    HostRef<CoreStateData> const&,
+    Span<ThreadId>,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    TrackOrder);
 template<>
-void count_tracks_per_action<MemSpace::device>(DeviceRef<CoreStateData> const&,
-                                               Span<ThreadId>,
-                                               TrackOrder);
+void count_tracks_per_action<MemSpace::device>(
+    DeviceRef<CoreStateData> const&,
+    Span<ThreadId>,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    TrackOrder);
 
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
@@ -150,10 +156,11 @@ inline void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder)
 }
 
 template<>
-inline void
-count_tracks_per_action<MemSpace::device>(DeviceRef<CoreStateData> const&,
-                                          Span<ThreadId>,
-                                          TrackOrder)
+inline void count_tracks_per_action<MemSpace::device>(
+    DeviceRef<CoreStateData> const&,
+    Span<ThreadId>,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    TrackOrder)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
