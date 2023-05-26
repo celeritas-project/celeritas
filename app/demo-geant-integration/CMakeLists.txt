@@ -1,0 +1,136 @@
+#----------------------------------*-CMake-*----------------------------------#
+# Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+
+set(SOURCES
+  demo-geant-integration.cc
+  ActionInitialization.cc
+  DetectorConstruction.cc
+  EventAction.cc
+  GlobalSetup.cc
+  PrimaryGeneratorAction.cc
+  RunAction.cc
+  SensitiveDetector.cc
+  SensitiveHit.cc
+  TrackingAction.cc
+)
+set(LIBRARIES Celeritas::accel)
+
+if(CELERITAS_USE_ROOT)
+  function(celeritas_local_root_generate_dictionary name)
+    # No need for the rootmap file for an executable.
+    set(CMAKE_ROOTTEST_NOROOTMAP TRUE)
+    include_directories(
+      # root_generate_dictionary cannot handle the '$<INSTALL_INTERFACE:include>'
+      # part of the Celeritas::corecel target's include, so we cannot use it in
+      # the 'DEPENDENCIES' property.
+      "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
+      "${PROJECT_SOURCE_DIR}/src"
+      # The include directory are attached to the Geant4 target through
+      # INTERFACE_INCLUDE_DIRECTORIES which is not looked at by
+      # root_generate_dictionary.
+      ${Geant4_INCLUDE_DIRS}
+      ${CLHEP_INCLUDE_DIRS}
+    )
+    root_generate_dictionary(${name}
+      ${CMAKE_CURRENT_SOURCE_DIR}/HitRootIO.hh
+      ${CMAKE_CURRENT_SOURCE_DIR}/SensitiveHit.hh
+      NOINSTALL
+      MODULE demo-geant-integration
+      # TODO Uncomment this line and remove the include_directories when
+      # the minimal required ROOT version is v6.28/02 or later.
+      # DEPENDENCIES ${Geant4_LIBRARIES} Celeritas::accel Celeritas::corecel
+      LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/HitClassesLinkDef.h"
+    )
+  endfunction(celeritas_local_root_generate_dictionary)
+  celeritas_local_root_generate_dictionary(HitClassesRootInterfaces)
+  list(APPEND SOURCES
+    "${CMAKE_CURRENT_BINARY_DIR}/HitClassesRootInterfaces.cxx"
+    HitRootIO.cc
+  )
+  list(APPEND LIBRARIES ROOT::Tree)
+endif()
+
+add_executable(demo-geant-integration ${SOURCES})
+celeritas_target_link_libraries(demo-geant-integration
+  ${LIBRARIES}
+)
+
+#-----------------------------------------------------------------------------#
+# TESTS
+#-----------------------------------------------------------------------------#
+
+if(NOT CELERITAS_BUILD_TESTS)
+  return()
+endif()
+
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(DEMO_MAX_NUM_TRACKS 524288)
+    set(DEMO_INIT_CAPACITY 4194304)
+  else()
+    # Use smaller number of tracks when running on CPU
+    set(DEMO_MAX_NUM_TRACKS 2048)
+    set(DEMO_INIT_CAPACITY 65536)
+  endif()
+else()
+  # Use smaller number of tracks when running on CPU
+  set(DEMO_MAX_NUM_TRACKS 1024)
+  set(DEMO_INIT_CAPACITY 32768)
+endif()
+
+if(NOT CELERITAS_DEBUG)
+  set(DEMO_EVENTS
+    "${CELER_APP_DATA_DIR}/ttbarsplit-12evt-1108prim.hepmc3")
+else()
+  # Use fewer events for debug
+  set(DEMO_EVENTS
+    "${CELER_APP_DATA_DIR}/ttbarbits-12evt-118prim.hepmc3")
+endif()
+if(CELERITAS_USE_ROOT)
+  set(DEMO_ROOT_OPTIONS "/setup/rootBufferSize 128000
+/setup/writeSDHits true")
+endif()
+configure_file(
+  "simple-cms-test.mac.in"
+  "simple-cms-test.mac" @ONLY
+)
+add_test(NAME "app/demo-geant-integration"
+  COMMAND "$<TARGET_FILE:demo-geant-integration>"
+  "simple-cms-test.mac"
+)
+set(_env
+  ${CELER_G4ENV}
+  "CELER_LOG_LOCAL=debug"
+  "CELER_DISABLE_PARALLEL=1"
+)
+if(Geant4_multithreaded_FOUND)
+  list(APPEND _env
+    "G4FORCENUMBEROFTHREADS=2"
+  )
+endif()
+if(CELERITAS_USE_OpenMP)
+  list(APPEND _env "OMP_NUM_THREADS=1")
+endif()
+
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  set(_props
+    RESOURCE_LOCK gpu
+    LABELS "app;gpu"
+  )
+else()
+  set(_props LABELS "app")
+endif()
+
+if(NOT CELERITAS_USE_HepMC3)
+  list(APPEND _props DISABLED true)
+endif()
+
+set_tests_properties("app/demo-geant-integration" PROPERTIES
+  ENVIRONMENT "${_env}"
+  ${_props}
+)
+
+#-----------------------------------------------------------------------------#

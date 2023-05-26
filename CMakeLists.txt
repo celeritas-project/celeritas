@@ -240,6 +240,14 @@ if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
   endif()
 endif()
 
+if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
+  celeritas_error_incompatible_option(
+    "JSON support is required for demos but was not found"
+    CELERITAS_BUILD_DEMOS
+    OFF
+  )
+endif()
+
 if(CELERITAS_BUILD_DOCS)
   if(NOT Doxygen_FOUND)
     find_package(Doxygen)
