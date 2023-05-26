@@ -43,13 +43,13 @@ combined_brem_interact_kernel(
     celeritas::size_type size,
     celeritas::ThreadId const offset)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id() + offset.get();
+    auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < size))
         return;
 
     auto launch = celeritas::make_interaction_launcher(
         params, state, celeritas::combined_brem_interact_track, model_data);
-    launch(tid);
+    launch(tid + offset.get());
 }
 }  // namespace
 
