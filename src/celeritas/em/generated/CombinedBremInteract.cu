@@ -64,6 +64,8 @@ void combined_brem_interact(
                                                              params,
                                                              state,
                                                              TrackOrder::sort_step_limit_action);
+    if (!kernel_params.num_threads)
+        return;
     CELER_LAUNCH_KERNEL(combined_brem_interact,
                         celeritas::device().default_block_size(),
                         kernel_params.num_threads,

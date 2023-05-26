@@ -143,6 +143,8 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
 {
     KernelLaunchParams kernel_params = compute_launch_params(
         this->action_id(), params, state, TrackOrder::sort_along_step_action);
+    if (!kernel_params.num_threads)
+        return;
     CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
                         celeritas::device().default_block_size(),
                         kernel_params.num_threads,

@@ -172,6 +172,8 @@ void {clsname}::execute(CoreParams const& params, CoreStateDevice& state) const
                                                              params,
                                                              state,
                                                              TrackOrder::{track_order});
+    if (!kernel_params.num_threads)
+        return;
     CELER_LAUNCH_KERNEL({func},
                         celeritas::device().default_block_size(),
                         kernel_params.num_threads,
