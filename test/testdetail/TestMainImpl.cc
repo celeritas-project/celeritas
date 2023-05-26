@@ -42,7 +42,7 @@ int test_main(int argc, char** argv)
     try
     {
         // Initialize device
-        activate_device(make_device(comm));
+        celeritas::activate_device(comm);
     }
     catch (std::exception const& e)
     {

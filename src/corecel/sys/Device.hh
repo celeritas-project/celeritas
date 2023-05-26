@@ -16,6 +16,7 @@
 
 namespace celeritas
 {
+class MpiCommunicator;
 //---------------------------------------------------------------------------//
 /*!
  * Manage attributes of the GPU.
@@ -120,8 +121,14 @@ class Device
 // Global active device (default is inactive/false)
 Device const& device();
 
-// Activate the device
+// Set and initialize the active GPU
 void activate_device(Device&& device);
+
+// Initialize the first device if available, when not using MPI
+void activate_device();
+
+// Initialize a device in a round-robin fashion from a communicator.
+void activate_device(MpiCommunicator const&);
 
 // Print device info
 std::ostream& operator<<(std::ostream&, Device const&);

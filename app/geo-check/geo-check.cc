@@ -112,25 +112,16 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    bool use_cuda = true;
-    try
-    {
-        celeritas::activate_device(Device(0));
-        if (!celeritas::device())
-        {
-            CELER_LOG(status) << "CUDA capability is disabled.";
-        }
-    }
-    catch (std::exception const& e)
-    {
-        CELER_LOG(status) << "No GPU device available - disable CUDA.";
-        use_cuda = false;
-    }
+    celeritas::activate_device();
+    CELER_LOG(info) << "Running on " << celeritas::device()
+        ? "GPU"
+        : "CPU"
+              << " with " << celeritas_core_geo << " geometry";
 
     try
     {
         CELER_ASSERT(instream_ptr);
-        geo_check::run(*instream_ptr, use_cuda);
+        geo_check::run(*instream_ptr, static_cast<bool>(celeritas::device()));
     }
     catch (std::exception const& e)
     {
