@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 
 namespace celeritas
@@ -54,11 +55,31 @@ void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 }
 
 //---------------------------------------------------------------------------//
-//! Deleter frees hip data
+//! Deleter frees data: prevent exceptions
 void DeviceAllocation::DeviceFreeDeleter::operator()(
     [[maybe_unused]] Byte* ptr) const
 {
-    CELER_DEVICE_CALL_PREFIX(Free(ptr));
+    try
+    {
+        CELER_DEVICE_CALL_PREFIX(Free(ptr));
+    }
+    catch (RuntimeError const& e)
+    {
+        // The only errors likely from cudaFree is an "unclearable" error
+        // message from an earlier kernel failure (assertion or invalid memory
+        // access)
+        static int warn_count = 0;
+        if (warn_count <= 1)
+        {
+            CELER_LOG(debug) << "While freeing device memory: " << e.what();
+        }
+        if (warn_count == 1)
+        {
+            CELER_LOG(debug) << "Suppressing further DeviceFreeDeleter "
+                                "warning messages";
+        }
+        ++warn_count;
+    }
 }
 
 //---------------------------------------------------------------------------//

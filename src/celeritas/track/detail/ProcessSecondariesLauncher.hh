@@ -21,8 +21,7 @@
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/track/SimData.hh"
-#include "celeritas/track/TrackInitData.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 #include "../SimTrackView.hh"
 
@@ -34,27 +33,22 @@ namespace detail
 /*!
  * Create track initializers from secondaries.
  */
-template<MemSpace M>
-class ProcessSecondariesLauncher
+struct ProcessSecondariesLauncher
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef = CoreStateData<Ownership::reference, M>;
-    //!@}
+    //// TYPES ////
 
-  public:
-    // Construct with shared and state data
-    CELER_FUNCTION
-    ProcessSecondariesLauncher(ParamsRef const& params, StateRef const& states)
-        : params_(params), states_(states)
-    {
-        CELER_EXPECT(params_);
-        CELER_EXPECT(states_);
-    }
+    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
+    using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
 
-    // Create track initializers from secondaries
+    //// DATA ////
+
+    ParamsPtr params;
+    StatePtr state;
+    CoreStateCounters counters;
+
+    //// FUNCTIONS ////
+
+    // Determine which tracks are alive and count secondaries
     inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
 
     CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
@@ -63,10 +57,6 @@ class ProcessSecondariesLauncher
         // remapping should be performed
         return (*this)(TrackSlotId{tid.unchecked_get()});
     }
-
-  private:
-    ParamsRef const& params_;
-    StateRef const& states_;
 };
 
 //---------------------------------------------------------------------------//
@@ -76,11 +66,19 @@ class ProcessSecondariesLauncher
  * This kernel is launched with a grid size equal to the number of track slots,
  * so ThreadId should be equal to TrackSlotId. No remapping should be done.
  */
-template<MemSpace M>
 CELER_FUNCTION void
-ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
+ProcessSecondariesLauncher::operator()(TrackSlotId tid) const
 {
-    SimTrackView sim(params_.sim, states_.sim, tid);
+#if CELER_DEVICE_COMPILE
+    CELER_EXPECT(tid);
+    if (!(tid < state->size()))
+    {
+        return;
+    }
+#else
+    CELER_EXPECT(tid < state->size());
+#endif
+    SimTrackView sim(params->sim, state->sim, tid);
     if (sim.status() == TrackStatus::inactive)
     {
         // Do not create secondaries from stale data on inactive tracks
@@ -88,10 +86,9 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
     }
 
     // Offset in the vector of track initializers
-    auto const& data = states_.init;
-    CELER_ASSERT(data.secondary_counts[tid] <= data.scalars.num_secondaries);
-    size_type offset = data.scalars.num_secondaries
-                       - data.secondary_counts[tid];
+    auto const& data = state->init;
+    CELER_ASSERT(data.secondary_counts[tid] <= counters.num_secondaries);
+    size_type offset = counters.num_secondaries - data.secondary_counts[tid];
 
     // A new track was initialized from a secondary in the parent's track slot
     bool initialized = false;
@@ -100,7 +97,7 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
     // initialized in this slot
     const TrackId parent_id{sim.track_id()};
 
-    PhysicsStepView phys(params_.physics, states_.physics, tid);
+    PhysicsStepView phys(params->physics, state->physics, tid);
     for (auto const& secondary : phys.secondaries())
     {
         if (secondary)
@@ -110,7 +107,7 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
 
             // Particles should not be making secondaries while crossing a
             // surface
-            GeoTrackView geo(params_.geometry, states_.geometry, tid);
+            GeoTrackView geo(params->geometry, state->geometry, tid);
             CELER_ASSERT(!geo.is_on_boundary());
 
             // Increment the total number of tracks created for this event and
@@ -137,9 +134,9 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
             if (!initialized && sim.status() != TrackStatus::alive)
             {
                 ParticleTrackView particle(
-                    params_.particles, states_.particles, tid);
+                    params->particles, state->particles, tid);
                 PhysicsTrackView phys(
-                    params_.physics, states_.physics, {}, {}, tid);
+                    params->physics, state->physics, {}, {}, tid);
 
                 // The parent was killed, so initialize the first secondary in
                 // the parent's track slot. Keep the parent's geometry state
@@ -159,10 +156,9 @@ ProcessSecondariesLauncher<M>::operator()(TrackSlotId tid) const
             else
             {
                 // Store the track initializer
-                CELER_ASSERT(offset > 0
-                             && offset <= data.scalars.num_initializers);
+                CELER_ASSERT(offset > 0 && offset <= counters.num_initializers);
                 data.initializers[ItemId<TrackInitializer>{
-                    data.scalars.num_initializers - offset}]
+                    counters.num_initializers - offset}]
                     = ti;
 
                 // Store the thread ID of the secondary's parent if the

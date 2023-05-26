@@ -18,7 +18,7 @@
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/track/TrackInitData.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 #include "../SimTrackView.hh"
 #include "Utils.hh"
@@ -39,80 +39,83 @@ namespace detail
  * secondaries. The new tracks are inserted into empty slots (vacancies) in the
  * track vector.
  */
-template<MemSpace M>
-class InitTracksLauncher
+struct InitTracksLauncher
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef = CoreStateData<Ownership::reference, M>;
-    //!@}
+    //// TYPES ////
 
-  public:
-    // Construct with shared and state data
-    CELER_FUNCTION InitTracksLauncher(ParamsRef const& params,
-                                      StateRef const& states,
-                                      size_type /* num_vacancies */)
-        : params_(params), states_(states)
-    {
-        CELER_EXPECT(params_);
-        CELER_EXPECT(states_);
-    }
+    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
+    using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
+
+    //// DATA ////
+
+    ParamsPtr params;
+    StatePtr state;
+    size_type num_new_tracks;
+    CoreStateCounters counters;
+
+    //// FUNCTIONS ////
 
     // Initialize track states
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
-
-  private:
-    ParamsRef const& params_;
-    StateRef const& states_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the track states.
+ *
+ * The track initializers are created from either primary particles or
+ * secondaries. The new tracks are inserted into empty slots (vacancies) in the
+ * track vector.
  */
-template<MemSpace M>
-CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void InitTracksLauncher::operator()(ThreadId tid) const
 {
+#if CELER_DEVICE_COMPILE
+    CELER_EXPECT(tid);
+    if (!(tid < num_new_tracks))
+    {
+        return;
+    }
+#else
+    CELER_EXPECT(tid < num_new_tracks);
+#endif
+
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
-    auto const& data = states_.init;
-    ItemId<TrackInitializer> idx{
-        index_before(data.scalars.num_initializers, tid)};
+    auto const& data = state->init;
+    ItemId<TrackInitializer> idx{index_before(counters.num_initializers, tid)};
     TrackInitializer const& init = data.initializers[idx];
 
     // Thread ID of vacant track where the new track will be initialized
     TrackSlotId vacancy = [&] {
-        TrackSlotId idx{index_before(data.scalars.num_vacancies, tid)};
+        TrackSlotId idx{index_before(counters.num_vacancies, tid)};
         return data.vacancies[idx];
     }();
 
     // Initialize the simulation state
     {
-        SimTrackView sim(params_.sim, states_.sim, vacancy);
+        SimTrackView sim(params->sim, state->sim, vacancy);
         sim = init.sim;
     }
 
     // Initialize the particle physics data
     {
         ParticleTrackView particle(
-            params_.particles, states_.particles, vacancy);
+            params->particles, state->particles, vacancy);
         particle = init.particle;
     }
 
     // Initialize the geometry
     {
-        GeoTrackView geo(params_.geometry, states_.geometry, vacancy);
-        if (tid < data.scalars.num_secondaries)
+        GeoTrackView geo(params->geometry, state->geometry, vacancy);
+        if (tid < counters.num_secondaries)
         {
             // Copy the geometry state from the parent for improved
             // performance
             TrackSlotId parent_id = data.parents[TrackSlotId{
                 index_before(data.parents.size(), tid)}];
-            GeoTrackView parent(params_.geometry, states_.geometry, parent_id);
+            GeoTrackView parent(params->geometry, state->geometry, parent_id);
             geo = GeoTrackView::DetailedInitializer{parent, init.geo.dir};
         }
         else
@@ -128,15 +131,14 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
         }
 
         // Initialize the material
-        GeoMaterialView geo_mat(params_.geo_mats);
-        MaterialTrackView mat(params_.materials, states_.materials, vacancy);
+        GeoMaterialView geo_mat(params->geo_mats);
+        MaterialTrackView mat(params->materials, state->materials, vacancy);
         mat = {geo_mat.material_id(geo.volume_id())};
     }
 
     // Initialize the physics state
     {
-        PhysicsTrackView phys(
-            params_.physics, states_.physics, {}, {}, vacancy);
+        PhysicsTrackView phys(params->physics, state->physics, {}, {}, vacancy);
         phys = {};
     }
 }

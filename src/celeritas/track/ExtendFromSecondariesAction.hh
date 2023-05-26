@@ -99,8 +99,13 @@ class ExtendFromSecondariesAction final : public ExplicitActionInterface
     ActionId id_;
 
     template<MemSpace M>
-    void
-    execute_impl(CoreParams const& core_params, CoreState<M>& core_state) const;
+    void execute_impl(CoreParams const&, CoreState<M>&) const;
+
+    void locate_alive(CoreParams const&, CoreStateHost&) const;
+    void locate_alive(CoreParams const&, CoreStateDevice&) const;
+
+    void process_secondaries(CoreParams const&, CoreStateHost&) const;
+    void process_secondaries(CoreParams const&, CoreStateDevice&) const;
 };
 
 //---------------------------------------------------------------------------//

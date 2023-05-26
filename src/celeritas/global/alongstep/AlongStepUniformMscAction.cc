@@ -74,6 +74,15 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
 }
 
 //---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void AlongStepUniformMscAction::execute(CoreParams const&,
+                                        CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
+
+//---------------------------------------------------------------------------//
 /*!
  * Save references from host/device data.
  */
