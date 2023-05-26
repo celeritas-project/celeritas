@@ -410,6 +410,8 @@ TEST_F(UrbanMscTest, msc_scattering)
     // average are the same)
     std::vector<int> avg_engine_samples;
 
+    auto const& msc_params = msc_params_->host_ref();
+
     auto sample_one = [&](PDGNumber ptype, int i) {
         auto par = this->make_par_view(ptype, MevEnergy{energy[i]});
         auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
@@ -417,7 +419,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         MaterialView mat = this->material()->get(phys.material_id());
         rng.reset_count();
 
-        UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
+        UrbanMscHelper helper(msc_params, par, phys);
         range.push_back(phys.dedx_range());
         lambda.push_back(helper.msc_mfp());
 
@@ -429,34 +431,47 @@ TEST_F(UrbanMscTest, msc_scattering)
         pstep.push_back(this_pstep);
 
         // Calculate physical step limit due to MSC
-        UrbanMscStepLimit calc_limit(msc_params_->host_ref(),
-                                     helper,
-                                     par.energy(),
-                                     &phys,
-                                     mat.material_id(),
-                                     geo.is_on_boundary(),
-                                     geo.find_safety(),
-                                     this_pstep);
+        auto [true_path, displaced] = [&]() -> std::pair<real_type, bool> {
+            real_type safety = geo.find_safety();
+            if (this_pstep < msc_params.params.limit_min_fix()
+                || safety >= helper.max_step())
+            {
+                // Small step or far from boundary
+                return {this_pstep, false};
+            }
+            UrbanMscStepLimit calc_limit(msc_params,
+                                         helper,
+                                         par.energy(),
+                                         &phys,
+                                         mat.material_id(),
+                                         geo.is_on_boundary(),
+                                         safety,
+                                         this_pstep);
 
-        MscStep step_result = calc_limit(rng);
-        tstep.push_back(step_result.true_path);
+            return {calc_limit(rng), true};
+        }();
+        tstep.push_back(true_path);
 
         // Convert physical step limit to geometrical step
-        MscStepToGeo calc_geom_path(msc_params_->host_ref(),
+        MscStepToGeo calc_geom_path(msc_params,
                                     helper,
                                     par.energy(),
                                     helper.msc_mfp(),
                                     phys.dedx_range());
-        auto gp = calc_geom_path(step_result.true_path);
+        auto gp = calc_geom_path(true_path);
+        gstep.push_back(gp.step);
+        alpha.push_back(gp.alpha);
+
+        MscStep step_result;
+        step_result.true_path = true_path;
         step_result.geom_path = gp.step;
         step_result.alpha = gp.alpha;
-        gstep.push_back(step_result.geom_path);
-        alpha.push_back(step_result.alpha);
+        step_result.is_displaced = displaced;
 
         // No geo->phys conversion needed because we don't test for the
         // geo-limited case here (see the geo->true tests above)
         UrbanMscScatter scatter(
-            msc_params_->host_ref(), helper, par, phys, mat, &geo, step_result);
+            msc_params, helper, par, phys, mat, &geo, step_result);
         MscInteraction sample_result = scatter(rng);
 
         angle.push_back(sample_result.action != Action::unchanged

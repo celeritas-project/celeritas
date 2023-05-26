@@ -30,9 +30,12 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * This is the step limitation algorithm of the Urban model for the e-/e+
- * multiple scattering.
-
+ * Sample a step limit for the Urban MSC model.
+ *
+ * This distribution is to be used for tracks that have nonnegligble steps and
+ * are near the boundary. Otherwise, no displacement or step limiting is
+ * needed.
+ *
  * \note This code performs the same method as in ComputeTruePathLengthLimit
  * of G4UrbanMscModel, as documented in section 8.1.6 of the Geant4 10.7
  * Physics Reference Manual or CERN-OPEN-2006-077 by L. Urban.
@@ -62,7 +65,7 @@ class UrbanMscStepLimit
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
     template<class Engine>
-    inline CELER_FUNCTION MscStep operator()(Engine& rng);
+    inline CELER_FUNCTION real_type operator()(Engine& rng);
 
   private:
     //// DATA ////
@@ -84,8 +87,6 @@ class UrbanMscStepLimit
     real_type phys_step_{};
     // Mean slowing-down distance from current energy to zero
     real_type range_{};
-    // Whether to avoid changing the particle position near geometry boundary
-    bool skip_displacement_{false};
 
     //// HELPER TYPES ////
 
@@ -126,22 +127,10 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
     , range_(physics->dedx_range())
 {
     CELER_EXPECT(safety_ >= 0);
-    CELER_EXPECT(phys_step > 0);
+    CELER_EXPECT(safety_ < helper_.max_step());
+    CELER_EXPECT(phys_step_ > shared_.params.limit_min_fix());
     CELER_EXPECT(phys_step_ <= range_);
-
-    if (phys_step_ < shared_.params.limit_min_fix())
-    {
-        // Very short step: don't displace
-        skip_displacement_ = true;
-    }
-    else if (helper_.max_step() < safety_)
-    {
-        // The upper limit for the linear distance that the track can travel in
-        // one step is closer than the nearest boundary. Displacement should
-        // only occur "near" boundaries.
-        skip_displacement_ = true;
-    }
-    else if (!msc_range_ || on_boundary)
+    if (!msc_range_ || on_boundary)
     {
         MscRange new_range;
         // Initialize MSC range cache on the first step in a volume
@@ -179,17 +168,8 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
  * selected for the interaction by the multiple scattering.
  */
 template<class Engine>
-CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
+CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> real_type
 {
-    if (skip_displacement_)
-    {
-        // Very small step or far from the geometry boundary
-        MscStep result;
-        result.is_displaced = false;
-        result.true_path = phys_step_;
-        return result;
-    }
-
     // Step limitation algorithm: UseSafety (the default)
     real_type limit = range_;
     if (safety_ < range_)
@@ -214,10 +194,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
         true_path = min<real_type>(phys_step_, sampled_limit);
     }
 
-    MscStep result;
-    result.true_path = true_path;
-
-    return result;
+    return true_path;
 }
 
 //---------------------------------------------------------------------------//

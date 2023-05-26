@@ -101,18 +101,40 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
 {
     CELER_EXPECT(msc_params_);
 
-    auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();
+    auto par = track.make_particle_view();
+    detail::UrbanMscHelper msc_helper(msc_params_, par, phys);
 
-    // TODO: limited is set as a side effect of the lambda below: change to be
-    // part of the MSC return result
-    bool limited = false;
+    bool displaced = false;
 
     // Sample multiple scattering step length
-    auto msc_step = [&] {
-        auto par = track.make_particle_view();
-        real_type const safety = (geo.is_on_boundary() ? 0 : geo.find_safety());
-        detail::UrbanMscHelper msc_helper(msc_params_, par, phys);
+    real_type const true_path = [&] {
+        if (step_limit->step <= msc_params_.params.limit_min_fix())
+        {
+            // Very short step: don't displace or limit
+            return step_limit->step;
+        }
+
+        auto geo = track.make_geo_view();
+
+        real_type safety = 0;
+        if (!geo.is_on_boundary())
+        {
+            // Because the MSC behavior changes based on whether the *total*
+            // track range is close to a boundary, rather than whether the next
+            // steps are closer, we need to find the safety distance up to the
+            // potential travel radius of the particle at its current energy.
+            real_type const max_step = msc_helper.max_step();
+            safety = geo.find_safety(max_step);
+            if (safety >= max_step)
+            {
+                // The nearest boundary is further than the maximum expected
+                // travel distance of the particle: don't displace or limit
+                return step_limit->step;
+            }
+        }
+
+        displaced = true;
         detail::UrbanMscStepLimit calc_limit(msc_params_,
                                              msc_helper,
                                              par.energy(),
@@ -121,42 +143,46 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
                                              geo.is_on_boundary(),
                                              safety,
                                              step_limit->step);
-
         auto rng = track.make_rng_engine();
-        auto result = calc_limit(rng);
-        CELER_ASSERT(result.true_path <= step_limit->step);
+        return calc_limit(rng);
+    }();
+    CELER_ASSERT(true_path <= step_limit->step);
 
-        // TODO: use a return value from UrbanMscStepLimit rather than this
-        // comparison
-        limited = (result.true_path < step_limit->step);
+    bool limited = (true_path < step_limit->step);
 
+    // Always apply the step transformation, even if the physical step wasn't
+    // necessarily limited. This transformation will be reversed in
+    // `apply_step` below.
+    auto gp = [&] {
         detail::MscStepToGeo calc_geom_path(msc_params_,
                                             msc_helper,
                                             par.energy(),
                                             msc_helper.msc_mfp(),
                                             phys.dedx_range());
-        auto gp = calc_geom_path(result.true_path);
-        result.geom_path = gp.step;
-        result.alpha = gp.alpha;
+        auto gp = calc_geom_path(true_path);
 
         // Limit geometrical step to 1 MSC MFP
-        if (result.geom_path > msc_helper.msc_mfp())
+        if (gp.step > msc_helper.msc_mfp())
         {
-            result.geom_path = msc_helper.msc_mfp();
+            gp.step = msc_helper.msc_mfp();
             limited = true;
         }
 
-        return result;
+        return gp;
     }();
-    CELER_ASSERT(msc_step.geom_path > 0);
-    CELER_ASSERT(msc_step.true_path >= msc_step.geom_path);
-    track.make_physics_step_view().msc_step(msc_step);
+    CELER_ASSERT(0 < gp.step && gp.step <= true_path);
 
-    // Always apply the step transformation, even if the physical step wasn't
-    // necessarily limited. This transformation will be reversed in
-    // `apply_step` below.
-    step_limit->step = msc_step.geom_path;
+    // Save MSC step for later
+    track.make_physics_step_view().msc_step([&] {
+        MscStep result;
+        result.is_displaced = displaced;
+        result.true_path = true_path;
+        result.geom_path = gp.step;
+        result.alpha = gp.alpha;
+        return result;
+    }());
 
+    step_limit->step = gp.step;
     if (limited)
     {
         // Physical step was further limited by MSC
