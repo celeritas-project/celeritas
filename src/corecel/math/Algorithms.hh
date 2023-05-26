@@ -397,9 +397,10 @@ CELER_CONSTEXPR_FUNCTION T ceil_to_multiple(T n, T m)
 {
     static_assert(std::is_unsigned<T>::value, "Value is not an unsigned int");
     CELER_EXPECT(m > 0);
-    if (n == m)
+    T rem = n % m;
+    if (rem == 0)
         return n;
-    return n + m - (n % m);
+    return n + m - rem;
 }
 
 //---------------------------------------------------------------------------//
