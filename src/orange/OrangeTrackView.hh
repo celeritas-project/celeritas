@@ -103,6 +103,9 @@ class OrangeTrackView
     // Find the distance to the nearest boundary in any direction
     inline CELER_FUNCTION real_type find_safety();
 
+    // Find the distance to the nearest nearby boundary in any direction
+    inline CELER_FUNCTION real_type find_safety(real_type max_step);
+
     // Move to the boundary in preparation for crossing it
     inline CELER_FUNCTION void move_to_boundary();
 
@@ -833,17 +836,24 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
  */
 CELER_FUNCTION real_type OrangeTrackView::find_safety()
 {
+    CELER_EXPECT(!this->is_on_boundary());
     auto lsa = this->make_lsa();
-
-    if (lsa.surf())
-    {
-        // Zero distance to boundary on a surface
-        return real_type{0};
-    }
 
     CELER_ASSERT(lsa.universe() == UniverseId{0});
     auto tracker = this->make_tracker(lsa.universe());
     return tracker.safety(lsa.pos(), lsa.vol());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to the nearest nearby boundary.
+ *
+ * Since we currently support only "simple" safety distances, we can't
+ * eliminate anything by checking only nearby surfaces.
+ */
+CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
+{
+    return this->find_safety();
 }
 
 //---------------------------------------------------------------------------//

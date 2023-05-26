@@ -313,6 +313,7 @@ TEST_F(FourLevelsTest, safety)
 {
     auto geo = this->make_geo_track_view();
     std::vector<real_type> safeties;
+    std::vector<real_type> lim_safeties;
 
     for (auto i : range(11))
     {
@@ -323,6 +324,7 @@ TEST_F(FourLevelsTest, safety)
         {
             geo.find_next_step();
             safeties.push_back(geo.find_safety());
+            lim_safeties.push_back(geo.find_safety(1.5));
         }
     }
 
@@ -338,6 +340,10 @@ TEST_F(FourLevelsTest, safety)
                                                1.1,
                                                3.1};
     EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
+
+    static double const expected_lim_safeties[]
+        = {1.5, 0.9, 0.1, 1.5, 1.5, 1.5, 1.3626933041054, 1.5, 0.1, 1.1, 1.5};
+    EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
 }
 
 //---------------------------------------------------------------------------//

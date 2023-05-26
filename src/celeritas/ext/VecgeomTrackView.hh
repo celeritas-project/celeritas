@@ -106,8 +106,11 @@ class VecgeomTrackView
     // Find the distance to the next boundary, up to and including a step
     inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
-    // Find the safety at the current position
+    // Find the safety at the current position (infinite max)
     inline CELER_FUNCTION real_type find_safety();
+
+    // Find the safety at the current position up to a maximum step distance
+    inline CELER_FUNCTION real_type find_safety(real_type max_step);
 
     // Move to the boundary in preparation for crossing it
     inline CELER_FUNCTION void move_to_boundary();
@@ -347,9 +350,23 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
  */
 CELER_FUNCTION real_type VecgeomTrackView::find_safety()
 {
+    return this->find_safety(vecgeom::kInfLength);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the safety at the current position up to a maximum distance.
+ *
+ * The safety within a step is only needed up to the end of the physics step
+ * length.
+ */
+CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
+{
     CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(!this->is_on_boundary());
+    CELER_EXPECT(max_radius > 0);
     real_type safety = detail::BVHNavigator::ComputeSafety(
-        detail::to_vector(this->pos()), vgstate_);
+        detail::to_vector(this->pos()), vgstate_, max_radius);
 
     // Since the reported "safety" is negative if we've moved slightly beyond
     // the boundary of a solid without crossing it, we must clamp to zero.
