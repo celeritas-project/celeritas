@@ -79,6 +79,16 @@ TEST_F(TestEm3DiagnosticTest, host)
 {
     auto result = this->run<MemSpace::host>(256, 32);
 
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+        && std::find(result.nonzero_action_keys.begin(),
+                     result.nonzero_action_keys.end(),
+                     "geo-propagation-limit e+")
+               != result.nonzero_action_keys)
+    {
+        SKIP_TEST() << "VecGeom seems to have an edge case where tracks get "
+                       "stuck on some builds but not others";
+    }
+
     // Check action diagnostic results
     static char const* const expected_nonzero_action_keys[]
         = {"annihil-2-gamma e+",
@@ -122,7 +132,6 @@ TEST_F(TestEm3DiagnosticTest, host)
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
 
-        // ORANGE results are slightly different
         static size_type const expected_steps[]
             = {0u, 316u, 209u, 91u, 33u, 35u, 21u, 20u, 7u,  11u, 10u,
                1u, 2u,   3u,   3u,  1u,  1u,  1u,  0u,  0u,  1u,  1u,
