@@ -10,6 +10,7 @@
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/InitializedValue.hh"
 
 namespace celeritas
 {
@@ -46,18 +47,16 @@ class Stream
     // Destroy the stream
     ~Stream();
 
-    // Move construct and assign
-    Stream(Stream const&) = delete;
-    Stream& operator=(Stream const&) = delete;
-    Stream(Stream&&) noexcept;
-    Stream& operator=(Stream&&) noexcept;
-    void swap(Stream& other) noexcept;
-
     // Access the stream
     StreamT get() const { return stream_; }
 
   private:
-    StreamT stream_{nullptr};
+    struct StreamFinalizer
+    {
+        void operator()(StreamT&) const;
+    };
+
+    InitializedValue<StreamT, StreamFinalizer> stream_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
