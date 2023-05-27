@@ -4,19 +4,26 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-set(SOURCES
-  demo-geant-integration.cc
-  ActionInitialization.cc
-  DetectorConstruction.cc
-  EventAction.cc
-  GlobalSetup.cc
-  PrimaryGeneratorAction.cc
-  RunAction.cc
-  SensitiveDetector.cc
-  SensitiveHit.cc
-  TrackingAction.cc
-)
-set(LIBRARIES Celeritas::accel)
+if(CELERITAS_USE_Geant4)
+  set(SOURCES
+    demo-geant-integration.cc
+    ActionInitialization.cc
+    DetectorConstruction.cc
+    EventAction.cc
+    GlobalSetup.cc
+    PrimaryGeneratorAction.cc
+    RunAction.cc
+    SensitiveDetector.cc
+    SensitiveHit.cc
+    TrackingAction.cc
+  )
+  set(LIBRARIES Celeritas::accel)
+else()
+  set(SOURCES
+    celer-g4.nogeant.cc
+  )
+  set(LIBRARIES)
+endif()
 
 if(CELERITAS_USE_ROOT)
   function(celeritas_local_root_generate_dictionary name)
@@ -53,7 +60,7 @@ if(CELERITAS_USE_ROOT)
   list(APPEND LIBRARIES ROOT::Tree)
 endif()
 
-add_executable(demo-geant-integration ${SOURCES})
+celeritas_add_executable(demo-geant-integration ${SOURCES})
 celeritas_target_link_libraries(demo-geant-integration
   ${LIBRARIES}
 )
@@ -122,7 +129,7 @@ else()
   set(_props)
   set(_labels app)
 endif()
-if(NOT CELERITAS_USE_HepMC3)
+if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
   list(APPEND _props DISABLED true)
 endif()
 
