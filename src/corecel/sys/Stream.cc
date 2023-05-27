@@ -21,7 +21,7 @@ namespace celeritas
  */
 Stream::Stream()
 {
-    CELER_DEVICE_CALL_PREFIX(StreamCreate(&stream_.value()));
+    CELER_DEVICE_CALL_PREFIX(StreamCreate(&stream_));
 }
 
 //---------------------------------------------------------------------------//
@@ -30,20 +30,11 @@ Stream::Stream()
  */
 Stream::~Stream()
 {
-    StreamFinalizer()(stream_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Destroy the stream.
- */
-void Stream::StreamFinalizer::operator()(StreamT& stream) const
-{
-    if (stream != nullptr)
+    if (stream_ != nullptr)
     {
         try
         {
-            CELER_DEVICE_CALL_PREFIX(StreamDestroy(stream));
+            CELER_DEVICE_CALL_PREFIX(StreamDestroy(stream_));
         }
         catch (RuntimeError const& e)
         {
@@ -54,6 +45,35 @@ void Stream::StreamFinalizer::operator()(StreamT& stream) const
             std::cerr << "Failed to destroy stream" << std::endl;
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move construct.
+ */
+Stream::Stream(Stream&& other) noexcept
+{
+    this->swap(other);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move assign.
+ */
+Stream& Stream::operator=(Stream&& other) noexcept
+{
+    Stream temp(std::move(other));
+    this->swap(temp);
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Swap.
+ */
+void Stream::swap(Stream& other) noexcept
+{
+    std::swap(stream_, other.stream_);
 }
 
 //---------------------------------------------------------------------------//
