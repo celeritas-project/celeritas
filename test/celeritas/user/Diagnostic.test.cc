@@ -83,10 +83,10 @@ TEST_F(TestEm3DiagnosticTest, host)
         && std::find(result.nonzero_action_keys.begin(),
                      result.nonzero_action_keys.end(),
                      "geo-propagation-limit e+")
-               != result.nonzero_action_keys)
+               != result.nonzero_action_keys.end())
     {
-        SKIP_TEST() << "VecGeom seems to have an edge case where tracks get "
-                       "stuck on some builds but not others";
+        GTEST_SKIP() << "VecGeom seems to have an edge case where tracks get "
+                        "stuck on some builds but not others";
     }
 
     // Check action diagnostic results
