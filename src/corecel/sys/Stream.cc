@@ -19,18 +19,9 @@ namespace celeritas
 /*!
  * Construct by creating a stream.
  */
-Stream::Stream() : Stream(true) {}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct by optionally creating a stream or using the default stream.
- */
-Stream::Stream(bool create_stream) : is_default_stream_(!create_stream)
+Stream::Stream()
 {
-    if (!is_default_stream_)
-    {
-        CELER_DEVICE_CALL_PREFIX(StreamCreate(&stream_));
-    }
+    CELER_DEVICE_CALL_PREFIX(StreamCreate(&stream_));
 }
 
 //---------------------------------------------------------------------------//
@@ -39,7 +30,7 @@ Stream::Stream(bool create_stream) : is_default_stream_(!create_stream)
  */
 Stream::~Stream()
 {
-    if (!is_default_stream_)
+    if (stream_ != nullptr)
     {
         try
         {
@@ -82,7 +73,6 @@ Stream& Stream::operator=(Stream&& other) noexcept
  */
 void Stream::swap(Stream& other) noexcept
 {
-    std::swap(is_default_stream_, other.is_default_stream_);
     std::swap(stream_, other.stream_);
 }
 

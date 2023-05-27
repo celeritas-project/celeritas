@@ -111,7 +111,7 @@ class Device
     MapStrInt const& extra() const { return extra_; }
 
     // Number of streams allocated
-    unsigned int num_streams() const;
+    StreamId::size_type num_streams() const;
 
     // Allocate the given number of streams
     void create_streams(unsigned int num_streams) const;

@@ -46,7 +46,7 @@ class StreamStorage
 
   private:
     VecStream streams_;
-    Stream default_stream_{/* create_stream = */ false};
+    Stream default_stream_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

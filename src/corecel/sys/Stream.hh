@@ -15,9 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-struct mockStream_t
-{
-};
+struct MockStream_st;
 #endif
 
 //---------------------------------------------------------------------------//
@@ -34,7 +32,7 @@ class Stream
 #if CELER_USE_DEVICE
     using StreamT = CELER_DEVICE_PREFIX(Stream_t);
 #else
-    using StreamT = mockStream_t*;
+    using StreamT = MockStream_st*;
 #endif
     //!@}
 
@@ -42,8 +40,8 @@ class Stream
     // Construct by creating a stream
     Stream();
 
-    // Construct by either creating a stream or using the default stream
-    explicit Stream(bool create_stream);
+    // Construct with the default stream
+    Stream(std::nullptr_t) {}
 
     // Destroy the stream
     ~Stream();
@@ -59,8 +57,7 @@ class Stream
     StreamT get() const { return stream_; }
 
   private:
-    bool is_default_stream_{true};
-    StreamT stream_{0};
+    StreamT stream_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

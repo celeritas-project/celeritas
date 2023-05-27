@@ -61,16 +61,7 @@ Device& global_device()
         // Check that CUDA and Celeritas device IDs are consistent
         int cur_id = -1;
         CELER_DEVICE_CALL_PREFIX(GetDevice(&cur_id));
-        if (cur_id != device.device_id())
-        {
-            CELER_LOG(warning)
-                << "CUDA active device ID unexpectedly changed from "
-                << device.device_id() << " to " << cur_id;
-            std::lock_guard<std::mutex> scoped_lock{device_setter_mutex()};
-            auto num_streams = device.num_streams();
-            device = Device(cur_id);
-            device.create_streams(num_streams);
-        }
+        CELER_ASSERT(cur_id == device.device_id());
     }
 
     return device;
@@ -231,7 +222,7 @@ Device::Device(int id)
 /*!
  * Number of streams allocated.
  */
-unsigned int Device::num_streams() const
+StreamId::size_type Device::num_streams() const
 {
     CELER_EXPECT(streams_);
 
