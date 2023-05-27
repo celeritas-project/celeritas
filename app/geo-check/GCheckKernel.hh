@@ -68,10 +68,10 @@ GCheckOutput run_cpu(SPConstGeo const& geo_params,
 //! Run tracking on the GPU
 GCheckOutput run_gpu(GCheckInput const& init);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline GCheckOutput run_gpu(GCheckInput const&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

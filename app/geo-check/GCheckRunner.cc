@@ -7,16 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "GCheckRunner.hh"
 
+#include <cmath>
 #include <iostream>
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <math.h>
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
-#include "orange/OrangeData.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/Device.hh"
 #include "celeritas/geo/GeoData.hh"
 
 #include "GCheckKernel.hh"
@@ -29,8 +30,8 @@ namespace geo_check
 /*!
  * Constructor, takes ownership of SPConstGeo object received
  */
-GCheckRunner::GCheckRunner(SPConstGeo const& geometry, int max_steps, bool cuda)
-    : geo_params_(std::move(geometry)), max_steps_(max_steps), use_cuda_(cuda)
+GCheckRunner::GCheckRunner(SPConstGeo const& geometry, int max_steps)
+    : geo_params_(std::move(geometry)), max_steps_(max_steps)
 {
     CELER_EXPECT(geo_params_);
     CELER_EXPECT(max_steps > 0);
@@ -46,15 +47,15 @@ void GCheckRunner::operator()(GeoTrackInitializer const* gti) const
 
     CELER_EXPECT(gti);
 
-    // run on the CPU
+    // Run on the CPU
     CELER_LOG(status) << "Propagating track(s) on CPU";
     auto cpudata = run_cpu(geo_params_, gti, this->max_steps_);
 
-    // skip GPU if not available
-    if (!use_cuda_)
+    // Skip GPU if not available
+    if (!celeritas::device())
         return;
 
-    // run on the GPU
+    // Run on the GPU
     GCheckInput input;
     input.init.push_back(*gti);
     input.max_steps = this->max_steps_;
@@ -75,7 +76,7 @@ void GCheckRunner::operator()(GeoTrackInitializer const* gti) const
         for (size_type i = 0; i < cpudata.distances.size(); ++i)
         {
             if (cpudata.ids[i] != gpudata.ids[i]
-                || fabs(cpudata.distances[i] - gpudata.distances[i]) > 1.0e-12)
+                || !soft_equal(cpudata.distances[i], gpudata.distances[i]))
             {
                 std::cout
                     << "compare i=" << i << ": ids=" << cpudata.ids[i] << ", "

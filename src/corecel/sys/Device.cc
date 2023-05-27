@@ -23,6 +23,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 
 #include "Environment.hh"
+#include "MpiCommunicator.hh"
 #include "Stream.hh"
 #include "detail/StreamStorage.hh"
 
@@ -272,7 +273,7 @@ Device const& device()
  * Activate the given device.
  *
  * The given device must be set (true result) unless no device has yet been
- * enabled -- this allows Device::from_round_robin to create "null" devices
+ * enabled -- this allows \c make_device to create "null" devices
  * when CUDA is disabled.
  *
  * \note This function is thread safe, and even though the global device is
@@ -301,6 +302,31 @@ void activate_device(Device&& device)
 
     // Call cudaFree to wake up the device, making other timers more accurate
     CELER_DEVICE_CALL_PREFIX(Free(nullptr));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the first device if available, when not using MPI.
+ */
+void activate_device()
+{
+    if (Device::num_devices() > 0)
+    {
+        return activate_device(Device(0));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize device in a round-robin fashion from a communicator.
+ */
+void activate_device(MpiCommunicator const& comm)
+{
+    int num_devices = Device::num_devices();
+    if (num_devices > 0)
+    {
+        return activate_device(Device(comm.rank() % num_devices));
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    celeritas::activate_device(Device(0));
+    celeritas::activate_device();
 
     if (!celeritas::device())
     {

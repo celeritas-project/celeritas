@@ -55,6 +55,20 @@ CMake configuration utility functions for Celeritas.
   the ``Celeritas::`` aliases, and is generated into the ``lib/`` build
   directory.
 
+.. command:: celeritas_add_executable
+
+  Create an executable and install it::
+
+    celeritas_add_executable(<target> [<source> ...])
+
+  The ``<target>`` is a unique identifier for the executable target. The actual
+  executable name may end up with an .exe suffix (e.g. if it's windows). The
+  executable will be built into the top-level ``bin`` directory, so all
+  executables will sit side-by-side before installing.
+
+  The ``<source>`` arguments are passed to CMake's builtin ``add_executable``
+  command.
+
 .. command:: celeritas_configure_file
 
   Configure to the build "include" directory for later installation::
@@ -237,7 +251,7 @@ function(celeritas_add_library target)
   endif()
 
   # Build all targets in lib/
-  set_target_properties(${_targets} PROPERTIES ${_props}
+  set_target_properties(${_targets} PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
     LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
   )
@@ -248,6 +262,20 @@ function(celeritas_add_library target)
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     COMPONENT runtime
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_add_executable target)
+  add_executable("${target}" ${ARGN})
+  install(TARGETS "${target}"
+    EXPORT celeritas-targets
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    COMPONENT runtime
+  )
+  set_target_properties("${target}" PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CELERITAS_RUNTIME_OUTPUT_DIRECTORY}"
   )
 endfunction()
 
