@@ -19,25 +19,25 @@ through a macro file. The setup options, aside from the detector geometry file
 and event input file, map to options in the :class:`celeritas::SetupOptions`
 class.
 
-.. literalinclude:: ../../app/demo-geant-integration/demo-geant-integration.cc
+.. literalinclude:: ../../app/celer-g4/celer-g4.cc
    :start-at: #include
 
-.. literalinclude:: ../../app/demo-geant-integration/GlobalSetup.hh
+.. literalinclude:: ../../app/celer-g4/GlobalSetup.hh
    :start-at: #pragma
 
 User initialization
 -------------------
 
-.. literalinclude:: ../../app/demo-geant-integration/DetectorConstruction.hh
+.. literalinclude:: ../../app/celer-g4/DetectorConstruction.hh
    :start-at: #pragma
 
-.. literalinclude:: ../../app/demo-geant-integration/DetectorConstruction.cc
+.. literalinclude:: ../../app/celer-g4/DetectorConstruction.cc
    :start-at: #include
 
-.. literalinclude:: ../../app/demo-geant-integration/ActionInitialization.hh
+.. literalinclude:: ../../app/celer-g4/ActionInitialization.hh
    :start-at: #pragma
 
-.. literalinclude:: ../../app/demo-geant-integration/ActionInitialization.cc
+.. literalinclude:: ../../app/celer-g4/ActionInitialization.cc
    :start-at: #include
 
 User actions
@@ -46,25 +46,25 @@ User actions
 The user actions are responsible for setting up Celeritas (using the
 Acceleritas interface) and passing tracks to be offloaded.
 
-.. literalinclude:: ../../app/demo-geant-integration/PrimaryGeneratorAction.hh
+.. literalinclude:: ../../app/celer-g4/PrimaryGeneratorAction.hh
    :start-at: #pragma
 
-.. literalinclude:: ../../app/demo-geant-integration/RunAction.hh
+.. literalinclude:: ../../app/celer-g4/RunAction.hh
    :start-at: #pragma
 
-.. literalinclude:: ../../app/demo-geant-integration/RunAction.cc
+.. literalinclude:: ../../app/celer-g4/RunAction.cc
    :start-at: #include
 
-.. literalinclude:: ../../app/demo-geant-integration/EventAction.hh
+.. literalinclude:: ../../app/celer-g4/EventAction.hh
    :start-at: #pragma
 
-.. literalinclude:: ../../app/demo-geant-integration/EventAction.cc
+.. literalinclude:: ../../app/celer-g4/EventAction.cc
    :start-at: #include
 
-.. literalinclude:: ../../app/demo-geant-integration/TrackingAction.hh
+.. literalinclude:: ../../app/celer-g4/TrackingAction.hh
    :start-at: #pragma
 
-.. literalinclude:: ../../app/demo-geant-integration/TrackingAction.cc
+.. literalinclude:: ../../app/celer-g4/TrackingAction.cc
    :start-at: #include
 
 Sensitive Detectors
@@ -75,12 +75,12 @@ as the union of requirements over all user Geant4 sensitive detectors.  The
 sensitive detector here is pretty generic and requires only the touchable, the
 energy deposition, and the time.
 
-.. literalinclude:: ../../app/demo-geant-integration/SensitiveDetector.hh
+.. literalinclude:: ../../app/celer-g4/SensitiveDetector.hh
    :start-at: #pragma
 
-.. literalinclude:: ../../app/demo-geant-integration/SensitiveDetector.cc
+.. literalinclude:: ../../app/celer-g4/SensitiveDetector.cc
    :start-at: #include
 
-.. literalinclude:: ../../app/demo-geant-integration/SensitiveHit.hh
+.. literalinclude:: ../../app/celer-g4/SensitiveHit.hh
    :start-at: #pragma
 
