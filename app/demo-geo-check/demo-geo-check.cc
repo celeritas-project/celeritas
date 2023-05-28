@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geo-check.cc
+//! \file demo-geo-check/demo-geo-check.cc
 //---------------------------------------------------------------------------//
 
 #include <cstdlib>

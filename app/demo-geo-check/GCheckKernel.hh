@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GCheckKernel.hh
+//! \file demo-geo-check/GCheckKernel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
