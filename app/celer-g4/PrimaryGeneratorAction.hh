@@ -3,13 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/PrimaryGeneratorAction.hh
+//! \file celer-g4/PrimaryGeneratorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <G4VUserPrimaryGeneratorAction.hh>
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -29,4 +31,5 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

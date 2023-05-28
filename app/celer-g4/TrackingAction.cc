@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/TrackingAction.cc
+//! \file celer-g4/TrackingAction.cc
 //---------------------------------------------------------------------------//
 #include "TrackingAction.hh"
 
@@ -21,7 +21,9 @@
 #include "corecel/Macros.hh"
 #include "accel/ExceptionConverter.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -60,12 +62,12 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
         != std::end(allowed_particles))
     {
         // Celeritas is transporting this track
-        celeritas::ExceptionConverter call_g4exception{"celer0003",
-                                                       params_.get()};
+        ExceptionConverter call_g4exception{"celer0003", params_.get()};
         CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

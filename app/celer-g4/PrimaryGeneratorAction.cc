@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/PrimaryGeneratorAction.cc
+//! \file celer-g4/PrimaryGeneratorAction.cc
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
@@ -15,9 +15,9 @@
 
 #include "GlobalSetup.hh"
 
-using celeritas::HepMC3PrimaryGenerator;
-
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 namespace
 {
@@ -30,7 +30,7 @@ namespace
  */
 HepMC3PrimaryGenerator& shared_reader()
 {
-    static celeritas::HepMC3PrimaryGenerator reader{
+    static HepMC3PrimaryGenerator reader{
         GlobalSetup::Instance()->GetEventFile()};
     return reader;
 }
@@ -54,10 +54,11 @@ int PrimaryGeneratorAction::NumEvents()
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    celeritas::ExceptionConverter call_g4exception{"celer0000"};
+    ExceptionConverter call_g4exception{"celer0000"};
     CELER_TRY_HANDLE(shared_reader().GeneratePrimaryVertex(event),
                      call_g4exception);
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

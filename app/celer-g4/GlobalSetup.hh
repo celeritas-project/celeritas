@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/GlobalSetup.hh
+//! \file celer-g4/GlobalSetup.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,7 +17,9 @@
 
 class G4GenericMessenger;
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -25,12 +27,6 @@ namespace demo_geant
  */
 class GlobalSetup
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using SetupOptions = celeritas::SetupOptions;
-    //!@}
-
   public:
     // Return non-owning pointer to a singleton
     static GlobalSetup* Instance();
@@ -45,7 +41,7 @@ class GlobalSetup
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
-    celeritas::SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
+    SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
 
     //! Get an immutable reference to the setup options
     std::shared_ptr<SetupOptions const> GetSetupOptions() const
@@ -68,7 +64,7 @@ class GlobalSetup
     ~GlobalSetup();
 
     // Data
-    std::shared_ptr<celeritas::SetupOptions> options_;
+    std::shared_ptr<SetupOptions> options_;
     std::string geometry_file_;
     std::string event_file_;
     int root_buffer_size_{128000};
@@ -80,4 +76,5 @@ class GlobalSetup
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

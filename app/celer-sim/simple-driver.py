@@ -100,7 +100,7 @@ inp = {
 with open(f'{run_name}.inp.json', 'w') as f:
     json.dump(inp, f, indent=1)
 
-exe = environ.get('CELERITAS_DEMO_EXE', './demo-loop')
+exe = environ.get('CELERITAS_DEMO_EXE', './celer-sim')
 print("Running", exe, file=stderr)
 result = subprocess.run([exe, '-'],
                         input=json.dumps(inp).encode(),

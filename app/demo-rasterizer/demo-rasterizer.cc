@@ -26,12 +26,13 @@
 
 #include "RDemoRunner.hh"
 
-using namespace celeritas;
 using std::cerr;
 using std::cout;
 using std::endl;
 
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -71,10 +72,9 @@ void run(std::istream& is)
 
     // Get geometry names
     std::vector<std::string> vol_names;
-    for (auto vol_id : celeritas::range(geo_params->num_volumes()))
+    for (auto vol_id : range(geo_params->num_volumes()))
     {
-        vol_names.push_back(
-            geo_params->id_to_label(celeritas::VolumeId(vol_id)).name);
+        vol_names.push_back(geo_params->id_to_label(VolumeId(vol_id)).name);
     }
 
     // Write image
@@ -98,8 +98,8 @@ void run(std::istream& is)
             "runtime",
             {
                 {"version", std::string(celeritas_version)},
-                {"device", celeritas::device()},
-                {"kernels", celeritas::kernel_registry()},
+                {"device", device()},
+                {"kernels", kernel_registry()},
             },
         },
     };
@@ -107,7 +107,8 @@ void run(std::istream& is)
     CELER_LOG(info) << "Exported image to " << out_filename;
 }
 
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
@@ -153,9 +154,9 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    celeritas::activate_device();
+    activate_device();
 
-    if (!celeritas::device())
+    if (!device())
     {
         CELER_LOG(critical) << "CUDA capability is disabled";
         return EXIT_FAILURE;

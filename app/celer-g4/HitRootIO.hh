@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/HitRootIO.hh
+//! \file celer-g4/HitRootIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -22,7 +22,9 @@ class TTree;
 class TBranch;
 class G4Event;
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -97,4 +99,5 @@ inline void HitRootIO::Close()
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

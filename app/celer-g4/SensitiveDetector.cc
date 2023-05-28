@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/SensitiveDetector.cc
+//! \file celer-g4/SensitiveDetector.cc
 //---------------------------------------------------------------------------//
 #include "SensitiveDetector.hh"
 
@@ -17,7 +17,9 @@
 
 #include "corecel/Assert.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 SensitiveDetector::SensitiveDetector(std::string name)
@@ -80,4 +82,5 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

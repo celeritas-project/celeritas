@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/GlobalSetup.cc
+//! \file celer-g4/GlobalSetup.cc
 //---------------------------------------------------------------------------//
 #include "GlobalSetup.hh"
 
@@ -14,7 +14,9 @@
 #include "corecel/sys/Device.hh"
 #include "accel/AlongStepFactory.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -72,8 +74,7 @@ GlobalSetup::GlobalSetup()
         auto& cmd = messenger_->DeclareProperty("maxNumTracks",
                                                 options_->max_num_tracks);
         cmd.SetGuidance("Set the maximum number of track slots");
-        options_->max_num_tracks
-            = celeritas::Device::num_devices() > 0 ? 524288 : 64;
+        options_->max_num_tracks = Device::num_devices() > 0 ? 524288 : 64;
         cmd.SetDefaultValue(std::to_string(options_->max_num_tracks));
     }
     {
@@ -120,7 +121,7 @@ GlobalSetup::GlobalSetup()
 
     // At setup time, get the field strength (native G4units)
     options_->make_along_step
-        = celeritas::UniformAlongStepFactory([this] { return field_; });
+        = UniformAlongStepFactory([this] { return field_; });
 }
 
 //---------------------------------------------------------------------------//
@@ -137,4 +138,5 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
 GlobalSetup::~GlobalSetup() = default;
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

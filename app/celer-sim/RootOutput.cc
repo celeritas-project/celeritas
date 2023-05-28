@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/RootOutput.cc
+//! \file celer-sim/RootOutput.cc
 //---------------------------------------------------------------------------//
 #include "RootOutput.hh"
 
@@ -22,14 +22,15 @@
 #    include "RunnerInputIO.json.hh"
 #endif
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
  * Store input information to the ROOT MC truth output file.
  */
-void write_to_root(RunnerInput const& cargs,
-                   celeritas::RootFileManager* root_manager)
+void write_to_root(RunnerInput const& cargs, RootFileManager* root_manager)
 {
     CELER_EXPECT(cargs);
     CELER_EXPECT(root_manager);
@@ -56,8 +57,7 @@ void write_to_root(RunnerInput const& cargs,
  * other parameters are needed for future debugging/analyses, this function can
  * easily be expanded.
  */
-void write_to_root(celeritas::CoreParams const& core_params,
-                   celeritas::RootFileManager* root_manager)
+void write_to_root(CoreParams const& core_params, RootFileManager* root_manager)
 {
     auto const& action_reg = *core_params.action_reg();
 
@@ -67,9 +67,9 @@ void write_to_root(celeritas::CoreParams const& core_params,
     // Store labels
     std::vector<std::string> action_labels;
     action_labels.resize(action_reg.num_actions());
-    for (auto const id : celeritas::range(action_reg.num_actions()))
+    for (auto const id : range(action_reg.num_actions()))
     {
-        action_labels[id] = action_reg.id_to_label(celeritas::ActionId{id});
+        action_labels[id] = action_reg.id_to_label(ActionId{id});
     }
 
     // Set up action labels branch, fill the TTree and write it
@@ -86,4 +86,5 @@ void write_to_root(celeritas::CoreParams const& core_params,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

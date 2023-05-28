@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/SensitiveHit.cc
+//! \file celer-g4/SensitiveHit.cc
 //---------------------------------------------------------------------------//
 #include "SensitiveHit.hh"
 
@@ -11,7 +11,9 @@
 
 #include "corecel/Macros.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -37,4 +39,5 @@ auto SensitiveHit::allocator() -> HitAllocator&
 SensitiveHit::SensitiveHit(HitData const& data) : G4VHit(), data_{data} {}
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

@@ -22,9 +22,9 @@
 
 #include "GCheckKernel.hh"
 
-using namespace celeritas;
-
-namespace geo_check
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -52,7 +52,7 @@ void GCheckRunner::operator()(GeoTrackInitializer const* gti) const
     auto cpudata = run_cpu(geo_params_, gti, this->max_steps_);
 
     // Skip GPU if not available
-    if (!celeritas::device())
+    if (!device())
         return;
 
     // Run on the GPU
@@ -91,4 +91,5 @@ void GCheckRunner::operator()(GeoTrackInitializer const* gti) const
 }
 //---------------------------------------------------------------------------//
 
-}  // namespace geo_check
+}  // namespace app
+}  // namespace celeritas

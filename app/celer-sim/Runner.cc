@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/Runner.cc
+//! \file celer-sim/Runner.cc
 //---------------------------------------------------------------------------//
 #include "Runner.hh"
 
@@ -62,9 +62,9 @@
 #include "RunnerInput.hh"
 #include "Transporter.hh"
 
-using namespace celeritas;
-
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -144,13 +144,13 @@ void Runner::setup_globals(RunnerInput const& inp) const
 {
     if (inp.cuda_heap_size != RunnerInput::unspecified)
     {
-        celeritas::set_cuda_heap_size(inp.cuda_heap_size);
+        set_cuda_heap_size(inp.cuda_heap_size);
     }
     if (inp.cuda_stack_size != RunnerInput::unspecified)
     {
-        celeritas::set_cuda_stack_size(inp.cuda_stack_size);
+        set_cuda_stack_size(inp.cuda_stack_size);
     }
-    celeritas::environment().merge(inp.environ);
+    environment().merge(inp.environ);
 }
 
 //---------------------------------------------------------------------------//
@@ -474,7 +474,7 @@ auto Runner::build_transporter(StreamId stream) -> UPTransporterBase&
 
             if (use_device_)
             {
-                CELER_VALIDATE(celeritas::device(),
+                CELER_VALIDATE(device(),
                                << "CUDA device is unavailable but GPU run was "
                                   "requested");
                 return std::make_unique<Transporter<MemSpace::device>>(
@@ -512,7 +512,7 @@ int Runner::get_num_streams(RunnerInput const& inp)
         return 1;
     }
 
-    std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
+    std::string const& nt_str = getenv("OMP_NUM_THREADS");
     if (!nt_str.empty())
     {
         auto num_threads = std::stoi(nt_str);
@@ -527,4 +527,5 @@ int Runner::get_num_streams(RunnerInput const& inp)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

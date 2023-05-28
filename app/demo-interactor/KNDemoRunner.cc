@@ -12,9 +12,9 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/random/RngParams.hh"
 
-using namespace celeritas;
-
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -32,7 +32,7 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
     CELER_EXPECT(launch_params_.threads_per_block > 0);
 
     // Set up KN interactor data;
-    namespace pdg = celeritas::pdg;
+    namespace pdg = pdg;
     kn_data_.ids.action = ActionId{0};  // Unused but needed for error check
     kn_data_.ids.electron = pparams_->find(pdg::electron());
     kn_data_.ids.gamma = pparams_->find(pdg::gamma());
@@ -84,7 +84,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     resize(&detector_states, detector_params, args.num_tracks);
 
     // Construct data to device data
-    ParamsDeviceRef params;
+    DeviceCRef<ParamsData> params;
     params.particle = pparams_->device_ref();
     params.tables = xsparams_->device_ref();
     params.kn_interactor = kn_data_;
@@ -114,7 +114,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     {
         // Launch the kernel
         Stopwatch elapsed_time;
-        demo_interactor::iterate(launch_params_, params, state);
+        celeritas::app::iterate(launch_params_, params, state);
 
         // Save the wall time
         if (launch_params_.sync)
@@ -123,11 +123,11 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
         }
 
         // Process detector hits and clear secondaries
-        demo_interactor::cleanup(launch_params_, params, state);
+        celeritas::app::cleanup(launch_params_, params, state);
 
         // Calculate and save number of living particles
         result.alive.push_back(
-            demo_interactor::reduce_alive(launch_params_, alive.device_ref()));
+            celeritas::app::reduce_alive(launch_params_, alive.device_ref()));
 
         if (--remaining_steps == 0)
         {
@@ -138,7 +138,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 
     // Copy integrated energy deposition
     result.edep.resize(detector_params.tally_grid.size);
-    demo_interactor::finalize(params, state, make_span(result.edep));
+    celeritas::app::finalize(params, state, make_span(result.edep));
 
     // Store total time
     result.total_time = total_time();
@@ -147,4 +147,5 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

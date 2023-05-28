@@ -17,10 +17,11 @@
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
-using namespace celeritas;
 using thrust::raw_pointer_cast;
 
-namespace geo_check
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 // KERNELS
@@ -36,13 +37,12 @@ __global__ void gcheck_kernel(const GeoParamsCRefDevice params,
     CELER_EXPECT(params && state);
     CELER_EXPECT(max_steps > 0);
 
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= state.size())
         return;
 
-    celeritas::GeoTrackView geo(
-        params, state, TrackSlotId{tid.unchecked_get()});
-    celeritas::LinearPropagator propagate(&geo);
+    GeoTrackView geo(params, state, TrackSlotId{tid.unchecked_get()});
+    LinearPropagator propagate(&geo);
 
     // Start track at the leftmost point in the requested direction
     geo = init[tid.unchecked_get()];
@@ -108,4 +108,5 @@ GCheckOutput run_gpu(GCheckInput const& input)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace geo_check
+}  // namespace app
+}  // namespace celeritas

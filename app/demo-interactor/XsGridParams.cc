@@ -21,23 +21,25 @@
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/grid/XsGridData.hh"
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 namespace
 {
-bool is_same_log_grid(celeritas::UniformGridData const& grid,
-                      std::vector<celeritas::real_type> const& energy)
+bool is_same_log_grid(UniformGridData const& grid,
+                      std::vector<real_type> const& energy)
 {
-    celeritas::SoftEqual<> soft_eq(1e-8);
-    celeritas::UniformGrid log_energy(grid);
+    SoftEqual<> soft_eq(1e-8);
+    UniformGrid log_energy(grid);
     if (log_energy.size() != energy.size())
     {
         return false;
     }
-    for (auto i : celeritas::range(energy.size()))
+    for (auto i : range(energy.size()))
     {
         if (!soft_eq(std::log(energy[i]), log_energy[i]))
             return false;
@@ -59,14 +61,14 @@ XsGridParams::XsGridParams(Input const& input)
     CELER_EXPECT(std::all_of(
         input.xs.begin(), input.xs.end(), [](real_type v) { return v >= 0; }));
 
-    TableData<celeritas::Ownership::value, celeritas::MemSpace::host> host_data;
+    TableData<Ownership::value, MemSpace::host> host_data;
 
     // Construct cross section
-    celeritas::XsGridData& host_xs = host_data.xs;
-    host_xs.log_energy = celeritas::UniformGridData::from_bounds(
-        std::log(input.energy.front()),
-        std::log(input.energy.back()),
-        input.energy.size());
+    XsGridData& host_xs = host_data.xs;
+    host_xs.log_energy
+        = UniformGridData::from_bounds(std::log(input.energy.front()),
+                                       std::log(input.energy.back()),
+                                       input.energy.size());
     CELER_ASSERT(is_same_log_grid(host_xs.log_energy, input.energy));
     host_xs.prime_index = std::find(input.energy.begin(),
                                     input.energy.end(),
@@ -76,8 +78,9 @@ XsGridParams::XsGridParams(Input const& input)
     host_xs.value = make_builder(&host_data.reals)
                         .insert_back(input.xs.begin(), input.xs.end());
 
-    data_ = celeritas::CollectionMirror<TableData>(std::move(host_data));
+    data_ = CollectionMirror<TableData>(std::move(host_data));
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/demo-loop.cc
+//! \file celer-sim/celer-sim.cc
 //---------------------------------------------------------------------------//
 #include <cstdlib>
 #include <exception>
@@ -45,7 +45,9 @@
 #    include "RunnerInputIO.json.hh"
 #endif
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 namespace
 {
@@ -66,15 +68,9 @@ int get_openmp_thread()
 /*!
  * Run, launch, and output.
  */
-void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
+void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
     CELER_EXPECT(is);
-    using celeritas::EventId;
-    using celeritas::OutputInterface;
-    using celeritas::OutputInterfaceAdapter;
-    using celeritas::ScopedMem;
-    using celeritas::size_type;
-    using celeritas::StreamId;
 
     ScopedMem record_mem("demo_loop.run");
 
@@ -89,7 +85,7 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
         OutputInterface::Category::input, "*", run_input));
 
     // Create runner and save setup time
-    celeritas::Stopwatch get_setup_time;
+    Stopwatch get_setup_time;
     Runner run_stream(*run_input, output);
     SimulationResult result;
     result.setup_time = get_setup_time();
@@ -99,22 +95,22 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
     size_type num_streams = run_stream.num_streams();
     if (run_input->use_device && !run_input->default_stream && num_streams > 1)
     {
-        CELER_ASSERT(celeritas::device());
-        celeritas::device().create_streams(num_streams);
+        CELER_ASSERT(device());
+        device().create_streams(num_streams);
     }
 
-    celeritas::Stopwatch get_transport_time;
+    Stopwatch get_transport_time;
     if (run_input->merge_events)
     {
-        celeritas::ScopedDeviceProfiling profile_this;
+        ScopedDeviceProfiling profile_this;
 
         // Run all events simultaneously on a single stream
         result.events.front() = run_stream();
     }
     else
     {
-        celeritas::MultiExceptionHandler capture_exception;
-        celeritas::ScopedDeviceProfiling profile_this;
+        MultiExceptionHandler capture_exception;
+        ScopedDeviceProfiling profile_this;
 
 #ifdef _OPENMP
         // Set the maximum number of nested parallel regions
@@ -132,14 +128,15 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
                                  StreamId(get_openmp_thread()), EventId(event)),
                              capture_exception);
         }
-        celeritas::log_and_rethrow(std::move(capture_exception));
+        log_and_rethrow(std::move(capture_exception));
     }
     result.total_time = get_transport_time();
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }
 //---------------------------------------------------------------------------//
 }  // namespace
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
@@ -185,7 +182,7 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    celeritas::activate_device(comm);
+    activate_device(comm);
 
     std::string filename = args[1];
     std::ifstream infile;
@@ -213,7 +210,7 @@ int main(int argc, char* argv[])
     int return_code = EXIT_SUCCESS;
     try
     {
-        demo_loop::run(instream, output);
+        celeritas::app::run(instream, output);
     }
     catch (std::exception const& e)
     {

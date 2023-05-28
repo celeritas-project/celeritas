@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/RunnerInput.hh
+//! \file celer-sim/RunnerInput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,7 +18,9 @@ class RootFileManager;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 struct RunnerInput;
@@ -26,27 +28,26 @@ struct RunnerInput;
 //---------------------------------------------------------------------------//
 
 // Store RunnerInput to ROOT file when ROOT is available
-void write_to_root(RunnerInput const& cargs,
-                   celeritas::RootFileManager* root_manager);
+void write_to_root(RunnerInput const& cargs, RootFileManager* root_manager);
 
 // Store CoreParams to ROOT file when ROOT is available
-void write_to_root(celeritas::CoreParams const& core_params,
-                   celeritas::RootFileManager* root_manager);
+void write_to_root(CoreParams const& core_params,
+                   RootFileManager* root_manager);
 
 //---------------------------------------------------------------------------//
 
 #if !CELERITAS_USE_ROOT
-inline void write_to_root(RunnerInput const&, celeritas::RootFileManager*)
+inline void write_to_root(RunnerInput const&, RootFileManager*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void
-write_to_root(celeritas::CoreParams const&, celeritas::RootFileManager*)
+inline void write_to_root(CoreParams const&, RootFileManager*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

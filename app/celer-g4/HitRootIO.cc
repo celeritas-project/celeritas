@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/HitRootIO.cc
+//! \file celer-g4/HitRootIO.cc
 //---------------------------------------------------------------------------//
 #include "HitRootIO.hh"
 
@@ -27,7 +27,9 @@
 #include "GlobalSetup.hh"
 #include "SensitiveHit.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -44,7 +46,7 @@ HitRootIO::HitRootIO()
 
     if (file_name_.empty())
     {
-        file_name_ = "demo-geant-integration.root";
+        file_name_ = "celer-g4.root";
     }
 
     if (G4Threading::IsWorkerThread())
@@ -180,8 +182,7 @@ void HitRootIO::Close()
  */
 void HitRootIO::Merge()
 {
-    auto const nthreads
-        = celeritas::get_num_threads(*G4RunManager::GetRunManager());
+    auto const nthreads = get_num_threads(*G4RunManager::GetRunManager());
     std::vector<TFile*> files;
     std::vector<TTree*> trees;
     std::unique_ptr<TList> list(new TList);
@@ -213,4 +214,5 @@ void HitRootIO::Merge()
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

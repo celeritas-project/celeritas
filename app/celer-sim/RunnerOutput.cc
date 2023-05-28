@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/RunnerOutput.cc
+//! \file celer-sim/RunnerOutput.cc
 //---------------------------------------------------------------------------//
 #include "RunnerOutput.hh"
 
@@ -21,7 +21,9 @@
 #    include "corecel/io/LabelIO.json.hh"
 #endif
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -40,7 +42,7 @@ void RunnerOutput::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
     using json = nlohmann::json;
-    using real_type = celeritas::real_type;
+
     using MapStrReal = std::unordered_map<std::string, real_type>;
 
     auto obj = json::object();
@@ -83,4 +85,5 @@ void RunnerOutput::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/DetectorConstruction.cc
+//! \file celer-g4/DetectorConstruction.cc
 //---------------------------------------------------------------------------//
 #include "DetectorConstruction.hh"
 
@@ -21,7 +21,9 @@
 #include "GlobalSetup.hh"
 #include "SensitiveDetector.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -31,7 +33,7 @@ namespace demo_geant
  */
 DetectorConstruction::DetectorConstruction()
 {
-    auto& sd = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
+    auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
 
     // Use Celeritas "hit processor" to call back to Geant4 SDs.
     sd.enabled = true;
@@ -125,4 +127,5 @@ void DetectorConstruction::ConstructSDandField()
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

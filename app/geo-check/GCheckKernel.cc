@@ -16,10 +16,11 @@
 #include "celeritas/field/LinearPropagator.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 
-using namespace celeritas;
 using std::printf;
 
-namespace geo_check
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -96,4 +97,5 @@ GCheckOutput run_cpu(SPConstGeo const& params,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace geo_check
+}  // namespace app
+}  // namespace celeritas

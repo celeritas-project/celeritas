@@ -11,11 +11,14 @@
 
 #include "XsGridParams.hh"
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 
 std::shared_ptr<XsGridParams> load_xs();
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

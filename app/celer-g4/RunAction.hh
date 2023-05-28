@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/RunAction.hh
+//! \file celer-g4/RunAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,9 @@
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -22,9 +24,9 @@ namespace demo_geant
  *
  * Each Geant4 thread creates an instance of this class. In multithreaded mode,
  * the "master" instance does not have a local transporter and is responsible
- * for initializing the \c celeritas::SharedParams which is shared across all
+ * for initializing the \c SharedParams which is shared across all
  * threads/tasks. Worker threads are given a thread-local \c
- * celeritas::LocalTransporter which allocates Celeritas track state data at
+ * LocalTransporter which allocates Celeritas track state data at
  * the beginning of the run and clears it at the end.
  */
 class RunAction final : public G4UserRunAction
@@ -32,9 +34,9 @@ class RunAction final : public G4UserRunAction
   public:
     //!@{
     //! \name Type aliases
-    using SPConstOptions = std::shared_ptr<const celeritas::SetupOptions>;
-    using SPParams = std::shared_ptr<celeritas::SharedParams>;
-    using SPTransporter = std::shared_ptr<celeritas::LocalTransporter>;
+    using SPConstOptions = std::shared_ptr<SetupOptions const>;
+    using SPParams = std::shared_ptr<SharedParams>;
+    using SPTransporter = std::shared_ptr<LocalTransporter>;
     //!@}
 
   public:
@@ -54,4 +56,5 @@ class RunAction final : public G4UserRunAction
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

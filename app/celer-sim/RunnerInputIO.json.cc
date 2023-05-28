@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/RunnerInputIO.json.cc
+//! \file celer-sim/RunnerInputIO.json.cc
 //---------------------------------------------------------------------------//
 #include "RunnerInputIO.json.hh"
 
@@ -39,7 +39,9 @@ void to_json(nlohmann::json& j, TrackOrder const& value)
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -165,7 +167,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_OPTION(brem_combined);
 
     LDIO_SAVE_OPTION(track_order);
-    if (celeritas::ends_with(v.physics_filename, ".gdml"))
+    if (ends_with(v.physics_filename, ".gdml"))
     {
         LDIO_SAVE_REQUIRED(geant_options);
     }
@@ -175,4 +177,5 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

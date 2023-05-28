@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/ActionInitialization.cc
+//! \file celer-g4/ActionInitialization.cc
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
@@ -16,7 +16,9 @@
 #include "RunAction.hh"
 #include "TrackingAction.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -25,7 +27,7 @@ namespace demo_geant
 ActionInitialization::ActionInitialization() : init_celeritas_{true}
 {
     // Create params to be shared across worker threads
-    params_ = std::make_shared<celeritas::SharedParams>();
+    params_ = std::make_shared<SharedParams>();
     // Make global setup commands available to UI
     GlobalSetup::Instance();
 }
@@ -65,7 +67,7 @@ void ActionInitialization::Build() const
     this->SetUserAction(new PrimaryGeneratorAction());
 
     // Create thread-local transporter to share between actions
-    auto transport = std::make_shared<celeritas::LocalTransporter>();
+    auto transport = std::make_shared<LocalTransporter>();
 
     // Run action sets up Celeritas (init_celeritas_ will be true iff
     // using a serial run manager)
@@ -82,4 +84,5 @@ void ActionInitialization::Build() const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

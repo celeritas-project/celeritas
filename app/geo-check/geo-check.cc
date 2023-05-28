@@ -31,9 +31,9 @@
 
 #include "GCheckRunner.hh"
 
-using namespace celeritas;
-
-namespace geo_check
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -48,7 +48,7 @@ void run(std::istream& is)
     auto geo_params = std::make_shared<GeoParams>(
         inp.at("input").get<std::string>().c_str());
 
-    if (celeritas::device() && inp.count("cuda_stack_size"))
+    if (device() && inp.count("cuda_stack_size"))
     {
         set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
     }
@@ -66,7 +66,8 @@ void run(std::istream& is)
     run(&trkinit);
 }
 
-}  // namespace geo_check
+}  // namespace app
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
@@ -77,6 +78,8 @@ void run(std::istream& is)
  */
 int main(int argc, char* argv[])
 {
+    using namespace celeritas;
+
     // Process input arguments
     std::vector<std::string> args(argv, argv + argc);
     if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
@@ -104,14 +107,14 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    celeritas::activate_device();
-    CELER_LOG(info) << "Running on " << (celeritas::device() ? "GPU" : "CPU")
-                    << " with " << celeritas_core_geo << " geometry";
+    activate_device();
+    CELER_LOG(info) << "Running on " << (device() ? "GPU" : "CPU") << " with "
+                    << celeritas_core_geo << " geometry";
 
     try
     {
         CELER_ASSERT(instream_ptr);
-        geo_check::run(*instream_ptr);
+        celeritas::app::run(*instream_ptr);
     }
     catch (std::exception const& e)
     {

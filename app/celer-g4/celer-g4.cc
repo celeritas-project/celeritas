@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/demo-geant-integration.cc
+//! \file celer-g4/celer-g4.cc
 //---------------------------------------------------------------------------//
 
 #include <cstdlib>
@@ -37,6 +37,10 @@
 #include "GlobalSetup.hh"
 #include "PrimaryGeneratorAction.hh"
 
+namespace celeritas
+{
+namespace app
+{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -60,14 +64,14 @@ void run(std::string const& macro_filename)
     run_manager = std::make_unique<G4RunManager>();
 #endif
     CELER_ASSERT(run_manager);
-    celeritas::self_logger() = celeritas::MakeMTLogger(*run_manager);
+    self_logger() = MakeMTLogger(*run_manager);
     CELER_LOG(info) << "Run manager type: "
-                    << celeritas::TypeDemangler<G4RunManager>{}(*run_manager);
+                    << TypeDemangler<G4RunManager>{}(*run_manager);
 
     // Construct geometry, SD factory, physics, actions
-    run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{});
+    run_manager->SetUserInitialization(new DetectorConstruction{});
     run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
-    run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
+    run_manager->SetUserInitialization(new ActionInitialization());
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
     if (G4VERSION_NUMBER >= 1110)
@@ -77,7 +81,7 @@ void run(std::string const& macro_filename)
                               "Geant4@11.1: disabling Rayleigh scattering";
         ignore_processes.push_back("Rayl");
     }
-    demo_geant::GlobalSetup::Instance()->SetIgnoreProcesses(ignore_processes);
+    GlobalSetup::Instance()->SetIgnoreProcesses(ignore_processes);
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
@@ -91,9 +95,8 @@ void run(std::string const& macro_filename)
 
     // Load the input file
     int num_events{0};
-    CELER_TRY_HANDLE(
-        num_events = demo_geant::PrimaryGeneratorAction::NumEvents(),
-        celeritas::ExceptionConverter{"demo-geant000"});
+    CELER_TRY_HANDLE(num_events = PrimaryGeneratorAction::NumEvents(),
+                     ExceptionConverter{"demo-geant000"});
 
     CELER_LOG(status) << "Transporting " << num_events << " events";
     run_manager->BeamOn(num_events);
@@ -101,6 +104,8 @@ void run(std::string const& macro_filename)
 
 //---------------------------------------------------------------------------//
 }  // namespace
+}  // namespace app
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
@@ -123,7 +128,7 @@ int main(int argc, char* argv[])
     }
 
     // Run with threads and macro filename
-    run(args[1]);
+    celeritas::app::run(args[1]);
 
     CELER_LOG(status) << "Run completed successfully; exiting";
     return EXIT_SUCCESS;

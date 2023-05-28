@@ -19,22 +19,23 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
-namespace geo_check
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
-using celeritas::GeoTrackInitializer;
 
-using GeoParamsCRefHost = celeritas::HostCRef<celeritas::GeoParamsData>;
-using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::GeoParamsData>;
-using GeoStateRefDevice = celeritas::DeviceRef<celeritas::GeoStateData>;
+using GeoParamsCRefHost = HostCRef<GeoParamsData>;
+using GeoParamsCRefDevice = DeviceCRef<GeoParamsData>;
+using GeoStateRefDevice = DeviceRef<GeoStateData>;
 
-using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
+using SPConstGeo = std::shared_ptr<GeoParams const>;
 
 //---------------------------------------------------------------------------//
 //! Input and return structs
 struct GCheckInput
 {
-    std::vector<celeritas::GeoTrackInitializer> init;
+    std::vector<GeoTrackInitializer> init;
     int max_steps = 0;
     GeoParamsCRefDevice params;
     GeoStateRefDevice state;
@@ -48,7 +49,7 @@ struct GCheckOutput
 };
 
 //---------------------------------------------------------------------------//
-CELER_FORCEINLINE_FUNCTION int physid(celeritas::GeoTrackView const& geo)
+CELER_FORCEINLINE_FUNCTION int physid(GeoTrackView const& geo)
 {
     if (geo.is_outside())
         return 0;
@@ -76,4 +77,5 @@ inline GCheckOutput run_gpu(GCheckInput const&)
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace geo_check
+}  // namespace app
+}  // namespace celeritas

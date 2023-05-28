@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/TrackingAction.hh
+//! \file celer-g4/TrackingAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,7 +13,9 @@
 #include "accel/LocalTransporter.hh"
 #include "accel/SharedParams.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -28,8 +30,8 @@ class TrackingAction final : public G4UserTrackingAction
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParams = std::shared_ptr<const celeritas::SharedParams>;
-    using SPTransporter = std::shared_ptr<celeritas::LocalTransporter>;
+    using SPConstParams = std::shared_ptr<SharedParams const>;
+    using SPTransporter = std::shared_ptr<LocalTransporter>;
     //!@}
 
   public:
@@ -43,4 +45,5 @@ class TrackingAction final : public G4UserTrackingAction
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/SensitiveDetector.hh
+//! \file celer-g4/SensitiveDetector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,7 +16,9 @@ class G4Step;
 class G4HCofThisEvent;
 class G4TouchableHistory;
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -42,4 +44,5 @@ class SensitiveDetector final : public G4VSensitiveDetector
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

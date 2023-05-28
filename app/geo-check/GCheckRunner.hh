@@ -14,11 +14,11 @@
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 
-using namespace celeritas;
-
-namespace geo_check
+namespace celeritas
 {
-// using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
+namespace app
+{
+// using SPConstGeo = std::shared_ptr<const GeoParams>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -29,7 +29,7 @@ class GCheckRunner
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
+    using SPConstGeo = std::shared_ptr<GeoParams const>;
     //!@}
 
   public:
@@ -37,7 +37,7 @@ class GCheckRunner
     explicit GCheckRunner(SPConstGeo const& geometry, int max_steps);
 
     // Run over some tracks
-    void operator()(celeritas::GeoTrackInitializer const* init) const;
+    void operator()(GeoTrackInitializer const* init) const;
 
   private:
     SPConstGeo geo_params_;
@@ -45,4 +45,5 @@ class GCheckRunner
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace geo_check
+}  // namespace app
+}  // namespace celeritas

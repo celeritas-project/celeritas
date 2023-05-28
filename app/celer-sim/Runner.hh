@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/Runner.hh
+//! \file celer-sim/Runner.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -25,7 +25,9 @@ class RootFileManager;
 class StepCollector;
 }  // namespace celeritas
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 struct RunnerInput;
@@ -38,7 +40,7 @@ struct SimulationResult
 {
     //!@{
     //! \name Type aliases
-    using real_type = celeritas::real_type;
+
     //!@}
 
     //// DATA ////
@@ -60,12 +62,10 @@ class Runner
   public:
     //!@{
     //! \name Type aliases
-    using EventId = celeritas::EventId;
-    using StreamId = celeritas::StreamId;
-    using size_type = celeritas::size_type;
+
     using Input = RunnerInput;
     using RunnerResult = TransporterResult;
-    using SPOutputRegistry = std::shared_ptr<celeritas::OutputRegistry>;
+    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     //!@}
 
   public:
@@ -88,14 +88,14 @@ class Runner
     //// TYPES ////
 
     using UPTransporterBase = std::unique_ptr<TransporterBase>;
-    using VecPrimary = std::vector<celeritas::Primary>;
+    using VecPrimary = std::vector<Primary>;
     using VecEvent = std::vector<VecPrimary>;
 
     //// DATA ////
 
-    std::shared_ptr<celeritas::CoreParams> core_params_;
-    std::shared_ptr<celeritas::RootFileManager> root_manager_;
-    std::shared_ptr<celeritas::StepCollector> step_collector_;
+    std::shared_ptr<CoreParams> core_params_;
+    std::shared_ptr<RootFileManager> root_manager_;
+    std::shared_ptr<StepCollector> step_collector_;
 
     // Transporter inputs and stream-local transporters
     bool use_device_{};
@@ -116,4 +116,5 @@ class Runner
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

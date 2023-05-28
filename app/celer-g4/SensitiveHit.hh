@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/SensitiveHit.hh
+//! \file celer-g4/SensitiveHit.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,9 @@
 #include <G4ThreeVector.hh>
 #include <G4VHit.hh>
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -72,4 +74,5 @@ inline void SensitiveHit::operator delete(void* hit)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

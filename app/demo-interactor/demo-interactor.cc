@@ -28,13 +28,14 @@
 #include "KNDemoRunner.hh"
 #include "LoadXs.hh"
 
-using namespace celeritas;
 using namespace demo_interactor;
 using std::cerr;
 using std::cout;
 using std::endl;
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -83,14 +84,15 @@ void run(std::istream& is)
             "runtime",
             {
                 {"version", std::string(celeritas_version)},
-                {"device", celeritas::device()},
-                {"kernels", celeritas::kernel_registry()},
+                {"device", device()},
+                {"kernels", kernel_registry()},
             },
         },
     };
     cout << outp.dump() << endl;
 }
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
@@ -115,9 +117,9 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    celeritas::activate_device();
+    activate_device();
 
-    if (!celeritas::device())
+    if (!device())
     {
         CELER_LOG(critical) << "CUDA capability is disabled";
         return EXIT_FAILURE;

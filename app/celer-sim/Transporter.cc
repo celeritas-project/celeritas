@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/Transporter.cc
+//! \file celer-sim/Transporter.cc
 //---------------------------------------------------------------------------//
 #include "Transporter.hh"
 
@@ -23,9 +23,9 @@
 #include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/phys/Model.hh"
 
-using namespace celeritas;
-
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 //! Default virtual destructor
@@ -133,4 +133,5 @@ template class Transporter<MemSpace::host>;
 template class Transporter<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

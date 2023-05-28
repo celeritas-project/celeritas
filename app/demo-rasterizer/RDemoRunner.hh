@@ -13,7 +13,9 @@
 
 #include "ImageStore.hh"
 
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -24,7 +26,7 @@ class RDemoRunner
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
+    using SPConstGeo = std::shared_ptr<GeoParams const>;
     using Args = ImageRunArgs;
     //!@}
 
@@ -40,4 +42,5 @@ class RDemoRunner
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas

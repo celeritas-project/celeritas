@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/RunnerOutput.hh
+//! \file celer-sim/RunnerOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,18 +13,20 @@
 
 #include "Runner.hh"
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
  * Output demo loop results.
  */
-class RunnerOutput final : public celeritas::OutputInterface
+class RunnerOutput final : public OutputInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using JsonPimpl = celeritas::JsonPimpl;
+
     //!@}
 
   public:
@@ -45,4 +47,5 @@ class RunnerOutput final : public celeritas::OutputInterface
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

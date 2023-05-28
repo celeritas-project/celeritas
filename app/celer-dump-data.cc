@@ -31,7 +31,6 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
 
-using namespace celeritas;
 using std::cout;
 using std::endl;
 using std::setprecision;
@@ -259,7 +258,7 @@ void print_process(ImportProcess const& proc,
 
         for (auto m : range(model.materials.size()))
         {
-            using celeritas::units::barn;
+            using units::barn;
 
             auto const& xs = model.materials[m].micro_xs;
 

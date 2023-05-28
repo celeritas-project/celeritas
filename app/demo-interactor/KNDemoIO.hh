@@ -16,7 +16,9 @@
 
 #include "KNDemoKernel.hh"
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 // Classes
@@ -24,8 +26,7 @@ namespace demo_interactor
 //! Input for a single run
 struct KNDemoRunArgs
 {
-    using size_type = celeritas::size_type;
-    using GridParams = celeritas::UniformGridData;
+    using GridParams = UniformGridData;
 
     double energy;
     unsigned int seed;
@@ -37,8 +38,6 @@ struct KNDemoRunArgs
 //! Output from a single run
 struct KNDemoResult
 {
-    using size_type = celeritas::size_type;
-
     std::vector<double> time;  //!< Real time per step
     std::vector<size_type> alive;  //!< Num living tracks per step
     std::vector<double> edep;  //!< Energy deposition along the grid
@@ -59,7 +58,8 @@ void to_json(nlohmann::json& j, KNDemoResult const& value);
 void from_json(nlohmann::json const& j, KNDemoResult& value);
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas
 
 namespace celeritas
 {

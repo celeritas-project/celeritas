@@ -31,8 +31,10 @@
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #endif
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace app
+{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -85,6 +87,8 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
 
 //---------------------------------------------------------------------------//
 }  // namespace
+}  // namespace app
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
@@ -96,6 +100,9 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
  */
 int main(int argc, char* argv[])
 {
+    using namespace celeritas;
+    using namespace celeritas::app;
+
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)

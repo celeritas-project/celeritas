@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/ActionInitialization.hh
+//! \file celer-g4/ActionInitialization.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,9 @@
 
 #include "accel/SharedParams.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -23,7 +25,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     //!@{
     //! \name Type aliases
-    using SPParams = std::shared_ptr<celeritas::SharedParams>;
+    using SPParams = std::shared_ptr<SharedParams>;
     //!@}
 
   public:
@@ -37,4 +39,5 @@ class ActionInitialization final : public G4VUserActionInitialization
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

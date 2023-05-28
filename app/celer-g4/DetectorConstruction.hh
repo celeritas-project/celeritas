@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/DetectorConstruction.hh
+//! \file celer-g4/DetectorConstruction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,9 @@
 
 class G4LogicalVolume;
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -35,4 +37,5 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

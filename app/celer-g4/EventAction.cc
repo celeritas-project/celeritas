@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/EventAction.cc
+//! \file celer-g4/EventAction.cc
 //---------------------------------------------------------------------------//
 #include "EventAction.hh"
 
@@ -16,7 +16,9 @@
 #include "GlobalSetup.hh"
 #include "HitRootIO.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -38,7 +40,7 @@ void EventAction::BeginOfEventAction(G4Event const* event)
     CELER_LOG_LOCAL(debug) << "Starting event " << event->GetEventID();
 
     // Set event ID in local transporter
-    celeritas::ExceptionConverter call_g4exception{"celer0002"};
+    ExceptionConverter call_g4exception{"celer0002"};
     CELER_TRY_HANDLE(transport_->SetEventId(event->GetEventID()),
                      call_g4exception);
 }
@@ -52,7 +54,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
     CELER_EXPECT(event);
 
     // Transport any tracks left in the buffer
-    celeritas::ExceptionConverter call_g4exception{"celer0004", params_.get()};
+    ExceptionConverter call_g4exception{"celer0004", params_.get()};
     CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
 
     if (GlobalSetup::Instance()->GetWriteSDHits())
@@ -65,4 +67,5 @@ void EventAction::EndOfEventAction(G4Event const* event)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

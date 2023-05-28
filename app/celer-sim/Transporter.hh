@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/Transporter.hh
+//! \file celer-sim/Transporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -27,15 +27,14 @@ class Stepper;
 class CoreParams;
 }  // namespace celeritas
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 //! Input parameters to the transporter.
 struct TransporterInput
 {
-    using size_type = celeritas::size_type;
-    using CoreParams = celeritas::CoreParams;
-
     // Stepper input
     std::shared_ptr<CoreParams const> params;
     size_type num_track_slots{};  //!< AKA max_num_tracks
@@ -44,7 +43,7 @@ struct TransporterInput
     // Loop control
     size_type max_steps{};
 
-    celeritas::StreamId stream_id{0};
+    StreamId stream_id{0};
 
     //! True if all params are assigned
     explicit operator bool() const
@@ -59,8 +58,6 @@ struct TransporterInput
  */
 struct TransporterResult
 {
-    using real_type = celeritas::real_type;
-    using size_type = celeritas::size_type;
     using MapStrReal = std::unordered_map<std::string, real_type>;
     using VecReal = std::vector<real_type>;
     using VecCount = std::vector<size_type>;
@@ -90,9 +87,8 @@ class TransporterBase
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstPrimary = celeritas::Span<const celeritas::Primary>;
-    using CoreParams = celeritas::CoreParams;
-    using ActionId = celeritas::ActionId;
+    using SpanConstPrimary = Span<Primary const>;
+
     //!@}
 
   public:
@@ -106,7 +102,7 @@ class TransporterBase
 /*!
  * Transport a set of primaries to completion.
  */
-template<celeritas::MemSpace M>
+template<MemSpace M>
 class Transporter final : public TransporterBase
 {
   public:
@@ -117,10 +113,11 @@ class Transporter final : public TransporterBase
     TransporterResult operator()(SpanConstPrimary primaries) final;
 
   private:
-    std::shared_ptr<celeritas::Stepper<M>> stepper_;
-    celeritas::size_type max_steps_;
-    celeritas::size_type num_streams_;
+    std::shared_ptr<Stepper<M>> stepper_;
+    size_type max_steps_;
+    size_type num_streams_;
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

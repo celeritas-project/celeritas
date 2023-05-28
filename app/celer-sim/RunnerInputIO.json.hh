@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/RunnerInputIO.json.hh
+//! \file celer-sim/RunnerInputIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,9 @@
 
 #include "RunnerInput.hh"
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 
@@ -19,4 +21,5 @@ void to_json(nlohmann::json& j, RunnerInput const& value);
 void from_json(nlohmann::json const& j, RunnerInput& value);
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas

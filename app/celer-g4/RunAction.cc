@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/RunAction.cc
+//! \file celer-g4/RunAction.cc
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
@@ -21,7 +21,9 @@
 #include "GlobalSetup.hh"
 #include "HitRootIO.hh"
 
-namespace demo_geant
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -48,7 +50,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 {
     CELER_EXPECT(run);
 
-    celeritas::ExceptionConverter call_g4exception{"celer0001"};
+    ExceptionConverter call_g4exception{"celer0001"};
 
     if (init_celeritas_)
     {
@@ -58,7 +60,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         {
             // To allow ORANGE to work for testing purposes, pass the GDML
             // input filename to Celeritas
-            const_cast<celeritas::SetupOptions&>(*options_).geometry_file
+            const_cast<SetupOptions&>(*options_).geometry_file
                 = GlobalSetup::Instance()->GetGeometryFile();
         }
 
@@ -68,7 +70,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
     }
     else
     {
-        CELER_TRY_HANDLE(celeritas::SharedParams::InitializeWorker(*options_),
+        CELER_TRY_HANDLE(SharedParams::InitializeWorker(*options_),
                          call_g4exception);
     }
 
@@ -88,7 +90,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 void RunAction::EndOfRunAction(G4Run const*)
 {
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
-    celeritas::ExceptionConverter call_g4exception{"celer0005"};
+    ExceptionConverter call_g4exception{"celer0005"};
 
     if (transport_)
     {
@@ -112,4 +114,5 @@ void RunAction::EndOfRunAction(G4Run const*)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_geant
+}  // namespace app
+}  // namespace celeritas

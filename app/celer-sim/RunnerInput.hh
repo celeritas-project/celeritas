@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop/RunnerInput.hh
+//! \file celer-sim/RunnerInput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,7 +18,9 @@
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/RootStepWriter.hh"
 
-namespace demo_loop
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -26,17 +28,13 @@ namespace demo_loop
  */
 struct RunnerInput
 {
-    using real_type = celeritas::real_type;
-    using Real3 = celeritas::Real3;
-    using size_type = celeritas::size_type;
-
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
     static constexpr size_type unspecified{static_cast<size_type>(-1)};
 
     // Global environment
     size_type cuda_heap_size{unspecified};
     size_type cuda_stack_size{unspecified};
-    celeritas::Environment environ;  //!< Supplement existing env variables
+    Environment environ;  //!< Supplement existing env variables
 
     // Problem definition
     std::string geometry_filename;  //!< Path to GDML file
@@ -44,12 +42,12 @@ struct RunnerInput
     std::string hepmc3_filename;  //!< Path to HepMC3 event data
 
     // Optional setup options for generating primaries programmatically
-    celeritas::PrimaryGeneratorOptions primary_gen_options;
+    PrimaryGeneratorOptions primary_gen_options;
 
     // Diagnostics and output
     std::string mctruth_filename;  //!< Path to ROOT MC truth event data
-    celeritas::SimpleRootFilterInput mctruth_filter;
-    std::vector<celeritas::Label> simple_calo;
+    SimpleRootFilterInput mctruth_filter;
+    std::vector<Label> simple_calo;
     bool action_diagnostic{};
     bool step_diagnostic{};
     size_type step_diagnostic_maxsteps{};
@@ -68,7 +66,7 @@ struct RunnerInput
 
     // Magnetic field vector [* 1/Tesla] and associated field options
     Real3 mag_field{no_field()};
-    celeritas::FieldDriverOptions field_options;
+    FieldDriverOptions field_options;
 
     // Optional fixed-size step limiter for charged particles
     // (non-positive for unused)
@@ -78,10 +76,10 @@ struct RunnerInput
     bool brem_combined{true};
 
     // Track init options
-    celeritas::TrackOrder track_order{celeritas::TrackOrder::unsorted};
+    TrackOrder track_order{TrackOrder::unsorted};
 
     // Optional setup options if loading directly from Geant4
-    celeritas::GeantPhysicsOptions geant_options;
+    GeantPhysicsOptions geant_options;
 
     //! Whether the run arguments are valid
     explicit operator bool() const
@@ -97,4 +95,5 @@ struct RunnerInput
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_loop
+}  // namespace app
+}  // namespace celeritas
