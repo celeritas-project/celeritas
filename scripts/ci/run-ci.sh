@@ -53,6 +53,11 @@ ctest -T ${CTEST_TOOL} ${CTEST_ARGS}\
   --test-output-size-passed=65536 --test-output-size-failed=1048576 \
 # List XML files generated: jenkins will upload these later
 find Testing -name '*.xml'
+
+# Install and test that the executables are there
+cmake --install .
+test -x "${CELER_SOURCE_DIR}/bin/celer-g4"
+test -x "${CELER_SOURCE_DIR}/bin/celer-sim"
   
 # Test examples against installed celeritas
 export CMAKE_PRESET
@@ -64,3 +69,5 @@ elif [ "${CMAKE_PRESET}" = "full-novg-ndebug" ] \
   || [ "${CMAKE_PRESET}" = "hip-ndebug" ]  ; then
   exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
 fi
+
+
