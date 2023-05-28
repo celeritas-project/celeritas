@@ -45,6 +45,7 @@ void heuristic_test_launch(DeviceCRef<HeuristicGeoParamsData> const& params,
     CELER_LAUNCH_KERNEL(heuristic_test,
                         device().default_block_size(),
                         state.size(),
+                        0,
                         params,
                         state);
 

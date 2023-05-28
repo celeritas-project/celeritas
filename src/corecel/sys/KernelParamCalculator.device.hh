@@ -28,7 +28,7 @@
  * function itself has a \c _kernel suffix, and launch with the given
  * block/thread sizes and arguments list.
  */
-#define CELER_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, ...)                  \
+#define CELER_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, STREAM, ...)          \
     do                                                                       \
     {                                                                        \
         static const ::celeritas::KernelParamCalculator calc_launch_params_( \
@@ -39,7 +39,7 @@
                                  grid_.blocks_per_grid,                      \
                                  grid_.threads_per_block,                    \
                                  0,                                          \
-                                 0,                                          \
+                                 STREAM,                                     \
                                  __VA_ARGS__);                               \
         CELER_DEVICE_CHECK_ERROR();                                          \
     } while (0)

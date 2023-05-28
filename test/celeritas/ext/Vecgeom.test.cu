@@ -80,6 +80,7 @@ VGGTestOutput vgg_test(VGGTestInput const& input)
     CELER_LAUNCH_KERNEL(vgg_test,
                         celeritas::device().default_block_size(),
                         init.size(),
+                        0,
                         input.params,
                         input.state,
                         raw_pointer_cast(init.data()),

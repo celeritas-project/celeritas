@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
@@ -44,6 +45,7 @@ void ExtendFromPrimariesAction::process_primaries(
     CELER_LAUNCH_KERNEL(process_primaries,
                         celeritas::device().default_block_size(),
                         primaries.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         detail::ProcessPrimariesLauncher{
                             state.ptr(), primaries, state.counters()});
 }

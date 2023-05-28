@@ -92,6 +92,7 @@ inp = {
     'simple_calo': simple_calo,
     'sync': True,
     'merge_events': False,
+    'default_stream': False,
     'brem_combined': True,
     'geant_options': geant_options,
 }

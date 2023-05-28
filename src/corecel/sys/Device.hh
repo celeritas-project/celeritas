@@ -10,13 +10,22 @@
 #include <cstddef>
 #include <iosfwd>  // IWYU pragma: keep
 #include <map>
+#include <memory>
 #include <string>
 
 #include "corecel/Assert.hh"
 
+#include "ThreadId.hh"
+
 namespace celeritas
 {
 class MpiCommunicator;
+class Stream;
+namespace detail
+{
+class StreamStorage;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage attributes of the GPU.
@@ -102,7 +111,18 @@ class Device
     //! Additional potentially interesting diagnostics
     MapStrInt const& extra() const { return extra_; }
 
+    // Number of streams allocated
+    StreamId::size_type num_streams() const;
+
+    // Allocate the given number of streams
+    void create_streams(unsigned int num_streams) const;
+
+    // Access a stream
+    Stream const& stream(StreamId) const;
+
   private:
+    using SPStreamStorage = std::shared_ptr<detail::StreamStorage>;
+
     int id_ = -1;
     std::string name_ = "<DISABLED>";
     std::size_t total_global_mem_ = 0;
@@ -113,6 +133,7 @@ class Device
     unsigned int eu_per_cu_ = 0;
     unsigned int default_block_size_ = 256u;
     MapStrInt extra_;
+    SPStreamStorage streams_;
 };
 
 //---------------------------------------------------------------------------//

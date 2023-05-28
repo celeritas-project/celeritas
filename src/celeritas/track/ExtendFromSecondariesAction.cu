@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
@@ -51,6 +52,7 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
         locate_alive,
         celeritas::device().default_block_size(),
         core_state.size(),
+        celeritas::device().stream(core_state.stream_id()).get(),
         detail::LocateAliveLauncher{core_params.ptr<MemSpace::native>(),
                                     core_state.ptr()});
 }
@@ -66,6 +68,7 @@ void ExtendFromSecondariesAction::process_secondaries(
         process_secondaries,
         celeritas::device().default_block_size(),
         core_state.size(),
+        celeritas::device().stream(core_state.stream_id()).get(),
         detail::ProcessSecondariesLauncher{core_params.ptr<MemSpace::native>(),
                                            core_state.ptr(),
                                            core_state.counters()});

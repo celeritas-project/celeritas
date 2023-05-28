@@ -20,6 +20,8 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 
 namespace celeritas
 {
@@ -42,23 +44,24 @@ using TrackSlots = ThreadItems<TrackSlotId::size_type>;
 //---------------------------------------------------------------------------//
 
 template<class F>
-void partition_impl(TrackSlots const& track_slots, F&& func)
+void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 {
     auto start = device_pointer_cast(track_slots.data());
-    thrust::partition(thrust::device,
-                      start,
-                      start + track_slots.size(),
-                      std::forward<F>(func));
+    thrust::partition(
+        thrust::device.on(celeritas::device().stream(stream_id).get()),
+        start,
+        start + track_slots.size(),
+        std::forward<F>(func));
     CELER_DEVICE_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
 
 template<class F>
-void sort_impl(TrackSlots const& track_slots, F&& func)
+void sort_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 {
     auto start = device_pointer_cast(track_slots.data());
-    thrust::sort(thrust::device,
+    thrust::sort(thrust::device.on(celeritas::device().stream(stream_id).get()),
                  start,
                  start + track_slots.size(),
                  std::forward<F>(func));
@@ -112,15 +115,18 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
     {
         case TrackOrder::partition_status:
             return partition_impl(states.track_slots,
-                                  alive_predicate{states.sim.status.data()});
+                                  alive_predicate{states.sim.status.data()},
+                                  states.stream_id);
         case TrackOrder::sort_along_step_action:
             return sort_impl(
                 states.track_slots,
-                along_action_comparator{states.sim.along_step_action.data()});
+                along_action_comparator{states.sim.along_step_action.data()},
+                states.stream_id);
         case TrackOrder::sort_step_limit_action:
             return sort_impl(
                 states.track_slots,
-                step_limit_comparator{states.sim.step_limit.data()});
+                step_limit_comparator{states.sim.step_limit.data()},
+                states.stream_id);
         default:
             CELER_ASSERT_UNREACHABLE();
     }

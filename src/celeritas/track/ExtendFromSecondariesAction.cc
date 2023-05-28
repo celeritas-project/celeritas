@@ -56,15 +56,16 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
-    counters.num_vacancies = detail::remove_if_alive(init.vacancies);
+    counters.num_vacancies
+        = detail::remove_if_alive(init.vacancies, core_state.stream_id());
 
     // The exclusive prefix sum of the number of secondaries produced by each
     // track is used to get the start index in the vector of track initializers
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
-    counters.num_secondaries
-        = detail::exclusive_scan_counts(init.secondary_counts);
+    counters.num_secondaries = detail::exclusive_scan_counts(
+        init.secondary_counts, core_state.stream_id());
 
     // TODO: if we don't have space for all the secondaries, we will need to
     // buffer the current track initializers to create room

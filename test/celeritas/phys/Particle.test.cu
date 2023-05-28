@@ -70,6 +70,7 @@ PTVTestOutput ptv_test(PTVTestInput input)
     CELER_LAUNCH_KERNEL(ptv_test,
                         device().default_block_size(),
                         init.size(),
+                        0,
                         init.size(),
                         input.params,
                         input.states,

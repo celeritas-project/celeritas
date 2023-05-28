@@ -13,6 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackLauncher.hh"
@@ -48,6 +49,7 @@ void PreStepAction::execute(CoreParams const& params, CoreStateDevice& state) co
     CELER_LAUNCH_KERNEL(pre_step,
                         celeritas::device().default_block_size(),
                         state.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         params.ptr<MemSpace::native>(),
                         state.ptr());
 }
