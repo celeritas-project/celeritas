@@ -25,7 +25,7 @@ struct Primary;
 template<MemSpace M>
 class Stepper;
 class CoreParams;
-}
+}  // namespace celeritas
 
 namespace demo_loop
 {

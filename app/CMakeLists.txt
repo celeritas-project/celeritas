@@ -51,8 +51,8 @@ celeritas_target_link_libraries(celer-dump-data
   Celeritas::celeritas
 )
 
-add_subdirectory(demo-loop)
-add_subdirectory(demo-geant-integration)
+add_subdirectory(celer-sim)
+add_subdirectory(celer-g4)
 
 if(CELERITAS_BUILD_DEMOS)
   add_subdirectory(demo-interactor)

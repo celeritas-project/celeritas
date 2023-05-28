@@ -38,8 +38,7 @@ GlobalSetup::GlobalSetup()
         this, "/setup/", "Demo geant integration setup");
 
     {
-        auto& cmd
-            = messenger_->DeclareProperty("geometryFile", geometry_file_);
+        auto& cmd = messenger_->DeclareProperty("geometryFile", geometry_file_);
         cmd.SetGuidance("Set the filename of the GDML detector geometry");
     }
     {
@@ -47,14 +46,13 @@ GlobalSetup::GlobalSetup()
         cmd.SetGuidance("Set the filename of the event input read by HepMC3");
     }
     {
-        auto& cmd = messenger_->DeclareProperty("rootBufferSize",
-                                                root_buffer_size_);
+        auto& cmd
+            = messenger_->DeclareProperty("rootBufferSize", root_buffer_size_);
         cmd.SetGuidance("Set the buffer size (bytes) of output root file");
         cmd.SetDefaultValue(std::to_string(root_buffer_size_));
     }
     {
-        auto& cmd = messenger_->DeclareProperty("writeSDHits",
-                                                write_sd_hits_);
+        auto& cmd = messenger_->DeclareProperty("writeSDHits", write_sd_hits_);
         cmd.SetGuidance("Write a ROOT output file with hits from the SDs");
         cmd.SetDefaultValue("false");
     }
@@ -66,8 +64,8 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("true");
     }
     {
-        auto& cmd = messenger_->DeclareProperty("outputFile",
-                                                options_->output_file);
+        auto& cmd
+            = messenger_->DeclareProperty("outputFile", options_->output_file);
         cmd.SetGuidance("Set the JSON output file name");
     }
     {

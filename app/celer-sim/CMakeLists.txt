@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES
-  demo-loop.cc
+  celer-sim.cc
   Runner.cc
   RunnerOutput.cc
   Transporter.cc
@@ -35,8 +35,8 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 # Add the executable
-celeritas_add_executable(demo-loop ${SOURCES})
-celeritas_target_link_libraries(demo-loop ${LIBRARIES})
+celeritas_add_executable(celer-sim ${SOURCES})
+celeritas_target_link_libraries(celer-sim ${LIBRARIES})
 
 #-----------------------------------------------------------------------------#
 # TESTS
@@ -55,12 +55,12 @@ if(CELERITAS_USE_ROOT)
   set(_geant_exporter_env
     "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
 endif()
-add_test(NAME "app/demo-loop:device"
+add_test(NAME "app/celer-sim:device"
   COMMAND "${CELER_PYTHON}"
   "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
 )
 set(_env
-  "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
+  "CELERITAS_DEMO_EXE=$<TARGET_FILE:celer-sim>"
   "${_geant_exporter_env}"
   "CELER_DISABLE_PARALLEL=1"
 )
@@ -79,7 +79,7 @@ else()
   set(_needs_device DISABLED true)
 endif()
 
-set_tests_properties("app/demo-loop:device" PROPERTIES
+set_tests_properties("app/celer-sim:device" PROPERTIES
   ENVIRONMENT "${_env};${CELER_G4ENV}"
   RESOURCE_LOCK gpu
   REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
@@ -88,16 +88,16 @@ set_tests_properties("app/demo-loop:device" PROPERTIES
   ${_needs_device}
 )
 
-# Enable ROOT output for the demo-loop-cpu test when ROOT is available
+# Enable ROOT output for the celer-sim-cpu test when ROOT is available
 if(CELERITAS_USE_ROOT)
   set(_mctruth_out "${CMAKE_CURRENT_BINARY_DIR}/mctruth_output.root")
 endif()
-add_test(NAME "app/demo-loop:host"
+add_test(NAME "app/celer-sim:host"
   COMMAND "${CELER_PYTHON}"
   "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
 )
 set(_env
-  "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
+  "CELERITAS_DEMO_EXE=$<TARGET_FILE:celer-sim>"
   "${_geant_exporter_env}"
   "CELER_LOG=debug"
   "CELER_DISABLE_DEVICE=1"
@@ -115,7 +115,7 @@ endif()
 if(NOT CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND _env "CELER_DISABLE_VECGEOM=1")
 endif()
-set_tests_properties("app/demo-loop:host" PROPERTIES
+set_tests_properties("app/celer-sim:host" PROPERTIES
   ENVIRONMENT "${_env};${CELER_G4ENV}"
   REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
   LABELS "app;nomemcheck"

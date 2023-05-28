@@ -6,7 +6,7 @@
 
 if(CELERITAS_USE_Geant4)
   set(SOURCES
-    demo-geant-integration.cc
+    celer-g4.cc
     ActionInitialization.cc
     DetectorConstruction.cc
     EventAction.cc
@@ -45,7 +45,7 @@ if(CELERITAS_USE_ROOT)
       ${CMAKE_CURRENT_SOURCE_DIR}/HitRootIO.hh
       ${CMAKE_CURRENT_SOURCE_DIR}/SensitiveHit.hh
       NOINSTALL
-      MODULE demo-geant-integration
+      MODULE celer-g4
       # TODO Uncomment this line and remove the include_directories when
       # the minimal required ROOT version is v6.28/02 or later.
       # DEPENDENCIES ${Geant4_LIBRARIES} Celeritas::accel Celeritas::corecel
@@ -60,8 +60,8 @@ if(CELERITAS_USE_ROOT)
   list(APPEND LIBRARIES ROOT::Tree)
 endif()
 
-celeritas_add_executable(demo-geant-integration ${SOURCES})
-celeritas_target_link_libraries(demo-geant-integration
+celeritas_add_executable(celer-g4 ${SOURCES})
+celeritas_target_link_libraries(celer-g4
   ${LIBRARIES}
 )
 
@@ -104,8 +104,8 @@ configure_file(
   "simple-cms-test.mac.in"
   "simple-cms-test.mac" @ONLY
 )
-add_test(NAME "app/demo-geant-integration"
-  COMMAND "$<TARGET_FILE:demo-geant-integration>"
+add_test(NAME "app/celer-g4"
+  COMMAND "$<TARGET_FILE:celer-g4>"
   "simple-cms-test.mac"
 )
 set(_env
@@ -133,7 +133,7 @@ if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
   list(APPEND _props DISABLED true)
 endif()
 
-set_tests_properties("app/demo-geant-integration" PROPERTIES
+set_tests_properties("app/celer-g4" PROPERTIES
   ENVIRONMENT "${_env}"
   LABELS "${_labels}"
   ${_props}
