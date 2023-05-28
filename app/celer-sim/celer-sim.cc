@@ -158,6 +158,14 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    if (!CELERITAS_USE_JSON)
+    {
+        std::cerr << argv[0]
+                  << ": Geant4 is not enabled in this build of Celeritas"
+                  << std::endl;
+        return EXIT_FAILURE;
+    }
+
     // Process input arguments
     std::vector<std::string> args(argv, argv + argc);
     if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
