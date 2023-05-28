@@ -38,14 +38,14 @@ inline CELER_FUNCTION Interaction foo_interact(
  * filtering the tracks. We could improve this interface later.
  */
 template<class D, class F>
-CELER_FUNCTION detail::InteractionExecutorImpl<D, F> make_interaction_executor(
-    CRefPtr<CoreParamsData, MemSpace::native> const& params,
-    RefPtr<CoreStateData, MemSpace::native> const& states,
-    F&& call_with_track,
-    D const& model_data)
+CELER_FUNCTION detail::InteractionExecutorImpl<D, F>
+make_interaction_executor(CRefPtr<CoreParamsData, MemSpace::native> const& params,
+                          RefPtr<CoreStateData, MemSpace::native> const& state,
+                          F&& call_with_track,
+                          D const& model_data)
 {
     return {
-        *params, *states, ::celeritas::forward<F>(call_with_track), model_data};
+        params, state, ::celeritas::forward<F>(call_with_track), model_data};
 }
 
 //---------------------------------------------------------------------------//

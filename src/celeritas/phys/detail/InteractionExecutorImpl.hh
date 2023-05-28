@@ -28,8 +28,8 @@ struct InteractionExecutorImpl
 {
     //// DATA ////
 
-    NativeCRef<CoreParamsData> const& params;
-    NativeRef<CoreStateData> const& states;
+    CRefPtr<CoreParamsData, MemSpace::native> params;
+    RefPtr<CoreStateData, MemSpace::native> state;
     F call_with_track;
     D const& model_data;
 
@@ -48,8 +48,8 @@ template<class D, class F>
 CELER_FUNCTION void
 InteractionExecutorImpl<D, F>::operator()(ThreadId thread) const
 {
-    CELER_ASSERT(thread < this->states.size());
-    const celeritas::CoreTrackView track(this->params, this->states, thread);
+    CELER_EXPECT(thread < state->size());
+    celeritas::CoreTrackView const track(*params, *state, thread);
 
     auto sim = track.make_sim_view();
     if (sim.step_limit().action != model_data.ids.action)
@@ -91,7 +91,7 @@ InteractionExecutorImpl<D, F>::operator()(ThreadId thread) const
                     // below the production cut -- deposit the energy locally
                     // and clear the secondary
                     deposition += secondary.energy.value();
-                    ParticleView particle{this->params.particles,
+                    ParticleView particle{this->params->particles,
                                           secondary.particle_id};
                     if (particle.is_antiparticle())
                     {
