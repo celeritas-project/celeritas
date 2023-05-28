@@ -15,7 +15,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #if CELERITAS_USE_OPENMP
@@ -38,8 +37,13 @@
 
 #include "Runner.hh"
 #include "RunnerInput.hh"
-#include "RunnerInputIO.json.hh"
 #include "RunnerOutput.hh"
+
+#if CELERITAS_USE_JSON
+#    include <nlohmann/json.hpp>
+
+#    include "RunnerInputIO.json.hh"
+#endif
 
 namespace demo_loop
 {
@@ -64,6 +68,7 @@ int get_openmp_thread()
  */
 void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
 {
+    CELER_EXPECT(is);
     using celeritas::EventId;
     using celeritas::OutputInterface;
     using celeritas::OutputInterfaceAdapter;
@@ -75,7 +80,11 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
 
     // Read input options and save a copy for output
     auto run_input = std::make_shared<RunnerInput>();
+#if CELERITAS_USE_JSON
     nlohmann::json::parse(*is).get_to(*run_input);
+#else
+    CELER_NOT_CONFIGURED("nlohmann_json");
+#endif
     output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
         OutputInterface::Category::input, "*", run_input));
 

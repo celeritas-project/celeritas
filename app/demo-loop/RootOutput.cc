@@ -11,12 +11,16 @@
 #include <vector>
 #include <TTree.h>
 
-#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 
 #include "RunnerInput.hh"
-#include "RunnerInputIO.json.hh"
+
+#if CELERITAS_USE_JSON
+#    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
+
+#    include "RunnerInputIO.json.hh"
+#endif
 
 namespace demo_loop
 {
@@ -28,7 +32,9 @@ void write_to_root(RunnerInput const& cargs,
                    celeritas::RootFileManager* root_manager)
 {
     CELER_EXPECT(cargs);
+    CELER_EXPECT(root_manager);
 
+#if CELERITAS_USE_JSON
     std::string str_input(nlohmann::json(cargs).dump());
     std::string str_phys(nlohmann::json(cargs.geant_options).dump());
 
@@ -36,6 +42,9 @@ void write_to_root(RunnerInput const& cargs,
     tree_input->Branch("input", &str_input);
     tree_input->Branch("geant_otions", &str_phys);
     tree_input->Fill();  // Writing happens at destruction
+#else
+    CELER_NOT_CONFIGURED("nlohmann_json");
+#endif
 }
 
 //---------------------------------------------------------------------------//

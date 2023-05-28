@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <nlohmann/json.hpp>
-
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 

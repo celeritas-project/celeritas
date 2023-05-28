@@ -6,17 +6,23 @@
 
 set(SOURCES
   demo-loop.cc
-  RunnerInputIO.json.cc
   Runner.cc
   RunnerOutput.cc
   Transporter.cc
 )
 set(LIBRARIES
   Celeritas::celeritas
-  nlohmann_json::nlohmann_json
   Celeritas::DeviceToolkit
 )
 
+if(CELERITAS_USE_JSON)
+  list(APPEND SOURCES
+    RunnerInputIO.json.cc
+  )
+  list(APPEND LIBRARIES
+    nlohmann_json::nlohmann_json
+  )
+endif()
 if(CELERITAS_USE_CUDA AND CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND LIBRARIES VecGeom::vecgeom)
 endif()
@@ -29,7 +35,7 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 # Add the executable
-add_executable(demo-loop ${SOURCES})
+celeritas_add_executable(demo-loop ${SOURCES})
 celeritas_target_link_libraries(demo-loop ${LIBRARIES})
 
 #-----------------------------------------------------------------------------#
