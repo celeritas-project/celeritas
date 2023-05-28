@@ -15,8 +15,6 @@
 
 #include "ImageTrackView.hh"
 
-using namespace demo_rasterizer;
-
 namespace celeritas
 {
 namespace app

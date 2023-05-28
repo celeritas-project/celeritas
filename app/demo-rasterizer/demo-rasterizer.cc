@@ -26,13 +26,11 @@
 
 #include "RDemoRunner.hh"
 
-using std::cerr;
-using std::cout;
-using std::endl;
-
 namespace celeritas
 {
 namespace app
+{
+namespace
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -68,7 +66,6 @@ void run(std::istream& is)
     get_time = {};
     run(&image);
     timers["trace"] = get_time();
-    // run(&image, 10); // Ntimes for performance measurement
 
     // Get geometry names
     std::vector<std::string> vol_names;
@@ -103,10 +100,12 @@ void run(std::istream& is)
             },
         },
     };
-    cout << outp.dump() << endl;
+    std::cout << outp.dump() << std::endl;
     CELER_LOG(info) << "Exported image to " << out_filename;
 }
 
+//---------------------------------------------------------------------------//
+}  // namespace
 }  // namespace app
 }  // namespace celeritas
 
@@ -119,6 +118,8 @@ void run(std::istream& is)
  */
 int main(int argc, char* argv[])
 {
+    using namespace celeritas;
+
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)
@@ -131,7 +132,7 @@ int main(int argc, char* argv[])
     std::vector<std::string> args(argv, argv + argc);
     if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
     {
-        cerr << "usage: " << args[0] << " {input}.json" << endl;
+        std::cerr << "usage: " << args[0] << " {input}.json" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -165,7 +166,7 @@ int main(int argc, char* argv[])
     try
     {
         CELER_ASSERT(instream_ptr);
-        demo_rasterizer::run(*instream_ptr);
+        celeritas::app::run(*instream_ptr);
     }
     catch (std::exception const& e)
     {
