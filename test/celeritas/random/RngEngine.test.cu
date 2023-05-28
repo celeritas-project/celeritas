@@ -64,6 +64,7 @@ std::vector<unsigned int> re_test_native(RngDeviceRef states)
     CELER_LAUNCH_KERNEL(sample_native,
                         device().default_block_size(),
                         states.size(),
+                        0,
                         states,
                         raw_pointer_cast(samples.data()));
 

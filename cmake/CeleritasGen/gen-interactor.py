@@ -124,6 +124,7 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/{dir}/launcher/{class}Launcher.hh"
@@ -163,6 +164,7 @@ void {func}_interact(
     CELER_LAUNCH_KERNEL({func}_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         model_data,

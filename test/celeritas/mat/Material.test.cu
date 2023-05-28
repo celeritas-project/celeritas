@@ -85,6 +85,7 @@ MTestOutput m_test(MTestInput const& input)
     CELER_LAUNCH_KERNEL(m_test,
                         device().default_block_size(),
                         init.size(),
+                        0,
                         init.size(),
                         input.params,
                         input.states,

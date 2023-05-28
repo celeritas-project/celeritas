@@ -25,7 +25,8 @@ namespace detail
  */
 size_type remove_if_alive(
     StateCollection<TrackSlotId, Ownership::reference, MemSpace::host> const&
-        vacancies)
+        vacancies,
+    StreamId)
 {
     auto* start = static_cast<TrackSlotId*>(vacancies.data());
     auto* stop
@@ -45,7 +46,8 @@ size_type remove_if_alive(
  * final element will be the total accumulated value.
  */
 size_type exclusive_scan_counts(
-    StateCollection<size_type, Ownership::reference, MemSpace::host> const& counts)
+    StateCollection<size_type, Ownership::reference, MemSpace::host> const& counts,
+    StreamId)
 {
     CELER_EXPECT(!counts.empty());
     auto* data = static_cast<size_type*>(counts.data());

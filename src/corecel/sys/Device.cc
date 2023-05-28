@@ -24,6 +24,8 @@
 
 #include "Environment.hh"
 #include "MpiCommunicator.hh"
+#include "Stream.hh"
+#include "detail/StreamStorage.hh"
 
 namespace celeritas
 {
@@ -60,14 +62,7 @@ Device& global_device()
         // Check that CUDA and Celeritas device IDs are consistent
         int cur_id = -1;
         CELER_DEVICE_CALL_PREFIX(GetDevice(&cur_id));
-        if (cur_id != device.device_id())
-        {
-            CELER_LOG(warning)
-                << "CUDA active device ID unexpectedly changed from "
-                << device.device_id() << " to " << cur_id;
-            std::lock_guard<std::mutex> scoped_lock{device_setter_mutex()};
-            device = Device(cur_id);
-        }
+        CELER_ASSERT(cur_id == device.device_id());
     }
 
     return device;
@@ -142,7 +137,8 @@ bool Device::debug()
 /*!
  * Construct from a device ID.
  */
-Device::Device(int id) : id_(id)
+Device::Device(int id)
+    : id_(id), streams_(std::make_shared<detail::StreamStorage>())
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
@@ -221,6 +217,44 @@ Device::Device(int id) : id_(id)
     CELER_ENSURE(!name_.empty());
     CELER_ENSURE(total_global_mem_ > 0);
     CELER_ENSURE(max_threads_per_block_ > 0 && max_blocks_per_grid_ > 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of streams allocated.
+ */
+StreamId::size_type Device::num_streams() const
+{
+    CELER_EXPECT(streams_);
+
+    return streams_->size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Allocate the given number of streams.
+ *
+ * If no streams have been created, the default stream will be used.
+ */
+void Device::create_streams(unsigned int num_streams) const
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(streams_);
+
+    *streams_ = detail::StreamStorage(num_streams);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a stream.
+ *
+ * This returns the default stream if no streams were allocated.
+ */
+Stream const& Device::stream(StreamId id) const
+{
+    CELER_EXPECT(streams_);
+
+    return streams_->get(id);
 }
 
 //---------------------------------------------------------------------------//

@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
@@ -127,6 +128,7 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
     CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
                         celeritas::device().default_block_size(),
                         state.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id(),
@@ -134,12 +136,14 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
     CELER_LAUNCH_KERNEL(along_step_apply_linear_propagation,
                         celeritas::device().default_block_size(),
                         state.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id());
     CELER_LAUNCH_KERNEL(along_step_apply_msc,
                         celeritas::device().default_block_size(),
                         state.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id(),
@@ -147,12 +151,14 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
     CELER_LAUNCH_KERNEL(along_step_update_time,
                         celeritas::device().default_block_size(),
                         state.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id());
     CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
                         celeritas::device().default_block_size(),
                         state.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id(),
@@ -160,6 +166,7 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
     CELER_LAUNCH_KERNEL(along_step_update_track,
                         celeritas::device().default_block_size(),
                         state.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         this->action_id());
