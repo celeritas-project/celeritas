@@ -111,7 +111,7 @@ struct CalcSenseDistance
 
 //! Calculate distance to a single surface
 template<MemSpace M = MemSpace::native>
-struct CalcSenseDistanceLauncher
+struct CalcSenseDistanceExecutor
 {
     OrangeParamsData<Ownership::const_reference, M> params;
     OrangeMiniStateData<Ownership::reference, M> states;

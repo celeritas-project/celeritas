@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/detail/InteractionLauncherImpl.hh
+//! \file celeritas/phys/detail/InteractionExecutorImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,13 +18,13 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Function-like class to launch a "Track"-dependent function from core and
+ * Function-like class to execute a "Track"-dependent function from core and
  * model data.
  *
  * This class should be used by generated interactor functions.
  */
 template<class D, class F>
-struct InteractionLauncherImpl
+struct InteractionExecutorImpl
 {
     //// DATA ////
 
@@ -46,7 +46,7 @@ struct InteractionLauncherImpl
  */
 template<class D, class F>
 CELER_FUNCTION void
-InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
+InteractionExecutorImpl<D, F>::operator()(ThreadId thread) const
 {
     CELER_ASSERT(thread < this->states.size());
     const celeritas::CoreTrackView track(this->params, this->states, thread);

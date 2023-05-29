@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/TrackLauncherImpl.hh
+//! \file celeritas/global/detail/TrackExecutorImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,15 +17,15 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// TrackLauncherImpl
+// TrackExecutorImpl
 //---------------------------------------------------------------------------//
 //! Lazy implementation that replaces tuple + apply
 template<class F, class... Ts>
-struct TrackLauncherImpl;
+struct TrackExecutorImpl;
 
 //---------------------------------------------------------------------------//
 template<class F>
-struct TrackLauncherImpl<F>
+struct TrackExecutorImpl<F>
 {
     F call_with_track;
 
@@ -37,7 +37,7 @@ struct TrackLauncherImpl<F>
 
 //---------------------------------------------------------------------------//
 template<class F, class T1>
-struct TrackLauncherImpl<F, T1>
+struct TrackExecutorImpl<F, T1>
 {
     F call_with_track;
     T1 arg1;
@@ -50,7 +50,7 @@ struct TrackLauncherImpl<F, T1>
 
 //---------------------------------------------------------------------------//
 template<class F, class T1, class T2>
-struct TrackLauncherImpl<F, T1, T2>
+struct TrackExecutorImpl<F, T1, T2>
 {
     F call_with_track;
     T1 arg1;
@@ -65,7 +65,7 @@ struct TrackLauncherImpl<F, T1, T2>
 
 //---------------------------------------------------------------------------//
 template<class F, class T1, class T2, class T3>
-struct TrackLauncherImpl<F, T1, T2, T3>
+struct TrackExecutorImpl<F, T1, T2, T3>
 {
     F call_with_track;
     T1 arg1;
@@ -83,7 +83,7 @@ struct TrackLauncherImpl<F, T1, T2, T3>
 
 //---------------------------------------------------------------------------//
 template<class F, class T1, class T2, class T3, class T4>
-struct TrackLauncherImpl<F, T1, T2, T3, T4>
+struct TrackExecutorImpl<F, T1, T2, T3, T4>
 {
     F call_with_track;
     T1 arg1;
@@ -105,7 +105,7 @@ struct TrackLauncherImpl<F, T1, T2, T3, T4>
 // CONDITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Condition for ConditionalTrackLauncher for active tracks.
+ * Condition for ConditionalTrackExecutor for active tracks.
  */
 inline CELER_FUNCTION bool applies_active(SimTrackView const& sim)
 {

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/TrackLauncher.hh
+//! \file celeritas/global/TrackExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,13 +15,13 @@
 #include "celeritas/track/SimTrackView.hh"
 
 #include "CoreTrackData.hh"
-#include "detail/TrackLauncherImpl.hh"
+#include "detail/TrackExecutorImpl.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Function-like class to launch a CoreTrackView-dependent function.
+ * Function-like class to execute a CoreTrackView-dependent function.
  *
  * This class should be used primarily by generated kernel functions:
  *
@@ -30,8 +30,8 @@ __global__ void foo_kernel(CoreParamsRef const params,
                            CoreParamsRef const state,
                            OtherData const other)
 {
-    TrackLauncher launch{params, state, apply_to_track, OtherView{other}};
-    launch(KernelParamCalculator::thread_id());
+    TrackExecutor execute{params, state, apply_to_track, OtherView{other}};
+    execute(KernelParamCalculator::thread_id());
 }
 \endcode
  *
@@ -54,7 +54,7 @@ inline CELER_FUNCTION void apply_to_track(
  * IDs outside the valid bounds to simplify the kernel.
  */
 template<class... Ts>
-class TrackLauncher
+class TrackExecutor
 {
   public:
     //!@{
@@ -65,10 +65,10 @@ class TrackLauncher
 
   public:
     CELER_FUNCTION
-    TrackLauncher(ParamsRef const& params, StateRef const& state, Ts... args)
+    TrackExecutor(ParamsRef const& params, StateRef const& state, Ts... args)
         : params_{params}
         , state_{state}
-        , launch_impl_{celeritas::forward<Ts>(args)...}
+        , execute_impl_{celeritas::forward<Ts>(args)...}
     {
     }
 
@@ -85,13 +85,13 @@ class TrackLauncher
 #endif
         CoreTrackView const track(params_, state_, thread);
 
-        return launch_impl_(track);
+        return execute_impl_(track);
     }
 
   private:
     ParamsRef const& params_;
     StateRef const& state_;
-    detail::TrackLauncherImpl<Ts...> launch_impl_;
+    detail::TrackExecutorImpl<Ts...> execute_impl_;
 };
 
 //---------------------------------------------------------------------------//
@@ -102,11 +102,11 @@ class TrackLauncher
  * <bool(SimTrackView const&)>
   \endcode
  *
- * see \c make_active_track_launcher for an example where this is used to apply
+ * see \c make_active_track_executor for an example where this is used to apply
  * only to active (or killed) tracks.
  */
 template<class C, class... Ts>
-class ConditionalTrackLauncher
+class ConditionalTrackExecutor
 {
   public:
     //!@{
@@ -117,14 +117,14 @@ class ConditionalTrackLauncher
 
   public:
     CELER_FUNCTION
-    ConditionalTrackLauncher(ParamsRef const& params,
+    ConditionalTrackExecutor(ParamsRef const& params,
                              StateRef const& state,
                              C applies,
                              Ts... args)
         : params_{params}
         , state_{state}
         , applies_{celeritas::forward<C>(applies)}
-        , launch_impl_{celeritas::forward<Ts>(args)...}
+        , execute_impl_{celeritas::forward<Ts>(args)...}
     {
     }
 
@@ -145,51 +145,51 @@ class ConditionalTrackLauncher
             return;
         }
 
-        return launch_impl_(track);
+        return execute_impl_(track);
     }
 
   private:
     ParamsRef const& params_;
     StateRef const& state_;
     C applies_;
-    detail::TrackLauncherImpl<Ts...> launch_impl_;
+    detail::TrackExecutorImpl<Ts...> execute_impl_;
 };
 
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class... Ts>
-CELER_FUNCTION TrackLauncher(NativeCRef<CoreParamsData> const&,
+CELER_FUNCTION TrackExecutor(NativeCRef<CoreParamsData> const&,
                              NativeRef<CoreStateData> const&,
                              Ts...)
-    ->TrackLauncher<Ts...>;
+    ->TrackExecutor<Ts...>;
 
 template<class C, class... Ts>
-CELER_FUNCTION ConditionalTrackLauncher(NativeCRef<CoreParamsData> const&,
+CELER_FUNCTION ConditionalTrackExecutor(NativeCRef<CoreParamsData> const&,
                                         NativeRef<CoreStateData> const&,
                                         C,
                                         Ts...)
-    ->ConditionalTrackLauncher<C, Ts...>;
+    ->ConditionalTrackExecutor<C, Ts...>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Return a track launcher that only applies to alive tracks.
+ * Return a track executor that only applies to alive tracks.
  */
 template<class... Ts>
 inline CELER_FUNCTION decltype(auto)
-make_active_track_launcher(NativeCRef<CoreParamsData> const& params,
+make_active_track_executor(NativeCRef<CoreParamsData> const& params,
                            NativeRef<CoreStateData> const& state,
                            Ts&&... args)
 {
-    return ConditionalTrackLauncher{
+    return ConditionalTrackExecutor{
         params, state, detail::applies_active, celeritas::forward<Ts>(args)...};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a track launcher that only applies if the action ID matches.
+ * Return a track executor that only applies if the action ID matches.
  *
  * \note This should generally only be used for post-step actions and other
  * cases where the IDs *explicitly* are set. Many explicit actions apply to all
@@ -200,13 +200,13 @@ make_active_track_launcher(NativeCRef<CoreParamsData> const& params,
  */
 template<class... Ts>
 inline CELER_FUNCTION decltype(auto)
-make_action_track_launcher(NativeCRef<CoreParamsData> const& params,
+make_action_track_executor(NativeCRef<CoreParamsData> const& params,
                            NativeRef<CoreStateData> const& state,
                            ActionId action,
                            Ts&&... args)
 {
     CELER_EXPECT(action);
-    return ConditionalTrackLauncher{params,
+    return ConditionalTrackExecutor{params,
                                     state,
                                     detail::IsStepActionEqual{action},
                                     celeritas::forward<Ts>(args)...};
@@ -214,17 +214,17 @@ make_action_track_launcher(NativeCRef<CoreParamsData> const& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a track launcher that only applies for the given along-step action.
+ * Return a track executor that only applies for the given along-step action.
  */
 template<class... Ts>
 inline CELER_FUNCTION decltype(auto)
-make_along_step_track_launcher(NativeCRef<CoreParamsData> const& params,
+make_along_step_track_executor(NativeCRef<CoreParamsData> const& params,
                                NativeRef<CoreStateData> const& state,
                                ActionId action,
                                Ts&&... args)
 {
     CELER_EXPECT(action);
-    return ConditionalTrackLauncher{params,
+    return ConditionalTrackExecutor{params,
                                     state,
                                     detail::IsAlongStepActionEqual{action},
                                     celeritas::forward<Ts>(args)...};

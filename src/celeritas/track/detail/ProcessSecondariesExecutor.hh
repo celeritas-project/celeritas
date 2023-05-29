@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/detail/ProcessSecondariesLauncher.hh
+//! \file celeritas/track/detail/ProcessSecondariesExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -33,7 +33,7 @@ namespace detail
 /*!
  * Create track initializers from secondaries.
  */
-struct ProcessSecondariesLauncher
+struct ProcessSecondariesExecutor
 {
     //// TYPES ////
 
@@ -63,11 +63,12 @@ struct ProcessSecondariesLauncher
 /*!
  * Create track initializers from secondaries.
  *
- * This kernel is launched with a grid size equal to the number of track slots,
- * so ThreadId should be equal to TrackSlotId. No remapping should be done.
+ * This kernel is executeed with a grid size equal to the number of track
+ * slots, so ThreadId should be equal to TrackSlotId. No remapping should be
+ * done.
  */
 CELER_FUNCTION void
-ProcessSecondariesLauncher::operator()(TrackSlotId tid) const
+ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 {
 #if CELER_DEVICE_COMPILE
     CELER_EXPECT(tid);

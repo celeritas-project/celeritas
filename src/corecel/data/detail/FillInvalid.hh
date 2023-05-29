@@ -81,7 +81,7 @@ struct InvalidValueTraits
         // what's going on when we allocate space for nontrivial types on
         // device: whatever's there (whether memset on NVIDIA or uninitialized
         // on AMD) is not going to have "placement new" applied since we're not
-        // using thrust or calling Filler to launch initialization kernels on
+        // using thrust or calling Filler to execute initialization kernels on
         // all our datatypes. Reinterpret the data as bytes and assign garbage
         // values.
         T result;

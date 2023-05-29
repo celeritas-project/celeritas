@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ExecuteAction.hh
+//! \file celeritas/global/LaunchAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,7 +16,6 @@
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "KernelContextException.hh"
-#include "TrackLauncher.hh"
 
 namespace celeritas
 {
@@ -25,11 +24,11 @@ namespace celeritas
  * Helper function to run an action in parallel on CPU.
  */
 template<class F>
-void execute_action(ExplicitActionInterface const& action,
-                    Range<ThreadId> threads,
-                    celeritas::CoreParams const& params,
-                    celeritas::CoreState<MemSpace::host>& state,
-                    F&& apply_track)
+void launch_action(ExplicitActionInterface const& action,
+                   Range<ThreadId> threads,
+                   celeritas::CoreParams const& params,
+                   celeritas::CoreState<MemSpace::host>& state,
+                   F&& execute_thread)
 {
     MultiExceptionHandler capture_exception;
     size_type const start{threads.begin()->unchecked_get()};
@@ -40,7 +39,7 @@ void execute_action(ExplicitActionInterface const& action,
     for (size_type i = start; i < stop; ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            apply_track(ThreadId{i}),
+            execute_thread(ThreadId{i}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(),
                                    state.ref(),
@@ -55,16 +54,16 @@ void execute_action(ExplicitActionInterface const& action,
  * Helper function to run an action in parallel on CPU over all states.
  */
 template<class F>
-void execute_action(ExplicitActionInterface const& action,
-                    celeritas::CoreParams const& params,
-                    celeritas::CoreState<MemSpace::host>& state,
-                    F&& apply_track)
+void launch_action(ExplicitActionInterface const& action,
+                   celeritas::CoreParams const& params,
+                   celeritas::CoreState<MemSpace::host>& state,
+                   F&& execute_thread)
 {
-    return execute_action(action,
-                          Range<ThreadId>{ThreadId{0}, ThreadId{state.size()}},
-                          params,
-                          state,
-                          std::forward<F>(apply_track));
+    return launch_action(action,
+                         Range<ThreadId>{ThreadId{0}, ThreadId{state.size()}},
+                         params,
+                         state,
+                         std::forward<F>(execute_thread));
 }
 
 //---------------------------------------------------------------------------//

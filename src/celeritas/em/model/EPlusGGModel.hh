@@ -15,7 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and launch two-gamma positron annihiliation.
+ * Set up and execute two-gamma positron annihiliation.
  */
 class EPlusGGModel final : public Model
 {

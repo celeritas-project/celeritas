@@ -25,13 +25,13 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct KernelProfiling
 {
-    //!< Number of times launched
+    //!< Number of times executeed
     std::atomic<int> num_launches{0};
     //!< Number of threads integrated over all launches
     std::atomic<long long> accum_threads{0};
 
     // Increment atomic counters given the number of threads
-    inline void log_launch(int num_threads);
+    inline void log_execute(int num_threads);
 };
 
 //---------------------------------------------------------------------------//
@@ -50,12 +50,12 @@ using KernelId = OpaqueId<KernelMetadata>;
  * Keep track of kernels and launches.
  *
  * Every "insert" creates a unique \c KernelMetadata entry in a thread-safe
- * fashion (in case multiple threads are launching kernels for the first time).
- * Thus every kernel added to the registry needs a \c static local data (i.e.,
- * \c KernelParamCalculator) to track whether the kernel has been added and to
- * keep a reference to the returned profiling data counter. Kernels are always
- * added sequentially and can never be removed from the registry once added.
- * Kernels that share the same name will create independent entries!
+ * fashion (in case multiple threads are executeing kernels for the first
+ * time). Thus every kernel added to the registry needs a \c static local data
+ * (i.e., \c KernelParamCalculator) to track whether the kernel has been added
+ * and to keep a reference to the returned profiling data counter. Kernels are
+ * always added sequentially and can never be removed from the registry once
+ * added. Kernels that share the same name will create independent entries!
  *
  * This class has a thread-safe methods because it's meant to be shared
  * across multiple threads when running. Generally \c insert is the only method
@@ -64,7 +64,7 @@ using KernelId = OpaqueId<KernelMetadata>;
 class KernelRegistry
 {
   public:
-    // Whether profiling metrics (launch count, max threads) are collected
+    // Whether profiling metrics (execute count, max threads) are collected
     static bool profiling();
 
     // Construct without any data
@@ -107,7 +107,7 @@ std::ostream& operator<<(std::ostream& os, KernelMetadata const& md);
 /*!
  * Accumulate counters for a kernel launch.
  */
-void KernelProfiling::log_launch(int num_threads)
+void KernelProfiling::log_execute(int num_threads)
 {
     CELER_EXPECT(num_threads > 0);
 

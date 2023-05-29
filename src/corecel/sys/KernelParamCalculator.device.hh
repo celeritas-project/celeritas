@@ -25,7 +25,7 @@
  * \def CELER_LAUNCH_KERNEL
  *
  * Create a kernel param calculator with the given kernel, assuming the
- * function itself has a \c _kernel suffix, and launch with the given
+ * function itself has a \c _kernel suffix, and execute with the given
  * block/thread sizes and arguments list.
  */
 #define CELER_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, STREAM, ...)          \
@@ -75,7 +75,7 @@ struct KernelProfiling;
  * kernel_registry as an implementation detail in the .cc file that hides
  * inclusion of that interface from CUDA code. If kernel diagnostic profiling
  * is enabled, the registry will return a pointer that this class uses to
- * increment thread launch counters over the lifetime of the program.
+ * increment thread execute counters over the lifetime of the program.
  *
  * \code
     static KernelParamCalculator calc_params(my_kernel, "my");
@@ -115,7 +115,7 @@ class KernelParamCalculator
                                  F* kernel_func_ptr,
                                  dim_type threads_per_block);
 
-    // Get launch parameters
+    // Get execute parameters
     inline LaunchParams operator()(size_type min_num_threads) const;
 
   private:
@@ -127,7 +127,7 @@ class KernelParamCalculator
     //// HELPER FUNCTIONS ////
 
     void register_kernel(std::string_view name, KernelAttributes&& attributes);
-    void log_launch(size_type min_num_threads) const;
+    void log_execute(size_type min_num_threads) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -182,7 +182,7 @@ KernelParamCalculator::KernelParamCalculator(std::string_view name,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate launch params given the number of threads.
+ * Calculate execute params given the number of threads.
  */
 auto KernelParamCalculator::operator()(size_type min_num_threads) const
     -> LaunchParams
@@ -192,7 +192,7 @@ auto KernelParamCalculator::operator()(size_type min_num_threads) const
     // Update diagnostics for the kernel
     if (profiling_)
     {
-        this->log_launch(min_num_threads);
+        this->log_execute(min_num_threads);
     }
 
     // Ceiling integer division

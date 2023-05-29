@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/SimpleCaloLauncher.hh
+//! \file celeritas/user/detail/SimpleCaloExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -27,7 +27,7 @@ namespace detail
  *
  * We do not remap any threads, so the track slot ID should be the thread ID.
  */
-struct SimpleCaloLauncher
+struct SimpleCaloExecutor
 {
     NativeRef<StepStateData> const& step;
     NativeRef<SimpleCaloStateData>& calo;
@@ -45,7 +45,7 @@ struct SimpleCaloLauncher
 /*!
  * Accumulate detector hits on each thread.
  */
-CELER_FUNCTION void SimpleCaloLauncher::operator()(TrackSlotId tid)
+CELER_FUNCTION void SimpleCaloExecutor::operator()(TrackSlotId tid)
 {
     CELER_EXPECT(tid < step.detector.size());
     CELER_EXPECT(!step.energy_deposition.empty());

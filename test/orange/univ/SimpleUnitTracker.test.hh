@@ -68,7 +68,7 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
 
 //! Initialization heuristic
 template<MemSpace M = MemSpace::native>
-struct InitializingLauncher
+struct InitializingExecutor
 {
     ParamsRef<M> params;
     StateRef<M> states;

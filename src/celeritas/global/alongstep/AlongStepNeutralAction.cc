@@ -16,7 +16,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepNeutral.hh"
 
@@ -39,8 +39,8 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
                                      CoreStateHost& state) const
 {
     MultiExceptionHandler capture_exception;
-    auto launch
-        = make_along_step_track_launcher(*params.ptr<MemSpace::native>(),
+    auto execute
+        = make_along_step_track_executor(*params.ptr<MemSpace::native>(),
                                          *state.ptr(),
                                          this->action_id(),
                                          detail::along_step_neutral);
@@ -48,7 +48,7 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
     for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            execute(ThreadId{i}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(),
                                    state.ref(),

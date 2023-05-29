@@ -26,10 +26,10 @@ void KernelParamCalculator::register_kernel(std::string_view name,
 /*!
  * Accumulate counters for a kernel launch.
  */
-void KernelParamCalculator::log_launch(size_type min_num_threads) const
+void KernelParamCalculator::log_execute(size_type min_num_threads) const
 {
     CELER_EXPECT(profiling_);
-    profiling_->log_launch(min_num_threads);
+    profiling_->log_execute(min_num_threads);
 }
 
 //---------------------------------------------------------------------------//

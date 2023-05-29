@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/detail/InitTracksLauncher.hh
+//! \file celeritas/track/detail/InitTracksExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -39,7 +39,7 @@ namespace detail
  * secondaries. The new tracks are inserted into empty slots (vacancies) in the
  * track vector.
  */
-struct InitTracksLauncher
+struct InitTracksExecutor
 {
     //// TYPES ////
 
@@ -67,7 +67,7 @@ struct InitTracksLauncher
  * secondaries. The new tracks are inserted into empty slots (vacancies) in the
  * track vector.
  */
-CELER_FUNCTION void InitTracksLauncher::operator()(ThreadId tid) const
+CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
 #if CELER_DEVICE_COMPILE
     CELER_EXPECT(tid);

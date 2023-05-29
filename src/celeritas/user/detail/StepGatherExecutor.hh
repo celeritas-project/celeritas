@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/StepGatherLauncher.hh
+//! \file celeritas/user/detail/StepGatherExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,7 +21,7 @@ namespace detail
  * Gather step data for transfer to user hits.
  */
 template<StepPoint P>
-struct StepGatherLauncher
+struct StepGatherExecutor
 {
     //// DATA ////
 
@@ -42,7 +42,7 @@ struct StepGatherLauncher
  * Gather step data on device based on the user selection.
  */
 template<StepPoint P>
-CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
+CELER_FUNCTION void StepGatherExecutor<P>::operator()(ThreadId thread) const
 {
     CELER_ASSERT(thread < this->core_state.size());
 

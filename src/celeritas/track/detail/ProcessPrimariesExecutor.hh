@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/detail/ProcessPrimariesLauncher.hh
+//! \file celeritas/track/detail/ProcessPrimariesExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -29,7 +29,7 @@ namespace detail
 /*!
  * Create track initializers from primary particles.
  */
-struct ProcessPrimariesLauncher
+struct ProcessPrimariesExecutor
 {
     //// TYPES ////
 
@@ -51,7 +51,7 @@ struct ProcessPrimariesLauncher
 /*!
  * Create track initializers from primaries.
  */
-CELER_FUNCTION void ProcessPrimariesLauncher::operator()(ThreadId tid) const
+CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
 #if CELER_DEVICE_COMPILE
     CELER_EXPECT(tid);

@@ -12,7 +12,7 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "MockInteractImpl.hh"
 
@@ -30,9 +30,9 @@ __global__ void mock_interact_kernel(DeviceCRef<CoreParamsData> const params,
                                      DeviceRef<CoreStateData> const state,
                                      DeviceCRef<MockInteractData> const input)
 {
-    auto launch = make_active_track_launcher(
+    auto execute = make_active_track_executor(
         params, state, apply_mock_interact, input);
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//
 }  // namespace

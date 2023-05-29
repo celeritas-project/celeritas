@@ -29,7 +29,7 @@ class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up and launch a combined model of SeltzerBergerModel at the low energy
+ * Set up and execute a combined model of SeltzerBergerModel at the low energy
  * and RelativisticBremModel at the high energy for e+/e- Bremsstrahlung.
  */
 class CombinedBremModel final : public Model

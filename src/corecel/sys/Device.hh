@@ -90,10 +90,10 @@ class Device
     //! Total memory capacity (bytes)
     std::size_t total_global_mem() const { return total_global_mem_; }
 
-    //! Maximum number of threads per block (for launch limits)
+    //! Maximum number of threads per block (for execute limits)
     int max_threads_per_block() const { return max_threads_per_block_; }
 
-    //! Maximum number of threads per block (for launch limits)
+    //! Maximum number of threads per block (for execute limits)
     int max_blocks_per_grid() const { return max_blocks_per_grid_; }
 
     //! Maximum number of concurrent threads per compute unit (for occupancy)

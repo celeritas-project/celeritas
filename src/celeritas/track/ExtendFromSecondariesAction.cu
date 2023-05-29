@@ -15,10 +15,10 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
-#include "detail/LocateAliveLauncher.hh"
-#include "detail/ProcessSecondariesLauncher.hh"
+#include "detail/LocateAliveExecutor.hh"
+#include "detail/ProcessSecondariesExecutor.hh"
 
-namespace celeritas
+    namespace celeritas
 {
 namespace
 {
@@ -53,7 +53,7 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
         celeritas::device().default_block_size(),
         core_state.size(),
         celeritas::device().stream(core_state.stream_id()).get(),
-        detail::LocateAliveLauncher{core_params.ptr<MemSpace::native>(),
+        detail::LocateAliveExecutor{core_params.ptr<MemSpace::native>(),
                                     core_state.ptr()});
 }
 
@@ -69,7 +69,7 @@ void ExtendFromSecondariesAction::process_secondaries(
         celeritas::device().default_block_size(),
         core_state.size(),
         celeritas::device().stream(core_state.stream_id()).get(),
-        detail::ProcessSecondariesLauncher{core_params.ptr<MemSpace::native>(),
+        detail::ProcessSecondariesExecutor{core_params.ptr<MemSpace::native>(),
                                            core_state.ptr(),
                                            core_state.counters()});
 }

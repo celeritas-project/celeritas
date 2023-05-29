@@ -15,7 +15,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
-#include "detail/InitTracksLauncher.hh"
+#include "detail/InitTracksExecutor.hh"
 
 namespace celeritas
 {
@@ -24,9 +24,9 @@ namespace
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
-__global__ void init_tracks_kernel(detail::InitTracksLauncher launch)
+__global__ void init_tracks_kernel(detail::InitTracksExecutor execute)
 {
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -35,16 +35,16 @@ __global__ void init_tracks_kernel(detail::InitTracksLauncher launch)
 /*!
  * Launch a kernel to initialize tracks.
  */
-void InitializeTracksAction::launch_impl(CoreParams const& params,
-                                         CoreStateDevice& state,
-                                         size_type num_new_tracks) const
+void InitializeTracksAction::execute_impl(CoreParams const& params,
+                                          CoreStateDevice& state,
+                                          size_type num_new_tracks) const
 {
     CELER_LAUNCH_KERNEL(
         init_tracks,
         celeritas::device().default_block_size(),
         num_new_tracks,
         celeritas::device().stream(state.stream_id()).get(),
-        detail::InitTracksLauncher{params.ptr<MemSpace::device>(),
+        detail::InitTracksExecutor{params.ptr<MemSpace::device>(),
                                    state.ptr(),
                                    num_new_tracks,
                                    state.counters()});

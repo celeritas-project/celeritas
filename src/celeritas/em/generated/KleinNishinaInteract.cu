@@ -16,8 +16,8 @@
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/em/launcher/KleinNishinaLauncher.hh"
-#include "celeritas/phys/InteractionLauncher.hh"
+#include "celeritas/em/executor/KleinNishinaExecutor.hh"
+#include "celeritas/phys/InteractionExecutor.hh"
 
 using celeritas::MemSpace;
 
@@ -46,9 +46,9 @@ klein_nishina_interact_kernel(
     if (!(tid < size))
         return;
 
-    auto launch = celeritas::make_interaction_launcher(
+    auto execute = celeritas::make_interaction_executor(
         params, state, celeritas::klein_nishina_interact_track, model_data);
-    launch(tid);
+    execute(tid);
 }
 }  // namespace
 

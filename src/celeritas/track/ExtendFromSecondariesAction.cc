@@ -11,10 +11,10 @@
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/ExecuteAction.hh"
+#include "celeritas/global/LaunchAction.hh"
 
-#include "detail/LocateAliveLauncher.hh"  // IWYU pragma: associated
-#include "detail/ProcessSecondariesLauncher.hh"  // IWYU pragma: associated
+#include "detail/LocateAliveExecutor.hh"  // IWYU pragma: associated
+#include "detail/ProcessSecondariesExecutor.hh"  // IWYU pragma: associated
 #include "detail/TrackInitAlgorithms.hh"  // IWYU pragma: associated
 
 namespace celeritas
@@ -91,11 +91,11 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
 void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
                                                CoreStateHost& core_state) const
 {
-    execute_action(*this,
-                   core_params,
-                   core_state,
-                   detail::LocateAliveLauncher{
-                       core_params.ptr<MemSpace::native>(), core_state.ptr()});
+    launch_action(*this,
+                  core_params,
+                  core_state,
+                  detail::LocateAliveExecutor{
+                      core_params.ptr<MemSpace::native>(), core_state.ptr()});
 }
 
 //---------------------------------------------------------------------------//
@@ -114,11 +114,11 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const&,
 void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateHost& core_state) const
 {
-    execute_action(
+    launch_action(
         *this,
         core_params,
         core_state,
-        detail::ProcessSecondariesLauncher{core_params.ptr<MemSpace::native>(),
+        detail::ProcessSecondariesExecutor{core_params.ptr<MemSpace::native>(),
                                            core_state.ptr(),
                                            core_state.counters()});
 }
