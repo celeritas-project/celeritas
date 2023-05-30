@@ -145,6 +145,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
     {
         MscRange new_range;
         // Initialize MSC range cache on the first step in a volume
+        // TODO for hadrons/muons: this value is hard-coded for electrons
         new_range.range_fact = shared.params.range_fact;
         // XXX the 1 MFP limitation is applied to the *geo* step, not the true
         // step, so this isn't quite right (See UrbanMsc.hh)

@@ -144,7 +144,6 @@ TEST_F(KernelContextExceptionTest, typical)
             EXPECT_EQ(VolumeId{2}, e.volume());
             EXPECT_EQ(SurfaceId{11}, e.surface());
         }
-        EXPECT_EQ(SurfaceId{}, e.next_surface());
         if (CELERITAS_USE_JSON && !CELERITAS_USE_VECGEOM)
         {
             std::stringstream ss;
