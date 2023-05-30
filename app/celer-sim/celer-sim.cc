@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     else
     {
         // Open the specified file
-        infile.open(filename);
+        infile.open(std::string{filename});
         if (!infile)
         {
             CELER_LOG(critical) << "Failed to open '" << filename << "'";
