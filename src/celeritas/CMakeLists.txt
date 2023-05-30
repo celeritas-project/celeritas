@@ -117,8 +117,8 @@ if(CELERITAS_USE_Geant4)
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
+    ext/ScopedGeantExceptionHandler.cc
     ext/detail/GeantBremsstrahlungProcess.cc
-    ext/detail/GeantExceptionHandler.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc

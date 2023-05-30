@@ -8,6 +8,7 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include "corecel/cont/Span.hh"
+#include "corecel/io/LogContextException.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
@@ -167,7 +168,8 @@ TEST_F(KnStepCollectorTestBase, multiple_interfaces)
         Stepper<MemSpace::host> step(step_inp);
 
         auto primaries = this->make_primaries(2);
-        step(make_span(primaries));
+        CELER_TRY_HANDLE(step(make_span(primaries)),
+                         LogContextException{this->output_reg().get()});
     }
 
     EXPECT_EQ(4, mctruth->steps().size());
