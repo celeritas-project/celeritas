@@ -50,7 +50,7 @@ apply_msc_step_limit(CoreTrackView const& track, MH&& msc)
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply propagaion.
+ * Apply propagation.
  *
  * This is a tiny helper class to facilitate use of \c make_track_launcher. It
  * should probably be cleaned up later.
@@ -262,23 +262,34 @@ inline CELER_FUNCTION void apply_eloss(CoreTrackView const& track, EH&& eloss)
 inline CELER_FUNCTION void update_track(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
+
     if (sim.status() != TrackStatus::killed)
     {
         StepLimit const& step_limit = sim.step_limit();
         CELER_ASSERT(step_limit.step > 0
                      || track.make_particle_view().is_stopped());
         CELER_ASSERT(step_limit.action);
+
         auto phys = track.make_physics_view();
-        if (step_limit.action != phys.scalars().discrete_action())
+        if (phys.num_particle_processes() == 0 && phys.scalars().transport)
         {
-            // Reduce remaining mean free paths to travel. The 'discrete
-            // action' case is launched separately and resets the
-            // interaction MFP itself.
-            auto step = track.make_physics_step_view();
-            real_type mfp = phys.interaction_mfp()
-                            - step_limit.step * step.macro_xs();
-            CELER_ASSERT(mfp > 0);
-            phys.interaction_mfp(mfp);
+            // Replicate G4Transportation
+            // Set infinite mfp so the particle reaches the next boundary
+            phys.interaction_mfp(numeric_limits<real_type>::infinity());
+        }
+        else
+        {
+            if (step_limit.action != phys.scalars().discrete_action())
+            {
+                // Reduce remaining mean free paths to travel. The 'discrete
+                // action' case is launched separately and resets the
+                // interaction MFP itself.
+                auto step = track.make_physics_step_view();
+                real_type mfp = phys.interaction_mfp()
+                                - step_limit.step * step.macro_xs();
+                CELER_ASSERT(mfp > 0);
+                phys.interaction_mfp(mfp);
+            }
         }
     }
 

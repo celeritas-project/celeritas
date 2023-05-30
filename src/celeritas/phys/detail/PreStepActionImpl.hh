@@ -62,10 +62,20 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
         step.element({});
     }
 
-    // Sample mean free path
     auto phys = track.make_physics_view();
+    if (phys.num_particle_processes() == 0 && phys.scalars().transport)
+    {
+        // Replicate G4Transportation
+        // Set step limit to infinity and exit
+        sim.reset_step_limit();
+        sim.along_step_action()
+            = track.core_scalars().along_step_neutral_action;  // Needed?
+        return;
+    }
+
     if (!phys.has_interaction_mfp())
     {
+        // Sample mean free path
         auto rng = track.make_rng_engine();
         ExponentialDistribution<real_type> sample_exponential;
         phys.interaction_mfp(sample_exponential(rng));
