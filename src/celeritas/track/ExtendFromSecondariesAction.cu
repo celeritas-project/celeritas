@@ -25,13 +25,13 @@ namespace
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
-__global__ void locate_alive_kernel(detail::LocateAliveLauncher launch)
+__global__ void locate_alive_kernel(detail::LocateAliveExecutor launch)
 {
     launch(KernelParamCalculator::thread_id());
 }
 
 __global__ void
-process_secondaries_kernel(detail::ProcessSecondariesLauncher launch)
+process_secondaries_kernel(detail::ProcessSecondariesExecutor launch)
 {
     launch(KernelParamCalculator::thread_id());
 }
