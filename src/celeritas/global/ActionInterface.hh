@@ -32,7 +32,7 @@ class CoreState;
  *
  * The \c ActionInterface provides a no-overhead virtual interface for
  * gathering metadata. The \c ExplicitActionInterface provides additional
- * interfaces for executeing kernels. The \c BeginRunActionInterface allows
+ * interfaces for launching kernels. The \c BeginRunActionInterface allows
  * actions to modify the state (or the class instance itself) at the beginning
  * of a stepping loop.
  *

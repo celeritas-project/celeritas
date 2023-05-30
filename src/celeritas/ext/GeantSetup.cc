@@ -101,11 +101,11 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         G4ParticleTable::GetParticleTable();
 
         // Guard against segfaults due to bad Geant4 global cleanup
-        static int geant_execute_count = 0;
-        CELER_VALIDATE(geant_execute_count == 0,
+        static int geant_launch_count = 0;
+        CELER_VALIDATE(geant_launch_count == 0,
                        << "Geant4 cannot be 'run' more than once per "
                           "execution");
-        ++geant_execute_count;
+        ++geant_launch_count;
 
 #if G4VERSION_NUMBER >= 1070
         // Disable geant4 signal interception

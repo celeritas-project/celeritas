@@ -29,7 +29,7 @@ case $CONFIG in
     CONFIG=bionic-minimal
     ;;
   cuda )
-    # When updating: change here, dev/{name}.yaml, dev/execute-local-test.sh
+    # When updating: change here, dev/{name}.yaml, dev/launch-local-test.sh
     CONFIG=jammy-cuda11
     ;;
   hip )

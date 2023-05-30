@@ -34,10 +34,10 @@ Note that the `--rm` option automatically deletes the state of the container
 after you exit the docker client. This means all of your work will be
 destroyed.
 
-The `execute-local-test` script will clone an active GitHub pull request, build,
+The `launch-local-test` script will clone an active GitHub pull request, build,
 and set up an image to use locally:
 ```console
-$ ./ci/execute-local-test.sh 123
+$ ./ci/launch-local-test.sh 123
 ```
 
 To mount the image with your local source directory:

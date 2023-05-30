@@ -15,7 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and execute the Klein-Nishina model interaction.
+ * Set up and launch the Klein-Nishina model interaction.
  */
 class KleinNishinaModel final : public Model
 {

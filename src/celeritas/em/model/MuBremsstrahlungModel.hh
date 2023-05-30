@@ -19,7 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and execute the Muon Bremsstrahlung model interaction.
+ * Set up and launch the Muon Bremsstrahlung model interaction.
  */
 class MuBremsstrahlungModel final : public Model
 {

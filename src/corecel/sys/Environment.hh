@@ -20,7 +20,7 @@ namespace celeritas
 /*!
  * Interrogate and extend environment variables.
  *
- * This makes it easier to generate reproducible runs or execute Celeritas
+ * This makes it easier to generate reproducible runs or launch Celeritas
  * remotely: the environment variables may be encoded as JSON input to
  * supplement or override system environment variables. Later it can be
  * interrogated to find which environment variables were accessed.

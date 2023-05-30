@@ -23,7 +23,7 @@ class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up and execute Rayleigh scattering.
+ * Set up and launch Rayleigh scattering.
  */
 class RayleighModel final : public Model
 {

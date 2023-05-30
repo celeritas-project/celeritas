@@ -23,7 +23,7 @@ struct ImportLivermorePE;
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up and execute the Livermore photoelectric model interaction.
+ * Set up and launch the Livermore photoelectric model interaction.
  */
 class LivermorePEModel final : public Model
 {

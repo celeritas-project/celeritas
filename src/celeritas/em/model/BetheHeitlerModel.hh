@@ -19,7 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and execute the Bethe-Heitler model interaction.
+ * Set up and launch the Bethe-Heitler model interaction.
  */
 class BetheHeitlerModel final : public Model
 {
