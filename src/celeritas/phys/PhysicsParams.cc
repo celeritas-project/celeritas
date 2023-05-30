@@ -238,6 +238,7 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     data->scalars.lowest_electron_energy = opts.lowest_electron_energy;
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
+    data->scalars.transport = opts.transport;
 }
 
 //---------------------------------------------------------------------------//

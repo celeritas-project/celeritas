@@ -232,6 +232,9 @@ struct PhysicsParamsScalars
     // When fixed step limiter is used, this is the corresponding action ID
     ActionId fixed_step_action{};
 
+    // Propagate particle to boundary when no processes/models are assigned
+    bool transport{false};
+
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
