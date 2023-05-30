@@ -27,7 +27,7 @@ void DiscreteSelectAction::execute(CoreParams const& params, CoreStateHost& stat
 {
     return ::celeritas::launch_action(
         *this, params, state,
-        TrackExecutor{*params.ptr<MemSpace::native>(), *state.ptr(),
+        TrackExecutor{params.ptr<MemSpace::native>(), state.ptr(),
                       detail::discrete_select_track});
 }
 

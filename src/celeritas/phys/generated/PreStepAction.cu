@@ -39,7 +39,7 @@ pre_step_kernel(
     RefPtr<CoreStateData, MemSpace::device> const state
 )
 {
-    TrackExecutor execute{*params, *state, detail::pre_step_track};
+    TrackExecutor execute{params, state, detail::pre_step_track};
     execute(KernelParamCalculator::thread_id());
 }
 }  // namespace

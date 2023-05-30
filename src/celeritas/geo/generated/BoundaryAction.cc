@@ -27,7 +27,7 @@ void BoundaryAction::execute(CoreParams const& params, CoreStateHost& state) con
 {
     return ::celeritas::launch_action(
         *this, params, state,
-        TrackExecutor{*params.ptr<MemSpace::native>(), *state.ptr(),
+        TrackExecutor{params.ptr<MemSpace::native>(), state.ptr(),
                       detail::boundary_track});
 }
 

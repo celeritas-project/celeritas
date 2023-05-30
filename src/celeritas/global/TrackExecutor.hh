@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreTrackDataFwd.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
@@ -26,8 +27,8 @@ namespace celeritas
  * This class should be used primarily by generated kernel functions:
  *
  * \code
-__global__ void foo_kernel(CoreParamsRef const params,
-                           CoreParamsRef const state,
+__global__ void foo_kernel(CoreParamsPtr const params,
+                           CoreParamsPtr const state,
                            OtherData const other)
 {
     TrackExecutor execute{params, state, apply_to_track, OtherView{other}};
@@ -59,13 +60,13 @@ class TrackExecutor
   public:
     //!@{
     //! \name Type aliases
-    using ParamsRef = NativeCRef<CoreParamsData>;
-    using StateRef = NativeRef<CoreStateData>;
+    using ParamsPtr = CoreParamsPtr<MemSpace::native>;
+    using StatePtr = CoreStatePtr<MemSpace::native>;
     //!@}
 
   public:
     CELER_FUNCTION
-    TrackExecutor(ParamsRef const& params, StateRef const& state, Ts... args)
+    TrackExecutor(ParamsPtr params, StatePtr state, Ts... args)
         : params_{params}
         , state_{state}
         , execute_impl_{celeritas::forward<Ts>(args)...}
@@ -76,21 +77,21 @@ class TrackExecutor
     {
         CELER_EXPECT(thread);
 #if CELER_DEVICE_COMPILE
-        if (!(thread < state_.size()))
+        if (!(thread < state_->size()))
         {
             return;
         }
 #else
-        CELER_EXPECT(thread < state_.size());
+        CELER_EXPECT(thread < state_->size());
 #endif
-        CoreTrackView const track(params_, state_, thread);
+        CoreTrackView const track(*params_, *state_, thread);
 
         return execute_impl_(track);
     }
 
   private:
-    ParamsRef const& params_;
-    StateRef const& state_;
+    ParamsPtr const params_;
+    StatePtr const state_;
     detail::TrackExecutorImpl<Ts...> execute_impl_;
 };
 
@@ -111,14 +112,14 @@ class ConditionalTrackExecutor
   public:
     //!@{
     //! \name Type aliases
-    using ParamsRef = NativeCRef<CoreParamsData>;
-    using StateRef = NativeRef<CoreStateData>;
+    using ParamsPtr = CoreParamsPtr<MemSpace::native>;
+    using StatePtr = CoreStatePtr<MemSpace::native>;
     //!@}
 
   public:
     CELER_FUNCTION
-    ConditionalTrackExecutor(ParamsRef const& params,
-                             StateRef const& state,
+    ConditionalTrackExecutor(ParamsPtr params,
+                             StatePtr state,
                              C applies,
                              Ts... args)
         : params_{params}
@@ -132,14 +133,14 @@ class ConditionalTrackExecutor
     {
 #if CELER_DEVICE_COMPILE
         CELER_EXPECT(thread);
-        if (!(thread < state_.size()))
+        if (!(thread < state_->size()))
         {
             return;
         }
 #else
-        CELER_EXPECT(thread < state_.size());
+        CELER_EXPECT(thread < state_->size());
 #endif
-        CoreTrackView const track(params_, state_, thread);
+        CoreTrackView const track(*params_, *state_, thread);
         if (!applies_(track.make_sim_view()))
         {
             return;
@@ -149,8 +150,8 @@ class ConditionalTrackExecutor
     }
 
   private:
-    ParamsRef const& params_;
-    StateRef const& state_;
+    ParamsPtr params_;
+    StatePtr state_;
     C applies_;
     detail::TrackExecutorImpl<Ts...> execute_impl_;
 };
@@ -159,14 +160,14 @@ class ConditionalTrackExecutor
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class... Ts>
-CELER_FUNCTION TrackExecutor(NativeCRef<CoreParamsData> const&,
-                             NativeRef<CoreStateData> const&,
+CELER_FUNCTION TrackExecutor(CoreParamsPtr<MemSpace::native>,
+                             CoreStatePtr<MemSpace::native>,
                              Ts...)
     ->TrackExecutor<Ts...>;
 
 template<class C, class... Ts>
-CELER_FUNCTION ConditionalTrackExecutor(NativeCRef<CoreParamsData> const&,
-                                        NativeRef<CoreStateData> const&,
+CELER_FUNCTION ConditionalTrackExecutor(CoreParamsPtr<MemSpace::native>,
+                                        CoreStatePtr<MemSpace::native>,
                                         C,
                                         Ts...)
     ->ConditionalTrackExecutor<C, Ts...>;
@@ -179,8 +180,8 @@ CELER_FUNCTION ConditionalTrackExecutor(NativeCRef<CoreParamsData> const&,
  */
 template<class... Ts>
 inline CELER_FUNCTION decltype(auto)
-make_active_track_executor(NativeCRef<CoreParamsData> const& params,
-                           NativeRef<CoreStateData> const& state,
+make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
+                           CoreStatePtr<MemSpace::native> const& state,
                            Ts&&... args)
 {
     return ConditionalTrackExecutor{
@@ -200,8 +201,8 @@ make_active_track_executor(NativeCRef<CoreParamsData> const& params,
  */
 template<class... Ts>
 inline CELER_FUNCTION decltype(auto)
-make_action_track_executor(NativeCRef<CoreParamsData> const& params,
-                           NativeRef<CoreStateData> const& state,
+make_action_track_executor(CoreParamsPtr<MemSpace::native> params,
+                           CoreStatePtr<MemSpace::native> state,
                            ActionId action,
                            Ts&&... args)
 {
@@ -218,8 +219,8 @@ make_action_track_executor(NativeCRef<CoreParamsData> const& params,
  */
 template<class... Ts>
 inline CELER_FUNCTION decltype(auto)
-make_along_step_track_executor(NativeCRef<CoreParamsData> const& params,
-                               NativeRef<CoreStateData> const& state,
+make_along_step_track_executor(CoreParamsPtr<MemSpace::native> params,
+                               CoreStatePtr<MemSpace::native> state,
                                ActionId action,
                                Ts&&... args)
 {

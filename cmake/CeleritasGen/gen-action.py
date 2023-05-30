@@ -84,7 +84,7 @@ void {clsname}::execute(CoreParams const& params, CoreStateHost& state) const
 {{
     return ::celeritas::launch_action(
         *this, params, state,
-        TrackExecutor{{*params.ptr<MemSpace::native>(), *state.ptr(),
+        TrackExecutor{{params.ptr<MemSpace::native>(), state.ptr(),
                       detail::{func}_track}});
 }}
 
@@ -118,7 +118,7 @@ __global__ void{launch_bounds}{func}_kernel(
     RefPtr<CoreStateData, MemSpace::device> const state
 )
 {{
-    TrackExecutor execute{{*params, *state, detail::{func}_track}};
+    TrackExecutor execute{{params, state, detail::{func}_track}};
     execute(KernelParamCalculator::thread_id());
 }}
 }}  // namespace

@@ -27,7 +27,7 @@ void PreStepAction::execute(CoreParams const& params, CoreStateHost& state) cons
 {
     return ::celeritas::launch_action(
         *this, params, state,
-        TrackExecutor{*params.ptr<MemSpace::native>(), *state.ptr(),
+        TrackExecutor{params.ptr<MemSpace::native>(), state.ptr(),
                       detail::pre_step_track});
 }
 

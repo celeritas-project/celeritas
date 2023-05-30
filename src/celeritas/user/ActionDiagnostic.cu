@@ -30,7 +30,7 @@ tally_action_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
                     DeviceRef<ParticleTallyStateData> ad_state)
 {
     auto execute = make_active_track_executor(
-        *params, *state, detail::tally_action, ad_params, ad_state);
+        params, state, detail::tally_action, ad_params, ad_state);
     execute(KernelParamCalculator::thread_id());
 }
 

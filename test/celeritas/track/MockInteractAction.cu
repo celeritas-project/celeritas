@@ -26,9 +26,10 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void mock_interact_kernel(DeviceCRef<CoreParamsData> const params,
-                                     DeviceRef<CoreStateData> const state,
-                                     DeviceCRef<MockInteractData> const input)
+__global__ void
+mock_interact_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
+                     RefPtr<CoreStateData, MemSpace::device> const state,
+                     DeviceCRef<MockInteractData> const input)
 {
     auto execute = make_active_track_executor(
         params, state, apply_mock_interact, input);
@@ -48,8 +49,8 @@ void MockInteractAction::execute(CoreParams const& params,
                         device().default_block_size(),
                         state.size(),
                         0,
-                        params.ref<MemSpace::native>(),
-                        state.ref(),
+                        params.ptr<MemSpace::native>(),
+                        state.ptr(),
                         data_.device_ref());
 }
 

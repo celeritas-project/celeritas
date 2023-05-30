@@ -30,7 +30,7 @@ tally_steps_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
                    DeviceRef<ParticleTallyStateData> sd_state)
 {
     auto execute = make_active_track_executor(
-        *params, *state, detail::tally_steps, sd_params, sd_state);
+        params, state, detail::tally_steps, sd_params, sd_state);
     execute(KernelParamCalculator::thread_id());
 }
 

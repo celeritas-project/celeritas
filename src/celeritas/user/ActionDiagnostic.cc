@@ -80,8 +80,8 @@ void ActionDiagnostic::execute(CoreParams const& params,
 {
     MultiExceptionHandler capture_exception;
     auto execute = make_active_track_executor(
-        *params.ptr<MemSpace::native>(),
-        *state.ptr(),
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
         detail::tally_action,
         store_.params<MemSpace::host>(),
         store_.state<MemSpace::host>(state.stream_id(), this->state_size()));

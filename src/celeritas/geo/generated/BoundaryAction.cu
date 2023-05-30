@@ -30,7 +30,7 @@ __global__ void boundary_kernel(
     RefPtr<CoreStateData, MemSpace::device> const state
 )
 {
-    TrackExecutor execute{*params, *state, detail::boundary_track};
+    TrackExecutor execute{params, state, detail::boundary_track};
     execute(KernelParamCalculator::thread_id());
 }
 }  // namespace

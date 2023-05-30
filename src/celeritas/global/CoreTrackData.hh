@@ -18,6 +18,8 @@
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
 
+#include "CoreTrackDataFwd.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

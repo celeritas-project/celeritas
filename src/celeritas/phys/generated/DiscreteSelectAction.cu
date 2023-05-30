@@ -30,7 +30,7 @@ __global__ void discrete_select_kernel(
     RefPtr<CoreStateData, MemSpace::device> const state
 )
 {
-    TrackExecutor execute{*params, *state, detail::discrete_select_track};
+    TrackExecutor execute{params, state, detail::discrete_select_track};
     execute(KernelParamCalculator::thread_id());
 }
 }  // namespace

@@ -30,7 +30,7 @@ along_step_neutral_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params
                           ActionId const along_step_id)
 {
     auto execute = make_along_step_track_executor(
-        *params, *state, along_step_id, detail::along_step_neutral);
+        params, state, along_step_id, detail::along_step_neutral);
     execute(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//

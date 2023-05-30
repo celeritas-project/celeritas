@@ -40,8 +40,8 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
 {
     MultiExceptionHandler capture_exception;
     auto execute
-        = make_along_step_track_executor(*params.ptr<MemSpace::native>(),
-                                         *state.ptr(),
+        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
+                                         state.ptr(),
                                          this->action_id(),
                                          detail::along_step_neutral);
 #pragma omp parallel for

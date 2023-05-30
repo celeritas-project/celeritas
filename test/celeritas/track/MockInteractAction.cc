@@ -56,8 +56,8 @@ void MockInteractAction::execute(CoreParams const& params,
     CELER_EXPECT(state.size() == data_.host_ref().size());
 
     MultiExceptionHandler capture_exception;
-    auto execute = make_active_track_executor(params.ref<MemSpace::native>(),
-                                              state.ref(),
+    auto execute = make_active_track_executor(params.ptr<MemSpace::native>(),
+                                              state.ptr(),
                                               apply_mock_interact,
                                               data_.host_ref());
 #ifdef _OPENMP
