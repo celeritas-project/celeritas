@@ -185,7 +185,7 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
                            Ts&&... args)
 {
     return ConditionalTrackExecutor{
-        params, state, detail::applies_active, celeritas::forward<Ts>(args)...};
+        params, state, detail::AppliesActive{}, celeritas::forward<Ts>(args)...};
 }
 
 //---------------------------------------------------------------------------//
