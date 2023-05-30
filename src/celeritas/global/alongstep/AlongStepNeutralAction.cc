@@ -10,12 +10,9 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
-#include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/KernelContextException.hh"
+#include "celeritas/global/LaunchAction.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepNeutral.hh"
@@ -38,24 +35,12 @@ AlongStepNeutralAction::AlongStepNeutralAction(ActionId id) : id_(id)
 void AlongStepNeutralAction::execute(CoreParams const& params,
                                      CoreStateHost& state) const
 {
-    MultiExceptionHandler capture_exception;
     auto execute
         = make_along_step_track_executor(params.ptr<MemSpace::native>(),
                                          state.ptr(),
                                          this->action_id(),
-                                         detail::along_step_neutral);
-#pragma omp parallel for
-    for (size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            execute(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+                                         detail::AlongStepNeutralExecutor{});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
