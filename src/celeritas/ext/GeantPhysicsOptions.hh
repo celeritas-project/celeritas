@@ -61,10 +61,10 @@ enum class RelaxationSelection
  * - \c gamma_general: load G4GammaGeneral instead of individual processes
  * - \c ionization: enable e- and e+ ionization process
  * - \c annihilation: enable e-e+ annihilation process
- * - \c brems: enable Bremsstrahlung process selection
  * - \c brems: Bremsstrahlung model selection
  * - \c msc: Multiple scattering model selection
  * - \c relaxation: Atomic relaxation selection
+ * - \c transport: replicate \c G4Transportation when no processes are assigned
  * - \c em_bins_per_decade: number of log-spaced energy bins per factor of 10
  * - \c eloss_fluctuation: enable universal energy fluctuations
  * - \c lpm: apply relativistic corrections for select models
@@ -96,6 +96,9 @@ struct GeantPhysicsOptions
     BremsModelSelection brems{BremsModelSelection::all};
     MscModelSelection msc{MscModelSelection::urban_extended};
     RelaxationSelection relaxation{RelaxationSelection::none};
+
+    // Replicate G4Transportation when no processes are assigned
+    bool transport{false};
 
     //// Physics options ////
     int em_bins_per_decade{7};
@@ -134,6 +137,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.brems == b.brems
            && a.msc == b.msc
            && a.relaxation == b.relaxation
+           && a.transport == b.transport
            // Physics options
            && a.em_bins_per_decade == b.em_bins_per_decade
            && a.eloss_fluctuation == b.eloss_fluctuation
@@ -142,6 +146,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.min_energy == b.min_energy
            && a.max_energy == b.max_energy
            && a.linear_loss_limit == b.linear_loss_limit
+           && a.relaxation == b.relaxation
            && a.lowest_electron_energy == b.lowest_electron_energy
            && a.apply_cuts == b.apply_cuts
            && a.msc_range_factor == b.msc_range_factor

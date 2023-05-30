@@ -87,6 +87,7 @@ int get_num_threads(G4RunManager const& runman)
  * Construct from a GDML file and physics options.
  */
 GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
+    : options_(options)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
     ScopedMem record_setup_mem("GeantSetup.construct");

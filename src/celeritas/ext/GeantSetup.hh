@@ -59,6 +59,8 @@ class GeantSetup
     // Get the world detector volume
     inline G4VPhysicalVolume const* world() const;
 
+    Options const& geant_physics_options() { return options_; }
+
     //! True if we own a run manager
     explicit operator bool() const { return static_cast<bool>(run_manager_); }
 
@@ -71,6 +73,7 @@ class GeantSetup
 
     RMUniquePtr run_manager_{nullptr};
     G4VPhysicalVolume* world_{nullptr};
+    Options options_;
 };
 
 //---------------------------------------------------------------------------//
