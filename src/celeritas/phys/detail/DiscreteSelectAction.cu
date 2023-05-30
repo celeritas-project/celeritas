@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "DiscreteSelectAction.hh"
 
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/LaunchAction.device.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "DiscreteSelectExecutor.hh"
@@ -29,7 +29,7 @@ void DiscreteSelectAction::execute(CoreParams const& params,
                                               state.ptr(),
                                               this->action_id(),
                                               DiscreteSelectExecutor{});
-    static Launcher<decltype(execute)> const launch_kernel(*this);
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
 

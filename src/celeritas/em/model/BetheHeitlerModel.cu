@@ -8,9 +8,9 @@
 #include "BetheHeitlerModel.hh"
 
 #include "celeritas/em/executor/BetheHeitlerExecutor.hh"
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/LaunchAction.device.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 
@@ -28,7 +28,7 @@ void BetheHeitlerModel::execute(CoreParams const& params,
         state.ptr(),
         this->action_id(),
         InteractionApplier{BetheHeitlerExecutor{this->host_ref()}});
-    static Launcher<decltype(execute)> const launch_kernel(*this);
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
 

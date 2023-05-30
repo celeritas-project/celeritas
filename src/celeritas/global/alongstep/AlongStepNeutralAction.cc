@@ -10,9 +10,9 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/LaunchAction.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepNeutral.hh"

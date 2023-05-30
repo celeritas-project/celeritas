@@ -13,9 +13,9 @@
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/LaunchAction.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "MockInteractExecutor.hh"

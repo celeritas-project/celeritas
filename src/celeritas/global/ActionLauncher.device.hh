@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/LaunchAction.device.hh
+//! \file celeritas/global/ActionLauncher.device.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -44,7 +44,7 @@ launch_action_impl(size_type const num_threads, F execute_thread)
 
 //---------------------------------------------------------------------------//
 /*!
- * Profile and launch Celeritas kernels.
+ * Profile and launch Celeritas kernels from inside an action.
  *
  * Example:
  * \code
@@ -52,16 +52,16 @@ launch_action_impl(size_type const num_threads, F execute_thread)
                          CoreStateDevice& state) const
  {
     auto execute_thread = make_blah_executor(blah);
-    static Launcher<decltype(execute_thread)> const launch_kernel(*this);
+    static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
     launch_kernel(state, execute_thread);
  }
  * \endcode
  */
 template<class F>
-class Launcher
+class ActionLauncher
 {
   public:
-    explicit Launcher(ExplicitActionInterface const& action)
+    explicit ActionLauncher(ExplicitActionInterface const& action)
         : calc_launch_params_{action.label(), &launch_action_impl<F>}
     {
     }

@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "StepDiagnostic.hh"
 
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/LaunchAction.device.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/StepDiagnosticExecutor.hh"
@@ -30,7 +30,7 @@ void StepDiagnostic::execute(CoreParams const& params,
             store_.params<MemSpace::native>(),
             store_.state<MemSpace::native>(state.stream_id(),
                                            this->state_size())});
-    static Launcher<decltype(execute)> const launch_kernel(*this);
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
 

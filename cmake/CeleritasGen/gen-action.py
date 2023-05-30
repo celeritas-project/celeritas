@@ -68,7 +68,7 @@ CC_TEMPLATE = CLIKE_TOP + """\
 #include <utility>
 
 #include "corecel/Types.hh"
-#include "celeritas/global/LaunchAction.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "../detail/{clsname}Impl.hh" // IWYU pragma: associated
 

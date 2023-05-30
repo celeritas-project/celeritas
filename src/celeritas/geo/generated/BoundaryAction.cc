@@ -11,7 +11,7 @@
 #include <utility>
 
 #include "corecel/Types.hh"
-#include "celeritas/global/LaunchAction.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "../detail/BoundaryActionImpl.hh" // IWYU pragma: associated
 

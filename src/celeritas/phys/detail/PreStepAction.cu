@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "PreStepAction.hh"
 
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/LaunchAction.device.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "PreStepExecutor.hh"
@@ -28,7 +28,7 @@ void PreStepAction::execute(CoreParams const& params,
     TrackExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), PreStepExecutor{}};
 
-    static Launcher<decltype(execute)> const launch_kernel(*this);
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
 
