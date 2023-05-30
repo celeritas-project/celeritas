@@ -56,8 +56,10 @@ find Testing -name '*.xml'
 
 # Install and test that the executables are there
 cmake --install .
-test -x "${CELER_SOURCE_DIR}/bin/celer-g4"
-test -x "${CELER_SOURCE_DIR}/bin/celer-sim"
+cd ..
+test -x "${CELER_SOURCE_DIR}/install/bin/celer-sim"
+test -x "${CELER_SOURCE_DIR}/install/bin/celer-g4"
+"${CELER_SOURCE_DIR}/install/bin/celer-sim" --version
   
 # Test examples against installed celeritas
 export CMAKE_PRESET

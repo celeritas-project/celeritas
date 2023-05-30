@@ -16,11 +16,13 @@
 #include <utility>
 #include <vector>
 
-#include "celeritas_config.h"
-#if CELERITAS_USE_OPENMP
+#ifdef _OPENMP
 #    include <omp.h>
 #endif
 
+#include "celeritas_config.h"
+#include "celeritas_version.h"
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterface.hh"
@@ -133,6 +135,18 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     result.total_time = get_transport_time();
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }
+
+//---------------------------------------------------------------------------//
+void print_usage(char const* exec_name)
+{
+    // clang-format off
+    std::cerr << "usage: " << exec_name << " {input}.json\n"
+                 "       " << exec_name << " [--help|-h]\n"
+                 "       " << exec_name << " --version\n"
+                 "       " << exec_name << " --config\n";
+    // clang-format on
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 }  // namespace app
@@ -165,26 +179,40 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    // Process input arguments
+    if (argc != 2)
+    {
+        celeritas::app::print_usage(argv[0]);
+        return EXIT_FAILURE;
+    }
+    std::string_view filename{argv[1]};
+    if (filename == "--help" || filename == "-h")
+    {
+        celeritas::app::print_usage(argv[0]);
+        return EXIT_SUCCESS;
+    }
+    if (filename == "--version" || filename == "-v")
+    {
+        std::cout << celeritas_version << std::endl;
+        return EXIT_SUCCESS;
+    }
     if (!CELERITAS_USE_JSON)
     {
+        // Check for JSON *before* checking the config option
         std::cerr << argv[0]
-                  << ": Geant4 is not enabled in this build of Celeritas"
+                  << ": JSON is not enabled in this build of Celeritas"
                   << std::endl;
         return EXIT_FAILURE;
     }
-
-    // Process input arguments
-    std::vector<std::string> args(argv, argv + argc);
-    if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
+    if (filename == "--config")
     {
-        std::cerr << "usage: " << args[0] << " {input}.json" << std::endl;
-        return EXIT_FAILURE;
+        std::cout << to_string(celeritas::BuildOutput{}) << std::endl;
+        return EXIT_SUCCESS;
     }
 
     // Initialize GPU
     activate_device(comm);
 
-    std::string filename = args[1];
     std::ifstream infile;
     std::istream* instream = nullptr;
     if (filename == "-")
