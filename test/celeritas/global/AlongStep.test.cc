@@ -282,7 +282,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             EXPECT_SOFT_EQ(1, result.angle);
             EXPECT_SOFT_EQ(4.8522211972805e-14, result.time);
             EXPECT_SOFT_EQ(0.00028363764374689, result.step);
-            EXPECT_EQ("physics-discrete-select", result.action);
+            EXPECT_EQ("eloss-range", result.action);
         }
         {
             SCOPED_TRACE("near boundary");

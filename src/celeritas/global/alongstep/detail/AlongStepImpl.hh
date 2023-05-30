@@ -242,6 +242,7 @@ inline CELER_FUNCTION void apply_eloss(CoreTrackView const& track, EH&& eloss)
         {
             // Immediately kill stopped particles with no at rest processes
             sim.status(TrackStatus::killed);
+            sim.step_limit().action = phys.scalars().range_action();
         }
         else
         {
