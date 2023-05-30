@@ -25,17 +25,7 @@ namespace celeritas
  * model data, and returns an Interaction. It is a given that the interaction
  * *does* apply to the given track.
  *
- * \code
-inline CELER_FUNCTION Interaction foo_interact(
-    NativeCRef<FooModelData> const& data,
-    celeritas::CoreTrackView const& track)
-{
-    // ...
-}
-   \endcode
- *
- * \note The model data *must* have a member data `ActionId action_id;` for
- * filtering the tracks. We could improve this interface later.
+ * \deprecated Use \c InteractionApplier with \c make_action_track_executor .
  */
 template<class D, class F>
 CELER_FUNCTION detail::InteractionExecutorImpl<D, F>
