@@ -43,21 +43,29 @@ GlobalTestBase::GlobalTestBase()
 //---------------------------------------------------------------------------//
 GlobalTestBase::~GlobalTestBase()
 {
-    if (this->HasFailure() && output_reg_ && !this->output_reg()->empty())
+    if (this->HasFailure() && output_reg_ && !output_reg_->empty())
     {
-        std::string destination = "screen";
-        std::ostream* os = &std::cout;
-        std::ofstream ofile;
-        if (celeritas::use_color())
+        try
         {
-            destination = this->make_unique_filename(".json");
-            ofile.open(destination, std::ios_base::out | std::ios_base::trunc);
-            os = &ofile;
-        }
+            std::string destination = "screen";
+            std::ostream* os = &std::cout;
+            std::ofstream ofile;
+            if (celeritas::use_color())
+            {
+                destination = this->make_unique_filename(".json");
+                ofile.open(destination,
+                           std::ios_base::out | std::ios_base::trunc);
+                os = &ofile;
+            }
 
-        std::cerr << "Writing diagnostic output to " << destination
-                  << " because test failed\n";
-        this->write_output(*os);
+            std::cerr << "Writing diagnostic output to " << destination
+                      << " because test failed\n";
+            this->write_output(*os);
+        }
+        catch (std::exception const& e)
+        {
+            std::cerr << "Failed to write diagnostics: " << e.what();
+        }
     }
 }
 
