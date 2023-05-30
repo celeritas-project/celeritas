@@ -73,7 +73,7 @@ class TrackExecutor
     {
     }
 
-    CELER_FUNCTION void operator()(ThreadId thread) const
+    CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread);
 #if CELER_DEVICE_COMPILE
@@ -162,14 +162,14 @@ class ConditionalTrackExecutor
 template<class... Ts>
 CELER_FUNCTION TrackExecutor(CoreParamsPtr<MemSpace::native>,
                              CoreStatePtr<MemSpace::native>,
-                             Ts...)
+                             Ts&&...)
     ->TrackExecutor<Ts...>;
 
 template<class C, class... Ts>
 CELER_FUNCTION ConditionalTrackExecutor(CoreParamsPtr<MemSpace::native>,
                                         CoreStatePtr<MemSpace::native>,
                                         C,
-                                        Ts...)
+                                        Ts&&...)
     ->ConditionalTrackExecutor<C, Ts...>;
 
 //---------------------------------------------------------------------------//

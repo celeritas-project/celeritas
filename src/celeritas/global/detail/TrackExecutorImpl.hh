@@ -29,7 +29,7 @@ struct TrackExecutorImpl<F>
 {
     F call_with_track;
 
-    CELER_FUNCTION void operator()(CoreTrackView const& track) const
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
     {
         return this->call_with_track(track);
     }
