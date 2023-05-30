@@ -18,7 +18,9 @@
 #    include "corecel/data/CollectionBuilder.hh"
 #endif
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -28,11 +30,11 @@ namespace demo_interactor
  */
 struct Hit
 {
-    celeritas::Real3 pos;
-    celeritas::Real3 dir;
-    celeritas::TrackSlotId track_slot;
-    celeritas::real_type time;
-    celeritas::units::MevEnergy energy_deposited;
+    Real3 pos;
+    Real3 dir;
+    TrackSlotId track_slot;
+    real_type time;
+    units::MevEnergy energy_deposited;
 };
 
 //---------------------------------------------------------------------------//
@@ -41,7 +43,7 @@ struct Hit
  */
 struct DetectorParamsData
 {
-    celeritas::UniformGridData tally_grid;
+    UniformGridData tally_grid;
 
     //! Whether the data is initialized
     explicit CELER_FUNCTION operator bool() const { return bool(tally_grid); }
@@ -51,14 +53,11 @@ struct DetectorParamsData
 /*!
  * Interface to detector hit buffer.
  */
-template<celeritas::Ownership W, celeritas::MemSpace M>
+template<Ownership W, MemSpace M>
 struct DetectorStateData
 {
-    using real_type = celeritas::real_type;
-    using size_type = celeritas::size_type;
-
-    celeritas::StackAllocatorData<Hit, W, M> hit_buffer;
-    celeritas::Collection<real_type, W, M> tally_deposition;
+    StackAllocatorData<Hit, W, M> hit_buffer;
+    Collection<real_type, W, M> tally_deposition;
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
@@ -70,7 +69,7 @@ struct DetectorStateData
     CELER_FUNCTION size_type capacity() const { return hit_buffer.capacity(); }
 
     //! Assign from another set of data
-    template<celeritas::Ownership W2, celeritas::MemSpace M2>
+    template<Ownership W2, MemSpace M2>
     DetectorStateData& operator=(DetectorStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
@@ -85,10 +84,10 @@ struct DetectorStateData
 /*!
  * Allocate components and capacity for the detector.
  */
-template<celeritas::MemSpace M>
-inline void resize(DetectorStateData<celeritas::Ownership::value, M>* data,
+template<MemSpace M>
+inline void resize(DetectorStateData<Ownership::value, M>* data,
                    DetectorParamsData const& params,
-                   celeritas::size_type size)
+                   size_type size)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
@@ -98,4 +97,5 @@ inline void resize(DetectorStateData<celeritas::Ownership::value, M>* data,
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

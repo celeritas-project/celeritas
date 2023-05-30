@@ -15,7 +15,9 @@
 
 #include "DetectorData.hh"
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -29,10 +31,9 @@ class Detector
     //!@{
     //! \name Type aliases
     using Params = DetectorParamsData;
-    using State = DetectorStateData<celeritas::Ownership::reference,
-                                    celeritas::MemSpace::native>;
-    using SpanConstHits = celeritas::Span<Hit const>;
-    using HitId = celeritas::OpaqueId<Hit>;
+    using State = DetectorStateData<Ownership::reference, MemSpace::native>;
+    using SpanConstHits = Span<Hit const>;
+    using HitId = OpaqueId<Hit>;
     //!@}
 
   public:
@@ -60,7 +61,7 @@ class Detector
   private:
     Params const& params_;
     State const& state_;
-    celeritas::StackAllocator<Hit> allocate_;
+    StackAllocator<Hit> allocate_;
 };
 
 //---------------------------------------------------------------------------//
@@ -82,7 +83,7 @@ CELER_FUNCTION void Detector::buffer_hit(Hit const& hit)
 {
     CELER_EXPECT(hit.track_slot);
     CELER_EXPECT(hit.time > 0);
-    CELER_EXPECT(hit.energy_deposited > celeritas::zero_quantity());
+    CELER_EXPECT(hit.energy_deposited > zero_quantity());
 
     // Allocate and assign the given hit
     Hit* allocated = allocate_(1);
@@ -106,8 +107,6 @@ CELER_FUNCTION auto Detector::num_hits() const -> HitId::size_type
 CELER_FUNCTION void Detector::process_hit(HitId id)
 {
     CELER_EXPECT(id < this->num_hits());
-
-    using namespace celeritas;
 
     Hit const& hit = state_.hit_buffer.storage[id];
     UniformGrid grid(params_.tally_grid);
@@ -136,4 +135,5 @@ CELER_FUNCTION void Detector::clear_buffer()
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas
