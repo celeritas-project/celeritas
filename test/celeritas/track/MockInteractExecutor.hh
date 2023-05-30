@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/MockInteractImpl.hh
+//! \file celeritas/track/MockInteractExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,9 +17,19 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void
-apply_mock_interact(CoreTrackView const& track,
-                    NativeCRef<MockInteractData> const& data)
+struct MockInteractExecutor
+{
+    inline CELER_FUNCTION void
+    operator()(celeritas::CoreTrackView const& track);
+
+    NativeCRef<MockInteractData> data;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a mock interaction to the current track.
+ */
+CELER_FUNCTION void MockInteractExecutor::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
     CELER_ASSERT(sim.status() == TrackStatus::alive);
