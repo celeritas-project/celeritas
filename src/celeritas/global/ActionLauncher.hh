@@ -53,6 +53,15 @@ void launch_action(ExplicitActionInterface const& action,
 //---------------------------------------------------------------------------//
 /*!
  * Helper function to run an action in parallel on CPU over all states.
+ *
+ * Example:
+ * \code
+ void FooAction::execute(CoreParams const& params,
+                         CoreStateHost& state) const
+ {
+    launch_action(*this, params, state, make_blah_executor(blah));
+ }
+ * \endcode
  */
 template<class F>
 void launch_action(ExplicitActionInterface const& action,
