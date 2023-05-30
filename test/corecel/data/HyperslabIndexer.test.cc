@@ -20,17 +20,18 @@ namespace test
 
 TEST(HyperslabIndexerTest, 2D)
 {
-    HyperslabIndexer<2> hi({3, 4});
-    HyperslabInverseIndexer<2> hii({3, 4});
+    Array<size_type, 2> const dims{3, 4};
+    HyperslabIndexer<2> to_index(dims);
+    HyperslabInverseIndexer<2> to_coords(dims);
 
     size_type index = 0;
-    for (size_type i : range(3))
+    for (size_type a : range(3))
     {
-        for (size_type j : range(4))
+        for (size_type b : range(4))
         {
-            Array<size_type, 2> coords{i, j};
-            EXPECT_EQ(index, hi(coords));
-            EXPECT_EQ(coords, hii(index));
+            Array<size_type, 2> coords{a, b};
+            EXPECT_EQ(index, to_index(coords));
+            EXPECT_EQ(coords, to_coords(index));
             index++;
         }
     }
@@ -38,19 +39,20 @@ TEST(HyperslabIndexerTest, 2D)
 
 TEST(HyperslabIndexerTest, 3D)
 {
-    HyperslabIndexer<3> hi({3, 4, 5});
-    HyperslabInverseIndexer<3> hii({3, 4, 5});
+    Array<size_type, 3> const dims{3, 4, 5};
+    HyperslabIndexer<3> to_index(dims);
+    HyperslabInverseIndexer<3> to_coords(dims);
 
     size_type index = 0;
-    for (size_type i : range(3))
+    for (size_type a : range(3))
     {
-        for (size_type j : range(4))
+        for (size_type b : range(4))
         {
-            for (size_type k : range(5))
+            for (size_type c : range(5))
             {
-                Array<size_type, 3> coords{i, j, k};
-                EXPECT_EQ(index, hi(coords));
-                EXPECT_EQ(coords, hii(index));
+                Array<size_type, 3> coords{a, b, c};
+                EXPECT_EQ(index, to_index(coords));
+                EXPECT_EQ(coords, to_coords(index));
                 index++;
             }
         }
@@ -59,21 +61,22 @@ TEST(HyperslabIndexerTest, 3D)
 
 TEST(HyperslabIndexerTest, 4D)
 {
-    HyperslabIndexer<4> hi({4, 6, 3, 2});
-    HyperslabInverseIndexer<4> hii({4, 6, 3, 2});
+    Array<size_type, 4> const dims{4, 6, 3, 2};
+    HyperslabIndexer<4> to_index(dims);
+    HyperslabInverseIndexer<4> to_coords(dims);
 
     size_type index = 0;
-    for (size_type i : range(4))
+    for (size_type a : range(4))
     {
-        for (size_type j : range(6))
+        for (size_type b : range(6))
         {
-            for (size_type k : range(3))
+            for (size_type c : range(3))
             {
-                for (size_type l : range(2))
+                for (size_type d : range(2))
                 {
-                    Array<size_type, 4> coords{i, j, k, l};
-                    EXPECT_EQ(index, hi(coords));
-                    EXPECT_EQ(coords, hii(index));
+                    Array<size_type, 4> coords{a, b, c, d};
+                    EXPECT_EQ(index, to_index(coords));
+                    EXPECT_EQ(coords, to_coords(index));
                     index++;
                 }
             }
@@ -83,19 +86,20 @@ TEST(HyperslabIndexerTest, 4D)
 
 TEST(HyperslabIndexerTest, 5D_with_ones)
 {
-    HyperslabIndexer<5> hi({3, 1, 4, 1, 5});
-    HyperslabInverseIndexer<5> hii({3, 1, 4, 1, 5});
+    Array<size_type, 5> const dims{3, 1, 4, 1, 5};
+    HyperslabIndexer<5> to_index(dims);
+    HyperslabInverseIndexer<5> to_coords(dims);
 
     size_type index = 0;
-    for (size_type i : range(3))
+    for (size_type a : range(3))
     {
-        for (size_type j : range(4))
+        for (size_type b : range(4))
         {
-            for (size_type k : range(5))
+            for (size_type c : range(5))
             {
-                Array<size_type, 5> coords{i, 0, j, 0, k};
-                EXPECT_EQ(index, hi(coords));
-                EXPECT_EQ(coords, hii(index));
+                Array<size_type, 5> coords{a, 0, b, 0, c};
+                EXPECT_EQ(index, to_index(coords));
+                EXPECT_EQ(coords, to_coords(index));
                 index++;
             }
         }
@@ -104,6 +108,7 @@ TEST(HyperslabIndexerTest, 5D_with_ones)
 
 TEST(HyperslabIndexerTest, TEST_IF_CELERITAS_DEBUG(error))
 {
+    Array<size_type, 3> const dims{2, 0, 3};
     EXPECT_THROW((HyperslabIndexer<3>({2, 0, 3})), DebugError);
 }
 

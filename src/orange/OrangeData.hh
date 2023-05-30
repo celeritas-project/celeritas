@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/detail/RaggedRightIndexer.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "OrangeTypes.hh"
@@ -151,10 +152,17 @@ struct SimpleUnitRecord
  */
 struct RectArrayRecord
 {
-    Array<ItemRange<real_type>, 3> grid;
+    using Dims = Array<size_type, 3>;
+    using Grid = Array<ItemRange<real_type>, 3>;
+    using SurfaceIndexerData = RaggedRightIndexerData<3>;
 
     // Daughter data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, DaughterId> daughters;
+
+    // Array data
+    Dims dims;
+    Grid grid;
+    SurfaceIndexerData surface_indexer_data;
 
     //! Cursory check for validity
     explicit CELER_FUNCTION operator bool() const

@@ -23,7 +23,7 @@ TEST(RaggedRightIndexerTest, basic)
     using RRD = RaggedRightIndexerData<4>;
     using Coords = Array<size_type, 2>;
 
-    RRD rrd({3, 4, 1, 2});
+    RRD rrd = RRD::from_sizes({3, 4, 1, 2});
     RaggedRightIndexer<4> rri(rrd);
     RaggedRightInverseIndexer<4> rrii(rrd);
 
@@ -54,7 +54,8 @@ TEST(RaggedRightIndexerTest, basic)
 
 TEST(RaggedRightIndexerTest, TEST_IF_CELERITAS_DEBUG(error))
 {
-    EXPECT_THROW((RaggedRightIndexerData<3>({2, 0, 1})), DebugError);
+    EXPECT_THROW((RaggedRightIndexerData<3>::from_sizes({2, 0, 1})),
+                 DebugError);
 }
 
 //---------------------------------------------------------------------------//

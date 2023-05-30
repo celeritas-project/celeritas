@@ -20,40 +20,27 @@ namespace celeritas
  * Class for storing offset data for RaggedRightIndexer.
  */
 template<size_type N>
-class RaggedRightIndexerData
+struct RaggedRightIndexerData
 {
-  public:
-    //!@{
-    //! \name Type aliases
     using Sizes = Array<size_type, N>;
     using Offsets = Array<size_type, N + 1>;
-    //!@}
 
-  public:
+    Offsets offsets;
+
     //! Construct with the an array denoting the size of each dimension.
-    explicit CELER_FORCEINLINE_FUNCTION RaggedRightIndexerData(Sizes sizes)
+    inline static RaggedRightIndexerData from_sizes(Sizes sizes)
     {
         CELER_EXPECT(sizes.size() > 0);
-        offsets_[0] = 0;
 
+        Offsets offs;
+        offs[0] = 0;
         for (auto i : range(N))
         {
             CELER_EXPECT(sizes[i] > 0);
-            offsets_[i + 1] = sizes[i] + offsets_[i];
+            offs[i + 1] = sizes[i] + offs[i];
         }
+        return RaggedRightIndexerData{offs};
     }
-
-    //! Default for unassigned/lazy construction
-    RaggedRightIndexerData() = default;
-
-    //! Access offsets
-    CELER_FORCEINLINE_FUNCTION Offsets const& offsets() const
-    {
-        return offsets_;
-    }
-
-  private:
-    Offsets offsets_;
 };
 
 //---------------------------------------------------------------------------//
@@ -156,7 +143,7 @@ RaggedRightIndexer<N>::RaggedRightIndexer(RaggedRightIndexerData<N> const& rrd)
 template<size_type N>
 CELER_FUNCTION size_type RaggedRightIndexer<N>::operator()(Coords coords) const
 {
-    auto const& offsets = rrd_.offsets();
+    auto const& offsets = rrd_.offsets;
     CELER_EXPECT(coords[0] < N);
     CELER_EXPECT(coords[1] < offsets[coords[0] + 1] - offsets[coords[0]]);
 
@@ -182,7 +169,7 @@ template<size_type N>
 CELER_FUNCTION typename RaggedRightInverseIndexer<N>::Coords
 RaggedRightInverseIndexer<N>::operator()(size_type index) const
 {
-    auto const& offsets = rrd_.offsets();
+    auto const& offsets = rrd_.offsets;
     CELER_EXPECT(index < offsets.back());
     CELER_EXPECT(index >= 0);
 

@@ -35,7 +35,6 @@ class RectArrayTracker
     using Grid = NonuniformGrid<real_type>;
     using VolumeIndexer = HyperslabIndexer<3>;
     using VolumeInverseIndexer = HyperslabInverseIndexer<3>;
-    using SurfaceIndexerData = RaggedRightIndexerData<3>;
     using SurfaceIndexer = RaggedRightIndexer<3>;
     using SurfaceInverseIndexer = RaggedRightInverseIndexer<3>;
     using Coords = Array<size_type, 3>;
@@ -60,13 +59,10 @@ class RectArrayTracker
         size_type num_surfs = 0;
         for (auto ax : range(Axis::size_))
         {
-            num_surfs += dims_[to_int(ax)] + 1;
+            num_surfs += record_.dims[to_int(ax)] + 1;
         }
         return num_surfs;
     }
-
-    //! RectArrayRecord for this tracker
-    CELER_FUNCTION RectArrayRecord const& record() const { return record_; }
 
     // DaughterId of universe embedded in a given volume
     inline CELER_FUNCTION DaughterId daughter(LocalVolumeId vol) const;
@@ -100,14 +96,19 @@ class RectArrayTracker
     //// DATA ////
     ParamsRef const& params_;
     RectArrayRecord const& record_;
-    Array<size_type, 3> dims_;
-    SurfaceIndexerData surface_indexer_data_;
 
     //// METHODS ////
 
+    // Calculate distance-to-intercept for the next surface.
     template<class F>
     inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
                                                       F) const;
+
+    // Find the index of axis (x/y/z) we are about to cross
+    inline CELER_FUNCTION size_type find_surface_axis_idx(LocalSurfaceId s) const;
+
+    // Create Grid object for a given axis
+    inline CELER_FUNCTION Grid make_grid(Axis ax) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -121,17 +122,6 @@ RectArrayTracker::RectArrayTracker(ParamsRef const& params, RectArrayId rid)
     : params_(params), record_(params.rect_arrays[rid])
 {
     CELER_EXPECT(params_);
-
-    for (auto ax : range(Axis::size_))
-    {
-        dims_[to_int(ax)] = record_.grid[to_int(ax)].size() - 1;
-    }
-
-    SurfaceIndexerData::Sizes sizes{dims_[to_int(Axis::x)] + 1,
-                                    dims_[to_int(Axis::y)] + 1,
-                                    dims_[to_int(Axis::z)] + 1};
-
-    surface_indexer_data_ = SurfaceIndexerData(sizes);
 }
 
 //---------------------------------------------------------------------------//
@@ -152,32 +142,27 @@ CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
     for (auto ax : range(Axis::size_))
     {
         auto const& pos = state.pos[to_int(ax)];
-        Grid grid(record_.grid[to_int(ax)], params_.reals);
+        auto grid = this->make_grid(ax);
 
         if (pos < grid.front() || pos > grid.back())
         {
             // Outside the rect array
-            return {{}, {}};
+            return {};
         }
         else
         {
             size_type index = grid.find(pos);
-            bool edge = grid[index] == pos;
-
-            if (!edge)
+            if (grid[index] == pos)
             {
-                coords[to_int(ax)] = index;
+                // Initialization exactly on an edge is prohibited
+                return {};
             }
-            else
-            {
-                // On boundary
-                return {{}, {}};
-            }
+            coords[to_int(ax)] = index;
         }
     }
 
-    VolumeIndexer vi(dims_);
-    return {LocalVolumeId{vi(coords)}, {}};
+    VolumeIndexer to_index(record_.dims);
+    return {LocalVolumeId{to_index(coords)}, {}};
 }
 
 //---------------------------------------------------------------------------//
@@ -191,13 +176,10 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
     CELER_EXPECT(state.surface && state.volume);
 
     // Find the coords of the current volume
-    VolumeIndexer vi(dims_);
-    VolumeInverseIndexer vii(dims_);
-    auto coords = vii(state.volume.unchecked_get());
-
-    // Find the index of axis (x/y/z) we are about to cross:
-    SurfaceInverseIndexer sii(surface_indexer_data_);
-    auto ax_idx = sii(state.surface.id().unchecked_get())[0];
+    VolumeIndexer to_index(record_.dims);
+    VolumeInverseIndexer to_coords(record_.dims);
+    auto coords = to_coords(state.volume.unchecked_get());
+    auto ax_idx = this->find_surface_axis_idx(state.surface.id());
 
     // Value for incrementing the axial coordinate upon crossing
     int inc = (state.surface.sense() == Sense::outside) ? -1 : 1;
@@ -206,15 +188,15 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
                                        flip_sense(state.surface.sense()));
 
     if ((coords[ax_idx] == 0 && inc == -1)
-        || (coords[ax_idx] == dims_[ax_idx] - 1 && inc == 1))
+        || (coords[ax_idx] == record_.dims[ax_idx] - 1 && inc == 1))
     {
-        // crossimg out
+        // Crossimg out
         return {{}, new_surface};
     }
     else
     {
         coords[ax_idx] += inc;
-        return {LocalVolumeId(vi(coords)), new_surface};
+        return {LocalVolumeId(to_index(coords)), new_surface};
     }
 }
 
@@ -259,19 +241,19 @@ CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
 {
     CELER_EXPECT(volid && volid.get() < this->num_volumes());
 
-    VolumeInverseIndexer vii(dims_);
-    auto coords = vii(volid.unchecked_get());
+    VolumeInverseIndexer to_coords(record_.dims);
+    auto coords = to_coords(volid.unchecked_get());
 
     real_type min_dist = numeric_limits<real_type>::infinity();
 
     for (auto ax : range(Axis::size_))
     {
+        auto grid = this->make_grid(ax);
         for (auto i : range(2))
         {
             auto target_coord = coords[to_int(ax)] + i;
-            real_type target
-                = params_.reals[record_.grid[to_int(ax)]][target_coord];
-            min_dist = min(min_dist, fabs(pos[to_int(ax)] - target));
+            real_type target = grid[target_coord];
+            min_dist = min(min_dist, std::fabs(pos[to_int(ax)] - target));
         }
     }
 
@@ -284,15 +266,14 @@ CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
 /*!
  * Calculate the local surface normal.
  */
-CELER_FUNCTION auto RectArrayTracker::normal([[maybe_unused]] Real3 const& pos,
-                                             LocalSurfaceId surf) const -> Real3
+CELER_FUNCTION auto
+RectArrayTracker::normal(Real3 const&, LocalSurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf && surf.get() < this->num_surfaces());
-    SurfaceInverseIndexer sii(surface_indexer_data_);
-    size_type ax = sii(surf.get())[0];
+    size_type ax = this->find_surface_axis_idx(surf);
 
-    Real3 normal{0., 0., 0.};
-    normal[ax] = 1.0;
+    Real3 normal{0, 0, 0};
+    normal[ax] = 1;
 
     return normal;
 }
@@ -321,44 +302,63 @@ RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 
-    VolumeInverseIndexer vii(dims_);
-    auto coords = vii(state.volume.unchecked_get());
+    auto coords
+        = VolumeInverseIndexer{record_.dims}(state.volume.unchecked_get());
 
     Intersection result;
     Sense sense;
-    SurfaceIndexer si(surface_indexer_data_);
+    SurfaceIndexer to_index(record_.surface_indexer_data);
 
     for (auto ax : range(Axis::size_))
     {
         auto dir = state.dir[to_int(ax)];
 
         // Ignore any stationary axis
-        if (dir == 0.0)
+        if (dir == 0)
         {
             continue;
         }
 
-        auto target_coord = coords[to_int(ax)] + static_cast<int>(dir > 0.);
+        auto target_coord = coords[to_int(ax)] + static_cast<int>(dir > 0);
 
-        auto target_value
-            = params_.reals[record_.grid[to_int(ax)]][target_coord];
+        auto target_value = this->make_grid(ax)[target_coord];
 
-        double dist
-            = (target_value - static_cast<double>(state.pos[to_int(ax)]))
+        real_type dist
+            = (target_value - static_cast<real_type>(state.pos[to_int(ax)]))
               / state.dir[to_int(ax)];
 
-        if (dist > 0 && dist < result.distance)
+        if (dist > 0 && is_valid(dist) && dist < result.distance)
         {
             result.distance = dist;
 
             sense = dir > 0 ? Sense::inside : Sense::outside;
             auto local_surface = LocalSurfaceId(
-                si({static_cast<size_type>(to_int(ax)), target_coord}));
+                to_index({static_cast<size_type>(to_int(ax)), target_coord}));
             result.surface = detail::OnLocalSurface(local_surface, sense);
         }
     }
 
-    return (is_valid(result.distance)) ? result : Intersection{};
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the index of axis (x/y/z) we are about to cross:
+ */
+CELER_FUNCTION size_type
+RectArrayTracker::find_surface_axis_idx(LocalSurfaceId s) const
+{
+    SurfaceInverseIndexer to_axis(record_.surface_indexer_data);
+    return to_axis(s.unchecked_get())[0];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create Grid object for a given axis.
+ */
+CELER_FUNCTION RectArrayTracker::Grid RectArrayTracker::make_grid(Axis ax) const
+{
+    return Grid(record_.grid[to_int(ax)], params_.reals);
 }
 
 //---------------------------------------------------------------------------//

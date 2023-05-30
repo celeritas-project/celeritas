@@ -11,23 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 
-namespace
-{
-
-// Utility function for calculating the size of hyperslab data
-template<celeritas::size_type N>
-celeritas::size_type
-hyperslab_size(celeritas::Array<celeritas::size_type, N> dims)
-{
-    celeritas::size_type size = 1;
-    for (auto const dim : dims)
-    {
-        size *= dim;
-    }
-    return size;
-}
-
-}  // namespace
+#include "detail/HyperslabIndexerImpl.hh"
 
 namespace celeritas
 {
@@ -120,9 +104,12 @@ CELER_FUNCTION HyperslabIndexer<N>::HyperslabIndexer(Coords const& dims)
 template<size_type N>
 CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(Coords const& coords) const
 {
+    CELER_EXPECT(coords[0] < dims_[0]);
     size_type result = coords[0];
+
     for (size_type i = 1; i < N; ++i)
     {
+        CELER_EXPECT(coords[i] < dims_[i]);
         result = dims_[i] * result + coords[i];
     }
     return result;
@@ -151,7 +138,7 @@ template<size_type N>
 CELER_FUNCTION typename HyperslabInverseIndexer<N>::Coords
 HyperslabInverseIndexer<N>::operator()(size_type index) const
 {
-    CELER_EXPECT(index <= hyperslab_size(dims_));
+    CELER_EXPECT(index <= detail::hyperslab_size(dims_));
     Coords coords;
 
     for (size_type i = dims_.size() - 1; i > 0; i--)
