@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/detail/LocateAliveLauncher.hh
+//! \file celeritas/track/detail/LocateAliveExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -31,7 +31,7 @@ namespace detail
  * produced secondaries, the empty track slot is filled with the first
  * secondary.
  */
-struct LocateAliveLauncher
+struct LocateAliveExecutor
 {
     //// TYPES ////
 
@@ -60,7 +60,7 @@ struct LocateAliveLauncher
 /*!
  * Determine which tracks are alive and count secondaries.
  */
-CELER_FUNCTION void LocateAliveLauncher::operator()(TrackSlotId tid) const
+CELER_FUNCTION void LocateAliveExecutor::operator()(TrackSlotId tid) const
 {
 #if CELER_DEVICE_COMPILE
     CELER_EXPECT(tid);

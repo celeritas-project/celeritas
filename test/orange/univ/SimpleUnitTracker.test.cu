@@ -26,7 +26,7 @@ __global__ void initialize_kernel(ParamsRef<MemSpace::device> const params,
     if (tid.get() >= states.size())
         return;
 
-    InitializingLauncher<> calc_thread{params, states};
+    InitializingExecutor<> calc_thread{params, states};
     calc_thread(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace

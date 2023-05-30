@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/launcher/SeltzerBergerLauncher.hh
+//! \file celeritas/em/executor/MuBremsstrahlungExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/em/data/SeltzerBergerData.hh"
-#include "celeritas/em/interactor/SeltzerBergerInteractor.hh"
+#include "celeritas/em/data/MuBremsstrahlungData.hh"
+#include "celeritas/em/interactor/MuBremsstrahlungInteractor.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
@@ -22,13 +22,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Apply RelativisticBrem to the current track.
+ * Apply MuBremsstrahlung to the current track.
  */
-inline CELER_FUNCTION Interaction seltzer_berger_interact_track(
-    SeltzerBergerRef const& model, CoreTrackView const& track)
+inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
+    MuBremsstrahlungData const& model, CoreTrackView const& track)
 {
-    auto cutoff = track.make_cutoff_view();
-    auto material = track.make_material_view().make_material_view();
+    auto material_track = track.make_material_view();
+    auto material = material_track.make_material_view();
     auto particle = track.make_particle_view();
 
     auto elcomp_id = track.make_physics_step_view().element();
@@ -37,8 +37,8 @@ inline CELER_FUNCTION Interaction seltzer_berger_interact_track(
         = track.make_physics_step_view().make_secondary_allocator();
     auto const& dir = track.make_geo_view().dir();
 
-    SeltzerBergerInteractor interact(
-        model, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
+    MuBremsstrahlungInteractor interact(
+        model, particle, dir, allocate_secondaries, material, elcomp_id);
 
     auto rng = track.make_rng_engine();
     return interact(rng);

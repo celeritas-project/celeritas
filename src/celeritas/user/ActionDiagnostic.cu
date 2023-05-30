@@ -14,7 +14,7 @@
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/ActionDiagnosticImpl.hh"
 
@@ -29,9 +29,9 @@ tally_action_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
                     DeviceCRef<ParticleTallyParamsData> ad_params,
                     DeviceRef<ParticleTallyStateData> ad_state)
 {
-    auto launch = make_active_track_launcher(
+    auto execute = make_active_track_executor(
         *params, *state, detail::tally_action, ad_params, ad_state);
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//

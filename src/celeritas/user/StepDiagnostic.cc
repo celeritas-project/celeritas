@@ -15,7 +15,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "detail/StepDiagnosticImpl.hh"
@@ -64,7 +64,7 @@ void StepDiagnostic::execute(CoreParams const& params,
                              CoreStateHost& state) const
 {
     MultiExceptionHandler capture_exception;
-    auto launch = make_active_track_launcher(
+    auto execute = make_active_track_executor(
         *params.ptr<MemSpace::native>(),
         *state.ptr(),
         detail::tally_steps,
@@ -74,7 +74,7 @@ void StepDiagnostic::execute(CoreParams const& params,
     for (ThreadId::size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            execute(ThreadId{i}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(),
                                    state.ref(),

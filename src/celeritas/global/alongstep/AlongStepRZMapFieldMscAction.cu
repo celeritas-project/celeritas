@@ -25,7 +25,7 @@
 #include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepImpl.hh"
 #include "detail/FluctELoss.hh"
@@ -42,13 +42,13 @@ __global__ void along_step_apply_msc_step_limit_kernel(
     ActionId const along_step_id,
     DeviceCRef<UrbanMscData> const msc_data)
 {
-    auto launch = make_along_step_track_launcher(
+    auto execute = make_along_step_track_executor(
         *params,
         *state,
         along_step_id,
         detail::apply_msc_step_limit<UrbanMsc>,
         UrbanMsc{msc_data});
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ __global__ void along_step_apply_rzmap_propagation_kernel(
     ActionId const along_step_id,
     DeviceCRef<RZMapFieldParamsData> const field)
 {
-    auto launch = make_along_step_track_launcher(
+    auto execute = make_along_step_track_executor(
         *params,
         *state,
         along_step_id,
@@ -67,7 +67,7 @@ __global__ void along_step_apply_rzmap_propagation_kernel(
             return make_mag_field_propagator<DormandPrinceStepper>(
                 RZMapField(field), field.options, particle, geo);
         });
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -77,12 +77,12 @@ __global__ void along_step_apply_msc_kernel(
     ActionId const along_step_id,
     DeviceCRef<UrbanMscData> const msc_data)
 {
-    auto launch = make_along_step_track_launcher(*params,
-                                                 *state,
-                                                 along_step_id,
-                                                 detail::apply_msc<UrbanMsc>,
-                                                 UrbanMsc{msc_data});
-    launch(KernelParamCalculator::thread_id());
+    auto execute = make_along_step_track_executor(*params,
+                                                  *state,
+                                                  along_step_id,
+                                                  detail::apply_msc<UrbanMsc>,
+                                                  UrbanMsc{msc_data});
+    execute(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -91,9 +91,9 @@ __global__ void along_step_update_time_kernel(
     RefPtr<CoreStateData, MemSpace::device> const state,
     ActionId const along_step_id)
 {
-    auto launch = make_along_step_track_launcher(
+    auto execute = make_along_step_track_executor(
         *params, *state, along_step_id, detail::update_time);
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -105,13 +105,13 @@ __global__ void along_step_apply_fluct_eloss_kernel(
 {
     using detail::FluctELoss;
 
-    auto launch
-        = make_along_step_track_launcher(*params,
+    auto execute
+        = make_along_step_track_executor(*params,
                                          *state,
                                          along_step_id,
                                          detail::apply_eloss<FluctELoss>,
                                          FluctELoss{fluct});
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -120,9 +120,9 @@ __global__ void along_step_update_track_kernel(
     RefPtr<CoreStateData, MemSpace::device> const state,
     ActionId const along_step_id)
 {
-    auto launch = make_along_step_track_launcher(
+    auto execute = make_along_step_track_executor(
         *params, *state, along_step_id, detail::update_track);
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//

@@ -20,7 +20,7 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/user/StepData.hh"
 
-#include "StepGatherLauncher.hh"
+#include "StepGatherExecutor.hh"
 
 namespace celeritas
 {
@@ -66,14 +66,14 @@ void StepGatherAction<P>::execute(CoreParams const& params,
         = storage_->obj.state<MemSpace::host>(state.stream_id(), state.size());
 
     MultiExceptionHandler capture_exception;
-    StepGatherLauncher<P> launch{params.ref<MemSpace::native>(),
-                                 state.ref(),
-                                 storage_->obj.params<MemSpace::host>(),
-                                 step_state};
+    StepGatherExecutor<P> execute{params.ref<MemSpace::native>(),
+                                  state.ref(),
+                                  storage_->obj.params<MemSpace::host>(),
+                                  step_state};
 #pragma omp parallel for
     for (size_type i = 0; i < state.size(); ++i)
     {
-        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE(execute(ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
 

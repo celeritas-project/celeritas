@@ -227,7 +227,7 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
     HostStateStore states(this->setup_heuristic_states(num_tracks));
 
     // Set up for host run
-    InitializingLauncher<> calc_init{this->host_params(), states.ref()};
+    InitializingExecutor<> calc_init{this->host_params(), states.ref()};
 
     // Loop over all track slots
     Stopwatch get_time;

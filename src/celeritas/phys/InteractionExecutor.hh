@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/InteractionLauncher.hh
+//! \file celeritas/phys/InteractionExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,13 +11,13 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/global/CoreTrackDataFwd.hh"
 
-#include "detail/InteractionLauncherImpl.hh"
+#include "detail/InteractionExecutorImpl.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return a function-like class to launch a "Track"-dependent function.
+ * Return a function-like class to execute a "Track"-dependent function.
  *
  * This function should be used exclusively by generated interaction functions.
  * The author of a new model needs to define (in a header file) an inline
@@ -38,7 +38,7 @@ inline CELER_FUNCTION Interaction foo_interact(
  * filtering the tracks. We could improve this interface later.
  */
 template<class D, class F>
-CELER_FUNCTION detail::InteractionLauncherImpl<D, F> make_interaction_launcher(
+CELER_FUNCTION detail::InteractionExecutorImpl<D, F> make_interaction_executor(
     CRefPtr<CoreParamsData, MemSpace::native> const& params,
     RefPtr<CoreStateData, MemSpace::native> const& states,
     F&& call_with_track,

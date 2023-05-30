@@ -3,29 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/launcher/MuBremsstrahlungLauncher.hh
+//! \file celeritas/em/executor/BetheHeitlerExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/em/data/MuBremsstrahlungData.hh"
-#include "celeritas/em/interactor/MuBremsstrahlungInteractor.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/em/data/BetheHeitlerData.hh"
+#include "celeritas/em/interactor/BetheHeitlerInteractor.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/mat/MaterialTrackView.hh"
-#include "celeritas/phys/Interaction.hh"
-#include "celeritas/phys/PhysicsStepView.hh"
-#include "celeritas/random/RngEngine.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Apply MuBremsstrahlung to the current track.
+ * Apply BetheHeitler to the current track.
  */
-inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
-    MuBremsstrahlungData const& model, CoreTrackView const& track)
+inline CELER_FUNCTION Interaction bethe_heitler_interact_track(
+    BetheHeitlerData const& model, CoreTrackView const& track)
 {
     auto material_track = track.make_material_view();
     auto material = material_track.make_material_view();
@@ -33,12 +28,13 @@ inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
 
     auto elcomp_id = track.make_physics_step_view().element();
     CELER_ASSERT(elcomp_id);
+    auto element = material.make_element_view(elcomp_id);
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
     auto const& dir = track.make_geo_view().dir();
 
-    MuBremsstrahlungInteractor interact(
-        model, particle, dir, allocate_secondaries, material, elcomp_id);
+    BetheHeitlerInteractor interact(
+        model, particle, dir, allocate_secondaries, material, element);
 
     auto rng = track.make_rng_engine();
     return interact(rng);

@@ -11,9 +11,9 @@
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/ExecuteAction.hh"
+#include "celeritas/global/LaunchAction.hh"
 
-#include "detail/InitTracksLauncher.hh"  // IWYU pragma: associated
+#include "detail/InitTracksExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -59,7 +59,7 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
     if (num_new_tracks > 0)
     {
         // Launch a kernel to initialize tracks
-        this->launch_impl(core_params, core_state, num_new_tracks);
+        this->execute_impl(core_params, core_state, num_new_tracks);
 
         // Update initializers/vacancies
         counters.num_initializers -= num_new_tracks;
@@ -74,16 +74,16 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
 /*!
  * Launch a (host) kernel to initialize tracks.
  */
-void InitializeTracksAction::launch_impl(CoreParams const& core_params,
-                                         CoreStateHost& core_state,
-                                         size_type num_new_tracks) const
+void InitializeTracksAction::execute_impl(CoreParams const& core_params,
+                                          CoreStateHost& core_state,
+                                          size_type num_new_tracks) const
 {
-    execute_action(
+    launch_action(
         *this,
         Range{ThreadId{num_new_tracks}},
         core_params,
         core_state,
-        detail::InitTracksLauncher{core_params.ptr<MemSpace::native>(),
+        detail::InitTracksExecutor{core_params.ptr<MemSpace::native>(),
                                    core_state.ptr(),
                                    num_new_tracks,
                                    core_state.counters()});
@@ -91,9 +91,9 @@ void InitializeTracksAction::launch_impl(CoreParams const& core_params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void InitializeTracksAction::launch_impl(CoreParams const&,
-                                         CoreStateDevice&,
-                                         size_type) const
+void InitializeTracksAction::execute_impl(CoreParams const&,
+                                          CoreStateDevice&,
+                                          size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

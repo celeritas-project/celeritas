@@ -68,8 +68,8 @@ CC_TEMPLATE = CLIKE_TOP + """\
 #include <utility>
 
 #include "corecel/Types.hh"
-#include "celeritas/global/ExecuteAction.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/LaunchAction.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "../detail/{clsname}Impl.hh" // IWYU pragma: associated
 
 namespace celeritas
@@ -82,9 +82,9 @@ namespace generated
  */
 void {clsname}::execute(CoreParams const& params, CoreStateHost& state) const
 {{
-    return ::celeritas::execute_action(
+    return ::celeritas::launch_action(
         *this, params, state,
-        TrackLauncher{{*params.ptr<MemSpace::native>(), *state.ptr(),
+        TrackExecutor{{*params.ptr<MemSpace::native>(), *state.ptr(),
                       detail::{func}_track}});
 }}
 
@@ -104,7 +104,7 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "../detail/{clsname}Impl.hh"
 
 namespace celeritas
@@ -118,8 +118,8 @@ __global__ void{launch_bounds}{func}_kernel(
     RefPtr<CoreStateData, MemSpace::device> const state
 )
 {{
-    TrackLauncher launch{{*params, *state, detail::{func}_track}};
-    launch(KernelParamCalculator::thread_id());
+    TrackExecutor execute{{*params, *state, detail::{func}_track}};
+    execute(KernelParamCalculator::thread_id());
 }}
 }}  // namespace
 

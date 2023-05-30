@@ -13,7 +13,7 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Stream.hh"
 
-#include "SimpleCaloLauncher.hh"  // IWYU pragma: associated
+#include "SimpleCaloExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -34,8 +34,8 @@ __global__ void simple_calo_accum_kernel(DeviceRef<StepStateData> const step,
     if (!(tid < step.size()))
         return;
 
-    SimpleCaloLauncher launch{step, calo};
-    launch(tid);
+    SimpleCaloExecutor execute{step, calo};
+    execute(tid);
 }
 
 //---------------------------------------------------------------------------//

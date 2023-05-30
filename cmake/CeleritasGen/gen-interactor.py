@@ -78,11 +78,11 @@ CC_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/{dir}/executor/{class}Executor.hh" // IWYU pragma: associated
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/{dir}/launcher/{class}Launcher.hh" // IWYU pragma: associated
-#include "celeritas/phys/InteractionLauncher.hh"
+#include "celeritas/phys/InteractionExecutor.hh"
 
 using celeritas::MemSpace;
 
@@ -98,14 +98,14 @@ void {func}_interact(
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
-    auto launch = celeritas::make_interaction_launcher(
+    auto execute = celeritas::make_interaction_executor(
         params.ptr<MemSpace::native>(), state.ptr(),
         {namespace}::{func}_interact_track, model_data);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)
     {{
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{{i}}),
+            execute(ThreadId{{i}}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(), state.ref(), ThreadId{{i}}, "{func}"));
     }}
@@ -127,8 +127,8 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/{dir}/launcher/{class}Launcher.hh"
-#include "celeritas/phys/InteractionLauncher.hh"
+#include "celeritas/{dir}/executor/{class}Executor.hh"
+#include "celeritas/phys/InteractionExecutor.hh"
 
 using celeritas::MemSpace;
 
@@ -148,9 +148,9 @@ __global__ void{launch_bounds}{func}_interact_kernel(
     if (!(tid < size))
         return;
 
-    auto launch = celeritas::make_interaction_launcher(
+    auto execute = celeritas::make_interaction_executor(
         params, state, {namespace}::{func}_interact_track, model_data);
-    launch(tid);
+    execute(tid);
 }}
 }}  // namespace
 
@@ -221,7 +221,7 @@ def main():
     parser.add_argument(
         '--namespace',
         default='celeritas',
-        help='namespace of model/process/launcher/etc')
+        help='namespace of model/process/executor/etc')
 
 
     kwargs = vars(parser.parse_args())

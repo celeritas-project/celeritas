@@ -51,8 +51,8 @@ class InitializeTracksAction final : public ExplicitActionInterface
     template<MemSpace M>
     void execute_impl(CoreParams const&, CoreState<M>&) const;
 
-    void launch_impl(CoreParams const&, CoreStateHost&, size_type) const;
-    void launch_impl(CoreParams const&, CoreStateDevice&, size_type) const;
+    void execute_impl(CoreParams const&, CoreStateHost&, size_type) const;
+    void execute_impl(CoreParams const&, CoreStateDevice&, size_type) const;
 };
 
 //---------------------------------------------------------------------------//

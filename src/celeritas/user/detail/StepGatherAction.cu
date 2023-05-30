@@ -11,7 +11,7 @@
 #include "corecel/sys/Stream.hh"
 
 #include "../StepData.hh"
-#include "StepGatherLauncher.hh"
+#include "StepGatherExecutor.hh"
 
 namespace celeritas
 {
@@ -31,9 +31,9 @@ step_gather_kernel(DeviceCRef<CoreParamsData> const core_params,
     if (!(tid < step_state.size()))
         return;
 
-    StepGatherLauncher<P> launch{
+    StepGatherExecutor<P> execute{
         core_params, core_state, step_params, step_state};
-    launch(tid);
+    execute(tid);
 }
 //---------------------------------------------------------------------------//
 }  // namespace

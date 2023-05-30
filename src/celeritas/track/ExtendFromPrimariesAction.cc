@@ -13,9 +13,9 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/ExecuteAction.hh"
+#include "celeritas/global/LaunchAction.hh"
 
-#include "detail/ProcessPrimariesLauncher.hh"  // IWYU pragma: associated
+#include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -70,12 +70,12 @@ void ExtendFromPrimariesAction::process_primaries(
     CoreStateHost& state,
     Span<Primary const> primaries) const
 {
-    execute_action(*this,
-                   Range{ThreadId(primaries.size())},
-                   params,
-                   state,
-                   detail::ProcessPrimariesLauncher{
-                       state.ptr(), primaries, state.counters()});
+    launch_action(*this,
+                  Range{ThreadId(primaries.size())},
+                  params,
+                  state,
+                  detail::ProcessPrimariesExecutor{
+                      state.ptr(), primaries, state.counters()});
 }
 
 //---------------------------------------------------------------------------//

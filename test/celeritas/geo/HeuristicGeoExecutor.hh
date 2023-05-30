@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/HeuristicGeoLauncher.hh
+//! \file celeritas/geo/HeuristicGeoExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -28,7 +28,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-struct HeuristicGeoLauncher
+struct HeuristicGeoExecutor
 {
     using ParamsRef = NativeCRef<HeuristicGeoParamsData>;
     using StateRef = NativeRef<HeuristicGeoStateData>;
@@ -46,7 +46,7 @@ struct HeuristicGeoLauncher
  * This is meant to emulate some of the variability in step sizes and direction
  * changes seen during a real transport loop,
  */
-CELER_FUNCTION void HeuristicGeoLauncher::operator()(TrackSlotId tid) const
+CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
 {
     RngEngine rng(state.rng, tid);
     GeoTrackView geo(params.geometry, state.geometry, tid);

@@ -15,7 +15,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
-#include "detail/ProcessPrimariesLauncher.hh"
+#include "detail/ProcessPrimariesExecutor.hh"
 
 namespace celeritas
 {
@@ -25,9 +25,9 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 __global__ void
-process_primaries_kernel(detail::ProcessPrimariesLauncher launch)
+process_primaries_kernel(detail::ProcessPrimariesExecutor execute)
 {
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -46,7 +46,7 @@ void ExtendFromPrimariesAction::process_primaries(
                         celeritas::device().default_block_size(),
                         primaries.size(),
                         celeritas::device().stream(state.stream_id()).get(),
-                        detail::ProcessPrimariesLauncher{
+                        detail::ProcessPrimariesExecutor{
                             state.ptr(), primaries, state.counters()});
 }
 

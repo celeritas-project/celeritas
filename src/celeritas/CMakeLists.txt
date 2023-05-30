@@ -278,7 +278,7 @@ celeritas_polysource(user/detail/SimpleCaloImpl)
 # Auto-generated code
 #-----------------------------------------------------------------------------#
 
-# Generate model launcher and track initialization code for host/device
+# Generate model executor and track initialization code for host/device
 macro(celeritas_gen_interactor class func)
   celeritas_gen(SOURCES
     "gen-interactor.py" "em/generated/${class}Interact"
