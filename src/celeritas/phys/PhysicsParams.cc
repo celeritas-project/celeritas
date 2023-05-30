@@ -47,8 +47,8 @@
 #include "celeritas/phys/Process.hh"
 
 #include "ParticleParams.hh"
+#include "detail/PreStepAction.hh"
 #include "generated/DiscreteSelectAction.hh"
-#include "generated/PreStepAction.hh"
 
 namespace celeritas
 {
@@ -86,8 +86,8 @@ PhysicsParams::PhysicsParams(Input inp)
         using std::make_shared;
         auto& action_reg = *inp.action_registry;
 
-        auto pre_step_action = make_shared<generated::PreStepAction>(
-            action_reg.next_id(), "pre-step", "update beginning-of-step state");
+        auto pre_step_action
+            = make_shared<detail::PreStepAction>(action_reg.next_id());
         inp.action_registry->insert(pre_step_action);
         pre_step_action_ = std::move(pre_step_action);
 
