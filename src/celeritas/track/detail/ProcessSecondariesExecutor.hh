@@ -63,7 +63,7 @@ struct ProcessSecondariesExecutor
 /*!
  * Create track initializers from secondaries.
  *
- * This kernel is executeed with a grid size equal to the number of track
+ * This kernel is executed with a grid size equal to the number of track
  * slots, so ThreadId should be equal to TrackSlotId. No remapping should be
  * done.
  */

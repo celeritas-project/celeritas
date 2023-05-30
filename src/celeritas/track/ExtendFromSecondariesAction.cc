@@ -109,7 +109,8 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const&,
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to create track initializers from secondary particles.
+ * Launch a (host) kernel to create track initializers from secondary
+ * particles.
  */
 void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateHost& core_state) const

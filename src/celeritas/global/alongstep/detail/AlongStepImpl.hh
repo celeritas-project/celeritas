@@ -271,7 +271,7 @@ inline CELER_FUNCTION void update_track(CoreTrackView const& track)
         if (step_limit.action != phys.scalars().discrete_action())
         {
             // Reduce remaining mean free paths to travel. The 'discrete
-            // action' case is executeed separately and resets the
+            // action' case is launched separately and resets the
             // interaction MFP itself.
             auto step = track.make_physics_step_view();
             real_type mfp = phys.interaction_mfp()

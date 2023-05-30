@@ -18,7 +18,7 @@
 #include "detail/LocateAliveExecutor.hh"
 #include "detail/ProcessSecondariesExecutor.hh"
 
-    namespace celeritas
+namespace celeritas
 {
 namespace
 {

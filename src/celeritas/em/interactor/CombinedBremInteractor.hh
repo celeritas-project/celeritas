@@ -129,7 +129,7 @@ CombinedBremInteractor::CombinedBremInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
 {
-    // TODO: reject this interaction before executeing the kernel by using
+    // TODO: reject this interaction before executing the kernel by using
     // correct material-dependent lower bounds for the interaction
     if (gamma_cutoff_ > inc_energy_)
     {

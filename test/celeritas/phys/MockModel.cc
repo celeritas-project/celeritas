@@ -62,7 +62,7 @@ void MockModel::execute(CoreParams const&, CoreStateHost&) const
 
 void MockModel::execute(CoreParams const&, CoreStateDevice&) const
 {
-    // Inform calling test code that we've been executeed
+    // Inform calling test code that we've been executed
     data_.cb(this->action_id());
 }
 
