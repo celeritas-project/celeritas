@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
@@ -60,6 +62,11 @@ launch_action_impl(size_type const num_threads, F execute_thread)
 template<class F>
 class ActionLauncher
 {
+    static_assert(std::is_trivially_copyable_v<F> && !std::is_pointer_v<F>
+                      && !std::is_reference_v<F>,
+                  "Launched action must be a trivially copyable function "
+                  "object");
+
   public:
     explicit ActionLauncher(ExplicitActionInterface const& action)
         : calc_launch_params_{action.label(), &launch_action_impl<F>}

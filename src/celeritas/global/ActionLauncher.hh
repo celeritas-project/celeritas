@@ -22,21 +22,22 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Helper function to run an action in parallel on CPU.
+ *
+ * This interface accepts a *range* of thread IDs that is independent from the
+ * state size.
  */
 template<class F>
 void launch_action(ExplicitActionInterface const& action,
-                   Range<ThreadId> threads,
+                   size_type const num_threads,
                    celeritas::CoreParams const& params,
                    celeritas::CoreState<MemSpace::host>& state,
                    F&& execute_thread)
 {
     MultiExceptionHandler capture_exception;
-    size_type const start{threads.begin()->unchecked_get()};
-    size_type const stop{threads.end()->unchecked_get()};
 #ifdef _OPENMP
 #    pragma omp parallel for
 #endif
-    for (size_type i = start; i < stop; ++i)
+    for (size_type i = 0; i < num_threads; ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             execute_thread(ThreadId{i}),
@@ -59,11 +60,8 @@ void launch_action(ExplicitActionInterface const& action,
                    celeritas::CoreState<MemSpace::host>& state,
                    F&& execute_thread)
 {
-    return launch_action(action,
-                         Range<ThreadId>{ThreadId{0}, ThreadId{state.size()}},
-                         params,
-                         state,
-                         std::forward<F>(execute_thread));
+    return launch_action(
+        action, state.size(), params, state, std::forward<F>(execute_thread));
 }
 
 //---------------------------------------------------------------------------//

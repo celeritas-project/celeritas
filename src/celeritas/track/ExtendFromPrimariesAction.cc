@@ -71,7 +71,7 @@ void ExtendFromPrimariesAction::process_primaries(
     Span<Primary const> primaries) const
 {
     launch_action(*this,
-                  Range{ThreadId(primaries.size())},
+                  primaries.size(),
                   params,
                   state,
                   detail::ProcessPrimariesExecutor{

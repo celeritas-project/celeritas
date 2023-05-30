@@ -80,7 +80,7 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
 {
     launch_action(
         *this,
-        Range{ThreadId{num_new_tracks}},
+        num_new_tracks,
         core_params,
         core_state,
         detail::InitTracksExecutor{core_params.ptr<MemSpace::native>(),
