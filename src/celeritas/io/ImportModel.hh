@@ -26,6 +26,7 @@ namespace celeritas
 enum class ImportModelClass
 {
     other,
+    unknown [[deprecated]] = other,  // remove in v0.4
     bragg_ion,
     bethe_bloch,
     urban_msc,
@@ -54,7 +55,7 @@ enum class ImportModelClass
 
 //---------------------------------------------------------------------------//
 /*!
- * Imported data for one material in a particluar model.
+ * Imported data for one material in a particular model.
  *
  * Microscopic cross-section data are stored in the element-selector physics
  * vector is in cm^2. They will not be present for all model types, as some
