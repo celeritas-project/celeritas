@@ -47,8 +47,8 @@
 #include "celeritas/phys/Process.hh"
 
 #include "ParticleParams.hh"
+#include "detail/DiscreteSelectAction.hh"
 #include "detail/PreStepAction.hh"
-#include "generated/DiscreteSelectAction.hh"
 
 namespace celeritas
 {
@@ -105,10 +105,8 @@ PhysicsParams::PhysicsParams(Input inp)
         action_reg.insert(range_action);
         range_action_ = std::move(range_action);
 
-        auto discrete_action = make_shared<generated::DiscreteSelectAction>(
-            action_reg.next_id(),
-            "physics-discrete-select",
-            "select a discrete interaction");
+        auto discrete_action
+            = make_shared<detail::DiscreteSelectAction>(action_reg.next_id());
         inp.action_registry->insert(discrete_action);
         discrete_action_ = std::move(discrete_action);
 

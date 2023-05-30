@@ -264,6 +264,7 @@ celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
@@ -305,7 +306,6 @@ celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 
-celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select" "pre_post")
 celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
 
 #-----------------------------------------------------------------------------#

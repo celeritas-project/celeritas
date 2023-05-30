@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/detail/DiscreteSelectActionImpl.hh
+//! \file celeritas/phys/detail/DiscreteSelectExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,30 +24,25 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+struct DiscreteSelectExecutor
+{
+    inline CELER_FUNCTION void
+    operator()(celeritas::CoreTrackView const& track);
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Select a physics process before undergoing a collision.
  */
-inline CELER_FUNCTION void
-discrete_select_track(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void
+DiscreteSelectExecutor::operator()(celeritas::CoreTrackView const& track)
 {
-    auto sim = track.make_sim_view();
-    if (sim.status() != TrackStatus::alive)
-    {
-        // TODO: this check should be redundant with the action check below,
-        // but we currently need to create the physics track view to check the
-        // scalars (and this cannot be done if the track is inactive).
-        return;
-    }
-
-    auto phys = track.make_physics_view();
-    if (sim.step_limit().action != phys.scalars().discrete_action())
-    {
-        // This kernel does not apply
-        return;
-    }
-
+    CELER_EXPECT(track.make_sim_view().status() == TrackStatus::alive);
+    CELER_EXPECT(track.make_sim_view().step_limit().action
+                 == track.make_physics_view().scalars().discrete_action());
     // Reset the MFP counter, to be resampled if the track survives the
     // interaction
+    auto phys = track.make_physics_view();
     phys.reset_interaction_mfp();
 
     auto particle = track.make_particle_view();
@@ -60,6 +55,7 @@ discrete_select_track(celeritas::CoreTrackView const& track)
             = select_discrete_interaction(mat, particle, phys, step, rng);
         CELER_ASSERT(action);
         // Save it as the next kernel
+        auto sim = track.make_sim_view();
         sim.force_step_limit(action);
     }
 
