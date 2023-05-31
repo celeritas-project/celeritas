@@ -27,7 +27,7 @@ void EPlusGGModel::execute(CoreParams const& params,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{EPlusGGExecutor{this->host_ref()}});
+        InteractionApplier{EPlusGGExecutor{this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
