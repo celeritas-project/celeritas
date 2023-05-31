@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/detail/RaggedRightIndexer.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "OrangeTypes.hh"
@@ -116,6 +116,34 @@ struct SurfacesRecord
 struct Connectivity
 {
     ItemRange<LocalVolumeId> neighbors;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Class for storing offset data for RaggedRightIndexer.
+ */
+template<size_type N>
+struct RaggedRightIndexerData
+{
+    using Sizes = Array<size_type, N>;
+    using Offsets = Array<size_type, N + 1>;
+
+    Offsets offsets;
+
+    //! Construct with the an array denoting the size of each dimension.
+    static RaggedRightIndexerData from_sizes(Sizes sizes)
+    {
+        CELER_EXPECT(sizes.size() > 0);
+
+        Offsets offs;
+        offs[0] = 0;
+        for (auto i : range(N))
+        {
+            CELER_EXPECT(sizes[i] > 0);
+            offs[i + 1] = sizes[i] + offs[i];
+        }
+        return RaggedRightIndexerData{offs};
+    }
 };
 
 //---------------------------------------------------------------------------//

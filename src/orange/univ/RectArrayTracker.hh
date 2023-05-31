@@ -35,8 +35,8 @@ class RectArrayTracker
     using Grid = NonuniformGrid<real_type>;
     using VolumeIndexer = HyperslabIndexer<3>;
     using VolumeInverseIndexer = HyperslabInverseIndexer<3>;
-    using SurfaceIndexer = RaggedRightIndexer<3>;
-    using SurfaceInverseIndexer = RaggedRightInverseIndexer<3>;
+    using SurfaceIndexer = detail::RaggedRightIndexer<3>;
+    using SurfaceInverseIndexer = detail::RaggedRightInverseIndexer<3>;
     using Coords = Array<size_type, 3>;
     //!@}
 

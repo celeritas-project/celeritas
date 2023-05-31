@@ -3,16 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/RaggedRightIndexer.test.cc
+//! \file orange/univ/detail/RaggedRightIndexer.test.cc
 //---------------------------------------------------------------------------//
-
-#include "corecel/data/detail/RaggedRightIndexer.hh"
+#include "orange/univ/detail/RaggedRightIndexer.hh"
 
 #include "corecel/cont/Range.hh"
 
 #include "celeritas_test.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 namespace test
 {
@@ -23,33 +24,27 @@ TEST(RaggedRightIndexerTest, basic)
     using RRD = RaggedRightIndexerData<4>;
     using Coords = Array<size_type, 2>;
 
-    RRD rrd = RRD::from_sizes({3, 4, 1, 2});
-    RaggedRightIndexer<4> rri(rrd);
-    RaggedRightInverseIndexer<4> rrii(rrd);
+    RRD const rrd = RRD::from_sizes({3, 4, 1, 2});
+    RaggedRightIndexer<4> to_flat(rrd);
+    RaggedRightInverseIndexer<4> from_flat(rrd);
 
     // Ragged to flattened
-    EXPECT_EQ(0, rri(Coords({0, 0})));
-    EXPECT_EQ(1, rri(Coords({0, 1})));
-    EXPECT_EQ(2, rri(Coords({0, 2})));
-    EXPECT_EQ(3, rri(Coords({1, 0})));
-    EXPECT_EQ(4, rri(Coords({1, 1})));
-    EXPECT_EQ(5, rri(Coords({1, 2})));
-    EXPECT_EQ(6, rri(Coords({1, 3})));
-    EXPECT_EQ(7, rri(Coords({2, 0})));
-    EXPECT_EQ(8, rri(Coords({3, 0})));
-    EXPECT_EQ(9, rri(Coords({3, 1})));
+    EXPECT_EQ(0, to_flat(Coords({0, 0})));
+    EXPECT_EQ(1, to_flat(Coords({0, 1})));
+    EXPECT_EQ(2, to_flat(Coords({0, 2})));
+    EXPECT_EQ(3, to_flat(Coords({1, 0})));
+    EXPECT_EQ(4, to_flat(Coords({1, 1})));
+    EXPECT_EQ(5, to_flat(Coords({1, 2})));
+    EXPECT_EQ(6, to_flat(Coords({1, 3})));
+    EXPECT_EQ(7, to_flat(Coords({2, 0})));
+    EXPECT_EQ(8, to_flat(Coords({3, 0})));
+    EXPECT_EQ(9, to_flat(Coords({3, 1})));
 
     // Flattened to ragged
-    EXPECT_EQ(Coords({0, 0}), rrii(0));
-    EXPECT_EQ(Coords({0, 1}), rrii(1));
-    EXPECT_EQ(Coords({0, 2}), rrii(2));
-    EXPECT_EQ(Coords({1, 0}), rrii(3));
-    EXPECT_EQ(Coords({1, 1}), rrii(4));
-    EXPECT_EQ(Coords({1, 2}), rrii(5));
-    EXPECT_EQ(Coords({1, 3}), rrii(6));
-    EXPECT_EQ(Coords({2, 0}), rrii(7));
-    EXPECT_EQ(Coords({3, 0}), rrii(8));
-    EXPECT_EQ(Coords({3, 1}), rrii(9));
+    for (auto i : range(9))
+    {
+        EXPECT_EQ(to_flat(from_flat(i)), i);
+    }
 }
 
 TEST(RaggedRightIndexerTest, TEST_IF_CELERITAS_DEBUG(error))
@@ -60,4 +55,5 @@ TEST(RaggedRightIndexerTest, TEST_IF_CELERITAS_DEBUG(error))
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace detail
 }  // namespace celeritas

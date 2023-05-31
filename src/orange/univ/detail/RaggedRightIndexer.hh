@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/RaggedRightIndexer.hh
+//! \file orange/univ/detail/RaggedRightIndexer.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,38 +11,12 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
+#include "orange/OrangeData.hh"
 
 namespace celeritas
 {
-
-//---------------------------------------------------------------------------//
-/*!
- * Class for storing offset data for RaggedRightIndexer.
- */
-template<size_type N>
-struct RaggedRightIndexerData
+namespace detail
 {
-    using Sizes = Array<size_type, N>;
-    using Offsets = Array<size_type, N + 1>;
-
-    Offsets offsets;
-
-    //! Construct with the an array denoting the size of each dimension.
-    inline static RaggedRightIndexerData from_sizes(Sizes sizes)
-    {
-        CELER_EXPECT(sizes.size() > 0);
-
-        Offsets offs;
-        offs[0] = 0;
-        for (auto i : range(N))
-        {
-            CELER_EXPECT(sizes[i] > 0);
-            offs[i + 1] = sizes[i] + offs[i];
-        }
-        return RaggedRightIndexerData{offs};
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Index into flattened, ragged-right, 2D data, from index to coords
@@ -183,4 +157,5 @@ RaggedRightInverseIndexer<N>::operator()(size_type index) const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
