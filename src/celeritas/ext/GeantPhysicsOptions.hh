@@ -97,9 +97,6 @@ struct GeantPhysicsOptions
     MscModelSelection msc{MscModelSelection::urban_extended};
     RelaxationSelection relaxation{RelaxationSelection::none};
 
-    // Replicate G4Transportation when no processes are assigned
-    bool transport{false};
-
     //// Physics options ////
     int em_bins_per_decade{7};
     bool eloss_fluctuation{true};
@@ -137,7 +134,6 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.brems == b.brems
            && a.msc == b.msc
            && a.relaxation == b.relaxation
-           && a.transport == b.transport
            // Physics options
            && a.em_bins_per_decade == b.em_bins_per_decade
            && a.eloss_fluctuation == b.eloss_fluctuation
@@ -146,7 +142,6 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.min_energy == b.min_energy
            && a.max_energy == b.max_energy
            && a.linear_loss_limit == b.linear_loss_limit
-           && a.relaxation == b.relaxation
            && a.lowest_electron_energy == b.lowest_electron_energy
            && a.apply_cuts == b.apply_cuts
            && a.msc_range_factor == b.msc_range_factor

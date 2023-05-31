@@ -85,7 +85,6 @@ struct PhysicsParamsOptions
 
     real_type secondary_stack_factor = 3;
     bool disable_integral_xs{false};
-    bool transport{false};
 };
 
 //---------------------------------------------------------------------------//

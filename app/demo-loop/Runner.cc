@@ -221,7 +221,6 @@ void Runner::build_core_params(RunnerInput const& inp,
         input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
         input.options.lowest_electron_energy = PhysicsParamsOptions::Energy{
             imported.em_params.lowest_electron_energy};
-        input.options.transport = inp.geant_options.transport;
 
         input.processes = [&params, &inp, &imported] {
             std::vector<std::shared_ptr<Process const>> result;

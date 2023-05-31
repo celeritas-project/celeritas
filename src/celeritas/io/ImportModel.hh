@@ -26,7 +26,6 @@ namespace celeritas
 enum class ImportModelClass
 {
     other,
-    unknown [[deprecated]] = other,  // remove in v0.4
     bragg_ion,
     bethe_bloch,
     urban_msc,

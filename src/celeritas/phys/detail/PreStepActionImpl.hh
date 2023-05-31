@@ -63,13 +63,15 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
     }
 
     auto phys = track.make_physics_view();
-    if (phys.num_particle_processes() == 0 && phys.scalars().transport)
+    if (phys.num_particle_processes() == 0)
     {
         // Replicate G4Transportation
-        // Set step limit to infinity and exit
-        sim.reset_step_limit();
+        // Set MFP to infinity and set action as geo-boundary
+        sim.reset_step_limit(
+            {numeric_limits<real_type>::max(), track.boundary_action()});
+        phys.interaction_mfp(numeric_limits<real_type>::max());
         sim.along_step_action()
-            = track.core_scalars().along_step_neutral_action;  // Needed?
+            = track.core_scalars().along_step_neutral_action;
         return;
     }
 

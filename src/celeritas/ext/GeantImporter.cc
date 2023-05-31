@@ -30,10 +30,10 @@
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
-#include <G4PropagatorInField.hh>
 #include <G4ProcessVector.hh>
 #include <G4ProductionCuts.hh>
 #include <G4ProductionCutsTable.hh>
+#include <G4PropagatorInField.hh>
 #include <G4RToEConvForElectron.hh>
 #include <G4RToEConvForGamma.hh>
 #include <G4RToEConvForPositron.hh>
@@ -408,14 +408,14 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
 /*!
  * Return a populated \c ImportProcess vector.
  */
-auto import_processes(GeantImporter::DataSelection selection,
+auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                       std::vector<ImportParticle> const& particles,
                       std::vector<ImportElement> const& elements,
                       std::vector<ImportMaterial> const& materials)
     -> std::pair<std::vector<ImportProcess>, std::vector<ImportMscModel>>
 {
-    ParticleFilter include_particle{selection.processes};
-    ProcessFilter include_process{selection.processes};
+    ParticleFilter include_particle{process_flags};
+    ProcessFilter include_process{process_flags};
 
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
@@ -514,7 +514,6 @@ auto import_processes(GeantImporter::DataSelection selection,
             append_process(*g4_particle_def, process);
         }
     }
-
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
     return {std::move(processes), std::move(msc_models)};
 }
@@ -669,8 +668,11 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         imported.particles = import_particles(selected.particles);
         imported.elements = import_elements();
         imported.materials = import_materials(selected.particles);
-        std::tie(imported.processes, imported.msc_models) = import_processes(
-            selected, imported.particles, imported.elements, imported.materials);
+        std::tie(imported.processes, imported.msc_models)
+            = import_processes(selected.processes,
+                               imported.particles,
+                               imported.elements,
+                               imported.materials);
         imported.volumes = this->import_volumes(selected.unique_volumes);
         imported.trans_params = import_trans_parameters(selected.particles);
         if (selected.processes & DataSelection::em)

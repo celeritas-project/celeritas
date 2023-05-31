@@ -59,6 +59,7 @@ class GeantSetup
     // Get the world detector volume
     inline G4VPhysicalVolume const* world() const;
 
+    // Get the provided physics options
     Options const& geant_physics_options() { return options_; }
 
     //! True if we own a run manager
