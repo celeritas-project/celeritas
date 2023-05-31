@@ -62,8 +62,8 @@ launch_action_impl(size_type const num_threads, F execute_thread)
 template<class F>
 class ActionLauncher
 {
-    static_assert(std::is_trivially_copyable_v<F> && !std::is_pointer_v<F>
-                      && !std::is_reference_v<F>,
+    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP)
+                      && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
 
