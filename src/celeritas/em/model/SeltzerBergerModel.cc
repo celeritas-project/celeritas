@@ -19,12 +19,15 @@
 #include "corecel/grid/TwodGridData.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/data/ElectronBremsData.hh"
-#include "celeritas/em/generated/SeltzerBergerInteract.hh"
+#include "celeritas/em/executor/SeltzerBergerExecutor.hh"  // IWYU pragma: associated
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
@@ -117,23 +120,28 @@ auto SeltzerBergerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 }
 
 //---------------------------------------------------------------------------//
-//!@{
 /*!
- * Apply the interaction kernel.
+ * Interact with host data.
  */
 void SeltzerBergerModel::execute(CoreParams const& params,
                                  CoreStateHost& state) const
 {
-    generated::seltzer_berger_interact(params, state, this->host_ref());
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{SeltzerBergerExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
-void SeltzerBergerModel::execute(CoreParams const& params,
-                                 CoreStateDevice& state) const
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void SeltzerBergerModel::execute(CoreParams const&, CoreStateDevice&) const
 {
-    generated::seltzer_berger_interact(params, state, this->device_ref());
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
+#endif
 
-//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

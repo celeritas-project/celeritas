@@ -25,7 +25,6 @@ list(APPEND SOURCES
   em/model/MuBremsstrahlungModel.cc
   em/model/RayleighModel.cc
   em/model/RelativisticBremModel.cc
-  em/model/SeltzerBergerModel.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
   em/process/EIonizationProcess.cc
@@ -255,6 +254,7 @@ endmacro()
 
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/EPlusGGModel)
+celeritas_polysource(em/model/SeltzerBergerModel)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
@@ -299,7 +299,6 @@ celeritas_gen_interactor("MollerBhabha" "moller_bhabha")
 celeritas_gen_interactor("MuBremsstrahlung" "mu_bremsstrahlung")
 celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
-celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 
 celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
 
