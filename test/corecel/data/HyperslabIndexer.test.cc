@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/data/HyperslabIndexer.test.cc
 //---------------------------------------------------------------------------//
-
 #include "corecel/data/HyperslabIndexer.hh"
 
 #include "corecel/cont/Range.hh"
