@@ -12,9 +12,9 @@
 
 #include "corecel/device_runtime_api.h"
 
-using namespace celeritas;
-
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -37,4 +37,5 @@ size_type reduce_alive(DeviceGridParams const& grid, Span<bool const> alive)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

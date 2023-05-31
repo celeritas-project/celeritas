@@ -17,9 +17,9 @@
 #include "ImageTrackView.hh"
 #include "RDemoKernel.hh"
 
-using namespace celeritas;
-
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -68,4 +68,5 @@ void RDemoRunner::operator()(ImageStore* image, int ntimes) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas

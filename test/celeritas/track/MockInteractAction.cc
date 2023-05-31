@@ -17,7 +17,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "MockInteractImpl.hh"
 
@@ -56,17 +56,17 @@ void MockInteractAction::execute(CoreParams const& params,
     CELER_EXPECT(state.size() == data_.host_ref().size());
 
     MultiExceptionHandler capture_exception;
-    auto launch = make_active_track_launcher(params.ref<MemSpace::native>(),
-                                             state.ref(),
-                                             apply_mock_interact,
-                                             data_.host_ref());
+    auto execute = make_active_track_executor(params.ref<MemSpace::native>(),
+                                              state.ref(),
+                                              apply_mock_interact,
+                                              data_.host_ref());
 #ifdef _OPENMP
 #    pragma omp parallel for
 #endif
     for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            execute(ThreadId{i}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(),
                                    state.ref(),

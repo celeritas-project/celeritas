@@ -27,7 +27,7 @@ class CoreTrackView;
  *
  * \code
     CELER_TRY_HANDLE_CONTEXT(
-        launch(ThreadId{i}),
+        execute(ThreadId{i}),
         capture_exception,
         KernelContextException(data.params, data.states, ThreadId{i},
  this->label())

@@ -204,7 +204,7 @@ inline void resize({capabbr}TestStateData<Ownership::value, M>* state,
 //---------------------------------------------------------------------------//
 // LAUNCHER
 //---------------------------------------------------------------------------//
-struct {capabbr}TestLauncher
+struct {capabbr}TestExecutor
 {{
     using ParamsRef = NativeCRef<{capabbr}TestParamsData>;
     using StateRef  = NativeRef<{capabbr}TestStateData>;
@@ -216,7 +216,7 @@ struct {capabbr}TestLauncher
 }};
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void {capabbr}TestLauncher::operator()({corecel_ns}ThreadId tid) const
+CELER_FUNCTION void {capabbr}TestExecutor::operator()({corecel_ns}ThreadId tid) const
 {{
     // FIXME
 }}
@@ -268,8 +268,8 @@ __global__ void {lowabbr}_test_kernel(
     if (tid.get() >= state.size())
         return;
 
-    {capabbr}TestLauncher launch{{params, state}};
-    launch(tid);
+    {capabbr}TestExecutor execute{{params, state}};
+    execute(tid);
 }}
 }}
 

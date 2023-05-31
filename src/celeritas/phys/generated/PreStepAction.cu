@@ -16,7 +16,7 @@
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "../detail/PreStepActionImpl.hh"
 
 namespace celeritas
@@ -39,8 +39,8 @@ pre_step_kernel(
     RefPtr<CoreStateData, MemSpace::device> const state
 )
 {
-    TrackLauncher launch{*params, *state, detail::pre_step_track};
-    launch(KernelParamCalculator::thread_id());
+    TrackExecutor execute{*params, *state, detail::pre_step_track};
+    execute(KernelParamCalculator::thread_id());
 }
 }  // namespace
 

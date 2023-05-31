@@ -14,11 +14,11 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/em/executor/MuBremsstrahlungExecutor.hh" // IWYU pragma: associated
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/em/launcher/MuBremsstrahlungLauncher.hh" // IWYU pragma: associated
-#include "celeritas/phys/InteractionLauncher.hh"
+#include "celeritas/phys/InteractionExecutor.hh"
 
 using celeritas::MemSpace;
 
@@ -34,14 +34,14 @@ void mu_bremsstrahlung_interact(
     CELER_EXPECT(model_data);
 
     celeritas::MultiExceptionHandler capture_exception;
-    auto launch = celeritas::make_interaction_launcher(
+    auto execute = celeritas::make_interaction_executor(
         params.ptr<MemSpace::native>(), state.ptr(),
         celeritas::mu_bremsstrahlung_interact_track, model_data);
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            execute(ThreadId{i}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(), state.ref(), ThreadId{i}, "mu_bremsstrahlung"));
     }

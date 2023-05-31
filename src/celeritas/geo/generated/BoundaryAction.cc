@@ -11,8 +11,8 @@
 #include <utility>
 
 #include "corecel/Types.hh"
-#include "celeritas/global/ExecuteAction.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/LaunchAction.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "../detail/BoundaryActionImpl.hh" // IWYU pragma: associated
 
 namespace celeritas
@@ -25,9 +25,9 @@ namespace generated
  */
 void BoundaryAction::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    return ::celeritas::execute_action(
+    return ::celeritas::launch_action(
         *this, params, state,
-        TrackLauncher{*params.ptr<MemSpace::native>(), *state.ptr(),
+        TrackExecutor{*params.ptr<MemSpace::native>(), *state.ptr(),
                       detail::boundary_track});
 }
 

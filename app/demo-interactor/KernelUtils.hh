@@ -13,25 +13,25 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/ExponentialDistribution.hh"
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 
 template<class Rng>
-inline CELER_FUNCTION void
-move_to_collision(celeritas::ParticleTrackView const& particle,
-                  celeritas::XsCalculator const& calc_xs,
-                  celeritas::Real3 const& direction,
-                  celeritas::Real3* position,
-                  celeritas::real_type* time,
-                  Rng& rng)
+inline CELER_FUNCTION void move_to_collision(ParticleTrackView const& particle,
+                                             XsCalculator const& calc_xs,
+                                             Real3 const& direction,
+                                             Real3* position,
+                                             real_type* time,
+                                             Rng& rng)
 {
     CELER_EXPECT(position && time);
-    using celeritas::real_type;
 
     // Calculate cross section at the particle's energy
     real_type sigma = calc_xs(particle.energy());
-    celeritas::ExponentialDistribution<real_type> sample_distance(sigma);
+    ExponentialDistribution<real_type> sample_distance(sigma);
     // Sample distance-to-collision
     real_type distance = sample_distance(rng);
     // Move particle
@@ -41,4 +41,5 @@ move_to_collision(celeritas::ParticleTrackView const& particle,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

@@ -14,7 +14,9 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/Units.hh"
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -73,9 +75,9 @@ std::shared_ptr<XsGridParams> load_xs()
            2.08750836e-01, 2.12434495e-01, 2.16118155e-01, 2.19801815e-01};
 
     input.xs.resize(std::end(lambda) - std::begin(lambda));
-    for (auto i : celeritas::range(input.xs.size()))
+    for (auto i : range(input.xs.size()))
     {
-        input.xs[i] = lambda[i] * (1 / celeritas::units::millimeter);
+        input.xs[i] = lambda[i] * (1 / units::millimeter);
     }
 
     input.prime_energy = 1.0;  // XS are scaled by a factor of E above 1 MeV
@@ -84,4 +86,5 @@ std::shared_ptr<XsGridParams> load_xs()
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

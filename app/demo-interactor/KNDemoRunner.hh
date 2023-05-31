@@ -14,7 +14,9 @@
 #include "KNDemoKernel.hh"
 #include "XsGridParams.hh"
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -30,10 +32,9 @@ class KNDemoRunner
   public:
     //!@{
     //! \name Type aliases
-    using size_type = celeritas::size_type;
+
     using result_type = KNDemoResult;
-    using constSPParticleParams
-        = std::shared_ptr<const celeritas::ParticleParams>;
+    using constSPParticleParams = std::shared_ptr<ParticleParams const>;
     using constSPXsGridParams = std::shared_ptr<XsGridParams const>;
     //!@}
 
@@ -50,8 +51,9 @@ class KNDemoRunner
     constSPParticleParams pparams_;
     constSPXsGridParams xsparams_;
     DeviceGridParams launch_params_;
-    celeritas::KleinNishinaData kn_data_;
+    KleinNishinaData kn_data_;
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

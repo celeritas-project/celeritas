@@ -15,7 +15,7 @@
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepNeutral.hh"
 
@@ -29,9 +29,9 @@ along_step_neutral_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params
                           RefPtr<CoreStateData, MemSpace::device> const state,
                           ActionId const along_step_id)
 {
-    auto launch = make_along_step_track_launcher(
+    auto execute = make_along_step_track_executor(
         *params, *state, along_step_id, detail::along_step_neutral);
-    launch(KernelParamCalculator::thread_id());
+    execute(KernelParamCalculator::thread_id());
 }
 //---------------------------------------------------------------------------//
 }  // namespace
