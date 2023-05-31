@@ -19,6 +19,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
