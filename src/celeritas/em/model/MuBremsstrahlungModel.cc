@@ -13,11 +13,11 @@
 #include "celeritas/em/executor/MuBremsstrahlungExecutor.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/io/ImportProcess.hh"
+#include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
-#include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/phys/InteractionApplier.hh"
 
 namespace celeritas
 {

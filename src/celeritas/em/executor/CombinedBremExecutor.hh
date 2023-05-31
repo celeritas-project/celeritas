@@ -30,7 +30,6 @@ struct CombinedBremExecutor
     CombinedBremRef params;
 };
 
-
 //---------------------------------------------------------------------------//
 /*!
  * Sample electron/positron brems from the current track.

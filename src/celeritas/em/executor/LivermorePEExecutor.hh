@@ -26,7 +26,6 @@ struct LivermorePEExecutor
     LivermorePERef params;
 };
 
-
 //---------------------------------------------------------------------------//
 /*!
  * Sample a Livermore photoelectric interaction from the current track.

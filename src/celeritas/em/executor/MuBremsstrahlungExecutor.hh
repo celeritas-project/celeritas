@@ -29,7 +29,6 @@ struct MuBremsstrahlungExecutor
     MuBremsstrahlungRef params;
 };
 
-
 //---------------------------------------------------------------------------//
 /*!
  * Sample MuBremsstrahlung from the current track.

@@ -31,7 +31,6 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
 
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

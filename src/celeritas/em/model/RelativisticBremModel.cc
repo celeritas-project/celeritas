@@ -19,13 +19,13 @@
 #include "celeritas/em/executor/RelativisticBremExecutor.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
-#include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/phys/InteractionApplier.hh"
 
 #include "../interactor/detail/PhysicsConstants.hh"
 
