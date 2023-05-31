@@ -95,8 +95,7 @@ void MuBremsstrahlungModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void MuBremsstrahlungModel::execute(CoreParams const& params,
-                                    CoreStateDevice& state) const
+void MuBremsstrahlungModel::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
