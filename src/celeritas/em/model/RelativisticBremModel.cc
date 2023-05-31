@@ -19,6 +19,7 @@
 #include "celeritas/em/generated/RelativisticBremInteract.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportProcess.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"

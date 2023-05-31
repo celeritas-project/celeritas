@@ -18,7 +18,6 @@ list(APPEND SOURCES
   em/FluctuationParams.cc
   em/UrbanMscParams.cc
   em/detail/Utils.cc
-  em/model/CombinedBremModel.cc
   em/model/EPlusGGModel.cc
   em/model/KleinNishinaModel.cc
   em/model/MollerBhabhaModel.cc
@@ -254,6 +253,7 @@ endmacro()
 #-----------------------------------------------------------------------------#
 
 celeritas_polysource(em/model/BetheHeitlerModel)
+celeritas_polysource(em/model/CombinedBremModel)
 celeritas_polysource(em/model/LivermorePEModel)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
@@ -292,7 +292,6 @@ macro(celeritas_gen_action basedir class func order)
   )
 endmacro()
 
-celeritas_gen_interactor("CombinedBrem" "combined_brem")
 celeritas_gen_interactor("EPlusGG" "eplusgg")
 celeritas_gen_interactor("KleinNishina" "klein_nishina")
 celeritas_gen_interactor("MollerBhabha" "moller_bhabha")
