@@ -194,7 +194,7 @@ CoreScalars build_actions(ActionRegistry* reg)
     // Construct geometry action
     scalars.boundary_action = reg->next_id();
     reg->insert(make_shared<celeritas::detail::BoundaryAction>(
-        scalars.boundary_action, "geo-boundary", "cross a geometry boundary"));
+        scalars.boundary_action));
 
     //// END ACTIONS ////
 

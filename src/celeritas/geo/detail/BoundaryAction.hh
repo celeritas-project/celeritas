@@ -21,7 +21,7 @@ class BoundaryAction final : public ExplicitActionInterface,
 {
   public:
     // Construct with ID
-    BoundaryAction(ActionId, std::string, std::string);
+    explicit BoundaryAction(ActionId);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;

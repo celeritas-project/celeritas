@@ -22,10 +22,8 @@ namespace celeritas
 namespace detail
 {
 
-BoundaryAction::BoundaryAction(ActionId aid,
-                               std::string label,
-                               std::string description)
-    : ConcreteAction(aid, label, description)
+BoundaryAction::BoundaryAction(ActionId aid)
+    : ConcreteAction(aid, "geo-boundary", "cross a geometry boundary")
 {
 }
 //---------------------------------------------------------------------------//
