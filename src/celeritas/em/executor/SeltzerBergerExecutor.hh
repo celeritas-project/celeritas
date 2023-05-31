@@ -31,7 +31,7 @@ struct SeltzerBergerExecutor
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply RelativisticBrem to the current track.
+ * Sample Seltzer-Berger bremsstrahlung from the current track.
  */
 CELER_FUNCTION Interaction
 SeltzerBergerExecutor::operator()(CoreTrackView const& track)
