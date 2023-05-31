@@ -286,13 +286,6 @@ macro(celeritas_gen_interactor class func)
   )
 endmacro()
 
-macro(celeritas_gen_action basedir class func order)
-  celeritas_gen(SOURCES
-    "gen-action.py" "${basedir}/generated/${class}"
-    --class ${class} --func ${func} --actionorder ${order}
-  )
-endmacro()
-
 celeritas_gen_interactor("CombinedBrem" "combined_brem")
 celeritas_gen_interactor("EPlusGG" "eplusgg")
 celeritas_gen_interactor("KleinNishina" "klein_nishina")
