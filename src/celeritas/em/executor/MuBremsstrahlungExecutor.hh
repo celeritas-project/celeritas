@@ -21,11 +21,21 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct MuBremsstrahlungExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    MuBremsstrahlungRef params;
+};
+
+
+//---------------------------------------------------------------------------//
 /*!
- * Apply MuBremsstrahlung to the current track.
+ * Sample MuBremsstrahlung from the current track.
  */
-inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
-    MuBremsstrahlungData const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction
+MuBremsstrahlungExecutor::operator()(CoreTrackView const& track)
 {
     auto material_track = track.make_material_view();
     auto material = material_track.make_material_view();
@@ -38,7 +48,7 @@ inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
     auto const& dir = track.make_geo_view().dir();
 
     MuBremsstrahlungInteractor interact(
-        model, particle, dir, allocate_secondaries, material, elcomp_id);
+        params, particle, dir, allocate_secondaries, material, elcomp_id);
 
     auto rng = track.make_rng_engine();
     return interact(rng);

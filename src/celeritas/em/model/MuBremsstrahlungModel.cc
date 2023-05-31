@@ -10,11 +10,14 @@
 #include <utility>
 
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/generated/MuBremsstrahlungInteract.hh"
+#include "celeritas/em/executor/MuBremsstrahlungExecutor.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
+#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/phys/InteractionApplier.hh"
 
 namespace celeritas
 {
@@ -77,19 +80,27 @@ auto MuBremsstrahlungModel::micro_xs(Applicability applic) const
 //---------------------------------------------------------------------------//
 //!@{
 /*!
- * Apply the interaction kernel.
+ * Interact with host data.
  */
 void MuBremsstrahlungModel::execute(CoreParams const& params,
                                     CoreStateHost& state) const
 {
-    generated::mu_bremsstrahlung_interact(params, state, this->host_ref());
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{MuBremsstrahlungExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
 void MuBremsstrahlungModel::execute(CoreParams const& params,
                                     CoreStateDevice& state) const
 {
-    generated::mu_bremsstrahlung_interact(params, state, this->device_ref());
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
+#endif
 
 //!@}
 //---------------------------------------------------------------------------//
