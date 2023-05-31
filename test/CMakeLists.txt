@@ -376,6 +376,7 @@ celeritas_add_test(celeritas/global/Stepper.test.cc
     # NOTE: these can be run in the same invocation once Geant4 reload works
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
+    "TestEm3Compton.*"
     "TestEm3MscNofluct.*"
     "TestEm15MscField.*"
     "OneSteelSphere.*"

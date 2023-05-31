@@ -29,11 +29,12 @@ class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
 {
   public:
     std::vector<Primary>
-    make_primaries_with_energy(size_type count,
+    make_primaries_with_energy(PDGNumber particle,
+                               size_type count,
                                celeritas::units::MevEnergy energy) const
     {
         Primary p;
-        p.particle_id = this->particle()->find(pdg::electron());
+        p.particle_id = this->particle()->find(particle);
         CELER_ASSERT(p.particle_id);
         p.energy = energy;
         p.track_id = TrackId{0};
@@ -47,6 +48,14 @@ class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
             result[i].event_id = EventId{i};
         }
         return result;
+    }
+
+    // Return electron primaries as default
+    std::vector<Primary>
+    make_primaries_with_energy(size_type count,
+                               celeritas::units::MevEnergy energy) const
+    {
+        return this->make_primaries_with_energy(pdg::electron(), count, energy);
     }
 };
 

@@ -63,6 +63,38 @@ class TestEm3MscNofluct : public TestEm3Msc
 };
 
 //---------------------------------------------------------------------------//
+#define TestEm3Compton TEST_IF_CELERITAS_GEANT(TestEm3Compton)
+class TestEm3Compton : public TestEm3StepperTestBase
+{
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        return this->make_primaries_with_energy(
+            pdg::gamma(), count, units::MevEnergy{1});
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.compton_scattering = true;
+        opts.coulomb_scattering = false;
+        opts.photoelectric = false;
+        opts.rayleigh_scattering = false;
+        opts.gamma_conversion = false;
+        opts.gamma_general = false;
+        opts.ionization = false;
+        opts.annihilation = false;
+        opts.brems = BremsModelSelection::none;
+        opts.msc = MscModelSelection::none;
+        opts.relaxation = RelaxationSelection::none;
+        opts.lpm = false;
+        opts.eloss_fluctuation = false;
+        return opts;
+    }
+
+    size_type max_average_steps() const override { return 1000; }
+};
+
+//---------------------------------------------------------------------------//
 #define TestEm15MscField TEST_IF_CELERITAS_GEANT(TestEm15MscField)
 class TestEm15MscField : public TestEm15Base, public StepperTestBase
 {
@@ -155,6 +187,27 @@ class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
 
     size_type max_average_steps() const override { return 500; }
 };
+
+//---------------------------------------------------------------------------//
+// TESTEM3 - Compton process only
+//---------------------------------------------------------------------------//
+
+TEST_F(TestEm3Compton, setup)
+{
+    auto result = this->check_setup();
+    static char const* expected_process[] = {"Compton scattering"};
+    EXPECT_VEC_EQ(expected_process, result.processes);
+}
+
+TEST_F(TestEm3Compton, host)
+{
+    size_type num_primaries = 1;
+    size_type num_tracks = 256;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+    EXPECT_SOFT_EQ(796, result.calc_avg_steps_per_primary());
+}
 
 //---------------------------------------------------------------------------//
 // TESTEM3
