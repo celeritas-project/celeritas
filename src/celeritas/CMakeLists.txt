@@ -21,7 +21,6 @@ list(APPEND SOURCES
   em/model/CombinedBremModel.cc
   em/model/EPlusGGModel.cc
   em/model/KleinNishinaModel.cc
-  em/model/LivermorePEModel.cc
   em/model/MollerBhabhaModel.cc
   em/model/MuBremsstrahlungModel.cc
   em/model/RayleighModel.cc
@@ -255,6 +254,7 @@ endmacro()
 #-----------------------------------------------------------------------------#
 
 celeritas_polysource(em/model/BetheHeitlerModel)
+celeritas_polysource(em/model/LivermorePEModel)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
@@ -295,7 +295,6 @@ endmacro()
 celeritas_gen_interactor("CombinedBrem" "combined_brem")
 celeritas_gen_interactor("EPlusGG" "eplusgg")
 celeritas_gen_interactor("KleinNishina" "klein_nishina")
-celeritas_gen_interactor("LivermorePE" "livermore_pe")
 celeritas_gen_interactor("MollerBhabha" "moller_bhabha")
 celeritas_gen_interactor("MuBremsstrahlung" "mu_bremsstrahlung")
 celeritas_gen_interactor("Rayleigh" "rayleigh")

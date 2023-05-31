@@ -16,14 +16,21 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/em/generated/LivermorePEInteract.hh"
+#include "celeritas/em/executor/LivermorePEExecutor.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
+
 
 namespace celeritas
 {
@@ -97,19 +104,27 @@ auto LivermorePEModel::micro_xs(Applicability) const -> MicroXsBuilders
 //---------------------------------------------------------------------------//
 //!@{
 /*!
- * Apply the interaction kernel.
+ * Interact with host data.
  */
 void LivermorePEModel::execute(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    generated::livermore_pe_interact(params, state, this->host_ref());
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{LivermorePEExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
 void LivermorePEModel::execute(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    generated::livermore_pe_interact(params, state, this->device_ref());
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
+#endif
 
 //!@}
 //---------------------------------------------------------------------------//

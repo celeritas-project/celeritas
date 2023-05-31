@@ -12,14 +12,16 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/mat/MaterialParams.hh"
+//#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/Model.hh"
-#include "celeritas/phys/ParticleParams.hh"
+//#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {
 struct ImportLivermorePE;
+class MaterialParams;
+class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
