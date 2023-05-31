@@ -63,12 +63,11 @@ set(_env
   "CELERITAS_DEMO_EXE=$<TARGET_FILE:celer-sim>"
   "${_geant_exporter_env}"
   "CELER_DISABLE_PARALLEL=1"
+  "CELER_CORE_GEO=${CELERITAS_CORE_GEO}"
 )
-if(NOT CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND _env "CELER_DISABLE_VECGEOM=1")
-endif()
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_USE_HepMC3 AND CELERITAS_USE_Python)
+if(CELERITAS_USE_Geant4 AND CELERITAS_USE_HepMC3 AND CELERITAS_USE_Python
+    AND (NOT CELERITAS_CORE_GEO STREQUAL "Geant4"))
   set(_needs_deps)
 else()
   set(_needs_deps DISABLED true)
@@ -102,6 +101,7 @@ set(_env
   "CELER_LOG=debug"
   "CELER_DISABLE_DEVICE=1"
   "CELER_DISABLE_PARALLEL=1"
+  "CELER_CORE_GEO=${CELERITAS_CORE_GEO}"
 )
 if(CELERITAS_USE_OpenMP)
   # TODO: update when OpenMP nested parallelism is enabled
@@ -111,9 +111,6 @@ if(CELERITAS_USE_OpenMP)
   else()
     list(APPEND _env "OMP_NUM_THREADS=4")
   endif()
-endif()
-if(NOT CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND _env "CELER_DISABLE_VECGEOM=1")
 endif()
 set_tests_properties("app/celer-sim:host" PROPERTIES
   ENVIRONMENT "${_env};${CELER_G4ENV}"

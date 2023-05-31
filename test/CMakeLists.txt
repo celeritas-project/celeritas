@@ -79,11 +79,22 @@ endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
+if(CELERITAS_USE_VecGeom)
+  set(_optional_vecgeom_link VecGeom::vecgeom)
+endif()
 if(CELERITAS_DEBUG)
   set(_disable_if_debug DISABLE)
 endif()
 if(NOT CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_JSON)
   set(_needs_geo DISABLE)
+endif()
+
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  set(_core_geo_lib VecGeom::vecgeom)
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  set(_core_geo_lib LINK_LIBRARIES ${Geant4_LIBRARIES})
+else()
+  set(_core_geo_lib LINK_LIBRARIES Celeritas::orange)
 endif()
 
 if(NOT CELERITAS_USE_Geant4)
@@ -229,7 +240,7 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 # CELERITAS TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(testcel_celeritas
+celeritas_add_object_library(testcel_celeritas_core
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
   celeritas/phys/InteractorHostTestBase.cc
@@ -237,7 +248,6 @@ celeritas_add_library(testcel_celeritas
   celeritas/phys/MockModel.cc
   celeritas/phys/MockProcess.cc
   celeritas/GeantTestBase.cc
-  celeritas/GenericGeoTestBase.cc
   celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
   celeritas/ImportedDataTestBase.cc
@@ -253,9 +263,28 @@ celeritas_add_library(testcel_celeritas
   celeritas/user/MctruthTestBase.cc
   celeritas/user/StepCollectorTestBase.cc
 )
+target_link_libraries(testcel_celeritas_core
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_optional_json_link}
+)
 
+# Geometry
+celeritas_add_object_library(testcel_celeritas_geo
+  celeritas/GenericGeoTestBase.cc
+)
+set(_geo_libs
+  Celeritas::orange ${_optional_vecgeom_link} ${_optional_geant4_link}
+)
+target_link_libraries(testcel_celeritas_geo
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_geo_libs}
+)
+
+celeritas_add_library(testcel_celeritas
+  $<TARGET_OBJECTS:testcel_celeritas_core>
+  $<TARGET_OBJECTS:testcel_celeritas_geo>
+)
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link} Celeritas::orange
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas
+  ${_geo_libs} ${_optional_json_link}
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
@@ -294,6 +323,11 @@ if(CELERITAS_USE_VecGeom)
     LINK_LIBRARIES VecGeom::vecgeom
   )
 endif()
+if(CELERITAS_USE_Geant4)
+  celeritas_add_test(celeritas/ext/GeantGeo.test.cc
+    LINK_LIBRARIES ${Geant4_LIBRARIES}
+  )
+endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc
@@ -315,8 +349,10 @@ set(CELERITASTEST_PREFIX celeritas/field)
 celeritas_add_test(celeritas/field/Fields.test.cc)
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
-celeritas_add_test(celeritas/field/FieldPropagator.test.cc ${_needs_geo})
-celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
+celeritas_add_test(celeritas/field/FieldPropagator.test.cc
+  ${_needs_geo} LINK_LIBRARIES ${_core_geo_lib})
+celeritas_add_test(celeritas/field/LinearPropagator.test.cc
+  ${_needs_geo} LINK_LIBRARIES  ${_core_geo_lib})
 celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
 
 #-------------------------------------#
@@ -328,12 +364,8 @@ set(_geo_args GPU ${_needs_geo}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
 endif()
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
-else()
-  list(APPEND _geo_args LINK_LIBRARIES Celeritas::orange)
-endif()
-celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
+celeritas_add_test(celeritas/geo/Geometry.test.cc
+  ${_geo_args} LINK_LIBRARIES ${_core_geo_lib})
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
   set(_needs_geant_or_root DISABLE)
@@ -466,7 +498,11 @@ celeritas_add_test(celeritas/track/TrackInit.test.cc GPU SOURCES ${_trackinit_so
 set(CELERITASTEST_PREFIX celeritas/user)
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
 celeritas_add_test(celeritas/user/StepCollector.test.cc GPU ${_optional_geant4_env} ${_needs_geo})
-celeritas_add_test(celeritas/user/Diagnostic.test.cc GPU ${_needs_geant4} ${_needs_geo})
+if(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  # EM track gets stuck
+  set(_fails_g4geo DISABLE)
+endif()
+celeritas_add_test(celeritas/user/Diagnostic.test.cc GPU ${_needs_geant4} ${_needs_geo} ${_fails_g4geo})
 
 #-----------------------------------------------------------------------------#
 # ACCELERITAS TESTS

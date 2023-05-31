@@ -61,8 +61,6 @@ class GeantTestBase::CleanupGeantEnvironment : public ::testing::Environment
     void TearDown() override
     {
         ImportHelper& i = GeantTestBase::import_helper();
-        CELER_LOG(debug) << "Destroying '" << i.geometry_basename
-                         << "' Geant4 run manager";
         i = {};
     }
 };
@@ -75,7 +73,8 @@ bool GeantTestBase::is_ci_build()
            && (cstring_equal(celeritas_clhep_version, "2.4.6.0")
                || cstring_equal(celeritas_clhep_version, "2.4.6.4"))
            && (cstring_equal(celeritas_geant4_version, "11.0.3")
-               || cstring_equal(celeritas_geant4_version, "11.0.4"));
+               || cstring_equal(celeritas_geant4_version, "11.0.4"))
+           && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4;
 }
 
 //---------------------------------------------------------------------------//

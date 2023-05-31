@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "corecel/io/Label.hh"
 #include "celeritas/io/ImportVolume.hh"
 
 class G4LogicalVolume;
@@ -37,6 +38,9 @@ class GeantVolumeVisitor
 
     // Transform the map of volumes into a contiguous vector with empty spaces
     std::vector<ImportVolume> build_volume_vector() const;
+
+    // Transform the map of volumes into a vector of Labels (for GeantGeo)
+    std::vector<Label> build_label_vector() const;
 
   private:
     bool unique_volumes_;

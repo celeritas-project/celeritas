@@ -74,11 +74,6 @@ celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings
 # LIBRARIES
 #----------------------------------------------------------------------------#
 
-if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
-  # Make sure modules, sub-libraries, etc. are relocatable
-  set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-endif()
-
 add_subdirectory(corecel)
 add_subdirectory(orange)
 add_subdirectory(celeritas)

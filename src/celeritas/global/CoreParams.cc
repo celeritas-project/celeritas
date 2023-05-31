@@ -300,6 +300,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.output_reg->insert(
         std::make_shared<ActionRegistryOutput>(input_.action_reg));
 
+    CELER_LOG(status) << "Celeritas core setup complete";
+
     CELER_ENSURE(host_ref_);
     CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
 }

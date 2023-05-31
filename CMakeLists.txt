@@ -111,12 +111,25 @@ celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
 
 # Runtime geometry selection: default to VecGeom if available
-set(_allow_vecgeom FALSE)
 if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
   set(_allow_vecgeom TRUE)
+else()
+  set(_allow_vecgeom FALSE)
+  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+    message(SEND_ERROR "VecGeom core geometry is incompatible with HIP")
+  endif()
+endif()
+if(CELERITAS_USE_Geant4 AND NOT (CELERITAS_USE_HIP OR CELERITAS_USE_CUDA OR CELERITAS_USE_OpenMP))
+  set(_allow_g4 TRUE)
+else()
+  if(CELERITAS_CORE_GEO STREQUAL "Geant4")
+    message(SEND_ERROR "Geant4 core geometry is incompatible with HIP, CUDA, and OpenMP")
+  endif()
+  set(_allow_g4 FALSE)
 endif()
 celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
 celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
+celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
 cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
@@ -274,6 +287,11 @@ if(CELERITAS_BUILD_DOCS)
       OFF
     )
   endif()
+endif()
+
+if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
+  # Make sure modules, sub-libraries, etc. are relocatable
+  set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 endif()
 
 #----------------------------------------------------------------------------#

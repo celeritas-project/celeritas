@@ -16,6 +16,8 @@ namespace celeritas
 {
 namespace test
 {
+constexpr bool not_orange_geo
+    = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE);
 //---------------------------------------------------------------------------//
 
 class TestEm3Test : public HeuristicGeoTestBase
@@ -174,7 +176,7 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 
 TEST_F(TestEm3Test, host)
 {
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    if (not_orange_geo)
     {
         EXPECT_TRUE(this->geometry()->supports_safety());
     }
@@ -182,13 +184,13 @@ TEST_F(TestEm3Test, host)
     {
         EXPECT_FALSE(this->geometry()->supports_safety());
     }
-    real_type tol = CELERITAS_USE_VECGEOM ? 0.25 : 1e-3;
+    real_type tol = not_orange_geo ? 0.35 : 1e-3;
     this->run_host(512, tol);
 }
 
 TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 {
-    real_type tol = CELERITAS_USE_VECGEOM ? 0.25 : 1e-3;
+    real_type tol = not_orange_geo ? 0.25 : 1e-3;
     this->run_device(512, tol);
 }
 
@@ -199,14 +201,14 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 TEST_F(SimpleCmsTest, host)
 {
     // Results were generated with ORANGE
-    real_type tol = CELERITAS_USE_VECGEOM ? 0.025 : 1e-3;
+    real_type tol = not_orange_geo ? 0.05 : 1e-3;
     this->run_host(512, tol);
 }
 
 TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
-    real_type tol = CELERITAS_USE_VECGEOM ? 0.025 : 1e-3;
+    real_type tol = not_orange_geo ? 0.025 : 1e-3;
     this->run_device(512, tol);
 }
 
@@ -227,7 +229,7 @@ TEST_F(SimpleCmsTest, output)
             << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
             << ")json\"\n/******/";
     }
-    else
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_EQ(
             R"json({"bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"supports_safety":false,"surfaces":{"label":["world_box.mx@global","world_box.px@global","world_box.my@global","world_box.py@global","world_box.mz@global","world_box.pz@global","guide_tube.coz@global","crystal_em_calorimeter_outer.mz@global","crystal_em_calorimeter_outer.pz@global","silicon_tracker_outer.coz@global","crystal_em_calorimeter_outer.coz@global","hadron_calorimeter_outer.coz@global","superconducting_solenoid_outer.coz@global","iron_muon_chambers_outer.coz@global"]},"volumes":{"label":["[EXTERIOR]@global","vacuum_tube@global","si_tracker@global","em_calorimeter@global","had_calorimeter@global","sc_solenoid@global","fe_muon_chambers@global","world@global"]}})json",
@@ -244,7 +246,7 @@ TEST_F(SimpleCmsTest, output)
 TEST_F(ThreeSpheresTest, host)
 {
     // Results were generated with ORANGE
-    real_type tol = CELERITAS_USE_VECGEOM ? 0.025 : 1e-3;
+    real_type tol = not_orange_geo ? 0.05 : 1e-3;
     EXPECT_TRUE(this->geometry()->supports_safety());
     this->run_host(512, tol);
 }
@@ -252,7 +254,7 @@ TEST_F(ThreeSpheresTest, host)
 TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
-    real_type tol = CELERITAS_USE_VECGEOM ? 0.025 : 1e-3;
+    real_type tol = not_orange_geo ? 0.025 : 1e-3;
     this->run_device(512, tol);
 }
 
