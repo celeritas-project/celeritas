@@ -148,33 +148,28 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
 //---------------------------------------------------------------------------//
 /*!
  * Sample the true path length using the Urban multiple scattering model.
- *
- * The
- * model is selected for the candidate process governing the step if the true
- * path length is smaller than the current physics step length. However, the
- * geometry path length will be used for the further step length competition
- * (either with the linear or field propagator). If the geometry path length
- * is smaller than the distance to the next volume, then the model is finally
- * selected for the interaction by the multiple scattering.
  */
 template<class Engine>
 CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> real_type
 {
-    real_type true_path = max_step_;
-    if (limit_ < max_step_)
+    if (max_step_ <= max(limit_, limit_min_))
     {
-        // Randomize the limit if this step should be determined by msc
-        real_type sampled_limit = limit_min_;
-        if (limit_ > sampled_limit)
-        {
-            NormalDistribution<real_type> sample_gauss(
-                limit_, real_type(0.1) * (limit_ - limit_min_));
-            sampled_limit = sample_gauss(rng);
-            sampled_limit = max<real_type>(sampled_limit, limit_min_);
-        }
-        true_path = min<real_type>(max_step_, sampled_limit);
+        // Skip sampling if the physics step is limiting
+        return max_step_;
     }
-    return true_path;
+    if (limit_ <= limit_min_)
+    {
+        // Skip sampling below the minimum step limit
+        return limit_min_;
+    }
+
+    // Randomize the limit if this step should be determined by msc
+    NormalDistribution<real_type> sample_gauss(
+        limit_, real_type(0.1) * (limit_ - limit_min_));
+    real_type sampled_limit = sample_gauss(rng);
+
+    // Keep sampled limit between the minimum value and maximum step
+    return clamp(sampled_limit, limit_min_, max_step_);
 }
 
 //---------------------------------------------------------------------------//
