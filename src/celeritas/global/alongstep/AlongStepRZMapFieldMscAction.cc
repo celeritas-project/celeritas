@@ -12,16 +12,22 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
+#include "celeritas/em/msc/UrbanMsc.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/field/MakeMagFieldPropagator.hh"
+#include "celeritas/field/RZMapField.hh"  // IWYU pragma: associated
+#include "celeritas/field/RZMapFieldData.hh"  // IWYU pragma: associated
 #include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/AlongStepRZMapFieldMsc.hh"
+#include "AlongStep.hh"
+#include "detail/FluctELoss.hh"
 
 namespace celeritas
 {
@@ -69,29 +75,18 @@ AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
 void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                                            CoreStateHost& state) const
 {
-    MultiExceptionHandler capture_exception;
-
-    auto execute
-        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
-                                         state.ptr(),
-                                         this->action_id(),
-                                         detail::along_step_mapfield_msc,
-                                         msc_->host_ref(),
-                                         field_->host_ref(),
-                                         fluct_->host_ref());
-
-#pragma omp parallel for
-    for (size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            execute(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+    auto execute = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        AlongStep{UrbanMsc{msc_->ref<MemSpace::native>()},
+                  [&field = field_->ref<MemSpace::native>()](
+                      ParticleTrackView const& particle, GeoTrackView* geo) {
+                      return make_mag_field_propagator<DormandPrinceStepper>(
+                          RZMapField(field), field.options, particle, geo);
+                  },
+                  detail::FluctELoss{fluct_->ref<MemSpace::native>()}});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

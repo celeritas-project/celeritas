@@ -78,31 +78,5 @@ struct NoELoss
 };
 
 //---------------------------------------------------------------------------//
-struct AlongStepNeutralExecutor
-{
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Implementation of the "along step" action for neutral particles.
- *
- * This is mostly a demonstration use case and *should not* be used as part of
- * a complete EM shower simulation because it currently applies to *all*
- * particles as opposed to just neutral ones.
- *
- * This will be called by \c make_active_track_executor inside a generated
- * kernel:
- * \code
- * auto execute = make_active_track_executor(params, state,
- * along_step_neutral); \endcode
- */
-CELER_FUNCTION void
-AlongStepNeutralExecutor::operator()(CoreTrackView const& track)
-{
-    return along_step(track, NoMsc{}, LinearPropagatorFactory{}, NoELoss{});
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

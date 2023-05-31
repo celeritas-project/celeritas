@@ -23,17 +23,34 @@ namespace celeritas
  * \tparam EH Energy loss helper, e.g. \c detail::TrackNoEloss
  */
 template<class MH, class MP, class EH>
-inline CELER_FUNCTION void along_step(CoreTrackView const& track,
-                                      MH&& msc,
-                                      MP&& make_propagator,
-                                      EH&& eloss)
+struct AlongStep
 {
-    detail::apply_msc_step_limit<MH&>(track, msc);
-    detail::apply_propagation<MP&>(track, make_propagator);
-    detail::apply_msc<MH&>(track, msc);
-    detail::update_time(track);
-    detail::apply_eloss<EH&>(track, eloss);
-    detail::update_track(track);
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+
+    MH msc;
+    MP make_propagator;
+    EH eloss;
+};
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class MH, class MP, class EH>
+CELER_FUNCTION AlongStep(MH&&, MP&&, EH&&)->AlongStep<MH, MP, EH>;
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+template<class MH, class MP, class EH>
+CELER_FUNCTION void
+AlongStep<MH, MP, EH>::operator()(CoreTrackView const& track)
+{
+    detail::MscStepLimitApplier{msc}(track);
+    detail::PropagationApplier{make_propagator}(track);
+    detail::MscApplier{msc}(track);
+    detail::TimeUpdater{}(track);
+    detail::ElossApplier{eloss}(track);
+    detail::TrackUpdater{}(track);
 }
 
 //---------------------------------------------------------------------------//

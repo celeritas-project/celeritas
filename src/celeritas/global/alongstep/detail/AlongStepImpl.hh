@@ -19,6 +19,23 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+template<class MH>
+struct MscStepLimitApplier
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+
+    MH msc;
+};
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class MH>
+CELER_FUNCTION MscStepLimitApplier(MH&&)->MscStepLimitApplier<MH>;
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
 /*!
  * Apply MSC step limiters.
  *
@@ -27,8 +44,8 @@ namespace detail
  * apply_propagation step?
  */
 template<class MH>
-inline CELER_FUNCTION void
-apply_msc_step_limit(CoreTrackView const& track, MH&& msc)
+CELER_FUNCTION void
+MscStepLimitApplier<MH>::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
     if (msc.is_applicable(track, sim.step_limit().step))
@@ -49,105 +66,126 @@ apply_msc_step_limit(CoreTrackView const& track, MH&& msc)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Apply propagaion.
- *
- * This is a tiny helper class to facilitate use of \c make_track_executor. It
- * should probably be cleaned up later.
- */
-struct ApplyPropagation
+template<class MP>
+struct PropagationApplier
 {
-    template<class MP>
-    inline CELER_FUNCTION void
-    operator()(CoreTrackView const& track, MP&& make_propagator)
-    {
-        auto sim = track.make_sim_view();
-        StepLimit& step_limit = sim.step_limit();
-        if (step_limit.step == 0)
-        {
-            // Track is stopped: no movement or energy loss will happen
-            // (could be a stopped positron waiting for annihilation, or a
-            // particle waiting to decay?)
-            CELER_ASSERT(track.make_particle_view().is_stopped());
-            CELER_ASSERT(
-                step_limit.action
-                == track.make_physics_view().scalars().discrete_action());
-            CELER_ASSERT(track.make_physics_view().has_at_rest());
-            return;
-        }
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
 
-        auto geo = track.make_geo_view();
-        auto particle = track.make_particle_view();
-        auto propagate = make_propagator(particle, &geo);
-        Propagation p = propagate(step_limit.step);
-        if (propagate.tracks_can_loop())
-        {
-            sim.update_looping(p.looping);
-        }
-        if (propagate.tracks_can_loop() && p.looping)
-        {
-            // The track is looping, i.e. progressing little over many
-            // integration steps in the field propagator (likely a low energy
-            // particle in a low density material/strong magnetic field).
-            step_limit.step = p.distance;
-
-            // Kill the track if it's stable and below the threshold energy or
-            // above the threshold number of steps allowed while looping.
-            step_limit.action = [&track, &particle, &sim] {
-                if (particle.is_stable()
-                    && sim.is_looping(particle.particle_id(), particle.energy()))
-                {
-                    return track.abandon_looping_action();
-                }
-                return track.propagation_limit_action();
-            }();
-
-            if (step_limit.action == track.abandon_looping_action())
-            {
-                // TODO: move this branch into a separate post-step kernel.
-                // If the track is looping (or if it's a stuck track that was
-                // flagged as looping), deposit the energy locally.
-                auto deposited = particle.energy().value();
-                if (particle.is_antiparticle())
-                {
-                    // Energy conservation for killed positrons
-                    deposited += 2 * particle.mass().value();
-                }
-                track.make_physics_step_view().deposit_energy(
-                    ParticleTrackView::Energy{deposited});
-                particle.subtract_energy(particle.energy());
-
-                // Mark that this track was abandoned while looping
-                sim.status(TrackStatus::killed);
-            }
-        }
-        else if (p.boundary)
-        {
-            // Stopped at a geometry boundary: this is the new step action.
-            CELER_ASSERT(p.distance <= step_limit.step);
-            step_limit.step = p.distance;
-            step_limit.action = track.boundary_action();
-        }
-        else if (p.distance < step_limit.step)
-        {
-            // Some tracks may get stuck on a boundary and fail to move at
-            // all in the field propagator, and will get bumped a small
-            // distance. This primarily occurs with reentrant tracks on a
-            // boundary with VecGeom.
-            step_limit.step = p.distance;
-            step_limit.action = track.propagation_limit_action();
-        }
-    }
+    MP make_propagator;
 };
 
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
 template<class MP>
-inline CELER_FUNCTION void
-apply_propagation(CoreTrackView const& track, MP&& make_propagator)
+CELER_FUNCTION PropagationApplier(MP&&)->PropagationApplier<MP>;
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Apply propagaion.
+ */
+template<class MP>
+CELER_FUNCTION void
+PropagationApplier<MP>::operator()(CoreTrackView const& track)
 {
-    return ApplyPropagation{}(track, make_propagator);
+    auto sim = track.make_sim_view();
+    StepLimit& step_limit = sim.step_limit();
+    if (step_limit.step == 0)
+    {
+        // Track is stopped: no movement or energy loss will happen
+        // (could be a stopped positron waiting for annihilation, or a
+        // particle waiting to decay?)
+        CELER_ASSERT(track.make_particle_view().is_stopped());
+        CELER_ASSERT(step_limit.action
+                     == track.make_physics_view().scalars().discrete_action());
+        CELER_ASSERT(track.make_physics_view().has_at_rest());
+        return;
+    }
+
+    auto geo = track.make_geo_view();
+    auto particle = track.make_particle_view();
+    auto propagate = make_propagator(particle, &geo);
+    Propagation p = propagate(step_limit.step);
+    if (propagate.tracks_can_loop())
+    {
+        sim.update_looping(p.looping);
+    }
+    if (propagate.tracks_can_loop() && p.looping)
+    {
+        // The track is looping, i.e. progressing little over many
+        // integration steps in the field propagator (likely a low energy
+        // particle in a low density material/strong magnetic field).
+        step_limit.step = p.distance;
+
+        // Kill the track if it's stable and below the threshold energy or
+        // above the threshold number of steps allowed while looping.
+        step_limit.action = [&track, &particle, &sim] {
+            if (particle.is_stable()
+                && sim.is_looping(particle.particle_id(), particle.energy()))
+            {
+                return track.abandon_looping_action();
+            }
+            return track.propagation_limit_action();
+        }();
+
+        if (step_limit.action == track.abandon_looping_action())
+        {
+            // TODO: move this branch into a separate post-step kernel.
+            // If the track is looping (or if it's a stuck track that was
+            // flagged as looping), deposit the energy locally.
+            auto deposited = particle.energy().value();
+            if (particle.is_antiparticle())
+            {
+                // Energy conservation for killed positrons
+                deposited += 2 * particle.mass().value();
+            }
+            track.make_physics_step_view().deposit_energy(
+                ParticleTrackView::Energy{deposited});
+            particle.subtract_energy(particle.energy());
+
+            // Mark that this track was abandoned while looping
+            sim.status(TrackStatus::killed);
+        }
+    }
+    else if (p.boundary)
+    {
+        // Stopped at a geometry boundary: this is the new step action.
+        CELER_ASSERT(p.distance <= step_limit.step);
+        step_limit.step = p.distance;
+        step_limit.action = track.boundary_action();
+    }
+    else if (p.distance < step_limit.step)
+    {
+        // Some tracks may get stuck on a boundary and fail to move at
+        // all in the field propagator, and will get bumped a small
+        // distance. This primarily occurs with reentrant tracks on a
+        // boundary with VecGeom.
+        step_limit.step = p.distance;
+        step_limit.action = track.propagation_limit_action();
+    }
 }
 
 //---------------------------------------------------------------------------//
+template<class MH>
+struct MscApplier
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+
+    MH msc;
+};
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class MH>
+CELER_FUNCTION MscApplier(MH&&)->MscApplier<MH>;
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+
 /*!
  * Apply multiple scattering.
  *
@@ -158,7 +196,7 @@ apply_propagation(CoreTrackView const& track, MP&& make_propagator)
  * - Possibly displaces the particle
  */
 template<class MH>
-inline CELER_FUNCTION void apply_msc(CoreTrackView const& track, MH&& msc)
+CELER_FUNCTION void MscApplier<MH>::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
     if (sim.status() == TrackStatus::killed)
@@ -176,10 +214,18 @@ inline CELER_FUNCTION void apply_msc(CoreTrackView const& track, MH&& msc)
 }
 
 //---------------------------------------------------------------------------//
+struct TimeUpdater
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+};
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
 /*!
  * Update the lab frame time.
  */
-inline CELER_FUNCTION void update_time(CoreTrackView const& track)
+CELER_FUNCTION void TimeUpdater::operator()(CoreTrackView const& track)
 {
     auto particle = track.make_particle_view();
     real_type speed = native_value_from(particle.speed());
@@ -195,6 +241,23 @@ inline CELER_FUNCTION void update_time(CoreTrackView const& track)
 }
 
 //---------------------------------------------------------------------------//
+template<class EH>
+struct ElossApplier
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+
+    EH eloss;
+};
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class EH>
+CELER_FUNCTION ElossApplier(EH&&)->ElossApplier<EH>;
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
 /*!
  * Apply energy loss.
  *
@@ -202,7 +265,7 @@ inline CELER_FUNCTION void update_time(CoreTrackView const& track)
  * duplicate code?
  */
 template<class EH>
-inline CELER_FUNCTION void apply_eloss(CoreTrackView const& track, EH&& eloss)
+CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
 {
     auto particle = track.make_particle_view();
     if (!eloss.is_applicable(track) || particle.is_stopped())
@@ -253,13 +316,21 @@ inline CELER_FUNCTION void apply_eloss(CoreTrackView const& track, EH&& eloss)
 }
 
 //---------------------------------------------------------------------------//
+struct TrackUpdater
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+};
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
 /*!
  * Finish the step.
  *
  * TODO: we may need to save the pre-step speed and apply the time update using
  * an average here.
  */
-inline CELER_FUNCTION void update_track(CoreTrackView const& track)
+CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
     if (sim.status() != TrackStatus::killed)

@@ -11,20 +11,19 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/msc/UrbanMsc.hh"  // IWYU pragma: associated
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
-#include "detail/AlongStepGeneralLinear.hh"
+#include "detail/AlongStepNeutral.hh"
+#include "detail/FluctELoss.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -75,27 +74,14 @@ AlongStepGeneralLinearAction::~AlongStepGeneralLinearAction() = default;
 void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                                            CoreStateHost& state) const
 {
-    MultiExceptionHandler capture_exception;
-    auto execute
-        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
-                                         state.ptr(),
-                                         this->action_id(),
-                                         detail::along_step_general_linear,
-                                         host_data_.msc,
-                                         host_data_.fluct);
-
-#pragma omp parallel for
-    for (size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            execute(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+    auto execute = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        AlongStep{UrbanMsc{host_data_.msc},
+                  detail::LinearPropagatorFactory{},
+                  detail::FluctELoss{host_data_.fluct}});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
@@ -114,11 +100,11 @@ AlongStepGeneralLinearAction::ExternalRefs<M>::ExternalRefs(
 
     if (fluct_params)
     {
-        fluct = get_ref<M>(*fluct_params);
+        fluct = fluct_params->ref<M>();
     }
     if (msc_params)
     {
-        msc = get_ref<M>(*msc_params);
+        msc = msc_params->ref<M>();
     }
 }
 

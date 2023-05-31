@@ -13,20 +13,25 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
+#include "celeritas/em/msc/UrbanMsc.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"  // IWYU pragma: associated
+#include "celeritas/field/FieldDriverOptions.hh"  // IWYU pragma: associated
+#include "celeritas/field/MakeMagFieldPropagator.hh"  // IWYU pragma: associated
+#include "celeritas/field/UniformField.hh"  // IWYU pragma: associated
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/AlongStepUniformMsc.hh"
+#include "AlongStep.hh"
+#include "detail/MeanELoss.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with next action ID and optional energy loss parameters.
+ * Construct with MSC data and field driver options.
  */
 AlongStepUniformMscAction::AlongStepUniformMscAction(
     ActionId id, UniformFieldParams const& field_params, SPConstMsc msc)
@@ -50,27 +55,19 @@ AlongStepUniformMscAction::~AlongStepUniformMscAction() = default;
 void AlongStepUniformMscAction::execute(CoreParams const& params,
                                         CoreStateHost& state) const
 {
-    MultiExceptionHandler capture_exception;
-    auto execute
-        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
-                                         state.ptr(),
-                                         this->action_id(),
-                                         detail::along_step_uniform_msc,
-                                         host_data_.msc,
-                                         field_params_);
-
-#pragma omp parallel for
-    for (size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            execute(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+    auto execute = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        AlongStep{
+            UrbanMsc{host_data_.msc},
+            [field = field_params_](ParticleTrackView const& particle,
+                                    GeoTrackView* geo) {
+                return make_mag_field_propagator<DormandPrinceStepper>(
+                    UniformField(field.field), field.options, particle, geo);
+            },
+            detail::MeanELoss{}});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
