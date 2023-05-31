@@ -118,6 +118,10 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
 #endif
         for (size_type event = 0; event < run_stream.num_events(); ++event)
         {
+            // Make sure cudaSetDevice is called on the local thread
+            using namespace celeritas;
+            activate_device(Device{device().device_id()});
+
             // Run a single event on a single thread
             CELER_TRY_HANDLE(result.events[event] = run_stream(
                                  StreamId(get_openmp_thread()), EventId(event)),
@@ -126,6 +130,7 @@ void run(std::istream* is, std::shared_ptr<celeritas::OutputRegistry> output)
         celeritas::log_and_rethrow(std::move(capture_exception));
     }
     result.total_time = get_transport_time();
+    record_mem = {};
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }
 //---------------------------------------------------------------------------//
