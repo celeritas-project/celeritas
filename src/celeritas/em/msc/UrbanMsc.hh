@@ -105,8 +105,6 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
     auto par = track.make_particle_view();
     detail::UrbanMscHelper msc_helper(msc_params_, par, phys);
 
-    bool displaced = false;
-
     // Sample multiple scattering step length
     real_type const true_path = [&] {
         if (step_limit->step <= msc_params_.params.limit_min_fix())
@@ -134,7 +132,6 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
             }
         }
 
-        displaced = true;
         detail::UrbanMscStepLimit calc_limit(msc_params_,
                                              msc_helper,
                                              par.energy(),
@@ -175,7 +172,7 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
     // Save MSC step for later
     track.make_physics_step_view().msc_step([&] {
         MscStep result;
-        result.is_displaced = displaced;
+        result.is_displaced = limited;
         result.true_path = true_path;
         result.geom_path = gp.step;
         result.alpha = gp.alpha;
