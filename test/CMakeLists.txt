@@ -467,7 +467,7 @@ celeritas_add_test(celeritas/track/TrackInit.test.cc GPU SOURCES ${_trackinit_so
 set(CELERITASTEST_PREFIX celeritas/user)
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
 celeritas_add_test(celeritas/user/StepCollector.test.cc GPU ${_optional_geant4_env} ${_needs_geo})
-celeritas_add_test(celeritas/user/Diagnostic.test.cc GPU ${_needs_geant4} ${_needs_geo})
+celeritas_add_test(celeritas/user/Diagnostic.test.cc GPU ${_optional_geant4_env} ${_needs_geo})
 
 #-----------------------------------------------------------------------------#
 # ACCELERITAS TESTS
