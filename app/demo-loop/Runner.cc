@@ -317,13 +317,13 @@ void Runner::build_core_params(RunnerInput const& inp,
  */
 void Runner::build_transporter_input(RunnerInput const& inp)
 {
-    CELER_VALIDATE(inp.max_num_tracks > 0,
-                   << "nonpositive max_num_tracks=" << inp.max_num_tracks);
+    CELER_VALIDATE(inp.num_track_slots > 0,
+                   << "nonpositive num_track_slots=" << inp.num_track_slots);
     CELER_VALIDATE(inp.max_steps > 0,
                    << "nonpositive max_steps=" << inp.max_steps);
 
     transporter_input_ = std::make_shared<TransporterInput>();
-    transporter_input_->num_track_slots = inp.max_num_tracks;
+    transporter_input_->num_track_slots = inp.num_track_slots;
     transporter_input_->max_steps = inp.max_steps;
     transporter_input_->sync = inp.sync;
     transporter_input_->params = core_params_;
