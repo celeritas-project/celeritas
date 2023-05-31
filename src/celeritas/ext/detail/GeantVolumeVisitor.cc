@@ -43,7 +43,11 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
 
     // Fill volume properties
     ImportVolume& volume = iter->second;
-    volume.material_id = logical_volume.GetMaterialCutsCouple()->GetIndex();
+
+    if (auto* cuts = logical_volume.GetMaterialCutsCouple())
+    {
+        volume.material_id = cuts->GetIndex();
+    }
     volume.name = logical_volume.GetName();
     volume.solid_name = logical_volume.GetSolid()->GetName();
 
@@ -63,8 +67,6 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
     {
         this->visit(*logical_volume.GetDaughter(i)->GetLogicalVolume());
     }
-
-    CELER_ENSURE(volume);
 }
 
 //---------------------------------------------------------------------------//
@@ -101,6 +103,30 @@ std::vector<ImportVolume> GeantVolumeVisitor::build_volume_vector() const
     }
 
     return volumes;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transform the map of volumes into a list of labels.
+ *
+ * This is used by GeantGeoParams.
+ */
+std::vector<Label> GeantVolumeVisitor::build_label_vector() const
+{
+    std::vector<Label> labels;
+
+    // Populate vector<ImportVolume>
+    labels.resize(volids_volumes_.size());
+    for (auto&& [volid, volume] : volids_volumes_)
+    {
+        if (static_cast<std::size_t>(volid) >= labels.size())
+        {
+            labels.resize(volid + 1);
+        }
+        labels[volid] = Label::from_geant(volume.name);
+    }
+
+    return labels;
 }
 
 //---------------------------------------------------------------------------//

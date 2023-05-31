@@ -11,16 +11,19 @@
 
 #include "ImageData.hh"
 
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 
-using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::GeoParamsData>;
-using GeoStateRefDevice = celeritas::DeviceRef<celeritas::GeoStateData>;
+using GeoParamsCRefDevice = DeviceCRef<GeoParamsData>;
+using GeoStateRefDevice = DeviceRef<GeoStateData>;
 
 void trace(GeoParamsCRefDevice const& geo_params,
            GeoStateRefDevice const& geo_state,
            ImageData const& image);
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas

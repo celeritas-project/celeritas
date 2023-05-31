@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
 #include "JsonPimpl.hh"
@@ -52,8 +53,8 @@ class OutputInterfaceAdapter final : public OutputInterface
     //! Label of the entry inside the category.
     std::string label() const final { return label_; }
 
-    //! Write output to the given JSON object
-    void output(JsonPimpl* jp) const final { to_json(jp->obj, *obj_); }
+    // Write output to the given JSON object
+    void output(JsonPimpl* jp) const final;
 
   private:
     Category cat_;
@@ -114,6 +115,21 @@ OutputInterfaceAdapter<T>::OutputInterfaceAdapter(Category cat,
 {
     CELER_EXPECT(cat != Category::size_);
     CELER_EXPECT(obj_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+template<class T>
+void OutputInterfaceAdapter<T>::output(JsonPimpl* j) const
+{
+    CELER_EXPECT(j);
+#if CELERITAS_USE_JSON
+    to_json(j->obj, *obj_);
+#else
+    CELER_NOT_IMPLEMENTED("nlohmann_json");
+#endif
 }
 
 //---------------------------------------------------------------------------//

@@ -37,6 +37,15 @@
       }
     },
     {
+      "name": "geant4",
+      "displayName": "Geant4 core geometry (no CUDA)",
+      "inherits": [".base"],
+      "cacheVariables": {
+        "CELERITAS_CORE_GEO": "Geant4",
+        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": "serial",
       "displayName": "Debug, OpenMP is disabled",
       "inherits": [".base"],
