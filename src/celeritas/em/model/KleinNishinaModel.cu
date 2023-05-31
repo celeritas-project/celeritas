@@ -27,7 +27,7 @@ void KleinNishinaModel::execute(CoreParams const& params,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{KleinNishinaExecutor{this->host_ref()}});
+        InteractionApplier{KleinNishinaExecutor{this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
