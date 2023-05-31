@@ -145,7 +145,6 @@ RaggedRightInverseIndexer<N>::operator()(size_type index) const
 {
     auto const& offsets = rrd_.offsets;
     CELER_EXPECT(index < offsets.back());
-    CELER_EXPECT(index >= 0);
 
     size_type i = 0;
     while (index >= offsets[i + 1])
