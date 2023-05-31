@@ -22,11 +22,20 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct RayleighExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    RayleighRef params;
+};
+
+//---------------------------------------------------------------------------//
 /*!
- * Apply Rayleigh to the current track.
+ * Sample Rayleigh scattering from the current track.
  */
-inline CELER_FUNCTION Interaction
-rayleigh_interact_track(RayleighRef const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction
+RayleighExecutor::operator()(CoreTrackView const& track)
 {
     auto material = track.make_material_view().make_material_view();
     auto particle = track.make_particle_view();
@@ -36,7 +45,7 @@ rayleigh_interact_track(RayleighRef const& model, CoreTrackView const& track)
     auto el_id = material.element_id(elcomp_id);
     auto const& dir = track.make_geo_view().dir();
 
-    RayleighInteractor interact(model, particle, dir, el_id);
+    RayleighInteractor interact(params, particle, dir, el_id);
 
     auto rng = track.make_rng_engine();
     return interact(rng);
