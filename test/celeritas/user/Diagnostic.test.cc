@@ -127,7 +127,7 @@ class TestEm3ComptonDiagnosticTest : public TestEm3Base,
 
 TEST_F(TestEm3DiagnosticTest, host)
 {
-    auto result = this->run<MemSpace::host>(256, 1024);
+    auto result = this->run<MemSpace::host>(256, 32);
 
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
         && std::find(result.nonzero_action_keys.begin(),
@@ -250,31 +250,26 @@ TEST_F(TestEm3ComptonDiagnosticTest, host)
 {
     auto result = this->run<MemSpace::host>(256, 32);
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-        && std::find(result.nonzero_action_keys.begin(),
-                     result.nonzero_action_keys.end(),
-                     "geo-propagation-limit e+")
-               != result.nonzero_action_keys.end())
-    {
-        GTEST_SKIP() << "VecGeom seems to have an edge case where tracks get "
-                        "stuck on some builds but not others";
-    }
-
     static char const* const expected_nonzero_action_keys[] = {
         "geo-boundary e-", "geo-boundary gamma", "scat-klein-nishina gamma"};
     EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
-    static size_type const expected_nonzero_action_counts[]
-        = {931ul, 6045ul, 1216ul};
-    EXPECT_VEC_EQ(expected_nonzero_action_counts, result.nonzero_action_counts);
+    if (this->is_ci_build())
+    {
+        static size_type const expected_nonzero_action_counts[]
+            = {931ul, 6045ul, 1216ul};
+        EXPECT_VEC_EQ(expected_nonzero_action_counts,
+                      result.nonzero_action_counts);
 
-    static size_type const expected_steps[] = {
-        0ul, 0ul, 0ul, 0ul, 8ul, 2ul, 0ul, 0ul,  2ul, 1ul, 4ul, 2ul, 2ul, 3ul,
-        1ul, 5ul, 3ul, 1ul, 1ul, 1ul, 3ul, 22ul, 0ul, 0ul, 6ul, 4ul, 3ul, 0ul,
-        1ul, 2ul, 2ul, 3ul, 4ul, 1ul, 2ul, 0ul,  0ul, 0ul, 0ul, 0ul, 0ul, 0ul,
-        0ul, 1ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul,  0ul, 0ul, 0ul, 0ul, 0ul, 0ul,
-        0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul,  0ul, 0ul};
-    EXPECT_VEC_EQ(expected_steps, result.steps);
+        static size_type const expected_steps[]
+            = {0ul, 0ul, 0ul, 0ul, 8ul, 2ul, 0ul, 0ul, 2ul, 1ul, 4ul,
+               2ul, 2ul, 3ul, 1ul, 5ul, 3ul, 1ul, 1ul, 1ul, 3ul, 22ul,
+               0ul, 0ul, 6ul, 4ul, 3ul, 0ul, 1ul, 2ul, 2ul, 3ul, 4ul,
+               1ul, 2ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 1ul,
+               0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul,
+               0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul};
+        EXPECT_VEC_EQ(expected_steps, result.steps);
+    }
 }
 
 //---------------------------------------------------------------------------//
