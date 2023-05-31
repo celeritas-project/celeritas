@@ -10,9 +10,13 @@
 #include <utility>
 
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/generated/BetheHeitlerInteract.hh"
+#include "celeritas/em/executor/BetheHeitlerExecutor.hh"  // IWYU pragma: associated
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/io/ImportProcess.hh"
+#include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
 
@@ -71,22 +75,28 @@ auto BetheHeitlerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 }
 
 //---------------------------------------------------------------------------//
-//!@{
+/*!
+ * Interact with host data.
+ */
 void BetheHeitlerModel::execute(CoreParams const& params,
                                 CoreStateHost& state) const
 {
-    generated::bethe_heitler_interact(params, state, this->host_ref());
-}
-/*!
- * Apply the interaction kernel.
- */
-void BetheHeitlerModel::execute(CoreParams const& params,
-                                CoreStateDevice& state) const
-{
-    generated::bethe_heitler_interact(params, state, this->device_ref());
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{BetheHeitlerExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
-//!@}
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void BetheHeitlerModel::execute(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

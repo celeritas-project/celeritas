@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/detail/PreStepActionImpl.hh
+//! \file celeritas/phys/detail/PreStepExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -25,13 +25,21 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+struct PreStepExecutor
+{
+    inline CELER_FUNCTION void
+    operator()(celeritas::CoreTrackView const& track);
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Set up the beginning of a physics step.
  *
  * - Reset track properties (todo: move to track initialization?)
  * - Sample the mean free path and calculate the physics step limits.
  */
-inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void
+PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
 {
     if (track.thread_id() == ThreadId{0})
     {

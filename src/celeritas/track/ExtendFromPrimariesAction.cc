@@ -9,11 +9,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/data/ObserverPtr.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/LaunchAction.hh"
 
 #include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
 
@@ -71,7 +69,7 @@ void ExtendFromPrimariesAction::process_primaries(
     Span<Primary const> primaries) const
 {
     launch_action(*this,
-                  Range{ThreadId(primaries.size())},
+                  primaries.size(),
                   params,
                   state,
                   detail::ProcessPrimariesExecutor{

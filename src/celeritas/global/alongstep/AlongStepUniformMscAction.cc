@@ -10,18 +10,18 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
+#include "corecel/Macros.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepUniformMsc.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -52,8 +52,8 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
 {
     MultiExceptionHandler capture_exception;
     auto execute
-        = make_along_step_track_executor(*params.ptr<MemSpace::native>(),
-                                         *state.ptr(),
+        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
+                                         state.ptr(),
                                          this->action_id(),
                                          detail::along_step_uniform_msc,
                                          host_data_.msc,

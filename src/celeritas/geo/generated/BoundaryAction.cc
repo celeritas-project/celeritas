@@ -11,7 +11,7 @@
 #include <utility>
 
 #include "corecel/Types.hh"
-#include "celeritas/global/LaunchAction.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "../detail/BoundaryActionImpl.hh" // IWYU pragma: associated
 
@@ -27,7 +27,7 @@ void BoundaryAction::execute(CoreParams const& params, CoreStateHost& state) con
 {
     return ::celeritas::launch_action(
         *this, params, state,
-        TrackExecutor{*params.ptr<MemSpace::native>(), *state.ptr(),
+        TrackExecutor{params.ptr<MemSpace::native>(), state.ptr(),
                       detail::boundary_track});
 }
 

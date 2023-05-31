@@ -18,7 +18,6 @@ list(APPEND SOURCES
   em/FluctuationParams.cc
   em/UrbanMscParams.cc
   em/detail/Utils.cc
-  em/model/BetheHeitlerModel.cc
   em/model/CombinedBremModel.cc
   em/model/EPlusGGModel.cc
   em/model/KleinNishinaModel.cc
@@ -255,12 +254,13 @@ endmacro()
 # Optional CUDA code
 #-----------------------------------------------------------------------------#
 
-celeritas_polysource(user/DetectorSteps)
-celeritas_polysource(user/detail/StepGatherAction)
+celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(phys/detail/DiscreteSelectAction)
+celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
@@ -268,8 +268,10 @@ celeritas_polysource(track/ExtendFromPrimariesAction)
 celeritas_polysource(track/ExtendFromSecondariesAction)
 celeritas_polysource(track/InitializeTracksAction)
 celeritas_polysource(user/ActionDiagnostic)
+celeritas_polysource(user/DetectorSteps)
 celeritas_polysource(user/StepDiagnostic)
 celeritas_polysource(user/detail/SimpleCaloImpl)
+celeritas_polysource(user/detail/StepGatherAction)
 
 #-----------------------------------------------------------------------------#
 # Auto-generated code
@@ -290,7 +292,6 @@ macro(celeritas_gen_action basedir class func order)
   )
 endmacro()
 
-celeritas_gen_interactor("BetheHeitler" "bethe_heitler")
 celeritas_gen_interactor("CombinedBrem" "combined_brem")
 celeritas_gen_interactor("EPlusGG" "eplusgg")
 celeritas_gen_interactor("KleinNishina" "klein_nishina")
@@ -301,8 +302,6 @@ celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 
-celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select" "pre_post")
-celeritas_gen_action("phys" "PreStepAction" "pre_step" "pre")
 celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
 
 #-----------------------------------------------------------------------------#

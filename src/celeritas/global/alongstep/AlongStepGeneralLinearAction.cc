@@ -77,8 +77,8 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
 {
     MultiExceptionHandler capture_exception;
     auto execute
-        = make_along_step_track_executor(*params.ptr<MemSpace::native>(),
-                                         *state.ptr(),
+        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
+                                         state.ptr(),
                                          this->action_id(),
                                          detail::along_step_general_linear,
                                          host_data_.msc,

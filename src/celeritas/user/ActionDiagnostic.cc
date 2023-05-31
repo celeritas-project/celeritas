@@ -8,19 +8,23 @@
 #include "ActionDiagnostic.hh"
 
 #include <mutex>
+#include <type_traits>
+#include <utility>
 
-#include "corecel/Assert.hh"
+#include "celeritas_config.h"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
-#include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/user/ParticleTallyData.hh"
 
 #include "detail/ActionDiagnosticImpl.hh"
 
@@ -80,8 +84,8 @@ void ActionDiagnostic::execute(CoreParams const& params,
 {
     MultiExceptionHandler capture_exception;
     auto execute = make_active_track_executor(
-        *params.ptr<MemSpace::native>(),
-        *state.ptr(),
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
         detail::tally_action,
         store_.params<MemSpace::host>(),
         store_.state<MemSpace::host>(state.stream_id(), this->state_size()));

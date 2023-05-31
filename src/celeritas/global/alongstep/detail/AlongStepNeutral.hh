@@ -78,6 +78,12 @@ struct NoELoss
 };
 
 //---------------------------------------------------------------------------//
+struct AlongStepNeutralExecutor
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Implementation of the "along step" action for neutral particles.
  *
@@ -91,7 +97,8 @@ struct NoELoss
  * auto execute = make_active_track_executor(params, state,
  * along_step_neutral); \endcode
  */
-inline CELER_FUNCTION void along_step_neutral(CoreTrackView const& track)
+CELER_FUNCTION void
+AlongStepNeutralExecutor::operator()(CoreTrackView const& track)
 {
     return along_step(track, NoMsc{}, LinearPropagatorFactory{}, NoELoss{});
 }

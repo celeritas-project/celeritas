@@ -37,8 +37,8 @@ __global__ void along_step_apply_msc_step_limit_kernel(
     DeviceCRef<UrbanMscData> const msc_data)
 {
     auto execute = make_along_step_track_executor(
-        *params,
-        *state,
+        params,
+        state,
         along_step_id,
         detail::apply_msc_step_limit<UrbanMsc>,
         UrbanMsc{msc_data});
@@ -52,8 +52,8 @@ __global__ void along_step_apply_linear_propagation_kernel(
     ActionId const along_step_id)
 {
     auto execute
-        = make_along_step_track_executor(*params,
-                                         *state,
+        = make_along_step_track_executor(params,
+                                         state,
                                          along_step_id,
                                          detail::ApplyPropagation{},
                                          detail::LinearPropagatorFactory{});
@@ -67,8 +67,8 @@ __global__ void along_step_apply_msc_kernel(
     ActionId const along_step_id,
     DeviceCRef<UrbanMscData> const msc_data)
 {
-    auto execute = make_along_step_track_executor(*params,
-                                                  *state,
+    auto execute = make_along_step_track_executor(params,
+                                                  state,
                                                   along_step_id,
                                                   detail::apply_msc<UrbanMsc>,
                                                   UrbanMsc{msc_data});
@@ -82,7 +82,7 @@ __global__ void along_step_update_time_kernel(
     ActionId const along_step_id)
 {
     auto execute = make_along_step_track_executor(
-        *params, *state, along_step_id, detail::update_time);
+        params, state, along_step_id, detail::update_time);
     execute(KernelParamCalculator::thread_id());
 }
 
@@ -96,8 +96,8 @@ __global__ void along_step_apply_fluct_eloss_kernel(
     using detail::FluctELoss;
 
     auto execute
-        = make_along_step_track_executor(*params,
-                                         *state,
+        = make_along_step_track_executor(params,
+                                         state,
                                          along_step_id,
                                          detail::apply_eloss<FluctELoss>,
                                          FluctELoss{fluct});
@@ -111,7 +111,7 @@ __global__ void along_step_update_track_kernel(
     ActionId const along_step_id)
 {
     auto execute = make_along_step_track_executor(
-        *params, *state, along_step_id, detail::update_track);
+        params, state, along_step_id, detail::update_track);
     execute(KernelParamCalculator::thread_id());
 }
 
