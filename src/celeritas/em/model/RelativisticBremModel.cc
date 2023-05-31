@@ -16,13 +16,16 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
-#include "celeritas/em/generated/RelativisticBremInteract.hh"
+#include "celeritas/em/executor/RelativisticBremExecutor.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
+#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/phys/InteractionApplier.hh"
 
 #include "../interactor/detail/PhysicsConstants.hh"
 
@@ -100,19 +103,27 @@ auto RelativisticBremModel::micro_xs(Applicability applic) const
 //---------------------------------------------------------------------------//
 //!@{
 /*!
- * Apply the interaction kernel.
+ * Interact with host data..
  */
 void RelativisticBremModel::execute(CoreParams const& params,
                                     CoreStateHost& state) const
 {
-    generated::relativistic_brem_interact(params, state, this->host_ref());
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{RelativisticBremExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
 void RelativisticBremModel::execute(CoreParams const& params,
                                     CoreStateDevice& state) const
 {
-    generated::relativistic_brem_interact(params, state, this->device_ref());
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
+#endif
 
 //!@}
 //---------------------------------------------------------------------------//
