@@ -9,10 +9,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/HyperslabIndexer.hh"
-#include "corecel/data/detail/RaggedRightIndexer.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
+#include "orange/univ/detail/RaggedRightIndexer.hh"
 
 #include "detail/Types.hh"
 #include "detail/Utils.hh"
