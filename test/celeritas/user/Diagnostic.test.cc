@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Span.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
@@ -14,6 +15,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "../GeantTestBase.hh"
 #include "../TestEm3Base.hh"
 #include "DiagnosticTestBase.hh"
 #include "celeritas_test.hh"
@@ -72,12 +74,60 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
 };
 
 //---------------------------------------------------------------------------//
+#define TestEm3ComptonDiagnosticTest \
+    TEST_IF_CELERITAS_GEANT(TestEm3ComptonDiagnosticTest)
+class TestEm3ComptonDiagnosticTest : public TestEm3Base,
+                                     public DiagnosticTestBase
+{
+  public:
+    VecPrimary make_primaries(size_type count) override
+    {
+        Primary p;
+        p.energy = MevEnergy{1.0};
+        p.position = {-22, 0, 0};
+        p.direction = {1, 0, 0};
+        p.time = 0;
+        std::vector<Primary> result(count, p);
+
+        auto gamma = this->particle()->find(pdg::gamma());
+        CELER_ASSERT(gamma);
+
+        for (auto i : range(count))
+        {
+            result[i].event_id = EventId{0};
+            result[i].track_id = TrackId{i};
+            result[i].particle_id = gamma;
+        }
+        return result;
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.compton_scattering = true;
+        opts.coulomb_scattering = false;
+        opts.photoelectric = false;
+        opts.rayleigh_scattering = false;
+        opts.gamma_conversion = false;
+        opts.gamma_general = false;
+        opts.ionization = false;
+        opts.annihilation = false;
+        opts.brems = BremsModelSelection::none;
+        opts.msc = MscModelSelection::none;
+        opts.relaxation = RelaxationSelection::none;
+        opts.lpm = false;
+        opts.eloss_fluctuation = false;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
 
 TEST_F(TestEm3DiagnosticTest, host)
 {
-    auto result = this->run<MemSpace::host>(256, 32);
+    auto result = this->run<MemSpace::host>(256, 1024);
 
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
         && std::find(result.nonzero_action_keys.begin(),
@@ -190,6 +240,41 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
                 this->step_output());
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+// TESTEM3 - Compton scattering only
+//---------------------------------------------------------------------------//
+
+TEST_F(TestEm3ComptonDiagnosticTest, host)
+{
+    auto result = this->run<MemSpace::host>(256, 32);
+
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+        && std::find(result.nonzero_action_keys.begin(),
+                     result.nonzero_action_keys.end(),
+                     "geo-propagation-limit e+")
+               != result.nonzero_action_keys.end())
+    {
+        GTEST_SKIP() << "VecGeom seems to have an edge case where tracks get "
+                        "stuck on some builds but not others";
+    }
+
+    static char const* const expected_nonzero_action_keys[] = {
+        "geo-boundary e-", "geo-boundary gamma", "scat-klein-nishina gamma"};
+    EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
+
+    static size_type const expected_nonzero_action_counts[]
+        = {931ul, 6045ul, 1216ul};
+    EXPECT_VEC_EQ(expected_nonzero_action_counts, result.nonzero_action_counts);
+
+    static size_type const expected_steps[] = {
+        0ul, 0ul, 0ul, 0ul, 8ul, 2ul, 0ul, 0ul,  2ul, 1ul, 4ul, 2ul, 2ul, 3ul,
+        1ul, 5ul, 3ul, 1ul, 1ul, 1ul, 3ul, 22ul, 0ul, 0ul, 6ul, 4ul, 3ul, 0ul,
+        1ul, 2ul, 2ul, 3ul, 4ul, 1ul, 2ul, 0ul,  0ul, 0ul, 0ul, 0ul, 0ul, 0ul,
+        0ul, 1ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul,  0ul, 0ul, 0ul, 0ul, 0ul, 0ul,
+        0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul,  0ul, 0ul};
+    EXPECT_VEC_EQ(expected_steps, result.steps);
 }
 
 //---------------------------------------------------------------------------//
