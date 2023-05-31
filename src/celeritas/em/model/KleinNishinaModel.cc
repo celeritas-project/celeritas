@@ -83,8 +83,7 @@ void KleinNishinaModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void KleinNishinaModel::execute(CoreParams const& params,
-                                CoreStateDevice& state) const
+void KleinNishinaModel::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
