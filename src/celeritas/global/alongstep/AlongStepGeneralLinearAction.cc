@@ -79,7 +79,7 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
         state.ptr(),
         this->action_id(),
         AlongStep{UrbanMsc{host_data_.msc},
-                  detail::LinearPropagatorFactory{},
+                  detail::LinearTrackPropagator{},
                   detail::FluctELoss{host_data_.fluct}});
     return launch_action(*this, params, state, execute);
 }

@@ -40,7 +40,7 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
         state.ptr(),
         this->action_id(),
         AlongStep{detail::NoMsc{},
-                  detail::LinearPropagatorFactory{},
+                  detail::LinearTrackPropagator{},
                   detail::NoELoss{}});
     return launch_action(*this, params, state, execute);
 }

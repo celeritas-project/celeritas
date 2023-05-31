@@ -48,13 +48,19 @@ struct NoMsc
 /*!
  * Create a propagator for neutral particles or no fields.
  */
-struct LinearPropagatorFactory
+struct LinearTrackPropagator
 {
-    CELER_FUNCTION decltype(auto)
-    operator()(ParticleTrackView const&, GeoTrackView* geo) const
+    CELER_FUNCTION Propagation operator()(CoreTrackView const& track,
+                                          real_type max_step) const
     {
-        return LinearPropagator{geo};
-    };
+        auto geo = track.make_geo_view();
+        return LinearPropagator{&geo}(max_step);
+    }
+
+    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop()
+    {
+        return LinearPropagator::tracks_can_loop();
+    }
 };
 
 //---------------------------------------------------------------------------//

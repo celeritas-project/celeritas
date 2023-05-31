@@ -15,9 +15,6 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/msc/UrbanMsc.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"  // IWYU pragma: associated
-#include "celeritas/field/MakeMagFieldPropagator.hh"  // IWYU pragma: associated
-#include "celeritas/field/UniformField.hh"  // IWYU pragma: associated
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -25,6 +22,7 @@
 
 #include "AlongStep.hh"
 #include "detail/MeanELoss.hh"
+#include "detail/UniformFieldTrackPropagator.hh"
 
 namespace celeritas
 {
@@ -58,14 +56,9 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        AlongStep{
-            UrbanMsc{host_data_.msc},
-            [field = field_params_](ParticleTrackView const& particle,
-                                    GeoTrackView* geo) {
-                return make_mag_field_propagator<DormandPrinceStepper>(
-                    UniformField(field.field), field.options, particle, geo);
-            },
-            detail::MeanELoss{}});
+        AlongStep{UrbanMsc{host_data_.msc},
+                  detail::UniformFieldTrackPropagator{field_params_},
+                  detail::MeanELoss{}});
     return launch_action(*this, params, state, execute);
 }
 

@@ -14,10 +14,6 @@
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/msc/UrbanMsc.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"
-#include "celeritas/field/MakeMagFieldPropagator.hh"
-#include "celeritas/field/RZMapField.hh"  // IWYU pragma: associated
-#include "celeritas/field/RZMapFieldData.hh"  // IWYU pragma: associated
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionLauncher.hh"
@@ -28,6 +24,7 @@
 
 #include "AlongStep.hh"
 #include "detail/FluctELoss.hh"
+#include "detail/RZMapFieldTrackPropagator.hh"
 
 namespace celeritas
 {
@@ -79,13 +76,10 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        AlongStep{UrbanMsc{msc_->ref<MemSpace::native>()},
-                  [&field = field_->ref<MemSpace::native>()](
-                      ParticleTrackView const& particle, GeoTrackView* geo) {
-                      return make_mag_field_propagator<DormandPrinceStepper>(
-                          RZMapField(field), field.options, particle, geo);
-                  },
-                  detail::FluctELoss{fluct_->ref<MemSpace::native>()}});
+        AlongStep{
+            UrbanMsc{msc_->ref<MemSpace::native>()},
+            detail::RZMapFieldTrackPropagator{field_->ref<MemSpace::native>()},
+            detail::FluctELoss{fluct_->ref<MemSpace::native>()}});
     return launch_action(*this, params, state, execute);
 }
 

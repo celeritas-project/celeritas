@@ -16,27 +16,33 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Apply propagation over the step.
+ *
+ * \tparam TP Track propagator
+ *
+ * TP should be a function-like object:
+ * \code Propagation(*)(CoreTrackView const&, real_type) \endcode
+ * where the second argument is the maximum step.
  */
-template<class MP>
+template<class TP>
 struct PropagationApplier
 {
     inline CELER_FUNCTION void operator()(CoreTrackView const& track);
 
-    MP make_propagator;
+    TP propagate;
 };
 
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<class MP>
-CELER_FUNCTION PropagationApplier(MP&&)->PropagationApplier<MP>;
+template<class TP>
+CELER_FUNCTION PropagationApplier(TP&&)->PropagationApplier<TP>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-template<class MP>
+template<class TP>
 CELER_FUNCTION void
-PropagationApplier<MP>::operator()(CoreTrackView const& track)
+PropagationApplier<TP>::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
     StepLimit& step_limit = sim.step_limit();
@@ -52,10 +58,7 @@ PropagationApplier<MP>::operator()(CoreTrackView const& track)
         return;
     }
 
-    auto geo = track.make_geo_view();
-    auto particle = track.make_particle_view();
-    auto propagate = make_propagator(particle, &geo);
-    Propagation p = propagate(step_limit.step);
+    Propagation p = propagate(track, step_limit.step);
     if (propagate.tracks_can_loop())
     {
         sim.update_looping(p.looping);
@@ -69,6 +72,7 @@ PropagationApplier<MP>::operator()(CoreTrackView const& track)
 
         // Kill the track if it's stable and below the threshold energy or
         // above the threshold number of steps allowed while looping.
+        auto particle = track.make_particle_view();
         step_limit.action = [&track, &particle, &sim] {
             if (particle.is_stable()
                 && sim.is_looping(particle.particle_id(), particle.energy()))
