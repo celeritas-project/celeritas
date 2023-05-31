@@ -10,7 +10,12 @@
 
 #include "celeritas/global/CoreTrackView.hh"
 
-#include "detail/AlongStepImpl.hh"
+#include "detail/ElossApplier.hh"
+#include "detail/MscApplier.hh"
+#include "detail/MscStepLimitApplier.hh"
+#include "detail/PropagationApplier.hh"
+#include "detail/TimeUpdater.hh"
+#include "detail/TrackUpdater.hh"
 
 namespace celeritas
 {
