@@ -10,9 +10,12 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/field/LinearPropagator.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "../AlongStep.hh"
 

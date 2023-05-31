@@ -16,7 +16,6 @@
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"  // IWYU pragma: associated
-#include "celeritas/field/FieldDriverOptions.hh"  // IWYU pragma: associated
 #include "celeritas/field/MakeMagFieldPropagator.hh"  // IWYU pragma: associated
 #include "celeritas/field/UniformField.hh"  // IWYU pragma: associated
 #include "celeritas/global/ActionLauncher.hh"

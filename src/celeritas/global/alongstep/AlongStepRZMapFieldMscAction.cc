@@ -11,20 +11,20 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
-#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/RZMapField.hh"  // IWYU pragma: associated
 #include "celeritas/field/RZMapFieldData.hh"  // IWYU pragma: associated
 #include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "AlongStep.hh"
 #include "detail/FluctELoss.hh"
