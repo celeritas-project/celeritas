@@ -25,7 +25,7 @@
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParamsOutput.hh"
-#include "celeritas/geo/generated/BoundaryAction.hh"
+#include "celeritas/geo/detail/BoundaryAction.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/mat/MaterialParamsOutput.hh"
@@ -193,7 +193,7 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     // Construct geometry action
     scalars.boundary_action = reg->next_id();
-    reg->insert(make_shared<celeritas::generated::BoundaryAction>(
+    reg->insert(make_shared<celeritas::detail::BoundaryAction>(
         scalars.boundary_action, "geo-boundary", "cross a geometry boundary"));
 
     //// END ACTIONS ////

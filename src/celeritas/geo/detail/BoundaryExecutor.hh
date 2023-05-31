@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/detail/BoundaryActionImpl.hh
+//! \file celeritas/geo/detail/BoundaryActionExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,20 +21,25 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+struct BoundaryExecutor
+{
+    inline CELER_FUNCTION void
+    operator()(celeritas::CoreTrackView const& track);
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Cross a geometry boundary.
  *
  * \pre The track must have already been physically moved to the correct point
  * on the boundary.
  */
-inline CELER_FUNCTION void boundary_track(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void
+BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
-    if (sim.step_limit().action != track.boundary_action())
-    {
-        // Not undergoing a boundary crossing
-        return;
-    }
+
+    CELER_EXPECT(sim.step_limit().action == track.boundary_action());
     CELER_EXPECT(sim.status() == TrackStatus::alive);
 
     auto geo = track.make_geo_view();
