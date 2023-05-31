@@ -64,11 +64,6 @@ InteractionApplier<F>::operator()(celeritas::CoreTrackView const& track)
 {
     Interaction result = this->sample_interaction(track);
 
-    if (!result.changed())
-    {
-        return;
-    }
-
     auto sim = track.make_sim_view();
     if (CELER_UNLIKELY(result.action == Interaction::Action::failed))
     {
@@ -78,6 +73,10 @@ InteractionApplier<F>::operator()(celeritas::CoreTrackView const& track)
         // but for now use the "failure" action in the physics and set the step
         // limit to zero since it needs to interact again at this location.
         sim.step_limit({0, phys.scalars().failure_action()});
+        return;
+    }
+    else if (!result.changed())
+    {
         return;
     }
 
