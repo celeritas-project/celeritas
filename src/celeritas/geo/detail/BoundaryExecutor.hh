@@ -38,8 +38,11 @@ CELER_FUNCTION void
 BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
-
-    CELER_EXPECT(sim.step_limit().action == track.boundary_action());
+    if (sim.step_limit().action != track.boundary_action())
+    {
+        // Not undergoing a boundary crossing
+        return;
+    }
     CELER_EXPECT(sim.status() == TrackStatus::alive);
 
     auto geo = track.make_geo_view();
