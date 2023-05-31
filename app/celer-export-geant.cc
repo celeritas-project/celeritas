@@ -31,17 +31,64 @@
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #endif
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace app
+{
 namespace
 {
+//---------------------------------------------------------------------------//
 void print_usage(char const* exec_name)
 {
     std::cerr << "Usage: " << exec_name
               << " {input}.gdml [{options}.json, -, ''] {output}.root"
               << std::endl;
 }
+
+//---------------------------------------------------------------------------//
+
+GeantPhysicsOptions load_options(std::string const& option_filename)
+{
+    GeantPhysicsOptions options;
+    if (option_filename.empty())
+    {
+        CELER_LOG(info) << "Using default Celeritas Geant4 options";
+        // ... but add verbosity
+        options.verbose = true;
+    }
+    else if (!CELERITAS_USE_JSON)
+    {
+        CELER_LOG(critical) << "JSON is unavailable so only default Geant4 "
+                               "options are supported: use '' as the second "
+                               "argument";
+        CELER_NOT_CONFIGURED("JSON");
+    }
+#if CELERITAS_USE_JSON
+    else if (option_filename == "-")
+    {
+        auto inp = nlohmann::json::parse(std::cin);
+        inp.get_to(options);
+        CELER_LOG(info) << "Loaded Geant4 setup options: "
+                        << nlohmann::json{options}.dump();
+    }
+    else
+    {
+        std::ifstream infile(option_filename);
+        CELER_VALIDATE(infile, << "failed to open '" << option_filename << "'");
+        auto inp = nlohmann::json::parse(infile);
+        inp.get_to(options);
+        CELER_LOG(info) << "Loaded Geant4 setup options from "
+                        << option_filename << ": "
+                        << nlohmann::json{options}.dump();
+    }
+#endif
+    return options;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
+}  // namespace app
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
@@ -53,7 +100,9 @@ void print_usage(char const* exec_name)
  */
 int main(int argc, char* argv[])
 {
-    ScopedRootErrorHandler scoped_root_error;
+    using namespace celeritas;
+    using namespace celeritas::app;
+
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)
@@ -85,62 +134,24 @@ int main(int argc, char* argv[])
         print_usage(argv[0]);
         return 2;
     }
-    std::string const& gdml_input_filename = args[0];
-    std::string const& option_filename = args[1];
-    std::string const& root_output_filename = args[2];
 
-    GeantPhysicsOptions options;
-    if (option_filename.empty())
-    {
-        CELER_LOG(info) << "Using default Celeritas Geant4 options";
-        // ... but add verbosity
-        options.verbose = true;
-    }
-#if CELERITAS_USE_JSON
-    else if (option_filename == "-")
-    {
-        auto inp = nlohmann::json::parse(std::cin);
-        inp.get_to(options);
-        CELER_LOG(info) << "Loaded Geant4 setup options: "
-                        << nlohmann::json{options}.dump();
-    }
-    else
-    {
-        std::ifstream infile(option_filename);
-        if (!infile)
-        {
-            CELER_LOG(critical) << "Failed to open '" << option_filename << "'";
-            return EXIT_FAILURE;
-        }
-        auto inp = nlohmann::json::parse(infile);
-        inp.get_to(options);
-        CELER_LOG(info) << "Loaded Geant4 setup options from "
-                        << option_filename << ": "
-                        << nlohmann::json{options}.dump();
-    }
-#else
-    else
-    {
-        CELER_LOG(critical) << "JSON is unavailable so only default Geant4 "
-                               "options are supported: use '' as the second "
-                               "argument";
-        return EXIT_FAILURE;
-    }
-#endif
-
-    // Initialize geant4 with basic EM physics from GDML path
     try
     {
-        GeantImporter import(GeantSetup(gdml_input_filename, options));
-        RootExporter export_root(root_output_filename.c_str());
+        // Construct options, set up Geant4, read data
+        auto imported = [&args] {
+            GeantImporter import(GeantSetup(args[0], load_options(args[1])));
+            GeantImporter::DataSelection selection;
+            selection.particles = GeantImporter::DataSelection::em;
+            selection.processes = GeantImporter::DataSelection::em;
+            selection.reader_data = true;
+            return import(selection);
+        }();
 
-        GeantImporter::DataSelection selection;
-        selection.particles = GeantImporter::DataSelection::em;
-        selection.processes = GeantImporter::DataSelection::em;
-        selection.reader_data = true;
-
-        // Read data from geant, write to ROOT
-        export_root(import(selection));
+        // Open ROOT file, write
+        ScopedRootErrorHandler scoped_root_error;
+        RootExporter export_root(args[2].c_str());
+        export_root(imported);
+        scoped_root_error.throw_if_errors();
     }
     catch (RuntimeError const& e)
     {

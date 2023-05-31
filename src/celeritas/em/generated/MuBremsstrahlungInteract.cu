@@ -13,10 +13,11 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/em/launcher/MuBremsstrahlungLauncher.hh"
-#include "celeritas/phys/InteractionLauncher.hh"
+#include "celeritas/em/executor/MuBremsstrahlungExecutor.hh"
+#include "celeritas/phys/InteractionExecutor.hh"
 
 using celeritas::MemSpace;
 
@@ -36,9 +37,9 @@ __global__ void mu_bremsstrahlung_interact_kernel(
     if (!(tid < size))
         return;
 
-    auto launch = celeritas::make_interaction_launcher(
+    auto execute = celeritas::make_interaction_executor(
         params, state, celeritas::mu_bremsstrahlung_interact_track, model_data);
-    launch(tid);
+    execute(tid);
 }
 }  // namespace
 
@@ -52,6 +53,7 @@ void mu_bremsstrahlung_interact(
     CELER_LAUNCH_KERNEL(mu_bremsstrahlung_interact,
                         celeritas::device().default_block_size(),
                         state.size(),
+                        celeritas::device().stream(state.stream_id()).get(),
                         params.ptr<MemSpace::native>(),
                         state.ptr(),
                         model_data,

@@ -31,7 +31,7 @@
 #include "corecel/sys/ScopedMem.hh"
 
 #include "GeantGeoUtils.hh"
-#include "detail/GeantExceptionHandler.hh"
+#include "ScopedGeantExceptionHandler.hh"
 #include "detail/GeantLoggerAdapter.hh"
 #include "detail/GeantPhysicsList.hh"
 
@@ -94,7 +94,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     {
         // Run manager writes output that cannot be redirected...
         ScopedTimeAndRedirect scoped_time("G4RunManager");
-        detail::GeantExceptionHandler scoped_exception_handler;
+        ScopedGeantExceptionHandler scoped_exceptions;
         // Access the particle table before creating the run manager, so that
         // missing environment variables like G4ENSDFSTATEDATA get caught
         // cleanly rather than segfaulting
@@ -107,8 +107,8 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
                           "execution");
         ++geant_launch_count;
 
-        // Disable geant4 signal interception
 #if G4VERSION_NUMBER >= 1070
+        // Disable geant4 signal interception
         G4Backtrace::DefaultSignals() = {};
 #endif
 
@@ -123,7 +123,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     }
 
     detail::GeantLoggerAdapter scoped_logger;
-    detail::GeantExceptionHandler scoped_exception_handler;
+    ScopedGeantExceptionHandler scoped_exceptions;
 
     {
         CELER_LOG(status) << "Initializing Geant4 geometry and physics";

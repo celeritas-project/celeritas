@@ -39,6 +39,7 @@ list(APPEND SOURCES
   sys/MultiExceptionHandler.cc
   sys/ScopedMpiInit.cc
   sys/ScopedSignalHandler.cc
+  sys/Stream.cc
   sys/TypeDemangler.cc
   sys/Version.cc
 )

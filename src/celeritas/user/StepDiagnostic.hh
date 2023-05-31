@@ -88,15 +88,4 @@ class StepDiagnostic final : public ExplicitActionInterface,
 };
 
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
-#if !CELER_USE_DEVICE
-inline void StepDiagnostic::execute(CoreParams const&, CoreStateDevice&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

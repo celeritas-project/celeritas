@@ -35,13 +35,13 @@
 #include "KNDemoIO.hh"
 #include "LoadXs.hh"
 
-using namespace celeritas;
-using namespace demo_interactor;
 using std::cerr;
 using std::cout;
 using std::endl;
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -72,10 +72,10 @@ void run(std::istream& is)
     auto inp = nlohmann::json::parse(is);
 
     // Construct runner
-    HostKNDemoRunner run(load_params(), demo_interactor::load_xs());
+    HostKNDemoRunner run(load_params(), celeritas::app::load_xs());
 
     // For now, only do a single run
-    auto run_args = inp.at("run").get<demo_interactor::KNDemoRunArgs>();
+    auto run_args = inp.at("run").get<celeritas::app::KNDemoRunArgs>();
     CELER_EXPECT(run_args.energy > 0);
     CELER_EXPECT(run_args.num_tracks > 0);
     CELER_EXPECT(run_args.max_steps > 0);
@@ -88,14 +88,15 @@ void run(std::istream& is)
             "runtime",
             {
                 {"version", std::string(celeritas_version)},
-                {"device", celeritas::device()},
-                {"kernels", celeritas::kernel_registry()},
+                {"device", device()},
+                {"kernels", kernel_registry()},
             },
         },
     };
     cout << outp.dump() << endl;
 }
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
@@ -103,6 +104,8 @@ void run(std::istream& is)
  */
 int main(int argc, char* argv[])
 {
+    using namespace celeritas;
+
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)
@@ -127,12 +130,12 @@ int main(int argc, char* argv[])
             CELER_LOG(critical) << "Failed to open '" << args[1] << "'";
             return EXIT_FAILURE;
         }
-        run(infile);
+        celeritas::app::run(infile);
     }
     else
     {
         // Read input from STDIN
-        run(std::cin);
+        celeritas::app::run(std::cin);
     }
 
     return EXIT_SUCCESS;

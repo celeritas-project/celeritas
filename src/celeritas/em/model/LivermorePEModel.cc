@@ -15,8 +15,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/generated/LivermorePEInteract.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -59,8 +57,6 @@ LivermorePEModel::LivermorePEModel(ActionId id,
               particles.get(host_data.ids.electron).mass());
 
     // Load Livermore cross section data
-    CELER_LOG(status) << "Reading and building Livermore PE model data";
-    ScopedTimeLog scoped_time;
     make_builder(&host_data.xs.elements).reserve(materials.num_elements());
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {

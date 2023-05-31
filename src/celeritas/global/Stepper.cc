@@ -7,16 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "Stepper.hh"
 
-#include <type_traits>
 #include <utility>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/random/XorwowRngData.hh"
-#include "celeritas/track/TrackInitData.hh"
-#include "celeritas/track/TrackInitUtils.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
@@ -34,14 +30,14 @@ Stepper<M>::Stepper(Input input)
     , state_(*params_, input.stream_id, input.num_track_slots)
 {
     // Create action sequence
-    {
+    actions_ = [&] {
         ActionSequence::Options opts;
         opts.sync = input.sync;
-        actions_
-            = std::make_shared<ActionSequence>(*params_->action_reg(), opts);
-    }
+        return std::make_shared<ActionSequence>(*params_->action_reg(), opts);
+    }();
 
-    CELER_ENSURE(actions_ && *actions_);
+    // Execute beginning-of-run action
+    actions_->begin_run(*params_, state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -62,11 +58,10 @@ auto Stepper<M>::operator()() -> result_type
     actions_->execute(*params_, state_);
 
     // Get the number of track initializers and active tracks
-    auto const& init = this->state_ref().init;
     result_type result;
-    result.active = init.scalars.num_active;
-    result.alive = init.scalars.num_alive;
-    result.queued = init.scalars.num_initializers;
+    result.active = state_.counters().num_active;
+    result.alive = state_.counters().num_alive;
+    result.queued = state_.counters().num_initializers;
 
     return result;
 }
@@ -80,13 +75,15 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 {
     CELER_EXPECT(!primaries.empty());
 
-    size_type num_initializers
-        = this->state_ref().init.scalars.num_initializers;
+    // Check initializer capacity
+    size_type num_initializers = state_.counters().num_initializers;
     size_type init_capacity = this->state_ref().init.initializers.size();
     CELER_VALIDATE(primaries.size() + num_initializers <= init_capacity,
                    << "insufficient initializer capacity (" << init_capacity
                    << ") with size (" << num_initializers
                    << ") for primaries (" << primaries.size() << ")");
+
+    // Check that events are consistent with our 'max events'
     auto max_id
         = std::max_element(primaries.begin(),
                            primaries.end(),
@@ -97,8 +94,8 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    // Create track initializers
-    extend_from_primaries(*params_, state_, primaries);
+    CELER_ASSERT(state_.primary_range().empty());
+    state_.insert_primaries(primaries);
 
     return (*this)();
 }

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "celeritas_config.h"
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
 namespace celeritas

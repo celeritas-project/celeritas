@@ -342,10 +342,6 @@ struct OrangeStateData
     StateItems<LevelId> level;
     StateItems<LevelId> surface_level;
 
-    StateItems<real_type> next_step;
-    StateItems<detail::OnSurface> next_surface;
-    StateItems<LevelId> next_surface_level;
-
     // Dimensions {num_tracks, max_level}
     Items<Real3> pos;
     Items<Real3> dir;
@@ -376,9 +372,6 @@ struct OrangeStateData
         // clang-format off
         return !level.empty()
             && surface_level.size() == level.size()
-            && next_step.size() == level.size()
-            && next_surface.size() == level.size()
-            && next_surface_level.size() == level.size()
             && !pos.empty()
             && dir.size() == pos.size()
             && vol.size() == pos.size()
@@ -404,9 +397,6 @@ struct OrangeStateData
         CELER_EXPECT(other);
         level = other.level;
         surface_level = other.surface_level;
-        next_step = other.next_step;
-        next_surface = other.next_surface;
-        next_surface_level = other.next_surface_level;
         pos = other.pos;
         dir = other.dir;
         vol = other.vol;
@@ -440,10 +430,6 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
 
     resize(&data->level, num_tracks);
     resize(&data->surface_level, num_tracks);
-
-    resize(&data->next_step, num_tracks);
-    resize(&data->next_surface, num_tracks);
-    resize(&data->next_surface_level, num_tracks);
 
     data->max_level = params.scalars.max_level;
     auto const size = data->max_level * num_tracks;

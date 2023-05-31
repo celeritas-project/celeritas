@@ -20,9 +20,9 @@
 #include "Detector.hh"
 #include "KernelUtils.hh"
 
-using namespace celeritas;
-
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 namespace
 {
@@ -32,8 +32,8 @@ namespace
 /*!
  * Kernel to initialize particle data.
  */
-__global__ void initialize_kernel(ParamsDeviceRef const params,
-                                  StateDeviceRef const states,
+__global__ void initialize_kernel(DeviceCRef<ParamsData> const params,
+                                  DeviceRef<StateData> const states,
                                   InitialData const init)
 {
     unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -59,8 +59,8 @@ __global__ void initialize_kernel(ParamsDeviceRef const params,
 /*!
  * Sample cross sections and move to the collision point.
  */
-__global__ void
-move_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
+__global__ void move_kernel(DeviceCRef<ParamsData> const params,
+                            DeviceRef<StateData> const states)
 {
     unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -77,12 +77,12 @@ move_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 
     // Move to collision
     XsCalculator calc_xs(params.tables.xs, params.tables.reals);
-    demo_interactor::move_to_collision(particle,
-                                       calc_xs,
-                                       states.direction[tid],
-                                       &states.position[tid],
-                                       &states.time[tid],
-                                       rng);
+    celeritas::app::move_to_collision(particle,
+                                      calc_xs,
+                                      states.direction[tid],
+                                      &states.position[tid],
+                                      &states.time[tid],
+                                      rng);
 }
 
 //---------------------------------------------------------------------------//
@@ -94,8 +94,8 @@ move_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
  * - Kills the secondary, depositing its local energy
  * - Applies the interaction (updating track direction and energy)
  */
-__global__ void
-interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
+__global__ void interact_kernel(DeviceCRef<ParamsData> const params,
+                                DeviceRef<StateData> const states)
 {
     StackAllocator<Secondary> allocate_secondaries(states.secondaries);
     unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -157,8 +157,8 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 /*!
  * Bin detector hits.
  */
-__global__ void
-process_hits_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
+__global__ void process_hits_kernel(DeviceCRef<ParamsData> const params,
+                                    DeviceRef<StateData> const states)
 {
     Detector detector(params.detector, states.detector);
     Detector::HitId hid{blockIdx.x * blockDim.x + threadIdx.x};
@@ -173,8 +173,8 @@ process_hits_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 /*!
  * Clear secondaries and detector hits.
  */
-__global__ void
-cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
+__global__ void cleanup_kernel(DeviceCRef<ParamsData> const params,
+                               DeviceRef<StateData> const states)
 {
     unsigned int thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
     Detector detector(params.detector, states.detector);
@@ -193,14 +193,14 @@ cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 // KERNEL INTERFACES
 //---------------------------------------------------------------------------//
 #define CDE_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, ...) \
-    CELER_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, __VA_ARGS__)
+    CELER_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, 0, __VA_ARGS__)
 
 /*!
  * Initialize particle states.
  */
 void initialize(DeviceGridParams const& opts,
-                ParamsDeviceRef const& params,
-                StateDeviceRef const& states,
+                DeviceCRef<ParamsData> const& params,
+                DeviceRef<StateData> const& states,
                 InitialData const& initial)
 {
     CELER_EXPECT(states.alive.size() == states.size());
@@ -218,8 +218,8 @@ void initialize(DeviceGridParams const& opts,
  * Run an iteration.
  */
 void iterate(DeviceGridParams const& opts,
-             ParamsDeviceRef const& params,
-             StateDeviceRef const& states)
+             DeviceCRef<ParamsData> const& params,
+             DeviceRef<StateData> const& states)
 {
     // Move to the collision site
     CDE_LAUNCH_KERNEL(
@@ -241,8 +241,8 @@ void iterate(DeviceGridParams const& opts,
  * Clean up after an iteration.
  */
 void cleanup(DeviceGridParams const& opts,
-             ParamsDeviceRef const& params,
-             StateDeviceRef const& states)
+             DeviceCRef<ParamsData> const& params,
+             DeviceRef<StateData> const& states)
 {
     // Process hits from buffer to grid
     CDE_LAUNCH_KERNEL(process_hits,
@@ -252,8 +252,7 @@ void cleanup(DeviceGridParams const& opts,
                       states);
 
     // Clear buffers
-    CDE_LAUNCH_KERNEL(
-        cleanup, celeritas::device().threads_per_warp(), 1, params, states);
+    CDE_LAUNCH_KERNEL(cleanup, device().threads_per_warp(), 1, params, states);
 
     if (opts.sync)
     {
@@ -262,4 +261,5 @@ void cleanup(DeviceGridParams const& opts,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

@@ -55,6 +55,7 @@
 #include <G4VPhysicalVolume.hh>
 #include <G4VisExtent.hh>
 #include <VecGeom/base/Transformation3D.h>
+#include <VecGeom/gdml/ReflFactory.h>
 #include <VecGeom/management/FlatVoxelManager.h>
 #include <VecGeom/management/GeoManager.h>
 #include <VecGeom/management/HybridManager2.h>
@@ -111,10 +112,11 @@ namespace detail
 {
 namespace
 {
-//---------------------------------------------------------------------------//
+
 static constexpr double scale = 0.1;  // G4 mm to VecGeom cm scale
 
 //---------------------------------------------------------------------------//
+
 Transformation3D*
 make_transformation(G4ThreeVector const& t, G4RotationMatrix const* rot)
 {
@@ -144,24 +146,24 @@ make_transformation(G4ThreeVector const& t, G4RotationMatrix const* rot)
 }  // namespace
 
 //---------------------------------------------------------------------------//
+
 VPlacedVolume const&
 GeantGeoConverter::operator()(G4VPhysicalVolume const* g4_world)
 {
-    VecVPlacedVolume const* top_volumes{nullptr};
+    VPlacedVolume const* top_volume;
 
     GeoManager::Instance().Clear();
     {
         CELER_LOG(status) << "Converting Geant4 geometry to VecGeom";
         ScopedTimeLog scoped_time;
-
-        top_volumes = this->convert(g4_world);
-        CELER_ASSERT(top_volumes->size() == 1);
+        top_volume = this->convert(g4_world);
+        CELER_ASSERT(top_volume);
     }
 
     {
         CELER_LOG(status) << "Finalizing VecGeom";
         ScopedTimeLog scoped_time;
-        GeoManager::Instance().SetWorld((*top_volumes)[0]);
+        GeoManager::Instance().SetWorld(top_volume);
         GeoManager::Instance().CloseGeometry();
     }
 
@@ -171,49 +173,10 @@ GeantGeoConverter::operator()(G4VPhysicalVolume const* g4_world)
     return *world;
 }
 
-void GeantGeoConverter::extract_replicated_transformations(
-    G4PVReplica const& replica,
-    std::vector<Transformation3D const*>& transf) const
-{
-    // read out parameters
-    EAxis axis;
-    int nReplicas;
-    double width;
-    double offset;
-    bool consuming;
-    replica.GetReplicationData(axis, nReplicas, width, offset, consuming);
-    CELER_LOG(debug) << axis << " " << nReplicas << " " << width << " "
-                     << offset << " " << consuming;
-    CELER_ASSERT(offset == 0.);
+//---------------------------------------------------------------------------//
 
-    // for the moment only replication along x,y,z get translation
-    Vector3D<double> direction;
-    switch (axis)
-    {
-        case kXAxis:
-            direction.Set(1, 0, 0);
-            break;
-        case kYAxis:
-            direction.Set(0, 1, 0);
-            break;
-        case kZAxis:
-            direction.Set(0, 0, 1);
-            break;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
-    for (int r = 0; r < nReplicas; ++r)
-    {
-        auto const translation = (-width * (nReplicas - 1) * 0.5 + r * width)
-                                 * direction;
-        auto tr = new Transformation3D(
-            translation[0], translation[1], translation[2]);
-        transf.push_back(tr);
-    }
-}
-
-std::vector<VPlacedVolume const*> const*
-GeantGeoConverter::convert(G4VPhysicalVolume const* node)
+VPlacedVolume const* GeantGeoConverter::convert(G4VPhysicalVolume const* node,
+                                                LogicalVolume const* mother)
 {
     // Warn about potentially unsupported cases
     if (dynamic_cast<G4PVParameterised const*>(node)
@@ -226,114 +189,152 @@ GeantGeoConverter::convert(G4VPhysicalVolume const* node)
             << demangle_type(*node) << "'";
     }
 
-    // convert node transformation
-    auto* transformation
-        = make_transformation(node->GetTranslation(), node->GetRotation());
-    replica_transformations_.clear();
-    replica_transformations_.push_back(transformation);
-
-    std::vector<VPlacedVolume const*> vgvector;
-
+    // convert() will recurse down all volumes in its own tree
     auto* const g4logical = node->GetLogicalVolume();
     LogicalVolume* logical_volume = this->convert(g4logical);
 
-    // place (all replicas here) ... if normal we will only have one
-    // transformation
-    for (auto& transf : replica_transformations_)
+    if (!mother)  // top volume
     {
+        // convert node transformation
+        auto* transformation
+            = make_transformation(node->GetTranslation(), node->GetRotation());
+
         VPlacedVolume const* placed_volume
-            = logical_volume->Place(node->GetName(), transf);
-        vgvector.push_back(placed_volume);
+            = logical_volume->Place(node->GetName(), transformation);
+        placed_volume_map_[node] = placed_volume;
+        return placed_volume;
     }
 
-    // All or no daughters should have been placed already
-    int remaining_daughters = g4logical->GetNoDaughters()
-                              - logical_volume->GetDaughters().size();
-    CELER_ASSERT(remaining_daughters <= 0
-                 || remaining_daughters == (int)g4logical->GetNoDaughters());
+    // TODO: place replica volumes
 
-    for (int i = 0; i < remaining_daughters; ++i)
-    {
-        auto* const daughter_node = g4logical->GetDaughter(i);
-        auto* const placedvector = this->convert(daughter_node);
-        for (auto* placed : *placedvector)
-        {
-            logical_volume->PlaceDaughter(const_cast<VPlacedVolume*>(placed));
-        }
-    }
-
-    // Move to map, return reference to stored vector
-    auto&& [iter, inserted]
-        = placed_volume_map_.insert({node, std::move(vgvector)});
-    CELER_ASSERT(inserted);
-    return &iter->second;
+    //.. find the placed volume corresponding to this G4VPhysicalVolume
+    unsigned int last = mother->GetIdCount();
+    auto const* placed_mother = mother->GetDaughters()[last - 1];
+    placed_volume_map_[node] = placed_mother;
+    return placed_mother;
 }
 
-LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4_logvol)
-{
-    if (logical_volume_map_.find(g4_logvol) != logical_volume_map_.end())
-        return const_cast<LogicalVolume*>(logical_volume_map_[g4_logvol]);
+//---------------------------------------------------------------------------//
 
-    VUnplacedVolume const* unplaced;
-    unplaced = this->convert(g4_logvol->GetSolid());
-    bool const is_unknown_solid
-        = dynamic_cast<GenericSolidBase const*>(unplaced);
-    if (is_unknown_solid)
+LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
+{
+    if (logical_volume_map_.find(g4lv_mom) != logical_volume_map_.end())
+        return const_cast<LogicalVolume*>(logical_volume_map_[g4lv_mom]);
+
+    VUnplacedVolume const* shape_mom = this->convert(g4lv_mom->GetSolid());
+    bool const is_unknown_shape
+        = dynamic_cast<GenericSolidBase const*>(shape_mom);
+    if (is_unknown_shape)
     {
         CELER_LOG(info) << "Unsupported solid belongs to logical volume '"
-                        << g4_logvol->GetName() << "'@"
-                        << static_cast<void const*>(g4_logvol);
+                        << g4lv_mom->GetName() << "'@"
+                        << static_cast<void const*>(g4lv_mom);
     }
 
     // add 0x suffix, unless already provided from GDML through Geant4 parser
     static G4GDMLWriteStructure gdml_mangler;
-    std::string clean_name(g4_logvol->GetName());  // may have suffix from GDML
+    std::string clean_name(g4lv_mom->GetName());  // may have suffix from GDML
     if (clean_name.find("0x") == std::string::npos)
     {
         // but if not found, add the 0x suffix here
-        clean_name = gdml_mangler.GenerateName(clean_name.c_str(), g4_logvol);
+        clean_name = gdml_mangler.GenerateName(clean_name.c_str(), g4lv_mom);
     }
 
-    LogicalVolume* const vg_logvol
-        = new LogicalVolume(clean_name.c_str(), unplaced);
-    VolumeId volid{vg_logvol->id()};
+    LogicalVolume* const vglv_mom
+        = new LogicalVolume(clean_name.c_str(), shape_mom);
+    CELER_ASSERT(shape_mom == vglv_mom->GetUnplacedVolume());
+    VolumeId volid{vglv_mom->id()};
 
     // Save to helper maps
-    logical_volume_map_[g4_logvol] = vg_logvol;
-    g4logvol_id_map_[g4_logvol] = volid;
+    logical_volume_map_[g4lv_mom] = vglv_mom;
+    g4logvol_id_map_[g4lv_mom] = volid;
+
+    // All or no daughters should have been placed already
+    int remaining_daughters = g4lv_mom->GetNoDaughters()
+                              - vglv_mom->GetDaughters().size();
+    CELER_ASSERT(remaining_daughters <= 0
+                 || remaining_daughters == (int)g4lv_mom->GetNoDaughters());
 
     // Cross check geometry using cubic volume property: very slow for union
     // solids and a few others
-    if (!dynamic_cast<GenericSolidBase const*>(vg_logvol->GetUnplacedVolume())
-        && !dynamic_cast<UnplacedScaledShape const*>(
-            vg_logvol->GetUnplacedVolume())
-        && !is_unknown_solid)
+    if (!dynamic_cast<GenericSolidBase const*>(shape_mom)
+        && !dynamic_cast<UnplacedScaledShape const*>(shape_mom)
+        && !is_unknown_shape)
     {
-        auto vg_cap = vg_logvol->GetUnplacedVolume()->Capacity();
+        auto vg_cap = vglv_mom->GetUnplacedVolume()->Capacity();
         CELER_ASSERT(vg_cap > 0);
-        auto g4_cap = g4_logvol->GetSolid()->GetCubicVolume() * ipow<3>(scale);
+        auto g4_cap = g4lv_mom->GetSolid()->GetCubicVolume() * ipow<3>(scale);
 
         if (CELER_UNLIKELY(!SoftEqual{0.01}(vg_cap, g4_cap)))
         {
             CELER_LOG(warning)
-                << "Solid type '" << g4_logvol->GetSolid()->GetEntityType()
-                << "' in logical volume '" << g4_logvol->GetName()
+                << "Solid type '" << g4lv_mom->GetSolid()->GetEntityType()
+                << "' in logical volume '" << g4lv_mom->GetName()
                 << "' (VecGeom volume ID " << volid.get()
                 << ") conversion may have failed: VecGeom/G4 volume ratio is "
-                << vg_cap / g4_cap;
+                << vg_cap << " / " << g4_cap << " = " << vg_cap / g4_cap;
         }
     }
 
     if (auto const* lv = G4ReflectionFactory::Instance()->GetConstituentLV(
-            const_cast<G4LogicalVolume*>(g4_logvol)))
+            const_cast<G4LogicalVolume*>(g4lv_mom)))
     {
         // The *constituent* (unreflected) logical volume is actually tied to
         // the sensitive detectors: save this as well
         g4logvol_id_map_[lv] = volid;
     }
 
-    return vg_logvol;
+    // place all daughters
+    for (int i = 0; i < remaining_daughters; ++i)
+    {
+        auto const* g4pv_kid = g4lv_mom->GetDaughter(i);
+        G4RotationMatrix const& rr = *g4pv_kid->GetObjectRotation();
+        G4ThreeVector tt = g4pv_kid->GetObjectTranslation();
+        vecgeom::Vector3D<vecgeom::Precision> flip(1, 1, 1);
+        auto* solid_kid = g4pv_kid->GetLogicalVolume()->GetSolid();
+        if (dynamic_cast<G4ReflectedSolid const*>(solid_kid))
+        {
+            // TODO: extend to support reflections on x,y as well
+            flip.z() = -1;
+        }
+        vecgeom::Transformation3D transformation(scale * tt.x(),
+                                                 scale * tt.y(),
+                                                 scale * tt.z(),
+                                                 rr.xx(),
+                                                 rr.xy(),
+                                                 rr.xz(),
+                                                 rr.yx(),
+                                                 rr.yy(),
+                                                 rr.yz(),
+                                                 rr.zx(),
+                                                 rr.zy(),
+                                                 rr.zz());
+        auto* transf2 = make_transformation(g4pv_kid->GetTranslation(),
+                                            g4pv_kid->GetRotation());
+        CELER_ASSERT(*transf2 == transformation);
+
+        auto* g4lv_kid = g4pv_kid->GetLogicalVolume();
+        auto* vglv_kid = this->convert(g4lv_kid);
+        CELER_ASSERT(vglv_kid);
+
+        bool placing
+            = vgdml::ReflFactory::Instance().Place(transformation,
+                                                   flip,
+                                                   g4pv_kid->GetName(),
+                                                   vglv_kid,
+                                                   vglv_mom,
+                                                   g4pv_kid->GetCopyNo());
+        CELER_ASSERT(placing);
+
+        //.. convert daughter?  Hopefully this will return the PV just created
+        auto const* vgpv_kid = this->convert(g4pv_kid, vglv_mom);
+        placed_volume_map_[g4pv_kid] = vgpv_kid;
+    }
+
+    return vglv_mom;
 }
+
+//---------------------------------------------------------------------------//
 
 VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
 {
@@ -735,15 +736,16 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
             CELER_ASSERT_UNREACHABLE();
         }
     }
+
     else if (auto refl = dynamic_cast<G4ReflectedSolid const*>(shape))
     {
-        G4VSolid* underlyingSolid = refl->GetConstituentMovedSolid();
-        CELER_ASSERT(underlyingSolid);
-        CELER_LOG(error) << "Encountered unsupported reflected solid '"
+        G4VSolid* underlying = refl->GetConstituentMovedSolid();
+        CELER_ASSERT(underlying);
+        CELER_LOG(debug) << "Converting reflected solid '"
                          << refl->GetName() << "' (underlying "
-                         << underlyingSolid->GetEntityType() << " solid is '"
-                         << underlyingSolid->GetName() << "')";
-        unplaced_volume = new GenericSolid<G4ReflectedSolid>(refl);
+                         << underlying->GetEntityType() << " solid: '"
+                         << underlying->GetName() << "')";
+        unplaced_volume = this->convert(underlying);
     }
 
     // New volumes should be implemented here...
@@ -753,8 +755,8 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
                          << shape->GetName() << "' of type "
                          << shape->GetEntityType();
         unplaced_volume = new GenericSolid<G4VSolid>(shape);
-        CELER_LOG(debug) << " -- capacity = "
-                         << unplaced_volume->Capacity() / ipow<3>(scale);
+        CELER_LOG(info) << "Unsupported volume capacity = "
+                        << unplaced_volume->Capacity() / ipow<3>(scale);
     }
 
     unplaced_volume_map_[shape] = unplaced_volume;
@@ -762,5 +764,49 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
 }
 
 //---------------------------------------------------------------------------//
+
+void GeantGeoConverter::extract_replicated_transformations(
+    G4PVReplica const& replica,
+    std::vector<Transformation3D const*>& transf) const
+{
+    // read out parameters
+    EAxis axis;
+    int nReplicas;
+    double width;
+    double offset;
+    bool consuming;
+    replica.GetReplicationData(axis, nReplicas, width, offset, consuming);
+    CELER_LOG(debug) << axis << " " << nReplicas << " " << width << " "
+                     << offset << " " << consuming;
+    CELER_ASSERT(offset == 0.);
+
+    // for the moment only replication along x,y,z get translation
+    Vector3D<double> direction;
+    switch (axis)
+    {
+        case kXAxis:
+            direction.Set(1, 0, 0);
+            break;
+        case kYAxis:
+            direction.Set(0, 1, 0);
+            break;
+        case kZAxis:
+            direction.Set(0, 0, 1);
+            break;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+    for (int r = 0; r < nReplicas; ++r)
+    {
+        auto const translation = (-width * (nReplicas - 1) * 0.5 + r * width)
+                                 * direction;
+        auto tr = new Transformation3D(
+            translation[0], translation[1], translation[2]);
+        transf.push_back(tr);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
 }  // namespace detail
 }  // namespace celeritas

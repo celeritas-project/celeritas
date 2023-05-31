@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
+
 #include "GlobalTestBase.hh"
+#include "LazyGeoManager.hh"
 
 namespace celeritas
 {
@@ -24,11 +27,12 @@ namespace test
  * The "geometry basename" should be the filename without extension of a
  * geometry file inside `test/celeritas/data`.
  */
-class GlobalGeoTestBase : virtual public GlobalTestBase
+class GlobalGeoTestBase : virtual public GlobalTestBase,
+                          protected LazyGeoManager
 {
   public:
     // Overload with the base filename of the geometry
-    virtual char const* geometry_basename() const = 0;
+    virtual std::string_view geometry_basename() const = 0;
 
     // Construct a geometry that's persistent across tests
     SPConstGeo build_geometry() override;
@@ -36,12 +40,10 @@ class GlobalGeoTestBase : virtual public GlobalTestBase
     // Clear the lazy geometry
     static void reset_geometry();
 
-  private:
-    //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP FOR VECGEOM ////
+  protected:
+    //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP ////
 
-    struct LazyGeo;
-    class CleanupGeoEnvironment;
-    static LazyGeo& lazy_geo();
+    SPConstGeoI build_fresh_geometry(std::string_view) override;
 };
 
 //---------------------------------------------------------------------------//

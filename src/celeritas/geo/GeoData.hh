@@ -13,21 +13,9 @@
 #    include "celeritas/ext/VecgeomData.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeData.hh"
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+#    include "celeritas/ext/GeantGeoData.hh"
 #endif
 
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-template<Ownership W, MemSpace M>
-using GeoParamsData = VecgeomParamsData<W, M>;
-template<Ownership W, MemSpace M>
-using GeoStateData = VecgeomStateData<W, M>;
-#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-template<Ownership W, MemSpace M>
-using GeoParamsData = OrangeParamsData<W, M>;
-template<Ownership W, MemSpace M>
-using GeoStateData = OrangeStateData<W, M>;
-#endif
-//---------------------------------------------------------------------------//
-}  // namespace celeritas
+// Include type alias for Geo state/params data
+#include "GeoFwd.hh"  // IWYU pragma: export

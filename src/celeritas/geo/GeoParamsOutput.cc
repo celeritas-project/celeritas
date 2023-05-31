@@ -13,8 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-
-#include "GeoParams.hh"  // IWYU pragma: keep
+#include "orange/GeoParamsInterface.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -62,12 +61,14 @@ void GeoParamsOutput::output(JsonPimpl* j) const
     }
 
     // Save surface names
+    if (auto* surf_geo
+        = dynamic_cast<GeoParamsSurfaceInterface const*>(geo_.get()))
     {
         auto label = json::array();
 
-        for (auto id : range(SurfaceId{geo_->num_surfaces()}))
+        for (auto id : range(SurfaceId{surf_geo->num_surfaces()}))
         {
-            label.push_back(geo_->id_to_label(id));
+            label.push_back(surf_geo->id_to_label(id));
         }
         obj["surfaces"] = {
             {"label", std::move(label)},

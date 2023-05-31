@@ -9,6 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 
 namespace celeritas
@@ -20,25 +21,18 @@ class ParticleParams;
 /*!
  * Manage data for stochastic energy loss of EM particles.
  */
-class FluctuationParams
+class FluctuationParams final : public ParamsDataInterface<FluctuationData>
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using HostRef = celeritas::HostCRef<FluctuationData>;
-    using DeviceRef = celeritas::DeviceCRef<FluctuationData>;
-    //!@}
-
   public:
     // Construct with particle and material data
     FluctuationParams(ParticleParams const& particles,
                       MaterialParams const& materials);
 
     //! Access physics properties on the host
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host(); }
 
     //! Access physics properties on the device
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     CollectionMirror<FluctuationData> data_;

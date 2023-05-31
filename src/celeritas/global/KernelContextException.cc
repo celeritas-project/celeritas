@@ -100,7 +100,6 @@ void KernelContextException::output(JsonPimpl* json) const
         j["dir"] = dir_;
         KCE_INSERT_IF_VALID(volume);
         KCE_INSERT_IF_VALID(surface);
-        KCE_INSERT_IF_VALID(next_surface);
     }
     if (!label_.empty())
     {
@@ -138,7 +137,6 @@ void KernelContextException::initialize(CoreTrackView const& core)
             dir_ = geo.dir();
             volume_ = geo.volume_id();
             surface_ = geo.surface_id();
-            next_surface_ = geo.next_surface_id();
         }
     }
     {

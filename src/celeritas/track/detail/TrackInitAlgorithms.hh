@@ -20,29 +20,35 @@ namespace detail
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
 size_type remove_if_alive(
-    StateCollection<TrackSlotId, Ownership::reference, MemSpace::host> const&);
+    StateCollection<TrackSlotId, Ownership::reference, MemSpace::host> const&,
+    StreamId);
 size_type remove_if_alive(
-    StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&);
+    StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&,
+    StreamId);
 
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
 size_type exclusive_scan_counts(
-    StateCollection<size_type, Ownership::reference, MemSpace::host> const&);
+    StateCollection<size_type, Ownership::reference, MemSpace::host> const&,
+    StreamId);
 size_type exclusive_scan_counts(
-    StateCollection<size_type, Ownership::reference, MemSpace::device> const&);
+    StateCollection<size_type, Ownership::reference, MemSpace::device> const&,
+    StreamId);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 inline size_type remove_if_alive(
-    StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&)
+    StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&,
+    StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 inline size_type exclusive_scan_counts(
-    StateCollection<size_type, Ownership::reference, MemSpace::device> const&)
+    StateCollection<size_type, Ownership::reference, MemSpace::device> const&,
+    StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

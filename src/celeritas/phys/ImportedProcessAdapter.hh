@@ -95,7 +95,7 @@ class ImportedProcessAdapter
                            std::initializer_list<PDGNumber> pdg_numbers);
 
     // Construct step limits from the given particle/material type
-    StepLimitBuilders step_limits(Applicability applic) const;
+    StepLimitBuilders step_limits(Applicability const& applic) const;
 
     // Get the lambda table for the given particle ID
     inline ImportPhysicsTable const& get_lambda(ParticleId id) const;
@@ -117,7 +117,11 @@ class ImportedProcessAdapter
     };
 
     SPConstImported imported_;
+    ImportProcessClass process_class_;
     std::map<ParticleId, ParticleProcessIds> ids_;
+
+    // Construct step limits from the given particle/material type
+    StepLimitBuilders step_limits_impl(Applicability const& applic) const;
 };
 
 //---------------------------------------------------------------------------//

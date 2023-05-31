@@ -18,6 +18,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/io/Label.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -35,13 +36,11 @@ struct ImportData;
 /*!
  * Data management for material, element, and nuclide properties.
  */
-class MaterialParams
+class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {
   public:
     //!@{
     //! \name Type aliases
-    using HostRef = HostCRef<MaterialParamsData>;
-    using DeviceRef = DeviceCRef<MaterialParamsData>;
     using SpanConstMaterialId = Span<MaterialId const>;
     using SpanConstElementId = Span<ElementId const>;
     //!@}
@@ -118,14 +117,14 @@ class MaterialParams
     // Access element definitions on host
     inline ElementView get(ElementId id) const;
 
-    //! Access material properties on the host
-    HostRef const& host_ref() const { return data_.host(); }
-
-    //! Access material properties on the device
-    DeviceRef const& device_ref() const { return data_.device(); }
-
     // Maximum number of elements in any one material
     inline ElementComponentId::size_type max_element_components() const;
+
+    //! Access material properties on the host
+    HostRef const& host_ref() const final { return data_.host(); }
+
+    //! Access material properties on the device
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     // Metadata

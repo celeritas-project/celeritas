@@ -13,13 +13,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Forward declare types to avoid potential conflicts (e.g. PTL::Thread)
-struct Stream;
+class Stream;
 struct Thread;
 struct TrackSlot;
 
 //---------------------------------------------------------------------------//
 //! Unique ID for multithreading/multitasking
-using StreamId = OpaqueId<struct Stream>;
+using StreamId = OpaqueId<class Stream>;
 
 //! Index of a thread inside the current kernel
 using ThreadId = OpaqueId<struct Thread>;

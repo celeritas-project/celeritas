@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "SimData.hh"
@@ -24,14 +25,12 @@ struct ImportData;
 /*!
  * Manage persistent simulation data.
  */
-class SimParams
+class SimParams final : public ParamsDataInterface<SimParamsData>
 {
   public:
     //!@{
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
-    using HostRef = HostCRef<SimParamsData>;
-    using DeviceRef = DeviceCRef<SimParamsData>;
     //!@}
 
     //! Input data to construct this class
@@ -50,10 +49,10 @@ class SimParams
     explicit SimParams(Input const&);
 
     //! Access data on host
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host(); }
 
     //! Access data on device
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     // Host/device storage and reference

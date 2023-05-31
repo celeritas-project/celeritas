@@ -6,10 +6,12 @@
 //! \file celeritas/user/detail/StepGatherAction.cu
 //---------------------------------------------------------------------------//
 #include "corecel/Macros.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Stream.hh"
 
 #include "../StepData.hh"
-#include "StepGatherLauncher.hh"
+#include "StepGatherExecutor.hh"
 
 namespace celeritas
 {
@@ -29,9 +31,9 @@ step_gather_kernel(DeviceCRef<CoreParamsData> const core_params,
     if (!(tid < step_state.size()))
         return;
 
-    StepGatherLauncher<P> launch{
+    StepGatherExecutor<P> execute{
         core_params, core_state, step_params, step_state};
-    launch(tid);
+    execute(tid);
 }
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -54,15 +56,16 @@ void step_gather_device(DeviceCRef<CoreParamsData> const& core_params,
         step_gather_kernel<P>);
     auto grid = calc_launch_params_(core_state.size());
 
-    CELER_LAUNCH_KERNEL_IMPL(step_gather_kernel<P>,
-                             grid.blocks_per_grid,
-                             grid.threads_per_block,
-                             0,
-                             0,
-                             core_params,
-                             core_state,
-                             step_params,
-                             step_state);
+    CELER_LAUNCH_KERNEL_IMPL(
+        step_gather_kernel<P>,
+        grid.blocks_per_grid,
+        grid.threads_per_block,
+        0,
+        celeritas::device().stream(core_state.stream_id).get(),
+        core_params,
+        core_state,
+        step_params,
+        step_state);
     CELER_DEVICE_CHECK_ERROR();
 }
 

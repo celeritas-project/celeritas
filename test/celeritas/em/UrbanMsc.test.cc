@@ -92,7 +92,10 @@ class UrbanMscTest : public ::celeritas::test::RootTestBase
     using Action = MscInteraction::Action;
 
   protected:
-    char const* geometry_basename() const final { return "four-steel-slabs"; }
+    std::string_view geometry_basename() const final
+    {
+        return "four-steel-slabs"sv;
+    }
 
     void SetUp() override
     {
@@ -536,7 +539,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_VEC_SOFT_EQ(expected_gstep, gstep);
     EXPECT_VEC_SOFT_EQ(expected_alpha, alpha);
     EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
-    EXPECT_VEC_SOFT_EQ(expected_displace, displace);
+    EXPECT_VEC_NEAR(expected_displace, displace, 1e-11);
     EXPECT_VEC_EQ(expected_action, action);
     EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

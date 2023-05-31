@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/data/ParamsDataInterface.hh"
+
 #include "CuHipRngData.hh"
 
 namespace celeritas
@@ -18,24 +20,17 @@ namespace celeritas
  * Currently this just constructs a local seed number but should be extended to
  * handle RNG setup across multiple MPI processes.
  */
-class CuHipRngParams
+class CuHipRngParams final : public ParamsDataInterface<CuHipRngParamsData>
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using HostRef = HostCRef<CuHipRngParamsData>;
-    using DeviceRef = DeviceCRef<CuHipRngParamsData>;
-    //!@}
-
   public:
     // Construct with seed
     explicit inline CuHipRngParams(unsigned int seed);
 
     //! Access RNG properties for constructing RNG state
-    HostRef const& host_ref() const { return host_ref_; }
+    HostRef const& host_ref() const final { return host_ref_; }
 
     //! Access data on device
-    DeviceRef const& device_ref() const { return device_ref_; }
+    DeviceRef const& device_ref() const final { return device_ref_; }
 
   private:
     HostRef host_ref_;

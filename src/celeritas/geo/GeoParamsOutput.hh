@@ -11,10 +11,11 @@
 
 #include "corecel/io/OutputInterface.hh"
 
-#include "GeoParamsFwd.hh"  // IWYU pragma: keep
-
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class GeoParamsInterface;
+
 //---------------------------------------------------------------------------//
 /*!
  * Save geometry diagnostic data.
@@ -24,7 +25,7 @@ class GeoParamsOutput final : public OutputInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeoParams = std::shared_ptr<GeoParams const>;
+    using SPConstGeoParams = std::shared_ptr<GeoParamsInterface const>;
     //!@}
 
   public:

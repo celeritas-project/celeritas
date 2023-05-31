@@ -43,7 +43,7 @@ namespace test
 class RootImporterTest : public Test
 {
   protected:
-    char const* geometry_basename() const { return "four-steel-slabs"; }
+    std::string_view geometry_basename() const { return "four-steel-slabs"sv; }
 
     ImportData const& imported_data() const;
 };
@@ -56,7 +56,7 @@ auto RootImporterTest::imported_data() const -> ImportData const&
         std::string geometry_basename;
         ImportData imported;
     } i;
-    std::string geo_basename = this->geometry_basename();
+    auto geo_basename = this->geometry_basename();
     if (i.geometry_basename != geo_basename)
     {
         ScopedRootErrorHandler scoped_root_error;

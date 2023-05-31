@@ -13,7 +13,9 @@
 #    include "celeritas/ext/VecgeomParams.hh"  // IWYU pragma: export
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeParams.hh"  // IWYU pragma: export
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+#    include "celeritas/ext/GeantGeoParams.hh"  // IWYU pragma: export
 #endif
 
 // Include type alias for GeoParams
-#include "GeoParamsFwd.hh"  // IWYU pragma: export
+#include "GeoFwd.hh"  // IWYU pragma: export

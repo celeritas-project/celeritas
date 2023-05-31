@@ -28,10 +28,10 @@
 #include "corecel/io/Repr.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
-
-#include "Convert.hh"
 
 namespace celeritas
 {
@@ -59,40 +59,6 @@ struct ReprTraits<G4ThreeVector>
 
 namespace detail
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-struct PrintableNavHistory
-{
-    G4VTouchable* touch{nullptr};
-};
-
-std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
-{
-    CELER_EXPECT(pnh.touch);
-    os << '{';
-
-    G4VTouchable& touch = *pnh.touch;
-    for (int depth : range(touch.GetHistoryDepth()))
-    {
-        G4VPhysicalVolume* vol = touch.GetVolume(depth);
-        CELER_ASSERT(vol);
-        G4LogicalVolume* lv = vol->GetLogicalVolume();
-        CELER_ASSERT(lv);
-        if (depth != 0)
-        {
-            os << " -> ";
-        }
-        os << "{pv='" << vol->GetName() << "', lv=" << lv->GetInstanceID()
-           << "='" << lv->GetName() << "'}";
-    }
-    os << '}';
-    return os;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct local navigator and step data.
@@ -309,7 +275,7 @@ bool HitProcessor::update_touchable(Real3 const& pos,
     if (step < max_step)
     {
         // Found a nearby volume
-        if (step > 0)
+        if (step > 1e-3 * CLHEP::mm)
         {
             // Warn only if the step is nontrivial
             CELER_LOG(warning)

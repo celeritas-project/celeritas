@@ -15,6 +15,8 @@
 #include <thrust/partition.h>
 
 #include "corecel/data/Collection.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 
 #include "StepData.hh"
 
@@ -70,7 +72,8 @@ template<class T>
 void assign_field(std::vector<T>* dst,
                   StateRef<T> const& src,
                   DVecDetector const& orig_ids,
-                  size_type size)
+                  size_type size,
+                  StreamId stream_id)
 {
     if (src.empty())
     {
@@ -83,11 +86,12 @@ void assign_field(std::vector<T>* dst,
 
     // Partition based on detector validity
     auto temp_span = src[AllItems<T>{}];
-    thrust::partition(thrust::device,
-                      transform_ptr(temp_span.begin()),
-                      transform_ptr(temp_span.end()),
-                      orig_ids.begin(),
-                      HasDetector{});
+    thrust::partition(
+        thrust::device.on(celeritas::device().stream(stream_id).get()),
+        transform_ptr(temp_span.begin()),
+        transform_ptr(temp_span.end()),
+        orig_ids.begin(),
+        HasDetector{});
 
     // Copy all items from valid threads
     dst->resize(size);
@@ -126,7 +130,8 @@ void copy_steps<MemSpace::device>(
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    assign_field(&(output->FIELD), state.FIELD, orig_ids, size)
+    assign_field(        \
+        &(output->FIELD), state.FIELD, orig_ids, size, state.stream_id)
 
     DS_ASSIGN(detector);
     DS_ASSIGN(track_id);

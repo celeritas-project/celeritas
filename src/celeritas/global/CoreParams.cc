@@ -35,6 +35,7 @@
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
+#include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
 #include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
@@ -105,22 +106,105 @@ ActionId find_along_step_id(ActionRegistry const& reg)
 }
 
 //---------------------------------------------------------------------------//
-class ImplicitGeometryAction final : public ImplicitActionInterface,
-                                     public ConcreteAction
+class PropagationLimitAction final : public ConcreteAction
 {
   public:
-    // Construct with ID and label
-    using ConcreteAction::ConcreteAction;
+    //! Construct with ID
+    explicit PropagationLimitAction(ActionId id)
+        : ConcreteAction(
+            id, "geo-propagation-limit", "pause due to propagation misbehavior")
+    {
+    }
 };
 
 //---------------------------------------------------------------------------//
-class ImplicitSimAction final : public ImplicitActionInterface,
-                                public ConcreteAction
+class AbandonLoopingAction final : public ConcreteAction
 {
   public:
-    // Construct with ID and label
-    using ConcreteAction::ConcreteAction;
+    //! Construct with ID
+    explicit AbandonLoopingAction(ActionId id)
+        : ConcreteAction(
+            id, "kill-looping", "kill due to too many field substeps")
+    {
+    }
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct always-required actions and set IDs.
+ */
+CoreScalars build_actions(ActionRegistry* reg)
+{
+    using std::make_shared;
+
+    CoreScalars scalars;
+
+    //// START ACTIONS ////
+
+    // NOTE: due to ordering by {start, ID}, ExtendFromPrimariesAction *must*
+    // precede InitializeTracksAction
+    reg->insert(make_shared<ExtendFromPrimariesAction>(reg->next_id()));
+    reg->insert(make_shared<InitializeTracksAction>(reg->next_id()));
+
+    //// PRE-STEP ACTIONS ////
+
+    //// ALONG-STEP ACTIONS ////
+
+    // Define neutral and user-provided along-step actions
+    std::shared_ptr<AlongStepNeutralAction const> along_step_neutral;
+    scalars.along_step_user_action = find_along_step_id(*reg);
+    if (scalars.along_step_user_action)
+    {
+        // Test whether user-provided action is neutral
+        along_step_neutral
+            = std::dynamic_pointer_cast<AlongStepNeutralAction const>(
+                reg->action(scalars.along_step_user_action));
+    }
+
+    if (!along_step_neutral)
+    {
+        // Create neutral action if one doesn't exist
+        along_step_neutral
+            = make_shared<AlongStepNeutralAction>(reg->next_id());
+        reg->insert(along_step_neutral);
+    }
+    scalars.along_step_neutral_action = along_step_neutral->action_id();
+    if (!scalars.along_step_user_action)
+    {
+        // Use newly created neutral action by default
+        CELER_LOG(warning) << "No along-step action specified: using neutral "
+                              "particle propagation";
+        scalars.along_step_user_action = scalars.along_step_neutral_action;
+    }
+
+    //// ALONG-STEP ACTIONS ////
+
+    // Construct implicit limit for propagator pausing midstep
+    scalars.propagation_limit_action = reg->next_id();
+    reg->insert(
+        make_shared<PropagationLimitAction>(scalars.propagation_limit_action));
+
+    // Construct action for killed looping tracks
+    scalars.abandon_looping_action = reg->next_id();
+    reg->insert(
+        make_shared<AbandonLoopingAction>(scalars.abandon_looping_action));
+
+    //// POST-STEP ACTIONS ////
+
+    // Construct geometry action
+    scalars.boundary_action = reg->next_id();
+    reg->insert(make_shared<celeritas::generated::BoundaryAction>(
+        scalars.boundary_action, "geo-boundary", "cross a geometry boundary"));
+
+    //// END ACTIONS ////
+
+    // Construct extend from secondaries action
+    reg->insert(make_shared<ExtendFromSecondariesAction>(reg->next_id()));
+
+    return scalars;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -150,73 +234,15 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     ScopedMem record_mem("CoreParams.construct");
 
-    CoreScalars scalars;
+    // Construct always-on actions and save their IDs
+    CoreScalars scalars = build_actions(input_.action_reg.get());
 
-    // Construct geometry action
-    scalars.boundary_action = input_.action_reg->next_id();
-    input_.action_reg->insert(
-        std::make_shared<celeritas::generated::BoundaryAction>(
-            scalars.boundary_action,
-            "geo-boundary",
-            "cross a geometry boundary"));
-
-    // Construct implicit limit for propagator pausing midstep
-    scalars.propagation_limit_action = input_.action_reg->next_id();
-    input_.action_reg->insert(std::make_shared<ImplicitGeometryAction>(
-        scalars.propagation_limit_action,
-        "geo-propagation-limit",
-        "pause due to propagation misbehavior"));
-
-    // Construct action for killed looping tracks
-    scalars.abandon_looping_action = input_.action_reg->next_id();
-    input_.action_reg->insert(std::make_shared<ImplicitSimAction>(
-        scalars.abandon_looping_action,
-        "kill-looping",
-        "kill due to too many field substeps"));
-
-    // Define neutral and user-provided along-step actions
-    std::shared_ptr<AlongStepNeutralAction const> along_step_neutral;
-    scalars.along_step_user_action = find_along_step_id(*input_.action_reg);
-    if (scalars.along_step_user_action)
-    {
-        // Test whether user-provided action is neutral
-        along_step_neutral
-            = std::dynamic_pointer_cast<AlongStepNeutralAction const>(
-                input_.action_reg->action(scalars.along_step_user_action));
-    }
-
-    if (!along_step_neutral)
-    {
-        // Create neutral action if one doesn't exist
-        along_step_neutral = std::make_shared<AlongStepNeutralAction>(
-            input_.action_reg->next_id());
-        input_.action_reg->insert(along_step_neutral);
-    }
-    scalars.along_step_neutral_action = along_step_neutral->action_id();
-    if (!scalars.along_step_user_action)
-    {
-        // Use newly created neutral action by default
-        CELER_LOG(warning) << "No along-step action specified: using neutral "
-                              "particle propagation";
-        scalars.along_step_user_action = scalars.along_step_neutral_action;
-    }
-
-    // Save maximum number of streams
-    scalars.max_streams = input_.max_streams;
-
-    // Construct initialize tracks action
-    input_.action_reg->insert(std::make_shared<InitializeTracksAction>(
-        input_.action_reg->next_id()));
-
-    // TrackOrder doesn't have to be an argument right now and could be
-    // captured but we're eventually expecting different TrackOrder for
-    // different ActionOrder
+    // Construct optional track-sorting actions
     auto insert_sort_tracks_action = [this](const TrackOrder track_order) {
         input_.action_reg->insert(std::make_shared<SortTracksAction>(
             input_.action_reg->next_id(), track_order));
     };
-    const TrackOrder track_order{input_.init->host_ref().track_order};
-    switch (track_order)
+    switch (TrackOrder track_order = input_.init->host_ref().track_order)
     {
         case TrackOrder::partition_status:
         case TrackOrder::sort_step_limit_action:
@@ -233,9 +259,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             break;
     }
 
-    // Construct extend from secondaries action
-    input_.action_reg->insert(std::make_shared<ExtendFromSecondariesAction>(
-        input_.action_reg->next_id()));
+    // Save maximum number of streams
+    scalars.max_streams = input_.max_streams;
 
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);
@@ -274,6 +299,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         std::make_shared<PhysicsParamsOutput>(input_.physics));
     input_.output_reg->insert(
         std::make_shared<ActionRegistryOutput>(input_.action_reg));
+
+    CELER_LOG(status) << "Celeritas core setup complete";
 
     CELER_ENSURE(host_ref_);
     CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());

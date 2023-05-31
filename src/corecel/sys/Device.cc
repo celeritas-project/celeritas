@@ -23,6 +23,9 @@
 #include "corecel/io/ScopedTimeLog.hh"
 
 #include "Environment.hh"
+#include "MpiCommunicator.hh"
+#include "Stream.hh"
+#include "detail/StreamStorage.hh"
 
 namespace celeritas
 {
@@ -31,52 +34,10 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-static std::mutex& device_setter_mutex()
+std::mutex& device_setter_mutex()
 {
     static std::mutex m;
     return m;
-}
-
-int determine_num_devices()
-{
-    if (!CELER_USE_DEVICE)
-    {
-        CELER_LOG(debug) << "Disabling GPU support since CUDA and HIP are "
-                            "disabled";
-        return 0;
-    }
-
-    if (!celeritas::getenv("CELER_DISABLE_DEVICE").empty())
-    {
-        CELER_LOG(info)
-            << "Disabling GPU support since the 'CELER_DISABLE_DEVICE' "
-               "environment variable is present and non-empty";
-        return 0;
-    }
-
-    int result = -1;
-    CELER_DEVICE_CALL_PREFIX(GetDeviceCount(&result));
-    if (result == 0)
-    {
-        CELER_LOG(warning) << "Disabling GPU support since no CUDA devices "
-                              "are present";
-    }
-
-    CELER_ENSURE(result >= 0);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether to check and warn about inconsistent CUDA/Celeritas device.
- */
-bool determine_debug()
-{
-    if constexpr (CELERITAS_DEBUG)
-    {
-        return true;
-    }
-    return !celeritas::getenv("CELER_DEBUG_DEVICE").empty();
 }
 
 //---------------------------------------------------------------------------//
@@ -101,14 +62,7 @@ Device& global_device()
         // Check that CUDA and Celeritas device IDs are consistent
         int cur_id = -1;
         CELER_DEVICE_CALL_PREFIX(GetDevice(&cur_id));
-        if (cur_id != device.device_id())
-        {
-            CELER_LOG(warning)
-                << "CUDA active device ID unexpectedly changed from "
-                << device.device_id() << " to " << cur_id;
-            std::lock_guard<std::mutex> scoped_lock{device_setter_mutex()};
-            device = Device(cur_id);
-        }
+        CELER_ASSERT(cur_id == device.device_id());
     }
 
     return device;
@@ -129,7 +83,34 @@ Device& global_device()
  */
 int Device::num_devices()
 {
-    static int const result = determine_num_devices();
+    static int const result = [] {
+        if (!CELER_USE_DEVICE)
+        {
+            CELER_LOG(debug) << "Disabling GPU support since CUDA and HIP are "
+                                "disabled";
+            return 0;
+        }
+
+        if (!celeritas::getenv("CELER_DISABLE_DEVICE").empty())
+        {
+            CELER_LOG(info)
+                << "Disabling GPU support since the 'CELER_DISABLE_DEVICE' "
+                   "environment variable is present and non-empty";
+            return 0;
+        }
+
+        int result = -1;
+        CELER_DEVICE_CALL_PREFIX(GetDeviceCount(&result));
+        if (result == 0)
+        {
+            CELER_LOG(warning)
+                << "Disabling GPU support since no CUDA devices "
+                   "are present";
+        }
+
+        CELER_ENSURE(result >= 0);
+        return result;
+    }();
     return result;
 }
 
@@ -142,7 +123,13 @@ int Device::num_devices()
  */
 bool Device::debug()
 {
-    static bool const result = determine_debug();
+    static bool const result = [] {
+        if constexpr (CELERITAS_DEBUG)
+        {
+            return true;
+        }
+        return !celeritas::getenv("CELER_DEBUG_DEVICE").empty();
+    }();
     return result;
 }
 
@@ -150,7 +137,8 @@ bool Device::debug()
 /*!
  * Construct from a device ID.
  */
-Device::Device(int id) : id_(id)
+Device::Device(int id)
+    : id_(id), streams_(std::make_shared<detail::StreamStorage>())
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
@@ -232,6 +220,44 @@ Device::Device(int id) : id_(id)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Number of streams allocated.
+ */
+StreamId::size_type Device::num_streams() const
+{
+    CELER_EXPECT(streams_);
+
+    return streams_->size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Allocate the given number of streams.
+ *
+ * If no streams have been created, the default stream will be used.
+ */
+void Device::create_streams(unsigned int num_streams) const
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(streams_);
+
+    *streams_ = detail::StreamStorage(num_streams);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a stream.
+ *
+ * This returns the default stream if no streams were allocated.
+ */
+Stream const& Device::stream(StreamId id) const
+{
+    CELER_EXPECT(streams_);
+
+    return streams_->get(id);
+}
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -247,7 +273,7 @@ Device const& device()
  * Activate the given device.
  *
  * The given device must be set (true result) unless no device has yet been
- * enabled -- this allows Device::from_round_robin to create "null" devices
+ * enabled -- this allows \c make_device to create "null" devices
  * when CUDA is disabled.
  *
  * \note This function is thread safe, and even though the global device is
@@ -276,6 +302,31 @@ void activate_device(Device&& device)
 
     // Call cudaFree to wake up the device, making other timers more accurate
     CELER_DEVICE_CALL_PREFIX(Free(nullptr));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the first device if available, when not using MPI.
+ */
+void activate_device()
+{
+    if (Device::num_devices() > 0)
+    {
+        return activate_device(Device(0));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize device in a round-robin fashion from a communicator.
+ */
+void activate_device(MpiCommunicator const& comm)
+{
+    int num_devices = Device::num_devices();
+    if (num_devices > 0)
+    {
+        return activate_device(Device(comm.rank() % num_devices));
+    }
 }
 
 //---------------------------------------------------------------------------//

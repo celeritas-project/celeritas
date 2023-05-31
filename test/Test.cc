@@ -11,10 +11,9 @@
 #include <cctype>
 #include <fstream>
 
+#include "celeritas_test_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/sys/Environment.hh"
-
-#include "testdetail/TestConfig.hh"
 
 namespace celeritas
 {
@@ -30,7 +29,7 @@ std::string
 Test::test_data_path(std::string_view subdir, std::string_view filename)
 {
     std::ostringstream os;
-    os << testdetail::source_dir << "/test/" << subdir << "/data/" << filename;
+    os << celeritas_source_dir << "/test/" << subdir << "/data/" << filename;
 
     std::string result = os.str();
     CELER_VALIDATE(std::ifstream(result).good(),
@@ -124,6 +123,11 @@ bool Test::strict_testing()
     std::string const& envstr = ::celeritas::getenv("CELER_TEST_STRICT");
     if (envstr == "0")
     {
+        return false;
+    }
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        // Disable strict testing for Geant4
         return false;
     }
     return !envstr.empty();

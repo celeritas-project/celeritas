@@ -10,6 +10,7 @@
 #include <functional>
 
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 
 #include "RZMapFieldData.hh"
 
@@ -22,13 +23,11 @@ struct RZMapFieldInput;
 /*!
  * Set up a 2D RZMapFieldParams.
  */
-class RZMapFieldParams
+class RZMapFieldParams final : public ParamsDataInterface<RZMapFieldParamsData>
 {
   public:
     //@{
-    //! Type aliases
-    using HostRef = HostCRef<RZMapFieldParamsData>;
-    using DeviceRef = DeviceCRef<RZMapFieldParamsData>;
+    //! \name Type aliases
     using Input = RZMapFieldInput;
     //@}
 
@@ -37,10 +36,10 @@ class RZMapFieldParams
     explicit RZMapFieldParams(Input const& inp);
 
     //! Access field map data on the host
-    HostRef const& host_ref() const { return mirror_.host(); }
+    HostRef const& host_ref() const final { return mirror_.host(); }
 
     //! Access field map data on the device
-    DeviceRef const& device_ref() const { return mirror_.device(); }
+    DeviceRef const& device_ref() const final { return mirror_.device(); }
 
   private:
     // Host/device storage and reference

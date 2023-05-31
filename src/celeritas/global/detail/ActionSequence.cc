@@ -45,6 +45,16 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
         }
     }
 
+    // Loop over all mutable actions
+    for (auto const& base : reg.mutable_actions())
+    {
+        if (auto brun = std::dynamic_pointer_cast<BeginRunActionInterface>(base))
+        {
+            // Add beginning-of-run to the array
+            begin_run_.push_back(std::move(brun));
+        }
+    }
+
     // Sort actions by increasing order (and secondarily, increasing IDs)
     std::sort(actions_.begin(),
               actions_.end(),
@@ -61,9 +71,20 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
 
 //---------------------------------------------------------------------------//
 /*!
- * Call the given action ID with host or device data.
- *
- * The given action ID \em must be an explicit action.
+ * Initialize actions and states.
+ */
+template<MemSpace M>
+void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
+{
+    for (auto const& sp_action : begin_run_)
+    {
+        sp_action->begin_run(params, state);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Call all explicit actions with host or device data.
  */
 template<MemSpace M>
 void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
@@ -95,6 +116,11 @@ void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
 //---------------------------------------------------------------------------//
 // Explicit template instantiation
 //---------------------------------------------------------------------------//
+
+template void
+ActionSequence::begin_run(CoreParams const&, CoreState<MemSpace::host>&);
+template void
+ActionSequence::begin_run(CoreParams const&, CoreState<MemSpace::device>&);
 
 template void
 ActionSequence::execute(CoreParams const&, CoreState<MemSpace::host>&);

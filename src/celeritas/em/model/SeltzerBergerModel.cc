@@ -17,8 +17,6 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/TwodGridData.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/generated/SeltzerBergerInteract.hh"
@@ -69,8 +67,6 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Load differential cross sections
-    CELER_LOG(status) << "Reading and building Seltzer Berger model data";
-    ScopedTimeLog scoped_time;
     make_builder(&host_data.differential_xs.elements)
         .reserve(materials.num_elements());
     for (auto el_id : range(ElementId{materials.num_elements()}))

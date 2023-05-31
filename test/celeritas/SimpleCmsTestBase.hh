@@ -33,7 +33,10 @@ namespace test
 class SimpleCmsTestBase : public GeantTestBase
 {
   protected:
-    char const* geometry_basename() const override { return "simple-cms"; }
+    std::string_view geometry_basename() const override
+    {
+        return "simple-cms";
+    }
 };
 
 //---------------------------------------------------------------------------//

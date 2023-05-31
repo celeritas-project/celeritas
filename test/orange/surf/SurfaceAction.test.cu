@@ -28,7 +28,7 @@ __global__ void sa_test_kernel(SATestInput input)
         return;
 
     // Calculate distances in parallel
-    CalcSenseDistanceLauncher<> calc_thread{input.params, input.states};
+    CalcSenseDistanceExecutor<> calc_thread{input.params, input.states};
     calc_thread(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
@@ -40,7 +40,7 @@ __global__ void sa_test_kernel(SATestInput input)
 void sa_test(SATestInput input)
 {
     CELER_LAUNCH_KERNEL(
-        sa_test, device().default_block_size(), input.states.size(), input);
+        sa_test, device().default_block_size(), input.states.size(), 0, input);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 

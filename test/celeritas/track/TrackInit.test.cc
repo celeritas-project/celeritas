@@ -17,10 +17,11 @@
 #include "celeritas/SimpleTestBase.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
-#include "celeritas/track/TrackInitUtils.hh"
 
 #include "MockInteractAction.hh"
 #include "celeritas_test.hh"
@@ -59,14 +60,14 @@ RunResult RunResult::from_state(CoreState<M>& state)
     data = state.ref().init;
 
     // Store the IDs of the vacant track slots
-    for (auto tid : range(TrackSlotId{data.scalars.num_vacancies}))
+    for (auto tid : range(TrackSlotId{state.counters().num_vacancies}))
     {
         result.vacancies.push_back(data.vacancies[tid].unchecked_get());
     }
 
     // Store the track IDs of the initializers
     for (auto init_id :
-         range(ItemId<TrackInitializer>{data.scalars.num_initializers}))
+         range(ItemId<TrackInitializer>{state.counters().num_initializers}))
     {
         auto const& init = data.initializers[init_id];
         result.init_ids.push_back(init.sim.track_id.get());
@@ -90,7 +91,7 @@ RunResult RunResult::from_state(CoreState<M>& state)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class TrackInitTest : public SimpleTestBase
+class TrackInitTestBase : public SimpleTestBase
 {
   protected:
     //! Create primary particles
@@ -119,7 +120,7 @@ class TrackInitTest : public SimpleTestBase
 //---------------------------------------------------------------------------//
 
 template<class T>
-class TypedTrackInitTest : public TrackInitTest
+class TrackInitTest : public TrackInitTestBase
 {
   public:
     // Memspace for this class instance
@@ -137,6 +138,30 @@ class TypedTrackInitTest : public TrackInitTest
     {
         CELER_ENSURE(state_);
         return *state_;
+    }
+
+    void extend_from_primaries(Span<Primary const> primaries)
+    {
+        CELER_EXPECT(state_);
+        state_->insert_primaries(primaries);
+        ExtendFromPrimariesAction(ActionId{1}).execute(*this->core(), *state_);
+    }
+
+    std::shared_ptr<ExplicitActionInterface const> pre_step_action() const
+    {
+        auto aid = this->action_reg()->find_action("pre-step");
+        CELER_ASSERT(aid);
+        return std::dynamic_pointer_cast<ExplicitActionInterface const>(
+            this->action_reg()->action(aid));
+    }
+    void init_tracks()
+    {
+        // Initialize tracks
+        InitializeTracksAction{ActionId{0}}.execute(*this->core(),
+                                                    this->state());
+
+        // Reset physics state before interacting
+        this->pre_step_action()->execute(*this->core(), *state_);
     }
 
   private:
@@ -161,13 +186,13 @@ struct MemspaceTypeString
     }
 };
 
-TYPED_TEST_SUITE(TypedTrackInitTest, MemspaceTypes, MemspaceTypeString);
+TYPED_TEST_SUITE(TrackInitTest, MemspaceTypes, MemspaceTypeString);
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TYPED_TEST(TypedTrackInitTest, run)
+TYPED_TEST(TrackInitTest, run)
 {
     const size_type num_primaries = 12;
     const size_type num_tracks = 10;
@@ -184,7 +209,7 @@ TYPED_TEST(TypedTrackInitTest, run)
 
     // Create track initializers on device from primary particles
     auto primaries = this->make_primaries(num_primaries);
-    extend_from_primaries(*this->core(), this->state(), make_span(primaries));
+    this->extend_from_primaries(make_span(primaries));
 
     // Check the track IDs of the track initializers created from primaries
     {
@@ -195,7 +220,7 @@ TYPED_TEST(TypedTrackInitTest, run)
     }
 
     // Initialize the primary tracks on device
-    initialize_tracks(*this->core(), this->state());
+    this->init_tracks();
 
     // Check the track IDs and parent IDs of the initialized tracks
     {
@@ -216,14 +241,13 @@ TYPED_TEST(TypedTrackInitTest, run)
         std::vector<size_type> const alloc = {1, 1, 0, 0, 1, 1, 0, 0, 2, 1};
         std::vector<bool> const alive = {
             false, true, false, true, false, true, false, true, false, false};
-        return MockInteractAction{ActionId{0}, alloc, alive};
+        return MockInteractAction{ActionId{1}, alloc, alive};
     }();
-
-    // Launch kernel to process interactions
     interact.execute(*this->core(), this->state());
 
     // Launch a kernel to create track initializers from secondaries
-    extend_from_secondaries(*this->core(), this->state());
+    ExtendFromSecondariesAction{ActionId{2}}.execute(*this->core(),
+                                                     this->state());
 
     // Check the vacancies
     {
@@ -250,7 +274,7 @@ TYPED_TEST(TypedTrackInitTest, run)
     }
 
     // Initialize secondaries on device
-    initialize_tracks(*this->core(), this->state());
+    this->init_tracks();
 
     // Check the track IDs and parent IDs of the initialized tracks
     {
@@ -274,13 +298,15 @@ TYPED_TEST(TypedTrackInitTest, run)
     }
 }
 
-TYPED_TEST(TypedTrackInitTest, primaries)
+TYPED_TEST(TrackInitTest, primaries)
 {
     const size_type num_sets = 4;
     const size_type num_primaries = 16;
     const size_type num_tracks = 16;
 
     this->build_states(num_tracks);
+
+    this->init_tracks();
 
     // Kill half the tracks in each interaction and don't produce secondaries
     auto interact = [] {
@@ -290,27 +316,28 @@ TYPED_TEST(TypedTrackInitTest, primaries)
         {
             alive[i] = i % 2;
         }
-        return MockInteractAction{ActionId{0}, alloc, alive};
+        return MockInteractAction{ActionId{1}, alloc, alive};
     }();
+
+    ExtendFromSecondariesAction extend_from_secondaries{ActionId{2}};
 
     for (size_type i = 0; i < num_sets; ++i)
     {
         // Create track initializers on device from primary particles
         auto primaries = this->make_primaries(num_primaries);
-        extend_from_primaries(
-            *this->core(), this->state(), make_span(primaries));
+        this->extend_from_primaries(make_span(primaries));
 
         // Initialize tracks on device
-        initialize_tracks(*this->core(), this->state());
+        this->init_tracks();
 
         // Launch kernel that will kill half the tracks
         interact.execute(*this->core(), this->state());
 
         // Find vacancies and create track initializers from secondaries
-        extend_from_secondaries(*this->core(), this->state());
-        auto& init = this->state().ref().init;
-        EXPECT_EQ(i * num_tracks / 2, init.scalars.num_initializers);
-        EXPECT_EQ(num_tracks / 2, init.scalars.num_vacancies);
+        extend_from_secondaries.execute(*this->core(), this->state());
+        EXPECT_EQ(i * num_tracks / 2,
+                  this->state().counters().num_initializers);
+        EXPECT_EQ(num_tracks / 2, this->state().counters().num_vacancies);
     }
 
     // Check the results
@@ -330,63 +357,7 @@ TYPED_TEST(TypedTrackInitTest, primaries)
     EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
 }
 
-TYPED_TEST(TypedTrackInitTest, secondaries)
-{
-    const size_type num_groups = 32;
-    const size_type num_tracks = 8 * num_groups;
-    this->build_states(num_tracks);
-
-    auto interact = [] {
-        size_type const nsec_inp[] = {1, 1, 2, 0, 0, 0, 0, 0};
-        bool const alive_inp[]
-            = {true, false, false, true, true, false, false, true};
-        std::vector<size_type> nsec;
-        std::vector<bool> alive;
-        for (size_type i = 0; i < num_groups; ++i)
-        {
-            nsec.insert(nsec.end(), std::begin(nsec_inp), std::end(nsec_inp));
-            alive.insert(
-                alive.end(), std::begin(alive_inp), std::end(alive_inp));
-        }
-        return MockInteractAction{ActionId{0}, nsec, alive};
-    }();
-
-    // Create track initializers on device from primary particles
-    const size_type num_primaries = num_tracks;
-    auto primaries = this->make_primaries(num_primaries);
-    extend_from_primaries(*this->core(), this->state(), make_span(primaries));
-    EXPECT_EQ(num_primaries, this->state().ref().init.scalars.num_initializers);
-
-    const size_type num_iter = 16;
-    for ([[maybe_unused]] size_type i : range(num_iter))
-    {
-        SCOPED_TRACE(i);
-        auto& init = this->state().ref().init;
-
-        // All queued initializers are converted to tracks
-        initialize_tracks(*this->core(), this->state());
-        ASSERT_EQ(0, init.scalars.num_initializers);
-        EXPECT_EQ(0, init.scalars.num_vacancies);
-
-        // Launch kernel to process interactions
-        interact.execute(*this->core(), this->state());
-
-        // Launch a kernel to create track initializers from secondaries
-        extend_from_secondaries(*this->core(), this->state());
-        EXPECT_EQ(num_groups * 2, init.scalars.num_initializers);
-        EXPECT_EQ(num_groups * 2, init.scalars.num_vacancies);
-
-        // Number of secondaries *excludes* in-place secondaries: this is
-        // really the number of initializers to be consumed
-        EXPECT_EQ(num_groups * (1 + 0 + 1), init.scalars.num_secondaries);
-        if (this->HasFailure())
-        {
-            FAIL() << "Aborting loop";
-        }
-    }
-}
-
-TYPED_TEST(TypedTrackInitTest, secondaries_action)
+TYPED_TEST(TrackInitTest, extend_from_secondaries)
 {
     // Basic setup
     const size_type num_primaries = 8;
@@ -398,16 +369,17 @@ TYPED_TEST(TypedTrackInitTest, secondaries_action)
     this->build_states(num_tracks);
 
     // Create actions
-    std::vector<std::shared_ptr<ExplicitActionInterface>> actions = {
+    std::vector<std::shared_ptr<ExplicitActionInterface const>> actions = {
         std::make_shared<InitializeTracksAction>(ActionId{0}),
+        this->pre_step_action(),
         std::make_shared<MockInteractAction>(
             ActionId{1}, std::vector<size_type>{1, 1, 2, 0, 0, 0, 0, 0}, alive),
         std::make_shared<ExtendFromSecondariesAction>(ActionId{2})};
 
     // Create track initializers on device from primary particles
     auto primaries = this->make_primaries(num_primaries);
-    extend_from_primaries(*this->core(), this->state(), make_span(primaries));
-    EXPECT_EQ(num_primaries, this->state().ref().init.scalars.num_initializers);
+    this->extend_from_primaries(make_span(primaries));
+    EXPECT_EQ(num_primaries, this->state().counters().num_initializers);
 
     auto apply_actions = [&actions, this] {
         for (const auto& ea_interface : actions)
@@ -458,7 +430,7 @@ TYPED_TEST(TypedTrackInitTest, secondaries_action)
                 << "iteration " << i;
         }
     }
-}
+}  // namespace test
 
 //---------------------------------------------------------------------------//
 }  // namespace test

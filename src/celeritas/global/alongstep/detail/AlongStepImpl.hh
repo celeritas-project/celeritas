@@ -52,7 +52,7 @@ apply_msc_step_limit(CoreTrackView const& track, MH&& msc)
 /*!
  * Apply propagaion.
  *
- * This is a tiny helper class to facilitate use of \c make_track_launcher. It
+ * This is a tiny helper class to facilitate use of \c make_track_executor. It
  * should probably be cleaned up later.
  */
 struct ApplyPropagation
@@ -242,6 +242,7 @@ inline CELER_FUNCTION void apply_eloss(CoreTrackView const& track, EH&& eloss)
         {
             // Immediately kill stopped particles with no at rest processes
             sim.status(TrackStatus::killed);
+            sim.step_limit().action = phys.scalars().range_action();
         }
         else
         {

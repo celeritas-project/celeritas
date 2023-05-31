@@ -7,11 +7,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
+
 #include "corecel/Types.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/DeviceVector.hh"
+#include "corecel/data/Ref.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/phys/Primary.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 namespace celeritas
 {
@@ -29,6 +35,8 @@ class CoreState
     using Ref = CoreStateData<Ownership::reference, M>;
     using Ptr = ObserverPtr<Ref, M>;
     using size_type = TrackSlotId::size_type;
+    using PrimaryRange = ItemRange<Primary>;
+    using PrimaryCRef = Collection<Primary, Ownership::const_reference, M>;
     //!@}
 
   public:
@@ -52,12 +60,38 @@ class CoreState
     // Get a native-memspace pointer to the mutable state data
     inline Ptr ptr();
 
+    //! Track initialization counters
+    CoreStateCounters& counters() { return counters_; }
+
+    //! Track initialization counters
+    CoreStateCounters const& counters() const { return counters_; }
+
+    //// PRIMARY STORAGE ////
+
+    // Inject primaries to be turned into TrackInitializers
+    void insert_primaries(Span<Primary const> host_primaries);
+
+    // Get the range of valid primaries
+    inline PrimaryRange primary_range() const;
+
+    // Get the storage for primaries
+    inline PrimaryCRef primary_storage() const;
+
+    //! Clear primaries after constructing initializers from them
+    void clear_primaries() { counters_.num_primaries = 0; }
+
   private:
     // State data
     CollectionStateStore<CoreStateData, M> states_;
 
-    // Copy of state ref in device memory
+    // Primaries to be added
+    Collection<Primary, Ownership::value, M> primaries_;
+
+    // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;
+
+    // Counters for track initialization and activity
+    CoreStateCounters counters_;
 };
 
 //---------------------------------------------------------------------------//
@@ -79,6 +113,26 @@ auto CoreState<M>::ptr() -> Ptr
         CELER_ENSURE(!device_ref_vec_.empty());
         return make_observer(device_ref_vec_);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the range of valid primaries.
+ */
+template<MemSpace M>
+auto CoreState<M>::primary_range() const -> PrimaryRange
+{
+    return {ItemId<Primary>(counters_.num_primaries)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the range of valid primaries.
+ */
+template<MemSpace M>
+auto CoreState<M>::primary_storage() const -> PrimaryCRef
+{
+    return PrimaryCRef{primaries_};
 }
 
 //---------------------------------------------------------------------------//

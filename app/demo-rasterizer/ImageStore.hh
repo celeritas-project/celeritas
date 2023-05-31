@@ -18,7 +18,9 @@
 #include "ImageData.hh"
 #include "ImageIO.hh"
 
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -29,9 +31,9 @@ class ImageStore
   public:
     //!@{
     //! \name Type aliases
-    using real_type = celeritas::real_type;
-    using UInt2 = celeritas::Array<unsigned int, 2>;
-    using Real3 = celeritas::Real3;
+
+    using UInt2 = Array<unsigned int, 2>;
+
     using VecInt = std::vector<int>;
     //!@}
 
@@ -73,8 +75,9 @@ class ImageStore
     Real3 right_ax_;
     real_type pixel_width_;
     UInt2 dims_;
-    celeritas::DeviceVector<int> image_;
+    DeviceVector<int> image_;
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas

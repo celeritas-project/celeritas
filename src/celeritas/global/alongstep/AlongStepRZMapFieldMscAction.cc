@@ -7,24 +7,22 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepRZMapFieldMscAction.hh"
 
+#include <type_traits>
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/data/Ref.hh"
-#include "corecel/sys/Device.hh"
+#include "corecel/Macros.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepRZMapFieldMsc.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -73,9 +71,9 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
 {
     MultiExceptionHandler capture_exception;
 
-    auto launch
-        = make_along_step_track_launcher(*params.ptr<MemSpace::native>(),
-                                         *state.ptr(),
+    auto execute
+        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
+                                         state.ptr(),
                                          this->action_id(),
                                          detail::along_step_mapfield_msc,
                                          msc_->host_ref(),
@@ -86,7 +84,7 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
     for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            execute(ThreadId{i}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(),
                                    state.ref(),

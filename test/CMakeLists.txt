@@ -11,7 +11,7 @@ include(CeleritasAddTest)
 #-----------------------------------------------------------------------------#
 
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
-configure_file(testdetail/TestConfig.cc.in TestConfig.cc @ONLY)
+configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 celeritas_add_library(testcel_harness
   Test.cc
@@ -19,7 +19,6 @@ celeritas_add_library(testcel_harness
   testdetail/NonMasterResultPrinter.cc
   testdetail/ParallelHandler.cc
   testdetail/TestMainImpl.cc
-  "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 target_compile_features(testcel_harness PUBLIC cxx_std_14)
 celeritas_target_link_libraries(testcel_harness
@@ -80,11 +79,22 @@ endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
+if(CELERITAS_USE_VecGeom)
+  set(_optional_vecgeom_link VecGeom::vecgeom)
+endif()
 if(CELERITAS_DEBUG)
   set(_disable_if_debug DISABLE)
 endif()
 if(NOT CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_JSON)
   set(_needs_geo DISABLE)
+endif()
+
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  set(_core_geo_lib VecGeom::vecgeom)
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  set(_core_geo_lib LINK_LIBRARIES ${Geant4_LIBRARIES})
+else()
+  set(_core_geo_lib LINK_LIBRARIES Celeritas::orange)
 endif()
 
 if(NOT CELERITAS_USE_Geant4)
@@ -233,7 +243,7 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 # CELERITAS TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(testcel_celeritas
+celeritas_add_object_library(testcel_celeritas_core
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
   celeritas/phys/InteractorHostTestBase.cc
@@ -244,6 +254,7 @@ celeritas_add_library(testcel_celeritas
   celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
   celeritas/ImportedDataTestBase.cc
+  celeritas/LazyGeoManager.cc
   celeritas/MockTestBase.cc
   celeritas/RootTestBase.cc
   celeritas/SimpleTestBase.cc
@@ -253,10 +264,30 @@ celeritas_add_library(testcel_celeritas
   celeritas/user/ExampleMctruth.cc
   celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
+  celeritas/user/StepCollectorTestBase.cc
+)
+target_link_libraries(testcel_celeritas_core
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_optional_json_link}
 )
 
+# Geometry
+celeritas_add_object_library(testcel_celeritas_geo
+  celeritas/GenericGeoTestBase.cc
+)
+set(_geo_libs
+  Celeritas::orange ${_optional_vecgeom_link} ${_optional_geant4_link}
+)
+target_link_libraries(testcel_celeritas_geo
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_geo_libs}
+)
+
+celeritas_add_library(testcel_celeritas
+  $<TARGET_OBJECTS:testcel_celeritas_core>
+  $<TARGET_OBJECTS:testcel_celeritas_geo>
+)
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link}
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas
+  ${_geo_libs} ${_optional_json_link}
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
@@ -295,6 +326,11 @@ if(CELERITAS_USE_VecGeom)
     LINK_LIBRARIES VecGeom::vecgeom
   )
 endif()
+if(CELERITAS_USE_Geant4)
+  celeritas_add_test(celeritas/ext/GeantGeo.test.cc
+    LINK_LIBRARIES ${Geant4_LIBRARIES}
+  )
+endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc
@@ -316,8 +352,10 @@ set(CELERITASTEST_PREFIX celeritas/field)
 celeritas_add_test(celeritas/field/Fields.test.cc)
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
-celeritas_add_test(celeritas/field/FieldPropagator.test.cc ${_needs_geo})
-celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
+celeritas_add_test(celeritas/field/FieldPropagator.test.cc
+  ${_needs_geo} LINK_LIBRARIES ${_core_geo_lib})
+celeritas_add_test(celeritas/field/LinearPropagator.test.cc
+  ${_needs_geo} LINK_LIBRARIES  ${_core_geo_lib})
 celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
 
 #-------------------------------------#
@@ -329,15 +367,16 @@ set(_geo_args GPU ${_needs_geo}
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
 endif()
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
-else()
-  list(APPEND _geo_args LINK_LIBRARIES Celeritas::orange)
-endif()
-celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
+celeritas_add_test(celeritas/geo/Geometry.test.cc
+  ${_geo_args} LINK_LIBRARIES ${_core_geo_lib})
 
+if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
+  set(_needs_geant_or_root DISABLE)
+else()
+  set(_needs_geant_or_root)
+endif()
 celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
-  ${_needs_root} ${_needs_geo})
+  ${_needs_geant_or_root} ${_needs_geo} ${_optional_geant4_env})
 
 #-------------------------------------#
 # Global
@@ -462,7 +501,11 @@ celeritas_add_test(celeritas/track/TrackInit.test.cc GPU SOURCES ${_trackinit_so
 set(CELERITASTEST_PREFIX celeritas/user)
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
 celeritas_add_test(celeritas/user/StepCollector.test.cc GPU ${_optional_geant4_env} ${_needs_geo})
-celeritas_add_test(celeritas/user/Diagnostic.test.cc GPU ${_needs_geant4} ${_needs_geo})
+if(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  # EM track gets stuck
+  set(_fails_g4geo DISABLE)
+endif()
+celeritas_add_test(celeritas/user/Diagnostic.test.cc GPU ${_needs_geant4} ${_needs_geo} ${_fails_g4geo})
 
 #-----------------------------------------------------------------------------#
 # ACCELERITAS TESTS
@@ -482,22 +525,28 @@ endif()
 # DATA UPDATE
 #-----------------------------------------------------------------------------#
 
-set(_fourslabs "${CMAKE_CURRENT_SOURCE_DIR}/celeritas/data/four-steel-slabs")
-set(_cmake_env)
-if(CELERITAS_USE_Geant4)
-  set(_cmake_env
-    "${CMAKE_COMMAND}" "-E" "env" "${_geant4_test_env}"
+function(celeritas_add_rootupdate_target target filename)
+  set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/celeritas/data/${filename}")
+  if(CELERITAS_USE_Geant4)
+    set(_cmake_env
+      "${CMAKE_COMMAND}" "-E" "env" "${_geant4_test_env}"
+    )
+  else()
+    set(_cmake_env)
+  endif()
+  add_custom_target(${target}
+    COMMAND
+      ${_cmake_env}
+      "$<TARGET_FILE:celer-export-geant>"
+      "${_basename}.gdml"
+      "${_basename}.geant.json"
+      "${_basename}.root"
+    VERBATIM
   )
-endif()
-add_custom_target(update-four-slabs
-  COMMAND
-    ${_cmake_env}
-    "$<TARGET_FILE:celer-export-geant>"
-    "${_fourslabs}.gdml"
-    "${_fourslabs}.geant.json"
-    "${_fourslabs}.root"
-  VERBATIM
-)
-add_dependencies(update-four-slabs celer-export-geant)
+  add_dependencies(${target} celer-export-geant)
+endfunction()
+
+celeritas_add_rootupdate_target(update-four-slabs four-steel-slabs)
+celeritas_add_rootupdate_target(update-simple-cms simple-cms)
 
 #-----------------------------------------------------------------------------#

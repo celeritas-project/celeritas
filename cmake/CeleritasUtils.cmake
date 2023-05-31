@@ -55,6 +55,24 @@ CMake configuration utility functions for Celeritas.
   the ``Celeritas::`` aliases, and is generated into the ``lib/`` build
   directory.
 
+.. command:: celeritas_add_object_library
+
+  Add an OBJECT library to reduce dependencies (e.g. includes) from other libraries.
+
+.. command:: celeritas_add_executable
+
+  Create an executable and install it::
+
+    celeritas_add_executable(<target> [<source> ...])
+
+  The ``<target>`` is a unique identifier for the executable target. The actual
+  executable name may end up with an .exe suffix (e.g. if it's windows). The
+  executable will be built into the top-level ``bin`` directory, so all
+  executables will sit side-by-side before installing.
+
+  The ``<source>`` arguments are passed to CMake's builtin ``add_executable``
+  command.
+
 .. command:: celeritas_configure_file
 
   Configure to the build "include" directory for later installation::
@@ -89,8 +107,10 @@ CMake configuration utility functions for Celeritas.
     celeritas_define_options(<var> <doc>)
 
   If <var> is not yet set, this will set it to the first item of the list
-  ``${<var>_OPTIONS}``.  Otherwise It will validate that the pre-existing
-  selection is one of the list.
+  ``${<var>_OPTIONS}`` *without* storing it in the cache, so that it will be
+  set locally but will not persist if other CMake options change.  If provided
+  by the user, this command will validate that the pre-existing selection is one
+  of the list.
 
 .. command:: celeritas_generate_option_config
 
@@ -237,7 +257,7 @@ function(celeritas_add_library target)
   endif()
 
   # Build all targets in lib/
-  set_target_properties(${_targets} PROPERTIES ${_props}
+  set_target_properties(${_targets} PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
     LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
   )
@@ -248,6 +268,33 @@ function(celeritas_add_library target)
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     COMPONENT runtime
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+# Add an object library to limit the propagation of includes to the rest of the
+# library.
+function(celeritas_add_object_library target)
+  add_library(${target} OBJECT ${ARGN})
+  install(TARGETS ${target}
+    EXPORT celeritas-targets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    COMPONENT runtime
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_add_executable target)
+  add_executable("${target}" ${ARGN})
+  install(TARGETS "${target}"
+    EXPORT celeritas-targets
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    COMPONENT runtime
+  )
+  set_target_properties("${target}" PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CELERITAS_RUNTIME_OUTPUT_DIRECTORY}"
   )
 endfunction()
 
@@ -292,17 +339,23 @@ function(celeritas_define_options var doc)
   endif()
   mark_as_advanced(${var}_OPTIONS)
 
-  list(GET ${var}_OPTIONS 0 _default)
-  set(${var} "${_default}" CACHE STRING "${doc}")
+  set(${var} "" CACHE STRING "${doc}")
   set_property(CACHE ${var} PROPERTY STRINGS "${${var}_OPTIONS}")
 
-  list(FIND ${var}_OPTIONS "${${var}}" _index)
-  if(_index EQUAL -1)
-    string(JOIN "," _optlist ${${var}_OPTIONS})
-    celeritas_error_incompatible_option(
-      "valid options are {${_optlist}} "
-      "${var}" "${_default}"
-    )
+  if("${${var}}" STREQUAL "")
+    # Dynamic default option: set as core variable in parent scope
+    list(GET ${var}_OPTIONS 0 _default)
+    set(${var} "${_default}" PARENT_SCOPE)
+  else()
+    # User-provided value: check against list
+    list(FIND ${var}_OPTIONS "${${var}}" _index)
+    if(_index EQUAL -1)
+      string(JOIN "," _optlist ${${var}_OPTIONS})
+      celeritas_error_incompatible_option(
+        "valid options are {${_optlist}} "
+        "${var}" "${_default}"
+      )
+    endif()
   endif()
 endfunction()
 
@@ -326,6 +379,9 @@ function(celeritas_generate_option_config var)
 
   # Add selected option
   string(TOUPPER "${${var}}" _val)
+  if(NOT _val)
+    message(FATAL_ERROR "Option configuration '${var}' is undefined")
+  endif()
   string(JOIN "\n" _result
     ${_options}
     "#define ${var} ${var}_${_val}"

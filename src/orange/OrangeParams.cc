@@ -302,17 +302,6 @@ auto OrangeParams::find_volumes(std::string const& name) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Locate the volume ID corresponding to a Geant4 volume.
- *
- * TODO: To be properly implemented, as it requires a future Geant4 converter.
- */
-VolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
-{
-    return VolumeId{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the label of a surface.
  */
 Label const& OrangeParams::id_to_label(SurfaceId surf) const

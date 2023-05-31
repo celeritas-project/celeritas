@@ -13,8 +13,10 @@
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
@@ -49,15 +51,11 @@
       "description": "Build without any dependencies but JSON/Googletest",
       "inherits": "base",
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
@@ -70,6 +68,17 @@
       "inherits": [".ndebug", "base"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "geant4",
+      "description": "Build with geant4 as the core geometry",
+      "inherits": ["base"],
+      "cacheVariables": {
+        "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_CORE_GEO": "Geant4",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     }
   ],
@@ -84,6 +93,7 @@
     {"name": "asan", "configurePreset": "asan", "inherits": "base"},
     {"name": "debug", "configurePreset": "debug", "inherits": "base"},
     {"name": "minitest", "configurePreset": "minitest", "inherits": "base"},
+    {"name": "geant4", "configurePreset": "geant4", "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base",
      "targets": ["all", "install"]}
   ],
@@ -106,6 +116,7 @@
     {"name": "asan", "configurePreset": "asan", "inherits": "base"},
     {"name": "debug", "configurePreset": "debug", "inherits": "base"},
     {"name": "minitest", "configurePreset": "minitest", "inherits": "base"},
+    {"name": "geant4", "configurePreset": "geant4", "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
   ]
 }

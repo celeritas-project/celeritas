@@ -13,6 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -54,7 +55,7 @@ struct ImportData;
  * photon, electron, or positron with energy below the cutoff will be killed
  * (the flag will be ignored for other particle types).
  */
-class CutoffParams
+class CutoffParams final : public ParamsDataInterface<CutoffParamsData>
 {
   public:
     //!@{
@@ -62,9 +63,6 @@ class CutoffParams
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using MaterialCutoffs = std::vector<ParticleCutoff>;
-
-    using HostRef = HostCRef<CutoffParamsData>;
-    using DeviceRef = DeviceCRef<CutoffParamsData>;
     //!@}
 
     //! Input data to construct this class
@@ -90,10 +88,10 @@ class CutoffParams
     inline CutoffView get(MaterialId material) const;
 
     //! Access cutoff data on the host
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host(); }
 
     //! Access cutoff data on the device
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
     // Host/device storage and reference

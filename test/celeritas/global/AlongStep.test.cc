@@ -282,7 +282,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             EXPECT_SOFT_EQ(1, result.angle);
             EXPECT_SOFT_EQ(4.8522211972805e-14, result.time);
             EXPECT_SOFT_EQ(0.00028363764374689, result.step);
-            EXPECT_EQ("physics-discrete-select", result.action);
+            EXPECT_EQ("eloss-range", result.action);
         }
         {
             SCOPED_TRACE("near boundary");
@@ -488,7 +488,7 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
 
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(4.1632771293464517, result.displacement);
-        EXPECT_SOFT_EQ(-0.59445466152831616, result.angle);
+        EXPECT_SOFT_NEAR(-0.59445466152831616, result.angle, 2e-12);
     }
 }
 

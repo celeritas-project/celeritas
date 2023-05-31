@@ -11,6 +11,7 @@
 #include <cmath>
 #include <map>
 #include <set>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 
@@ -47,16 +48,15 @@
 #include "celeritas/phys/Process.hh"
 
 #include "ParticleParams.hh"
-#include "generated/DiscreteSelectAction.hh"
-#include "generated/PreStepAction.hh"
+#include "detail/DiscreteSelectAction.hh"
+#include "detail/PreStepAction.hh"
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
-class ImplicitPhysicsAction final : public ImplicitActionInterface,
-                                    public ConcreteAction
+class ImplicitPhysicsAction final : public ConcreteAction
 {
   public:
     // Construct with ID and label
@@ -87,8 +87,8 @@ PhysicsParams::PhysicsParams(Input inp)
         using std::make_shared;
         auto& action_reg = *inp.action_registry;
 
-        auto pre_step_action = make_shared<generated::PreStepAction>(
-            action_reg.next_id(), "pre-step", "update beginning-of-step state");
+        auto pre_step_action
+            = make_shared<detail::PreStepAction>(action_reg.next_id());
         inp.action_registry->insert(pre_step_action);
         pre_step_action_ = std::move(pre_step_action);
 
@@ -106,10 +106,8 @@ PhysicsParams::PhysicsParams(Input inp)
         action_reg.insert(range_action);
         range_action_ = std::move(range_action);
 
-        auto discrete_action = make_shared<generated::DiscreteSelectAction>(
-            action_reg.next_id(),
-            "physics-discrete-select",
-            "select a discrete interaction");
+        auto discrete_action
+            = make_shared<detail::DiscreteSelectAction>(action_reg.next_id());
         inp.action_registry->insert(discrete_action);
         discrete_action_ = std::move(discrete_action);
 
