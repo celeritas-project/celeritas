@@ -22,6 +22,7 @@
 
 #include "celeritas_config.h"
 #include "celeritas_version.h"
+#include "corecel/device_runtime_api.h"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
@@ -100,6 +101,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
         CELER_ASSERT(device());
         device().create_streams(num_streams);
     }
+    result.num_streams = num_streams;
 
     Stopwatch get_transport_time;
     if (run_input->merge_events)
@@ -125,9 +127,12 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 #endif
         for (size_type event = 0; event < run_stream.num_events(); ++event)
         {
-            // Make sure cudaSetDevice is called on the local thread
-            using namespace celeritas;
-            activate_device(Device{device().device_id()});
+            if (device())
+            {
+                // See
+                // https://developer.nvidia.com/blog/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
+                CELER_DEVICE_CALL_PREFIX(SetDevice(device().device_id()));
+            }
 
             // Run a single event on a single thread
             CELER_TRY_HANDLE(result.events[event] = run_stream(

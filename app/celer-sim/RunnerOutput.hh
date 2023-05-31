@@ -11,12 +11,26 @@
 
 #include "corecel/io/OutputInterface.hh"
 
-#include "Runner.hh"
+#include "Transporter.hh"
 
 namespace celeritas
 {
 namespace app
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Results from transporting all events.
+ */
+struct SimulationResult
+{
+    //// DATA ////
+
+    real_type total_time{};  //!< Total simulation time
+    real_type setup_time{};  //!< One-time initialization cost
+    std::vector<TransporterResult> events;  //!< Results tallied for each event
+    size_type num_streams{};  //!< Number of CPU/OpenMP threads
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Output demo loop results.
