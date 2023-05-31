@@ -108,7 +108,7 @@ TEST(HyperslabIndexerTest, 5D_with_ones)
 TEST(HyperslabIndexerTest, TEST_IF_CELERITAS_DEBUG(error))
 {
     Array<size_type, 3> const dims{2, 0, 3};
-    EXPECT_THROW((HyperslabIndexer<3>({2, 0, 3})), DebugError);
+    EXPECT_THROW((HyperslabIndexer<3>(dims)), DebugError);
 }
 
 //---------------------------------------------------------------------------//
