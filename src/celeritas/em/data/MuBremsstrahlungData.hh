@@ -64,6 +64,7 @@ struct MuBremsstrahlungData
 
 using MuBremsstrahlungHostRef = MuBremsstrahlungData;
 using MuBremsstrahlungDeviceRef = MuBremsstrahlungData;
+using MuBremsstrahlungRef = MuBremsstrahlungData;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

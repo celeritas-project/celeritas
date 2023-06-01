@@ -13,7 +13,6 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/CombinedBremData.hh"
 #include "celeritas/io/ImportSBTable.hh"
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
