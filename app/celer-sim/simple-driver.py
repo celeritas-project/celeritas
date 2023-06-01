@@ -81,7 +81,7 @@ inp = {
     'hepmc3_filename': hepmc3_filename,
     'mctruth_filename': rootout_filename,
     'seed': 12345,
-    'max_num_tracks': num_tracks,
+    'num_track_slots': num_tracks,
     'max_steps': max_steps,
     'initializer_capacity': 100 * max([num_tracks, num_primaries]),
     'max_events': 1000,

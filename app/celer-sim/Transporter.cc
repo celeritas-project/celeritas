@@ -122,6 +122,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             result.action_times[label] = times[i];
         }
     }
+    result.num_track_slots = stepper_->state().size();
     return result;
 }
 

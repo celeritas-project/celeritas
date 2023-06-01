@@ -39,6 +39,8 @@ class ScopedMem
 {
   public:
     // Default constructor for "null-op" recording
+    ScopedMem() = default;
+
     // Construct with name and registries
     ScopedMem(std::string_view label, MemRegistry* registry);
 

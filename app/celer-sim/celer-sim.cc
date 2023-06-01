@@ -22,6 +22,7 @@
 
 #include "celeritas_config.h"
 #include "celeritas_version.h"
+#include "corecel/device_runtime_api.h"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
@@ -100,6 +101,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
         CELER_ASSERT(device());
         device().create_streams(num_streams);
     }
+    result.num_streams = num_streams;
 
     Stopwatch get_transport_time;
     if (run_input->merge_events)
@@ -125,6 +127,8 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 #endif
         for (size_type event = 0; event < run_stream.num_events(); ++event)
         {
+            activate_device_local();
+
             // Run a single event on a single thread
             CELER_TRY_HANDLE(result.events[event] = run_stream(
                                  StreamId(get_openmp_thread()), EventId(event)),
@@ -133,6 +137,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
         log_and_rethrow(std::move(capture_exception));
     }
     result.total_time = get_transport_time();
+    record_mem = {};
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }
 

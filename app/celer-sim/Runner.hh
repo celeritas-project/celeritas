@@ -34,24 +34,6 @@ struct RunnerInput;
 
 //---------------------------------------------------------------------------//
 /*!
- * Results from transporting all events.
- */
-struct SimulationResult
-{
-    //!@{
-    //! \name Type aliases
-
-    //!@}
-
-    //// DATA ////
-
-    real_type total_time{};  //!< Total simulation time
-    real_type setup_time{};  //!< One-time initialization cost
-    std::vector<TransporterResult> events;  //< Results tallied for each event
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Manage execution of Celeritas.
  *
  * This class is meant to be created in a single-thread context, and executed
