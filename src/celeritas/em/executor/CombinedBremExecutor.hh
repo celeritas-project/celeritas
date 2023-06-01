@@ -22,11 +22,20 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct CombinedBremExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    CombinedBremRef params;
+};
+
+//---------------------------------------------------------------------------//
 /*!
- * Apply electron/positron brems to the current track.
+ * Sample electron/positron brems from the current track.
  */
-inline CELER_FUNCTION Interaction combined_brem_interact_track(
-    CombinedBremRef const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction
+CombinedBremExecutor::operator()(CoreTrackView const& track)
 {
     // Select material track view
     auto material = track.make_material_view().make_material_view();
@@ -41,7 +50,7 @@ inline CELER_FUNCTION Interaction combined_brem_interact_track(
         = track.make_physics_step_view().make_secondary_allocator();
     auto cutoff = track.make_cutoff_view();
 
-    CombinedBremInteractor interact(model,
+    CombinedBremInteractor interact(params,
                                     particle,
                                     dir,
                                     cutoff,

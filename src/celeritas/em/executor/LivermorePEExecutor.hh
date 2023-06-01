@@ -18,11 +18,20 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct LivermorePEExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    LivermorePERef params;
+};
+
+//---------------------------------------------------------------------------//
 /*!
- * Apply the Livermore photoelectric interaction to the current track.
+ * Sample a Livermore photoelectric interaction from the current track.
  */
-inline CELER_FUNCTION Interaction livermore_pe_interact_track(
-    LivermorePERef const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction
+LivermorePEExecutor::operator()(CoreTrackView const& track)
 {
     auto particle = track.make_particle_view();
     auto rng = track.make_rng_engine();
@@ -37,7 +46,7 @@ inline CELER_FUNCTION Interaction livermore_pe_interact_track(
         auto material = material_track.make_material_view();
         ElementSelector select_el(
             material,
-            LivermorePEMicroXsCalculator{model, particle.energy()},
+            LivermorePEMicroXsCalculator{params, particle.energy()},
             material_track.element_scratch());
         elcomp_id = select_el(rng);
         CELER_ASSERT(elcomp_id);
@@ -54,7 +63,7 @@ inline CELER_FUNCTION Interaction livermore_pe_interact_track(
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
     LivermorePEInteractor interact(
-        model, relaxation, el_id, particle, cutoffs, dir, allocate_secondaries);
+        params, relaxation, el_id, particle, cutoffs, dir, allocate_secondaries);
 
     // Sample the interaction
     return interact(rng);
