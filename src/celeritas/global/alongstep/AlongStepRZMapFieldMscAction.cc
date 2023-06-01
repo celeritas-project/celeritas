@@ -11,7 +11,7 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "celeritas/em/FluctuationParams.hh"
+#include "celeritas/em/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -39,30 +39,33 @@ AlongStepRZMapFieldMscAction::from_params(ActionId id,
                                           RZMapFieldInput const& field_input,
                                           SPConstMsc const& msc)
 {
-    SPConstFluctuations fluct
-        = std::make_shared<FluctuationParams>(particles, materials);
-
+    CELER_EXPECT(field_input);
+    CELER_EXPECT(msc);
     return std::make_shared<AlongStepRZMapFieldMscAction>(
-        id, std::move(fluct), field_input, msc);
+        id,
+        field_input,
+        std::make_shared<FluctuationParams>(particles, materials),
+        msc);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with next action ID and optional energy loss parameters.
+ * Construct with next action ID, energy loss parameters, and MSC.
  */
 AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
     ActionId id,
-    SPConstFluctuations fluct,
     RZMapFieldInput const& input,
+    SPConstFluctuations fluct,
     SPConstMsc msc)
-    : id_(id), fluct_(std::move(fluct)), msc_(std::move(msc))
+    : id_(id)
+    , field_{std::make_shared<RZMapFieldParams>(input)}
+    , fluct_(std::move(fluct))
+    , msc_(std::move(msc))
 {
     CELER_EXPECT(id_);
-    CELER_EXPECT(input);
+    CELER_EXPECT(field_);
     CELER_EXPECT(fluct_);
     CELER_EXPECT(msc_);
-
-    field_ = std::make_shared<RZMapFieldParams>(input);
 }
 
 //---------------------------------------------------------------------------//
@@ -82,6 +85,15 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
             detail::FluctELoss{fluct_->ref<MemSpace::native>()}});
     return launch_action(*this, params, state, execute);
 }
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void AlongStepRZMapFieldMscAction::execute(CoreParams const&,
+                                           CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

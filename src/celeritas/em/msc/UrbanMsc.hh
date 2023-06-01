@@ -49,7 +49,7 @@ class UrbanMsc
     inline CELER_FUNCTION void apply_step(CoreTrackView const&, StepLimit*);
 
   private:
-    ParamsRef const& msc_params_;
+    ParamsRef const msc_params_;
 
     // Whether the step was limited by geometry
     static inline CELER_FUNCTION bool

@@ -49,7 +49,7 @@ class FluctELoss
     //// DATA ////
 
     //! Reference to fluctuation data
-    ParamsRef const& fluct_params_;
+    ParamsRef const fluct_params_;
 
     //// HELPER FUNCTIONS ////
 

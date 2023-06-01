@@ -10,6 +10,7 @@
 #include "celeritas/field/DormandPrinceStepper.hh"  // IWYU pragma: associated
 #include "celeritas/field/MakeMagFieldPropagator.hh"  // IWYU pragma: associated
 #include "celeritas/field/UniformField.hh"  // IWYU pragma: associated
+#include "celeritas/field/UniformFieldData.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {

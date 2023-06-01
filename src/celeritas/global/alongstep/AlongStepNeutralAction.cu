@@ -23,11 +23,13 @@ namespace celeritas
 void AlongStepNeutralAction::execute(CoreParams const& params,
                                      CoreStateDevice& state) const
 {
-    auto execute
-        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
-                                         state.ptr(),
-                                         this->action_id(),
-                                         detail::AlongStepNeutralExecutor{});
+    auto execute = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        AlongStep{detail::NoMsc{},
+                  detail::LinearTrackPropagator{},
+                  detail::NoELoss{}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
