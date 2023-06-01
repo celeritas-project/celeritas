@@ -12,15 +12,25 @@
 #include "celeritas/em/data/MollerBhabhaData.hh"
 #include "celeritas/em/interactor/MollerBhabhaInteractor.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/phys/Interaction.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct MollerBhabhaExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    MollerBhabhaData params;
+};
+
+//---------------------------------------------------------------------------//
 /*!
- * Apply MollerBhabha to the current track.
+ * Sample Moller-Bhabha ionization from the current track.
  */
-inline CELER_FUNCTION Interaction moller_bhabha_interact_track(
-    MollerBhabhaData const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction
+MollerBhabhaExecutor::operator()(CoreTrackView const& track)
 {
     auto particle = track.make_particle_view();
     auto cutoff = track.make_cutoff_view();
@@ -29,7 +39,7 @@ inline CELER_FUNCTION Interaction moller_bhabha_interact_track(
         = track.make_physics_step_view().make_secondary_allocator();
 
     MollerBhabhaInteractor interact(
-        model, particle, cutoff, dir, allocate_secondaries);
+        params, particle, cutoff, dir, allocate_secondaries);
     auto rng = track.make_rng_engine();
     return interact(rng);
 }

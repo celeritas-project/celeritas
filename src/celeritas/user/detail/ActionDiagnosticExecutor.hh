@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/ActionDiagnosticImpl.hh
+//! \file celeritas/user/detail/ActionDiagnosticExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,18 +12,28 @@
 #include "corecel/math/Atomics.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
+#include "../ParticleTallyData.hh"
+
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
+struct ActionDiagnosticExecutor
+{
+    inline CELER_FUNCTION void
+    operator()(celeritas::CoreTrackView const& track);
+
+    NativeCRef<ParticleTallyParamsData> const params;
+    NativeRef<ParticleTallyStateData> const state;
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Tally post-step actions by particle type.
  */
-inline CELER_FUNCTION void
-tally_action(CoreTrackView const& track,
-             NativeCRef<ParticleTallyParamsData> const& params,
-             NativeRef<ParticleTallyStateData> const& state)
+CELER_FUNCTION void
+ActionDiagnosticExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);

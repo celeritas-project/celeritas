@@ -23,16 +23,11 @@ namespace detail
 template<StepPoint P>
 struct StepGatherExecutor
 {
-    //// DATA ////
+    inline CELER_FUNCTION void
+    operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<CoreParamsData> const& core_params;
-    NativeRef<CoreStateData> const& core_state;
-    NativeCRef<StepParamsData> const& step_params;
-    NativeRef<StepStateData> const& step_state;
-
-    //// METHODS ////
-
-    CELER_FUNCTION void operator()(ThreadId thread) const;
+    NativeCRef<StepParamsData> const params;
+    NativeRef<StepStateData> const state;
 };
 
 //---------------------------------------------------------------------------//
@@ -42,20 +37,18 @@ struct StepGatherExecutor
  * Gather step data on device based on the user selection.
  */
 template<StepPoint P>
-CELER_FUNCTION void StepGatherExecutor<P>::operator()(ThreadId thread) const
+CELER_FUNCTION void
+StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
 {
-    CELER_ASSERT(thread < this->core_state.size());
+    CELER_EXPECT(params && state);
 
-    celeritas::CoreTrackView const track(
-        this->core_params, this->core_state, thread);
-
-#define SGL_SET_IF_SELECTED(ATTR, VALUE)                          \
-    do                                                            \
-    {                                                             \
-        if (this->step_params.selection.ATTR)                     \
-        {                                                         \
-            this->step_state.ATTR[track.track_slot_id()] = VALUE; \
-        }                                                         \
+#define SGL_SET_IF_SELECTED(ATTR, VALUE)                     \
+    do                                                       \
+    {                                                        \
+        if (this->params.selection.ATTR)                     \
+        {                                                    \
+            this->state.ATTR[track.track_slot_id()] = VALUE; \
+        }                                                    \
     } while (0)
 
     {
@@ -65,16 +58,16 @@ CELER_FUNCTION void StepGatherExecutor<P>::operator()(ThreadId thread) const
         if (P == StepPoint::post)
         {
             // Always save track ID to clear output from inactive slots
-            this->step_state.track_id[track.track_slot_id()]
+            this->state.track_id[track.track_slot_id()]
                 = inactive ? TrackId{} : sim.track_id();
         }
 
         if (inactive)
         {
-            if (P == StepPoint::pre && !this->step_params.detector.empty())
+            if (P == StepPoint::pre && !this->params.detector.empty())
             {
                 // Clear detector ID for inactive threads
-                this->step_state.detector[track.track_slot_id()] = {};
+                this->state.detector[track.track_slot_id()] = {};
             }
 
             // No more data to be written
@@ -82,7 +75,7 @@ CELER_FUNCTION void StepGatherExecutor<P>::operator()(ThreadId thread) const
         }
     }
 
-    if (!this->step_params.detector.empty())
+    if (!this->params.detector.empty())
     {
         // Apply detector filter at beginning of step (volume in which we're
         // stepping)
@@ -94,24 +87,24 @@ CELER_FUNCTION void StepGatherExecutor<P>::operator()(ThreadId thread) const
             CELER_ASSERT(vol);
 
             // Map volume ID to detector ID
-            this->step_state.detector[track.track_slot_id()]
-                = this->step_params.detector[vol];
+            this->state.detector[track.track_slot_id()]
+                = this->params.detector[vol];
         }
 
-        if (!this->step_state.detector[track.track_slot_id()])
+        if (!this->state.detector[track.track_slot_id()])
         {
             // We're not in a sensitive detector: don't save any further data
             return;
         }
 
-        if (P == StepPoint::post && this->step_params.nonzero_energy_deposition)
+        if (P == StepPoint::post && this->params.nonzero_energy_deposition)
         {
             // Filter out tracks that didn't deposit energy over the step
             auto const pstep = track.make_physics_step_view();
             if (pstep.energy_deposition() == zero_quantity())
             {
                 // Clear detector ID and stop recording
-                this->step_state.detector[track.track_slot_id()] = {};
+                this->state.detector[track.track_slot_id()] = {};
                 return;
             }
         }
