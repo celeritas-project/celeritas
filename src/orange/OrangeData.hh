@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
@@ -119,6 +120,34 @@ struct Connectivity
 
 //---------------------------------------------------------------------------//
 /*!
+ * Class for storing offset data for RaggedRightIndexer.
+ */
+template<size_type N>
+struct RaggedRightIndexerData
+{
+    using Sizes = Array<size_type, N>;
+    using Offsets = Array<size_type, N + 1>;
+
+    Offsets offsets;
+
+    //! Construct with the an array denoting the size of each dimension.
+    static RaggedRightIndexerData from_sizes(Sizes sizes)
+    {
+        CELER_EXPECT(sizes.size() > 0);
+
+        Offsets offs;
+        offs[0] = 0;
+        for (auto i : range(N))
+        {
+            CELER_EXPECT(sizes[i] > 0);
+            offs[i + 1] = sizes[i] + offs[i];
+        }
+        return RaggedRightIndexerData{offs};
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Scalar data for a single "unit" of volumes defined by surfaces.
  */
 struct SimpleUnitRecord
@@ -151,10 +180,17 @@ struct SimpleUnitRecord
  */
 struct RectArrayRecord
 {
-    Array<ItemRange<real_type>, 3> grid;
+    using Dims = Array<size_type, 3>;
+    using Grid = Array<ItemRange<real_type>, 3>;
+    using SurfaceIndexerData = RaggedRightIndexerData<3>;
 
     // Daughter data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, DaughterId> daughters;
+
+    // Array data
+    Dims dims;
+    Grid grid;
+    SurfaceIndexerData surface_indexer_data;
 
     //! Cursory check for validity
     explicit CELER_FUNCTION operator bool() const

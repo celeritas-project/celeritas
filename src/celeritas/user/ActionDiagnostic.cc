@@ -17,16 +17,15 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/user/ParticleTallyData.hh"
 
-#include "detail/ActionDiagnosticImpl.hh"
+#include "detail/ActionDiagnosticExecutor.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -82,25 +81,14 @@ void ActionDiagnostic::begin_run(CoreParams const& params, CoreStateDevice&)
 void ActionDiagnostic::execute(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    MultiExceptionHandler capture_exception;
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::tally_action,
-        store_.params<MemSpace::host>(),
-        store_.state<MemSpace::host>(state.stream_id(), this->state_size()));
-#pragma omp parallel for
-    for (ThreadId::size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            execute(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+        detail::ActionDiagnosticExecutor{
+            store_.params<MemSpace::native>(),
+            store_.state<MemSpace::native>(state.stream_id(),
+                                           this->state_size())});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
@@ -248,6 +236,15 @@ void ActionDiagnostic::begin_run_impl(CoreParams const& params)
     }
     CELER_ENSURE(store_);
 }
+
+//---------------------------------------------------------------------------//
+
+#if !CELER_USE_DEVICE
+void ActionDiagnostic::execute(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
