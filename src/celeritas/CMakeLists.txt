@@ -255,6 +255,7 @@ celeritas_polysource(em/model/LivermorePEModel)
 celeritas_polysource(em/model/MollerBhabhaModel)
 celeritas_polysource(em/model/MuBremsstrahlungModel)
 celeritas_polysource(em/model/RelativisticBremModel)
+celeritas_polysource(geo/detail/BoundaryAction)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
@@ -285,18 +286,9 @@ macro(celeritas_gen_interactor class func)
   )
 endmacro()
 
-macro(celeritas_gen_action basedir class func order)
-  celeritas_gen(SOURCES
-    "gen-action.py" "${basedir}/generated/${class}"
-    --class ${class} --func ${func} --actionorder ${order}
-  )
-endmacro()
-
 celeritas_gen_interactor("EPlusGG" "eplusgg")
 celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
-
-celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
 
 #-----------------------------------------------------------------------------#
 # Create library
