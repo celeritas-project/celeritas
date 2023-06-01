@@ -151,6 +151,9 @@ void activate_device();
 // Initialize a device in a round-robin fashion from a communicator.
 void activate_device(MpiCommunicator const&);
 
+// Call cudaSetDevice using the existing device, for thread-local safety
+void activate_device_local();
+
 // Print device info
 std::ostream& operator<<(std::ostream&, Device const&);
 

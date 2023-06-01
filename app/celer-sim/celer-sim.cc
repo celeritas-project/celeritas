@@ -127,12 +127,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 #endif
         for (size_type event = 0; event < run_stream.num_events(); ++event)
         {
-            if (device())
-            {
-                // See
-                // https://developer.nvidia.com/blog/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
-                CELER_DEVICE_CALL_PREFIX(SetDevice(device().device_id()));
-            }
+            activate_device_local();
 
             // Run a single event on a single thread
             CELER_TRY_HANDLE(result.events[event] = run_stream(
