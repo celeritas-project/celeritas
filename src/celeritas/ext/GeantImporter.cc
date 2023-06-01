@@ -30,10 +30,10 @@
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
+#include <G4PropagatorInField.hh>
 #include <G4ProcessVector.hh>
 #include <G4ProductionCuts.hh>
 #include <G4ProductionCutsTable.hh>
-#include <G4PropagatorInField.hh>
 #include <G4RToEConvForElectron.hh>
 #include <G4RToEConvForGamma.hh>
 #include <G4RToEConvForPositron.hh>

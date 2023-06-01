@@ -38,10 +38,10 @@ struct GeantImportDataSelection
     Flags processes = em;
 
     //! Change volume names to match exported GDML file
-    bool unique_volumes{false};
+    bool unique_volumes = false;
 
     // TODO expand/set reader flags automatically based on loaded processes
-    bool reader_data{true};
+    bool reader_data = true;
 };
 
 //---------------------------------------------------------------------------//
@@ -52,16 +52,14 @@ struct GeantImportDataSelection
  * simplify the toolchain or to integrate better with Acceleritas.
  *
  * \code
-   GeantImporter import(GeantSetup("blah.gdml"));
-   ImportData data = import();
- * \endcode
+    GeantImporter import(GeantSetup("blah.gdml"));
+    ImportData data = import();
+   \endcode
  * or to import from an existing, initialized Geant4 state:
  * \code
-   GeantImport import(world_volume);
-   GeantImportDataSelection selection
-   // Set up selection
-   ImportData data = import(selection);
- * \endcode
+ *  GeantImport import(world_volume);
+    ImportData data = import();
+ *  \endcode
  */
 class GeantImporter
 {

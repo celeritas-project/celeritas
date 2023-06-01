@@ -61,10 +61,10 @@ enum class RelaxationSelection
  * - \c gamma_general: load G4GammaGeneral instead of individual processes
  * - \c ionization: enable e- and e+ ionization process
  * - \c annihilation: enable e-e+ annihilation process
+ * - \c brems: enable Bremsstrahlung process selection
  * - \c brems: Bremsstrahlung model selection
  * - \c msc: Multiple scattering model selection
  * - \c relaxation: Atomic relaxation selection
- * - \c transport: replicate \c G4Transportation when no processes are assigned
  * - \c em_bins_per_decade: number of log-spaced energy bins per factor of 10
  * - \c eloss_fluctuation: enable universal energy fluctuations
  * - \c lpm: apply relativistic corrections for select models

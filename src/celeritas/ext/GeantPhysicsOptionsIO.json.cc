@@ -86,6 +86,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(eloss_fluctuation);
     GPO_LOAD_OPTION(lpm);
     GPO_LOAD_OPTION(integral_approach);
+
     GPO_LOAD_OPTION(min_energy);
     GPO_LOAD_OPTION(max_energy);
     GPO_LOAD_OPTION(linear_loss_limit);
@@ -125,11 +126,10 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
     GPO_SAVE_OPTION(eloss_fluctuation);
     GPO_SAVE_OPTION(lpm);
     GPO_SAVE_OPTION(integral_approach);
+
     GPO_SAVE_OPTION(min_energy);
     GPO_SAVE_OPTION(max_energy);
     GPO_SAVE_OPTION(linear_loss_limit);
-    GPO_SAVE_OPTION(relaxation);
-
     GPO_SAVE_OPTION(lowest_electron_energy);
     GPO_SAVE_OPTION(apply_cuts);
 

@@ -192,8 +192,8 @@ void GeantPhysicsList::add_gamma_processes()
         auto rayl = std::make_unique<G4RayleighScattering>();
         if (G4VERSION_NUMBER >= 1110)
         {
-            // Revert MinKinEnergyPrim (150 keV) to its Geant 11.0 value so
-            // that the lower and energy grids have the same log spacing
+            // Revert MinKinEnergyPrim (150 keV) to its Geant 11.0 value so that the lower
+            // and energy grids have the same log spacing
             rayl->SetMinKinEnergyPrim(100 * CLHEP::keV);
         }
         add_process(rayl.release());
