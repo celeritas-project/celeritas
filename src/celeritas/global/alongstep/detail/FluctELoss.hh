@@ -67,6 +67,7 @@ class FluctELoss
 CELER_FUNCTION FluctELoss::FluctELoss(ParamsRef const& params)
     : fluct_params_{params}
 {
+    CELER_EXPECT(fluct_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -112,7 +113,7 @@ CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
     auto eloss = calc_mean_energy_loss(particle, phys, step);
     CELER_EXPECT(eloss > zero_quantity());
 
-    if (fluct_params_ && eloss < particle.energy())
+    if (eloss < particle.energy())
     {
         // Apply energy loss fluctuations
         auto cutoffs = track.make_cutoff_view();
@@ -165,8 +166,7 @@ CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
     }
 
     CELER_ASSERT(eloss <= particle.energy());
-    CELER_ENSURE(eloss != particle.energy()
-                 || (fluct_params_ && apply_cut)
+    CELER_ENSURE(eloss != particle.energy() || apply_cut
                  || track.make_sim_view().step_limit().action
                         == phys.scalars().range_action());
     return eloss;

@@ -24,6 +24,7 @@
 
 #include "detail/AlongStepNeutral.hh"
 #include "detail/FluctELoss.hh"  // IWYU pragma: associated
+#include "detail/MeanELoss.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -54,11 +55,7 @@ AlongStepGeneralLinearAction::from_params(ActionId id,
  */
 AlongStepGeneralLinearAction::AlongStepGeneralLinearAction(
     ActionId id, SPConstFluctuations fluct, SPConstMsc msc)
-    : id_(id)
-    , fluct_(std::move(fluct))
-    , msc_(std::move(msc))
-    , host_data_(fluct_, msc_)
-    , device_data_(fluct_, msc_)
+    : id_(id), fluct_(std::move(fluct)), msc_(std::move(msc))
 {
     CELER_EXPECT(id_);
 }
@@ -74,38 +71,40 @@ AlongStepGeneralLinearAction::~AlongStepGeneralLinearAction() = default;
 void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                                            CoreStateHost& state) const
 {
-    auto execute = make_along_step_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        this->action_id(),
-        AlongStep{UrbanMsc{host_data_.msc},
-                  detail::LinearTrackPropagator{},
-                  detail::FluctELoss{host_data_.fluct}});
-    return launch_action(*this, params, state, execute);
-}
+    using namespace ::celeritas::detail;
 
-//---------------------------------------------------------------------------//
-/*!
- * Save references from host/device data.
- */
-template<MemSpace M>
-AlongStepGeneralLinearAction::ExternalRefs<M>::ExternalRefs(
-    SPConstFluctuations const& fluct_params, SPConstMsc const& msc_params)
-{
-    if (M == MemSpace::device && !celeritas::device())
-    {
-        // Skip device copy if disabled
-        return;
-    }
+    auto launch_impl = [&](auto&& execute_track) {
+        return launch_action(
+            *this,
+            params,
+            state,
+            make_along_step_track_executor(
+                params.ptr<MemSpace::native>(),
+                state.ptr(),
+                this->action_id(),
+                std::forward<decltype(execute_track)>(execute_track)));
+    };
 
-    if (fluct_params)
+    if (msc_)
     {
-        fluct = fluct_params->ref<M>();
+        launch_impl(
+            MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
     }
-    if (msc_params)
+    launch_impl(PropagationApplier{LinearTrackPropagator{}});
+    if (msc_)
     {
-        msc = msc_params->ref<M>();
+        launch_impl(MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
     }
+    launch_impl(detail::TimeUpdater{});
+    if (fluct_)
+    {
+        launch_impl(ElossApplier{FluctELoss{fluct_->ref<MemSpace::native>()}});
+    }
+    else
+    {
+        launch_impl(ElossApplier{MeanELoss{}});
+    }
+    launch_impl(TrackUpdater{});
 }
 
 //---------------------------------------------------------------------------//

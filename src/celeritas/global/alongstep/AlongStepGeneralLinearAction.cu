@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepGeneralLinearAction.hh"
 
+#include "celeritas/em/FluctuationParams.hh"  // IWYU pragma: keep
+#include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
+
 #include "detail/AlongStepKernels.hh"
 
 namespace celeritas
@@ -22,17 +25,20 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
 {
     if (this->has_msc())
     {
-        detail::launch_limit_msc_step(*this, device_data_.msc, params, state);
+        detail::launch_limit_msc_step(
+            *this, msc_->ref<MemSpace::native>(), params, state);
     }
     detail::launch_propagate(*this, params, state);
     if (this->has_msc())
     {
-        detail::launch_apply_msc(*this, device_data_.msc, params, state);
+        detail::launch_apply_msc(
+            *this, msc_->ref<MemSpace::native>(), params, state);
     }
     detail::launch_update_time(*this, params, state);
     if (this->has_fluct())
     {
-        detail::launch_apply_eloss(*this, device_data_.fluct, params, state);
+        detail::launch_apply_eloss(
+            *this, fluct_->ref<MemSpace::native>(), params, state);
     }
     else
     {
