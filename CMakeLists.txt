@@ -374,7 +374,6 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 
 # Build list of CMake files to install
 set(_cmake_files
-  "${PROJECT_SOURCE_DIR}/cmake/CeleritasGen.cmake"
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
 foreach(_dep Geant4 HepMC3 ROOT VecGeom)
