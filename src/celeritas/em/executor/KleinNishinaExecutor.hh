@@ -15,18 +15,28 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct KleinNishinaExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    KleinNishinaData params;
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Apply the KleinNishinaInteractor to the current track.
  */
-inline CELER_FUNCTION Interaction klein_nishina_interact_track(
-    KleinNishinaData const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction
+KleinNishinaExecutor::operator()(CoreTrackView const& track)
 {
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
     auto particle = track.make_particle_view();
     auto const& dir = track.make_geo_view().dir();
 
-    KleinNishinaInteractor interact(model, particle, dir, allocate_secondaries);
+    KleinNishinaInteractor interact(
+        params, particle, dir, allocate_secondaries);
     auto rng = track.make_rng_engine();
     return interact(rng);
 }
