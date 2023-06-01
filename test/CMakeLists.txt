@@ -143,6 +143,7 @@ celeritas_add_test(corecel/data/Copier.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
 celeritas_add_device_test(corecel/data/ObserverPtr)
+celeritas_add_test(corecel/data/HyperslabIndexer.test.cc)
 celeritas_add_device_test(corecel/data/StackAllocator)
 
 # Grid
@@ -231,9 +232,11 @@ celeritas_add_device_test(orange/surf/SurfaceAction)
 set(CELERITASTEST_PREFIX orange/univ)
 celeritas_add_test(orange/univ/detail/LogicEvaluator.test.cc)
 celeritas_add_test(orange/univ/detail/LogicStack.test.cc)
+celeritas_add_test(orange/univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(orange/univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(orange/univ/detail/SenseCalculator.test.cc)
 celeritas_add_test(orange/univ/VolumeView.test.cc)
+celeritas_add_test(orange/univ/RectArrayTracker.test.cc)
 celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 
 #-----------------------------------------------------------------------------#
