@@ -45,8 +45,6 @@ class UrbanMscScatter
     //! \name Type aliases
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
-    using MscParameters = UrbanMscParameters;
-    using MaterialData = UrbanMscMaterialData;
     using UrbanMscRef = NativeCRef<UrbanMscData>;
     //!@}
 
@@ -75,7 +73,7 @@ class UrbanMscScatter
     // Shared constant data
     UrbanMscRef const& shared_;
     // Urban MSC material data
-    MaterialData const& msc_;
+    UrbanMscMaterialData const& msc_;
     // Urban MSC helper class
     UrbanMscHelper const& helper_;
     // Material data

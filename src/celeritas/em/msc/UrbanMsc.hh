@@ -231,11 +231,18 @@ UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
         real_type safety = 0;
         if (msc_step.is_displaced)
         {
-            // Calculate the safety up to the maximum displacement distance.
-            // TODO: the displacement distance should be reused, and sometimes
-            // it isn't even needed, so we could be smarter about this.
-            safety = geo.find_safety(detail::UrbanMscScatter::calc_displacement(
-                msc_step.geom_path, msc_step.true_path));
+            CELER_ASSERT(!geo.is_on_boundary());
+            // Calculate the safety up to the maximum needed by UrbanMscScatter
+            real_type displ = detail::UrbanMscScatter::calc_displacement(
+                msc_step.geom_path, msc_step.true_path);
+            // The extra factor here is because UrbanMscScatter compares the
+            // displacement length against the safety * (1 - eps), which we
+            // bound here using [1 + 2*eps > 1/(1 - eps)], and we want to check
+            // to at least the minimum geometry limit.
+            // TODO: this is hacky and relies on UrbanMscScatter internals...
+            displ = max(displ * (1 + 2 * msc_params_.params.safety_tol),
+                        msc_params_.params.geom_limit);
+            safety = geo.find_safety(displ);
         }
 
         auto mat = track.make_material_view().make_material_view();
