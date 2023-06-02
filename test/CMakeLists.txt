@@ -75,6 +75,8 @@ if(NOT CELERITAS_USE_HepMC3)
 endif()
 if(CELERITAS_USE_JSON)
   set(_optional_json_libs nlohmann_json::nlohmann_json)
+else()
+  set(_needs_json DISABLE)
 endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
@@ -239,7 +241,7 @@ celeritas_add_test(orange/univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(orange/univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(orange/univ/detail/SenseCalculator.test.cc)
 celeritas_add_test(orange/univ/VolumeView.test.cc)
-celeritas_add_test(orange/univ/RectArrayTracker.test.cc)
+celeritas_add_test(orange/univ/RectArrayTracker.test.cc ${_needs_json})
 celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 
 #-----------------------------------------------------------------------------#
@@ -499,7 +501,9 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
 endif()
 
-celeritas_add_test(celeritas/track/TrackInit.test.cc GPU SOURCES ${_trackinit_sources})
+celeritas_add_test(celeritas/track/TrackInit.test.cc
+  GPU ${_needs_geo} SOURCES ${_trackinit_sources}
+)
 
 #-------------------------------------#
 # User
