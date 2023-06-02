@@ -22,9 +22,15 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
+#include "detail/ElossApplier.hh"
 #include "detail/FluctELoss.hh"  // IWYU pragma: associated
 #include "detail/LinearTrackPropagator.hh"
 #include "detail/MeanELoss.hh"  // IWYU pragma: associated
+#include "detail/MscApplier.hh"
+#include "detail/MscStepLimitApplier.hh"
+#include "detail/PropagationApplier.hh"
+#include "detail/TimeUpdater.hh"
+#include "detail/TrackUpdater.hh"
 
 namespace celeritas
 {

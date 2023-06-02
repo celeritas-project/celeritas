@@ -10,12 +10,12 @@
 
 #include "celeritas/global/CoreTrackView.hh"
 
-#include "detail/ElossApplier.hh"
-#include "detail/MscApplier.hh"
-#include "detail/MscStepLimitApplier.hh"
-#include "detail/PropagationApplier.hh"
-#include "detail/TimeUpdater.hh"
-#include "detail/TrackUpdater.hh"
+#include "detail/ElossApplier.hh"  // IWYU pragma: associated
+#include "detail/MscApplier.hh"  // IWYU pragma: associated
+#include "detail/MscStepLimitApplier.hh"  // IWYU pragma: associated
+#include "detail/PropagationApplier.hh"  // IWYU pragma: associated
+#include "detail/TimeUpdater.hh"  // IWYU pragma: associated
+#include "detail/TrackUpdater.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {

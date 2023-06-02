@@ -13,8 +13,8 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/global/alongstep/AlongStep.hh"
 
+#include "AlongStep.hh"  // IWYU pragma: associated
 #include "detail/AlongStepNeutralImpl.hh"  // IWYU pragma: associated
 #include "detail/LinearTrackPropagator.hh"  // IWYU pragma: associated
 
