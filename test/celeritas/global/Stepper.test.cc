@@ -41,6 +41,32 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
+class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
+{
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        Primary p;
+        p.particle_id = this->particle()->find(pdg::gamma());
+        CELER_ASSERT(p.particle_id);
+        p.energy = units::MevEnergy{100};
+        p.track_id = TrackId{0};
+        p.position = {-22, 0, 0};
+        p.direction = {1, 0, 0};
+        p.time = 0;
+
+        std::vector<Primary> result(count, p);
+        for (auto i : range(count))
+        {
+            result[i].event_id = EventId{i};
+        }
+        return result;
+    }
+
+    size_type max_average_steps() const override { return 100000; }
+};
+
+//---------------------------------------------------------------------------//
+
 class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
 {
   public:
@@ -255,6 +281,43 @@ class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
 };
 
 //---------------------------------------------------------------------------//
+// Two boxes: compton with fake cross sections
+//---------------------------------------------------------------------------//
+
+TEST_F(SimpleComptonTest, setup)
+{
+    auto result = this->check_setup();
+    static char const* expected_process[] = {"Compton scattering"};
+    EXPECT_VEC_EQ(expected_process, result.processes);
+}
+
+TEST_F(SimpleComptonTest, host)
+{
+    size_type num_primaries = 32;
+    size_type num_tracks = 64;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+    EXPECT_EQ(919, result.num_step_iters());
+    EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());
+    EXPECT_EQ(3, result.calc_emptying_step());
+    EXPECT_EQ(RunResult::StepCount({1, 6}), result.calc_queue_hwm());
+}
+
+TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(device))
+{
+    size_type num_primaries = 32;
+    size_type num_tracks = 64;
+
+    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+    EXPECT_EQ(919, result.num_step_iters());
+    EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());
+    EXPECT_EQ(3, result.calc_emptying_step());
+    EXPECT_EQ(RunResult::StepCount({1, 6}), result.calc_queue_hwm());
+}
+
+//---------------------------------------------------------------------------//
 // TESTEM3 - Compton process only
 //---------------------------------------------------------------------------//
 
@@ -272,11 +335,29 @@ TEST_F(TestEm3Compton, host)
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
-    EXPECT_SOFT_EQ(796, result.calc_avg_steps_per_primary());
+
+    if (this->is_ci_build())
+    {
+        EXPECT_EQ(153, result.num_step_iters());
+        EXPECT_SOFT_EQ(796, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(47, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({6, 1}), result.calc_queue_hwm());
+    }
+    else
+    {
+        cout << "No output saved for combination of "
+             << test::PrintableBuildConf{} << std::endl;
+        result.print_expected();
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated stepper results are required for CI tests";
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
-// TESTEM3
+// TESTEM3 - No MSC
 //---------------------------------------------------------------------------//
 
 TEST_F(TestEm3NoMsc, setup)
