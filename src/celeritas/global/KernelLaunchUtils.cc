@@ -15,10 +15,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-KernelLaunchParams compute_launch_params(ActionId action,
-                                         CoreParams const& params,
-                                         CoreState<MemSpace::device>& state,
-                                         TrackOrder expected)
+KernelLaunchParams
+compute_launch_params(ActionId action,
+                      CoreParams const& params,
+                      CoreState<MemSpace::device> const& state,
+                      TrackOrder expected)
 {
     KernelLaunchParams kernel_params;
 

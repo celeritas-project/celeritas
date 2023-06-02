@@ -22,10 +22,11 @@ struct KernelLaunchParams
     size_type num_threads{0};
 };
 
-KernelLaunchParams compute_launch_params(ActionId action,
-                                         CoreParams const& params,
-                                         CoreState<MemSpace::device>& state,
-                                         TrackOrder expected);
+KernelLaunchParams
+compute_launch_params(ActionId action,
+                      CoreParams const& params,
+                      CoreState<MemSpace::device> const& state,
+                      TrackOrder expected);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

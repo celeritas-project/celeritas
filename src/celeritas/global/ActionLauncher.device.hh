@@ -17,6 +17,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/KernelLaunchUtils.hh"
 
 #include "ActionInterface.hh"
 #include "CoreParams.hh"
@@ -29,16 +30,18 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch the given executor up to the maximum thread count.
+ * Launch the given executor up to the maximum thread count with a ThreadId
+ * offset.
  */
 template<class F>
-__global__ void
-launch_action_impl(size_type const num_threads, F execute_thread)
+__global__ void launch_action_impl(size_type const num_threads,
+                                   ThreadId offset,
+                                   F execute_thread)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < num_threads))
         return;
-    execute_thread(tid);
+    execute_thread(tid + offset.get());
 }
 
 //---------------------------------------------------------------------------//
@@ -71,6 +74,7 @@ class ActionLauncher
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
         : calc_launch_params_{action.label(), &launch_action_impl<F>}
+        , id_{action.action_id()}
     {
     }
 
@@ -78,6 +82,7 @@ class ActionLauncher
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
         : calc_launch_params_{action.label() + "-" + std::string(ext),
                               &launch_action_impl<F>}
+        , id_{action.action_id()}
     {
     }
 
@@ -88,10 +93,26 @@ class ActionLauncher
         return (*this)(state.size(), state.stream_id(), call_thread);
     }
 
+    //! Launch a Kernel with reduced grid size if tracks are sorted using the
+    //! expected track order strategy.
+    void operator()(CoreState<MemSpace::device> const& state,
+                    CoreParams const& params,
+                    TrackOrder expected,
+                    F const& call_thread) const
+    {
+        auto launch_params
+            = compute_launch_params(id_, params, state, expected);
+        return (*this)(launch_params.num_threads,
+                       state.stream_id(),
+                       call_thread,
+                       launch_params.threads_offset);
+    }
+
     //! Launch a kernel with a custom number of threads
     void operator()(size_type num_threads,
                     StreamId stream_id,
-                    F const& call_thread) const
+                    F const& call_thread,
+                    ThreadId offset = ThreadId{0}) const
     {
         CELER_EXPECT(num_threads > 0);
         CELER_EXPECT(stream_id);
@@ -100,11 +121,12 @@ class ActionLauncher
         auto config = calc_launch_params_(num_threads);
         launch_action_impl<F>
             <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                num_threads, call_thread);
+                num_threads, offset, call_thread);
     }
 
   private:
     KernelParamCalculator calc_launch_params_;
+    ActionId id_;
 };
 
 //---------------------------------------------------------------------------//
