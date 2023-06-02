@@ -179,6 +179,12 @@ GeantGeoConverter::operator()(G4VPhysicalVolume const* g4_world)
 VPlacedVolume const* GeantGeoConverter::convert(G4VPhysicalVolume const* node,
                                                 LogicalVolume const* mother)
 {
+    if (auto iter = placed_volume_map_.find(node);
+        iter != placed_volume_map_.end())
+    {
+        return const_cast<VPlacedVolume*>(iter->second);
+    }
+
     TypeDemangler<G4VPhysicalVolume> demangle_pv_type;
     // Warn about potentially unsupported cases
     if (dynamic_cast<G4PVParameterised const*>(node)
@@ -212,7 +218,7 @@ VPlacedVolume const* GeantGeoConverter::convert(G4VPhysicalVolume const* node,
         placed_volume = daughters[size - 1];
     }
 
-    placed_volume_map_[node] = placed_volume;
+    placed_volume_map_.insert({node, placed_volume});
     CELER_ENSURE(placed_volume);
     return placed_volume;
 }
@@ -221,8 +227,11 @@ VPlacedVolume const* GeantGeoConverter::convert(G4VPhysicalVolume const* node,
 
 LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
 {
-    if (logical_volume_map_.find(g4lv_mom) != logical_volume_map_.end())
-        return const_cast<LogicalVolume*>(logical_volume_map_[g4lv_mom]);
+    if (auto iter = logical_volume_map_.find(g4lv_mom);
+        iter != logical_volume_map_.end())
+    {
+        return const_cast<LogicalVolume*>(iter->second);
+    }
 
     VUnplacedVolume const* shape_mom = this->convert(g4lv_mom->GetSolid());
     bool const is_unknown_shape
@@ -351,22 +360,25 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
 
 VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
 {
-    VUnplacedVolume* unplaced_volume = nullptr;
-
-    if (unplaced_volume_map_.find(shape) != unplaced_volume_map_.end())
+    if (auto iter = unplaced_volume_map_.find(shape);
+        iter != unplaced_volume_map_.end())
     {
-        return const_cast<VUnplacedVolume*>(unplaced_volume_map_[shape]);
+        return const_cast<VUnplacedVolume*>(iter->second);
     }
 
     // Check whether this is already a vecgeom::VUnplacedVolume
     if (auto existing_unplaced = dynamic_cast<VUnplacedVolume const*>(shape))
+    {
+        // This can occur if either:
+        //  - VecGeom is configured for all G4 solid types
+        //  - selected G4 solid types are replaced by VecGeom (e.g. G4UTubs)
         return const_cast<VUnplacedVolume*>(existing_unplaced);
-    // This can occur if either:
-    //  - VecGeom is configured for all G4 solid types
-    //  - selected G4 solid types are replaced by VecGeom (e.g. G4UTubs)
+    }
+
+    VUnplacedVolume* unplaced_volume = nullptr;
 
     // Box
-    else if (auto box = dynamic_cast<G4Box const*>(shape))
+    if (auto box = dynamic_cast<G4Box const*>(shape))
     {
         unplaced_volume = GeoManager::MakeInstance<UnplacedBox>(
             scale * box->GetXHalfLength(),
@@ -771,7 +783,7 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
                         << unplaced_volume->Capacity() / ipow<3>(scale);
     }
 
-    unplaced_volume_map_[shape] = unplaced_volume;
+    unplaced_volume_map_.insert({shape, unplaced_volume});
     return unplaced_volume;
 }
 
