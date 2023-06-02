@@ -179,40 +179,42 @@ GeantGeoConverter::operator()(G4VPhysicalVolume const* g4_world)
 VPlacedVolume const* GeantGeoConverter::convert(G4VPhysicalVolume const* node,
                                                 LogicalVolume const* mother)
 {
+    TypeDemangler<G4VPhysicalVolume> demangle_pv_type;
     // Warn about potentially unsupported cases
     if (dynamic_cast<G4PVParameterised const*>(node)
         || dynamic_cast<G4PVReplica const*>(node)
         || dynamic_cast<G4PVDivision const*>(node))
     {
-        TypeDemangler<G4VPhysicalVolume> demangle_type;
         CELER_LOG(warning)
             << "Encountered possibly unsupported Geant4 physical volume type '"
-            << demangle_type(*node) << "'";
+            << demangle_pv_type(*node) << "'";
     }
 
     // convert() will recurse down all volumes in its own tree
     auto* const g4logical = node->GetLogicalVolume();
     LogicalVolume* logical_volume = this->convert(g4logical);
+    VPlacedVolume const* placed_volume = nullptr;
 
-    if (!mother)  // top volume
+    if (!mother)
     {
-        // convert node transformation
+        // Convert node transformation for the world volume
         auto* transformation
             = make_transformation(node->GetTranslation(), node->GetRotation());
 
-        VPlacedVolume const* placed_volume
-            = logical_volume->Place(node->GetName(), transformation);
-        placed_volume_map_[node] = placed_volume;
-        return placed_volume;
+        placed_volume = logical_volume->Place(node->GetName(), transformation);
+        CELER_ASSERT(placed_volume);
+    }
+    else
+    {
+        auto const& daughters = mother->GetDaughters();
+        auto size = daughters.size();
+        CELER_ASSERT(size > 0);
+        placed_volume = daughters[size - 1];
     }
 
-    // TODO: place replica volumes
-
-    //.. find the placed volume corresponding to this G4VPhysicalVolume
-    unsigned int last = mother->GetIdCount();
-    auto const* placed_mother = mother->GetDaughters()[last - 1];
-    placed_volume_map_[node] = placed_mother;
-    return placed_mother;
+    placed_volume_map_[node] = placed_volume;
+    CELER_ENSURE(placed_volume);
+    return placed_volume;
 }
 
 //---------------------------------------------------------------------------//
