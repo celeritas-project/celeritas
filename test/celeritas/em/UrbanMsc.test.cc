@@ -431,8 +431,8 @@ TEST_F(UrbanMscTest, msc_scattering)
         pstep.push_back(this_pstep);
 
         // Calculate physical step limit due to MSC
+        real_type safety = geo.find_safety();
         auto [true_path, displaced] = [&]() -> std::pair<real_type, bool> {
-            real_type safety = geo.find_safety();
             if (this_pstep < msc_params.params.limit_min_fix()
                 || safety >= helper.max_step())
             {
@@ -471,7 +471,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         // No geo->phys conversion needed because we don't test for the
         // geo-limited case here (see the geo->true tests above)
         UrbanMscScatter scatter(
-            msc_params, helper, par, phys, mat, &geo, step_result);
+            msc_params, helper, par, phys, mat, geo.dir(), safety, step_result);
         MscInteraction sample_result = scatter(rng);
 
         angle.push_back(sample_result.action != Action::unchanged

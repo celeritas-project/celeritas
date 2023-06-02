@@ -228,9 +228,19 @@ UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
     step_limit->step = msc_step.true_path;
 
     auto msc_result = [&] {
+        real_type safety = 0;
+        if (msc_step.is_displaced)
+        {
+            // Calculate the safety up to the maximum displacement distance.
+            // TODO: the displacement distance should be reused, and sometimes
+            // it isn't even needed, so we could be smarter about this.
+            safety = geo.find_safety(detail::UrbanMscScatter::calc_displacement(
+                msc_step.geom_path, msc_step.true_path));
+        }
+
         auto mat = track.make_material_view().make_material_view();
         detail::UrbanMscScatter sample_scatter(
-            msc_params_, msc_helper, par, phys, mat, &geo, msc_step);
+            msc_params_, msc_helper, par, phys, mat, geo.dir(), safety, msc_step);
 
         auto rng = track.make_rng_engine();
         return sample_scatter(rng);
