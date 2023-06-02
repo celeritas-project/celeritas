@@ -71,18 +71,6 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
     }
 
     auto phys = track.make_physics_view();
-    if (phys.num_particle_processes() == 0)
-    {
-        // Replicate G4Transportation
-        // Set MFP to infinity and set action as geo-boundary
-        sim.reset_step_limit(
-            {numeric_limits<real_type>::max(), track.boundary_action()});
-        phys.interaction_mfp(numeric_limits<real_type>::max());
-        sim.along_step_action()
-            = track.core_scalars().along_step_neutral_action;
-        return;
-    }
-
     if (!phys.has_interaction_mfp())
     {
         // Sample mean free path

@@ -39,8 +39,7 @@ CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView const& track)
                      || track.make_particle_view().is_stopped());
         CELER_ASSERT(step_limit.action);
         auto phys = track.make_physics_view();
-        if (step_limit.action != phys.scalars().discrete_action()
-            && phys.num_particle_processes() != 0)
+        if (step_limit.action != phys.scalars().discrete_action())
         {
             // Reduce remaining mean free paths to travel. The 'discrete
             // action' case is launched separately and resets the
