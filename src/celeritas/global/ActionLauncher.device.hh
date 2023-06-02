@@ -102,10 +102,11 @@ class ActionLauncher
     {
         auto launch_params
             = compute_launch_params(id_, params, state, expected);
-        return (*this)(launch_params.num_threads,
-                       state.stream_id(),
-                       call_thread,
-                       launch_params.threads_offset);
+        if (launch_params.num_threads)
+            return (*this)(launch_params.num_threads,
+                           state.stream_id(),
+                           call_thread,
+                           launch_params.threads_offset);
     }
 
     //! Launch a kernel with a custom number of threads
