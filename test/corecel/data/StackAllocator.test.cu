@@ -98,6 +98,7 @@ SATestOutput sa_test(SATestInput const& input)
     CELER_LAUNCH_KERNEL(sa_test,
                         device().default_block_size(),
                         input.num_threads,
+                        0,
                         input,
                         raw_pointer_cast(out.data()));
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
@@ -106,6 +107,7 @@ SATestOutput sa_test(SATestInput const& input)
     CELER_LAUNCH_KERNEL(sa_post_test,
                         device().default_block_size(),
                         input.num_threads,
+                        0,
                         input,
                         raw_pointer_cast(out.data()));
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
@@ -119,7 +121,7 @@ SATestOutput sa_test(SATestInput const& input)
 //! Clear secondaries, only a single thread needed
 void sa_clear(SATestInput const& input)
 {
-    CELER_LAUNCH_KERNEL(sa_clear, device().threads_per_warp(), 1, input);
+    CELER_LAUNCH_KERNEL(sa_clear, device().threads_per_warp(), 1, 0, input);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 

@@ -147,7 +147,7 @@ CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the insertion point for a value in a sorted list.
+ * Find the insertion point for a value in a sorted list using a binary search.
  */
 template<class ForwardIt, class T, class Compare>
 CELER_FORCEINLINE_FUNCTION ForwardIt
@@ -160,7 +160,7 @@ lower_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the insertion point for a value in a sorted list.
+ * Find the insertion point for a value in a sorted list using a binary search.
  */
 template<class ForwardIt, class T>
 CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
@@ -168,6 +168,33 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
                                                  T const& value)
 {
     return ::celeritas::lower_bound(first, last, value, Less<>{});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the insertion point for a value in a sorted list using a linear search.
+ */
+template<class ForwardIt, class T, class Compare>
+CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
+                                                        ForwardIt last,
+                                                        T const& value,
+                                                        Compare comp)
+{
+    using CompareRef = std::add_lvalue_reference_t<Compare>;
+    return ::celeritas::detail::lower_bound_linear_impl<CompareRef>(
+        first, last, value, comp);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the insertion point for a value in a sorted list using a linear search.
+ */
+template<class ForwardIt, class T>
+CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
+                                                        ForwardIt last,
+                                                        T const& value)
+{
+    return ::celeritas::lower_bound_linear(first, last, value, Less<>{});
 }
 
 //---------------------------------------------------------------------------//

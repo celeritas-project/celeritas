@@ -8,6 +8,8 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/data/Collection.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialData.hh"
 #include "celeritas/mat/MaterialData.hh"
@@ -17,6 +19,8 @@
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
+
+#include "CoreTrackDataFwd.hh"
 
 namespace celeritas
 {

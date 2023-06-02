@@ -7,11 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/grid/FindInterp.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 
 #include "RZMapFieldData.hh"

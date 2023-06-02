@@ -7,37 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "ExtendFromSecondariesAction.hh"
 
-#include "corecel/device_runtime_api.h"
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
-#include "detail/LocateAliveLauncher.hh"
-#include "detail/ProcessSecondariesLauncher.hh"
+#include "detail/LocateAliveExecutor.hh"
+#include "detail/ProcessSecondariesExecutor.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-__global__ void locate_alive_kernel(detail::LocateAliveLauncher launch)
-{
-    launch(KernelParamCalculator::thread_id());
-}
-
-__global__ void
-process_secondaries_kernel(detail::ProcessSecondariesLauncher launch)
-{
-    launch(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Launch a kernel to locate alive particles.
@@ -47,12 +27,10 @@ process_secondaries_kernel(detail::ProcessSecondariesLauncher launch)
 void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
                                                CoreStateDevice& core_state) const
 {
-    CELER_LAUNCH_KERNEL(
-        locate_alive,
-        celeritas::device().default_block_size(),
-        core_state.size(),
-        detail::LocateAliveLauncher{core_params.ptr<MemSpace::native>(),
-                                    core_state.ptr()});
+    using Executor = detail::LocateAliveExecutor;
+    static ActionLauncher<Executor> launch(*this);
+    launch(core_state,
+           Executor{core_params.ptr<MemSpace::native>(), core_state.ptr()});
 }
 
 //---------------------------------------------------------------------------//
@@ -62,13 +40,12 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
 void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateDevice& core_state) const
 {
-    CELER_LAUNCH_KERNEL(
-        process_secondaries,
-        celeritas::device().default_block_size(),
-        core_state.size(),
-        detail::ProcessSecondariesLauncher{core_params.ptr<MemSpace::native>(),
-                                           core_state.ptr(),
-                                           core_state.counters()});
+    using Executor = detail::ProcessSecondariesExecutor;
+    static ActionLauncher<Executor> launch(*this);
+    launch(core_state,
+           Executor{core_params.ptr<MemSpace::native>(),
+                    core_state.ptr(),
+                    core_state.counters()});
 }
 
 //---------------------------------------------------------------------------//

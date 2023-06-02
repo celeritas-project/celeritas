@@ -7,36 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepNeutralAction.hh"
 
-#include "corecel/device_runtime_api.h"
-#include "corecel/Assert.hh"
-#include "corecel/Types.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/KernelLaunchUtils.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/AlongStepNeutral.hh"
+#include "detail/AlongStepNeutralImpl.hh"
+#include "detail/LinearTrackPropagator.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-__global__ void
-along_step_neutral_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
-                          RefPtr<CoreStateData, MemSpace::device> const state,
-                          ActionId const along_step_id,
-                          ThreadId const offset)
-{
-    auto launch = make_along_step_track_launcher(
-        *params, *state, along_step_id, detail::along_step_neutral);
-    launch(KernelParamCalculator::thread_id() + offset.get());
-}
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Launch the along-step action on device.
@@ -44,17 +24,15 @@ along_step_neutral_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params
 void AlongStepNeutralAction::execute(CoreParams const& params,
                                      CoreStateDevice& state) const
 {
-    KernelLaunchParams kernel_params = compute_launch_params(
-        this->action_id(), params, state, TrackOrder::sort_along_step_action);
-    if (!kernel_params.num_threads)
-        return;
-    CELER_LAUNCH_KERNEL(along_step_neutral,
-                        celeritas::device().default_block_size(),
-                        kernel_params.num_threads,
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id(),
-                        kernel_params.threads_offset);
+    auto execute = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        AlongStep{detail::NoMsc{},
+                  detail::LinearTrackPropagator{},
+                  detail::NoELoss{}});
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(state, execute);
 }
 
 //---------------------------------------------------------------------------//

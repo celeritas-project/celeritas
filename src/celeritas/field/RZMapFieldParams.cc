@@ -7,9 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "RZMapFieldParams.hh"
 
+#include <utility>
+#include <vector>
+
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Units.hh"
+#include "celeritas/field/RZMapFieldData.hh"
 
 #include "RZMapFieldInput.hh"
 

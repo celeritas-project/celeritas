@@ -28,7 +28,7 @@ namespace celeritas
     #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {
-        CELER_TRY_HANDLE(launch(TrackSlotId{i}), capture_exception);
+        CELER_TRY_HANDLE(execute(TrackSlotId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
  * \endcode

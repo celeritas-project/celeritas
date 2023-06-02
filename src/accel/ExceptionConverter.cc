@@ -130,11 +130,6 @@ void log_state(Logger::Message& msg,
         msg << "\n- Surface ID: " << kce.surface();
     }
 
-    if (core_params && kce.surface())
-    {
-        msg << "\n- Next surface: " << kce.next_surface();
-    }
-
     msg << "\n- Step counter: " << kce.num_steps();
 }
 

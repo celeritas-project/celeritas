@@ -8,19 +8,6 @@ set(SOURCES)
 set(PRIVATE_DEPS Celeritas::DeviceToolkit)
 set(PUBLIC_DEPS Celeritas::corecel)
 
-
-# Add an object library to limit the propagation of includes to the rest of the
-# library.
-macro(celeritas_add_object_library target)
-  add_library(${target} OBJECT ${ARGN})
-  install(TARGETS ${target}
-    EXPORT celeritas-targets
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    COMPONENT runtime
-  )
-endmacro()
-
 #-----------------------------------------------------------------------------#
 # Main code
 #-----------------------------------------------------------------------------#
@@ -31,16 +18,6 @@ list(APPEND SOURCES
   em/FluctuationParams.cc
   em/UrbanMscParams.cc
   em/detail/Utils.cc
-  em/model/BetheHeitlerModel.cc
-  em/model/CombinedBremModel.cc
-  em/model/EPlusGGModel.cc
-  em/model/KleinNishinaModel.cc
-  em/model/LivermorePEModel.cc
-  em/model/MollerBhabhaModel.cc
-  em/model/MuBremsstrahlungModel.cc
-  em/model/RayleighModel.cc
-  em/model/RelativisticBremModel.cc
-  em/model/SeltzerBergerModel.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
   em/process/EIonizationProcess.cc
@@ -109,17 +86,20 @@ endif()
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     track/detail/Filler.cu
+    global/alongstep/detail/AlongStepKernels.cu
   )
 endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
+    ext/GeantGeoParams.cc
     ext/GeantGeoUtils.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
+    ext/ScopedGeantExceptionHandler.cc
     ext/detail/GeantBremsstrahlungProcess.cc
-    ext/detail/GeantExceptionHandler.cc
+    ext/detail/GeantGeoNavCollection.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
@@ -137,7 +117,7 @@ if(CELERITAS_USE_Geant4)
   endif()
 
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
-  target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})
+  celeritas_target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})
 
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_geant4>)
   list(APPEND PRIVATE_DEPS celeritas_geant4)
@@ -237,7 +217,10 @@ if(CELERITAS_USE_VecGeom)
     ext/VecgeomParams.cc
     ext/detail/VecgeomNavCollection.cc
   )
-  list(APPEND PRIVATE_DEPS VecGeom::vgdml)
+  list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+endif()
+
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
   # This needs to be public because its might be needed
   # to resolve the symbols generate by the `nvcc -dlink` of
   # one of the executable.
@@ -246,6 +229,11 @@ endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   list(APPEND PUBLIC_DEPS Celeritas::orange)
+elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  # Core data has transient includes into vecgeom
+  list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+ list(APPEND PUBLIC_DEPS ${Geant4_LIBRARIES})
 endif()
 
 macro(celeritas_polysource filename_we)
@@ -259,12 +247,23 @@ endmacro()
 # Optional CUDA code
 #-----------------------------------------------------------------------------#
 
-celeritas_polysource(user/DetectorSteps)
-celeritas_polysource(user/detail/StepGatherAction)
+celeritas_polysource(em/model/BetheHeitlerModel)
+celeritas_polysource(em/model/CombinedBremModel)
+celeritas_polysource(em/model/EPlusGGModel)
+celeritas_polysource(em/model/KleinNishinaModel)
+celeritas_polysource(em/model/LivermorePEModel)
+celeritas_polysource(em/model/MollerBhabhaModel)
+celeritas_polysource(em/model/MuBremsstrahlungModel)
+celeritas_polysource(em/model/RayleighModel)
+celeritas_polysource(em/model/RelativisticBremModel)
+celeritas_polysource(em/model/SeltzerBergerModel)
+celeritas_polysource(geo/detail/BoundaryAction)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(phys/detail/DiscreteSelectAction)
+celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
@@ -272,49 +271,22 @@ celeritas_polysource(track/ExtendFromPrimariesAction)
 celeritas_polysource(track/ExtendFromSecondariesAction)
 celeritas_polysource(track/InitializeTracksAction)
 celeritas_polysource(user/ActionDiagnostic)
+celeritas_polysource(user/DetectorSteps)
 celeritas_polysource(user/StepDiagnostic)
 celeritas_polysource(user/detail/SimpleCaloImpl)
+celeritas_polysource(user/detail/StepGatherAction)
 
 #-----------------------------------------------------------------------------#
 # Auto-generated code
 #-----------------------------------------------------------------------------#
 
-# Generate model launcher and track initialization code for host/device
+# Generate model executor and track initialization code for host/device
 macro(celeritas_gen_interactor class func)
   celeritas_gen(SOURCES
     "gen-interactor.py" "em/generated/${class}Interact"
     --class ${class}  --func ${func}
   )
 endmacro()
-
-macro(celeritas_gen_action basedir class func order)
-  celeritas_gen(SOURCES
-    "gen-action.py" "${basedir}/generated/${class}"
-    --class ${class} --func ${func} --actionorder ${order}
-  )
-endmacro()
-
-macro(celeritas_gen_sorted_action basedir class func order track_order)
-  celeritas_gen(SOURCES
-    "gen-action.py" "${basedir}/generated/${class}"
-    --class ${class} --func ${func} --actionorder ${order} --compute-kernel-params --track-order ${track_order}
-  )
-endmacro()
-
-celeritas_gen_interactor("BetheHeitler" "bethe_heitler")
-celeritas_gen_interactor("CombinedBrem" "combined_brem")
-celeritas_gen_interactor("EPlusGG" "eplusgg")
-celeritas_gen_interactor("KleinNishina" "klein_nishina")
-celeritas_gen_interactor("LivermorePE" "livermore_pe")
-celeritas_gen_interactor("MollerBhabha" "moller_bhabha")
-celeritas_gen_interactor("MuBremsstrahlung" "mu_bremsstrahlung")
-celeritas_gen_interactor("Rayleigh" "rayleigh")
-celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
-celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
-
-celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select" "pre_post")
-celeritas_gen_action("phys" "PreStepAction" "pre_step" "pre")
-celeritas_gen_sorted_action("geo" "BoundaryAction" "boundary" "post" "sort_step_limit_action")
 
 #-----------------------------------------------------------------------------#
 # Create library

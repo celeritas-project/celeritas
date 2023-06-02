@@ -29,6 +29,8 @@ namespace test
  */
 class GeantTestBase : public ImportedDataTestBase
 {
+    using Base = ImportedDataTestBase;
+
   public:
     //!@{
     //! Whether the Geant4 configuration match a certain machine
@@ -48,6 +50,7 @@ class GeantTestBase : public ImportedDataTestBase
 
     SPConstTrackInit build_init() override;
     SPConstAction build_along_step() override;
+    SPConstGeoI build_fresh_geometry(std::string_view) override;
 
     // Access lazily loaded static geant4 data
     ImportData const& imported_data() const final;

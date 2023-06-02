@@ -49,7 +49,7 @@ class UrbanMsc
     inline CELER_FUNCTION void apply_step(CoreTrackView const&, StepLimit*);
 
   private:
-    ParamsRef const& msc_params_;
+    ParamsRef const msc_params_;
 
     // Whether the step was limited by geometry
     static inline CELER_FUNCTION bool
@@ -65,6 +65,7 @@ class UrbanMsc
 CELER_FUNCTION UrbanMsc::UrbanMsc(ParamsRef const& params)
     : msc_params_(params)
 {
+    CELER_EXPECT(msc_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -74,9 +75,6 @@ CELER_FUNCTION UrbanMsc::UrbanMsc(ParamsRef const& params)
 CELER_FUNCTION bool
 UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
 {
-    if (!msc_params_)
-        return false;
-
     if (step <= msc_params_.params.geom_limit)
         return false;
 
@@ -99,8 +97,6 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
 CELER_FUNCTION void
 UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
 {
-    CELER_EXPECT(msc_params_);
-
     auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();
 
@@ -111,6 +107,7 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
     // Sample multiple scattering step length
     auto msc_step = [&] {
         auto par = track.make_particle_view();
+        real_type const safety = (geo.is_on_boundary() ? 0 : geo.find_safety());
         detail::UrbanMscHelper msc_helper(msc_params_, par, phys);
         detail::UrbanMscStepLimit calc_limit(msc_params_,
                                              msc_helper,
@@ -118,7 +115,7 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
                                              &phys,
                                              phys.material_id(),
                                              geo.is_on_boundary(),
-                                             geo.find_safety(),
+                                             safety,
                                              step_limit->step);
 
         auto rng = track.make_rng_engine();
@@ -170,8 +167,6 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
 CELER_FUNCTION void
 UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
 {
-    CELER_EXPECT(msc_params_);
-
     auto par = track.make_particle_view();
     auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();

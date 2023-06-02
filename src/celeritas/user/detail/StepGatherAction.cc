@@ -14,13 +14,14 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/user/StepData.hh"
 
-#include "StepGatherLauncher.hh"
+#include "StepGatherExecutor.hh"
 
 namespace celeritas
 {
@@ -62,24 +63,18 @@ template<StepPoint P>
 void StepGatherAction<P>::execute(CoreParams const& params,
                                   CoreStateHost& state) const
 {
-    auto const& step_state
-        = storage_->obj.state<MemSpace::host>(state.stream_id(), state.size());
-
-    MultiExceptionHandler capture_exception;
-    StepGatherLauncher<P> launch{params.ref<MemSpace::native>(),
-                                 state.ref(),
-                                 storage_->obj.params<MemSpace::host>(),
-                                 step_state};
-#pragma omp parallel for
-    for (size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
-    }
-    log_and_rethrow(std::move(capture_exception));
+    auto const& step_state = storage_->obj.state<MemSpace::native>(
+        state.stream_id(), state.size());
+    auto execute = TrackExecutor{
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::StepGatherExecutor<P>{storage_->obj.params<MemSpace::native>(),
+                                      step_state}};
+    launch_action(*this, params, state, execute);
 
     if (P == StepPoint::post)
     {
-        StepState<MemSpace::host> cb_state{step_state, state.stream_id()};
+        StepState<MemSpace::native> cb_state{step_state, state.stream_id()};
         for (auto const& sp_callback : callbacks_)
         {
             sp_callback->process_steps(cb_state);
@@ -88,40 +83,9 @@ void StepGatherAction<P>::execute(CoreParams const& params,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Gather step attributes from GPU data, and execute callbacks at end of step.
- */
-template<StepPoint P>
-void StepGatherAction<P>::execute(CoreParams const& params,
-                                  CoreStateDevice& state) const
-{
-    auto& step_state = storage_->obj.state<MemSpace::device>(state.stream_id(),
-                                                             state.size());
-    step_gather_device<P>(params.ref<MemSpace::device>(),
-                          state.ref(),
-                          storage_->obj.params<MemSpace::device>(),
-                          step_state);
-
-    if (P == StepPoint::post)
-    {
-        StepState<MemSpace::device> cb_state{step_state, state.stream_id()};
-        for (auto const& sp_callback : callbacks_)
-        {
-            sp_callback->process_steps(cb_state);
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS INSTANTIATION
-//---------------------------------------------------------------------------//
-
 #if !CELER_USE_DEVICE
 template<StepPoint P>
-void step_gather_device(DeviceCRef<CoreParamsData> const&,
-                        DeviceRef<CoreStateData>&,
-                        DeviceCRef<StepParamsData> const&,
-                        DeviceRef<StepStateData>&)
+void StepGatherAction<P>::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

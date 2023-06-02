@@ -15,16 +15,20 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/em/generated/LivermorePEInteract.hh"
+#include "celeritas/em/executor/LivermorePEExecutor.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
@@ -59,8 +63,6 @@ LivermorePEModel::LivermorePEModel(ActionId id,
               particles.get(host_data.ids.electron).mass());
 
     // Load Livermore cross section data
-    CELER_LOG(status) << "Reading and building Livermore PE model data";
-    ScopedTimeLog scoped_time;
     make_builder(&host_data.xs.elements).reserve(materials.num_elements());
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
@@ -101,20 +103,26 @@ auto LivermorePEModel::micro_xs(Applicability) const -> MicroXsBuilders
 //---------------------------------------------------------------------------//
 //!@{
 /*!
- * Apply the interaction kernel.
+ * Interact with host data.
  */
 void LivermorePEModel::execute(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    generated::livermore_pe_interact(params, state, this->host_ref());
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{LivermorePEExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
-void LivermorePEModel::execute(CoreParams const& params,
-                               CoreStateDevice& state) const
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void LivermorePEModel::execute(CoreParams const&, CoreStateDevice&) const
 {
-    generated::livermore_pe_interact(
-        params, state, this->device_ref(), this->action_id());
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
+#endif
 
 //!@}
 //---------------------------------------------------------------------------//

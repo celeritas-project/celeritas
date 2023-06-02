@@ -103,50 +103,69 @@ TEST_F(FourLevelsTest, accessors)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(FourLevelsTest, detailed_track)
+TEST_F(FourLevelsTest, consecutive_compute)
 {
-    auto geo = this->make_geo_track_view();
-    geo = GeoTrackInitializer{{-10, -10, -10}, {1, 0, 0}};
+    auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
     EXPECT_FALSE(geo.is_on_boundary());
 
-    // Check for surfaces up to a distance of 4 units away
-    auto next = geo.find_next_step(4.0);
+    auto next = geo.find_next_step(10.0);
     EXPECT_SOFT_EQ(4.0, next.distance);
-    EXPECT_FALSE(next.boundary);
-    next = geo.find_next_step(4.0);
+    EXPECT_SOFT_EQ(4.0, geo.find_safety());
+
+    next = geo.find_next_step(10.0);
     EXPECT_SOFT_EQ(4.0, next.distance);
-    EXPECT_FALSE(next.boundary);
-    geo.move_internal(3.5);
-    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_SOFT_EQ(4.0, geo.find_safety());
+}
 
-    // Find one a bit further, then cross it
-    next = geo.find_next_step(4.0);
-    EXPECT_SOFT_EQ(1.5, next.distance);
-    EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
-    EXPECT_EQ(VolumeId{0}, geo.volume_id());
-    geo.cross_boundary();
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
-    EXPECT_TRUE(geo.is_on_boundary());
+//---------------------------------------------------------------------------//
 
-    // Find the next boundary and make sure that nearer distances aren't
-    // accepted
-    next = geo.find_next_step();
-    EXPECT_SOFT_EQ(1.0, next.distance);
-    EXPECT_TRUE(next.boundary);
-    EXPECT_TRUE(geo.is_on_boundary());
-    next = geo.find_next_step(0.5);
-    EXPECT_SOFT_EQ(0.5, next.distance);
-    EXPECT_FALSE(next.boundary);
+TEST_F(FourLevelsTest, detailed_track)
+{
+    {
+        SCOPED_TRACE("rightward along corner");
+        auto geo = this->make_geo_track_view({-10, -10, -10}, {1, 0, 0});
+        ASSERT_FALSE(geo.is_outside());
+        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_FALSE(geo.is_on_boundary());
 
+        // Check for surfaces up to a distance of 4 units away
+        auto next = geo.find_next_step(4.0);
+        EXPECT_SOFT_EQ(4.0, next.distance);
+        EXPECT_FALSE(next.boundary);
+        next = geo.find_next_step(4.0);
+        EXPECT_SOFT_EQ(4.0, next.distance);
+        EXPECT_FALSE(next.boundary);
+        geo.move_internal(3.5);
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Find one a bit further, then cross it
+        next = geo.find_next_step(4.0);
+        EXPECT_SOFT_EQ(1.5, next.distance);
+        EXPECT_TRUE(next.boundary);
+        geo.move_to_boundary();
+        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        geo.cross_boundary();
+        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        // Find the next boundary and make sure that nearer distances aren't
+        // accepted
+        next = geo.find_next_step();
+        EXPECT_SOFT_EQ(1.0, next.distance);
+        EXPECT_TRUE(next.boundary);
+        EXPECT_TRUE(geo.is_on_boundary());
+        next = geo.find_next_step(0.5);
+        EXPECT_SOFT_EQ(0.5, next.distance);
+        EXPECT_FALSE(next.boundary);
+    }
     {
         SCOPED_TRACE("outside in");
-        geo = GeoTrackInitializer{{-25, 6.5, 6.5}, {1, 0, 0}};
+        auto geo = this->make_geo_track_view({-25, 6.5, 6.5}, {1, 0, 0});
         EXPECT_TRUE(geo.is_outside());
 
-        next = geo.find_next_step();
+        auto next = geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, next.distance);
         EXPECT_TRUE(next.boundary);
 
@@ -158,11 +177,11 @@ TEST_F(FourLevelsTest, detailed_track)
     }
     {
         SCOPED_TRACE("inside out");
-        geo = GeoTrackInitializer{{-23.5, 6.5, 6.5}, {-1, 0, 0}};
+        auto geo = this->make_geo_track_view({-23.5, 6.5, 6.5}, {-1, 0, 0});
         EXPECT_FALSE(geo.is_outside());
         EXPECT_EQ(VolumeId{3}, geo.volume_id());
 
-        next = geo.find_next_step(2);
+        auto next = geo.find_next_step(2);
         EXPECT_SOFT_EQ(0.5, next.distance);
         EXPECT_TRUE(next.boundary);
 
@@ -312,6 +331,7 @@ TEST_F(FourLevelsTest, safety)
 {
     auto geo = this->make_geo_track_view();
     std::vector<real_type> safeties;
+    std::vector<real_type> lim_safeties;
 
     for (auto i : range(11))
     {
@@ -322,6 +342,7 @@ TEST_F(FourLevelsTest, safety)
         {
             geo.find_next_step();
             safeties.push_back(geo.find_safety());
+            lim_safeties.push_back(geo.find_safety(1.5));
         }
     }
 
@@ -337,6 +358,10 @@ TEST_F(FourLevelsTest, safety)
                                                1.1,
                                                3.1};
     EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
+
+    static double const expected_lim_safeties[]
+        = {1.5, 0.9, 0.1, 1.5, 1.5, 1.5, 1.3626933041054, 1.5, 0.1, 1.1, 1.5};
+    EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
 }
 
 //---------------------------------------------------------------------------//
@@ -464,7 +489,7 @@ TEST_F(SolidsTest, trace)
         static real_type const expected_distances[] = {20,
                                                        95,
                                                        20,
-                                                       115,
+                                                       125,
                                                        40,
                                                        60,
                                                        50,
@@ -481,13 +506,13 @@ TEST_F(SolidsTest, trace)
         static real_type const expected_hw_safety[] = {0,
                                                        45.496748548005,
                                                        0,
-                                                       41.247975226723,
+                                                       44.8347556812201,
                                                        13.934134186943,
                                                        30,
                                                        25,
                                                        36.240004604773,
                                                        25,
-                                                       41.204388797207,
+                                                       41.2043887972073,
                                                        14.92555785315,
                                                        42.910442345001,
                                                        18.741024106017,
@@ -570,6 +595,8 @@ TEST_F(SolidsTest, trace)
                                                        "World",
                                                        "genPocone1",
                                                        "World",
+                                                       "genPocone1",
+                                                       "World",
                                                        "elltube1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
@@ -578,13 +605,15 @@ TEST_F(SolidsTest, trace)
                                                        80,
                                                        68.125,
                                                        33.75,
-                                                       57.5193323464911,
-                                                       50.6056676535089,
+                                                       57.519332346491,
+                                                       50.605667653509,
                                                        85,
                                                        80,
                                                        40,
                                                        45,
-                                                       105,
+                                                       127.5,
+                                                       3.7499999999998,
+                                                       60,
                                                        40,
                                                        205};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -599,7 +628,9 @@ TEST_F(SolidsTest, trace)
                                                        40,
                                                        19.156525704423,
                                                        0,
-                                                       7.1836971391586,
+                                                       0,
+                                                       0,
+                                                       28.734788556635,
                                                        20,
                                                        75};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
@@ -804,7 +835,7 @@ TEST_F(SolidsGeantTest, trace)
         static real_type const expected_distances[] = {20,
                                                        95,
                                                        20,
-                                                       115,
+                                                       125,
                                                        40,
                                                        60,
                                                        50,
@@ -874,6 +905,8 @@ TEST_F(SolidsGeantTest, trace)
                                                        "World",
                                                        "genPocone1",
                                                        "World",
+                                                       "genPocone1",
+                                                       "World",
                                                        "elltube1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
@@ -882,13 +915,15 @@ TEST_F(SolidsGeantTest, trace)
                                                        80,
                                                        68.125,
                                                        33.75,
-                                                       57.5193323464911,
-                                                       50.6056676535089,
+                                                       57.519332346491,
+                                                       50.605667653509,
                                                        85,
                                                        80,
                                                        40,
                                                        45,
-                                                       105,
+                                                       127.5,
+                                                       3.7499999999998,
+                                                       60,
                                                        40,
                                                        205};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);

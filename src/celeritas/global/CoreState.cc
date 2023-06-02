@@ -9,6 +9,7 @@
 
 #include "corecel/data/Copier.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
+#include "corecel/io/Logger.hh"
 
 #include "CoreParams.hh"
 
@@ -42,6 +43,7 @@ CoreState<M>::CoreState(CoreParams const& params,
         device_ref_vec_.copy_to_device({&this->ref(), 1});
     }
 
+    CELER_LOG_LOCAL(status) << "Celeritas core state initialization complete";
     CELER_ENSURE(states_);
 }
 

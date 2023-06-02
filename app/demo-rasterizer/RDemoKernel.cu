@@ -15,10 +15,9 @@
 
 #include "ImageTrackView.hh"
 
-using namespace celeritas;
-using namespace demo_rasterizer;
-
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 namespace
 {
@@ -37,7 +36,7 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
                              const GeoStateRefDevice geo_state,
                              const ImageData image_state)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= image_state.dims[0])
         return;
 
@@ -84,9 +83,9 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
             {
                 // Reinitialize at end of pixel
                 Real3 new_pos = image.start_pos();
-                celeritas::axpy((i + 1) * image_state.pixel_width,
-                                image.start_dir(),
-                                &new_pos);
+                axpy((i + 1) * image_state.pixel_width,
+                     image.start_dir(),
+                     &new_pos);
                 geo = GeoTrackInitializer{new_pos, image.start_dir()};
                 pix_dist = 0;
             }
@@ -122,8 +121,9 @@ void trace(GeoParamsCRefDevice const& geo_params,
     CELER_EXPECT(image);
 
     CELER_LAUNCH_KERNEL(trace,
-                        celeritas::device().default_block_size(),
+                        device().default_block_size(),
                         image.dims[0],
+                        0,
                         geo_params,
                         geo_state,
                         image);
@@ -132,4 +132,5 @@ void trace(GeoParamsCRefDevice const& geo_params,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas

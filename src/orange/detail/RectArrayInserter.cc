@@ -33,14 +33,16 @@ RectArrayInserter::RectArrayInserter(Data* orange_data)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a simple unit and return its ID.
+ * Create a rect array unit and return its ID.
  */
 RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
 {
     RectArrayRecord record;
+    RectArrayRecord::SurfaceIndexerData::Sizes sizes;
 
     auto reals_builder = make_builder(&orange_data_->reals);
     size_type num_volumes = 1;
+
     for (auto ax : range(Axis::size_))
     {
         std::vector<double> const& grid = inp.grid[to_int(ax)];
@@ -52,12 +54,16 @@ RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
                        << "grid for " << to_char(ax) << " axis in '"
                        << inp.label << "' is not monotonically increasing");
 
+        sizes[to_int(ax)] = grid.size();
+        record.dims[to_int(ax)] = grid.size() - 1;
         num_volumes *= grid.size() - 1;
 
-        // Construct grid
         record.grid[to_int(ax)]
             = reals_builder.insert_back(grid.begin(), grid.end());
     }
+
+    record.surface_indexer_data
+        = RectArrayRecord::SurfaceIndexerData::from_sizes(sizes);
 
     CELER_VALIDATE(inp.daughters.size() == num_volumes,
                    << "number of input daughters (" << inp.daughters.size()

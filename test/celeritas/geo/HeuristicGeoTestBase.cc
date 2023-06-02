@@ -20,7 +20,7 @@
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/random/RngParams.hh"
 
-#include "HeuristicGeoLauncher.hh"
+#include "HeuristicGeoExecutor.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -37,12 +37,12 @@ void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
     auto params = this->build_test_params<MemSpace::host>();
     StateStore<MemSpace::host> state{params, num_states};
 
-    HeuristicGeoLauncher launch{params, state.ref()};
+    HeuristicGeoExecutor execute{params, state.ref()};
     for (auto tid : range(TrackSlotId{num_states}))
     {
         for ([[maybe_unused]] auto step : range(num_steps))
         {
-            launch(tid);
+            execute(tid);
         }
     }
 
@@ -85,7 +85,7 @@ void HeuristicGeoTestBase::run_device(size_type num_states, real_type tolerance)
 
     for ([[maybe_unused]] auto step : range(num_steps))
     {
-        heuristic_test_launch(params, state.ref());
+        heuristic_test_execute(params, state.ref());
     }
 
     auto avg_path = this->get_avg_path(state.ref().accum_path, num_states);
@@ -185,8 +185,8 @@ auto HeuristicGeoTestBase::get_avg_path_impl(std::vector<real_type> const& path,
 // DEVICE KERNEL EXECUTION
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void heuristic_test_launch(DeviceCRef<HeuristicGeoParamsData> const&,
-                           DeviceRef<HeuristicGeoStateData> const&)
+void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const&,
+                            DeviceRef<HeuristicGeoStateData> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

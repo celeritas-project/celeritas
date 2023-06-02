@@ -6,11 +6,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
@@ -19,6 +24,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "MscStepFromGeo.hh"
@@ -162,6 +168,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     CELER_EXPECT(true_path_ >= geom_path_);
     CELER_EXPECT(limit_min_ >= UrbanMscParameters::limit_min_fix()
                  || !is_displaced_);
+    CELER_EXPECT(!is_displaced_ || !geometry->is_on_boundary());
 
     skip_sampling_ = [this, &helper, &physics] {
         if (true_path_ == physics.dedx_range())

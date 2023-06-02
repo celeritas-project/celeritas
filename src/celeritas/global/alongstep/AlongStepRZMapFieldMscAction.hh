@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/field/RZMapFieldData.hh"
@@ -49,10 +50,10 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
                 RZMapFieldInput const& field_input,
                 SPConstMsc const& msc);
 
-    // Construct with next action ID, optional MSC, magnetic field
+    // Construct with next action ID and physics properties
     AlongStepRZMapFieldMscAction(ActionId id,
-                                 SPConstFluctuations fluct,
                                  RZMapFieldInput const& input,
+                                 SPConstFluctuations fluct,
                                  SPConstMsc msc);
 
     // Launch kernel with host data
@@ -78,30 +79,15 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
 
     //// ACCESSORS ////
 
-    //! Whether MSC is in use
-    bool has_msc() const { return static_cast<bool>(msc_); }
-
     //! Field map data
     SPConstFieldParams const& field() const { return field_; }
 
   private:
     ActionId id_;
+    SPConstFieldParams field_;
     SPConstFluctuations fluct_;
     SPConstMsc msc_;
-    SPConstFieldParams field_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
-#if !CELER_USE_DEVICE
-inline void AlongStepRZMapFieldMscAction::execute(CoreParams const&,
-                                                  CoreStateDevice&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

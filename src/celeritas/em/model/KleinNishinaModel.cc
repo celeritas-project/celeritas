@@ -8,8 +8,12 @@
 #include "KleinNishinaModel.hh"
 
 #include "corecel/math/Quantity.hh"
-#include "celeritas/em/generated/KleinNishinaInteract.hh"
+#include "celeritas/em/executor/KleinNishinaExecutor.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
 
@@ -69,15 +73,21 @@ auto KleinNishinaModel::micro_xs(Applicability) const -> MicroXsBuilders
 void KleinNishinaModel::execute(CoreParams const& params,
                                 CoreStateHost& state) const
 {
-    generated::klein_nishina_interact(params, state, this->host_ref());
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{KleinNishinaExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
-void KleinNishinaModel::execute(CoreParams const& params,
-                                CoreStateDevice& state) const
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void KleinNishinaModel::execute(CoreParams const&, CoreStateDevice&) const
 {
-    generated::klein_nishina_interact(
-        params, state, this->device_ref(), this->action_id());
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
+#endif
 
 //---------------------------------------------------------------------------//
 /*!

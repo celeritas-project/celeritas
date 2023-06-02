@@ -11,7 +11,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#include "SimpleCaloLauncher.hh"  // IWYU pragma: associated
+#include "SimpleCaloExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -26,11 +26,11 @@ void simple_calo_accum(HostRef<StepStateData> const& step,
 {
     CELER_EXPECT(step && calo);
     MultiExceptionHandler capture_exception;
-    SimpleCaloLauncher launch{step, calo};
+    SimpleCaloExecutor execute{step, calo};
 #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < step.size(); ++i)
     {
-        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE(execute(ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
 }

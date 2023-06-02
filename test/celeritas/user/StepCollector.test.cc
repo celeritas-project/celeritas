@@ -8,6 +8,7 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include "corecel/cont/Span.hh"
+#include "corecel/io/LogContextException.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
@@ -167,7 +168,8 @@ TEST_F(KnStepCollectorTestBase, multiple_interfaces)
         Stepper<MemSpace::host> step(step_inp);
 
         auto primaries = this->make_primaries(2);
-        step(make_span(primaries));
+        CELER_TRY_HANDLE(step(make_span(primaries)),
+                         LogContextException{this->output_reg().get()});
     }
 
     EXPECT_EQ(4, mctruth->steps().size());
@@ -187,7 +189,8 @@ TEST_F(KnMctruthTest, single_step)
     EXPECT_VEC_EQ(expected_track, result.track);
     static int const expected_step[] = {1, 1, 1, 1, 1, 1, 1, 1};
     EXPECT_VEC_EQ(expected_step, result.step);
-    if (!CELERITAS_USE_VECGEOM)
+
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         static int const expected_volume[] = {1, 1, 1, 1, 1, 1, 1, 1};
         EXPECT_VEC_EQ(expected_volume, result.volume);
@@ -211,7 +214,7 @@ TEST_F(KnMctruthTest, two_step)
     EXPECT_VEC_EQ(expected_track, result.track);
     static const int expected_step[] = {1, 2, 1, 2, 1, 2, 1, 2};
     EXPECT_VEC_EQ(expected_step, result.step);
-    if (!CELERITAS_USE_VECGEOM)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         static const int expected_volume[] = {1, 1, 1, 1, 1, 2, 1, 2};
         EXPECT_VEC_EQ(expected_volume, result.volume);
@@ -249,7 +252,7 @@ TEST_F(TestEm3MctruthTest, four_step)
         EXPECT_VEC_EQ(expected_track, result.track);
         static const int expected_step[] = {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
         EXPECT_VEC_EQ(expected_step, result.step);
-        if (!CELERITAS_USE_VECGEOM)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             static const int expected_volume[] = {1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2};
             EXPECT_VEC_EQ(expected_volume, result.volume);
@@ -291,6 +294,10 @@ TEST_F(TestEm3MctruthTest, four_step)
 
 TEST_F(TestEm3CaloTest, thirtytwo_step)
 {
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        GTEST_SKIP() << "Track gets stuck with Geant4 navigator";
+    }
     auto result = this->run<MemSpace::host>(256, 32);
 
     static double const expected_edep[]

@@ -7,6 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "RZMapFieldInputIO.json.hh"
 
+#include <initializer_list>
+#include <ostream>
+#include <string>
+#include <vector>
+
 #include "RZMapFieldInput.hh"
 
 namespace celeritas

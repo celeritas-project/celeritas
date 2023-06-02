@@ -9,12 +9,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/ExecuteAction.hh"
 
-#include "detail/LocateAliveLauncher.hh"  // IWYU pragma: associated
-#include "detail/ProcessSecondariesLauncher.hh"  // IWYU pragma: associated
+#include "detail/LocateAliveExecutor.hh"  // IWYU pragma: associated
+#include "detail/ProcessSecondariesExecutor.hh"  // IWYU pragma: associated
 #include "detail/TrackInitAlgorithms.hh"  // IWYU pragma: associated
 
 namespace celeritas
@@ -56,15 +56,16 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
-    counters.num_vacancies = detail::remove_if_alive(init.vacancies);
+    counters.num_vacancies
+        = detail::remove_if_alive(init.vacancies, core_state.stream_id());
 
     // The exclusive prefix sum of the number of secondaries produced by each
     // track is used to get the start index in the vector of track initializers
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
-    counters.num_secondaries
-        = detail::exclusive_scan_counts(init.secondary_counts);
+    counters.num_secondaries = detail::exclusive_scan_counts(
+        init.secondary_counts, core_state.stream_id());
 
     // TODO: if we don't have space for all the secondaries, we will need to
     // buffer the current track initializers to create room
@@ -90,11 +91,9 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
 void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
                                                CoreStateHost& core_state) const
 {
-    execute_action(*this,
-                   core_params,
-                   core_state,
-                   detail::LocateAliveLauncher{
-                       core_params.ptr<MemSpace::native>(), core_state.ptr()});
+    detail::LocateAliveExecutor execute{core_params.ptr<MemSpace::native>(),
+                                        core_state.ptr()};
+    launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
@@ -108,18 +107,17 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const&,
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to create track initializers from secondary particles.
+ * Launch a (host) kernel to create track initializers from secondary
+ * particles.
  */
 void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateHost& core_state) const
 {
-    execute_action(
-        *this,
-        core_params,
-        core_state,
-        detail::ProcessSecondariesLauncher{core_params.ptr<MemSpace::native>(),
-                                           core_state.ptr(),
-                                           core_state.counters()});
+    detail::ProcessSecondariesExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        core_state.counters()};
+    launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//

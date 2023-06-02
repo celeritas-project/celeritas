@@ -56,6 +56,9 @@ class CoreTrackView
     // Return a particle view
     inline CELER_FUNCTION ParticleTrackView make_particle_view() const;
 
+    // Return a particle view of another particle type
+    inline CELER_FUNCTION ParticleView make_particle_view(ParticleId) const;
+
     // Return a cutoff view
     inline CELER_FUNCTION CutoffView make_cutoff_view() const;
 
@@ -156,6 +159,16 @@ CELER_FUNCTION auto CoreTrackView::make_particle_view() const
 {
     return ParticleTrackView{
         params_.particles, states_.particles, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a particle view of another particle type.
+ */
+CELER_FUNCTION auto CoreTrackView::make_particle_view(ParticleId pid) const
+    -> ParticleView
+{
+    return ParticleView{params_.particles, pid};
 }
 
 //---------------------------------------------------------------------------//

@@ -19,6 +19,11 @@
 #    include "celeritas/ext/VecgeomParams.hh"
 #    include "celeritas/ext/VecgeomTrackView.hh"
 #endif
+#if CELERITAS_USE_GEANT4
+#    include "celeritas/ext/GeantGeoData.hh"
+#    include "celeritas/ext/GeantGeoParams.hh"
+#    include "celeritas/ext/GeantGeoTrackView.hh"
+#endif
 
 namespace celeritas
 {
@@ -200,6 +205,11 @@ template class GenericGeoTestBase<OrangeParams, OrangeStateData, OrangeTrackView
 template class GenericGeoTestBase<VecgeomParams, VecgeomStateData, VecgeomTrackView>;
 #endif
 
+#if CELERITAS_USE_GEANT4
+template class GenericGeoTestBase<GeantGeoParams,
+                                  GeantGeoStateData,
+                                  GeantGeoTrackView>;
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

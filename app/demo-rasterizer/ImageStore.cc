@@ -10,9 +10,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 
-using celeritas::range;
-
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -20,13 +20,13 @@ namespace demo_rasterizer
  */
 ImageStore::ImageStore(ImageRunArgs params)
 {
-    CELER_EXPECT(celeritas::is_soft_unit_vector(params.rightward_ax));
+    CELER_EXPECT(is_soft_unit_vector(params.rightward_ax));
     CELER_EXPECT(params.lower_left != params.upper_right);
     CELER_EXPECT(params.vertical_pixels > 0);
 
     // Normalize rightward axis
     right_ax_ = params.rightward_ax;
-    celeritas::normalize_direction(&right_ax_);
+    normalize_direction(&right_ax_);
 
     // Vector pointing toward the upper right from the lower left corner
     Real3 diagonal;
@@ -37,16 +37,16 @@ ImageStore::ImageStore(ImageRunArgs params)
 
     // Set downward axis to the diagonal with the rightward component
     // subtracted out; then normalize
-    real_type projection = celeritas::dot_product(diagonal, right_ax_);
+    real_type projection = dot_product(diagonal, right_ax_);
     for (int i : range(3))
     {
         down_ax_[i] = -diagonal[i] + projection * right_ax_[i];
     }
-    celeritas::normalize_direction(&down_ax_);
+    normalize_direction(&down_ax_);
 
     // Calculate length along each axis
-    real_type width_x = celeritas::dot_product(diagonal, right_ax_);
-    real_type width_y = -celeritas::dot_product(diagonal, down_ax_);
+    real_type width_x = dot_product(diagonal, right_ax_);
+    real_type width_y = -dot_product(diagonal, down_ax_);
 
     CELER_ASSERT(width_x > 0 && width_y > 0);
 
@@ -63,7 +63,7 @@ ImageStore::ImageStore(ImageRunArgs params)
 
     // Allocate storage
     dims_ = {num_y, num_x};
-    image_ = celeritas::DeviceVector<int>(num_y * num_x);
+    image_ = DeviceVector<int>(num_y * num_x);
     CELER_ENSURE(!image_.empty());
 }
 
@@ -109,9 +109,10 @@ ImageData ImageStore::device_interface()
 auto ImageStore::data_to_host() const -> VecInt
 {
     VecInt result(dims_[0] * dims_[1]);
-    image_.copy_to_host(celeritas::make_span(result));
+    image_.copy_to_host(make_span(result));
     return result;
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas

@@ -12,7 +12,6 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/mat/ElementView.hh"
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -20,6 +19,7 @@
 
 namespace celeritas
 {
+class MaterialParams;
 class ParticleParams;
 
 //---------------------------------------------------------------------------//
