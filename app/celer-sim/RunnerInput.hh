@@ -54,7 +54,7 @@ struct RunnerInput
 
     // Control
     unsigned int seed{};
-    size_type max_num_tracks{};
+    size_type num_track_slots{};  //!< Divided among streams
     size_type max_steps{unspecified};
     size_type initializer_capacity{};
     size_type max_events{};
@@ -86,7 +86,7 @@ struct RunnerInput
     {
         return !geometry_filename.empty() && !physics_filename.empty()
                && (primary_gen_options || !hepmc3_filename.empty())
-               && max_num_tracks > 0 && max_steps > 0
+               && num_track_slots > 0 && max_steps > 0
                && initializer_capacity > 0 && max_events > 0
                && secondary_stack_factor > 0
                && (step_diagnostic_maxsteps > 0 || !step_diagnostic)

@@ -18,15 +18,6 @@ list(APPEND SOURCES
   em/FluctuationParams.cc
   em/UrbanMscParams.cc
   em/detail/Utils.cc
-  em/model/CombinedBremModel.cc
-  em/model/EPlusGGModel.cc
-  em/model/KleinNishinaModel.cc
-  em/model/LivermorePEModel.cc
-  em/model/MollerBhabhaModel.cc
-  em/model/MuBremsstrahlungModel.cc
-  em/model/RayleighModel.cc
-  em/model/RelativisticBremModel.cc
-  em/model/SeltzerBergerModel.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
   em/process/EIonizationProcess.cc
@@ -256,6 +247,16 @@ endmacro()
 #-----------------------------------------------------------------------------#
 
 celeritas_polysource(em/model/BetheHeitlerModel)
+celeritas_polysource(em/model/CombinedBremModel)
+celeritas_polysource(em/model/EPlusGGModel)
+celeritas_polysource(em/model/KleinNishinaModel)
+celeritas_polysource(em/model/LivermorePEModel)
+celeritas_polysource(em/model/MollerBhabhaModel)
+celeritas_polysource(em/model/MuBremsstrahlungModel)
+celeritas_polysource(em/model/RayleighModel)
+celeritas_polysource(em/model/RelativisticBremModel)
+celeritas_polysource(em/model/SeltzerBergerModel)
+celeritas_polysource(geo/detail/BoundaryAction)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
@@ -285,25 +286,6 @@ macro(celeritas_gen_interactor class func)
     --class ${class}  --func ${func}
   )
 endmacro()
-
-macro(celeritas_gen_action basedir class func order)
-  celeritas_gen(SOURCES
-    "gen-action.py" "${basedir}/generated/${class}"
-    --class ${class} --func ${func} --actionorder ${order}
-  )
-endmacro()
-
-celeritas_gen_interactor("CombinedBrem" "combined_brem")
-celeritas_gen_interactor("EPlusGG" "eplusgg")
-celeritas_gen_interactor("KleinNishina" "klein_nishina")
-celeritas_gen_interactor("LivermorePE" "livermore_pe")
-celeritas_gen_interactor("MollerBhabha" "moller_bhabha")
-celeritas_gen_interactor("MuBremsstrahlung" "mu_bremsstrahlung")
-celeritas_gen_interactor("Rayleigh" "rayleigh")
-celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
-celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
-
-celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
 
 #-----------------------------------------------------------------------------#
 # Create library

@@ -15,18 +15,26 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct EPlusGGExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    EPlusGGData params;
+};
+
+//---------------------------------------------------------------------------//
 /*!
- * Apply the EPlusGGInteractor to the current track.
+ * Sample a positron annihilation from the current track.
  */
-inline CELER_FUNCTION Interaction
-eplusgg_interact_track(EPlusGGData const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction EPlusGGExecutor::operator()(CoreTrackView const& track)
 {
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
     auto particle = track.make_particle_view();
     auto const& dir = track.make_geo_view().dir();
 
-    EPlusGGInteractor interact(model, particle, dir, allocate_secondaries);
+    EPlusGGInteractor interact(params, particle, dir, allocate_secondaries);
     auto rng = track.make_rng_engine();
     return interact(rng);
 }

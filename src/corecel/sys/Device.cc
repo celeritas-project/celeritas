@@ -331,6 +331,23 @@ void activate_device(MpiCommunicator const& comm)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Call cudaSetDevice using the existing device, for thread-local safety.
+ *
+ * See
+ * https://developer.nvidia.com/blog/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs
+ *
+ * \pre activate_device was called to set \c device()
+ */
+void activate_device_local()
+{
+    if (device())
+    {
+        CELER_DEVICE_CALL_PREFIX(SetDevice(device().device_id()));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Print device info.
  */
 std::ostream& operator<<(std::ostream& os, Device const& d)

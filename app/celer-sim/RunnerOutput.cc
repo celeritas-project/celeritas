@@ -50,6 +50,7 @@ void RunnerOutput::output(JsonPimpl* j) const
     auto active = json::array();
     auto alive = json::array();
     auto initializers = json::array();
+    auto num_track_slots = json::array();
     auto step_times = json::array();
     MapStrReal action_times;
 
@@ -58,6 +59,7 @@ void RunnerOutput::output(JsonPimpl* j) const
         active.push_back(event.active);
         alive.push_back(event.alive);
         initializers.push_back(event.initializers);
+        num_track_slots.push_back(event.num_track_slots);
         if (!event.step_times.empty())
         {
             step_times.push_back(event.step_times);
@@ -71,12 +73,14 @@ void RunnerOutput::output(JsonPimpl* j) const
     obj["active"] = std::move(active);
     obj["alive"] = std::move(alive);
     obj["initializers"] = std::move(initializers);
+    obj["num_track_slots"] = std::move(num_track_slots);
     obj["time"] = {
         {"steps", std::move(step_times)},
         {"actions", std::move(action_times)},
         {"total", result_.total_time},
         {"setup", result_.setup_time},
     };
+    obj["num_streams"] = result_.num_streams;
 
     j->obj = std::move(obj);
 #else
