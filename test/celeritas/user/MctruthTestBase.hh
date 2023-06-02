@@ -51,8 +51,13 @@ class MctruthTestBase : virtual public StepCollectorTestBase
     RunResult run(size_type num_tracks, size_type num_steps);
 
   protected:
+    virtual void gather_batch_results();
+
     std::shared_ptr<ExampleMctruth> example_mctruth_;
     std::shared_ptr<StepCollector> collector_;
+
+  private:
+    RunResult result;
 };
 
 //---------------------------------------------------------------------------//

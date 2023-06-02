@@ -55,9 +55,17 @@ class CaloTestBase : virtual public StepCollectorTestBase
     std::string output() const;
 
   protected:
+
+    virtual void gather_batch_results();
+    virtual void initalize();
+    virtual void finalize();
+
     std::shared_ptr<SimpleCalo> calo_;
     std::shared_ptr<StepCollector> collector_;
     std::shared_ptr<OutputRegistry> output_;
+
+  private:
+    RunResult result;
 };
 
 //---------------------------------------------------------------------------//

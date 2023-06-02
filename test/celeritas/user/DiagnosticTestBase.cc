@@ -93,9 +93,13 @@ auto DiagnosticTestBase::run(size_type num_tracks, size_type num_steps)
     -> RunResult
 {
     this->run_impl<M>(num_tracks, num_steps);
+    return result;
+}
 
-    RunResult result;
-
+//---------------------------------------------------------------------------//
+//! Initalize results
+void DiagnosticTestBase::gather_batch_results()
+{
     // Save action diagnostic results
     for (auto const& [label, count] : action_diagnostic_->calc_actions_map())
     {
@@ -108,8 +112,6 @@ auto DiagnosticTestBase::run(size_type num_tracks, size_type num_steps)
     {
         result.steps.insert(result.steps.end(), vec.begin(), vec.end());
     }
-
-    return result;
 }
 
 //---------------------------------------------------------------------------//

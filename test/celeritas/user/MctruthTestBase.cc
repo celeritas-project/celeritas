@@ -81,10 +81,13 @@ auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
     -> RunResult
 {
     this->run_impl<MemSpace::host>(num_tracks, num_steps);
+    return result;
+}
 
+void MctruthTestBase::gather_batch_results()
+{
     example_mctruth_->sort();
 
-    RunResult result;
     for (ExampleMctruth::Step const& s : example_mctruth_->steps())
     {
         result.event.push_back(s.event);
@@ -94,7 +97,6 @@ auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
         result.pos.insert(result.pos.end(), std::begin(s.pos), std::end(s.pos));
         result.dir.insert(result.dir.end(), std::begin(s.dir), std::end(s.dir));
     }
-    return result;
 }
 
 //---------------------------------------------------------------------------//

@@ -19,31 +19,52 @@ namespace test
  * Run a stepping loop with the core data.
  */
 template<MemSpace M>
-void StepCollectorTestBase::run_impl(size_type num_tracks, size_type num_steps)
+void StepCollectorTestBase::run_impl(size_type num_tracks_per_batch,
+                                     size_type num_steps,
+                                     size_type num_batches)
 {
+    // Save number of batches internally for normalization
+    num_batches_=num_batches;
+
+    // Compute total tracks
+    size_type num_tracks = num_tracks_per_batch*num_batches;
+
+    // Initialize stepper
     StepperInput step_inp;
     step_inp.params = this->core();
     step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_tracks;
-
     Stepper<M> step(step_inp);
     LogContextException log_context{this->output_reg().get()};
 
-    // Initial step
-    auto primaries = this->make_primaries(num_tracks);
-    StepperResult count;
-    CELER_TRY_HANDLE(count = step(make_span(primaries)), log_context);
+    // Initalize results
+    this->initalize();
 
-    while (count && --num_steps > 0)
-    {
-        CELER_TRY_HANDLE(count = step(), log_context);
+    // Loop over batches
+    for(size_type i_batch=0; i_batch<num_batches; ++i_batch){
+      // Initialize primaries for this batch
+      auto primaries = this->make_primaries(num_tracks_per_batch);
+
+      // Take num_steps steps
+      StepperResult count;
+      CELER_TRY_HANDLE(count = step(make_span(primaries)), log_context);
+      while (count && --num_steps > 0)
+        {
+          CELER_TRY_HANDLE(count = step(), log_context);
+        }
+
+      // Gathering of results
+      this->gather_batch_results();
     }
+
+    // Post-processing (e.g. normalization) of results
+    this->finalize();
 }
 
 template void
-    StepCollectorTestBase::run_impl<MemSpace::host>(size_type, size_type);
+    StepCollectorTestBase::run_impl<MemSpace::host>(size_type, size_type, size_type);
 template void
-    StepCollectorTestBase::run_impl<MemSpace::device>(size_type, size_type);
+    StepCollectorTestBase::run_impl<MemSpace::device>(size_type, size_type, size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -354,21 +354,21 @@ TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
 
 TEST_F(TestPhotonCaloTest, sixteen_batches_short)
 {
-  auto result = this->run<MemSpace::host>(256, 32, 16);
+  auto result = this->run<MemSpace::host>(16, 32, 16);
   PRINT_EXPECTED(result.edep);
   PRINT_EXPECTED(result.edep_err);
 }
 
 TEST_F(TestPhotonCaloTest, sixteen_batches_long)
 {
-  auto result = this->run<MemSpace::host>(4096, 512, 16);
+  auto result = this->run<MemSpace::host>(256, 512, 16);
   PRINT_EXPECTED(result.edep);
   PRINT_EXPECTED(result.edep_err);
 }
 
 TEST_F(TestPhotonCaloTest, TEST_IF_CELER_DEVICE(step_device))
 {
-  auto result = this->run<MemSpace::device>(4096, 512, 16);
+  auto result = this->run<MemSpace::device>(256, 512, 16);
   PRINT_EXPECTED(result.edep);
   PRINT_EXPECTED(result.edep_err);
 }

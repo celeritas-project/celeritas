@@ -61,8 +61,13 @@ class DiagnosticTestBase : virtual public StepCollectorTestBase
     void print_expected() const;
 
   protected:
+    virtual void gather_batch_results();
+
     std::shared_ptr<ActionDiagnostic> action_diagnostic_;
     std::shared_ptr<StepDiagnostic> step_diagnostic_;
+
+  private:
+    RunResult result;
 };
 
 //---------------------------------------------------------------------------//
