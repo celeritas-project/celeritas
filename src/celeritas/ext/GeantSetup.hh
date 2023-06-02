@@ -41,6 +41,9 @@ class GeantSetup
     //!@}
 
   public:
+    // Clear Geant4's signal handlers that get installed when linking 11+
+    static void disable_signal_handler();
+
     // Construct from a GDML file and physics options
     GeantSetup(std::string const& gdml_filename, Options options);
 

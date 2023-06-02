@@ -84,6 +84,19 @@ int get_num_threads(G4RunManager const& runman)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Clear ROOT's signal handlers that get installed on startup/activation.
+ */
+void GeantSetup::disable_signal_handler()
+{
+#if G4VERSION_NUMBER >= 1070
+    CELER_LOG(debug) << "Disabling Geant4 signal handlers";
+    // Disable geant4 signal interception
+    G4Backtrace::DefaultSignals() = {};
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from a GDML file and physics options.
  */
 GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
@@ -96,6 +109,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         // GeantLoggerAdapter: capture all output from this section
         ScopedTimeAndRedirect scoped_time{"G4RunManager"};
         ScopedGeantExceptionHandler scoped_exceptions;
+
         // Access the particle table before creating the run manager, so that
         // missing environment variables like G4ENSDFSTATEDATA get caught
         // cleanly rather than segfaulting
@@ -108,10 +122,8 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
                           "execution");
         ++geant_launch_count;
 
-#if G4VERSION_NUMBER >= 1070
-        // Disable geant4 signal interception
-        G4Backtrace::DefaultSignals() = {};
-#endif
+        // Disable signal handling
+        this->disable_signal_handler();
 
 #if G4VERSION_NUMBER >= 1100
         run_manager_.reset(
