@@ -51,13 +51,12 @@ celeritas_target_link_libraries(celer-dump-data
   Celeritas::celeritas
 )
 
+add_subdirectory(celer-sim)
+add_subdirectory(celer-g4)
+
 if(CELERITAS_BUILD_DEMOS)
   add_subdirectory(demo-interactor)
-  add_subdirectory(demo-loop)
-  add_subdirectory(geo-check)
-  if(CELERITAS_USE_Geant4)
-    add_subdirectory(demo-geant-integration)
-  endif()
+  add_subdirectory(demo-geo-check)
   if(CELERITAS_USE_CUDA)
     add_subdirectory(demo-rasterizer)
   endif()

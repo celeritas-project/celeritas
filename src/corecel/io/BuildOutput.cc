@@ -45,7 +45,6 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_SAVE_CFG(CELERITAS_USE_ROOT);
         CO_SAVE_CFG(CELERITAS_USE_VECGEOM);
         CO_SAVE_CFG(CELERITAS_DEBUG);
-        CO_SAVE_CFG(CELERITAS_LAUNCH_BOUNDS);
 #    undef CO_SAVE_CFG
         cfg["CELERITAS_BUILD_TYPE"] = celeritas_build_type;
         cfg["CELERITAS_CORE_GEO"] = celeritas_core_geo;

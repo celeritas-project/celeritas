@@ -111,18 +111,26 @@ celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
 
 # Runtime geometry selection: default to VecGeom if available
-set(_allow_vecgeom FALSE)
 if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
   set(_allow_vecgeom TRUE)
+else()
+  set(_allow_vecgeom FALSE)
+  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+    message(SEND_ERROR "VecGeom core geometry is incompatible with HIP")
+  endif()
+endif()
+if(CELERITAS_USE_Geant4 AND NOT (CELERITAS_USE_HIP OR CELERITAS_USE_CUDA OR CELERITAS_USE_OpenMP))
+  set(_allow_g4 TRUE)
+else()
+  if(CELERITAS_CORE_GEO STREQUAL "Geant4")
+    message(SEND_ERROR "Geant4 core geometry is incompatible with HIP, CUDA, and OpenMP")
+  endif()
+  set(_allow_g4 FALSE)
 endif()
 celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
 celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
+celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
-
-cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
-  "Use kernel launch bounds generated from launch-bounds.json" "OFF"
-  "CELERITAS_USE_CUDA OR CELERITAS_USE_HIP" OFF
-)
 
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
@@ -276,6 +284,11 @@ if(CELERITAS_BUILD_DOCS)
   endif()
 endif()
 
+if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
+  # Make sure modules, sub-libraries, etc. are relocatable
+  set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+endif()
+
 #----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
@@ -356,8 +369,6 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 
 # Build list of CMake files to install
 set(_cmake_files
-  "${PROJECT_SOURCE_DIR}/cmake/CeleritasGen.cmake"
-  "${PROJECT_SOURCE_DIR}/cmake/CeleritasGen/gen-action.py"
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
 foreach(_dep Geant4 HepMC3 ROOT VecGeom)

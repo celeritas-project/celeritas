@@ -40,7 +40,8 @@ class TestInterface final : public OutputInterface
 #if CELERITAS_USE_JSON
         json->obj = value_;
 #else
-        (void)sizeof(json, value_);
+        (void)sizeof(json);
+        (void)sizeof(value_);
 #endif
     }
 
@@ -70,7 +71,10 @@ class MockKernelContextException : public RichContextException
         json->obj["event"] = event_;
         json->obj["track"] = track_;
 #else
-        (void)sizeof(json, thread_, event_, track_);
+        (void)sizeof(json);
+        (void)sizeof(thread_);
+        (void)sizeof(event_);
+        (void)sizeof(track_);
 #endif
     }
 

@@ -17,16 +17,17 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/TwodGridData.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/data/ElectronBremsData.hh"
-#include "celeritas/em/generated/SeltzerBergerInteract.hh"
+#include "celeritas/em/executor/SeltzerBergerExecutor.hh"  // IWYU pragma: associated
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
@@ -69,8 +70,6 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Load differential cross sections
-    CELER_LOG(status) << "Reading and building Seltzer Berger model data";
-    ScopedTimeLog scoped_time;
     make_builder(&host_data.differential_xs.elements)
         .reserve(materials.num_elements());
     for (auto el_id : range(ElementId{materials.num_elements()}))
@@ -121,23 +120,28 @@ auto SeltzerBergerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 }
 
 //---------------------------------------------------------------------------//
-//!@{
 /*!
- * Apply the interaction kernel.
+ * Interact with host data.
  */
 void SeltzerBergerModel::execute(CoreParams const& params,
                                  CoreStateHost& state) const
 {
-    generated::seltzer_berger_interact(params, state, this->host_ref());
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{SeltzerBergerExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
-void SeltzerBergerModel::execute(CoreParams const& params,
-                                 CoreStateDevice& state) const
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void SeltzerBergerModel::execute(CoreParams const&, CoreStateDevice&) const
 {
-    generated::seltzer_berger_interact(params, state, this->device_ref());
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
+#endif
 
-//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

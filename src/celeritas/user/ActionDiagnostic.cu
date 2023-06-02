@@ -7,36 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "ActionDiagnostic.hh"
 
-#include "corecel/device_runtime_api.h"
-#include "corecel/Types.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/sys/Stream.hh"
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/ActionDiagnosticImpl.hh"
+#include "detail/ActionDiagnosticExecutor.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-__global__ void
-tally_action_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
-                    RefPtr<CoreStateData, MemSpace::device> const state,
-                    DeviceCRef<ParticleTallyParamsData> ad_params,
-                    DeviceRef<ParticleTallyStateData> ad_state)
-{
-    auto launch = make_active_track_launcher(
-        *params, *state, detail::tally_action, ad_params, ad_state);
-    launch(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Execute action with device data.
@@ -44,15 +23,15 @@ tally_action_kernel(CRefPtr<CoreParamsData, MemSpace::device> const params,
 void ActionDiagnostic::execute(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    CELER_LAUNCH_KERNEL(
-        tally_action,
-        celeritas::device().default_block_size(),
-        state.size(),
-        celeritas::device().stream(state.stream_id()).get(),
+    auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        store_.params<MemSpace::device>(),
-        store_.state<MemSpace::device>(state.stream_id(), this->state_size()));
+        detail::ActionDiagnosticExecutor{
+            store_.params<MemSpace::native>(),
+            store_.state<MemSpace::native>(state.stream_id(),
+                                           this->state_size())});
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(state, execute);
 }
 
 //---------------------------------------------------------------------------//

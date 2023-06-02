@@ -10,18 +10,18 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
+#include "corecel/Macros.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepUniformMsc.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -51,9 +51,9 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
                                         CoreStateHost& state) const
 {
     MultiExceptionHandler capture_exception;
-    auto launch
-        = make_along_step_track_launcher(*params.ptr<MemSpace::native>(),
-                                         *state.ptr(),
+    auto execute
+        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
+                                         state.ptr(),
                                          this->action_id(),
                                          detail::along_step_uniform_msc,
                                          host_data_.msc,
@@ -63,7 +63,7 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
     for (size_type i = 0; i < state.size(); ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
+            execute(ThreadId{i}),
             capture_exception,
             KernelContextException(params.ref<MemSpace::host>(),
                                    state.ref(),

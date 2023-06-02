@@ -25,7 +25,7 @@
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParamsOutput.hh"
-#include "celeritas/geo/generated/BoundaryAction.hh"
+#include "celeritas/geo/detail/BoundaryAction.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/mat/MaterialParamsOutput.hh"
@@ -193,8 +193,8 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     // Construct geometry action
     scalars.boundary_action = reg->next_id();
-    reg->insert(make_shared<celeritas::generated::BoundaryAction>(
-        scalars.boundary_action, "geo-boundary", "cross a geometry boundary"));
+    reg->insert(make_shared<celeritas::detail::BoundaryAction>(
+        scalars.boundary_action));
 
     //// END ACTIONS ////
 
@@ -299,6 +299,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         std::make_shared<PhysicsParamsOutput>(input_.physics));
     input_.output_reg->insert(
         std::make_shared<ActionRegistryOutput>(input_.action_reg));
+
+    CELER_LOG(status) << "Celeritas core setup complete";
 
     CELER_ENSURE(host_ref_);
     CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());

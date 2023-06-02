@@ -57,7 +57,7 @@ CELER_CONSTEXPR_FUNCTION
 
 //---------------------------------------------------------------------------//
 /*!
- * Implementation of lower-bound assuming iterator arithmetic.
+ * Implementation of binary search lower-bound assuming iterator arithmetic.
  */
 template<class Compare, class ForwardIterator, class T>
 CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
@@ -81,6 +81,27 @@ CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
             len = half_len;
     }
     return first;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Implementation of linear search lower-bound assuming iterator arithmetic.
+ */
+template<class Compare, class ForwardIterator, class T>
+CELER_FUNCTION ForwardIterator lower_bound_linear_impl(ForwardIterator first,
+                                                       ForwardIterator last,
+                                                       T const& value_,
+                                                       Compare comp)
+{
+    for (ForwardIterator it = first; it != last; ++it)
+    {
+        if (!comp(*it, value_))
+        {
+            return it;
+        }
+    }
+
+    return last;
 }
 
 //---------------------------------------------------------------------------//

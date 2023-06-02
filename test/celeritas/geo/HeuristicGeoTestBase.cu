@@ -11,7 +11,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
-#include "HeuristicGeoLauncher.hh"
+#include "HeuristicGeoExecutor.hh"
 
 namespace celeritas
 {
@@ -30,8 +30,8 @@ heuristic_test_kernel(DeviceCRef<HeuristicGeoParamsData> const params,
     if (tid.get() >= state.size())
         return;
 
-    HeuristicGeoLauncher launch{params, state};
-    launch(tid);
+    HeuristicGeoExecutor execute{params, state};
+    execute(tid);
 }
 }  // namespace
 
@@ -39,8 +39,8 @@ heuristic_test_kernel(DeviceCRef<HeuristicGeoParamsData> const params,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void heuristic_test_launch(DeviceCRef<HeuristicGeoParamsData> const& params,
-                           DeviceRef<HeuristicGeoStateData> const& state)
+void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const& params,
+                            DeviceRef<HeuristicGeoStateData> const& state)
 {
     CELER_LAUNCH_KERNEL(heuristic_test,
                         device().default_block_size(),

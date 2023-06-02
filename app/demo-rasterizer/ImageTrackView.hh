@@ -11,7 +11,9 @@
 
 #include "ImageData.hh"
 
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -25,9 +27,7 @@ class ImageTrackView
   public:
     //!@{
     //! \name Type aliases
-    using TrackSlotId = celeritas::TrackSlotId;
-    using Real3 = celeritas::Real3;
-    using real_type = celeritas::real_type;
+
     //!@}
 
   public:
@@ -97,4 +97,5 @@ CELER_FUNCTION void ImageTrackView::set_pixel(unsigned int i, int value)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas

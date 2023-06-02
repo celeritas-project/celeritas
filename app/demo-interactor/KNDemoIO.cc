@@ -10,7 +10,9 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 //!@{
@@ -63,7 +65,8 @@ void from_json(nlohmann::json const& j, KNDemoResult& v)
 //!@}
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas
 
 namespace celeritas
 {

@@ -13,17 +13,22 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 #include "../OneSteelSphereBase.hh"
 #include "../SimpleTestBase.hh"
 #include "../TestEm15Base.hh"
-#include "DummyAction.hh"
-#include "Stepper.test.hh"
+#include "../TestEm3Base.hh"
+#include "StepperTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::units::MevEnergy;
 
@@ -36,29 +41,37 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-#define TestEm3Msc TEST_IF_CELERITAS_GEANT(TestEm3Msc)
-class TestEm3Msc : public TestEm3StepperTestBase
+class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
 {
   public:
-    //! Make 10MeV electrons along +x
-    std::vector<Primary> make_primaries(size_type count) const override
+    std::vector<Primary>
+    make_primaries_with_energy(PDGNumber particle,
+                               size_type count,
+                               celeritas::units::MevEnergy energy) const
     {
-        return this->make_primaries_with_energy(count, MevEnergy{10});
+        Primary p;
+        p.particle_id = this->particle()->find(particle);
+        CELER_ASSERT(p.particle_id);
+        p.energy = energy;
+        p.track_id = TrackId{0};
+        p.position = {-22, 0, 0};
+        p.direction = {1, 0, 0};
+        p.time = 0;
+
+        std::vector<Primary> result(count, p);
+        for (auto i : range(count))
+        {
+            result[i].event_id = EventId{i};
+        }
+        return result;
     }
 
-    size_type max_average_steps() const override { return 100; }
-};
-
-//---------------------------------------------------------------------------//
-#define TestEm3MscNofluct TEST_IF_CELERITAS_GEANT(TestEm3MscNofluct)
-class TestEm3MscNofluct : public TestEm3Msc
-{
-  public:
-    GeantPhysicsOptions build_geant_options() const override
+    // Return electron primaries as default
+    std::vector<Primary>
+    make_primaries_with_energy(size_type count,
+                               celeritas::units::MevEnergy energy) const
     {
-        auto opts = TestEm3Base::build_geant_options();
-        opts.eloss_fluctuation = false;
-        return opts;
+        return this->make_primaries_with_energy(pdg::electron(), count, energy);
     }
 };
 
@@ -92,6 +105,59 @@ class TestEm3Compton : public TestEm3StepperTestBase
     }
 
     size_type max_average_steps() const override { return 1000; }
+};
+
+//---------------------------------------------------------------------------//
+#define TestEm3NoMsc TEST_IF_CELERITAS_GEANT(TestEm3NoMsc)
+class TestEm3NoMsc : public TestEm3StepperTestBase
+{
+  public:
+    //! Make 10GeV electrons along +x
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        return this->make_primaries_with_energy(
+            count, celeritas::units::MevEnergy{10000});
+    }
+
+    size_type max_average_steps() const override
+    {
+        return 100000;  // 8 primaries -> ~500k steps, be conservative
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.msc = MscModelSelection::none;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+#define TestEm3Msc TEST_IF_CELERITAS_GEANT(TestEm3Msc)
+class TestEm3Msc : public TestEm3StepperTestBase
+{
+  public:
+    //! Make 10MeV electrons along +x
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        return this->make_primaries_with_energy(count, MevEnergy{10});
+    }
+
+    size_type max_average_steps() const override { return 100; }
+};
+
+//---------------------------------------------------------------------------//
+#define TestEm3MscNofluct TEST_IF_CELERITAS_GEANT(TestEm3MscNofluct)
+class TestEm3MscNofluct : public TestEm3Msc
+{
+  public:
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.eloss_fluctuation = false;
+        return opts;
+    }
 };
 
 //---------------------------------------------------------------------------//

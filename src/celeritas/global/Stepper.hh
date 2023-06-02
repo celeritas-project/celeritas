@@ -93,6 +93,9 @@ class StepperInterface
     //! Get action sequence for timing diagnostics
     virtual ActionSequence const& actions() const = 0;
 
+    //! Get the core state interface
+    virtual CoreStateInterface const& state() const = 0;
+
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
     ~StepperInterface() = default;
@@ -141,6 +144,9 @@ class Stepper final : public StepperInterface
 
     //! Access core data, primarily for debugging
     StateRef const& state_ref() const { return state_.ref(); }
+
+    //! Get the core state interface for diagnostic output
+    CoreStateInterface const& state() const final { return state_; }
 
   private:
     // Params and call sequence

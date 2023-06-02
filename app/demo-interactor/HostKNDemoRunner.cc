@@ -34,9 +34,9 @@
 #include "KNDemoKernel.hh"
 #include "KernelUtils.hh"
 
-using namespace celeritas;
-
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -62,7 +62,7 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
 /*!
  * Run given number of particles each for max steps.
  */
-auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
+auto HostKNDemoRunner::operator()(celeritas::app::KNDemoRunArgs args)
     -> result_type
 {
     CELER_EXPECT(args.energy > 0);
@@ -82,7 +82,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     std::mt19937 rng(args.seed);
 
     // Particle data
-    ::celeritas::HostVal<ParticleStateData> track_states;
+    HostVal<ParticleStateData> track_states;
     resize(&track_states, pparams_->host_ref(), 1);
 
     // Make secondary store
@@ -92,11 +92,11 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     // Detector data
     DetectorParamsData detector_params;
     detector_params.tally_grid = args.tally_grid;
-    ::celeritas::HostVal<DetectorStateData> detector_states;
+    HostVal<DetectorStateData> detector_states;
     resize(&detector_states, detector_params, args.max_steps);
 
     // Construct references
-    ParamsHostRef params;
+    HostCRef<ParamsData> params;
     params.particle = pparams_->host_ref();
     params.tables = xsparams_->host_ref();
     params.kn_interactor = kn_data_;
@@ -107,7 +107,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     initial.particle = ParticleTrackInitializer{kn_data_.ids.gamma,
                                                 units::MevEnergy{args.energy}};
 
-    StateHostRef state;
+    HostRef<StateData> state;
     state.particle = track_states;
     state.secondaries = secondaries;
     state.detector = detector_states;
@@ -150,7 +150,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             ++num_steps;
 
             // Move to collision
-            demo_interactor::move_to_collision(
+            celeritas::app::move_to_collision(
                 particle, calc_xs, direction, &position, &time, rng);
 
             // Hit analysis
@@ -218,7 +218,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Copy integrated energy deposition
     result.edep.resize(detector_params.tally_grid.size);
-    demo_interactor::finalize(params, state, make_span(result.edep));
+    celeritas::app::finalize(params, state, make_span(result.edep));
 
     // Store timings
     result.time.push_back(transport_time);
@@ -234,4 +234,5 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

@@ -139,12 +139,13 @@ TEST_F(KernelContextExceptionTest, typical)
         EXPECT_EQ(10, e.energy().value());
         EXPECT_VEC_SOFT_EQ((Real3{0, 1, 5}), e.pos());
         EXPECT_VEC_SOFT_EQ((Real3{0, 0, 1}), e.dir());
-        if (!CELERITAS_USE_VECGEOM)
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ(VolumeId{2}, e.volume());
             EXPECT_EQ(SurfaceId{11}, e.surface());
         }
-        if (CELERITAS_USE_JSON && !CELERITAS_USE_VECGEOM)
+        if (CELERITAS_USE_JSON
+            && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             std::stringstream ss;
             ss << R"json({"dir":[0.0,0.0,1.0],"energy":[10.0,"MeV"],"event":1,"label":"test-kernel","num_steps":1,"particle":0,"pos":[0.0,1.0,5.0],"surface":11,"thread":)json"

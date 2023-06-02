@@ -7,47 +7,28 @@
 //---------------------------------------------------------------------------//
 #include "InitializeTracksAction.hh"
 
-#include "corecel/device_runtime_api.h"
-#include "corecel/Types.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/sys/Stream.hh"
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
-#include "detail/InitTracksLauncher.hh"
+#include "detail/InitTracksExecutor.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-__global__ void init_tracks_kernel(detail::InitTracksLauncher launch)
-{
-    launch(KernelParamCalculator::thread_id());
-}
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Launch a kernel to initialize tracks.
  */
-void InitializeTracksAction::launch_impl(CoreParams const& params,
-                                         CoreStateDevice& state,
-                                         size_type num_new_tracks) const
+void InitializeTracksAction::execute_impl(CoreParams const& params,
+                                          CoreStateDevice& state,
+                                          size_type num_new_tracks) const
 {
-    CELER_LAUNCH_KERNEL(
-        init_tracks,
-        celeritas::device().default_block_size(),
-        num_new_tracks,
-        celeritas::device().stream(state.stream_id()).get(),
-        detail::InitTracksLauncher{params.ptr<MemSpace::device>(),
-                                   state.ptr(),
-                                   num_new_tracks,
-                                   state.counters()});
+    detail::InitTracksExecutor execute_thread{params.ptr<MemSpace::native>(),
+                                              state.ptr(),
+                                              num_new_tracks,
+                                              state.counters()};
+    static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
+    launch_kernel(num_new_tracks, state.stream_id(), execute_thread);
 }
 
 //---------------------------------------------------------------------------//

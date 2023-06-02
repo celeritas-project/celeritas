@@ -85,8 +85,8 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
 
 //---------------------------------------------------------------------------//
 //! Run on device
-void heuristic_test_launch(DeviceCRef<HeuristicGeoParamsData> const&,
-                           DeviceRef<HeuristicGeoStateData> const&);
+void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const&,
+                            DeviceRef<HeuristicGeoStateData> const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

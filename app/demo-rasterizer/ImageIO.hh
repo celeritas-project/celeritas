@@ -14,16 +14,18 @@
 #include "corecel/cont/Array.hh"
 #include "celeritas/Types.hh"
 
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 class ImageStore;
 //---------------------------------------------------------------------------//
 //! Image construction arguments
 struct ImageRunArgs
 {
-    celeritas::Real3 lower_left;
-    celeritas::Real3 upper_right;
-    celeritas::Real3 rightward_ax;
+    Real3 lower_left;
+    Real3 upper_right;
+    Real3 rightward_ax;
     unsigned int vertical_pixels;
 };
 
@@ -32,4 +34,5 @@ void from_json(nlohmann::json const& j, ImageRunArgs& value);
 
 void to_json(nlohmann::json& j, ImageStore const& value);
 //---------------------------------------------------------------------------//
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas

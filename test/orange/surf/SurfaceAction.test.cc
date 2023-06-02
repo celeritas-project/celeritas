@@ -196,7 +196,7 @@ TEST_F(SurfaceActionTest, host_distances)
     this->fill_uniform_box(state_ref.pos[AllItems<Real3>{}]);
     this->fill_isotropic(state_ref.dir[AllItems<Real3>{}]);
 
-    CalcSenseDistanceLauncher<> calc_thread{host_ref, state_ref};
+    CalcSenseDistanceExecutor<> calc_thread{host_ref, state_ref};
     for (auto tid : range(TrackSlotId{states.size()}))
     {
         calc_thread(tid);

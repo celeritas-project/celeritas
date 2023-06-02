@@ -67,4 +67,17 @@ inline double convert_to_geant(units::MevEnergy const& energy, double units)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Define y += a * x .
+ */
+inline void axpy(double a, G4ThreeVector const& x, G4ThreeVector* y)
+{
+    CELER_EXPECT(y);
+    for (int i = 0; i < 3; ++i)
+    {
+        (*y)[i] = a * x[i] + (*y)[i];
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

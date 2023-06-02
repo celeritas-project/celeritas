@@ -11,7 +11,9 @@
 
 #include "ImageStore.hh"
 
-namespace demo_rasterizer
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 //!@{
@@ -44,4 +46,5 @@ void to_json(nlohmann::json& j, ImageStore const& v)
 
 //!@}
 //---------------------------------------------------------------------------//
-}  // namespace demo_rasterizer
+}  // namespace app
+}  // namespace celeritas

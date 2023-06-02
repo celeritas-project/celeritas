@@ -103,6 +103,24 @@ TEST_F(FourLevelsTest, accessors)
 
 //---------------------------------------------------------------------------//
 
+TEST_F(FourLevelsTest, consecutive_compute)
+{
+    auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    auto next = geo.find_next_step(10.0);
+    EXPECT_SOFT_EQ(4.0, next.distance);
+    EXPECT_SOFT_EQ(4.0, geo.find_safety());
+
+    next = geo.find_next_step(10.0);
+    EXPECT_SOFT_EQ(4.0, next.distance);
+    EXPECT_SOFT_EQ(4.0, geo.find_safety());
+}
+
+//---------------------------------------------------------------------------//
+
 TEST_F(FourLevelsTest, detailed_track)
 {
     {
