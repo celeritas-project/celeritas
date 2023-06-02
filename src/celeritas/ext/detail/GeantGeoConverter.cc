@@ -255,10 +255,13 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
     CELER_ASSERT(remaining_daughters <= 0
                  || remaining_daughters == (int)g4lv_mom->GetNoDaughters());
 
-    // Cross check geometry using cubic volume property: very slow for union
-    // solids and a few others
+    // Cross check geometry using cubic volume property: skip stochastically
+    // sampled comparisons due to performance and frequent false positives
     if (!dynamic_cast<GenericSolidBase const*>(shape_mom)
         && !dynamic_cast<UnplacedScaledShape const*>(shape_mom)
+        && !dynamic_cast<UnplacedBooleanVolume<kSubtraction> const*>(shape_mom)
+        && !dynamic_cast<UnplacedBooleanVolume<kIntersection> const*>(shape_mom)
+        && !dynamic_cast<UnplacedBooleanVolume<kUnion> const*>(shape_mom)
         && !is_unknown_shape)
     {
         auto vg_cap = vglv_mom->GetUnplacedVolume()->Capacity();
@@ -741,10 +744,9 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
     {
         G4VSolid* underlying = refl->GetConstituentMovedSolid();
         CELER_ASSERT(underlying);
-        CELER_LOG(debug) << "Converting reflected solid '"
-                         << refl->GetName() << "' (underlying "
-                         << underlying->GetEntityType() << " solid: '"
-                         << underlying->GetName() << "')";
+        CELER_LOG(debug) << "Converting reflected solid '" << refl->GetName()
+                         << "' (underlying " << underlying->GetEntityType()
+                         << " solid: '" << underlying->GetName() << "')";
         unplaced_volume = this->convert(underlying);
     }
 
