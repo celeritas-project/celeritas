@@ -352,25 +352,26 @@ TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
     EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
 }
 
-TEST_F(TestPhotonCaloTest, sixteen_batches_short)
+TEST_F(TestPhotonCaloTest, sixteen_batches)
 {
   auto result = this->run<MemSpace::host>(16, 32, 16);
-  PRINT_EXPECTED(result.edep);
-  PRINT_EXPECTED(result.edep_err);
-}
 
-TEST_F(TestPhotonCaloTest, sixteen_batches_long)
-{
-  auto result = this->run<MemSpace::host>(256, 512, 16);
-  PRINT_EXPECTED(result.edep);
-  PRINT_EXPECTED(result.edep_err);
+  static double const expected_edep[] = {9.0653751813736, 17.177626720468, 12.691359768897};
+  static double const expected_edep_err[] = {0.64823529758419, 0.42812745087497, 0.63485083267392};
+
+  EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+  EXPECT_VEC_NEAR(expected_edep_err, result.edep_err, 0.5);
 }
 
 TEST_F(TestPhotonCaloTest, TEST_IF_CELER_DEVICE(step_device))
 {
-  auto result = this->run<MemSpace::device>(256, 512, 16);
-  PRINT_EXPECTED(result.edep);
-  PRINT_EXPECTED(result.edep_err);
+  auto result = this->run<MemSpace::device>(16,32, 16);
+
+  static double const expected_edep[] = {9.0653751813736, 17.177626720468, 12.691359768897};
+  static double const expected_edep_err[] = {0.64823529758419, 0.42812745087497, 0.63485083267392};
+
+  EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+  EXPECT_VEC_NEAR(expected_edep_err, result.edep_err, 0.5);
 }
 
 //---------------------------------------------------------------------------//
