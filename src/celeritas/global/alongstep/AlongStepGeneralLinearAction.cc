@@ -22,8 +22,8 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
-#include "detail/AlongStepNeutral.hh"
 #include "detail/FluctELoss.hh"  // IWYU pragma: associated
+#include "detail/LinearTrackPropagator.hh"
 #include "detail/MeanELoss.hh"  // IWYU pragma: associated
 
 namespace celeritas
