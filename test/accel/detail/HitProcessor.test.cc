@@ -136,7 +136,7 @@ class HitProcessorTest : public ::celeritas::test::SimpleCmsTestBase
     void SetUp() override
     {
         // Make sure Geant4 is loaded and detctors are set up
-        ASSERT_TRUE(this->imported_data());
+        ASSERT_TRUE(!this->imported_data().volumes.empty());
         this->setup_detectors();
 
         // Reset detectors between simulations

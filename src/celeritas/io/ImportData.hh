@@ -66,12 +66,6 @@ struct ImportData
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
     ImportAtomicRelaxationMap atomic_relaxation_data;
-
-    explicit operator bool() const
-    {
-        return !particles.empty() && !elements.empty() && !materials.empty()
-               && !volumes.empty();
-    }
 };
 
 //---------------------------------------------------------------------------//

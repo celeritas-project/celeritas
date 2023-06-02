@@ -29,7 +29,7 @@ namespace celeritas
 std::shared_ptr<ParticleParams>
 ParticleParams::from_import(ImportData const& data)
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(!data.particles.empty());
 
     Input defs(data.particles.size());
 

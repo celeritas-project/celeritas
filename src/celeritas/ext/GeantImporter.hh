@@ -27,6 +27,7 @@ struct GeantImportDataSelection
     using Flags = unsigned int;
     enum : unsigned int
     {
+        none = 0x0,
         dummy = 0x1,  //!< Dummy particles+processes
         em_basic = 0x2,  //!< Electron, positron, gamma
         em_ex = 0x4,  //!< Extended EM particles
@@ -35,6 +36,7 @@ struct GeantImportDataSelection
     };
 
     Flags particles = em;
+    bool materials = true;
     Flags processes = em;
 
     //! Change volume names to match exported GDML file

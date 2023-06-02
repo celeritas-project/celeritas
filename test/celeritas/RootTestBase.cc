@@ -40,7 +40,8 @@ auto RootTestBase::imported_data() const -> ImportData const&
         // Raise an exception if non-fatal errors were encountered
         scoped_root_error.throw_if_errors();
     }
-    CELER_ENSURE(i.imported);
+    CELER_ENSURE(!i.imported.materials.empty()
+                 && !i.imported.particles.empty());
     return i.imported;
 }
 

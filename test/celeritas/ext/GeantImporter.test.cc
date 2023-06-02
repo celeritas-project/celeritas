@@ -84,7 +84,6 @@ class GeantImporterTest : public GeantTestBase
     ImportProcess const&
     find_process(PDGNumber pdg, ImportProcessClass ipc) const
     {
-        CELER_EXPECT(this->imported_data());
         auto const& processes = this->imported_data().processes;
         auto result = std::find_if(processes.begin(),
                                    processes.end(),
@@ -102,7 +101,6 @@ class GeantImporterTest : public GeantTestBase
     ImportMscModel const&
     find_msc_model(PDGNumber pdg, ImportModelClass imc) const
     {
-        CELER_EXPECT(this->imported_data());
         auto const& models = this->imported_data().msc_models;
         auto result = std::find_if(
             models.begin(), models.end(), [pdg, imc](ImportMscModel const& m) {
