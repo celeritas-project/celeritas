@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/detail/AlongStepNeutral.hh
+//! \file celeritas/global/alongstep/detail/AlongStepNeutralImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,16 +11,14 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Quantity.hh"
-#include "celeritas/Types.hh"
-#include "celeritas/field/LinearPropagator.hh"
-#include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "../AlongStep.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class CoreTrackView;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -42,25 +40,6 @@ struct NoMsc
 
     //! MSC is never applied
     CELER_FUNCTION void apply_step(CoreTrackView const&, StepLimit*) const {}
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a propagator for neutral particles or no fields.
- */
-struct LinearTrackPropagator
-{
-    CELER_FUNCTION Propagation operator()(CoreTrackView const& track,
-                                          real_type max_step) const
-    {
-        auto geo = track.make_geo_view();
-        return LinearPropagator{&geo}(max_step);
-    }
-
-    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop()
-    {
-        return LinearPropagator::tracks_can_loop();
-    }
 };
 
 //---------------------------------------------------------------------------//

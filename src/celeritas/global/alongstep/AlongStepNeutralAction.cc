@@ -15,7 +15,8 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/global/alongstep/AlongStep.hh"
 
-#include "detail/AlongStepNeutral.hh"  // IWYU pragma: associated
+#include "detail/AlongStepNeutralImpl.hh"  // IWYU pragma: associated
+#include "detail/LinearTrackPropagator.hh"
 
 namespace celeritas
 {

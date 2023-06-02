@@ -15,9 +15,9 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "AlongStepNeutral.hh"
 #include "ElossApplier.hh"
 #include "FluctELoss.hh"
+#include "LinearTrackPropagator.hh"
 #include "MeanELoss.hh"
 #include "MscApplier.hh"
 #include "MscStepLimitApplier.hh"
