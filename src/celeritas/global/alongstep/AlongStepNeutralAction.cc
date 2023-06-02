@@ -14,7 +14,9 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/AlongStepNeutral.hh"
+#include "AlongStep.hh"  // IWYU pragma: associated
+#include "detail/AlongStepNeutralImpl.hh"  // IWYU pragma: associated
+#include "detail/LinearTrackPropagator.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -34,11 +36,13 @@ AlongStepNeutralAction::AlongStepNeutralAction(ActionId id) : id_(id)
 void AlongStepNeutralAction::execute(CoreParams const& params,
                                      CoreStateHost& state) const
 {
-    auto execute
-        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
-                                         state.ptr(),
-                                         this->action_id(),
-                                         detail::AlongStepNeutralExecutor{});
+    auto execute = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        AlongStep{detail::NoMsc{},
+                  detail::LinearTrackPropagator{},
+                  detail::NoELoss{}});
     return launch_action(*this, params, state, execute);
 }
 

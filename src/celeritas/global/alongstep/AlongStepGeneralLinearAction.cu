@@ -7,169 +7,44 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepGeneralLinearAction.hh"
 
-#include "corecel/device_runtime_api.h"
-#include "corecel/Assert.hh"
-#include "corecel/Types.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/sys/Stream.hh"
-#include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/data/FluctuationData.hh"
-#include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/em/msc/UrbanMsc.hh"  // IWYU pragma: associated
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/em/FluctuationParams.hh"  // IWYU pragma: keep
+#include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 
-#include "detail/AlongStepImpl.hh"
-#include "detail/AlongStepNeutral.hh"
-#include "detail/FluctELoss.hh"
+#include "detail/AlongStepKernels.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-__global__ void along_step_apply_msc_step_limit_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id,
-    DeviceCRef<UrbanMscData> const msc_data)
-{
-    auto execute = make_along_step_track_executor(
-        params,
-        state,
-        along_step_id,
-        detail::apply_msc_step_limit<UrbanMsc>,
-        UrbanMsc{msc_data});
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_apply_linear_propagation_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id)
-{
-    auto execute
-        = make_along_step_track_executor(params,
-                                         state,
-                                         along_step_id,
-                                         detail::ApplyPropagation{},
-                                         detail::LinearPropagatorFactory{});
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_apply_msc_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id,
-    DeviceCRef<UrbanMscData> const msc_data)
-{
-    auto execute = make_along_step_track_executor(params,
-                                                  state,
-                                                  along_step_id,
-                                                  detail::apply_msc<UrbanMsc>,
-                                                  UrbanMsc{msc_data});
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_update_time_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id)
-{
-    auto execute = make_along_step_track_executor(
-        params, state, along_step_id, detail::update_time);
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_apply_fluct_eloss_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id,
-    NativeCRef<FluctuationData> const fluct)
-{
-    using detail::FluctELoss;
-
-    auto execute
-        = make_along_step_track_executor(params,
-                                         state,
-                                         along_step_id,
-                                         detail::apply_eloss<FluctELoss>,
-                                         FluctELoss{fluct});
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_update_track_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id)
-{
-    auto execute = make_along_step_track_executor(
-        params, state, along_step_id, detail::update_track);
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Launch the along-step action on device.
+ *
+ * The six kernels should correspons to the six function calls in \c AlongStep.
  */
 void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                                            CoreStateDevice& state) const
 {
-    CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id(),
-                        device_data_.msc);
-    CELER_LAUNCH_KERNEL(along_step_apply_linear_propagation,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id());
-    CELER_LAUNCH_KERNEL(along_step_apply_msc,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id(),
-                        device_data_.msc);
-    CELER_LAUNCH_KERNEL(along_step_update_time,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id());
-    CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id(),
-                        device_data_.fluct);
-    CELER_LAUNCH_KERNEL(along_step_update_track,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id());
+    if (this->has_msc())
+    {
+        detail::launch_limit_msc_step(
+            *this, msc_->ref<MemSpace::native>(), params, state);
+    }
+    detail::launch_propagate(*this, params, state);
+    if (this->has_msc())
+    {
+        detail::launch_apply_msc(
+            *this, msc_->ref<MemSpace::native>(), params, state);
+    }
+    detail::launch_update_time(*this, params, state);
+    if (this->has_fluct())
+    {
+        detail::launch_apply_eloss(
+            *this, fluct_->ref<MemSpace::native>(), params, state);
+    }
+    else
+    {
+        detail::launch_apply_eloss(*this, params, state);
+    }
+    detail::launch_update_track(*this, params, state);
 }
 
 //---------------------------------------------------------------------------//

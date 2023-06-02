@@ -6,11 +6,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
@@ -19,6 +24,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "MscStepFromGeo.hh"

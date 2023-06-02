@@ -68,17 +68,27 @@ class ActionLauncher
                   "object");
 
   public:
+    //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
         : calc_launch_params_{action.label(), &launch_action_impl<F>}
     {
     }
 
+    //! Create a launcher with a string extension
+    ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
+        : calc_launch_params_{action.label() + "-" + std::string(ext),
+                              &launch_action_impl<F>}
+    {
+    }
+
+    //! Launch a kernel for the wrapped executor
     void operator()(CoreState<MemSpace::device> const& state,
                     F const& call_thread) const
     {
         return (*this)(state.size(), state.stream_id(), call_thread);
     }
 
+    //! Launch a kernel with a custom number of threads
     void operator()(size_type num_threads,
                     StreamId stream_id,
                     F const& call_thread) const

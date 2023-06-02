@@ -11,7 +11,11 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Quantity.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/phys/Interaction.hh"
 
 #include "UrbanMscHelper.hh"
 
