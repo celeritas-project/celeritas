@@ -132,11 +132,6 @@ celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
 celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
-cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
-  "Use kernel launch bounds generated from launch-bounds.json" "OFF"
-  "CELERITAS_USE_CUDA OR CELERITAS_USE_HIP" OFF
-)
-
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
 else()
@@ -374,7 +369,6 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 
 # Build list of CMake files to install
 set(_cmake_files
-  "${PROJECT_SOURCE_DIR}/cmake/CeleritasGen.cmake"
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
 foreach(_dep Geant4 HepMC3 ROOT VecGeom)
