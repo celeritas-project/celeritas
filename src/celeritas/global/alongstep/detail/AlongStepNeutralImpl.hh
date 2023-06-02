@@ -3,21 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/detail/AlongStepNeutral.hh
+//! \file celeritas/global/alongstep/detail/AlongStepNeutralImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "celeritas/Types.hh"
-#include "celeritas/field/LinearPropagator.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "corecel/math/Quantity.hh"
 
 #include "../AlongStep.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class CoreTrackView;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -43,19 +44,6 @@ struct NoMsc
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a propagator for neutral particles or no fields.
- */
-struct LinearPropagatorFactory
-{
-    CELER_FUNCTION decltype(auto)
-    operator()(ParticleTrackView const&, GeoTrackView* geo) const
-    {
-        return LinearPropagator{geo};
-    };
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Class that returns zero energy loss.
  */
 struct NoELoss
@@ -76,32 +64,6 @@ struct NoELoss
     //! No slowing down
     static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return false; }
 };
-
-//---------------------------------------------------------------------------//
-struct AlongStepNeutralExecutor
-{
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Implementation of the "along step" action for neutral particles.
- *
- * This is mostly a demonstration use case and *should not* be used as part of
- * a complete EM shower simulation because it currently applies to *all*
- * particles as opposed to just neutral ones.
- *
- * This will be called by \c make_active_track_executor inside a generated
- * kernel:
- * \code
- * auto execute = make_active_track_executor(params, state,
- * along_step_neutral); \endcode
- */
-CELER_FUNCTION void
-AlongStepNeutralExecutor::operator()(CoreTrackView const& track)
-{
-    return along_step(track, NoMsc{}, LinearPropagatorFactory{}, NoELoss{});
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
