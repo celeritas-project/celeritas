@@ -32,8 +32,8 @@ namespace detail
 /*!
  * Sample a step limit for the Urban MSC model.
  *
- * This distribution is to be used for tracks that have nonnegligble steps and
- * are near the boundary. Otherwise, no displacement or step limiting is
+ * This distribution is to be used for tracks that have non-negligible steps
+ * and are near the boundary. Otherwise, no displacement or step limiting is
  * needed.
  *
  * \note This code performs the same method as in ComputeTruePathLengthLimit
