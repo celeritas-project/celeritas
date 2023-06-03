@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Span.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
@@ -14,6 +15,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "../SimpleTestBase.hh"
 #include "../TestEm3Base.hh"
 #include "DiagnosticTestBase.hh"
 #include "celeritas_test.hh"
@@ -26,6 +28,33 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
+//---------------------------------------------------------------------------//
+
+class SimpleComptonDiagnosticTest : public SimpleTestBase,
+                                    public DiagnosticTestBase
+{
+    VecPrimary make_primaries(size_type count) override
+    {
+        Primary p;
+        p.energy = MevEnergy{10.0};
+        p.position = {-22, 0, 0};
+        p.direction = {1, 0, 0};
+        p.time = 0;
+        std::vector<Primary> result(count, p);
+
+        auto gamma = this->particle()->find(pdg::gamma());
+        CELER_ASSERT(gamma);
+
+        for (auto i : range(count))
+        {
+            result[i].event_id = EventId{0};
+            result[i].track_id = TrackId{i};
+            result[i].particle_id = gamma;
+        }
+        return result;
+    }
+};
+
 //---------------------------------------------------------------------------//
 
 #define TestEm3DiagnosticTest TEST_IF_CELERITAS_GEANT(TestEm3DiagnosticTest)
@@ -70,6 +99,29 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         return result;
     }
 };
+
+//---------------------------------------------------------------------------//
+// SIMPLE COMPTON
+//---------------------------------------------------------------------------//
+
+TEST_F(SimpleComptonDiagnosticTest, host)
+{
+    auto result = this->run<MemSpace::host>(256, 32);
+
+    static char const* const expected_nonzero_action_keys[]
+        = {"geo-boundary electron",
+           "geo-boundary gamma",
+           "scat-klein-nishina gamma"};
+    EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
+    static size_type const expected_nonzero_action_counts[]
+        = {3780u, 525u, 3887u};
+    EXPECT_VEC_EQ(expected_nonzero_action_counts, result.nonzero_action_counts);
+    static size_type const expected_steps[]
+        = {0u, 0u, 0u, 87u, 30u, 10u, 2u, 0u, 1u, 0u,    0u, 3u, 0u, 0u, 0u,
+           0u, 0u, 0u, 0u,  0u,  0u,  1u, 0u, 0u, 1840u, 0u, 0u, 0u, 0u, 0u,
+           0u, 0u, 0u, 0u,  0u,  0u,  0u, 0u, 0u, 0u,    0u, 0u, 0u, 0u};
+    EXPECT_VEC_EQ(expected_steps, result.steps);
+}
 
 //---------------------------------------------------------------------------//
 // TESTEM3

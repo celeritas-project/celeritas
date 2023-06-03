@@ -400,6 +400,8 @@ if(CELERITAS_USE_Geant4)
   )
   set(_stepper_filter
     FILTER
+      "-TestEm*:OneSteelSphere*"
+      "TestEm3Compton.*"
       "TestEm3NoMsc.*"
       "TestEm3Msc.*"
       "TestEm3MscNofluct.*"
@@ -419,7 +421,7 @@ celeritas_add_test(celeritas/global/KernelContextException.test.cc
   NT 1 ${_needs_geo} LINK_LIBRARIES ${_optional_json_libs}
 )
 celeritas_add_test(celeritas/global/Stepper.test.cc
-  GPU NT 4 ${_needs_geo} ${_needs_geant4}
+  GPU NT 4 ${_needs_geo} ${_optional_geant4_env}
   ${_stepper_filter}
 )
 
@@ -509,17 +511,27 @@ celeritas_add_test(celeritas/track/TrackInit.test.cc
 # User
 set(CELERITASTEST_PREFIX celeritas/user)
 
+if(CELERITAS_USE_Geant4)
+  set(_diagnostic_filter
+    FILTER
+      "-TestEm3*"
+      "TestEm3*"
+  )
+else()
+  set(_diagnostic_filter)
+endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
   # EM track gets stuck
   set(_fails_g4geo DISABLE)
 endif()
 
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
+celeritas_add_test(celeritas/user/Diagnostic.test.cc
+  GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fails_g4geo}
+  ${_diagnostic_filter}
+)
 celeritas_add_test(celeritas/user/StepCollector.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_needs_geo}
-)
-celeritas_add_test(celeritas/user/Diagnostic.test.cc
-  GPU NT 1 ${_needs_geant4} ${_needs_geo} ${_fails_g4geo}
 )
 
 #-----------------------------------------------------------------------------#
