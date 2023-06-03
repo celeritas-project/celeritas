@@ -100,6 +100,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/VecgeomData.hh"
 
 #include "GenericSolid.hh"
@@ -257,12 +258,15 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
 
     // Cross check geometry using cubic volume property: skip stochastically
     // sampled comparisons due to performance and frequent false positives
-    if (!dynamic_cast<GenericSolidBase const*>(shape_mom)
+    static bool const compare_volumes = [] {
+        std::string var = celeritas::getenv("CELER_COMPARE_VOLUMES");
+        return !var.empty() || var == "0";
+    }();
+    if (compare_volumes && !dynamic_cast<GenericSolidBase const*>(shape_mom)
         && !dynamic_cast<UnplacedScaledShape const*>(shape_mom)
         && !dynamic_cast<UnplacedBooleanVolume<kSubtraction> const*>(shape_mom)
         && !dynamic_cast<UnplacedBooleanVolume<kIntersection> const*>(shape_mom)
-        && !dynamic_cast<UnplacedBooleanVolume<kUnion> const*>(shape_mom)
-        && !is_unknown_shape)
+        && !dynamic_cast<UnplacedBooleanVolume<kUnion> const*>(shape_mom))
     {
         auto vg_cap = vglv_mom->GetUnplacedVolume()->Capacity();
         CELER_ASSERT(vg_cap > 0);
