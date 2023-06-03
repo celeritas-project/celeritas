@@ -7,127 +7,20 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepRZMapFieldMscAction.hh"
 
-#include "corecel/device_runtime_api.h"
-#include "corecel/Assert.hh"
-#include "corecel/Types.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/sys/Stream.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
-#include "celeritas/em/data/FluctuationData.hh"
-#include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/em/msc/UrbanMsc.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"
-#include "celeritas/field/MakeMagFieldPropagator.hh"
-#include "celeritas/field/RZMapField.hh"
-#include "celeritas/field/RZMapFieldData.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/AlongStepImpl.hh"
-#include "detail/FluctELoss.hh"
+#include "detail/AlongStepKernels.hh"
+#include "detail/PropagationApplier.hh"
+#include "detail/RZMapFieldTrackPropagator.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// TODO: these are now "unique" if MSC is in use: reuse across along-step
-__global__ void along_step_apply_msc_step_limit_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id,
-    DeviceCRef<UrbanMscData> const msc_data)
-{
-    auto execute = make_along_step_track_executor(
-        *params,
-        *state,
-        along_step_id,
-        detail::apply_msc_step_limit<UrbanMsc>,
-        UrbanMsc{msc_data});
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_apply_rzmap_propagation_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id,
-    DeviceCRef<RZMapFieldParamsData> const field)
-{
-    auto execute = make_along_step_track_executor(
-        *params,
-        *state,
-        along_step_id,
-        detail::ApplyPropagation{},
-        [&field](ParticleTrackView const& particle, GeoTrackView* geo) {
-            return make_mag_field_propagator<DormandPrinceStepper>(
-                RZMapField(field), field.options, particle, geo);
-        });
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_apply_msc_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id,
-    DeviceCRef<UrbanMscData> const msc_data)
-{
-    auto execute = make_along_step_track_executor(*params,
-                                                  *state,
-                                                  along_step_id,
-                                                  detail::apply_msc<UrbanMsc>,
-                                                  UrbanMsc{msc_data});
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_update_time_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id)
-{
-    auto execute = make_along_step_track_executor(
-        *params, *state, along_step_id, detail::update_time);
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_apply_fluct_eloss_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id,
-    NativeCRef<FluctuationData> const fluct)
-{
-    using detail::FluctELoss;
-
-    auto execute
-        = make_along_step_track_executor(*params,
-                                         *state,
-                                         along_step_id,
-                                         detail::apply_eloss<FluctELoss>,
-                                         FluctELoss{fluct});
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-__global__ void along_step_update_track_kernel(
-    CRefPtr<CoreParamsData, MemSpace::device> const params,
-    RefPtr<CoreStateData, MemSpace::device> const state,
-    ActionId const along_step_id)
-{
-    auto execute = make_along_step_track_executor(
-        *params, *state, along_step_id, detail::update_track);
-    execute(KernelParamCalculator::thread_id());
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Launch the along-step action on device.
@@ -135,52 +28,25 @@ __global__ void along_step_update_track_kernel(
 void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                                            CoreStateDevice& state) const
 {
-    CELER_LAUNCH_KERNEL(along_step_apply_msc_step_limit,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id(),
-                        msc_->device_ref());
-    CELER_LAUNCH_KERNEL(along_step_apply_rzmap_propagation,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id(),
-                        field_->device_ref());
-    CELER_LAUNCH_KERNEL(along_step_apply_msc,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id(),
-                        msc_->device_ref());
-    CELER_LAUNCH_KERNEL(along_step_update_time,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id());
-    CELER_LAUNCH_KERNEL(along_step_apply_fluct_eloss,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id(),
-                        fluct_->device_ref());
-    CELER_LAUNCH_KERNEL(along_step_update_track,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        celeritas::device().stream(state.stream_id()).get(),
-                        params.ptr<MemSpace::native>(),
-                        state.ptr(),
-                        this->action_id());
+    detail::launch_limit_msc_step(
+        *this, msc_->ref<MemSpace::native>(), params, state);
+    {
+        auto execute_thread = make_along_step_track_executor(
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            this->action_id(),
+            detail::PropagationApplier{detail::RZMapFieldTrackPropagator{
+                field_->ref<MemSpace::native>()}});
+        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+            *this, "propagate-rzmap");
+        launch_kernel(state, execute_thread);
+    }
+    detail::launch_apply_msc(
+        *this, msc_->ref<MemSpace::native>(), params, state);
+    detail::launch_update_time(*this, params, state);
+    detail::launch_apply_eloss(
+        *this, fluct_->ref<MemSpace::native>(), params, state);
+    detail::launch_update_track(*this, params, state);
 }
 
 //---------------------------------------------------------------------------//

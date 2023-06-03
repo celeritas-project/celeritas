@@ -147,6 +147,23 @@ class TrackInitTest : public TrackInitTestBase
         ExtendFromPrimariesAction(ActionId{1}).execute(*this->core(), *state_);
     }
 
+    std::shared_ptr<ExplicitActionInterface const> pre_step_action() const
+    {
+        auto aid = this->action_reg()->find_action("pre-step");
+        CELER_ASSERT(aid);
+        return std::dynamic_pointer_cast<ExplicitActionInterface const>(
+            this->action_reg()->action(aid));
+    }
+    void init_tracks()
+    {
+        // Initialize tracks
+        InitializeTracksAction{ActionId{0}}.execute(*this->core(),
+                                                    this->state());
+
+        // Reset physics state before interacting
+        this->pre_step_action()->execute(*this->core(), *state_);
+    }
+
   private:
     std::unique_ptr<CoreState<M>> state_;
 };
@@ -203,7 +220,7 @@ TYPED_TEST(TrackInitTest, run)
     }
 
     // Initialize the primary tracks on device
-    InitializeTracksAction{ActionId{0}}.execute(*this->core(), this->state());
+    this->init_tracks();
 
     // Check the track IDs and parent IDs of the initialized tracks
     {
@@ -226,8 +243,6 @@ TYPED_TEST(TrackInitTest, run)
             false, true, false, true, false, true, false, true, false, false};
         return MockInteractAction{ActionId{1}, alloc, alive};
     }();
-
-    // Launch kernel to process interactions
     interact.execute(*this->core(), this->state());
 
     // Launch a kernel to create track initializers from secondaries
@@ -259,7 +274,7 @@ TYPED_TEST(TrackInitTest, run)
     }
 
     // Initialize secondaries on device
-    InitializeTracksAction{ActionId{0}}.execute(*this->core(), this->state());
+    this->init_tracks();
 
     // Check the track IDs and parent IDs of the initialized tracks
     {
@@ -291,7 +306,7 @@ TYPED_TEST(TrackInitTest, primaries)
 
     this->build_states(num_tracks);
 
-    InitializeTracksAction initialize{ActionId{0}};
+    this->init_tracks();
 
     // Kill half the tracks in each interaction and don't produce secondaries
     auto interact = [] {
@@ -313,7 +328,7 @@ TYPED_TEST(TrackInitTest, primaries)
         this->extend_from_primaries(make_span(primaries));
 
         // Initialize tracks on device
-        initialize.execute(*this->core(), this->state());
+        this->init_tracks();
 
         // Launch kernel that will kill half the tracks
         interact.execute(*this->core(), this->state());
@@ -354,8 +369,9 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     this->build_states(num_tracks);
 
     // Create actions
-    std::vector<std::shared_ptr<ExplicitActionInterface>> actions = {
+    std::vector<std::shared_ptr<ExplicitActionInterface const>> actions = {
         std::make_shared<InitializeTracksAction>(ActionId{0}),
+        this->pre_step_action(),
         std::make_shared<MockInteractAction>(
             ActionId{1}, std::vector<size_type>{1, 1, 2, 0, 0, 0, 0, 0}, alive),
         std::make_shared<ExtendFromSecondariesAction>(ActionId{2})};
@@ -414,7 +430,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
                 << "iteration " << i;
         }
     }
-}
+}  // namespace test
 
 //---------------------------------------------------------------------------//
 }  // namespace test

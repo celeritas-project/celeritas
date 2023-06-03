@@ -7,18 +7,22 @@
 //---------------------------------------------------------------------------//
 #include "StepDiagnostic.hh"
 
-#include "corecel/Assert.hh"
+#include <type_traits>
+#include <utility>
+
+#include "celeritas_config.h"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/user/ParticleTallyData.hh"
 
-#include "detail/StepDiagnosticImpl.hh"
+#include "detail/StepDiagnosticExecutor.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -63,26 +67,23 @@ StepDiagnostic::~StepDiagnostic() = default;
 void StepDiagnostic::execute(CoreParams const& params,
                              CoreStateHost& state) const
 {
-    MultiExceptionHandler capture_exception;
     auto execute = make_active_track_executor(
-        *params.ptr<MemSpace::native>(),
-        *state.ptr(),
-        detail::tally_steps,
-        store_.params<MemSpace::host>(),
-        store_.state<MemSpace::host>(state.stream_id(), this->state_size()));
-#pragma omp parallel for
-    for (ThreadId::size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            execute(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::StepDiagnosticExecutor{
+            store_.params<MemSpace::native>(),
+            store_.state<MemSpace::native>(state.stream_id(),
+                                           this->state_size())});
+    return launch_action(*this, params, state, execute);
 }
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void StepDiagnostic::execute(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 /*!

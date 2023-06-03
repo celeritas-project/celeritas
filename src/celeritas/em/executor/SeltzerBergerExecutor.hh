@@ -21,11 +21,20 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct SeltzerBergerExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    SeltzerBergerRef params;
+};
+
+//---------------------------------------------------------------------------//
 /*!
- * Apply RelativisticBrem to the current track.
+ * Sample Seltzer-Berger bremsstrahlung from the current track.
  */
-inline CELER_FUNCTION Interaction seltzer_berger_interact_track(
-    SeltzerBergerRef const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction
+SeltzerBergerExecutor::operator()(CoreTrackView const& track)
 {
     auto cutoff = track.make_cutoff_view();
     auto material = track.make_material_view().make_material_view();
@@ -38,7 +47,7 @@ inline CELER_FUNCTION Interaction seltzer_berger_interact_track(
     auto const& dir = track.make_geo_view().dir();
 
     SeltzerBergerInteractor interact(
-        model, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
+        params, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
 
     auto rng = track.make_rng_engine();
     return interact(rng);

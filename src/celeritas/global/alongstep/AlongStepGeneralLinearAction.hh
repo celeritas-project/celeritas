@@ -91,21 +91,6 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
     ActionId id_;
     SPConstFluctuations fluct_;
     SPConstMsc msc_;
-
-    // TODO: kind of hacky way to support fluct/msc being optional
-    // (required because we have to pass "empty" refs if they're missing)
-    template<MemSpace M>
-    struct ExternalRefs
-    {
-        FluctuationData<Ownership::const_reference, M> fluct;
-        UrbanMscData<Ownership::const_reference, M> msc;
-
-        ExternalRefs(SPConstFluctuations const& fluct_params,
-                     SPConstMsc const& msc_params);
-    };
-
-    ExternalRefs<MemSpace::host> host_data_;
-    ExternalRefs<MemSpace::device> device_data_;
 };
 
 //---------------------------------------------------------------------------//

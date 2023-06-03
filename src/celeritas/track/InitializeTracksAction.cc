@@ -7,11 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "InitializeTracksAction.hh"
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/LaunchAction.hh"
 
 #include "detail/InitTracksExecutor.hh"  // IWYU pragma: associated
 
@@ -80,7 +82,7 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
 {
     launch_action(
         *this,
-        Range{ThreadId{num_new_tracks}},
+        num_new_tracks,
         core_params,
         core_state,
         detail::InitTracksExecutor{core_params.ptr<MemSpace::native>(),

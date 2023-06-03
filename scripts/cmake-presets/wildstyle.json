@@ -75,18 +75,12 @@
     {
       "name": "reldeb-vecgeom",
       "displayName": "Everything in release mode with debug symbols and assertions",
-      "inherits": [".reldeb", "vecgeom"],
-      "cacheVariables": {
-        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
-      }
+      "inherits": [".reldeb", "vecgeom"]
     },
     {
       "name": "ndebug-vecgeom",
       "displayName": "Everything in release mode",
-      "inherits": [".ndebug", "vecgeom"],
-      "cacheVariables": {
-        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
-      }
+      "inherits": [".ndebug", "vecgeom"]
     },
     {
       "name": "reldeb-serial",

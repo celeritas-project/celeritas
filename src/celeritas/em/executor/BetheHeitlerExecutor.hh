@@ -11,16 +11,31 @@
 #include "corecel/Macros.hh"
 #include "celeritas/em/data/BetheHeitlerData.hh"
 #include "celeritas/em/interactor/BetheHeitlerInteractor.hh"
+#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
+#include "celeritas/random/RngEngine.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct BetheHeitlerExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    BetheHeitlerData params;
+};
+
+//---------------------------------------------------------------------------//
 /*!
- * Apply BetheHeitler to the current track.
+ * Sample a Bethe-Heitler pair production from the current track.
  */
-inline CELER_FUNCTION Interaction bethe_heitler_interact_track(
-    BetheHeitlerData const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction
+BetheHeitlerExecutor::operator()(CoreTrackView const& track)
 {
     auto material_track = track.make_material_view();
     auto material = material_track.make_material_view();
@@ -34,7 +49,7 @@ inline CELER_FUNCTION Interaction bethe_heitler_interact_track(
     auto const& dir = track.make_geo_view().dir();
 
     BetheHeitlerInteractor interact(
-        model, particle, dir, allocate_secondaries, material, element);
+        params, particle, dir, allocate_secondaries, material, element);
 
     auto rng = track.make_rng_engine();
     return interact(rng);

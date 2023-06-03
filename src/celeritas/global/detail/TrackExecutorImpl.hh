@@ -29,7 +29,7 @@ struct TrackExecutorImpl<F>
 {
     F call_with_track;
 
-    CELER_FUNCTION void operator()(CoreTrackView const& track) const
+    CELER_FUNCTION void operator()(CoreTrackView const& track)
     {
         return this->call_with_track(track);
     }
@@ -107,10 +107,13 @@ struct TrackExecutorImpl<F, T1, T2, T3, T4>
 /*!
  * Condition for ConditionalTrackExecutor for active tracks.
  */
-inline CELER_FUNCTION bool applies_active(SimTrackView const& sim)
+struct AppliesActive
 {
-    return sim.status() != TrackStatus::inactive;
-}
+    CELER_FUNCTION bool operator()(SimTrackView const& sim) const
+    {
+        return sim.status() != TrackStatus::inactive;
+    }
+};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -136,7 +139,7 @@ struct IsAlongStepActionEqual
 
     CELER_FUNCTION bool operator()(SimTrackView const& sim) const
     {
-        CELER_EXPECT(applies_active(sim)
+        CELER_EXPECT(AppliesActive{}(sim)
                      == static_cast<bool>(sim.along_step_action()));
         return sim.along_step_action() == this->action;
     }

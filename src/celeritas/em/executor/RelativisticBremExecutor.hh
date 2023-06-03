@@ -16,11 +16,20 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct RelativisticBremExecutor
+{
+    inline CELER_FUNCTION Interaction
+    operator()(celeritas::CoreTrackView const& track);
+
+    RelativisticBremRef params;
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Apply RelativisticBrem to the current track.
  */
-inline CELER_FUNCTION Interaction relativistic_brem_interact_track(
-    RelativisticBremRef const& model, CoreTrackView const& track)
+CELER_FUNCTION Interaction
+RelativisticBremExecutor::operator()(CoreTrackView const& track)
 {
     auto cutoff = track.make_cutoff_view();
     auto material = track.make_material_view().make_material_view();
@@ -33,7 +42,7 @@ inline CELER_FUNCTION Interaction relativistic_brem_interact_track(
     auto const& dir = track.make_geo_view().dir();
 
     RelativisticBremInteractor interact(
-        model, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
+        params, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
 
     auto rng = track.make_rng_engine();
     return interact(rng);

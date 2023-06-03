@@ -67,6 +67,7 @@ struct TransporterResult
     VecCount alive;  //!< Num living tracks at end of step
     MapStrReal action_times{};  //!< Accumulated action timing
     VecReal step_times;  //!< Real time per step
+    size_type num_track_slots{};  //!< Number of total track slots
 };
 
 //---------------------------------------------------------------------------//

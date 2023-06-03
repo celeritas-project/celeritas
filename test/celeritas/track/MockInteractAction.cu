@@ -7,50 +7,27 @@
 //---------------------------------------------------------------------------//
 #include "MockInteractAction.hh"
 
-#include "corecel/device_runtime_api.h"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "MockInteractImpl.hh"
+#include "MockInteractExecutor.hh"
 
 namespace celeritas
 {
 namespace test
 {
-namespace
-{
 //---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-
-__global__ void mock_interact_kernel(DeviceCRef<CoreParamsData> const params,
-                                     DeviceRef<CoreStateData> const state,
-                                     DeviceCRef<MockInteractData> const input)
-{
-    auto execute = make_active_track_executor(
-        params, state, apply_mock_interact, input);
-    execute(KernelParamCalculator::thread_id());
-}
-//---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
-
 void MockInteractAction::execute(CoreParams const& params,
                                  CoreStateDevice& state) const
 {
-    CELER_EXPECT(state.size() == data_.device_ref().size());
-
-    CELER_LAUNCH_KERNEL(mock_interact,
-                        device().default_block_size(),
-                        state.size(),
-                        0,
-                        params.ref<MemSpace::native>(),
-                        state.ref(),
-                        data_.device_ref());
+    auto execute = make_active_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        MockInteractExecutor{data_.ref<MemSpace::native>()});
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(state, execute);
 }
 
 //---------------------------------------------------------------------------//

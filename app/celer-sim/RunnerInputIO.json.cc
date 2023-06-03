@@ -11,6 +11,7 @@
 
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
@@ -74,8 +75,14 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(step_diagnostic);
     LDIO_LOAD_OPTION(step_diagnostic_maxsteps);
 
+    if (j.contains("max_num_tracks"))
+    {
+        CELER_LOG(warning) << "Deprecated option 'max_num_tracks'";
+        j.at("max_num_tracks").get_to(v.num_track_slots);
+    }
+
     LDIO_LOAD_OPTION(seed);
-    LDIO_LOAD_OPTION(max_num_tracks);
+    LDIO_LOAD_OPTION(num_track_slots);
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_REQUIRED(initializer_capacity);
     LDIO_LOAD_REQUIRED(max_events);
@@ -147,7 +154,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_OPTION(step_diagnostic_maxsteps);
 
     LDIO_SAVE_OPTION(seed);
-    LDIO_SAVE_OPTION(max_num_tracks);
+    LDIO_SAVE_OPTION(num_track_slots);
     LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE_REQUIRED(initializer_capacity);
     LDIO_SAVE_REQUIRED(max_events);
