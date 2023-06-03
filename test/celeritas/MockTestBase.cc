@@ -120,6 +120,8 @@ auto MockTestBase::build_particle() -> SPConstParticle
                    MevMass{0.5109989461},
                    ElementaryCharge{-1},
                    stable});
+    inp.push_back(
+        {"celerino", PDGNumber{81}, MevMass{0}, ElementaryCharge{0}, stable});
     return std::make_shared<ParticleParams>(std::move(inp));
 }
 

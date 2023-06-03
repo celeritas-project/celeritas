@@ -62,6 +62,15 @@ class ImplicitPhysicsAction final : public ConcreteAction
     // Construct with ID and label
     using ConcreteAction::ConcreteAction;
 };
+
+//---------------------------------------------------------------------------//
+//! PDG recommends 81-100 for internal MC pseudoparticles
+bool is_fake_particle(PDGNumber pdg)
+{
+    return pdg.get() >= 81 && pdg.get() <= 100;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -294,14 +303,14 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
 
     // Loop over particle IDs, set ProcessGroup
     ProcessId::size_type max_particle_processes = 0;
-    for (auto particle_idx : range(particles.size()))
+    for (auto par_id : range(ParticleId{particles.size()}))
     {
-        auto& process_to_models = particle_models[particle_idx];
-        if (process_to_models.empty())
+        auto& process_to_models = particle_models[par_id.get()];
+        if (process_to_models.empty()
+            && !is_fake_particle(particles.id_to_pdg(par_id)))
         {
-            CELER_LOG(warning)
-                << "No processes are defined for particle '"
-                << particles.id_to_label(ParticleId{particle_idx}) << '\'';
+            CELER_LOG(warning) << "No processes are defined for particle '"
+                               << particles.id_to_label(par_id) << '\'';
         }
         max_particle_processes = std::max<ProcessId::size_type>(
             max_particle_processes, process_to_models.size());
@@ -334,8 +343,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
                     temp_energy_grid.back() == std::get<0>(r),
                     << "models for process '"
                     << this->process(pid_models.first)->label()
-                    << "' of particle type '"
-                    << particles.id_to_label(ParticleId{particle_idx})
+                    << "' of particle type '" << particles.id_to_label(par_id)
                     << "' has no data between energies of "
                     << temp_energy_grid.back() << " and " << std::get<0>(r)
                     << " (energy range must be contiguous)");
