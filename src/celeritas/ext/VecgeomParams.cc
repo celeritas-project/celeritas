@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 
+#include <cstddef>
 #include <vector>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
@@ -17,6 +18,8 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "celeritas_config.h"
+#include "corecel/Assert.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/detail/VecgeomCompatibility.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
@@ -196,7 +199,31 @@ void VecgeomParams::build_tracking()
         // NOTE: this must actually be escaped with preprocessing because the
         // VecGeom interfaces change depending on the build options.
 #if CELERITAS_USE_CUDA
+        cudaLimit const cuda_attrs[]
+            = {cudaLimitStackSize, cudaLimitMallocHeapSize};
+        char const* const cuda_attr_labels[] = {"stack size", "heap size"};
+        Array<std::size_t, std::size(cuda_attrs)> orig_limits;
+        for (auto i : range(orig_limits.size()))
+        {
+            CELER_CUDA_CALL(cudaDeviceGetLimit(&orig_limits[i], cuda_attrs[i]));
+        }
+
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
+
+        for (auto i : range(orig_limits.size()))
+        {
+            std::size_t temp;
+            CELER_CUDA_CALL(cudaDeviceGetLimit(&temp, cuda_attrs[i]));
+            if (temp != orig_limits[i])
+            {
+                CELER_LOG(debug)
+                    << "VecGeom changed the " << cuda_attr_labels[i]
+                    << " from " << orig_limits[i] << " to " << temp
+                    << "; restoring to our values";
+                CELER_CUDA_CALL(
+                    cudaDeviceSetLimit(cuda_attrs[i], orig_limits[i]));
+            }
+        }
 
         // Insure that kernels, for which the compiler is not able to determine
         // the total stack usage, have enough stack reserved.
@@ -210,9 +237,26 @@ void VecgeomParams::build_tracking()
         // appearing in the build; for this second part we ought to move (or
         // more exactly copy) to `celeritas::activate_device` as the latest
         // cudaDeviceSetLimit 'wins'.
-        if constexpr (CELERITAS_DEBUG)
+        if (std::string var = celeritas::getenv("CUDA_STACK_SIZE");
+            !var.empty())
+        {
+            int stack_size = std::stoi(var);
+            CELER_VALIDATE(stack_size > 0,
+                           << "invalid CUDA_STACK_SIZE=" << stack_size
+                           << " (must be positive)");
+            set_cuda_stack_size(stack_size);
+        }
+        else if constexpr (CELERITAS_DEBUG)
         {
             set_cuda_stack_size(16384);
+        }
+        if (std::string var = celeritas::getenv("CUDA_HEAP_SIZE"); !var.empty())
+        {
+            int heap_size = std::stoi(var);
+            CELER_VALIDATE(heap_size > 0,
+                           << "invalid CUDA_HEAP_SIZE=" << heap_size
+                           << " (must be positive)");
+            set_cuda_heap_size(heap_size);
         }
 
         CELER_LOG(debug) << "Converting to CUDA geometry";
@@ -227,8 +271,9 @@ void VecgeomParams::build_tracking()
         {
             ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
             auto world_top_devptr = cuda_manager.Synchronize();
-            CELER_ASSERT(world_top_devptr != nullptr);
             CELER_DEVICE_CHECK_ERROR();
+            CELER_VALIDATE(world_top_devptr != nullptr,
+                           << "VecGeom failed to copy geometry to GPU");
         }
 
         CELER_LOG(debug) << "Initializing BVH on GPU";
@@ -259,6 +304,7 @@ void VecgeomParams::build_data()
 #if CELERITAS_USE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         device_ref_.world_volume = cuda_manager.world_gpu();
+        CELER_ASSERT(device_ref_.world_volume);
 #endif
         device_ref_.max_depth = host_ref_.max_depth;
     }

@@ -99,8 +99,8 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "corecel/sys/TypeDemangler.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/VecgeomData.hh"
 
 #include "GenericSolid.hh"
