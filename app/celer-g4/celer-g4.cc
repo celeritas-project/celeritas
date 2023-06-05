@@ -29,6 +29,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/Logger.hh"
 
@@ -46,6 +47,8 @@ namespace
 //---------------------------------------------------------------------------//
 void run(std::string const& macro_filename)
 {
+    ScopedRootErrorHandler scoped_root_error;
+
     // Set the random seed *before* the run manager is instantiated
     // (G4MTRunManager constructor uses the RNG)
     CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);

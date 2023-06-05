@@ -29,6 +29,7 @@ if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
   function(celeritas_local_root_generate_dictionary name)
     # No need for the rootmap file for an executable.
     set(CMAKE_ROOTTEST_NOROOTMAP TRUE)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_RUNTIME_OUTPUT_DIRECTORY})
     include_directories(
       # root_generate_dictionary cannot handle the '$<INSTALL_INTERFACE:include>'
       # part of the Celeritas::corecel target's include, so we cannot use it in
