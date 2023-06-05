@@ -43,6 +43,8 @@ void RootErrorHandler(Int_t rootlevel,
     {
         level = LogLevel::error;
         g_has_root_errored_ = true;
+        if (strcmp(location, "TCling::LoadPCM") == 0)
+            abort_bool = true;
     }
     if (rootlevel >= kBreak)
         level = LogLevel::critical;
