@@ -18,16 +18,22 @@ namespace celeritas
 {
 namespace detail
 {
-
+//---------------------------------------------------------------------------//
+/*!
+ * Launch the boundary action on device.
+ */
 void BoundaryAction::execute(CoreParams const& params,
                              CoreStateDevice& state) const
 {
-    TrackExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), BoundaryExecutor{}};
+    auto execute = make_action_track_executor(params.ptr<MemSpace::native>(),
+                                              state.ptr(),
+                                              this->action_id(),
+                                              BoundaryExecutor{});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

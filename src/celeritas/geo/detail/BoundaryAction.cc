@@ -21,11 +21,15 @@ namespace celeritas
 {
 namespace detail
 {
-
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with action ID.
+ */
 BoundaryAction::BoundaryAction(ActionId aid)
     : ConcreteAction(aid, "geo-boundary", "cross a geometry boundary")
 {
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Launch the boundary action on host.
@@ -33,10 +37,19 @@ BoundaryAction::BoundaryAction(ActionId aid)
 void BoundaryAction::execute(CoreParams const& params,
                              CoreStateHost& state) const
 {
-    TrackExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), BoundaryExecutor{}};
+    auto execute = make_action_track_executor(params.ptr<MemSpace::native>(),
+                                              state.ptr(),
+                                              this->action_id(),
+                                              BoundaryExecutor{});
     return launch_action(*this, params, state, execute);
 }
+
+#if !CELER_USE_DEVICE
+void BoundaryAction::execute(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
