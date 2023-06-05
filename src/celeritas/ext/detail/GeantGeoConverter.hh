@@ -103,21 +103,22 @@ class GeantGeoConverter
      * mapping between Geant4 and VecGeom geometry.
      */
     VPlacedVolume const*
-    convert(G4VPhysicalVolume const*, LogicalVolume const* mother = nullptr);
+    convert_physical(G4VPhysicalVolume const*,
+                     LogicalVolume const* mother = nullptr);
 
     //! Special treatment needed for replicated volumes.
     void extract_replicated_transformations(
         G4PVReplica const&, std::vector<Transformation3D const*>&) const;
 
     //! Converts G4 solids into VecGeom unplaced volumes
-    VUnplacedVolume* convert(G4VSolid const*);
+    VUnplacedVolume* convert_solid(G4VSolid const*);
 
     /*!
      * Convert logical volumes from Geant4 into VecGeom.
      *
      * All daughters' physical volumes will be recursively converted.
      */
-    LogicalVolume* convert(G4LogicalVolume const*);
+    LogicalVolume* convert_logical(G4LogicalVolume const*);
 };
 
 //---------------------------------------------------------------------------//

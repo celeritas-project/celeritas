@@ -157,7 +157,7 @@ GeantGeoConverter::operator()(G4VPhysicalVolume const* g4_world)
     {
         CELER_LOG(status) << "Converting Geant4 geometry to VecGeom";
         ScopedTimeLog scoped_time;
-        top_volume = this->convert(g4_world);
+        top_volume = this->convert_physical(g4_world);
         CELER_ASSERT(top_volume);
     }
 
@@ -176,8 +176,9 @@ GeantGeoConverter::operator()(G4VPhysicalVolume const* g4_world)
 
 //---------------------------------------------------------------------------//
 
-VPlacedVolume const* GeantGeoConverter::convert(G4VPhysicalVolume const* node,
-                                                LogicalVolume const* mother)
+VPlacedVolume const*
+GeantGeoConverter::convert_physical(G4VPhysicalVolume const* node,
+                                    LogicalVolume const* mother)
 {
     if (auto iter = placed_volume_map_.find(node);
         iter != placed_volume_map_.end())
@@ -198,7 +199,7 @@ VPlacedVolume const* GeantGeoConverter::convert(G4VPhysicalVolume const* node,
 
     // convert() will recurse down all volumes in its own tree
     auto* const g4logical = node->GetLogicalVolume();
-    LogicalVolume* logical_volume = this->convert(g4logical);
+    LogicalVolume* logical_volume = this->convert_logical(g4logical);
     VPlacedVolume const* placed_volume = nullptr;
 
     if (!mother)
@@ -225,7 +226,8 @@ VPlacedVolume const* GeantGeoConverter::convert(G4VPhysicalVolume const* node,
 
 //---------------------------------------------------------------------------//
 
-LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
+LogicalVolume*
+GeantGeoConverter::convert_logical(G4LogicalVolume const* g4lv_mom)
 {
     if (auto iter = logical_volume_map_.find(g4lv_mom);
         iter != logical_volume_map_.end())
@@ -233,7 +235,8 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
         return const_cast<LogicalVolume*>(iter->second);
     }
 
-    VUnplacedVolume const* shape_mom = this->convert(g4lv_mom->GetSolid());
+    VUnplacedVolume const* shape_mom
+        = this->convert_solid(g4lv_mom->GetSolid());
     bool const is_unknown_shape
         = dynamic_cast<GenericSolidBase const*>(shape_mom);
     if (is_unknown_shape)
@@ -336,7 +339,7 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
         CELER_ASSERT(*transf2 == transformation);
 
         auto* g4lv_kid = g4pv_kid->GetLogicalVolume();
-        auto* vglv_kid = this->convert(g4lv_kid);
+        auto* vglv_kid = this->convert_logical(g4lv_kid);
         CELER_ASSERT(vglv_kid);
 
         bool placing
@@ -349,7 +352,7 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
         CELER_ASSERT(placing);
 
         //.. convert daughter?  Hopefully this will return the PV just created
-        auto const* vgpv_kid = this->convert(g4pv_kid, vglv_mom);
+        auto const* vgpv_kid = this->convert_physical(g4pv_kid, vglv_mom);
         placed_volume_map_[g4pv_kid] = vgpv_kid;
     }
 
@@ -358,7 +361,7 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
 
 //---------------------------------------------------------------------------//
 
-VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
+VUnplacedVolume* GeantGeoConverter::convert_solid(G4VSolid const* shape)
 {
     if (auto iter = unplaced_volume_map_.find(shape);
         iter != unplaced_volume_map_.end())
@@ -719,8 +722,8 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
             = make_transformation(g4righttrans.NetTranslation(), &rot);
 
         // unplaced shapes
-        VUnplacedVolume const* leftunplaced = this->convert(left);
-        VUnplacedVolume const* rightunplaced = this->convert(rightraw);
+        VUnplacedVolume const* leftunplaced = this->convert_solid(left);
+        VUnplacedVolume const* rightunplaced = this->convert_solid(rightraw);
 
         CELER_ASSERT(leftunplaced != nullptr);
         CELER_ASSERT(rightunplaced != nullptr);
@@ -769,7 +772,7 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
         CELER_LOG(debug) << "Converting reflected solid '" << refl->GetName()
                          << "' (underlying " << underlying->GetEntityType()
                          << " solid: '" << underlying->GetName() << "')";
-        unplaced_volume = this->convert(underlying);
+        unplaced_volume = this->convert_solid(underlying);
     }
 
     // New volumes should be implemented here...
