@@ -34,6 +34,9 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh);
 // Load a GDML file and return the world volume (Geant4 owns!)
 G4VPhysicalVolume* load_geant_geometry(std::string const& gdml_filename);
 
+// Load a GDML file, stripping pointers
+G4VPhysicalVolume* load_geant_geometry_native(std::string const& gdml_filename);
+
 //---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
 void reset_geant_geometry();

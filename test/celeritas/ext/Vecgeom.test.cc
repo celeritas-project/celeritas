@@ -17,6 +17,7 @@
 #include "corecel/sys/Version.hh"
 #include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/ext/GeantGeoUtils.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
@@ -60,14 +61,33 @@ class VecgeomTestBase : public GenericVecgeomTestBase
         return std::make_shared<VecgeomParams>(
             this->test_data_path("celeritas", filename));
     }
-
-    //! Helper function: build via Geant4 GDML reader
-    SPConstGeo load_g4_gdml(std::string_view filename) const
-    {
-        return std::make_shared<VecgeomParams>(::celeritas::load_geant_geometry(
-            this->test_data_path("celeritas", filename)));
-    }
 };
+
+//---------------------------------------------------------------------------//
+
+class VecgeomGeantTestBase : public VecgeomTestBase
+{
+  public:
+    //! Helper function: build via Geant4 GDML reader
+    SPConstGeo load_g4_gdml(std::string_view filename)
+    {
+        GeantSetup::disable_signal_handler();
+        if (world_volume_)
+        {
+            // Clear old geant4 data
+            ::celeritas::reset_geant_geometry();
+        }
+        world_volume_ = ::celeritas::load_geant_geometry_native(
+            this->test_data_path("celeritas", filename));
+        return std::make_shared<VecgeomParams>(world_volume_);
+    }
+
+  protected:
+    // Note that this is static because the geometry may be loaded
+    static G4VPhysicalVolume* world_volume_;
+};
+
+G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
 
 //---------------------------------------------------------------------------//
 // FOUR-LEVELS TEST
@@ -642,7 +662,7 @@ TEST_F(SolidsTest, trace)
 //---------------------------------------------------------------------------//
 
 #define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
-class FourLevelsGeantTest : public VecgeomTestBase
+class FourLevelsGeantTest : public VecgeomGeantTestBase
 {
   public:
     SPConstGeo build_geometry() final
@@ -759,7 +779,7 @@ TEST_F(FourLevelsGeantTest, tracking)
 //---------------------------------------------------------------------------//
 
 #define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
-class SolidsGeantTest : public VecgeomTestBase
+class SolidsGeantTest : public VecgeomGeantTestBase
 {
   public:
     SPConstGeo build_geometry() final
