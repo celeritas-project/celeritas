@@ -25,7 +25,7 @@ else()
   set(LIBRARIES)
 endif()
 
-if(CELERITAS_USE_ROOT)
+if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
   function(celeritas_local_root_generate_dictionary name)
     # No need for the rootmap file for an executable.
     set(CMAKE_ROOTTEST_NOROOTMAP TRUE)
