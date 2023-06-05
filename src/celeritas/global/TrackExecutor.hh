@@ -75,15 +75,7 @@ class TrackExecutor
 
     CELER_FUNCTION void operator()(ThreadId thread)
     {
-        CELER_EXPECT(thread);
-#if CELER_DEVICE_COMPILE
-        if (!(thread < state_->size()))
-        {
-            return;
-        }
-#else
         CELER_EXPECT(thread < state_->size());
-#endif
         CoreTrackView const track(*params_, *state_, thread);
 
         return execute_impl_(track);
@@ -131,15 +123,7 @@ class ConditionalTrackExecutor
 
     CELER_FUNCTION void operator()(ThreadId thread)
     {
-#if CELER_DEVICE_COMPILE
-        CELER_EXPECT(thread);
-        if (!(thread < state_->size()))
-        {
-            return;
-        }
-#else
         CELER_EXPECT(thread < state_->size());
-#endif
         CoreTrackView const track(*params_, *state_, thread);
         if (!applies_(track.make_sim_view()))
         {
@@ -195,9 +179,6 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
  * \note This should generally only be used for post-step actions and other
  * cases where the IDs *explicitly* are set. Many explicit actions apply to all
  * threads, active or not.
- *
- * \todo Replace action-gen script and simplify BoundaryActionImpl and
- * DiscreteSelectActionImpl.
  */
 template<class... Ts>
 inline CELER_FUNCTION decltype(auto)

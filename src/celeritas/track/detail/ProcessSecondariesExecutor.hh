@@ -70,15 +70,7 @@ struct ProcessSecondariesExecutor
 CELER_FUNCTION void
 ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 {
-#if CELER_DEVICE_COMPILE
-    CELER_EXPECT(tid);
-    if (!(tid < state->size()))
-    {
-        return;
-    }
-#else
     CELER_EXPECT(tid < state->size());
-#endif
     SimTrackView sim(params->sim, state->sim, tid);
     if (sim.status() == TrackStatus::inactive)
     {

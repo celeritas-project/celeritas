@@ -70,10 +70,10 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
         step.element({});
     }
 
-    // Sample mean free path
     auto phys = track.make_physics_view();
     if (!phys.has_interaction_mfp())
     {
+        // Sample mean free path
         auto rng = track.make_rng_engine();
         ExponentialDistribution<real_type> sample_exponential;
         phys.interaction_mfp(sample_exponential(rng));

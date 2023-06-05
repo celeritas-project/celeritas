@@ -62,15 +62,7 @@ struct LocateAliveExecutor
  */
 CELER_FUNCTION void LocateAliveExecutor::operator()(TrackSlotId tid) const
 {
-#if CELER_DEVICE_COMPILE
-    CELER_EXPECT(tid);
-    if (!(tid < state->size()))
-    {
-        return;
-    }
-#else
     CELER_EXPECT(tid < state->size());
-#endif
 
     // Count the number of secondaries produced by each track
     size_type num_secondaries{0};

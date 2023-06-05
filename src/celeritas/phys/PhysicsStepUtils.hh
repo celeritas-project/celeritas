@@ -77,12 +77,14 @@ calc_physics_step_limit(MaterialTrackView const& material,
 
     // Determine limits from discrete interactions
     StepLimit limit;
-    limit.step = 0;
     limit.action = physics.scalars().discrete_action();
-    if (!particle.is_stopped())
+    if (particle.is_stopped())
+    {
+        limit.step = 0;
+    }
+    else
     {
         limit.step = physics.interaction_mfp() / total_macro_xs;
-
         if (auto ppid = physics.eloss_ppid())
         {
             auto grid_id = physics.value_grid(VGT::range, ppid);
@@ -106,6 +108,11 @@ calc_physics_step_limit(MaterialTrackView const& material,
                 limit.step = fixed_limit;
                 limit.action = physics.scalars().fixed_step_action;
             }
+        }
+        else if (physics.num_particle_processes() == 0)
+        {
+            // Clear post-step action so that unknown particles don't interact
+            limit.action = {};
         }
     }
 

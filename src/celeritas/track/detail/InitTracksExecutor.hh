@@ -69,15 +69,7 @@ struct InitTracksExecutor
  */
 CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
-#if CELER_DEVICE_COMPILE
-    CELER_EXPECT(tid);
-    if (!(tid < num_new_tracks))
-    {
-        return;
-    }
-#else
     CELER_EXPECT(tid < num_new_tracks);
-#endif
 
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the

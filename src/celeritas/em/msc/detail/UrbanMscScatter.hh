@@ -51,19 +51,22 @@ class UrbanMscScatter
     //! \name Type aliases
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
-    using MscParameters = UrbanMscParameters;
-    using MaterialData = UrbanMscMaterialData;
     using UrbanMscRef = NativeCRef<UrbanMscData>;
     //!@}
 
   public:
+    // TODO: improve this
+    static inline CELER_FUNCTION real_type
+    calc_displacement(real_type true_path, real_type geom_path);
+
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscScatter(UrbanMscRef const& shared,
                                           UrbanMscHelper const& helper,
                                           ParticleTrackView const& particle,
                                           PhysicsTrackView const& physics,
                                           MaterialView const& material,
-                                          GeoTrackView* geometry,
+                                          Real3 const& dir,
+                                          real_type safety,
                                           MscStep const& input);
 
     // Sample the final true step length, position and direction by msc
@@ -76,17 +79,16 @@ class UrbanMscScatter
     // Shared constant data
     UrbanMscRef const& shared_;
     // Urban MSC material data
-    MaterialData const& msc_;
+    UrbanMscMaterialData const& msc_;
     // Urban MSC helper class
     UrbanMscHelper const& helper_;
     // Material data
     MaterialView const& material_;
-    // Geometry track view for finding safety
-    GeoTrackView& geometry_;
 
     real_type inc_energy_;
-    Real3 const& inc_direction_;
     bool is_positron_;
+    Real3 const& inc_direction_;
+    real_type safety_;
 
     // Results from UrbanMSCStepLimit
     bool is_displaced_;
@@ -123,9 +125,6 @@ class UrbanMscScatter
     // Calculate the theta0 of the Highland formula
     inline CELER_FUNCTION real_type compute_theta0() const;
 
-    // Calculate the length of the displacement (using geometry safety)
-    inline CELER_FUNCTION real_type calc_displacement_length(real_type rmax2);
-
     // Update direction and position after the multiple scattering
     template<class Engine>
     inline CELER_FUNCTION Real3 sample_displacement_dir(Engine& rng,
@@ -134,6 +133,23 @@ class UrbanMscScatter
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+CELER_FUNCTION real_type UrbanMscScatter::calc_displacement(real_type geom_path,
+                                                            real_type true_path)
+{
+    CELER_EXPECT(true_path >= geom_path);
+
+    // true^2 - geo^2
+    real_type rmax2 = (true_path - geom_path) * (true_path + geom_path);
+
+    // 0.73 is (roughly) the expected value of a distribution of the mean
+    // radius given rmax "based on single scattering results"
+    // https://github.com/Geant4/geant4/blame/28a70706e0edf519b16e864ebf1d2f02a00ba596/source/processes/electromagnetic/standard/src/G4UrbanMscModel.cc#L1142
+    constexpr real_type mean_radius_frac{0.73};
+
+    return mean_radius_frac * std::sqrt(rmax2);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
@@ -147,16 +163,17 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                                  ParticleTrackView const& particle,
                                  PhysicsTrackView const& physics,
                                  MaterialView const& material,
-                                 GeoTrackView* geometry,
+                                 Real3 const& dir,
+                                 real_type safety,
                                  MscStep const& input)
     : shared_(shared)
     , msc_(shared.material_data[material.material_id()])
     , helper_(helper)
     , material_(material)
-    , geometry_(*geometry)
     , inc_energy_(value_as<Energy>(particle.energy()))
-    , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
+    , inc_direction_(dir)
+    , safety_(safety)
     , is_displaced_(input.is_displaced)
     , geom_path_(input.geom_path)
     , true_path_(input.true_path)
@@ -164,11 +181,12 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
+    CELER_EXPECT(safety_ >= 0);
     CELER_EXPECT(geom_path_ > 0);
     CELER_EXPECT(true_path_ >= geom_path_);
     CELER_EXPECT(limit_min_ >= UrbanMscParameters::limit_min_fix()
                  || !is_displaced_);
-    CELER_EXPECT(!is_displaced_ || !geometry->is_on_boundary());
+    CELER_EXPECT(!is_displaced_ || safety > 0);
 
     skip_sampling_ = [this, &helper, &physics] {
         if (true_path_ == physics.dedx_range())
@@ -313,14 +331,16 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     // 'scattered'
     result.displacement = {0, 0, 0};
 
-    // Calculate displacement
     if (is_displaced_)
     {
-        // Sample displacement and adjust
-        real_type length = this->calc_displacement_length(
-            (true_path_ - geom_path_) * (true_path_ + geom_path_));
-        if (length > 0)
+        // Calculate displacement length
+        real_type length = this->calc_displacement(geom_path_, true_path_);
+        // Don't displace further than safety (minus a tolerance)
+        length = min(length, (1 - shared_.params.safety_tol) * safety_);
+
+        if (length >= shared_.params.geom_limit)
         {
+            // Displacement distance is large enough to worry about
             result.displacement = this->sample_displacement_dir(rng, phi);
             for (int i = 0; i < 3; ++i)
             {
@@ -562,52 +582,6 @@ UrbanMscScatter::sample_displacement_dir(Engine& rng, real_type phi) const
     // Rotate along the incident particle direction
     displacement = rotate(displacement, inc_direction_);
     return displacement;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Scale displacement and correct near the boundary.
- *
- * This is a transformation of the logic in geant4, with \c fPositionChanged
- * being equal to `rho == 0`. The key takeaway for the displacement calculation
- * is that for small displacement values, *or* for small safety distances, we
- * do not displace. For large safety distances we do not displace further than
- * the safety.
- */
-CELER_FUNCTION real_type
-UrbanMscScatter::calc_displacement_length(real_type rmax2)
-{
-    CELER_EXPECT(rmax2 >= 0);
-
-    // 0.73 is (roughly) the expected value of a distribution of the mean
-    // radius given rmax "based on single scattering results"
-    // https://github.com/Geant4/geant4/blame/28a70706e0edf519b16e864ebf1d2f02a00ba596/source/processes/electromagnetic/standard/src/G4UrbanMscModel.cc#L1142
-    constexpr real_type mean_radius_frac{0.73};
-
-    real_type rho = mean_radius_frac * std::sqrt(rmax2);
-
-    if (rho <= shared_.params.geom_limit)
-    {
-        // Displacement is too small to bother with
-        rho = 0;
-    }
-    else
-    {
-        real_type safety = (1 - shared_.params.safety_tol)
-                           * geometry_.find_safety();
-        if (safety <= shared_.params.geom_limit)
-        {
-            // We're near a volume boundary so do not displace at all
-            rho = 0;
-        }
-        else
-        {
-            // Do not displace further than safety
-            rho = min(rho, safety);
-        }
-    }
-
-    return rho;
 }
 
 //---------------------------------------------------------------------------//
