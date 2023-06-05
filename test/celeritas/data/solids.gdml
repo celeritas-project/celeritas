@@ -225,6 +225,16 @@ acceptance of all terms of the Geant4 Software license.
    <solidref ref="trd1"/>
   </volume>
 
+  <volume name="trd2">
+   <materialref ref="Water"/>
+   <solidref ref="trd1"/>
+  </volume>
+
+  <volume name="trd3">
+   <materialref ref="Water"/>
+   <solidref ref="trd1"/>
+  </volume>
+
   <volume name="tube100">
    <materialref ref="Water"/>
    <solidref ref="t100"/>
@@ -351,13 +361,13 @@ acceptance of all terms of the Geant4 Software license.
    </physvol>
 
    <physvol name="reflNormal">
-     <volumeref ref="trd1"/>
+     <volumeref ref="trd2"/>
      <positionref ref="posDirect"/>
      <rotationref ref="rotatebyx"/>
    </physvol>
 
    <physvol name="reflected">
-     <volumeref ref="trd1"/>
+     <volumeref ref="trd3"/>
      <positionref ref="posReflect"/>
      <rotationref ref="rotatebyx"/>
      <scale x="1" y="1" z="-1"/>
