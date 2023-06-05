@@ -123,6 +123,10 @@ acceptance of all terms of the Geant4 Software license.
 
   <trd name="trd1" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
 
+  <trd name="trd2" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
+
+  <trd name="trd3" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
+
   <tube name="t100" lunit="mm" aunit="rad" z="500.0" rmax="200.0" rmin="160" startphi="HALFPI" deltaphi="PI"/>
   <!--tube name="t100" lunit="mm" aunit="deg" z="500.0" rmax="200.0" rmin="160" startphi="-157" deltaphi="-57"/-->
 
@@ -227,12 +231,12 @@ acceptance of all terms of the Geant4 Software license.
 
   <volume name="trd2">
    <materialref ref="Water"/>
-   <solidref ref="trd1"/>
+   <solidref ref="trd2"/>
   </volume>
 
   <volume name="trd3">
    <materialref ref="Water"/>
-   <solidref ref="trd1"/>
+   <solidref ref="trd3"/>
   </volume>
 
   <volume name="tube100">
