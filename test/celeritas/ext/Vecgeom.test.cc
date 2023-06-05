@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 
+#include <regex>
 #include <string_view>
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/ArrayIO.hh"
-#include "corecel/io/StringUtils.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
 #include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/ext/GeantGeoUtils.hh"
@@ -21,6 +21,7 @@
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
+#include "celeritas/geo/GeoParamsOutput.hh"
 
 #include "celeritas_test.hh"
 
@@ -56,7 +57,7 @@ class VecgeomTestBase : public GenericVecgeomTestBase
 {
   public:
     //! Helper function: build with VecGeom using VGDML
-    SPConstGeo load_vgdml(std::string_view filename) const
+    SPConstGeo load_vgdml(std::string_view filename)
     {
         return std::make_shared<VecgeomParams>(
             this->test_data_path("celeritas", filename));
@@ -80,6 +81,13 @@ class VecgeomGeantTestBase : public VecgeomTestBase
         world_volume_ = ::celeritas::load_geant_geometry_native(
             this->test_data_path("celeritas", filename));
         return std::make_shared<VecgeomParams>(world_volume_);
+    }
+
+    //! Test conversion for Geant4 geometry
+    GeantVolResult get_geant_volumes()
+    {
+        this->geometry();
+        return GenericVecgeomTestBase::get_geant_volumes(world_volume_);
     }
 
   protected:
@@ -482,6 +490,25 @@ TEST_F(SolidsTest, accessors)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(SolidsTest, output)
+{
+    GeoParamsOutput out(this->geometry());
+    EXPECT_EQ("geometry", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        static const std::regex subs_ptr("0x[0-9a-f]+");
+        auto out_str = std::regex_replace(to_string(out), subs_ptr, "0x0");
+
+        EXPECT_EQ(
+            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["b500","b100","union1","b100","box500","cone1","para1","sphere1","parabol1","trap1","trd1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","World","","trd1_refl"]}})json",
+            out_str)
+            << "\n/*** REPLACE ***/\nR\"json(" << out_str
+            << ")json\"\n/******/";
+    }
+}
+
+//---------------------------------------------------------------------------//
 
 TEST_F(SolidsTest, trace)
 {
@@ -829,6 +856,37 @@ TEST_F(SolidsGeantTest, accessors)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(SolidsGeantTest, output)
+{
+    GeoParamsOutput out(this->geometry());
+    EXPECT_EQ("geometry", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        static const std::regex subs_ptr("0x[0-9a-f]+");
+        auto out_str = std::regex_replace(to_string(out), subs_ptr, "0x0");
+
+        EXPECT_EQ(
+            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["World@0x0","box500@0x0","cone1@0x0","para1@0x0","sphere1@0x0","parabol1@0x0","trap1@0x0","trd1@0x0","trd1_refl@0x0","","trd1_refl@0x0_refl","tube100@0x0","","","","","boolean1@0x0","orb1@0x0","polycone1@0x0","hype1@0x0","polyhedr1@0x0","tetrah1@0x0","arb8a@0x0","arb8b@0x0","ellipsoid1@0x0","elltube1@0x0","ellcone1@0x0","genPocone1@0x0"]}})json",
+            out_str)
+            << "\n/*** REPLACE ***/\nR\"json(" << out_str
+            << ")json\"\n/******/";
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, geant_volumes)
+{
+    auto result = this->get_geant_volumes();
+    static int const expected_volumes[] = {1,  2,  3,  4,  5,  6,  7,  11,
+                                           16, 18, 27, 24, 21, 17, 20, 19,
+                                           25, 26, 23, 22, 0,  8};
+    EXPECT_VEC_EQ(expected_volumes, result.volumes);
+    EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
+}
+
+//---------------------------------------------------------------------------//
 
 TEST_F(SolidsGeantTest, trace)
 {
@@ -948,6 +1006,32 @@ TEST_F(SolidsGeantTest, trace)
                                                        205};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
+}
+
+//---------------------------------------------------------------------------//
+
+class DISABLED_ArbitraryGeantTest : public VecgeomGeantTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        auto filename = celeritas::getenv("GDML");
+        CELER_VALIDATE(!filename.empty(),
+                       << "Set the 'GDML' environment variable and run this "
+                          "test with "
+                          "--gtest_filter=*ArbitraryGeantTest* "
+                          "--gtest_also_run_disabled_tests");
+        GeantSetup::disable_signal_handler();
+        world_volume_ = ::celeritas::load_geant_geometry(filename);
+        return std::make_shared<VecgeomParams>(world_volume_);
+    }
+};
+
+TEST_F(DISABLED_ArbitraryGeantTest, conversion)
+{
+    auto result = this->get_geant_volumes();
+    result.print_expected();
+    EXPECT_EQ(0, result.missing_names.size());
 }
 
 //---------------------------------------------------------------------------//

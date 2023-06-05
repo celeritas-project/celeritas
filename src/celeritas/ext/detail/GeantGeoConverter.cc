@@ -288,6 +288,10 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
     {
         // The *constituent* (unreflected) logical volume is actually tied to
         // the sensitive detectors: save this as well
+        CELER_LOG(debug) << "Mapping constituent volume '" << lv->GetName()
+                         << "'@" << static_cast<void const*>(lv)
+                         << " to volume ID for volume '" << g4lv_mom->GetName()
+                         << "'@" << static_cast<void const*>(g4lv_mom);
         g4logvol_id_map_[lv] = volid;
     }
 
