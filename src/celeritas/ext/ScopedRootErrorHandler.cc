@@ -44,7 +44,8 @@ void RootErrorHandler(Int_t rootlevel,
     {
         level = LogLevel::error;
         g_has_root_errored_ = true;
-        if (std::strcmp(location, "TCling::LoadPCM") == 0)
+        if (std::strcmp(location, "TCling::LoadPCM") == 0
+            || std::strcmp(location, "TProtoClass::FindDataMember") == 0)
             abort_bool = true;
     }
     if (rootlevel >= kBreak)
