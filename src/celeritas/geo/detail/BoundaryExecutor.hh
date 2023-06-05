@@ -37,13 +37,11 @@ struct BoundaryExecutor
 CELER_FUNCTION void
 BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
 {
-    auto sim = track.make_sim_view();
-    if (sim.step_limit().action != track.boundary_action())
-    {
-        // Not undergoing a boundary crossing
-        return;
-    }
-    CELER_EXPECT(sim.status() == TrackStatus::alive);
+    CELER_EXPECT([track] {
+        auto sim = track.make_sim_view();
+        return sim.step_limit().action == track.boundary_action()
+               && sim.status() == TrackStatus::alive;
+    }());
 
     auto geo = track.make_geo_view();
     CELER_EXPECT(geo.is_on_boundary());

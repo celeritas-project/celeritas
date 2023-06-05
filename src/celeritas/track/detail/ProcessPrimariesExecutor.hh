@@ -53,16 +53,8 @@ struct ProcessPrimariesExecutor
  */
 CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
-#if CELER_DEVICE_COMPILE
-    CELER_EXPECT(tid);
-    if (!(tid < primaries.size()))
-    {
-        return;
-    }
-#else
     CELER_EXPECT(tid < primaries.size());
-#endif
-    CELER_ASSERT(primaries.size() <= counters.num_initializers + tid.get());
+    CELER_EXPECT(primaries.size() <= counters.num_initializers + tid.get());
 
     ItemId<TrackInitializer> idx{
         index_after(counters.num_initializers - primaries.size(), tid)};
