@@ -21,6 +21,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 namespace celeritas
@@ -40,6 +41,7 @@ G4VPhysicalVolume*
 load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
+    ScopedTimeAndRedirect scoped_time{"G4GDMLParser"};
     ScopedMem record_mem("load_geant_geometry");
 
     G4GDMLParser gdml_parser;

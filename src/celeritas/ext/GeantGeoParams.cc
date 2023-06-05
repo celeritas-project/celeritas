@@ -22,7 +22,6 @@
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
@@ -60,10 +59,7 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    {
-        ScopedTimeLog scoped_time;
-        host_ref_.world = load_geant_geometry(filename);
-    }
+    host_ref_.world = load_geant_geometry(filename);
     loaded_gdml_ = true;
 
     this->build_tracking();
