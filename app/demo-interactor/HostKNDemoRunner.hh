@@ -17,13 +17,15 @@
 #include "KNDemoIO.hh"
 #include "XsGridParams.hh"
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
  * Run interactions on the host CPU.
  *
- * This is an analog to the demo_interactor::KNDemoRunner for device simulation
+ * This is an analog to the celeritas::app::KNDemoRunner for device simulation
  * but does all the transport directly on the CPU side.
  */
 class HostKNDemoRunner
@@ -31,10 +33,9 @@ class HostKNDemoRunner
   public:
     //!@{
     //! \name Type aliases
-    using size_type = celeritas::size_type;
-    using result_type = demo_interactor::KNDemoResult;
-    using constSPParticleParams
-        = std::shared_ptr<const celeritas::ParticleParams>;
+
+    using result_type = celeritas::app::KNDemoResult;
+    using constSPParticleParams = std::shared_ptr<ParticleParams const>;
     using constSPXsGridParams = std::shared_ptr<XsGridParams const>;
     //!@}
 
@@ -43,13 +44,14 @@ class HostKNDemoRunner
     HostKNDemoRunner(constSPParticleParams particles, constSPXsGridParams xs);
 
     // Run given number of particles
-    result_type operator()(demo_interactor::KNDemoRunArgs args);
+    result_type operator()(celeritas::app::KNDemoRunArgs args);
 
   private:
     constSPParticleParams pparams_;
     constSPXsGridParams xsparams_;
-    celeritas::KleinNishinaData kn_data_;
+    KleinNishinaData kn_data_;
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

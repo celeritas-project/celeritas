@@ -8,6 +8,8 @@
 #pragma once
 
 #include "celeritas/em/data/EPlusGGData.hh"
+#include "celeritas/em/executor/EPlusGGExecutor.hh"  // IWYU pragma: associated
+#include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/ParticleParams.hh"
 

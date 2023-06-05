@@ -39,7 +39,7 @@ auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
 
     // Construct filename:
     // ${SOURCE}/test/celeritas/data/${basename}${fileext}
-    auto ext = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    auto ext = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
                    ? ".gdml"sv
                    : ".org.json"sv;
     auto filename = std::string{basename} + std::string{ext};

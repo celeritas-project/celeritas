@@ -31,12 +31,17 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
 
-using namespace celeritas;
 using std::cout;
 using std::endl;
 using std::setprecision;
 using std::setw;
 
+namespace celeritas
+{
+namespace app
+{
+namespace
+{
 //---------------------------------------------------------------------------//
 /*!
  * Print particle properties.
@@ -253,11 +258,11 @@ void print_process(ImportProcess const& proc,
 
         for (auto m : range(model.materials.size()))
         {
-            using celeritas::units::barn;
+            using units::barn;
 
             auto const& xs = model.materials[m].micro_xs;
 
-            for (auto i : celeritas::range(xs.size()))
+            for (auto i : range(xs.size()))
             {
                 cout << "| " << setw(20) << std::left
                      << (i == 0 ? materials[m].name : std::string{}) << " | "
@@ -568,12 +573,19 @@ void print_atomic_relaxation_data(
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace
+}  // namespace app
+}  // namespace celeritas
+
+//---------------------------------------------------------------------------//
 /*!
  * Dump the contents of a ROOT file writen by celer-export-geant.
  */
 int main(int argc, char* argv[])
 {
-    ScopedRootErrorHandler scoped_root_error;
+    using namespace celeritas;
+    using namespace celeritas::app;
+
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)
@@ -592,17 +604,16 @@ int main(int argc, char* argv[])
     ImportData data;
     try
     {
+        ScopedRootErrorHandler scoped_root_error;
         RootImporter import(argv[1]);
         data = import();
+        scoped_root_error.throw_if_errors();
     }
-    catch (RuntimeError const& e)
+    catch (std::exception const& e)
     {
-        CELER_LOG(critical) << "Runtime error: " << e.what();
-        return EXIT_FAILURE;
-    }
-    catch (DebugError const& e)
-    {
-        CELER_LOG(critical) << "Assertion failure: " << e.what();
+        CELER_LOG(critical)
+            << "While processing ROOT data at " << argv[1] << ": " << e.what();
+
         return EXIT_FAILURE;
     }
 

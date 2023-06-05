@@ -142,7 +142,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     // Check if secondary can be produced. If not, this interaction cannot
     // happen and the incident particle must undergo an energy loss process
     // instead.
-    // TODO: reject this interaction before launching the kernel by using
+    // TODO: reject this interaction before executing the kernel by using
     // correct material-dependent lower bounds for the interaction
     if (gamma_cutoff_ > inc_energy_)
     {

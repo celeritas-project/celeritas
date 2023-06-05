@@ -17,6 +17,8 @@
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
+#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 

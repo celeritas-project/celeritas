@@ -211,7 +211,8 @@ class BVHNavigator
     // Computes the isotropic safety from the globalpoint.
     CELER_FUNCTION static double
     ComputeSafety(Vector3D const& globalpoint,
-                  vecgeom::NavigationState const& state)
+                  vecgeom::NavigationState const& state,
+                  Precision safety)
     {
         VPlacedVolumePtr_t pvol = state.Top();
         vecgeom::Transformation3D m;
@@ -219,7 +220,7 @@ class BVHNavigator
         Vector3D localpoint = m.Transform(globalpoint);
 
         // need to calc DistanceToOut first
-        Precision safety = pvol->SafetyToOut(localpoint);
+        safety = min(safety, pvol->SafetyToOut(localpoint));
 
         if (safety > 0 && pvol->GetDaughters().size() > 0)
         {

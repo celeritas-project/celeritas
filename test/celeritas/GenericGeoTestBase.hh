@@ -24,6 +24,7 @@ struct GenericGeoTrackingResult
 {
     std::vector<std::string> volumes;
     std::vector<real_type> distances;
+    std::vector<real_type> halfway_safeties;
 
     void print_expected();
 };
@@ -70,6 +71,9 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     // Get and initialize a single-thread host track view
     GeoTrackView make_geo_track_view(Real3 const& pos, Real3 dir);
 
+    // Calculate a "bumped" position based on the geo's state
+    Real3 calc_bump_pos(GeoTrackView const& geo, real_type delta) const;
+
     //! Find linear segments until outside
     TrackingResult track(Real3 const& pos, Real3 const& dir);
 
@@ -93,10 +97,14 @@ using GenericVecgeomTestBase
     = GenericGeoTestBase<VecgeomParams, VecgeomStateData, VecgeomTrackView>;
 using GenericOrangeTestBase
     = GenericGeoTestBase<OrangeParams, OrangeStateData, OrangeTrackView>;
+using GenericGeantGeoTestBase
+    = GenericGeoTestBase<GeantGeoParams, GeantGeoStateData, GeantGeoTrackView>;
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 using GenericCoreGeoTestBase = GenericVecgeomTestBase;
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 using GenericCoreGeoTestBase = GenericOrangeTestBase;
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+using GenericCoreGeoTestBase = GenericGeantGeoTestBase;
 #endif
 
 //---------------------------------------------------------------------------//

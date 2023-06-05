@@ -11,6 +11,7 @@
 #include <cmath>
 #include <map>
 #include <set>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 
@@ -47,21 +48,29 @@
 #include "celeritas/phys/Process.hh"
 
 #include "ParticleParams.hh"
-#include "generated/DiscreteSelectAction.hh"
-#include "generated/PreStepAction.hh"
+#include "detail/DiscreteSelectAction.hh"
+#include "detail/PreStepAction.hh"
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
-class ImplicitPhysicsAction final : public ImplicitActionInterface,
-                                    public ConcreteAction
+class ImplicitPhysicsAction final : public ConcreteAction
 {
   public:
     // Construct with ID and label
     using ConcreteAction::ConcreteAction;
 };
+
+//---------------------------------------------------------------------------//
+//! PDG recommends 81-100 for internal MC pseudoparticles
+bool is_fake_particle(PDGNumber pdg)
+{
+    return pdg.get() >= 81 && pdg.get() <= 100;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -87,8 +96,8 @@ PhysicsParams::PhysicsParams(Input inp)
         using std::make_shared;
         auto& action_reg = *inp.action_registry;
 
-        auto pre_step_action = make_shared<generated::PreStepAction>(
-            action_reg.next_id(), "pre-step", "update beginning-of-step state");
+        auto pre_step_action
+            = make_shared<detail::PreStepAction>(action_reg.next_id());
         inp.action_registry->insert(pre_step_action);
         pre_step_action_ = std::move(pre_step_action);
 
@@ -106,10 +115,8 @@ PhysicsParams::PhysicsParams(Input inp)
         action_reg.insert(range_action);
         range_action_ = std::move(range_action);
 
-        auto discrete_action = make_shared<generated::DiscreteSelectAction>(
-            action_reg.next_id(),
-            "physics-discrete-select",
-            "select a discrete interaction");
+        auto discrete_action
+            = make_shared<detail::DiscreteSelectAction>(action_reg.next_id());
         inp.action_registry->insert(discrete_action);
         discrete_action_ = std::move(discrete_action);
 
@@ -296,14 +303,14 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
 
     // Loop over particle IDs, set ProcessGroup
     ProcessId::size_type max_particle_processes = 0;
-    for (auto particle_idx : range(particles.size()))
+    for (auto par_id : range(ParticleId{particles.size()}))
     {
-        auto& process_to_models = particle_models[particle_idx];
-        if (process_to_models.empty())
+        auto& process_to_models = particle_models[par_id.get()];
+        if (process_to_models.empty()
+            && !is_fake_particle(particles.id_to_pdg(par_id)))
         {
-            CELER_LOG(warning)
-                << "No processes are defined for particle '"
-                << particles.id_to_label(ParticleId{particle_idx}) << '\'';
+            CELER_LOG(warning) << "No processes are defined for particle '"
+                               << particles.id_to_label(par_id) << '\'';
         }
         max_particle_processes = std::max<ProcessId::size_type>(
             max_particle_processes, process_to_models.size());
@@ -336,8 +343,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
                     temp_energy_grid.back() == std::get<0>(r),
                     << "models for process '"
                     << this->process(pid_models.first)->label()
-                    << "' of particle type '"
-                    << particles.id_to_label(ParticleId{particle_idx})
+                    << "' of particle type '" << particles.id_to_label(par_id)
                     << "' has no data between energies of "
                     << temp_energy_grid.back() << " and " << std::get<0>(r)
                     << " (energy range must be contiguous)");

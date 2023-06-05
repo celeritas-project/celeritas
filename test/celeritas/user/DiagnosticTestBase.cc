@@ -35,10 +35,7 @@ void DiagnosticTestBase::SetUp()
 
     // Create action diagnostic
     action_diagnostic_
-        = std::make_shared<ActionDiagnostic>(this->action_reg()->next_id(),
-                                             this->action_reg(),
-                                             this->particle(),
-                                             num_streams);
+        = std::make_shared<ActionDiagnostic>(this->action_reg()->next_id());
     // Add to action registry
     this->action_reg()->insert(action_diagnostic_);
     // Add to output interface
@@ -95,21 +92,7 @@ template<MemSpace M>
 auto DiagnosticTestBase::run(size_type num_tracks, size_type num_steps)
     -> RunResult
 {
-    StepperInput step_inp;
-    step_inp.params = this->core();
-    step_inp.stream_id = StreamId{0};
-    step_inp.num_track_slots = num_tracks;
-
-    Stepper<M> step(step_inp);
-
-    // Initial step
-    auto primaries = this->make_primaries(num_tracks);
-    auto count = step(make_span(primaries));
-
-    while (count && --num_steps > 0)
-    {
-        count = step();
-    }
+    this->run_impl<M>(num_tracks, num_steps);
 
     RunResult result;
 

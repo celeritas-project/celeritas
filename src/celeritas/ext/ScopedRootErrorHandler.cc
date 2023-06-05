@@ -71,17 +71,22 @@ void RootErrorHandler(Int_t rootlevel,
 
 //---------------------------------------------------------------------------//
 /*!
- * Install the Celeritas ROOT error handler
+ * Clear ROOT's signal handlers that get installed on startup/activation.
+ */
+void ScopedRootErrorHandler::disable_signal_handler()
+{
+    gSystem->ResetSignals();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Install the Celeritas ROOT error handler.
  */
 ScopedRootErrorHandler::ScopedRootErrorHandler()
     : previous_(SetErrorHandler(RootErrorHandler))
     , prev_errored_{g_has_root_errored_}
 {
-    // Disable ROOT interception of system signals the first time we run
-    [[maybe_unused]] static bool const disabled_root_backtrace = [] {
-        gSystem->ResetSignals();
-        return true;
-    }();
+    ScopedRootErrorHandler::disable_signal_handler();
 }
 
 //---------------------------------------------------------------------------//
@@ -101,7 +106,7 @@ void ScopedRootErrorHandler::throw_if_errors() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Revert to the previous ROOT error handler
+ * Revert to the previous ROOT error handler.
  */
 ScopedRootErrorHandler::~ScopedRootErrorHandler()
 {

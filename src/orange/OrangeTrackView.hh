@@ -31,12 +31,11 @@ namespace celeritas
  * - initialize (through assignment) must come first
  * - access (pos, dir, volume/surface/is_outside/is_on_boundary) good at any
  * time
- * - \c find_safety (fine at any time)
  * - \c find_next_step
- * - \c move_internal or \c move_to_boundary
+ * - \c find_safety or \c move_internal or \c move_to_boundary
  * - if on boundary, \c cross_boundary
  * - at any time, \c set_dir , but then must do \c find_next_step before any
- *   following action above
+ *   \c move or \c cross action above
  *
  * The main point is that \c find_next_step depends on the current
  * straight-line direction, \c move_to_boundary and \c move_internal (with
@@ -60,12 +59,12 @@ class OrangeTrackView
     //! Helper struct for initializing from an existing geometry state
     struct DetailedInitializer
     {
-        OrangeTrackView& other;  //!< Existing geometry
-        Real3 dir;  //!< New direction
+        OrangeTrackView const& other;  //!< Existing geometry
+        Real3 const& dir;  //!< New direction
     };
 
   public:
-    // Construct from params and state params
+    // Construct from params and state
     inline CELER_FUNCTION OrangeTrackView(ParamsRef const& params,
                                           StateRef const& states,
                                           TrackSlotId tid);
@@ -104,6 +103,9 @@ class OrangeTrackView
     // Find the distance to the nearest boundary in any direction
     inline CELER_FUNCTION real_type find_safety();
 
+    // Find the distance to the nearest nearby boundary in any direction
+    inline CELER_FUNCTION real_type find_safety(real_type max_step);
+
     // Move to the boundary in preparation for crossing it
     inline CELER_FUNCTION void move_to_boundary();
 
@@ -125,6 +127,11 @@ class OrangeTrackView
     ParamsRef const& params_;
     StateRef const& states_;
     TrackSlotId track_slot_;
+
+    // Temporary next-step data
+    real_type next_step_{0};
+    detail::OnSurface next_surface_{};
+    LevelId next_surface_level_{};
 
     //// STATE ASSESSORS ////
 
@@ -222,9 +229,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    // Clear local data
-    this->clear_next_step();
-
     // Create local state
     detail::LocalState local;
     local.pos = init.pos;
@@ -290,18 +294,22 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
     for (auto i : range(states_.level[init.other.track_slot_] + 1))
     {
-        // Copy all data accessed via LSA
+        // Copy all data accessed via LSA except for direction
         auto lsa = this->make_lsa(LevelId{i});
-        lsa = init.other.make_lsa(LevelId{i});
+        if (this != &init.other)
+        {
+            lsa = init.other.make_lsa(LevelId{i});
+        }
+        // TODO: apply rotation when we use Transform instead of Translate
         lsa.dir() = init.dir;
     }
 
-    // Copy init track's position but update the direction
-    this->level() = states_.level[init.other.track_slot_];
-    this->surface_level() = states_.surface_level[init.other.track_slot_];
-
-    // Clear step and surface info
-    this->clear_next_step();
+    if (this != &init.other)
+    {
+        // Copy init track's position but update the direction
+        this->level() = states_.level[init.other.track_slot_];
+        this->surface_level() = states_.surface_level[init.other.track_slot_];
+    }
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -399,18 +407,9 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
         return {0, true};
     }
 
-    if (!this->next_surface() && this->next_step() != no_intersection())
-    {
-        // Reset a previously found truncated distance
-        this->clear_next_step();
-    }
-
-    if (!this->has_next_step())
-    {
-        auto tracker = this->make_tracker(UniverseId{0});
-        auto isect = tracker.intersect(this->make_local_state(LevelId{0}));
-        this->find_next_step_impl(isect);
-    }
+    auto tracker = this->make_tracker(UniverseId{0});
+    auto isect = tracker.intersect(this->make_local_state(LevelId{0}));
+    this->find_next_step_impl(isect);
 
     Propagation result;
     result.distance = this->next_step();
@@ -490,6 +489,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     lsa.sense() = this->next_surface().unchecked_sense();
 
     this->clear_next_step();
+    CELER_ENSURE(this->is_on_boundary());
 }
 
 //---------------------------------------------------------------------------//
@@ -719,7 +719,7 @@ CELER_FUNCTION LevelId& OrangeTrackView::surface_level()
  */
 CELER_FUNCTION real_type& OrangeTrackView::next_step()
 {
-    return states_.next_step[track_slot_];
+    return next_step_;
 }
 
 /*!
@@ -727,7 +727,7 @@ CELER_FUNCTION real_type& OrangeTrackView::next_step()
  */
 CELER_FUNCTION detail::OnSurface& OrangeTrackView::next_surface()
 {
-    return states_.next_surface[track_slot_];
+    return next_surface_;
 }
 
 /*!
@@ -735,7 +735,7 @@ CELER_FUNCTION detail::OnSurface& OrangeTrackView::next_surface()
  */
 CELER_FUNCTION LevelId& OrangeTrackView::next_surface_level()
 {
-    return states_.next_surface_level[track_slot_];
+    return next_surface_level_;
 }
 
 //---------------------------------------------------------------------------//
@@ -762,7 +762,7 @@ CELER_FUNCTION LevelId const& OrangeTrackView::surface_level() const
  */
 CELER_FUNCTION real_type const& OrangeTrackView::next_step() const
 {
-    return states_.next_step[track_slot_];
+    return next_step_;
 }
 
 /*!
@@ -770,7 +770,7 @@ CELER_FUNCTION real_type const& OrangeTrackView::next_step() const
  */
 CELER_FUNCTION detail::OnSurface const& OrangeTrackView::next_surface() const
 {
-    return states_.next_surface[track_slot_];
+    return next_surface_;
 }
 
 /*!
@@ -778,7 +778,7 @@ CELER_FUNCTION detail::OnSurface const& OrangeTrackView::next_surface() const
  */
 CELER_FUNCTION LevelId const& OrangeTrackView::next_surface_level() const
 {
-    return states_.next_surface_level[track_slot_];
+    return next_surface_level_;
 }
 
 //---------------------------------------------------------------------------//
@@ -836,17 +836,24 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
  */
 CELER_FUNCTION real_type OrangeTrackView::find_safety()
 {
+    CELER_EXPECT(!this->is_on_boundary());
     auto lsa = this->make_lsa();
-
-    if (lsa.surf())
-    {
-        // Zero distance to boundary on a surface
-        return real_type{0};
-    }
 
     CELER_ASSERT(lsa.universe() == UniverseId{0});
     auto tracker = this->make_tracker(lsa.universe());
     return tracker.safety(lsa.pos(), lsa.vol());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to the nearest nearby boundary.
+ *
+ * Since we currently support only "simple" safety distances, we can't
+ * eliminate anything by checking only nearby surfaces.
+ */
+CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
+{
+    return this->find_safety();
 }
 
 //---------------------------------------------------------------------------//
@@ -925,7 +932,7 @@ OrangeTrackView::make_local_state(LevelId level) const
  */
 CELER_FUNCTION bool OrangeTrackView::has_next_step() const
 {
-    return states_.next_step[track_slot_] != 0;
+    return next_step_ != 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -937,9 +944,7 @@ CELER_FUNCTION bool OrangeTrackView::has_next_step() const
  */
 CELER_FUNCTION void OrangeTrackView::clear_next_step()
 {
-    states_.next_step[track_slot_] = 0;
-    states_.next_surface[track_slot_] = {};
-    states_.next_surface_level[track_slot_] = {};
+    next_step_ = 0;
 }
 
 //---------------------------------------------------------------------------//

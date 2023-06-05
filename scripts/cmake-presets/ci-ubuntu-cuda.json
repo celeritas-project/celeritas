@@ -78,8 +78,7 @@
       "description": "Build demonstration with vecgeom",
       "inherits": [".ndebug", ".vecgeom", "base"],
       "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"}
       }
     }
   ],

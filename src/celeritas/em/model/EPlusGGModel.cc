@@ -9,8 +9,12 @@
 
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
-#include "celeritas/em/generated/EPlusGGInteract.hh"
+#include "celeritas/em/executor/EPlusGGExecutor.hh"  // IWYU pragma: associated
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
 
@@ -59,22 +63,27 @@ auto EPlusGGModel::micro_xs(Applicability) const -> MicroXsBuilders
 }
 
 //---------------------------------------------------------------------------//
-//!@{
 /*!
- * Apply the interaction kernel.
+ * Interact with host data.
  */
 void EPlusGGModel::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    generated::eplusgg_interact(params, state, this->host_ref());
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{EPlusGGExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
-void EPlusGGModel::execute(CoreParams const& params,
-                           CoreStateDevice& state) const
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void EPlusGGModel::execute(CoreParams const&, CoreStateDevice&) const
 {
-    generated::eplusgg_interact(params, state, this->device_ref());
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
+#endif
 
-//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

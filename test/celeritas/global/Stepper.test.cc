@@ -13,17 +13,22 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 #include "../OneSteelSphereBase.hh"
 #include "../SimpleTestBase.hh"
 #include "../TestEm15Base.hh"
-#include "DummyAction.hh"
-#include "Stepper.test.hh"
+#include "../TestEm3Base.hh"
+#include "StepperTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::units::MevEnergy;
 
@@ -34,6 +39,125 @@ namespace test
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
+//---------------------------------------------------------------------------//
+
+class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
+{
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        Primary p;
+        p.particle_id = this->particle()->find(pdg::gamma());
+        CELER_ASSERT(p.particle_id);
+        p.energy = units::MevEnergy{100};
+        p.track_id = TrackId{0};
+        p.position = {-22, 0, 0};
+        p.direction = {1, 0, 0};
+        p.time = 0;
+
+        std::vector<Primary> result(count, p);
+        for (auto i : range(count))
+        {
+            result[i].event_id = EventId{i};
+        }
+        return result;
+    }
+
+    size_type max_average_steps() const override { return 100000; }
+};
+
+//---------------------------------------------------------------------------//
+
+class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
+{
+  public:
+    std::vector<Primary>
+    make_primaries_with_energy(PDGNumber particle,
+                               size_type count,
+                               celeritas::units::MevEnergy energy) const
+    {
+        Primary p;
+        p.particle_id = this->particle()->find(particle);
+        CELER_ASSERT(p.particle_id);
+        p.energy = energy;
+        p.track_id = TrackId{0};
+        p.position = {-22, 0, 0};
+        p.direction = {1, 0, 0};
+        p.time = 0;
+
+        std::vector<Primary> result(count, p);
+        for (auto i : range(count))
+        {
+            result[i].event_id = EventId{i};
+        }
+        return result;
+    }
+
+    // Return electron primaries as default
+    std::vector<Primary>
+    make_primaries_with_energy(size_type count,
+                               celeritas::units::MevEnergy energy) const
+    {
+        return this->make_primaries_with_energy(pdg::electron(), count, energy);
+    }
+};
+
+//---------------------------------------------------------------------------//
+#define TestEm3Compton TEST_IF_CELERITAS_GEANT(TestEm3Compton)
+class TestEm3Compton : public TestEm3StepperTestBase
+{
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        return this->make_primaries_with_energy(
+            pdg::gamma(), count, units::MevEnergy{1});
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.compton_scattering = true;
+        opts.coulomb_scattering = false;
+        opts.photoelectric = false;
+        opts.rayleigh_scattering = false;
+        opts.gamma_conversion = false;
+        opts.gamma_general = false;
+        opts.ionization = false;
+        opts.annihilation = false;
+        opts.brems = BremsModelSelection::none;
+        opts.msc = MscModelSelection::none;
+        opts.relaxation = RelaxationSelection::none;
+        opts.lpm = false;
+        opts.eloss_fluctuation = false;
+        return opts;
+    }
+
+    size_type max_average_steps() const override { return 1000; }
+};
+
+//---------------------------------------------------------------------------//
+#define TestEm3NoMsc TEST_IF_CELERITAS_GEANT(TestEm3NoMsc)
+class TestEm3NoMsc : public TestEm3StepperTestBase
+{
+  public:
+    //! Make 10GeV electrons along +x
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        return this->make_primaries_with_energy(
+            count, celeritas::units::MevEnergy{10000});
+    }
+
+    size_type max_average_steps() const override
+    {
+        return 100000;  // 8 primaries -> ~500k steps, be conservative
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.msc = MscModelSelection::none;
+        return opts;
+    }
+};
+
 //---------------------------------------------------------------------------//
 
 #define TestEm3Msc TEST_IF_CELERITAS_GEANT(TestEm3Msc)
@@ -157,7 +281,83 @@ class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
 };
 
 //---------------------------------------------------------------------------//
-// TESTEM3
+// Two boxes: compton with fake cross sections
+//---------------------------------------------------------------------------//
+
+TEST_F(SimpleComptonTest, setup)
+{
+    auto result = this->check_setup();
+    static char const* expected_process[] = {"Compton scattering"};
+    EXPECT_VEC_EQ(expected_process, result.processes);
+}
+
+TEST_F(SimpleComptonTest, host)
+{
+    size_type num_primaries = 32;
+    size_type num_tracks = 64;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+    EXPECT_EQ(919, result.num_step_iters());
+    EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());
+    EXPECT_EQ(3, result.calc_emptying_step());
+    EXPECT_EQ(RunResult::StepCount({1, 6}), result.calc_queue_hwm());
+}
+
+TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(device))
+{
+    size_type num_primaries = 32;
+    size_type num_tracks = 64;
+
+    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+    EXPECT_EQ(919, result.num_step_iters());
+    EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());
+    EXPECT_EQ(3, result.calc_emptying_step());
+    EXPECT_EQ(RunResult::StepCount({1, 6}), result.calc_queue_hwm());
+}
+
+//---------------------------------------------------------------------------//
+// TESTEM3 - Compton process only
+//---------------------------------------------------------------------------//
+
+TEST_F(TestEm3Compton, setup)
+{
+    auto result = this->check_setup();
+    static char const* expected_process[] = {"Compton scattering"};
+    EXPECT_VEC_EQ(expected_process, result.processes);
+}
+
+TEST_F(TestEm3Compton, host)
+{
+    size_type num_primaries = 1;
+    size_type num_tracks = 256;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+
+    if (this->is_ci_build())
+    {
+        EXPECT_EQ(153, result.num_step_iters());
+        EXPECT_SOFT_EQ(796, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(47, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({6, 1}), result.calc_queue_hwm());
+    }
+    else
+    {
+        cout << "No output saved for combination of "
+             << test::PrintableBuildConf{} << std::endl;
+        result.print_expected();
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated stepper results are required for CI tests";
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+// TESTEM3 - No MSC
 //---------------------------------------------------------------------------//
 
 TEST_F(TestEm3NoMsc, setup)

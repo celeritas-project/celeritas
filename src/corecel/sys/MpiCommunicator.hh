@@ -14,8 +14,6 @@
 
 namespace celeritas
 {
-class Device;
-
 //---------------------------------------------------------------------------//
 /*!
  * Abstraction of an MPI communicator.
@@ -66,10 +64,6 @@ class MpiCommunicator
     int rank_ = 0;
     int size_ = 1;
 };
-
-//---------------------------------------------------------------------------//
-// Initialize a device in a round-robin fashion from a communicator.
-Device make_device(MpiCommunicator const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

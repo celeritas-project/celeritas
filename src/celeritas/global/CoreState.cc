@@ -8,6 +8,7 @@
 #include "CoreState.hh"
 
 #include "corecel/data/Copier.hh"
+#include "corecel/io/Logger.hh"
 
 #include "CoreParams.hh"
 
@@ -31,12 +32,17 @@ CoreState<M>::CoreState(CoreParams const& params,
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
 
+    counters_.num_vacancies = num_track_slots;
+    counters_.num_primaries = 0;
+    counters_.num_initializers = 0;
+
     if constexpr (M == MemSpace::device)
     {
         device_ref_vec_ = DeviceVector<Ref>(1);
         device_ref_vec_.copy_to_device({&this->ref(), 1});
     }
 
+    CELER_LOG_LOCAL(status) << "Celeritas core state initialization complete";
     CELER_ENSURE(states_);
 }
 
@@ -55,7 +61,7 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
         primaries_ = {};
         resize(&primaries_, host_primaries.size());
     }
-    num_primaries_ = host_primaries.size();
+    counters_.num_primaries = host_primaries.size();
 
     Copier<Primary, M> copy_to_temp{primaries_[this->primary_range()]};
     copy_to_temp(MemSpace::host, host_primaries);

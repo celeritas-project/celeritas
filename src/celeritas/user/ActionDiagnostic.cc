@@ -7,19 +7,25 @@
 //---------------------------------------------------------------------------//
 #include "ActionDiagnostic.hh"
 
-#include "corecel/Assert.hh"
+#include <mutex>
+#include <type_traits>
+#include <utility>
+
+#include "celeritas_config.h"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
-#include "celeritas/global/ActionRegistry.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/global/ActionLauncher.hh"
+#include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/TrackLauncher.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/user/ParticleTallyData.hh"
 
-#include "detail/ActionDiagnosticImpl.hh"
+#include "detail/ActionDiagnosticExecutor.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -31,25 +37,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action registry and particle data.
+ * Construct with the action ID.
  *
- * The total number of registered actions is needed in the diagnostic params
- * data, so the construction of the stream storage is deferred until all
- * actions have been registered.
+ * Other required attributes are deferred until beginning-of-run.
  */
-ActionDiagnostic::ActionDiagnostic(ActionId id,
-                                   WPConstActionRegistry action_reg,
-                                   SPConstParticle particle,
-                                   size_type num_streams)
-    : id_(id)
-    , action_reg_(action_reg)
-    , particle_(particle)
-    , num_streams_(num_streams)
+ActionDiagnostic::ActionDiagnostic(ActionId id) : id_(id)
 {
     CELER_EXPECT(id_);
-    CELER_EXPECT(!action_reg_.expired());
-    CELER_EXPECT(particle_);
-    CELER_EXPECT(num_streams > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -58,34 +52,43 @@ ActionDiagnostic::~ActionDiagnostic() = default;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Build the storage for diagnostic parameters and stream-dependent states.
+ *
+ * This must be done lazily (after construction!) because the action diagnostic
+ * will be created *before* all actions are defined in the \c ActionRegistry.
+ */
+void ActionDiagnostic::begin_run(CoreParams const& params, CoreStateHost&)
+{
+    return this->begin_run_impl(params);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build the storage for diagnostic parameters and stream-dependent states.
+ *
+ * Since the stream store is (currently) lazily constructed, we can call the
+ * same begin_run as host.
+ */
+void ActionDiagnostic::begin_run(CoreParams const& params, CoreStateDevice&)
+{
+    return this->begin_run_impl(params);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Execute action with host data.
  */
 void ActionDiagnostic::execute(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    if (!store_)
-    {
-        this->build_stream_store();
-    }
-    MultiExceptionHandler capture_exception;
-    auto launch = make_active_track_launcher(
-        *params.ptr<MemSpace::native>(),
-        *state.ptr(),
-        detail::tally_action,
-        store_.params<MemSpace::host>(),
-        store_.state<MemSpace::host>(state.stream_id(), this->state_size()));
-#pragma omp parallel for
-    for (ThreadId::size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+    auto execute = make_active_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::ActionDiagnosticExecutor{
+            store_.params<MemSpace::native>(),
+            store_.state<MemSpace::native>(state.stream_id(),
+                                           this->state_size())});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
@@ -129,9 +132,10 @@ auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
     // Counts indexed as [particle][action]
     auto particle_vec = this->calc_actions();
 
-    // Get a shared pointer to the action registry
+    // Get shared pointers from the weak pointers
     auto sp_action_reg = action_reg_.lock();
-    CELER_ASSERT(sp_action_reg);
+    auto sp_particle = particle_.lock();
+    CELER_ASSERT(sp_action_reg && sp_particle);
 
     // Map particle ID/action ID to name and store counts
     MapStringCount result;
@@ -143,8 +147,8 @@ auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
             if (action_vec[action.get()] > 0)
             {
                 std::string label = sp_action_reg->id_to_label(action) + " "
-                                    + particle_->id_to_label(particle);
-                result[label] = action_vec[action.get()];
+                                    + sp_particle->id_to_label(particle);
+                result.insert({std::move(label), action_vec[action.get()]});
             }
         }
     }
@@ -157,7 +161,12 @@ auto ActionDiagnostic::calc_actions_map() const -> MapStringCount
  */
 auto ActionDiagnostic::calc_actions() const -> VecVecCount
 {
-    CELER_EXPECT(store_);
+    if (!store_)
+    {
+        CELER_LOG(error) << "Tried to access action counters before executing "
+                            "any actions";
+        return {};
+    }
 
     // Get the raw data accumulated over all host/device streams
     VecCount counts(this->state_size(), 0);
@@ -207,20 +216,35 @@ void ActionDiagnostic::clear()
  * This must be done lazily (after construction!) because the action diagnostic
  * will be created *before* all actions are defined in the \c ActionRegistry.
  */
-void ActionDiagnostic::build_stream_store() const
+void ActionDiagnostic::begin_run_impl(CoreParams const& params)
 {
-    CELER_EXPECT(!store_);
+    if (!store_)
+    {
+        static std::mutex initialize_mutex;
+        std::lock_guard<std::mutex> scoped_lock{initialize_mutex};
 
-    auto sp_action_reg = action_reg_.lock();
-    CELER_ASSERT(sp_action_reg);
+        if (!store_)
+        {
+            action_reg_ = params.action_reg();
+            particle_ = params.particle();
 
-    HostVal<ParticleTallyParamsData> host_params;
-    host_params.num_bins = sp_action_reg->num_actions();
-    host_params.num_particles = particle_->size();
-    store_ = {std::move(host_params), num_streams_};
-
+            HostVal<ParticleTallyParamsData> host_params;
+            host_params.num_bins = params.action_reg()->num_actions();
+            host_params.num_particles = params.particle()->size();
+            store_ = {std::move(host_params), params.max_streams()};
+        }
+    }
     CELER_ENSURE(store_);
 }
+
+//---------------------------------------------------------------------------//
+
+#if !CELER_USE_DEVICE
+void ActionDiagnostic::execute(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

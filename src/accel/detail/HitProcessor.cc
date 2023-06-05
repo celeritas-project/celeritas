@@ -279,7 +279,7 @@ bool HitProcessor::update_touchable(Real3 const& pos,
     if (step < max_step)
     {
         // Found a nearby volume
-        if (step > 0)
+        if (step > 1e-3 * CLHEP::mm)
         {
             // Warn only if the step is nontrivial
             CELER_LOG(warning)

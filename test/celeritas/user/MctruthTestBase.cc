@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "corecel/cont/Span.hh"
+#include "corecel/io/LogContextException.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/StepCollector.hh"
 
@@ -79,21 +80,7 @@ void MctruthTestBase::RunResult::print_expected() const
 auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
     -> RunResult
 {
-    StepperInput step_inp;
-    step_inp.params = this->core();
-    step_inp.stream_id = StreamId{0};
-    step_inp.num_track_slots = num_tracks;
-
-    Stepper<MemSpace::host> step(step_inp);
-
-    // Initial step
-    auto primaries = this->make_primaries(num_tracks);
-    auto count = step(make_span(primaries));
-
-    while (count && --num_steps > 0)
-    {
-        count = step();
-    }
+    this->run_impl<MemSpace::host>(num_tracks, num_steps);
 
     example_mctruth_->sort();
 

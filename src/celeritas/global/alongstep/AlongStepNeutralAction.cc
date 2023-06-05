@@ -7,18 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepNeutralAction.hh"
 
-#include <utility>
-
 #include "corecel/Assert.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/AlongStepNeutral.hh"
+#include "AlongStep.hh"  // IWYU pragma: associated
+#include "detail/AlongStepNeutralImpl.hh"  // IWYU pragma: associated
+#include "detail/LinearTrackPropagator.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -38,24 +36,14 @@ AlongStepNeutralAction::AlongStepNeutralAction(ActionId id) : id_(id)
 void AlongStepNeutralAction::execute(CoreParams const& params,
                                      CoreStateHost& state) const
 {
-    MultiExceptionHandler capture_exception;
-    auto launch
-        = make_along_step_track_launcher(*params.ptr<MemSpace::native>(),
-                                         *state.ptr(),
-                                         this->action_id(),
-                                         detail::along_step_neutral);
-#pragma omp parallel for
-    for (size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+    auto execute = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        AlongStep{detail::NoMsc{},
+                  detail::LinearTrackPropagator{},
+                  detail::NoELoss{}});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

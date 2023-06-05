@@ -78,7 +78,6 @@ struct VecgeomStateData
     // Collections
     Items<Real3> pos;
     Items<Real3> dir;
-    Items<real_type> next_step;
 
     // Wrapper for NavStatePool, vector, or void*
     detail::VecgeomNavCollection<W, M> vgstate;
@@ -89,8 +88,8 @@ struct VecgeomStateData
     //! True if sizes are consistent and states are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return this->size() > 0 && dir.size() == this->size()
-               && next_step.size() == this->size() && vgstate && vgnext;
+        return this->size() > 0 && dir.size() == this->size() && vgstate
+               && vgnext;
     }
 
     //! State size
@@ -106,7 +105,6 @@ struct VecgeomStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
-        next_step = other.next_step;
         vgstate = other.vgstate;
         vgnext = other.vgnext;
         return *this;
@@ -128,7 +126,6 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 
     resize(&data->pos, size);
     resize(&data->dir, size);
-    resize(&data->next_step, size);
     data->vgstate.resize(params.max_depth, size);
     data->vgnext.resize(params.max_depth, size);
 

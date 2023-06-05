@@ -202,6 +202,16 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(5.2704627669473019e-12, step.step);
     }
+    {
+        // Celerino should have infinite step with no action
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "celerino", MevEnergy{1});
+        phys.interaction_mfp(1.234);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
+        EXPECT_EQ(ActionId{}, step.action);
+        EXPECT_SOFT_EQ(std::numeric_limits<real_type>::infinity(), step.step);
+    }
 }
 
 TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)

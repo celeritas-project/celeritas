@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
@@ -119,6 +120,34 @@ struct Connectivity
 
 //---------------------------------------------------------------------------//
 /*!
+ * Class for storing offset data for RaggedRightIndexer.
+ */
+template<size_type N>
+struct RaggedRightIndexerData
+{
+    using Sizes = Array<size_type, N>;
+    using Offsets = Array<size_type, N + 1>;
+
+    Offsets offsets;
+
+    //! Construct with the an array denoting the size of each dimension.
+    static RaggedRightIndexerData from_sizes(Sizes sizes)
+    {
+        CELER_EXPECT(sizes.size() > 0);
+
+        Offsets offs;
+        offs[0] = 0;
+        for (auto i : range(N))
+        {
+            CELER_EXPECT(sizes[i] > 0);
+            offs[i + 1] = sizes[i] + offs[i];
+        }
+        return RaggedRightIndexerData{offs};
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Scalar data for a single "unit" of volumes defined by surfaces.
  */
 struct SimpleUnitRecord
@@ -151,10 +180,17 @@ struct SimpleUnitRecord
  */
 struct RectArrayRecord
 {
-    Array<ItemRange<real_type>, 3> grid;
+    using Dims = Array<size_type, 3>;
+    using Grid = Array<ItemRange<real_type>, 3>;
+    using SurfaceIndexerData = RaggedRightIndexerData<3>;
 
     // Daughter data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, DaughterId> daughters;
+
+    // Array data
+    Dims dims;
+    Grid grid;
+    SurfaceIndexerData surface_indexer_data;
 
     //! Cursory check for validity
     explicit CELER_FUNCTION operator bool() const
@@ -306,10 +342,6 @@ struct OrangeStateData
     StateItems<LevelId> level;
     StateItems<LevelId> surface_level;
 
-    StateItems<real_type> next_step;
-    StateItems<detail::OnSurface> next_surface;
-    StateItems<LevelId> next_surface_level;
-
     // Dimensions {num_tracks, max_level}
     Items<Real3> pos;
     Items<Real3> dir;
@@ -340,9 +372,6 @@ struct OrangeStateData
         // clang-format off
         return !level.empty()
             && surface_level.size() == level.size()
-            && next_step.size() == level.size()
-            && next_surface.size() == level.size()
-            && next_surface_level.size() == level.size()
             && !pos.empty()
             && dir.size() == pos.size()
             && vol.size() == pos.size()
@@ -368,9 +397,6 @@ struct OrangeStateData
         CELER_EXPECT(other);
         level = other.level;
         surface_level = other.surface_level;
-        next_step = other.next_step;
-        next_surface = other.next_surface;
-        next_surface_level = other.next_surface_level;
         pos = other.pos;
         dir = other.dir;
         vol = other.vol;
@@ -404,10 +430,6 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
 
     resize(&data->level, num_tracks);
     resize(&data->surface_level, num_tracks);
-
-    resize(&data->next_step, num_tracks);
-    resize(&data->next_surface, num_tracks);
-    resize(&data->next_surface_level, num_tracks);
 
     data->max_level = params.scalars.max_level;
     auto const size = data->max_level * num_tracks;

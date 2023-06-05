@@ -7,8 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 

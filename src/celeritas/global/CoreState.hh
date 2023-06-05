@@ -17,24 +17,53 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 namespace celeritas
 {
 class CoreParams;
 //---------------------------------------------------------------------------//
 /*!
+ * Abstract base class for CoreState.
+ */
+class CoreStateInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using size_type = TrackSlotId::size_type;
+    using PrimaryRange = ItemRange<Primary>;
+    //!@}
+
+  public:
+    //! Thread/stream ID
+    virtual StreamId stream_id() const = 0;
+
+    //! Number of track slots
+    virtual size_type size() const = 0;
+
+    //! Access track initialization counters
+    virtual CoreStateCounters const& counters() const = 0;
+
+    // Inject primaries to be turned into TrackInitializers
+    virtual void insert_primaries(Span<Primary const> host_primaries) = 0;
+
+  protected:
+    ~CoreStateInterface() = default;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store all state data for a single thread.
  */
 template<MemSpace M>
-class CoreState
+class CoreState final : public CoreStateInterface
 {
   public:
     //!@{
     //! \name Type aliases
     using Ref = CoreStateData<Ownership::reference, M>;
     using Ptr = ObserverPtr<Ref, M>;
-    using size_type = TrackSlotId::size_type;
-    using PrimaryRange = ItemRange<Primary>;
     using PrimaryCRef = Collection<Primary, Ownership::const_reference, M>;
     //!@}
 
@@ -45,10 +74,10 @@ class CoreState
               size_type num_track_slots);
 
     //! Thread/stream ID
-    StreamId stream_id() const { return this->ref().stream_id; }
+    StreamId stream_id() const final { return this->ref().stream_id; }
 
     //! Number of track slots
-    size_type size() const { return states_.size(); }
+    size_type size() const final { return states_.size(); }
 
     //! Get a reference to the mutable state data
     Ref& ref() { return states_.ref(); }
@@ -59,10 +88,16 @@ class CoreState
     // Get a native-memspace pointer to the mutable state data
     inline Ptr ptr();
 
+    //! Track initialization counters
+    CoreStateCounters& counters() { return counters_; }
+
+    //! Track initialization counters
+    CoreStateCounters const& counters() const final { return counters_; }
+
     //// PRIMARY STORAGE ////
 
     // Inject primaries to be turned into TrackInitializers
-    void insert_primaries(Span<Primary const> host_primaries);
+    void insert_primaries(Span<Primary const> host_primaries) final;
 
     // Get the range of valid primaries
     inline PrimaryRange primary_range() const;
@@ -71,7 +106,7 @@ class CoreState
     inline PrimaryCRef primary_storage() const;
 
     //! Clear primaries after constructing initializers from them
-    void clear_primaries() { num_primaries_ = 0; }
+    void clear_primaries() { counters_.num_primaries = 0; }
 
   private:
     // State data
@@ -79,10 +114,12 @@ class CoreState
 
     // Primaries to be added
     Collection<Primary, Ownership::value, M> primaries_;
-    size_type num_primaries_{0};
 
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;
+
+    // Counters for track initialization and activity
+    CoreStateCounters counters_;
 };
 
 //---------------------------------------------------------------------------//
@@ -113,7 +150,7 @@ auto CoreState<M>::ptr() -> Ptr
 template<MemSpace M>
 auto CoreState<M>::primary_range() const -> PrimaryRange
 {
-    return {ItemId<Primary>(num_primaries_)};
+    return {ItemId<Primary>(counters_.num_primaries)};
 }
 
 //---------------------------------------------------------------------------//

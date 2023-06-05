@@ -18,7 +18,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname $0)" && pwd)"
 if ! (cd "${SCRIPT_DIR}" && git diff-files --quiet) ; then
-  echo "error: Git repository is dirty so patches will not be applied"
+  echo "$0: error: will not run on a dirty Git repository"
   exit 0
 fi
 

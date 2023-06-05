@@ -38,23 +38,11 @@ namespace detail
 template<Ownership W, MemSpace M>
 struct VecgeomNavCollection;
 
-template<>
-struct VecgeomNavCollection<Ownership::value, MemSpace::host>;
-template<>
-struct VecgeomNavCollection<Ownership::value, MemSpace::device>;
-template<>
-struct VecgeomNavCollection<Ownership::reference, MemSpace::host>;
-template<>
-struct VecgeomNavCollection<Ownership::reference, MemSpace::device>;
-
 //---------------------------------------------------------------------------//
 // HOST MEMSPACE
 //---------------------------------------------------------------------------//
 /*!
- * Manage a single navigation state in host memory.
- *
- * Since navigation states are allocated on the heap, and don't have a default
- * contructor, we must use a `unique_ptr` to manage its memory.
+ * Manage navigation states in host memory.
  */
 template<>
 struct VecgeomNavCollection<Ownership::value, MemSpace::host>

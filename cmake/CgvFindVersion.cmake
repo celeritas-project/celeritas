@@ -237,9 +237,9 @@ function(cgv_find_version)
   endif()
 
   if(_VERSION_HASH)
-    set(_FULL_VERSION_STRING "v${_VERSION_STRING}${_VERSION_STRING_SUFFIX}+${_VERSION_HASH}")
+    set(_FULL_VERSION_STRING "${_VERSION_STRING}${_VERSION_STRING_SUFFIX}+${_VERSION_HASH}")
   else()
-    set(_FULL_VERSION_STRING "v${_VERSION_STRING}${_VERSION_STRING_SUFFIX}")
+    set(_FULL_VERSION_STRING "${_VERSION_STRING}${_VERSION_STRING_SUFFIX}")
   endif()
 
   # Set version number and descriptive version in parent scope

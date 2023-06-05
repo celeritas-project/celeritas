@@ -15,10 +15,15 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/ScopedGeantExceptionHandler.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/track/TrackInitParams.hh"
+
+#if CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE
+#    include "celeritas/geo/GeoParams.hh"
+#endif
 
 namespace celeritas
 {
@@ -45,6 +50,7 @@ struct GeantTestBase::ImportHelper
     std::string geometry_basename{};
     GeantPhysicsOptions options{};
     GeantImportDataSelection selection{};
+    std::unique_ptr<ScopedGeantExceptionHandler> scoped_exceptions;
     ImportData imported;
 };
 
@@ -55,8 +61,6 @@ class GeantTestBase::CleanupGeantEnvironment : public ::testing::Environment
     void TearDown() override
     {
         ImportHelper& i = GeantTestBase::import_helper();
-        CELER_LOG(debug) << "Destroying '" << i.geometry_basename
-                         << "' Geant4 run manager";
         i = {};
     }
 };
@@ -69,7 +73,8 @@ bool GeantTestBase::is_ci_build()
            && (cstring_equal(celeritas_clhep_version, "2.4.6.0")
                || cstring_equal(celeritas_clhep_version, "2.4.6.4"))
            && (cstring_equal(celeritas_geant4_version, "11.0.3")
-               || cstring_equal(celeritas_geant4_version, "11.0.4"));
+               || cstring_equal(celeritas_geant4_version, "11.0.4"))
+           && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4;
 }
 
 //---------------------------------------------------------------------------//
@@ -105,6 +110,15 @@ G4VPhysicalVolume const* GeantTestBase::get_world_volume()
 //---------------------------------------------------------------------------//
 // PROTECTED MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
+auto GeantTestBase::build_geant_options() const -> GeantPhysicsOptions
+{
+    GeantPhysicsOptions options;
+    options.em_bins_per_decade = 14;
+    options.rayleigh_scattering = false;
+    return options;
+}
+
+//---------------------------------------------------------------------------//
 auto GeantTestBase::build_init() -> SPConstTrackInit
 {
     TrackInitParams::Input input;
@@ -136,12 +150,20 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_geant_options() const -> GeantPhysicsOptions
+auto GeantTestBase::build_fresh_geometry(std::string_view filename)
+    -> SPConstGeoI
 {
-    GeantPhysicsOptions options;
-    options.em_bins_per_decade = 14;
-    options.rayleigh_scattering = false;
-    return options;
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+    // Load fake version of geometry
+    return Base::build_fresh_geometry(filename);
+#else
+    // Import geometry from Geant4
+    CELER_LOG(info) << "Importing Geant4 geometry instead of loading from "
+                    << filename;
+    auto* world = this->get_world_volume();
+    CELER_EXPECT(world);
+    return std::make_shared<GeoParams>(world);
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -160,6 +182,7 @@ auto GeantTestBase::imported_data() const -> ImportData const&
             "celeritas", (i.geometry_basename + ".gdml").c_str());
         i.import = std::make_unique<GeantImporter>(
             GeantSetup{gdml_inp.c_str(), i.options});
+        i.scoped_exceptions = std::make_unique<ScopedGeantExceptionHandler>();
         i.imported = (*i.import)(sel);
         i.options.verbose = false;
     }

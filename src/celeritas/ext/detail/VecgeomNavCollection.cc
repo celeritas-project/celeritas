@@ -53,7 +53,7 @@ auto VecgeomNavCollection<Ownership::reference, MemSpace::host>::operator=(
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the navigation state at the given thread, which must be zero.
+ * Get the navigation state at the given thread.
  */
 auto VecgeomNavCollection<Ownership::reference, MemSpace::host>::at(
     int, TrackSlotId id) const -> NavState&

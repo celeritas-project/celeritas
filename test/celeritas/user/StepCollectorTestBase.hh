@@ -7,6 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+
+#include "corecel/Types.hh"
+#include "celeritas/phys/Primary.hh"
+
 #include "../GlobalTestBase.hh"
 
 namespace celeritas
@@ -25,6 +30,10 @@ class StepCollectorTestBase : virtual public GlobalTestBase
 
   public:
     virtual VecPrimary make_primaries(size_type count) = 0;
+
+  protected:
+    template<MemSpace M>
+    void run_impl(size_type num_tracks, size_type num_steps);
 };
 
 //---------------------------------------------------------------------------//

@@ -15,7 +15,9 @@
 
 #include "KNDemoKernel.hh"
 
-namespace demo_interactor
+namespace celeritas
+{
+namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -32,11 +34,8 @@ namespace demo_interactor
 class XsGridParams
 {
   public:
-    using real_type = celeritas::real_type;
-    using HostRef = TableData<celeritas::Ownership::const_reference,
-                              celeritas::MemSpace::host>;
-    using DeviceRef = TableData<celeritas::Ownership::const_reference,
-                                celeritas::MemSpace::device>;
+    using HostRef = TableData<Ownership::const_reference, MemSpace::host>;
+    using DeviceRef = TableData<Ownership::const_reference, MemSpace::device>;
 
     struct Input
     {
@@ -56,8 +55,9 @@ class XsGridParams
     HostRef const& host_ref() const { return data_.host(); }
 
   private:
-    celeritas::CollectionMirror<TableData> data_;
+    CollectionMirror<TableData> data_;
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace demo_interactor
+}  // namespace app
+}  // namespace celeritas

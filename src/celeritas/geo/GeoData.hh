@@ -13,6 +13,8 @@
 #    include "celeritas/ext/VecgeomData.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeData.hh"
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+#    include "celeritas/ext/GeantGeoData.hh"
 #endif
 
 // Include type alias for Geo state/params data

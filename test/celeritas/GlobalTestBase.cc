@@ -16,6 +16,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/random/RngParams.hh"
@@ -30,27 +31,41 @@ namespace test
 //---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
 {
+#ifndef __APPLE__
+    // ROOT injects handlers simply by being linked on Linux systems
+    ScopedRootErrorHandler::disable_signal_handler();
+#endif
+
+    // Create output registry
     output_reg_ = std::make_shared<OutputRegistry>();
 }
 
 //---------------------------------------------------------------------------//
 GlobalTestBase::~GlobalTestBase()
 {
-    if (this->HasFailure() && !this->output_reg()->empty())
+    if (this->HasFailure() && output_reg_ && !output_reg_->empty())
     {
-        std::string destination = "screen";
-        std::ostream* os = &std::cout;
-        std::ofstream ofile;
-        if (celeritas::use_color())
+        try
         {
-            destination = this->make_unique_filename(".json");
-            ofile.open(destination, std::ios_base::out | std::ios_base::trunc);
-            os = &ofile;
-        }
+            std::string destination = "screen";
+            std::ostream* os = &std::cout;
+            std::ofstream ofile;
+            if (celeritas::use_color())
+            {
+                destination = this->make_unique_filename(".json");
+                ofile.open(destination,
+                           std::ios_base::out | std::ios_base::trunc);
+                os = &ofile;
+            }
 
-        std::cerr << "Writing diagnostic output to " << destination
-                  << " because test failed\n";
-        this->write_output(*os);
+            std::cerr << "Writing diagnostic output to " << destination
+                      << " because test failed\n";
+            this->write_output(*os);
+        }
+        catch (std::exception const& e)
+        {
+            std::cerr << "Failed to write diagnostics: " << e.what();
+        }
     }
 }
 

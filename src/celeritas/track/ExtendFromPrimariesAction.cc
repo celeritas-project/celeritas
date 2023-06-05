@@ -9,11 +9,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
 
-#include "generated/ProcessPrimaries.hh"
+#include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -42,23 +42,49 @@ void ExtendFromPrimariesAction::execute(CoreParams const& params,
  * Construct primaries.
  */
 template<MemSpace M>
-void ExtendFromPrimariesAction::execute_impl(CoreParams const& core_params,
-                                             CoreState<M>& core_state) const
+void ExtendFromPrimariesAction::execute_impl(CoreParams const& params,
+                                             CoreState<M>& state) const
 {
-    auto primary_range = core_state.primary_range();
+    auto primary_range = state.primary_range();
     if (primary_range.empty())
         return;
 
-    auto primaries = core_state.primary_storage()[primary_range];
+    auto primaries = state.primary_storage()[primary_range];
 
     // Create track initializers from primaries
-    core_state.ref().init.scalars.num_initializers += primaries.size();
-    generated::process_primaries(
-        core_params.ref<M>(), core_state.ref(), primaries);
+    state.counters().num_initializers += primaries.size();
+    this->process_primaries(params, state, primaries);
 
     // Mark that the primaries have been processed
-    core_state.clear_primaries();
+    state.clear_primaries();
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to create track initializers from primary particles.
+ */
+void ExtendFromPrimariesAction::process_primaries(
+    CoreParams const& params,
+    CoreStateHost& state,
+    Span<Primary const> primaries) const
+{
+    launch_action(*this,
+                  primaries.size(),
+                  params,
+                  state,
+                  detail::ProcessPrimariesExecutor{
+                      state.ptr(), primaries, state.counters()});
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void ExtendFromPrimariesAction::process_primaries(CoreParams const&,
+                                                  CoreStateDevice&,
+                                                  Span<Primary const>) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

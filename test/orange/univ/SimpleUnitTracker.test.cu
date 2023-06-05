@@ -26,7 +26,7 @@ __global__ void initialize_kernel(ParamsRef<MemSpace::device> const params,
     if (tid.get() >= states.size())
         return;
 
-    InitializingLauncher<> calc_thread{params, states};
+    InitializingExecutor<> calc_thread{params, states};
     calc_thread(TrackSlotId{tid.unchecked_get()});
 }
 }  // namespace
@@ -38,8 +38,12 @@ __global__ void initialize_kernel(ParamsRef<MemSpace::device> const params,
 void test_initialize(ParamsRef<MemSpace::device> const& params,
                      StateRef<MemSpace::device> const& state)
 {
-    CELER_LAUNCH_KERNEL(
-        initialize, device().default_block_size(), state.size(), params, state);
+    CELER_LAUNCH_KERNEL(initialize,
+                        device().default_block_size(),
+                        state.size(),
+                        0,
+                        params,
+                        state);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 

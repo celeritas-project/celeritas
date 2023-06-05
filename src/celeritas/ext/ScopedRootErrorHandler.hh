@@ -19,6 +19,9 @@ namespace celeritas
 class ScopedRootErrorHandler
 {
   public:
+    // Clear ROOT's signal handlers that get installed on startup/activation
+    static void disable_signal_handler();
+
     // Install the error handler
     ScopedRootErrorHandler();
 
@@ -38,6 +41,7 @@ class ScopedRootErrorHandler
 #if !CELERITAS_USE_ROOT
 //!@{
 //! Do nothing if ROOT is disabled (source file will not be compiled)
+inline void ScopedRootErrorHandler::disable_signal_handler() {}
 inline ScopedRootErrorHandler::ScopedRootErrorHandler()
 {
     (void)sizeof(previous_);

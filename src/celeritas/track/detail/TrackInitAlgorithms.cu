@@ -8,12 +8,14 @@
 #include "TrackInitAlgorithms.hh"
 
 #include <thrust/device_ptr.h>
+#include <thrust/execution_policy.h>
 #include <thrust/remove.h>
 #include <thrust/scan.h>
 
 #include "corecel/Macros.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/data/ObserverPtr.device.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 
 #include "Utils.hh"
 
@@ -28,11 +30,15 @@ namespace detail
  */
 size_type remove_if_alive(
     StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&
-        vacancies)
+        vacancies,
+    StreamId stream_id)
 {
     auto start = device_pointer_cast(vacancies.data());
     auto end = thrust::remove_if(
-        start, start + vacancies.size(), IsEqual{occupied()});
+        thrust::device.on(celeritas::device().stream(stream_id).get()),
+        start,
+        start + vacancies.size(),
+        IsEqual{occupied()});
     CELER_DEVICE_CHECK_ERROR();
 
     // New size of the vacancy vector
@@ -51,12 +57,17 @@ size_type remove_if_alive(
  */
 size_type exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&
-        counts)
+        counts,
+    StreamId stream_id)
 {
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
     auto stop = thrust::exclusive_scan(
-        data, data + counts.size(), data, size_type(0));
+        thrust::device.on(celeritas::device().stream(stream_id).get()),
+        data,
+        data + counts.size(),
+        data,
+        size_type(0));
     CELER_DEVICE_CHECK_ERROR();
 
     // Copy the last element (accumulated total) back to host

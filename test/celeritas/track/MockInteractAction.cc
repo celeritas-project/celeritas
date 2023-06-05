@@ -12,14 +12,13 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/KernelContextException.hh"
-#include "celeritas/global/TrackLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
-#include "MockInteractImpl.hh"
+#include "MockInteractExecutor.hh"
 
 namespace celeritas
 {
@@ -53,27 +52,11 @@ MockInteractAction::MockInteractAction(
 void MockInteractAction::execute(CoreParams const& params,
                                  CoreStateHost& state) const
 {
-    CELER_EXPECT(state.size() == data_.host_ref().size());
-
-    MultiExceptionHandler capture_exception;
-    auto launch = make_active_track_launcher(params.ref<MemSpace::native>(),
-                                             state.ref(),
-                                             apply_mock_interact,
-                                             data_.host_ref());
-#ifdef _OPENMP
-#    pragma omp parallel for
-#endif
-    for (size_type i = 0; i < state.size(); ++i)
-    {
-        CELER_TRY_HANDLE_CONTEXT(
-            launch(ThreadId{i}),
-            capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   this->label()));
-    }
-    log_and_rethrow(std::move(capture_exception));
+    auto execute = make_active_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        MockInteractExecutor{data_.ref<MemSpace::native>()});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
