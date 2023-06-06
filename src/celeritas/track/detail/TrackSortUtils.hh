@@ -150,7 +150,6 @@ inline void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder)
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-template<>
 inline void count_tracks_per_action<MemSpace::device>(
     DeviceRef<CoreStateData> const&,
     Span<ThreadId>,
