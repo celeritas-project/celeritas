@@ -23,6 +23,7 @@ class G4VPhysicalVolume;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class ScopedGeantLogger;
 class ScopedGeantExceptionHandler;
 
 //---------------------------------------------------------------------------//
@@ -97,6 +98,7 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     bool loaded_gdml_{false};
     bool closed_geometry_{false};
+    std::unique_ptr<ScopedGeantLogger> scoped_logger_;
     std::unique_ptr<ScopedGeantExceptionHandler> scoped_exceptions_;
 
     // Host metadata/access

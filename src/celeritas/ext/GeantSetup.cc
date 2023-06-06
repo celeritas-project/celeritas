@@ -32,7 +32,7 @@
 
 #include "GeantGeoUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
-#include "detail/GeantLoggerAdapter.hh"
+#include "ScopedGeantLogger.hh"
 #include "detail/GeantPhysicsList.hh"
 
 namespace celeritas
@@ -92,8 +92,9 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     ScopedMem record_setup_mem("GeantSetup.construct");
 
     {
-        // Run manager writes output that cannot be redirected...
-        ScopedTimeAndRedirect scoped_time("G4RunManager");
+        // Run manager writes output that cannot be redirected with
+        // GeantLoggerAdapter: capture all output from this section
+        ScopedTimeAndRedirect scoped_time{"G4RunManager"};
         ScopedGeantExceptionHandler scoped_exceptions;
         // Access the particle table before creating the run manager, so that
         // missing environment variables like G4ENSDFSTATEDATA get caught
@@ -122,12 +123,11 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         CELER_ASSERT(run_manager_);
     }
 
-    detail::GeantLoggerAdapter scoped_logger;
+    ScopedGeantLogger scoped_logger;
     ScopedGeantExceptionHandler scoped_exceptions;
 
     {
-        CELER_LOG(status) << "Initializing Geant4 geometry and physics";
-        ScopedTimeLog scoped_time;
+        CELER_LOG(status) << "Initializing Geant4 geometry";
 
         // Load GDML and save a copy of the pointer
         world_ = load_geant_geometry(gdml_filename);
@@ -138,6 +138,8 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
+        CELER_LOG(status) << "Initializing Geant4 phyics";
+        ScopedTimeLog scoped_time;
         auto physics_list = std::make_unique<detail::GeantPhysicsList>(options);
         run_manager_->SetUserInitialization(physics_list.release());
     }

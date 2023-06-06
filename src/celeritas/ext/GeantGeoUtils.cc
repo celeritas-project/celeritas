@@ -20,8 +20,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
-#include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/sys/ScopedMem.hh"
+
+#include "ScopedGeantLogger.hh"
 
 namespace celeritas
 {
@@ -64,8 +65,8 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
 G4VPhysicalVolume* load_geant_geometry(std::string const& filename)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
-    ScopedTimeAndRedirect scoped_time{"G4GDMLParser"};
     ScopedMem record_mem("load_geant_geometry");
+    ScopedGeantLogger scoped_logger;
 
     // Create parser; do *not* strip `0x` extensions since those are needed to
     // deduplicate complex geometries (e.g. CMS) and are handled by the Label

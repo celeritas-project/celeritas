@@ -28,9 +28,9 @@
 
 #include "Convert.geant.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
-#include "GeantGeoUtils.hh"  // IWYU pragma: associated
+#include "GeantGeoUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
-#include "detail/GeantLoggerAdapter.hh"
+#include "ScopedGeantLogger.hh"
 #include "detail/GeantVolumeVisitor.hh"
 
 namespace celeritas
@@ -51,7 +51,7 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
     G4Backtrace::DefaultSignals() = {};
 #endif
 
-    detail::GeantLoggerAdapter scoped_logger;
+    scoped_logger_ = std::make_unique<ScopedGeantLogger>();
     scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
 
     if (!ends_with(filename, ".gdml"))
