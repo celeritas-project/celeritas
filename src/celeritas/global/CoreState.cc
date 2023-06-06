@@ -68,22 +68,25 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
     copy_to_temp(MemSpace::host, host_primaries);
 }
 
-template<>
-void CoreState<MemSpace::host>::count_tracks_per_action(TrackOrder order)
+template<MemSpace M>
+auto CoreState<M>::host_thread_offsets() -> ThreadItems<MemSpace::host>&
 {
-    detail::count_tracks_per_action(states_.ref(),
-                                    thread_offsets_[AllItems<ThreadId>{}],
-                                    thread_offsets_,
-                                    order);
+    if constexpr (M == MemSpace::device)
+    {
+        return host_thread_offsets_;
+    }
+    else
+    {
+        return thread_offsets_;
+    }
 }
 
-template<>
-void CoreState<MemSpace::device>::count_tracks_per_action(TrackOrder order)
+template<MemSpace M>
+void CoreState<M>::count_tracks_per_action(TrackOrder order)
 {
-    using AllItemsIdT = AllItems<ThreadId, MemSpace::device>;
     detail::count_tracks_per_action(states_.ref(),
-                                    thread_offsets_[AllItemsIdT{}],
-                                    host_thread_offsets_,
+                                    thread_offsets_[AllItems<ThreadId, M>{}],
+                                    host_thread_offsets(),
                                     order);
 }
 

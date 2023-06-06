@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/KernelLaunchUtils.hh
+//! \file celeritas/global/detail/ActionStateLauncherImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,19 +14,15 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-
-struct KernelLaunchParams
+namespace detail
 {
-    ThreadId threads_offset;
-    size_type num_threads{0};
-};
+//---------------------------------------------------------------------------//
 
-KernelLaunchParams
-compute_launch_params(ActionId action,
-                      CoreParams const& params,
-                      CoreState<MemSpace::device> const& state,
-                      TrackOrder expected);
+Range<ThreadId> compute_launch_params(ActionId action,
+                                      CoreParams const& params,
+                                      CoreState<MemSpace::device> const& state,
+                                      TrackOrder expected);
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

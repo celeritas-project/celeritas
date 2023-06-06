@@ -59,21 +59,14 @@ void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder);
 
 //---------------------------------------------------------------------------//
 // Count tracks associated to each action
-template<MemSpace M>
-void count_tracks_per_action(
-    CoreStateData<Ownership::reference, M> const&,
-    Span<ThreadId>,
-    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
-    TrackOrder);
 
-template<>
-void count_tracks_per_action<MemSpace::host>(
+void count_tracks_per_action(
     HostRef<CoreStateData> const&,
     Span<ThreadId>,
     Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
     TrackOrder);
-template<>
-void count_tracks_per_action<MemSpace::device>(
+
+void count_tracks_per_action(
     DeviceRef<CoreStateData> const&,
     Span<ThreadId>,
     Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
@@ -114,7 +107,7 @@ struct along_action_comparator
     }
 };
 
-struct step_limit_action_accessor
+struct StepLimitActionAccessor
 {
     ObserverPtr<StepLimit const> step_limit_;
     ObserverPtr<TrackSlotId::size_type const> track_slots_;
@@ -125,7 +118,7 @@ struct step_limit_action_accessor
     }
 };
 
-struct along_step_action_accessor
+struct AlongStepActionAccessor
 {
     ObserverPtr<ActionId const> along_step_;
     ObserverPtr<TrackSlotId::size_type const> track_slots_;

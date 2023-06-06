@@ -70,28 +70,27 @@ void sort_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
     CELER_DEVICE_CHECK_ERROR();
 }
 
-// PRE: action_accessor is sorted, i.e. i <= j ==> action_accessor(i) <=
-// action_accessor(j)
+// PRE: get_action is sorted, i.e. i <= j ==> get_action(i) <=
+// get_action(j)
 template<class F>
-CELER_FUNCTION void tracks_per_action_impl(Span<ThreadId> offsets,
-                                           size_type size,
-                                           F&& action_accessor)
+CELER_FUNCTION void
+tracks_per_action_impl(Span<ThreadId> offsets, size_type size, F&& get_action)
 {
     ThreadId tid = celeritas::KernelParamCalculator::thread_id();
 
     if ((tid < size) && tid.get() != 0)
     {
-        ActionId current_action = action_accessor(tid);
-        ActionId previous_action = action_accessor(tid - 1);
+        ActionId current_action = get_action(tid);
+        ActionId previous_action = get_action(tid - 1);
         if (current_action && current_action != previous_action)
         {
-            offsets[current_action.get()] = tid;
+            offsets[current_action.unchecked_get()] = tid;
         }
     }
     // needed if the first action range has only one element
-    if (ActionId first; tid.get() == 0 && (first = action_accessor(tid)))
+    if (ActionId first; tid.get() == 0 && (first = get_action(tid)))
     {
-        offsets[first.get()] = tid;
+        offsets[first.unchecked_get()] = tid;
     }
 }
 
@@ -106,14 +105,14 @@ __global__ void tracks_per_action_kernel(DeviceRef<CoreStateData> const states,
             return tracks_per_action_impl(
                 offsets,
                 size,
-                along_step_action_accessor{states.sim.along_step_action.data(),
-                                           states.track_slots.data()});
+                AlongStepActionAccessor{states.sim.along_step_action.data(),
+                                        states.track_slots.data()});
         case TrackOrder::sort_step_limit_action:
             return tracks_per_action_impl(
                 offsets,
                 size,
-                step_limit_action_accessor{states.sim.step_limit.data(),
-                                           states.track_slots.data()});
+                StepLimitActionAccessor{states.sim.step_limit.data(),
+                                        states.track_slots.data()});
         default:
             CELER_ASSERT_UNREACHABLE();
     }
@@ -189,8 +188,7 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
  * by order. Result is written in the output parameter offsets which sould be
  * of size num_actions + 1.
  */
-template<>
-void count_tracks_per_action<MemSpace::device>(
+void count_tracks_per_action(
     DeviceRef<CoreStateData> const& states,
     Span<ThreadId> offsets,
     Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>& out,

@@ -43,33 +43,33 @@ void sort_impl(TrackSlots const& track_slots, F&& func, StreamId)
     std::sort(start, start + track_slots.size(), std::forward<F>(func));
 }
 
-// PRE: action_accessor is sorted, i.e. i <= j ==> action_accessor(i) <=
-// action_accessor(j)
+// PRE: get_action is sorted, i.e. i <= j ==> get_action(i) <=
+// get_action(j)
 template<class F>
 void count_tracks_per_action_impl(Span<ThreadId> offsets,
                                   size_type size,
-                                  F&& action_accessor)
+                                  F&& get_action)
 {
     std::fill(offsets.begin(), offsets.end(), ThreadId{});
 
-    // won't initialize 1st action range
+    // if get_action(0) != get_action(1), get_action(0) never gets initialized
 #pragma omp parallel for
     for (size_type i = 1; i < size; ++i)
     {
-        ActionId current_action = action_accessor(ThreadId{i});
+        ActionId current_action = get_action(ThreadId{i});
         if (!current_action)
             continue;
 
-        if (current_action != action_accessor(ThreadId{i - 1}))
+        if (current_action != get_action(ThreadId{i - 1}))
         {
-            offsets[current_action.get()] = ThreadId{i};
+            offsets[current_action.unchecked_get()] = ThreadId{i};
         }
     }
 
-    // needed if the first action range has only one element
-    if (ActionId first = action_accessor(ThreadId{0}))
+    // so make sure get_action(0) is initialized
+    if (ActionId first = get_action(ThreadId{0}))
     {
-        offsets[first.get()] = ThreadId{0};
+        offsets[first.unchecked_get()] = ThreadId{0};
     }
     backfill_action_count(offsets, size);
 }
@@ -131,8 +131,7 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
  * by order. Result is written in the output parameter offsets which sould be
  * of size num_actions + 1.
  */
-template<>
-void count_tracks_per_action<MemSpace::host>(
+void count_tracks_per_action(
     HostRef<CoreStateData> const& states,
     Span<ThreadId> offsets,
     Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
@@ -144,32 +143,33 @@ void count_tracks_per_action<MemSpace::host>(
             return count_tracks_per_action_impl(
                 offsets,
                 states.size(),
-                along_step_action_accessor{states.sim.along_step_action.data(),
-                                           states.track_slots.data()});
+                AlongStepActionAccessor{states.sim.along_step_action.data(),
+                                        states.track_slots.data()});
         case TrackOrder::sort_step_limit_action:
             return count_tracks_per_action_impl(
                 offsets,
                 states.size(),
-                step_limit_action_accessor{states.sim.step_limit.data(),
-                                           states.track_slots.data()});
+                StepLimitActionAccessor{states.sim.step_limit.data(),
+                                        states.track_slots.data()});
         default:
             return;
     }
 }
 
-void backfill_action_count(Span<ThreadId> offsets, size_type size)
+void backfill_action_count(Span<ThreadId> offsets, size_type num_actions)
 {
+    CELER_EXPECT(offsets.size() >= 2);
     // offsets.size() == num_actions + 1, have the last offsets be the # of
     // tracks for backfilling correct values in case the last actions are not
     // present
-    offsets.back() = ThreadId{size};
+    offsets.back() = ThreadId{num_actions};
 
     // in case some actions were not found, have them "start" at the next
     // action offset.
     for (auto thread_id = offsets.end() - 2; thread_id >= offsets.begin();
          --thread_id)
     {
-        if (*thread_id == ThreadId{})
+        if (!*thread_id)
         {
             *thread_id = *(thread_id + 1);
         }

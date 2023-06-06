@@ -17,7 +17,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/global/KernelLaunchUtils.hh"
+#include "celeritas/global/detail/ActionStateLauncherImpl.hh"
 
 #include "ActionInterface.hh"
 #include "CoreParams.hh"
@@ -30,18 +30,30 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch the given executor up to the maximum thread count with a ThreadId
- * offset.
+ * Launch the given executor up to the maximum thread count
  */
 template<class F>
-__global__ void launch_action_impl(size_type const num_threads,
-                                   ThreadId offset,
-                                   F execute_thread)
+__global__ void
+launch_action_impl(size_type const num_threads, F execute_thread)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < num_threads))
         return;
-    execute_thread(tid + offset.get());
+    execute_thread(tid);
+}
+
+/*!
+ * Launch the given executor using thread ids in the thread_range
+ */
+template<class F>
+__global__ void
+launch_action_thread_range_impl(Range<ThreadId> const thread_range,
+                                F execute_thread)
+{
+    auto tid = celeritas::KernelParamCalculator::thread_id();
+    if (!(tid < thread_range.size()))
+        return;
+    execute_thread(*(thread_range.cbegin() + tid.get()));
 }
 
 //---------------------------------------------------------------------------//
@@ -100,20 +112,25 @@ class ActionLauncher
                     TrackOrder expected,
                     F const& call_thread) const
     {
-        auto launch_params
-            = compute_launch_params(id_, params, state, expected);
-        if (launch_params.num_threads)
-            return (*this)(launch_params.num_threads,
-                           state.stream_id(),
-                           call_thread,
-                           launch_params.threads_offset);
+        CELER_EXPECT(state.stream_id());
+
+        if (Range<ThreadId> threads
+            = detail::compute_launch_params(id_, params, state, expected);
+            threads.size())
+        {
+            CELER_DEVICE_PREFIX(Stream_t)
+            stream = celeritas::device().stream(state.stream_id()).get();
+            auto config = calc_launch_params_(threads.size());
+            launch_action_thread_range_impl<F>
+                <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
+                    threads, call_thread);
+        }
     }
 
     //! Launch a kernel with a custom number of threads
     void operator()(size_type num_threads,
                     StreamId stream_id,
-                    F const& call_thread,
-                    ThreadId offset = ThreadId{0}) const
+                    F const& call_thread) const
     {
         CELER_EXPECT(num_threads > 0);
         CELER_EXPECT(stream_id);
@@ -122,7 +139,7 @@ class ActionLauncher
         auto config = calc_launch_params_(num_threads);
         launch_action_impl<F>
             <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                num_threads, offset, call_thread);
+                num_threads, call_thread);
     }
 
   private:

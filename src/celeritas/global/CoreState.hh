@@ -65,6 +65,8 @@ class CoreState final : public CoreStateInterface
     using Ref = CoreStateData<Ownership::reference, M>;
     using Ptr = ObserverPtr<Ref, M>;
     using PrimaryCRef = Collection<Primary, Ownership::const_reference, M>;
+    template<MemSpace M2>
+    using ThreadItems = Collection<ThreadId, Ownership::value, M2, ActionId>;
     //!@}
 
   public:
@@ -116,14 +118,15 @@ class CoreState final : public CoreStateInterface
     //! action_id in track_slots
     Range<ThreadId> get_action_range(ActionId action_id) const;
 
+    ThreadItems<MemSpace::host>& host_thread_offsets();
+
   private:
     // State data
     CollectionStateStore<CoreStateData, M> states_;
 
     //
-    Collection<ThreadId, Ownership::value, M, ActionId> thread_offsets_;
-    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>
-        host_thread_offsets_;
+    ThreadItems<M> thread_offsets_;
+    ThreadItems<MemSpace::host> host_thread_offsets_;
 
     // Primaries to be added
     Collection<Primary, Ownership::value, M> primaries_;
