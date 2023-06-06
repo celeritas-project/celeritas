@@ -339,6 +339,9 @@ GeantGeoConverter::convert_logical(G4LogicalVolume const* g4lv_mom)
         if (auto const* lv = G4ReflectionFactory::Instance()->GetConstituentLV(
                 const_cast<G4LogicalVolume*>(g4lv_kid)))
         {
+            auto&& [iter, inserted] = g4logvol_id_map_.insert({lv, VolumeId{}});
+            if (inserted)
+            {
             // The *constituent* (unreflected) logical volume is actually tied
             // to the sensitive detectors: save this as well
             if (LogicalVolume* vglv
@@ -350,7 +353,7 @@ GeantGeoConverter::convert_logical(G4LogicalVolume const* g4lv_mom)
                     << vglv->id() << " for volume '" << g4lv_kid->GetName()
                     << "'@" << static_cast<void const*>(g4lv_kid)
                     << ": VecGeom LV label '" << vglv->GetLabel() << "'";
-                g4logvol_id_map_[lv] = VolumeId{vglv->id()};
+                iter->second = VolumeId{vglv->id()};
             }
             else
             {
@@ -358,6 +361,14 @@ GeantGeoConverter::convert_logical(G4LogicalVolume const* g4lv_mom)
                                    << vglv_kid->GetLabel() << "'@"
                                    << static_cast<void const*>(vglv_kid)
                                    << " (volume ID " << vglv_kid->id() << ")";
+            }
+            }
+            else
+            {
+                CELER_LOG(warning)
+                    << "Constituent volume '" << lv->GetName() << "'@"
+                    << static_cast<void const*>(lv) << " was already mapped to "
+                    << iter->second.unchecked_get();
             }
         }
 
