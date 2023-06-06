@@ -47,8 +47,7 @@ launch_action_impl(size_type const num_threads, F execute_thread)
  */
 template<class F>
 __global__ void
-launch_action_thread_range_impl(Range<ThreadId> const thread_range,
-                                F execute_thread)
+launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < thread_range.size()))
@@ -82,10 +81,18 @@ class ActionLauncher
                   "Launched action must be a trivially copyable function "
                   "object");
 
+    // Function pointer types to specify the correct overloaded kernel
+    using KernelNumThreads = void (*)(size_type const, F);
+
+    using KernelThreadRange = void (*)(Range<ThreadId> const, F);
+
   public:
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(), &launch_action_impl<F>}
+        : calc_launch_params_{action.label(),
+                              KernelNumThreads{&launch_action_impl<F>}}
+        , calc_launch_params_range_{action.label(),
+                                    KernelThreadRange{&launch_action_impl<F>}}
         , id_{action.action_id()}
     {
     }
@@ -93,7 +100,9 @@ class ActionLauncher
     //! Create a launcher with a string extension
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
         : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              &launch_action_impl<F>}
+                              KernelNumThreads{&launch_action_impl<F>}}
+        , calc_launch_params_range_{action.label() + "-" + std::string(ext),
+                                    KernelThreadRange{&launch_action_impl<F>}}
         , id_{action.action_id()}
     {
     }
@@ -120,8 +129,8 @@ class ActionLauncher
         {
             CELER_DEVICE_PREFIX(Stream_t)
             stream = celeritas::device().stream(state.stream_id()).get();
-            auto config = calc_launch_params_(threads.size());
-            launch_action_thread_range_impl<F>
+            auto config = calc_launch_params_range_(threads.size());
+            launch_action_impl<F>
                 <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
                     threads, call_thread);
         }
@@ -144,6 +153,7 @@ class ActionLauncher
 
   private:
     KernelParamCalculator calc_launch_params_;
+    KernelParamCalculator calc_launch_params_range_;
     ActionId id_;
 };
 
