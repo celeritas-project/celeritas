@@ -45,7 +45,7 @@ StepSelection ExampleMctruth::selection() const
 //---------------------------------------------------------------------------//
 void ExampleMctruth::process_steps(HostStepState state)
 {
-    auto& data = state.steps;
+    auto& data = state.steps.step;
     for (auto tid : range(TrackSlotId{data.size()}))
     {
         TrackId track = data.track_id[tid];

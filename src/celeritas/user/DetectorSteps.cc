@@ -82,11 +82,11 @@ void copy_steps<MemSpace::host>(
     CELER_EXPECT(output);
 
     // Get the number of threads that are active and in a detector
-    size_type size = count_num_valid(state.detector);
+    size_type size = count_num_valid(state.step.detector);
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    assign_field(&(output->FIELD), state.FIELD, state.detector, size)
+    assign_field(&(output->FIELD), state.step.FIELD, state.step.detector, size)
 
     DS_ASSIGN(detector);
     DS_ASSIGN(track_id);

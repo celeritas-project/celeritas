@@ -33,7 +33,7 @@ void copy_if_selected(const T1& src, T2& dst)
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy StepPointStateData Real3 position and direction to TStepPoint arrays.
+ * Copy StepPointSelectionStateData values to TStepPoint arrays.
  */
 void copy_if_selected(Real3 const& src, std::array<double, 3>& dst)
 {
@@ -129,13 +129,13 @@ void RootStepWriter::set_auto_flush(long num_entries)
  */
 void RootStepWriter::process_steps(HostStepState state)
 {
-#define RSW_STORE(ATTR, GETTER)                                          \
-    do                                                                   \
-    {                                                                    \
-        if (selection_.ATTR)                                             \
-        {                                                                \
-            copy_if_selected(state.steps.ATTR[tid] GETTER, tstep_.ATTR); \
-        }                                                                \
+#define RSW_STORE(ATTR, GETTER)                                               \
+    do                                                                        \
+    {                                                                         \
+        if (selection_.ATTR)                                                  \
+        {                                                                     \
+            copy_if_selected(state.steps.step.ATTR[tid] GETTER, tstep_.ATTR); \
+        }                                                                     \
     } while (0)
 
     CELER_EXPECT(state.steps);
@@ -144,14 +144,14 @@ void RootStepWriter::process_steps(HostStepState state)
     // Loop over track slots and fill TTree
     for (auto const tid : range(TrackSlotId{state.steps.size()}))
     {
-        if (!state.steps.track_id[tid])
+        if (!state.steps.step.track_id[tid])
         {
             // Track id not found; skip inactive track slot
             continue;
         }
 
         // Track id is always set
-        tstep_.track_id = state.steps.track_id[tid].unchecked_get();
+        tstep_.track_id = state.steps.step.track_id[tid].unchecked_get();
 
         RSW_STORE(event_id, .get());
         RSW_STORE(parent_id, .unchecked_get());
@@ -162,7 +162,7 @@ void RootStepWriter::process_steps(HostStepState state)
         if (selection_.particle)
         {
             copy_if_selected(
-                particles_->id_to_pdg(state.steps.particle[tid]).get(),
+                particles_->id_to_pdg(state.steps.step.particle[tid]).get(),
                 tstep_.particle);
         }
 

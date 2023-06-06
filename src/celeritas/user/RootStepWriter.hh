@@ -59,7 +59,8 @@ class RootStepWriter final : public StepInterface
     // Unspecified step attribute data value
     static inline constexpr size_type unspecified{static_cast<size_type>(-1)};
 
-    //! Truth step point data; Naming convention must match StepPointStateData
+    //! Truth step point data; Naming convention must match
+    //! StepPointSelectionStateData
     struct TStepPoint
     {
         size_type volume_id = unspecified;

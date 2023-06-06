@@ -47,19 +47,20 @@ struct SimpleCaloExecutor
  */
 CELER_FUNCTION void SimpleCaloExecutor::operator()(TrackSlotId tid)
 {
-    CELER_EXPECT(tid < step.detector.size());
-    CELER_EXPECT(!step.energy_deposition.empty());
+    CELER_EXPECT(tid < step.step.detector.size());
+    CELER_EXPECT(!step.step.energy_deposition.empty());
 
-    DetectorId det = step.detector[tid];
+    DetectorId det = step.step.detector[tid];
     if (!det)
     {
         // No energy deposition or inactive track
         return;
     }
 
-    static_assert(std::is_same_v<NativeRef<StepStateData>::Energy::unit_type,
-                                 NativeRef<SimpleCaloStateData>::EnergyUnits>);
-    real_type edep = step.energy_deposition[tid].value();
+    static_assert(
+        std::is_same_v<NativeRef<StepSelectionStateData>::Energy::unit_type,
+                       NativeRef<SimpleCaloStateData>::EnergyUnits>);
+    real_type edep = step.step.energy_deposition[tid].value();
     CELER_ASSERT(edep > 0);
     CELER_ASSERT(det < calo.energy_deposition.size());
     atomic_add(&calo.energy_deposition[det], edep);

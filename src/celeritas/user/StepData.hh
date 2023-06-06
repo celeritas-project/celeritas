@@ -63,7 +63,7 @@ struct StepPointSelection
 /*!
  * Which track properties to gather at every step.
  *
- * These should correspond to the data items in StepStateData.
+ * These should correspond to the data items in StepSelectionStateData.
  */
 struct StepSelection
 {
@@ -169,7 +169,7 @@ struct StepParamsData
  *   evaluation) the VolumeId will be "false".
  */
 template<Ownership W, MemSpace M>
-struct StepPointStateData
+struct StepPointSelectionStateData
 {
     //// TYPES ////
 
@@ -195,7 +195,8 @@ struct StepPointStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
-    StepPointStateData& operator=(StepPointStateData<W2, M2>& other)
+    StepPointSelectionStateData&
+    operator=(StepPointSelectionStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         time = other.time;
@@ -221,11 +222,11 @@ struct StepPointStateData
  *   collected). The detector ID for inactive threads is always "false".
  */
 template<Ownership W, MemSpace M>
-struct StepStateData
+struct StepSelectionStateData
 {
     //// TYPES ////
 
-    using StepPointData = StepPointStateData<W, M>;
+    using StepPointSelectionData = StepPointSelectionStateData<W, M>;
     template<class T>
     using StateItems = celeritas::StateCollection<T, W, M>;
     using Energy = units::MevEnergy;
@@ -233,7 +234,7 @@ struct StepStateData
     //// DATA ////
 
     // Pre- and post-step data
-    EnumArray<StepPoint, StepPointData> points;
+    EnumArray<StepPoint, StepPointSelectionData> points;
 
     //! Track ID is always assigned (but will be false for inactive tracks)
     StateItems<TrackId> track_id;
@@ -252,9 +253,6 @@ struct StepStateData
     StateItems<ParticleId> particle;
     StateItems<Energy> energy_deposition;
 
-    //! Unique identifier for "thread-local" data.
-    StreamId stream_id;
-
     //// METHODS ////
 
     //! True if constructed and correctly sized
@@ -268,7 +266,7 @@ struct StepStateData
                && right_sized(event_id) && right_sized(parent_id)
                && right_sized(track_step_count) && right_sized(action_id)
                && right_sized(step_length) && right_sized(particle)
-               && right_sized(energy_deposition) && stream_id;
+               && right_sized(energy_deposition);
     }
 
     //! State size
@@ -279,9 +277,11 @@ struct StepStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
-    StepStateData& operator=(StepStateData<W2, M2>& other)
+    StepSelectionStateData& operator=(StepSelectionStateData<W2, M2>& other)
     {
-        CELER_EXPECT(other);
+        // The extra storage used to gather the step data is only required on
+        // the device
+        CELER_EXPECT(other || (M == MemSpace::host && other.size() == 0));
 
         for (auto sp : range(StepPoint::size_))
         {
@@ -297,6 +297,66 @@ struct StepStateData
         step_length = other.step_length;
         particle = other.particle;
         energy_deposition = other.energy_deposition;
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Gathered data and persistent scratch space for gathering and copying data.
+ *
+ * Extra storage \c scratch and \c valid_id is needed to efficiently gather and
+ * copy the step data on the device but will not be allocated on the host.
+ */
+template<Ownership W, MemSpace M>
+struct StepStateData
+{
+    //// TYPES ////
+
+    using StepSelectionData = StepSelectionStateData<W, M>;
+    template<class T>
+    using StateItems = celeritas::StateCollection<T, W, M>;
+
+    //// DATA ////
+
+    //! Gathered data for a single step
+    StepSelectionData step;
+
+    //! Scratch space for gathering the data on device based on track validity
+    StepSelectionData scratch;
+
+    //! Thread IDs of active tracks that are in a detector
+    StateItems<size_type> valid_id;
+
+    //! Unique identifier for "thread-local" data.
+    StreamId stream_id;
+
+    //// METHODS ////
+
+    //! True if constructed and correctly sized
+    explicit CELER_FUNCTION operator bool() const
+    {
+        auto right_sized = [this](auto const& t) {
+            return (t.size() == this->size())
+                   || (t.size() == 0 && M == MemSpace::host);
+        };
+
+        return step.size() > 0 && right_sized(scratch) && right_sized(valid_id)
+               && stream_id;
+    }
+
+    //! State size
+    CELER_FUNCTION TrackSlotId::size_type size() const { return step.size(); }
+
+    //! Assign from another set of states
+    template<Ownership W2, MemSpace M2>
+    StepStateData& operator=(StepStateData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+
+        step = other.step;
+        scratch = other.scratch;
+        valid_id = other.valid_id;
         stream_id = other.stream_id;
         return *this;
     }
@@ -309,7 +369,7 @@ struct StepStateData
  * Resize a state point.
  */
 template<MemSpace M>
-inline void resize(StepPointStateData<Ownership::value, M>* state,
+inline void resize(StepPointSelectionStateData<Ownership::value, M>* state,
                    StepPointSelection selection,
                    size_type size)
 {
@@ -334,18 +394,15 @@ inline void resize(StepPointStateData<Ownership::value, M>* state,
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize the state.
+ * Resize the step data.
  */
 template<MemSpace M>
-inline void resize(StepStateData<Ownership::value, M>* state,
+inline void resize(StepSelectionStateData<Ownership::value, M>* state,
                    HostCRef<StepParamsData> const& params,
-                   StreamId stream_id,
                    size_type size)
 {
     CELER_EXPECT(state->size() == 0);
     CELER_EXPECT(size > 0);
-
-    state->stream_id = stream_id;
 
     for (auto sp : range(StepPoint::size_))
     {
@@ -374,6 +431,31 @@ inline void resize(StepStateData<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(action_id);
     SD_RESIZE_IF_SELECTED(particle);
     SD_RESIZE_IF_SELECTED(energy_deposition);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Resize the state.
+ */
+template<MemSpace M>
+inline void resize(StepStateData<Ownership::value, M>* state,
+                   HostCRef<StepParamsData> const& params,
+                   StreamId stream_id,
+                   size_type size)
+{
+    CELER_EXPECT(state->size() == 0);
+    CELER_EXPECT(size > 0);
+
+    state->stream_id = stream_id;
+
+    resize(&state->step, params, size);
+
+    if constexpr (M == MemSpace::device)
+    {
+        // Allocate extra space on device for gathering step data
+        resize(&state->scratch, params, size);
+        resize(&state->valid_id, size);
+    }
 }
 
 //---------------------------------------------------------------------------//
