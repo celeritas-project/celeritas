@@ -125,6 +125,8 @@ struct SetupOptions
     //! \name CUDA options
     size_type cuda_stack_size{};
     size_type cuda_heap_size{};
+    //! Launch all kernels on the default stream
+    bool default_stream{false};
     //!@}
 
     //!@{
