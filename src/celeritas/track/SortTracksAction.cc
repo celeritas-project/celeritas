@@ -63,8 +63,9 @@ SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
                 // Sort *before* along-step action, i.e. *after* pre-step
                 return ActionOrder::sort_pre;
             case TrackOrder::sort_step_limit_action:
-                // Sort *before* post-step action, i.e. *after* along-step
-                return ActionOrder::sort_along;
+                // Sort *before* post-step action, i.e. *after* pre-post and
+                // along-step
+                return ActionOrder::sort_pre_post;
             default:
                 CELER_ASSERT_UNREACHABLE();
         }

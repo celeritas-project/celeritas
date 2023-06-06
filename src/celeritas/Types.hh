@@ -111,6 +111,7 @@ enum class ActionOrder
     along,  //!< Along-step
     sort_along,  //!< Sort track slots after determining first step action
     pre_post,  //!< Discrete selection kernel
+    sort_pre_post,  //! Sort track slots after selecting discrete interaction
     post,  //!< After step
     post_post,  //!< User actions after boundary crossing, collision
     end,  //!< Processing secondaries, including replacing primaries
