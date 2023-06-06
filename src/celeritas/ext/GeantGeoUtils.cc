@@ -25,6 +25,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 
+#include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
 
 namespace celeritas
@@ -69,15 +70,16 @@ G4VPhysicalVolume* load_geant_geometry(std::string const& filename)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
     ScopedMem record_mem("load_geant_geometry");
+    ScopedTimeLog scoped_time;
 
     {
         // I have no idea why, but creating the GDML parser resets the
-        // ScopedGeantLogger on its first instantiation (geant4@11.0)
+        // ScopedGeantLogger on its first instantiation (geant4@11.0): so
+        // create and destroy one before doing anything else.
         G4GDMLParser temp_parser_init;
     }
-
     ScopedGeantLogger scoped_logger;
-    ScopedTimeLog scoped_time;
+    ScopedGeantExceptionHandler scoped_exceptions;
 
     // Create parser; do *not* strip `0x` extensions since those are needed to
     // deduplicate complex geometries (e.g. CMS) and are handled by the Label
