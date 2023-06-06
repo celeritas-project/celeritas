@@ -184,6 +184,7 @@ auto VecgeomParams::find_volumes(std::string const& name) const
  */
 void VecgeomParams::build_tracking()
 {
+    CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
     CELER_LOG(status) << "Initializing tracking information";
     ScopedMem record_mem("VecgeomParams.build_tracking");
     {
@@ -334,13 +335,13 @@ void VecgeomParams::build_metadata()
             CELER_ASSERT(vol);
 
             auto label = [vol] {
-                auto const& label = vol->GetLabel();
+                std::string const& label = vol->GetLabel();
                 if (starts_with(label, "[TEMP]"))
                 {
                     // Temporary logical volume not directly used in transport
                     return Label{};
                 }
-                return Label::from_geant(vol->GetLabel());
+                return Label::from_geant(label);
             }();
 
             result[vol_idx] = std::move(label);
