@@ -247,28 +247,21 @@ GeantGeoConverter::convert_logical(G4LogicalVolume const* g4lv_mom)
     }
 
     // add 0x suffix, unless already provided from GDML through Geant4 parser
-    static G4GDMLWriteStructure gdml_mangler;
     std::string clean_name(g4lv_mom->GetName());  // may have suffix from GDML
     if (clean_name.find("0x") == std::string::npos)
     {
         // but if not found, add the 0x suffix here
+        static G4GDMLWriteStructure gdml_mangler;
         clean_name = gdml_mangler.GenerateName(clean_name.c_str(), g4lv_mom);
     }
 
     LogicalVolume* const vglv_mom
         = new LogicalVolume(clean_name.c_str(), shape_mom);
     CELER_ASSERT(shape_mom == vglv_mom->GetUnplacedVolume());
-    VolumeId volid{vglv_mom->id()};
 
     // Save to helper maps
     logical_volume_map_[g4lv_mom] = vglv_mom;
-    g4logvol_id_map_[g4lv_mom] = volid;
-
-    // All or no daughters should have been placed already
-    int remaining_daughters = g4lv_mom->GetNoDaughters()
-                              - vglv_mom->GetDaughters().size();
-    CELER_ASSERT(remaining_daughters <= 0
-                 || remaining_daughters == (int)g4lv_mom->GetNoDaughters());
+    g4logvol_id_map_[g4lv_mom] = VolumeId{vglv_mom->id()};
 
     // Cross check geometry using cubic volume property: skip stochastically
     // sampled comparisons due to performance and frequent false positives
@@ -291,25 +284,17 @@ GeantGeoConverter::convert_logical(G4LogicalVolume const* g4lv_mom)
             CELER_LOG(warning)
                 << "Solid type '" << g4lv_mom->GetSolid()->GetEntityType()
                 << "' in logical volume '" << g4lv_mom->GetName()
-                << "' (VecGeom volume ID " << volid.get()
+                << "' (VecGeom volume ID " << vglv_mom->id()
                 << ") conversion may have failed: VecGeom/G4 volume ratio is "
                 << vg_cap << " / " << g4_cap << " = " << vg_cap / g4_cap;
         }
     }
 
-    if (auto const* lv = G4ReflectionFactory::Instance()->GetConstituentLV(
-            const_cast<G4LogicalVolume*>(g4lv_mom)))
-    {
-        // The *constituent* (unreflected) logical volume is actually tied to
-        // the sensitive detectors: save this as well
-        CELER_LOG(debug) << "Mapping constituent volume '" << lv->GetName()
-                         << "'@" << static_cast<void const*>(lv)
-                         << " to volume ID for volume '" << g4lv_mom->GetName()
-                         << "'@" << static_cast<void const*>(g4lv_mom);
-        g4logvol_id_map_[lv] = volid;
-    }
-
-    // place all daughters
+    // All or no daughters should have been placed already
+    int remaining_daughters = g4lv_mom->GetNoDaughters()
+                              - vglv_mom->GetDaughters().size();
+    CELER_ASSERT(remaining_daughters <= 0
+                 || remaining_daughters == (int)g4lv_mom->GetNoDaughters());
     for (int i = 0; i < remaining_daughters; ++i)
     {
         auto const* g4pv_kid = g4lv_mom->GetDaughter(i);
@@ -342,14 +327,39 @@ GeantGeoConverter::convert_logical(G4LogicalVolume const* g4lv_mom)
         auto* vglv_kid = this->convert_logical(g4lv_kid);
         CELER_ASSERT(vglv_kid);
 
-        bool placing
+        bool placed
             = vgdml::ReflFactory::Instance().Place(transformation,
                                                    flip,
                                                    g4pv_kid->GetName(),
                                                    vglv_kid,
                                                    vglv_mom,
                                                    g4pv_kid->GetCopyNo());
-        CELER_ASSERT(placing);
+        CELER_ASSERT(placed);
+
+        if (auto const* lv = G4ReflectionFactory::Instance()->GetConstituentLV(
+                const_cast<G4LogicalVolume*>(g4lv_kid)))
+        {
+            // The *constituent* (unreflected) logical volume is actually tied
+            // to the sensitive detectors: save this as well
+            if (LogicalVolume* vglv
+                = vgdml::ReflFactory::Instance().GetReflectedLV(vglv_kid))
+            {
+                CELER_LOG(debug)
+                    << "Mapping constituent volume '" << lv->GetName() << "'@"
+                    << static_cast<void const*>(lv) << " to volume ID "
+                    << vglv->id() << " for volume '" << g4lv_kid->GetName()
+                    << "'@" << static_cast<void const*>(g4lv_kid)
+                    << ": VecGeom LV label '" << vglv->GetLabel() << "'";
+                g4logvol_id_map_[lv] = VolumeId{vglv->id()};
+            }
+            else
+            {
+                CELER_LOG(warning) << "No VecGeom constituent volume for '"
+                                   << vglv_kid->GetLabel() << "'@"
+                                   << static_cast<void const*>(vglv_kid)
+                                   << " (volume ID " << vglv_kid->id() << ")";
+            }
+        }
 
         //.. convert daughter?  Hopefully this will return the PV just created
         auto const* vgpv_kid = this->convert_physical(g4pv_kid, vglv_mom);
@@ -769,9 +779,6 @@ VUnplacedVolume* GeantGeoConverter::convert_solid(G4VSolid const* shape)
     {
         G4VSolid* underlying = refl->GetConstituentMovedSolid();
         CELER_ASSERT(underlying);
-        CELER_LOG(debug) << "Converting reflected solid '" << refl->GetName()
-                         << "' (underlying " << underlying->GetEntityType()
-                         << " solid: '" << underlying->GetName() << "')";
         unplaced_volume = this->convert_solid(underlying);
     }
 
