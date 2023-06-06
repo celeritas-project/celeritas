@@ -138,14 +138,12 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
-        CELER_LOG(status) << "Initializing Geant4 phyics";
-        ScopedTimeLog scoped_time;
         auto physics_list = std::make_unique<detail::GeantPhysicsList>(options);
         run_manager_->SetUserInitialization(physics_list.release());
     }
 
     {
-        CELER_LOG(status) << "Initializing Geant4 physics tables";
+        CELER_LOG(status) << "Building Geant4 physics tables";
         ScopedMem record_mem("GeantSetup.initialize");
         ScopedTimeLog scoped_time;
 
