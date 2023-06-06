@@ -20,6 +20,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 #include "ScopedGeantLogger.hh"
@@ -67,6 +68,7 @@ G4VPhysicalVolume* load_geant_geometry(std::string const& filename)
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
     ScopedMem record_mem("load_geant_geometry");
     ScopedGeantLogger scoped_logger;
+    ScopedTimeLog scoped_time;
 
     // Create parser; do *not* strip `0x` extensions since those are needed to
     // deduplicate complex geometries (e.g. CMS) and are handled by the Label

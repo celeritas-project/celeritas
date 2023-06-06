@@ -44,7 +44,7 @@ G4int log_impl(G4String const& str, LogLevel level)
 
 //---------------------------------------------------------------------------//
 /*!
- * Handle log messages from Geant4 while in scope.
+ * Send Geant4 log messages to Celeritas' world logger.
  */
 class GeantLoggerAdapter : public G4coutDestination
 {
@@ -67,9 +67,6 @@ class GeantLoggerAdapter : public G4coutDestination
 //---------------------------------------------------------------------------//
 /*!
  * Redirect geant4's stdout/cerr on construction.
- *
- * A global flag allows multiple logger adapters to be nested without
- * consequence.
  */
 GeantLoggerAdapter::GeantLoggerAdapter()
 {
@@ -126,6 +123,9 @@ bool g_adapter_active_{false};
 //---------------------------------------------------------------------------//
 /*!
  * Install the Celeritas Geant4 logger.
+ *
+ * A global flag allows multiple logger adapters to be nested without
+ * consequence.
  */
 ScopedGeantLogger::ScopedGeantLogger()
 {
