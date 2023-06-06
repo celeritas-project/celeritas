@@ -293,6 +293,19 @@ TEST(MathTest, ceil_div)
     EXPECT_EQ(8u, ceil_div(50u, 7u));
 }
 
+TEST(MathTest, ceil_to_multiple)
+{
+    unsigned int m = 32;
+    EXPECT_EQ(0u, ceil_to_multiple(0u, m));
+    EXPECT_EQ(m, ceil_to_multiple(1u, m));
+    for (auto i = 1; i < 4; ++i)
+    {
+        EXPECT_EQ(m * i, ceil_to_multiple(m * i - 1, m));
+        EXPECT_EQ(m * i, ceil_to_multiple(m * i, m));
+        EXPECT_EQ(m * (i + 1), ceil_to_multiple(m * i + 1, m));
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
