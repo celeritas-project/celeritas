@@ -13,6 +13,7 @@
 #include "orange/OrangeData.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
+#include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/io/ImportVolume.hh"
 
@@ -28,6 +29,7 @@
 #endif
 
 using std::cout;
+using GeantVolResult = celeritas::test::GenericGeoGeantImportVolumeResult;
 
 namespace celeritas
 {
@@ -53,7 +55,8 @@ void GenericGeoTrackingResult::print_expected()
            "/*** END CODE ***/\n";
 }
 
-void GenericGeoGeantImportVolumeResult::print_expected() const
+//---------------------------------------------------------------------------//
+void GeantVolResult::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "static int const expected_volumes[] = "
@@ -68,6 +71,77 @@ void GenericGeoGeantImportVolumeResult::print_expected() const
              << " */\n";
     }
     cout << "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
+GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
+                                           G4VPhysicalVolume const* world)
+{
+    CELER_VALIDATE(world, << "world volume is nullptr");
+    // Load geometry before checking world volume
+    GeantImporter import(world);
+    auto imported = import([] {
+        GeantImportDataSelection select;
+        select.particles = GeantImportDataSelection::none;
+        select.processes = GeantImportDataSelection::none;
+        select.materials = false;
+        select.reader_data = false;
+        select.unique_volumes = true;  // emulates accel/SharedParams
+        return select;
+    }());
+
+    using Result = GenericGeoGeantImportVolumeResult;
+    Result result;
+    for (auto i : range(imported.volumes.size()))
+    {
+        ImportVolume const& v = imported.volumes[i];
+        if (v.name.empty())
+        {
+            // Add a placeholder only if it's not a leading "empty" (probably
+            // indicative of unused 'instance IDs' from a previously loaded
+            // geometry)
+            if (!result.volumes.empty())
+            {
+                result.volumes.push_back(Result::empty);
+            }
+            continue;
+        }
+        auto id = geom.find_volume(Label::from_geant(v.name));
+        result.volumes.push_back(id ? static_cast<int>(id.unchecked_get())
+                                    : Result::missing);
+        if (!id)
+        {
+            result.missing_names.push_back(
+                to_string(Label::from_geant(v.name)));
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+GeantVolResult GeantVolResult::from_pointers(GeoParamsInterface const& geom,
+                                             G4VPhysicalVolume const* world)
+{
+    CELER_VALIDATE(world, << "world volume is nullptr");
+
+    using Result = GenericGeoGeantImportVolumeResult;
+    Result result;
+    for (G4LogicalVolume* lv : celeritas::geant_logical_volumes())
+    {
+        if (!lv)
+        {
+            result.volumes.push_back(Result::empty);
+            continue;
+        }
+        auto id = geom.find_volume(lv);
+        result.volumes.push_back(id ? static_cast<int>(id.unchecked_get())
+                                    : Result::missing);
+        if (!id)
+        {
+            result.missing_names.push_back(lv->GetName());
+        }
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -215,64 +289,6 @@ auto GenericGeoTestBase<HP, S, TV>::track(Real3 const& pos, Real3 const& dir)
     }
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-namespace
-{
-// Non-templated helper function since this uses the virtual geo interface
-GenericGeoGeantImportVolumeResult
-get_geant_volumes_impl(G4VPhysicalVolume const* world,
-                       GeoParamsInterface const& geom)
-{
-    CELER_VALIDATE(world, << "world volume is nullptr");
-    // Load geometry before checking world volume
-    GeantImporter import(world);
-    auto imported = import([] {
-        GeantImportDataSelection select;
-        select.particles = GeantImportDataSelection::none;
-        select.processes = GeantImportDataSelection::none;
-        select.materials = false;
-        select.reader_data = false;
-        select.unique_volumes = true;  // emulates accel/SharedParams
-        return select;
-    }());
-
-    using Result = GenericGeoGeantImportVolumeResult;
-    Result result;
-    for (auto i : range(imported.volumes.size()))
-    {
-        ImportVolume const& v = imported.volumes[i];
-        if (v.name.empty())
-        {
-            // Add a placeholder only if it's not a leading "empty" (probably
-            // indicative of unused 'instance IDs' from a previously loaded
-            // geometry)
-            if (!result.volumes.empty())
-            {
-                result.volumes.push_back(Result::empty);
-            }
-            continue;
-        }
-        auto id = geom.find_volume(Label::from_geant(v.name));
-        result.volumes.push_back(id ? static_cast<int>(id.unchecked_get())
-                                    : Result::missing);
-        if (!id)
-        {
-            result.missing_names.push_back(
-                to_string(Label::from_geant(v.name)));
-        }
-    }
-    return result;
-}
-}  // namespace
-
-//---------------------------------------------------------------------------//
-template<class HP, template<Ownership, MemSpace> class S, class TV>
-auto GenericGeoTestBase<HP, S, TV>::get_geant_volumes(
-    G4VPhysicalVolume const* world) -> GeantVolResult
-{
-    return get_geant_volumes_impl(world, *this->geometry());
 }
 
 //---------------------------------------------------------------------------//

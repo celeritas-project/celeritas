@@ -84,10 +84,17 @@ class VecgeomGeantTestBase : public VecgeomTestBase
     }
 
     //! Test conversion for Geant4 geometry
-    GeantVolResult get_geant_volumes()
+    GeantVolResult get_direct_geant_volumes()
     {
         this->geometry();
-        return GenericVecgeomTestBase::get_geant_volumes(world_volume_);
+        return GenericVecgeomTestBase::get_direct_geant_volumes(world_volume_);
+    }
+
+    //! Test conversion for Geant4 geometry
+    GeantVolResult get_import_geant_volumes()
+    {
+        this->geometry();
+        return GenericVecgeomTestBase::get_import_geant_volumes(world_volume_);
     }
 
   protected:
@@ -879,13 +886,23 @@ TEST_F(SolidsGeantTest, output)
 
 TEST_F(SolidsGeantTest, geant_volumes)
 {
-    auto result = this->get_geant_volumes();
-    static int const expected_volumes[] = {1,  2,  3,  4,  5,  6,  7,  8,
-                                           -2, 12, 17, 19, 28, 25, 22, 18,
-                                           21, 20, 26, 27, 24, 23, 0,  9};
-    EXPECT_VEC_EQ(expected_volumes, result.volumes);
-    // EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
-    // NOTE: trd3 is missing
+    {
+        auto result = this->get_import_geant_volumes();
+        static int const expected_volumes[] = {1,  2,  3,  4,  5,  6,  7,  8,
+                                               -2, 12, 17, 19, 28, 25, 22, 18,
+                                               21, 20, 26, 27, 24, 23, 0,  9};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        // EXPECT_EQ(0, result.missing_names.size()) <<
+        // repr(result.missing_names);
+    }
+    {
+        auto result = this->get_direct_geant_volumes();
+        static int const expected_volumes[] = {1,  2,  3,  4,  5,  6,  7,  8,
+                                               9,  12, 17, 19, 28, 25, 22, 18,
+                                               21, 20, 26, 27, 24, 23, 0,  9};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -1031,7 +1048,7 @@ class DISABLED_ArbitraryGeantTest : public VecgeomGeantTestBase
 
 TEST_F(DISABLED_ArbitraryGeantTest, conversion)
 {
-    auto result = this->get_geant_volumes();
+    auto result = this->get_import_geant_volumes();
     result.print_expected();
     EXPECT_EQ(0, result.missing_names.size());
 }

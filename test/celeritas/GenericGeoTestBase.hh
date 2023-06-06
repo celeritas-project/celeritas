@@ -37,6 +37,13 @@ struct GenericGeoGeantImportVolumeResult
     static constexpr int empty = -1;
     static constexpr int missing = -2;
 
+    static GenericGeoGeantImportVolumeResult
+    from_import(GeoParamsInterface const& geom, G4VPhysicalVolume const* world);
+
+    static GenericGeoGeantImportVolumeResult
+    from_pointers(GeoParamsInterface const& geom,
+                  G4VPhysicalVolume const* world);
+
     std::vector<int> volumes;  //!< Volume ID for each Geant4 instance ID
     std::vector<std::string> missing_names;  //!< G4LV names without a match
 
@@ -91,8 +98,18 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
 
     //! Find linear segments until outside
     TrackingResult track(Real3 const& pos, Real3 const& dir);
-    //! Try to map Geant4 volumes as is done in Acceleritas
-    GeantVolResult get_geant_volumes(G4VPhysicalVolume const* world);
+    //! Try to map Geant4 volumes using ImportVolume and name
+    GeantVolResult
+    get_import_geant_volumes(G4VPhysicalVolume const* world) const
+    {
+        return GeantVolResult::from_import(*this->geometry(), world);
+    }
+    //! Try to map Geant4 volumes using pointers
+    GeantVolResult
+    get_direct_geant_volumes(G4VPhysicalVolume const* world) const
+    {
+        return GeantVolResult::from_pointers(*this->geometry(), world);
+    }
 
   private:
     using HostStateStore = CollectionStateStore<S, MemSpace::host>;

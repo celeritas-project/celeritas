@@ -144,4 +144,23 @@ void reset_geant_geometry()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a view to the Geant4 LV store.
+ *
+ * This includes all volumes, potentially null ones as well.
+ */
+Span<G4LogicalVolume*> geant_logical_volumes()
+{
+    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
+    CELER_ASSERT(lv_store);
+    auto start = lv_store->data();
+    auto stop = start + lv_store->size();
+    while (start != stop && *start == nullptr)
+    {
+        ++start;
+    }
+    return {start, stop};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

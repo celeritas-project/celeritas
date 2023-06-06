@@ -12,7 +12,9 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/cont/Span.hh"
 
+class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VTouchable;
 
@@ -40,6 +42,10 @@ G4VPhysicalVolume* load_geant_geometry_native(std::string const& gdml_filename);
 //---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
 void reset_geant_geometry();
+
+//---------------------------------------------------------------------------//
+// Get a view to the Geant4 LV store
+Span<G4LogicalVolume*> geant_logical_volumes();
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
