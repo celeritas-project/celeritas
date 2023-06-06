@@ -92,7 +92,8 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
         CELER_LOG(debug) << "Mapped sensitive detector '" << sd->GetName()
                          << "' (logical volume '" << lv->GetName() << "') to "
                          << celeritas_core_geo << " volume '"
-                         << geo.id_to_label(id) << "' (ID=" << id.unchecked_get() << ')';
+                         << geo.id_to_label(id)
+                         << "' (ID=" << id.unchecked_get() << ')';
 
         // Add Geant4 volume and corresponding volume ID to list
         geant_vols.push_back(lv);
