@@ -237,10 +237,11 @@ UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
             displ = max(displ * (1 + 2 * msc_params_.params.safety_tol),
                         msc_params_.params.geom_limit);
             safety = geo.find_safety(displ);
-            if (CELER_UNLIKELY(safety <= 0))
+            if (CELER_UNLIKELY(safety == 0))
             {
-                // Effectively on a boundary without being "logically" on:
-                // possible after tricky VecGeom boundary crossings.
+                // The track is effectively on a boundary without being
+                // "logically" on, which is possible after tricky VecGeom
+                // boundary crossings.
                 msc_step.is_displaced = false;
             }
         }
