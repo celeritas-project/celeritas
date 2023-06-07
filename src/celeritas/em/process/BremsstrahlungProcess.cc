@@ -43,7 +43,7 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
     CELER_VALIDATE(options_.selection != BremsModelSelection::none
                        && options_.selection != BremsModelSelection::size_,
                    << "Cannot construct BremsstrahlungProcess without a valid "
-                      "BremsModelSelection.");
+                      "BremsModelSelection enum");
 }
 
 //---------------------------------------------------------------------------//
@@ -53,54 +53,49 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
 auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
-    if (options_.selection == BremsModelSelection::seltzer_berger)
+    switch (options_.selection)
     {
-        return {std::make_shared<SeltzerBergerModel>(*start_id++,
-                                                     *particles_,
-                                                     *materials_,
-                                                     imported_.processes(),
-                                                     load_sb_)};
-    }
-
-    else if (options_.selection == BremsModelSelection::relativistic)
-    {
-        return {std::make_shared<RelativisticBremModel>(*start_id++,
-                                                        *particles_,
-                                                        *materials_,
-                                                        imported_.processes(),
-                                                        options_.enable_lpm)};
-    }
-
-    else if (options_.selection == BremsModelSelection::all)
-    {
-        if (options_.combined_model)
-        {
-            // TODO: import micro xs for combined model
-            return {std::make_shared<CombinedBremModel>(*start_id++,
-                                                        *particles_,
-                                                        *materials_,
-                                                        imported_.processes(),
-                                                        load_sb_,
-                                                        options_.enable_lpm)};
-        }
-        else
-        {
+        case BremsModelSelection::seltzer_berger:
+            return {std::make_shared<SeltzerBergerModel>(*start_id++,
+                                                         *particles_,
+                                                         *materials_,
+                                                         imported_.processes(),
+                                                         load_sb_)};
+        case BremsModelSelection::relativistic:
             return {
-                std::make_shared<SeltzerBergerModel>(*start_id++,
-                                                     *particles_,
-                                                     *materials_,
-                                                     imported_.processes(),
-                                                     load_sb_),
                 std::make_shared<RelativisticBremModel>(*start_id++,
                                                         *particles_,
                                                         *materials_,
                                                         imported_.processes(),
                                                         options_.enable_lpm)};
-        }
-    }
-    else
-    {
-        CELER_ASSERT_UNREACHABLE();
+        case BremsModelSelection::all:
+            if (options_.combined_model)
+            {
+                return {
+                    std::make_shared<CombinedBremModel>(*start_id++,
+                                                        *particles_,
+                                                        *materials_,
+                                                        imported_.processes(),
+                                                        load_sb_,
+                                                        options_.enable_lpm)};
+            }
+            else
+            {
+                return {
+                    std::make_shared<SeltzerBergerModel>(*start_id++,
+                                                         *particles_,
+                                                         *materials_,
+                                                         imported_.processes(),
+                                                         load_sb_),
+                    std::make_shared<RelativisticBremModel>(
+                        *start_id++,
+                        *particles_,
+                        *materials_,
+                        imported_.processes(),
+                        options_.enable_lpm)};
+            }
+        default:
+            CELER_ASSERT_UNREACHABLE();
     }
 }
 
