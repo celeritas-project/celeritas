@@ -227,6 +227,7 @@ void Runner::build_core_params(RunnerInput const& inp,
             std::vector<std::shared_ptr<Process const>> result;
             ProcessBuilder::Options opts;
             opts.brem_combined = inp.brem_combined;
+            opts.brems_selection = inp.geant_options.brems;
 
             ProcessBuilder build_process(
                 imported, params.particle, params.material, opts);
