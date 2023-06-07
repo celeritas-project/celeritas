@@ -846,6 +846,7 @@ void GeantGeoConverter::fix_reflected(G4LogicalVolume const* refl_lv)
     LogicalVolume* vglv_refl
         = const_cast<LogicalVolume*>(vglv_refl_iter->second);
 
+    // NOTE: I think vecgeom mixed up the semantics of reflected/constituent?
     LogicalVolume* vglv = vgdml::ReflFactory::Instance().GetReflectedLV(
         //= vgdml::ReflFactory::Instance().GetConstituentLV(
         vglv_refl);
@@ -869,11 +870,13 @@ void GeantGeoConverter::fix_reflected(G4LogicalVolume const* refl_lv)
         return;
     }
 
-    CELER_LOG(debug) << "Mapping constituent volume '" << lv->GetName() << "'@"
-                     << static_cast<void const*>(lv) << " to volume ID "
-                     << vglv->id() << " for volume '" << refl_lv->GetName()
-                     << "'@" << static_cast<void const*>(refl_lv)
-                     << ": VecGeom LV label '" << vglv->GetLabel() << "'";
+    CELER_LOG(debug)
+        << "Mapping constituent volume '" << lv->GetName() << "'@"
+        << static_cast<void const*>(lv) << " of reflected volume '"
+        << refl_lv->GetName() << "'@" << static_cast<void const*>(refl_lv)
+        << "to VecGeom volume '" << vglv->GetLabel() << "' (ID=" << vglv->id()
+        << ") of reflected volume '" << vglv_refl->GetLabel()
+        << "' (ID=" << vglv_refl->id() << ")";
     vglv_iter->second = VolumeId{vglv->id()};
 }
 
