@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/GeantGeo.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/io/StringUtils.hh"
 #include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/LazyGeoManager.hh"
 #include "celeritas/ext/GeantGeoData.hh"
@@ -142,8 +143,7 @@ TEST_F(FourLevelsTest, detailed_track)
 
 TEST_F(FourLevelsTest, reentrant_boundary)
 {
-    auto geo = this->make_geo_track_view();
-    geo = GeoTrackInitializer{{15.5, 10, 10}, {-1, 0, 0}};
+    auto geo = this->make_geo_track_view({15.5, 10, 10}, {-1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_FALSE(geo.is_on_boundary());
@@ -344,7 +344,7 @@ TEST_F(SolidsTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json({"bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","World","trd3_refl"]}})json",
+            R"json({"bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","World","trd3_refl"]}})json",
             to_string(out))
             << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
             << ")json\"\n/******/";
@@ -532,6 +532,36 @@ TEST_F(SolidsTest, trace)
                                                        75};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
+    {
+        SCOPED_TRACE("Low +y");
+        auto result = this->track({-500, -250, 0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"World", "trd3_refl", "World", "trd2", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {96.555879457157,
+                                                       52.35421982848,
+                                                       77.179801428726,
+                                                       52.35421982848,
+                                                       271.55587945716};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {37.766529475342,
+                                                       15.038346086645,
+                                                       35.912293475548,
+                                                       15.038346086645,
+                                                       75};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsTest, reflected_vol)
+{
+    auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
+    EXPECT_EQ(VolumeId{27}, geo.volume_id());
+    auto const& label = this->geometry()->id_to_label(geo.volume_id());
+    EXPECT_EQ("trd3_refl", label.name);
+    EXPECT_FALSE(ends_with(label.ext, "_refl"));
 }
 
 //---------------------------------------------------------------------------//

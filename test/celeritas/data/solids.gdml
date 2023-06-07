@@ -239,6 +239,11 @@ acceptance of all terms of the Geant4 Software license.
    <solidref ref="trd3"/>
   </volume>
 
+  <volume name="trd3_refl">
+   <materialref ref="Water"/>
+   <solidref ref="trd3"/>
+  </volume>
+
   <volume name="tube100">
    <materialref ref="Water"/>
    <solidref ref="t100"/>
@@ -370,11 +375,17 @@ acceptance of all terms of the Geant4 Software license.
      <rotationref ref="rotatebyx"/>
    </physvol>
 
-   <physvol name="reflected">
+   <physvol name="reflected0x123">
      <volumeref ref="trd3"/>
      <positionref ref="posReflect"/>
      <rotationref ref="rotatebyx"/>
      <scale x="1" y="1" z="-1"/>
+   </physvol>
+
+   <physvol name="reflected0x456">
+     <volumeref ref="trd3_refl"/>
+     <position name="trd3_refl_pos" unit="mm" x="-5250" y="-1250" z="0"/>
+     <rotationref ref="rotatebyx"/>
    </physvol>
 
    <physvol>
@@ -475,7 +486,14 @@ acceptance of all terms of the Geant4 Software license.
    </physvol-->
   </volume>
  </structure>
-
+ <userinfo>
+    <auxiliary auxtype="Region" auxvalue="Turds">
+      <auxiliary auxtype="volume" auxvalue="trd1"/>
+      <auxiliary auxtype="volume" auxvalue="trd2"/>
+      <auxiliary auxtype="volume" auxvalue="trd3"/>
+      <auxiliary auxtype="volume" auxvalue="trd3_refl"/>
+    </auxiliary>
+ </userinfo>
  <setup name="Default" version="1.0">
   <world ref="World"/>
  </setup>
