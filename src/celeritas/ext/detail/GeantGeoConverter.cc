@@ -824,60 +824,63 @@ void GeantGeoConverter::extract_replicated_transformations(
     }
 }
 
-void GeantGeoConverter::fix_reflected(G4LogicalVolume const* refl_lv)
+void GeantGeoConverter::fix_reflected(G4LogicalVolume const* lv_refl)
 {
     G4LogicalVolume* lv = G4ReflectionFactory::Instance()->GetConstituentLV(
-        const_cast<G4LogicalVolume*>(refl_lv));
+        const_cast<G4LogicalVolume*>(lv_refl));
     if (!lv)
     {
         // Not reflected
         return;
     }
 
-    auto vglv_refl_iter = logical_volume_map_.find(refl_lv);
-    if (vglv_refl_iter == logical_volume_map_.end())
+    // XXX *reflected* G4 logical volume maps to *UNREFLECTED* vecgeom volume
+    auto vglv_iter = logical_volume_map_.find(lv_refl);
+    if (vglv_iter == logical_volume_map_.end())
     {
         CELER_LOG(warning) << "No VecGeom counterpart found for "
                               "reflected volume '"
-                           << refl_lv->GetName() << "'@"
-                           << static_cast<void const*>(refl_lv);
+                           << lv_refl->GetName() << "'@"
+                           << static_cast<void const*>(lv_refl);
         return;
     }
-    LogicalVolume* vglv_refl
-        = const_cast<LogicalVolume*>(vglv_refl_iter->second);
+    LogicalVolume* vglv = const_cast<LogicalVolume*>(vglv_iter->second);
 
     // NOTE: I think vecgeom mixed up the semantics of reflected/constituent?
-    LogicalVolume* vglv = vgdml::ReflFactory::Instance().GetReflectedLV(
-        //= vgdml::ReflFactory::Instance().GetConstituentLV(
-        vglv_refl);
-    if (!vglv)
+    LogicalVolume* vglv_refl
+        = vgdml::ReflFactory::Instance().GetReflectedLV(vglv);
+    if (!vglv_refl)
     {
-        CELER_LOG(warning)
-            << "No VecGeom constituent volume for '" << vglv_refl->GetLabel()
-            << "'@" << static_cast<void const*>(vglv_refl) << " (volume ID "
-            << vglv_refl->id() << ")";
+        CELER_LOG(warning) << "No VecGeom constituent volume for '"
+                           << vglv->GetLabel() << "'@"
+                           << static_cast<void const*>(vglv) << " (volume ID "
+                           << vglv->id() << ")";
         return;
     }
 
-    auto&& [vglv_iter, inserted] = g4logvol_id_map_.insert({lv, VolumeId{}});
+    auto&& [vglv_refl_iter, inserted]
+        = g4logvol_id_map_.insert({lv, VolumeId{}});
     if (!inserted)
     {
-        CELER_ASSERT(vglv_iter->second);
+        CELER_ASSERT(vglv_refl_iter->second);
         CELER_LOG(warning) << "Constituent volume '" << lv->GetName() << "'@"
                            << static_cast<void const*>(lv)
                            << " was already mapped to (volume ID "
-                           << vglv_iter->second.unchecked_get() << ")";
+                           << vglv_refl_iter->second.unchecked_get() << ")";
         return;
     }
 
-    CELER_LOG(debug)
-        << "Mapping constituent volume '" << lv->GetName() << "'@"
-        << static_cast<void const*>(lv) << " of reflected volume '"
-        << refl_lv->GetName() << "'@" << static_cast<void const*>(refl_lv)
-        << "to VecGeom volume '" << vglv->GetLabel() << "' (ID=" << vglv->id()
-        << ") of reflected volume '" << vglv_refl->GetLabel()
-        << "' (ID=" << vglv_refl->id() << ")";
-    vglv_iter->second = VolumeId{vglv->id()};
+    CELER_LOG(debug) << "Mapping constituent volume '" << lv->GetName() << "'@"
+                     << static_cast<void const*>(lv)
+                     << " of reflected volume '" << lv_refl->GetName() << "'@"
+                     << static_cast<void const*>(lv_refl)
+                     << "to VecGeom volume '" << vglv_refl->GetLabel()
+                     << "' (ID=" << vglv->id() << ") of reflected volume '"
+                     << vglv->GetLabel() << "' (ID=" << vglv->id() << ")";
+    vglv_refl_iter->second = VolumeId{vglv->id()};
+
+    // And fix the unreflected one
+    g4logvol_id_map_[lv_refl] = VolumeId{vglv_refl->id()};
 }
 
 //---------------------------------------------------------------------------//
