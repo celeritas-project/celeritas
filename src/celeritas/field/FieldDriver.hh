@@ -254,6 +254,7 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
 
     do
     {
+        CELER_ASSERT(h > 0);
         output = this->integrate_step(h, output.end.state);
 
         curve_length += output.end.step;
@@ -290,6 +291,8 @@ FieldDriver<StepperT>::integrate_step(real_type step,
                                       OdeState const& state) const
     -> Integration
 {
+    CELER_EXPECT(step > 0);
+
     // Output with a next proposed step
     Integration output;
 
@@ -310,7 +313,6 @@ FieldDriver<StepperT>::integrate_step(real_type step,
         output.end.step = step;
 
         // Compute a proposed new step
-        CELER_ASSERT(output.end.step > 0);
         output.proposed_step = this->new_step_size(
             step, dyerr / (options_.epsilon_step * step));
     }
@@ -378,7 +380,7 @@ template<class StepperT>
 CELER_FUNCTION real_type
 FieldDriver<StepperT>::new_step_size(real_type step, real_type rel_error) const
 {
-    CELER_ASSERT(rel_error > 0);
+    CELER_ASSERT(rel_error >= 0);
     real_type scale_factor = fastpow(
         rel_error, rel_error > 1 ? options_.pshrink : options_.pgrow);
     return options_.safety * step * scale_factor;
