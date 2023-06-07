@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ScopedRootErrorHandler.hh"
 
+#include <cstring>
 #include <TError.h>
 #include <TSystem.h>
 
@@ -43,6 +44,8 @@ void RootErrorHandler(Int_t rootlevel,
     {
         level = LogLevel::error;
         g_has_root_errored_ = true;
+        if (std::strcmp(location, "TCling::LoadPCM") == 0)
+            abort_bool = true;
     }
     if (rootlevel >= kBreak)
         level = LogLevel::critical;
