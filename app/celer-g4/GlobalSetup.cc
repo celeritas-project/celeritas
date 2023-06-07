@@ -111,6 +111,12 @@ GlobalSetup::GlobalSetup()
         options_->cuda_heap_size = 0;
     }
     {
+        auto& cmd = messenger_->DeclareProperty("defaultStream",
+                                                options_->default_stream);
+        cmd.SetGuidance("Launch all kernels on the default stream");
+        options_->default_stream = false;
+    }
+    {
         messenger_->DeclareMethod("magFieldZ",
                                   &GlobalSetup::SetMagFieldZTesla,
                                   "Set Z-axis magnetic field strength (T)");

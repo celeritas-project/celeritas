@@ -370,6 +370,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
         }();
     }
 
+    // Allocate device streams, or use the default stream if there is only one.
+    if (celeritas::device() && !options.default_stream
+        && params.max_streams > 1)
+    {
+        celeritas::device().create_streams(params.max_streams);
+    }
+
     // Construct along-step action
     params.action_reg->insert([&params, &options, &imported] {
         AlongStepFactoryInput asfi;
