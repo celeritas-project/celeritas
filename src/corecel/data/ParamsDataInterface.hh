@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "Ref.hh"
 
 namespace celeritas
 {
@@ -51,22 +52,8 @@ template<template<Ownership, MemSpace> class P>
 template<MemSpace M>
 P<Ownership::const_reference, M> const& ParamsDataInterface<P>::ref() const
 {
-    if constexpr (M == MemSpace::host)
-    {
-        auto const& result = this->host_ref();
-        CELER_ENSURE(result);
-        return result;
-    }
-    else if constexpr (M == MemSpace::device)
-    {
-        auto const& result = this->device_ref();
-        CELER_ENSURE(result);
-        return result;
-    }
-    // "error #128-D: loop is not reachable"
-#ifndef __NVCC__
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    // Note: CUDA 11.4.2 + GCC 11.2.0 doesn't support 'if constexpr'
+    return get_ref<M>(*this);
 }
 
 //---------------------------------------------------------------------------//
