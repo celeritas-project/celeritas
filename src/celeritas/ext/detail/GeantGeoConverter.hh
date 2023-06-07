@@ -119,6 +119,9 @@ class GeantGeoConverter
      * All daughters' physical volumes will be recursively converted.
      */
     LogicalVolume* convert_logical(G4LogicalVolume const*);
+
+    // Update reflection map
+    void fix_reflected(G4LogicalVolume const* refl_lv);
 };
 
 //---------------------------------------------------------------------------//

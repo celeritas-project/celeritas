@@ -28,6 +28,7 @@
 #include <G4Hype.hh>
 #include <G4IntersectionSolid.hh>
 #include <G4LogicalVolume.hh>
+#include <G4LogicalVolumeStore.hh>
 #include <G4Navigator.hh>
 #include <G4Orb.hh>
 #include <G4PVDivision.hh>
@@ -159,6 +160,14 @@ GeantGeoConverter::operator()(G4VPhysicalVolume const* g4_world)
         ScopedTimeLog scoped_time;
         top_volume = this->convert_physical(g4_world);
         CELER_ASSERT(top_volume);
+    }
+
+    {
+        CELER_LOG(status) << "Checking reflected volumes";
+        for (G4LogicalVolume* lv : *G4LogicalVolumeStore::GetInstance())
+        {
+            this->fix_reflected(lv);
+        }
     }
 
     {
@@ -335,44 +344,6 @@ GeantGeoConverter::convert_logical(G4LogicalVolume const* g4lv_mom)
                                                    vglv_mom,
                                                    g4pv_kid->GetCopyNo());
         CELER_ASSERT(placed);
-
-        if (auto const* lv = G4ReflectionFactory::Instance()->GetConstituentLV(
-                const_cast<G4LogicalVolume*>(g4lv_kid)))
-        {
-            auto&& [iter, inserted] = g4logvol_id_map_.insert({lv, VolumeId{}});
-            if (inserted)
-            {
-                // The *constituent* (unreflected) logical volume is actually
-                // tied to the sensitive detectors: save this as well
-                if (LogicalVolume* vglv
-                    = vgdml::ReflFactory::Instance().GetReflectedLV(vglv_kid))
-                {
-                    CELER_LOG(debug)
-                        << "Mapping constituent volume '" << lv->GetName()
-                        << "'@" << static_cast<void const*>(lv)
-                        << " to volume ID " << vglv->id() << " for volume '"
-                        << g4lv_kid->GetName() << "'@"
-                        << static_cast<void const*>(g4lv_kid)
-                        << ": VecGeom LV label '" << vglv->GetLabel() << "'";
-                    iter->second = VolumeId{vglv->id()};
-                }
-                else
-                {
-                    CELER_LOG(warning)
-                        << "No VecGeom constituent volume for '"
-                        << vglv_kid->GetLabel() << "'@"
-                        << static_cast<void const*>(vglv_kid) << " (volume ID "
-                        << vglv_kid->id() << ")";
-                }
-            }
-            else
-            {
-                CELER_LOG(warning) << "Constituent volume '" << lv->GetName()
-                                   << "'@" << static_cast<void const*>(lv)
-                                   << " was already mapped to "
-                                   << iter->second.unchecked_get();
-            }
-        }
 
         //.. convert daughter?  Hopefully this will return the PV just created
         auto const* vgpv_kid = this->convert_physical(g4pv_kid, vglv_mom);
@@ -851,6 +822,59 @@ void GeantGeoConverter::extract_replicated_transformations(
             translation[0], translation[1], translation[2]);
         transf.push_back(tr);
     }
+}
+
+void GeantGeoConverter::fix_reflected(G4LogicalVolume const* refl_lv)
+{
+    G4LogicalVolume* lv = G4ReflectionFactory::Instance()->GetConstituentLV(
+        const_cast<G4LogicalVolume*>(refl_lv));
+    if (!lv)
+    {
+        // Not reflected
+        return;
+    }
+
+    auto vglv_refl_iter = logical_volume_map_.find(refl_lv);
+    if (vglv_refl_iter == logical_volume_map_.end())
+    {
+        CELER_LOG(warning) << "No VecGeom counterpart found for "
+                              "reflected volume '"
+                           << refl_lv->GetName() << "'@"
+                           << static_cast<void const*>(refl_lv);
+        return;
+    }
+    LogicalVolume* vglv_refl
+        = const_cast<LogicalVolume*>(vglv_refl_iter->second);
+
+    LogicalVolume* vglv = vgdml::ReflFactory::Instance().GetReflectedLV(
+        //= vgdml::ReflFactory::Instance().GetConstituentLV(
+        vglv_refl);
+    if (!vglv)
+    {
+        CELER_LOG(warning)
+            << "No VecGeom constituent volume for '" << vglv_refl->GetLabel()
+            << "'@" << static_cast<void const*>(vglv_refl) << " (volume ID "
+            << vglv_refl->id() << ")";
+        return;
+    }
+
+    auto&& [vglv_iter, inserted] = g4logvol_id_map_.insert({lv, VolumeId{}});
+    if (!inserted)
+    {
+        CELER_ASSERT(vglv_iter->second);
+        CELER_LOG(warning) << "Constituent volume '" << lv->GetName() << "'@"
+                           << static_cast<void const*>(lv)
+                           << " was already mapped to (volume ID "
+                           << vglv_iter->second.unchecked_get() << ")";
+        return;
+    }
+
+    CELER_LOG(debug) << "Mapping constituent volume '" << lv->GetName() << "'@"
+                     << static_cast<void const*>(lv) << " to volume ID "
+                     << vglv->id() << " for volume '" << refl_lv->GetName()
+                     << "'@" << static_cast<void const*>(refl_lv)
+                     << ": VecGeom LV label '" << vglv->GetLabel() << "'";
+    vglv_iter->second = VolumeId{vglv->id()};
 }
 
 //---------------------------------------------------------------------------//
