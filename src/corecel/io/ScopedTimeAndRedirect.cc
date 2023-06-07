@@ -13,38 +13,11 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
-#include "corecel/io/StringUtils.hh"
 
 #include "Logger.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Log messages separated by lines
-void log_messages(std::string const& label,
-                  LogLevel level,
-                  std::stringstream& ss)
-{
-    Logger& celer_log = celeritas::world_logger();
-    std::string templine;
-    while (std::getline(ss, templine, '\n'))
-    {
-        while (!templine.empty() && is_ignored_trailing(templine.back()))
-        {
-            templine.pop_back();
-        }
-        if (!templine.empty())
-        {
-            celer_log({label, 0}, level) << templine;
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Redirect cout/cerr on construction, and start timer implicitly.
@@ -64,14 +37,21 @@ ScopedTimeAndRedirect::ScopedTimeAndRedirect(std::string label)
  */
 ScopedTimeAndRedirect::~ScopedTimeAndRedirect()
 {
-    // Capture output streams and reset *before* logging
-    std::stringstream sout = std::move(stdout_->get());
-    std::stringstream serr = std::move(stderr_->get());
+    std::string sout = stdout_->str();
     stdout_.reset();
+    std::string serr = stderr_->str();
     stderr_.reset();
 
-    log_messages(label_, LogLevel::diagnostic, sout);
-    log_messages(label_, LogLevel::warning, serr);
+    Logger& celer_log = celeritas::world_logger();
+    if (!sout.empty())
+    {
+        celer_log({label_, 0}, LogLevel::diagnostic) << sout;
+    }
+
+    if (!serr.empty())
+    {
+        celer_log({label_, 0}, LogLevel::warning) << serr;
+    }
 }
 
 //---------------------------------------------------------------------------//

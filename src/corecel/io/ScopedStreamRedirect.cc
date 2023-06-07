@@ -41,22 +41,14 @@ ScopedStreamRedirect::~ScopedStreamRedirect()
  */
 std::string ScopedStreamRedirect::str()
 {
-    std::string result = this->get().str();
+    input_stream_->flush();
+
+    std::string result = temp_stream_.str();
     while (!result.empty() && is_ignored_trailing(result.back()))
     {
         result.pop_back();
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the raw stream after flushing the input.
- */
-std::stringstream& ScopedStreamRedirect::get()
-{
-    input_stream_->flush();
-    return temp_stream_;
 }
 
 //---------------------------------------------------------------------------//
