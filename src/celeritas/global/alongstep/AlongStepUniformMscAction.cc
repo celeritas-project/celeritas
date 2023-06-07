@@ -32,11 +32,7 @@ namespace celeritas
  */
 AlongStepUniformMscAction::AlongStepUniformMscAction(
     ActionId id, UniformFieldParams const& field_params, SPConstMsc msc)
-    : id_(id)
-    , msc_(std::move(msc))
-    , field_params_(field_params)
-    , host_data_(msc_)
-    , device_data_(msc_)
+    : id_(id), msc_(std::move(msc)), field_params_(field_params)
 {
     CELER_EXPECT(id_);
 }
@@ -52,14 +48,35 @@ AlongStepUniformMscAction::~AlongStepUniformMscAction() = default;
 void AlongStepUniformMscAction::execute(CoreParams const& params,
                                         CoreStateHost& state) const
 {
-    auto execute = make_along_step_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        this->action_id(),
-        AlongStep{UrbanMsc{host_data_.msc},
-                  detail::UniformFieldTrackPropagator{field_params_},
-                  detail::MeanELoss{}});
-    return launch_action(*this, params, state, execute);
+    using namespace ::celeritas::detail;
+
+    auto launch_impl = [&](auto&& execute_track) {
+        return launch_action(
+            *this,
+            params,
+            state,
+            make_along_step_track_executor(
+                params.ptr<MemSpace::native>(),
+                state.ptr(),
+                this->action_id(),
+                std::forward<decltype(execute_track)>(execute_track)));
+    };
+
+    if (msc_)
+    {
+        launch_impl(
+            MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
+    }
+    launch_impl(PropagationApplier{UniformFieldTrackPropagator{field_params_}});
+    if (msc_)
+    {
+        launch_impl(MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
+    }
+    launch_impl([](CoreTrackView const& track) {
+        detail::TimeUpdater{}(track);
+        ElossApplier{MeanELoss{}}(track);
+        TrackUpdater{}(track);
+    });
 }
 
 //---------------------------------------------------------------------------//
@@ -70,26 +87,6 @@ void AlongStepUniformMscAction::execute(CoreParams const&,
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Save references from host/device data.
- */
-template<MemSpace M>
-AlongStepUniformMscAction::ExternalRefs<M>::ExternalRefs(
-    SPConstMsc const& msc_params)
-{
-    if (M == MemSpace::device && !celeritas::device())
-    {
-        // Skip device copy if disabled
-        return;
-    }
-
-    if (msc_params)
-    {
-        msc = get_ref<M>(*msc_params);
-    }
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
