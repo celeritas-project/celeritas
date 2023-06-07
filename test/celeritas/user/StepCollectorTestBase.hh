@@ -33,7 +33,9 @@ class StepCollectorTestBase : virtual public GlobalTestBase
 
   protected:
     template<MemSpace M>
-    void run_impl(size_type num_tracks_per_batch, size_type num_steps, size_type num_batches=1);
+    void run_impl(size_type num_tracks_per_batch,
+                  size_type num_steps,
+                  size_type num_batches = 1);
 
     virtual void gather_batch_results(){};
     virtual void initalize(){};

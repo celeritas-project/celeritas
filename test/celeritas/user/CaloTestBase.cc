@@ -64,44 +64,47 @@ void CaloTestBase::initalize()
 {
     // Initialize RunResult vectors
     size_t num_detectors = this->calo_->num_detectors();
-    result.edep=std::vector<double>(num_detectors,0.);
-    result.edep_err=std::vector<double>(num_detectors,0.);
+    result.edep = std::vector<double>(num_detectors, 0.);
+    result.edep_err = std::vector<double>(num_detectors, 0.);
 }
 
 //---------------------------------------------------------------------------//
 //! Gather results during a batch
 void CaloTestBase::gather_batch_results()
 {
-  // Retrieve energies deposited this batch for each detector
-  auto edep = calo_->calc_total_energy_deposition();
+    // Retrieve energies deposited this batch for each detector
+    auto edep = calo_->calc_total_energy_deposition();
 
-  // Update results for each detector
-  size_t num_detectors = this->calo_->num_detectors();
-  for(size_t i_det=0; i_det<num_detectors; ++i_det){
-    auto edep_det=edep[i_det];
-    result.edep.at(i_det)+=edep_det;
-    result.edep_err.at(i_det)+=(edep_det*edep_det);
-  }
-  calo_->clear();
+    // Update results for each detector
+    size_t num_detectors = this->calo_->num_detectors();
+    for (size_t i_det = 0; i_det < num_detectors; ++i_det)
+    {
+        auto edep_det = edep[i_det];
+        result.edep.at(i_det) += edep_det;
+        result.edep_err.at(i_det) += (edep_det * edep_det);
+    }
+    calo_->clear();
 }
 
 //---------------------------------------------------------------------------//
 //! Finalize results
 void CaloTestBase::finalize()
 {
-  if ( num_batches_ <= 1 ) return;
+    if (num_batches_ <= 1)
+        return;
 
-  // Compute the mean and relative_err over batches for each detector
-  double norm= 1.0/double(num_batches_);
-  size_t num_detectors = this->calo_->num_detectors();
-  for(size_t i_det=0; i_det<num_detectors; ++i_det){
-    auto mu=result.edep.at(i_det)*norm;
-    auto var=result.edep_err.at(i_det)*norm- mu*mu;
-      CELER_ASSERT(var>0);
-      auto err=sqrt(var) / mu;
-      result.edep.at(i_det) = mu;
-      result.edep_err.at(i_det) = err;
-  }
+    // Compute the mean and relative_err over batches for each detector
+    double norm = 1.0 / double(num_batches_);
+    size_t num_detectors = this->calo_->num_detectors();
+    for (size_t i_det = 0; i_det < num_detectors; ++i_det)
+    {
+        auto mu = result.edep.at(i_det) * norm;
+        auto var = result.edep_err.at(i_det) * norm - mu * mu;
+        CELER_ASSERT(var > 0);
+        auto err = sqrt(var) / mu;
+        result.edep.at(i_det) = mu;
+        result.edep_err.at(i_det) = err;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -113,8 +116,8 @@ auto CaloTestBase::run(size_type num_tracks,
                        size_type num_steps,
                        size_type num_batches) -> RunResult
 {
-   this->run_impl<M>(num_tracks, num_steps, num_batches);
-   return result;
+    this->run_impl<M>(num_tracks, num_steps, num_batches);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

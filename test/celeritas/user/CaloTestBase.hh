@@ -49,13 +49,13 @@ class CaloTestBase : virtual public StepCollectorTestBase
     virtual VecString get_detector_names() const = 0;
 
     template<MemSpace M>
-    RunResult run(size_type num_tracks, size_type num_steps, size_type num_batches=1);
+    RunResult
+    run(size_type num_tracks, size_type num_steps, size_type num_batches = 1);
 
     // Get JSON output from the simple calo interface
     std::string output() const;
 
   protected:
-
     virtual void gather_batch_results();
     virtual void initalize();
     virtual void finalize();

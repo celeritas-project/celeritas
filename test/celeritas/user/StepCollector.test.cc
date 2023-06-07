@@ -114,34 +114,30 @@ class TestEm3CollectorTestBase : public TestEm3Base,
     }
 };
 
+class TestPhotonCollectorTestBase : public TestEm3CollectorTestBase
+{
+    VecPrimary make_primaries(size_type count) override
+    {
+        // Get photo id
+        auto photon = this->particle()->find(pdg::gamma());
+        CELER_ASSERT(photon);
 
-class TestPhotonCollectorTestBase : public  TestEm3CollectorTestBase {
+        Primary p;
+        p.energy = MevEnergy{10.0};
+        p.position = {-22, 0, 0};
+        p.direction = {1, 0, 0};
+        p.time = 0;
+        p.particle_id = photon;
+        std::vector<Primary> result(count, p);
 
-  VecPrimary make_primaries(size_type count) override
-  {
-
-    // Get photo id
-    auto photon = this->particle()->find(pdg::gamma());
-    CELER_ASSERT(photon);
-
-    Primary p;
-    p.energy = MevEnergy{10.0};
-    p.position = {-22, 0, 0};
-    p.direction = {1, 0, 0};
-    p.time = 0;
-    p.particle_id=photon;
-    std::vector<Primary> result(count, p);
-
-    for (auto i : range(count))
-      {
-        result[i].event_id = EventId{0};
-        result[i].track_id = TrackId{i};
-      }
-    return result;
-  }
-
+        for (auto i : range(count))
+        {
+            result[i].event_id = EventId{0};
+            result[i].track_id = TrackId{i};
+        }
+        return result;
+    }
 };
-
 
 #define TestEm3MctruthTest TEST_IF_CELERITAS_GEANT(TestEm3MctruthTest)
 class TestEm3MctruthTest : public TestEm3CollectorTestBase,
@@ -158,9 +154,9 @@ class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
     }
 };
 
-
 #define TestPhotonCaloTest TEST_IF_CELERITAS_GEANT(TestPhotonCaloTest)
-class TestPhotonCaloTest : public TestPhotonCollectorTestBase, public CaloTestBase
+class TestPhotonCaloTest : public TestPhotonCollectorTestBase,
+                           public CaloTestBase
 {
     VecString get_detector_names() const final
     {
@@ -354,24 +350,28 @@ TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
 
 TEST_F(TestPhotonCaloTest, sixteen_batches)
 {
-  auto result = this->run<MemSpace::host>(16, 32, 16);
+    auto result = this->run<MemSpace::host>(16, 32, 16);
 
-  static double const expected_edep[] = {9.0653751813736, 17.177626720468, 12.691359768897};
-  static double const expected_edep_err[] = {0.64823529758419, 0.42812745087497, 0.63485083267392};
+    static double const expected_edep[]
+        = {9.0653751813736, 17.177626720468, 12.691359768897};
+    static double const expected_edep_err[]
+        = {0.64823529758419, 0.42812745087497, 0.63485083267392};
 
-  EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
-  EXPECT_VEC_NEAR(expected_edep_err, result.edep_err, 0.5);
+    EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+    EXPECT_VEC_NEAR(expected_edep_err, result.edep_err, 0.5);
 }
 
 TEST_F(TestPhotonCaloTest, TEST_IF_CELER_DEVICE(step_device))
 {
-  auto result = this->run<MemSpace::device>(16,32, 16);
+    auto result = this->run<MemSpace::device>(16, 32, 16);
 
-  static double const expected_edep[] = {9.0653751813736, 17.177626720468, 12.691359768897};
-  static double const expected_edep_err[] = {0.64823529758419, 0.42812745087497, 0.63485083267392};
+    static double const expected_edep[]
+        = {9.0653751813736, 17.177626720468, 12.691359768897};
+    static double const expected_edep_err[]
+        = {0.64823529758419, 0.42812745087497, 0.63485083267392};
 
-  EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
-  EXPECT_VEC_NEAR(expected_edep_err, result.edep_err, 0.5);
+    EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+    EXPECT_VEC_NEAR(expected_edep_err, result.edep_err, 0.5);
 }
 
 //---------------------------------------------------------------------------//
