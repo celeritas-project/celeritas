@@ -77,19 +77,6 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
     ActionId id_;
     SPConstMsc msc_;
     UniformFieldParams field_params_;
-
-    // TODO: kind of hacky way to support msc being optional
-    // (required because we have to pass "empty" refs if they're missing)
-    template<MemSpace M>
-    struct ExternalRefs
-    {
-        UrbanMscData<Ownership::const_reference, M> msc;
-
-        ExternalRefs(SPConstMsc const& msc_params);
-    };
-
-    ExternalRefs<MemSpace::host> host_data_;
-    ExternalRefs<MemSpace::device> device_data_;
 };
 
 //---------------------------------------------------------------------------//
