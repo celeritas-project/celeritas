@@ -405,7 +405,7 @@ if(CELERITAS_USE_Geant4)
       "TestEm3NoMsc.*"
       "TestEm3Msc.*"
       "TestEm3MscNofluct.*"
-      "TestEm15MscField.*"
+      "TestEm15FieldMsc.*"
       "OneSteelSphere.*"
   )
 else()
