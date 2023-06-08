@@ -102,6 +102,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/ext/VecgeomData.hh"
 
 #include "GenericSolid.hh"
@@ -115,7 +116,7 @@ namespace detail
 namespace
 {
 
-static constexpr double scale = 0.1;  // G4 mm to VecGeom cm scale
+static constexpr double scale = 0.1;  // G4 mm to Celeritas cm scale
 
 //---------------------------------------------------------------------------//
 
@@ -250,9 +251,8 @@ GeantGeoConverter::convert_logical(G4LogicalVolume const* g4lv_mom)
         = dynamic_cast<GenericSolidBase const*>(shape_mom);
     if (is_unknown_shape)
     {
-        CELER_LOG(info) << "Unsupported solid belongs to logical volume '"
-                        << g4lv_mom->GetName() << "'@"
-                        << static_cast<void const*>(g4lv_mom);
+        CELER_LOG(info) << "Unsupported solid belongs to logical volume "
+                        << PrintableLV{g4lv_mom};
     }
 
     // add 0x suffix, unless already provided from GDML through Geant4 parser
@@ -839,45 +839,41 @@ void GeantGeoConverter::fix_reflected(G4LogicalVolume const* lv_refl)
     if (vglv_iter == logical_volume_map_.end())
     {
         CELER_LOG(warning) << "No VecGeom counterpart found for "
-                              "reflected volume '"
-                           << lv_refl->GetName() << "'@"
-                           << static_cast<void const*>(lv_refl);
+                              "reflected volume "
+                           << PrintableLV{lv_refl};
         return;
     }
     LogicalVolume* vglv = const_cast<LogicalVolume*>(vglv_iter->second);
 
-    // NOTE: I think vecgeom mixed up the semantics of reflected/constituent?
+    // Get *reflected* lv corresponding to the unreflected one
     LogicalVolume* vglv_refl
         = vgdml::ReflFactory::Instance().GetReflectedLV(vglv);
     if (!vglv_refl)
     {
-        CELER_LOG(warning) << "No VecGeom constituent volume for '"
-                           << vglv->GetLabel() << "'@"
-                           << static_cast<void const*>(vglv) << " (volume ID "
-                           << vglv->id() << ")";
+        CELER_LOG(warning) << "No VecGeom constituent volume for \""
+                           << vglv->GetLabel() << "\" (ID=" << vglv->id()
+                           << ")";
         return;
     }
 
-    auto&& [vglv_refl_iter, inserted]
+    auto&& [vglv_fixed_iter, inserted]
         = g4logvol_id_map_.insert({lv, VolumeId{}});
     if (!inserted)
     {
-        CELER_ASSERT(vglv_refl_iter->second);
-        CELER_LOG(warning) << "Constituent volume '" << lv->GetName() << "'@"
-                           << static_cast<void const*>(lv)
+        CELER_ASSERT(vglv_fixed_iter->second);
+        CELER_LOG(warning) << "Constituent volume " << PrintableLV{lv}
                            << " was already mapped to (volume ID "
-                           << vglv_refl_iter->second.unchecked_get() << ")";
+                           << vglv_fixed_iter->second.unchecked_get() << ")";
         return;
     }
 
-    CELER_LOG(debug) << "Mapping constituent volume '" << lv->GetName() << "'@"
-                     << static_cast<void const*>(lv)
-                     << " of reflected volume '" << lv_refl->GetName() << "'@"
-                     << static_cast<void const*>(lv_refl)
-                     << "to VecGeom volume '" << vglv_refl->GetLabel()
-                     << "' (ID=" << vglv->id() << ") of reflected volume '"
-                     << vglv->GetLabel() << "' (ID=" << vglv->id() << ")";
-    vglv_refl_iter->second = VolumeId{vglv->id()};
+    CELER_LOG(debug) << "Mapping constituent volume " << PrintableLV{lv}
+                     << " of reflected volume " << PrintableLV{lv_refl}
+                     << " to constituent VecGeom volume '" << vglv->GetLabel()
+                     << "' (ID=" << vglv->id() << ") of volume '"
+                     << vglv_refl->GetLabel() << "' (ID=" << vglv_refl->id()
+                     << ")";
+    vglv_fixed_iter->second = VolumeId{vglv->id()};
 
     // And fix the unreflected one
     g4logvol_id_map_[lv_refl] = VolumeId{vglv_refl->id()};
