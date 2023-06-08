@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <type_traits>
 
 #include "corecel/device_runtime_api.h"
@@ -88,26 +89,25 @@ class ActionLauncher
 
     using KernelThreadRange = void (*)(Range<ThreadId> const, F);
 
+    using KernelFunction
+        = std::function<void(CoreState<MemSpace::device> const&, F const&)>;
+
   public:
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(),
-                              KernelNumThreads{&launch_action_impl<F>}}
-        , calc_launch_params_range_{action.label(),
-                                    KernelThreadRange{&launch_action_impl<F>}}
+        : calc_launch_params_{init_kernel_param_calculator(action.label(),
+                                                           false)}
         , action_id_{action.action_id()}
-        , is_action_sorted_{false}
+        , invoke_kernel_{bind_invoke_kernel(false)}
     {
     }
 
     //! Create a launcher with a string extension
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
-        : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              KernelNumThreads{&launch_action_impl<F>}}
-        , calc_launch_params_range_{action.label() + "-" + std::string(ext),
-                                    KernelThreadRange{&launch_action_impl<F>}}
+        : calc_launch_params_{init_kernel_param_calculator(
+            action.label() + "-" + std::string(ext), false)}
         , action_id_{action.action_id()}
-        , is_action_sorted_{false}
+        , invoke_kernel_{bind_invoke_kernel(false)}
     {
     }
 
@@ -115,17 +115,16 @@ class ActionLauncher
     //! sorting is done for this action
     explicit ActionLauncher(CoreParams const& params,
                             ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(),
-                              KernelNumThreads{&launch_action_impl<F>}}
-        , calc_launch_params_range_{action.label(),
-                                    KernelThreadRange{&launch_action_impl<F>}}
-        , action_id_{action.action_id()}
-        , is_action_sorted_{action.order() == ActionOrder::post
-                                && params.init()->host_ref().track_order
-                                       == TrackOrder::sort_step_limit_action
-                            || action.order() == ActionOrder::along
-                                   && params.init()->host_ref().track_order
-                                          == TrackOrder::sort_along_step_action}
+        : ActionLauncher(
+            params,
+            action,
+            action.label(),
+            action.order() == ActionOrder::post
+                    && params.init()->host_ref().track_order
+                           == TrackOrder::sort_step_limit_action
+                || action.order() == ActionOrder::along
+                       && params.init()->host_ref().track_order
+                              == TrackOrder::sort_along_step_action)
     {
     }
 
@@ -134,18 +133,74 @@ class ActionLauncher
     ActionLauncher(CoreParams const& params,
                    ExplicitActionInterface const& action,
                    std::string_view ext)
-        : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              KernelNumThreads{&launch_action_impl<F>}}
-        , calc_launch_params_range_{action.label() + "-" + std::string(ext),
-                                    KernelThreadRange{&launch_action_impl<F>}}
-        , action_id_{action.action_id()}
-        , is_action_sorted_{action.order() == ActionOrder::post
-                                && params.init()->host_ref().track_order
-                                       == TrackOrder::sort_step_limit_action
-                            || action.order() == ActionOrder::along
-                                   && params.init()->host_ref().track_order
-                                          == TrackOrder::sort_along_step_action}
+        : ActionLauncher(
+            params,
+            action,
+            action.label() + "-" + std::string(ext),
+            action.order() == ActionOrder::post
+                    && params.init()->host_ref().track_order
+                           == TrackOrder::sort_step_limit_action
+                || action.order() == ActionOrder::along
+                       && params.init()->host_ref().track_order
+                              == TrackOrder::sort_along_step_action)
     {
+    }
+
+  private:
+    ActionLauncher(CoreParams const& params,
+                   ExplicitActionInterface const& action,
+                   std::string_view name,
+                   bool is_action_sorted)
+        : calc_launch_params_{init_kernel_param_calculator(name,
+                                                           is_action_sorted)}
+        , action_id_{action.action_id()}
+        , invoke_kernel_{bind_invoke_kernel(is_action_sorted)}
+    {
+    }
+
+  public:
+    KernelParamCalculator
+    init_kernel_param_calculator(std::string_view name,
+                                 bool const is_action_sorted)
+    {
+        if (!is_action_sorted)
+        {
+            return {name, KernelNumThreads{&launch_action_impl<F>}};
+        }
+        else
+        {
+            return {name, KernelThreadRange{&launch_action_impl<F>}};
+        }
+    }
+
+    //! Select the correct kernel call if sorting is done for this action
+    KernelFunction bind_invoke_kernel(bool const is_action_sorted)
+    {
+        if (!is_action_sorted)
+        {
+            return [this](CoreState<MemSpace::device> const& state,
+                          F const& call_thread) {
+                return (*this)(state.size(), state.stream_id(), call_thread);
+            };
+        }
+        else
+        {
+            return [this](CoreState<MemSpace::device> const& state,
+                          F const& call_thread) {
+                if (Range<ThreadId> threads
+                    = detail::compute_launch_params(action_id_, state);
+                    threads.size())
+                {
+                    CELER_DEVICE_PREFIX(Stream_t)
+                    stream
+                        = celeritas::device().stream(state.stream_id()).get();
+                    auto config = calc_launch_params_(threads.size());
+                    launch_action_impl<F>
+                        <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
+                            threads, call_thread);
+                }
+            };
+        }
     }
 
     //! Launch a Kernel with reduced grid size if tracks are sorted using the
@@ -154,22 +209,7 @@ class ActionLauncher
                     F const& call_thread) const
     {
         CELER_EXPECT(state.stream_id());
-        if (!is_action_sorted_)
-        {
-            return (*this)(state.size(), state.stream_id(), call_thread);
-        }
-
-        if (Range<ThreadId> threads
-            = detail::compute_launch_params(action_id_, state);
-            threads.size())
-        {
-            CELER_DEVICE_PREFIX(Stream_t)
-            stream = celeritas::device().stream(state.stream_id()).get();
-            auto config = calc_launch_params_range_(threads.size());
-            launch_action_impl<F>
-                <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                    threads, call_thread);
-        }
+        invoke_kernel_(state, call_thread);
     }
 
     //! Launch a kernel with a custom number of threads
@@ -189,9 +229,8 @@ class ActionLauncher
 
   private:
     KernelParamCalculator calc_launch_params_;
-    KernelParamCalculator calc_launch_params_range_;
     ActionId action_id_;
-    bool is_action_sorted_;
+    KernelFunction invoke_kernel_;
 };
 
 //---------------------------------------------------------------------------//
