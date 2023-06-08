@@ -51,9 +51,6 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
     G4Backtrace::DefaultSignals() = {};
 #endif
 
-    scoped_logger_ = std::make_unique<ScopedGeantLogger>();
-    scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
-
     if (!ends_with(filename, ".gdml"))
     {
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
@@ -61,6 +58,9 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
 
     host_ref_.world = load_geant_geometry(filename);
     loaded_gdml_ = true;
+
+    scoped_logger_ = std::make_unique<ScopedGeantLogger>();
+    scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
 
     this->build_tracking();
     this->build_metadata();
