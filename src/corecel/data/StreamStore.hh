@@ -120,10 +120,13 @@ class StreamStore
             // Extra parens needed to return reference instead of copy
             return (self.host_states_);
         }
-        else if constexpr (M == MemSpace::device)
-        {
-            return (self.device_states_);
-        }
+#ifndef __NVCC__
+        // CUDA 11.4 complains about 'else if constexpr' ("missing return
+        // statement") and GCC 11.2 complains about leaving off the 'else'
+        // ("inconsistent deduction for auto return type")
+        else
+#endif
+        return (self.device_states_);
     }
 
     template<MemSpace M, class Self>

@@ -16,12 +16,16 @@
 #include <G4SolidStore.hh>
 #include <G4TouchableHistory.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4ios.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/sys/ScopedMem.hh"
+
+#include "ScopedGeantExceptionHandler.hh"
+#include "ScopedGeantLogger.hh"
 
 namespace celeritas
 {
@@ -41,6 +45,15 @@ load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
     ScopedMem record_mem("load_geant_geometry");
+
+    {
+        // I have no idea why, but creating the GDML parser resets the
+        // ScopedGeantLogger on its first instantiation (geant4@11.0)
+        G4GDMLParser temp_parser_init;
+    }
+
+    ScopedGeantLogger scoped_logger;
+    ScopedGeantExceptionHandler scoped_exceptions;
 
     G4GDMLParser gdml_parser;
     // Note that material and element names (at least as

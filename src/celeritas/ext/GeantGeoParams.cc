@@ -22,16 +22,15 @@
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 #include "Convert.geant.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
-#include "GeantGeoUtils.hh"  // IWYU pragma: associated
+#include "GeantGeoUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
-#include "detail/GeantLoggerAdapter.hh"
+#include "ScopedGeantLogger.hh"
 #include "detail/GeantVolumeVisitor.hh"
 
 namespace celeritas
@@ -52,19 +51,19 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
     G4Backtrace::DefaultSignals() = {};
 #endif
 
-    detail::GeantLoggerAdapter scoped_logger;
-    scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
-
     if (!ends_with(filename, ".gdml"))
     {
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    {
-        ScopedTimeLog scoped_time;
-        host_ref_.world = load_geant_geometry(filename);
-    }
+    host_ref_.world = load_geant_geometry(filename);
     loaded_gdml_ = true;
+
+    // NOTE: only instantiate the logger/exception handler *after* loading
+    // Geant4 geometry, since something in the GDML parser's call chain resets
+    // the Geant logger.
+    scoped_logger_ = std::make_unique<ScopedGeantLogger>();
+    scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
 
     this->build_tracking();
     this->build_metadata();

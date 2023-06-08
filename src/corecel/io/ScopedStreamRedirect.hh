@@ -38,6 +38,9 @@ class ScopedStreamRedirect
     // Get redirected output, with trailing whitespaces removed
     std::string str();
 
+    // Get the raw stream after flushing the input
+    std::stringstream& get();
+
   private:
     // >>> DATA
 

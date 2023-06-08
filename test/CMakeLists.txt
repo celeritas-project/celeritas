@@ -271,7 +271,7 @@ celeritas_add_object_library(testcel_celeritas_core
   celeritas/user/MctruthTestBase.cc
   celeritas/user/StepCollectorTestBase.cc
 )
-target_link_libraries(testcel_celeritas_core
+celeritas_target_link_libraries(testcel_celeritas_core
   PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_optional_json_libs}
 )
 
@@ -406,7 +406,7 @@ if(CELERITAS_USE_Geant4)
       "TestEm3NoMsc.*"
       "TestEm3Msc.*"
       "TestEm3MscNofluct.*"
-      "TestEm15MscField.*"
+      "TestEm15FieldMsc.*"
       "OneSteelSphere.*"
   )
 else()
@@ -541,7 +541,7 @@ celeritas_add_test(celeritas/user/StepCollector.test.cc
 
 if(CELERITAS_USE_Geant4)
   celeritas_setup_tests(SERIAL PREFIX accel
-    LINK_LIBRARIES Celeritas::accel testcel_celeritas
+    LINK_LIBRARIES Celeritas::accel Celeritas::celeritas testcel_celeritas
   )
 
   celeritas_add_test(accel/ExceptionConverter.test.cc)
