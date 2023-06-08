@@ -123,8 +123,9 @@ GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
 }
 
 //---------------------------------------------------------------------------//
-GeantVolResult GeantVolResult::from_pointers(GeoParamsInterface const& geom,
-                                             G4VPhysicalVolume const* world)
+GeantVolResult
+GeantVolResult::from_pointers([[maybe_unused]] GeoParamsInterface const& geom,
+                              G4VPhysicalVolume const* world)
 {
     CELER_VALIDATE(world, << "world volume is nullptr");
 #if CELERITAS_USE_GEANT4
