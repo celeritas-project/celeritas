@@ -8,6 +8,10 @@
 #include "GenericGeoTestBase.hh"
 
 #include "celeritas_config.h"
+#if CELERITAS_USE_GEANT4
+#    include <G4LogicalVolume.hh>
+#endif
+
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/OrangeData.hh"
@@ -123,7 +127,7 @@ GeantVolResult GeantVolResult::from_pointers(GeoParamsInterface const& geom,
                                              G4VPhysicalVolume const* world)
 {
     CELER_VALIDATE(world, << "world volume is nullptr");
-
+#if CELERITAS_USE_GEANT4
     using Result = GenericGeoGeantImportVolumeResult;
     Result result;
     for (G4LogicalVolume* lv : celeritas::geant_logical_volumes())
@@ -142,6 +146,9 @@ GeantVolResult GeantVolResult::from_pointers(GeoParamsInterface const& geom,
         }
     }
     return result;
+#else
+    CELER_NOT_CONFIGURED("Geant4");
+#endif
 }
 
 //---------------------------------------------------------------------------//
