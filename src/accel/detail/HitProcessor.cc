@@ -76,10 +76,10 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     // Create temporary objects
     step_ = std::make_unique<G4Step>();
 
-#if G4VERSION_NUMBER >= 1101
+#if G4VERSION_NUMBER >= 1103
 #    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
 #else
-#    define HP_CLEAR_STEP_POINT(CMD) /* no "reset" before v11.0.1 */
+#    define HP_CLEAR_STEP_POINT(CMD) /* no "reset" before v11.0.3 */
 #endif
 
 #define HP_SETUP_POINT(LOWER, TITLE)                                          \
