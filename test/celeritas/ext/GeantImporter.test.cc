@@ -1236,7 +1236,7 @@ TEST_F(Solids, volumes_only)
 
     static char const* const expected_names[]
         = {"box500",   "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",    "trd1",     "trd2",      "trd3",       "trd3_refl",
+           "trap1",    "trd1",     "trd2",      "",           "trd3_refl",
            "tube100",  "boolean1", "polycone1", "genPocone1", "ellipsoid1",
            "tetrah1",  "orb1",     "polyhedr1", "hype1",      "elltube1",
            "ellcone1", "arb8b",    "arb8a",     "World",      "trd3_refl"};
@@ -1262,12 +1262,14 @@ TEST_F(Solids, volumes_unique)
         names.push_back(name);
     }
     static char const* const expected_names[]
-        = {"box5000x0",    "cone10x0",      "para10x0",      "sphere10x0",
-           "parabol10x0",  "trap10x0",      "trd10x0",       "trd20x0",
-           "trd30x0",      "trd3_refl0x0",  "tube1000x0",    "boolean10x0",
-           "polycone10x0", "genPocone10x0", "ellipsoid10x0", "tetrah10x0",
-           "orb10x0",      "polyhedr10x0",  "hype10x0",      "elltube10x0",
-           "ellcone10x0",  "arb8b0x0",      "arb8a0x0",      "World0x0",
+        = {"box5000x0",    "cone10x0",      "para10x0",
+           "sphere10x0",   "parabol10x0",   "trap10x0",
+           "trd10x0",      "trd20x0",       "",
+           "trd3_refl0x0", "tube1000x0",    "boolean10x0",
+           "polycone10x0", "genPocone10x0", "ellipsoid10x0",
+           "tetrah10x0",   "orb10x0",       "polyhedr10x0",
+           "hype10x0",     "elltube10x0",   "ellcone10x0",
+           "arb8b0x0",     "arb8a0x0",      "World0x0",
            "trd3_refl0x0"};
     EXPECT_VEC_EQ(expected_names, names);
 }
