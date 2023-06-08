@@ -38,7 +38,7 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
             detail::PropagationApplier{detail::RZMapFieldTrackPropagator{
                 field_->ref<MemSpace::native>()}});
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            *this, "propagate-rzmap");
+            params, *this, "propagate-rzmap");
         launch_kernel(state, execute_thread);
     }
     detail::launch_apply_msc(

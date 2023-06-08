@@ -18,24 +18,14 @@ namespace detail
 //---------------------------------------------------------------------------//
 
 Range<ThreadId> compute_launch_params(ActionId action,
-                                      CoreParams const& params,
-                                      CoreState<MemSpace::device> const& state,
-                                      TrackOrder expected)
+                                      CoreState<MemSpace::device> const& state)
 {
-    if (params.init()->host_ref().track_order == expected)
-    {
-        auto action_range = state.get_action_range(action);
-        return range(
-            action_range.front(),
-            action_range.front()
-                + celeritas::ceil_to_multiple(
-                    action_range.size(),
-                    size_type{celeritas::device().default_block_size()}));
-    }
-    else
-    {
-        return range(ThreadId{state.size()});
-    }
+    auto action_range = state.get_action_range(action);
+    return range(action_range.front(),
+                 action_range.front()
+                     + celeritas::ceil_to_multiple(
+                         action_range.size(),
+                         size_type{celeritas::device().default_block_size()}));
 }
 //---------------------------------------------------------------------------//
 }  // namespace detail

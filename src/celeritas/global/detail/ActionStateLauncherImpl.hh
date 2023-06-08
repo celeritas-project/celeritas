@@ -19,9 +19,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 
 Range<ThreadId> compute_launch_params(ActionId action,
-                                      CoreParams const& params,
-                                      CoreState<MemSpace::device> const& state,
-                                      TrackOrder expected);
+                                      CoreState<MemSpace::device> const& state);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

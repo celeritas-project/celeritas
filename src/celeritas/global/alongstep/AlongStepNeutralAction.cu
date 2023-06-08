@@ -31,7 +31,7 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
         AlongStep{detail::NoMsc{},
                   detail::LinearTrackPropagator{},
                   detail::NoELoss{}});
-    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    static ActionLauncher<decltype(execute)> const launch_kernel(params, *this);
     launch_kernel(state, execute);
 }
 

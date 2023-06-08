@@ -17,7 +17,9 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/detail/ActionStateLauncherImpl.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "ActionInterface.hh"
 #include "CoreParams.hh"
@@ -30,7 +32,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch the given executor up to the maximum thread count
+ * Launch the given executor up to the maximum thread count.
  */
 template<class F>
 __global__ void
@@ -93,7 +95,8 @@ class ActionLauncher
                               KernelNumThreads{&launch_action_impl<F>}}
         , calc_launch_params_range_{action.label(),
                                     KernelThreadRange{&launch_action_impl<F>}}
-        , id_{action.action_id()}
+        , action_id_{action.action_id()}
+        , is_action_sorted_{false}
     {
     }
 
@@ -103,28 +106,61 @@ class ActionLauncher
                               KernelNumThreads{&launch_action_impl<F>}}
         , calc_launch_params_range_{action.label() + "-" + std::string(ext),
                                     KernelThreadRange{&launch_action_impl<F>}}
-        , id_{action.action_id()}
+        , action_id_{action.action_id()}
+        , is_action_sorted_{false}
     {
     }
 
-    //! Launch a kernel for the wrapped executor
-    void operator()(CoreState<MemSpace::device> const& state,
-                    F const& call_thread) const
+    //! Create a launcher from an action, minimizing kernel grid size if
+    //! sorting is done for this action
+    explicit ActionLauncher(CoreParams const& params,
+                            ExplicitActionInterface const& action)
+        : calc_launch_params_{action.label(),
+                              KernelNumThreads{&launch_action_impl<F>}}
+        , calc_launch_params_range_{action.label(),
+                                    KernelThreadRange{&launch_action_impl<F>}}
+        , action_id_{action.action_id()}
+        , is_action_sorted_{action.order() == ActionOrder::post
+                                && params.init()->host_ref().track_order
+                                       == TrackOrder::sort_step_limit_action
+                            || action.order() == ActionOrder::along
+                                   && params.init()->host_ref().track_order
+                                          == TrackOrder::sort_along_step_action}
     {
-        return (*this)(state.size(), state.stream_id(), call_thread);
+    }
+
+    //! Create a launcher with a string extension, minimizing kernel grid size
+    //! if sorting is done for this action
+    ActionLauncher(CoreParams const& params,
+                   ExplicitActionInterface const& action,
+                   std::string_view ext)
+        : calc_launch_params_{action.label() + "-" + std::string(ext),
+                              KernelNumThreads{&launch_action_impl<F>}}
+        , calc_launch_params_range_{action.label() + "-" + std::string(ext),
+                                    KernelThreadRange{&launch_action_impl<F>}}
+        , action_id_{action.action_id()}
+        , is_action_sorted_{action.order() == ActionOrder::post
+                                && params.init()->host_ref().track_order
+                                       == TrackOrder::sort_step_limit_action
+                            || action.order() == ActionOrder::along
+                                   && params.init()->host_ref().track_order
+                                          == TrackOrder::sort_along_step_action}
+    {
     }
 
     //! Launch a Kernel with reduced grid size if tracks are sorted using the
     //! expected track order strategy.
     void operator()(CoreState<MemSpace::device> const& state,
-                    CoreParams const& params,
-                    TrackOrder expected,
                     F const& call_thread) const
     {
         CELER_EXPECT(state.stream_id());
+        if (!is_action_sorted_)
+        {
+            return (*this)(state.size(), state.stream_id(), call_thread);
+        }
 
         if (Range<ThreadId> threads
-            = detail::compute_launch_params(id_, params, state, expected);
+            = detail::compute_launch_params(action_id_, state);
             threads.size())
         {
             CELER_DEVICE_PREFIX(Stream_t)
@@ -154,7 +190,8 @@ class ActionLauncher
   private:
     KernelParamCalculator calc_launch_params_;
     KernelParamCalculator calc_launch_params_range_;
-    ActionId id_;
+    ActionId action_id_;
+    bool is_action_sorted_;
 };
 
 //---------------------------------------------------------------------------//

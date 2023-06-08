@@ -28,8 +28,8 @@ void CombinedBremModel::execute(CoreParams const& params,
         state.ptr(),
         this->action_id(),
         InteractionApplier{CombinedBremExecutor{this->device_ref()}});
-    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(state, params, TrackOrder::sort_step_limit_action, execute);
+    static ActionLauncher<decltype(execute)> const launch_kernel(params, *this);
+    launch_kernel(state, execute);
 }
 
 //---------------------------------------------------------------------------//
