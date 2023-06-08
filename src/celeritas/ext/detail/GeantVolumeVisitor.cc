@@ -18,10 +18,22 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportVolume.hh"
 
+#include "../GeantGeoUtils.hh"
+
 namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Generate the GDML name for a Geant4 logical volume.
+ */
+std::string
+GeantVolumeVisitor::generate_name(G4LogicalVolume const& logical_volume)
+{
+    return GeantVolumeVisitor::generate_name_refl(logical_volume).first;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Store all logical volumes by recursively looping over them.
@@ -60,7 +72,14 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
     }
     else if (unique_volumes_)
     {
-        volume.name = this->generate_name(logical_volume);
+        auto [name, refl] = this->generate_name_refl(logical_volume);
+        volume.name = std::move(name);
+        if (refl)
+        {
+            CELER_LOG(debug) << "Skipping underlying reflecting volume "
+                             << PrintableLV{refl} << " from "
+                             << PrintableLV{&logical_volume};
+        }
     }
 
     // Recursive: repeat for every daughter volume, if there are any
@@ -68,31 +87,6 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
     {
         this->visit(*logical_volume.GetDaughter(i)->GetLogicalVolume());
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Generate the GDML name for a Geant4 logical volume.
- */
-std::string
-GeantVolumeVisitor::generate_name(G4LogicalVolume const& logical_volume)
-{
-    // Run the LV through the GDML export name generator so that the volume is
-    // uniquely identifiable in VecGeom. Reuse the same instance to reduce
-    // overhead: note that the method isn't const correct.
-    static G4GDMLWriteStructure temp_writer;
-    std::string name
-        = temp_writer.GenerateName(logical_volume.GetName(), &logical_volume);
-
-    auto const* refl_factory = G4ReflectionFactory::Instance();
-    if (refl_factory->GetConstituentLV(
-            const_cast<G4LogicalVolume*>(&logical_volume)))
-    {
-        // If this is a reflected volume, add the reflection extension after
-        // the final pointer to match the converted VecGeom name
-        name += refl_factory->GetVolumesNameExtension();
-    }
-    return name;
 }
 
 //---------------------------------------------------------------------------//
@@ -139,6 +133,35 @@ std::vector<Label> GeantVolumeVisitor::build_label_vector() const
     }
 
     return labels;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate the GDML name and return a pointer to an underlying volume.
+ */
+std::pair<std::string, G4LogicalVolume const*>
+GeantVolumeVisitor::generate_name_refl(G4LogicalVolume const& logical_volume)
+{
+    // Run the LV through the GDML export name generator so that the volume is
+    // uniquely identifiable in VecGeom. Reuse the same instance to reduce
+    // overhead: note that the method isn't const correct.
+    static G4GDMLWriteStructure temp_writer;
+
+    auto const* refl_factory = G4ReflectionFactory::Instance();
+    if (auto const* unrefl_lv = refl_factory->GetConstituentLV(
+            const_cast<G4LogicalVolume*>(&logical_volume)))
+    {
+        // If this is a reflected volume, add the reflection extension after
+        // the final pointer to match the converted VecGeom name
+        std::string name
+            = temp_writer.GenerateName(unrefl_lv->GetName(), unrefl_lv);
+        name += refl_factory->GetVolumesNameExtension();
+        return {std::move(name), unrefl_lv};
+    }
+
+    std::string name
+        = temp_writer.GenerateName(logical_volume.GetName(), &logical_volume);
+    return {std::move(name), nullptr};
 }
 
 //---------------------------------------------------------------------------//
