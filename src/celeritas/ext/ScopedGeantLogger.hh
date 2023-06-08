@@ -19,9 +19,9 @@ namespace celeritas
 /*!
  * Install a Geant output destination during this class's lifetime.
  *
- * This class is thread-safe (although it's recommended to be used only outside
- * of threaded code). Multiple geant loggers can be nested, and only
- * the outermost will "own" the log destination.
+ * Since the Geant4 output streams are thread-local, this class is as well.
+ * Multiple geant loggers can be nested, and only the outermost on a given
+ * thread will "own" the log destination.
  */
 class ScopedGeantLogger
 {

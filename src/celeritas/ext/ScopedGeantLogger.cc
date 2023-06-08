@@ -114,8 +114,8 @@ G4int GeantLoggerAdapter::ReceiveG4cerr(G4String const& str)
 }
 
 //---------------------------------------------------------------------------//
-//! Global flag for "ownership" of the Geant4 logger
-bool g_adapter_active_{false};
+//! Thread-local flag for "ownership" of the Geant4 logger
+G4ThreadLocal bool g_adapter_active_{false};
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -131,14 +131,8 @@ ScopedGeantLogger::ScopedGeantLogger()
 {
     if (!g_adapter_active_)
     {
-        static std::mutex capture_mutex;
-        std::lock_guard<std::mutex> scoped_lock{capture_mutex};
-
-        if (!g_adapter_active_)
-        {
-            g_adapter_active_ = true;
-            logger_ = std::make_unique<GeantLoggerAdapter>();
-        }
+        g_adapter_active_ = true;
+        logger_ = std::make_unique<GeantLoggerAdapter>();
     }
 }
 
