@@ -122,7 +122,9 @@ inline CELER_FUNCTION real_type truncation_error(real_type step,
     errvel2 /= (magvel2 * ipow<2>(eps_rel_max));
 
     // Return the square of the maximum truncation error
-    return max(errpos2, errvel2);
+    real_type result = max(errpos2, errvel2);
+    CELER_ENSURE(result >= 0);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
