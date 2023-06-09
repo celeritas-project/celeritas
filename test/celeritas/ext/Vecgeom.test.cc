@@ -44,6 +44,12 @@ namespace
 {
 auto const vecgeom_version
     = celeritas::Version::from_string(celeritas_vecgeom_version);
+
+std::string simplify_pointers(std::string const& s)
+{
+    static const std::regex subs_ptr("0x[0-9a-f]+");
+    return std::regex_replace(s, subs_ptr, "0x0");
+}
 }
 
 //---------------------------------------------------------------------------//
@@ -506,11 +512,10 @@ TEST_F(SolidsTest, output)
 
     if (CELERITAS_USE_JSON)
     {
-        static const std::regex subs_ptr("0x[0-9a-f]+");
-        auto out_str = std::regex_replace(to_string(out), subs_ptr, "0x0");
+        auto out_str = simplify_pointers(to_string(out));
 
         EXPECT_EQ(
-            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["b500","b100","union1","b100","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","World","","trd3_refl"]}})json",
+            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["b500","b100","union1","b100","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3","trd4","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","World","","trd3_refl"]}})json",
             out_str)
             << "\n/*** REPLACE ***/\nR\"json(" << out_str
             << ")json\"\n/******/";
@@ -885,19 +890,29 @@ TEST_F(SolidsGeantTest, accessors)
     auto const& bbox = geom.bbox();
     EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}), bbox.lower());
     EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), bbox.upper());
+}
 
-    ASSERT_EQ(30, geom.num_volumes());
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
-    EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("trd3_refl", geom.id_to_label(VolumeId{9}).name);
-    EXPECT_FALSE(ends_with(geom.id_to_label(VolumeId{9}).ext, "_refl"));
-    EXPECT_EQ(Label{}, geom.id_to_label(VolumeId{10}));
-    EXPECT_EQ("trd3_refl", geom.id_to_label(VolumeId{11}).name);
-    EXPECT_TRUE(ends_with(geom.id_to_label(VolumeId{11}).ext, "_refl"));
-    EXPECT_EQ("trd3_refl", geom.id_to_label(VolumeId{12}).name);
-    EXPECT_FALSE(ends_with(geom.id_to_label(VolumeId{12}).ext, "_refl"));
-    EXPECT_EQ("boolean1", geom.id_to_label(VolumeId{18}).name);
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, names)
+{
+    auto const& geom = *this->geometry();
+    std::vector<std::string> labels;
+    for (auto vid : range(VolumeId{geom.num_volumes()}))
+    {
+        labels.push_back(simplify_pointers(to_string(geom.id_to_label(vid))));
+    }
+
+    // clang-format off
+    static char const* const expected_labels[] = {"World@0x0", "box500@0x0",
+        "cone1@0x0", "para1@0x0", "sphere1@0x0", "parabol1@0x0", "trap1@0x0",
+        "trd1@0x0", "trd2@0x0", "trd3_refl@0x0", "", "trd3_refl@0x0_refl",
+        "trd4@0x0", "tube100@0x0", "", "", "", "", "boolean1@0x0",
+        "orb1@0x0", "polycone1@0x0", "hype1@0x0", "polyhedr1@0x0",
+        "tetrah1@0x0", "arb8a@0x0", "arb8b@0x0", "ellipsoid1@0x0",
+        "elltube1@0x0", "ellcone1@0x0", "genPocone1@0x0"};
+    // clang-format on
+    EXPECT_VEC_EQ(expected_labels, labels);
 }
 
 //---------------------------------------------------------------------------//
@@ -908,11 +923,10 @@ TEST_F(SolidsGeantTest, output)
 
     if (CELERITAS_USE_JSON)
     {
-        static const std::regex subs_ptr("0x[0-9a-f]+");
-        auto out_str = std::regex_replace(to_string(out), subs_ptr, "0x0");
+        auto out_str = simplify_pointers(to_string(out));
 
         EXPECT_EQ(
-            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["World@0x0","box500@0x0","cone1@0x0","para1@0x0","sphere1@0x0","parabol1@0x0","trap1@0x0","trd1@0x0","trd2@0x0","trd3_refl@0x0","","trd3_refl@0x0_refl","trd3_refl@0x0","tube100@0x0","","","","","boolean1@0x0","orb1@0x0","polycone1@0x0","hype1@0x0","polyhedr1@0x0","tetrah1@0x0","arb8a@0x0","arb8b@0x0","ellipsoid1@0x0","elltube1@0x0","ellcone1@0x0","genPocone1@0x0"]}})json",
+            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["World@0x0","box500@0x0","cone1@0x0","para1@0x0","sphere1@0x0","parabol1@0x0","trap1@0x0","trd1@0x0","trd2@0x0","trd3_refl@0x0","","trd3_refl@0x0_refl","trd4@0x0","tube100@0x0","","","","","boolean1@0x0","orb1@0x0","polycone1@0x0","hype1@0x0","polyhedr1@0x0","tetrah1@0x0","arb8a@0x0","arb8b@0x0","ellipsoid1@0x0","elltube1@0x0","ellcone1@0x0","genPocone1@0x0"]}})json",
             out_str)
             << "\n/*** REPLACE ***/\nR\"json(" << out_str
             << ")json\"\n/******/";
