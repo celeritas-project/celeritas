@@ -15,6 +15,8 @@
 #include "LazyGeoManager.hh"
 #include "Test.hh"
 
+class G4VPhysicalVolume;
+
 namespace celeritas
 {
 namespace test
@@ -27,6 +29,25 @@ struct GenericGeoTrackingResult
     std::vector<real_type> halfway_safeties;
 
     void print_expected();
+};
+
+//---------------------------------------------------------------------------//
+struct GenericGeoGeantImportVolumeResult
+{
+    static constexpr int empty = -1;
+    static constexpr int missing = -2;
+
+    static GenericGeoGeantImportVolumeResult
+    from_import(GeoParamsInterface const& geom, G4VPhysicalVolume const* world);
+
+    static GenericGeoGeantImportVolumeResult
+    from_pointers(GeoParamsInterface const& geom,
+                  G4VPhysicalVolume const* world);
+
+    std::vector<int> volumes;  //!< Volume ID for each Geant4 instance ID
+    std::vector<std::string> missing_names;  //!< G4LV names without a match
+
+    void print_expected() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -51,6 +72,7 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     using SPConstGeo = std::shared_ptr<HP const>;
     using GeoTrackView = TV;
     using TrackingResult = GenericGeoTrackingResult;
+    using GeantVolResult = GenericGeoGeantImportVolumeResult;
     //!@}
 
   public:
@@ -61,21 +83,33 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     SPConstGeo const& geometry();
     SPConstGeo const& geometry() const;
 
-    // Get the name of the current volume
+    //! Get the name of the current volume
     std::string volume_name(GeoTrackView const& geo) const;
-    // Get the name of the current surface if available
+    //! Get the name of the current surface if available
     std::string surface_name(GeoTrackView const& geo) const;
 
-    // Get a single-thread host track view
+    //! Get a single-thread host track view
     GeoTrackView make_geo_track_view();
-    // Get and initialize a single-thread host track view
+    //! Get and initialize a single-thread host track view
     GeoTrackView make_geo_track_view(Real3 const& pos, Real3 dir);
 
-    // Calculate a "bumped" position based on the geo's state
+    //! Calculate a "bumped" position based on the geo's state
     Real3 calc_bump_pos(GeoTrackView const& geo, real_type delta) const;
 
     //! Find linear segments until outside
     TrackingResult track(Real3 const& pos, Real3 const& dir);
+    //! Try to map Geant4 volumes using ImportVolume and name
+    GeantVolResult
+    get_import_geant_volumes(G4VPhysicalVolume const* world) const
+    {
+        return GeantVolResult::from_import(*this->geometry(), world);
+    }
+    //! Try to map Geant4 volumes using pointers
+    GeantVolResult
+    get_direct_geant_volumes(G4VPhysicalVolume const* world) const
+    {
+        return GeantVolResult::from_pointers(*this->geometry(), world);
+    }
 
   private:
     using HostStateStore = CollectionStateStore<S, MemSpace::host>;

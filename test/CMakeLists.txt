@@ -342,6 +342,7 @@ celeritas_add_test(celeritas/ext/GeantImporter.test.cc
     "TestEm3*"
     "OneSteelSphere.*"
     "OneSteelSphereGG.*"
+    "Solids.*"
   )
 celeritas_add_test(celeritas/ext/GeantVolumeMapper.test.cc ${_needs_geant4}
   LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)

@@ -22,7 +22,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 #include "ScopedGeantExceptionHandler.hh"
@@ -30,6 +29,48 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Load a gdml input file, creating a pointer owned by Geant4.
+ *
+ * Geant4's constructors for physical/logical volumes register \c this pointers
+ * in a vector which is cleaned up manually. Yuck.
+ *
+ * \return the world volume
+ */
+G4VPhysicalVolume*
+load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
+{
+    CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
+    ScopedMem record_mem("load_geant_geometry");
+
+    {
+        // I have no idea why, but creating the GDML parser resets the
+        // ScopedGeantLogger on its first instantiation (geant4@11.0)
+        G4GDMLParser temp_parser_init;
+    }
+
+    ScopedGeantLogger scoped_logger;
+    ScopedGeantExceptionHandler scoped_exceptions;
+
+    G4GDMLParser gdml_parser;
+    // Note that material and element names (at least as
+    // of Geant4@11.0) are *always* stripped: only volumes and solids keep
+    // their extension.
+    gdml_parser.SetStripFlag(strip_pointer_ext);
+
+    gdml_parser.Read(filename, /* validate_gdml_schema = */ false);
+
+    G4VPhysicalVolume* result(gdml_parser.GetWorldVolume());
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Print detailed information about the touchable history.
@@ -59,41 +100,32 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
 
 //---------------------------------------------------------------------------//
 /*!
- * Load a gdml input file, creating a pointer owned by Geant4.
+ * Load a Geant4 geometry, leaving the pointer suffixes intact for VecGeom.
  *
- * Geant4's constructors for physical/logical volumes register \c this pointers
- * in a vector which is cleaned up manually. Yuck.
+ * Do *not* strip `0x` extensions since those are needed to deduplicate complex
+ * geometries (e.g. CMS) when loaded separately by VGDML and Geant4. The
+ * pointer-based deduplication is handled by the Label and LabelIdMultiMap.
  *
- * \return the world volume
+ * \return Geant4-owned world volume
  */
 G4VPhysicalVolume* load_geant_geometry(std::string const& filename)
 {
-    CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
-    ScopedMem record_mem("load_geant_geometry");
-    ScopedTimeLog scoped_time;
+    return load_geant_geometry_impl(filename, false);
+}
 
-    {
-        // I have no idea why, but creating the GDML parser resets the
-        // ScopedGeantLogger on its first instantiation (geant4@11.0): so
-        // create and destroy one before doing anything else.
-        G4GDMLParser temp_parser_init;
-    }
-    ScopedGeantLogger scoped_logger;
-    ScopedGeantExceptionHandler scoped_exceptions;
-
-    // Create parser; do *not* strip `0x` extensions since those are needed to
-    // deduplicate complex geometries (e.g. CMS) and are handled by the Label
-    // and LabelIdMultiMap. Note that material and element names (at least as
-    // of Geant4@11.0) are *always* stripped: only volumes and solids keep
-    // their extension.
-    G4GDMLParser gdml_parser;
-    gdml_parser.SetStripFlag(false);
-
-    gdml_parser.Read(filename, /* validate_gdml_schema = */ false);
-
-    G4VPhysicalVolume* result(gdml_parser.GetWorldVolume());
-    CELER_ENSURE(result);
-    return result;
+//---------------------------------------------------------------------------//
+/*!
+ * Load a Geant4 geometry, stripping suffixes like a typical Geant4 app.
+ *
+ * With this implementation, we let Geant4 strip the uniquifying pointers,
+ * which allows our application to construct its own based on the actual
+ * in-memory addresses.
+ *
+ * \return Geant4-owned world volume
+ */
+G4VPhysicalVolume* load_geant_geometry_native(std::string const& filename)
+{
+    return load_geant_geometry_impl(filename, true);
 }
 
 //---------------------------------------------------------------------------//
@@ -120,6 +152,25 @@ void reset_geant_geometry()
     {
         CELER_LOG(diagnostic) << "While closing Geant4 geometry: " << msg;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a view to the Geant4 LV store.
+ *
+ * This includes all volumes, potentially null ones as well.
+ */
+Span<G4LogicalVolume*> geant_logical_volumes()
+{
+    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
+    CELER_ASSERT(lv_store);
+    auto start = lv_store->data();
+    auto stop = start + lv_store->size();
+    while (start != stop && *start == nullptr)
+    {
+        ++start;
+    }
+    return {start, stop};
 }
 
 //---------------------------------------------------------------------------//

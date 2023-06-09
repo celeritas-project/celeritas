@@ -123,6 +123,10 @@ acceptance of all terms of the Geant4 Software license.
 
   <trd name="trd1" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
 
+  <trd name="trd2" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
+
+  <trd name="trd3" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
+
   <tube name="t100" lunit="mm" aunit="rad" z="500.0" rmax="200.0" rmin="160" startphi="HALFPI" deltaphi="PI"/>
   <!--tube name="t100" lunit="mm" aunit="deg" z="500.0" rmax="200.0" rmin="160" startphi="-157" deltaphi="-57"/-->
 
@@ -223,6 +227,21 @@ acceptance of all terms of the Geant4 Software license.
   <volume name="trd1">
    <materialref ref="Water"/>
    <solidref ref="trd1"/>
+  </volume>
+
+  <volume name="trd2">
+   <materialref ref="Water"/>
+   <solidref ref="trd2"/>
+  </volume>
+
+  <volume name="trd3">
+   <materialref ref="Water"/>
+   <solidref ref="trd3"/>
+  </volume>
+
+  <volume name="trd3_refl">
+   <materialref ref="Water"/>
+   <solidref ref="trd3"/>
   </volume>
 
   <volume name="tube100">
@@ -351,16 +370,22 @@ acceptance of all terms of the Geant4 Software license.
    </physvol>
 
    <physvol name="reflNormal">
-     <volumeref ref="trd1"/>
+     <volumeref ref="trd2"/>
      <positionref ref="posDirect"/>
      <rotationref ref="rotatebyx"/>
    </physvol>
 
-   <physvol name="reflected">
-     <volumeref ref="trd1"/>
+   <physvol name="reflected0x123">
+     <volumeref ref="trd3"/>
      <positionref ref="posReflect"/>
      <rotationref ref="rotatebyx"/>
      <scale x="1" y="1" z="-1"/>
+   </physvol>
+
+   <physvol name="reflected0x456">
+     <volumeref ref="trd3_refl"/>
+     <position name="trd3_refl_pos" unit="mm" x="-5250" y="-1250" z="0"/>
+     <rotationref ref="rotatebyx"/>
    </physvol>
 
    <physvol>
@@ -461,7 +486,14 @@ acceptance of all terms of the Geant4 Software license.
    </physvol-->
   </volume>
  </structure>
-
+ <userinfo>
+    <auxiliary auxtype="Region" auxvalue="Turds">
+      <auxiliary auxtype="volume" auxvalue="trd1"/>
+      <auxiliary auxtype="volume" auxvalue="trd2"/>
+      <auxiliary auxtype="volume" auxvalue="trd3"/>
+      <auxiliary auxtype="volume" auxvalue="trd3_refl"/>
+    </auxiliary>
+ </userinfo>
  <setup name="Default" version="1.0">
   <world ref="World"/>
  </setup>

@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantImporter.hh"
 
+#include <regex>
+
 #include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "corecel/io/Repr.hh"
@@ -84,7 +86,6 @@ class GeantImporterTest : public GeantTestBase
     ImportProcess const&
     find_process(PDGNumber pdg, ImportProcessClass ipc) const
     {
-        CELER_EXPECT(this->imported_data());
         auto const& processes = this->imported_data().processes;
         auto result = std::find_if(processes.begin(),
                                    processes.end(),
@@ -102,7 +103,6 @@ class GeantImporterTest : public GeantTestBase
     ImportMscModel const&
     find_msc_model(PDGNumber pdg, ImportModelClass imc) const
     {
-        CELER_EXPECT(this->imported_data());
         auto const& models = this->imported_data().msc_models;
         auto result = std::find_if(
             models.begin(), models.end(), [pdg, imc](ImportMscModel const& m) {
@@ -287,6 +287,32 @@ class OneSteelSphereGG : public OneSteelSphere
         auto opts = OneSteelSphere::build_geant_options();
         opts.gamma_general = true;
         opts.msc = MscModelSelection::urban_extended;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
+class Solids : public GeantImporterTest
+{
+  protected:
+    std::string_view geometry_basename() const override { return "solids"sv; }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        // only brems
+        GeantPhysicsOptions opts;
+        opts.compton_scattering = false;
+        opts.coulomb_scattering = false;
+        opts.photoelectric = false;
+        opts.rayleigh_scattering = false;
+        opts.gamma_conversion = false;
+        opts.gamma_general = false;
+        opts.ionization = false;
+        opts.annihilation = false;
+        opts.brems = BremsModelSelection::seltzer_berger;
+        opts.msc = MscModelSelection::none;
+        opts.relaxation = RelaxationSelection::none;
+        opts.eloss_fluctuation = false;
         return opts;
     }
 };
@@ -1183,6 +1209,84 @@ TEST_F(OneSteelSphereGG, physics)
             EXPECT_SOFT_EQ(1e8, pv.x.back());
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(Solids, volumes_only)
+{
+    selection_.reader_data = false;
+    selection_.particles = GeantImportDataSelection::none;
+    selection_.processes = GeantImportDataSelection::none;
+    selection_.materials = false;
+    selection_.reader_data = false;
+    selection_.unique_volumes = false;
+
+    auto const& imported = this->imported_data();
+    EXPECT_EQ(0, imported.processes.size());
+    EXPECT_EQ(0, imported.particles.size());
+    EXPECT_EQ(0, imported.elements.size());
+    EXPECT_EQ(0, imported.materials.size());
+
+    std::vector<std::string> names;
+    for (auto const& volume : imported.volumes)
+    {
+        names.push_back(volume.name);
+    }
+
+    static char const* const expected_names[]
+        = {"box500",   "cone1",    "para1",     "sphere1",    "parabol1",
+           "trap1",    "trd1",     "trd2",      "",           "trd3_refl",
+           "tube100",  "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+           "tetrah1",  "orb1",     "polyhedr1", "hype1",      "elltube1",
+           "ellcone1", "arb8b",    "arb8a",     "World",      "trd3_refl"};
+    EXPECT_VEC_EQ(expected_names, names);
+}
+
+TEST_F(Solids, volumes_unique)
+{
+    selection_.reader_data = false;
+    selection_.particles = GeantImportDataSelection::none;
+    selection_.processes = GeantImportDataSelection::none;
+    selection_.materials = false;
+    selection_.reader_data = false;
+    selection_.unique_volumes = true;  // emulates accel/SharedParams
+
+    auto const& imported = this->imported_data();
+
+    std::vector<std::string> names;
+    for (auto const& volume : imported.volumes)
+    {
+        static const std::regex subs_ptr("0x[0-9a-f]+");
+        auto name = std::regex_replace(volume.name, subs_ptr, "0x0");
+        names.push_back(name);
+    }
+    static char const* const expected_names[]
+        = {"box5000x0",    "cone10x0",      "para10x0",
+           "sphere10x0",   "parabol10x0",   "trap10x0",
+           "trd10x0",      "trd20x0",       "",
+           "trd3_refl0x0", "tube1000x0",    "boolean10x0",
+           "polycone10x0", "genPocone10x0", "ellipsoid10x0",
+           "tetrah10x0",   "orb10x0",       "polyhedr10x0",
+           "hype10x0",     "elltube10x0",   "ellcone10x0",
+           "arb8b0x0",     "arb8a0x0",      "World0x0",
+           "trd3_refl0x0"};
+    EXPECT_VEC_EQ(expected_names, names);
+}
+
+TEST_F(Solids, physics)
+{
+    selection_.reader_data = false;
+
+    auto&& imported = this->imported_data();
+    auto summary = this->summarize(imported);
+
+    static char const* expected_particles[] = {"e+", "e-", "gamma"};
+    EXPECT_VEC_EQ(expected_particles, summary.particles);
+    static char const* expected_processes[] = {"e_brems"};
+    EXPECT_VEC_EQ(expected_processes, summary.processes);
+    static char const* expected_models[] = {"e_brems_sb"};
+    EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
 //---------------------------------------------------------------------------//

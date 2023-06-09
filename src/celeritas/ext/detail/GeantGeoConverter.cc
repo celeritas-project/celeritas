@@ -100,6 +100,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/VecgeomData.hh"
 
 #include "GenericSolid.hh"
@@ -255,11 +256,17 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
     CELER_ASSERT(remaining_daughters <= 0
                  || remaining_daughters == (int)g4lv_mom->GetNoDaughters());
 
-    // Cross check geometry using cubic volume property: very slow for union
-    // solids and a few others
-    if (!dynamic_cast<GenericSolidBase const*>(shape_mom)
+    // Cross check geometry using cubic volume property: skip stochastically
+    // sampled comparisons due to performance and frequent false positives
+    static bool const compare_volumes = [] {
+        std::string var = celeritas::getenv("CELER_COMPARE_VOLUMES");
+        return !var.empty() || var == "0";
+    }();
+    if (compare_volumes && !dynamic_cast<GenericSolidBase const*>(shape_mom)
         && !dynamic_cast<UnplacedScaledShape const*>(shape_mom)
-        && !is_unknown_shape)
+        && !dynamic_cast<UnplacedBooleanVolume<kSubtraction> const*>(shape_mom)
+        && !dynamic_cast<UnplacedBooleanVolume<kIntersection> const*>(shape_mom)
+        && !dynamic_cast<UnplacedBooleanVolume<kUnion> const*>(shape_mom))
     {
         auto vg_cap = vglv_mom->GetUnplacedVolume()->Capacity();
         CELER_ASSERT(vg_cap > 0);
@@ -281,6 +288,10 @@ LogicalVolume* GeantGeoConverter::convert(G4LogicalVolume const* g4lv_mom)
     {
         // The *constituent* (unreflected) logical volume is actually tied to
         // the sensitive detectors: save this as well
+        CELER_LOG(debug) << "Mapping constituent volume '" << lv->GetName()
+                         << "'@" << static_cast<void const*>(lv)
+                         << " to volume ID for volume '" << g4lv_mom->GetName()
+                         << "'@" << static_cast<void const*>(g4lv_mom);
         g4logvol_id_map_[lv] = volid;
     }
 
@@ -741,10 +752,9 @@ VUnplacedVolume* GeantGeoConverter::convert(G4VSolid const* shape)
     {
         G4VSolid* underlying = refl->GetConstituentMovedSolid();
         CELER_ASSERT(underlying);
-        CELER_LOG(debug) << "Converting reflected solid '"
-                         << refl->GetName() << "' (underlying "
-                         << underlying->GetEntityType() << " solid: '"
-                         << underlying->GetName() << "')";
+        CELER_LOG(debug) << "Converting reflected solid '" << refl->GetName()
+                         << "' (underlying " << underlying->GetEntityType()
+                         << " solid: '" << underlying->GetName() << "')";
         unplaced_volume = this->convert(underlying);
     }
 
