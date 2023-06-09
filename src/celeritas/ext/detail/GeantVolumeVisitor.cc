@@ -61,14 +61,6 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
     else if (unique_volumes_)
     {
         volume.name = this->generate_name(logical_volume);
-
-        if (G4ReflectionFactory::Instance()->GetConstituentLV(
-                const_cast<G4LogicalVolume*>(&logical_volume))
-            != nullptr)
-        {
-            // Add suffix from vgdml::ReflFactory
-            volume.name += "_refl";
-        }
     }
 
     // Recursive: repeat for every daughter volume, if there are any
@@ -89,7 +81,18 @@ GeantVolumeVisitor::generate_name(G4LogicalVolume const& logical_volume)
     // uniquely identifiable in VecGeom. Reuse the same instance to reduce
     // overhead: note that the method isn't const correct.
     static G4GDMLWriteStructure temp_writer;
-    return temp_writer.GenerateName(logical_volume.GetName(), &logical_volume);
+    std::string name
+        = temp_writer.GenerateName(logical_volume.GetName(), &logical_volume);
+
+    auto const* refl_factory = G4ReflectionFactory::Instance();
+    if (refl_factory->GetConstituentLV(
+            const_cast<G4LogicalVolume*>(&logical_volume)))
+    {
+        // If this is a reflected volume, add the reflection extension after
+        // the final pointer to match the converted VecGeom name
+        name += refl_factory->GetVolumesNameExtension();
+    }
+    return name;
 }
 
 //---------------------------------------------------------------------------//
