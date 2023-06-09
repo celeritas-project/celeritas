@@ -10,6 +10,7 @@
 #pragma once
 
 #include <G4VSolid.hh>
+#include <G4VisExtent.hh>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
 #include <VecGeom/volumes/LogicalVolume.h>
@@ -22,7 +23,7 @@
 
 namespace celeritas
 {
-namespace detail
+namespace g4vg
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -239,5 +240,5 @@ class GenericSolid : public GenericSolidBase
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace g4vg
 }  // namespace celeritas

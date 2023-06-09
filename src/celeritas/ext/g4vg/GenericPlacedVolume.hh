@@ -20,7 +20,7 @@
 
 namespace celeritas
 {
-namespace detail
+namespace g4vg
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -306,5 +306,5 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace g4vg
 }  // namespace celeritas

@@ -89,6 +89,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         }
     }
 
+    if (detectors_.empty())
+    {
+        CELER_LOG(warning) << "No sensitive detectors were found in the GDML "
+                              "file";
+        auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
+        sd.enabled = false;
+    }
+
     // Claim ownership of world volume and pass it to the caller
     return gdml_parser.GetWorldVolume();
 }
@@ -96,6 +104,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 //---------------------------------------------------------------------------//
 void DetectorConstruction::ConstructSDandField()
 {
+    if (detectors_.empty())
+    {
+        return;
+    }
+
     CELER_LOG_LOCAL(status) << "Loading sensitive detectors";
 
     G4SDManager* sd_manager = G4SDManager::GetSDMpointer();

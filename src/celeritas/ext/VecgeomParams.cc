@@ -35,7 +35,7 @@
 #include "corecel/sys/ScopedMem.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
-#include "detail/GeantGeoConverter.hh"
+#include "g4vg/Converter.hh"
 
 namespace celeritas
 {
@@ -75,19 +75,21 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     CELER_EXPECT(world);
     ScopedMem record_mem("VecgeomParams.construct");
 
-    // Convert the geometry to VecGeom
-#if CELERITAS_USE_GEANT4
     {
-        ScopedMem record_mem("VecgeomParams.convert");
-        detail::GeantGeoConverter convert;
-        convert(world);
-        // save the logicalVolume ID map before converter goes out of scope
-        g4log_volid_map_ = convert.get_g4logvol_id_map();
-        CELER_ASSERT(vecgeom::GeoManager::Instance().GetWorld());
+        // Convert the geometry to VecGeom
+        g4vg::Converter::Options opts;
+        g4vg::Converter convert{opts};
+        auto result = convert(world);
+        g4log_volid_map_ = std::move(result.volumes);
+
+        // Set as world volume
+        auto& vg_manager = vecgeom::GeoManager::Instance();
+        vg_manager.RegisterPlacedVolume(result.world);
+        vg_manager.SetWorldAndClose(result.world);
+
+        // NOTE: setting and closing changes the world
+        // CELER_ASSERT(result.world == vg_manager.GetWorld());
     }
-#else
-    CELER_NOT_CONFIGURED("Geant4");
-#endif
 
     this->build_tracking();
     this->build_data();

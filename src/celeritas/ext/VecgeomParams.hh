@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
@@ -90,7 +91,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
     // Host metadata/access
     LabelIdMultiMap<VolumeId> vol_labels_;
-    std::map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
+    std::unordered_map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
 
     BoundingBox bbox_;
 
