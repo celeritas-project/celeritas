@@ -72,14 +72,7 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
     }
     else if (unique_volumes_)
     {
-        auto [name, refl] = this->generate_name_refl(logical_volume);
-        volume.name = std::move(name);
-        if (refl)
-        {
-            CELER_LOG(debug) << "Skipping underlying reflecting volume "
-                             << PrintableLV{refl} << " from "
-                             << PrintableLV{&logical_volume};
-        }
+        volume.name = this->generate_name(logical_volume);
     }
 
     // Recursive: repeat for every daughter volume, if there are any
