@@ -46,7 +46,8 @@ class SolidConverter
 
   public:
     inline SolidConverter(Scaler const& convert_scale_,
-                          Transformer const& convert_transform);
+                          Transformer const& convert_transform,
+                          bool compare_volumes);
 
     // Return a VecGeom-owned 'unplaced volume'
     result_type operator()(arg_type);
@@ -60,6 +61,7 @@ class SolidConverter
 
     Scaler const& convert_scale_;
     Transformer const& convert_transform_;
+    bool compare_volumes_;
     std::unordered_map<G4VSolid const*, result_type> cache_;
 
     //// HELPER FUNCTIONS ////
@@ -94,8 +96,10 @@ class SolidConverter
     result_type tubs(arg_type);
     result_type unionsolid(arg_type);
 
-    // Bool helper function
+    // Construct bool daughters
     PlacedBoolVolumes convert_bool_impl(G4BooleanSolid const&);
+    // Compare volume/capacity of the solids
+    void compare_volumes(G4VSolid const&, vecgeom::VUnplacedVolume const&);
 };
 
 //---------------------------------------------------------------------------//
@@ -103,8 +107,11 @@ class SolidConverter
  * Construct with transform helper.
  */
 SolidConverter::SolidConverter(Scaler const& convert_scale_,
-                               Transformer const& convert_transform)
-    : convert_scale_(convert_scale_), convert_transform_(convert_transform)
+                               Transformer const& convert_transform,
+                               bool compare_volumes)
+    : convert_scale_(convert_scale_)
+    , convert_transform_(convert_transform)
+    , compare_volumes_(compare_volumes)
 {
 }
 

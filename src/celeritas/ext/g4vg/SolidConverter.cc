@@ -80,6 +80,9 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/Constants.hh"
 
 #include "GenericSolid.hh"
@@ -155,17 +158,30 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
     // Look up converter function based on the solid's C++ type
     auto func_iter
         = type_to_converter.find(std::type_index(typeid(solid_base)));
-    if (func_iter == type_to_converter.end())
-    {
-        CELER_LOG(error) << "Solid type '" << solid_base.GetEntityType()
-                         << "' named '" << solid_base.GetName()
-                         << "' is unsupported";
-        return new GenericSolid<G4VSolid>(&solid_base);
-    }
 
-    // Call our corresponding member function to convert the solid
-    ConvertFuncPtr fp = func_iter->second;
-    result_type result = (this->*fp)(solid_base);
+    result_type result = nullptr;
+    try
+    {
+        CELER_VALIDATE(func_iter != type_to_converter.end(),
+                       << "unsupported solid type "
+                       << TypeDemangler<G4VSolid>{}(solid_base));
+
+        // Call our corresponding member function to convert the solid
+        ConvertFuncPtr fp = func_iter->second;
+        result = (this->*fp)(solid_base);
+        if (CELER_UNLIKELY(compare_volumes_))
+        {
+            CELER_ASSERT(result);
+            this->compare_volumes(solid_base, *result);
+        }
+    }
+    catch (celeritas::RuntimeError const& e)
+    {
+        CELER_LOG(error) << "Failed to convert solid type '"
+                         << solid_base.GetEntityType() << "' named '"
+                         << solid_base.GetName() << "': " << e.details().what;
+        result = new GenericSolid<G4VSolid>(&solid_base);
+    }
 
     CELER_ENSURE(result);
     return result;
@@ -601,6 +617,30 @@ auto SolidConverter::convert_bool_impl(G4BooleanSolid const& bs)
 
     CELER_ENSURE(result[0] && result[1]);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+//! Compare volumes
+void SolidConverter::compare_volumes(G4VSolid const& g4,
+                                     vecgeom::VUnplacedVolume const& vg)
+{
+    if (dynamic_cast<G4BooleanSolid const*>(&g4))
+    {
+        // Skip comparison of boolean solids because volumes are stochastic
+        return;
+    }
+
+    auto g4_cap = const_cast<G4VSolid&>(g4).GetCubicVolume()
+                  * ipow<3>(this->convert_scale_(1.0));
+    auto vg_cap = vg.Capacity();
+
+    if (CELER_UNLIKELY(!SoftEqual{0.01}(vg_cap, g4_cap)))
+    {
+        CELER_LOG(warning)
+            << "Solid type '" << g4.GetEntityType()
+            << "' conversion may have failed: VecGeom/G4 volume ratio is "
+            << vg_cap << " / " << g4_cap << " = " << vg_cap / g4_cap;
+    }
 }
 
 //---------------------------------------------------------------------------//

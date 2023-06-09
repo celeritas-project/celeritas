@@ -59,6 +59,7 @@ class Converter
     struct Options
     {
         bool verbose{false};
+        bool compare_volumes{false};
     };
 
     struct result_type

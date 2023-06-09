@@ -78,6 +78,10 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     {
         // Convert the geometry to VecGeom
         g4vg::Converter::Options opts;
+        opts.compare_volumes = [] {
+            std::string var = celeritas::getenv("CELER_COMPARE_VOLUMES");
+            return !var.empty() || var == "0";
+        }();
         g4vg::Converter convert{opts};
         auto result = convert(world);
         g4log_volid_map_ = std::move(result.volumes);
