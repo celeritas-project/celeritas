@@ -1262,15 +1262,15 @@ TEST_F(Solids, volumes_unique)
         names.push_back(name);
     }
     static char const* const expected_names[]
-        = {"box5000x0",    "cone10x0",      "para10x0",
-           "sphere10x0",   "parabol10x0",   "trap10x0",
-           "trd10x0",      "trd20x0",       "",
-           "trd3_refl0x0", "tube1000x0",    "boolean10x0",
-           "polycone10x0", "genPocone10x0", "ellipsoid10x0",
-           "tetrah10x0",   "orb10x0",       "polyhedr10x0",
-           "hype10x0",     "elltube10x0",   "ellcone10x0",
-           "arb8b0x0",     "arb8a0x0",      "World0x0",
-           "trd3_refl0x0"};
+        = {"box5000x0",        "cone10x0",      "para10x0",
+           "sphere10x0",       "parabol10x0",   "trap10x0",
+           "trd10x0",          "trd20x0",       "",
+           "trd3_refl0x0",     "tube1000x0",    "boolean10x0",
+           "polycone10x0",     "genPocone10x0", "ellipsoid10x0",
+           "tetrah10x0",       "orb10x0",       "polyhedr10x0",
+           "hype10x0",         "elltube10x0",   "ellcone10x0",
+           "arb8b0x0",         "arb8a0x0",      "World0x0",
+           "trd3_refl0x0_refl"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 

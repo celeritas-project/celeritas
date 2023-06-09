@@ -10,6 +10,7 @@
 #include <G4GDMLWriteStructure.hh>
 #include <G4LogicalVolume.hh>
 #include <G4MaterialCutsCouple.hh>
+#include <G4ReflectionFactory.hh>
 #include <G4VSolid.hh>
 
 #include "corecel/Assert.hh"
@@ -60,6 +61,14 @@ void GeantVolumeVisitor::visit(G4LogicalVolume const& logical_volume)
     else if (unique_volumes_)
     {
         volume.name = this->generate_name(logical_volume);
+
+        if (G4ReflectionFactory::Instance()->GetConstituentLV(
+                const_cast<G4LogicalVolume*>(&logical_volume))
+            != nullptr)
+        {
+            // Add suffix from vgdml::ReflFactory
+            volume.name += "_refl";
+        }
     }
 
     // Recursive: repeat for every daughter volume, if there are any
