@@ -1239,7 +1239,8 @@ TEST_F(Solids, volumes_only)
            "trap1",    "trd1",     "trd2",      "",           "trd3_refl",
            "tube100",  "boolean1", "polycone1", "genPocone1", "ellipsoid1",
            "tetrah1",  "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1", "arb8b",    "arb8a",     "World",      "trd3_refl"};
+           "ellcone1", "arb8b",    "arb8a",     "xtru1",      "World",
+           "trd3_refl"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -1269,8 +1270,8 @@ TEST_F(Solids, volumes_unique)
            "polycone10x0", "genPocone10x0", "ellipsoid10x0",
            "tetrah10x0",   "orb10x0",       "polyhedr10x0",
            "hype10x0",     "elltube10x0",   "ellcone10x0",
-           "arb8b0x0",     "arb8a0x0",      "World0x0",
-           "trd30x0_refl"};
+           "arb8b0x0",     "arb8a0x0",      "xtru10x0",
+           "World0x0",     "trd30x0_refl"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 
