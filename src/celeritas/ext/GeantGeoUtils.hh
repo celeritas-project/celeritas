@@ -24,11 +24,21 @@ namespace celeritas
 //! Wrap around a touchable to get a descriptive output.
 struct PrintableNavHistory
 {
-    G4VTouchable* touch{nullptr};
+    G4VTouchable const* touch{nullptr};
+};
+
+//---------------------------------------------------------------------------//
+//! Wrap around a G4LogicalVolume to get a descriptive output.
+struct PrintableLV
+{
+    G4LogicalVolume const* lv{nullptr};
 };
 
 // Print detailed information about the touchable history.
 std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh);
+
+// Print the logical volume name, ID, and address.
+std::ostream& operator<<(std::ostream& os, PrintableLV const& pnh);
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
