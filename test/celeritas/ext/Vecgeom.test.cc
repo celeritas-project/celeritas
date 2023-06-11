@@ -1132,7 +1132,12 @@ class DISABLED_ArbitraryGeantTest : public VecgeomGeantTestBase
                           "test with "
                           "--gtest_filter=*ArbitraryGeantTest* "
                           "--gtest_also_run_disabled_tests");
-        world_volume_ = ::celeritas::load_geant_geometry(filename);
+        if (world_volume_)
+        {
+            // Clear old geant4 data
+            ::celeritas::reset_geant_geometry();
+        }
+        world_volume_ = ::celeritas::load_geant_geometry_native(filename);
         return std::make_shared<VecgeomParams>(world_volume_);
     }
 };
