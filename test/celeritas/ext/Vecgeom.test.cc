@@ -736,6 +736,30 @@ TEST_F(SolidsTest, reflected_vol)
 }
 
 //---------------------------------------------------------------------------//
+
+class DISABLED_ArbitraryTest : public VecgeomTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        auto filename = celeritas::getenv("GDML");
+        CELER_VALIDATE(!filename.empty(),
+                       << "Set the 'GDML' environment variable and run this "
+                          "test with "
+                          "--gtest_filter=*ArbitraryGeantTest* "
+                          "--gtest_also_run_disabled_tests");
+        return std::make_shared<VecgeomParams>(filename);
+    }
+};
+
+TEST_F(DISABLED_ArbitraryTest, dump)
+{
+    this->geometry();
+    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
+    world->PrintContent();
+}
+
+//---------------------------------------------------------------------------//
 // CONSTRUCT FROM GEANT4
 //---------------------------------------------------------------------------//
 
@@ -1147,6 +1171,13 @@ TEST_F(DISABLED_ArbitraryGeantTest, conversion)
     auto result = this->get_import_geant_volumes();
     result.print_expected();
     EXPECT_EQ(0, result.missing_names.size());
+}
+
+TEST_F(DISABLED_ArbitraryGeantTest, dump)
+{
+    this->geometry();
+    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
+    world->PrintContent();
 }
 
 //---------------------------------------------------------------------------//
