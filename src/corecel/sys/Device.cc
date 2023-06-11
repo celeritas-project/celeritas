@@ -290,7 +290,7 @@ void activate_device(Device&& device)
     CELER_LOG_LOCAL(debug) << "Initializing '" << device.name() << "', ID "
                            << device.device_id() << " of "
                            << Device::num_devices();
-    ScopedTimeLog scoped_time;
+    ScopedTimeLog scoped_time(&self_logger(), 1.0);
     Device& d = global_device();
     {
         // Lock *after* getting the pointer to the global_device, because
