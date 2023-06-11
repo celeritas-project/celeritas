@@ -22,6 +22,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 #include "ScopedGeantExceptionHandler.hh"
@@ -45,6 +46,7 @@ load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
     ScopedMem record_mem("load_geant_geometry");
+    ScopedTimeLog scoped_time;
 
     {
         // I have no idea why, but creating the GDML parser resets the

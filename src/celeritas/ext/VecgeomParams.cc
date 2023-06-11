@@ -268,15 +268,18 @@ void VecgeomParams::build_tracking()
 
         CELER_LOG(debug) << "Converting to CUDA geometry";
         {
-            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
             // cuda_manager.set_verbose(1);
+            ScopedTimeAndRedirect time_and_output_(
+                "vecgeom::CudaManager.LoadGeometry");
+
             cuda_manager.LoadGeometry();
             CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         }
 
         CELER_LOG(debug) << "Transferring geometry to GPU";
         {
-            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
+            ScopedTimeAndRedirect time_and_output_(
+                "vecgeom::CudaManager.Synchronize");
             auto world_top_devptr = cuda_manager.Synchronize();
             CELER_DEVICE_CHECK_ERROR();
             CELER_VALIDATE(world_top_devptr != nullptr,
@@ -285,6 +288,8 @@ void VecgeomParams::build_tracking()
 
         CELER_LOG(debug) << "Initializing BVH on GPU";
         {
+            ScopedTimeAndRedirect time_and_output_(
+                "vecgeom::BVHManager::DeviceInit");
             vecgeom::cxx::BVHManager::DeviceInit();
             CELER_DEVICE_CHECK_ERROR();
         }
