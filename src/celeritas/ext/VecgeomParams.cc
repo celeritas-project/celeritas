@@ -217,6 +217,15 @@ void VecgeomParams::build_tracking()
 
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
 
+        cuda_manager.set_verbose([] {
+            std::string var = celeritas::getenv("VECGEOM_VERBOSE");
+            if (var.empty())
+            {
+                return 0;
+            }
+            return std::stoi(var);
+        }());
+
         for (auto i : range(orig_limits.size()))
         {
             std::size_t temp;
@@ -268,7 +277,6 @@ void VecgeomParams::build_tracking()
 
         CELER_LOG(debug) << "Converting to CUDA geometry";
         {
-            // cuda_manager.set_verbose(1);
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::CudaManager.LoadGeometry");
 
