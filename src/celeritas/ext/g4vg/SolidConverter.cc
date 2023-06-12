@@ -97,7 +97,7 @@ namespace g4vg
 {
 //---------------------------------------------------------------------------//
 /*!
- * Convert a geant4 solid to a VecGeom solid_base.
+ * Convert a geant4 solid to a VecGeom "unplaced volume".
  */
 auto SolidConverter::operator()(arg_type solid_base) -> result_type
 {

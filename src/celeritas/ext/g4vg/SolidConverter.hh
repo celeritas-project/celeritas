@@ -45,7 +45,7 @@ class SolidConverter
     //!@}
 
   public:
-    inline SolidConverter(Scaler const& convert_scale_,
+    inline SolidConverter(Scaler const& convert_scale,
                           Transformer const& convert_transform,
                           bool compare_volumes);
 
@@ -106,10 +106,10 @@ class SolidConverter
 /*!
  * Construct with transform helper.
  */
-SolidConverter::SolidConverter(Scaler const& convert_scale_,
+SolidConverter::SolidConverter(Scaler const& convert_scale,
                                Transformer const& convert_transform,
                                bool compare_volumes)
-    : convert_scale_(convert_scale_)
+    : convert_scale_(convert_scale)
     , convert_transform_(convert_transform)
     , compare_volumes_(compare_volumes)
 {

@@ -37,7 +37,8 @@ class SolidConverter;
 /*!
  * Convert a Geant4 base LV to a VecGeom LV.
  *
- * This does not convert or add any of of the daughters.
+ * This does not convert or add any of the daughters, which must be placed as
+ * physical volumes.
  */
 class LogicalVolumeConverter
 {

@@ -45,7 +45,8 @@ class LogicalVolumeConverter;
 /*!
  * Create an in-memory VecGeom model from an in-memory Geant4 model.
  *
- * Return a mapping of VecGeom IDs to Geant4 IDs.
+ * Return the new world volume and a mapping of Geant4 logical volumes to
+ * VecGeom-based volume IDs.
  */
 class Converter
 {
@@ -84,6 +85,7 @@ class Converter
   private:
     using VGLogicalVolume = vecgeom::LogicalVolume;
 
+#if CELERITAS_USE_GEANT4
     Options options_;
     int depth_{0};
 
@@ -94,18 +96,19 @@ class Converter
     std::unordered_set<VGLogicalVolume const*> built_daughters_;
 
     VGLogicalVolume* build_with_daughters(G4LogicalVolume const* mother_g4lv);
+#endif
 };
 
 #if !CELERITAS_USE_GEANT4
-inline Converter::Converter() {}
-inline Converter::~Converter() = default
+inline Converter::Converter(Options) {}
+inline Converter::~Converter() = default;
 
-                                 inline auto Converter::operator()(arg_type)
-                                     -> result_type
+inline auto Converter::operator()(arg_type) -> result_type
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 #endif
+
 //---------------------------------------------------------------------------//
 }  // namespace g4vg
 }  // namespace celeritas
