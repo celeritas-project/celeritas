@@ -16,7 +16,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/ext/GeantGeoUtils.hh"
-#include "celeritas/ext/g4vg/GeantVolumeVisitor.hh"
+#include "celeritas/ext/detail/GeantVolumeVisitor.hh"
 
 #include "SolidConverter.hh"
 
