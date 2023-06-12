@@ -5,7 +5,7 @@
 // https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/ce4a0bb2f777a6728e59dee96c764fd61fa8b785/include/VecGeomG4Solid.h
 // Original code from G4VecGeomNav package by John Apostolakis et al.
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GenericSolid.hh
+//! \file celeritas/ext/g4vg/GenericSolid.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

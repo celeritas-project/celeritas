@@ -5,7 +5,7 @@
 // https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/blob/7f5d5ec3258d2b7ffbf717e4bd37a3a07285a65f/include/GenericPlacedVolume.h
 // Original code from G4VecGeomNav package by John Apostolakis et al.
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GenericPlacedVolume.hh
+//! \file celeritas/ext/g4vg/GenericPlacedVolume.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
