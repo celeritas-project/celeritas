@@ -85,7 +85,6 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/Constants.hh"
 
-#include "GenericSolid.hh"
 #include "Scaler.hh"
 #include "Transformer.hh"
 
@@ -110,6 +109,17 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 
     CELER_ENSURE(cache_iter->second);
     return cache_iter->second;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a geant4 solid to a VecGeom sphere with equivalent capacity.
+ */
+auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
+{
+    double vol = this->calc_capacity(solid_base);
+    double radius = std::cbrt(vol / (4.0 / 3.0 * constants::pi));
+    return GeoManager::MakeInstance<UnplacedOrb>(radius);
 }
 
 //---------------------------------------------------------------------------//
@@ -160,27 +170,17 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         = type_to_converter.find(std::type_index(typeid(solid_base)));
 
     result_type result = nullptr;
-    try
-    {
-        CELER_VALIDATE(func_iter != type_to_converter.end(),
-                       << "unsupported solid type "
-                       << TypeDemangler<G4VSolid>{}(solid_base));
+    CELER_VALIDATE(func_iter != type_to_converter.end(),
+                   << "unsupported solid type "
+                   << TypeDemangler<G4VSolid>{}(solid_base));
 
-        // Call our corresponding member function to convert the solid
-        ConvertFuncPtr fp = func_iter->second;
-        result = (this->*fp)(solid_base);
-        if (CELER_UNLIKELY(compare_volumes_))
-        {
-            CELER_ASSERT(result);
-            this->compare_volumes(solid_base, *result);
-        }
-    }
-    catch (celeritas::RuntimeError const& e)
+    // Call our corresponding member function to convert the solid
+    ConvertFuncPtr fp = func_iter->second;
+    result = (this->*fp)(solid_base);
+    if (CELER_UNLIKELY(compare_volumes_))
     {
-        CELER_LOG(error) << "Failed to convert solid type '"
-                         << solid_base.GetEntityType() << "' named '"
-                         << solid_base.GetName() << "': " << e.details().what;
-        result = new GenericSolid<G4VSolid>(&solid_base);
+        CELER_ASSERT(result);
+        this->compare_volumes(solid_base, *result);
     }
 
     CELER_ENSURE(result);
@@ -630,8 +630,7 @@ void SolidConverter::compare_volumes(G4VSolid const& g4,
         return;
     }
 
-    auto g4_cap = const_cast<G4VSolid&>(g4).GetCubicVolume()
-                  * ipow<3>(this->convert_scale_(1.0));
+    auto g4_cap = this->calc_capacity(g4);
     auto vg_cap = vg.Capacity();
 
     if (CELER_UNLIKELY(!SoftEqual{0.01}(vg_cap, g4_cap)))
@@ -639,8 +638,16 @@ void SolidConverter::compare_volumes(G4VSolid const& g4,
         CELER_LOG(warning)
             << "Solid type '" << g4.GetEntityType()
             << "' conversion may have failed: VecGeom/G4 volume ratio is "
-            << vg_cap << " / " << g4_cap << " = " << vg_cap / g4_cap;
+            << vg_cap << " / " << g4_cap << " [cm^3] = " << vg_cap / g4_cap;
     }
+}
+
+//---------------------------------------------------------------------------//
+//! Calculate the capacity in native celeritas units
+double SolidConverter::calc_capacity(G4VSolid const& g4) const
+{
+    return const_cast<G4VSolid&>(g4).GetCubicVolume()
+           * ipow<3>(this->convert_scale_(1.0));
 }
 
 //---------------------------------------------------------------------------//

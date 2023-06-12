@@ -9,6 +9,7 @@
 
 #include <unordered_map>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 
 class G4VSolid;
@@ -51,6 +52,9 @@ class SolidConverter
 
     // Return a VecGeom-owned 'unplaced volume'
     result_type operator()(arg_type);
+
+    // Return a sphere with equivalent capacity
+    result_type to_sphere(arg_type) const;
 
   private:
     //// TYPES ////
@@ -100,6 +104,8 @@ class SolidConverter
     PlacedBoolVolumes convert_bool_impl(G4BooleanSolid const&);
     // Compare volume/capacity of the solids
     void compare_volumes(G4VSolid const&, vecgeom::VUnplacedVolume const&);
+    // Calculate solid capacity in native celeritas units
+    double calc_capacity(G4VSolid const&) const;
 };
 
 //---------------------------------------------------------------------------//

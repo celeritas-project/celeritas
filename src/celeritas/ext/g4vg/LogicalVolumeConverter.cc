@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "LogicalVolumeConverter.hh"
 
+#include <G4LogicalVolume.hh>
+#include <G4VSolid.hh>
 #include <VecGeom/management/GeoManager.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/UnplacedVolume.h>
@@ -16,7 +18,6 @@
 #include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/ext/g4vg/GeantVolumeVisitor.hh"
 
-#include "GenericSolid.hh"
 #include "SolidConverter.hh"
 
 namespace celeritas
@@ -75,11 +76,21 @@ auto LogicalVolumeConverter::make_volume_map() const -> MapLvVolId
  */
 auto LogicalVolumeConverter::construct_base(arg_type g4lv) -> result_type
 {
-    vecgeom::VUnplacedVolume const* shape
-        = this->convert_solid_(*g4lv.GetSolid());
-
-    if (dynamic_cast<GenericSolidBase const*>(shape))
+    vecgeom::VUnplacedVolume const* shape = nullptr;
+    try
     {
+        shape = this->convert_solid_(*g4lv.GetSolid());
+    }
+    catch (celeritas::RuntimeError const& e)
+    {
+        CELER_LOG(error) << "Failed to convert solid type '"
+                         << g4lv.GetSolid()->GetEntityType() << "' named '"
+                         << g4lv.GetSolid()->GetName()
+                         << "': " << e.details().what;
+        shape = this->convert_solid_.to_sphere(*g4lv.GetSolid());
+        CELER_LOG(warning)
+            << "Replaced unknown solid with sphere with capacity "
+            << shape->Capacity() << " [cm^3]";
         CELER_LOG(info) << "Unsupported solid belongs to logical volume "
                         << PrintableLV{&g4lv};
     }
