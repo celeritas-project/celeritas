@@ -25,7 +25,8 @@ namespace celeritas
  *
  * When the class exits scope, the signal for the active type will be cleared.
  *
- * Signal handling can be disabled by setting CELER_DISABLE_SIGNALS to a
+ * Signal handling can be disabled by setting the environment variable \c
+ * CELER_DISABLE_SIGNALS to a
  * non-empty value, but hopefully this will not be necessary because signal
  * handling should be used sparingly.
  *
