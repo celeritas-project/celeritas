@@ -40,7 +40,9 @@ if(CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS)
   list(APPEND _DOXYGEN_TEST_SOURCE
     "${PROJECT_SOURCE_DIR}/test"
   )
-  list(APPEND DOXYGEN_EXCLUDE_PATTERNS "*.test.hh" "*.test.cc" "*.test.cu")
+  list(APPEND DOXYGEN_EXCLUDE_PATTERNS
+    "*.test.hh" "*.test.cc" "*.test.cu" "*TestBase.cc"
+  )
 else()
   set(_DOXYGEN_TEST_SOURCE)
 endif()
