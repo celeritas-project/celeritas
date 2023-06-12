@@ -30,12 +30,13 @@ namespace
  * Gather results from active tracks that are in a detector.
  */
 __global__ void
-gather_step_kernel(DeviceRef<StepStateData> const state, size_type size)
+gather_step_kernel(DeviceRef<StepStateData> const state, size_type num_valid)
 {
-    CELER_EXPECT(state.size() == state.scratch.size() && state.size() >= size);
+    CELER_EXPECT(state.size() == state.scratch.size()
+                 && state.size() >= num_valid);
 
     TrackSlotId tid{KernelParamCalculator::thread_id().get()};
-    if (!(tid < size))
+    if (!(tid < num_valid))
     {
         return;
     }
@@ -46,9 +47,9 @@ gather_step_kernel(DeviceRef<StepStateData> const state, size_type size)
 #define DS_COPY_IF_SELECTED(FIELD)                                  \
     do                                                              \
     {                                                               \
-        if (!state.step.FIELD.empty())                              \
+        if (!state.data.FIELD.empty())                              \
         {                                                           \
-            state.scratch.FIELD[tid] = state.step.FIELD[valid_tid]; \
+            state.scratch.FIELD[tid] = state.data.FIELD[valid_tid]; \
         }                                                           \
     } while (0)
 
@@ -78,9 +79,9 @@ gather_step_kernel(DeviceRef<StepStateData> const state, size_type size)
 /*!
  * Gather results from active tracks that are in a detector.
  */
-void gather_step(DeviceRef<StepStateData> const& state, size_type size)
+void gather_step(DeviceRef<StepStateData> const& state, size_type num_valid)
 {
-    if (size == 0)
+    if (num_valid == 0)
     {
         // No valid tracks
         return;
@@ -88,10 +89,10 @@ void gather_step(DeviceRef<StepStateData> const& state, size_type size)
 
     CELER_LAUNCH_KERNEL(gather_step,
                         celeritas::device().default_block_size(),
-                        size,
+                        num_valid,
                         celeritas::device().stream(state.stream_id).get(),
                         state,
-                        size);
+                        num_valid);
 }
 
 //---------------------------------------------------------------------------//
@@ -112,19 +113,19 @@ struct HasDetector
 
 //---------------------------------------------------------------------------//
 template<class T>
-void copy_field(std::vector<T>* dst, StateRef<T> const& src, size_type size)
+void copy_field(std::vector<T>* dst, StateRef<T> const& src, size_type num_valid)
 {
-    if (src.empty() || size == 0)
+    if (src.empty() || num_valid == 0)
     {
         // This attribute is not in use
         dst->clear();
         return;
     }
-    dst->resize(size);
+    dst->resize(num_valid);
 
     // Copy all items from valid threads
-    Copier<T, MemSpace::host> copy{{dst->data(), size}};
-    copy(MemSpace::device, {src.data().get(), size});
+    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}};
+    copy(MemSpace::device, {src.data().get(), num_valid});
 }
 
 //---------------------------------------------------------------------------//
@@ -147,19 +148,19 @@ void copy_steps<MemSpace::device>(
         thrust::device,
         thrust::make_counting_iterator(size_type(0)),
         thrust::make_counting_iterator(state.size()),
-        thrust::device_pointer_cast(state.step.detector.data().get()),
+        thrust::device_pointer_cast(state.data.detector.data().get()),
         start,
         HasDetector{});
 
     // Get the number of threads that are active and in a detector
-    size_type size = end - start;
+    size_type num_valid = end - start;
 
     // Gather the step data on device
-    gather_step(state, size);
+    gather_step(state, num_valid);
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    copy_field(&(output->FIELD), state.scratch.FIELD, size)
+    copy_field(&(output->FIELD), state.scratch.FIELD, num_valid)
 
     DS_ASSIGN(detector);
     DS_ASSIGN(track_id);
@@ -180,8 +181,8 @@ void copy_steps<MemSpace::device>(
     DS_ASSIGN(energy_deposition);
 #undef DS_ASSIGN
 
-    CELER_ENSURE(output->detector.size() == size);
-    CELER_ENSURE(output->track_id.size() == size);
+    CELER_ENSURE(output->detector.size() == num_valid);
+    CELER_ENSURE(output->track_id.size() == num_valid);
 }
 
 //---------------------------------------------------------------------------//

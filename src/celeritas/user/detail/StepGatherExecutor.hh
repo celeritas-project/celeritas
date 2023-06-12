@@ -47,7 +47,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
     {                                                             \
         if (this->params.selection.ATTR)                          \
         {                                                         \
-            this->state.step.ATTR[track.track_slot_id()] = VALUE; \
+            this->state.data.ATTR[track.track_slot_id()] = VALUE; \
         }                                                         \
     } while (0)
 
@@ -58,7 +58,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         if (P == StepPoint::post)
         {
             // Always save track ID to clear output from inactive slots
-            this->state.step.track_id[track.track_slot_id()]
+            this->state.data.track_id[track.track_slot_id()]
                 = inactive ? TrackId{} : sim.track_id();
         }
 
@@ -67,7 +67,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
             if (P == StepPoint::pre && !this->params.detector.empty())
             {
                 // Clear detector ID for inactive threads
-                this->state.step.detector[track.track_slot_id()] = {};
+                this->state.data.detector[track.track_slot_id()] = {};
             }
 
             // No more data to be written
@@ -87,11 +87,11 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
             CELER_ASSERT(vol);
 
             // Map volume ID to detector ID
-            this->state.step.detector[track.track_slot_id()]
+            this->state.data.detector[track.track_slot_id()]
                 = this->params.detector[vol];
         }
 
-        if (!this->state.step.detector[track.track_slot_id()])
+        if (!this->state.data.detector[track.track_slot_id()])
         {
             // We're not in a sensitive detector: don't save any further data
             return;
@@ -104,7 +104,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
             if (pstep.energy_deposition() == zero_quantity())
             {
                 // Clear detector ID and stop recording
-                this->state.step.detector[track.track_slot_id()] = {};
+                this->state.data.detector[track.track_slot_id()] = {};
                 return;
             }
         }

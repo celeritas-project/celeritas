@@ -86,7 +86,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
         CELER_EXPECT(count > 0);
         HostStates result;
         resize(&result, this->params(), StreamId{0}, count);
-        auto& step = result.step;
+        auto& step = result.data;
 
         // Fill with bogus data
         int i = 0;
@@ -192,7 +192,7 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     DeviceStates device_states;
     resize(&device_states, this->params(), StreamId{0}, num_tracks);
     auto host_states = this->build_states(num_tracks);
-    device_states.step = host_states.step;
+    device_states.data = host_states.data;
     ASSERT_EQ(num_tracks, device_states.size());
     ASSERT_TRUE(static_cast<bool>(device_states));
 
@@ -268,7 +268,7 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
         // Create states on host and copy to device
         resize(&device_states, this->params(), StreamId{0}, num_tracks);
         auto host_states = this->build_states(num_tracks);
-        device_states.step = host_states.step;
+        device_states.data = host_states.data;
         ASSERT_EQ(num_tracks, device_states.size());
         ASSERT_TRUE(static_cast<bool>(device_states));
     }

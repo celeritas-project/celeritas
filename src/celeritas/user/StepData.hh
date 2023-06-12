@@ -63,7 +63,7 @@ struct StepPointSelection
 /*!
  * Which track properties to gather at every step.
  *
- * These should correspond to the data items in StepSelectionStateData.
+ * These should correspond to the data items in StepStateDataImpl.
  */
 struct StepSelection
 {
@@ -169,7 +169,7 @@ struct StepParamsData
  *   evaluation) the VolumeId will be "false".
  */
 template<Ownership W, MemSpace M>
-struct StepPointSelectionStateData
+struct StepPointStateData
 {
     //// TYPES ////
 
@@ -195,8 +195,7 @@ struct StepPointSelectionStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
-    StepPointSelectionStateData&
-    operator=(StepPointSelectionStateData<W2, M2>& other)
+    StepPointStateData& operator=(StepPointStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         time = other.time;
@@ -222,11 +221,11 @@ struct StepPointSelectionStateData
  *   collected). The detector ID for inactive threads is always "false".
  */
 template<Ownership W, MemSpace M>
-struct StepSelectionStateData
+struct StepStateDataImpl
 {
     //// TYPES ////
 
-    using StepPointSelectionData = StepPointSelectionStateData<W, M>;
+    using StepPointData = StepPointStateData<W, M>;
     template<class T>
     using StateItems = celeritas::StateCollection<T, W, M>;
     using Energy = units::MevEnergy;
@@ -234,7 +233,7 @@ struct StepSelectionStateData
     //// DATA ////
 
     // Pre- and post-step data
-    EnumArray<StepPoint, StepPointSelectionData> points;
+    EnumArray<StepPoint, StepPointData> points;
 
     //! Track ID is always assigned (but will be false for inactive tracks)
     StateItems<TrackId> track_id;
@@ -277,7 +276,7 @@ struct StepSelectionStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
-    StepSelectionStateData& operator=(StepSelectionStateData<W2, M2>& other)
+    StepStateDataImpl& operator=(StepStateDataImpl<W2, M2>& other)
     {
         // The extra storage used to gather the step data is only required on
         // the device
@@ -313,17 +312,17 @@ struct StepStateData
 {
     //// TYPES ////
 
-    using StepSelectionData = StepSelectionStateData<W, M>;
+    using StepDataImpl = StepStateDataImpl<W, M>;
     template<class T>
     using StateItems = celeritas::StateCollection<T, W, M>;
 
     //// DATA ////
 
     //! Gathered data for a single step
-    StepSelectionData step;
+    StepDataImpl data;
 
     //! Scratch space for gathering the data on device based on track validity
-    StepSelectionData scratch;
+    StepDataImpl scratch;
 
     //! Thread IDs of active tracks that are in a detector
     StateItems<size_type> valid_id;
@@ -341,12 +340,12 @@ struct StepStateData
                    || (t.size() == 0 && M == MemSpace::host);
         };
 
-        return step.size() > 0 && right_sized(scratch) && right_sized(valid_id)
+        return data.size() > 0 && right_sized(scratch) && right_sized(valid_id)
                && stream_id;
     }
 
     //! State size
-    CELER_FUNCTION TrackSlotId::size_type size() const { return step.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const { return data.size(); }
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
@@ -354,7 +353,7 @@ struct StepStateData
     {
         CELER_EXPECT(other);
 
-        step = other.step;
+        data = other.data;
         scratch = other.scratch;
         valid_id = other.valid_id;
         stream_id = other.stream_id;
@@ -369,7 +368,7 @@ struct StepStateData
  * Resize a state point.
  */
 template<MemSpace M>
-inline void resize(StepPointSelectionStateData<Ownership::value, M>* state,
+inline void resize(StepPointStateData<Ownership::value, M>* state,
                    StepPointSelection selection,
                    size_type size)
 {
@@ -397,7 +396,7 @@ inline void resize(StepPointSelectionStateData<Ownership::value, M>* state,
  * Resize the step data.
  */
 template<MemSpace M>
-inline void resize(StepSelectionStateData<Ownership::value, M>* state,
+inline void resize(StepStateDataImpl<Ownership::value, M>* state,
                    HostCRef<StepParamsData> const& params,
                    size_type size)
 {
@@ -448,7 +447,7 @@ inline void resize(StepStateData<Ownership::value, M>* state,
 
     state->stream_id = stream_id;
 
-    resize(&state->step, params, size);
+    resize(&state->data, params, size);
 
     if constexpr (M == MemSpace::device)
     {
