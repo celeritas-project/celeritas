@@ -98,9 +98,11 @@ class CelerParamCommand final : public CelerCommand
         , dest_(dest)
     {
         // NOTE: Geant4 takes ownership of the parameter
-        param_ = new G4UIparameter(CmdTraits::type_info);
+        auto param = std::make_unique<G4UIparameter>(CmdTraits::type_info);
         // Set default value based on the current pointed-to value
-        param_->SetDefaultValue(CmdTraits::to_string(*dest).c_str());
+        param->SetDefaultValue(CmdTraits::to_string(*dest).c_str());
+        // Save to this command
+        this->SetParameter(param.release());
 
         // We're for setup only
         this->AvailableForStates(G4State_PreInit, G4State_Init);
@@ -109,12 +111,12 @@ class CelerParamCommand final : public CelerCommand
     void apply(G4String const& value_str) const final
     {
         auto converted = CmdTraits::from_string(value_str);
+
         // TODO: validation for non-matching types, i.e. int to unsigned
         *this->dest_ = static_cast<T>(converted);
     }
 
   private:
-    G4UIparameter* param_{nullptr};
     T* dest_;
 };
 
