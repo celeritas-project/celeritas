@@ -504,9 +504,10 @@ TEST_F(SolidsTest, names)
     // clang-format off
     static char const* const expected_labels[] = {"b500", "b100", "union1",
         "b100", "box500", "cone1", "para1", "sphere1", "parabol1", "trap1",
-        "trd1", "trd2", "trd3", "trd3_refl", "tube100", "boolean1", "polycone1",
-        "genPocone1", "ellipsoid1", "tetrah1", "orb1", "polyhedr1", "hype1",
-        "elltube1", "ellcone1", "arb8b", "arb8a", "World", "", "trd3_refl"};
+        "trd1", "trd2", "trd3", "trd3_refl", "tube100", "boolean1",
+        "polycone1", "genPocone1", "ellipsoid1", "tetrah1", "orb1",
+        "polyhedr1", "hype1", "elltube1", "ellcone1", "arb8b", "arb8a",
+        "xtru1", "World", "", "trd3_refl"};
     // clang-format on
     EXPECT_VEC_EQ(expected_labels, labels);
 }
@@ -522,7 +523,7 @@ TEST_F(SolidsTest, output)
         auto out_str = simplify_pointers(to_string(out));
 
         EXPECT_EQ(
-            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["b500","b100","union1","b100","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","World","","trd3_refl"]}})json",
+            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["b500","b100","union1","b100","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl"]}})json",
             out_str)
             << "\n/*** REPLACE ***/\nR\"json(" << out_str
             << ")json\"\n/******/";
@@ -552,6 +553,8 @@ TEST_F(SolidsTest, trace)
                                                        "parabol1",
                                                        "World",
                                                        "trd2",
+                                                       "World",
+                                                       "xtru1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {20,
@@ -567,26 +570,30 @@ TEST_F(SolidsTest, trace)
                                                        30,
                                                        88.786678713601,
                                                        42.426642572799,
-                                                       88.7866787136,
+                                                       88.786678713601,
                                                        30,
-                                                       85};
+                                                       1.4761904761905,
+                                                       15.880952380952,
+                                                       67.642857142857};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {0,
                                                        45.496748548005,
                                                        0,
-                                                       44.8347556812201,
+                                                       44.83475568122,
                                                        13.934134186943,
                                                        30,
                                                        25,
                                                        36.240004604773,
                                                        25,
-                                                       41.2043887972073,
+                                                       41.204388797207,
                                                        14.92555785315,
                                                        42.910442345001,
                                                        18.741024106017,
                                                        42.910442345001,
                                                        14.92555785315,
-                                                       42.289080583925};
+                                                       0.7344322118216,
+                                                       6.5489918373272,
+                                                       33.481506089183};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
@@ -940,8 +947,8 @@ TEST_F(SolidsGeantTest, names)
         "trd2@0x0", "trd3@0x0", "trd3_refl@0x0", "tube100@0x0", "", "", "", "",
         "boolean1@0x0", "polycone1@0x0", "genPocone1@0x0", "ellipsoid1@0x0",
         "tetrah1@0x0", "orb1@0x0", "polyhedr1@0x0", "hype1@0x0",
-        "elltube1@0x0", "ellcone1@0x0", "arb8b@0x0", "arb8a@0x0", "World@0x0",
-        "", "trd3@0x0_refl"};
+        "elltube1@0x0", "ellcone1@0x0", "arb8b@0x0", "arb8a@0x0", "xtru1@0x0",
+        "World@0x0", "", "trd3@0x0_refl"};;
     // clang-format on
     EXPECT_VEC_EQ(expected_labels, labels);
 }
@@ -957,7 +964,7 @@ TEST_F(SolidsGeantTest, output)
         auto out_str = simplify_pointers(to_string(out));
 
         EXPECT_EQ(
-            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["box500@0x0","cone1@0x0","para1@0x0","sphere1@0x0","parabol1@0x0","trap1@0x0","trd1@0x0","trd2@0x0","trd3@0x0","trd3_refl@0x0","tube100@0x0","","","","","boolean1@0x0","polycone1@0x0","genPocone1@0x0","ellipsoid1@0x0","tetrah1@0x0","orb1@0x0","polyhedr1@0x0","hype1@0x0","elltube1@0x0","ellcone1@0x0","arb8b@0x0","arb8a@0x0","World@0x0","","trd3@0x0_refl"]}})json",
+            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["box500@0x0","cone1@0x0","para1@0x0","sphere1@0x0","parabol1@0x0","trap1@0x0","trd1@0x0","trd2@0x0","trd3@0x0","trd3_refl@0x0","tube100@0x0","","","","","boolean1@0x0","polycone1@0x0","genPocone1@0x0","ellipsoid1@0x0","tetrah1@0x0","orb1@0x0","polyhedr1@0x0","hype1@0x0","elltube1@0x0","ellcone1@0x0","arb8b@0x0","arb8a@0x0","xtru1@0x0","World@0x0","","trd3@0x0_refl"]}})json",
             out_str)
             << "\n/*** REPLACE ***/\nR\"json(" << out_str
             << ")json\"\n/******/";
@@ -972,7 +979,7 @@ TEST_F(SolidsGeantTest, geant_volumes)
         auto result = this->get_import_geant_volumes();
         static int const expected_volumes[]
             = {0,  1,  2,  3,  4,  5,  6,  7,  -1, 9,  10, 15, 16,
-               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29};
+               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
     }
@@ -980,7 +987,7 @@ TEST_F(SolidsGeantTest, geant_volumes)
         auto result = this->get_direct_geant_volumes();
         static int const expected_volumes[]
             = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 15, 16,
-               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, -2};
+               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, -2};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
 
         static char const* const expected_missing[] = {"trd3_refl"};
@@ -1010,6 +1017,8 @@ TEST_F(SolidsGeantTest, trace)
                                                        "parabol1",
                                                        "World",
                                                        "trd2",
+                                                       "World",
+                                                       "xtru1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {20,
@@ -1025,9 +1034,11 @@ TEST_F(SolidsGeantTest, trace)
                                                        30,
                                                        88.786678713601,
                                                        42.426642572799,
-                                                       88.7866787136,
+                                                       88.786678713601,
                                                        30,
-                                                       85};
+                                                       1.4761904761905,
+                                                       15.880952380952,
+                                                       67.642857142857};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -1137,7 +1148,7 @@ TEST_F(SolidsGeantTest, trace)
 TEST_F(SolidsGeantTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    EXPECT_EQ(VolumeId{29}, geo.volume_id());
+    EXPECT_EQ(VolumeId{30}, geo.volume_id());
     auto const& label = this->geometry()->id_to_label(geo.volume_id());
     EXPECT_EQ("trd3", label.name);
     EXPECT_TRUE(ends_with(label.ext, "_refl"));

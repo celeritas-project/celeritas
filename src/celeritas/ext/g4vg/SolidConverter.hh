@@ -80,6 +80,7 @@ class SolidConverter
     result_type ellipsoid(arg_type);
     result_type ellipticalcone(arg_type);
     result_type ellipticaltube(arg_type);
+    result_type extrudedsolid(arg_type);
     result_type genericpolycone(arg_type);
     result_type generictrap(arg_type);
     result_type hype(arg_type);
