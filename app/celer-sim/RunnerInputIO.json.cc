@@ -63,7 +63,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(environ);
 
     LDIO_LOAD_REQUIRED(geometry_filename);
-    LDIO_LOAD_REQUIRED(physics_filename);
+    LDIO_LOAD_OPTION(physics_filename);
     LDIO_LOAD_OPTION(hepmc3_filename);
 
     LDIO_LOAD_OPTION(primary_gen_options);
@@ -174,7 +174,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_OPTION(brem_combined);
 
     LDIO_SAVE_OPTION(track_order);
-    if (ends_with(v.physics_filename, ".gdml"))
+    if (v.physics_filename.empty() || !ends_with(v.physics_filename, ".root"))
     {
         LDIO_SAVE_REQUIRED(geant_options);
     }

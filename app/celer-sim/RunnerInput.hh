@@ -84,7 +84,7 @@ struct RunnerInput
     //! Whether the run arguments are valid
     explicit operator bool() const
     {
-        return !geometry_filename.empty() && !physics_filename.empty()
+        return !geometry_filename.empty()
                && (primary_gen_options || !hepmc3_filename.empty())
                && num_track_slots > 0 && max_steps > 0
                && initializer_capacity > 0 && max_events > 0
