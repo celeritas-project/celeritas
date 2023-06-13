@@ -8,6 +8,7 @@
 #include "ColorUtils.hh"
 
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <unistd.h>
 
@@ -23,23 +24,34 @@ bool use_color()
 {
     const static bool result = [] {
         FILE* stream = stderr;
-        std::string const& color_str = celeritas::getenv("GTEST_COLOR");
+        std::string color_str = celeritas::getenv("CELER_COLOR");
+        if (color_str.empty())
+        {
+            // Don't use celeritas getenv to check gtest variable, to avoid
+            // adding it to the list of exposed variables
+            if (const char* color_cstr = std::getenv("GTEST_COLOR"))
+            {
+                color_str = std::string(color_cstr);
+            }
+        }
         if (color_str == "0")
         {
-            // GTEST_COLOR explicitly disables color
+            // Color is explicitly disabled
             return false;
         }
-        else if (!color_str.empty())
+        if (!color_str.empty())
         {
-            // GTEST_COLOR explicitly enables color
+            // Color is explicitly enabled
             return true;
         }
-
-        if (isatty(fileno(stream)))
+        if (!isatty(fileno(stream)))
         {
-            // Given stream says it's a "terminal" i.e. user-facing
-            std::string const& term_str = celeritas::getenv("TERM");
-            if (term_str.find("xterm") != std::string::npos)
+            // This stream is a user-facing terminal
+            return false;
+        }
+        if (const char* term_str = std::getenv("TERM"))
+        {
+            if (std::string{term_str}.find("xterm") != std::string::npos)
             {
                 // 'xterm' is in the TERM type, so assume it uses colors
                 return true;
