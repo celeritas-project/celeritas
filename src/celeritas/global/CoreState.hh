@@ -66,7 +66,7 @@ class CoreState final : public CoreStateInterface
     using Ptr = ObserverPtr<Ref, M>;
     using PrimaryCRef = Collection<Primary, Ownership::const_reference, M>;
     template<MemSpace M2>
-    using ThreadItems = Collection<ThreadId, Ownership::value, M2, ActionId>;
+    using ActionThreads = Collection<ThreadId, Ownership::value, M2, ActionId>;
     //!@}
 
   public:
@@ -110,23 +110,26 @@ class CoreState final : public CoreStateInterface
     //! Clear primaries after constructing initializers from them
     void clear_primaries() { counters_.num_primaries = 0; }
 
-    void resize_offsets(size_type n);
+    void num_actions(size_type n);
+    size_type num_actions() const;
 
-    void count_tracks_per_action(TrackOrder order);
+    void update_action_range(TrackOrder order);
 
     //! Get a range delimiting the [start, end) of the track partition assigned
     //! action_id in track_slots
     Range<ThreadId> get_action_range(ActionId action_id) const;
 
-    ThreadItems<MemSpace::host>& host_thread_offsets();
-
   private:
+    ActionThreads<MemSpace::host>& action_thread_offsets();
+
     // State data
     CollectionStateStore<CoreStateData, M> states_;
 
     //
-    ThreadItems<M> thread_offsets_;
-    ThreadItems<MemSpace::host> host_thread_offsets_;
+    ActionThreads<M> thread_offsets_;
+
+    // Only used if M == device for D2H copy of thread_offsets_
+    ActionThreads<MemSpace::host> host_thread_offsets_;
 
     // Primaries to be added
     Collection<Primary, Ownership::value, M> primaries_;

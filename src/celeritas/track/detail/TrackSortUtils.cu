@@ -73,7 +73,7 @@ void sort_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 // PRE: get_action is sorted, i.e. i <= j ==> get_action(i) <=
 // get_action(j)
 template<class F>
-CELER_FUNCTION void
+__device__ void
 tracks_per_action_impl(Span<ThreadId> offsets, size_type size, F&& get_action)
 {
     ThreadId tid = celeritas::KernelParamCalculator::thread_id();
@@ -194,33 +194,26 @@ void count_tracks_per_action(
     Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>& out,
     TrackOrder order)
 {
-    switch (order)
+    if (order == TrackOrder::sort_along_step_action
+        || order == TrackOrder::sort_step_limit_action)
     {
-        case TrackOrder::sort_along_step_action:
-        case TrackOrder::sort_step_limit_action: {
-            // dispatch in the kernel since CELER_LAUNCH_KERNEL doesn't work
-            // with templated kernels
-            auto start = device_pointer_cast(make_observer(offsets.data()));
-            thrust::fill(start, start + offsets.size(), ThreadId{});
-            CELER_DEVICE_CHECK_ERROR();
-
-            CELER_LAUNCH_KERNEL(tracks_per_action,
-                                celeritas::device().default_block_size(),
-                                states.size(),
-                                celeritas::device().stream(states.stream_id).get(),
-                                states,
-                                offsets,
-                                states.size(),
-                                order);
-
-            Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
-            Copier<ThreadId, MemSpace::host> copy_to_host{sout};
-            copy_to_host(MemSpace::device, offsets);
-            backfill_action_count(sout, states.size());
-            return;
-        }
-        default:
-            return;
+        // dispatch in the kernel since CELER_LAUNCH_KERNEL doesn't work
+        // with templated kernels
+        auto start = device_pointer_cast(make_observer(offsets.data()));
+        thrust::fill(start, start + offsets.size(), ThreadId{});
+        CELER_DEVICE_CHECK_ERROR();
+        CELER_LAUNCH_KERNEL(tracks_per_action,
+                            celeritas::device().default_block_size(),
+                            states.size(),
+                            celeritas::device().stream(states.stream_id).get(),
+                            states,
+                            offsets,
+                            states.size(),
+                            order);
+        Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
+        Copier<ThreadId, MemSpace::host> copy_to_host{sout};
+        copy_to_host(MemSpace::device, offsets);
+        backfill_action_count(sout, states.size());
     }
 }
 

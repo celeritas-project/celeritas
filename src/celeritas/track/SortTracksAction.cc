@@ -97,7 +97,7 @@ std::string SortTracksAction::label() const
 void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
-    state.count_tracks_per_action(track_order_);
+    state.update_action_range(track_order_);
 }
 
 //---------------------------------------------------------------------------//
@@ -107,7 +107,7 @@ void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
-    state.count_tracks_per_action(track_order_);
+    state.update_action_range(track_order_);
 }
 
 //---------------------------------------------------------------------------//
@@ -116,7 +116,7 @@ void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
  */
 void SortTracksAction::begin_run(CoreParams const& params, CoreStateHost& state)
 {
-    state.resize_offsets(params.action_reg()->num_actions() + 1);
+    state.num_actions(params.action_reg()->num_actions() + 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -126,7 +126,7 @@ void SortTracksAction::begin_run(CoreParams const& params, CoreStateHost& state)
 void SortTracksAction::begin_run(CoreParams const& params,
                                  CoreStateDevice& state)
 {
-    state.resize_offsets(params.action_reg()->num_actions() + 1);
+    state.num_actions(params.action_reg()->num_actions() + 1);
 }
 
 //---------------------------------------------------------------------------//

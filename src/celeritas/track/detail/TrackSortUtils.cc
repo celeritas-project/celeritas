@@ -8,6 +8,7 @@
 #include "TrackSortUtils.hh"
 
 #include <algorithm>
+#include <iterator>
 #include <numeric>
 #include <random>
 
@@ -166,8 +167,9 @@ void backfill_action_count(Span<ThreadId> offsets, size_type num_actions)
 
     // in case some actions were not found, have them "start" at the next
     // action offset.
-    for (auto thread_id = offsets.end() - 2; thread_id >= offsets.begin();
-         --thread_id)
+    for (auto thread_id = std::reverse_iterator(offsets.end() - 1);
+         thread_id != std::reverse_iterator(offsets.begin());
+         ++thread_id)
     {
         if (!*thread_id)
         {
