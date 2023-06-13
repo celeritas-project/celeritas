@@ -25,17 +25,10 @@ namespace celeritas
     LoadVecGeom();
     CELER_LOG(diagnostic) << "Vecgeom said: " << silenced.str();
    \endcode
- *
- * The environment variable \c CELER_DISABLE_REDIRECT will prevent stream
- * redirection, which might be needed if the code segfaults/aborts before this
- * class's destructor is reached.
  */
 class ScopedStreamRedirect
 {
   public:
-    // Whether stream redirection is enabled
-    static bool allow_redirect();
-
     // Construct with pointer to a stream e.g. cout
     explicit ScopedStreamRedirect(std::ostream* os);
 
@@ -55,7 +48,7 @@ class ScopedStreamRedirect
     std::ostream* input_stream_;
 
     // Stores the redirected streams output buffer
-    std::streambuf* input_buffer_{nullptr};
+    std::streambuf* input_buffer_;
 
     // Holds an output buffer to share with the redirected stream
     std::stringstream temp_stream_;

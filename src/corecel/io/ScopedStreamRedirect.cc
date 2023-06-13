@@ -8,33 +8,12 @@
 #include "ScopedStreamRedirect.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/Environment.hh"
 
 #include "StringUtils.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Whether signal handling is enabled.
- */
-bool ScopedStreamRedirect::allow_redirect()
-{
-    static bool const result = [] {
-        if (!celeritas::getenv("CELER_DISABLE_REDIRECT").empty())
-        {
-            CELER_LOG(info) << "Disabling stream redirection since the "
-                               "'CELER_DISABLE_REDIRECT' "
-                               "environment variable is present and non-empty";
-            return false;
-        }
-        return true;
-    }();
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with pointer to a stream such as cout.
@@ -43,11 +22,8 @@ ScopedStreamRedirect::ScopedStreamRedirect(std::ostream* os)
     : input_stream_(os)
 {
     CELER_EXPECT(input_stream_);
-    if (this->allow_redirect())
-    {
-        input_buffer_ = input_stream_->rdbuf();
-        input_stream_->rdbuf(temp_stream_.rdbuf());
-    }
+    input_buffer_ = input_stream_->rdbuf();
+    input_stream_->rdbuf(temp_stream_.rdbuf());
 }
 
 //---------------------------------------------------------------------------//
@@ -56,17 +32,12 @@ ScopedStreamRedirect::ScopedStreamRedirect(std::ostream* os)
  */
 ScopedStreamRedirect::~ScopedStreamRedirect()
 {
-    if (input_buffer_)
-    {
-        input_stream_->rdbuf(input_buffer_);
-    }
+    input_stream_->rdbuf(input_buffer_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get redirected output with trailing whitespaces removed.
- *
- * If redirection is disabled, this will be an empty string.
  */
 std::string ScopedStreamRedirect::str()
 {
@@ -81,8 +52,6 @@ std::string ScopedStreamRedirect::str()
 //---------------------------------------------------------------------------//
 /*!
  * Get the raw stream after flushing the input.
- *
- * If redirection is disabled, this will be an empty stream.
  */
 std::stringstream& ScopedStreamRedirect::get()
 {
