@@ -45,6 +45,10 @@ class GeantVolumeVisitor
   private:
     bool unique_volumes_;
     std::map<int, ImportVolume> volids_volumes_;
+
+    // Generate the GDML name for a Geant4 logical volume
+    static std::pair<std::string, G4LogicalVolume const*>
+    generate_name_refl(G4LogicalVolume const& logical_volume);
 };
 
 //---------------------------------------------------------------------------//

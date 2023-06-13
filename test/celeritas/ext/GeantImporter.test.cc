@@ -1270,7 +1270,7 @@ TEST_F(Solids, volumes_unique)
            "tetrah10x0",   "orb10x0",       "polyhedr10x0",
            "hype10x0",     "elltube10x0",   "ellcone10x0",
            "arb8b0x0",     "arb8a0x0",      "World0x0",
-           "trd3_refl0x0"};
+           "trd30x0_refl"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 

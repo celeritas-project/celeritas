@@ -38,7 +38,6 @@ CERN Apache 2.0
 The following VecGeom-related components are derivative works:
 
 - BVHNavigator: from AdePT_
-- GenericSolid, GenericPlacedVolume, GeantGeometryImporter: from VecGeomG4Solid_
 
 with portions distributed under the following license::
 

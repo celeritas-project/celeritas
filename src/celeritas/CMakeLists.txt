@@ -89,6 +89,21 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
 endif()
 
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
+  set( _cg4vg_sources
+    ext/g4vg/Converter.cc
+    ext/g4vg/LogicalVolumeConverter.cc
+    ext/g4vg/SolidConverter.cc
+  )
+  set(_cg4vg_libs Celeritas::corecel VecGeom::vecgeom ${Geant4_LIBRARIES})
+
+  celeritas_add_object_library(celeritas_g4vg ${_cg4vg_sources})
+  celeritas_target_link_libraries(celeritas_g4vg PRIVATE ${_cg4vg_libs})
+
+  list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_g4vg>)
+  list(APPEND PRIVATE_DEPS celeritas_g4vg)
+endif()
+
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
     ext/GeantGeoParams.cc
@@ -107,13 +122,6 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantVolumeVisitor.cc
   )
   set(_cg4_libs Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES})
-
-  if(CELERITAS_USE_VecGeom)
-    list(APPEND _cg4_sources
-      ext/detail/GeantGeoConverter.cc
-    )
-    list(APPEND _cg4_libs VecGeom::vecgeom)
-  endif()
 
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
   celeritas_target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})

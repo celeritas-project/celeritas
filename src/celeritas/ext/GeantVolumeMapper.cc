@@ -12,7 +12,6 @@
 #include "celeritas_cmake_strings.h"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 
 #include "detail/GeantVolumeVisitor.hh"
 

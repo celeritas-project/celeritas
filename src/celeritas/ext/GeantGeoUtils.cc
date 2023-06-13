@@ -22,6 +22,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 #include "ScopedGeantExceptionHandler.hh"
@@ -45,6 +46,7 @@ load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
     ScopedMem record_mem("load_geant_geometry");
+    ScopedTimeLog scoped_time;
 
     {
         // I have no idea why, but creating the GDML parser resets the
@@ -80,7 +82,7 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
     CELER_EXPECT(pnh.touch);
     os << '{';
 
-    G4VTouchable& touch = *pnh.touch;
+    G4VTouchable& touch = const_cast<G4VTouchable&>(*pnh.touch);
     for (int depth : range(touch.GetHistoryDepth()))
     {
         G4VPhysicalVolume* vol = touch.GetVolume(depth);
@@ -95,6 +97,25 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
            << "='" << lv->GetName() << "'}";
     }
     os << '}';
+    return os;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print the logical volume name, ID, and address.
+ */
+std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
+{
+    if (plv.lv)
+    {
+        os << '"' << plv.lv->GetName() << "\"@"
+           << static_cast<void const*>(plv.lv)
+           << " (ID=" << plv.lv->GetInstanceID() << ')';
+    }
+    else
+    {
+        os << "{null G4LogicalVolume}";
+    }
     return os;
 }
 

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 
+#include <cstddef>
 #include <vector>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
@@ -17,6 +18,8 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "celeritas_config.h"
+#include "corecel/Assert.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/detail/VecgeomCompatibility.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
@@ -32,7 +35,7 @@
 #include "corecel/sys/ScopedMem.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
-#include "detail/GeantGeoConverter.hh"
+#include "g4vg/Converter.hh"
 
 namespace celeritas
 {
@@ -72,19 +75,23 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     CELER_EXPECT(world);
     ScopedMem record_mem("VecgeomParams.construct");
 
-    // Convert the geometry to VecGeom
-#if CELERITAS_USE_GEANT4
     {
-        ScopedMem record_mem("VecgeomParams.convert");
-        detail::GeantGeoConverter convert;
-        convert(world);
-        // save the logicalVolume ID map before converter goes out of scope
-        g4log_volid_map_ = convert.get_g4logvol_id_map();
-        CELER_ASSERT(vecgeom::GeoManager::Instance().GetWorld());
+        // Convert the geometry to VecGeom
+        g4vg::Converter::Options opts;
+        opts.compare_volumes
+            = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
+        g4vg::Converter convert{opts};
+        auto result = convert(world);
+        g4log_volid_map_ = std::move(result.volumes);
+
+        // Set as world volume
+        auto& vg_manager = vecgeom::GeoManager::Instance();
+        vg_manager.RegisterPlacedVolume(result.world);
+        vg_manager.SetWorldAndClose(result.world);
+
+        // NOTE: setting and closing changes the world
+        // CELER_ASSERT(result.world == vg_manager.GetWorld());
     }
-#else
-    CELER_NOT_CONFIGURED("Geant4");
-#endif
 
     this->build_tracking();
     this->build_data();
@@ -181,6 +188,7 @@ auto VecgeomParams::find_volumes(std::string const& name) const
  */
 void VecgeomParams::build_tracking()
 {
+    CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
     CELER_LOG(status) << "Initializing tracking information";
     ScopedMem record_mem("VecgeomParams.build_tracking");
     {
@@ -196,7 +204,40 @@ void VecgeomParams::build_tracking()
         // NOTE: this must actually be escaped with preprocessing because the
         // VecGeom interfaces change depending on the build options.
 #if CELERITAS_USE_CUDA
+        cudaLimit const cuda_attrs[]
+            = {cudaLimitStackSize, cudaLimitMallocHeapSize};
+        char const* const cuda_attr_labels[] = {"stack size", "heap size"};
+        Array<std::size_t, std::size(cuda_attrs)> orig_limits;
+        for (auto i : range(orig_limits.size()))
+        {
+            CELER_CUDA_CALL(cudaDeviceGetLimit(&orig_limits[i], cuda_attrs[i]));
+        }
+
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
+
+        cuda_manager.set_verbose([] {
+            std::string var = celeritas::getenv("VECGEOM_VERBOSE");
+            if (var.empty())
+            {
+                return 0;
+            }
+            return std::stoi(var);
+        }());
+
+        for (auto i : range(orig_limits.size()))
+        {
+            std::size_t temp;
+            CELER_CUDA_CALL(cudaDeviceGetLimit(&temp, cuda_attrs[i]));
+            if (temp != orig_limits[i])
+            {
+                CELER_LOG(debug)
+                    << "VecGeom changed the " << cuda_attr_labels[i]
+                    << " from " << orig_limits[i] << " to " << temp
+                    << "; restoring to our values";
+                CELER_CUDA_CALL(
+                    cudaDeviceSetLimit(cuda_attrs[i], orig_limits[i]));
+            }
+        }
 
         // Insure that kernels, for which the compiler is not able to determine
         // the total stack usage, have enough stack reserved.
@@ -210,29 +251,51 @@ void VecgeomParams::build_tracking()
         // appearing in the build; for this second part we ought to move (or
         // more exactly copy) to `celeritas::activate_device` as the latest
         // cudaDeviceSetLimit 'wins'.
-        if constexpr (CELERITAS_DEBUG)
+        if (std::string var = celeritas::getenv("CUDA_STACK_SIZE");
+            !var.empty())
+        {
+            int stack_size = std::stoi(var);
+            CELER_VALIDATE(stack_size > 0,
+                           << "invalid CUDA_STACK_SIZE=" << stack_size
+                           << " (must be positive)");
+            set_cuda_stack_size(stack_size);
+        }
+        else if constexpr (CELERITAS_DEBUG)
         {
             set_cuda_stack_size(16384);
+        }
+        if (std::string var = celeritas::getenv("CUDA_HEAP_SIZE"); !var.empty())
+        {
+            int heap_size = std::stoi(var);
+            CELER_VALIDATE(heap_size > 0,
+                           << "invalid CUDA_HEAP_SIZE=" << heap_size
+                           << " (must be positive)");
+            set_cuda_heap_size(heap_size);
         }
 
         CELER_LOG(debug) << "Converting to CUDA geometry";
         {
-            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
-            // cuda_manager.set_verbose(1);
+            ScopedTimeAndRedirect time_and_output_(
+                "vecgeom::CudaManager.LoadGeometry");
+
             cuda_manager.LoadGeometry();
             CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         }
 
         CELER_LOG(debug) << "Transferring geometry to GPU";
         {
-            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
+            ScopedTimeAndRedirect time_and_output_(
+                "vecgeom::CudaManager.Synchronize");
             auto world_top_devptr = cuda_manager.Synchronize();
-            CELER_ASSERT(world_top_devptr != nullptr);
             CELER_DEVICE_CHECK_ERROR();
+            CELER_VALIDATE(world_top_devptr != nullptr,
+                           << "VecGeom failed to copy geometry to GPU");
         }
 
         CELER_LOG(debug) << "Initializing BVH on GPU";
         {
+            ScopedTimeAndRedirect time_and_output_(
+                "vecgeom::BVHManager::DeviceInit");
             vecgeom::cxx::BVHManager::DeviceInit();
             CELER_DEVICE_CHECK_ERROR();
         }
@@ -259,6 +322,7 @@ void VecgeomParams::build_data()
 #if CELERITAS_USE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         device_ref_.world_volume = cuda_manager.world_gpu();
+        CELER_ASSERT(device_ref_.world_volume);
 #endif
         device_ref_.max_depth = host_ref_.max_depth;
     }
@@ -288,13 +352,13 @@ void VecgeomParams::build_metadata()
             CELER_ASSERT(vol);
 
             auto label = [vol] {
-                auto const& label = vol->GetLabel();
+                std::string const& label = vol->GetLabel();
                 if (starts_with(label, "[TEMP]"))
                 {
                     // Temporary logical volume not directly used in transport
                     return Label{};
                 }
-                return Label::from_geant(vol->GetLabel());
+                return Label::from_geant(label);
             }();
 
             result[vol_idx] = std::move(label);
