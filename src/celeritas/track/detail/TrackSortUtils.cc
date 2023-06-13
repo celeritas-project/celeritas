@@ -173,7 +173,7 @@ void backfill_action_count(Span<ThreadId> offsets, size_type num_actions)
     {
         if (!*thread_id)
         {
-            *thread_id = *(thread_id + 1);
+            *thread_id = *(thread_id - 1);
         }
     }
 }
