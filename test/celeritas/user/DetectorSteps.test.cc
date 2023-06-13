@@ -8,7 +8,6 @@
 #include "celeritas/user/DetectorSteps.hh"
 
 #include "corecel/data/CollectionMirror.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -39,6 +38,8 @@ class DetectorStepsTest : public ::celeritas::test::Test
 {
   protected:
     using HostStates = StepStateData<Ownership::value, MemSpace::host>;
+    using DeviceStates = StepStateData<Ownership::value, MemSpace::device>;
+    using HostParamsRef = HostCRef<StepParamsData>;
 
   protected:
     void SetUp() override
@@ -78,11 +79,14 @@ class DetectorStepsTest : public ::celeritas::test::Test
         return result;
     }
 
+    HostParamsRef params() { return params_.host_ref(); }
+
     HostStates build_states(size_type count)
     {
         CELER_EXPECT(count > 0);
         HostStates result;
-        resize(&result, params_.host_ref(), StreamId{0}, count);
+        resize(&result, this->params(), StreamId{0}, count);
+        auto& step = result.data;
 
         // Fill with bogus data
         int i = 0;
@@ -90,7 +94,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
         {
             for (auto sp : range(StepPoint::size_))
             {
-                auto& state_point = result.points[sp];
+                auto& state_point = step.points[sp];
                 if (!state_point.time.empty())
                     state_point.time[tid] = i++;
                 if (!state_point.pos.empty())
@@ -103,28 +107,27 @@ class DetectorStepsTest : public ::celeritas::test::Test
                     state_point.energy[tid] = units::MevEnergy(i++);
             }
             // Leave occasional gaps in the track IDs
-            result.track_id[tid] = tid.get() % 5 == 0 ? TrackId{}
-                                                      : TrackId(i++);
+            step.track_id[tid] = tid.get() % 5 == 0 ? TrackId{} : TrackId(i++);
 
             // Cycle through detector ids
             DetectorId det{tid.get() % 4};
-            if (!result.track_id[tid] || det == DetectorId{3})
+            if (!step.track_id[tid] || det == DetectorId{3})
                 det = {};
-            result.detector[tid] = det;
+            step.detector[tid] = det;
 
-            if (!result.event_id.empty())
-                result.event_id[tid] = EventId(i++);
-            if (!result.track_step_count.empty())
-                result.track_step_count[tid] = i++;
-            if (!result.action_id.empty())
-                result.action_id[tid] = ActionId(i++);
-            if (!result.step_length.empty())
-                result.step_length[tid] = i++;
+            if (!step.event_id.empty())
+                step.event_id[tid] = EventId(i++);
+            if (!step.track_step_count.empty())
+                step.track_step_count[tid] = i++;
+            if (!step.action_id.empty())
+                step.action_id[tid] = ActionId(i++);
+            if (!step.step_length.empty())
+                step.step_length[tid] = i++;
 
-            if (!result.particle.empty())
-                result.particle[tid] = ParticleId(i++);
-            if (!result.energy_deposition.empty())
-                result.energy_deposition[tid] = units::MevEnergy(i++);
+            if (!step.particle.empty())
+                step.particle[tid] = ParticleId(i++);
+            if (!step.energy_deposition.empty())
+                step.energy_deposition[tid] = units::MevEnergy(i++);
         }
 
         return result;
@@ -184,10 +187,14 @@ TEST_F(DetectorStepsTest, host)
 
 TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 {
-    auto host_states = this->build_states(300);
-    CollectionStateStore<StepStateData, MemSpace::device> device_states{
-        host_states};
-    ASSERT_EQ(300, device_states.size());
+    size_type constexpr num_tracks = 300;
+
+    DeviceStates device_states;
+    resize(&device_states, this->params(), StreamId{0}, num_tracks);
+    auto host_states = this->build_states(num_tracks);
+    device_states.data = host_states.data;
+    ASSERT_EQ(num_tracks, device_states.size());
+    ASSERT_TRUE(static_cast<bool>(device_states));
 
     // Construct reference values
     DetectorStepOutput host_output;
@@ -195,7 +202,7 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 
     // Perform reduction on device and copy back to host
     DetectorStepOutput output;
-    copy_steps(&output, device_states.ref());
+    copy_steps(&output, make_ref(device_states));
 
     EXPECT_VEC_EQ(host_output.track_id, output.track_id);
     EXPECT_VEC_EQ(host_output.event_id, output.event_id);
@@ -254,16 +261,21 @@ TEST_F(SmallDetectorStepsTest, host)
 
 TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 {
-    CollectionStateStore<StepStateData, MemSpace::device> device_states;
+    DeviceStates device_states;
     {
+        size_type constexpr num_tracks = 1024;
+
         // Create states on host and copy to device
-        auto host_states = this->build_states(1024);
-        device_states = host_states;
+        resize(&device_states, this->params(), StreamId{0}, num_tracks);
+        auto host_states = this->build_states(num_tracks);
+        device_states.data = host_states.data;
+        ASSERT_EQ(num_tracks, device_states.size());
+        ASSERT_TRUE(static_cast<bool>(device_states));
     }
 
     // Perform reduction on device and copy back to host
     DetectorStepOutput output;
-    copy_steps(&output, device_states.ref());
+    copy_steps(&output, make_ref(device_states));
 
     std::size_t num_tracks = 614;
     EXPECT_EQ(num_tracks, output.track_id.size());

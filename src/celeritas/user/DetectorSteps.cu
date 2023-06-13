@@ -8,27 +8,97 @@
 #include "DetectorSteps.hh"
 
 #include <thrust/copy.h>
-#include <thrust/count.h>
 #include <thrust/device_ptr.h>
-#include <thrust/device_vector.h>
 #include <thrust/execution_policy.h>
-#include <thrust/partition.h>
+#include <thrust/iterator/counting_iterator.h>
 
 #include "corecel/data/Collection.hh"
+#include "corecel/data/Copier.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Stream.hh"
 
 #include "StepData.hh"
-
-using thrust::device_pointer_cast;
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
-using DVecDetector = thrust::device_vector<DetectorId>;
+// KERNELS
+//---------------------------------------------------------------------------//
+/*!
+ * Gather results from active tracks that are in a detector.
+ */
+__global__ void
+gather_step_kernel(DeviceRef<StepStateData> const state, size_type num_valid)
+{
+    CELER_EXPECT(state.size() == state.scratch.size()
+                 && state.size() >= num_valid);
 
+    TrackSlotId tid{KernelParamCalculator::thread_id().get()};
+    if (!(tid < num_valid))
+    {
+        return;
+    }
+
+    TrackSlotId valid_tid{state.valid_id[tid]};
+    CELER_ASSERT(valid_tid < state.size());
+
+#define DS_COPY_IF_SELECTED(FIELD)                                  \
+    do                                                              \
+    {                                                               \
+        if (!state.data.FIELD.empty())                              \
+        {                                                           \
+            state.scratch.FIELD[tid] = state.data.FIELD[valid_tid]; \
+        }                                                           \
+    } while (0)
+
+    DS_COPY_IF_SELECTED(detector);
+    DS_COPY_IF_SELECTED(track_id);
+
+    for (auto sp : range(StepPoint::size_))
+    {
+        DS_COPY_IF_SELECTED(points[sp].time);
+        DS_COPY_IF_SELECTED(points[sp].pos);
+        DS_COPY_IF_SELECTED(points[sp].dir);
+        DS_COPY_IF_SELECTED(points[sp].energy);
+    }
+
+    DS_COPY_IF_SELECTED(event_id);
+    DS_COPY_IF_SELECTED(parent_id);
+    DS_COPY_IF_SELECTED(track_step_count);
+    DS_COPY_IF_SELECTED(step_length);
+    DS_COPY_IF_SELECTED(particle);
+    DS_COPY_IF_SELECTED(energy_deposition);
+#undef DS_COPY_IF_SELECTED
+}
+
+//---------------------------------------------------------------------------//
+// KERNEL INTERFACE
+//---------------------------------------------------------------------------//
+/*!
+ * Gather results from active tracks that are in a detector.
+ */
+void gather_step(DeviceRef<StepStateData> const& state, size_type num_valid)
+{
+    if (num_valid == 0)
+    {
+        // No valid tracks
+        return;
+    }
+
+    CELER_LAUNCH_KERNEL(gather_step,
+                        celeritas::device().default_block_size(),
+                        num_valid,
+                        celeritas::device().stream(state.stream_id).get(),
+                        state,
+                        num_valid);
+}
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
 template<class T>
 using StateRef
     = celeritas::StateCollection<T, Ownership::reference, MemSpace::device>;
@@ -43,61 +113,20 @@ struct HasDetector
 };
 
 //---------------------------------------------------------------------------//
-size_type count_num_valid(DVecDetector const& orig_ids)
-{
-    return thrust::count_if(
-        thrust::device, orig_ids.begin(), orig_ids.end(), HasDetector{});
-}
-
-//---------------------------------------------------------------------------//
-// Simplify opaque ID pointers to reduce code bloat from identical
-// instantiations
 template<class T>
-struct PointerTransformer
+void copy_field(std::vector<T>* dst, StateRef<T> const& src, size_type num_valid)
 {
-    constexpr T* operator()(T* v) const { return v; }
-};
-
-template<class V, class S>
-struct PointerTransformer<OpaqueId<V, S>>
-{
-    constexpr S* operator()(OpaqueId<V, S>* v) const
-    {
-        return reinterpret_cast<S*>(v);
-    }
-};
-
-//---------------------------------------------------------------------------//
-template<class T>
-void assign_field(std::vector<T>* dst,
-                  StateRef<T> const& src,
-                  DVecDetector const& orig_ids,
-                  size_type size,
-                  StreamId stream_id)
-{
-    if (src.empty())
+    if (src.empty() || num_valid == 0)
     {
         // This attribute is not in use
         dst->clear();
         return;
     }
-
-    PointerTransformer<T> transform_ptr;
-
-    // Partition based on detector validity
-    auto temp_span = src[AllItems<T>{}];
-    thrust::partition(
-        thrust::device.on(celeritas::device().stream(stream_id).get()),
-        transform_ptr(temp_span.begin()),
-        transform_ptr(temp_span.end()),
-        orig_ids.begin(),
-        HasDetector{});
+    dst->resize(num_valid);
 
     // Copy all items from valid threads
-    dst->resize(size);
-    thrust::copy(device_pointer_cast(transform_ptr(temp_span.begin())),
-                 device_pointer_cast(transform_ptr(temp_span.begin()) + size),
-                 transform_ptr(dst->data()));
+    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}};
+    copy(MemSpace::device, {src.data().get(), num_valid});
 }
 
 //---------------------------------------------------------------------------//
@@ -106,9 +135,6 @@ void assign_field(std::vector<T>* dst,
 //---------------------------------------------------------------------------//
 /*!
  * Copy to host results from tracks that interacted with a detector.
- *
- * \warning this mutates the original, but the mutated version will still have
- * consistent values for all tracks with valid detector IDs.
  */
 template<>
 void copy_steps<MemSpace::device>(
@@ -117,21 +143,25 @@ void copy_steps<MemSpace::device>(
 {
     CELER_EXPECT(output);
 
-    // Copy the original detector IDs
-    thrust::device_vector<DetectorId> orig_ids;
-    {
-        auto detector_span = state.detector[AllItems<DetectorId>{}];
-        orig_ids.assign(device_pointer_cast(detector_span.begin()),
-                        device_pointer_cast(detector_span.end()));
-    }
+    // Store the thread IDs of active tracks that are in a detector
+    auto start = thrust::device_pointer_cast(state.valid_id.data().get());
+    auto end = thrust::copy_if(
+        thrust::device,
+        thrust::make_counting_iterator(size_type(0)),
+        thrust::make_counting_iterator(state.size()),
+        thrust::device_pointer_cast(state.data.detector.data().get()),
+        start,
+        HasDetector{});
 
     // Get the number of threads that are active and in a detector
-    size_type size = count_num_valid(orig_ids);
+    size_type num_valid = end - start;
+
+    // Gather the step data on device
+    gather_step(state, num_valid);
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    assign_field(        \
-        &(output->FIELD), state.FIELD, orig_ids, size, state.stream_id)
+    copy_field(&(output->FIELD), state.scratch.FIELD, num_valid)
 
     DS_ASSIGN(detector);
     DS_ASSIGN(track_id);
@@ -152,8 +182,8 @@ void copy_steps<MemSpace::device>(
     DS_ASSIGN(energy_deposition);
 #undef DS_ASSIGN
 
-    CELER_ENSURE(output->detector.size() == size);
-    CELER_ENSURE(output->track_id.size() == size);
+    CELER_ENSURE(output->detector.size() == num_valid);
+    CELER_ENSURE(output->track_id.size() == num_valid);
 }
 
 //---------------------------------------------------------------------------//
