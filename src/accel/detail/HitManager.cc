@@ -50,11 +50,14 @@ void update_selection(StepPointSelection* selection,
 /*!
  * Map detector IDs on construction.
  */
-HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
+HitManager::HitManager(GeoParams const& geo,
+                       SDSetupOptions const& setup,
+                       StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
     , locate_touchable_(setup.locate_touchable)
 {
     CELER_EXPECT(setup.enabled);
+    CELER_EXPECT(num_streams > 0);
 
     // Convert setup options to step data
     selection_.energy_deposition = setup.energy_deposition;
@@ -140,11 +143,7 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
 
     // Hit processors *must* be allocated on the thread they're used because of
     // geant4 thread-local SDs. There must be one per thread.
-    auto* run_man = G4RunManager::GetRunManager();
-    CELER_VALIDATE(run_man,
-                   << "G4RunManager was not created before setting up "
-                      "HitManager");
-    processors_.resize(celeritas::get_num_threads(*run_man));
+    processors_.resize(num_streams);
 
     // Unfold map into LV/ID vectors
     VecLV geant_vols;
@@ -211,12 +210,12 @@ void HitManager::process_steps(DeviceStepState state)
  * allocators that crash if trying to deallocate data allocated on another
  * thread.
  */
-void HitManager::finalize()
+void HitManager::finalize(StreamId sid)
 {
-    CELER_LOG_LOCAL(debug) << "Deallocating hit processor";
-    int local_thread = G4Threading::G4GetThreadId();
-    CELER_ASSERT(static_cast<std::size_t>(local_thread) < processors_.size());
-    processors_[local_thread].reset();
+    CELER_EXPECT(sid < processors_.size());
+    CELER_LOG_LOCAL(debug) << "Deallocating hit processor (stream "
+                           << sid.get() << ")";
+    processors_[sid.unchecked_get()].reset();
 }
 
 //---------------------------------------------------------------------------//
@@ -225,13 +224,12 @@ void HitManager::finalize()
  */
 HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
 {
-    CELER_EXPECT(sid.get()
-                 == static_cast<size_type>(G4Threading::G4GetThreadId()));
     CELER_EXPECT(sid < processors_.size());
 
     if (CELER_UNLIKELY(!processors_[sid.unchecked_get()]))
     {
-        CELER_LOG_LOCAL(debug) << "Allocating hit processor";
+        CELER_LOG_LOCAL(debug)
+            << "Allocating hit processor (stream " << sid.get() << ")";
         // Allocate the hit processor locally
         processors_[sid.unchecked_get()] = std::make_unique<HitProcessor>(
             geant_vols_, selection_, locate_touchable_);

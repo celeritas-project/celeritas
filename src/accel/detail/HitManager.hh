@@ -35,6 +35,8 @@ class HitProcessor;
  *   exclusions for SDs that are implemented natively on GPU)
  * - Maps those volumes to VecGeom geometry
  * - Creates a HitProcessor for each Geant4 thread
+ *
+ * \warning Because of low-level problems with Geant4 allocators, the
  */
 class HitManager final : public StepInterface
 {
@@ -50,7 +52,9 @@ class HitManager final : public StepInterface
 
   public:
     // Construct with VecGeom for mapping volume IDs
-    HitManager(GeoParams const& geo, SDSetupOptions const& setup);
+    HitManager(GeoParams const& geo,
+               SDSetupOptions const& setup,
+               StreamId::size_type num_streams);
 
     // Default destructor
     ~HitManager();
@@ -68,7 +72,7 @@ class HitManager final : public StepInterface
     void process_steps(DeviceStepState) final;
 
     // Destroy local data to avoid Geant4 crashes
-    void finalize();
+    void finalize(StreamId sid);
 
     //// ACCESSORS ////
 

@@ -69,12 +69,17 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
         return result;
     }
 
+    HitManager make_hit_manager()
+    {
+        return HitManager(*this->geometry(), sd_setup_, 1);
+    }
+
     SDSetupOptions sd_setup_;
 };
 
 TEST_F(SimpleCmsTest, no_change)
 {
-    HitManager man(*this->geometry(), sd_setup_);
+    HitManager man = this->make_hit_manager();
 
     EXPECT_EQ(2, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
@@ -86,7 +91,7 @@ TEST_F(SimpleCmsTest, no_change)
 TEST_F(SimpleCmsTest, delete_one)
 {
     sd_setup_.skip_volumes = this->find_lvs({"had_calorimeter"});
-    HitManager man(*this->geometry(), sd_setup_);
+    HitManager man = this->make_hit_manager();
 
     EXPECT_EQ(1, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
@@ -98,7 +103,7 @@ TEST_F(SimpleCmsTest, delete_one)
 TEST_F(SimpleCmsTest, add_one)
 {
     sd_setup_.force_volumes = this->find_lvs({"si_tracker"});
-    HitManager man(*this->geometry(), sd_setup_);
+    HitManager man = this->make_hit_manager();
 
     EXPECT_EQ(3, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
@@ -114,15 +119,13 @@ TEST_F(SimpleCmsTest, errors)
         // No detectors
         sd_setup_.skip_volumes
             = this->find_lvs({"em_calorimeter", "had_calorimeter"});
-        EXPECT_THROW(HitManager(*this->geometry(), sd_setup_),
-                     celeritas::RuntimeError);
+        EXPECT_THROW(this->make_hit_manager(), celeritas::RuntimeError);
     }
     {
         // Nonexistent forced detector (nullptr in this case)
         sd_setup_.skip_volumes = {};
         sd_setup_.force_volumes = {nullptr};
-        EXPECT_THROW(HitManager(*this->geometry(), sd_setup_),
-                     celeritas::RuntimeError);
+        EXPECT_THROW(this->make_hit_manager(), celeritas::RuntimeError);
     }
 }
 
