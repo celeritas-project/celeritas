@@ -25,8 +25,9 @@ Resolution process
 ------------------
 
 If a disagreement about Celeritas can't be immediately resolved, it's OK to
-postpone resolution (maybe you need more data, more time to think, or it's not
-important enough at the end of the day). In the case that a resolution is
+postpone resolution (maybe you need more data or more time to think, perhaps to
+decide it's not important enough at the end of the day). In the case that a
+resolution is
 needed quickly (e.g., if it's a blocking issue), it should be discussed among
 the :ref:`core team <roles>` until an agreement is reached. If the issue is
 still contentious, the leadership team should make an executive decision,
@@ -178,50 +179,57 @@ or a "backport" branch (minor, patch).
 The following process must be followed (and may need iteration to converge) for
 each release.
 
-- Create a ``release-vX.Y.Z`` branch.
-- Ensure all CI jobs passed for the release in question. This is automatic for
-  releases from the ``develop`` branch (since every pull request must pass) but
-  should
-  be checked manually for backports.
-- Run regression tests on Summit (for performance testing), Crusher (for HIP
-  testing), and an additional machine with debug assertions enabled (e.g.
-  Wildstyle). Postpone the release
-  temporarily if major new bugs or performance regressions are detected. If
-  minor updates are needed to fix the build or tests on a particular machine,
-  include those as part of the "pre-release" pull request that includes new
-  documentation.
-- [TODO: define high-level validation tests like `geant-val`_ and a test matrix
-  correlating capability areas (code files/directories changed) to test names.]
-  Rerun and perform a cursory check on all validation tests that might be
-  affected by changes since the previous release. More complete validation
-  (since a change in results might not be an error) can be done separately.
-- Update documentation with release notes from all pull requests newly included
-  in the release. Follow the format for previous releases: add a summary of
-  highlights, and enumerate the pull requests (with PR numbers and
-  authorship attribution) separated by features and bug requests. Use the
-  `helper notebook`_ in the Celeritas documents repository to automate this.
-- Ensure the code documentation builds, preferably without warnings, on a
-  configuration that has Sphinx, Doxygen, and Breathe active. [TODO: automate
-  this with CI for doc publishing]
-- Submit a pull request with the newly added documentation and any
-  release-related tweaks, and wait until it's reviewed and merged.
-- If releasing a backported version branch, cherry-pick this documentation
-  commit into the backport branch.
-- Use the GitHub interface to create a new release with the documentation
-  update that was just added.
+1.  Create a ``release-vX.Y.Z`` branch.
+2.  Ensure all CI jobs passed for the release in question. This is automatic
+    for releases from the ``develop`` branch (since every pull request must
+    pass) but should be checked manually for backports.
+3.  Update documentation with release notes from all pull requests newly
+    included in the release. Follow the format for previous releases: add a
+    summary of highlights, and enumerate the pull requests (with PR numbers and
+    authorship attribution) separated by features and bug requests. Use the
+    `helper notebook`_ in the Celeritas documents repository to automate this.
+4.  Tag the branch on your fork with ``vX.Y.Z-rc.N`` where N starts with 1, and
+    increment for every time you return to this step due to new pull requests.
+5.  Run regression tests on Summit (for performance testing), Crusher (for HIP
+    testing), and an additional machine with debug assertions enabled (e.g.
+    Wildstyle).
+6.  [TODO: define high-level validation tests like `geant-val`_ and a test
+    matrix correlating capability areas (code files/directories changed) to
+    test names.] Rerun and perform a cursory check on all validation tests that
+    might be affected by changes since the previous release. More complete
+    validation (since a change in results might not be an error) can be done
+    separately.
+7.  Postpone the release temporarily if major new bugs or performance
+    regressions are detected. Create new pull requests for the serious errors
+    using the standard :ref:`contributing <contributing>` process, and once the
+    fixes are merged into develop, merge develop into the release branch.
+    Return to step 4.
+8.  If only minor updates are needed to fix the build or tests on a particular
+    machine, include those as part of the "pre-release" pull request that
+    includes new documentation.
+9.  Ensure the code documentation builds, preferably without warnings, on a
+    configuration that has Sphinx, Doxygen, and Breathe active. [TODO: automate
+    this with CI for doc publishing]
+10. Submit a pull request with the newly added documentation and any
+    release-related tweaks, and wait until it's reviewed and merged.
+11. If releasing a backported version branch, cherry-pick this documentation
+    commit into the backport branch.
+12. Use the GitHub interface to create a new release with the documentation
+    update that was just added.
 
 After committing the release tag:
 
-- Save the ``tar.gz`` and attach to the release, because the hash changes if the
-  git "describe" function returns a different result for the release tag's hash
-  (e.g., if a collaborative branch on the main repository points to that commit).
-- Pull locally (make sure to use the ``--tags`` option) and build PDF user
-  documentation for the release. Ensure breathe is activated (so the API is
-  listed) and that the version is embedded correctly.  [TODO: We should add a
-  documentation pipeline that builds and uploads to GitHub pages.]
-- Update the Spack recipe for Celeritas with the new version and sha256 value
-  (either manually or using ``spack checksum``) and submit a pull request to
-  the Spack project.
+1. Save the ``tar.gz`` and attach to the release, because the hash changes if
+   the git "describe" function returns a different result for the release tag's
+   hash (e.g., if a collaborative branch on the main repository points to that
+   commit).
+2. Pull locally (make sure to use the ``--tags`` option) and build PDF user
+   documentation for the release. Ensure breathe is activated (so the API is
+   listed) and that the version is embedded correctly.  [TODO: We should add a
+   documentation pipeline that builds and uploads to GitHub pages.]
+3. Update the Spack recipe for Celeritas with the new version and sha256 value
+   (either manually or using ``spack checksum``) and submit a pull request to
+   the Spack project.
 
 The first commit that deviates from the most recent major or minor branch
 should be tagged (but not released!) with the next version number with a
