@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 # Set Celeritas_VERSION using git tags using the following format
-set(CGV_TAG_REGEX "v([0-9.]+)(-dev)?")
+set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc.[0-9]+)?")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
