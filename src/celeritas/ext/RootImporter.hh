@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "celeritas/io/ImportData.hh"
@@ -45,6 +47,12 @@ class RootImporter
   public:
     // Construct with ROOT file name
     explicit RootImporter(char const* filename);
+
+    //! Construct with ROOT file name
+    explicit RootImporter(std::string const& filename)
+        : RootImporter(filename.c_str())
+    {
+    }
 
     // Load data from the ROOT files
     ImportData operator()();
