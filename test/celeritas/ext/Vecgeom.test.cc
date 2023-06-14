@@ -50,7 +50,7 @@ std::string simplify_pointers(std::string const& s)
     static const std::regex subs_ptr("0x[0-9a-f]+");
     return std::regex_replace(s, subs_ptr, "0x0");
 }
-}
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTS

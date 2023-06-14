@@ -29,7 +29,8 @@ namespace
 __global__ void rng_state_init_kernel(DeviceRef<CuHipRngStateData> const state,
                                       DeviceCRef<CuHipRngInitData> const init)
 {
-    auto tid = TrackSlotId{celeritas::KernelParamCalculator::thread_id().unchecked_get()};
+    auto tid = TrackSlotId{
+        celeritas::KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() < state.size())
     {
         TrackSlotId tsid{tid.unchecked_get()};

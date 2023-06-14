@@ -19,27 +19,21 @@ char const* to_cstring(SurfaceType value)
 {
     static EnumStringMapper<SurfaceType> const to_cstring_impl
     {
-        "px",
-        "py",
-        "pz",
-        "cxc",
-        "cyc",
-        "czc",
-        "sc",
+        "px", "py", "pz", "cxc", "cyc", "czc", "sc",
 #if 0
         "cx",
         "cy",
         "cz",
         "p",
 #endif
-        "s",
+            "s",
 #if 0
         "kx",
         "ky",
         "kz",
         "sq",
 #endif
-        "gq",
+            "gq",
     };
     return to_cstring_impl(value);
 }

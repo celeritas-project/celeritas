@@ -89,7 +89,7 @@ copy_to_device_test(MockStateData<W, M>& inp)
 
 //! Test that we can make a device reference inside .cu code
 MockStateData<Ownership::reference, MemSpace::device> reference_device_test(
-    MockStateData<Ownership::value, MemSpace::device> &device_value)
+    MockStateData<Ownership::value, MemSpace::device>& device_value)
 {
     MockStateData<Ownership::reference, MemSpace::device> result;
     result = device_value;
