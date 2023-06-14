@@ -11,5 +11,4 @@
 
 /celerg4/geometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
 /celerg4/eventFile @CELERG4_EVENTS@
-/celerg4/skipMasterSD false
 @CELERG4_ROOT_OPTIONS@

@@ -96,18 +96,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
         sd.enabled = false;
     }
-    else if (GlobalSetup::Instance()->GetSkipMasterSD()
-             && G4Threading::IsMasterThread())
-    {
-        // Since the worker threads don't create SDs, we have to add them
-        // ourselves.
-        auto& sd = GlobalSetup::Instance()->GetSDSetupOptions();
-
-        for (auto& [_, lv] : detectors_)
-        {
-            sd.force_volumes.push_back(lv);
-        }
-    }
 
     // Claim ownership of world volume and pass it to the caller
     return gdml_parser.GetWorldVolume();
@@ -118,14 +106,6 @@ void DetectorConstruction::ConstructSDandField()
 {
     if (detectors_.empty())
     {
-        return;
-    }
-
-    if (GlobalSetup::Instance()->GetSkipMasterSD()
-        && G4Threading::IsMasterThread())
-    {
-        CELER_LOG_LOCAL(warning) << "Skipping SD construction on master "
-                                    "thread to emulate CMSSW";
         return;
     }
 
