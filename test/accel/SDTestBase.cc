@@ -10,6 +10,7 @@
 #include <G4LogicalVolumeStore.hh>
 #include <G4SDManager.hh>
 
+#include "celeritas_config.h"
 #include "corecel/io/Join.hh"
 
 #include "SimpleSensitiveDetector.hh"
@@ -20,19 +21,27 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 //! Attach SDs when building geometry
-auto SDTestBase::build_fresh_geometry(std::string_view sv) -> SPConstGeoI
+auto SDTestBase::build_fresh_geometry(std::string_view basename) -> SPConstGeoI
 {
     CELER_EXPECT(detectors_.empty());
+
     // Construct geo
-    auto result = Base::build_fresh_geometry(sv);
+    auto result = Base::build_fresh_geometry(basename);
+
+    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
+    CELER_ASSERT(lv_store);
+    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        // Load Geant4 geometry
+        this->imported_data();
+    }
+    CELER_ASSERT(!lv_store->empty());
 
     // Attach SDs
     auto sd_vol_names = this->detector_volumes();
 
     // Find and set up sensitive detectors
     G4SDManager* sd_manager = G4SDManager::GetSDMpointer();
-    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    CELER_ASSERT(lv_store);
     for (G4LogicalVolume* lv : *lv_store)
     {
         // Look for the volume name
