@@ -69,8 +69,13 @@ Math, numerics, and algorithms
 
 .. doxygenfile:: corecel/math/SoftEqual.hh
 
+
+.. _api_io:
+
 I/O
 ---
 
 .. doxygenfile:: corecel/io/Logger.hh
+
+.. doxygenclass:: celeritas::OutputInterface
 

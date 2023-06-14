@@ -4,9 +4,9 @@
 
 .. _api:
 
-*****************
-API documentation
-*****************
+***********
+Library API
+***********
 
 .. only:: nobreathe
 
@@ -15,9 +15,30 @@ API documentation
 
    .. _breathe: https://github.com/michaeljones/breathe#readme
 
-The Celeritas codebase lives under the ``src/`` directory and is divided into
-four packages. Additional top-level files provide access to version and
+The bulk of Celeritas' code is in several code libraries meant (with varying
+degrees of polish) to be used by external users and application developers.
+Currently, the most stable and user-ready component of Celeritas is its
+:ref:`accel` code library for offloading to Geant4.
+
+The Celeritas codebase lives under the ``src/`` directory and is partitioned
+into several libraries of increasing complexity: ``corecel`` for GPU/CPU
+abstractions, ``orange`` for a platform-portable geometry implementation,
+``celeritas`` for the GPU implementation of physics and MC particle tracking,
+and ``accel`` for the Geant4 integration library.
+
+Additional top-level files provide access to version and
 configuration attributes.
+
+.. note::
+   When building Celeritas, regardless of the configured :ref:`dependencies
+   <Dependencies>`, all of the documented API code in ``corecel``, ``orange``,
+   and ``celeritas`` (except possibly headers ending in ``.json.hh``,
+   ``.device.hh``, etc.) will compile and can link to downstream code. However,
+   some classes will throw ``RuntimeError`` if they lack the required
+   functionality.
+
+   If Geant4 is disabled, the ``accel`` library will not be built or installed,
+   because every component of that library requires Geant4.
 
 .. toctree::
    api/corecel.rst
