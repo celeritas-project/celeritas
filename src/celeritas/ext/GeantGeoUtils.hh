@@ -76,7 +76,7 @@ inline void reset_geant_geometry()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline void Span<G4LogicalVolume*> geant_logical_volumes()
+inline Span<G4LogicalVolume*> geant_logical_volumes()
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

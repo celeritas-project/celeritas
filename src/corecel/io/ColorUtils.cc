@@ -46,7 +46,7 @@ bool use_color()
         }
         if (!isatty(fileno(stream)))
         {
-            // This stream is a user-facing terminal
+            // This stream is not a user-facing terminal
             return false;
         }
         if (const char* term_str = std::getenv("TERM"))
