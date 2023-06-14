@@ -534,8 +534,15 @@ celeritas_add_test(celeritas/user/StepCollector.test.cc
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Geant4)
+  celeritas_add_library(testcel_accel
+    accel/SimpleSensitiveDetector.cc
+    accel/SDTestBase.cc
+  )
+  celeritas_target_link_libraries(testcel_accel
+    PUBLIC testcel_harness testcel_celeritas Celeritas::accel
+  )
   celeritas_setup_tests(SERIAL PREFIX accel
-    LINK_LIBRARIES Celeritas::accel Celeritas::celeritas testcel_celeritas
+    LINK_LIBRARIES Celeritas::accel Celeritas::celeritas testcel_accel
   )
 
   celeritas_add_test(accel/ExceptionConverter.test.cc)

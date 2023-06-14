@@ -39,6 +39,16 @@ class HitProcessor;
 class HitManager final : public StepInterface
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using StepStateHostRef = HostRef<StepStateData>;
+    using StepStateDeviceRef = DeviceRef<StepStateData>;
+    using SPConstVecLV
+        = std::shared_ptr<const std::vector<G4LogicalVolume const*>>;
+    using VecVolId = std::vector<VolumeId>;
+    //!@}
+
+  public:
     // Construct with VecGeom for mapping volume IDs
     HitManager(GeoParams const& geo, SDSetupOptions const& setup);
 
@@ -60,14 +70,22 @@ class HitManager final : public StepInterface
     // Destroy local data to avoid Geant4 crashes
     void finalize();
 
+    //// ACCESSORS ////
+
+    //! Access the logical volumes that have SDs attached
+    SPConstVecLV const& geant_vols() const { return geant_vols_; }
+
+    //! Access the Celeritas volume IDs corresponding to the detectors
+    VecVolId const& celer_vols() const { return vecgeom_vols_; }
+
   private:
     using VecLV = std::vector<G4LogicalVolume const*>;
 
     bool nonzero_energy_deposition_{};
     bool locate_touchable_{};
     StepSelection selection_;
-    std::shared_ptr<VecLV const> geant_vols_;
-    std::vector<VolumeId> vecgeom_vols_;
+    SPConstVecLV geant_vols_;
+    VecVolId vecgeom_vols_;
     std::vector<std::unique_ptr<HitProcessor>> processors_;
 
     // Ensure thread-local hit processor exists and return it

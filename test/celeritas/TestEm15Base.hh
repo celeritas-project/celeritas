@@ -17,7 +17,7 @@ namespace test
 /*!
  * Test harness for "infinite" geometry.
  */
-class TestEm15Base : public GeantTestBase
+class TestEm15Base : virtual public GeantTestBase
 {
   protected:
     std::string_view geometry_basename() const override { return "testem15"; }
