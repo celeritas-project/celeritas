@@ -25,10 +25,11 @@ struct RZMapFieldTrackPropagator
     CELER_FUNCTION Propagation operator()(CoreTrackView const& track,
                                           real_type max_step) const
     {
-        auto geo = track.make_geo_view();
-        auto particle = track.make_particle_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            RZMapField{field}, field.options, particle, &geo);
+            RZMapField{field},
+            field.options,
+            track.make_particle_view(),
+            track.make_geo_view());
         return propagate(max_step);
     }
 

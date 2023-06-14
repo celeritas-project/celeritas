@@ -37,7 +37,7 @@ GCheckOutput run_cpu(SPConstGeo const& params,
     GeoTrackView geo(params->host_ref(), state.ref(), TrackSlotId(0));
     geo = GeoTrackInitializer{init->pos, init->dir};
 
-    LinearPropagator propagate(&geo);  // one propagator per track
+    LinearPropagator propagate(geo);  // one propagator per track
 
     printf("Initial track: pos=(%f, %f, %f), dir=(%f, %f, %f), outside=%i\n",
            geo.pos()[0],

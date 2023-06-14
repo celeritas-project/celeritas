@@ -15,6 +15,7 @@
 #include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoTrackView.hh"
 
 #include "celeritas_test.hh"
 
@@ -76,6 +77,19 @@ class SimpleCmsTest : public LinearPropagatorTestBase
 // HOST TESTS
 //----------------------------------------------------------------------------//
 
+TEST_F(SimpleCmsTest, rvalue_type)
+{
+    {
+        LinearPropagator propagate(this->init_geo({0, 0, 0}, {0, 0, 1}));
+        EXPECT_TRUE((
+            std::is_same_v<decltype(propagate), LinearPropagator<GeoTrackView>>));
+        Propagation result = propagate(10);
+        EXPECT_SOFT_EQ(10, result.distance);
+        EXPECT_FALSE(result.boundary);
+    }
+    EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), this->make_geo_view().pos());
+}
+
 TEST_F(SimpleCmsTest, all)
 {
     // Initialize
@@ -83,7 +97,9 @@ TEST_F(SimpleCmsTest, all)
     EXPECT_EQ("vacuum_tube", this->volume_name(geo));
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
+        EXPECT_TRUE((std::is_same_v<decltype(propagate),
+                                    LinearPropagator<GeoTrackView&>>));
 
         // Move up to a small distance
         Propagation result = propagate(20);
@@ -97,7 +113,7 @@ TEST_F(SimpleCmsTest, all)
     geo.set_dir({1, 0, 0});
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
 
         // Move to the next layer
         Propagation result = propagate(1e20);
@@ -111,7 +127,7 @@ TEST_F(SimpleCmsTest, all)
     EXPECT_EQ("si_tracker", this->volume_name(geo));
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
 
         // Move two steps internally
         Propagation result = propagate(35);
@@ -128,7 +144,7 @@ TEST_F(SimpleCmsTest, all)
     EXPECT_EQ("si_tracker", this->volume_name(geo));
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
 
         // Move to next boundary (infinite max distance)
         Propagation result = propagate();
@@ -148,7 +164,7 @@ TEST_F(SimpleCmsTest, all)
     geo.set_dir({0, 0, -1});
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
 
         // Move to world volume
         Propagation result = propagate(10000);

@@ -25,14 +25,10 @@ struct LinearTrackPropagator
     CELER_FUNCTION Propagation operator()(CoreTrackView const& track,
                                           real_type max_step) const
     {
-        auto geo = track.make_geo_view();
-        return LinearPropagator{&geo}(max_step);
+        return LinearPropagator{track.make_geo_view()}(max_step);
     }
 
-    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop()
-    {
-        return LinearPropagator::tracks_can_loop();
-    }
+    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return false; }
 };
 
 //---------------------------------------------------------------------------//
