@@ -83,7 +83,7 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
                   return;
               }
 
-              auto id = g4_to_celer(*lv);
+              auto id = lv ? g4_to_celer(*lv) : VolumeId{};
               if (!id)
               {
                   missing_lv.push_back(lv);
@@ -134,7 +134,7 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
                        missing_lv.end(),
                        ", ",
                        [](std::ostream& os, G4LogicalVolume const* lv) {
-                           os << '\'' << lv->GetName() << '\'';
+                           os << '\'' << PrintableLV{lv} << '\'';
                        }));
     CELER_VALIDATE(!found_lv.empty(), << "no sensitive detectors were found");
 

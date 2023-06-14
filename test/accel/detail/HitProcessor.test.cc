@@ -10,9 +10,9 @@
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
+#include "accel/SDTestBase.hh"
+#include "accel/SimpleSensitiveDetector.hh"
 
-#include "../SDTestBase.hh"
-#include "../SimpleSensitiveDetector.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas::units;
@@ -26,8 +26,8 @@ namespace test
 using ::celeritas::test::SimpleHitsResult;
 
 //---------------------------------------------------------------------------//
-class SimpleCmsTest : public ::celeritas::test::SimpleCmsTestBase,
-                      public ::celeritas::test::SDTestBase
+class SimpleCmsTest : public ::celeritas::test::SDTestBase,
+                      public ::celeritas::test::SimpleCmsTestBase
 {
   protected:
     using VecLV = std::vector<G4LogicalVolume const*>;

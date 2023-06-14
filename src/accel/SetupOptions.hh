@@ -50,7 +50,7 @@ struct SDSetupOptions
     StepPoint post;
 
     //! Manually list LVs that don't have an SD on the master thread
-    std::vector<G4LogicalVolume const*> force_volumes;
+    std::unordered_set<G4LogicalVolume const*> force_volumes;
     //! List LVs that should *not* have automatic hit mapping
     std::unordered_set<G4LogicalVolume const*> skip_volumes;
 
