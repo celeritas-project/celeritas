@@ -17,32 +17,31 @@ namespace detail
 /*!
  * Apply propagation over the step.
  *
- * \tparam TP Track propagator
+ * \tparam MP Propagator factory
  *
- * TP should be a function-like object:
- * \code Propagation(*)(CoreTrackView const&, real_type) \endcode
- * where the second argument is the maximum step.
+ * MP should be a function-like object:
+ * \code Propagator(*)(CoreTrackView const&) \endcode
  */
-template<class TP>
+template<class MP>
 struct PropagationApplier
 {
     inline CELER_FUNCTION void operator()(CoreTrackView const& track);
 
-    TP propagate;
+    MP make_propagator;
 };
 
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<class TP>
-CELER_FUNCTION PropagationApplier(TP&&)->PropagationApplier<TP>;
+template<class MP>
+CELER_FUNCTION PropagationApplier(MP&&)->PropagationApplier<MP>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-template<class TP>
+template<class MP>
 CELER_FUNCTION void
-PropagationApplier<TP>::operator()(CoreTrackView const& track)
+PropagationApplier<MP>::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
     StepLimit& step_limit = sim.step_limit();
@@ -58,12 +57,19 @@ PropagationApplier<TP>::operator()(CoreTrackView const& track)
         return;
     }
 
-    Propagation p = propagate(track, step_limit.step);
-    if (propagate.tracks_can_loop())
+    bool tracks_can_loop;
+    Propagation p;
+    {
+        auto propagate = make_propagator(track);
+        p = propagate(step_limit.step);
+        tracks_can_loop = propagate.tracks_can_loop();
+    }
+
+    if (tracks_can_loop)
     {
         sim.update_looping(p.looping);
     }
-    if (propagate.tracks_can_loop() && p.looping)
+    if (tracks_can_loop && p.looping)
     {
         // The track is looping, i.e. progressing little over many
         // integration steps in the field propagator (likely a low energy

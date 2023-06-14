@@ -17,7 +17,7 @@
 
 #include "ElossApplier.hh"
 #include "FluctELoss.hh"
-#include "LinearTrackPropagator.hh"
+#include "LinearPropagatorFactory.hh"
 #include "MeanELoss.hh"
 #include "MscApplier.hh"
 #include "MscStepLimitApplier.hh"
@@ -56,7 +56,7 @@ void launch_propagate(ExplicitActionInterface const& action,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         action.action_id(),
-        detail::PropagationApplier{detail::LinearTrackPropagator{}});
+        detail::PropagationApplier{detail::LinearPropagatorFactory{}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "propagate-linear");
     launch_kernel(state, execute_thread);
