@@ -46,6 +46,34 @@ struct ElementRecord
 
 //---------------------------------------------------------------------------//
 /*!
+ * Fundamental, invariant properties of a nuclide.
+ */
+struct NuclideRecord
+{
+    //!@{
+    //! \name Type aliases
+    using MassNumber = AtomicNumber;
+    //!@}
+
+    AtomicNumber atomic_number;  //!< Z number
+    MassNumber atomic_mass;  //!< A number (TODO: fix type?)
+    units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Fractional element component of a material.
+ *
+ * This represents, e.g., the fraction of hydrogen in water.
+ */
+struct ElNuclideComponent
+{
+    NuclideId nuclide;  //!< Index in MaterialParams elements
+    real_type fraction;  //!< Fraction of number density
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Fractional element component of a material.
  *
  * This represents, e.g., the fraction of hydrogen in water.
