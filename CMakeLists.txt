@@ -192,6 +192,7 @@ endif()
 
 if(CELERITAS_USE_JSON AND NOT nlohmann_json_FOUND)
   find_package(nlohmann_json 3.7.0 REQUIRED)
+  set(nlohmann_json_LIBRARIES nlohmann_json::nlohmann_json)
 endif()
 
 if(CELERITAS_USE_MPI)
