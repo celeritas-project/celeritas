@@ -136,8 +136,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 };
 
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
 /*!
  * Access a native pointer to a NativeCRef.
  *
@@ -151,7 +149,12 @@ auto CoreParams::ptr() const -> ConstPtr<M>
     {
         return make_observer(&host_ref_);
     }
-    else if constexpr (M == MemSpace::device)
+#ifndef __NVCC__
+        // CUDA 11.4 complains about 'else if constexpr' ("missing return
+        // statement") and GCC 11.2 complains about leaving off the 'else'
+        // ("inconsistent deduction for auto return type")
+        else
+#endif
     {
         CELER_ENSURE(!device_ref_vec_.empty());
         return make_observer(device_ref_vec_);

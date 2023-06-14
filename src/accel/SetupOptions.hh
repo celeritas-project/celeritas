@@ -107,8 +107,6 @@ struct SetupOptions
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
     real_type secondary_stack_factor{3.0};
-    //! Sync the GPU at every kernel for error checking
-    bool sync{false};
     //!@}
 
     //! Set the number of streams (defaults to run manager # threads)
@@ -134,6 +132,10 @@ struct SetupOptions
     //! \name CUDA options
     size_type cuda_stack_size{};
     size_type cuda_heap_size{};
+    //! Sync the GPU at every kernel for timing
+    bool sync{false};
+    //! Launch all kernels on the default stream
+    bool default_stream{false};
     //!@}
 
     //!@{

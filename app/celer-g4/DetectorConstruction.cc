@@ -89,12 +89,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         }
     }
 
-    if (demo_geant::GlobalSetup::Instance()->GetSkipMasterSD()
-        && G4Threading::IsMasterThread())
+    if (detectors_.empty())
+    {
+        CELER_LOG(warning) << "No sensitive detectors were found in the GDML "
+                              "file";
+        auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
+        sd.enabled = false;
+    }
+    else if (GlobalSetup::Instance()->GetSkipMasterSD()
+             && G4Threading::IsMasterThread())
     {
         // Since the worker threads don't create SDs, we have to add them
         // ourselves.
-        auto& sd = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
+        auto& sd = GlobalSetup::Instance()->GetSDSetupOptions();
 
         for (auto& [_, lv] : detectors_)
         {
@@ -109,7 +116,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 //---------------------------------------------------------------------------//
 void DetectorConstruction::ConstructSDandField()
 {
-    if (demo_geant::GlobalSetup::Instance()->GetSkipMasterSD()
+    if (detectors_.empty())
+    {
+        return;
+    }
+
+    if (GlobalSetup::Instance()->GetSkipMasterSD()
         && G4Threading::IsMasterThread())
     {
         CELER_LOG_LOCAL(warning) << "Skipping SD construction on master "

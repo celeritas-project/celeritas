@@ -26,6 +26,12 @@ provided.
 
 .. doxygenclass:: celeritas::SimpleOffload
 
+The SetupOptionsMessenger can be instantiated with a reference to a global
+SetupOptions instance in order to provide a Geant4 "UI" macro interface to an
+app's celeritas options.
+
+.. doxygenclass:: celeritas::SetupOptionsMessenger
+
 Celeritas setup
 ---------------
 

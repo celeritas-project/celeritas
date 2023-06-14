@@ -48,6 +48,8 @@
 #    include "RunnerInputIO.json.hh"
 #endif
 
+using namespace std::literals::string_view_literals;
+
 namespace celeritas
 {
 namespace app
@@ -148,7 +150,8 @@ void print_usage(char const* exec_name)
     std::cerr << "usage: " << exec_name << " {input}.json\n"
                  "       " << exec_name << " [--help|-h]\n"
                  "       " << exec_name << " --version\n"
-                 "       " << exec_name << " --config\n";
+                 "       " << exec_name << " --config\n"
+                 "       " << exec_name << " --dump-default\n";
     // clang-format on
 }
 
@@ -165,6 +168,7 @@ int main(int argc, char* argv[])
 {
     using celeritas::MpiCommunicator;
     using celeritas::ScopedMpiInit;
+    using celeritas::to_string;
     using std::cerr;
     using std::cout;
     using std::endl;
@@ -191,27 +195,35 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     std::string_view filename{argv[1]};
-    if (filename == "--help" || filename == "-h")
+    if (filename == "--help"sv || filename == "-h"sv)
     {
         celeritas::app::print_usage(argv[0]);
         return EXIT_SUCCESS;
     }
-    if (filename == "--version" || filename == "-v")
+    if (filename == "--version"sv || filename == "-v"sv)
     {
         std::cout << celeritas_version << std::endl;
         return EXIT_SUCCESS;
     }
     if (!CELERITAS_USE_JSON)
     {
-        // Check for JSON *before* checking the config option
+        // Check for JSON *before* checking the options below
         std::cerr << argv[0]
                   << ": JSON is not enabled in this build of Celeritas"
                   << std::endl;
         return EXIT_FAILURE;
     }
-    if (filename == "--config")
+    if (filename == "--config"sv)
     {
         std::cout << to_string(celeritas::BuildOutput{}) << std::endl;
+        return EXIT_SUCCESS;
+    }
+    if (filename == "--dump-default"sv)
+    {
+#if CELERITAS_USE_JSON
+        std::cout << nlohmann::json{celeritas::app::RunnerInput{}}.dump(1)
+                  << std::endl;
+#endif
         return EXIT_SUCCESS;
     }
 

@@ -25,10 +25,11 @@ else()
   set(LIBRARIES)
 endif()
 
-if(CELERITAS_USE_ROOT)
+if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
   function(celeritas_local_root_generate_dictionary name)
     # No need for the rootmap file for an executable.
     set(CMAKE_ROOTTEST_NOROOTMAP TRUE)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_RUNTIME_OUTPUT_DIRECTORY})
     include_directories(
       # root_generate_dictionary cannot handle the '$<INSTALL_INTERFACE:include>'
       # part of the Celeritas::corecel target's include, so we cannot use it in
@@ -75,30 +76,30 @@ endif()
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(DEMO_MAX_NUM_TRACKS 524288)
-    set(DEMO_INIT_CAPACITY 4194304)
+    set(CELERG4_MAX_NUM_TRACKS 524288)
+    set(CELERG4_INIT_CAPACITY 4194304)
   else()
     # Use smaller number of tracks when running on CPU
-    set(DEMO_MAX_NUM_TRACKS 2048)
-    set(DEMO_INIT_CAPACITY 65536)
+    set(CELERG4_MAX_NUM_TRACKS 2048)
+    set(CELERG4_INIT_CAPACITY 65536)
   endif()
 else()
   # Use smaller number of tracks when running on CPU
-  set(DEMO_MAX_NUM_TRACKS 1024)
-  set(DEMO_INIT_CAPACITY 32768)
+  set(CELERG4_MAX_NUM_TRACKS 1024)
+  set(CELERG4_INIT_CAPACITY 32768)
 endif()
 
 if(NOT CELERITAS_DEBUG)
-  set(DEMO_EVENTS
+  set(CELERG4_EVENTS
     "${CELER_APP_DATA_DIR}/ttbarsplit-12evt-1108prim.hepmc3")
 else()
   # Use fewer events for debug
-  set(DEMO_EVENTS
+  set(CELERG4_EVENTS
     "${CELER_APP_DATA_DIR}/ttbarbits-12evt-118prim.hepmc3")
 endif()
 if(CELERITAS_USE_ROOT)
-  set(DEMO_ROOT_OPTIONS "/setup/rootBufferSize 128000
-/setup/writeSDHits true")
+  set(CELERG4_ROOT_OPTIONS "/celerg4/rootBufferSize 128000
+/celerg4/writeSDHits true")
 endif()
 configure_file(
   "simple-cms-test.mac.in"

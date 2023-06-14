@@ -20,6 +20,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/GeantVolumeMapper.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
@@ -72,38 +73,39 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
 
     // Volume mapper and helper lambda for adding SDs
     GeantVolumeMapper g4_to_celer{geo};
-    auto add_volume = [&](G4LogicalVolume const* lv,
-                          G4VSensitiveDetector const* sd) {
-        if (setup.skip_volumes.count(lv))
-        {
-            CELER_LOG(debug)
-                << "Skipping automatic SD callback for logical volume '"
-                << lv->GetName() << "' due to user option";
-            return;
-        }
+    auto add_volume
+        = [&](G4LogicalVolume const* lv, G4VSensitiveDetector const* sd) {
+              if (setup.skip_volumes.count(lv))
+              {
+                  CELER_LOG(debug)
+                      << "Skipping automatic SD callback for logical volume '"
+                      << lv->GetName() << "' due to user option";
+                  return;
+              }
 
-        auto id = g4_to_celer(*lv);
-        if (!id)
-        {
-            missing_lv.push_back(lv);
-            return;
-        }
-        auto msg = CELER_LOG(debug);
-        msg << "Mapped ";
-        if (sd)
-        {
-            msg << "sensitive detector '" << sd->GetName() << '\'';
-        }
-        else
-        {
-            msg << "unknown sensitive detector";
-        }
-        msg << " on logical volume '" << lv->GetName() << "' to "
-            << celeritas_core_geo << " volume '" << geo.id_to_label(id) << "'";
+              auto id = g4_to_celer(*lv);
+              if (!id)
+              {
+                  missing_lv.push_back(lv);
+                  return;
+              }
+              auto msg = CELER_LOG(debug);
+              msg << "Mapped ";
+              if (sd)
+              {
+                  msg << "sensitive detector '" << sd->GetName() << '\'';
+              }
+              else
+              {
+                  msg << "unknown sensitive detector";
+              }
+              msg << " on logical volume '" << PrintableLV{lv} << "' to "
+                  << celeritas_core_geo << " volume '" << geo.id_to_label(id)
+                  << "' (ID=" << id.unchecked_get() << ')';
 
-        // Add Geant4 volume and corresponding volume ID to list
-        found_lv.insert({lv, id});
-    };
+              // Add Geant4 volume and corresponding volume ID to list
+              found_lv.insert({lv, id});
+          };
 
     // Loop over all logical volumes and map detectors to Volume IDs
     for (G4LogicalVolume const* lv : *G4LogicalVolumeStore::GetInstance())

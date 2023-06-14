@@ -290,7 +290,7 @@ void activate_device(Device&& device)
     CELER_LOG_LOCAL(debug) << "Initializing '" << device.name() << "', ID "
                            << device.device_id() << " of "
                            << Device::num_devices();
-    ScopedTimeLog scoped_time;
+    ScopedTimeLog scoped_time(&self_logger(), 1.0);
     Device& d = global_device();
     {
         // Lock *after* getting the pointer to the global_device, because
@@ -374,11 +374,11 @@ void set_cuda_stack_size(int limit)
 {
     CELER_EXPECT(limit > 0);
     CELER_EXPECT(celeritas::device());
-    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
     if constexpr (CELERITAS_USE_CUDA)
     {
-        CELER_LOG(debug) << "Set CUDA stack size to " << limit << "B";
+        CELER_LOG(debug) << "Setting CUDA stack size to " << limit << "B";
     }
+    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
 }
 
 //---------------------------------------------------------------------------//
@@ -393,11 +393,11 @@ void set_cuda_heap_size(int limit)
 {
     CELER_EXPECT(limit > 0);
     CELER_EXPECT(celeritas::device());
-    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitMallocHeapSize, limit));
     if constexpr (CELERITAS_USE_CUDA)
     {
-        CELER_LOG(debug) << "Set CUDA heap size to " << limit << "B";
+        CELER_LOG(debug) << "Setting CUDA heap size to " << limit << "B";
     }
+    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitMallocHeapSize, limit));
 }
 
 //---------------------------------------------------------------------------//

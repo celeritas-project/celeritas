@@ -40,10 +40,16 @@ CoreState<M>::CoreState(CoreParams const& params,
     {
         device_ref_vec_ = DeviceVector<Ref>(1);
         device_ref_vec_.copy_to_device({&this->ref(), 1});
+        ptr_ = make_observer(device_ref_vec_);
+    }
+    else if constexpr (M == MemSpace::host)
+    {
+        ptr_ = make_observer(&this->ref());
     }
 
     CELER_LOG_LOCAL(status) << "Celeritas core state initialization complete";
     CELER_ENSURE(states_);
+    CELER_ENSURE(ptr_);
 }
 
 //---------------------------------------------------------------------------//

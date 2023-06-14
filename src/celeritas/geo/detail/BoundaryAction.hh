@@ -16,6 +16,9 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Move a track across a boundary.
+ */
 class BoundaryAction final : public ExplicitActionInterface,
                              public ConcreteAction
 {
@@ -32,13 +35,6 @@ class BoundaryAction final : public ExplicitActionInterface,
     //! Dependency ordering of the action
     ActionOrder order() const final { return ActionOrder::post; }
 };
-
-#if !CELER_USE_DEVICE
-inline void BoundaryAction::execute(CoreParams const&, CoreStateDevice&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -33,7 +33,7 @@ CutoffParams::from_import(ImportData const& data,
                           SPConstParticles particle_params,
                           SPConstMaterials material_params)
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(!data.materials.empty());
     CELER_EXPECT(particle_params);
     CELER_EXPECT(material_params);
 

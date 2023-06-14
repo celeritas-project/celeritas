@@ -271,7 +271,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
         import_opts.unique_volumes = options.geometry_file.empty();
         return std::make_shared<ImportData>(load_geant_data(import_opts));
     }();
-    CELER_ASSERT(imported && *imported);
+    CELER_ASSERT(imported && !imported->particles.empty()
+                 && !imported->materials.empty()
+                 && !imported->processes.empty() && !imported->volumes.empty());
 
     if (!options.physics_output_file.empty())
     {
@@ -368,6 +370,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
                               "initializing SharedParams");
             return celeritas::get_num_threads(*run_man);
         }();
+    }
+
+    // Allocate device streams, or use the default stream if there is only one.
+    if (celeritas::device() && !options.default_stream
+        && params.max_streams > 1)
+    {
+        celeritas::device().create_streams(params.max_streams);
     }
 
     // Construct along-step action

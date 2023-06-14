@@ -210,7 +210,6 @@ auto GeantTestBase::imported_data() const -> ImportData const&
             i.selection = sel;
         }
     }
-    CELER_ENSURE(i.imported);
     return i.imported;
 }
 
