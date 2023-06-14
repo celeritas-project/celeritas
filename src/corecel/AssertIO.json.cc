@@ -66,4 +66,4 @@ void to_json(nlohmann::json& j, RichContextException const& e)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

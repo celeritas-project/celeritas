@@ -19,6 +19,7 @@ char const* to_cstring(SurfaceType value)
 {
     static EnumStringMapper<SurfaceType> const to_cstring_impl
     {
+        // clang-format off
         "px",
         "py",
         "pz",
@@ -40,6 +41,7 @@ char const* to_cstring(SurfaceType value)
         "sq",
 #endif
         "gq",
+        // clang-format on
     };
     return to_cstring_impl(value);
 }
