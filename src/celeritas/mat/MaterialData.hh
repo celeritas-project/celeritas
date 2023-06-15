@@ -56,8 +56,9 @@ struct NuclideRecord
     //!@}
 
     AtomicNumber atomic_number;  //!< Z number
-    MassNumber atomic_mass;  //!< A number (TODO: fix type?)
+    MassNumber atomic_mass_number;  //!< A number (TODO: fix type)
     units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
+    units::AmuMass nuclear_mass;  //!< TODO
 };
 
 //---------------------------------------------------------------------------//

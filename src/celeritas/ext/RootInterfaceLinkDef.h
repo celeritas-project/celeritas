@@ -20,6 +20,7 @@
 #pragma link C++ class celeritas::ImportProductionCut+;
 #pragma link C++ class celeritas::ImportMatElemComponent+;
 #pragma link C++ class celeritas::ImportElement+;
+#pragma link C++ class celeritas::ImportIsotope+;
 #pragma link C++ class celeritas::ImportVolume+;
 #pragma link C++ class celeritas::ImportSBTable+;
 #pragma link C++ class celeritas::ImportLivermoreSubshell+;

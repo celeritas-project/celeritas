@@ -22,6 +22,19 @@ struct ImportElement
     double atomic_mass;  //!< [atomic mass unit]
     double radiation_length_tsai;  //!< [g/cm^2]
     double coulomb_factor;
+    std::vector<int> isotope_index;  //!< Index in ImportData::isotopes vector
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store isotope data.
+ */
+struct ImportIsotope
+{
+    std::string name;  //!< Isotope label
+    int atomic_number;  //!< Z number
+    int atomic_mass_number;  //!< A number
+    double nuclear_mass;  //!< TODO
 };
 
 //---------------------------------------------------------------------------//
