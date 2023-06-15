@@ -23,7 +23,7 @@ namespace test
 class SimpleSensitiveDetector;
 //---------------------------------------------------------------------------//
 /*!
- * Attatch "debug" sensitive detectors to a Geant4 geometry.
+ * Attach "debug" sensitive detectors to a Geant4 geometry.
  */
 class SDTestBase : virtual public GeantTestBase
 {
