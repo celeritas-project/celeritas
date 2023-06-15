@@ -104,6 +104,35 @@ void print_elements(std::vector<ImportElement>& elements)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Print isotope properties.
+ */
+void print_isotopes(std::vector<ImportIsotope>& isotopes)
+{
+    CELER_LOG(info) << "Loaded " << isotopes.size() << " isotopes";
+    cout << R"gfm(
+# Isotopes
+
+| Isotope ID | Name   | Atomic number | Atomic mass number | Nuclear mass |
+| ---------- | ------ | ------------- | ------------------ | ------------ |
+)gfm";
+
+    for (unsigned int isotope_id : range(isotopes.size()))
+    {
+        auto const& isotope = isotopes[isotope_id];
+        // clang-format off
+        cout << "| "
+             << setw(10) << std::left << isotope_id << " | "
+             << setw(6) << isotope.name << " | "
+             << setw(13) << isotope.atomic_number << " | "
+             << setw(18) << isotope.atomic_mass_number << " | "
+             << setw(12) << isotope.nuclear_mass <<  " |\n";
+        // clang-format on
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Print material properties.
  */
 void print_materials(std::vector<ImportMaterial>& materials,
@@ -625,6 +654,7 @@ int main(int argc, char* argv[])
 
     print_particles(*particle_params);
     print_elements(data.elements);
+    print_isotopes(data.isotopes);
     print_materials(data.materials, data.elements, *particle_params);
     print_processes(data, *particle_params);
     print_msc_models(data, *particle_params);
