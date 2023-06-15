@@ -3,12 +3,13 @@
 .. SPDX-License-Identifier: CC-BY-4.0
 
 
+
 .. _release_v0.3.0:
 
 Version 0.3.0
 =============
 
-*Released 2023/06/13*
+*Released 2023/06/15*
 
 Version 0.3.0 is a major new release of Celeritas. Key enhancements are:
 
@@ -56,6 +57,7 @@ New features
 * Add simple calorimeter *(@sethrj, #733)*
 * Add debugging/profiling utilities *(@sethrj, #738)*
 * Add an along step action with a RZMapField *(@whokion, #736)*
+* Add G4LogicalVolume* to VolumeId mapping *(@mrguilima, #739)*
 * Add ActionDiagnostic, replacing ParticleProcessDiagnostic *(@amandalund, #740)*
 * Replace demo loop `StepDiagnostic` with thread-safe version *(@amandalund, #746)*
 * Improve and add internal utilities before refactoring action interface *(@sethrj, #742)*
@@ -78,8 +80,9 @@ New features
 * Add G4ExtrudedSolid conversion *(@sethrj, #813)*
 * Improve performance of gathering and copying detector step data on device *(@amandalund, #814)*
 * Extend user-facing app/environment options *(@sethrj, #816)*
+* Support manual addition/exclusion of volumes in HitManager *(@sethrj, #772)*
 
-Reviewers: @sethrj *(20)*, @amandalund *(19)*, @pcanal *(4)*, @esseivaju *(4)*, @whokion *(3)*, @stognini *(2)*, @drbenmorgan *(1)*, @mrguilima *(1)*
+Reviewers: @sethrj *(21)*, @amandalund *(19)*, @pcanal *(4)*, @esseivaju *(4)*, @whokion *(4)*, @stognini *(2)*, @drbenmorgan *(1)*, @mrguilima *(1)*
 
 Bug fixes
 ---------

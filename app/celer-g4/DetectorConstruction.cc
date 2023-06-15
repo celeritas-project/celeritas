@@ -129,8 +129,10 @@ void DetectorConstruction::ConstructSDandField()
         // Attach sensitive detectors
         for (; iter != stop; ++iter)
         {
-            CELER_LOG_LOCAL(debug) << "Attaching " << iter->first << " to "
-                                   << iter->second->GetName();
+            CELER_LOG_LOCAL(debug)
+                << "Attaching '" << iter->first << "'@" << detector.get()
+                << " to '" << iter->second->GetName() << "'@"
+                << static_cast<void const*>(iter->second);
             iter->second->SetSensitiveDetector(detector.get());
         }
 
