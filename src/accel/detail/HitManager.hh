@@ -36,7 +36,9 @@ class HitProcessor;
  * - Maps those volumes to VecGeom geometry
  * - Creates a HitProcessor for each Geant4 thread
  *
- * \warning Because of low-level problems with Geant4 allocators, the
+ * \warning Because of low-level problems with Geant4 allocators, the hit
+ * processors must be allocated and deallocated on the same thread in which
+ * they're used.
  */
 class HitManager final : public StepInterface
 {
