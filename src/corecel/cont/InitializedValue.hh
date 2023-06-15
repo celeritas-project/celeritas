@@ -84,6 +84,7 @@ class InitializedValue
     {
         fin_(value_);
         value_ = other.value_;
+        fin_ = other.fin_;
         return *this;
     }
 
@@ -93,6 +94,7 @@ class InitializedValue
     {
         fin_(value_);
         value_ = std::exchange(other.value_, {});
+        fin_ = std::exchange(other.fin_, {});
         return *this;
     }
 
@@ -110,6 +112,7 @@ class InitializedValue
     {
         using std::swap;
         swap(other.value_, value_);
+        swap(other.fin_, fin_);
     }
 
     //!@}
@@ -125,6 +128,12 @@ class InitializedValue
     T& value() & { return value_; }
     T&& value() && { return value_; }
 
+    //!@}
+
+    //!@{
+    //! Access finalizer
+    Finalizer const& finalizer() const { return fin_; }
+    void finalizer(Finalizer fin) { fin_ = std::move(fin); }
     //!@}
 
   private:

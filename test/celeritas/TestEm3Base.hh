@@ -21,7 +21,7 @@ namespace test
  *
  * This class requires Geant4 to import the data. MSC is on by default.
  */
-class TestEm3Base : public GeantTestBase
+class TestEm3Base : virtual public GeantTestBase
 {
   protected:
     std::string_view geometry_basename() const override

@@ -9,9 +9,12 @@
 
 #include <functional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "celeritas/Types.hh"
+
+class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -20,6 +23,9 @@ class ExplicitActionInterface;
 //---------------------------------------------------------------------------//
 /*!
  * Control options for initializing Celeritas SD callbacks.
+ *
+ * These affect only the \c HitManager construction that is responsible for
+ * reconstructing CPU hits and sending directly to the Geant4 detectors.
  */
 struct SDSetupOptions
 {
@@ -43,7 +49,10 @@ struct SDSetupOptions
     //! Options for saving and converting end-of-step data
     StepPoint post;
 
-    // TODO: list of detectors to ignore?
+    //! Manually list LVs that don't have an SD on the master thread
+    std::unordered_set<G4LogicalVolume const*> force_volumes;
+    //! List LVs that should *not* have automatic hit mapping
+    std::unordered_set<G4LogicalVolume const*> skip_volumes;
 
     //! True if SD is enabled
     explicit operator bool() const { return this->enabled; }

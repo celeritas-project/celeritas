@@ -73,6 +73,9 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     {
         step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
     }
+
+    // Set stream ID for finalizing
+    hit_manager_.finalizer(HMFinalizer{inp.stream_id});
 }
 
 //---------------------------------------------------------------------------//
@@ -195,7 +198,15 @@ void LocalTransporter::HMFinalizer::operator()(SPHitManger& hm) const
 {
     if (hm)
     {
-        hm->finalize();
+        if (this->sid)
+        {
+            hm->finalize(this->sid);
+        }
+        else
+        {
+            CELER_LOG_LOCAL(warning) << "Not finalizing hit manager because "
+                                        "stream ID is unset";
+        }
     }
 }
 

@@ -30,7 +30,7 @@ namespace test
  * |        700  | fe       | fe_muon_chambers |
  * |             | galactic | world |
  */
-class SimpleCmsTestBase : public GeantTestBase
+class SimpleCmsTestBase : virtual public GeantTestBase
 {
   protected:
     std::string_view geometry_basename() const override
