@@ -10,6 +10,9 @@
 Installation
 ************
 
+Celeritas is designed to be easy to install for a multitude of use cases.
+
+.. _dependencies:
 
 Dependencies
 ============
@@ -177,25 +180,3 @@ basis, create a preset at :file:`scripts/cmake-presets/{HOSTNAME}.json` and
 call ``scripts/build.sh {preset}`` to create the symlink, configure the preset,
 build, and test. See :file:`scripts/README.md` in the code repository for more
 details.
-
-Downstream usage as a library
-=============================
-
-The Celeritas library is most easily used when your downstream app is built with
-CMake. It should require a single line to initialize::
-
-   find_package(Celeritas REQUIRED CONFIG)
-
-and if VecGeom or CUDA are disabled a single line to link::
-
-   target_link_libraries(mycode PUBLIC Celeritas::celeritas)
-
-Because of complexities involving CUDA Relocatable Device Code, linking when
-using both CUDA and VecGeom requires an additional include and the replacement
-of ``target_link_libraries`` with a customized version::
-
-  include(CeleritasLibrary)
-  celeritas_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
-
-The :ref:`example_minimal` example demonstrates how to use Celeritas as a
-library with a short standalone CMake project.

@@ -46,16 +46,16 @@ GlobalSetup::GlobalSetup()
 
     {
         auto& cmd = messenger_->DeclareProperty("geometryFile", geometry_file_);
-        cmd.SetGuidance("Set the filename of the GDML detector geometry");
+        cmd.SetGuidance("Filename of the GDML detector geometry");
     }
     {
         auto& cmd = messenger_->DeclareProperty("eventFile", event_file_);
-        cmd.SetGuidance("Set the filename of the event input read by HepMC3");
+        cmd.SetGuidance("Filename of the event input read by HepMC3");
     }
     {
         auto& cmd
             = messenger_->DeclareProperty("rootBufferSize", root_buffer_size_);
-        cmd.SetGuidance("Set the buffer size (bytes) of output root file");
+        cmd.SetGuidance("Buffer size of output root file [bytes]");
         cmd.SetDefaultValue(std::to_string(root_buffer_size_));
     }
     {

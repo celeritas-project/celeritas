@@ -50,70 +50,78 @@ enum class RelaxationSelection
 /*!
  * Construction options for Geant physics.
  *
- * These options attempt to default to our closest match to
- * \c G4StandardEmPhysics.
- *
- * - \c coulomb_scattering: enable a discrete Coulomb scattering process
- * - \c compton_scattering: enable a discrete Compton scattering process
- * - \c photoelectric: enable photoelectric effect
- * - \c rayleigh_scattering: enable the Rayleigh scattering process
- * - \c gamma_conversion: enable e+e- pair production process
- * - \c gamma_general: load G4GammaGeneral instead of individual processes
- * - \c ionization: enable e- and e+ ionization process
- * - \c annihilation: enable e-e+ annihilation process
- * - \c brems: enable Bremsstrahlung process selection
- * - \c brems: Bremsstrahlung model selection
- * - \c msc: Multiple scattering model selection
- * - \c relaxation: Atomic relaxation selection
- * - \c em_bins_per_decade: number of log-spaced energy bins per factor of 10
- * - \c eloss_fluctuation: enable universal energy fluctuations
- * - \c lpm: apply relativistic corrections for select models
- * - \c integral_approach: see \c PhysicsParamsOptions::disable_integral_xs
- * - \c min_energy: lowest energy of any EM physics process
- * - \c max_energy: highest energy of any EM physics process
- * - \c linear_loss_limit: see \c PhysicsParamsOptions::linear_loss_limit
- * - \c lowest_electron_energy: lowest e-/e+ kinetic energy
- * - \c msc_range_factor: e-/e+ range factor for MSC models
- * - \c msc_safety_factor: safety factor for MSC models
- * - \c msc_lambda_limit: lambda limit for MSC models [cm]
- * - \c apply_cuts: kill secondaries below the production cut
- * - \c verbose: print detailed Geant4 output
+ * These options attempt to default to our closest match to \c
+ * G4StandardEmPhysics.
  */
 struct GeantPhysicsOptions
 {
-    //// Physics list ////
-    // Gammas
+    //!@{
+    //! \name Gamma physics
+    //! Enable discrete Coulomb
     bool coulomb_scattering{false};
+    //! Enable Compton scattering
     bool compton_scattering{true};
+    //! Enable the photoelectric effect
     bool photoelectric{true};
+    //! Enable Rayleigh scattering
     bool rayleigh_scattering{true};
+    //! Enable electron pair production
     bool gamma_conversion{true};
+    //! Use G4GammaGeneral instead of individual gamma processes
     bool gamma_general{false};
+    //!@}
 
-    // Electrons and positrons
+    //!@{
+    //! \name Electron and positron physics
+    //! Enable e- and e+ ionization
     bool ionization{true};
+    //! Enable positron annihilation
     bool annihilation{true};
+    //! Enable bremsstrahlung and select a model
     BremsModelSelection brems{BremsModelSelection::all};
+    //! Enable multiple coulomb scattering and select a model
     MscModelSelection msc{MscModelSelection::urban_extended};
+    //! Enable atomic relaxation and select a model
     RelaxationSelection relaxation{RelaxationSelection::none};
+    //!@}
 
-    //// Physics options ////
+    //!@{
+    //! \name Physics options
+    //! Number of log-spaced bins per factor of 10 in energy
     int em_bins_per_decade{7};
+    //! Enable universal energy fluctuations
     bool eloss_fluctuation{true};
+    //! Apply relativistic corrections for select models
     bool lpm{true};
+    //! See \c PhysicsParamsOptions::disable_integral_xs
     bool integral_approach{true};
+    //!@}
 
+    //!@{
+    //! \name Cutoff options
+    //! Lowest energy of any EM physics process
     units::MevEnergy min_energy{0.1 * 1e-3};  // 0.1 keV
+    //! Highest energy of any EM physics process
     units::MevEnergy max_energy{100 * 1e6};  // 100 TeV
+    //! See \c PhysicsParamsOptions::linear_loss_limit
     real_type linear_loss_limit{0.01};
+    //! Tracking cutoff kinetic energy for e-/e+
     units::MevEnergy lowest_electron_energy{0.001};  // 1 keV
+    //! Kill secondaries below the production cut
     bool apply_cuts{false};
+    //!@}
 
-    // Multiple scattering parameters
+    //!@{
+    //! \name Multiple scattering configuration
+    //! E-/e+ range factor for MSC models
     real_type msc_range_factor{0.04};
+    //! Safety factor for MSC models
     real_type msc_safety_factor{0.6};
+    //! Lambda limit for MSC models [cm]
     real_type msc_lambda_limit{0.1};  // 1 mm
+    //!@}
 
+    //! Print detailed Geant4 output
     bool verbose{false};
 };
 
@@ -134,7 +142,6 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.brems == b.brems
            && a.msc == b.msc
            && a.relaxation == b.relaxation
-           // Physics options
            && a.em_bins_per_decade == b.em_bins_per_decade
            && a.eloss_fluctuation == b.eloss_fluctuation
            && a.lpm == b.lpm

@@ -68,7 +68,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the label for a placed volume ID
     Label const& id_to_label(VolumeId vol_id) const final;
 
+    //! \cond
     using GeoParamsInterface::find_volume;
+    //! \endcond
 
     // Get the volume ID corresponding to a unique label name
     VolumeId find_volume(std::string const& name) const final;

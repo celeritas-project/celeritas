@@ -42,34 +42,6 @@ allows their conversion back to native units. This allows, for example,
 particles to represent their energy as MeV and charge as fractions of e but
 work seamlessly with a field definition in native (macro-scale quantity) units.
 
-Distributions
-=============
-
-The 2011 ISO C++ standard defined a new functional paradigm for sampling from
-random number distributions. In this paradigm, random number *engines* generate
-a uniformly distributed stream of bits. Then, *distributions* use that entropy
-to sample a random number from a distribution. Distributions are function-like
-objects whose constructors take the *parameters* of the distribution: for
-example, a uniform distribution over the range :math:`[a, b)` takes the *a* and
-*b* parameters as constructor arguments. The templated call operator accepts a
-random engine as its sole argument.
-
-Celeritas extends this paradigm to physics distributions. At a low level,
-it has :ref:`random number distributions <celeritas_random>` that result in
-single real values (such as uniform, exponential, gamma) and correlated
-three-vectors (such as sampling an isotropic direction).
-
-At a higher level, though, it expresses many physics operations as
-distributions of *updated* track states based on *original* track states. For
-example, the Tsai-Urban distribution used for sampling exiting angles of
-bremsstrahlung and pair production has parameters of incident particle energy
-and mass, and it samples the exiting polar angle cosine. Additional
-distributions are built on top of those: all discrete interactions (in Geant4
-parlance, "post-step do-it"s) use distributions to sample an *Interaction*
-based on incident particle properties. The sampled result contains the updated
-particle direction and energy, as well as properties of any secondary particles
-produced.
-
 Physics
 =======
 

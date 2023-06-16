@@ -2,7 +2,7 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
-.. _example_geant_minimal:
+.. _example_geant:
 
 Minimal Geant4 integration
 ==========================
@@ -27,9 +27,9 @@ Main executable
 ---------------
 
 This single executable is a less robust (and minimally documented) version of
-the larger :ref:`example_geant_full` example. Its use of global variables
-rather than shared pointers is easier to implement but may be more problematic
-with experiment frameworks or other apps that use a task-based runner.
+the :ref:`celer-g4` app. Its use of global variables rather than shared
+pointers is easier to implement but may be more problematic with experiment
+frameworks or other apps that use a task-based runner.
 
 .. literalinclude:: ../../example/accel/accel.cc
    :start-at: #include
