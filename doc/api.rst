@@ -34,7 +34,7 @@ configuration attributes.
    <Dependencies>`, all of the documented API code in ``corecel``, ``orange``,
    and ``celeritas`` (except possibly headers ending in ``.json.hh``,
    ``.device.hh``, etc.) will compile and can link to downstream code. However,
-   some classes will throw ``RuntimeError`` if they lack the required
+   some classes will throw ``celeritas::RuntimeError`` if they lack the required
    functionality.
 
    If Geant4 is disabled, the ``accel`` library will not be built or installed,

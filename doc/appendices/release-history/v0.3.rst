@@ -25,7 +25,7 @@ Key changes:
 - The Urban cross section model is used by default for all energies
 - ``demo-loop`` is now ``celer-sim`` and is installed alongside the library
 - ``demo-geant`` is now ``celer-g4`` and is also installed
-- Building with the C++17 or later is required
+- Building with the C++17 standard or later is required
 
 
 New features

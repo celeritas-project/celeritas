@@ -191,7 +191,7 @@ each release.
 4.  Tag the branch on your fork with ``vX.Y.Z-rc.N`` where N starts with 1, and
     increment for every time you return to this step due to new pull requests.
 5.  Run regression tests on Summit (for performance testing), Crusher (for HIP
-    testing), and an additional machine with debug assertions enabled (e.g.
+    testing), and an additional machine with debug assertions enabled (e.g.,
     Wildstyle).
 6.  [TODO: define high-level validation tests like `geant-val`_ and a test
     matrix correlating capability areas (code files/directories changed) to
