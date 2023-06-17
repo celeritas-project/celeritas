@@ -11,8 +11,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
-#include "celeritas/OnlyGeoTestBase.hh"
+#include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -27,42 +26,15 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorTestBase : public GlobalGeoTestBase,
-                                 public OnlyGeoTestBase
+class LinearPropagatorTestBase : public GenericCoreGeoTestBase
 {
-  public:
-    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+    // Overload with the base filename of the geometry
+    virtual std::string_view geometry_basename() const = 0;
 
-    void SetUp() override
+    SPConstGeo build_geometry() final
     {
-        geo_state_ = GeoStateStore(this->geometry()->host_ref(), 1);
+        return this->build_from_basename(this->geometry_basename());
     }
-
-    GeoTrackView make_geo_view()
-    {
-        return GeoTrackView(
-            this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0});
-    }
-
-    GeoTrackView init_geo(Real3 const& pos, Real3 dir)
-    {
-        normalize_direction(&dir);
-        GeoTrackView view = this->make_geo_view();
-        view = {pos, dir};
-        return view;
-    }
-
-    std::string volume_name(GeoTrackView const& geo)
-    {
-        if (geo.is_outside())
-        {
-            return "[OUTSIDE]";
-        }
-        return this->geometry()->id_to_label(geo.volume_id()).name;
-    }
-
-  protected:
-    GeoStateStore geo_state_;
 };
 
 class SimpleCmsTest : public LinearPropagatorTestBase
@@ -80,20 +52,21 @@ class SimpleCmsTest : public LinearPropagatorTestBase
 TEST_F(SimpleCmsTest, rvalue_type)
 {
     {
-        LinearPropagator propagate(this->init_geo({0, 0, 0}, {0, 0, 1}));
+        LinearPropagator propagate(
+            this->make_geo_track_view({0, 0, 0}, {0, 0, 1}));
         EXPECT_TRUE((
             std::is_same_v<decltype(propagate), LinearPropagator<GeoTrackView>>));
         Propagation result = propagate(10);
         EXPECT_SOFT_EQ(10, result.distance);
         EXPECT_FALSE(result.boundary);
     }
-    EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), this->make_geo_view().pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), this->make_geo_track_view().pos());
 }
 
 TEST_F(SimpleCmsTest, all)
 {
     // Initialize
-    GeoTrackView geo = this->init_geo({0, 0, 0}, {0, 0, 1});
+    GeoTrackView geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", this->volume_name(geo));
 
     {

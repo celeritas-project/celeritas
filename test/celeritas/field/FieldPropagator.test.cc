@@ -90,15 +90,7 @@ class FieldPropagatorTestBase : public GenericCoreGeoTestBase
 
     SPConstGeo build_geometry() final
     {
-        // Construct filename:
-        // ${SOURCE}/test/celeritas/data/${basename}${fileext}
-        auto ext = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
-                       ? ".gdml"sv
-                       : ".org.json"sv;
-        auto filename = std::string{this->geometry_basename()}
-                        + std::string{ext};
-        std::string test_file = this->test_data_path("celeritas", filename);
-        return std::make_shared<GeoParams>(test_file);
+        return this->build_from_basename(this->geometry_basename());
     }
 
   private:
