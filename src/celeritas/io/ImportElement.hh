@@ -39,6 +39,7 @@ struct ImportElement
     using NumIsotopes = int;
     using IsotopeIdx = std::pair<StartIdx, NumIsotopes>;
     //!@}
+
     std::string name;
     int atomic_number;
     double atomic_mass;  //!< [atomic mass unit]
@@ -52,13 +53,16 @@ struct ImportElement
 //---------------------------------------------------------------------------//
 /*!
  * Store isotope data.
+ *
+ * For nuclear mass, see `G4NucleiProperties::GetNuclearMass`.
+ * For natural fractional abundance, see `G4NistManager::GetIsotopeAbundance`.
  */
 struct ImportIsotope
 {
     std::string name;  //!< Isotope label
-    int atomic_number;  //!< Z number
-    int atomic_mass_number;  //!< A number
-    double nuclear_mass;  //!< TODO
+    int atomic_number;  //!< Atomic number Z
+    int atomic_mass_number;  //!< Atomic number A
+    double nuclear_mass;  //!< [MeV]
     double fractional_abundance;  //!< Natural isotope abundance fraction
 };
 
