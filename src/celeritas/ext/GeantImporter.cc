@@ -26,6 +26,7 @@
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4Navigator.hh>
+#include <G4NistManager.hh>
 #include <G4NucleiProperties.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
@@ -53,6 +54,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -240,7 +242,7 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportElement vector.
+ * Return a populated pair of \c ImportElement and \c ImportIsotope vectors.
  */
 auto import_elements()
     -> std::pair<std::vector<ImportElement>, std::vector<ImportIsotope>>
@@ -251,12 +253,15 @@ auto import_elements()
     auto const& g4element_table = *G4Element::GetElementTable();
     elements.resize(g4element_table.size());
 
+    auto const& nist_manager = *G4NistManager::Instance();
+
     // Loop over element data
     for (auto const& g4element : g4element_table)
     {
         CELER_ASSERT(g4element);
         auto const& g4isotope_vec = *g4element->GetIsotopeVector();
-        CELER_ASSERT(g4isotope_vec.size());
+        auto const g4isotope_vec_size = g4isotope_vec.size();
+        CELER_ASSERT(g4isotope_vec_size);
 
         // Add element to ImportElement vector
         ImportElement element;
@@ -265,31 +270,38 @@ auto import_elements()
         element.atomic_mass = g4element->GetAtomicMassAmu();
         element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
         element.coulomb_factor = g4element->GetfCoulomb();
+        element.isotope_index = {isotopes.size(), g4isotope_vec_size};
 
-        element.isotope_index.resize(g4isotope_vec.size());
-        for (auto idx : range(g4isotope_vec.size()))
+        double total_abundance_fraction = 0;  // Verify that the sum is ~1
+
+        for (auto idx : range(g4isotope_vec_size))
         {
             auto const& g4isotope = *g4isotope_vec.at(idx);
-            element.isotope_index[idx] = g4isotope.GetIndex();
-
-            // Add isotope to ImportIsotope vector
             CELER_ASSERT(isotopes.size() == g4isotope.GetIndex());
 
+            // Add isotope to ImportIsotope vector
             ImportIsotope isotope;
             isotope.name = g4isotope.GetName();
             isotope.atomic_number = g4isotope.GetZ();
             isotope.atomic_mass_number = g4isotope.GetN();
             isotope.nuclear_mass = G4NucleiProperties::GetNuclearMass(
                 isotope.atomic_mass_number, isotope.atomic_number);
+            isotope.fractional_abundance = nist_manager.GetIsotopeAbundance(
+                isotope.atomic_number, isotope.atomic_mass_number);
+
+            CELER_ASSERT(isotope.fractional_abundance > 0);
+            total_abundance_fraction += isotope.fractional_abundance;
+
             isotopes.push_back(std::move(isotope));
         }
-
+        CELER_ASSERT(soft_equal(1., total_abundance_fraction));
         elements[g4element->GetIndex()] = element;
     }
-    CELER_LOG(debug) << "Loaded " << elements.size() << " elements";
-    CELER_LOG(debug) << "Loaded " << isotopes.size() << " isotopes";
+
     CELER_ENSURE(!elements.empty());
     CELER_ENSURE(!isotopes.empty());
+    CELER_LOG(debug) << "Loaded " << elements.size() << " elements";
+    CELER_LOG(debug) << "Loaded " << isotopes.size() << " isotopes";
     return {std::move(elements), std::move(isotopes)};
 }
 
