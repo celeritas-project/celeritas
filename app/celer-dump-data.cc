@@ -92,19 +92,19 @@ void print_elements(std::vector<ImportElement>& elements,
     {
         auto const& element = elements[element_id];
         auto const& key = element.isotope_index;
-        std::string labels;
-        for (auto i = key.first; i < key.first + key.second; i++)
-        {
-            labels += isotopes.at(i).name + ", ";
-        }
 
         // clang-format off
         cout << "| "
              << setw(10) << std::left << element_id << " | "
-             << setw(4) << element.name << " | "
+             << setw(4)  << element.name << " | "
              << setw(13) << element.atomic_number << " | "
              << setw(10) << element.atomic_mass << " | "
-             << setw(40) << labels << " |\n";
+             << setw(40) << to_string(join(isotopes.begin() + key.first,
+                                           isotopes.begin() + key.second,
+                                           ", ",
+                                           [](auto const& isotope) {
+                                              return isotope.name; }))
+                         << " |\n";
         // clang-format on
     }
     cout << endl;

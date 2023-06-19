@@ -270,7 +270,9 @@ auto import_elements()
         element.atomic_mass = g4element->GetAtomicMassAmu();
         element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
         element.coulomb_factor = g4element->GetfCoulomb();
-        element.isotope_index = {isotopes.size(), g4isotope_vec_size};
+        element.isotope_index
+            = {/* first index = */ isotopes.size(),
+               /* last index = */ isotopes.size() + g4isotope_vec_size};
 
         double total_abundance_fraction = 0;  // Verify that the sum is ~1
 
