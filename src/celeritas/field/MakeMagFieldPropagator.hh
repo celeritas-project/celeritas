@@ -89,7 +89,7 @@ CELER_FUNCTION decltype(auto)
 make_mag_field_propagator(FieldT&& field,
                           FieldDriverOptions const& options,
                           ParticleTrackView const& particle,
-                          GTV geometry)
+                          GTV&& geometry)
 {
     return make_field_propagator(
         make_mag_field_stepper<StepperT>(::celeritas::forward<FieldT>(field),
