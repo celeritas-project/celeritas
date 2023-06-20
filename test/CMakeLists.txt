@@ -352,7 +352,7 @@ celeritas_add_test(celeritas/field/FieldDriver.test.cc)
 celeritas_add_test(celeritas/field/FieldPropagator.test.cc
   ${_needs_geo} LINK_LIBRARIES ${_core_geo_lib})
 celeritas_add_test(celeritas/field/LinearPropagator.test.cc
-  ${_needs_geo} LINK_LIBRARIES  ${_core_geo_lib})
+  ${_needs_geo} LINK_LIBRARIES ${_geo_libs})
 celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
 
 #-------------------------------------#

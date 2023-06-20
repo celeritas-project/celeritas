@@ -85,12 +85,9 @@ class FieldPropagatorTestBase : public GenericCoreGeoTestBase
                   * field_strength);
     }
 
-    // Overload with the base filename of the geometry
-    virtual std::string_view geometry_basename() const = 0;
-
     SPConstGeo build_geometry() final
     {
-        return this->build_from_basename(this->geometry_basename());
+        return this->build_geometry_from_basename();
     }
 
   private:
@@ -131,26 +128,17 @@ void FieldPropagatorTestBase::SetUp()
 
 class TwoBoxTest : public FieldPropagatorTestBase
 {
-    std::string_view geometry_basename() const override
-    {
-        return "two-boxes"sv;
-    }
+    std::string geometry_basename() const override { return "two-boxes"; }
 };
 
 class LayersTest : public FieldPropagatorTestBase
 {
-    std::string_view geometry_basename() const override
-    {
-        return "field-layers"sv;
-    }
+    std::string geometry_basename() const override { return "field-layers"; }
 };
 
 class SimpleCmsTest : public FieldPropagatorTestBase
 {
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
+    std::string geometry_basename() const override { return "simple-cms"; }
 };
 
 //---------------------------------------------------------------------------//

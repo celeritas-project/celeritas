@@ -50,7 +50,7 @@ struct GenericGeoGeantImportVolumeResult
     void print_expected() const;
 };
 
-namespace
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 template<class HP>
@@ -63,6 +63,7 @@ struct GenericGeoTraits<VecgeomParams>
     using StateStore = CollectionStateStore<VecgeomStateData, M>;
     using TrackView = VecgeomTrackView;
     static inline char const* ext = ".gdml";
+    static inline char const* name = "VecGeom";
 };
 
 template<>
@@ -73,6 +74,7 @@ struct GenericGeoTraits<OrangeParams>
 
     using TrackView = OrangeTrackView;
     static inline char const* ext = ".org.json";
+    static inline char const* name = "ORANGE";
 };
 
 template<>
@@ -82,7 +84,9 @@ struct GenericGeoTraits<GeantGeoParams>
     using StateStore = CollectionStateStore<GeantGeoStateData, M>;
     using TrackView = GeantGeoTrackView;
     static inline char const* ext = ".gdml";
+    static inline char const* name = "Geant4";
 };
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -92,6 +96,8 @@ struct GenericGeoTraits<GeantGeoParams>
  *
  * \tparam HP Geometry host Params class
  *
+ * \sa AllGeoTypedTestBase
+ *
  * \note This class is instantiated in GenericGeoTestBase.cc for each available
  * geometry type.
  */
@@ -100,7 +106,7 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
 {
     static_assert(std::is_base_of_v<GeoParamsInterface, HP>);
 
-    using TraitsT = GenericGeoTraits<HP>;
+    using TraitsT = testdetail::GenericGeoTraits<HP>;
 
   public:
     //!@{
@@ -112,11 +118,14 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     //!@}
 
   public:
-    //! Construct from celeritas data (use for implementing build_geometry)
-    static SPConstGeo build_from_basename(std::string_view basename);
+    //! Get the basename or unique geometry key (defaults to suite name)
+    virtual std::string geometry_basename() const;
 
     //! Build the geometry
     virtual SPConstGeo build_geometry() = 0;
+
+    //! Construct from celeritas test data and "basename" value
+    SPConstGeo build_geometry_from_basename();
 
     // Access geometry
     SPConstGeo const& geometry();

@@ -24,26 +24,20 @@ namespace test
 class GeantGeoTest : public GenericGeantGeoTestBase
 {
   public:
-    virtual std::string_view geometry_basename() const = 0;
-
     SPConstGeo build_geometry() final
     {
-        return std::make_shared<GeantGeoParams>(this->test_data_path(
-            "celeritas", std::string{this->geometry_basename()} + ".gdml"));
+        return this->build_geometry_from_basename();
     }
 };
 
 class FourLevelsTest : public GeantGeoTest
 {
-    std::string_view geometry_basename() const override
-    {
-        return "four-levels"sv;
-    }
+    std::string geometry_basename() const override { return "four-levels"; }
 };
 
 class SolidsTest : public GeantGeoTest
 {
-    std::string_view geometry_basename() const override { return "solids"sv; }
+    std::string geometry_basename() const override { return "solids"; }
 };
 
 //---------------------------------------------------------------------------//

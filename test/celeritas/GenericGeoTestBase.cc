@@ -156,12 +156,23 @@ GeantVolResult::from_pointers([[maybe_unused]] GeoParamsInterface const& geom,
 //---------------------------------------------------------------------------//
 //
 template<class HP>
-auto GenericGeoTestBase<HP>::build_from_basename(std::string_view basename)
-    -> SPConstGeo
+auto GenericGeoTestBase<HP>::geometry_basename() const -> std::string
+{
+    // Get filename based on unit test name
+    ::testing::TestInfo const* const test_info
+        = ::testing::UnitTest::GetInstance()->current_test_info();
+    CELER_ASSERT(test_info);
+    return test_info->test_case_name();
+}
+
+//---------------------------------------------------------------------------//
+//
+template<class HP>
+auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
 {
     // Construct filename:
     // ${SOURCE}/test/celeritas/data/${basename}${fileext}
-    auto filename = std::string{basename} + std::string{TraitsT::ext};
+    auto filename = this->geometry_basename() + std::string{TraitsT::ext};
     std::string test_file = test_data_path("celeritas", filename);
     return std::make_shared<HP>(test_file);
 }
@@ -172,14 +183,10 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
 {
     if (!geo_)
     {
-        // Get filename based on unit test name
-        ::testing::TestInfo const* const test_info
-            = ::testing::UnitTest::GetInstance()->current_test_info();
-        CELER_ASSERT(test_info);
-
+        std::string key = this->geometry_basename() + "/"
+                          + std::string{TraitsT::name};
         // Construct via LazyGeoManager
-        geo_ = std::dynamic_pointer_cast<HP const>(
-            this->get_geometry(test_info->test_case_name()));
+        geo_ = std::dynamic_pointer_cast<HP const>(this->get_geometry(key));
     }
     CELER_ENSURE(geo_);
     return geo_;

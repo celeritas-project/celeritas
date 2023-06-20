@@ -11,10 +11,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/GenericGeoTestBase.hh"
-#include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoParams.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/AllGeoTypedTestBase.hh"
 
 #include "celeritas_test.hh"
 
@@ -26,31 +23,27 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorTestBase : public GenericCoreGeoTestBase
+template<class HP>
+class LinearPropagatorTest : public AllGeoTypedTestBase<HP>
 {
-    // Overload with the base filename of the geometry
-    virtual std::string_view geometry_basename() const = 0;
+  protected:
+    using SPConstGeo = typename GenericGeoTestBase<HP>::SPConstGeo;
+    using GeoTrackView = typename GenericGeoTestBase<HP>::GeoTrackView;
 
-    SPConstGeo build_geometry() final
-    {
-        return this->build_from_basename(this->geometry_basename());
-    }
+    std::string geometry_basename() const final { return "simple-cms"; }
 };
 
-class SimpleCmsTest : public LinearPropagatorTestBase
-{
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
-};
+TYPED_TEST_SUITE(LinearPropagatorTest,
+                 AllGeoTestingTypes,
+                 AllGeoTestingTypeNames);
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //----------------------------------------------------------------------------//
 
-TEST_F(SimpleCmsTest, rvalue_type)
+TYPED_TEST(LinearPropagatorTest, rvalue_type)
 {
+    using GeoTrackView = typename TestFixture::GeoTrackView;
     {
         LinearPropagator propagate(
             this->make_geo_track_view({0, 0, 0}, {0, 0, 1}));
@@ -63,10 +56,11 @@ TEST_F(SimpleCmsTest, rvalue_type)
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), this->make_geo_track_view().pos());
 }
 
-TEST_F(SimpleCmsTest, all)
+TYPED_TEST(LinearPropagatorTest, simple_cms)
 {
+    using GeoTrackView = typename TestFixture::GeoTrackView;
     // Initialize
-    GeoTrackView geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
+    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", this->volume_name(geo));
 
     {
