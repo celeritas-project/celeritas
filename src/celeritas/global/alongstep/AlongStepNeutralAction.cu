@@ -12,8 +12,10 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/AlongStepNeutralImpl.hh"
+#include "AlongStep.hh"
 #include "detail/LinearPropagatorFactory.hh"
+#include "detail/NoELoss.hh"
+#include "detail/NoMsc.hh"
 
 namespace celeritas
 {
