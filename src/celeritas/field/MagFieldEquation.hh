@@ -63,10 +63,6 @@ template<class FieldT>
 CELER_FUNCTION MagFieldEquation(FieldT&&, units::ElementaryCharge)
     ->MagFieldEquation<FieldT>;
 
-template<class FieldT>
-CELER_FUNCTION MagFieldEquation(FieldT&, units::ElementaryCharge)
-    ->MagFieldEquation<FieldT&>;
-
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//

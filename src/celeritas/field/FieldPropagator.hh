@@ -95,10 +95,6 @@ class FieldPropagator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class DriverT, class GTV>
-CELER_FUNCTION FieldPropagator(DriverT&&, ParticleTrackView const&, GTV&)
-    ->FieldPropagator<DriverT, GTV&>;
-
-template<class DriverT, class GTV>
 CELER_FUNCTION FieldPropagator(DriverT&&, ParticleTrackView const&, GTV&&)
     ->FieldPropagator<DriverT, GTV>;
 

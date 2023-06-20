@@ -61,9 +61,6 @@ class RungeKuttaStepper
 template<class EquationT>
 CELER_FUNCTION RungeKuttaStepper(EquationT&&)->RungeKuttaStepper<EquationT>;
 
-template<class EquationT>
-CELER_FUNCTION RungeKuttaStepper(EquationT&)->RungeKuttaStepper<EquationT&>;
-
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//

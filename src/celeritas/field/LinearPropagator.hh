@@ -50,9 +50,6 @@ class LinearPropagator
 template<class GTV>
 CELER_FUNCTION LinearPropagator(GTV&&)->LinearPropagator<GTV>;
 
-template<class GTV>
-CELER_FUNCTION LinearPropagator(GTV&)->LinearPropagator<GTV&>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Move track to next volume boundary.
