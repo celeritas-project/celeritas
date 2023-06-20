@@ -20,6 +20,7 @@ list(APPEND SOURCES
   em/detail/Utils.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
+  # em/process/CoulombScatteringProcess.cc
   em/process/EIonizationProcess.cc
   em/process/EPlusAnnihilationProcess.cc
   em/process/GammaConversionProcess.cc
@@ -256,6 +257,7 @@ celeritas_polysource(em/model/MuBremsstrahlungModel)
 celeritas_polysource(em/model/RayleighModel)
 celeritas_polysource(em/model/RelativisticBremModel)
 celeritas_polysource(em/model/SeltzerBergerModel)
+celeritas_polysource(em/model/WokviModel)
 celeritas_polysource(geo/detail/BoundaryAction)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
