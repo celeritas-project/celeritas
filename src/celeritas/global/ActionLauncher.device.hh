@@ -91,15 +91,13 @@ class ActionLauncher
   public:
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
-        : is_action_sorted_{false}
-        , calc_launch_params_{action.label(), &launch_action_impl<F>}
+        : calc_launch_params_{action.label(), &launch_action_impl<F>}
     {
     }
 
     //! Create a launcher with a string extension
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
-        : is_action_sorted_{false}
-        , calc_launch_params_{action.label() + "-" + std::string(ext),
+        : calc_launch_params_{action.label() + "-" + std::string(ext),
                               &launch_action_impl<F>}
     {
     }
