@@ -93,7 +93,6 @@ class ActionLauncher
     explicit ActionLauncher(ExplicitActionInterface const& action)
         : is_action_sorted_{false}
         , calc_launch_params_{action.label(), &launch_action_impl<F>}
-        , action_id_{action.action_id()}
     {
     }
 
@@ -102,31 +101,6 @@ class ActionLauncher
         : is_action_sorted_{false}
         , calc_launch_params_{action.label() + "-" + std::string(ext),
                               &launch_action_impl<F>}
-        , action_id_{action.action_id()}
-    {
-    }
-
-    //! Create a launcher from an action, minimizing kernel grid size if
-    //! sorting is done for this action
-    ActionLauncher(CoreParams const& params,
-                   ExplicitActionInterface const& action)
-        : is_action_sorted_{is_action_sorted(
-            action.order(), params.init()->host_ref().track_order)}
-        , calc_launch_params_{action.label(), &launch_action_impl<F>}
-        , action_id_{action.action_id()}
-    {
-    }
-
-    //! Create a launcher with a string extension, minimizing kernel grid size
-    //! if sorting is done for this action
-    ActionLauncher(CoreParams const& params,
-                   ExplicitActionInterface const& action,
-                   std::string_view ext)
-        : is_action_sorted_{is_action_sorted(
-            action.order(), params.init()->host_ref().track_order)}
-        , calc_launch_params_{action.label() + "-" + std::string(ext),
-                              &launch_action_impl<F>}
-        , action_id_{action.action_id()}
     {
     }
 
@@ -148,13 +122,19 @@ class ActionLauncher
 
     //! Launch a Kernel with reduced grid size if tracks are sorted using the
     //! expected track order strategy.
-    void operator()(CoreState<MemSpace::device> const& state,
-                    F const& call_thread) const
+    //! TODO: Always use an ActionLauncher instance with the action passed as
+    //! constructor argument
+    void
+    operator()(CoreParams const& params,
+               CoreState<MemSpace::device> const& state,
+               ExplicitActionInterface const& action F const& call_thread) const
     {
         CELER_EXPECT(state.stream_id());
-        if (is_action_sorted_)
+        if (is_action_sorted(action.order(),
+                             params.init()->host_ref().track_order))
         {
-            if (Range<ThreadId> threads = state.get_action_range(action_id_);
+            if (Range<ThreadId> threads
+                = state.get_action_range(action.action_id());
                 threads.size())
             {
                 CELER_DEVICE_PREFIX(Stream_t)
@@ -172,9 +152,7 @@ class ActionLauncher
     }
 
   private:
-    bool is_action_sorted_;
     KernelParamCalculator calc_launch_params_;
-    ActionId action_id_;
 };
 
 //---------------------------------------------------------------------------//

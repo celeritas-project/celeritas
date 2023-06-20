@@ -42,8 +42,8 @@ void launch_limit_msc_step(ExplicitActionInterface const& action,
         action.action_id(),
         detail::MscStepLimitApplier{UrbanMsc{msc_data}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-        params, action, "limit-step-msc-urban");
-    launch_kernel(state, execute_thread);
+        action, "limit-step-msc-urban");
+    launch_kernel(params, state, *this, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -58,8 +58,8 @@ void launch_propagate(ExplicitActionInterface const& action,
         action.action_id(),
         detail::PropagationApplier{detail::LinearTrackPropagator{}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-        params, action, "propagate-linear");
-    launch_kernel(state, execute_thread);
+        action, "propagate-linear");
+    launch_kernel(params, state, *this, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -75,8 +75,8 @@ void launch_apply_msc(ExplicitActionInterface const& action,
         action.action_id(),
         detail::MscApplier{UrbanMsc{msc_data}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-        params, action, "scatter-msc-urban");
-    launch_kernel(state, execute_thread);
+        action, "scatter-msc-urban");
+    launch_kernel(params, state, *this, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -91,8 +91,8 @@ void launch_update_time(ExplicitActionInterface const& action,
                                          action.action_id(),
                                          detail::TimeUpdater{});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-        params, action, "update-time");
-    launch_kernel(state, execute_thread);
+        action, "update-time");
+    launch_kernel(params, state, *this, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -108,8 +108,8 @@ void launch_apply_eloss(ExplicitActionInterface const& action,
         action.action_id(),
         detail::ElossApplier{detail::FluctELoss{fluct}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-        params, action, "apply-eloss-fluct");
-    launch_kernel(state, execute_thread);
+        action, "apply-eloss-fluct");
+    launch_kernel(params, state, *this, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -124,8 +124,8 @@ void launch_apply_eloss(ExplicitActionInterface const& action,
         action.action_id(),
         detail::ElossApplier{detail::MeanELoss{}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-        params, action, "apply-eloss-mean");
-    launch_kernel(state, execute_thread);
+        action, "apply-eloss-mean");
+    launch_kernel(params, state, *this, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -140,8 +140,8 @@ void launch_update_track(ExplicitActionInterface const& action,
                                          action.action_id(),
                                          detail::TrackUpdater{});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-        params, action, "update-track");
-    launch_kernel(state, execute_thread);
+        action, "update-track");
+    launch_kernel(params, state, *this, execute_thread);
 }
 
 //---------------------------------------------------------------------------//

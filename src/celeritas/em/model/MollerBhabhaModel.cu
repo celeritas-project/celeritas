@@ -28,8 +28,8 @@ void MollerBhabhaModel::execute(CoreParams const& params,
         state.ptr(),
         this->action_id(),
         InteractionApplier{MollerBhabhaExecutor{this->device_ref()}});
-    static ActionLauncher<decltype(execute)> const launch_kernel(params, *this);
-    launch_kernel(state, execute);
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(params, state, *this, execute);
 }
 
 //---------------------------------------------------------------------------//

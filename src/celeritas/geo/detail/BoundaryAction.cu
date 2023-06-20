@@ -30,8 +30,8 @@ void BoundaryAction::execute(CoreParams const& params,
                                               this->action_id(),
                                               BoundaryExecutor{});
 
-    static ActionLauncher<decltype(execute)> const launch_kernel(params, *this);
-    launch_kernel(state, execute);
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(params, state, *this, execute);
 }
 
 //---------------------------------------------------------------------------//
