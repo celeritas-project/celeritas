@@ -97,7 +97,11 @@ std::string SortTracksAction::label() const
 void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
-    state.update_action_range(track_order_);
+    detail::count_tracks_per_action(
+        state.ref(),
+        state.action_thread_offsets()[AllItems<ThreadId, MemSpace::host>{}],
+        state.action_thread_offsets(),
+        track_order_);
 }
 
 //---------------------------------------------------------------------------//
@@ -107,7 +111,12 @@ void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
-    state.update_action_range(track_order_);
+    detail::count_tracks_per_action(
+        state.ref(),
+        state.native_action_thread_offsets()[AllItems<ThreadId,
+                                                      MemSpace::device>{}],
+        state.action_thread_offsets(),
+        track_order_);
 }
 
 //---------------------------------------------------------------------------//

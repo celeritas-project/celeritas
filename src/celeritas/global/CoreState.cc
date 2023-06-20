@@ -68,6 +68,11 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
     copy_to_temp(MemSpace::host, host_primaries);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Reference to the host ActionThread collection for holding result of action
+ * counting
+ */
 template<MemSpace M>
 auto CoreState<M>::action_thread_offsets() -> ActionThreads<MemSpace::host>&
 {
@@ -81,15 +86,20 @@ auto CoreState<M>::action_thread_offsets() -> ActionThreads<MemSpace::host>&
     }
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Reference to the ActionThread collection matching the state memory space
+ */
 template<MemSpace M>
-void CoreState<M>::update_action_range(TrackOrder order)
+auto CoreState<M>::native_action_thread_offsets() -> ActionThreads<M>&
 {
-    detail::count_tracks_per_action(states_.ref(),
-                                    thread_offsets_[AllItems<ThreadId, M>{}],
-                                    action_thread_offsets(),
-                                    order);
+    return thread_offsets_;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ *
+ */
 template<>
 Range<ThreadId>
 CoreState<MemSpace::device>::get_action_range(ActionId action_id) const
@@ -99,6 +109,11 @@ CoreState<MemSpace::device>::get_action_range(ActionId action_id) const
             host_thread_offsets_[action_id + 1]};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Get a range delimiting the [start, end) of the track partition assigned
+ * action_id in track_slots
+ */
 template<>
 Range<ThreadId>
 CoreState<MemSpace::host>::get_action_range(ActionId action_id) const
@@ -107,6 +122,10 @@ CoreState<MemSpace::host>::get_action_range(ActionId action_id) const
     return {thread_offsets_[action_id], thread_offsets_[action_id + 1]};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * resize ActionThreads collection to the number of actions
+ */
 template<MemSpace M>
 void CoreState<M>::num_actions(size_type n)
 {
@@ -117,6 +136,10 @@ void CoreState<M>::num_actions(size_type n)
     }
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Return the number of actions, i.e. thread_offsets_ size
+ */
 template<MemSpace M>
 size_type CoreState<M>::num_actions() const
 {
