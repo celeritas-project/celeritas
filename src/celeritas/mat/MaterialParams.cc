@@ -62,7 +62,7 @@ MatterState to_matter_state(ImportMaterialState state)
 std::shared_ptr<MaterialParams>
 MaterialParams::from_import(ImportData const& data)
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(!data.materials.empty());
 
     // Create MaterialParams input for its constructor
     MaterialParams::Input input;

@@ -31,10 +31,6 @@ namespace detail
  * Gather track step properties at a point during the step.
  *
  * This implementation class is constructed by the StepCollector.
- *
- * TODO: this class is only thread safe by locking it across multiple threads.
- * We'll need thread-independent states *or* a stream ID in the core state
- * corresponding to one element in an array of state data.
  */
 template<StepPoint P>
 class StepGatherAction final : public ExplicitActionInterface

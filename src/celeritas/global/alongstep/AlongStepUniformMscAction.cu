@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepUniformMscAction.hh"
 
-#include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/em/msc/UrbanMsc.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
@@ -33,7 +32,8 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
 {
     if (this->has_msc())
     {
-        detail::launch_limit_msc_step(*this, device_data_.msc, params, state);
+        detail::launch_limit_msc_step(
+            *this, msc_->ref<MemSpace::native>(), params, state);
     }
     {
         auto execute_thread = make_along_step_track_executor(
@@ -48,7 +48,8 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
     }
     if (this->has_msc())
     {
-        detail::launch_apply_msc(*this, device_data_.msc, params, state);
+        detail::launch_apply_msc(
+            *this, msc_->ref<MemSpace::native>(), params, state);
     }
     detail::launch_update_time(*this, params, state);
     detail::launch_apply_eloss(*this, params, state);

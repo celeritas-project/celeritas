@@ -13,5 +13,4 @@ Geant4-integrated context.
 
 .. toctree::
    examples/minimal.rst
-   examples/geant4-minimal.rst
-   examples/geant4-full.rst
+   examples/geant4.rst

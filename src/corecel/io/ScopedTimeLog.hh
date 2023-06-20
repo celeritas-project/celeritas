@@ -35,13 +35,20 @@ class ScopedTimeLog
     // Construct with default threshold of 0.01 seconds
     inline ScopedTimeLog() = default;
 
+    // Construct with a reference to a particular logger (e.g. thread-local)
+    explicit inline ScopedTimeLog(Logger* dest);
+
     // Construct with manual threshold for printing time
     explicit inline ScopedTimeLog(double min_print_sec);
+
+    // Construct with logger and time threshold
+    inline ScopedTimeLog(Logger* dest, double min_print_sec);
 
     // Print on destruction
     inline ~ScopedTimeLog();
 
   private:
+    Logger* logger_{nullptr};
     double min_print_sec_{0.01};
     Stopwatch get_time_;
 };
@@ -53,7 +60,27 @@ class ScopedTimeLog
 ScopedTimeLog::ScopedTimeLog(double min_print_sec)
     : min_print_sec_(min_print_sec)
 {
-    CELER_ASSERT(min_print_sec >= 0);
+    CELER_EXPECT(min_print_sec >= 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with a reference to a particular logger.
+ */
+ScopedTimeLog::ScopedTimeLog(Logger* dest) : logger_(dest)
+{
+    CELER_EXPECT(logger_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with a reference to a particular logger.
+ */
+ScopedTimeLog::ScopedTimeLog(Logger* dest, double min_print_sec)
+    : logger_(dest), min_print_sec_(min_print_sec)
+{
+    CELER_EXPECT(logger_);
+    CELER_EXPECT(min_print_sec >= 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -66,8 +93,14 @@ ScopedTimeLog::~ScopedTimeLog()
     if (time_sec > min_print_sec_)
     {
         using celeritas::color_code;
-        CELER_LOG(diagnostic) << color_code('x') << "... " << time_sec << " s"
-                              << color_code(' ');
+        auto msg = [this] {
+            if (!logger_)
+            {
+                return CELER_LOG(diagnostic);
+            }
+            return (*logger_)(CELER_CODE_PROVENANCE, LogLevel::diagnostic);
+        }();
+        msg << color_code('x') << "... " << time_sec << " s" << color_code(' ');
     }
 }
 

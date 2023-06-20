@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 # Set Celeritas_VERSION using git tags using the following format
-set(CGV_TAG_REGEX "v([0-9.]+)(-dev)?")
+set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc.[0-9]+)?")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
@@ -192,6 +192,7 @@ endif()
 
 if(CELERITAS_USE_JSON AND NOT nlohmann_json_FOUND)
   find_package(nlohmann_json 3.7.0 REQUIRED)
+  set(nlohmann_json_LIBRARIES nlohmann_json::nlohmann_json)
 endif()
 
 if(CELERITAS_USE_MPI)

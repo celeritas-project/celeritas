@@ -29,10 +29,6 @@ Celeritas to transport on GPU.
 This user manual is written for three audiences with different goals: Geant4
 toolkit users for integrating Celeritas as a plugin, advanced users for
 extending Celeritas with new physics, and developers for maintaining and
-advancing the codebase.  The code is partitioned into several libraries
-of increasing complexity: ``corecel`` for GPU/CPU abstractions, ``orange`` for
-a platform-portable geometry implementation, ``celeritas`` for the GPU
-implementation of physics and MC particle tracking, and ``accel`` for the
-Geant4 integration library.
+advancing the codebase.
 
 .. [#celeritas_vers] This documentation is generated from Celeritas |release|.

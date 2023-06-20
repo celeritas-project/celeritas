@@ -68,7 +68,7 @@ auto RootImporterTest::imported_data() const -> ImportData const&
         RootImporter import(root_inp.c_str());
         i.imported = import();
     }
-    CELER_ENSURE(i.imported);
+    CELER_ENSURE(!i.imported.particles.empty());
     return i.imported;
 }
 

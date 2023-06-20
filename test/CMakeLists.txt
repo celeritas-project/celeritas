@@ -73,16 +73,11 @@ endfunction()
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
 endif()
-if(CELERITAS_USE_JSON)
-  set(_optional_json_libs nlohmann_json::nlohmann_json)
-else()
+if(NOT CELERITAS_USE_JSON)
   set(_needs_json DISABLE)
 endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
-endif()
-if(CELERITAS_USE_VecGeom)
-  set(_optional_vecgeom_libs VecGeom::vecgeom)
 endif()
 if(CELERITAS_USE_Geant4)
   # Optional dependence on low-energy EM data
@@ -93,7 +88,6 @@ if(CELERITAS_USE_Geant4)
     )
   endforeach()
   set(_optional_geant4_env ENVIRONMENT "${_geant4_test_env}")
-  set(_optional_geant4_libs ${Geant4_LIBRARIES})
   set(_needs_geant4 ${_optional_geant4_env})
 else()
   set(_needs_geant4 DISABLE)
@@ -109,12 +103,12 @@ endif()
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_lib VecGeom::vecgeom)
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  set(_core_geo_lib LINK_LIBRARIES ${Geant4_LIBRARIES})
+  set(_core_geo_lib ${Geant4_LIBRARIES})
 else()
-  set(_core_geo_lib LINK_LIBRARIES Celeritas::orange)
+  set(_core_geo_lib Celeritas::orange)
 endif()
 set(_geo_libs
-  Celeritas::orange ${_optional_vecgeom_libs} ${_optional_geant4_libs}
+  Celeritas::orange ${VecGeom_LIBRARIES} ${Geant4_LIBRARIES}
 )
 
 #-----------------------------------------------------------------------------#
@@ -165,7 +159,7 @@ celeritas_add_test(corecel/io/Label.test.cc)
 celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputRegistry.test.cc
-  LINK_LIBRARIES ${_optional_json_libs})
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(corecel/io/Repr.test.cc)
 celeritas_add_test(corecel/io/StringEnumMapper.test.cc)
 celeritas_add_test(corecel/io/StringUtils.test.cc)
@@ -177,14 +171,14 @@ celeritas_add_test(corecel/math/ArrayUtils.test.cc)
 celeritas_add_test(corecel/math/HashUtils.test.cc)
 celeritas_add_device_test(corecel/math/NumericLimits)
 celeritas_add_test(corecel/math/Quantity.test.cc
-  LINK_LIBRARIES ${_optional_json_libs})
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(corecel/math/SoftEqual.test.cc)
 
 # Sys
 set(CELERITASTEST_PREFIX corecel/sys)
 celeritas_add_test(corecel/sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
-  LINK_LIBRARIES ${_optional_json_libs}
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
 )
 celeritas_add_test(corecel/sys/MpiCommunicator.test.cc
   NP ${CELERITASTEST_NP_DEFAULT})
@@ -271,8 +265,8 @@ celeritas_add_object_library(testcel_celeritas_core
   celeritas/user/MctruthTestBase.cc
   celeritas/user/StepCollectorTestBase.cc
 )
-target_link_libraries(testcel_celeritas_core
-  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_optional_json_libs}
+celeritas_target_link_libraries(testcel_celeritas_core
+  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${nlohmann_json_LIBRARIES}
 )
 
 # Geometry
@@ -289,7 +283,7 @@ celeritas_add_library(testcel_celeritas
 )
 celeritas_target_link_libraries(testcel_celeritas
   PRIVATE Celeritas::celeritas Celeritas::testcel_harness
-  ${_geo_libs} ${_optional_json_libs} Celeritas::orange
+  ${_geo_libs} ${nlohmann_json_LIBRARIES} Celeritas::orange
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
@@ -299,7 +293,7 @@ celeritas_setup_tests(SERIAL PREFIX celeritas
 #-----------------------------------------------------------------------------#
 # (Root level tests)
 celeritas_add_test(celeritas/Constants.test.cc
-  LINK_LIBRARIES ${_optional_geant4_libs})
+  LINK_LIBRARIES ${Geant4_LIBRARIES})
 
 #-------------------------------------#
 # EM
@@ -336,12 +330,13 @@ endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc
-  ${_needs_geant4} LINK_LIBRARIES ${_optional_json_libs}
+  ${_needs_geant4} LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
   FILTER
     "FourSteelSlabs*"
     "TestEm3*"
     "OneSteelSphere.*"
     "OneSteelSphereGG.*"
+    "Solids.*"
   )
 celeritas_add_test(celeritas/ext/GeantVolumeMapper.test.cc ${_needs_geant4}
   LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
@@ -405,7 +400,7 @@ if(CELERITAS_USE_Geant4)
       "TestEm3NoMsc.*"
       "TestEm3Msc.*"
       "TestEm3MscNofluct.*"
-      "TestEm15MscField.*"
+      "TestEm15FieldMsc.*"
       "OneSteelSphere.*"
   )
 else()
@@ -418,7 +413,7 @@ celeritas_add_test(celeritas/global/AlongStep.test.cc
   ${_along_step_filter}
 )
 celeritas_add_test(celeritas/global/KernelContextException.test.cc
-  NT 1 ${_needs_geo} LINK_LIBRARIES ${_optional_json_libs}
+  NT 1 ${_needs_geo} LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
 )
 celeritas_add_test(celeritas/global/Stepper.test.cc
   GPU NT 4 ${_needs_geo} ${_optional_geant4_env}
@@ -457,7 +452,7 @@ celeritas_add_device_test(celeritas/phys/Particle)
 celeritas_add_device_test(celeritas/phys/Physics)
 celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(celeritas/phys/PrimaryGenerator.test.cc
-  LINK_LIBRARIES ${_optional_json_libs})
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(celeritas/phys/ProcessBuilder.test.cc ${_needs_root}
   ${_optional_geant4_env})
 
@@ -539,11 +534,20 @@ celeritas_add_test(celeritas/user/StepCollector.test.cc
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Geant4)
+  celeritas_add_library(testcel_accel
+    accel/SimpleSensitiveDetector.cc
+    accel/SDTestBase.cc
+  )
+  celeritas_target_link_libraries(testcel_accel
+    PUBLIC testcel_harness testcel_celeritas Celeritas::accel
+  )
   celeritas_setup_tests(SERIAL PREFIX accel
-    LINK_LIBRARIES Celeritas::accel testcel_celeritas
+    LINK_LIBRARIES Celeritas::accel Celeritas::celeritas testcel_accel
   )
 
   celeritas_add_test(accel/ExceptionConverter.test.cc)
+  celeritas_add_test(accel/detail/HitManager.test.cc
+    ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc
     ENVIRONMENT "${_geant4_test_env}")
 endif()

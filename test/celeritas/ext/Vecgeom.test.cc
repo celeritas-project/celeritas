@@ -7,19 +7,22 @@
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 
+#include <regex>
 #include <string_view>
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
 #include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/ext/GeantGeoUtils.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
+#include "celeritas/geo/GeoParamsOutput.hh"
 
 #include "celeritas_test.hh"
 
@@ -41,7 +44,13 @@ namespace
 {
 auto const vecgeom_version
     = celeritas::Version::from_string(celeritas_vecgeom_version);
+
+std::string simplify_pointers(std::string const& s)
+{
+    static const std::regex subs_ptr("0x[0-9a-f]+");
+    return std::regex_replace(s, subs_ptr, "0x0");
 }
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -55,19 +64,51 @@ class VecgeomTestBase : public GenericVecgeomTestBase
 {
   public:
     //! Helper function: build with VecGeom using VGDML
-    SPConstGeo load_vgdml(std::string_view filename) const
+    SPConstGeo load_vgdml(std::string_view filename)
     {
         return std::make_shared<VecgeomParams>(
             this->test_data_path("celeritas", filename));
     }
-
-    //! Helper function: build via Geant4 GDML reader
-    SPConstGeo load_g4_gdml(std::string_view filename) const
-    {
-        return std::make_shared<VecgeomParams>(::celeritas::load_geant_geometry(
-            this->test_data_path("celeritas", filename)));
-    }
 };
+
+//---------------------------------------------------------------------------//
+
+class VecgeomGeantTestBase : public VecgeomTestBase
+{
+  public:
+    //! Helper function: build via Geant4 GDML reader
+    SPConstGeo load_g4_gdml(std::string_view filename)
+    {
+        if (world_volume_)
+        {
+            // Clear old geant4 data
+            ::celeritas::reset_geant_geometry();
+        }
+        world_volume_ = ::celeritas::load_geant_geometry_native(
+            this->test_data_path("celeritas", filename));
+        return std::make_shared<VecgeomParams>(world_volume_);
+    }
+
+    //! Test conversion for Geant4 geometry
+    GeantVolResult get_direct_geant_volumes()
+    {
+        this->geometry();
+        return GenericVecgeomTestBase::get_direct_geant_volumes(world_volume_);
+    }
+
+    //! Test conversion for Geant4 geometry
+    GeantVolResult get_import_geant_volumes()
+    {
+        this->geometry();
+        return GenericVecgeomTestBase::get_import_geant_volumes(world_volume_);
+    }
+
+  protected:
+    // Note that this is static because the geometry may be loaded
+    static G4VPhysicalVolume* world_volume_;
+};
+
+G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
 
 //---------------------------------------------------------------------------//
 // FOUR-LEVELS TEST
@@ -447,18 +488,46 @@ TEST_F(SolidsTest, accessors)
     auto const& bbox = geom.bbox();
     EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}), bbox.lower());
     EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), bbox.upper());
+}
 
-    // NOTE: because SolidsTest gets loaded after FourLevelsTest, the existing
-    // volumes still have incremented the volume ID counter, so there is an
-    // offset. This value will be zero if running the solids test as
-    // standalone.
-    int const offset = 4;
-    ASSERT_EQ(23 + offset, geom.num_volumes());
-    ASSERT_EQ(27, geom.num_volumes());
-    EXPECT_EQ("box500", geom.id_to_label(VolumeId{0 + offset}).name);
-    EXPECT_EQ("cone1", geom.id_to_label(VolumeId{1 + offset}).name);
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{20 + offset}).name);
-    EXPECT_EQ("trd1_refl", geom.id_to_label(VolumeId{22 + offset}).name);
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsTest, names)
+{
+    auto const& geom = *this->geometry();
+    std::vector<std::string> labels;
+    for (auto vid : range(VolumeId{geom.num_volumes()}))
+    {
+        labels.push_back(simplify_pointers(to_string(geom.id_to_label(vid))));
+    }
+
+    // clang-format off
+    static char const* const expected_labels[] = {"b500", "b100", "union1",
+        "b100", "box500", "cone1", "para1", "sphere1", "parabol1", "trap1",
+        "trd1", "trd2", "trd3", "trd3_refl", "tube100", "boolean1",
+        "polycone1", "genPocone1", "ellipsoid1", "tetrah1", "orb1",
+        "polyhedr1", "hype1", "elltube1", "ellcone1", "arb8b", "arb8a",
+        "xtru1", "World", "", "trd3_refl"};
+    // clang-format on
+    EXPECT_VEC_EQ(expected_labels, labels);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SolidsTest, output)
+{
+    GeoParamsOutput out(this->geometry());
+    EXPECT_EQ("geometry", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        auto out_str = simplify_pointers(to_string(out));
+
+        EXPECT_EQ(
+            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["b500","b100","union1","b100","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl"]}})json",
+            out_str)
+            << "\n/*** REPLACE ***/\nR\"json(" << out_str
+            << ")json\"\n/******/";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -483,7 +552,9 @@ TEST_F(SolidsTest, trace)
                                                        "World",
                                                        "parabol1",
                                                        "World",
-                                                       "trd1",
+                                                       "trd2",
+                                                       "World",
+                                                       "xtru1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {20,
@@ -499,26 +570,30 @@ TEST_F(SolidsTest, trace)
                                                        30,
                                                        88.786678713601,
                                                        42.426642572799,
-                                                       88.7866787136,
+                                                       88.786678713601,
                                                        30,
-                                                       85};
+                                                       1.4761904761905,
+                                                       15.880952380952,
+                                                       67.642857142857};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {0,
                                                        45.496748548005,
                                                        0,
-                                                       44.8347556812201,
+                                                       44.83475568122,
                                                        13.934134186943,
                                                        30,
                                                        25,
                                                        36.240004604773,
                                                        25,
-                                                       41.2043887972073,
+                                                       41.204388797207,
                                                        14.92555785315,
                                                        42.910442345001,
                                                        18.741024106017,
                                                        42.910442345001,
                                                        14.92555785315,
-                                                       42.289080583925};
+                                                       0.7344322118216,
+                                                       6.5489918373272,
+                                                       33.481506089183};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
@@ -635,6 +710,60 @@ TEST_F(SolidsTest, trace)
                                                        75};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
+    {
+        SCOPED_TRACE("Low +y");
+        auto result = this->track({-500, -250, 0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"World", "trd3_refl", "World", "trd2", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {96.555879457157,
+                                                       52.35421982848,
+                                                       77.179801428726,
+                                                       52.35421982848,
+                                                       271.55587945716};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {37.766529475342,
+                                                       15.038346086645,
+                                                       26.6409955055738,
+                                                       15.038346086645,
+                                                       75};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsTest, reflected_vol)
+{
+    auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
+    auto const& label = this->geometry()->id_to_label(geo.volume_id());
+    // Note: through GDML there is only one trd3_refl
+    EXPECT_EQ("trd3_refl", label.name);
+    EXPECT_FALSE(ends_with(label.ext, "_refl"));
+}
+
+//---------------------------------------------------------------------------//
+
+class DISABLED_ArbitraryTest : public VecgeomTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        auto filename = celeritas::getenv("GDML");
+        CELER_VALIDATE(!filename.empty(),
+                       << "Set the 'GDML' environment variable and run this "
+                          "test with "
+                          "--gtest_filter=*ArbitraryGeantTest* "
+                          "--gtest_also_run_disabled_tests");
+        return std::make_shared<VecgeomParams>(filename);
+    }
+};
+
+TEST_F(DISABLED_ArbitraryTest, dump)
+{
+    this->geometry();
+    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
+    world->PrintContent();
 }
 
 //---------------------------------------------------------------------------//
@@ -642,7 +771,7 @@ TEST_F(SolidsTest, trace)
 //---------------------------------------------------------------------------//
 
 #define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
-class FourLevelsGeantTest : public VecgeomTestBase
+class FourLevelsGeantTest : public VecgeomGeantTestBase
 {
   public:
     SPConstGeo build_geometry() final
@@ -663,10 +792,10 @@ TEST_F(FourLevelsGeantTest, accessors)
     EXPECT_VEC_SOFT_EQ((Real3{24.001, 24.001, 24.001}), bbox.upper());
 
     ASSERT_EQ(4, geom.num_volumes());
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{1}).name);
-    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{3}).name);
+    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{3}).name);
 }
 
 //---------------------------------------------------------------------------//
@@ -759,7 +888,7 @@ TEST_F(FourLevelsGeantTest, tracking)
 //---------------------------------------------------------------------------//
 
 #define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
-class SolidsGeantTest : public VecgeomTestBase
+class SolidsGeantTest : public VecgeomGeantTestBase
 {
   public:
     SPConstGeo build_geometry() final
@@ -799,13 +928,71 @@ TEST_F(SolidsGeantTest, accessors)
     auto const& bbox = geom.bbox();
     EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}), bbox.lower());
     EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), bbox.upper());
+}
 
-    ASSERT_EQ(28, geom.num_volumes());
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
-    EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("", geom.id_to_label(VolumeId{9}).name);
-    EXPECT_EQ("boolean1", geom.id_to_label(VolumeId{16}).name);
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, names)
+{
+    auto const& geom = *this->geometry();
+    std::vector<std::string> labels;
+    for (auto vid : range(VolumeId{geom.num_volumes()}))
+    {
+        labels.push_back(simplify_pointers(to_string(geom.id_to_label(vid))));
+    }
+
+    // clang-format off
+    static char const* const expected_labels[] = {"box500@0x0", "cone1@0x0",
+        "para1@0x0", "sphere1@0x0", "parabol1@0x0", "trap1@0x0", "trd1@0x0",
+        "trd2@0x0", "trd3@0x0", "trd3_refl@0x0", "tube100@0x0", "", "", "", "",
+        "boolean1@0x0", "polycone1@0x0", "genPocone1@0x0", "ellipsoid1@0x0",
+        "tetrah1@0x0", "orb1@0x0", "polyhedr1@0x0", "hype1@0x0",
+        "elltube1@0x0", "ellcone1@0x0", "arb8b@0x0", "arb8a@0x0", "xtru1@0x0",
+        "World@0x0", "", "trd3@0x0_refl"};;
+    // clang-format on
+    EXPECT_VEC_EQ(expected_labels, labels);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SolidsGeantTest, output)
+{
+    GeoParamsOutput out(this->geometry());
+    EXPECT_EQ("geometry", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        auto out_str = simplify_pointers(to_string(out));
+
+        EXPECT_EQ(
+            R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["box500@0x0","cone1@0x0","para1@0x0","sphere1@0x0","parabol1@0x0","trap1@0x0","trd1@0x0","trd2@0x0","trd3@0x0","trd3_refl@0x0","tube100@0x0","","","","","boolean1@0x0","polycone1@0x0","genPocone1@0x0","ellipsoid1@0x0","tetrah1@0x0","orb1@0x0","polyhedr1@0x0","hype1@0x0","elltube1@0x0","ellcone1@0x0","arb8b@0x0","arb8a@0x0","xtru1@0x0","World@0x0","","trd3@0x0_refl"]}})json",
+            out_str)
+            << "\n/*** REPLACE ***/\nR\"json(" << out_str
+            << ")json\"\n/******/";
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, geant_volumes)
+{
+    {
+        auto result = this->get_import_geant_volumes();
+        static int const expected_volumes[]
+            = {0,  1,  2,  3,  4,  5,  6,  7,  -1, 9,  10, 15, 16,
+               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        EXPECT_EQ(0, result.missing_names.size()) << repr(result.missing_names);
+    }
+    {
+        auto result = this->get_direct_geant_volumes();
+        static int const expected_volumes[]
+            = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 15, 16,
+               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, -2};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+
+        static char const* const expected_missing[] = {"trd3_refl"};
+        EXPECT_VEC_EQ(expected_missing, result.missing_names);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -829,7 +1016,9 @@ TEST_F(SolidsGeantTest, trace)
                                                        "World",
                                                        "parabol1",
                                                        "World",
-                                                       "trd1",
+                                                       "trd2",
+                                                       "World",
+                                                       "xtru1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {20,
@@ -845,9 +1034,11 @@ TEST_F(SolidsGeantTest, trace)
                                                        30,
                                                        88.786678713601,
                                                        42.426642572799,
-                                                       88.7866787136,
+                                                       88.786678713601,
                                                        30,
-                                                       85};
+                                                       1.4761904761905,
+                                                       15.880952380952,
+                                                       67.642857142857};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -892,6 +1083,9 @@ TEST_F(SolidsGeantTest, trace)
     }
     {
         SCOPED_TRACE("Lower +x");
+
+        // NOTE: these regression values are wrong in VecGeom 1.2.2 but fixed
+        // in 1.3.3
         auto result = this->track({-375, -125, 0}, {1, 0, 0});
         static char const* const expected_volumes[] = {"arb8b",
                                                        "World",
@@ -928,6 +1122,73 @@ TEST_F(SolidsGeantTest, trace)
                                                        205};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
+    {
+        SCOPED_TRACE("Low +y");
+        auto result = this->track({-500, -250, 0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"World", "trd3", "World", "trd2", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {96.555879457157,
+                                                       52.35421982848,
+                                                       77.179801428726,
+                                                       52.35421982848,
+                                                       271.55587945716};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {37.766529475342,
+                                                       15.038346086645,
+                                                       26.6409955055738,
+                                                       15.038346086645,
+                                                       75};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, reflected_vol)
+{
+    auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
+    EXPECT_EQ(VolumeId{30}, geo.volume_id());
+    auto const& label = this->geometry()->id_to_label(geo.volume_id());
+    EXPECT_EQ("trd3", label.name);
+    EXPECT_TRUE(ends_with(label.ext, "_refl"));
+}
+
+//---------------------------------------------------------------------------//
+
+class DISABLED_ArbitraryGeantTest : public VecgeomGeantTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        auto filename = celeritas::getenv("GDML");
+        CELER_VALIDATE(!filename.empty(),
+                       << "Set the 'GDML' environment variable and run this "
+                          "test with "
+                          "--gtest_filter=*ArbitraryGeantTest* "
+                          "--gtest_also_run_disabled_tests");
+        if (world_volume_)
+        {
+            // Clear old geant4 data
+            ::celeritas::reset_geant_geometry();
+        }
+        world_volume_ = ::celeritas::load_geant_geometry_native(filename);
+        return std::make_shared<VecgeomParams>(world_volume_);
+    }
+};
+
+TEST_F(DISABLED_ArbitraryGeantTest, conversion)
+{
+    auto result = this->get_import_geant_volumes();
+    result.print_expected();
+    EXPECT_EQ(0, result.missing_names.size());
+}
+
+TEST_F(DISABLED_ArbitraryGeantTest, dump)
+{
+    this->geometry();
+    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
+    world->PrintContent();
 }
 
 //---------------------------------------------------------------------------//

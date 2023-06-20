@@ -30,10 +30,10 @@
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
-#include <G4PropagatorInField.hh>
 #include <G4ProcessVector.hh>
 #include <G4ProductionCuts.hh>
 #include <G4ProductionCutsTable.hh>
+#include <G4PropagatorInField.hh>
 #include <G4RToEConvForElectron.hh>
 #include <G4RToEConvForGamma.hh>
 #include <G4RToEConvForPositron.hh>
@@ -61,6 +61,7 @@
 #include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "ScopedGeantExceptionHandler.hh"
 #include "detail/AllElementReader.hh"
 #include "detail/GeantProcessImporter.hh"
 #include "detail/GeantVolumeVisitor.hh"
@@ -629,7 +630,8 @@ G4VPhysicalVolume const* GeantImporter::get_world_volume()
     auto* nav = man->GetNavigatorForTracking();
     CELER_ASSERT(nav);
     auto* world = nav->GetWorldVolume();
-    CELER_ENSURE(world);
+    CELER_VALIDATE(world,
+                   << "no world volume has been defined in the navigator");
     return world;
 }
 
@@ -659,22 +661,39 @@ GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
  */
 ImportData GeantImporter::operator()(DataSelection const& selected)
 {
+    CELER_VALIDATE(
+        (selected.materials && selected.particles != DataSelection::none)
+            || selected.processes == DataSelection::none,
+        << "materials and particles must be enabled if requesting processes");
     ScopedMem record_mem("GeantImporter.load");
     ImportData imported;
 
     {
         CELER_LOG(status) << "Transferring data from Geant4";
+        ScopedGeantExceptionHandler scoped_exceptions;
         ScopedTimeLog scoped_time;
-        imported.particles = import_particles(selected.particles);
-        imported.elements = import_elements();
-        imported.materials = import_materials(selected.particles);
-        std::tie(imported.processes, imported.msc_models)
-            = import_processes(selected.processes,
-                               imported.particles,
-                               imported.elements,
-                               imported.materials);
+        if (selected.particles != DataSelection::none)
+        {
+            imported.particles = import_particles(selected.particles);
+        }
+        if (selected.materials)
+        {
+            imported.elements = import_elements();
+            imported.materials = import_materials(selected.particles);
+        }
+        if (selected.processes != DataSelection::none)
+        {
+            std::tie(imported.processes, imported.msc_models)
+                = import_processes(selected.processes,
+                                   imported.particles,
+                                   imported.elements,
+                                   imported.materials);
+        }
         imported.volumes = this->import_volumes(selected.unique_volumes);
-        imported.trans_params = import_trans_parameters(selected.particles);
+        if (selected.particles != DataSelection::none)
+        {
+            imported.trans_params = import_trans_parameters(selected.particles);
+        }
         if (selected.processes & DataSelection::em)
         {
             imported.em_params = import_em_parameters();
@@ -717,7 +736,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
     }
 
-    CELER_ENSURE(imported);
     return imported;
 }
 

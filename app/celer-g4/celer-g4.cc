@@ -14,6 +14,7 @@
 #include <CLHEP/Random/Random.h>
 #include <G4GlobalConfig.hh>
 #include <G4RunManager.hh>
+#include <G4UIExecutive.hh>
 #include <G4UImanager.hh>
 #include <G4Version.hh>
 
@@ -38,6 +39,8 @@
 #include "GlobalSetup.hh"
 #include "PrimaryGeneratorAction.hh"
 
+using namespace std::literals::string_view_literals;
+
 namespace celeritas
 {
 namespace app
@@ -45,7 +48,7 @@ namespace app
 namespace
 {
 //---------------------------------------------------------------------------//
-void run(std::string const& macro_filename)
+void run(int argc, char** argv)
 {
     ScopedRootErrorHandler scoped_root_error;
 
@@ -88,9 +91,18 @@ void run(std::string const& macro_filename)
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
+    std::string_view macro_filename{argv[1]};
+    if (macro_filename == "--interactive")
+    {
+        G4UIExecutive exec(argc, argv);
+        exec.SessionStart();
+        return;
+    }
+
     CELER_LOG(status) << "Executing macro commands from '" << macro_filename
                       << "'";
-    ui->ApplyCommand("/control/execute " + macro_filename);
+    ui->ApplyCommand(std::string("/control/execute ")
+                     + std::string(macro_filename));
 
     // Initialize run and process events
     CELER_LOG(status) << "Initializing run manager";
@@ -116,10 +128,10 @@ void run(std::string const& macro_filename)
  */
 int main(int argc, char* argv[])
 {
-    std::vector<std::string> args(argv, argv + argc);
-    if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
+    if (argc != 2 || argv[1] == "--help"sv || argv[1] == "-h"sv)
     {
-        std::cerr << "usage: " << args[0] << " {commands}.mac\n"
+        std::cerr << "usage: " << argv[0] << " {commands}.mac\n"
+                  << "       " << argv[0] << " --interactive\n"
                   << "Environment variables:\n"
                   << "  G4FORCE_RUN_MANAGER_TYPE: MT or Serial\n"
                   << "  G4FORCENUMBEROFTHREADS: set CPU worker thread count\n"
@@ -131,7 +143,7 @@ int main(int argc, char* argv[])
     }
 
     // Run with threads and macro filename
-    celeritas::app::run(args[1]);
+    celeritas::app::run(argc, argv);
 
     CELER_LOG(status) << "Run completed successfully; exiting";
     return EXIT_SUCCESS;

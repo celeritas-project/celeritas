@@ -39,10 +39,8 @@ TEST(EnumStringMapperTest, all)
     EXPECT_STREQ("argonne", to_string(CeleritasLabs::argonne));
     EXPECT_STREQ("fermilab", to_string(CeleritasLabs::fermilab));
     EXPECT_STREQ("ornl", to_string(CeleritasLabs::ornl));
-    if (CELERITAS_DEBUG)
-    {
-        EXPECT_THROW(to_string(CeleritasLabs::size_), DebugError);
-    }
+    EXPECT_TRUE(std::string{to_string(CeleritasLabs::size_)}.find("invalid")
+                != std::string::npos);
 }
 
 // The following instances should fail to compile.

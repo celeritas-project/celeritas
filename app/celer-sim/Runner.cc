@@ -167,18 +167,16 @@ void Runner::build_core_params(RunnerInput const& inp,
     ImportData const imported = [&inp] {
         if (ends_with(inp.physics_filename, ".root"))
         {
-            // Load imported from ROOT file
-            return RootImporter(inp.physics_filename.c_str())();
+            // Load from ROOT file
+            return RootImporter(inp.physics_filename)();
         }
-        else if (ends_with(inp.physics_filename, ".gdml"))
+        std::string filename = inp.physics_filename;
+        if (filename.empty())
         {
-            // Load imported directly from Geant4
-            return GeantImporter(
-                GeantSetup(inp.physics_filename, inp.geant_options))();
+            filename = inp.geometry_filename;
         }
-        CELER_VALIDATE(false,
-                       << "invalid physics filename '" << inp.physics_filename
-                       << "' (expected gdml or root)");
+        // Load imported data directly from Geant4
+        return GeantImporter(GeantSetup(filename, inp.geant_options))();
     }();
 
     // Create action manager
@@ -227,6 +225,7 @@ void Runner::build_core_params(RunnerInput const& inp,
             std::vector<std::shared_ptr<Process const>> result;
             ProcessBuilder::Options opts;
             opts.brem_combined = inp.brem_combined;
+            opts.brems_selection = inp.geant_options.brems;
 
             ProcessBuilder build_process(
                 imported, params.particle, params.material, opts);

@@ -39,10 +39,10 @@ void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
     if (lev == LogLevel::debug || lev >= LogLevel::warning)
     {
         // Output problem line/file for debugging or high level
-        std::cerr << color_code('x') << prov.file;
+        std::clog << color_code('x') << prov.file;
         if (prov.line)
-            std::cerr << ':' << prov.line;
-        std::cerr << color_code(' ') << ": ";
+            std::clog << ':' << prov.line;
+        std::clog << color_code(' ') << ": ";
     }
 
     // clang-format off
@@ -59,7 +59,7 @@ void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
         case LogLevel::size_: CELER_ASSERT_UNREACHABLE();
     };
     // clang-format on
-    std::cerr << color_code(c) << to_cstring(lev) << ": " << color_code(' ')
+    std::clog << color_code(c) << to_cstring(lev) << ": " << color_code(' ')
               << msg << std::endl;
 }
 
@@ -72,14 +72,11 @@ class LocalHandler
 
     void operator()(Provenance prov, LogLevel lev, std::string msg)
     {
-        // To avoid multiple process output stepping on each other, write into
-        // a buffer and then print with a single call.
-        std::ostringstream os;
-        os << color_code('x') << prov.file << ':' << prov.line
-           << color_code(' ') << ": " << color_code('W') << "rank " << rank_
-           << ": " << color_code('x') << to_cstring(lev) << ": "
-           << color_code(' ') << msg << '\n';
-        std::cerr << os.str();
+        // Use buffered 'clog'
+        std::clog << color_code('x') << prov.file << ':' << prov.line
+                  << color_code(' ') << ": " << color_code('W') << "rank "
+                  << rank_ << ": " << color_code('x') << to_cstring(lev)
+                  << ": " << color_code(' ') << msg << std::endl;
     }
 
   private:
@@ -120,9 +117,9 @@ Logger::Logger(MpiCommunicator const& comm,
             }
             else if (comm.rank() == 0)
             {
-                std::cerr << "Log level environment variable '" << level_env
+                std::clog << "Log level environment variable '" << level_env
                           << "' has an invalid value '" << env_value
-                          << "': ignoring\n";
+                          << "': ignoring" << std::endl;
             }
         }
     }

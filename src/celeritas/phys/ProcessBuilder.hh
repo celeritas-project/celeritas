@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
@@ -33,6 +34,7 @@ struct ImportSBTable;
 struct ProcessBuilderOptions
 {
     bool brem_combined{false};
+    BremsModelSelection brems_selection{BremsModelSelection::all};
 };
 
 //---------------------------------------------------------------------------//
@@ -113,6 +115,7 @@ class ProcessBuilder
     std::function<ImportSBTable(AtomicNumber)> read_sb_;
     std::function<ImportLivermorePE(AtomicNumber)> read_livermore_;
 
+    BremsModelSelection selection_;
     bool brem_combined_;
     bool enable_lpm_;
     bool use_integral_xs_;

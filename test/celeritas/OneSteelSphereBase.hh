@@ -17,7 +17,7 @@ namespace test
 /*!
  * Test harness for steel sphere with 50 meter production cuts.
  */
-class OneSteelSphereBase : public GeantTestBase
+class OneSteelSphereBase : virtual public GeantTestBase
 {
   protected:
     std::string_view geometry_basename() const override

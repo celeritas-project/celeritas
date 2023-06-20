@@ -170,8 +170,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         CELER_ASSERT(result.boundary == geo_.is_on_boundary());
 
         // Advance up to (but probably less than) the remaining step length
-        // Due to roundoff this may be slightly more than remaining.
         DriverResult substep = driver_.advance(remaining, state_);
+        CELER_ASSERT(substep.step > 0 && substep.step <= remaining);
 
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
@@ -211,7 +211,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // on a reentrant boundary crossing below.
             state_ = substep.state;
             result.boundary = false;
-            result.distance += celeritas::min(substep.step, remaining);
+            result.distance += substep.step;
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
             --remaining_substeps;

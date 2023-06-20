@@ -160,10 +160,10 @@ void AlongStepTestBase::RunResult::print_expected() const
          << repr(this->step)
          << ", result.step);\n"
             "EXPECT_SOFT_EQ("
-         << repr(this->mfp) << ", result.mfp);\n"
+         << repr(this->mfp)
+         << ", result.mfp);\n"
             "EXPECT_SOFT_EQ("
-         << repr(this->alive)
-         << ", result.alive);\n";
+         << repr(this->alive) << ", result.alive);\n";
     if (!this->action.empty() && this->action.front() == '{')
         cout << "// ";
     cout << "EXPECT_EQ(" << repr(this->action)

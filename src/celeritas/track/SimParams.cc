@@ -24,7 +24,6 @@ namespace celeritas
 std::shared_ptr<SimParams>
 SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
 {
-    CELER_EXPECT(data);
     CELER_EXPECT(particle_params);
     CELER_EXPECT(data.trans_params);
     CELER_EXPECT(data.trans_params.looping.size() == particle_params->size());

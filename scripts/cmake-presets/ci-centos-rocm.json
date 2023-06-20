@@ -28,6 +28,7 @@
         "CMAKE_CXX_STANDARD": "17",
         "CMAKE_EXE_LINKER_FLAGS": "-Wno-unused-command-line-argument",
         "CMAKE_HIP_COMPILER": "/opt/rocm/llvm/bin/clang++",
+        "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics -Wno-#warnings -Werror",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
       }
     },

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "HitManager.hh"
 
+#include <map>
 #include <utility>
 #include <G4LogicalVolumeStore.hh>
 #include <G4RunManager.hh>
@@ -19,6 +20,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/GeantVolumeMapper.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
@@ -48,11 +50,14 @@ void update_selection(StepPointSelection* selection,
 /*!
  * Map detector IDs on construction.
  */
-HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
+HitManager::HitManager(GeoParams const& geo,
+                       SDSetupOptions const& setup,
+                       StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
     , locate_touchable_(setup.locate_touchable)
 {
     CELER_EXPECT(setup.enabled);
+    CELER_EXPECT(num_streams > 0);
 
     // Convert setup options to step data
     selection_.energy_deposition = setup.energy_deposition;
@@ -65,61 +70,92 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     }
 
     // Logical volumes to pass to hit processor
-    std::vector<G4LogicalVolume*> geant_vols;
+    std::map<G4LogicalVolume const*, VolumeId> found_lv;
+    // LVs that we can't correlate to Celeritas volume labels
+    VecLV missing_lv;
 
-    // Loop over all logical volumes and map detectors to Volume IDS
+    // Volume mapper and helper lambda for adding SDs
     GeantVolumeMapper g4_to_celer{geo};
-    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    CELER_ASSERT(lv_store);
-    std::vector<G4LogicalVolume*> missing_lv;
-    for (G4LogicalVolume* lv : *lv_store)
+    auto add_volume
+        = [&](G4LogicalVolume const* lv, G4VSensitiveDetector const* sd) {
+              if (setup.skip_volumes.count(lv))
+              {
+                  CELER_LOG(debug)
+                      << "Skipping automatic SD callback for logical volume '"
+                      << lv->GetName() << "' due to user option";
+                  return;
+              }
+
+              auto id = lv ? g4_to_celer(*lv) : VolumeId{};
+              if (!id)
+              {
+                  missing_lv.push_back(lv);
+                  return;
+              }
+              auto msg = CELER_LOG(debug);
+              msg << "Mapped ";
+              if (sd)
+              {
+                  msg << "sensitive detector '" << sd->GetName() << '\'';
+              }
+              else
+              {
+                  msg << "unknown sensitive detector";
+              }
+              msg << " on logical volume '" << PrintableLV{lv} << "' to "
+                  << celeritas_core_geo << " volume '" << geo.id_to_label(id)
+                  << "' (ID=" << id.unchecked_get() << ')';
+
+              // Add Geant4 volume and corresponding volume ID to list
+              found_lv.insert({lv, id});
+          };
+
+    // Loop over all logical volumes and map detectors to Volume IDs
+    for (G4LogicalVolume const* lv : *G4LogicalVolumeStore::GetInstance())
     {
         CELER_ASSERT(lv);
 
-        // Check for sensitive detectors
+        // Check for sensitive detectors attached to the master thread
         G4VSensitiveDetector* sd = lv->GetSensitiveDetector();
-        if (!sd)
+        if (sd)
         {
-            continue;
+            add_volume(lv, sd);
         }
-
-        auto id = g4_to_celer(*lv);
-        if (!id)
-        {
-            missing_lv.push_back(lv);
-            continue;
-        }
-        CELER_LOG(debug) << "Mapped sensitive detector '" << sd->GetName()
-                         << "' (logical volume '" << lv->GetName() << "') to "
-                         << celeritas_core_geo << " volume '"
-                         << geo.id_to_label(id) << "'";
-
-        // Add Geant4 volume and corresponding volume ID to list
-        geant_vols.push_back(lv);
-        vecgeom_vols_.push_back(id);
     }
-    CELER_VALIDATE(missing_lv.empty(),
-                   << "failed to find unique " << celeritas_core_geo
-                   << " volume(s) corresponding to Geant4 volume(s) "
-                   << join_stream(missing_lv.begin(),
-                                  missing_lv.end(),
-                                  ", ",
-                                  [](std::ostream& os, G4LogicalVolume* lv) {
-                                      os << '\'' << lv->GetName() << '\'';
-                                  }));
-    CELER_VALIDATE(!vecgeom_vols_.empty(),
-                   << "no sensitive detectors were found");
+
+    // Loop over user-specified G4LV
+    for (G4LogicalVolume const* lv : setup.force_volumes)
+    {
+        add_volume(lv, nullptr);
+    }
+
+    CELER_VALIDATE(
+        missing_lv.empty(),
+        << "failed to find unique " << celeritas_core_geo
+        << " volume(s) corresponding to Geant4 volume(s) "
+        << join_stream(missing_lv.begin(),
+                       missing_lv.end(),
+                       ", ",
+                       [](std::ostream& os, G4LogicalVolume const* lv) {
+                           os << '\'' << PrintableLV{lv} << '\'';
+                       }));
+    CELER_VALIDATE(!found_lv.empty(), << "no sensitive detectors were found");
 
     // Hit processors *must* be allocated on the thread they're used because of
     // geant4 thread-local SDs. There must be one per thread.
-    auto* run_man = G4RunManager::GetRunManager();
-    CELER_VALIDATE(run_man,
-                   << "G4RunManager was not created before setting up "
-                      "HitManager");
-    processors_.resize(celeritas::get_num_threads(*run_man));
+    processors_.resize(num_streams);
 
-    geant_vols_ = std::make_shared<std::vector<G4LogicalVolume*>>(
-        std::move(geant_vols));
+    // Unfold map into LV/ID vectors
+    VecLV geant_vols;
+    geant_vols.reserve(found_lv.size());
+    vecgeom_vols_.reserve(found_lv.size());
+    for (auto&& [lv, id] : found_lv)
+    {
+        geant_vols.push_back(lv);
+        vecgeom_vols_.push_back(id);
+    }
+    geant_vols_ = std::make_shared<VecLV>(std::move(geant_vols));
+
     CELER_ENSURE(geant_vols_ && geant_vols_->size() == vecgeom_vols_.size());
 }
 
@@ -174,12 +210,12 @@ void HitManager::process_steps(DeviceStepState state)
  * allocators that crash if trying to deallocate data allocated on another
  * thread.
  */
-void HitManager::finalize()
+void HitManager::finalize(StreamId sid)
 {
-    CELER_LOG_LOCAL(debug) << "Deallocating hit processor";
-    int local_thread = G4Threading::G4GetThreadId();
-    CELER_ASSERT(static_cast<std::size_t>(local_thread) < processors_.size());
-    processors_[local_thread].reset();
+    CELER_EXPECT(sid < processors_.size());
+    CELER_LOG_LOCAL(debug) << "Deallocating hit processor (stream "
+                           << sid.get() << ")";
+    processors_[sid.unchecked_get()].reset();
 }
 
 //---------------------------------------------------------------------------//
@@ -188,13 +224,12 @@ void HitManager::finalize()
  */
 HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
 {
-    CELER_EXPECT(sid.get()
-                 == static_cast<size_type>(G4Threading::G4GetThreadId()));
     CELER_EXPECT(sid < processors_.size());
 
     if (CELER_UNLIKELY(!processors_[sid.unchecked_get()]))
     {
-        CELER_LOG_LOCAL(debug) << "Allocating hit processor";
+        CELER_LOG_LOCAL(debug)
+            << "Allocating hit processor (stream " << sid.get() << ")";
         // Allocate the hit processor locally
         processors_[sid.unchecked_get()] = std::make_unique<HitProcessor>(
             geant_vols_, selection_, locate_touchable_);

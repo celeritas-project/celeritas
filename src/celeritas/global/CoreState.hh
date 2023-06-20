@@ -55,6 +55,10 @@ class CoreStateInterface
 //---------------------------------------------------------------------------//
 /*!
  * Store all state data for a single thread.
+ *
+ * When the state lives on the device, we maintain a separate copy of the
+ * device "ref" in device memory: otherwise we'd have to copy the entire state
+ * in launch arguments and access it through constant memory.
  */
 template<MemSpace M>
 class CoreState final : public CoreStateInterface
@@ -87,8 +91,8 @@ class CoreState final : public CoreStateInterface
     //! Get a reference to the mutable state data
     Ref const& ref() const { return states_.ref(); }
 
-    // Get a native-memspace pointer to the mutable state data
-    inline Ptr ptr();
+    //! Get a native-memspace pointer to the mutable state data
+    Ptr ptr() { return ptr_; }
 
     //! Track initialization counters
     CoreStateCounters& counters() { return counters_; }
@@ -144,30 +148,12 @@ class CoreState final : public CoreStateInterface
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;
 
+    // Native pointer to ref or
+    Ptr ptr_;
+
     // Counters for track initialization and activity
     CoreStateCounters counters_;
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Access a native pointer to a NativeCRef.
- *
- * This way, CUDA kernels only need to copy a pointer in the kernel arguments,
- * rather than the entire (rather large) DeviceRef object.
- */
-template<MemSpace M>
-auto CoreState<M>::ptr() -> Ptr
-{
-    if constexpr (M == MemSpace::host)
-    {
-        return make_observer(&this->ref());
-    }
-    else if constexpr (M == MemSpace::device)
-    {
-        CELER_ENSURE(!device_ref_vec_.empty());
-        return make_observer(device_ref_vec_);
-    }
-}
 
 //---------------------------------------------------------------------------//
 /*!

@@ -12,6 +12,7 @@ Release History
    :maxdepth: 2
    :caption: Appendices
 
+   release-history/v0.3.rst
    release-history/v0.2.rst
    release-history/v0.1.rst
 
