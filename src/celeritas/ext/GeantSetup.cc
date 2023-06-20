@@ -32,7 +32,7 @@
 
 #include "GeantGeoUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
-#include "detail/GeantLoggerAdapter.hh"
+#include "ScopedGeantLogger.hh"
 #include "detail/GeantPhysicsList.hh"
 
 namespace celeritas
@@ -84,6 +84,19 @@ int get_num_threads(G4RunManager const& runman)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Clear ROOT's signal handlers that get installed on startup/activation.
+ */
+void GeantSetup::disable_signal_handler()
+{
+#if G4VERSION_NUMBER >= 1070
+    CELER_LOG(debug) << "Disabling Geant4 signal handlers";
+    // Disable geant4 signal interception
+    G4Backtrace::DefaultSignals() = {};
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from a GDML file and physics options.
  */
 GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
@@ -92,9 +105,11 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     ScopedMem record_setup_mem("GeantSetup.construct");
 
     {
-        // Run manager writes output that cannot be redirected...
-        ScopedTimeAndRedirect scoped_time("G4RunManager");
+        // Run manager writes output that cannot be redirected with
+        // GeantLoggerAdapter: capture all output from this section
+        ScopedTimeAndRedirect scoped_time{"G4RunManager"};
         ScopedGeantExceptionHandler scoped_exceptions;
+
         // Access the particle table before creating the run manager, so that
         // missing environment variables like G4ENSDFSTATEDATA get caught
         // cleanly rather than segfaulting
@@ -107,10 +122,8 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
                           "execution");
         ++geant_launch_count;
 
-#if G4VERSION_NUMBER >= 1070
-        // Disable geant4 signal interception
-        G4Backtrace::DefaultSignals() = {};
-#endif
+        // Disable signal handling
+        this->disable_signal_handler();
 
 #if G4VERSION_NUMBER >= 1100
         run_manager_.reset(
@@ -122,12 +135,11 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         CELER_ASSERT(run_manager_);
     }
 
-    detail::GeantLoggerAdapter scoped_logger;
+    ScopedGeantLogger scoped_logger;
     ScopedGeantExceptionHandler scoped_exceptions;
 
     {
-        CELER_LOG(status) << "Initializing Geant4 geometry and physics";
-        ScopedTimeLog scoped_time;
+        CELER_LOG(status) << "Initializing Geant4 geometry";
 
         // Load GDML and save a copy of the pointer
         world_ = load_geant_geometry(gdml_filename);
@@ -143,7 +155,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     }
 
     {
-        CELER_LOG(status) << "Initializing Geant4 physics tables";
+        CELER_LOG(status) << "Building Geant4 physics tables";
         ScopedMem record_mem("GeantSetup.initialize");
         ScopedTimeLog scoped_time;
 

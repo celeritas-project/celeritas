@@ -24,7 +24,7 @@ namespace celeritas
  *
  * \code
     {
-        ScopedTimeAndRedirect temp_;
+        ScopedTimeAndRedirect temp_{"VecGeom"};
         vecgeom::DoNoisyAndLongStuff();
     }
    \endcode

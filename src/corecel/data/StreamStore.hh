@@ -126,7 +126,7 @@ class StreamStore
         // ("inconsistent deduction for auto return type")
         else
 #endif
-        return (self.device_states_);
+            return (self.device_states_);
     }
 
     template<MemSpace M, class Self>

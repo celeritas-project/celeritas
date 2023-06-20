@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Types.hh"
 

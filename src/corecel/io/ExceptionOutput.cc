@@ -16,7 +16,8 @@
 #include "JsonPimpl.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
-#include "corecel/AssertIO.json.hh"
+
+#    include "corecel/AssertIO.json.hh"
 #endif
 
 namespace celeritas
@@ -92,7 +93,7 @@ void eptr_to_json(nlohmann::json& j, std::exception_ptr const& eptr)
 }
 #endif
 //---------------------------------------------------------------------------//
-}
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!

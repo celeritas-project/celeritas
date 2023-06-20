@@ -45,8 +45,9 @@ simulations of the CMS and ATLAS detectors.
    :caption: Contents
 
    introduction.rst
-   installation.rst
    overview.rst
+   installation.rst
+   usage.rst
    api.rst
    examples.rst
    references.rst

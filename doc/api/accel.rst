@@ -8,11 +8,11 @@ Acceleritas
 ===========
 
 The ``accel`` directory contains components exclusive to coupling Celeritas
-with Geant4 for user-oriented integration. See :ref:`example_geant_full` for a
-detailed example of how to use Celeritas to offload EM tracks to GPU and
-dispatch hits back to Geant4 sensitive detectors. The simpler interface for
-multithreaded or serial applications is demonstrated in
-:ref:`example_geant_minimal`.
+with Geant4 for user-oriented integration. A simple interface for multithreaded
+or serial applications is demonstrated in :ref:`example_geant`, and the more
+advanced implementation can be inspected in the :ref:`celer-g4` app.
+
+.. _api_accel_high_level:
 
 High-level interface
 --------------------
@@ -25,6 +25,13 @@ the calling application; the options described below must also be set up and
 provided.
 
 .. doxygenclass:: celeritas::SimpleOffload
+
+The SetupOptionsMessenger can be instantiated with a reference to a global
+SetupOptions instance in order to provide a Geant4 "UI" macro interface to an
+app's celeritas options.
+
+.. doxygenclass:: celeritas::SetupOptionsMessenger
+   :members: none
 
 Celeritas setup
 ---------------

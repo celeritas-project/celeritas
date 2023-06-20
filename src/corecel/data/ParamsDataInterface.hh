@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+
 #include "Ref.hh"
 
 namespace celeritas

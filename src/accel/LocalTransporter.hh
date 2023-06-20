@@ -77,6 +77,7 @@ class LocalTransporter
 
     struct HMFinalizer
     {
+        StreamId sid;
         void operator()(SPHitManger& hm) const;
     };
 

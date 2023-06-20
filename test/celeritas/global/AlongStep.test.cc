@@ -40,6 +40,23 @@ class MockAlongStepTest : public MockTestBase, public AlongStepTestBase
 {
 };
 
+class MockAlongStepFieldTest : public MockAlongStepTest
+{
+  public:
+    SPConstAction build_along_step() override
+    {
+        // Note that default track direction is {0,0,1}
+        UniformFieldParams field_params;
+        field_params.field = {4 * units::tesla, 0, 0};
+
+        auto& action_reg = *this->action_reg();
+        auto result = std::make_shared<AlongStepUniformMscAction>(
+            action_reg.next_id(), field_params, nullptr);
+        action_reg.insert(result);
+        return result;
+    }
+};
+
 #define Em3AlongStepTest TEST_IF_CELERITAS_GEANT(Em3AlongStepTest)
 class Em3AlongStepTest : public TestEm3Base, public AlongStepTestBase
 {
@@ -219,6 +236,39 @@ TEST_F(MockAlongStepTest, basic)
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(0, result.time);
         EXPECT_SOFT_EQ(5.2704627669473e-11, result.step);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+}
+
+TEST_F(MockAlongStepFieldTest, basic)
+{
+    size_type num_tracks = 10;
+    Input inp;
+    inp.particle_id = this->particle()->find("celeriton");
+    {
+        inp.energy = MevEnergy{0.1};
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(0.0872, result.eloss);
+        EXPECT_SOFT_EQ(0.072315483508565, result.displacement);
+        EXPECT_SOFT_EQ(-0.78966779070793, result.angle);
+        EXPECT_SOFT_EQ(1.1636639210937e-11, result.time);
+        EXPECT_SOFT_EQ(0.14533333333333, result.step);
+        EXPECT_SOFT_EQ(0.00013079999999999, result.mfp);
+        EXPECT_SOFT_EQ(1, result.alive);
+        EXPECT_EQ("eloss-range", result.action);
+    }
+    {
+        inp.energy = MevEnergy{1e-3};
+        inp.position = {0, 0, 7};  // Outside top sphere, heading out
+        inp.phys_mfp = 100;
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(0.001, result.eloss);
+        EXPECT_SOFT_NEAR(0.014776612598411, result.displacement, 1e-10);
+        EXPECT_SOFT_NEAR(-0.57745338446847, result.angle, 1e-10);
+        EXPECT_SOFT_EQ(5.5782096149372e-09, result.time);
+        EXPECT_SOFT_EQ(7.4731723740905, result.step);
+        EXPECT_SOFT_EQ(0, result.mfp);
+        EXPECT_SOFT_EQ(1, result.alive);
         EXPECT_EQ("physics-discrete-select", result.action);
     }
 }

@@ -7,20 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "accel/detail/HitProcessor.hh"
 
-#include <cmath>
-#include <map>
-#include <string>
-#include <vector>
-#include <CLHEP/Units/SystemOfUnits.h>
-#include <G4LogicalVolume.hh>
-#include <G4LogicalVolumeStore.hh>
-#include <G4SDManager.hh>
-#include <G4VSensitiveDetector.hh>
-
 #include "celeritas/SimpleCmsTestBase.hh"
-#include "celeritas/io/ImportData.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
+#include "accel/SDTestBase.hh"
+#include "accel/SimpleSensitiveDetector.hh"
 
 #include "celeritas_test.hh"
 
@@ -32,218 +23,73 @@ namespace detail
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-struct HitsResult
-{
-    std::vector<double> energy_deposition;  // [MeV]
-    std::vector<double> pre_energy;  // [MeV]
-    std::vector<double> pre_pos;  // [cm]
-    std::vector<std::string> pre_physvol;
-    std::vector<double> post_time;  // [ns]
-
-    void print_expected() const;
-};
-
-void HitsResult::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static double const expected_energy_deposition[] = "
-         << repr(this->energy_deposition)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_energy_deposition, "
-            "result.energy_deposition);\n"
-
-            "static double const expected_pre_energy[] = "
-         << repr(this->pre_energy)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);\n"
-
-            "static double const expected_pre_pos[] = "
-         << repr(this->pre_pos)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);\n"
-
-            "static char const * const expected_pre_physvol[] = "
-         << repr(this->pre_physvol)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);\n"
-
-            "static double const expected_post_time[] = "
-         << repr(this->post_time)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);\n"
-
-            "/*** END CODE ***/\n";
-}
+using ::celeritas::test::SimpleHitsResult;
 
 //---------------------------------------------------------------------------//
-class SensitiveDetector final : public G4VSensitiveDetector
-{
-  public:
-    explicit SensitiveDetector(std::string const& name)
-        : G4VSensitiveDetector(name)
-    {
-    }
-
-    //! Access hit data
-    HitsResult const& hits() const { return hits_; }
-
-    //! Reset hits between tests
-    void clear() { hits_ = {}; }
-
-  protected:
-    void Initialize(G4HCofThisEvent*) final { this->clear(); }
-    bool ProcessHits(G4Step*, G4TouchableHistory*) final;
-
-    HitsResult hits_;
-};
-
-//---------------------------------------------------------------------------//
-bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
-{
-    CELER_EXPECT(step);
-
-    auto* pre_step = step->GetPreStepPoint();
-    CELER_ASSERT(pre_step);
-
-    hits_.energy_deposition.push_back(step->GetTotalEnergyDeposit()
-                                      / CLHEP::MeV);
-    hits_.pre_energy.push_back(pre_step->GetKineticEnergy() / CLHEP::MeV);
-
-    for (int i : range(3))
-    {
-        hits_.pre_pos.push_back(pre_step->GetPosition()[i] / CLHEP::cm);
-    }
-
-    if (auto* touchable = pre_step->GetTouchable())
-    {
-        auto* vol = touchable->GetVolume();
-        hits_.pre_physvol.push_back(vol ? vol->GetName() : "<nullptr>");
-    }
-    hits_.post_time.push_back(step->GetPostStepPoint()->GetGlobalTime()
-                              / CLHEP::ns);
-    return true;
-}
-
-//---------------------------------------------------------------------------//
-
-class HitProcessorTest : public ::celeritas::test::SimpleCmsTestBase
+class SimpleCmsTest : public ::celeritas::test::SDTestBase,
+                      public ::celeritas::test::SimpleCmsTestBase
 {
   protected:
-    using MapStrSD = std::map<std::string, SensitiveDetector*>;
-    using SPConstVecLV = std::shared_ptr<const std::vector<G4LogicalVolume*>>;
+    using VecLV = std::vector<G4LogicalVolume const*>;
+    using SPConstVecLV = std::shared_ptr<VecLV const>;
 
-    void SetUp() override
-    {
-        // Make sure Geant4 is loaded and detctors are set up
-        ASSERT_TRUE(this->imported_data());
-        this->setup_detectors();
+    void SetUp() override;
+    SetStr detector_volumes() const final;
 
-        // Reset detectors between simulations
-        for (auto&& kv : detectors())
-        {
-            CELER_ASSERT(kv.second);
-            kv.second->clear();
-        }
-
-        // Create default step selection (see HitManager)
-        selection_.energy_deposition = true;
-        selection_.points[StepPoint::pre].energy = true;
-        selection_.points[StepPoint::pre].pos = true;
-        selection_.points[StepPoint::post].time = true;
-    }
-
-    static MapStrSD& detectors();
-    static SPConstVecLV& detector_volumes();
-    static void setup_detectors();
-
-    static HitsResult const& get_hits(std::string const& name)
-    {
-        auto iter = detectors().find(name);
-        CELER_ASSERT(iter != detectors().end());
-        CELER_ASSERT(iter->second);
-        return iter->second->hits();
-    }
-
+    SPConstVecLV make_detector_volumes();
     DetectorStepOutput make_dso() const;
+
+    SimpleHitsResult const& get_hits(std::string const& name) const;
 
   protected:
     StepSelection selection_;
 };
 
 //---------------------------------------------------------------------------//
-auto HitProcessorTest::detectors() -> MapStrSD&
+void SimpleCmsTest::SetUp()
 {
-    // Non-owning pointers
-    static MapStrSD det{
-        {"em_calorimeter", nullptr},
-        {"had_calorimeter", nullptr},
-        {"si_tracker", nullptr},
+    // Create default step selection (see HitManager)
+    selection_.energy_deposition = true;
+    selection_.points[StepPoint::pre].energy = true;
+    selection_.points[StepPoint::pre].pos = true;
+    selection_.points[StepPoint::post].time = true;
+}
+
+auto SimpleCmsTest::detector_volumes() const -> SetStr
+{
+    return {
+        "em_calorimeter",
+        "had_calorimeter",
+        "si_tracker",
     };
-
-    return det;
 }
 
-//---------------------------------------------------------------------------//
-auto HitProcessorTest::detector_volumes() -> SPConstVecLV&
+auto SimpleCmsTest::make_detector_volumes() -> SPConstVecLV
 {
-    static SPConstVecLV dv;
-    return dv;
+    // Make sure geometry is built
+    this->geometry();
+
+    // Loop over detectors (sorted by the LV name!), and add them
+    VecLV lv;
+    for (auto const& kv : this->detectors())
+    {
+        CELER_ASSERT(kv.second);
+        lv.push_back(kv.second->lv());
+        CELER_ASSERT(lv.back());
+    }
+    return std::make_shared<VecLV>(std::move(lv));
 }
 
-//---------------------------------------------------------------------------//
-void HitProcessorTest::setup_detectors()
+auto SimpleCmsTest::get_hits(std::string const& name) const
+    -> SimpleHitsResult const&
 {
-    auto& sp_dv = HitProcessorTest::detector_volumes();
-    if (sp_dv)
-    {
-        // We've already set them up
-        return;
-    }
-
-    std::vector<G4LogicalVolume*> dv;
-
-    // Find and set up sensitive detectors
-    G4SDManager* sd_manager = G4SDManager::GetSDMpointer();
-    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    CELER_ASSERT(lv_store);
-
-    auto& det = HitProcessorTest::detectors();
-    for (G4LogicalVolume* lv : *lv_store)
-    {
-        CELER_ASSERT(lv);
-        auto iter = det.find(lv->GetName());
-        if (iter == det.end())
-            continue;
-        CELER_ASSERT(iter->second == nullptr);
-
-        // Found a volume we want for a detector
-        dv.push_back(lv);
-
-        // Create SD, attach to volume, and save a reference to it
-        auto sd = std::make_unique<SensitiveDetector>(iter->first);
-        lv->SetSensitiveDetector(sd.get());
-        iter->second = sd.get();
-        sd_manager->AddNewDetector(sd.release());
-    }
-
-    for (auto&& [name, sdptr] : det)
-    {
-        EXPECT_TRUE(sdptr != nullptr) << "for detector " << name;
-    }
-
-    // Sort detector volumes by name since these will correspond to the
-    // DetectorId
-    std::sort(
-        dv.begin(), dv.end(), [](G4LogicalVolume* lhs, G4LogicalVolume* rhs) {
-            return lhs->GetName() < rhs->GetName();
-        });
-    sp_dv = std::make_shared<std::vector<G4LogicalVolume*>>(std::move(dv));
-    CELER_ENSURE(HitProcessorTest::detector_volumes());
+    auto iter = this->detectors().find(name);
+    CELER_ASSERT(iter != detectors().end());
+    CELER_ASSERT(iter->second);
+    return iter->second->hits();
 }
 
-//---------------------------------------------------------------------------//
-DetectorStepOutput HitProcessorTest::make_dso() const
+DetectorStepOutput SimpleCmsTest::make_dso() const
 {
     DetectorStepOutput dso;
     dso.detector = {
@@ -293,9 +139,9 @@ DetectorStepOutput HitProcessorTest::make_dso() const
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(HitProcessorTest, no_touchable)
+TEST_F(SimpleCmsTest, no_touchable)
 {
-    HitProcessor process_hits{detector_volumes(), selection_, false};
+    HitProcessor process_hits{this->make_detector_volumes(), selection_, false};
     auto dso_hits = this->make_dso();
     process_hits(dso_hits);
     dso_hits.energy_deposition = {
@@ -344,10 +190,10 @@ TEST_F(HitProcessorTest, no_touchable)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(HitProcessorTest, touchable_midvol)
+TEST_F(SimpleCmsTest, touchable_midvol)
 {
     selection_.points[StepPoint::pre].dir = true;
-    HitProcessor process_hits{detector_volumes(), selection_, true};
+    HitProcessor process_hits{this->make_detector_volumes(), selection_, true};
     auto dso_hits = this->make_dso();
     process_hits(dso_hits);
     process_hits(dso_hits);
@@ -373,10 +219,10 @@ TEST_F(HitProcessorTest, touchable_midvol)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(HitProcessorTest, touchable_edgecase)
+TEST_F(SimpleCmsTest, touchable_edgecase)
 {
     selection_.points[StepPoint::pre].dir = true;
-    HitProcessor process_hits{detector_volumes(), selection_, true};
+    HitProcessor process_hits{this->make_detector_volumes(), selection_, true};
     auto dso_hits = this->make_dso();
     auto& pos = dso_hits.points[StepPoint::pre].pos;
     auto& dir = dso_hits.points[StepPoint::pre].dir;

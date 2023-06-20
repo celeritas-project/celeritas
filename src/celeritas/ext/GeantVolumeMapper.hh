@@ -8,8 +8,8 @@
 #pragma once
 
 #include "celeritas_config.h"
+#include "orange/GeoParamsInterface.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoFwd.hh"
 
 // Geant4 forward declaration
 class G4LogicalVolume;  // IWYU pragma: keep
@@ -22,7 +22,7 @@ namespace celeritas
  */
 struct GeantVolumeMapper
 {
-    GeoParams const& geo;
+    GeoParamsInterface const& geo;
 
     // Convert a volume; null if not found; warn if inexact match
     VolumeId operator()(G4LogicalVolume const&) const;

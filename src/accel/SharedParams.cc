@@ -271,7 +271,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
         import_opts.unique_volumes = options.geometry_file.empty();
         return std::make_shared<ImportData>(load_geant_data(import_opts));
     }();
-    CELER_ASSERT(imported && *imported);
+    CELER_ASSERT(imported && !imported->particles.empty()
+                 && !imported->materials.empty()
+                 && !imported->processes.empty() && !imported->volumes.empty());
 
     if (!options.physics_output_file.empty())
     {
@@ -397,8 +399,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Construct sensitive detector callback
     if (options.sd)
     {
-        hit_manager_ = std::make_shared<detail::HitManager>(*params.geometry,
-                                                            options.sd);
+        hit_manager_ = std::make_shared<detail::HitManager>(
+            *params.geometry, options.sd, params.max_streams);
         step_collector_ = std::make_shared<StepCollector>(
             StepCollector::VecInterface{hit_manager_},
             params.geometry,
