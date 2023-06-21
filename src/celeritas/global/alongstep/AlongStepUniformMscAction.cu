@@ -43,8 +43,8 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
             detail::PropagationApplier{
                 detail::UniformFieldTrackPropagator{field_params_}});
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            params, *this, "propagate");
-        launch_kernel(state, execute_thread);
+            *this, "propagate");
+        launch_kernel(params, state, *this, execute_thread);
     }
     if (this->has_msc())
     {

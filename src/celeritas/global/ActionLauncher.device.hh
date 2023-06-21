@@ -103,6 +103,13 @@ class ActionLauncher
     }
 
   public:
+    //! Launch a kernel for the wrapped executor
+    void operator()(CoreState<MemSpace::device> const& state,
+                    F const& call_thread) const
+    {
+        return (*this)(state.size(), state.stream_id(), call_thread);
+    }
+
     //! Launch a kernel with a custom number of threads
     void operator()(size_type num_threads,
                     StreamId stream_id,
@@ -122,10 +129,10 @@ class ActionLauncher
     //! expected track order strategy.
     //! TODO: Always use an ActionLauncher instance with the action passed as
     //! constructor argument
-    void
-    operator()(CoreParams const& params,
-               CoreState<MemSpace::device> const& state,
-               ExplicitActionInterface const& action F const& call_thread) const
+    void operator()(CoreParams const& params,
+                    CoreState<MemSpace::device> const& state,
+                    ExplicitActionInterface const& action,
+                    F const& call_thread) const
     {
         CELER_EXPECT(state.stream_id());
         if (is_action_sorted(action.order(),
