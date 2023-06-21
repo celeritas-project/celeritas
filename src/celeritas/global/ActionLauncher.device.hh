@@ -102,7 +102,6 @@ class ActionLauncher
     {
     }
 
-  public:
     //! Launch a kernel for the wrapped executor
     void operator()(CoreState<MemSpace::device> const& state,
                     F const& call_thread) const
