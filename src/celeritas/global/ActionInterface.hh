@@ -54,6 +54,9 @@ class ActionInterface
     //@}
 
   public:
+    // Default virtual destructor allows deletion by pointer-to-interface
+    virtual ~ActionInterface();
+
     //! ID of this action for verification
     virtual ActionId action_id() const = 0;
 
@@ -62,10 +65,6 @@ class ActionInterface
 
     //! Description of the action
     virtual std::string description() const = 0;
-
-  protected:
-    // Protected destructor prevents deletion of pointer-to-interface
-    ~ActionInterface() = default;
 };
 
 //---------------------------------------------------------------------------//
@@ -86,10 +85,6 @@ class BeginRunActionInterface : public virtual ActionInterface
     virtual void begin_run(CoreParams const&, CoreStateHost&) = 0;
     //! Set device data at the beginning of a run
     virtual void begin_run(CoreParams const&, CoreStateDevice&) = 0;
-
-  protected:
-    // Protected destructor prevents deletion of pointer-to-interface
-    ~BeginRunActionInterface() = default;
 };
 
 //---------------------------------------------------------------------------//
@@ -107,10 +102,6 @@ class ExplicitActionInterface : public virtual ActionInterface
 
     //! Dependency ordering of the action
     virtual ActionOrder order() const = 0;
-
-  protected:
-    // Protected destructor prevents deletion of pointer-to-interface
-    ~ExplicitActionInterface() = default;
 };
 
 //---------------------------------------------------------------------------//
@@ -148,9 +139,6 @@ class ConcreteAction : public virtual ActionInterface
 
     // Construct from ID, unique label, and description
     ConcreteAction(ActionId id, std::string label, std::string description);
-
-    // Default destructor
-    ~ConcreteAction();
 
     //! ID of this action for verification
     ActionId action_id() const final { return id_; }
