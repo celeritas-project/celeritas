@@ -24,7 +24,7 @@ namespace celeritas
  * Fundamental, invariant properties of an element.
  *
  * Add elemental properties as needed if they apply to more than one physics
- * model. (When nuclear physics is implemented, add isotopes.)
+ * model.
  *
  * Note that more than one "element def" can exist for a single atomic number:
  * there might be different enrichments of an element in the problem.
@@ -33,6 +33,7 @@ struct ElementRecord
 {
     AtomicNumber atomic_number;  //!< Z number
     units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
+    ItemRange<ElIsotopeComponent> isotopes;  //!< Isotopes for this element
 
     // COMPUTED PROPERTIES
 
@@ -46,30 +47,30 @@ struct ElementRecord
 
 //---------------------------------------------------------------------------//
 /*!
- * Fundamental, invariant properties of a nuclide.
+ * Fundamental, invariant properties of an isotope.
  */
-struct NuclideRecord
+struct IsotopeRecord
 {
     //!@{
     //! \name Type aliases
-    using MassNumber = AtomicNumber;
+    using AtomicMassNumber = AtomicNumber;
     //!@}
 
-    AtomicNumber atomic_number;  //!< Z number
-    MassNumber atomic_mass_number;  //!< A number (TODO: fix type)
+    AtomicNumber atomic_number;  //!< Atomic number Z
+    AtomicMassNumber atomic_mass_number;  //!< Atomic number A
     units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
     units::AmuMass nuclear_mass;  //!< TODO
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Fractional element component of a material.
+ * Fractional isotope component of an element.
  *
  * This represents, e.g., the fraction of hydrogen in water.
  */
-struct ElNuclideComponent
+struct ElIsotopeComponent
 {
-    NuclideId nuclide;  //!< Index in MaterialParams elements
+    IsotopeId isotope;  //!< Index in MaterialParams isotopes
     real_type fraction;  //!< Fraction of number density
 };
 

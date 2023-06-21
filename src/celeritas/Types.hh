@@ -32,8 +32,8 @@ using ActionId = OpaqueId<class ActionInterface>;
 //! Opaque index to ElementRecord in the global vector of elements
 using ElementId = OpaqueId<struct ElementRecord>;
 
-//! Opaque index to NuclideRecord in a vector
-using NuclideId = OpaqueId<struct NuclideRecord>;
+//! Opaque index to IsotopeRecord in a vector
+using IsotopeId = OpaqueId<struct IsotopeRecord>;
 
 //! Counter for the initiating event for a track
 using EventId = OpaqueId<struct Event>;
