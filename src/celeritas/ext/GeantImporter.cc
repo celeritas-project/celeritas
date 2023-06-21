@@ -26,7 +26,6 @@
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4Navigator.hh>
-#include <G4NistManager.hh>
 #include <G4NucleiProperties.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
@@ -253,15 +252,12 @@ auto import_elements()
     auto const& g4element_table = *G4Element::GetElementTable();
     elements.resize(g4element_table.size());
 
-    auto const& nist_manager = *G4NistManager::Instance();
-
     // Loop over element data
     for (auto const& g4element : g4element_table)
     {
         CELER_ASSERT(g4element);
         auto const& g4isotope_vec = *g4element->GetIsotopeVector();
-        auto const g4isotope_vec_size = g4isotope_vec.size();
-        CELER_ASSERT(g4isotope_vec_size);
+        CELER_ASSERT(g4isotope_vec.size() == g4element->GetNumberOfIsotopes());
 
         // Add element to ImportElement vector
         ImportElement element;
@@ -270,33 +266,35 @@ auto import_elements()
         element.atomic_mass = g4element->GetAtomicMassAmu();
         element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
         element.coulomb_factor = g4element->GetfCoulomb();
-        element.isotope_index
-            = {/* first index = */ isotopes.size(),
-               /* last index = */ isotopes.size() + g4isotope_vec_size};
+        element.isotope_indices.resize(g4isotope_vec.size());
+        element.relative_abundance.resize(g4element->GetNumberOfIsotopes());
 
-        double total_abundance_fraction = 0;  // Verify that the sum is ~1
+        double* const g4rel_abundance = g4element->GetRelativeAbundanceVector();
+        double total_el_abundance_fraction = 0;  // Verify that the sum is ~1
+        for (auto idx : range(g4element->GetNumberOfIsotopes()))
+        {
+            element.isotope_indices[idx] = g4isotope_vec.at(idx)->GetIndex();
+            element.relative_abundance[idx] = g4rel_abundance[idx];
+            total_el_abundance_fraction += g4rel_abundance[idx];
+        }
+        CELER_ASSERT(soft_equal(1., total_el_abundance_fraction));
 
-        for (auto idx : range(g4isotope_vec_size))
+        // Populate vector<ImportIsotope>
+        for (auto idx : range(g4isotope_vec.size()))
         {
             auto const& g4isotope = *g4isotope_vec.at(idx);
             CELER_ASSERT(isotopes.size() == g4isotope.GetIndex());
 
-            // Add isotope to ImportIsotope vector
+            // Add isotope to vector
             ImportIsotope isotope;
             isotope.name = g4isotope.GetName();
             isotope.atomic_number = g4isotope.GetZ();
             isotope.atomic_mass_number = g4isotope.GetN();
             isotope.nuclear_mass = G4NucleiProperties::GetNuclearMass(
                 isotope.atomic_mass_number, isotope.atomic_number);
-            isotope.fractional_abundance = nist_manager.GetIsotopeAbundance(
-                isotope.atomic_number, isotope.atomic_mass_number);
-
-            CELER_ASSERT(isotope.fractional_abundance > 0);
-            total_abundance_fraction += isotope.fractional_abundance;
 
             isotopes.push_back(std::move(isotope));
         }
-        CELER_ASSERT(soft_equal(1., total_abundance_fraction));
         elements[g4element->GetIndex()] = element;
     }
 

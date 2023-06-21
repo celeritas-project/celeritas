@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -32,8 +33,11 @@
 
 using std::cout;
 using std::endl;
+using std::fixed;
+using std::scientific;
 using std::setprecision;
 using std::setw;
+using std::stringstream;
 
 namespace celeritas
 {
@@ -84,14 +88,29 @@ void print_elements(std::vector<ImportElement>& elements,
     cout << R"gfm(
 # Elements
 
-| Element ID | Name | Atomic number | Mass (AMU) | Isotopes                                 |
-| ---------- | ---- | ------------- | ---------- | ---------------------------------------- |
+| Element ID | Name | Atomic number | Mass (AMU) | Isotopes                                 | Relative abundance                                           |
+| ---------- | ---- | ------------- | ---------- | ---------------------------------------- | ------------------------------------------------------------ |
 )gfm";
 
     for (unsigned int element_id : range(elements.size()))
     {
         auto const& element = elements[element_id];
-        auto const& key = element.isotope_index;
+
+        auto const labels = to_string(
+            join(element.isotope_indices.begin(),
+                 element.isotope_indices.end(),
+                 ", ",
+                 [&](auto const& idx) { return isotopes[idx].name; }));
+
+        auto const rel_abundances = to_string(
+            join(element.relative_abundance.begin(),
+                 element.relative_abundance.end(),
+                 ", ",
+                 [](auto const& value) {
+                     stringstream sstr;
+                     sstr << fixed << scientific << setprecision(1) << value;
+                     return sstr.str();
+                 }));
 
         // clang-format off
         cout << "| "
@@ -99,12 +118,8 @@ void print_elements(std::vector<ImportElement>& elements,
              << setw(4)  << element.name << " | "
              << setw(13) << element.atomic_number << " | "
              << setw(10) << element.atomic_mass << " | "
-             << setw(40) << to_string(join(isotopes.begin() + key.first,
-                                           isotopes.begin() + key.second,
-                                           ", ",
-                                           [](auto const& isotope) {
-                                              return isotope.name; }))
-                         << " |\n";
+             << setw(40) << labels << " | "
+             << setw(60) << rel_abundances << " |\n";
         // clang-format on
     }
     cout << endl;
@@ -120,8 +135,8 @@ void print_isotopes(std::vector<ImportIsotope>& isotopes)
     cout << R"gfm(
 # Isotopes
 
-| Isotope ID | Name   | Atomic number | Atomic mass number | Nuclear mass (MeV) | Fractional abundance |
-| ---------- | ------ | ------------- | ------------------ | ------------------ | -------------------- |
+| Isotope ID | Name   | Atomic number | Atomic mass number | Nuclear mass (MeV) |
+| ---------- | ------ | ------------- | ------------------ | ------------------ |
 )gfm";
 
     for (unsigned int isotope_id : range(isotopes.size()))
@@ -133,8 +148,7 @@ void print_isotopes(std::vector<ImportIsotope>& isotopes)
              << setw(6) << isotope.name << " | "
              << setw(13) << isotope.atomic_number << " | "
              << setw(18) << isotope.atomic_mass_number << " | "
-             << setw(18) << isotope.nuclear_mass << " | "
-             << setw(20) << isotope.fractional_abundance << " |\n";
+             << setw(18) << isotope.nuclear_mass << " |\n";
         // clang-format on
     }
     cout << endl;

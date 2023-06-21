@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace celeritas
 {
@@ -37,9 +38,7 @@ struct ImportElement
 {
     //!@{
     //! \name type aliases
-    using FirstIdx = int;
-    using LastIdx = int;
-    using IsotopeIdx = std::pair<FirstIdx, LastIdx>;
+    using VecIsotopeIdx = std::vector<int>;
     //!@}
 
     std::string name;
@@ -47,8 +46,9 @@ struct ImportElement
     double atomic_mass;  //!< [atomic mass unit]
     double radiation_length_tsai;  //!< [g/cm^2]
     double coulomb_factor;
-    IsotopeIdx isotope_index;  //!< Pair of the first and last index of this
-                               //!< element's isotopes in ImportData::isotopes
+    VecIsotopeIdx isotope_indices;  //!< Indices in ImportData::isotopes
+    std::vector<double> relative_abundance;  //!< Fractional abundance for this
+                                             //!< element
 };
 
 //---------------------------------------------------------------------------//
@@ -64,7 +64,6 @@ struct ImportIsotope
     int atomic_number;  //!< Atomic number Z
     int atomic_mass_number;  //!< Atomic number A
     double nuclear_mass;  //!< [MeV]
-    double fractional_abundance;  //!< Natural isotope abundance fraction
 };
 
 //---------------------------------------------------------------------------//
