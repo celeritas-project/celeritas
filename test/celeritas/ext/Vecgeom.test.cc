@@ -1171,7 +1171,8 @@ TEST_F(SolidsGeantTest, reflected_vol)
 
 //---------------------------------------------------------------------------//
 
-class DISABLED_ArbitraryGeantTest : public VecgeomGeantTestBase
+#define ArbitraryGeantTest DISABLED_ArbitraryGeantTest
+class ArbitraryGeantTest : public VecgeomGeantTestBase
 {
   public:
     SPConstGeo build_geometry() final
@@ -1192,14 +1193,14 @@ class DISABLED_ArbitraryGeantTest : public VecgeomGeantTestBase
     }
 };
 
-TEST_F(DISABLED_ArbitraryGeantTest, conversion)
+TEST_F(ArbitraryGeantTest, conversion)
 {
     auto result = this->get_import_geant_volumes();
     result.print_expected();
     EXPECT_EQ(0, result.missing_names.size());
 }
 
-TEST_F(DISABLED_ArbitraryGeantTest, dump)
+TEST_F(ArbitraryGeantTest, dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
