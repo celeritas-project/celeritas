@@ -55,15 +55,14 @@ struct ImportElement
 /*!
  * Store isotope data.
  *
- * For nuclear mass, see `G4NucleiProperties::GetNuclearMass`.
- * For natural fractional abundance, see `G4NistManager::GetIsotopeAbundance`.
+ * For nuclear mass, see `G4NucleiProperties::GetNuclearMass(int A, int Z)`.
  */
 struct ImportIsotope
 {
     std::string name;  //!< Isotope label
     int atomic_number;  //!< Atomic number Z
     int atomic_mass_number;  //!< Atomic number A
-    double nuclear_mass;  //!< [MeV]
+    double nuclear_mass;  //!< Sum of nucleons' mass + binding energy [MeV]
 };
 
 //---------------------------------------------------------------------------//

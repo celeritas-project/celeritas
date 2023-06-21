@@ -58,9 +58,9 @@ auto MockTestBase::build_material() -> SPConstMaterial
 {
     using namespace units;
     MaterialParams::Input inp;
-    inp.elements = {{AtomicNumber{1}, AmuMass{1.0}, "celerogen"},
-                    {AtomicNumber{4}, AmuMass{10.0}, "celerinium"},
-                    {AtomicNumber{15}, AmuMass{30.0}, "celeron"}};
+    inp.elements = {{AtomicNumber{1}, AmuMass{1.0}, {}, "celerogen"},
+                    {AtomicNumber{4}, AmuMass{10.0}, {}, "celerinium"},
+                    {AtomicNumber{15}, AmuMass{30.0}, {}, "celeron"}};
     inp.materials.push_back({1e20,
                              300,
                              MatterState::gas,

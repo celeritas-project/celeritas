@@ -63,6 +63,8 @@ std::shared_ptr<MaterialParams>
 MaterialParams::from_import(ImportData const& data)
 {
     CELER_EXPECT(!data.materials.empty());
+    CELER_EXPECT(!data.elements.empty());
+    CELER_EXPECT(!data.isotopes.empty());
 
     // Create MaterialParams input for its constructor
     MaterialParams::Input input;
@@ -74,8 +76,22 @@ MaterialParams::from_import(ImportData const& data)
         element_params.atomic_number = AtomicNumber{element.atomic_number};
         element_params.atomic_mass = units::AmuMass{element.atomic_mass};
         element_params.label = Label::from_geant(element.name);
+        element_params.isotope_indices = element.isotope_indices;
 
-        input.elements.push_back(element_params);
+        input.elements.push_back(std::move(element_params));
+    }
+
+    // Populate input.isotopes
+    for (auto const& isotope : data.isotopes)
+    {
+        MaterialParams::IsotopeInput isotope_params;
+        isotope_params.atomic_number = AtomicNumber{isotope.atomic_number};
+        isotope_params.atomic_mass_number
+            = AtomicNumber{isotope.atomic_mass_number};
+        isotope_params.nuclear_mass = units::MevEnergy{isotope.nuclear_mass};
+        isotope_params.label = isotope.name;
+
+        input.isotopes.push_back(std::move(isotope_params));
     }
 
     // Populate input.materials
@@ -95,12 +111,11 @@ MaterialParams::from_import(ImportData const& data)
             material_params.elements_fractions.push_back(
                 {elem_def_id, elem_comp.number_fraction});
         }
-        input.materials.push_back(material_params);
+        input.materials.push_back(std::move(material_params));
     }
 
-    // Construct MaterialParams and return it as a shared_ptr
-    MaterialParams materials(input);
-    return std::make_shared<MaterialParams>(std::move(materials));
+    // Return a MaterialParams shared_ptr
+    return std::make_shared<MaterialParams>(MaterialParams(input));
 }
 
 //---------------------------------------------------------------------------//
@@ -109,13 +124,16 @@ MaterialParams::from_import(ImportData const& data)
  */
 MaterialParams::MaterialParams(Input const& inp)
 {
+    CELER_EXPECT(!inp.elements.empty());
     CELER_EXPECT(!inp.materials.empty());
+    // TODO: Allow empty inp.isotopes?
 
     ScopedMem record_mem("MaterialParams.construct");
 
-    // Build elements and materials on host.
+    // Build input data on host
     HostValue host_data;
 
+    // Elements
     std::vector<Label> el_labels(inp.elements.size());
     for (auto i : range(inp.elements.size()))
     {
@@ -124,6 +142,16 @@ MaterialParams::MaterialParams(Input const& inp)
     }
     el_labels_ = LabelIdMultiMap<ElementId>(std::move(el_labels));
 
+    // Isotopes
+    std::vector<Label> isot_labels(inp.isotopes.size());
+    for (auto i : range(inp.isotopes.size()))
+    {
+        isot_labels[i] = inp.isotopes[i].label;
+        this->append_isotope_def(inp.isotopes[i], &host_data);
+    }
+    isot_labels_ = LabelIdMultiMap<IsotopeId>(std::move(isot_labels));
+
+    // Materials
     std::vector<Label> mat_labels(inp.materials.size());
     for (auto i : range(inp.materials.size()))
     {
@@ -249,6 +277,19 @@ void MaterialParams::append_element_def(ElementInput const& inp,
 
     // Add to host vector
     make_builder(&host_data->elements).push_back(result);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert an isotope input to an isotope definition and store.
+ *
+ * This adds computed quantities in addition to the input values. The result
+ * is pushed back onto the host list of stored isotopes.
+ */
+void MaterialParams::append_isotope_def(IsotopeInput const& inp,
+                                        HostValue* host_data)
+{
+    // TODO
 }
 
 //---------------------------------------------------------------------------//

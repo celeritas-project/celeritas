@@ -21,6 +21,35 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
+ * Fundamental, invariant properties of an isotope.
+ */
+struct IsotopeRecord
+{
+    //!@{
+    //! \name Type aliases
+    using AtomicMassNumber = AtomicNumber;
+    //!@}
+
+    AtomicNumber atomic_number;  //!< Atomic number Z
+    AtomicMassNumber atomic_mass_number;  //!< Atomic number A
+    units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
+    units::MevEnergy nuclear_mass;  //!< Nucleons' mass + binding energy
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Fractional isotope component of an element.
+ *
+ * This represents, e.g., the fraction of hydrogen in water.
+ */
+struct ElIsotopeComponent
+{
+    IsotopeId isotope;  //!< Index in MaterialParams isotopes
+    real_type fraction;  //!< Fraction of number density
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Fundamental, invariant properties of an element.
  *
  * Add elemental properties as needed if they apply to more than one physics
@@ -43,35 +72,6 @@ struct ElementRecord
 
     real_type coulomb_correction = 0;  //!< f(Z)
     real_type mass_radiation_coeff = 0;  //!< 1/X_0 (bremsstrahlung)
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Fundamental, invariant properties of an isotope.
- */
-struct IsotopeRecord
-{
-    //!@{
-    //! \name Type aliases
-    using AtomicMassNumber = AtomicNumber;
-    //!@}
-
-    AtomicNumber atomic_number;  //!< Atomic number Z
-    AtomicMassNumber atomic_mass_number;  //!< Atomic number A
-    units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
-    units::AmuMass nuclear_mass;  //!< TODO
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Fractional isotope component of an element.
- *
- * This represents, e.g., the fraction of hydrogen in water.
- */
-struct ElIsotopeComponent
-{
-    IsotopeId isotope;  //!< Index in MaterialParams isotopes
-    real_type fraction;  //!< Fraction of number density
 };
 
 //---------------------------------------------------------------------------//

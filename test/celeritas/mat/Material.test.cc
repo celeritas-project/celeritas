@@ -109,10 +109,10 @@ class MaterialTest : public Test
     {
         MaterialParams::Input inp;
         inp.elements = {
-            {AtomicNumber{1}, units::AmuMass{1.008}, "H"},
-            {AtomicNumber{13}, units::AmuMass{26.9815385}, "Al"},
-            {AtomicNumber{11}, units::AmuMass{22.98976928}, "Na"},
-            {AtomicNumber{53}, units::AmuMass{126.90447}, "I"},
+            {AtomicNumber{1}, units::AmuMass{1.008}, {}, "H"},
+            {AtomicNumber{13}, units::AmuMass{26.9815385}, {}, "Al"},
+            {AtomicNumber{11}, units::AmuMass{22.98976928}, {}, "Na"},
+            {AtomicNumber{53}, units::AmuMass{126.90447}, {}, "I"},
         };
         inp.materials = {
             // Sodium iodide

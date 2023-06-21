@@ -49,7 +49,8 @@ class SeltzerBergerTest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.elements = {{AtomicNumber{29}, units::AmuMass{63.546}, "Cu"}};
+        mat_inp.elements
+            = {{AtomicNumber{29}, units::AmuMass{63.546}, {}, "Cu"}};
         mat_inp.materials = {
             {0.141 * constants::na_avogadro,
              293.0,
@@ -436,7 +437,7 @@ TEST_F(SeltzerBergerTest, positron_xs_corrector_edge_case)
 
     // Set up material data (only value used in this test is the atomic number)
     MaterialParams::Input mat_inp;
-    mat_inp.elements = {{AtomicNumber{26}, units::AmuMass{55.845}, "Fe"}};
+    mat_inp.elements = {{AtomicNumber{26}, units::AmuMass{55.845}, {}, "Fe"}};
     mat_inp.materials = {{0.128 * constants::na_avogadro,
                           293.0,
                           MatterState::solid,

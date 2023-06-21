@@ -48,9 +48,24 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     //! Define an element's input data
     struct ElementInput
     {
-        AtomicNumber atomic_number;  //!< Z number
+        AtomicNumber atomic_number;  //!< Atomic number Z
         units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
+        std::vector<int> isotope_indices;  //!< Index in Input::isotopes
         Label label;  //!< Element name
+    };
+
+    //! Define an element's isotope input data
+    struct IsotopeInput
+    {
+        //!@{
+        //! \name Type aliases
+        using AtomicMassNumber = AtomicNumber;
+        //!@}
+
+        AtomicNumber atomic_number;  //!< Atomic number Z
+        AtomicMassNumber atomic_mass_number;  //!< Atomic number A
+        units::MevEnergy nuclear_mass;  //!< Nucleons' mass + binding energy
+        Label label;  //!< Isotope name
     };
 
     //! Define a material's input data
@@ -68,6 +83,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     struct Input
     {
         std::vector<ElementInput> elements;
+        std::vector<IsotopeInput> isotopes;
         std::vector<MaterialInput> materials;
     };
 
@@ -130,6 +146,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     // Metadata
     LabelIdMultiMap<MaterialId> mat_labels_;
     LabelIdMultiMap<ElementId> el_labels_;
+    LabelIdMultiMap<IsotopeId> isot_labels_;
 
     // Host/device storage and reference
     CollectionMirror<MaterialParamsData> data_;
@@ -137,6 +154,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     // HELPER FUNCTIONS
     using HostValue = HostVal<MaterialParamsData>;
     void append_element_def(ElementInput const& inp, HostValue*);
+    void append_isotope_def(IsotopeInput const& inp, HostValue*);
     ItemRange<MatElementComponent>
     extend_elcomponents(MaterialInput const& inp, HostValue*) const;
     void append_material_def(MaterialInput const& inp, HostValue*);
