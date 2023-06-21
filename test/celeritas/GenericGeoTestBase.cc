@@ -33,6 +33,7 @@
 #endif
 
 using std::cout;
+using namespace std::literals;
 using GeantVolResult = celeritas::test::GenericGeoGeantImportVolumeResult;
 
 namespace celeritas
@@ -153,36 +154,55 @@ GeantVolResult::from_pointers([[maybe_unused]] GeoParamsInterface const& geom,
 }
 
 //---------------------------------------------------------------------------//
-template<class HP, template<Ownership, MemSpace> class S, class TV>
-auto GenericGeoTestBase<HP, S, TV>::geometry() -> SPConstGeo const&
+//
+template<class HP>
+auto GenericGeoTestBase<HP>::geometry_basename() const -> std::string
+{
+    // Get filename based on unit test name
+    ::testing::TestInfo const* const test_info
+        = ::testing::UnitTest::GetInstance()->current_test_info();
+    CELER_ASSERT(test_info);
+    return test_info->test_case_name();
+}
+
+//---------------------------------------------------------------------------//
+//
+template<class HP>
+auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
+{
+    // Construct filename:
+    // ${SOURCE}/test/celeritas/data/${basename}${fileext}
+    auto filename = this->geometry_basename() + std::string{TraitsT::ext};
+    std::string test_file = test_data_path("celeritas", filename);
+    return std::make_shared<HP>(test_file);
+}
+
+//---------------------------------------------------------------------------//
+template<class HP>
+auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
 {
     if (!geo_)
     {
-        // Get filename based on unit test name
-        ::testing::TestInfo const* const test_info
-            = ::testing::UnitTest::GetInstance()->current_test_info();
-        CELER_ASSERT(test_info);
-
+        std::string key = this->geometry_basename() + "/"
+                          + std::string{TraitsT::name};
         // Construct via LazyGeoManager
-        geo_ = std::dynamic_pointer_cast<HP const>(
-            this->get_geometry(test_info->test_case_name()));
+        geo_ = std::dynamic_pointer_cast<HP const>(this->get_geometry(key));
     }
     CELER_ENSURE(geo_);
     return geo_;
 }
 
 //---------------------------------------------------------------------------//
-template<class HP, template<Ownership, MemSpace> class S, class TV>
-auto GenericGeoTestBase<HP, S, TV>::geometry() const -> SPConstGeo const&
+template<class HP>
+auto GenericGeoTestBase<HP>::geometry() const -> SPConstGeo const&
 {
     CELER_ENSURE(geo_);
     return geo_;
 }
 
 //---------------------------------------------------------------------------//
-template<class HP, template<Ownership, MemSpace> class S, class TV>
-std::string
-GenericGeoTestBase<HP, S, TV>::volume_name(GeoTrackView const& geo) const
+template<class HP>
+std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
 {
     if (geo.is_outside())
     {
@@ -192,9 +212,8 @@ GenericGeoTestBase<HP, S, TV>::volume_name(GeoTrackView const& geo) const
 }
 
 //---------------------------------------------------------------------------//
-template<class HP, template<Ownership, MemSpace> class S, class TV>
-std::string
-GenericGeoTestBase<HP, S, TV>::surface_name(GeoTrackView const& geo) const
+template<class HP>
+std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
 {
     if (!geo.is_on_boundary())
     {
@@ -213,8 +232,8 @@ GenericGeoTestBase<HP, S, TV>::surface_name(GeoTrackView const& geo) const
 }
 
 //---------------------------------------------------------------------------//
-template<class HP, template<Ownership, MemSpace> class S, class TV>
-auto GenericGeoTestBase<HP, S, TV>::make_geo_track_view() -> GeoTrackView
+template<class HP>
+auto GenericGeoTestBase<HP>::make_geo_track_view() -> GeoTrackView
 {
     if (!host_state_)
     {
@@ -226,9 +245,8 @@ auto GenericGeoTestBase<HP, S, TV>::make_geo_track_view() -> GeoTrackView
 
 //---------------------------------------------------------------------------//
 // Get and initialize a single-thread host track view
-template<class HP, template<Ownership, MemSpace> class S, class TV>
-auto GenericGeoTestBase<HP, S, TV>::make_geo_track_view(Real3 const& pos,
-                                                        Real3 dir)
+template<class HP>
+auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
     -> GeoTrackView
 {
     normalize_direction(&dir);
@@ -240,10 +258,9 @@ auto GenericGeoTestBase<HP, S, TV>::make_geo_track_view(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 // Get and initialize a single-thread host track view
-template<class HP, template<Ownership, MemSpace> class S, class TV>
-auto GenericGeoTestBase<HP, S, TV>::calc_bump_pos(GeoTrackView const& geo,
-                                                  real_type delta) const
-    -> Real3
+template<class HP>
+auto GenericGeoTestBase<HP>::calc_bump_pos(GeoTrackView const& geo,
+                                           real_type delta) const -> Real3
 {
     CELER_EXPECT(delta > 0);
     auto pos = geo.pos();
@@ -252,8 +269,8 @@ auto GenericGeoTestBase<HP, S, TV>::calc_bump_pos(GeoTrackView const& geo,
 }
 
 //---------------------------------------------------------------------------//
-template<class HP, template<Ownership, MemSpace> class S, class TV>
-auto GenericGeoTestBase<HP, S, TV>::track(Real3 const& pos, Real3 const& dir)
+template<class HP>
+auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
     TrackingResult result;
@@ -302,15 +319,12 @@ auto GenericGeoTestBase<HP, S, TV>::track(Real3 const& pos, Real3 const& dir)
 //---------------------------------------------------------------------------//
 // EXPLICIT TEMPLATE INSTANTIATIONS
 //---------------------------------------------------------------------------//
-template class GenericGeoTestBase<OrangeParams, OrangeStateData, OrangeTrackView>;
+template class GenericGeoTestBase<OrangeParams>;
 #if CELERITAS_USE_VECGEOM
-template class GenericGeoTestBase<VecgeomParams, VecgeomStateData, VecgeomTrackView>;
+template class GenericGeoTestBase<VecgeomParams>;
 #endif
-
 #if CELERITAS_USE_GEANT4
-template class GenericGeoTestBase<GeantGeoParams,
-                                  GeantGeoStateData,
-                                  GeantGeoTrackView>;
+template class GenericGeoTestBase<GeantGeoParams>;
 #endif
 //---------------------------------------------------------------------------//
 }  // namespace test

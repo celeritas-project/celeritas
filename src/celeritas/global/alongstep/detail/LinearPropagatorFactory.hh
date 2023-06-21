@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/detail/LinearTrackPropagator.hh
+//! \file celeritas/global/alongstep/detail/LinearPropagatorFactory.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,19 +20,14 @@ namespace detail
 /*!
  * Create a propagator for neutral particles or no fields.
  */
-struct LinearTrackPropagator
+struct LinearPropagatorFactory
 {
-    CELER_FUNCTION Propagation operator()(CoreTrackView const& track,
-                                          real_type max_step) const
+    CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const
     {
-        auto geo = track.make_geo_view();
-        return LinearPropagator{&geo}(max_step);
+        return LinearPropagator{track.make_geo_view()};
     }
 
-    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop()
-    {
-        return LinearPropagator::tracks_can_loop();
-    }
+    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return false; }
 };
 
 //---------------------------------------------------------------------------//

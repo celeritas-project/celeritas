@@ -17,7 +17,7 @@
 
 #include "detail/AlongStepKernels.hh"
 #include "detail/PropagationApplier.hh"
-#include "detail/RZMapFieldTrackPropagator.hh"
+#include "detail/RZMapFieldPropagatorFactory.hh"
 
 namespace celeritas
 {
@@ -35,7 +35,7 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
             params.ptr<MemSpace::native>(),
             state.ptr(),
             this->action_id(),
-            detail::PropagationApplier{detail::RZMapFieldTrackPropagator{
+            detail::PropagationApplier{detail::RZMapFieldPropagatorFactory{
                 field_->ref<MemSpace::native>()}});
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate-rzmap");
