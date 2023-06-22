@@ -180,7 +180,7 @@ Minor internal changes
 * Improve VecGeom testing *(@sethrj, #770)*
 * Refactor track initialization kernels and initialization scalars *(@sethrj, #766)*
 * Separate app CMakeLists and install executables *(@sethrj, #775)*
-* Rename Launch⇄Execute *(@sethrj, #781)*
+* Rename Launch<->Execute *(@sethrj, #781)*
 * Add a Launch helper functor to fully abstract device execution *(@sethrj, #783)*
 * Use `ActionLauncher` for Moller-Bhabha, action diagnostic, and step gather action *(@amandalund, #790)*
 * Use ActionLauncher for LivermorePE, CombinedBrem, MuBremsstrahlung, RelativisticBrem *(@pcanal, #789)*

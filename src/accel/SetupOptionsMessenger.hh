@@ -41,7 +41,7 @@ struct SetupOptions;
   stackSize      | Set the CUDA per-thread stack size for VecGeom
   heapSize       | Set the CUDA per-thread heap size for VecGeom
   sync           | Sync the GPU at every kernel for timing
-  default_stream | Launch all kernels on the default stream
+  defaultStream  | Launch all kernels on the default stream
  *
  * \warning The given SetupOptions should be global *or* otherwise must exceed
  * the scope of this UI messenger.

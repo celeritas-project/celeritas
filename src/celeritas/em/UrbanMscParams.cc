@@ -125,12 +125,20 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
         if (!pid)
             continue;
 
-        // Make sure the model data is unique
-        CELER_VALIDATE(!urban_data[pid.get()],
-                       << "duplicate " << to_cstring(imm.model_class)
-                       << " physics data for particle "
-                       << particles.id_to_label(pid));
-        urban_data[pid.get()] = &imm;
+        if (!urban_data[pid.get()])
+        {
+            // Save data
+            urban_data[pid.get()] = &imm;
+        }
+        else
+        {
+            // Warn: possibly multiple physics lists or different models in
+            // different regions
+            CELER_LOG(warning)
+                << "duplicate " << to_cstring(imm.model_class)
+                << " physics data for particle " << particles.id_to_label(pid)
+                << ": ignoring all but the first encountered model";
+        }
     }
 
     auto get_scaled_xs = [&urban_data, &particles](ParticleId pid) {
