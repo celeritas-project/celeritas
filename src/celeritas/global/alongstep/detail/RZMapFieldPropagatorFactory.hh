@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/detail/RZMapFieldTrackPropagator.hh
+//! \file celeritas/global/alongstep/detail/RZMapFieldPropagatorFactory.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,16 +20,15 @@ namespace detail
 /*!
  * Propagate a track in an RZ map magnetic field.
  */
-struct RZMapFieldTrackPropagator
+struct RZMapFieldPropagatorFactory
 {
-    CELER_FUNCTION Propagation operator()(CoreTrackView const& track,
-                                          real_type max_step) const
+    CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const
     {
-        auto geo = track.make_geo_view();
-        auto particle = track.make_particle_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            RZMapField{field}, field.options, particle, &geo);
-        return propagate(max_step);
+        return make_mag_field_propagator<DormandPrinceStepper>(
+            RZMapField{field},
+            field.options,
+            track.make_particle_view(),
+            track.make_geo_view());
     }
 
     static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return true; }

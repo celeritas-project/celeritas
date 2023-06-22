@@ -24,7 +24,7 @@
 
 #include "AlongStep.hh"
 #include "detail/FluctELoss.hh"
-#include "detail/RZMapFieldTrackPropagator.hh"
+#include "detail/RZMapFieldPropagatorFactory.hh"
 
 namespace celeritas
 {
@@ -79,10 +79,10 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        AlongStep{
-            UrbanMsc{msc_->ref<MemSpace::native>()},
-            detail::RZMapFieldTrackPropagator{field_->ref<MemSpace::native>()},
-            detail::FluctELoss{fluct_->ref<MemSpace::native>()}});
+        AlongStep{UrbanMsc{msc_->ref<MemSpace::native>()},
+                  detail::RZMapFieldPropagatorFactory{
+                      field_->ref<MemSpace::native>()},
+                  detail::FluctELoss{fluct_->ref<MemSpace::native>()}});
     return launch_action(*this, params, state, execute);
 }
 

@@ -50,7 +50,7 @@ struct FieldPropagatorOptions
  *
  * \note This follows similar methods as in Geant4's G4PropagatorInField class.
  */
-template<class DriverT>
+template<class DriverT, class GTV>
 class FieldPropagator
 {
   public:
@@ -63,7 +63,7 @@ class FieldPropagator
     // Construct with shared parameters and the field driver
     inline CELER_FUNCTION FieldPropagator(DriverT&& driver,
                                           ParticleTrackView const& particle,
-                                          GeoTrackView* geo);
+                                          GTV&& geo);
 
     // Move track to next volume boundary.
     inline CELER_FUNCTION result_type operator()();
@@ -87,9 +87,16 @@ class FieldPropagator
     //// DATA ////
 
     DriverT driver_;
-    GeoTrackView& geo_;
+    GTV geo_;
     OdeState state_;
 };
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class DriverT, class GTV>
+CELER_FUNCTION FieldPropagator(DriverT&&, ParticleTrackView const&, GTV&&)
+    ->FieldPropagator<DriverT, GTV>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -97,15 +104,12 @@ class FieldPropagator
 /*!
  * Construct with shared field parameters and the field driver.
  */
-template<class DriverT>
-CELER_FUNCTION
-FieldPropagator<DriverT>::FieldPropagator(DriverT&& driver,
-                                          ParticleTrackView const& particle,
-                                          GeoTrackView* geo)
-    : driver_(::celeritas::forward<DriverT>(driver)), geo_(*geo)
+template<class DriverT, class GTV>
+CELER_FUNCTION FieldPropagator<DriverT, GTV>::FieldPropagator(
+    DriverT&& driver, ParticleTrackView const& particle, GTV&& geo)
+    : driver_(::celeritas::forward<DriverT>(driver))
+    , geo_(::celeritas::forward<GTV>(geo))
 {
-    CELER_ASSERT(geo);
-
     using MomentumUnits = OdeState::MomentumUnits;
 
     state_.pos = geo_.pos();
@@ -117,8 +121,8 @@ FieldPropagator<DriverT>::FieldPropagator(DriverT&& driver,
 /*!
  * Propagate a charged particle until it hits a boundary.
  */
-template<class DriverT>
-CELER_FUNCTION auto FieldPropagator<DriverT>::operator()() -> result_type
+template<class DriverT, class GTV>
+CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()() -> result_type
 {
     return (*this)(numeric_limits<real_type>::infinity());
 }
@@ -149,8 +153,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()() -> result_type
  *   be slightly higher (again, up to a driver-based tolerance) than the
  *   physical distance travelled.
  */
-template<class DriverT>
-CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
+template<class DriverT, class GTV>
+CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
     -> result_type
 {
     CELER_EXPECT(step > 0);
@@ -335,8 +339,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
  * Currently this is set to the field driver's minimum step, but it should
  * probably be related to the geometry instead.
  */
-template<class DriverT>
-CELER_FUNCTION real_type FieldPropagator<DriverT>::bump_distance() const
+template<class DriverT, class GTV>
+CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::bump_distance() const
 {
     return driver_.minimum_step();
 }

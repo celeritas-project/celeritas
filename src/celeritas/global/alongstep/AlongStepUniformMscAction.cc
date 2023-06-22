@@ -22,7 +22,7 @@
 
 #include "AlongStep.hh"
 #include "detail/MeanELoss.hh"
-#include "detail/UniformFieldTrackPropagator.hh"
+#include "detail/UniformFieldPropagatorFactory.hh"
 
 namespace celeritas
 {
@@ -67,7 +67,8 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
         launch_impl(
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
     }
-    launch_impl(PropagationApplier{UniformFieldTrackPropagator{field_params_}});
+    launch_impl(
+        PropagationApplier{UniformFieldPropagatorFactory{field_params_}});
     if (msc_)
     {
         launch_impl(MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});

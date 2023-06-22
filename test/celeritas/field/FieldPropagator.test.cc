@@ -85,20 +85,9 @@ class FieldPropagatorTestBase : public GenericCoreGeoTestBase
                   * field_strength);
     }
 
-    // Overload with the base filename of the geometry
-    virtual std::string_view geometry_basename() const = 0;
-
     SPConstGeo build_geometry() final
     {
-        // Construct filename:
-        // ${SOURCE}/test/celeritas/data/${basename}${fileext}
-        auto ext = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
-                       ? ".gdml"sv
-                       : ".org.json"sv;
-        auto filename = std::string{this->geometry_basename()}
-                        + std::string{ext};
-        std::string test_file = this->test_data_path("celeritas", filename);
-        return std::make_shared<GeoParams>(test_file);
+        return this->build_geometry_from_basename();
     }
 
   private:
@@ -139,26 +128,17 @@ void FieldPropagatorTestBase::SetUp()
 
 class TwoBoxTest : public FieldPropagatorTestBase
 {
-    std::string_view geometry_basename() const override
-    {
-        return "two-boxes"sv;
-    }
+    std::string geometry_basename() const override { return "two-boxes"; }
 };
 
 class LayersTest : public FieldPropagatorTestBase
 {
-    std::string_view geometry_basename() const override
-    {
-        return "field-layers"sv;
-    }
+    std::string geometry_basename() const override { return "field-layers"; }
 };
 
 class SimpleCmsTest : public FieldPropagatorTestBase
 {
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
+    std::string geometry_basename() const override { return "simple-cms"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -221,7 +201,7 @@ TEST_F(TwoBoxTest, electron_interior)
         field, particle.charge());
     FieldDriverOptions driver_options;
     auto propagate
-        = make_field_propagator(stepper, driver_options, particle, &geo);
+        = make_field_propagator(stepper, driver_options, particle, geo);
 
     // Test a short step
     Propagation result = propagate(1e-2);
@@ -300,7 +280,7 @@ TEST_F(TwoBoxTest, positron_interior)
     // Build propagator
     FieldDriverOptions driver_options;
     auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-        field, driver_options, particle, &geo);
+        field, driver_options, particle, geo);
 
     // Test a quarter turn
     Propagation result = propagate(0.5 * pi * radius);
@@ -324,7 +304,7 @@ TEST_F(TwoBoxTest, gamma_interior)
     {
         auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
 
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(3.0, result.distance);
@@ -337,7 +317,7 @@ TEST_F(TwoBoxTest, gamma_interior)
     {
         auto geo = this->make_geo_track_view();
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
 
         stepper.reset_count();
         auto result = propagate(3.0);
@@ -358,7 +338,7 @@ TEST_F(TwoBoxTest, gamma_interior)
     {
         auto geo = this->make_geo_track_view();
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
 
         stepper.reset_count();
         auto result = propagate(5.0);
@@ -385,7 +365,7 @@ TEST_F(TwoBoxTest, gamma_pathological)
     {
         auto geo = this->make_geo_track_view({0, 0, -2}, {0, 0, 1});
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
 
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(3.0, result.distance);
@@ -409,7 +389,7 @@ TEST_F(TwoBoxTest, gamma_exit)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(0.25);
 
         EXPECT_SOFT_EQ(0.25, result.distance);
@@ -429,7 +409,7 @@ TEST_F(TwoBoxTest, gamma_exit)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(0.251 + 1e-7);
 
         EXPECT_SOFT_EQ(0.251, result.distance);
@@ -448,7 +428,7 @@ TEST_F(TwoBoxTest, gamma_exit)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(d);
 
         EXPECT_SOFT_EQ(0.251, result.distance);
@@ -473,7 +453,7 @@ TEST_F(TwoBoxTest, electron_super_small_step)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(delta);
 
         EXPECT_DOUBLE_EQ(delta, result.distance);
@@ -497,7 +477,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         EXPECT_FALSE(geo.is_on_boundary());
 
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(delta);
 
         // Search distance doesn't hit boundary
@@ -513,7 +493,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         EXPECT_FALSE(geo.is_on_boundary());
 
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(delta);
 
         // The boundary search goes an extra driver_.delta_intersection()
@@ -531,7 +511,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         EXPECT_FALSE(geo.is_on_boundary());
 
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(2 * delta);
 
         EXPECT_LE(result.distance, 2 * delta);
@@ -561,7 +541,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         // Starting on the boundary, take a step smaller than driver's minimum
         // (could be, e.g., a very small distance to interaction)
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(delta);
 
         EXPECT_DOUBLE_EQ(delta, result.distance);
@@ -584,7 +564,7 @@ TEST_F(TwoBoxTest, electron_tangent)
 
         auto geo = this->make_geo_track_view({1, 4, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(0.49 * pi);
 
         EXPECT_FALSE(result.boundary);
@@ -599,7 +579,7 @@ TEST_F(TwoBoxTest, electron_tangent)
 
         auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(0.02 * pi);
 
         EXPECT_FALSE(result.boundary);
@@ -629,7 +609,7 @@ TEST_F(TwoBoxTest, electron_cross)
 
         auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(pi);
 
         EXPECT_SOFT_NEAR(1. / 12., result.distance / circ, 1e-5);
@@ -651,7 +631,7 @@ TEST_F(TwoBoxTest, electron_cross)
 
         auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(circ);
 
         EXPECT_SOFT_NEAR(1. / 3., result.distance / circ, 1e-5);
@@ -672,7 +652,7 @@ TEST_F(TwoBoxTest, electron_cross)
 
         auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(7. / 12. * circ);
 
         EXPECT_SOFT_NEAR(7. / 12., result.distance / circ, 1e-5);
@@ -699,7 +679,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         auto geo = this->make_geo_track_view({1, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(circ);
 
         // Trigonometry to find actual intersection point and length along arc
@@ -727,7 +707,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         auto geo = this->make_geo_track_view({1, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(circ);
 
         EXPECT_SOFT_EQ(circ, result.distance);
@@ -753,7 +733,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         auto geo = this->make_geo_track_view({-4, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(circ);
 
         // Trigonometry to find actual intersection point and length along arc
@@ -781,7 +761,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         auto geo = this->make_geo_track_view({-4, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(circ);
 
         // Trigonometry to find actual intersection point and length along arc
@@ -809,7 +789,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         auto geo = this->make_geo_track_view({-4, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(circ);
 
         EXPECT_SOFT_NEAR(circ * .25, result.distance, 1e-5);
@@ -858,7 +838,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(first_step - driver_options.delta_intersection);
 
         EXPECT_FALSE(result.boundary);
@@ -892,7 +872,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(first_step);
 
         EXPECT_FALSE(result.boundary);
@@ -916,7 +896,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(first_step);
 
         EXPECT_TRUE(result.boundary);
@@ -969,7 +949,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
             field, particle.charge());
         FieldDriverOptions driver_options;
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         for (int i : range(2))
         {
             SCOPED_TRACE(i);
@@ -1039,7 +1019,7 @@ TEST_F(TwoBoxTest, nonuniform_field)
     {
         auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         propagate(1.0);
         EXPECT_VEC_SOFT_EQ(pos, geo.pos());
     }
@@ -1058,7 +1038,7 @@ TEST_F(LayersTest, revolutions_through_layers)
     // Build propagator
     FieldDriverOptions driver_options;
     auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-        field, driver_options, particle, &geo);
+        field, driver_options, particle, geo);
 
     // clang-format off
     static const real_type expected_y[]
@@ -1112,7 +1092,7 @@ TEST_F(LayersTest, revolutions_through_cms_field)
 
     // Build propagator
     auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-        field, driver_options, particle, &geo);
+        field, driver_options, particle, geo);
 
     int const num_revs = 10;
     int const num_steps = 100;
@@ -1148,12 +1128,12 @@ TEST_F(SimpleCmsTest, electron_stuck)
         {7.01343313647855e-01, -6.43327996599957e-01, 3.06996164784077e-01});
 
     auto calc_radius
-        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+        = [geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
     EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
 
     {
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("si_tracker", this->volume_name(geo));
@@ -1170,7 +1150,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_LE(92, stepper.count());
@@ -1186,7 +1166,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
     }
     {
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+            field, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         ASSERT_TRUE(geo.is_on_boundary());
@@ -1217,7 +1197,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
                                           -5.23221772848529443e-01});
 
     auto calc_radius
-        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+        = [geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
 
     bool successful_reentry = false;
     {
@@ -1226,7 +1206,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(1.39170198361108938e-05);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
@@ -1256,7 +1236,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
-            = make_field_propagator(stepper, driver_options, particle, &geo);
+            = make_field_propagator(stepper, driver_options, particle, geo);
         // This absurdly long step is because in the "failed" case the track
         // thinks it's in the world volume (nearly vacuum)
         auto result = propagate(2.12621374950874703e+21);

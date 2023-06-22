@@ -42,7 +42,7 @@ __global__ void gcheck_kernel(const GeoParamsCRefDevice params,
         return;
 
     GeoTrackView geo(params, state, TrackSlotId{tid.unchecked_get()});
-    LinearPropagator propagate(&geo);
+    LinearPropagator propagate(geo);
 
     // Start track at the leftmost point in the requested direction
     geo = init[tid.unchecked_get()];
