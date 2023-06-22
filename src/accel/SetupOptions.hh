@@ -145,4 +145,12 @@ struct SetupOptions
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Find volumes by name for SDSetupOptions
+std::unordered_set<G4LogicalVolume const*>
+    FindVolumes(std::unordered_set<std::string>);
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

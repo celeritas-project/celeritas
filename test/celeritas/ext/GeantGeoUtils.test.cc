@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantGeoUtils.hh"
 
+#include <algorithm>
 #include <G4LogicalVolume.hh>
 
 #include "celeritas/ext/GeantGeoParams.hh"
@@ -30,6 +31,7 @@ decltype(auto) get_vol_names(InputIterator iter, InputIterator stop)
         CELER_ASSERT(*iter);
         result.push_back((*iter)->GetName());
     }
+    std::sort(result.begin(), result.end());
     return result;
 }
 }  // namespace
@@ -59,8 +61,7 @@ using FindGeantVolumesTest = SolidsTest;
 
 TEST_F(FindGeantVolumesTest, standard)
 {
-    static std::string_view const labels[] = {"box500", "trd3", "trd1"};
-    auto vols = find_geant_volumes(make_span(labels));
+    auto vols = find_geant_volumes({"box500", "trd3", "trd1"});
     auto vol_names = get_vol_names(vols.begin(), vols.end());
     static char const* const expected_vol_names[] = {"box500", "trd1", "trd3"};
     EXPECT_VEC_EQ(expected_vol_names, vol_names);
@@ -68,14 +69,12 @@ TEST_F(FindGeantVolumesTest, standard)
 
 TEST_F(FindGeantVolumesTest, missing)
 {
-    static std::string_view const labels[] = {"box500", "trd3", "turd3"};
-    EXPECT_THROW(find_geant_volumes(make_span(labels)), RuntimeError);
+    EXPECT_THROW(find_geant_volumes({"box500", "trd3", "turd3"}), RuntimeError);
 }
 
 TEST_F(FindGeantVolumesTest, duplicate)
 {
-    static std::string_view const labels[] = {"trd3_refl"};
-    auto vols = find_geant_volumes(make_span(labels));
+    auto vols = find_geant_volumes({"trd3_refl"});
     auto vol_names = get_vol_names(vols.begin(), vols.end());
     static char const* const expected_vol_names[] = {"trd3_refl", "trd3_refl"};
     EXPECT_VEC_EQ(expected_vol_names, vol_names);

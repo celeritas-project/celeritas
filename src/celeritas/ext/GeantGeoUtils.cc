@@ -201,7 +201,7 @@ Span<G4LogicalVolume*> geant_logical_volumes()
 /*!
  * Find Geant4 logical volumes corresponding to a list of names.
  *
- * If logical volumes with duplicate names are present, they will show up twice
+ * If logical volumes with duplicate names are present, they will all show up
  * in the output and a warning will be emitted. If one is missing, a
  * \c RuntimeError will be raised.
  *
@@ -210,20 +210,17 @@ Span<G4LogicalVolume*> geant_logical_volumes()
    auto vols = find_geant_volumes(make_span(labels));
  * \endcode
  */
-std::vector<G4LogicalVolume*>
-find_geant_volumes(Span<std::string_view const> inp)
+std::unordered_set<G4LogicalVolume const*>
+find_geant_volumes(std::unordered_set<std::string> names)
 {
-    // Copy names to a local set
-    std::unordered_set<std::string> names(inp.begin(), inp.end());
-
     // Find all names that match the set
-    std::vector<G4LogicalVolume*> result;
-    result.reserve(inp.size());
+    std::unordered_set<G4LogicalVolume const*> result;
+    result.reserve(names.size());
     for (auto* lv : geant_logical_volumes())
     {
         if (lv && names.count(lv->GetName()))
         {
-            result.push_back(lv);
+            result.insert(lv);
         }
     }
 

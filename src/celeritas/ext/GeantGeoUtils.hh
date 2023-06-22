@@ -9,8 +9,7 @@
 
 #include <iosfwd>
 #include <string>
-#include <string_view>
-#include <vector>
+#include <unordered_set>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -60,7 +59,8 @@ void reset_geant_geometry();
 Span<G4LogicalVolume*> geant_logical_volumes();
 
 // Find Geant4 logical volumes corresponding to a list of names
-std::vector<G4LogicalVolume*> find_geant_volumes(Span<std::string_view const>);
+std::unordered_set<G4LogicalVolume const*>
+    find_geant_volumes(std::unordered_set<std::string>);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
