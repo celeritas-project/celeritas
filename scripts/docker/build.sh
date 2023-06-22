@@ -50,7 +50,7 @@ case $CONFIG in
     # ***IMPORTANT***: update cuda external version in dev/jammy-cuda11!
     DOCKERFILE_DISTRO=ubuntu
     BASE_TAG=nvidia/cuda:11.8.0-devel-ubuntu22.04
-    VECGEOM=v1.2.2
+    VECGEOM=v1.2.3
     ;;
   centos7-rocm5)
     # ***IMPORTANT***: update hip external version in dev/centos7-rocm5!

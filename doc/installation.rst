@@ -111,6 +111,13 @@ The current Spack environment for full-featured development is:
 .. literalinclude:: ../scripts/spack.yaml
    :language: yaml
 
+With this environment (with CUDA enabled), all Celeritas tests should be
+enabled and all should pass. Celeritas is build-compatible with older versions
+of some dependencies (e.g., Geant4@10.6 and VecGeom@1.2.2), but some tests may
+fail, indicating a change in behavior or a bug fix in that package.
+Specifically, older versions of VecGeom have shapes and configurations that are
+incompatible on GPU with new CMS detector descriptions.
+
 .. _Spack: https://github.com/spack/spack
 
 Building Celeritas

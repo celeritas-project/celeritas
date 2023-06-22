@@ -629,8 +629,8 @@ TEST_F(SolidsTest, trace)
                                                        20.000001,
                                                        17.499999,
                                                        191.98703789108,
-                                                       1e-08,
-                                                       40.048511400819,
+                                                       25.9774128070174,
+                                                       14.0710986038011,
                                                        25.977412807017,
                                                        86.987037891082,
                                                        10,
@@ -648,6 +648,7 @@ TEST_F(SolidsTest, trace)
                                                        8.7499995,
                                                        75,
                                                        0,
+                                                       6.4970769728954,
                                                        11.928052271225,
                                                        43.188475615448,
                                                        4.9751859510499,
@@ -657,6 +658,14 @@ TEST_F(SolidsTest, trace)
     {
         SCOPED_TRACE("Lower +x");
         auto result = this->track({-375, -125, 0}, {1, 0, 0});
+
+        if (vecgeom_version < Version(1, 2, 3))
+        {
+            ADD_FAILURE()
+                << "VecGeom " << vecgeom_version
+                << " does not correctly trace through some polycones: "
+                   "upgrade to 1.2.3 to pass this test";
+        }
 
         static char const* const expected_volumes[] = {"arb8b",
                                                        "World",
@@ -1073,8 +1082,8 @@ TEST_F(SolidsGeantTest, trace)
                                                        20.000001,
                                                        17.499999,
                                                        191.98703789108,
-                                                       1e-08,
-                                                       40.048511400819,
+                                                       25.9774128070174,
+                                                       14.0710986038011,
                                                        25.977412807017,
                                                        86.987037891082,
                                                        10,
@@ -1084,8 +1093,14 @@ TEST_F(SolidsGeantTest, trace)
     {
         SCOPED_TRACE("Lower +x");
 
-        // NOTE: these regression values are wrong in VecGeom 1.2.2 but fixed
-        // in 1.3.3
+        if (vecgeom_version < Version(1, 2, 3))
+        {
+            ADD_FAILURE()
+                << "VecGeom " << vecgeom_version
+                << " does not correctly trace through some polycones: "
+                   "upgrade to 1.2.3 to pass this test";
+        }
+
         auto result = this->track({-375, -125, 0}, {1, 0, 0});
         static char const* const expected_volumes[] = {"arb8b",
                                                        "World",
@@ -1156,7 +1171,8 @@ TEST_F(SolidsGeantTest, reflected_vol)
 
 //---------------------------------------------------------------------------//
 
-class DISABLED_ArbitraryGeantTest : public VecgeomGeantTestBase
+#define ArbitraryGeantTest DISABLED_ArbitraryGeantTest
+class ArbitraryGeantTest : public VecgeomGeantTestBase
 {
   public:
     SPConstGeo build_geometry() final
@@ -1177,14 +1193,14 @@ class DISABLED_ArbitraryGeantTest : public VecgeomGeantTestBase
     }
 };
 
-TEST_F(DISABLED_ArbitraryGeantTest, conversion)
+TEST_F(ArbitraryGeantTest, conversion)
 {
     auto result = this->get_import_geant_volumes();
     result.print_expected();
     EXPECT_EQ(0, result.missing_names.size());
 }
 
-TEST_F(DISABLED_ArbitraryGeantTest, dump)
+TEST_F(ArbitraryGeantTest, dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();

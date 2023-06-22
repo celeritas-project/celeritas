@@ -318,8 +318,22 @@ celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
 set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
+  # Vecgeom uses global counters that interfere with copying data to GPU and
+  # change the internal numbering.
+  if(CELERITAS_USE_Geant4)
+    set(_vecgeom_geant_tests
+      "FourLevelsGeantTest.*"
+      "SolidsGeantTest.*"
+    )
+  else()
+    set(_vecgeom_geant_tests)
+  endif()
   celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom
+    FILTER
+      "FourLevelsTest.*"
+      "SolidsTest.*"
+      ${_vecgeom_geant_tests}
   )
 endif()
 if(CELERITAS_USE_Geant4)
