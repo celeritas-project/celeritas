@@ -85,11 +85,13 @@ MaterialParams::from_import(ImportData const& data)
     for (auto const& isotope : data.isotopes)
     {
         MaterialParams::IsotopeInput isotope_params;
+        isotope_params.label = isotope.name;
         isotope_params.atomic_number = AtomicNumber{isotope.atomic_number};
         isotope_params.atomic_mass_number
             = AtomicNumber{isotope.atomic_mass_number};
-        isotope_params.nuclear_mass = units::MevEnergy{isotope.nuclear_mass};
-        isotope_params.label = isotope.name;
+        // Convert from MeV (Geant4) to MeV/c^2 (Celeritas)
+        isotope_params.nuclear_mass = units::MevMass{
+            isotope.nuclear_mass / std::pow(constants::c_light, 2)};
 
         input.isotopes.push_back(std::move(isotope_params));
     }
@@ -125,8 +127,8 @@ MaterialParams::from_import(ImportData const& data)
 MaterialParams::MaterialParams(Input const& inp)
 {
     CELER_EXPECT(!inp.elements.empty());
+    CELER_EXPECT(!inp.isotopes.empty());
     CELER_EXPECT(!inp.materials.empty());
-    // TODO: Allow empty inp.isotopes?
 
     ScopedMem record_mem("MaterialParams.construct");
 
@@ -165,8 +167,10 @@ MaterialParams::MaterialParams(Input const& inp)
 
     CELER_ENSURE(this->data_);
     CELER_ENSURE(this->host_ref().elements.size() == inp.elements.size());
+    CELER_ENSURE(this->host_ref().isotopes.size() == inp.isotopes.size());
     CELER_ENSURE(this->host_ref().materials.size() == inp.materials.size());
     CELER_ENSURE(el_labels_.size() == inp.elements.size());
+    CELER_ENSURE(isot_labels_.size() == inp.isotopes.size());
     CELER_ENSURE(mat_labels_.size() == inp.materials.size());
 }
 
@@ -223,7 +227,7 @@ Label const& MaterialParams::id_to_label(ElementId el) const
 /*!
  * Locate the element ID corresponding to a label.
  *
- * If the label isn't among the materials, a null ID will be returned.
+ * If the label isn't among the elements, a null ID will be returned.
  */
 ElementId MaterialParams::find_element(std::string const& name) const
 {
@@ -246,6 +250,42 @@ auto MaterialParams::find_elements(std::string const& name) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the label of an isotope.
+ */
+Label const& MaterialParams::id_to_label(IsotopeId isot) const
+{
+    CELER_EXPECT(isot < isot_labels_.size());
+    return isot_labels_.get(isot);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Locate the isotope ID corresponding to a label.
+ *
+ * If the label isn't among the isotopes, a null ID will be returned.
+ */
+IsotopeId MaterialParams::find_isotope(std::string const& name) const
+{
+    auto result = isot_labels_.find_all(name);
+    if (result.empty())
+        return {};
+    CELER_VALIDATE(result.size() == 1,
+                   << "isotope '" << name << "' is not unique");
+    return result.front();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get zero or more isotope IDs corresponding to a name.
+ */
+auto MaterialParams::find_isotopes(std::string const& name) const
+    -> SpanConstIsotopeId
+{
+    return isot_labels_.find_all(name);
+}
+
+//---------------------------------------------------------------------------//
 // IMPLEMENTATION
 //---------------------------------------------------------------------------//
 /*!
@@ -265,6 +305,15 @@ void MaterialParams::append_element_def(ElementInput const& inp,
     // Copy basic properties
     result.atomic_number = inp.atomic_number;
     result.atomic_mass = inp.atomic_mass;
+
+    CELER_ASSERT(inp.isotope_indices.size() == inp.isotope_fractions.size());
+    // TODO: resize result.isotopes
+    for (auto i = 0; range(inp.isotope_indices.size()))
+    {
+        IsotopeId idx = IsotopeId{inp.isotope_indices.at(i)};
+        auto const& frac = inp.isotope_fractions.at(i);
+        result.isotopes[i] = ElIsotopeComponent({idx, frac});
+    }
 
     // Calculate various factors of the atomic number
     const real_type z_real = result.atomic_number.unchecked_get();
@@ -289,7 +338,19 @@ void MaterialParams::append_element_def(ElementInput const& inp,
 void MaterialParams::append_isotope_def(IsotopeInput const& inp,
                                         HostValue* host_data)
 {
-    // TODO
+    CELER_EXPECT(inp.atomic_number);
+    CELER_EXPECT(inp.atomic_mass_number);
+    CELER_EXPECT(inp.nuclear_mass > zero_quantity());
+
+    IsotopeRecord result;
+
+    // Copy basic properties
+    result.atomic_number = inp.atomic_number;
+    result.atomic_mass_number = inp.atomic_mass_number;
+    result.nuclear_mass = inp.nuclear_mass;
+
+    // Add to host vector
+    make_builder(&host_data->isotopes).push_back(result);
 }
 
 //---------------------------------------------------------------------------//

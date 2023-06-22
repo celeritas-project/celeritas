@@ -32,8 +32,7 @@ struct IsotopeRecord
 
     AtomicNumber atomic_number;  //!< Atomic number Z
     AtomicMassNumber atomic_mass_number;  //!< Atomic number A
-    units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
-    units::MevEnergy nuclear_mass;  //!< Nucleons' mass + binding energy
+    units::MevMass nuclear_mass;  //!< Nucleons' mass + binding energy
 };
 
 //---------------------------------------------------------------------------//
@@ -120,6 +119,7 @@ struct MaterialRecord
  *
  * \sa MaterialParams (owns the pointed-to data)
  * \sa ElementView (uses the pointed-to element data in a kernel)
+ * \sa IsotopeView (uses the pointed-to isotope data in a kernel)
  * \sa MaterialView (uses the pointed-to material data in a kernel)
  */
 template<Ownership W, MemSpace M>
@@ -129,6 +129,7 @@ struct MaterialParamsData
     using Items = celeritas::Collection<T, W, M>;
 
     Items<ElementRecord> elements;
+    Items<IsotopeRecord> isotopes;
     Items<MatElementComponent> elcomponents;
     Items<MaterialRecord> materials;
     ElementComponentId::size_type max_element_components{};
@@ -147,6 +148,7 @@ struct MaterialParamsData
     {
         CELER_EXPECT(other);
         elements = other.elements;
+        isotopes = other.isotopes;
         elcomponents = other.elcomponents;
         materials = other.materials;
         max_element_components = other.max_element_components;

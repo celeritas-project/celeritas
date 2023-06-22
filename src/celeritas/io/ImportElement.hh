@@ -15,30 +15,13 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Store element data.
- *
- * Isotopes of a given element are loaded sequentially and contiguously in
- * Geant4. Therefore, the \c IsotopeIdx pair is used to retrieve the available
- * isotopes of a given element, which are stored in \c ImportData::isotopes .
- * \c isotope_index.first represents the starting index in the
- * \c ImportData::isotopes vector, while \c isotope_index.second stores the
- * last index. Thus, to loop over the available isotope data:
- * \code
-   ImportData data;
-   // Load import data
-   auto const& element = data.elements[3]; // E.g. select 3rd element
-   auto const& key = element.isotope_index;
-   for (auto i = key.first; i < key.second; i++)
-   {
-       auto frac = data.isotopes[i].fractional_abundance;
-       // Do stuff
-   }
- * \endcode
  */
 struct ImportElement
 {
     //!@{
     //! \name type aliases
     using VecIsotopeIdx = std::vector<int>;
+    using VecIsotopeFrac = std::vector<int>;
     //!@}
 
     std::string name;
@@ -47,8 +30,8 @@ struct ImportElement
     double radiation_length_tsai;  //!< [g/cm^2]
     double coulomb_factor;
     VecIsotopeIdx isotope_indices;  //!< Indices in ImportData::isotopes
-    std::vector<double> relative_abundance;  //!< Fractional abundance for this
-                                             //!< element
+    VecIsotopeFrac relative_abundance;  //!< Fractional abundance for this
+                                        //!< element
 };
 
 //---------------------------------------------------------------------------//

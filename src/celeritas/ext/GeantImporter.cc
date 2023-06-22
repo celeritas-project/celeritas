@@ -277,7 +277,11 @@ auto import_elements()
             element.relative_abundance[idx] = g4rel_abundance[idx];
             total_el_abundance_fraction += g4rel_abundance[idx];
         }
-        CELER_ASSERT(soft_equal(1., total_el_abundance_fraction));
+        CELER_VALIDATE(soft_equal(1., total_el_abundance_fraction),
+                       << "Total relative isotopic abundance for element `"
+                       << element.name
+                       << "` should sum to 1, but instead sum to "
+                       << total_el_abundance_fraction);
 
         // Populate vector<ImportIsotope>
         for (auto idx : range(g4isotope_vec.size()))

@@ -25,6 +25,7 @@
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "ElementView.hh"
+#include "IsotopeView.hh"
 #include "MaterialData.hh"
 #include "MaterialView.hh"
 
@@ -43,6 +44,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     //! \name Type aliases
     using SpanConstMaterialId = Span<MaterialId const>;
     using SpanConstElementId = Span<ElementId const>;
+    using SpanConstIsotopeId = Span<IsotopeId const>;
     //!@}
 
     //! Define an element's input data
@@ -51,6 +53,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         AtomicNumber atomic_number;  //!< Atomic number Z
         units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
         std::vector<int> isotope_indices;  //!< Index in Input::isotopes
+        std::vector<double> isotope_fractions;  //!< Fractional abundance
         Label label;  //!< Element name
     };
 
@@ -64,7 +67,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
         AtomicNumber atomic_number;  //!< Atomic number Z
         AtomicMassNumber atomic_mass_number;  //!< Atomic number A
-        units::MevEnergy nuclear_mass;  //!< Nucleons' mass + binding energy
+        units::MevMass nuclear_mass;  //!< Nucleons' mass + binding energy
         Label label;  //!< Isotope name
     };
 
@@ -127,11 +130,29 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     SpanConstElementId find_elements(std::string const& name) const;
     //!@}
 
+    //!@{
+    //! \name Isotope metadata
+    //! Number of distinct isotope definitions
+    IsotopeId::size_type num_isotopes() const { return isot_labels_.size(); }
+
+    // Get isotope name
+    Label const& id_to_label(IsotopeId id) const;
+
+    // Find an isotope from a name
+    IsotopeId find_isotope(std::string const& name) const;
+
+    // Find all isotopes that share a name
+    SpanConstIsotopeId find_isotopes(std::string const& name) const;
+    //!@}
+
     // Access material definitions on host
     inline MaterialView get(MaterialId id) const;
 
     // Access element definitions on host
     inline ElementView get(ElementId id) const;
+
+    // Access isotope definitions on host
+    inline IsotopeView get(IsotopeId id) const;
 
     // Maximum number of elements in any one material
     inline ElementComponentId::size_type max_element_components() const;
@@ -180,6 +201,16 @@ ElementView MaterialParams::get(ElementId id) const
 {
     CELER_EXPECT(id < this->host_ref().elements.size());
     return ElementView(this->host_ref(), id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get properties for the given isotope.
+ */
+IsotopeView MaterialParams::get(IsotopeId id) const
+{
+    CELER_EXPECT(id < this->host_ref().isotopes.size());
+    return IsotopeView(this->host_ref(), id);
 }
 
 //---------------------------------------------------------------------------//
