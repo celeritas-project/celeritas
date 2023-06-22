@@ -9,6 +9,8 @@
 
 #include "celeritas/ext/GeantGeoUtils.hh"
 
+#include "ExceptionConverter.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -18,7 +20,11 @@ namespace celeritas
 std::unordered_set<G4LogicalVolume const*>
 FindVolumes(std::unordered_set<std::string> names)
 {
-    return find_geant_volumes(std::move(names));
+    ExceptionConverter call_g4exception{"celer0006"};
+    std::unordered_set<G4LogicalVolume const*> result;
+    CELER_TRY_HANDLE(result = find_geant_volumes(std::move(names)),
+                     call_g4exception);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
