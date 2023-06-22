@@ -12,7 +12,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
+//! Default destructor.
+ActionInterface::~ActionInterface() = default;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct a concrete action from a label and ID.
@@ -36,12 +38,6 @@ ConcreteAction::ConcreteAction(ActionId id,
     CELER_ASSERT(id_);
     CELER_ASSERT(!label_.empty());
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Default destructor.
- */
-ConcreteAction::~ConcreteAction() = default;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
