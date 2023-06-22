@@ -192,23 +192,8 @@ void SharedParams::Finalize()
 {
     CELER_EXPECT(*this);
 
-    if (!output_filename_.empty())
-    {
-#if CELERITAS_USE_JSON
-        CELER_LOG(info) << "Writing Celeritas output to \"" << output_filename_
-                        << '"';
-
-        std::ofstream outf(output_filename_);
-        CELER_VALIDATE(outf,
-                       << "failed to open output file at \""
-                       << output_filename_ << '"');
-        params_->output_reg()->output(&outf);
-#else
-        CELER_LOG(warning) << "JSON support is not enabled, so no output will "
-                              "be written to \""
-                           << output_filename_ << '"';
-#endif
-    }
+    // Output at end of run
+    this->try_output();
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting shared parameters";
@@ -412,11 +397,42 @@ void SharedParams::initialize_core(SetupOptions const& options)
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
 
-    // Set up output
+    // Set up output after params are constructed
     output_filename_ = options.output_file;
+    this->try_output();
 
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write available Celeritas output.
+ *
+ * This can be done multiple times, overwriting the same file so that we can
+ * get output before construction and after
+ */
+void SharedParams::try_output() const
+{
+    CELER_EXPECT(params_);
+    if (output_filename_.empty())
+    {
+        return;
+    }
+
+#if CELERITAS_USE_JSON
+    CELER_LOG(info) << "Writing Celeritas output to \"" << output_filename_
+                    << '"';
+
+    std::ofstream outf(output_filename_);
+    CELER_VALIDATE(
+        outf, << "failed to open output file at \"" << output_filename_ << '"');
+    params_->output_reg()->output(&outf);
+#else
+    CELER_LOG(warning)
+        << "JSON support is not enabled, so no output will be written to \""
+        << output_filename_ << '"';
+#endif
 }
 
 //---------------------------------------------------------------------------//
