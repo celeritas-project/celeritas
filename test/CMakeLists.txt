@@ -326,6 +326,9 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(celeritas/ext/GeantGeo.test.cc
     LINK_LIBRARIES ${Geant4_LIBRARIES}
   )
+  celeritas_add_test(celeritas/ext/GeantGeoUtils.test.cc
+    LINK_LIBRARIES ${Geant4_LIBRARIES}
+  )
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
