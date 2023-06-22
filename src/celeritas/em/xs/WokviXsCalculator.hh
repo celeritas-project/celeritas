@@ -79,7 +79,7 @@ CELER_FUNCTION real_type WokviXsCalculator::wokvi_xs(real_type cos_t_min,
     {
         const real_type w1 = state_.w_term(cos_t_min);
         const real_type w2 = state_.w_term(cos_t_max);
-        return state_.kinetic_factor * (w2 - w1) / (w1 * w2);
+        return state_.kinetic_factor * state_.mott_factor() * (w2 - w1) / (w1 * w2);
     }
     return 0.0;
 }
