@@ -45,24 +45,6 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Checks that the TrackOrder will sort tracks by actions applied at the given
- * ActionOrder. This should match the mapping in the \c SortTracksAction
- * constructor.
- *
- * TODO: Have a single source of truth for mapping TrackOrder to ActionOrder
- */
-bool is_action_sorted(ActionOrder action, TrackOrder track)
-{
-    return (action == ActionOrder::post
-            && track == TrackOrder::sort_step_limit_action)
-           || (action == ActionOrder::along
-               && track == TrackOrder::sort_along_step_action)
-           || (track == TrackOrder::sort_action
-               && (action == ActionOrder::post || action == ActionOrder::along));
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -102,11 +84,28 @@ class ActionLauncher
     {
     }
 
+    //! Launch a kernel for a thread range
+    void operator()(Range<ThreadId> threads,
+                    StreamId stream_id,
+                    F const& call_thread) const
+    {
+        if (!threads.empty())
+        {
+            CELER_DEVICE_PREFIX(Stream_t)
+            stream = celeritas::device().stream(stream_id).get();
+            auto config = calc_launch_params_(threads.size());
+            launch_action_impl<F>
+                <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
+                    threads, call_thread);
+        }
+    }
+
     //! Launch a kernel for the wrapped executor
     void operator()(CoreState<MemSpace::device> const& state,
                     F const& call_thread) const
     {
-        return (*this)(state.size(), state.stream_id(), call_thread);
+        return (*this)(
+            range(ThreadId{state.size()}), state.stream_id(), call_thread);
     }
 
     //! Launch a kernel with a custom number of threads
@@ -116,12 +115,7 @@ class ActionLauncher
     {
         CELER_EXPECT(num_threads > 0);
         CELER_EXPECT(stream_id);
-        CELER_DEVICE_PREFIX(Stream_t)
-        stream = celeritas::device().stream(stream_id).get();
-        auto config = calc_launch_params_(num_threads);
-        launch_action_impl<F>
-            <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                range(ThreadId{num_threads}), call_thread);
+        (*this)(range(ThreadId{num_threads}), stream_id, call_thread);
     }
 
     //! Launch a Kernel with reduced grid size if tracks are sorted using the
@@ -137,21 +131,14 @@ class ActionLauncher
         if (is_action_sorted(action.order(),
                              params.init()->host_ref().track_order))
         {
-            if (Range<ThreadId> threads
-                = state.get_action_range(action.action_id());
-                threads.size())
-            {
-                CELER_DEVICE_PREFIX(Stream_t)
-                stream = celeritas::device().stream(state.stream_id()).get();
-                auto config = calc_launch_params_(threads.size());
-                launch_action_impl<F>
-                    <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                        threads, call_thread);
-            }
+            return (*this)(state.get_action_range(action.action_id()),
+                           state.stream_id(),
+                           call_thread);
         }
         else
         {
-            return (*this)(state.size(), state.stream_id(), call_thread);
+            return (*this)(
+                range(ThreadId{state.size()}), state.stream_id(), call_thread);
         }
     }
 

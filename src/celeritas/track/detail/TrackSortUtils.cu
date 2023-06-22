@@ -78,7 +78,7 @@ tracks_per_action_impl(Span<ThreadId> offsets, size_type size, F&& get_action)
 {
     ThreadId tid = celeritas::KernelParamCalculator::thread_id();
 
-    if ((tid < size) && tid.get() != 0)
+    if ((tid < size) && tid != ThreadId{0})
     {
         ActionId current_action = get_action(tid);
         ActionId previous_action = get_action(tid - 1);
@@ -88,9 +88,12 @@ tracks_per_action_impl(Span<ThreadId> offsets, size_type size, F&& get_action)
         }
     }
     // needed if the first action range has only one element
-    if (ActionId first; tid.get() == 0 && (first = get_action(tid)))
+    if (tid == ThreadId{0})
     {
-        offsets[first.unchecked_get()] = tid;
+        if (ActionId first = get_action(tid))
+        {
+            offsets[first.unchecked_get()] = tid;
+        }
     }
 }
 

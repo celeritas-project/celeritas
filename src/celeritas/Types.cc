@@ -66,4 +66,22 @@ char const* to_cstring(TrackOrder value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Checks that the TrackOrder will sort tracks by actions applied at the given
+ * ActionOrder. This should match the mapping in the \c SortTracksAction
+ * constructor.
+ *
+ * TODO: Have a single source of truth for mapping TrackOrder to ActionOrder
+ */
+bool is_action_sorted(ActionOrder action, TrackOrder track)
+{
+    return (action == ActionOrder::post
+            && track == TrackOrder::sort_step_limit_action)
+           || (action == ActionOrder::along
+               && track == TrackOrder::sort_along_step_action)
+           || (track == TrackOrder::sort_action
+               && (action == ActionOrder::post || action == ActionOrder::along));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

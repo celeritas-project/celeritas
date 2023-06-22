@@ -8,8 +8,8 @@
 #include "CoreState.hh"
 
 #include "corecel/data/Copier.hh"
-#include "celeritas/track/detail/TrackSortUtils.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/track/detail/TrackSortUtils.hh"
 
 #include "CoreParams.hh"
 
@@ -94,6 +94,25 @@ auto CoreState<M>::action_thread_offsets() -> ActionThreads<MemSpace::host>&
 
 //---------------------------------------------------------------------------//
 /*!
+ * Const reference to the host ActionThread collection for holding result of
+ * action counting
+ */
+template<MemSpace M>
+auto CoreState<M>::action_thread_offsets() const
+    -> ActionThreads<MemSpace::host> const&
+{
+    if constexpr (M == MemSpace::device)
+    {
+        return host_thread_offsets_;
+    }
+    else
+    {
+        return thread_offsets_;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Reference to the ActionThread collection matching the state memory space
  */
 template<MemSpace M>
@@ -104,28 +123,15 @@ auto CoreState<M>::native_action_thread_offsets() -> ActionThreads<M>&
 
 //---------------------------------------------------------------------------//
 /*!
- *
- */
-template<>
-Range<ThreadId>
-CoreState<MemSpace::device>::get_action_range(ActionId action_id) const
-{
-    CELER_EXPECT((action_id + 1) < host_thread_offsets_.size());
-    return {host_thread_offsets_[action_id],
-            host_thread_offsets_[action_id + 1]};
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get a range delimiting the [start, end) of the track partition assigned
  * action_id in track_slots
  */
-template<>
-Range<ThreadId>
-CoreState<MemSpace::host>::get_action_range(ActionId action_id) const
+template<MemSpace M>
+Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
 {
-    CELER_EXPECT((action_id + 1) < thread_offsets_.size());
-    return {thread_offsets_[action_id], thread_offsets_[action_id + 1]};
+    auto const& thread_offsets = action_thread_offsets();
+    CELER_EXPECT((action_id + 1) < thread_offsets.size());
+    return {thread_offsets[action_id], thread_offsets[action_id + 1]};
 }
 
 //---------------------------------------------------------------------------//

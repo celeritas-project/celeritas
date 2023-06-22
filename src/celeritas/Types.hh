@@ -171,5 +171,9 @@ char const* to_cstring(ActionOrder);
 // Get a string corresponding to a track ordering policy
 char const* to_cstring(TrackOrder);
 
+// Checks that the TrackOrder will sort tracks by actions applied at the given
+// ActionOrder
+bool is_action_sorted(ActionOrder action, TrackOrder track);
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
