@@ -80,6 +80,12 @@ struct WokviStateHelper
         return cos_t_max_elec_;
     }
 
+    // Mott factor for electron/positron scattering
+    inline CELER_FUNCTION real_type mott_factor() const
+    {
+        return mott_factor_;
+    }
+
     // cos(theta) bounds for nuclear cross section
     inline CELER_FUNCTION real_type cos_t_min_nuc() const;
     inline CELER_FUNCTION real_type cos_t_max_nuc() const;
@@ -101,6 +107,10 @@ struct WokviStateHelper
     real_type cos_t_max_elec_;
     real_type cos_t_min_nuc_;
     real_type cos_t_max_nuc_;
+
+    // New quantities
+    real_type cut_;  // (0.0 < fixedCut) ? fixedCut : cutEnergy;
+    real_type mott_factor_;
 
     // Threshold for large incident mass behavior
     inline CELER_FUNCTION bool large_incident_mass() const
@@ -181,6 +191,7 @@ WokviStateHelper::WokviStateHelper(ParticleTrackView const& particle,
     , kinetic_factor(data.coeff * element.atomic_number().get() * inc_charge_sq
                      * inv_beta_sq / inc_mom_sq)
     , data_(data)
+    , mott_factor_(1.0)
 {
     // Order of initialization doesn't matter
     screen_z_ = compute_screening_coefficient();
@@ -188,10 +199,26 @@ WokviStateHelper::WokviStateHelper(ParticleTrackView const& particle,
 
     // Bounds for nuclear cos(theta)
     // TODO: Reference?
-    cos_t_min_nuc_ = max(
-        WokviStateHelper::cos_t_max(),
-        1.0 - data.factor_A2 * compute_inv_a23(material, data) / inc_mom_sq);
+    if (data.is_combined)
+    {
+        const real_type cos_t_min
+            = clamp(cos(data.polar_angle_limit), -1.0, 1.0);
+        cos_t_min_nuc_ = max(
+            cos_t_min,
+            1.0 - data.factor_A2 * compute_inv_a23(material, data) / inc_mom_sq);
+    }
+    else
+    {
+        cos_t_min_nuc_ = 1.0;
+    }
     cos_t_max_nuc_ = WokviStateHelper::cos_t_max();
+
+    // Mott factor for incident electron / positrons
+    // TODO: Reference?
+    if (inc_id == data.ids.electron || inc_id == data.ids.positron)
+    {
+        mott_factor_ = 1.0 + 2.0e-4 * ipow<2>(target_Z());
+    }
 
     // Proton-Proton correction
     if (element.atomic_number().get() == 1 && inc_id == data.ids.proton)

@@ -64,10 +64,6 @@ class WokviInteractor
     // Allocator for secondary tracks
     StackAllocator<Secondary>& allocate_;
 
-    // Low energy threshold for which particles are absorbed instead of
-    // scattered
-    const real_type low_energy_threshold_;
-
     //// HELPER FUNCTIONS ////
 
     // Calculates the recoil energy for the given scattering direction
@@ -96,7 +92,6 @@ WokviInteractor::WokviInteractor(WokviRef const& shared,
     , data_(shared)
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , low_energy_threshold_(0.01)
 {
 }
 
@@ -107,15 +102,6 @@ WokviInteractor::WokviInteractor(WokviRef const& shared,
 template<class Engine>
 CELER_FUNCTION Interaction WokviInteractor::operator()(Engine& rng)
 {
-    // If below the low energy threshold, the incident particle is absorbed.
-    if (state_.inc_energy < low_energy_threshold_)
-    {
-        Interaction result = Interaction::from_absorption();
-        result.energy = Energy{0.0};
-        result.energy_deposition = Energy{state_.inc_energy};
-        return result;
-    }
-
     // Distribution model governing the scattering
     WokviDistribution distrib(state_, data_);
     if (distrib.cross_section() == 0.0)
@@ -134,7 +120,7 @@ CELER_FUNCTION Interaction WokviInteractor::operator()(Engine& rng)
     // Calculate recoil and final energies
     real_type recoil_energy = calc_recoil_energy(new_direction);
     real_type final_energy = state_.inc_energy - recoil_energy;
-    if (final_energy < low_energy_threshold_)
+    if (final_energy < 0.0)
     {
         recoil_energy = state_.inc_energy;
         final_energy = 0.0;

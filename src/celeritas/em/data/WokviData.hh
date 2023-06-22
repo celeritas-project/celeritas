@@ -35,6 +35,16 @@ struct WokviElementData
     real_type screen_r_sq_elec;
     real_type form_factor;
     real_type inv_a23;
+
+    real_type mott_coeff[5][6];
+};
+
+enum class NuclearFormFactorType
+{
+    None,
+    Flat,
+    Exponential,
+    Gaussian
 };
 
 template<Ownership W, MemSpace M>
@@ -54,6 +64,9 @@ struct WokviData
     real_type factor_B1;  // 0.5 * pi * alpha^2
     real_type coeff;  // 2 pi (e_mass * e_radius)^2
     real_type electron_mass;
+    bool is_combined;
+    real_type polar_angle_limit;
+    NuclearFormFactorType form_factor_type;
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -70,6 +83,9 @@ struct WokviData
         factor_B1 = other.factor_B1;
         coeff = other.coeff;
         electron_mass = other.electron_mass;
+        is_combined = other.is_combined;
+        polar_angle_limit = other.polar_angle_limit;
+        form_factor_type = other.form_factor_type;
         return *this;
     }
 };

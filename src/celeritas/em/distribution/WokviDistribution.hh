@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/em/interactor/detail/WokviStateHelper.hh"
+#include "celeritas/em/xs/MottXsCalculator.hh"
 #include "celeritas/em/xs/WokviXsCalculator.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
@@ -50,6 +51,9 @@ class WokviDistribution
     // Precomputed variables for the interaction
     detail::WokviStateHelper const& state_;
 
+    // Shared WokviModel data
+    WovkiRef const& data_;
+
     // Nuclear form factor
     const real_type form_factor_A_;
 
@@ -63,6 +67,10 @@ class WokviDistribution
 
     // Sum of electron and nuclear cross sections
     real_type total_cross_section_;
+
+    inline CELER_FUNCTION real_type form_factor(real_type formf,
+                                                real_type z1) const;
+    inline CELER_FUNCTION real_type flat_form_factor(real_type x) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -77,12 +85,13 @@ CELER_FUNCTION
 WokviDistribution::WokviDistribution(detail::WokviStateHelper const& state,
                                      WokviRef const& data)
     : state_(state)
+    , data_(data)
     , form_factor_A_(state.element_data.form_factor
                      * state.inc_mom_sq)  // TODO: Reference?
     , factor_B_(0.5 / state.inv_beta_sq)  // TODO: Reference? Always 0.5 spin?
     , factor_B1_(data.factor_B1)
-    , factor_D_(std::sqrt(state.inc_mom_sq) / state.target_mass())  // TODO:
-                                                                    // Reference?
+    // TODO: Reference?
+    , factor_D_(std::sqrt(state.inc_mom_sq) / state.target_mass())
 {
     // Calculate cross sections
     const WokviXsCalculator xsec(state);
@@ -144,11 +153,15 @@ CELER_FUNCTION Real3 WokviDistribution::operator()(Engine& rng) const
 
     // Calculate rejection
     // TODO: Reference?
-    const real_type fm = 1.0 + form_factor * z1;
-    const real_type g_rej = (1.0 - z1 * factor_B_
-                             + factor_B1_ * state_.target_Z()
-                                   * sqrt(z1 * factor_B_) * (2.0 - z1))
-                            / ((1.0 + z1 * factor_D_) * fm * fm);
+    MottXsCalculator mott_xsec(state_);
+    const real_type fm = form_factor(form_factor, z1);
+    const real_type grej = mott_xsec(sqrt(z1)) * ipow<2>(fm);
+
+    // if not using mott?
+    // const grej = (1.0 - z1 * factor_B_ + factor_B1_ * state_.target_Z() *
+    // sqrt(z1 * factor_B_) * (2.0 - z1)) * ipow<2>(fm) / (1.0 + z1 *
+    // factor_D_);
+
     if (sample(rng) > g_rej)
     {
         return {0.0, 0.0, 1.0};
@@ -159,6 +172,44 @@ CELER_FUNCTION Real3 WokviDistribution::operator()(Engine& rng) const
     const real_type sin_t = sqrt((1.0 - cos_t) * (1.0 + cos_t));
     const real_type phi = 2.0 * celeritas::constants::pi * sample(rng);
     return {sin_t * cos(phi), sin_t * sin(phi), cos_t};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculates the form factor based on the form factor model.
+ * TODO: Reference?
+ */
+CELER_FUNCTION real_type WokviDistribution::form_factor(real_type formf,
+                                                        real_type z1) const
+{
+    switch (data_.form_factor_type)
+    {
+        case NuclearFormFactorType::Flat: {
+            const real_type ccoef = 0.00508 / CLHEP::MeV;
+            const real_type x = sqrt(2.0 * state_.inc_mom_sq * z1) * ccoef
+                                * 2.0;
+            return flat_form_factor(x)
+                   * flat_form_factor(
+                       x * 0.6 * fastpow(state_.target_mass(), 1.0 / 3.0));
+        }
+        break;
+        case NuclearFormFactorType::Exponential:
+            return 1.0 / ipow<2>(1.0 + formf * z1);
+        case NuclearFormFactorType::Gaussian:
+            return exp(-2.0 * formf * z1);
+        default:
+            return 1.0;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Flat form factor
+ * TODO: Reference?
+ */
+CELER_FUNCTION real_type WokviDistribution::flat_form_factor(real_type x) const
+{
+    return 3.0 * (sin(x) - x * cos(x)) / ipow<3>(x);
 }
 
 //---------------------------------------------------------------------------//
