@@ -282,8 +282,14 @@ void Runner::build_core_params(RunnerInput const& inp,
     // Construct simulation params
     params.sim = SimParams::from_import(imported, params.particle);
 
+    // Store the number of simultaneous threads/tasks per process
+    params.max_streams = this->get_num_streams(inp);
+    CELER_VALIDATE(inp.mctruth_filename.empty() || params.max_streams == 1,
+                   << "MC truth output is only supported with a single "
+                      "stream.");
+
     // Construct track initialization params
-    params.init = [&inp] {
+    params.init = [&inp, &params] {
         CELER_VALIDATE(inp.initializer_capacity > 0,
                        << "nonpositive initializer_capacity="
                        << inp.initializer_capacity);
@@ -296,17 +302,11 @@ void Runner::build_core_params(RunnerInput const& inp,
             << " cannot be less than num_events="
             << inp.primary_gen_options.num_events);
         TrackInitParams::Input input;
-        input.capacity = inp.initializer_capacity;
+        input.capacity = ceil_div(inp.initializer_capacity, params.max_streams);
         input.max_events = inp.max_events;
         input.track_order = inp.track_order;
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
-
-    // Store the number of simultaneous threads/tasks per process
-    params.max_streams = this->get_num_streams(inp);
-    CELER_VALIDATE(inp.mctruth_filename.empty() || params.max_streams == 1,
-                   << "MC truth output is only supported with a single "
-                      "stream.");
 
     core_params_ = std::make_shared<CoreParams>(std::move(params));
 }
