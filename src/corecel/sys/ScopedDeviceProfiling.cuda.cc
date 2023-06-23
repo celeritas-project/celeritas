@@ -11,7 +11,7 @@
 #include "corecel/device_runtime_api.h"
 
 // Profiler API isn't included with regular CUDA API headers
-#include <cuda_profiler_api.h>
+#include <nvtx3/nvToolsExt.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -20,24 +20,38 @@
 
 namespace celeritas
 {
+namespace
+{
+nvtxDomainHandle_t domain_handle()
+{
+    static nvtxDomainHandle_t domain = nvtxDomainCreateA("Celeritas");
+    return domain;
+}
+nvtxEventAttributes_t attributes(char const* name)
+{
+    nvtxEventAttributes_t attributes;
+    attributes.version = NVTX_VERSION;
+    attributes.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
+    attributes.colorType = NVTX_COLOR_ARGB;
+    attributes.color = 0xff00ff00;
+    attributes.messageType = NVTX_MESSAGE_TYPE_ASCII;
+    attributes.message.ascii = name;
+    attributes.payloadType = NVTX_PAYLOAD_TYPE_INT32;
+    attributes.payload.iValue = 0;
+    attributes.category = 0;
+    return attributes;
+}
+}  // namespace
 //---------------------------------------------------------------------------//
 /*!
  * Activate device profiling.
  */
-ScopedDeviceProfiling::ScopedDeviceProfiling()
+ScopedDeviceProfiling::ScopedDeviceProfiling(std::string_view name)
 {
     if (celeritas::device())
     {
-        try
-        {
-            CELER_CUDA_CALL(cudaProfilerStart());
-        }
-        catch (RuntimeError const& e)
-        {
-            CELER_LOG(error) << "Failed to start profiling: " << e.what();
-            return;
-        }
-        activated_ = true;
+        nvtxEventAttributes_t attributes_ = attributes(name.data());
+        nvtxDomainRangePushEx(domain_handle(), &attributes_);
     }
 }
 
@@ -47,16 +61,9 @@ ScopedDeviceProfiling::ScopedDeviceProfiling()
  */
 ScopedDeviceProfiling::~ScopedDeviceProfiling()
 {
-    if (activated_)
+    if (celeritas::device())
     {
-        try
-        {
-            CELER_CUDA_CALL(cudaProfilerStop());
-        }
-        catch (RuntimeError const& e)
-        {
-            CELER_LOG(error) << "Failed to stop profiling: " << e.what();
-        }
+        nvtxDomainRangePop(domain_handle());
     }
 }
 

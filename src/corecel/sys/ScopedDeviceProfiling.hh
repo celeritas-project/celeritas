@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
+
 #include "celeritas_config.h"
 
 #include "Device.hh"
@@ -30,20 +32,14 @@ class ScopedDeviceProfiling
 {
   public:
     // Activate profiling
-    ScopedDeviceProfiling();
+    ScopedDeviceProfiling(std::string_view name);
     // Deactivate profiling
     ~ScopedDeviceProfiling();
-
-  private:
-    bool activated_{false};
 };
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_CUDA
-inline ScopedDeviceProfiling::ScopedDeviceProfiling()
-{
-    (void)sizeof(activated_);
-}
+inline ScopedDeviceProfiling::ScopedDeviceProfiling() {}
 inline ScopedDeviceProfiling::~ScopedDeviceProfiling() {}
 #endif
 

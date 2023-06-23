@@ -108,7 +108,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     Stopwatch get_transport_time;
     if (run_input->merge_events)
     {
-        ScopedDeviceProfiling profile_this;
+        ScopedDeviceProfiling profile_this{"app"};
 
         // Run all events simultaneously on a single stream
         result.events.front() = run_stream();
@@ -116,7 +116,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     else
     {
         MultiExceptionHandler capture_exception;
-        ScopedDeviceProfiling profile_this;
+        ScopedDeviceProfiling profile_this{"app"};
 
 #ifdef _OPENMP
         // Set the maximum number of nested parallel regions
