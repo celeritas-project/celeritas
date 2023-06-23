@@ -47,16 +47,6 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     using SpanConstIsotopeId = Span<IsotopeId const>;
     //!@}
 
-    //! Define an element's input data
-    struct ElementInput
-    {
-        AtomicNumber atomic_number;  //!< Atomic number Z
-        units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
-        std::vector<int> isotope_indices;  //!< Index in Input::isotopes
-        std::vector<double> isotope_fractions;  //!< Fractional abundance
-        Label label;  //!< Element name
-    };
-
     //! Define an element's isotope input data
     struct IsotopeInput
     {
@@ -69,6 +59,16 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         AtomicMassNumber atomic_mass_number;  //!< Atomic number A
         units::MevMass nuclear_mass;  //!< Nucleons' mass + binding energy
         Label label;  //!< Isotope name
+    };
+
+    //! Define an element's input data
+    struct ElementInput
+    {
+        AtomicNumber atomic_number;  //!< Atomic number Z
+        units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
+        std::vector<int> isotope_indices;  //!< Index in Input::isotopes
+        std::vector<double> isotope_fractions;  //!< Fractional abundance
+        Label label;  //!< Element name
     };
 
     //! Define a material's input data

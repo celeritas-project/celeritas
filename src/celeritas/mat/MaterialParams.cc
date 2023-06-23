@@ -299,6 +299,7 @@ void MaterialParams::append_element_def(ElementInput const& inp,
 {
     CELER_EXPECT(inp.atomic_number);
     CELER_EXPECT(inp.atomic_mass > zero_quantity());
+    CELER_ASSERT(inp.isotope_indices.size() == inp.isotope_fractions.size());
 
     ElementRecord result;
 
@@ -306,14 +307,17 @@ void MaterialParams::append_element_def(ElementInput const& inp,
     result.atomic_number = inp.atomic_number;
     result.atomic_mass = inp.atomic_mass;
 
-    CELER_ASSERT(inp.isotope_indices.size() == inp.isotope_fractions.size());
-    // TODO: resize result.isotopes
-    for (auto i = 0; range(inp.isotope_indices.size()))
+    std::vector<ElIsotopeComponent> vec_eic;
+    for (auto i : range(inp.isotope_indices.size()))
     {
-        IsotopeId idx = IsotopeId{inp.isotope_indices.at(i)};
-        auto const& frac = inp.isotope_fractions.at(i);
-        result.isotopes[i] = ElIsotopeComponent({idx, frac});
+        ElIsotopeComponent eic;
+        CELER_ASSERT(inp.isotope_indices[i] >= 0);
+        eic.isotope = IsotopeId(inp.isotope_indices[i]);
+        eic.fraction = inp.isotope_fractions[i];
+        vec_eic.push_back(std::move(eic));
     }
+    result.isotopes = make_builder(&host_data->isocomponents)
+                          .insert_back(vec_eic.begin(), vec_eic.end());
 
     // Calculate various factors of the atomic number
     const real_type z_real = result.atomic_number.unchecked_get();
@@ -330,9 +334,7 @@ void MaterialParams::append_element_def(ElementInput const& inp,
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an isotope input to an isotope definition and store.
- *
- * This adds computed quantities in addition to the input values. The result
+ * Convert an isotope input to an isotope definition and store. The result
  * is pushed back onto the host list of stored isotopes.
  */
 void MaterialParams::append_isotope_def(IsotopeInput const& inp,

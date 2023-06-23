@@ -131,6 +131,7 @@ struct MaterialParamsData
     Items<ElementRecord> elements;
     Items<IsotopeRecord> isotopes;
     Items<MatElementComponent> elcomponents;
+    Items<ElIsotopeComponent> isocomponents;
     Items<MaterialRecord> materials;
     ElementComponentId::size_type max_element_components{};
 
