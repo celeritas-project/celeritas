@@ -29,7 +29,7 @@ void RelativisticBremModel::execute(CoreParams const& params,
         this->action_id(),
         InteractionApplier{RelativisticBremExecutor{this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(state, execute);
+    launch_kernel(params, state, *this, execute);
 }
 
 //---------------------------------------------------------------------------//

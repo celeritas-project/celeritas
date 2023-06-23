@@ -54,9 +54,25 @@ void shuffle_track_slots<MemSpace::device>(
 
 //---------------------------------------------------------------------------//
 // Sort or partition tracks
-
 void sort_tracks(HostRef<CoreStateData> const&, TrackOrder);
 void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder);
+
+//---------------------------------------------------------------------------//
+// Count tracks associated to each action
+
+void count_tracks_per_action(
+    HostRef<CoreStateData> const&,
+    Span<ThreadId>,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    TrackOrder);
+
+void count_tracks_per_action(
+    DeviceRef<CoreStateData> const&,
+    Span<ThreadId>,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    TrackOrder);
+
+void backfill_action_count(Span<ThreadId>, size_type);
 
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
@@ -91,6 +107,28 @@ struct along_action_comparator
     }
 };
 
+struct StepLimitActionAccessor
+{
+    ObserverPtr<StepLimit const> step_limit_;
+    ObserverPtr<TrackSlotId::size_type const> track_slots_;
+
+    CELER_FUNCTION ActionId operator()(ThreadId tid) const
+    {
+        return step_limit_.get()[track_slots_.get()[tid.get()]].action;
+    }
+};
+
+struct AlongStepActionAccessor
+{
+    ObserverPtr<ActionId const> along_step_;
+    ObserverPtr<TrackSlotId::size_type const> track_slots_;
+
+    CELER_FUNCTION ActionId operator()(ThreadId tid) const
+    {
+        return along_step_.get()[track_slots_.get()[tid.get()]];
+    }
+};
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
@@ -108,6 +146,15 @@ inline void shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
 }
 
 inline void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline void count_tracks_per_action(
+    DeviceRef<CoreStateData> const&,
+    Span<ThreadId>,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    TrackOrder)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

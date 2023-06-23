@@ -111,6 +111,7 @@ enum class ActionOrder
     along,  //!< Along-step
     sort_along,  //!< Sort track slots after determining first step action
     pre_post,  //!< Discrete selection kernel
+    sort_pre_post,  //! Sort track slots after selecting discrete interaction
     post,  //!< After step
     post_post,  //!< User actions after boundary crossing, collision
     end,  //!< Processing secondaries, including replacing primaries
@@ -169,6 +170,10 @@ char const* to_cstring(ActionOrder);
 
 // Get a string corresponding to a track ordering policy
 char const* to_cstring(TrackOrder);
+
+// Checks that the TrackOrder will sort tracks by actions applied at the given
+// ActionOrder
+bool is_action_sorted(ActionOrder action, TrackOrder track);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

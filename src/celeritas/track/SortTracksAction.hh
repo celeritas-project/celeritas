@@ -19,7 +19,8 @@ namespace celeritas
  * automatically determined by TrackOrder. This should not have any impact on
  * simulation output: it is only useful for accelerator optimizations.
  */
-class SortTracksAction final : public ExplicitActionInterface
+class SortTracksAction final : public ExplicitActionInterface,
+                               public BeginRunActionInterface
 {
   public:
     // Construct with action ID and sort criteria
@@ -33,6 +34,12 @@ class SortTracksAction final : public ExplicitActionInterface
 
     //! Execute the action with device data
     void execute(CoreParams const& params, CoreStateDevice& state) const final;
+
+    //! Set host data at the beginning of a run
+    void begin_run(CoreParams const&, CoreStateHost&) final;
+
+    //! Set device data at the beginning of a run
+    void begin_run(CoreParams const&, CoreStateDevice&) final;
 
     //! ID of the action
     ActionId action_id() const final { return id_; }

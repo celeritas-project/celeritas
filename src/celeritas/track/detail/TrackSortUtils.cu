@@ -18,9 +18,11 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/Copier.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Stream.hh"
 
 namespace celeritas
@@ -66,6 +68,57 @@ void sort_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
                  start + track_slots.size(),
                  std::forward<F>(func));
     CELER_DEVICE_CHECK_ERROR();
+}
+
+// PRE: get_action is sorted, i.e. i <= j ==> get_action(i) <=
+// get_action(j)
+template<class F>
+__device__ void
+tracks_per_action_impl(Span<ThreadId> offsets, size_type size, F&& get_action)
+{
+    ThreadId tid = celeritas::KernelParamCalculator::thread_id();
+
+    if ((tid < size) && tid != ThreadId{0})
+    {
+        ActionId current_action = get_action(tid);
+        ActionId previous_action = get_action(tid - 1);
+        if (current_action && current_action != previous_action)
+        {
+            offsets[current_action.unchecked_get()] = tid;
+        }
+    }
+    // needed if the first action range has only one element
+    if (tid == ThreadId{0})
+    {
+        if (ActionId first = get_action(tid))
+        {
+            offsets[first.unchecked_get()] = tid;
+        }
+    }
+}
+
+__global__ void tracks_per_action_kernel(DeviceRef<CoreStateData> const states,
+                                         Span<ThreadId> offsets,
+                                         size_type size,
+                                         TrackOrder order)
+{
+    switch (order)
+    {
+        case TrackOrder::sort_along_step_action:
+            return tracks_per_action_impl(
+                offsets,
+                size,
+                AlongStepActionAccessor{states.sim.along_step_action.data(),
+                                        states.track_slots.data()});
+        case TrackOrder::sort_step_limit_action:
+            return tracks_per_action_impl(
+                offsets,
+                size,
+                StepLimitActionAccessor{states.sim.step_limit.data(),
+                                        states.track_slots.data()});
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -129,6 +182,41 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
                 states.stream_id);
         default:
             CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Count tracks associated to each action that was used to sort them, specified
+ * by order. Result is written in the output parameter offsets which sould be
+ * of size num_actions + 1.
+ */
+void count_tracks_per_action(
+    DeviceRef<CoreStateData> const& states,
+    Span<ThreadId> offsets,
+    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>& out,
+    TrackOrder order)
+{
+    if (order == TrackOrder::sort_along_step_action
+        || order == TrackOrder::sort_step_limit_action)
+    {
+        // dispatch in the kernel since CELER_LAUNCH_KERNEL doesn't work
+        // with templated kernels
+        auto start = device_pointer_cast(make_observer(offsets.data()));
+        thrust::fill(start, start + offsets.size(), ThreadId{});
+        CELER_DEVICE_CHECK_ERROR();
+        CELER_LAUNCH_KERNEL(tracks_per_action,
+                            celeritas::device().default_block_size(),
+                            states.size(),
+                            celeritas::device().stream(states.stream_id).get(),
+                            states,
+                            offsets,
+                            states.size(),
+                            order);
+        Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
+        Copier<ThreadId, MemSpace::host> copy_to_host{sout};
+        copy_to_host(MemSpace::device, offsets);
+        backfill_action_count(sout, states.size());
     }
 }
 

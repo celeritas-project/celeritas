@@ -9,6 +9,7 @@
 
 #include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/track/detail/TrackSortUtils.hh"
 
 #include "CoreParams.hh"
 
@@ -71,6 +72,90 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
 
     Copier<Primary, M> copy_to_temp{primaries_[this->primary_range()]};
     copy_to_temp(MemSpace::host, host_primaries);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reference to the host ActionThread collection for holding result of action
+ * counting
+ */
+template<MemSpace M>
+auto CoreState<M>::action_thread_offsets() -> ActionThreads<MemSpace::host>&
+{
+    if constexpr (M == MemSpace::device)
+    {
+        return host_thread_offsets_;
+    }
+    else
+    {
+        return thread_offsets_;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Const reference to the host ActionThread collection for holding result of
+ * action counting
+ */
+template<MemSpace M>
+auto CoreState<M>::action_thread_offsets() const
+    -> ActionThreads<MemSpace::host> const&
+{
+    if constexpr (M == MemSpace::device)
+    {
+        return host_thread_offsets_;
+    }
+    else
+    {
+        return thread_offsets_;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reference to the ActionThread collection matching the state memory space
+ */
+template<MemSpace M>
+auto CoreState<M>::native_action_thread_offsets() -> ActionThreads<M>&
+{
+    return thread_offsets_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a range delimiting the [start, end) of the track partition assigned
+ * action_id in track_slots
+ */
+template<MemSpace M>
+Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
+{
+    auto const& thread_offsets = action_thread_offsets();
+    CELER_EXPECT((action_id + 1) < thread_offsets.size());
+    return {thread_offsets[action_id], thread_offsets[action_id + 1]};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * resize ActionThreads collection to the number of actions
+ */
+template<MemSpace M>
+void CoreState<M>::num_actions(size_type n)
+{
+    resize(&thread_offsets_, n);
+    if constexpr (M == MemSpace::device)
+    {
+        resize(&host_thread_offsets_, n);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the number of actions, i.e. thread_offsets_ size
+ */
+template<MemSpace M>
+size_type CoreState<M>::num_actions() const
+{
+    return thread_offsets_.size();
 }
 
 //---------------------------------------------------------------------------//

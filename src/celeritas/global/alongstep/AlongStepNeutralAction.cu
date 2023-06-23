@@ -32,7 +32,7 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
                   detail::LinearPropagatorFactory{},
                   detail::NoELoss{}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(state, execute);
+    launch_kernel(params, state, *this, execute);
 }
 
 //---------------------------------------------------------------------------//
