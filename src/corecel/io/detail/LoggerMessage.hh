@@ -19,7 +19,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for writing log messages.
+ * Stream-like helper class for writing log messages.
  *
  * This class should only be created by a Logger instance. When it destructs,
  * the handler is called to print the information.
