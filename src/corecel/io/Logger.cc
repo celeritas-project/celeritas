@@ -105,6 +105,15 @@ void set_log_level_from_env(Logger* log, std::string const& level_env)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with default communicator and handler.
+ */
+Logger::Logger(LogHandler handle)
+    : Logger(MpiCommunicator::comm_default(), std::move(handle))
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with communicator (only rank zero is active) and handler.
  */
 Logger::Logger(MpiCommunicator const& comm, LogHandler handle)
@@ -151,10 +160,7 @@ LogLevel log_level_from_env(std::string const& level_env)
  */
 Logger make_default_world_logger()
 {
-    auto comm = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-                    ? MpiCommunicator::comm_world()
-                    : MpiCommunicator{};
-    Logger log{comm, &default_global_handler};
+    Logger log{&default_global_handler};
     set_log_level_from_env(&log, "CELER_LOG");
     return log;
 }
@@ -165,9 +171,7 @@ Logger make_default_world_logger()
  */
 Logger make_default_self_logger()
 {
-    auto comm = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-                    ? MpiCommunicator::comm_world()
-                    : MpiCommunicator{};
+    auto comm = MpiCommunicator::comm_default();
     auto handler = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
                        ? LocalHandler{comm}
                        : LogHandler{&default_global_handler};

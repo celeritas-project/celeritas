@@ -85,6 +85,9 @@ class Logger
     //! Get the default log level
     static constexpr LogLevel default_level() { return LogLevel::status; }
 
+    // Construct with default communicator
+    explicit Logger(LogHandler handle);
+
     // Construct with communicator (only rank zero is active) and handler
     Logger(MpiCommunicator const& comm, LogHandler handle);
 
