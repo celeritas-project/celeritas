@@ -159,9 +159,9 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
         // Discard the original end state and advance more accurately with the
         // newly proposed step
         real_type next_step
-            = options_.safety * step
-              * fastpow(std::sqrt(output.err_sq) / options_.epsilon_step,
-                        options_.pshrink);
+            = step * options_.safety
+              * fastpow(output.err_sq / ipow<2>(options_.epsilon_step),
+                        half() * options_.pshrink);
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
@@ -333,30 +333,29 @@ CELER_FUNCTION auto
 FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) const
     -> Integration
 {
+    CELER_EXPECT(step >= options_.minimum_step);
     // Output with a proposed next step
     Integration output;
 
     // Perform integration for adaptive step control with the truncation error
     bool succeeded = false;
     size_type remaining_steps = options_.max_nsteps;
-    real_type err_sq;
+    real_type err_eps_sq;
     FieldStepperResult result;
 
     do
     {
         result = apply_step_(step, state);
 
-        err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
-                 / ipow<2>(options_.epsilon_rel_max);
+        err_eps_sq = detail::rel_err_sq(result.err_state, step, state.mom)
+                     / ipow<2>(options_.epsilon_rel_max);
 
-        if (err_sq > 1)
+        if (err_eps_sq > 1)
         {
             // Step failed; compute the size of re-trial step.
-            real_type step_shrink
-                = options_.safety * fastpow(err_sq, half() * options_.pshrink);
-
-            // Truncation error too large, reduce stepsize with a low bound
-            step = max(step_shrink, options_.max_stepping_decrease) * step;
+            step *= max(options_.safety
+                            * fastpow(err_eps_sq, half() * options_.pshrink),
+                        options_.max_stepping_decrease);
         }
         else
         {
@@ -368,11 +367,12 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
     // Update state, step taken by this trial and the next predicted step
     output.end.state = result.end_state;
     output.end.step = step;
-    output.proposed_step = (err_sq > ipow<2>(options_.errcon))
-                               ? options_.safety * step
-                                     * fastpow(err_sq, half() * options_.pgrow)
-                               : options_.max_stepping_increase * step;
+    output.proposed_step
+        = step
+          * min(options_.safety * fastpow(err_eps_sq, half() * options_.pgrow),
+                options_.max_stepping_increase);
 
+    CELER_ENSURE(output.proposed_step > 0);
     return output;
 }
 
