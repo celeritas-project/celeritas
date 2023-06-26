@@ -76,7 +76,12 @@ MaterialParams::from_import(ImportData const& data)
         element_params.atomic_number = AtomicNumber{element.atomic_number};
         element_params.atomic_mass = units::AmuMass{element.atomic_mass};
         element_params.label = Label::from_geant(element.name);
-        element_params.isotope_indices = element.isotope_indices;
+
+        for (auto const& key : element.isotopes_fractions)
+        {
+            element_params.isotope_fractions.push_back(
+                {static_cast<IsotopeId>(key.first), real_type{key.second}});
+        }
 
         input.elements.push_back(std::move(element_params));
     }
@@ -299,7 +304,7 @@ void MaterialParams::append_element_def(ElementInput const& inp,
 {
     CELER_EXPECT(inp.atomic_number);
     CELER_EXPECT(inp.atomic_mass > zero_quantity());
-    CELER_ASSERT(inp.isotope_indices.size() == inp.isotope_fractions.size());
+    CELER_ASSERT(inp.isotope_fractions.size());
 
     ElementRecord result;
 
@@ -308,13 +313,9 @@ void MaterialParams::append_element_def(ElementInput const& inp,
     result.atomic_mass = inp.atomic_mass;
 
     std::vector<ElIsotopeComponent> vec_eic;
-    for (auto i : range(inp.isotope_indices.size()))
+    for (auto const& key : inp.isotope_fractions)
     {
-        ElIsotopeComponent eic;
-        CELER_ASSERT(inp.isotope_indices[i] >= 0);
-        eic.isotope = IsotopeId(inp.isotope_indices[i]);
-        eic.fraction = inp.isotope_fractions[i];
-        vec_eic.push_back(std::move(eic));
+        vec_eic.push_back(ElIsotopeComponent{key.first, key.second});
     }
     result.isotopes = make_builder(&host_data->isocomponents)
                           .insert_back(vec_eic.begin(), vec_eic.end());

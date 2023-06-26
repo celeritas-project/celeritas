@@ -66,8 +66,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     {
         AtomicNumber atomic_number;  //!< Atomic number Z
         units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
-        std::vector<int> isotope_indices;  //!< Index in Input::isotopes
-        std::vector<double> isotope_fractions;  //!< Fractional abundance
+        std::vector<std::pair<IsotopeId, real_type>>
+            isotope_fractions;  //!< Isotopic fractional abundance
         Label label;  //!< Element name
     };
 

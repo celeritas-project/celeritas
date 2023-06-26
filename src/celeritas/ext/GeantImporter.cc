@@ -266,15 +266,16 @@ auto import_elements()
         element.atomic_mass = g4element->GetAtomicMassAmu();
         element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
         element.coulomb_factor = g4element->GetfCoulomb();
-        element.isotope_indices.resize(g4isotope_vec.size());
-        element.relative_abundance.resize(g4element->GetNumberOfIsotopes());
 
         double* const g4rel_abundance = g4element->GetRelativeAbundanceVector();
         double total_el_abundance_fraction = 0;  // Verify that the sum is ~1
         for (auto idx : range(g4element->GetNumberOfIsotopes()))
         {
-            element.isotope_indices[idx] = g4isotope_vec.at(idx)->GetIndex();
-            element.relative_abundance[idx] = g4rel_abundance[idx];
+            ImportElement::IsotopeFrac key;
+            key.first = g4isotope_vec[idx]->GetIndex();
+            key.second = g4rel_abundance[idx];
+            element.isotopes_fractions.push_back(std::move(key));
+
             total_el_abundance_fraction += g4rel_abundance[idx];
         }
         CELER_VALIDATE(soft_equal(1., total_el_abundance_fraction),

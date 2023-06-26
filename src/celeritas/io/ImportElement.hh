@@ -15,13 +15,17 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Store element data.
+ *
+ * Isotopic fractional abundance index refers to the isotope's index in
+ * \c ImportData::isotopes vector.
  */
 struct ImportElement
 {
     //!@{
     //! \name type aliases
-    using VecIsotopeIdx = std::vector<int>;
-    using VecIsotopeFrac = std::vector<int>;
+    using IsotopeIndex = int;
+    using IsotopeFrac = std::pair<IsotopeIndex, double>;
+    using VecIsotopeFrac = std::vector<IsotopeFrac>;
     //!@}
 
     std::string name;
@@ -29,9 +33,7 @@ struct ImportElement
     double atomic_mass;  //!< [atomic mass unit]
     double radiation_length_tsai;  //!< [g/cm^2]
     double coulomb_factor;
-    VecIsotopeIdx isotope_indices;  //!< Indices in ImportData::isotopes
-    VecIsotopeFrac relative_abundance;  //!< Fractional abundance for this
-                                        //!< element
+    VecIsotopeFrac isotopes_fractions;  //!< Isotopic fractional abundance
 };
 
 //---------------------------------------------------------------------------//

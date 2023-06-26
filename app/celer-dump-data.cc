@@ -97,20 +97,20 @@ void print_elements(std::vector<ImportElement>& elements,
         auto const& element = elements[element_id];
 
         auto const labels = to_string(
-            join(element.isotope_indices.begin(),
-                 element.isotope_indices.end(),
+            join(element.isotopes_fractions.begin(),
+                 element.isotopes_fractions.end(),
                  ", ",
-                 [&](auto const& idx) { return isotopes[idx].name; }));
+                 [&](auto const& key) { return isotopes[key.first].name; }));
 
-        auto const rel_abundances = to_string(
-            join(element.relative_abundance.begin(),
-                 element.relative_abundance.end(),
-                 ", ",
-                 [](auto const& value) {
-                     stringstream sstr;
-                     sstr << fixed << scientific << setprecision(1) << value;
-                     return sstr.str();
-                 }));
+        auto const rel_abundances = to_string(join(
+            element.isotopes_fractions.begin(),
+            element.isotopes_fractions.end(),
+            ", ",
+            [](auto const& key) {
+                stringstream sstr;
+                sstr << fixed << scientific << setprecision(1) << key.second;
+                return sstr.str();
+            }));
 
         // clang-format off
         cout << "| "
