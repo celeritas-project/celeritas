@@ -93,7 +93,7 @@ MaterialParams::from_import(ImportData const& data)
         for (auto const& key : element.isotopes_fractions)
         {
             // Populate isotope fractional abundance
-            element_params.isotope_fractions.push_back(
+            element_params.isotopes_fractions.push_back(
                 {static_cast<IsotopeId>(key.first), real_type{key.second}});
         }
 
@@ -137,14 +137,19 @@ MaterialParams::MaterialParams(Input const& inp)
     // Build input data on host
     HostValue host_data;
 
-    // Isotopes
-    std::vector<Label> isot_labels(inp.isotopes.size());
-    for (auto i : range(inp.isotopes.size()))
+    isotope_data_ = !inp.materials.empty() ? true : false;
+
+    if (isotope_data_)
     {
-        isot_labels[i] = inp.isotopes[i].label;
-        this->append_isotope_def(inp.isotopes[i], &host_data);
+        // Isotopes
+        std::vector<Label> isot_labels(inp.isotopes.size());
+        for (auto i : range(inp.isotopes.size()))
+        {
+            isot_labels[i] = inp.isotopes[i].label;
+            this->append_isotope_def(inp.isotopes[i], &host_data);
+        }
+        isot_labels_ = LabelIdMultiMap<IsotopeId>(std::move(isot_labels));
     }
-    isot_labels_ = LabelIdMultiMap<IsotopeId>(std::move(isot_labels));
 
     // Elements
     std::vector<Label> el_labels(inp.elements.size());
@@ -301,7 +306,6 @@ void MaterialParams::append_element_def(ElementInput const& inp,
 {
     CELER_EXPECT(inp.atomic_number);
     CELER_EXPECT(inp.atomic_mass > zero_quantity());
-    CELER_EXPECT(!inp.isotope_fractions.empty() || host_data->isotopes.empty());
 
     ElementRecord result;
 
@@ -309,25 +313,30 @@ void MaterialParams::append_element_def(ElementInput const& inp,
     result.atomic_number = inp.atomic_number;
     result.atomic_mass = inp.atomic_mass;
 
-    std::vector<ElIsotopeComponent> vec_eic;
-    for (auto const& key : inp.isotope_fractions)
+    if (isotope_data_ && !inp.isotopes_fractions.empty())
     {
-        vec_eic.push_back(ElIsotopeComponent{key.first, key.second});
+        // There is isotopic data and this specific element has isotopes loaded
+        std::vector<ElIsotopeComponent> vec_eic;
+        for (auto const& key : inp.isotopes_fractions)
+        {
+            vec_eic.push_back(ElIsotopeComponent{key.first, key.second});
+        }
+
+        // Sort isotopes by increasing isotope ID for improved access
+        std::sort(
+            vec_eic.begin(),
+            vec_eic.end(),
+            [](ElIsotopeComponent const& lhs, ElIsotopeComponent const& rhs) {
+                return lhs.isotope < rhs.isotope;
+            });
+
+        result.isotopes = make_builder(&host_data->isocomponents)
+                              .insert_back(vec_eic.begin(), vec_eic.end());
+
+        // Update maximum number of isotopes
+        host_data->max_isotope_components = std::max(
+            host_data->max_isotope_components, result.isotopes.size());
     }
-
-    // Sort isotopes by increasing isotope ID for improved access
-    std::sort(vec_eic.begin(),
-              vec_eic.end(),
-              [](ElIsotopeComponent const& lhs, ElIsotopeComponent const& rhs) {
-                  return lhs.isotope < rhs.isotope;
-              });
-
-    result.isotopes = make_builder(&host_data->isocomponents)
-                          .insert_back(vec_eic.begin(), vec_eic.end());
-
-    // Update maximum number of isotopes
-    host_data->max_isotope_components
-        = std::max(host_data->max_isotope_components, result.isotopes.size());
 
     // Calculate various factors of the atomic number
     const real_type z_real = result.atomic_number.unchecked_get();

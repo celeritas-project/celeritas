@@ -16,6 +16,7 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialParamsOutput.hh"
@@ -107,13 +108,29 @@ class MaterialTest : public Test
   protected:
     void SetUp() override
     {
+        real_type const c_light_sq = std::pow(constants::c_light, 2);
+
         MaterialParams::Input inp;
+
+        inp.isotopes = {{AtomicNumber{13},  // Z
+                         AtomicNumber{27},  // A
+                         units::MevMass{25126.5 / c_light_sq},
+                         "Al27"},
+                        {AtomicNumber{13},  // Z
+                         AtomicNumber{28},  // A
+                         units::MevMass{26058.3 / c_light_sq},
+                         "Al28"}};
+
         inp.elements = {
             {AtomicNumber{1}, units::AmuMass{1.008}, {}, "H"},
-            {AtomicNumber{13}, units::AmuMass{26.9815385}, {}, "Al"},
+            {AtomicNumber{13},
+             units::AmuMass{26.9815385},
+             {{IsotopeId{0}, 0.7}, {IsotopeId{1}, 0.3}},
+             "Al"},
             {AtomicNumber{11}, units::AmuMass{22.98976928}, {}, "Na"},
             {AtomicNumber{53}, units::AmuMass{126.90447}, {}, "I"},
         };
+
         inp.materials = {
             // Sodium iodide
             {2.948915064677e+22,
@@ -151,6 +168,7 @@ TEST_F(MaterialTest, params)
     EXPECT_EQ(4, params->size());
     EXPECT_EQ(4, params->num_materials());
     EXPECT_EQ(4, params->num_elements());
+    EXPECT_EQ(2, params->num_isotopes());
 
     EXPECT_EQ(MaterialId{0}, params->find_material("NaI"));
     EXPECT_EQ(MaterialId{1}, params->find_material("hard vacuum"));
@@ -162,18 +180,26 @@ TEST_F(MaterialTest, params)
     }
     EXPECT_EQ(MaterialId{}, params->find_material("nonexistent material"));
 
+    // Isotopes
+    EXPECT_EQ("Al27", params->id_to_label(IsotopeId{0}).name);
+    EXPECT_EQ("Al28", params->id_to_label(IsotopeId{1}).name);
+    EXPECT_EQ(IsotopeId{0}, params->find_isotope("Al27"));
+
+    // Elements
     EXPECT_EQ("H", params->id_to_label(ElementId{0}).name);
     EXPECT_EQ("Al", params->id_to_label(ElementId{1}).name);
     EXPECT_EQ("Na", params->id_to_label(ElementId{2}).name);
     EXPECT_EQ("I", params->id_to_label(ElementId{3}).name);
     EXPECT_EQ(ElementId{1}, params->find_element("Al"));
 
+    // Materials
     EXPECT_EQ("NaI", params->id_to_label(MaterialId{0}).name);
     EXPECT_EQ("hard vacuum", params->id_to_label(MaterialId{1}).name);
     EXPECT_EQ(Label("H2", "1"), params->id_to_label(MaterialId{2}));
     EXPECT_EQ(Label("H2", "2"), params->id_to_label(MaterialId{3}));
 
     EXPECT_EQ(2, params->max_element_components());
+    EXPECT_EQ(2, params->max_isotope_components());
 }
 
 TEST_F(MaterialTest, material_view)
@@ -271,6 +297,21 @@ TEST_F(MaterialTest, element_view)
         EXPECT_SOFT_EQ(0.010734632775699565, el.coulomb_correction());
         EXPECT_SOFT_EQ(0.04164723292591279, el.mass_radiation_coeff());
     }
+}
+
+TEST_F(MaterialTest, isotope_view)
+{
+    real_type const c_light_sq = std::pow(constants::c_light, 2);
+
+    IsotopeView iso_0 = params->get(IsotopeId{0});
+    EXPECT_EQ(AtomicNumber{13}, iso_0.atomic_number());
+    EXPECT_EQ(AtomicNumber{27}, iso_0.atomic_mass_number());
+    EXPECT_SOFT_EQ(25126.5 / c_light_sq, iso_0.nuclear_mass().value());
+
+    IsotopeView iso_1 = params->get(IsotopeId{1});
+    EXPECT_EQ(AtomicNumber{13}, iso_1.atomic_number());
+    EXPECT_EQ(AtomicNumber{28}, iso_1.atomic_mass_number());
+    EXPECT_SOFT_EQ(26058.3 / c_light_sq, iso_1.nuclear_mass().value());
 }
 
 TEST_F(MaterialTest, output)

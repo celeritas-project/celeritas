@@ -67,7 +67,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         AtomicNumber atomic_number;  //!< Atomic number Z
         units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
         std::vector<std::pair<IsotopeId, real_type>>
-            isotope_fractions;  //!< Isotopic fractional abundance
+            isotopes_fractions;  //!< Isotopic fractional abundance
         Label label;  //!< Element name
     };
 
@@ -154,8 +154,14 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     // Access isotope definitions on host
     inline IsotopeView get(IsotopeId id) const;
 
+    // Maximum number of isotopes in any one element
+    inline IsotopeComponentId::size_type max_isotope_components() const;
+
     // Maximum number of elements in any one material
     inline ElementComponentId::size_type max_element_components() const;
+
+    // Verify if isotopic data exists
+    inline bool const has_isotope_data() const { return isotope_data_; }
 
     //! Access material properties on the host
     HostRef const& host_ref() const final { return data_.host(); }
@@ -168,6 +174,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     LabelIdMultiMap<MaterialId> mat_labels_;
     LabelIdMultiMap<ElementId> el_labels_;
     LabelIdMultiMap<IsotopeId> isot_labels_;
+    bool isotope_data_;
 
     // Host/device storage and reference
     CollectionMirror<MaterialParamsData> data_;
@@ -211,6 +218,15 @@ IsotopeView MaterialParams::get(IsotopeId id) const
 {
     CELER_EXPECT(id < this->host_ref().isotopes.size());
     return IsotopeView(this->host_ref(), id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum number of isotopes in any one element.
+ */
+IsotopeComponentId::size_type MaterialParams::max_isotope_components() const
+{
+    return this->host_ref().max_isotope_components;
 }
 
 //---------------------------------------------------------------------------//
