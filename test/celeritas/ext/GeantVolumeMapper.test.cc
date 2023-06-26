@@ -53,7 +53,10 @@ namespace test
 class GeantVolumeMapperTestBase : public ::celeritas::test::Test
 {
   protected:
-    GeantVolumeMapperTestBase() : store_log_(&celeritas::world_logger()) {}
+    GeantVolumeMapperTestBase()
+        : store_log_(&celeritas::world_logger(), LogLevel::warning)
+    {
+    }
 
     // Clean up geometry at destruction
     void TearDown() override
@@ -263,6 +266,7 @@ TEST_F(NestedTest, unique)
     }
     else
     {
+        store_log_.print_expected();
         EXPECT_EQ(0, store_log_.messages().size());
     }
 }
