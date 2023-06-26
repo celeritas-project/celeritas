@@ -17,10 +17,20 @@ namespace celeritas
 /*!
  * Configuration options for the field driver.
  *
- * TODO: replace epsilon_rel_max with 1/epsilon_rel_max^2
+ * TODO: remove epsilon_rel_max as its value should be epsilon_step
  * TODO: replace safety with step_shrink_mul (or something to indicate that
  * it's a multiplicative factor for reducing the step, not anything with
  * geometry)
+ * TODO: max_stepping_increase/decrease should be constexpr: see \c
+ * G4VIntegrationDriver
+ *
+ * TODO: set parameters with relations based on \c
+ * G4MagInt_Driver::ReSetParameters :
+ * \code
+   pshrink = -1 / stepper.integration_order
+   pgrow = -1 / (1 + stepper.integration_order)
+   errcon = std::pow(max_stepping_increase/safety, 1/pgrow)
+   \endcode
  */
 struct FieldDriverOptions
 {
@@ -39,8 +49,8 @@ struct FieldDriverOptions
     //! Maximum of the error ratio
     real_type epsilon_rel_max = 1.0e-3;
 
-    //! Truncation error tolerance
-    real_type errcon = 1.0e-4;
+    //! Truncation error tolerance (see note)
+    real_type errcon = 0.00018896;
 
     //! Exponent to increase a step size
     real_type pgrow = -0.20;
