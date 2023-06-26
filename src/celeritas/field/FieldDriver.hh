@@ -159,8 +159,7 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
     CELER_ASSERT(output.end.step <= step);
 
     // Evaluate the relative error
-    real_type rel_error = output.err_sq
-                          / (options_.epsilon_step * output.end.step);
+    real_type rel_error = output.err_sq / options_.epsilon_step;
 
     if (rel_error > 1)
     {
@@ -319,8 +318,8 @@ FieldDriver<StepperT>::integrate_step(real_type step,
         // Compute a proposed new step
         real_type err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
                            / ipow<2>(options_.epsilon_rel_max);
-        output.proposed_step = this->new_step_size(
-            step, err_sq / (options_.epsilon_step * step));
+        output.proposed_step
+            = this->new_step_size(step, err_sq / options_.epsilon_step);
     }
 
     return output;
