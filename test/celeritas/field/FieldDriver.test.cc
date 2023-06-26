@@ -142,43 +142,51 @@ TEST_F(FieldDriverTest, step_counts)
         UniformField({0, 0, field_strength}), units::ElementaryCharge{-1});
     FieldDriver<decltype(stepper)&> driver{driver_options, stepper};
 
-    std::vector<real_type> energy;
     std::vector<real_type> radii;
     std::vector<unsigned int> counts;
     std::vector<real_type> lengths;
 
     // Test the number of field equation evaluations that have to be done to
-    // travel a step length of 10 cm, for electrons from 0.1 eV to 10 TeV.
-    for (int loge : range(-7, 7).step(1))
+    // travel a step length of 1e-4 cm and 10 cm, for electrons from 0.1 eV to
+    // 10 TeV.
+    for (int loge : range(-7, 7).step(2))
     {
-        MevEnergy e{std::pow(10, loge)};
+        MevEnergy e{std::pow(10.0, loge)};
         real_type radius = this->calc_curvature(e, field_strength);
+        radii.push_back(radius);
 
         OdeState state;
         state.pos = {radius, 0, 0};
         state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
 
-        stepper.reset_count();
-        auto end = driver.advance(10 * units::centimeter, state);
+        for (int log_len : range(-4, 3).step(2))
+        {
+            real_type step_len = std::pow(10.0, log_len);
+            stepper.reset_count();
+            auto end = driver.advance(step_len * units::centimeter, state);
 
-        energy.push_back(e.value());
-        radii.push_back(radius);
-        counts.push_back(stepper.count());
-        lengths.push_back(end.step);
+            counts.push_back(stepper.count());
+            lengths.push_back(end.step);
+        }
     }
+
+    PRINT_EXPECTED(radii);
+    PRINT_EXPECTED(counts);
+    PRINT_EXPECTED(lengths);
 
     // clang-format off
     static double const expected_radii[] = {0.00010663611598835,
-        0.00033721315583664, 0.0010663663247419, 0.0033722948818996,
-        0.010668826843187, 0.033885874824232, 0.11173141982667,
-        0.47431804394274, 3.5019461121752, 33.526427131057, 333.73450257138,
-        3335.8113985278, 33356.579970281, 333564.26564901};
-    static unsigned int const expected_counts[] = {782u, 247u, 92u, 45u, 31u,
-        13u, 10u, 8u, 6u, 4u, 2u, 1u, 1u, 1u};
-    static double const expected_lengths[] = {0.077562380895466,
-        0.077251971561029, 0.076209747456898, 0.072434474486632,
-        0.063064404446822, 0.085308004478855, 0.15625, 0.36823861947329,
-        0.99606722344324, 3.0796706094122, 9.7157674620814, 10, 10, 10};
+        0.0010663663247419, 0.010668826843187, 0.11173141982667,
+        3.5019461121752, 333.73450257138, 33356.579970281};
+    static unsigned int const expected_counts[] = {4u, 93u, 776u, 786u, 1u,
+        13u, 88u, 96u, 1u, 5u, 28u, 35u, 1u, 1u, 7u, 15u, 1u, 1u, 2u, 9u, 1u,
+        1u, 1u, 5u, 1u, 1u, 1u, 2u};
+    static double const expected_lengths[] = {0.0001, 0.01, 0.077563521220272,
+        0.077562922424298, 0.0001, 0.01, 0.076209386999884, 0.076210431034511,
+        0.0001, 0.01, 0.063064075311856, 0.063064905456757, 0.0001, 0.01,
+        0.17398853544975, 0.1788332443937, 0.0001, 0.01, 0.99607291767799,
+        0.99606836440819, 0.0001, 0.01, 1, 9.7158185571513, 0.0001, 0.01, 1,
+        97.132215683182};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_radii, radii);
