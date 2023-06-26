@@ -36,7 +36,7 @@ class FieldDriver
 
     // For a given trial step, advance by a sub_step within a tolerance error
     inline CELER_FUNCTION DriverResult advance(real_type step,
-                                               OdeState const& state) const;
+                                               OdeState const& state);
 
     // An adaptive step size control from G4MagIntegratorDriver
     // Move this to private after all tests with non-uniform field are done
@@ -64,6 +64,9 @@ class FieldDriver
 
     // Stepper for this field driver
     StepperT apply_step_;
+
+    // Relative error allowed on step
+    real_type epsilon_;
 
     //// TYPES ////
 
@@ -111,12 +114,17 @@ CELER_FUNCTION FieldDriver(FieldDriverOptions const&, StepperT&&)
 //---------------------------------------------------------------------------//
 /*!
  * Construct with options and the step advancement functor.
+ *
+ * TODO: epsilon_ doesn't need to be initialized once accurate_advance is
+ * private
  */
 template<class StepperT>
 CELER_FUNCTION
 FieldDriver<StepperT>::FieldDriver(FieldDriverOptions const& options,
                                    StepperT&& stepper)
-    : options_(options), apply_step_(::celeritas::forward<StepperT>(stepper))
+    : options_(options)
+    , apply_step_(::celeritas::forward<StepperT>(stepper))
+    , epsilon_(options_.epsilon_rel_max)
 {
     CELER_EXPECT(options_);
 }
@@ -139,7 +147,7 @@ FieldDriver<StepperT>::FieldDriver(FieldDriverOptions const& options,
  */
 template<class StepperT>
 CELER_FUNCTION DriverResult
-FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
+FieldDriver<StepperT>::advance(real_type step, OdeState const& state)
 {
     if (step <= options_.minimum_step)
     {
@@ -150,18 +158,22 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
         return result;
     }
 
-    // Output with a step control error
+    // Update relative error requirement for this step
+    epsilon_ = clamp(options_.delta_step / step,
+                     options_.epsilon_step,
+                     options_.epsilon_rel_max);
+
+    // Search up to the maximum allowed distance to satisfy delta_intersection
     ChordSearch output = this->find_next_chord(step, state);
     CELER_ASSERT(output.end.step <= step);
 
-    if (output.err_sq > ipow<2>(options_.epsilon_step))
+    if (output.err_sq > ipow<2>(epsilon_))
     {
         // Discard the original end state and advance more accurately with the
         // newly proposed step
-        real_type next_step
-            = step * options_.safety
-              * fastpow(output.err_sq / ipow<2>(options_.epsilon_step),
-                        half() * options_.pshrink);
+        real_type next_step = step * options_.safety
+                              * fastpow(output.err_sq / ipow<2>(epsilon_),
+                                        half() * options_.pshrink);
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
@@ -242,7 +254,7 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
         = ((hinitial > options_.initial_step_tol * step) && (hinitial < step))
               ? hinitial
               : step;
-    real_type h_threshold = options_.epsilon_step * step;
+    real_type h_threshold = epsilon_ * step;
 
     // Output with the next good step
     Integration output;
@@ -313,7 +325,7 @@ FieldDriver<StepperT>::integrate_step(real_type step,
         // Compute a proposed new step
         real_type const err_eps
             = std::sqrt(detail::rel_err_sq(result.err_state, step, state.mom))
-              / options_.epsilon_rel_max;
+              / epsilon_;
         output.proposed_step
             = options_.safety * step
               * fastpow(err_eps,
@@ -348,7 +360,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
         result = apply_step_(step, state);
 
         err_eps_sq = detail::rel_err_sq(result.err_state, step, state.mom)
-                     / ipow<2>(options_.epsilon_rel_max);
+                     / ipow<2>(epsilon_);
 
         if (err_eps_sq > 1)
         {

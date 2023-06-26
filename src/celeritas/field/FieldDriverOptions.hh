@@ -17,14 +17,15 @@ namespace celeritas
 /*!
  * Configuration options for the field driver.
  *
- * TODO: remove epsilon_rel_max as its value should be epsilon_step
+ * TODO: epsilon_step -> epsilon_min
+ * TODO: epsilon_rel_max -> epsilon_max
  * TODO: replace safety with step_shrink_mul (or something to indicate that
  * it's a multiplicative factor for reducing the step, not anything with
  * geometry)
  * TODO: max_stepping_increase/decrease should be constexpr: see \c
  * G4VIntegrationDriver
  *
- * TODO: set parameters with relations based on \c
+ * TODO: set parameters at construction time with relations based on \c
  * G4MagInt_Driver::ReSetParameters :
  * \code
    pshrink = -1 / stepper.integration_order
@@ -39,6 +40,9 @@ struct FieldDriverOptions
 
     //! The maximum sagitta of each substep ("miss distance")
     real_type delta_chord = 0.25 * units::millimeter;
+
+    //! Accuracy of each step
+    real_type delta_step = 0.01 * units::millimeter;
 
     //! Accuracy of intersection of the boundary crossing
     real_type delta_intersection = 1.0e-4 * units::millimeter;
@@ -84,7 +88,7 @@ struct FieldDriverOptions
 	       && (delta_chord > 0)
 	       && (delta_intersection > minimum_step)
 	       && (epsilon_step > 0 && epsilon_step < 1)
-	       && (epsilon_rel_max > 0)
+	       && (epsilon_rel_max >= epsilon_step)
 	       && (errcon > 0)
 	       && (pgrow < 0)
 	       && (pshrink < 0)
