@@ -100,6 +100,9 @@ inline CELER_FUNCTION bool is_intercept_close(Real3 const& pos,
  * Evaluate the square of the relative stepper truncation error.
  *
  * \f$ \max(\delta_\textrm{pos}^{2}, \epsilon \delta_\textrm{mom}^{2}) \f$
+ *
+ * The return value is the square of \c dyerr in
+ * \c G4MagIntegratorDriver::AccurateAdvance .
  */
 inline CELER_FUNCTION real_type rel_err_sq(OdeState const& err_state,
                                            real_type step,
