@@ -9,6 +9,7 @@
 
 #include <regex>
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 
@@ -31,30 +32,9 @@ class MockContextException : public std::exception
 class MultiExceptionHandlerTest : public ::celeritas::test::Test
 {
   protected:
-    void SetUp() override
-    {
-        using namespace std::placeholders;
-        celeritas::self_logger() = Logger(
-            MpiCommunicator{},
-            std::bind(
-                &MultiExceptionHandlerTest::log_message, this, _1, _2, _3));
-    }
+    MultiExceptionHandlerTest() : store_log_(&celeritas::self_logger()) {}
 
-    void log_message(Provenance, LogLevel lev, std::string msg)
-    {
-        EXPECT_EQ(LogLevel::critical, lev);
-
-        static const std::regex delete_ansi("\033\\[[0-9;]*m");
-        messages.push_back(std::regex_replace(msg, delete_ansi, ""));
-    }
-
-    static void TearDownTestCase()
-    {
-        // Restore logger
-        celeritas::self_logger() = celeritas::make_default_self_logger();
-    }
-
-    std::vector<std::string> messages;
+    ScopedLogStorer store_log_;
 };
 
 TEST_F(MultiExceptionHandlerTest, single)
@@ -83,14 +63,18 @@ TEST_F(MultiExceptionHandlerTest, multi)
     }
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)), RuntimeError);
 
-    static const std::string expected_messages[]
+    static char const* const expected_messages[]
         = {"ignoring exception: test.cc:0:\nceleritas: internal assertion "
            "failed: false",
            "ignoring exception: test.cc:1:\nceleritas: internal assertion "
            "failed: false",
            "ignoring exception: test.cc:2:\nceleritas: internal assertion "
            "failed: false"};
-    EXPECT_VEC_EQ(expected_messages, this->messages);
+    EXPECT_VEC_EQ(expected_messages, store_log_.messages());
+
+    static char const* const expected_log_levels[]
+        = {"critical", "critical", "critical"};
+    EXPECT_VEC_EQ(expected_log_levels, store_log_.levels());
 }
 
 TEST_F(MultiExceptionHandlerTest, multi_nested)
@@ -106,10 +90,10 @@ TEST_F(MultiExceptionHandlerTest, multi_nested)
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)),
                  MockContextException);
 
-    static const std::string expected_messages[]
+    static char const* const expected_messages[]
         = {"ignoring exception: test.cc:2:\nceleritas: internal assertion "
            "failed: false\n... from: some context"};
-    EXPECT_VEC_EQ(expected_messages, this->messages);
+    EXPECT_VEC_EQ(expected_messages, store_log_.messages());
 }
 
 // Failure case can't be tested as part of the rest of the suite
