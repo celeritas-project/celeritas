@@ -3,25 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/ScopedDeviceProfiling.cuda.cc
+//! \file corecel/sys/ScopedProfiling.nvtx.cc
 //---------------------------------------------------------------------------//
 
-#include "ScopedDeviceProfiling.hh"
+#include "ScopedProfiling.hh"
 
 #include <mutex>
 #include <shared_mutex>
 #include <unordered_map>
-
-#include "celeritas_config.h"
-#include "corecel/device_runtime_api.h"
-
-// Profiler API isn't included with regular CUDA API headers
 #include <nvtx3/nvToolsExt.h>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
-
-#include "Device.hh"
 
 namespace celeritas
 {
@@ -32,7 +26,7 @@ namespace
 /*!
  * Global registry for strings used by NVTX.
  * This Implemented as a free function instead of a static in
- * ScopedDeviceProfiling to hide the NVTX dependency from user of the
+ * ScopedProfiling to hide the NVTX dependency from user of the
  * interface.
  */
 std::unordered_map<std::string, nvtxStringHandle_t>& message_registry()
@@ -102,11 +96,12 @@ nvtxEventAttributes_t make_attributes(std::string const& name)
     return attributes;
 }
 }  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
- * Activate device profiling.
+ * Activate nvtx profiling.
  */
-ScopedDeviceProfiling::ScopedDeviceProfiling(std::string const& name)
+ScopedProfiling::ScopedProfiling(std::string const& name)
 {
     nvtxEventAttributes_t attributes_ = make_attributes(name);
     nvtxDomainRangePushEx(domain_handle(), &attributes_);
@@ -116,7 +111,7 @@ ScopedDeviceProfiling::ScopedDeviceProfiling(std::string const& name)
 /*!
  * Deactivate device profiling if this function activated it.
  */
-ScopedDeviceProfiling::~ScopedDeviceProfiling()
+ScopedProfiling::~ScopedProfiling()
 {
     nvtxDomainRangePop(domain_handle());
 }
