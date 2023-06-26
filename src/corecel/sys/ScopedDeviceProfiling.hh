@@ -39,7 +39,7 @@ class ScopedDeviceProfiling
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_CUDA
-inline ScopedDeviceProfiling::ScopedDeviceProfiling() {}
+inline ScopedDeviceProfiling::ScopedDeviceProfiling(std::string_view) {}
 inline ScopedDeviceProfiling::~ScopedDeviceProfiling() {}
 #endif
 
