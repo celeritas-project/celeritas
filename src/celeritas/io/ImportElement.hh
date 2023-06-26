@@ -16,8 +16,7 @@ namespace celeritas
 /*!
  * Store element data.
  *
- * Isotopic fractional abundance index refers to the isotope's index in
- * \c ImportData::isotopes vector.
+ * \c IsotopeIndex maps the isotope in the \c ImportData::isotopes vector.
  */
 struct ImportElement
 {

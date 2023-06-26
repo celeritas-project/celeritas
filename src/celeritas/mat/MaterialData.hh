@@ -134,6 +134,7 @@ struct MaterialParamsData
     Items<ElIsotopeComponent> isocomponents;
     Items<MaterialRecord> materials;
     ElementComponentId::size_type max_element_components{};
+    IsotopeComponentId::size_type max_isotope_components{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -153,6 +154,7 @@ struct MaterialParamsData
         elcomponents = other.elcomponents;
         materials = other.materials;
         max_element_components = other.max_element_components;
+        max_isotope_components = other.max_isotope_components;
         return *this;
     }
 };

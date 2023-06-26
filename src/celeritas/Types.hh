@@ -29,11 +29,11 @@ namespace celeritas
 //! End-of-step (or perhaps someday within-step?) action to take
 using ActionId = OpaqueId<class ActionInterface>;
 
-//! Opaque index to ElementRecord in the global vector of elements
-using ElementId = OpaqueId<struct ElementRecord>;
-
 //! Opaque index to IsotopeRecord in a vector
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
+
+//! Opaque index to ElementRecord in the global vector of elements
+using ElementId = OpaqueId<struct ElementRecord>;
 
 //! Counter for the initiating event for a track
 using EventId = OpaqueId<struct Event>;
@@ -56,6 +56,9 @@ using TrackId = OpaqueId<struct Track>;
 //---------------------------------------------------------------------------//
 // (detailed type aliases)
 //---------------------------------------------------------------------------//
+
+//! Opaque index to one isotopic component datum in a particular element
+using IsotopeComponentId = OpaqueId<struct ElIsotopeComponent>;
 
 //! Opaque index to one elemental component datum in a particular material
 using ElementComponentId = OpaqueId<struct MatElementComponent>;
