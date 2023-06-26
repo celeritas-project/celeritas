@@ -31,6 +31,8 @@ class ScopedProfiling
     explicit ScopedProfiling(std::string const& name);
     // Deactivate profiling
     ~ScopedProfiling();
+    // RAII semantics
+    void* operator new(std::size_t count) = delete;
 };
 
 //---------------------------------------------------------------------------//
