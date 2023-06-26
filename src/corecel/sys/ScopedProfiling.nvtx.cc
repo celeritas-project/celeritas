@@ -81,18 +81,18 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
 /*!
  * Create EventAttribute with a specific name
  */
-nvtxEventAttributes_t make_attributes(std::string const& name)
+nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
 {
     nvtxEventAttributes_t attributes;
     attributes.version = NVTX_VERSION;
     attributes.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
     attributes.colorType = NVTX_COLOR_ARGB;
-    attributes.color = 0xff00ff00;
+    attributes.color = input.color;
     attributes.messageType = NVTX_MESSAGE_TYPE_REGISTERED;
-    attributes.message.registered = message_handle_for(name);
+    attributes.message.registered = message_handle_for(input.name);
     attributes.payloadType = NVTX_PAYLOAD_TYPE_INT32;
-    attributes.payload.iValue = 0;
-    attributes.category = 0;
+    attributes.payload.iValue = input.payload;
+    attributes.category = input.category;
     return attributes;
 }
 }  // namespace
@@ -101,9 +101,9 @@ nvtxEventAttributes_t make_attributes(std::string const& name)
 /*!
  * Activate nvtx profiling.
  */
-ScopedProfiling::ScopedProfiling(std::string const& name)
+ScopedProfiling::ScopedProfiling(Input const input)
 {
-    nvtxEventAttributes_t attributes_ = make_attributes(name);
+    nvtxEventAttributes_t attributes_ = make_attributes(input);
     nvtxDomainRangePushEx(domain_handle(), &attributes_);
 }
 

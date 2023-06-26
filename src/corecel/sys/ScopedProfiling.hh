@@ -13,6 +13,23 @@
 
 namespace celeritas
 {
+
+//---------------------------------------------------------------------------//
+/*!
+ * Input arguments for the nvtx implementation.
+ */
+struct ScopedProfilingInput
+{
+    // Name of the range
+    std::string name;
+    // ARGB
+    uint32_t color{0xFF00FF00};
+    // User data
+    int32_t payload{0};
+    // Category, used to group ranges together
+    uint32_t category{0};
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * RAII class for scoped profiling.
@@ -23,12 +40,15 @@ namespace celeritas
  * This is useful for wrapping specific code fragment in a range for profiling,
  * e.g. ignoring of VecGeom instantiation kernels, profiling a specific action
  * or loop on the CPU.
+ * TODO: Template ScopedProfiling over profiling backend if we need to add a
+ * new one
  */
 class ScopedProfiling
 {
   public:
+    using Input = ScopedProfilingInput;
     // Activate profiling
-    explicit ScopedProfiling(std::string const& name);
+    explicit ScopedProfiling(Input const input);
     // Deactivate profiling
     ~ScopedProfiling();
     // RAII semantics
@@ -37,7 +57,7 @@ class ScopedProfiling
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_CUDA
-inline ScopedProfiling::ScopedProfiling(std::string const&) {}
+inline ScopedProfiling::ScopedProfiling(Input const) {}
 inline ScopedProfiling::~ScopedProfiling() {}
 #endif
 
