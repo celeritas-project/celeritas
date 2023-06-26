@@ -572,7 +572,7 @@ TEST_F(TwoBoxTest, electron_tangent)
         EXPECT_LT(
             distance(Real3({std::cos(0.49 * pi), 4 + std::sin(0.49 * pi), 0}),
                      geo.pos()),
-            1e-6);
+            2e-6);
     }
     {
         SCOPED_TRACE("Short step tangent to boundary");
@@ -587,7 +587,7 @@ TEST_F(TwoBoxTest, electron_tangent)
         EXPECT_LT(
             distance(Real3({std::cos(0.51 * pi), 4 + std::sin(0.51 * pi), 0}),
                      geo.pos()),
-            1e-6);
+            2e-6);
     }
 }
 
@@ -712,7 +712,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         EXPECT_SOFT_EQ(circ, result.distance);
         EXPECT_FALSE(result.boundary);
-        EXPECT_LT(distance(Real3({1, 4 + dy, 0}), geo.pos()), 1e-5);
+        EXPECT_LT(distance(Real3({1, 4 + dy, 0}), geo.pos()), 2e-5);
         EXPECT_LT(distance(Real3({0, 1, 0}), geo.dir()), 1e-5);
     }
 }
@@ -876,13 +876,13 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         auto result = propagate(first_step);
 
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(3, stepper.count());
+        EXPECT_EQ(1, stepper.count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(
             distance(Real3{-4.9900002299216384, 8.2444433238682002e-08, 0},
                      geo.pos()),
-            1e-8)
+            1e-6)
             << geo.pos();
     }
     {
@@ -900,12 +900,12 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         auto result = propagate(first_step);
 
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(3, stepper.count());
+        EXPECT_EQ(1, stepper.count());
         EXPECT_SOFT_NEAR(result.distance, first_step, 1e-5);
-        EXPECT_LT(result.distance, first_step);
+        EXPECT_LE(result.distance, first_step);
         // Y position suffers from roundoff
         EXPECT_LT(distance(Real3{-5.0, -9.26396730438483e-07, 0}, geo.pos()),
-                  1e-8);
+                  1e-6);
     }
 }
 
@@ -980,7 +980,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
                                                 9.99379755e-12,
                                                 1e-11};
     EXPECT_VEC_NEAR(expected_distances, distances, 1e-5);
-    static int const expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
+    static int const expected_substeps[] = {3, 33, 1, 12, 1, 1, 1, 1, 1, 1};
 
     EXPECT_VEC_EQ(expected_substeps, substeps);
     static char const* expected_volumes[] = {"world",
@@ -1004,25 +1004,37 @@ TEST_F(TwoBoxTest, nonuniform_field)
     ReluZField field{unit_radius_field_strength};
     FieldDriverOptions driver_options;
 
-    this->make_geo_track_view({-2.0, 0, 0}, {0, 1, 1});
+    auto geo = this->make_geo_track_view({-2.0, 0, 0}, {0, 1, 1});
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
+    auto propagate
+        = make_field_propagator(stepper, driver_options, particle, geo);
 
-    static const Real3 expected_all_pos[]
-        = {{-2.082588410019, 0.698321021704, 0.70710499699532},
-           {-2.5772835670309, 1.1563856325251, 1.414208222427},
-           {-3.0638597406072, 0.77477344365218, 2.1213130872532},
-           {-2.5584323246703, 0.58519068474743, 2.8284269544184},
-           {-2.904435093832, 0.86378022294055, 3.5355750279272},
-           {-2.5804988125119, 0.7657810943241, 4.242802666321},
-           {-2.7424915491399, 0.60277842755393, 4.9501038870007},
-           {-2.6941223485135, 0.6137455428308, 5}};
-    for (Real3 const& pos : expected_all_pos)
+    std::vector<real_type> all_pos;
+    std::vector<int> step_counter;
+    for ([[maybe_unused]] auto i : range(8))
     {
-        auto geo = this->make_geo_track_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, geo);
+        stepper.reset_count();
         propagate(1.0);
-        EXPECT_VEC_SOFT_EQ(pos, geo.pos());
+        all_pos.insert(all_pos.end(), geo.pos().begin(), geo.pos().end());
+        step_counter.push_back(stepper.count());
     }
+
+    // clang-format off
+    static double const expected_all_pos[] = {
+        -2.0825910516091, 0.69831920879114, 0.70710667919974,
+        -2.5772867117603, 1.1563879736609, 1.4142071265761,
+        -3.0638638847959, 0.77475828192017, 2.121301334796,
+        -2.5584071332035, 0.58524955164945, 2.8284065889973,
+        -2.904529403009, 0.86356354984724, 3.5355607241143,
+        -2.5807067236076, 0.7664113934941, 4.2428231699536,
+        -2.7410840911799, 0.60301375292864, 4.9502654680545,
+        -2.6930288792386, 0.6143808624194, 5};
+    // clang-format on
+    EXPECT_VEC_SOFT_EQ(expected_all_pos, all_pos);
+
+    static int const expected_step_counter[] = {5, 6, 9, 11, 14, 18, 20, 9};
+    EXPECT_VEC_EQ(expected_step_counter, step_counter);
 }
 
 //---------------------------------------------------------------------------//
@@ -1153,8 +1165,8 @@ TEST_F(SimpleCmsTest, electron_stuck)
             = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_LE(92, stepper.count());
-        EXPECT_LE(stepper.count(), 93);
+        EXPECT_LE(84, stepper.count());
+        EXPECT_LE(stepper.count(), 85);
         ASSERT_TRUE(geo.is_on_boundary());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -1255,8 +1267,8 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         {
             // Repeated substep bisection failed; particle is bumped
             EXPECT_SOFT_EQ(1e-6, result.distance);
-            // Minor floating point differences could make this 102 or 103
-            EXPECT_SOFT_NEAR(real_type(103), real_type(stepper.count()), 0.02);
+            // Minor floating point differences could make this 98 or so
+            EXPECT_SOFT_NEAR(real_type(99), real_type(stepper.count()), 0.03);
             EXPECT_FALSE(result.looping);
         }
     }
