@@ -123,7 +123,16 @@ celeritas_add_test(TestMacros.test.cc)
 # CORECEL TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_setup_tests(SERIAL PREFIX corecel)
+celeritas_add_library(testcel_core
+  corecel/ScopedLogStorer.cc
+)
+celeritas_target_link_libraries(testcel_core
+  PRIVATE Celeritas::testcel_harness Celeritas::corecel
+)
+
+celeritas_setup_tests(SERIAL PREFIX corecel
+  LINK_LIBRARIES testcel_core Celeritas::corecel
+)
 
 celeritas_add_test(corecel/OpaqueId.test.cc)
 
@@ -287,7 +296,7 @@ celeritas_target_link_libraries(testcel_celeritas
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
-  LINK_LIBRARIES testcel_celeritas Celeritas::celeritas
+  LINK_LIBRARIES testcel_celeritas testcel_core Celeritas::celeritas
 )
 
 #-----------------------------------------------------------------------------#

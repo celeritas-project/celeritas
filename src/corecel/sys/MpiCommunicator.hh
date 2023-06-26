@@ -21,6 +21,8 @@ namespace celeritas
  * A "null" communicator (the default) does not use MPI calls and can be
  * constructed without calling \c MPI_Init or having MPI compiled. It will act
  * like \c MPI_Comm_Self but will not actually use MPI calls.
+ *
+ * TODO: drop \c comm_ prefix from static helpers
  */
 class MpiCommunicator
 {
@@ -36,6 +38,9 @@ class MpiCommunicator
 
     // Construct a communicator with MPI_COMM_WORLD
     inline static MpiCommunicator comm_world();
+
+    // Construct a communicator with MPI_COMM_WORLD or null if disabled
+    static MpiCommunicator comm_default();
 
     //// CONSTRUCTORS ////
 

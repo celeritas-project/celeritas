@@ -51,7 +51,6 @@ void SimpleHitsResult::print_expected() const
          << repr(this->post_time)
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);\n"
-
             "/*** END CODE ***/\n";
 }
 

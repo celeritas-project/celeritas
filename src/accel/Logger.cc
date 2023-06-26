@@ -121,9 +121,10 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
  */
 Logger MakeMTLogger(G4RunManager const& runman)
 {
-    return Logger(MpiCommunicator{},
-                  MtLogger{get_num_threads(runman)},
-                  "CELER_LOG_LOCAL");
+    Logger log(MpiCommunicator{}, MtLogger{get_num_threads(runman)});
+
+    log.level(log_level_from_env("CELER_LOG_LOCAL"));
+    return log;
 }
 
 //---------------------------------------------------------------------------//
