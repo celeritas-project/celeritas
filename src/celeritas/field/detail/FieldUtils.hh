@@ -97,31 +97,25 @@ inline CELER_FUNCTION bool is_intercept_close(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the stepper truncation error square:
- * \f$ \Delta = max (\delta_{pos}^{2}, \epsilon \delta_{mom}^{2}) \f$
+ * Evaluate the square of the relative stepper truncation error.
+ *
+ * \f$ \max(\delta_\textrm{pos}^{2}, \epsilon \delta_\textrm{mom}^{2}) \f$
  */
-inline CELER_FUNCTION real_type truncation_error(real_type step,
-                                                 real_type eps_rel_max,
-                                                 OdeState const& beg_state,
-                                                 OdeState const& err_state)
+inline CELER_FUNCTION real_type rel_err_sq(OdeState const& err_state,
+                                           real_type step,
+                                           Real3 const& mom)
 {
     CELER_EXPECT(step > 0);
-    CELER_EXPECT(eps_rel_max > 0);
 
-    // Evaluate tolerance and squre of the position and momentum accuracy
-
-    real_type magvel2 = dot_product(beg_state.mom, beg_state.mom);
+    // Evaluate square of the position and momentum accuracy
     real_type errpos2 = dot_product(err_state.pos, err_state.pos);
     real_type errvel2 = dot_product(err_state.mom, err_state.mom);
 
-    // Scale relative to a required tolerance
-    CELER_ASSERT(errpos2 >= 0);
-    CELER_ASSERT(magvel2 > 0);
+    // Scale position error relative to step
+    errpos2 /= ipow<2>(step);
+    // Scale momentum error relative to starting momentum
+    errvel2 /= dot_product(mom, mom);
 
-    errpos2 /= ipow<2>(eps_rel_max * step);
-    errvel2 /= (magvel2 * ipow<2>(eps_rel_max));
-
-    // Return the square of the maximum truncation error
     real_type result = max(errpos2, errvel2);
     CELER_ENSURE(result >= 0);
     return result;
