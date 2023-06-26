@@ -9,6 +9,8 @@
 
 #include <iostream>
 #include <string>
+#include <string_view>
+#include <unordered_set>
 #include <G4GDMLParser.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
@@ -20,6 +22,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
@@ -192,6 +195,58 @@ Span<G4LogicalVolume*> geant_logical_volumes()
         ++start;
     }
     return {start, stop};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find Geant4 logical volumes corresponding to a list of names.
+ *
+ * If logical volumes with duplicate names are present, they will all show up
+ * in the output and a warning will be emitted. If one is missing, a
+ * \c RuntimeError will be raised.
+ *
+ * \code
+   static std::string_view const labels[] = {"Vol1", "Vol2"};
+   auto vols = find_geant_volumes(make_span(labels));
+ * \endcode
+ */
+std::unordered_set<G4LogicalVolume const*>
+find_geant_volumes(std::unordered_set<std::string> names)
+{
+    // Find all names that match the set
+    std::unordered_set<G4LogicalVolume const*> result;
+    result.reserve(names.size());
+    for (auto* lv : geant_logical_volumes())
+    {
+        if (lv && names.count(lv->GetName()))
+        {
+            result.insert(lv);
+        }
+    }
+
+    // Remove found names and warn about duplicates
+    for (auto* lv : result)
+    {
+        auto iter = names.find(lv->GetName());
+        if (iter != names.end())
+        {
+            names.erase(iter);
+        }
+        else
+        {
+            CELER_LOG(warning)
+                << "Multiple Geant4 volumes are mapped to name '"
+                << lv->GetName();
+        }
+    }
+
+    // Make sure all requested names are found
+    CELER_VALIDATE(names.empty(),
+                   << "failed to find Geant4 volumes corresponding to the "
+                      "following names: "
+                   << join(names.begin(), names.end(), ", "));
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
