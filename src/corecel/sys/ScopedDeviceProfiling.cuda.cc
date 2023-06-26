@@ -24,10 +24,10 @@ namespace
 {
 nvtxDomainHandle_t domain_handle()
 {
-    static nvtxDomainHandle_t domain = nvtxDomainCreateA("Celeritas");
+    static nvtxDomainHandle_t domain = nvtxDomainCreateA("celeritas");
     return domain;
 }
-nvtxEventAttributes_t attributes(char const* name)
+nvtxEventAttributes_t make_attributes(std::string const& name)
 {
     nvtxEventAttributes_t attributes;
     attributes.version = NVTX_VERSION;
@@ -35,7 +35,7 @@ nvtxEventAttributes_t attributes(char const* name)
     attributes.colorType = NVTX_COLOR_ARGB;
     attributes.color = 0xff00ff00;
     attributes.messageType = NVTX_MESSAGE_TYPE_ASCII;
-    attributes.message.ascii = name;
+    attributes.message.ascii = name.c_str();
     attributes.payloadType = NVTX_PAYLOAD_TYPE_INT32;
     attributes.payload.iValue = 0;
     attributes.category = 0;
@@ -46,11 +46,11 @@ nvtxEventAttributes_t attributes(char const* name)
 /*!
  * Activate device profiling.
  */
-ScopedDeviceProfiling::ScopedDeviceProfiling(std::string_view name)
+ScopedDeviceProfiling::ScopedDeviceProfiling(std::string const& name)
 {
     if (celeritas::device())
     {
-        nvtxEventAttributes_t attributes_ = attributes(name.data());
+        nvtxEventAttributes_t attributes_ = make_attributes(name);
         nvtxDomainRangePushEx(domain_handle(), &attributes_);
     }
 }
