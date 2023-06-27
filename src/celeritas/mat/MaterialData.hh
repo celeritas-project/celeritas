@@ -39,7 +39,7 @@ struct IsotopeRecord
 /*!
  * Fractional isotope component of an element.
  *
- * This represents, e.g., the fraction of hydrogen in water.
+ * This represents, e.g., the fraction of 2H (deuterium) in element H.
  */
 struct ElIsotopeComponent
 {
@@ -128,13 +128,13 @@ struct MaterialParamsData
     template<class T>
     using Items = celeritas::Collection<T, W, M>;
 
-    Items<ElementRecord> elements;
     Items<IsotopeRecord> isotopes;
-    Items<MatElementComponent> elcomponents;
+    Items<ElementRecord> elements;
     Items<ElIsotopeComponent> isocomponents;
+    Items<MatElementComponent> elcomponents;
     Items<MaterialRecord> materials;
-    ElementComponentId::size_type max_element_components{};
     IsotopeComponentId::size_type max_isotope_components{};
+    ElementComponentId::size_type max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -149,12 +149,13 @@ struct MaterialParamsData
     MaterialParamsData& operator=(MaterialParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        elements = other.elements;
         isotopes = other.isotopes;
+        elements = other.elements;
+        isocomponents = other.isocomponents;
         elcomponents = other.elcomponents;
         materials = other.materials;
-        max_element_components = other.max_element_components;
         max_isotope_components = other.max_isotope_components;
+        max_element_components = other.max_element_components;
         return *this;
     }
 };

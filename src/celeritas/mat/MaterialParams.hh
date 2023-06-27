@@ -161,7 +161,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     inline ElementComponentId::size_type max_element_components() const;
 
     // Verify if isotopic data exists
-    inline bool const has_isotope_data() const { return isotope_data_; }
+    inline bool has_isotope_data() const { return isotope_data_; }
 
     //! Access material properties on the host
     HostRef const& host_ref() const final { return data_.host(); }
