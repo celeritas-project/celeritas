@@ -127,7 +127,7 @@ CELER_FUNCTION IsotopeComponentId::size_type ElementView::num_isotopes() const
 CELER_FUNCTION IsotopeView
 ElementView::make_isotope_view(IsotopeComponentId id) const
 {
-    CELER_EXPECT(id < params_.isotopes.size());
+    CELER_EXPECT(id < this->num_isotopes());
     return IsotopeView(params_, this->isotope_id(id));
 }
 
@@ -137,7 +137,7 @@ ElementView::make_isotope_view(IsotopeComponentId id) const
  */
 CELER_FUNCTION IsotopeId ElementView::isotope_id(IsotopeComponentId id) const
 {
-    CELER_EXPECT(id < params_.isotopes.size());
+    CELER_EXPECT(id < this->num_isotopes());
     return this->isotopes()[id.get()].isotope;
 }
 

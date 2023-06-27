@@ -12,28 +12,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Store element data.
- *
- * \c IsotopeIndex maps the isotope in the \c ImportData::isotopes vector.
- */
-struct ImportElement
-{
-    //!@{
-    //! \name type aliases
-    using IsotopeIndex = int;
-    using IsotopeFrac = std::pair<IsotopeIndex, double>;
-    using VecIsotopeFrac = std::vector<IsotopeFrac>;
-    //!@}
-
-    std::string name;
-    int atomic_number;
-    double atomic_mass;  //!< [atomic mass unit]
-    double radiation_length_tsai;  //!< [g/cm^2]
-    double coulomb_factor;
-    VecIsotopeFrac isotopes_fractions;  //!< Isotopic fractional abundance
-};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -47,6 +25,29 @@ struct ImportIsotope
     int atomic_number;  //!< Atomic number Z
     int atomic_mass_number;  //!< Atomic number A
     double nuclear_mass;  //!< Sum of nucleons' mass + binding energy [MeV]
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store element data.
+ *
+ * \c IsotopeIndex maps the isotope in the \c ImportData::isotopes vector.
+ */
+struct ImportElement
+{
+    //!@{
+    //! \name type aliases
+    using IsotopeIndex = unsigned int;
+    using IsotopeFrac = std::pair<IsotopeIndex, double>;
+    using VecIsotopeFrac = std::vector<IsotopeFrac>;
+    //!@}
+
+    std::string name;
+    int atomic_number;
+    double atomic_mass;  //!< [atomic mass unit]
+    double radiation_length_tsai;  //!< [g/cm^2]
+    double coulomb_factor;
+    VecIsotopeFrac isotopes_fractions;  //!< Isotopic fractional abundance
 };
 
 //---------------------------------------------------------------------------//

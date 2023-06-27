@@ -10,7 +10,6 @@
 #include <iostream>
 #include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -88,8 +87,8 @@ void print_elements(std::vector<ImportElement>& elements,
     cout << R"gfm(
 # Elements
 
-| Element ID | Name | Atomic number | Mass (AMU) | Isotopes                                 | Relative abundance                                           |
-| ---------- | ---- | ------------- | ---------- | ---------------------------------------- | ------------------------------------------------------------ |
+| Element ID | Name | Atomic number | Mass (AMU) | Isotopes                                 |
+| ---------- | ---- | ------------- | ---------- | ---------------------------------------- |
 )gfm";
 
     for (unsigned int element_id : range(elements.size()))
@@ -102,24 +101,13 @@ void print_elements(std::vector<ImportElement>& elements,
                  ", ",
                  [&](auto const& key) { return isotopes[key.first].name; }));
 
-        auto const rel_abundances = to_string(join(
-            element.isotopes_fractions.begin(),
-            element.isotopes_fractions.end(),
-            ", ",
-            [](auto const& key) {
-                stringstream sstr;
-                sstr << fixed << scientific << setprecision(1) << key.second;
-                return sstr.str();
-            }));
-
         // clang-format off
         cout << "| "
              << setw(10) << std::left << element_id << " | "
              << setw(4)  << element.name << " | "
              << setw(13) << element.atomic_number << " | "
              << setw(10) << element.atomic_mass << " | "
-             << setw(40) << labels << " | "
-             << setw(60) << rel_abundances << " |\n";
+             << setw(40) << labels << " |\n";
         // clang-format on
     }
     cout << endl;

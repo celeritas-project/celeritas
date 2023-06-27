@@ -85,8 +85,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     //! Input data to construct this class
     struct Input
     {
-        std::vector<ElementInput> elements;
         std::vector<IsotopeInput> isotopes;
+        std::vector<ElementInput> elements;
         std::vector<MaterialInput> materials;
     };
 
@@ -160,8 +160,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     // Maximum number of elements in any one material
     inline ElementComponentId::size_type max_element_components() const;
 
-    // Verify if isotopic data exists
-    inline bool has_isotope_data() const { return isotope_data_; }
+    //! Whether isotopic data is present (may be false for EM-only physics)
+    inline bool is_missing_isotopes() const { return this->num_isotopes(); }
 
     //! Access material properties on the host
     HostRef const& host_ref() const final { return data_.host(); }
@@ -174,7 +174,6 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     LabelIdMultiMap<MaterialId> mat_labels_;
     LabelIdMultiMap<ElementId> el_labels_;
     LabelIdMultiMap<IsotopeId> isot_labels_;
-    bool isotope_data_;
 
     // Host/device storage and reference
     CollectionMirror<MaterialParamsData> data_;
