@@ -146,33 +146,17 @@ TEST_F(LoggerTest, DISABLED_performance)
     EXPECT_GT(0.1, get_time());
 }
 
-TEST_F(LoggerTest, env_setup)
+TEST_F(LoggerTest, level_from_env)
 {
-    auto log_to_cout = [](Provenance prov, LogLevel lev, std::string msg) {
-        cout << to_cstring(lev) << ':' << prov.file << ':' << prov.line << ':'
-             << msg << endl;
-        EXPECT_EQ("This should print", msg);
-    };
-    auto celer_setenv = [](std::string const& key, std::string const& val) {
+    auto set_level = [](std::string const& key, std::string const& val) {
         environment().insert({key, val});
+        return log_level_from_env(key);
     };
 
-    {
-        celer_setenv("CELER_TEST_ENV_0", "debug");
-        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV_0");
-        log({"<test>", 0}, LogLevel::debug) << "This should print";
-    }
-    {
-        celer_setenv("CELER_TEST_ENV_1", "error");
-        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV_1");
-        log({"<test>", 1}, LogLevel::warning) << "This should not";
-    }
-    {
-        CELER_LOG(info) << "We should see a helpful warning below:";
-        celer_setenv("CELER_TEST_ENV_2", "TEST_INVALID_VALUE");
-        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV_2");
-        log({"<test>", 1}, LogLevel::debug) << "Should not print";
-    }
+    EXPECT_EQ(LogLevel::debug, set_level("CELER_TEST_ENV_0", "debug"));
+    EXPECT_EQ(LogLevel::error, set_level("CELER_TEST_ENV_1", "error"));
+    EXPECT_THROW(set_level("CELER_TEST_ENV_2", "not_a_log_level"),
+                 RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

@@ -10,97 +10,12 @@
 #include "corecel/Assert.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-// TrackExecutorImpl
-//---------------------------------------------------------------------------//
-//! Lazy implementation that replaces tuple + apply
-template<class F, class... Ts>
-struct TrackExecutorImpl;
-
-//---------------------------------------------------------------------------//
-template<class F>
-struct TrackExecutorImpl<F>
-{
-    F call_with_track;
-
-    CELER_FUNCTION void operator()(CoreTrackView const& track)
-    {
-        return this->call_with_track(track);
-    }
-};
-
-//---------------------------------------------------------------------------//
-template<class F, class T1>
-struct TrackExecutorImpl<F, T1>
-{
-    F call_with_track;
-    T1 arg1;
-
-    CELER_FUNCTION void operator()(CoreTrackView const& track)
-    {
-        return this->call_with_track(track, celeritas::forward<T1>(arg1));
-    }
-};
-
-//---------------------------------------------------------------------------//
-template<class F, class T1, class T2>
-struct TrackExecutorImpl<F, T1, T2>
-{
-    F call_with_track;
-    T1 arg1;
-    T2 arg2;
-
-    CELER_FUNCTION void operator()(CoreTrackView const& track)
-    {
-        return this->call_with_track(
-            track, celeritas::forward<T1>(arg1), celeritas::forward<T2>(arg2));
-    }
-};
-
-//---------------------------------------------------------------------------//
-template<class F, class T1, class T2, class T3>
-struct TrackExecutorImpl<F, T1, T2, T3>
-{
-    F call_with_track;
-    T1 arg1;
-    T2 arg2;
-    T3 arg3;
-
-    CELER_FUNCTION void operator()(CoreTrackView const& track)
-    {
-        return this->call_with_track(track,
-                                     celeritas::forward<T1>(arg1),
-                                     celeritas::forward<T2>(arg2),
-                                     celeritas::forward<T3>(arg3));
-    }
-};
-
-//---------------------------------------------------------------------------//
-template<class F, class T1, class T2, class T3, class T4>
-struct TrackExecutorImpl<F, T1, T2, T3, T4>
-{
-    F call_with_track;
-    T1 arg1;
-    T2 arg2;
-    T3 arg3;
-    T4 arg4;
-
-    CELER_FUNCTION void operator()(CoreTrackView const& track)
-    {
-        return this->call_with_track(track,
-                                     celeritas::forward<T1>(arg1),
-                                     celeritas::forward<T2>(arg2),
-                                     celeritas::forward<T3>(arg3),
-                                     celeritas::forward<T4>(arg4));
-    }
-};
-
 //---------------------------------------------------------------------------//
 // CONDITIONS
 //---------------------------------------------------------------------------//
@@ -117,7 +32,7 @@ struct AppliesActive
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply only to tracks with the given action ID.
+ * Apply only to tracks with the given post-step action ID.
  */
 struct IsStepActionEqual
 {
@@ -131,7 +46,7 @@ struct IsStepActionEqual
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply only to tracks with the given action ID.
+ * Apply only to tracks with the given along-step action ID.
  */
 struct IsAlongStepActionEqual
 {

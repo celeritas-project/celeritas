@@ -82,10 +82,14 @@ class Logger
     //!@}
 
   public:
+    //! Get the default log level
+    static constexpr LogLevel default_level() { return LogLevel::status; }
+
+    // Construct with default communicator
+    explicit Logger(LogHandler handle);
+
     // Construct with communicator (only rank zero is active) and handler
-    Logger(MpiCommunicator const& comm,
-           LogHandler handle,
-           char const* level_env = nullptr);
+    Logger(MpiCommunicator const& comm, LogHandler handle);
 
     // Create a logger that flushes its contents when it destructs
     inline Message operator()(Provenance prov, LogLevel lev);
@@ -98,7 +102,7 @@ class Logger
 
   private:
     LogHandler handle_;
-    LogLevel min_level_ = LogLevel::status;
+    LogLevel min_level_{default_level()};
 };
 
 //---------------------------------------------------------------------------//
@@ -118,6 +122,9 @@ auto Logger::operator()(Provenance prov, LogLevel lev) -> Message
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
+// Get the log level from an environment variable
+LogLevel log_level_from_env(std::string const&);
+
 // Create loggers with reasonable default behaviors.
 Logger make_default_world_logger();
 Logger make_default_self_logger();

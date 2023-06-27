@@ -15,6 +15,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a communicator with MPI_COMM_WORLD or null if disabled.
+ */
+MpiCommunicator MpiCommunicator::comm_default()
+{
+    if (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled)
+        return {};
+
+    return comm_world();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with a native MPI communicator.
  *
  * This will fail with a \c NotConfigured error if MPI is disabled.

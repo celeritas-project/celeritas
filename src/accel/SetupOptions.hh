@@ -8,6 +8,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -143,6 +144,14 @@ struct SetupOptions
     TrackOrder track_order{TrackOrder::unsorted};
     //!@}
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Find volumes by name for SDSetupOptions
+std::unordered_set<G4LogicalVolume const*>
+    FindVolumes(std::unordered_set<std::string>);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

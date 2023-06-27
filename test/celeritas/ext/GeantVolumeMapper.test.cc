@@ -32,6 +32,7 @@
 #    include "celeritas/ext/VecgeomParams.hh"
 #endif
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "orange/OrangeParams.hh"
@@ -52,31 +53,9 @@ namespace test
 class GeantVolumeMapperTestBase : public ::celeritas::test::Test
 {
   protected:
-    void SetUp() override
+    GeantVolumeMapperTestBase()
+        : store_log_(&celeritas::world_logger(), LogLevel::warning)
     {
-        using namespace std::placeholders;
-        celeritas::world_logger() = Logger(
-            MpiCommunicator{},
-            std::bind(
-                &GeantVolumeMapperTestBase::log_message, this, _1, _2, _3));
-    }
-
-    void log_message(Provenance, LogLevel lev, std::string msg)
-    {
-        if (lev > LogLevel::info)
-        {
-            static const std::regex delete_ansi("\033\\[[0-9;]*m");
-            static const std::regex subs_ptr("0x[0-9a-f]+");
-            msg = std::regex_replace(msg, delete_ansi, "");
-            msg = std::regex_replace(msg, subs_ptr, "0x1234abcd");
-            messages_.push_back(std::move(msg));
-        }
-    }
-
-    static void TearDownTestCase()
-    {
-        // Restore logger
-        celeritas::world_logger() = celeritas::make_default_world_logger();
     }
 
     // Clean up geometry at destruction
@@ -117,7 +96,8 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
 
     // Celeritas data
     std::shared_ptr<GeoParams> geo_params_;
-    std::vector<std::string> messages_;
+
+    ScopedLogStorer store_log_;
 };
 
 //---------------------------------------------------------------------------//
@@ -268,29 +248,26 @@ TEST_F(NestedTest, unique)
     {
         static char const* const expected_messages[]
             = {"Failed to exactly match ORANGE volume from Geant4 volume "
-               "'world'@0x1234abcd; found 'world@global' by omitting the "
-               "extension",
+               "'world'@0x0; found 'world@global' by omitting the extension",
                "Failed to exactly match ORANGE volume from Geant4 volume "
-               "'outer'@0x1234abcd; found 'outer@global' by omitting the "
-               "extension",
+               "'outer'@0x0; found 'outer@global' by omitting the extension",
                "Failed to exactly match ORANGE volume from Geant4 volume "
-               "'middle'@0x1234abcd; found 'middle@global' by omitting the "
-               "extension",
+               "'middle'@0x0; found 'middle@global' by omitting the extension",
                "Failed to exactly match ORANGE volume from Geant4 volume "
-               "'inner'@0x1234abcd; found 'inner@global' by omitting the "
-               "extension"};
-        EXPECT_VEC_EQ(expected_messages, messages_);
+               "'inner'@0x0; found 'inner@global' by omitting the extension"};
+        EXPECT_VEC_EQ(expected_messages, store_log_.messages());
     }
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
     {
         static char const* const expected_messages[] = {
             "Geant4 geometry was initialized with inconsistent world volume: "
-            "given 'world_pv'@' 0x1234abcd; navigation world is unset"};
-        EXPECT_VEC_EQ(expected_messages, messages_);
+            "given 'world_pv'@' 0x0; navigation world is unset"};
+        EXPECT_VEC_EQ(expected_messages, store_log_.messages());
     }
     else
     {
-        EXPECT_EQ(0, messages_.size());
+        store_log_.print_expected();
+        EXPECT_EQ(0, store_log_.messages().size());
     }
 }
 
@@ -314,7 +291,7 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated))
 
     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
     {
-        EXPECT_EQ(0, messages_.size());
+        EXPECT_EQ(0, store_log_.messages().size());
     }
 }
 
