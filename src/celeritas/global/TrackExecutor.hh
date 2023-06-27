@@ -22,39 +22,31 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Function-like class to execute a CoreTrackView-dependent function.
+ * Call a \c CoreTrackView executor for a given ThreadId.
  *
- * This class should be used primarily by generated kernel functions:
+ * This class can be used to call a functor that applies to \c CoreTrackView
+ * using a \c ThreadId, so that the tracks can be easily looped over as a
+ * group on CPU or GPU.
+ *
+ * This is primarily used by \c ActionLauncher .
+ *
+ * TODO: maybe rename this \c ThreadExecutor (since it takes a thread?) and
+ * call the embedded class a \c TrackExecutor (since it takes a CoreTrackView?)
  *
  * \code
-__global__ void foo_kernel(CoreParamsPtr const params,
-                           CoreParamsPtr const state,
-                           OtherData const other)
+void foo_kernel(CoreParamsPtr const params,
+                CoreStatePtr const state)
 {
-    TrackExecutor execute{params, state, apply_to_track, OtherView{other}};
-    execute(KernelParamCalculator::thread_id());
+    TrackExecutor execute{params, state, MyTrackApplier{}};
+
+    for (auto tid : range(ThreadID{123}))
+    {
+        execute(tid);
+    }
 }
 \endcode
- *
- * where the user-written code defines an inline function using the core track
- * view:
- *
- * \code
-inline CELER_FUNCTION void apply_to_track(
-    CoreTrackView const& track,
-    OtherView const& other)
-{
-    // ...
-}
-   \endcode
- *
- * It will call the function with *all* thread slots, including inactive.
- *
- * \note The ThreadId can be no greater than the state size on CPU (since we
- * always loop over the exact range), but on GPU we automatically ignore thread
- * IDs outside the valid bounds to simplify the kernel.
  */
-template<class... Ts>
+template<class T>
 class TrackExecutor
 {
   public:
@@ -65,26 +57,27 @@ class TrackExecutor
     //!@}
 
   public:
+    //! Construct with core data and executor
     CELER_FUNCTION
-    TrackExecutor(ParamsPtr params, StatePtr state, Ts... args)
+    TrackExecutor(ParamsPtr params, StatePtr state, T&& execute_track)
         : params_{params}
         , state_{state}
-        , execute_impl_{celeritas::forward<Ts>(args)...}
+        , execute_track_{celeritas::forward<T>(execute_track)}
     {
     }
 
+    //! Call the underlying function using the core track for this thread.
     CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread < state_->size());
         CoreTrackView const track(*params_, *state_, thread);
-
-        return execute_impl_(track);
+        return execute_track_(track);
     }
 
   private:
     ParamsPtr const params_;
     StatePtr const state_;
-    detail::TrackExecutorImpl<Ts...> execute_impl_;
+    T execute_track_;
 };
 
 //---------------------------------------------------------------------------//
@@ -98,7 +91,7 @@ class TrackExecutor
  * see \c make_active_track_executor for an example where this is used to apply
  * only to active (or killed) tracks.
  */
-template<class C, class... Ts>
+template<class C, class T>
 class ConditionalTrackExecutor
 {
   public:
@@ -109,18 +102,20 @@ class ConditionalTrackExecutor
     //!@}
 
   public:
+    //! Construct with condition and operator
     CELER_FUNCTION
     ConditionalTrackExecutor(ParamsPtr params,
                              StatePtr state,
-                             C applies,
-                             Ts... args)
+                             C&& applies,
+                             T&& execute_track)
         : params_{params}
         , state_{state}
         , applies_{celeritas::forward<C>(applies)}
-        , execute_impl_{celeritas::forward<Ts>(args)...}
+        , execute_track_{celeritas::forward<T>(execute_track)}
     {
     }
 
+    //! Launch the given thread if the track meets the condition
     CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread < state_->size());
@@ -130,31 +125,31 @@ class ConditionalTrackExecutor
             return;
         }
 
-        return execute_impl_(track);
+        return execute_track_(track);
     }
 
   private:
-    ParamsPtr params_;
-    StatePtr state_;
+    ParamsPtr const params_;
+    StatePtr const state_;
     C applies_;
-    detail::TrackExecutorImpl<Ts...> execute_impl_;
+    T execute_track_;
 };
 
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<class... Ts>
+template<class T>
 CELER_FUNCTION TrackExecutor(CoreParamsPtr<MemSpace::native>,
                              CoreStatePtr<MemSpace::native>,
-                             Ts&&...)
-    ->TrackExecutor<Ts...>;
+                             T&&)
+    ->TrackExecutor<T>;
 
-template<class C, class... Ts>
+template<class C, class T>
 CELER_FUNCTION ConditionalTrackExecutor(CoreParamsPtr<MemSpace::native>,
                                         CoreStatePtr<MemSpace::native>,
-                                        C,
-                                        Ts&&...)
-    ->ConditionalTrackExecutor<C, Ts...>;
+                                        C&&,
+                                        T&&)
+    ->ConditionalTrackExecutor<C, T>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -162,14 +157,16 @@ CELER_FUNCTION ConditionalTrackExecutor(CoreParamsPtr<MemSpace::native>,
 /*!
  * Return a track executor that only applies to alive tracks.
  */
-template<class... Ts>
+template<class T>
 inline CELER_FUNCTION decltype(auto)
 make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
                            CoreStatePtr<MemSpace::native> const& state,
-                           Ts&&... args)
+                           T&& apply_track)
 {
-    return ConditionalTrackExecutor{
-        params, state, detail::AppliesActive{}, celeritas::forward<Ts>(args)...};
+    return ConditionalTrackExecutor{params,
+                                    state,
+                                    detail::AppliesActive{},
+                                    celeritas::forward<T>(apply_track)};
 }
 
 //---------------------------------------------------------------------------//
@@ -180,36 +177,36 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
  * cases where the IDs *explicitly* are set. Many explicit actions apply to all
  * threads, active or not.
  */
-template<class... Ts>
+template<class T>
 inline CELER_FUNCTION decltype(auto)
 make_action_track_executor(CoreParamsPtr<MemSpace::native> params,
                            CoreStatePtr<MemSpace::native> state,
                            ActionId action,
-                           Ts&&... args)
+                           T&& apply_track)
 {
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,
                                     state,
                                     detail::IsStepActionEqual{action},
-                                    celeritas::forward<Ts>(args)...};
+                                    celeritas::forward<T>(apply_track)};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Return a track executor that only applies for the given along-step action.
  */
-template<class... Ts>
+template<class T>
 inline CELER_FUNCTION decltype(auto)
 make_along_step_track_executor(CoreParamsPtr<MemSpace::native> params,
                                CoreStatePtr<MemSpace::native> state,
                                ActionId action,
-                               Ts&&... args)
+                               T&& apply_track)
 {
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,
                                     state,
                                     detail::IsAlongStepActionEqual{action},
-                                    celeritas::forward<Ts>(args)...};
+                                    celeritas::forward<T>(apply_track)};
 }
 
 //---------------------------------------------------------------------------//
