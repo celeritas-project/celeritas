@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 #include "celeritas_config.h"
@@ -21,7 +22,7 @@ namespace celeritas
 struct ScopedProfilingInput
 {
     std::string name;  //!< Name of the range
-    uint32_t color{0xFF00FF00};  //!< ARGB
+    uint32_t color{0xFF00FF00u};  //!< ARGB
     int32_t payload{0};  //!< User data
     uint32_t category{0};  //!< Category, used to group ranges together
 
@@ -58,11 +59,8 @@ class ScopedProfiling
     ~ScopedProfiling();
     // Can't outlive the scope it was created in to correctly match each push /
     // pop. Must strictly follows RAII semantics (automatic storage duration)
-    void* operator new(std::size_t) = delete;
     ScopedProfiling(ScopedProfiling const&) = delete;
     ScopedProfiling& operator=(ScopedProfiling const&) = delete;
-    ScopedProfiling(ScopedProfiling&&) = delete;
-    ScopedProfiling& operator=(ScopedProfiling&&) = delete;
 };
 
 //---------------------------------------------------------------------------//
