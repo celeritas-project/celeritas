@@ -112,6 +112,7 @@ class MaterialTest : public Test
 
         MaterialParams::Input inp;
 
+        // Using nuclear masses provided by Geant4 11.0.3 in MeV
         inp.isotopes = {{AtomicNumber{13},  // Z
                          AtomicNumber{27},  // A
                          units::MevMass{25126.5 / c_light_sq},
@@ -296,6 +297,17 @@ TEST_F(MaterialTest, element_view)
         EXPECT_SOFT_EQ(std::log(13.0), el.log_z());
         EXPECT_SOFT_EQ(0.010734632775699565, el.coulomb_correction());
         EXPECT_SOFT_EQ(0.04164723292591279, el.mass_radiation_coeff());
+
+        // Test its isotopes
+        EXPECT_EQ(2, el.num_isotopes());
+        std::vector<int> atomic_mass_numbers;
+        for (auto id : range(el.num_isotopes()))
+        {
+            auto iso_view = el.make_isotope_view(IsotopeComponentId{id});
+            atomic_mass_numbers.push_back(iso_view.atomic_mass_number().get());
+        }
+        static int const expected_atomic_mass_numbers[] = {27, 28};
+        EXPECT_VEC_EQ(expected_atomic_mass_numbers, atomic_mass_numbers);
     }
 }
 
@@ -322,7 +334,7 @@ TEST_F(MaterialTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json({"_units":{"atomic_mass":"amu","mean_excitation_energy":"MeV"},"elements":{"atomic_mass":[1.008,26.9815385,22.98976928,126.90447],"atomic_number":[1,13,11,53],"coulomb_correction":[6.400821803338426e-05,0.010734632775699565,0.00770256745342534,0.15954439947436763],"label":["H","Al","Na","I"],"mass_radiation_coeff":[0.0158611264432063,0.04164723292591279,0.03605392839455309,0.11791841505608874]},"materials":{"density":[3.6700020622594716,0.0,0.00017976000000000003,0.00017943386624303615],"electron_density":[9.4365282069664e+23,0.0,1.073948435904467e+20,1.072e+20],"element_frac":[[0.5,0.5],[],[1.0],[1.0]],"element_id":[[2,3],[],[0],[0]],"label":["NaI","hard vacuum","H2@1","H2@2"],"matter_state":["solid","unspecified","gas","gas"],"mean_excitation_energy":[0.00040000760709482647,0.0,1.9199999999999986e-05,1.9199999999999986e-05],"number_density":[2.948915064677e+22,0.0,1.073948435904467e+20,1.072e+20],"radiation_length":[3.5393292693170424,null,350729.99844063615,351367.4750467326],"temperature":[293.0,0.0,100.0,110.0],"zeff":[32.0,0.0,1.0,1.0]}})json",
+            R"json({"_units":{"atomic_mass":"amu","mean_excitation_energy":"MeV","nuclear_mass":"MeV/c^2"},"elements":{"atomic_mass":[1.008,26.9815385,22.98976928,126.90447],"atomic_number":[1,13,11,53],"coulomb_correction":[6.400821803338426e-05,0.010734632775699565,0.00770256745342534,0.15954439947436763],"isotope_fractions":[[],[0.7,0.3],[],[]],"isotope_ids":[[],[0,1],[],[]],"label":["H","Al","Na","I"],"mass_radiation_coeff":[0.0158611264432063,0.04164723292591279,0.03605392839455309,0.11791841505608874]},"isotopes":{"atomic_mass_number":[27,28],"atomic_number":[13,13],"label":["Al27","Al28"],"nuclear_mass":[2.795700163343124e-17,2.8993768955662e-17]},"materials":{"density":[3.6700020622594716,0.0,0.00017976000000000003,0.00017943386624303615],"electron_density":[9.4365282069664e+23,0.0,1.073948435904467e+20,1.072e+20],"element_frac":[[0.5,0.5],[],[1.0],[1.0]],"element_id":[[2,3],[],[0],[0]],"label":["NaI","hard vacuum","H2@1","H2@2"],"matter_state":["solid","unspecified","gas","gas"],"mean_excitation_energy":[0.00040000760709482647,0.0,1.9199999999999986e-05,1.9199999999999986e-05],"number_density":[2.948915064677e+22,0.0,1.073948435904467e+20,1.072e+20],"radiation_length":[3.5393292693170424,null,350729.99844063615,351367.4750467326],"temperature":[293.0,0.0,100.0,110.0],"zeff":[32.0,0.0,1.0,1.0]}})json",
             to_string(out))
             << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
             << ")json\"\n/******/";

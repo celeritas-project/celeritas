@@ -48,6 +48,32 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
     auto obj = json::object();
     auto units = json::object();
 
+    // Unfold isotopes
+    {
+        auto label = json::array();
+        auto atomic_number = json::array();
+        auto atomic_mass_number = json::array();
+        auto nuclear_mass = json::array();
+
+        for (auto id : range(IsotopeId{material_->num_isotopes()}))
+        {
+            IsotopeView const iso_view = material_->get(id);
+            label.push_back(material_->id_to_label(id));
+            atomic_number.push_back(iso_view.atomic_number().unchecked_get());
+            atomic_mass_number.push_back(
+                iso_view.atomic_mass_number().unchecked_get());
+            nuclear_mass.push_back(iso_view.nuclear_mass().value());
+        }
+        obj["isotopes"] = {
+            {"label", std::move(label)},
+            {"atomic_number", std::move(atomic_number)},
+            {"atomic_mass_number", std::move(atomic_mass_number)},
+            {"nuclear_mass", std::move(nuclear_mass)},
+        };
+        units["nuclear_mass"]
+            = accessor_unit_label<decltype(&IsotopeView::nuclear_mass)>();
+    }
+
     // Unfold elements
     {
         auto label = json::array();
@@ -55,6 +81,8 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
         auto atomic_mass = json::array();
         auto coulomb_correction = json::array();
         auto mass_radiation_coeff = json::array();
+        auto isotope_ids = json::array();
+        auto isotope_fracs = json::array();
 
         for (auto id : range(ElementId{material_->num_elements()}))
         {
@@ -64,11 +92,24 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
             atomic_mass.push_back(el_view.atomic_mass().value());
             coulomb_correction.push_back(el_view.coulomb_correction());
             mass_radiation_coeff.push_back(el_view.mass_radiation_coeff());
+
+            // Save isotope ids and fractions
+            auto el_isot_ids = json::array();
+            auto el_isot_fracs = json::array();
+            for (auto iso_comp : el_view.isotopes())
+            {
+                el_isot_ids.push_back(iso_comp.isotope.unchecked_get());
+                el_isot_fracs.push_back(iso_comp.fraction);
+            }
+            isotope_ids.push_back(std::move(el_isot_ids));
+            isotope_fracs.push_back(std::move(el_isot_fracs));
         }
         obj["elements"] = {
             {"label", std::move(label)},
             {"atomic_number", std::move(atomic_number)},
             {"atomic_mass", std::move(atomic_mass)},
+            {"isotope_ids", std::move(isotope_ids)},
+            {"isotope_fractions", std::move(isotope_fracs)},
             {"coulomb_correction", std::move(coulomb_correction)},
             {"mass_radiation_coeff", std::move(mass_radiation_coeff)},
         };
