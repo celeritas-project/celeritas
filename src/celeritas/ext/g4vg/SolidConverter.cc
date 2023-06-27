@@ -92,10 +92,12 @@
 
 namespace
 {
+//---------------------------------------------------------------------------//
 /*!
- * Return theta, phi angles for a G4Para or G4Trap given their symmetry axis
+ * Return theta, phi angles for a G4Para or G4Trap given their symmetry axis.
  */
-auto calculate_theta_phi(G4ThreeVector const& axis) -> std::pair<double, double>
+[[maybe_unused]] auto calculate_theta_phi(G4ThreeVector const& axis)
+    -> std::pair<double, double>
 {
     // The components of the symmetry axis for G4Para/Trap are alway encoded
     // as a vector (A.tan(theta)cos(phi), A.tan(theta)sin(phi), A).
@@ -109,6 +111,7 @@ auto calculate_theta_phi(G4ThreeVector const& axis) -> std::pair<double, double>
     double const phi = std::atan2(tan_theta_sin_phi, tan_theta_cos_phi);
     return {theta, phi};
 }
+//---------------------------------------------------------------------------//
 }  // namespace
 
 using namespace vecgeom;
