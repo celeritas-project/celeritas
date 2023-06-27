@@ -60,7 +60,7 @@ endif()
 if(CELERITAS_USE_CUDA)
   # we currently depend on CUDA install including the nvtx header
   list(APPEND SOURCES
-    sys/ScopedProfiling.nvtx.cc
+    sys/ScopedProfiling.cuda.cc
   )
 endif()
 

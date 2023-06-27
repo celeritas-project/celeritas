@@ -35,10 +35,26 @@ std::unordered_map<std::string, nvtxStringHandle_t>& message_registry()
     return registry;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Library-wide handle to the domain name
+ */
 nvtxDomainHandle_t domain_handle()
 {
     static nvtxDomainHandle_t domain = nvtxDomainCreateA("celeritas");
     return domain;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create ScopedProfiling input with a given name
+ * TODO: replace with c++20 designated initializer
+ */
+ScopedProfiling::Input make_input(std::string const& name)
+{
+    ScopedProfiling::Input input;
+    input.name = name;
+    return input;
 }
 
 //---------------------------------------------------------------------------//
@@ -52,13 +68,14 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
 
     {
         std::shared_lock lock(mutex);
-        auto message_handle = message_registry().find(message);
-        if (message_handle != message_registry().end())
+
+        if (auto message_handle = message_registry().find(message);
+            message_handle != message_registry().end())
         {
             return message_handle->second;
         }
     }
-    // we did not find the handle, insert it
+    // We did not find the handle; try to insert it
     std::unique_lock lock(mutex);
     auto [iter, inserted] = message_registry().insert({message, nullptr});
     if (inserted)
@@ -66,7 +83,6 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
         iter->second
             = nvtxDomainRegisterStringA(domain_handle(), message.c_str());
     }
-    CELER_ENSURE(iter->second);
     return iter->second;
 }
 
@@ -92,12 +108,21 @@ nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
 
 //---------------------------------------------------------------------------//
 /*!
- * Activate nvtx profiling.
+ * Activate nvtx profiling with options.
  */
 ScopedProfiling::ScopedProfiling(Input input)
 {
     nvtxEventAttributes_t attributes_ = make_attributes(input);
     nvtxDomainRangePushEx(domain_handle(), &attributes_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Activate nvtx profiling.
+ */
+ScopedProfiling::ScopedProfiling(std::string const& name)
+    : ScopedProfiling(make_input(name))
+{
 }
 
 //---------------------------------------------------------------------------//
