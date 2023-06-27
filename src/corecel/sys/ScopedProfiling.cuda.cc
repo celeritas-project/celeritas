@@ -20,10 +20,10 @@
 /**
  * @file
  *
- * The nvtx implementation of \c ScopedProfiling only does anything the
+ * The nvtx implementation of \c ScopedProfiling only does something when the
  * application using Celeritas is ran through a tool that supports nvtx, e.g.
- * nsight compute with the --nvtx argument. If this is not the case, all API
- * calls to nvtx are disabled and will not do anything.
+ * nsight compute with the --nvtx argument. If this is not the case, API
+ * calls to nvtx are disabled, doing noop.
  */
 
 namespace celeritas
