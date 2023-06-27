@@ -56,13 +56,13 @@ struct UICommandTraits<T, std::enable_if_t<std::is_integral_v<T>>>
     static long from_string(G4String const& v)
     {
         // Conversion to long int introduced in Geant4 10.7.0
-#if G4VERSION_NUMBER < 1070
+#if G4VERSION_NUMBER >= 1070
+        return G4UIcommand::ConvertToLongInt(v.c_str());
+#else
         G4long vl;
         std::istringstream is(v);
         is >> vl;
         return vl;
-#else
-        return G4UIcommand::ConvertToLongInt(v.c_str());
 #endif
     }
 };
