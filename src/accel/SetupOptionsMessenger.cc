@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <G4UIcmdWithABool.hh>
 #include <G4UIcmdWithAnInteger.hh>
+#include <G4Version.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/Device.hh"
@@ -54,7 +55,15 @@ struct UICommandTraits<T, std::enable_if_t<std::is_integral_v<T>>>
     static std::string to_string(T v) { return std::to_string(v); }
     static long from_string(G4String const& v)
     {
+        // Conversion to long int introduced in Geant4 10.7.0
+#if G4VERSION_NUMBER >= 1070
         return G4UIcommand::ConvertToLongInt(v.c_str());
+#else
+        G4long vl;
+        std::istringstream is(v);
+        is >> vl;
+        return vl;
+#endif
     }
 };
 
