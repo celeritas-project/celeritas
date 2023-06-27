@@ -28,7 +28,6 @@ class IsotopeView
     //!@{
     //! \name Type aliases
     using MaterialParamsRef = NativeCRef<MaterialParamsData>;
-    using AmuMass = units::AmuMass;
     using MevMass = units::MevMass;
     using AtomicMassNumber = AtomicNumber;
     //!@}
@@ -85,7 +84,8 @@ IsotopeView::atomic_mass_number() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Nuclear mass.
+ * Nuclear mass, which is the sum of the nucleons' mass and their binding
+ * energy.
  */
 CELER_FUNCTION units::MevMass IsotopeView::nuclear_mass() const
 {

@@ -316,13 +316,13 @@ TEST_F(MaterialTest, isotope_view)
     real_type const c_light_sq = std::pow(constants::c_light, 2);
 
     IsotopeView iso_0 = params->get(IsotopeId{0});
-    EXPECT_EQ(AtomicNumber{13}, iso_0.atomic_number());
-    EXPECT_EQ(AtomicNumber{27}, iso_0.atomic_mass_number());
+    EXPECT_EQ(13, iso_0.atomic_number().get());
+    EXPECT_EQ(27, iso_0.atomic_mass_number().get());
     EXPECT_SOFT_EQ(25126.5 / c_light_sq, iso_0.nuclear_mass().value());
 
     IsotopeView iso_1 = params->get(IsotopeId{1});
-    EXPECT_EQ(AtomicNumber{13}, iso_1.atomic_number());
-    EXPECT_EQ(AtomicNumber{28}, iso_1.atomic_mass_number());
+    EXPECT_EQ(13, iso_1.atomic_number().get());
+    EXPECT_EQ(28, iso_1.atomic_mass_number().get());
     EXPECT_SOFT_EQ(26058.3 / c_light_sq, iso_1.nuclear_mass().value());
 }
 

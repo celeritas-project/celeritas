@@ -57,7 +57,7 @@ class ElementView
     // Number of isotopic components
     inline CELER_FUNCTION IsotopeComponentId::size_type num_isotopes() const;
 
-    // Isotope properties of a specific isotope
+    // View properties of a specific isotope
     inline CELER_FUNCTION IsotopeView
     make_isotope_view(IsotopeComponentId id) const;
 
