@@ -52,6 +52,7 @@
 #include <G4Tubs.hh>
 #include <G4UnionSolid.hh>
 #include <G4VSolid.hh>
+#include <G4Version.hh>
 #include <VecGeom/management/GeoManager.h>
 #include <VecGeom/volumes/UnplacedAssembly.h>
 #include <VecGeom/volumes/UnplacedBooleanVolume.h>
@@ -88,6 +89,27 @@
 
 #include "Scaler.hh"
 #include "Transformer.hh"
+
+namespace
+{
+/*!
+ * Return theta, phi angles for a G4Para or G4Trap given their symmetry axis
+ */
+auto calculate_theta_phi(G4ThreeVector const& axis) -> std::pair<double, double>
+{
+    // The components of the symmetry axis for G4Para/Trap are alway encoded
+    // as a vector (A.tan(theta)cos(phi), A.tan(theta)sin(phi), A).
+    double const tan_theta_cos_phi = axis.x() / axis.z();
+    double const tan_theta_sin_phi = axis.y() / axis.z();
+
+    // Calculation taken from GetTheta/Phi implementations in Geant4 11
+    double const theta
+        = std::atan(std::sqrt(tan_theta_cos_phi * tan_theta_cos_phi
+                              + tan_theta_sin_phi * tan_theta_sin_phi));
+    double const phi = std::atan2(tan_theta_sin_phi, tan_theta_cos_phi);
+    return {theta, phi};
+}
+}  // namespace
 
 using namespace vecgeom;
 
@@ -385,13 +407,21 @@ auto SolidConverter::orb(arg_type solid_base) -> result_type
 auto SolidConverter::para(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Para const&>(solid_base);
+#if G4VERSION_NUMBER >= 1100
+    double const theta = solid.GetTheta();
+    double const phi = solid.GetPhi();
+#else
+    // Theta/Phi are not directly accessible before 11.0 but are encoded in the
+    // symmetry axis
+    auto const [theta, phi] = calculate_theta_phi(solid.GetSymAxis());
+#endif
     return GeoManager::MakeInstance<UnplacedParallelepiped>(
         this->convert_scale_(solid.GetXHalfLength()),
         this->convert_scale_(solid.GetYHalfLength()),
         this->convert_scale_(solid.GetZHalfLength()),
         std::atan(solid.GetTanAlpha()),
-        solid.GetTheta(),
-        solid.GetPhi());
+        theta,
+        phi);
 }
 
 //---------------------------------------------------------------------------//
@@ -561,18 +591,31 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 auto SolidConverter::trap(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
+#if G4VERSION_NUMBER >= 1100
+    double const theta = solid.GetTheta();
+    double const phi = solid.GetPhi();
+    double const alpha_1 = solid.GetAlpha1();
+    double const alpha_2 = solid.GetAlpha2();
+#else
+    // Theta/Phi are not directly accessible before 11.0 but are encoded in the
+    // symmetry axis
+    auto const [theta, phi] = calculate_theta_phi(solid.GetSymAxis());
+    double const alpha_1 = std::atan(solid.GetTanAlpha1());
+    double const alpha_2 = std::atan(solid.GetTanAlpha2());
+#endif
+
     return GeoManager::MakeInstance<UnplacedTrapezoid>(
         this->convert_scale_(solid.GetZHalfLength()),
-        solid.GetTheta(),
-        solid.GetPhi(),
+        theta,
+        phi,
         this->convert_scale_(solid.GetYHalfLength1()),
         this->convert_scale_(solid.GetXHalfLength1()),
         this->convert_scale_(solid.GetXHalfLength2()),
-        solid.GetAlpha1(),
+        alpha_1,
         this->convert_scale_(solid.GetYHalfLength2()),
         this->convert_scale_(solid.GetXHalfLength3()),
         this->convert_scale_(solid.GetXHalfLength4()),
-        solid.GetAlpha2());
+        alpha_2);
 }
 
 //---------------------------------------------------------------------------//
