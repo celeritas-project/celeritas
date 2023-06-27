@@ -13,7 +13,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepNeutralImpl.hh"
-#include "detail/LinearTrackPropagator.hh"
+#include "detail/LinearPropagatorFactory.hh"
 
 namespace celeritas
 {
@@ -29,10 +29,10 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
         state.ptr(),
         this->action_id(),
         AlongStep{detail::NoMsc{},
-                  detail::LinearTrackPropagator{},
+                  detail::LinearPropagatorFactory{},
                   detail::NoELoss{}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(state, execute);
+    launch_kernel(params, state, *this, execute);
 }
 
 //---------------------------------------------------------------------------//

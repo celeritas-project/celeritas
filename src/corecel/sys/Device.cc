@@ -368,12 +368,18 @@ std::ostream& operator<<(std::ostream& os, Device const& d)
  * Increase CUDA stack size to enable complex geometries with VecGeom.
  *
  * For the cms2018.gdml detector geometry, the default stack size is too small,
- * and a limit of 32768 is recommended.
+ * and a limit of 8K is recommended with debugging disabled (and up to 32K if
+ * debugging is enabled).
  */
 void set_cuda_stack_size(int limit)
 {
     CELER_EXPECT(limit > 0);
-    CELER_EXPECT(celeritas::device());
+    if (!celeritas::device())
+    {
+        CELER_LOG(warning) << "Ignoring call to set_cuda_stack_size: no "
+                              "device is available";
+        return;
+    }
     if constexpr (CELERITAS_USE_CUDA)
     {
         CELER_LOG(debug) << "Setting CUDA stack size to " << limit << "B";
@@ -392,7 +398,12 @@ void set_cuda_stack_size(int limit)
 void set_cuda_heap_size(int limit)
 {
     CELER_EXPECT(limit > 0);
-    CELER_EXPECT(celeritas::device());
+    if (!celeritas::device())
+    {
+        CELER_LOG(warning) << "Ignoring call to set_cuda_stack_size: no "
+                              "device is available";
+        return;
+    }
     if constexpr (CELERITAS_USE_CUDA)
     {
         CELER_LOG(debug) << "Setting CUDA heap size to " << limit << "B";

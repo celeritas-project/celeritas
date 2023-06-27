@@ -14,7 +14,7 @@
 #include <G4Types.hh>
 #include <G4Version.hh>
 #include <G4coutDestination.hh>
-#if G4VERSION_NUMBER > 1111
+#if G4VERSION_NUMBER >= 1120
 #    include <G4ios.hh>
 #    define CELER_G4SSBUF 0
 #else

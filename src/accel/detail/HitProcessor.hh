@@ -52,7 +52,8 @@ class HitProcessor
     //! \name Type aliases
     using StepStateHostRef = HostRef<StepStateData>;
     using StepStateDeviceRef = DeviceRef<StepStateData>;
-    using SPConstVecLV = std::shared_ptr<const std::vector<G4LogicalVolume*>>;
+    using SPConstVecLV
+        = std::shared_ptr<const std::vector<G4LogicalVolume const*>>;
     //!@}
 
   public:
@@ -92,7 +93,7 @@ class HitProcessor
 
     bool update_touchable(Real3 const& pos,
                           Real3 const& dir,
-                          G4LogicalVolume* lv) const;
+                          G4LogicalVolume const* lv) const;
 };
 
 //---------------------------------------------------------------------------//

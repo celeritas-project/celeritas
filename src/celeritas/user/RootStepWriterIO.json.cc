@@ -38,8 +38,13 @@ void from_json(nlohmann::json const& j, SimpleRootFilterInput& options)
  */
 void to_json(nlohmann::json& j, SimpleRootFilterInput const& options)
 {
-#define SRFI_SAVE_OPTION(NAME) j[#NAME] = options.NAME
-    SRFI_SAVE_OPTION(track_id);
+    j["track_id"] = options.track_id;
+#define SRFI_SAVE_OPTION(NAME)                   \
+    do                                           \
+    {                                            \
+        if (options.NAME != options.unspecified) \
+            j[#NAME] = options.NAME;             \
+    } while (0)
     SRFI_SAVE_OPTION(event_id);
     SRFI_SAVE_OPTION(parent_id);
     SRFI_SAVE_OPTION(action_id);

@@ -24,26 +24,20 @@ namespace test
 class GeantGeoTest : public GenericGeantGeoTestBase
 {
   public:
-    virtual std::string_view geometry_basename() const = 0;
-
     SPConstGeo build_geometry() final
     {
-        return std::make_shared<GeantGeoParams>(this->test_data_path(
-            "celeritas", std::string{this->geometry_basename()} + ".gdml"));
+        return this->build_geometry_from_basename();
     }
 };
 
 class FourLevelsTest : public GeantGeoTest
 {
-    std::string_view geometry_basename() const override
-    {
-        return "four-levels"sv;
-    }
+    std::string geometry_basename() const override { return "four-levels"; }
 };
 
 class SolidsTest : public GeantGeoTest
 {
-    std::string_view geometry_basename() const override { return "solids"sv; }
+    std::string geometry_basename() const override { return "solids"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -328,11 +322,11 @@ TEST_F(SolidsTest, accessors)
     // offset. This value will be zero if running the solids test as
     // standalone.
     int const offset = 4;
-    ASSERT_EQ(25 + offset, geom.num_volumes());
+    ASSERT_EQ(26 + offset, geom.num_volumes());
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{0 + offset}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{1 + offset}).name);
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{23 + offset}).name);
-    EXPECT_EQ("trd3_refl", geom.id_to_label(VolumeId{24 + offset}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{24 + offset}).name);
+    EXPECT_EQ("trd3_refl", geom.id_to_label(VolumeId{25 + offset}).name);
 }
 
 //---------------------------------------------------------------------------//
@@ -344,7 +338,7 @@ TEST_F(SolidsTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json({"bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","World","trd3_refl"]}})json",
+            R"json({"bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
             to_string(out))
             << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
             << ")json\"\n/******/";
@@ -359,24 +353,11 @@ TEST_F(SolidsTest, trace)
         SCOPED_TRACE("Center -x");
         auto result = this->track({375, 0, 0}, {-1, 0, 0});
 
-        static char const* const expected_volumes[] = {"ellipsoid1",
-                                                       "World",
-                                                       "polycone1",
-                                                       "World",
-                                                       "polycone1",
-                                                       "World",
-                                                       "sphere1",
-                                                       "World",
-                                                       "box500",
-                                                       "World",
-                                                       "cone1",
-                                                       "World",
-                                                       "trd1",
-                                                       "World",
-                                                       "parabol1",
-                                                       "World",
-                                                       "trd2",
-                                                       "World"};
+        static char const* const expected_volumes[]
+            = {"ellipsoid1", "World",   "polycone1", "World",  "polycone1",
+               "World",      "sphere1", "World",     "box500", "World",
+               "cone1",      "World",   "trd1",      "World",  "parabol1",
+               "World",      "trd2",    "World",     "xtru1",  "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {20,
                                                        95,
@@ -395,7 +376,9 @@ TEST_F(SolidsTest, trace)
                                                        42.426642572798,
                                                        88.786678713601,
                                                        30,
-                                                       85};
+                                                       1.4761904761905,
+                                                       15.880952380952,
+                                                       67.642857142857};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {0,
                                                        45.496748548005,
@@ -408,13 +391,15 @@ TEST_F(SolidsTest, trace)
                                                        25,
                                                        36.240004604773,
                                                        25,
-                                                       41.2043887972073,
+                                                       41.204388797207,
                                                        14.92555785315,
                                                        35.6066606432,
                                                        14.09753916278,
                                                        35.6066606432,
                                                        14.92555785315,
-                                                       42.289080583925};
+                                                       0.73443221182165,
+                                                       6.5489918373272,
+                                                       33.481506089183};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
@@ -558,7 +543,7 @@ TEST_F(SolidsTest, trace)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    EXPECT_EQ(VolumeId{28}, geo.volume_id());
+    EXPECT_EQ(VolumeId{29}, geo.volume_id());
     auto const& label = this->geometry()->id_to_label(geo.volume_id());
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));

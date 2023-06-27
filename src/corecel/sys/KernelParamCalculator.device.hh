@@ -78,7 +78,7 @@ struct KernelProfiling;
  * increment thread launch counters over the lifetime of the program.
  *
  * \code
-    static KernelParamCalculator calc_params(my_kernel, "my");
+    static KernelParamCalculator calc_params("my", &my_kernel);
     auto params = calc_params(states.size());
     my_kernel<<<params.blocks_per_grid,
  params.threads_per_block>>>(kernel_args...);

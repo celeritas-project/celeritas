@@ -28,6 +28,7 @@ list(APPEND SOURCES
   io/ScopedStreamRedirect.cc
   io/ScopedTimeAndRedirect.cc
   io/StringUtils.cc
+  io/detail/EnumStringMapperImpl.cc
   io/detail/LoggerMessage.cc
   io/detail/ReprImpl.cc
   sys/Device.cc

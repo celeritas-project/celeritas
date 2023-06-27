@@ -56,19 +56,17 @@ make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
  * propagate(0.123);
  * \endcode
  */
-template<class StepperT>
+template<class StepperT, class GTV>
 CELER_FUNCTION decltype(auto)
 make_field_propagator(StepperT&& stepper,
                       FieldDriverOptions const& options,
                       ParticleTrackView const& particle,
-                      GeoTrackView* geometry)
+                      GTV&& geometry)
 {
-    CELER_ASSERT(geometry);
-    using Driver_t = FieldDriver<StepperT>;
-    return FieldPropagator<Driver_t>{
-        Driver_t{options, ::celeritas::forward<StepperT>(stepper)},
+    return FieldPropagator{
+        FieldDriver{options, ::celeritas::forward<StepperT>(stepper)},
         particle,
-        geometry};
+        ::celeritas::forward<GTV>(geometry)};
 }
 
 //---------------------------------------------------------------------------//
@@ -86,19 +84,19 @@ make_field_propagator(StepperT&& stepper,
  * propagate(0.123);
  * \endcode
  */
-template<template<class EquationT> class StepperT, class FieldT>
+template<template<class EquationT> class StepperT, class FieldT, class GTV>
 CELER_FUNCTION decltype(auto)
 make_mag_field_propagator(FieldT&& field,
                           FieldDriverOptions const& options,
                           ParticleTrackView const& particle,
-                          GeoTrackView* geometry)
+                          GTV&& geometry)
 {
     return make_field_propagator(
         make_mag_field_stepper<StepperT>(::celeritas::forward<FieldT>(field),
                                          particle.charge()),
         options,
         particle,
-        geometry);
+        ::celeritas::forward<GTV>(geometry));
 }
 
 //---------------------------------------------------------------------------//

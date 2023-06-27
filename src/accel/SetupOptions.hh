@@ -8,10 +8,14 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "celeritas/Types.hh"
+
+class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -20,6 +24,9 @@ class ExplicitActionInterface;
 //---------------------------------------------------------------------------//
 /*!
  * Control options for initializing Celeritas SD callbacks.
+ *
+ * These affect only the \c HitManager construction that is responsible for
+ * reconstructing CPU hits and sending directly to the Geant4 detectors.
  */
 struct SDSetupOptions
 {
@@ -43,7 +50,10 @@ struct SDSetupOptions
     //! Options for saving and converting end-of-step data
     StepPoint post;
 
-    // TODO: list of detectors to ignore?
+    //! Manually list LVs that don't have an SD on the master thread
+    std::unordered_set<G4LogicalVolume const*> force_volumes;
+    //! List LVs that should *not* have automatic hit mapping
+    std::unordered_set<G4LogicalVolume const*> skip_volumes;
 
     //! True if SD is enabled
     explicit operator bool() const { return this->enabled; }
@@ -98,8 +108,6 @@ struct SetupOptions
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
     real_type secondary_stack_factor{3.0};
-    //! Sync the GPU at every kernel for error checking
-    bool sync{false};
     //!@}
 
     //! Set the number of streams (defaults to run manager # threads)
@@ -125,6 +133,8 @@ struct SetupOptions
     //! \name CUDA options
     size_type cuda_stack_size{};
     size_type cuda_heap_size{};
+    //! Sync the GPU at every kernel for timing
+    bool sync{false};
     //! Launch all kernels on the default stream
     bool default_stream{false};
     //!@}
@@ -134,6 +144,14 @@ struct SetupOptions
     TrackOrder track_order{TrackOrder::unsorted};
     //!@}
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Find volumes by name for SDSetupOptions
+std::unordered_set<G4LogicalVolume const*>
+    FindVolumes(std::unordered_set<std::string>);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

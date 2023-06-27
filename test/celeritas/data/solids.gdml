@@ -61,6 +61,7 @@ acceptance of all terms of the Geant4 Software license.
   <position name="posTessel1"    x="-5000" y=" 1250" z="0" unit="mm" />
   <position name="posDirect"     x="-5000" y="    0" z="0" unit="mm" />
   <position name="posReflect"    x="-5000" y="-1250" z="0" unit="mm" />
+  <position name="posXtru1"      x="-5250" y="    0" z="0" unit="mm" />
 
   <position name="v0" unit="mm"  x=" 400" y=" 400" z="-500" />
   <position name="v1" unit="mm"  x="-400" y=" 400" z="-500" />
@@ -190,7 +191,16 @@ acceptance of all terms of the Geant4 Software license.
   <elcone    name="testellcone"   lunit="mm" dx="0.10" dy="0.15" zmax="500" zcut="200"/>
 
   <tet name="testtet" vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v2"/>
-  <!--trd name="testtet" lunit="mm" x1="400" y1="400" x2="1" y2="1" z="500"/-->
+
+  <xtru lunit="mm" name="testxtru">
+    <twoDimVertex x="-85" y="-80"/>
+    <twoDimVertex x="-65" y="60"/>
+    <twoDimVertex x="0" y="95"/>
+    <twoDimVertex x="90" y="50"/>
+    <twoDimVertex x="80" y="-55"/>
+    <section scalingFactor="1" xOffset="0" yOffset="0" zOrder="0" zPosition="-100"/>
+    <section scalingFactor="1" xOffset="0" yOffset="0" zOrder="1" zPosition="100"/>
+  </xtru>
  </solids>
 
  <structure>
@@ -321,6 +331,11 @@ acceptance of all terms of the Geant4 Software license.
   <volume name="arb8a">
    <materialref ref="Water"/>
    <solidref ref="arb82"/>
+  </volume>
+
+  <volume name="xtru1">
+   <materialref ref="Water"/>
+   <solidref ref="testxtru"/>
   </volume>
 
   <volume name="World">
@@ -476,6 +491,12 @@ acceptance of all terms of the Geant4 Software license.
    <physvol>
      <volumeref ref="genPocone1"/>
      <positionref ref="posGenPocone1"/>
+     <rotationref ref="norot"/>
+   </physvol>
+
+   <physvol>
+     <volumeref ref="xtru1"/>
+     <positionref ref="posXtru1"/>
      <rotationref ref="norot"/>
    </physvol>
 

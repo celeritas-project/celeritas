@@ -89,7 +89,7 @@ pipeline {
         stage('vecgeom-reldeb') {
           agent {
             docker {
-              image 'celeritas/ci-jammy-cuda11:2023-03-13'
+              image 'celeritas/ci-jammy-cuda11:2023-06-20'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
             }
           }
@@ -105,7 +105,7 @@ pipeline {
         stage('vecgeom-demos') {
           agent {
             docker {
-              image 'celeritas/ci-jammy-cuda11:2023-03-13'
+              image 'celeritas/ci-jammy-cuda11:2023-06-20'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
             }
           }
@@ -121,7 +121,7 @@ pipeline {
         stage('vecgeom-tests') {
           agent {
             docker {
-              image 'celeritas/ci-jammy-cuda11:2023-03-13'
+              image 'celeritas/ci-jammy-cuda11:2023-06-20'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
             }
           }

@@ -50,34 +50,82 @@ struct GenericGeoGeantImportVolumeResult
     void print_expected() const;
 };
 
+namespace testdetail
+{
+//---------------------------------------------------------------------------//
+template<class HP>
+struct GenericGeoTraits;
+
+template<>
+struct GenericGeoTraits<VecgeomParams>
+{
+    template<MemSpace M>
+    using StateStore = CollectionStateStore<VecgeomStateData, M>;
+    using TrackView = VecgeomTrackView;
+    static inline char const* ext = ".gdml";
+    static inline char const* name = "VecGeom";
+};
+
+template<>
+struct GenericGeoTraits<OrangeParams>
+{
+    template<MemSpace M>
+    using StateStore = CollectionStateStore<OrangeStateData, M>;
+
+    using TrackView = OrangeTrackView;
+    static inline char const* ext = ".org.json";
+    static inline char const* name = "ORANGE";
+};
+
+template<>
+struct GenericGeoTraits<GeantGeoParams>
+{
+    template<MemSpace M>
+    using StateStore = CollectionStateStore<GeantGeoStateData, M>;
+    using TrackView = GeantGeoTrackView;
+    static inline char const* ext = ".gdml";
+    static inline char const* name = "Geant4";
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Templated base class for loading geometry.
  *
  * \tparam HP Geometry host Params class
- * \tparam S State data class
- * \tparam TV Track view clsas
+ *
+ * \sa AllGeoTypedTestBase
  *
  * \note This class is instantiated in GenericGeoTestBase.cc for each available
  * geometry type.
  */
-template<class HP, template<Ownership, MemSpace> class S, class TV>
+template<class HP>
 class GenericGeoTestBase : virtual public Test, private LazyGeoManager
 {
     static_assert(std::is_base_of_v<GeoParamsInterface, HP>);
+
+    using TraitsT = testdetail::GenericGeoTraits<HP>;
 
   public:
     //!@{
     //! \name Type aliases
     using SPConstGeo = std::shared_ptr<HP const>;
-    using GeoTrackView = TV;
+    using GeoTrackView = typename TraitsT::TrackView;
     using TrackingResult = GenericGeoTrackingResult;
     using GeantVolResult = GenericGeoGeantImportVolumeResult;
     //!@}
 
   public:
+    //! Get the basename or unique geometry key (defaults to suite name)
+    virtual std::string geometry_basename() const;
+
     //! Build the geometry
     virtual SPConstGeo build_geometry() = 0;
+
+    //! Construct from celeritas test data and "basename" value
+    SPConstGeo build_geometry_from_basename();
 
     // Access geometry
     SPConstGeo const& geometry();
@@ -112,7 +160,8 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     }
 
   private:
-    using HostStateStore = CollectionStateStore<S, MemSpace::host>;
+    using HostStateStore =
+        typename TraitsT::template StateStore<MemSpace::host>;
 
     SPConstGeo geo_;
     HostStateStore host_state_;
@@ -127,19 +176,11 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-using GenericVecgeomTestBase
-    = GenericGeoTestBase<VecgeomParams, VecgeomStateData, VecgeomTrackView>;
-using GenericOrangeTestBase
-    = GenericGeoTestBase<OrangeParams, OrangeStateData, OrangeTrackView>;
-using GenericGeantGeoTestBase
-    = GenericGeoTestBase<GeantGeoParams, GeantGeoStateData, GeantGeoTrackView>;
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-using GenericCoreGeoTestBase = GenericVecgeomTestBase;
-#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-using GenericCoreGeoTestBase = GenericOrangeTestBase;
-#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-using GenericCoreGeoTestBase = GenericGeantGeoTestBase;
-#endif
+using GenericVecgeomTestBase = GenericGeoTestBase<VecgeomParams>;
+using GenericOrangeTestBase = GenericGeoTestBase<OrangeParams>;
+using GenericGeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
+
+using GenericCoreGeoTestBase = GenericGeoTestBase<GeoParams>;
 
 //---------------------------------------------------------------------------//
 }  // namespace test

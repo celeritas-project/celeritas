@@ -12,11 +12,14 @@
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "ActionInterface.hh"
 #include "CoreParams.hh"
@@ -29,16 +32,16 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch the given executor up to the maximum thread count.
+ * Launch the given executor using thread ids in the thread_range
  */
 template<class F>
 __global__ void
-launch_action_impl(size_type const num_threads, F execute_thread)
+launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (!(tid < num_threads))
+    if (!(tid < thread_range.size()))
         return;
-    execute_thread(tid);
+    execute_thread(*(thread_range.cbegin() + tid.get()));
 }
 
 //---------------------------------------------------------------------------//
@@ -81,11 +84,28 @@ class ActionLauncher
     {
     }
 
+    //! Launch a kernel for a thread range
+    void operator()(Range<ThreadId> threads,
+                    StreamId stream_id,
+                    F const& call_thread) const
+    {
+        if (!threads.empty())
+        {
+            CELER_DEVICE_PREFIX(Stream_t)
+            stream = celeritas::device().stream(stream_id).get();
+            auto config = calc_launch_params_(threads.size());
+            launch_action_impl<F>
+                <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
+                    threads, call_thread);
+        }
+    }
+
     //! Launch a kernel for the wrapped executor
     void operator()(CoreState<MemSpace::device> const& state,
                     F const& call_thread) const
     {
-        return (*this)(state.size(), state.stream_id(), call_thread);
+        return (*this)(
+            range(ThreadId{state.size()}), state.stream_id(), call_thread);
     }
 
     //! Launch a kernel with a custom number of threads
@@ -95,12 +115,31 @@ class ActionLauncher
     {
         CELER_EXPECT(num_threads > 0);
         CELER_EXPECT(stream_id);
-        CELER_DEVICE_PREFIX(Stream_t)
-        stream = celeritas::device().stream(stream_id).get();
-        auto config = calc_launch_params_(num_threads);
-        launch_action_impl<F>
-            <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                num_threads, call_thread);
+        (*this)(range(ThreadId{num_threads}), stream_id, call_thread);
+    }
+
+    //! Launch a Kernel with reduced grid size if tracks are sorted using the
+    //! expected track order strategy.
+    //! TODO: Always use an ActionLauncher instance with the action passed as
+    //! constructor argument
+    void operator()(CoreParams const& params,
+                    CoreState<MemSpace::device> const& state,
+                    ExplicitActionInterface const& action,
+                    F const& call_thread) const
+    {
+        CELER_EXPECT(state.stream_id());
+        if (is_action_sorted(action.order(),
+                             params.init()->host_ref().track_order))
+        {
+            return (*this)(state.get_action_range(action.action_id()),
+                           state.stream_id(),
+                           call_thread);
+        }
+        else
+        {
+            return (*this)(
+                range(ThreadId{state.size()}), state.stream_id(), call_thread);
+        }
     }
 
   private:

@@ -3,11 +3,12 @@
 /run/verbose 0
 /event/verbose 0
 
-/setup/geometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
-/setup/eventFile @DEMO_EVENTS@
-/setup/outputFile simple-cms.out.json
-/setup/maxNumTracks @DEMO_MAX_NUM_TRACKS@
-/setup/maxNumEvents 1024
-@DEMO_ROOT_OPTIONS@
-/setup/secondaryStackFactor 3
-/setup/initializerCapacity @DEMO_INIT_CAPACITY@
+/celer/outputFile simple-cms.out.json
+/celer/maxNumTracks @CELERG4_MAX_NUM_TRACKS@
+/celer/maxNumEvents 1024
+/celer/maxInitializers @CELERG4_INIT_CAPACITY@
+/celer/secondaryStackFactor 3
+
+/celerg4/geometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
+/celerg4/eventFile @CELERG4_EVENTS@
+@CELERG4_ROOT_OPTIONS@

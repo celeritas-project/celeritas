@@ -202,17 +202,17 @@
  * to a \c std::exception subclass that isn't \c final . The resulting chained
  * exception will be passed into \c HANDLE_EXCEPTION for processing.
  */
-#define CELER_TRY_HANDLE_CONTEXT(                         \
-    STATEMENT, HANDLE_EXCEPTION, CONTEXT_EXCEPTION)       \
-    CELER_TRY_HANDLE(                                     \
-        do {                                              \
-            try                                           \
-            {                                             \
-                STATEMENT;                                \
-            }                                             \
-            catch (...)                                   \
-            {                                             \
+#define CELER_TRY_HANDLE_CONTEXT(                          \
+    STATEMENT, HANDLE_EXCEPTION, CONTEXT_EXCEPTION)        \
+    CELER_TRY_HANDLE(                                      \
+        do {                                               \
+            try                                            \
+            {                                              \
+                STATEMENT;                                 \
+            }                                              \
+            catch (...)                                    \
+            {                                              \
                 std::throw_with_nested(CONTEXT_EXCEPTION); \
-            }                                             \
-        } while (0),                                      \
+            }                                              \
+        } while (0),                                       \
         HANDLE_EXCEPTION)

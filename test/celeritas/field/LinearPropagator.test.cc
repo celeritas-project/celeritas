@@ -11,10 +11,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
-#include "celeritas/OnlyGeoTestBase.hh"
-#include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/AllGeoTypedTestBase.hh"
 
 #include "celeritas_test.hh"
 
@@ -26,64 +23,50 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorTestBase : public GlobalGeoTestBase,
-                                 public OnlyGeoTestBase
+template<class HP>
+class LinearPropagatorTest : public AllGeoTypedTestBase<HP>
 {
-  public:
-    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
-
-    void SetUp() override
-    {
-        geo_state_ = GeoStateStore(this->geometry()->host_ref(), 1);
-    }
-
-    GeoTrackView make_geo_view()
-    {
-        return GeoTrackView(
-            this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0});
-    }
-
-    GeoTrackView init_geo(Real3 const& pos, Real3 dir)
-    {
-        normalize_direction(&dir);
-        GeoTrackView view = this->make_geo_view();
-        view = {pos, dir};
-        return view;
-    }
-
-    std::string volume_name(GeoTrackView const& geo)
-    {
-        if (geo.is_outside())
-        {
-            return "[OUTSIDE]";
-        }
-        return this->geometry()->id_to_label(geo.volume_id()).name;
-    }
-
   protected:
-    GeoStateStore geo_state_;
+    using SPConstGeo = typename GenericGeoTestBase<HP>::SPConstGeo;
+    using GeoTrackView = typename GenericGeoTestBase<HP>::GeoTrackView;
+
+    std::string geometry_basename() const final { return "simple-cms"; }
 };
 
-class SimpleCmsTest : public LinearPropagatorTestBase
-{
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
-};
+TYPED_TEST_SUITE(LinearPropagatorTest,
+                 AllGeoTestingTypes,
+                 AllGeoTestingTypeNames);
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //----------------------------------------------------------------------------//
 
-TEST_F(SimpleCmsTest, all)
+TYPED_TEST(LinearPropagatorTest, rvalue_type)
 {
+    using GeoTrackView = typename TestFixture::GeoTrackView;
+    {
+        LinearPropagator propagate(
+            this->make_geo_track_view({0, 0, 0}, {0, 0, 1}));
+        EXPECT_TRUE((
+            std::is_same_v<decltype(propagate), LinearPropagator<GeoTrackView>>));
+        Propagation result = propagate(10);
+        EXPECT_SOFT_EQ(10, result.distance);
+        EXPECT_FALSE(result.boundary);
+    }
+    EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), this->make_geo_track_view().pos());
+}
+
+TYPED_TEST(LinearPropagatorTest, simple_cms)
+{
+    using GeoTrackView = typename TestFixture::GeoTrackView;
     // Initialize
-    GeoTrackView geo = this->init_geo({0, 0, 0}, {0, 0, 1});
+    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", this->volume_name(geo));
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
+        EXPECT_TRUE((std::is_same_v<decltype(propagate),
+                                    LinearPropagator<GeoTrackView&>>));
 
         // Move up to a small distance
         Propagation result = propagate(20);
@@ -97,7 +80,7 @@ TEST_F(SimpleCmsTest, all)
     geo.set_dir({1, 0, 0});
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
 
         // Move to the next layer
         Propagation result = propagate(1e20);
@@ -111,7 +94,7 @@ TEST_F(SimpleCmsTest, all)
     EXPECT_EQ("si_tracker", this->volume_name(geo));
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
 
         // Move two steps internally
         Propagation result = propagate(35);
@@ -128,7 +111,7 @@ TEST_F(SimpleCmsTest, all)
     EXPECT_EQ("si_tracker", this->volume_name(geo));
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
 
         // Move to next boundary (infinite max distance)
         Propagation result = propagate();
@@ -148,7 +131,7 @@ TEST_F(SimpleCmsTest, all)
     geo.set_dir({0, 0, -1});
 
     {
-        LinearPropagator propagate(&geo);
+        LinearPropagator propagate(geo);
 
         // Move to world volume
         Propagation result = propagate(10000);

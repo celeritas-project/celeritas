@@ -46,7 +46,9 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     particles_ = params.Params()->particle();
 
     // Thread ID is -1 when running serially
-    auto thread_id = G4Threading::IsMultithreadedApplication() ? G4Threading::G4GetThreadId() : 0;
+    auto thread_id = G4Threading::IsMultithreadedApplication()
+                         ? G4Threading::G4GetThreadId()
+                         : 0;
     CELER_VALIDATE(thread_id >= 0,
                    << "Geant4 ThreadID (" << thread_id
                    << ") is invalid (perhaps LocalTransporter is being built "
@@ -71,6 +73,9 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     {
         step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
     }
+
+    // Set stream ID for finalizing
+    hit_manager_.finalizer(HMFinalizer{inp.stream_id});
 }
 
 //---------------------------------------------------------------------------//
@@ -138,9 +143,9 @@ void LocalTransporter::Flush()
         return;
     }
 
-    CELER_LOG_LOCAL(info)
-        << "Transporting " << buffer_.size() << " tracks from event "
-        << event_id_.unchecked_get() << " with Celeritas";
+    CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
+                          << " tracks from event " << event_id_.unchecked_get()
+                          << " with Celeritas";
 
     // Abort cleanly for interrupt and user-defined signals
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
@@ -193,7 +198,15 @@ void LocalTransporter::HMFinalizer::operator()(SPHitManger& hm) const
 {
     if (hm)
     {
-        hm->finalize();
+        if (this->sid)
+        {
+            hm->finalize(this->sid);
+        }
+        else
+        {
+            CELER_LOG_LOCAL(warning) << "Not finalizing hit manager because "
+                                        "stream ID is unset";
+        }
     }
 }
 

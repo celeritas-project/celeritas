@@ -84,49 +84,74 @@ class LocalHandler
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Set the log level from an environment variable, warn on failure.
+ */
+void set_log_level_from_env(Logger* log, std::string const& level_env)
+{
+    CELER_EXPECT(log);
+    try
+    {
+        log->level(log_level_from_env(level_env));
+    }
+    catch (RuntimeError const& e)
+    {
+        (*log)(CELER_CODE_PROVENANCE, LogLevel::warning) << e.details().what;
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with default communicator and handler.
+ */
+Logger::Logger(LogHandler handle)
+    : Logger(MpiCommunicator::comm_default(), std::move(handle))
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with communicator (only rank zero is active) and handler.
  */
-Logger::Logger(MpiCommunicator const& comm,
-               LogHandler handle,
-               char const* level_env)
+Logger::Logger(MpiCommunicator const& comm, LogHandler handle)
 {
     if (comm.rank() == 0)
     {
         // Accept handler, otherwise it is a "null" function pointer.
         handle_ = std::move(handle);
     }
-    if (level_env)
-    {
-        // Search for the provided environment variable to set the default
-        // logging level using the `to_cstring` function in LoggerTypes.
-        std::string const& env_value = celeritas::getenv(level_env);
-        if (!env_value.empty())
-        {
-            auto levels = range(LogLevel::size_);
-            auto iter = std::find_if(
-                levels.begin(), levels.end(), [&env_value](LogLevel lev) {
-                    return env_value == to_cstring(lev);
-                });
-            if (iter != levels.end())
-            {
-                min_level_ = *iter;
-            }
-            else if (comm.rank() == 0)
-            {
-                std::clog << "Log level environment variable '" << level_env
-                          << "' has an invalid value '" << env_value
-                          << "': ignoring" << std::endl;
-            }
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get the log level from an environment variable.
+ */
+LogLevel log_level_from_env(std::string const& level_env)
+{
+    // Search for the provided environment variable to set the default
+    // logging level using the `to_cstring` function in LoggerTypes.
+    std::string const& env_value = celeritas::getenv(level_env);
+    if (env_value.empty())
+    {
+        return Logger::default_level();
+    }
+
+    auto levels = range(LogLevel::size_);
+    auto iter = std::find_if(
+        levels.begin(), levels.end(), [&env_value](LogLevel lev) {
+            return env_value == to_cstring(lev);
+        });
+    CELER_VALIDATE(iter != levels.end(),
+                   << "invalid log level '" << env_value
+                   << "' in environment variable '" << level_env << "'");
+    return *iter;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Create a default logger using the world communicator.
@@ -135,10 +160,9 @@ Logger::Logger(MpiCommunicator const& comm,
  */
 Logger make_default_world_logger()
 {
-    auto comm = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-                    ? MpiCommunicator::comm_world()
-                    : MpiCommunicator{};
-    return {comm, &default_global_handler, "CELER_LOG"};
+    Logger log{&default_global_handler};
+    set_log_level_from_env(&log, "CELER_LOG");
+    return log;
 }
 
 //---------------------------------------------------------------------------//
@@ -147,13 +171,13 @@ Logger make_default_world_logger()
  */
 Logger make_default_self_logger()
 {
-    auto comm = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-                    ? MpiCommunicator::comm_world()
-                    : MpiCommunicator{};
+    auto comm = MpiCommunicator::comm_default();
     auto handler = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
                        ? LocalHandler{comm}
                        : LogHandler{&default_global_handler};
-    return {comm, std::move(handler), "CELER_LOG_LOCAL"};
+    Logger log{comm, std::move(handler)};
+    set_log_level_from_env(&log, "CELER_LOG_LOCAL");
+    return log;
 }
 
 //---------------------------------------------------------------------------//

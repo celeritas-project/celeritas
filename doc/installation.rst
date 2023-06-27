@@ -10,6 +10,9 @@
 Installation
 ************
 
+Celeritas is designed to be easy to install for a multitude of use cases.
+
+.. _dependencies:
 
 Dependencies
 ============
@@ -108,6 +111,13 @@ The current Spack environment for full-featured development is:
 .. literalinclude:: ../scripts/spack.yaml
    :language: yaml
 
+With this environment (with CUDA enabled), all Celeritas tests should be
+enabled and all should pass. Celeritas is build-compatible with older versions
+of some dependencies (e.g., Geant4@10.6 and VecGeom@1.2.2), but some tests may
+fail, indicating a change in behavior or a bug fix in that package.
+Specifically, older versions of VecGeom have shapes and configurations that are
+incompatible on GPU with new CMS detector descriptions.
+
 .. _Spack: https://github.com/spack/spack
 
 Building Celeritas
@@ -177,25 +187,3 @@ basis, create a preset at :file:`scripts/cmake-presets/{HOSTNAME}.json` and
 call ``scripts/build.sh {preset}`` to create the symlink, configure the preset,
 build, and test. See :file:`scripts/README.md` in the code repository for more
 details.
-
-Downstream usage as a library
-=============================
-
-The Celeritas library is most easily used when your downstream app is built with
-CMake. It should require a single line to initialize::
-
-   find_package(Celeritas REQUIRED CONFIG)
-
-and if VecGeom or CUDA are disabled a single line to link::
-
-   target_link_libraries(mycode PUBLIC Celeritas::celeritas)
-
-Because of complexities involving CUDA Relocatable Device Code, linking when
-using both CUDA and VecGeom requires an additional include and the replacement
-of ``target_link_libraries`` with a customized version::
-
-  include(CeleritasLibrary)
-  celeritas_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
-
-The :ref:`example_minimal` example demonstrates how to use Celeritas as a
-library with a short standalone CMake project.

@@ -56,7 +56,7 @@ struct RunnerInput
     unsigned int seed{};
     size_type num_track_slots{};  //!< Divided among streams
     size_type max_steps{unspecified};
-    size_type initializer_capacity{};
+    size_type initializer_capacity{};  //!< Divided among streams
     size_type max_events{};
     real_type secondary_stack_factor{};
     bool use_device{};
@@ -84,7 +84,7 @@ struct RunnerInput
     //! Whether the run arguments are valid
     explicit operator bool() const
     {
-        return !geometry_filename.empty() && !physics_filename.empty()
+        return !geometry_filename.empty()
                && (primary_gen_options || !hepmc3_filename.empty())
                && num_track_slots > 0 && max_steps > 0
                && initializer_capacity > 0 && max_events > 0

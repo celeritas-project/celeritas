@@ -40,9 +40,12 @@ namespace
 //---------------------------------------------------------------------------//
 void print_usage(char const* exec_name)
 {
-    std::cerr << "Usage: " << exec_name
-              << " {input}.gdml [{options}.json, -, ''] {output}.root"
-              << std::endl;
+    // clang-format off
+    std::cerr
+        << "usage: " << exec_name << " {input}.gdml "
+                                     "[{options}.json, -, ''] {output}.root\n"
+           "       " << exec_name << " --dump-default\n";
+    // clang-format on
 }
 
 //---------------------------------------------------------------------------//
@@ -115,18 +118,19 @@ int main(int argc, char* argv[])
     if (args.size() == 1 && (args.front() == "--help" || args.front() == "-h"))
     {
         print_usage(argv[0]);
-        return 0;
+        return EXIT_SUCCESS;
     }
-    if (args.size() == 1 && args.front() == "--options")
+    if (args.size() == 1 && args.front() == "--dump-default")
     {
 #if CELERITAS_USE_JSON
         GeantPhysicsOptions options;
         constexpr int indent = 1;
         std::cout << nlohmann::json{options}.dump(indent) << std::endl;
+        return EXIT_SUCCESS;
 #else
         CELER_LOG(error) << "JSON is unavailable: can't output geant options";
+        return EXIT_FAILURE;
 #endif
-        return 0;
     }
     if (args.size() != 3)
     {

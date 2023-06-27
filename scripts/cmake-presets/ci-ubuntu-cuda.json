@@ -23,6 +23,7 @@
         "CMAKE_CXX_STANDARD": "17",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
+        "CMAKE_CUDA_FLAGS": "-Werror all-warnings",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
       }
     },
@@ -51,7 +52,8 @@
       "description": "Build with debug, everything but VecGeom",
       "inherits": [".mpi", "base"],
       "cacheVariables": {
-        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CUDA_FLAGS": ""
       }
     },
     {

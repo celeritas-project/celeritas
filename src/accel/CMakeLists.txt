@@ -16,6 +16,8 @@ list(APPEND SOURCES
   AlongStepFactory.cc
   Logger.cc
   LocalTransporter.cc
+  SetupOptions.cc
+  SetupOptionsMessenger.cc
   SharedParams.cc
   SimpleOffload.cc
   detail/HitManager.cc

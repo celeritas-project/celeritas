@@ -34,10 +34,7 @@ namespace testdetail
 int test_main(int argc, char** argv)
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    MpiCommunicator comm
-        = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
-               ? MpiCommunicator{}
-               : MpiCommunicator::comm_world());
+    MpiCommunicator comm = MpiCommunicator::comm_default();
 
     try
     {

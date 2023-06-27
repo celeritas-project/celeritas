@@ -65,8 +65,7 @@
       "description": "Options to enable CUDA 11 on Volta architecture",
       "cacheVariables": {
         "CELERITAS_USE_CUDA":       {"type": "BOOL",   "value": "ON"},
-        "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "70"},
-        "CMAKE_CUDA_FLAGS": "-Werror all-warnings"
+        "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "70"}
       }
     },
     {
@@ -77,7 +76,7 @@
         "CELERITAS_USE_CUDA":       {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_HIP":        {"type": "BOOL",   "value": "ON"},
         "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx908"},
-        "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics -Wno-#warnings -Werror",
+        "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics -Wno-#warnings",
         "CMAKE_HIP_FLAGS_DEBUG": "-g -ggdb -O"
       }
     },

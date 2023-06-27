@@ -19,6 +19,7 @@
 #include <G4Ellipsoid.hh>
 #include <G4EllipticalCone.hh>
 #include <G4EllipticalTube.hh>
+#include <G4ExtrudedSolid.hh>
 #include <G4GDMLWriteStructure.hh>
 #include <G4GenericPolycone.hh>
 #include <G4GenericTrap.hh>
@@ -132,7 +133,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
     using MapTypeConverter
         = std::unordered_map<std::type_index, ConvertFuncPtr>;
 
-    // clang-format off
+// clang-format off
     #define VGSC_TYPE_FUNC(MIXED, LOWER) \
     {std::type_index(typeid(G4##MIXED)), &SolidConverter::LOWER}
     static const MapTypeConverter type_to_converter = {
@@ -142,6 +143,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         VGSC_TYPE_FUNC(Ellipsoid        , ellipsoid),
         VGSC_TYPE_FUNC(EllipticalCone   , ellipticalcone),
         VGSC_TYPE_FUNC(EllipticalTube   , ellipticaltube),
+        VGSC_TYPE_FUNC(ExtrudedSolid    , extrudedsolid),
         VGSC_TYPE_FUNC(GenericPolycone  , genericpolycone),
         VGSC_TYPE_FUNC(GenericTrap      , generictrap),
         VGSC_TYPE_FUNC(Hype             , hype),
@@ -266,6 +268,44 @@ auto SolidConverter::ellipticaltube(arg_type solid_base) -> result_type
         this->convert_scale_(solid.GetDx()),
         this->convert_scale_(solid.GetDy()),
         this->convert_scale_(solid.GetDz()));
+}
+
+//---------------------------------------------------------------------------//
+//! Convert an extruded solid
+auto SolidConverter::extrudedsolid(arg_type solid_base) -> result_type
+{
+    auto const& solid = dynamic_cast<G4ExtrudedSolid const&>(solid_base);
+
+    // Convert vertices
+    std::vector<double> x(solid.GetNofVertices());
+    std::vector<double> y(x.size());
+    for (auto i : range(x.size()))
+    {
+        std::tie(x[i], y[i]) = this->convert_scale_(solid.GetVertex(i));
+    }
+
+    // Convert Z sections
+    std::vector<double> z(solid.GetNofZSections());
+    if (z.size() != 2)
+    {
+        CELER_LOG(error) << "Extruded solid named '" << solid_base.GetName()
+                         << "' has " << z.size()
+                         << " Z sections, but VecGeom requires exactly 2";
+        CELER_ASSERT(z.size() >= 2);
+    }
+    for (auto i : range(z.size()))
+    {
+        G4ExtrudedSolid::ZSection const& zsec = solid.GetZSection(i);
+        CELER_VALIDATE(zsec.fScale == 1.0,
+                       << "unsupported scale factor '" << zsec.fScale << '\'');
+        CELER_VALIDATE(zsec.fOffset.x() == 0.0 && zsec.fOffset.y() == 0.0,
+                       << "unsupported z section translation ("
+                       << zsec.fOffset.x() << "," << zsec.fOffset.y() << ")");
+        z[i] = this->convert_scale_(zsec.fZ);
+    }
+
+    return GeoManager::MakeInstance<UnplacedSExtruVolume>(
+        x.size(), x.data(), y.data(), z.front(), z.back());
 }
 
 //---------------------------------------------------------------------------//

@@ -13,6 +13,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
 #include "detail/TrackSortUtils.hh"
@@ -22,6 +24,9 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Checks whether the TrackOrder defines a sorting strategy.
+ */
 bool is_sort_trackorder(TrackOrder to)
 {
     static TrackOrder const allowed[] = {
@@ -58,8 +63,9 @@ SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
                 // Sort *before* along-step action, i.e. *after* pre-step
                 return ActionOrder::sort_pre;
             case TrackOrder::sort_step_limit_action:
-                // Sort *before* post-step action, i.e. *after* along-step
-                return ActionOrder::sort_along;
+                // Sort *before* post-step action, i.e. *after* pre-post and
+                // along-step
+                return ActionOrder::sort_pre_post;
             default:
                 CELER_ASSERT_UNREACHABLE();
         }
@@ -91,6 +97,11 @@ std::string SortTracksAction::label() const
 void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
+    detail::count_tracks_per_action(
+        state.ref(),
+        state.action_thread_offsets()[AllItems<ThreadId, MemSpace::host>{}],
+        state.action_thread_offsets(),
+        track_order_);
 }
 
 //---------------------------------------------------------------------------//
@@ -100,6 +111,31 @@ void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
+    detail::count_tracks_per_action(
+        state.ref(),
+        state.native_action_thread_offsets()[AllItems<ThreadId,
+                                                      MemSpace::device>{}],
+        state.action_thread_offsets(),
+        track_order_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set host data at the beginning of a run
+ */
+void SortTracksAction::begin_run(CoreParams const& params, CoreStateHost& state)
+{
+    state.num_actions(params.action_reg()->num_actions() + 1);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set device data at the beginning of a run
+ */
+void SortTracksAction::begin_run(CoreParams const& params,
+                                 CoreStateDevice& state)
+{
+    state.num_actions(params.action_reg()->num_actions() + 1);
 }
 
 //---------------------------------------------------------------------------//

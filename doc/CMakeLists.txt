@@ -40,7 +40,9 @@ if(CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS)
   list(APPEND _DOXYGEN_TEST_SOURCE
     "${PROJECT_SOURCE_DIR}/test"
   )
-  list(APPEND DOXYGEN_EXCLUDE_PATTERNS "*.test.hh" "*.test.cc" "*.test.cu")
+  list(APPEND DOXYGEN_EXCLUDE_PATTERNS
+    "*.test.hh" "*.test.cc" "*.test.cu" "*TestBase.cc"
+  )
 else()
   set(_DOXYGEN_TEST_SOURCE)
 endif()
@@ -152,8 +154,11 @@ endfunction()
 set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
 set(CELERITAS_USE_SPHINXRTDTHEME ${CELERITAS_USE_SphinxRtdTheme})
-set(Celeritas_SHORT_VERSION ${Celeritas_VERSION})
-if(NOT "v${Celeritas_SHORT_VERSION}" STREQUAL Celeritas_VERSION_STRING)
+if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
+  set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
+elseif("${Celeritas_VERSION_STRING}" MATCHES "-rc[.-][0-9]+$")
+  set(Celeritas_SHORT_VERSION "${Celeritas_VERSION_STRING}")
+else()
   set(_patch "${PROJECT_VERSION_PATCH}")
   if(NOT Celeritas_VERSION_STRING MATCHES "-dev")
     # Before the next release

@@ -103,7 +103,7 @@ auto RelativisticBremModel::micro_xs(Applicability applic) const
 //---------------------------------------------------------------------------//
 //!@{
 /*!
- * Interact with host data..
+ * Interact with host data.
  */
 void RelativisticBremModel::execute(CoreParams const& params,
                                     CoreStateHost& state) const
@@ -156,8 +156,9 @@ void RelativisticBremModel::build_data(HostValue* data,
 }
 //---------------------------------------------------------------------------//
 /*!
- * Initialise data for a given element:
- * G4eBremsstrahlungRelModel::InitialiseElementData()
+ * Initialise data for a given element.
+ *
+ * See \c G4eBremsstrahlungRelModel::InitialiseElementData() in Geant4.
  */
 auto RelativisticBremModel::compute_element_data(ElementView const& elem,
                                                  real_type electron_mass)
@@ -196,7 +197,7 @@ auto RelativisticBremModel::compute_element_data(ElementView const& elem,
 
 //---------------------------------------------------------------------------//
 /*!
- * Elastic and inelatic form factor using the Dirac-Fock model of atom
+ * Elastic and inelatic form factor using the Dirac-Fock model of atom.
  *
  * For light elements (Z < 5) where Thomas-Fermi model doesn't work.
  * Excerpted from G4eBremsstrahlungRelModel of Geant4 10.7.
