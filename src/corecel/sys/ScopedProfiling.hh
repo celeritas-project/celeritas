@@ -24,6 +24,8 @@ struct ScopedProfilingInput
     uint32_t color{0xFF00FF00};  //!< ARGB
     int32_t payload{0};  //!< User data
     uint32_t category{0};  //!< Category, used to group ranges together
+
+    ScopedProfilingInput(std::string const& name) : name{name} {}
 };
 
 //---------------------------------------------------------------------------//

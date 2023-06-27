@@ -13,10 +13,6 @@
 #include <unordered_map>
 #include <nvtx3/nvToolsExt.h>
 
-#include "celeritas_config.h"
-#include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
-
 /**
  * @file
  *
@@ -34,8 +30,8 @@ namespace
 //---------------------------------------------------------------------------//
 /*!
  * Global registry for strings used by NVTX.
- * This Implemented as a free function instead of a static in
- * ScopedProfiling to hide the NVTX dependency from user of the
+ * This is implemented as a free function instead of a class static member in
+ * ScopedProfiling to hide the NVTX dependency from users of the
  * interface.
  */
 std::unordered_map<std::string, nvtxStringHandle_t>& message_registry()
@@ -46,7 +42,7 @@ std::unordered_map<std::string, nvtxStringHandle_t>& message_registry()
 
 //---------------------------------------------------------------------------//
 /*!
- * Library-wide handle to the domain name
+ * Library-wide handle to the domain name.
  */
 nvtxDomainHandle_t domain_handle()
 {
@@ -56,19 +52,7 @@ nvtxDomainHandle_t domain_handle()
 
 //---------------------------------------------------------------------------//
 /*!
- * Create ScopedProfiling input with a given name
- * TODO: replace with c++20 designated initializer
- */
-ScopedProfiling::Input make_input(std::string const& name)
-{
-    ScopedProfiling::Input input;
-    input.name = name;
-    return input;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Retrieve the handle for a given message, insert it if it doesn't already
+ * Retrieve the handle for a given message. Insert it if it doesn't already
  * exists.
  */
 nvtxStringHandle_t message_handle_for(std::string const& message)
@@ -97,7 +81,7 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create EventAttribute with a specific name
+ * Create EventAttribute with a specific name.
  */
 nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
 {
@@ -130,13 +114,13 @@ ScopedProfiling::ScopedProfiling(Input input)
  * Activate nvtx profiling.
  */
 ScopedProfiling::ScopedProfiling(std::string const& name)
-    : ScopedProfiling(make_input(name))
+    : ScopedProfiling{Input{name}}
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Deactivate device profiling if this function activated it.
+ * End the profiling range.
  */
 ScopedProfiling::~ScopedProfiling()
 {
