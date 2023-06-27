@@ -51,6 +51,8 @@ class ScopedProfiling
     //!@}
 
   public:
+    // Whether profiling is enabled
+    static bool enable_profiling();
     // Activate profiling with options
     explicit ScopedProfiling(Input input);
     // Activate profiling

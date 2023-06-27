@@ -13,6 +13,10 @@
 #include <unordered_map>
 #include <nvtx3/nvToolsExt.h>
 
+#include "corecel/io/Logger.hh"
+
+#include "Environment.hh"
+
 /**
  * @file
  *
@@ -99,14 +103,32 @@ nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
 }
 }  // namespace
 
+bool ScopedProfiling::enable_profiling()
+{
+    static bool const result = [] {
+        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
+        {
+            CELER_LOG(info) << "Enabling profiling support since the "
+                               "'CELER_ENABLE_PROFILING' "
+                               "environment variable is present and non-empty";
+            return true;
+        }
+        return false;
+    }();
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Activate nvtx profiling with options.
  */
 ScopedProfiling::ScopedProfiling(Input input)
 {
-    nvtxEventAttributes_t attributes_ = make_attributes(input);
-    nvtxDomainRangePushEx(domain_handle(), &attributes_);
+    if (ScopedProfiling::enable_profiling())
+    {
+        nvtxEventAttributes_t attributes_ = make_attributes(input);
+        nvtxDomainRangePushEx(domain_handle(), &attributes_);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -124,7 +146,10 @@ ScopedProfiling::ScopedProfiling(std::string const& name)
  */
 ScopedProfiling::~ScopedProfiling()
 {
-    nvtxDomainRangePop(domain_handle());
+    if (ScopedProfiling::enable_profiling())
+    {
+        nvtxDomainRangePop(domain_handle());
+    }
 }
 
 //---------------------------------------------------------------------------//
