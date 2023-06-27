@@ -17,6 +17,15 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
+/**
+ * @file
+ *
+ * The nvtx implementation of \c ScopedProfiling only does anything the
+ * application using Celeritas is ran through a tool that supports nvtx, e.g.
+ * nsight compute with the --nvtx argument. If this is not the case, all API
+ * calls to nvtx are disabled and will not do anything.
+ */
+
 namespace celeritas
 {
 namespace
@@ -60,7 +69,7 @@ ScopedProfiling::Input make_input(std::string const& name)
 //---------------------------------------------------------------------------//
 /*!
  * Retrieve the handle for a given message, insert it if it doesn't already
- * exists
+ * exists.
  */
 nvtxStringHandle_t message_handle_for(std::string const& message)
 {
@@ -77,7 +86,7 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
     }
     // We did not find the handle; try to insert it
     std::unique_lock lock(mutex);
-    auto [iter, inserted] = message_registry().insert({message, nullptr});
+    auto [iter, inserted] = message_registry().insert({message, {}});
     if (inserted)
     {
         iter->second
