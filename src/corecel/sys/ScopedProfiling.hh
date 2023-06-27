@@ -48,7 +48,7 @@ class ScopedProfiling
   public:
     using Input = ScopedProfilingInput;
     // Activate profiling
-    explicit ScopedProfiling(Input const input);
+    explicit ScopedProfiling(Input input);
     // Deactivate profiling
     ~ScopedProfiling();
     // RAII semantics
@@ -57,7 +57,7 @@ class ScopedProfiling
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_CUDA
-inline ScopedProfiling::ScopedProfiling(Input const) {}
+inline ScopedProfiling::ScopedProfiling(Input) {}
 inline ScopedProfiling::~ScopedProfiling() {}
 #endif
 

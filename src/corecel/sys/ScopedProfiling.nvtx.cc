@@ -60,21 +60,14 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
     }
     // we did not find the handle, insert it
     std::unique_lock lock(mutex);
-    auto message_handle = message_registry().find(message);
-    // recheck that nobody inserted the same message as we had to release the
-    // shared lock not strictly necessary as insert will do nothing if the key
-    // already exists
-    if (message_handle == message_registry().end())
+    auto [iter, inserted] = message_registry().insert({message, nullptr});
+    if (inserted)
     {
-        auto handle
+        iter->second
             = nvtxDomainRegisterStringA(domain_handle(), message.c_str());
-        message_registry().insert({message, handle});
-        return handle;
     }
-    else
-    {
-        return message_handle->second;
-    }
+    CELER_ENSURE(iter->second);
+    return iter->second;
 }
 
 //---------------------------------------------------------------------------//
@@ -101,7 +94,7 @@ nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
 /*!
  * Activate nvtx profiling.
  */
-ScopedProfiling::ScopedProfiling(Input const input)
+ScopedProfiling::ScopedProfiling(Input input)
 {
     nvtxEventAttributes_t attributes_ = make_attributes(input);
     nvtxDomainRangePushEx(domain_handle(), &attributes_);
