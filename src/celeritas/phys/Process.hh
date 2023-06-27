@@ -56,6 +56,11 @@ class Process
   public:
     // Virtual destructor for polymorphic deletion
     virtual ~Process();
+    Process() = default;
+    Process(Process const&) = delete;
+    Process& operator=(Process const&) = delete;
+    Process(Process&&) = delete;
+    Process& operator=(Process&&) = delete;
 
     //! Construct the models associated with this process
     virtual VecModel build_models(ActionIdIter start_id) const = 0;

@@ -56,6 +56,11 @@ class ActionInterface
   public:
     // Default virtual destructor allows deletion by pointer-to-interface
     virtual ~ActionInterface();
+    ActionInterface() = default;
+    ActionInterface(ActionInterface const&) = delete;
+    ActionInterface& operator=(ActionInterface const&) = delete;
+    ActionInterface(ActionInterface&&) = delete;
+    ActionInterface& operator=(ActionInterface&&) = delete;
 
     //! ID of this action for verification
     virtual ActionId action_id() const = 0;

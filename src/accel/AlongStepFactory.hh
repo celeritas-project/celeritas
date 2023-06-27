@@ -84,6 +84,12 @@ class AlongStepFactoryInterface
 
   public:
     virtual ~AlongStepFactoryInterface() = default;
+    AlongStepFactoryInterface() = default;
+    AlongStepFactoryInterface(AlongStepFactoryInterface const&) = delete;
+    AlongStepFactoryInterface& operator=(AlongStepFactoryInterface const&)
+        = delete;
+    AlongStepFactoryInterface(AlongStepFactoryInterface&&) = delete;
+    AlongStepFactoryInterface& operator=(AlongStepFactoryInterface&&) = delete;
 
     // Emit an along-step action
     virtual result_type operator()(argument_type input) const = 0;
