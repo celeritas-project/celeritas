@@ -31,6 +31,15 @@ class ScopedGeantExceptionHandler
 
     // Clear on destruction
     ~ScopedGeantExceptionHandler();
+    //!@{
+    //! no move; no copying
+    ScopedGeantExceptionHandler(ScopedGeantExceptionHandler const&) = delete;
+    ScopedGeantExceptionHandler& operator=(ScopedGeantExceptionHandler const&)
+        = delete;
+    ScopedGeantExceptionHandler(ScopedGeantExceptionHandler&&) = delete;
+    ScopedGeantExceptionHandler& operator=(ScopedGeantExceptionHandler&&)
+        = delete;
+    //!@}
 
   private:
 #if CELERITAS_USE_GEANT4

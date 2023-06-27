@@ -41,6 +41,13 @@ class ScopedStreamRedirect
 
     // Restore stream on destruction
     ~ScopedStreamRedirect();
+    //!@{
+    //! no move; no copying
+    ScopedStreamRedirect(ScopedStreamRedirect const&) = delete;
+    ScopedStreamRedirect& operator=(ScopedStreamRedirect const&) = delete;
+    ScopedStreamRedirect(ScopedStreamRedirect&&) = delete;
+    ScopedStreamRedirect& operator=(ScopedStreamRedirect&&) = delete;
+    //!@}
 
     // Get redirected output, with trailing whitespaces removed
     std::string str();

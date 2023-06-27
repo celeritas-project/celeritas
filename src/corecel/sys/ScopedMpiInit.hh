@@ -36,6 +36,13 @@ class ScopedMpiInit
 
     // Call MPI finalize on destruction
     ~ScopedMpiInit();
+    //!@{
+    //! no move; no copying
+    ScopedMpiInit(ScopedMpiInit const&) = delete;
+    ScopedMpiInit& operator=(ScopedMpiInit const&) = delete;
+    ScopedMpiInit(ScopedMpiInit&&) = delete;
+    ScopedMpiInit& operator=(ScopedMpiInit&&) = delete;
+    //!@}
 
   private:
     static Status status_;

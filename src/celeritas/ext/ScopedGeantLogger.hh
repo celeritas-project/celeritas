@@ -31,6 +31,13 @@ class ScopedGeantLogger
 
     // Clear on destruction
     ~ScopedGeantLogger();
+    //!@{
+    //! no move; no copying
+    ScopedGeantLogger(ScopedGeantLogger const&) = delete;
+    ScopedGeantLogger& operator=(ScopedGeantLogger const&) = delete;
+    ScopedGeantLogger(ScopedGeantLogger&&) = delete;
+    ScopedGeantLogger& operator=(ScopedGeantLogger&&) = delete;
+    //!@}
 
   private:
 #if CELERITAS_USE_GEANT4

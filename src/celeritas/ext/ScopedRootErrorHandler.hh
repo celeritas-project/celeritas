@@ -30,6 +30,13 @@ class ScopedRootErrorHandler
 
     // Return to the previous error handler.
     ~ScopedRootErrorHandler();
+    //!@{
+    //! no move; no copying
+    ScopedRootErrorHandler(ScopedRootErrorHandler const&) = delete;
+    ScopedRootErrorHandler& operator=(ScopedRootErrorHandler const&) = delete;
+    ScopedRootErrorHandler(ScopedRootErrorHandler&&) = delete;
+    ScopedRootErrorHandler& operator=(ScopedRootErrorHandler&&) = delete;
+    //!@}
 
   private:
     using ErrorHandlerFuncPtr = void (*)(int, bool, char const*, char const*);

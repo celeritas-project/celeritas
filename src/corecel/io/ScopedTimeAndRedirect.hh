@@ -37,6 +37,13 @@ class ScopedTimeAndRedirect
   public:
     explicit ScopedTimeAndRedirect(std::string label);
     ~ScopedTimeAndRedirect();
+    //!@{
+    //! no move; no copying
+    ScopedTimeAndRedirect(ScopedTimeAndRedirect const&) = delete;
+    ScopedTimeAndRedirect& operator=(ScopedTimeAndRedirect const&) = delete;
+    ScopedTimeAndRedirect(ScopedTimeAndRedirect&&) = delete;
+    ScopedTimeAndRedirect& operator=(ScopedTimeAndRedirect&&) = delete;
+    //!@}
 
   private:
     std::unique_ptr<ScopedStreamRedirect> stdout_;

@@ -31,6 +31,13 @@ class ScopedStreamFormat
 
     // Restore formats on destruction
     inline ~ScopedStreamFormat();
+    //!@{
+    //! no move; no copying
+    ScopedStreamFormat(ScopedStreamFormat const&) = delete;
+    ScopedStreamFormat& operator=(ScopedStreamFormat const&) = delete;
+    ScopedStreamFormat(ScopedStreamFormat&&) = delete;
+    ScopedStreamFormat& operator=(ScopedStreamFormat&&) = delete;
+    //!@}
 
   private:
     std::ios* stream_;
