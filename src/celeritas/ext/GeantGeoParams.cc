@@ -176,7 +176,14 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
     CELER_EXPECT(volume);
     auto inst_id = volume->GetInstanceID();
     CELER_ENSURE(inst_id >= 0);
-    return VolumeId{static_cast<VolumeId::size_type>(inst_id)};
+    VolumeId result{static_cast<VolumeId::size_type>(inst_id)};
+    if (!(result < this->num_volumes()))
+    {
+        // Volume is out of range: possibly an LV defined after this geometry
+        // class was created
+        result = {};
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

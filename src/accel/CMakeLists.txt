@@ -22,6 +22,7 @@ list(APPEND SOURCES
   SimpleOffload.cc
   detail/HitManager.cc
   detail/HitProcessor.cc
+  detail/SensDetInserter.cc
 )
 
 celeritas_polysource(ExceptionConverter)

@@ -23,6 +23,7 @@ struct SDSetupOptions;
 namespace detail
 {
 class HitProcessor;
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 /*!
@@ -53,7 +54,7 @@ class HitManager final : public StepInterface
     //!@}
 
   public:
-    // Construct with VecGeom for mapping volume IDs
+    // Construct with Celeritas objects for mapping
     HitManager(GeoParams const& geo,
                SDSetupOptions const& setup,
                StreamId::size_type num_streams);
@@ -88,11 +89,17 @@ class HitManager final : public StepInterface
     using VecLV = std::vector<G4LogicalVolume const*>;
 
     bool nonzero_energy_deposition_{};
-    bool locate_touchable_{};
-    StepSelection selection_;
-    SPConstVecLV geant_vols_;
     VecVolId vecgeom_vols_;
+
+    // Hit processor setup
+    SPConstVecLV geant_vols_;
+    StepSelection selection_;
+    bool locate_touchable_{};
+
     std::vector<std::unique_ptr<HitProcessor>> processors_;
+
+    // Construct vecgeom/geant volumes
+    void setup_volumes(GeoParams const& geo, SDSetupOptions const& setup);
 
     // Ensure thread-local hit processor exists and return it
     HitProcessor& get_local_hit_processor(StreamId);

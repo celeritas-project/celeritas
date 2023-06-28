@@ -565,10 +565,10 @@ if(CELERITAS_USE_Geant4)
     accel/SDTestBase.cc
   )
   celeritas_target_link_libraries(testcel_accel
-    PUBLIC testcel_harness testcel_celeritas Celeritas::accel
+    PUBLIC testcel_celeritas testcel_core testcel_harness Celeritas::accel
   )
   celeritas_setup_tests(SERIAL PREFIX accel
-    LINK_LIBRARIES Celeritas::accel Celeritas::celeritas testcel_accel
+    LINK_LIBRARIES testcel_accel Celeritas::accel Celeritas::celeritas
   )
 
   celeritas_add_test(accel/ExceptionConverter.test.cc)

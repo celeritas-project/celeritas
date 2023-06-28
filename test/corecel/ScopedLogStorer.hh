@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -26,8 +27,10 @@ namespace test
  * sequences and replaces pointer-like strings with 0x0.
  *
  * \code
-    ScopedLogStorer store_log_;
-    world_logger() = Logger(store_log_);
+    ScopedLogStorer scoped_log_{&celeritas::world_logger()};
+    CELER_LOG(info) << "captured";
+    scoped_log_.print_expected();
+    CELER_EXPECT(scoped_log_.empty()) << scoped_log_;
    \endcode
  */
 class ScopedLogStorer
@@ -45,20 +48,38 @@ class ScopedLogStorer
     // Construct reference with default level
     explicit ScopedLogStorer(Logger* orig);
 
+    //!@{
+    //! Disallow move/copy
+    ScopedLogStorer(ScopedLogStorer const&) = delete;
+    ScopedLogStorer(ScopedLogStorer&&) = delete;
+    ScopedLogStorer& operator=(ScopedLogStorer const&) = delete;
+    ScopedLogStorer& operator=(ScopedLogStorer&&) = delete;
+    //!@}
+
     // Restore original logger on destruction
     ~ScopedLogStorer();
 
     // Save a log message
     void operator()(Provenance, LogLevel lev, std::string msg);
 
-    // Get saved messages
+    //! Whether no messages were stored
+    bool empty() const { return messages_.empty(); }
+
+    //! Get saved messages
     VecString const& messages() const { return messages_; }
 
-    // Get corresponding log levels
+    //! Get corresponding log levels
     VecString const& levels() const { return levels_; }
 
     // Print expected results to stdout
     void print_expected() const;
+
+    //! Clear results
+    void clear()
+    {
+        messages_.clear();
+        levels_.clear();
+    }
 
   private:
     Logger* logger_;
@@ -66,6 +87,9 @@ class ScopedLogStorer
     VecString messages_;
     VecString levels_;
 };
+
+// Print expected results
+std::ostream& operator<<(std::ostream& os, ScopedLogStorer const& logs);
 
 //---------------------------------------------------------------------------//
 }  // namespace test
