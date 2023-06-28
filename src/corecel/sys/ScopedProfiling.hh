@@ -62,7 +62,9 @@ class ScopedProfiling
     // Can't outlive the scope it was created in to correctly match each push /
     // pop. Must strictly follows RAII semantics (automatic storage duration)
     ScopedProfiling(ScopedProfiling const&) = delete;
+    ScopedProfiling(ScopedProfiling &&) = delete;
     ScopedProfiling& operator=(ScopedProfiling const&) = delete;
+    ScopedProfiling& operator=(ScopedProfiling &&) = delete;
 };
 
 //---------------------------------------------------------------------------//
