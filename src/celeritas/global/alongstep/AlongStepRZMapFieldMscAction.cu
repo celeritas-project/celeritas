@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepRZMapFieldMscAction.hh"
 
+#include <corecel/sys/ScopedProfiling.hh>
+
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
@@ -28,6 +30,7 @@ namespace celeritas
 void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                                            CoreStateDevice& state) const
 {
+    ScopedProfiling profile_this{label()};
     detail::launch_limit_msc_step(
         *this, msc_->ref<MemSpace::native>(), params, state);
     {

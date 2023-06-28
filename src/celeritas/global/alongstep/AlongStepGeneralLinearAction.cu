@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepGeneralLinearAction.hh"
 
+#include <corecel/sys/ScopedProfiling.hh>
+
 #include "celeritas/em/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 
@@ -23,6 +25,7 @@ namespace celeritas
 void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                                            CoreStateDevice& state) const
 {
+    ScopedProfiling profile_this{label()};
     if (this->has_msc())
     {
         detail::launch_limit_msc_step(

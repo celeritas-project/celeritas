@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "PreStepAction.hh"
 
+#include <corecel/sys/ScopedProfiling.hh>
+
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -25,6 +27,7 @@ namespace detail
 void PreStepAction::execute(CoreParams const& params,
                             CoreStateDevice& state) const
 {
+    ScopedProfiling profile_this{label()};
     TrackExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), PreStepExecutor{}};
 

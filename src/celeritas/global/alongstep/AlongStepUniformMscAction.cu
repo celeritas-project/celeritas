@@ -32,13 +32,14 @@ namespace celeritas
 void AlongStepUniformMscAction::execute(CoreParams const& params,
                                         CoreStateDevice& state) const
 {
+    ScopedProfiling profile_this{label()};
     if (this->has_msc())
     {
         detail::launch_limit_msc_step(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }
     {
-        ScopedProfiling profile_this{label()};
+        ScopedProfiling profile_this{label() + "-propagation"};
         auto execute_thread = make_along_step_track_executor(
             params.ptr<MemSpace::native>(),
             state.ptr(),

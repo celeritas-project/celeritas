@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ExtendFromPrimariesAction.hh"
 
+#include <corecel/sys/ScopedProfiling.hh>
+
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -24,6 +26,7 @@ void ExtendFromPrimariesAction::process_primaries(
     CoreStateDevice& state,
     Span<Primary const> primaries) const
 {
+    ScopedProfiling profile_this{label()};
     detail::ProcessPrimariesExecutor execute_thread{
         state.ptr(), primaries, state.counters()};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
