@@ -146,6 +146,16 @@ StepCollector::StepCollector(VecInterface callbacks,
 }
 
 //---------------------------------------------------------------------------//
+//!@{
+//! Default destructor and move and copy
+StepCollector::~StepCollector() = default;
+StepCollector::StepCollector(StepCollector const&) = default;
+StepCollector::StepCollector(StepCollector&&) = default;
+StepCollector& StepCollector::operator=(StepCollector const&) = default;
+StepCollector& StepCollector::operator=(StepCollector&&) = default;
+//!@}
+
+//---------------------------------------------------------------------------//
 /*!
  * See which data are being gathered.
  */

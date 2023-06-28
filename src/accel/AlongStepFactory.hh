@@ -11,6 +11,7 @@
 #include <functional>
 #include <memory>
 #include <G4ThreeVector.hh>
+#include <corecel/Interface.hh>
 
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
@@ -73,7 +74,7 @@ struct AlongStepFactoryInput
  * Celeritas provides a few "default" configurations of along-step actions in
  * `celeritas/global/alongstep`.
  */
-class AlongStepFactoryInterface
+class AlongStepFactoryInterface : public Interface
 {
   public:
     //!@{
@@ -84,12 +85,6 @@ class AlongStepFactoryInterface
 
   public:
     virtual ~AlongStepFactoryInterface() = default;
-    AlongStepFactoryInterface() = default;
-    AlongStepFactoryInterface(AlongStepFactoryInterface const&) = delete;
-    AlongStepFactoryInterface& operator=(AlongStepFactoryInterface const&)
-        = delete;
-    AlongStepFactoryInterface(AlongStepFactoryInterface&&) = delete;
-    AlongStepFactoryInterface& operator=(AlongStepFactoryInterface&&) = delete;
 
     // Emit an along-step action
     virtual result_type operator()(argument_type input) const = 0;
@@ -113,6 +108,14 @@ class UniformAlongStepFactory : public AlongStepFactoryInterface
   public:
     //! Construct with no field (linear propagation)
     UniformAlongStepFactory() = default;
+
+    //!@{
+    //! Intent to use with \c std::function --> requires CopyConstructible
+    UniformAlongStepFactory(UniformAlongStepFactory const&);
+    UniformAlongStepFactory& operator=(UniformAlongStepFactory const&);
+    UniformAlongStepFactory(UniformAlongStepFactory&&) = default;
+    UniformAlongStepFactory& operator=(UniformAlongStepFactory&&) = default;
+    //!@}
 
     // Construct with a function to return the field strength
     explicit UniformAlongStepFactory(FieldFunction f);
@@ -140,6 +143,15 @@ class RZMapFieldAlongStepFactory : public AlongStepFactoryInterface
   public:
     // Construct with a function to return RZMapFieldInput
     explicit RZMapFieldAlongStepFactory(RZMapFieldFunction f);
+
+    //!@{
+    //! Intent to use with \c std::function --> requires CopyConstructible
+    RZMapFieldAlongStepFactory(RZMapFieldAlongStepFactory const&);
+    RZMapFieldAlongStepFactory& operator=(RZMapFieldAlongStepFactory const&);
+    RZMapFieldAlongStepFactory(RZMapFieldAlongStepFactory&&) = default;
+    RZMapFieldAlongStepFactory& operator=(RZMapFieldAlongStepFactory&&)
+        = default;
+    //!@}
 
     // Emit an along-step action
     result_type operator()(argument_type input) const final;

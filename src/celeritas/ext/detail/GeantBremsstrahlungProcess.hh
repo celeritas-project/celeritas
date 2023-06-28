@@ -35,9 +35,6 @@ class GeantBremsstrahlungProcess : public G4VEnergyLossProcess
     // Construct with model selection
     explicit GeantBremsstrahlungProcess(ModelSelection selection);
 
-    // Empty destructor
-    ~GeantBremsstrahlungProcess() = default;
-
     // Prevent copying and moving
     GeantBremsstrahlungProcess& operator=(GeantBremsstrahlungProcess const&)
         = delete;

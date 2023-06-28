@@ -375,7 +375,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
         asfi.cutoff = params.cutoff;
         asfi.physics = params.physics;
         asfi.imported = imported;
-        auto const along_step{(*options.make_along_step)(asfi)};
+        auto const along_step{options.make_along_step(asfi)};
         CELER_VALIDATE(along_step,
                        << "along-step factory returned a null pointer");
         return along_step;

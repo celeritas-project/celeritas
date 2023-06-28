@@ -46,8 +46,9 @@ class ScopedTimeLog
 
     // Print on destruction
     inline ~ScopedTimeLog();
+
     //!@{
-    //! no move; no copying
+    //! Prevent moving and copying
     ScopedTimeLog(ScopedTimeLog const&) = delete;
     ScopedTimeLog& operator=(ScopedTimeLog const&) = delete;
     ScopedTimeLog(ScopedTimeLog&&) = delete;

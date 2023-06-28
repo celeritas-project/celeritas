@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "GlobalSetup.hh"
 
-#include <memory>
 #include <utility>
 #include <G4GenericMessenger.hh>
 
@@ -82,7 +81,7 @@ GlobalSetup::GlobalSetup()
 
     // At setup time, get the field strength (native G4units)
     options_->make_along_step
-        = std::make_unique<UniformAlongStepFactory>([this] { return field_; });
+        = UniformAlongStepFactory([this] { return field_; });
 }
 
 //---------------------------------------------------------------------------//

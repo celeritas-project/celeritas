@@ -57,6 +57,13 @@ class StepCollector
                   size_type max_streams,
                   ActionRegistry* action_registry);
 
+    // Default destructor and move and copy
+    ~StepCollector();
+    StepCollector(StepCollector const&);
+    StepCollector(StepCollector&&);
+    StepCollector& operator=(StepCollector const&);
+    StepCollector& operator=(StepCollector&&);
+
     // See which data are being gathered
     StepSelection const& selection() const;
 

@@ -41,8 +41,9 @@ class ScopedStreamRedirect
 
     // Restore stream on destruction
     ~ScopedStreamRedirect();
+
     //!@{
-    //! no move; no copying
+    //! Prevent moving and copying
     ScopedStreamRedirect(ScopedStreamRedirect const&) = delete;
     ScopedStreamRedirect& operator=(ScopedStreamRedirect const&) = delete;
     ScopedStreamRedirect(ScopedStreamRedirect&&) = delete;

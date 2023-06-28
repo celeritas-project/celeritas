@@ -19,7 +19,7 @@ class G4LogicalVolume;
 
 namespace celeritas
 {
-class AlongStepFactoryInterface;
+class AlongStepFactoryInput;
 class ExplicitActionInterface;
 //---------------------------------------------------------------------------//
 /*!
@@ -74,7 +74,8 @@ struct SetupOptions
     using real_type = double;
 
     using SPConstAction = std::shared_ptr<ExplicitActionInterface const>;
-    using AlongStepFactory = std::unique_ptr<AlongStepFactoryInterface>;
+    using AlongStepFactory
+        = std::function<SPConstAction(AlongStepFactoryInput const&)>;
     using IntAccessor = std::function<int()>;
     using VecString = std::vector<std::string>;
     //!@}

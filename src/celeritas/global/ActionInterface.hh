@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <corecel/Interface.hh>
 
 #include "celeritas/Types.hh"  // IWYU pragma: export
 #include "celeritas/global/CoreTrackDataFwd.hh"  // IWYU pragma: export
@@ -44,7 +45,7 @@ class CoreState;
  *
  * The description should be a verb phrase (lowercase start).
  */
-class ActionInterface
+class ActionInterface : public Interface
 {
   public:
     //@{
@@ -56,11 +57,6 @@ class ActionInterface
   public:
     // Default virtual destructor allows deletion by pointer-to-interface
     virtual ~ActionInterface();
-    ActionInterface() = default;
-    ActionInterface(ActionInterface const&) = delete;
-    ActionInterface& operator=(ActionInterface const&) = delete;
-    ActionInterface(ActionInterface&&) = delete;
-    ActionInterface& operator=(ActionInterface&&) = delete;
 
     //! ID of this action for verification
     virtual ActionId action_id() const = 0;

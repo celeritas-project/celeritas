@@ -31,8 +31,9 @@ class ScopedStreamFormat
 
     // Restore formats on destruction
     inline ~ScopedStreamFormat();
+
     //!@{
-    //! no move; no copying
+    //! Prevent moving and copying
     ScopedStreamFormat(ScopedStreamFormat const&) = delete;
     ScopedStreamFormat& operator=(ScopedStreamFormat const&) = delete;
     ScopedStreamFormat(ScopedStreamFormat&&) = delete;

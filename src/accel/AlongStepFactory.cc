@@ -37,6 +37,27 @@ UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Copy constructor
+ */
+UniformAlongStepFactory::UniformAlongStepFactory(
+    UniformAlongStepFactory const& uasf)
+    : get_field_(uasf.get_field_)
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy assignment
+ */
+UniformAlongStepFactory&
+UniformAlongStepFactory::operator=(UniformAlongStepFactory const& uasf)
+{
+    get_field_ = uasf.get_field_;
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Emit an along-step action.
  *
  * The action will embed the linear propagator if the magnetic field strength
@@ -87,6 +108,27 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
                 *input.particle, *input.material, *input.imported),
             input.imported->em_params.energy_loss_fluct);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy constructor
+ */
+RZMapFieldAlongStepFactory::RZMapFieldAlongStepFactory(
+    RZMapFieldAlongStepFactory const& rzasf)
+    : get_fieldmap_(rzasf.get_fieldmap_)
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy assignment
+ */
+RZMapFieldAlongStepFactory&
+RZMapFieldAlongStepFactory::operator=(RZMapFieldAlongStepFactory const& rzasf)
+{
+    get_fieldmap_ = rzasf.get_fieldmap_;
+    return *this;
 }
 
 //---------------------------------------------------------------------------//

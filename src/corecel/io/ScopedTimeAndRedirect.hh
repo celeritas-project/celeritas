@@ -37,8 +37,9 @@ class ScopedTimeAndRedirect
   public:
     explicit ScopedTimeAndRedirect(std::string label);
     ~ScopedTimeAndRedirect();
+
     //!@{
-    //! no move; no copying
+    //! Prevent moving and copying
     ScopedTimeAndRedirect(ScopedTimeAndRedirect const&) = delete;
     ScopedTimeAndRedirect& operator=(ScopedTimeAndRedirect const&) = delete;
     ScopedTimeAndRedirect(ScopedTimeAndRedirect&&) = delete;

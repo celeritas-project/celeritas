@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>  // IWYU pragma: export
 #include <vector>
+#include <corecel/Interface.hh>
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
@@ -41,7 +42,7 @@ class ValueGridBuilder;
  * - energy_loss: dE/dx [MeV/cm]
  * - range:       Range limit [cm]
  */
-class Process
+class Process : public Interface
 {
   public:
     //!@{
@@ -56,11 +57,6 @@ class Process
   public:
     // Virtual destructor for polymorphic deletion
     virtual ~Process();
-    Process() = default;
-    Process(Process const&) = delete;
-    Process& operator=(Process const&) = delete;
-    Process(Process&&) = delete;
-    Process& operator=(Process&&) = delete;
 
     //! Construct the models associated with this process
     virtual VecModel build_models(ActionIdIter start_id) const = 0;
