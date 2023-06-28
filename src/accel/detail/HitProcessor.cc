@@ -64,11 +64,15 @@ namespace detail
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
+                           VecParticle const& particles,
                            StepSelection const& selection,
                            bool locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
 {
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
+    CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
+                   << "cannot set 'locate_touchable' because the pre-step "
+                      "position is not being collected");
     CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
                    << "cannot set 'locate_touchable' because the pre-step "
                       "position is not being collected");
@@ -105,8 +109,10 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         = G4TransportationManager::GetTransportationManager()
               ->GetNavigatorForTracking()
               ->GetWorldVolume();
-    if (locate_touchable && selection.points[StepPoint::pre].pos)
+    if (locate_touchable)
     {
+        CELER_ASSERT(selection.points[StepPoint::pre].pos
+                     && selection.points[StepPoint::pre].dir);
         navi_ = std::make_unique<G4Navigator>();
         navi_->SetWorldVolume(world_volume);
 
@@ -114,8 +120,16 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         touch_handle_ = new G4TouchableHistory;
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
     }
-    track_ = std::make_unique<G4Track>();
-    step_->SetTrack(track_.get());
+
+    // Create track
+    for (G4ParticleDefinition const* pd : particles)
+    {
+        CELER_ASSERT(pd);
+        tracks_.emplace_back(new G4Track(
+            new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector()));
+        tracks_.back()->SetTrackID(-1);
+        tracks_.back()->SetParentID(-1);
+    }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
     CELER_LOG_LOCAL(debug) << "Setting up " << detector_volumes_->size()
@@ -177,6 +191,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
     CELER_EXPECT(!out.detector.empty());
     CELER_ASSERT(!navi_ || !out.points[StepPoint::pre].pos.empty());
     CELER_ASSERT(!navi_ || !out.points[StepPoint::pre].dir.empty());
+    CELER_ASSERT(tracks_.empty() || !out.particle.empty());
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
 
@@ -192,11 +207,6 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
     } while (0)
 
         HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
-        // TODO: how to handle track attributes?
-        // track_->SetTrackID(...);
-
-        // TODO: assert that event ID is consistent with active
-        // LocalTransporter event?
 
         EnumArray<StepPoint, G4StepPoint*> points
             = {step_->GetPreStepPoint(), step_->GetPostStepPoint()};
@@ -211,20 +221,17 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
             HP_SET(points[sp]->SetKineticEnergy,
                    out.points[sp].energy,
                    CLHEP::MeV);
-            // TODO: do we set secondary properties like the velocity,
-            // material, mass, charge,  ... ?
-
-            // TODO: how to handle these attributes?
-            // step_->SetTrack(primary_track);
-            // dynamic particle, ParticleDefinition
-            // pre->SetLocalTime
-            // pre->SetProperTime
-            // pre->SetTouchableHandle
         }
 #undef HP_SET
 
+        if (!tracks_.empty())
+        {
+            this->update_track(out.particle[i]);
+        }
+
         if (navi_)
         {
+            // Set the navigation
             CELER_ASSERT(out.detector[i] < detectors_.size());
             bool success = this->update_touchable(
                 out.points[StepPoint::pre].pos[i],
@@ -241,6 +248,20 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
         CELER_ASSERT(out.detector[i] < detectors_.size());
         detectors_[out.detector[i].unchecked_get()]->Hit(step_.get());
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Recreate the track from the particle ID and saved post-step data.
+ */
+void HitProcessor::update_track(ParticleId id) const
+{
+    CELER_EXPECT(id < tracks_.size());
+    G4Track& track = *tracks_[id.unchecked_get()];
+    step_->SetTrack(&track);
+
+    G4StepPoint* post_step = step_->GetPostStepPoint();
+    track.SetKineticEnergy(post_step->GetKineticEnergy());
 }
 
 //---------------------------------------------------------------------------//

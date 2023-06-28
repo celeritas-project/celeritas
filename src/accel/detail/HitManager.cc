@@ -253,7 +253,7 @@ HitProcessor& HitManager::get_local_hit_processor(StreamId sid)
             << "Allocating hit processor (stream " << sid.get() << ")";
         // Allocate the hit processor locally
         processors_[sid.unchecked_get()] = std::make_unique<HitProcessor>(
-            geant_vols_, selection_, locate_touchable_);
+            geant_vols_, particles_, selection_, locate_touchable_);
     }
     return *processors_[sid.unchecked_get()];
 }

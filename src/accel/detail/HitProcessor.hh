@@ -19,6 +19,7 @@
 class G4LogicalVolume;
 class G4Step;
 class G4Navigator;
+class G4ParticleDefinition;
 class G4Track;
 class G4VSensitiveDetector;
 
@@ -54,11 +55,13 @@ class HitProcessor
     using StepStateDeviceRef = DeviceRef<StepStateData>;
     using SPConstVecLV
         = std::shared_ptr<const std::vector<G4LogicalVolume const*>>;
+    using VecParticle = std::vector<G4ParticleDefinition const*>;
     //!@}
 
   public:
     // Construct from volumes that have SDs and step selection
     HitProcessor(SPConstVecLV detector_volumes,
+                 VecParticle const& particles,
                  StepSelection const& selection,
                  bool locate_touchable);
 
@@ -84,13 +87,17 @@ class HitProcessor
 
     //! Temporary step
     std::unique_ptr<G4Step> step_;
-    //! Temporary track, required by some frameworks
-    std::unique_ptr<G4Track> track_;
+    //! Tracks for each particle type
+    std::vector<std::unique_ptr<G4Track>> tracks_;
     //! Navigator for finding points
     std::unique_ptr<G4Navigator> navi_;
     //! Geant4 reference-counted pointer to a G4VTouchable
     G4TouchableHandle touch_handle_;
 
+    //! Post-step selection for copying to track
+    StepPointSelection post_step_selection_;
+
+    void update_track(ParticleId id) const;
     bool update_touchable(Real3 const& pos,
                           Real3 const& dir,
                           G4LogicalVolume const* lv) const;
