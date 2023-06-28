@@ -72,7 +72,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4Exception("DetectorConstruction::Construct()",
                     "",
                     FatalException,
-                    "No GDML file was specified with setGeometryFile");
+                    "No GDML file was specified with /celerg4/geometryFile");
     }
     constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(filename, validate_gdml_schema);
