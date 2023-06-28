@@ -15,10 +15,12 @@
 #include "celeritas/user/StepInterface.hh"
 
 class G4LogicalVolume;
+class G4ParticleDefinition;
 
 namespace celeritas
 {
 struct SDSetupOptions;
+class ParticleParams;
 
 namespace detail
 {
@@ -51,11 +53,13 @@ class HitManager final : public StepInterface
     using SPConstVecLV
         = std::shared_ptr<const std::vector<G4LogicalVolume const*>>;
     using VecVolId = std::vector<VolumeId>;
+    using VecParticle = std::vector<G4ParticleDefinition const*>;
     //!@}
 
   public:
     // Construct with Celeritas objects for mapping
     HitManager(GeoParams const& geo,
+               ParticleParams const& par,
                SDSetupOptions const& setup,
                StreamId::size_type num_streams);
 
@@ -85,6 +89,9 @@ class HitManager final : public StepInterface
     //! Access the Celeritas volume IDs corresponding to the detectors
     VecVolId const& celer_vols() const { return vecgeom_vols_; }
 
+    //! Access mapped particles if recreating G4Tracks later
+    VecParticle const& geant_particles() const { return particles_; }
+
   private:
     using VecLV = std::vector<G4LogicalVolume const*>;
 
@@ -93,6 +100,7 @@ class HitManager final : public StepInterface
 
     // Hit processor setup
     SPConstVecLV geant_vols_;
+    VecParticle particles_;
     StepSelection selection_;
     bool locate_touchable_{};
 
@@ -100,6 +108,8 @@ class HitManager final : public StepInterface
 
     // Construct vecgeom/geant volumes
     void setup_volumes(GeoParams const& geo, SDSetupOptions const& setup);
+    // Construct celeritas/geant particles
+    void setup_particles(ParticleParams const& par);
 
     // Ensure thread-local hit processor exists and return it
     HitProcessor& get_local_hit_processor(StreamId);

@@ -385,7 +385,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
     if (options.sd)
     {
         hit_manager_ = std::make_shared<detail::HitManager>(
-            *params.geometry, options.sd, params.max_streams);
+            *params.geometry, *params.particle, options.sd, params.max_streams);
         step_collector_ = std::make_shared<StepCollector>(
             StepCollector::VecInterface{hit_manager_},
             params.geometry,

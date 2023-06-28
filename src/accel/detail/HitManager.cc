@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <utility>
 #include <G4LogicalVolumeStore.hh>
+#include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -21,6 +22,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "accel/SetupOptions.hh"
 
 #include "HitProcessor.hh"
@@ -49,6 +51,7 @@ void update_selection(StepPointSelection* selection,
  * Map detector IDs on construction.
  */
 HitManager::HitManager(GeoParams const& geo,
+                       ParticleParams const& par,
                        SDSetupOptions const& setup,
                        StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
@@ -58,6 +61,7 @@ HitManager::HitManager(GeoParams const& geo,
     CELER_EXPECT(num_streams > 0);
 
     // Convert setup options to step data
+    selection_.particle = setup.track;
     selection_.energy_deposition = setup.energy_deposition;
     update_selection(&selection_.points[StepPoint::pre], setup.pre);
     update_selection(&selection_.points[StepPoint::post], setup.post);
@@ -74,6 +78,12 @@ HitManager::HitManager(GeoParams const& geo,
     // Map detector volumes
     this->setup_volumes(geo, setup);
 
+    if (setup.track)
+    {
+        this->setup_particles(par);
+    }
+
+    CELER_ENSURE(setup.track == !this->particles_.empty());
     CELER_ENSURE(geant_vols_ && geant_vols_->size() == vecgeom_vols_.size());
 }
 
@@ -191,6 +201,42 @@ void HitManager::setup_volumes(GeoParams const& geo,
         vecgeom_vols_.push_back(id);
     }
     geant_vols_ = std::make_shared<VecLV>(std::move(geant_vols));
+}
+
+//---------------------------------------------------------------------------//
+void HitManager::setup_particles(ParticleParams const& par)
+{
+    CELER_EXPECT(selection_.particle);
+
+    auto& g4particles = *G4ParticleTable::GetParticleTable();
+
+    particles_.resize(par.size());
+    std::vector<ParticleId> missing;
+    for (auto pid : range(ParticleId{par.size()}))
+    {
+        int pdg = par.id_to_pdg(pid).get();
+        if (G4ParticleDefinition* particle = g4particles.FindParticle(pdg))
+        {
+            particles_[pid.get()] = particle;
+        }
+        else
+        {
+            missing.push_back(pid);
+        }
+    }
+
+    CELER_VALIDATE(missing.empty(),
+                   << "failed to map Celeritas particles to Geant4: missing "
+                   << join_stream(missing.begin(),
+                                  missing.end(),
+                                  ", ",
+                                  [&par](std::ostream& os, ParticleId pid) {
+                                      os << '"' << par.id_to_label(pid)
+                                         << "\" (ID=" << pid.unchecked_get()
+                                         << ", PDG="
+                                         << par.id_to_pdg(pid).unchecked_get()
+                                         << ")";
+                                  }));
 }
 
 //---------------------------------------------------------------------------//
