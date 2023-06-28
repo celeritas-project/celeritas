@@ -42,10 +42,10 @@ class ElementSelectorTest : public Test
 
         MaterialParams::Input inp;
         inp.elements = {
-            {AtomicNumber{1}, AmuMass{1.008}, "H"},
-            {AtomicNumber{11}, AmuMass{22.98976928}, "Na"},
-            {AtomicNumber{13}, AmuMass{26.9815385}, "Al"},
-            {AtomicNumber{53}, AmuMass{126.90447}, "I"},
+            {AtomicNumber{1}, AmuMass{1.008}, {}, "H"},
+            {AtomicNumber{11}, AmuMass{22.98976928}, {}, "Na"},
+            {AtomicNumber{13}, AmuMass{26.9815385}, {}, "Al"},
+            {AtomicNumber{53}, AmuMass{126.90447}, {}, "I"},
         };
         inp.materials = {
             {0.0, 0.0, MatterState::unspecified, {}, "hard_vacuum"},

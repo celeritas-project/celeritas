@@ -16,6 +16,7 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialParamsOutput.hh"
@@ -108,12 +109,59 @@ class MaterialTest : public Test
     void SetUp() override
     {
         MaterialParams::Input inp;
+
+        // Using nuclear masses provided by Geant4 11.0.3
+        inp.isotopes = {
+            // H
+            {AtomicNumber{1}, AtomicNumber{1}, units::MevMass{938.272}, "1H"},
+            {AtomicNumber{1}, AtomicNumber{2}, units::MevMass{1875.61}, "2H"},
+            // Al
+            {AtomicNumber{13},
+             AtomicNumber{27},
+             units::MevMass{25126.5},
+             "27Al"},
+            {AtomicNumber{13},
+             AtomicNumber{28},
+             units::MevMass{26058.3},
+             "28Al"},
+            // Na
+            {AtomicNumber{11},
+             AtomicNumber{23},
+             units::MevMass{21409.2},
+             "23Na"},
+            // I
+            {AtomicNumber{53},
+             AtomicNumber{125},
+             units::MevMass{116321},
+             "125I"},
+            {AtomicNumber{53},
+             AtomicNumber{126},
+             units::MevMass{117253},
+             "126I"},
+            {AtomicNumber{53},
+             AtomicNumber{127},
+             units::MevMass{118184},
+             "127I"}};
+
         inp.elements = {
-            {AtomicNumber{1}, units::AmuMass{1.008}, "H"},
-            {AtomicNumber{13}, units::AmuMass{26.9815385}, "Al"},
-            {AtomicNumber{11}, units::AmuMass{22.98976928}, "Na"},
-            {AtomicNumber{53}, units::AmuMass{126.90447}, "I"},
+            {AtomicNumber{1},
+             units::AmuMass{1.008},
+             {{IsotopeId{0}, 0.9}, {IsotopeId{1}, 0.1}},
+             "H"},
+            {AtomicNumber{13},
+             units::AmuMass{26.9815385},
+             {{IsotopeId{2}, 0.7}, {IsotopeId{3}, 0.3}},
+             "Al"},
+            {AtomicNumber{11},
+             units::AmuMass{22.98976928},
+             {{IsotopeId{4}, 1}},
+             "Na"},
+            {AtomicNumber{53},
+             units::AmuMass{126.90447},
+             {{IsotopeId{5}, 0.05}, {IsotopeId{6}, 0.15}, {IsotopeId{7}, 0.8}},
+             "I"},
         };
+
         inp.materials = {
             // Sodium iodide
             {2.948915064677e+22,
@@ -151,6 +199,7 @@ TEST_F(MaterialTest, params)
     EXPECT_EQ(4, params->size());
     EXPECT_EQ(4, params->num_materials());
     EXPECT_EQ(4, params->num_elements());
+    EXPECT_EQ(8, params->num_isotopes());
 
     EXPECT_EQ(MaterialId{0}, params->find_material("NaI"));
     EXPECT_EQ(MaterialId{1}, params->find_material("hard vacuum"));
@@ -162,18 +211,26 @@ TEST_F(MaterialTest, params)
     }
     EXPECT_EQ(MaterialId{}, params->find_material("nonexistent material"));
 
+    // Isotopes
+    EXPECT_EQ("1H", params->id_to_label(IsotopeId{0}).name);
+    EXPECT_EQ("2H", params->id_to_label(IsotopeId{1}).name);
+    EXPECT_EQ(IsotopeId{0}, params->find_isotope("1H"));
+
+    // Elements
     EXPECT_EQ("H", params->id_to_label(ElementId{0}).name);
     EXPECT_EQ("Al", params->id_to_label(ElementId{1}).name);
     EXPECT_EQ("Na", params->id_to_label(ElementId{2}).name);
     EXPECT_EQ("I", params->id_to_label(ElementId{3}).name);
     EXPECT_EQ(ElementId{1}, params->find_element("Al"));
 
+    // Materials
     EXPECT_EQ("NaI", params->id_to_label(MaterialId{0}).name);
     EXPECT_EQ("hard vacuum", params->id_to_label(MaterialId{1}).name);
     EXPECT_EQ(Label("H2", "1"), params->id_to_label(MaterialId{2}));
     EXPECT_EQ(Label("H2", "2"), params->id_to_label(MaterialId{3}));
 
     EXPECT_EQ(2, params->max_element_components());
+    EXPECT_EQ(3, params->max_isotope_components());
 }
 
 TEST_F(MaterialTest, material_view)
@@ -270,7 +327,42 @@ TEST_F(MaterialTest, element_view)
         EXPECT_SOFT_EQ(std::log(13.0), el.log_z());
         EXPECT_SOFT_EQ(0.010734632775699565, el.coulomb_correction());
         EXPECT_SOFT_EQ(0.04164723292591279, el.mass_radiation_coeff());
+
+        // Test its isotopes
+        EXPECT_EQ(2, el.num_isotopes());
+        std::vector<int> atomic_mass_numbers;
+        for (auto id : range(el.num_isotopes()))
+        {
+            auto iso_view = el.make_isotope_view(IsotopeComponentId{id});
+            atomic_mass_numbers.push_back(iso_view.atomic_mass_number().get());
+        }
+        static int const expected_atomic_mass_numbers[] = {27, 28};
+        EXPECT_VEC_EQ(expected_atomic_mass_numbers, atomic_mass_numbers);
     }
+}
+
+TEST_F(MaterialTest, isotope_view)
+{
+    std::vector<int> atomic_numbers;
+    std::vector<int> atomic_mass_numbers;
+    std::vector<double> nuclear_masses;
+    for (auto i : range(params->num_isotopes()))
+    {
+        auto iso_view = params->get(IsotopeId{i});
+        atomic_numbers.push_back(iso_view.atomic_number().get());
+        atomic_mass_numbers.push_back(iso_view.atomic_mass_number().get());
+        nuclear_masses.push_back(iso_view.nuclear_mass().value());
+    }
+
+    static int const expected_atomic_numbers[] = {1, 1, 13, 13, 11, 53, 53, 53};
+    static int const expected_atomic_mass_numbers[]
+        = {1, 2, 27, 28, 23, 125, 126, 127};
+    static double const expected_nuclear_masses[] = {
+        938.272, 1875.61, 25126.5, 26058.3, 21409.2, 116321, 117253, 118184};
+
+    EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
+    EXPECT_VEC_EQ(expected_atomic_mass_numbers, atomic_mass_numbers);
+    EXPECT_VEC_SOFT_EQ(expected_nuclear_masses, nuclear_masses);
 }
 
 TEST_F(MaterialTest, output)
@@ -281,7 +373,7 @@ TEST_F(MaterialTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json({"_units":{"atomic_mass":"amu","mean_excitation_energy":"MeV"},"elements":{"atomic_mass":[1.008,26.9815385,22.98976928,126.90447],"atomic_number":[1,13,11,53],"coulomb_correction":[6.400821803338426e-05,0.010734632775699565,0.00770256745342534,0.15954439947436763],"label":["H","Al","Na","I"],"mass_radiation_coeff":[0.0158611264432063,0.04164723292591279,0.03605392839455309,0.11791841505608874]},"materials":{"density":[3.6700020622594716,0.0,0.00017976000000000003,0.00017943386624303615],"electron_density":[9.4365282069664e+23,0.0,1.073948435904467e+20,1.072e+20],"element_frac":[[0.5,0.5],[],[1.0],[1.0]],"element_id":[[2,3],[],[0],[0]],"label":["NaI","hard vacuum","H2@1","H2@2"],"matter_state":["solid","unspecified","gas","gas"],"mean_excitation_energy":[0.00040000760709482647,0.0,1.9199999999999986e-05,1.9199999999999986e-05],"number_density":[2.948915064677e+22,0.0,1.073948435904467e+20,1.072e+20],"radiation_length":[3.5393292693170424,null,350729.99844063615,351367.4750467326],"temperature":[293.0,0.0,100.0,110.0],"zeff":[32.0,0.0,1.0,1.0]}})json",
+            R"json({"_units":{"atomic_mass":"amu","mean_excitation_energy":"MeV","nuclear_mass":"MeV/c^2"},"elements":{"atomic_mass":[1.008,26.9815385,22.98976928,126.90447],"atomic_number":[1,13,11,53],"coulomb_correction":[6.400821803338426e-05,0.010734632775699565,0.00770256745342534,0.15954439947436763],"isotope_fractions":[[0.9,0.1],[0.7,0.3],[1.0],[0.05,0.15,0.8]],"isotope_ids":[[0,1],[2,3],[4],[5,6,7]],"label":["H","Al","Na","I"],"mass_radiation_coeff":[0.0158611264432063,0.04164723292591279,0.03605392839455309,0.11791841505608874]},"isotopes":{"atomic_mass_number":[1,2,27,28,23,125,126,127],"atomic_number":[1,1,13,13,11,53,53,53],"label":["1H","2H","27Al","28Al","23Na","125I","126I","127I"],"nuclear_mass":[938.272,1875.61,25126.5,26058.3,21409.2,116321.0,117253.0,118184.0]},"materials":{"density":[3.6700020622594716,0.0,0.00017976000000000003,0.00017943386624303615],"electron_density":[9.4365282069664e+23,0.0,1.073948435904467e+20,1.072e+20],"element_frac":[[0.5,0.5],[],[1.0],[1.0]],"element_id":[[2,3],[],[0],[0]],"label":["NaI","hard vacuum","H2@1","H2@2"],"matter_state":["solid","unspecified","gas","gas"],"mean_excitation_energy":[0.00040000760709482647,0.0,1.9199999999999986e-05,1.9199999999999986e-05],"number_density":[2.948915064677e+22,0.0,1.073948435904467e+20,1.072e+20],"radiation_length":[3.5393292693170424,null,350729.99844063615,351367.4750467326],"temperature":[293.0,0.0,100.0,110.0],"zeff":[32.0,0.0,1.0,1.0]}})json",
             to_string(out))
             << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
             << ")json\"\n/******/";

@@ -32,7 +32,7 @@ auto SimpleTestBase::build_material() -> SPConstMaterial
     using namespace units;
 
     MaterialParams::Input inp;
-    inp.elements = {{AtomicNumber{13}, AmuMass{27}, "Al"}};
+    inp.elements = {{AtomicNumber{13}, AmuMass{27}, {}, "Al"}};
     inp.materials = {{2.7 * constants::na_avogadro / 27,
                       293.0,
                       MatterState::solid,

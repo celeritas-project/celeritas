@@ -56,6 +56,7 @@ struct ImportData
     //!@}
 
     std::vector<ImportParticle> particles;
+    std::vector<ImportIsotope> isotopes;
     std::vector<ImportElement> elements;
     std::vector<ImportMaterial> materials;
     std::vector<ImportProcess> processes;

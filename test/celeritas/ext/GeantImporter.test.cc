@@ -387,11 +387,14 @@ TEST_F(FourSteelSlabsEmStandard, elements)
     auto&& import_data = this->imported_data();
 
     auto const& elements = import_data.elements;
+    auto const& isotopes = import_data.isotopes;
     EXPECT_EQ(4, elements.size());
 
     std::vector<std::string> names;
     std::vector<int> atomic_numbers;
     std::vector<double> atomic_masses, inv_rad_lengths_tsai, coulomb_factors;
+    std::vector<std::string> el_isotope_labels;
+    std::vector<double> el_isotope_fractions;
 
     for (auto const& element : elements)
     {
@@ -400,7 +403,35 @@ TEST_F(FourSteelSlabsEmStandard, elements)
         atomic_numbers.push_back(element.atomic_number);
         coulomb_factors.push_back(element.coulomb_factor);
         inv_rad_lengths_tsai.push_back(1 / element.radiation_length_tsai);
+
+        for (auto const& key : element.isotopes_fractions)
+        {
+            el_isotope_labels.push_back(isotopes[key.first].name);
+            el_isotope_fractions.push_back(key.second);
+        }
     }
+
+    // clang-format off
+    static std::string const expected_el_isotope_labels[]
+        = {"Fe54", "Fe56", "Fe57", "Fe58", "Cr50", "Cr52", "Cr53", "Cr54",
+            "Ni58", "Ni60", "Ni61", "Ni62", "Ni64", "H1", "H2"};
+    // clang-format on
+
+    static double const expected_el_isotope_fractions[] = {0.05845,
+                                                           0.91754,
+                                                           0.02119,
+                                                           0.00282,
+                                                           0.04345,
+                                                           0.83789,
+                                                           0.09501,
+                                                           0.02365,
+                                                           0.680769,
+                                                           0.262231,
+                                                           0.011399,
+                                                           0.036345,
+                                                           0.009256,
+                                                           0.999885,
+                                                           0.000115};
 
     static char const* expected_names[] = {"Fe", "Cr", "Ni", "H"};
     static int const expected_atomic_numbers[] = {26, 24, 28, 1};
@@ -419,9 +450,55 @@ TEST_F(FourSteelSlabsEmStandard, elements)
 
     EXPECT_VEC_EQ(expected_names, names);
     EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
+    EXPECT_VEC_EQ(expected_el_isotope_labels, el_isotope_labels);
     EXPECT_VEC_SOFT_EQ(expected_atomic_masses, atomic_masses);
     EXPECT_VEC_SOFT_EQ(expected_coulomb_factors, coulomb_factors);
     EXPECT_VEC_SOFT_EQ(expected_inv_rad_lengths_tsai, inv_rad_lengths_tsai);
+    EXPECT_VEC_SOFT_EQ(expected_el_isotope_fractions, el_isotope_fractions);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, isotopes)
+{
+    auto&& import_data = this->imported_data();
+    auto const& isotopes = import_data.isotopes;
+
+    std::vector<std::string> isotope_names;
+    std::vector<int> isotope_atomic_number;
+    std::vector<int> isotope_atomic_mass_number;
+    std::vector<double> isotope_nuclear_mass;
+    for (auto const& isotope : isotopes)
+    {
+        isotope_names.push_back(isotope.name);
+        isotope_atomic_number.push_back(isotope.atomic_number);
+        isotope_atomic_mass_number.push_back(isotope.atomic_mass_number);
+        isotope_nuclear_mass.push_back(isotope.nuclear_mass);
+    }
+
+    // clang-format off
+    static std::string const expected_isotope_names[]
+        = {"Fe54", "Fe56", "Fe57", "Fe58", "Cr50", "Cr52", "Cr53", "Cr54",
+            "Ni58", "Ni60", "Ni61", "Ni62", "Ni64", "H1", "H2"};
+
+    static int const expected_isotope_atomic_number[]
+        = {26, 26, 26, 26, 24, 24, 24, 24, 28, 28, 28, 28, 28, 1, 1};
+
+    static int const expected_isotope_atomic_mass_number[]
+        = {54, 56, 57, 58, 50, 52, 53, 54, 58, 60, 61, 62, 64, 1, 2};
+
+    static double const expected_isotope_nuclear_mass[]
+        = {50231.172508455, 52089.808009455, 53021.727279455, 53951.248020455,
+            46512.204476826, 48370.036152826, 49301.662375826, 50231.508600826,
+            53952.159103623, 55810.902779623, 56742.648018623, 57671.617505623,
+            59534.252946623, 938.272013, 1875.6127932681};
+    // clang-format on
+
+    EXPECT_VEC_EQ(expected_isotope_names, isotope_names);
+    EXPECT_VEC_EQ(expected_isotope_atomic_number, isotope_atomic_number);
+    EXPECT_VEC_EQ(expected_isotope_atomic_mass_number,
+                  isotope_atomic_mass_number);
+    EXPECT_VEC_SOFT_EQ(expected_isotope_nuclear_mass,
+                       expected_isotope_nuclear_mass);
 }
 
 //---------------------------------------------------------------------------//

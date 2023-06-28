@@ -35,7 +35,7 @@ class MollerBhabhaInteractorTest : public InteractorHostTestBase
 
         // Setup MaterialView
         MaterialParams::Input inp;
-        inp.elements = {{AtomicNumber{29}, units::AmuMass{63.546}, "Cu"}};
+        inp.elements = {{AtomicNumber{29}, units::AmuMass{63.546}, {}, "Cu"}};
         inp.materials = {
             {1.0 * constants::na_avogadro,
              293.0,

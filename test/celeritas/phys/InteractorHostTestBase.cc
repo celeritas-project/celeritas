@@ -46,11 +46,11 @@ InteractorHostTestBase::InteractorHostTestBase()
 
     // Default material params
     MaterialParams::Input mat_inp;
-    mat_inp.elements = {{AtomicNumber{29}, AmuMass{63.546}, Label{"Cu"}},
-                        {AtomicNumber{19}, AmuMass{39.0983}, Label{"K"}},
-                        {AtomicNumber{8}, AmuMass{15.999}, Label{"O"}},
-                        {AtomicNumber{74}, AmuMass{183.84}, Label{"W"}},
-                        {AtomicNumber{82}, AmuMass{207.2}, Label{"Pb"}}};
+    mat_inp.elements = {{AtomicNumber{29}, AmuMass{63.546}, {}, Label{"Cu"}},
+                        {AtomicNumber{19}, AmuMass{39.0983}, {}, Label{"K"}},
+                        {AtomicNumber{8}, AmuMass{15.999}, {}, Label{"O"}},
+                        {AtomicNumber{74}, AmuMass{183.84}, {}, Label{"W"}},
+                        {AtomicNumber{82}, AmuMass{207.2}, {}, Label{"Pb"}}};
     mat_inp.materials = {
         {0.141 * na_avogadro,
          293.0,

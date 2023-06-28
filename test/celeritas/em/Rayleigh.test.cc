@@ -45,9 +45,9 @@ class RayleighInteractorTest : public InteractorHostTestBase
 
         // Setup MaterialView
         MaterialParams::Input inp;
-        inp.elements = {{AtomicNumber{8}, units::AmuMass{15.999}, "O"},
-                        {AtomicNumber{74}, units::AmuMass{183.84}, "W"},
-                        {AtomicNumber{82}, units::AmuMass{207.2}, "Pb"}};
+        inp.elements = {{AtomicNumber{8}, units::AmuMass{15.999}, {}, "O"},
+                        {AtomicNumber{74}, units::AmuMass{183.84}, {}, "W"},
+                        {AtomicNumber{82}, units::AmuMass{207.2}, {}, "Pb"}};
         inp.materials = {
             {1.0 * constants::na_avogadro,
              293.0,

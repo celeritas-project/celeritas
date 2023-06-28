@@ -26,6 +26,7 @@
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4Navigator.hh>
+#include <G4NucleiProperties.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
@@ -52,6 +53,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -239,21 +241,58 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return a populated \c ImportIsotope vector.
+ */
+std::vector<ImportIsotope> import_isotopes()
+{
+    auto const& g4isotope_table = *G4Isotope::GetIsotopeTable();
+    CELER_EXPECT(!g4isotope_table.empty());
+
+    std::vector<ImportIsotope> isotopes(g4isotope_table.size());
+    for (auto idx : range(g4isotope_table.size()))
+    {
+        if (!g4isotope_table[idx])
+        {
+            CELER_LOG(warning) << "Skipping import of null isotope at index \'"
+                               << idx << "\' of the G4IsotopeTable";
+            continue;
+        }
+        auto const& g4isotope = *g4isotope_table[idx];
+
+        ImportIsotope& isotope = isotopes[idx];
+        isotope.name = g4isotope.GetName();
+        isotope.atomic_number = g4isotope.GetZ();
+        isotope.atomic_mass_number = g4isotope.GetN();
+        isotope.nuclear_mass = G4NucleiProperties::GetNuclearMass(
+            isotope.atomic_mass_number, isotope.atomic_number);
+    }
+
+    CELER_ENSURE(!isotopes.empty());
+    CELER_LOG(debug) << "Loaded " << isotopes.size() << " isotopes";
+    return isotopes;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a populated \c ImportElement vector.
  */
 std::vector<ImportElement> import_elements()
 {
-    auto const& g4element_table = *G4Element::GetElementTable();
-
     std::vector<ImportElement> elements;
+
+    auto const& g4element_table = *G4Element::GetElementTable();
+    CELER_EXPECT(!g4element_table.empty());
+
     elements.resize(g4element_table.size());
 
     // Loop over element data
     for (auto const& g4element : g4element_table)
     {
         CELER_ASSERT(g4element);
+        auto const& g4isotope_vec = *g4element->GetIsotopeVector();
+        CELER_ASSERT(g4isotope_vec.size() == g4element->GetNumberOfIsotopes());
 
-        // Add element to vector
+        // Add element to ImportElement vector
         ImportElement element;
         element.name = g4element->GetName();
         element.atomic_number = g4element->GetZ();
@@ -261,10 +300,30 @@ std::vector<ImportElement> import_elements()
         element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
         element.coulomb_factor = g4element->GetfCoulomb();
 
+        // Despite the function name, this is *NOT* a vector, it's an array
+        double* const g4rel_abundance = g4element->GetRelativeAbundanceVector();
+
+        double total_el_abundance_fraction = 0;  // Verify that the sum is ~1
+        for (auto idx : range(g4element->GetNumberOfIsotopes()))
+        {
+            ImportElement::IsotopeFrac key;
+            key.first = g4isotope_vec[idx]->GetIndex();
+            key.second = g4rel_abundance[idx];
+            element.isotopes_fractions.push_back(std::move(key));
+
+            total_el_abundance_fraction += g4rel_abundance[idx];
+        }
+        CELER_VALIDATE(soft_equal(1., total_el_abundance_fraction),
+                       << "Total relative isotopic abundance for element `"
+                       << element.name
+                       << "` should sum to 1, but instead sum to "
+                       << total_el_abundance_fraction);
+
         elements[g4element->GetIndex()] = element;
     }
-    CELER_LOG(debug) << "Loaded " << elements.size() << " elements";
+
     CELER_ENSURE(!elements.empty());
+    CELER_LOG(debug) << "Loaded " << elements.size() << " elements";
     return elements;
 }
 
@@ -678,6 +737,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (selected.materials)
         {
+            imported.isotopes = import_isotopes();
             imported.elements = import_elements();
             imported.materials = import_materials(selected.particles);
         }
