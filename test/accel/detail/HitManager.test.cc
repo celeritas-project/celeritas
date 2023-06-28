@@ -130,7 +130,7 @@ TEST_F(SimpleCmsTest, add_duplicate)
     static char const* const expected_vnames[]
         = {"em_calorimeter", "had_calorimeter"};
     EXPECT_VEC_EQ(expected_vnames, vnames);
-    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         static char const* const expected_log_messages[] = {
             "Mapped sensitive detector \"em_calorimeter\" on logical volume "
@@ -183,7 +183,7 @@ TEST_F(SimpleCmsTest, detached_detector)
     sd_setup_.force_volumes = {SimpleCmsTest::detached_lv};
     EXPECT_THROW(this->make_hit_manager(), celeritas::RuntimeError);
 
-    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         static char const* const expected_log_messages[]
             = {"Failed to find VecGeom volume corresponding to Geant4 volume "
