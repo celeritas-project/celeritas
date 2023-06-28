@@ -32,9 +32,9 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ScopedDeviceProfiling.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
 
@@ -108,7 +108,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     Stopwatch get_transport_time;
     if (run_input->merge_events)
     {
-        ScopedDeviceProfiling profile_this;
+        ScopedProfiling profile_this{"celer-sim"};
 
         // Run all events simultaneously on a single stream
         result.events.front() = run_stream();
@@ -116,7 +116,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     else
     {
         MultiExceptionHandler capture_exception;
-        ScopedDeviceProfiling profile_this;
+        ScopedProfiling profile_this{"celer-sim"};
 
 #ifdef _OPENMP
         // Set the maximum number of nested parallel regions
