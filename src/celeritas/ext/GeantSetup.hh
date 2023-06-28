@@ -55,7 +55,10 @@ class GeantSetup
 
     //!@{
     //! Default move assignment/construction
+    //! Delete copy assignment/construction
+    GeantSetup(GeantSetup const&) = delete;
     GeantSetup(GeantSetup&&) = default;
+    GeantSetup& operator=(GeantSetup const&) = delete;
     GeantSetup& operator=(GeantSetup&&) = default;
     //!@}
 

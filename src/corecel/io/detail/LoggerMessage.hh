@@ -39,8 +39,11 @@ class LoggerMessage
     // Flush message on destruction
     ~LoggerMessage();
 
-    // Default move construct and assignment
+    // Default move construct and assignment. Delete copy construct and
+    // assignment
+    LoggerMessage(LoggerMessage const&) = delete;
     LoggerMessage(LoggerMessage&&) = default;
+    LoggerMessage& operator=(LoggerMessage const&) = delete;
     LoggerMessage& operator=(LoggerMessage&&) = default;
 
     // Write the object to the stream if applicable
