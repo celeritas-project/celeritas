@@ -34,6 +34,7 @@ struct SDSetupOptions
     {
         bool global_time{false};
         bool position{false};
+        bool direction{false};  //!< AKA momentum direction
         bool kinetic_energy{false};
     };
 

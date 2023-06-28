@@ -195,6 +195,9 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
 
+    EnumArray<StepPoint, G4StepPoint*> points
+        = {step_->GetPreStepPoint(), step_->GetPostStepPoint()};
+
     for (auto i : range(out.size()))
     {
 #define HP_SET(SETTER, OUT, UNITS)                   \
@@ -208,8 +211,6 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 
         HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
 
-        EnumArray<StepPoint, G4StepPoint*> points
-            = {step_->GetPreStepPoint(), step_->GetPostStepPoint()};
         for (auto sp : range(StepPoint::size_))
         {
             if (!points[sp])
@@ -221,22 +222,20 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
             HP_SET(points[sp]->SetKineticEnergy,
                    out.points[sp].energy,
                    CLHEP::MeV);
+            HP_SET(points[sp]->SetMomentumDirection, out.points[sp].dir, 1);
         }
 #undef HP_SET
 
-        if (!tracks_.empty())
-        {
-            this->update_track(out.particle[i]);
-        }
-
         if (navi_)
         {
-            // Set the navigation
-            CELER_ASSERT(out.detector[i] < detectors_.size());
-            bool success = this->update_touchable(
-                out.points[StepPoint::pre].pos[i],
-                out.points[StepPoint::pre].dir[i],
-                (*detector_volumes_)[out.detector[i].unchecked_get()]);
+            G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
+
+            // Update navigation state
+            constexpr auto sp = StepPoint::pre;
+            bool success = this->update_touchable(out.points[sp].pos[i],
+                                                  out.points[sp].dir[i],
+                                                  lv,
+                                                  touch_handle_());
             if (CELER_UNLIKELY(!success))
             {
                 // Inconsistent touchable: skip this energy deposition
@@ -244,9 +243,13 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
             }
         }
 
+        if (!tracks_.empty())
+        {
+            this->update_track(out.particle[i]);
+        }
+
         // Hit sensitive detector
-        CELER_ASSERT(out.detector[i] < detectors_.size());
-        detectors_[out.detector[i].unchecked_get()]->Hit(step_.get());
+        this->detector(out.detector[i])->Hit(step_.get());
     }
 }
 
@@ -260,8 +263,14 @@ void HitProcessor::update_track(ParticleId id) const
     G4Track& track = *tracks_[id.unchecked_get()];
     step_->SetTrack(&track);
 
-    G4StepPoint* post_step = step_->GetPostStepPoint();
-    track.SetKineticEnergy(post_step->GetKineticEnergy());
+    // Copy data from track to post-step
+    if (G4StepPoint* post_step = step_->GetPostStepPoint())
+    {
+        track.SetGlobalTime(post_step->GetGlobalTime());
+        track.SetPosition(post_step->GetPosition());
+        track.SetKineticEnergy(post_step->GetKineticEnergy());
+        track.SetMomentumDirection(post_step->GetMomentumDirection());
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -270,11 +279,11 @@ void HitProcessor::update_track(ParticleId id) const
  */
 bool HitProcessor::update_touchable(Real3 const& pos,
                                     Real3 const& dir,
-                                    G4LogicalVolume const* lv) const
+                                    G4LogicalVolume const* lv,
+                                    G4VTouchable* touchable) const
 {
     auto g4pos = convert_to_geant(pos, CLHEP::cm);
     auto g4dir = convert_to_geant(dir, 1);
-    G4VTouchable* touchable = touch_handle_();
 
     // Locate pre-step point
     navi_->LocateGlobalPointAndUpdateTouchable(g4pos,
@@ -307,9 +316,8 @@ bool HitProcessor::update_touchable(Real3 const& pos,
                 << "Bumping navigation state by " << repr(step / CLHEP::mm)
                 << " [mm] because the pre-step point at " << repr(g4pos)
                 << " [mm] along " << repr(dir)
-                << " is expected to be in logical volume '" << lv->GetName()
-                << "' (ID " << lv->GetInstanceID() << ") but navigation gives "
-                << PrintableNavHistory{touchable};
+                << " is expected to be in logical volume " << PrintableLV{lv}
+                << " but navigation gives " << PrintableNavHistory{touchable};
         }
 
         navi_->SetGeometricallyLimitedStep();
@@ -334,9 +342,8 @@ bool HitProcessor::update_touchable(Real3 const& pos,
     {
         CELER_LOG(error)
             << "expected step point at " << repr(g4pos) << " [mm] along "
-            << repr(dir) << " to be in logical volume '" << lv->GetName()
-            << "' (ID " << lv->GetInstanceID() << ") but navigation gives "
-            << PrintableNavHistory{touchable}
+            << repr(dir) << " to be in logical volume " << PrintableLV{lv}
+            << " but navigation gives " << PrintableNavHistory{touchable}
             << ": omitting energy deposition of "
             << step_->GetTotalEnergyDeposit() / CLHEP::MeV << " [MeV]";
         return false;

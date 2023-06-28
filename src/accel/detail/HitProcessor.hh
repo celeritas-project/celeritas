@@ -77,6 +77,12 @@ class HitProcessor
     // Generate and call hits from a detector output (for testing)
     void operator()(DetectorStepOutput const& out) const;
 
+    // Access detector volume corresponding to an ID
+    inline G4LogicalVolume const* detector_volume(DetectorId) const;
+
+    // Access thread-local SD corresponding to an ID
+    inline G4VSensitiveDetector* detector(DetectorId) const;
+
   private:
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
@@ -100,8 +106,31 @@ class HitProcessor
     void update_track(ParticleId id) const;
     bool update_touchable(Real3 const& pos,
                           Real3 const& dir,
-                          G4LogicalVolume const* lv) const;
+                          G4LogicalVolume const* lv,
+                          G4VTouchable* touchable) const;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Access detector volume corresponding to an ID.
+ */
+G4LogicalVolume const* HitProcessor::detector_volume(DetectorId did) const
+{
+    CELER_EXPECT(did < detector_volumes_->size());
+    return (*detector_volumes_)[did.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access thread-local sensitive detector corresponding to an ID.
+ */
+G4VSensitiveDetector* HitProcessor::detector(DetectorId did) const
+{
+    CELER_EXPECT(did < detectors_.size());
+    return detectors_[did.unchecked_get()];
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

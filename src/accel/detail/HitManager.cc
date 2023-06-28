@@ -40,6 +40,7 @@ void update_selection(StepPointSelection* selection,
 {
     selection->time = options.global_time;
     selection->pos = options.position;
+    selection->dir = options.direction;
     selection->energy = options.kinetic_energy;
 }
 
