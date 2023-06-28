@@ -19,7 +19,7 @@ class G4LogicalVolume;
 
 namespace celeritas
 {
-class AlongStepFactoryInput;
+struct AlongStepFactoryInput;
 class ExplicitActionInterface;
 //---------------------------------------------------------------------------//
 /*!
