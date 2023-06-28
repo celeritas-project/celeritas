@@ -76,8 +76,7 @@ MaterialParams::from_import(ImportData const& data)
         isotope_params.atomic_mass_number
             = AtomicNumber{isotope.atomic_mass_number};
         // Convert from MeV (Geant4) to MeV/c^2 (Celeritas)
-        isotope_params.nuclear_mass = units::MevMass{
-            isotope.nuclear_mass / std::pow(constants::c_light, 2)};
+        isotope_params.nuclear_mass = units::MevMass{isotope.nuclear_mass};
 
         input.isotopes.push_back(std::move(isotope_params));
     }

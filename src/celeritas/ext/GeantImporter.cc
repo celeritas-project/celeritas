@@ -248,20 +248,24 @@ std::vector<ImportIsotope> import_isotopes()
     auto const& g4isotope_table = *G4Isotope::GetIsotopeTable();
     CELER_EXPECT(!g4isotope_table.empty());
 
-    std::vector<ImportIsotope> isotopes;
+    std::vector<ImportIsotope> isotopes(g4isotope_table.size());
     for (auto idx : range(g4isotope_table.size()))
     {
+        if (!g4isotope_table[idx])
+        {
+            CELER_LOG(warning) << "Skipping import of null isotope at index \'"
+                               << idx << "\' of the G4IsotopeTable";
+            continue;
+        }
         auto const& g4isotope = *g4isotope_table[idx];
-        CELER_ASSERT(isotopes.size() == g4isotope.GetIndex());
+        CELER_ASSERT(idx == g4isotope.GetIndex());
 
-        ImportIsotope isotope;
+        ImportIsotope& isotope = isotopes[idx];
         isotope.name = g4isotope.GetName();
         isotope.atomic_number = g4isotope.GetZ();
         isotope.atomic_mass_number = g4isotope.GetN();
         isotope.nuclear_mass = G4NucleiProperties::GetNuclearMass(
             isotope.atomic_mass_number, isotope.atomic_number);
-
-        isotopes.push_back(std::move(isotope));
     }
 
     CELER_ENSURE(!isotopes.empty());
