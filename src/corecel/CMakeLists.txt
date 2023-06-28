@@ -58,8 +58,9 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
 endif()
 if(CELERITAS_USE_CUDA)
+  # we currently depend on CUDA install including the nvtx header
   list(APPEND SOURCES
-    sys/ScopedDeviceProfiling.cuda.cc
+    sys/ScopedProfiling.cuda.cc
   )
 endif()
 
