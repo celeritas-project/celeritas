@@ -299,6 +299,7 @@ void MaterialParams::append_element_def(ElementInput const& inp,
 {
     CELER_EXPECT(inp.atomic_number);
     CELER_EXPECT(inp.atomic_mass > zero_quantity());
+    CELER_EXPECT(inp.isotopes_fractions.empty() != this->is_missing_isotopes());
 
     ElementRecord result;
 
