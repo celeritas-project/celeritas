@@ -27,6 +27,19 @@ class ExplicitActionInterface;
  *
  * These affect only the \c HitManager construction that is responsible for
  * reconstructing CPU hits and sending directly to the Geant4 detectors.
+ *
+ * Various attributes on the step, track, and pre/post step points may be
+ * available depending on the selected options.
+ * - Disabling \c track will leave \c G4Step::GetTrack as null
+ * - Enabling \c locate_touchable will also set \c Material and \c
+ *   MaterialCutsCouple
+ * - Enabling \c track will set particle the \c Charge attribute on the
+ *   pre-step
+ * - Requested post-step data including \c GlobalTime, \c Position, \c
+ *   KineticEnergy, and \c MomentumDirection will be copied to the \c Track
+ *   when the combination of options is enabled
+ * - Track and Parent IDs will \em never be a valid value since Celeritas track
+ *   counters are independent from Geant4 track counters.
  */
 struct SDSetupOptions
 {

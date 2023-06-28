@@ -241,6 +241,10 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
                 // Inconsistent touchable: skip this energy deposition
                 continue;
             }
+
+            // Copy attributes from logical volume
+            points[sp]->SetMaterial(lv->GetMaterial());
+            points[sp]->SetMaterialCutsCouple(lv->GetMaterialCutsCouple());
         }
 
         if (!tracks_.empty())
@@ -263,9 +267,15 @@ void HitProcessor::update_track(ParticleId id) const
     G4Track& track = *tracks_[id.unchecked_get()];
     step_->SetTrack(&track);
 
-    // Copy data from track to post-step
+    if (G4StepPoint* pre_step = step_->GetPreStepPoint())
+    {
+        // Copy data from track to pre-step
+        G4ParticleDefinition const& pd = *track.GetParticleDefinition();
+        pre_step->SetCharge(pd.GetPDGCharge());
+    }
     if (G4StepPoint* post_step = step_->GetPostStepPoint())
     {
+        // Copy data from post-step to track
         track.SetGlobalTime(post_step->GetGlobalTime());
         track.SetPosition(post_step->GetPosition());
         track.SetKineticEnergy(post_step->GetKineticEnergy());
