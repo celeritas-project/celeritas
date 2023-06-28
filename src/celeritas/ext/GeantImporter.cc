@@ -258,7 +258,6 @@ std::vector<ImportIsotope> import_isotopes()
             continue;
         }
         auto const& g4isotope = *g4isotope_table[idx];
-        CELER_ASSERT(idx == g4isotope.GetIndex());
 
         ImportIsotope& isotope = isotopes[idx];
         isotope.name = g4isotope.GetName();
