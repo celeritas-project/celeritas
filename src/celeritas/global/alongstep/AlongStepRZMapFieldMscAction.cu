@@ -29,13 +29,10 @@ namespace celeritas
 void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                                            CoreStateDevice& state) const
 {
+    detail::launch_limit_msc_step(
+        *this, msc_->ref<MemSpace::native>(), params, state);
     {
-        ScopedProfiling profile_this{label() + "-limit-msc-step"};
-        detail::launch_limit_msc_step(
-            *this, msc_->ref<MemSpace::native>(), params, state);
-    }
-    {
-        ScopedProfiling profile_this{label() + "-propagate"};
+        ScopedProfiling profile_this{"propagate"};
         auto execute_thread = make_along_step_track_executor(
             params.ptr<MemSpace::native>(),
             state.ptr(),
@@ -46,24 +43,12 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
             *this, "propagate-rzmap");
         launch_kernel(params, state, *this, execute_thread);
     }
-    {
-        ScopedProfiling profile_this{label() + "-apply-msc"};
-        detail::launch_apply_msc(
-            *this, msc_->ref<MemSpace::native>(), params, state);
-    }
-    {
-        ScopedProfiling profile_this{label() + "-update-time"};
-        detail::launch_update_time(*this, params, state);
-    }
-    {
-        ScopedProfiling profile_this{label() + "-apply-eloss"};
-        detail::launch_apply_eloss(
-            *this, fluct_->ref<MemSpace::native>(), params, state);
-    }
-    {
-        ScopedProfiling profile_this{label() + "-update-track"};
-        detail::launch_update_track(*this, params, state);
-    }
+    detail::launch_apply_msc(
+        *this, msc_->ref<MemSpace::native>(), params, state);
+    detail::launch_update_time(*this, params, state);
+    detail::launch_apply_eloss(
+        *this, fluct_->ref<MemSpace::native>(), params, state);
+    detail::launch_update_track(*this, params, state);
 }
 
 //---------------------------------------------------------------------------//

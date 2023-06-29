@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepGeneralLinearAction.hh"
 
-#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 
@@ -26,39 +25,26 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
 {
     if (this->has_msc())
     {
-        ScopedProfiling profile_this{label() + "-limit-msc-step"};
         detail::launch_limit_msc_step(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }
-    {
-        ScopedProfiling profile_this{label() + "-propagate"};
-        detail::launch_propagate(*this, params, state);
-    }
+    detail::launch_propagate(*this, params, state);
     if (this->has_msc())
     {
-        ScopedProfiling profile_this{label() + "-apply-msc"};
         detail::launch_apply_msc(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }
-    {
-        ScopedProfiling profile_this{label() + "-update-time"};
-        detail::launch_update_time(*this, params, state);
-    }
+    detail::launch_update_time(*this, params, state);
     if (this->has_fluct())
     {
-        ScopedProfiling profile_this{label() + "-apply-eloss"};
         detail::launch_apply_eloss(
             *this, fluct_->ref<MemSpace::native>(), params, state);
     }
     else
     {
-        ScopedProfiling profile_this{label() + "-apply-eloss"};
         detail::launch_apply_eloss(*this, params, state);
     }
-    {
-        ScopedProfiling profile_this{label() + "-update-track"};
-        detail::launch_update_track(*this, params, state);
-    }
+    detail::launch_update_track(*this, params, state);
 }
 
 //---------------------------------------------------------------------------//
