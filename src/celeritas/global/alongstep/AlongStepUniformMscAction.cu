@@ -35,11 +35,12 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
     ScopedProfiling profile_this{label()};
     if (this->has_msc())
     {
+        ScopedProfiling profile_this{label() + "-limit-msc-step"};
         detail::launch_limit_msc_step(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }
     {
-        ScopedProfiling profile_this{label() + "-propagation"};
+        ScopedProfiling profile_this{label() + "-propagate"};
         auto execute_thread = make_along_step_track_executor(
             params.ptr<MemSpace::native>(),
             state.ptr(),
@@ -52,12 +53,22 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
     }
     if (this->has_msc())
     {
+        ScopedProfiling profile_this{label() + "-apply-msc"};
         detail::launch_apply_msc(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }
-    detail::launch_update_time(*this, params, state);
-    detail::launch_apply_eloss(*this, params, state);
-    detail::launch_update_track(*this, params, state);
+    {
+        ScopedProfiling profile_this{label() + "-update-time"};
+        detail::launch_update_time(*this, params, state);
+    }
+    {
+        ScopedProfiling profile_this{label() + "-apply-eloss"};
+        detail::launch_apply_eloss(*this, params, state);
+    }
+    {
+        ScopedProfiling profile_this{label() + "-update-track"};
+        detail::launch_update_track(*this, params, state);
+    }
 }
 
 //---------------------------------------------------------------------------//
