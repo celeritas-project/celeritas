@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepGeneralLinearAction.hh"
 
-#include <corecel/sys/ScopedProfiling.hh>
-
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 

@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepRZMapFieldMscAction.hh"
 
-#include <corecel/sys/ScopedProfiling.hh>
-
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/RZMapFieldParams.hh"

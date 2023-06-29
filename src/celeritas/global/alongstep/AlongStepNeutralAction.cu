@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepNeutralAction.hh"
 
-#include <corecel/sys/ScopedProfiling.hh>
-
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"

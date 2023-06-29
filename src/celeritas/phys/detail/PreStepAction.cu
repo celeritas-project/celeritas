@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "PreStepAction.hh"
 
-#include <corecel/sys/ScopedProfiling.hh>
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"

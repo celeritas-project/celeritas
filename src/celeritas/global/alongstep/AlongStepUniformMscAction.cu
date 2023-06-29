@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepUniformMscAction.hh"
 
-#include <corecel/sys/ScopedProfiling.hh>
-
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
