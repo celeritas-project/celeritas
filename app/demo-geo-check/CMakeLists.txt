@@ -57,8 +57,9 @@ if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   list(APPEND _props DISABLED true)
 endif()
 set_tests_properties("app/demo-geo-check" PROPERTIES
-  ${_props}
+  ENVIRONMENT "CELER_DISABLE_PARALLEL=1"
   LABELS "${_labels}"
+  ${_props}
 )
 
 #-----------------------------------------------------------------------------#
