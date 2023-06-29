@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepRZMapFieldMscAction.hh"
 
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
@@ -31,6 +32,7 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
     detail::launch_limit_msc_step(
         *this, msc_->ref<MemSpace::native>(), params, state);
     {
+        ScopedProfiling profile_this{"propagate"};
         auto execute_thread = make_along_step_track_executor(
             params.ptr<MemSpace::native>(),
             state.ptr(),
