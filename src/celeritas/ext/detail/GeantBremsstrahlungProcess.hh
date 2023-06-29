@@ -35,14 +35,6 @@ class GeantBremsstrahlungProcess : public G4VEnergyLossProcess
     // Construct with model selection
     explicit GeantBremsstrahlungProcess(ModelSelection selection);
 
-    // Prevent copying and moving
-    GeantBremsstrahlungProcess& operator=(GeantBremsstrahlungProcess const&)
-        = delete;
-    GeantBremsstrahlungProcess(GeantBremsstrahlungProcess const&) = delete;
-    GeantBremsstrahlungProcess& operator=(GeantBremsstrahlungProcess&&)
-        = delete;
-    GeantBremsstrahlungProcess(GeantBremsstrahlungProcess&&) = delete;
-
     // True for electrons and positrons
     bool IsApplicable(G4ParticleDefinition const& particle) final;
     // Print documentation
