@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "InitializeTracksAction.hh"
 
-#include "corecel/sys/ScopedProfiling.hh"
-
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -25,7 +23,6 @@ void InitializeTracksAction::execute_impl(CoreParams const& params,
                                           CoreStateDevice& state,
                                           size_type num_new_tracks) const
 {
-    ScopedProfiling profile_this{label()};
     detail::InitTracksExecutor execute_thread{params.ptr<MemSpace::native>(),
                                               state.ptr(),
                                               num_new_tracks,

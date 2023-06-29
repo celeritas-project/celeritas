@@ -31,7 +31,6 @@ namespace celeritas
 void AlongStepUniformMscAction::execute(CoreParams const& params,
                                         CoreStateDevice& state) const
 {
-    ScopedProfiling profile_this{label()};
     if (this->has_msc())
     {
         ScopedProfiling profile_this{label() + "-limit-msc-step"};

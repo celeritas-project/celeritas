@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "BoundaryAction.hh"
 
-#include "corecel/sys/ScopedProfiling.hh"
-
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -27,7 +25,6 @@ namespace detail
 void BoundaryAction::execute(CoreParams const& params,
                              CoreStateDevice& state) const
 {
-    ScopedProfiling profile_this{label()};
     auto execute = make_action_track_executor(params.ptr<MemSpace::native>(),
                                               state.ptr(),
                                               this->action_id(),

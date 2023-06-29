@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepNeutralAction.hh"
 
-#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -25,7 +24,6 @@ namespace celeritas
 void AlongStepNeutralAction::execute(CoreParams const& params,
                                      CoreStateDevice& state) const
 {
-    ScopedProfiling profile_this{label()};
     auto execute = make_along_step_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),

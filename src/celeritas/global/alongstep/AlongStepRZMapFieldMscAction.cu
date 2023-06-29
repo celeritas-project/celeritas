@@ -29,7 +29,6 @@ namespace celeritas
 void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                                            CoreStateDevice& state) const
 {
-    ScopedProfiling profile_this{label()};
     {
         ScopedProfiling profile_this{label() + "-limit-msc-step"};
         detail::launch_limit_msc_step(

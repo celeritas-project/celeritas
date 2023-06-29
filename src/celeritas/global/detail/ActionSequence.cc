@@ -96,6 +96,7 @@ void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
         // Execute all actions and record the time elapsed
         for (auto i : range(actions_.size()))
         {
+            ScopedProfiling profile_this{actions_[i]->label()};
             Stopwatch get_time;
             actions_[i]->execute(params, state);
             if (M == MemSpace::device)
@@ -110,6 +111,7 @@ void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
         // Just loop over the actions
         for (SPConstExplicit const& sp_action : actions_)
         {
+            ScopedProfiling profile_this{sp_action->label()};
             sp_action->execute(params, state);
         }
     }

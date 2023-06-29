@@ -8,7 +8,6 @@
 #include "StepGatherAction.hh"
 
 #include "corecel/Macros.hh"
-#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -29,7 +28,6 @@ template<StepPoint P>
 void StepGatherAction<P>::execute(CoreParams const& params,
                                   CoreStateDevice& state) const
 {
-    ScopedProfiling profile_this{label()};
     auto& step_state = storage_->obj.state<MemSpace::native>(state.stream_id(),
                                                              state.size());
     auto execute = TrackExecutor{
