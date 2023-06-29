@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 
 class G4VExceptionHandler;
 
@@ -33,12 +34,7 @@ class ScopedGeantExceptionHandler
     ~ScopedGeantExceptionHandler();
     //!@{
     //! no move; no copying
-    ScopedGeantExceptionHandler(ScopedGeantExceptionHandler const&) = delete;
-    ScopedGeantExceptionHandler& operator=(ScopedGeantExceptionHandler const&)
-        = delete;
-    ScopedGeantExceptionHandler(ScopedGeantExceptionHandler&&) = delete;
-    ScopedGeantExceptionHandler& operator=(ScopedGeantExceptionHandler&&)
-        = delete;
+    CELER_DELETE_COPY_MOVE(ScopedGeantExceptionHandler)
     //!@}
 
   private:

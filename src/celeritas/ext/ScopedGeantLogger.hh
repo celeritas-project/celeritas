@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 
 class G4coutDestination;
 
@@ -33,10 +34,7 @@ class ScopedGeantLogger
     ~ScopedGeantLogger();
     //!@{
     //! no move; no copying
-    ScopedGeantLogger(ScopedGeantLogger const&) = delete;
-    ScopedGeantLogger& operator=(ScopedGeantLogger const&) = delete;
-    ScopedGeantLogger(ScopedGeantLogger&&) = delete;
-    ScopedGeantLogger& operator=(ScopedGeantLogger&&) = delete;
+    CELER_DELETE_COPY_MOVE(ScopedGeantLogger)
     //!@}
 
   private:

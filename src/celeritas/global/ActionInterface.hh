@@ -8,7 +8,6 @@
 #pragma once
 
 #include <string>
-#include <corecel/Interface.hh>
 
 #include "celeritas/Types.hh"  // IWYU pragma: export
 #include "celeritas/global/CoreTrackDataFwd.hh"  // IWYU pragma: export
@@ -45,7 +44,7 @@ class CoreState;
  *
  * The description should be a verb phrase (lowercase start).
  */
-class ActionInterface : public Interface
+class ActionInterface
 {
   public:
     //@{
@@ -66,6 +65,10 @@ class ActionInterface : public Interface
 
     //! Description of the action
     virtual std::string description() const = 0;
+
+  protected:
+    ActionInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(ActionInterface)
 };
 
 //---------------------------------------------------------------------------//

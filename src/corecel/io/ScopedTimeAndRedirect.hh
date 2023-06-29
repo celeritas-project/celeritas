@@ -10,6 +10,8 @@
 #include <memory>
 #include <string>
 
+#include "corecel/Macros.hh"
+
 #include "ScopedStreamRedirect.hh"
 #include "ScopedTimeLog.hh"
 
@@ -40,10 +42,7 @@ class ScopedTimeAndRedirect
 
     //!@{
     //! Prevent moving and copying
-    ScopedTimeAndRedirect(ScopedTimeAndRedirect const&) = delete;
-    ScopedTimeAndRedirect& operator=(ScopedTimeAndRedirect const&) = delete;
-    ScopedTimeAndRedirect(ScopedTimeAndRedirect&&) = delete;
-    ScopedTimeAndRedirect& operator=(ScopedTimeAndRedirect&&) = delete;
+    CELER_DELETE_COPY_MOVE(ScopedTimeAndRedirect)
     //!@}
 
   private:

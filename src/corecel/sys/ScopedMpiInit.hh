@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -39,10 +41,7 @@ class ScopedMpiInit
 
     //!@{
     //! Prevent moving and copying
-    ScopedMpiInit(ScopedMpiInit const&) = delete;
-    ScopedMpiInit& operator=(ScopedMpiInit const&) = delete;
-    ScopedMpiInit(ScopedMpiInit&&) = delete;
-    ScopedMpiInit& operator=(ScopedMpiInit&&) = delete;
+    CELER_DELETE_COPY_MOVE(ScopedMpiInit)
     //!@}
 
   private:

@@ -11,7 +11,6 @@
 #include <functional>
 #include <memory>
 #include <G4ThreeVector.hh>
-#include <corecel/Interface.hh>
 
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
@@ -74,7 +73,7 @@ struct AlongStepFactoryInput
  * Celeritas provides a few "default" configurations of along-step actions in
  * `celeritas/global/alongstep`.
  */
-class AlongStepFactoryInterface : public Interface
+class AlongStepFactoryInterface
 {
   public:
     //!@{
@@ -88,6 +87,10 @@ class AlongStepFactoryInterface : public Interface
 
     // Emit an along-step action
     virtual result_type operator()(argument_type input) const = 0;
+
+  protected:
+    AlongStepFactoryInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(AlongStepFactoryInterface)
 };
 
 //---------------------------------------------------------------------------//
@@ -97,7 +100,7 @@ class AlongStepFactoryInterface : public Interface
  * The constructor is a lazily evaluated function that must return the field
  * vector in native Geant4 units.  If unspecified, the field is zero.
  */
-class UniformAlongStepFactory : public AlongStepFactoryInterface
+class UniformAlongStepFactory final : public AlongStepFactoryInterface
 {
   public:
     //!@{
@@ -108,14 +111,6 @@ class UniformAlongStepFactory : public AlongStepFactoryInterface
   public:
     //! Construct with no field (linear propagation)
     UniformAlongStepFactory() = default;
-
-    //!@{
-    //! Intent to use with \c std::function --> requires CopyConstructible
-    UniformAlongStepFactory(UniformAlongStepFactory const&);
-    UniformAlongStepFactory& operator=(UniformAlongStepFactory const&);
-    UniformAlongStepFactory(UniformAlongStepFactory&&) = default;
-    UniformAlongStepFactory& operator=(UniformAlongStepFactory&&) = default;
-    //!@}
 
     // Construct with a function to return the field strength
     explicit UniformAlongStepFactory(FieldFunction f);
@@ -132,7 +127,7 @@ class UniformAlongStepFactory : public AlongStepFactoryInterface
  * Create an along-step method for a two-dimensional (r-z in the cylindical
  * coordinate system) map field (RZMapField).
  */
-class RZMapFieldAlongStepFactory : public AlongStepFactoryInterface
+class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
 {
   public:
     //!@{
@@ -143,15 +138,6 @@ class RZMapFieldAlongStepFactory : public AlongStepFactoryInterface
   public:
     // Construct with a function to return RZMapFieldInput
     explicit RZMapFieldAlongStepFactory(RZMapFieldFunction f);
-
-    //!@{
-    //! Intent to use with \c std::function --> requires CopyConstructible
-    RZMapFieldAlongStepFactory(RZMapFieldAlongStepFactory const&);
-    RZMapFieldAlongStepFactory& operator=(RZMapFieldAlongStepFactory const&);
-    RZMapFieldAlongStepFactory(RZMapFieldAlongStepFactory&&) = default;
-    RZMapFieldAlongStepFactory& operator=(RZMapFieldAlongStepFactory&&)
-        = default;
-    //!@}
 
     // Emit an along-step action
     result_type operator()(argument_type input) const final;

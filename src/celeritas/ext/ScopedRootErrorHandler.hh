@@ -8,6 +8,7 @@
 #pragma once
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {
@@ -32,10 +33,7 @@ class ScopedRootErrorHandler
     ~ScopedRootErrorHandler();
     //!@{
     //! no move; no copying
-    ScopedRootErrorHandler(ScopedRootErrorHandler const&) = delete;
-    ScopedRootErrorHandler& operator=(ScopedRootErrorHandler const&) = delete;
-    ScopedRootErrorHandler(ScopedRootErrorHandler&&) = delete;
-    ScopedRootErrorHandler& operator=(ScopedRootErrorHandler&&) = delete;
+    CELER_DELETE_COPY_MOVE(ScopedRootErrorHandler)
     //!@}
 
   private:

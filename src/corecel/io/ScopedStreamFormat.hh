@@ -9,6 +9,8 @@
 
 #include <ios>
 
+#include "corecel/Macros.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -34,10 +36,7 @@ class ScopedStreamFormat
 
     //!@{
     //! Prevent moving and copying
-    ScopedStreamFormat(ScopedStreamFormat const&) = delete;
-    ScopedStreamFormat& operator=(ScopedStreamFormat const&) = delete;
-    ScopedStreamFormat(ScopedStreamFormat&&) = delete;
-    ScopedStreamFormat& operator=(ScopedStreamFormat&&) = delete;
+    CELER_DELETE_COPY_MOVE(ScopedStreamFormat)
     //!@}
 
   private:

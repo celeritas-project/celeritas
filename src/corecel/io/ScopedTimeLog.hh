@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/sys/Stopwatch.hh"
 
 #include "ColorUtils.hh"
@@ -49,10 +50,7 @@ class ScopedTimeLog
 
     //!@{
     //! Prevent moving and copying
-    ScopedTimeLog(ScopedTimeLog const&) = delete;
-    ScopedTimeLog& operator=(ScopedTimeLog const&) = delete;
-    ScopedTimeLog(ScopedTimeLog&&) = delete;
-    ScopedTimeLog& operator=(ScopedTimeLog&&) = delete;
+    CELER_DELETE_COPY_MOVE(ScopedTimeLog)
     //!@}
 
   private:

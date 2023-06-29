@@ -11,6 +11,8 @@
 #include <sstream>
 #include <string>
 
+#include "corecel/Macros.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -44,10 +46,7 @@ class ScopedStreamRedirect
 
     //!@{
     //! Prevent moving and copying
-    ScopedStreamRedirect(ScopedStreamRedirect const&) = delete;
-    ScopedStreamRedirect& operator=(ScopedStreamRedirect const&) = delete;
-    ScopedStreamRedirect(ScopedStreamRedirect&&) = delete;
-    ScopedStreamRedirect& operator=(ScopedStreamRedirect&&) = delete;
+    CELER_DELETE_COPY_MOVE(ScopedStreamRedirect)
     //!@}
 
     // Get redirected output, with trailing whitespaces removed

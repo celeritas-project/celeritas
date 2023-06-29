@@ -10,7 +10,6 @@
 #include <memory>
 #include <string>  // IWYU pragma: export
 #include <vector>
-#include <corecel/Interface.hh>
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
@@ -42,7 +41,7 @@ class ValueGridBuilder;
  * - energy_loss: dE/dx [MeV/cm]
  * - range:       Range limit [cm]
  */
-class Process : public Interface
+class Process
 {
   public:
     //!@{
@@ -69,6 +68,10 @@ class Process : public Interface
 
     //! Name of the process
     virtual std::string label() const = 0;
+
+  protected:
+    Process() = default;
+    CELER_DEFAULT_COPY_MOVE(Process)
 };
 
 //---------------------------------------------------------------------------//
