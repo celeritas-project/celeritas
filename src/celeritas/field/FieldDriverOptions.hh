@@ -33,13 +33,13 @@ struct FieldDriverOptions
     //! Accuracy of intersection of the boundary crossing
     real_type delta_intersection = 1.0e-4 * units::millimeter;
 
-    //! Relative error scale on the step length
+    //! Discretization error tolerance for each field substep
     real_type epsilon_step = 1.0e-5;
 
-    //! Maximum of the error ratio
+    //! Targeted discretization error for "integrate step"
     real_type epsilon_rel_max = 1.0e-3;
 
-    //! Truncation error tolerance
+    //! Targeted discretization error for "one good step"
     real_type errcon = 1.0e-4;
 
     //! Exponent to increase a step size
@@ -51,10 +51,10 @@ struct FieldDriverOptions
     //! Scale factor for the predicted step size
     real_type safety = 0.9;
 
-    //! Maximum scale to increase a step size
+    //! Largrest allowable relative increase a step size
     real_type max_stepping_increase = 5;
 
-    //! Maximum scale factor to decrease a step size
+    //! Smallest allowable relative decrease in step size
     real_type max_stepping_decrease = 0.1;
 
     //! Maximum number of steps (or trials)
