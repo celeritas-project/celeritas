@@ -43,7 +43,8 @@ struct ImportEmParameters
     double msc_lambda_limit{0.1};
     //! Kill secondaries below production cut
     bool apply_cuts{false};
-    //! TODO
+    //! Parameter used by the Coulomb scattering process for calculating
+    //! nuclear form factors (screening effect)
     double screening_factor{1};
 
     //! Whether parameters are assigned and valid
