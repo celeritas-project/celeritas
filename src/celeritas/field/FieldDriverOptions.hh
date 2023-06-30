@@ -67,6 +67,9 @@ struct FieldDriverOptions
     //! Chord distance fudge factor
     static constexpr inline real_type dchord_tol = 1e-5 * units::millimeter;
 
+    //! Lowest allowable scaling factor when searching for a chord
+    static constexpr inline real_type min_chord_shrink = 0.5;
+
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {

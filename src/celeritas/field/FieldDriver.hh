@@ -197,11 +197,12 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
         real_type dchord = detail::distance_chord(
             state, result.mid_state, result.end_state);
 
-        // TODO: drop dchord_tol?
         if (dchord > options_.delta_chord + options_.dchord_tol)
         {
             // Estimate a new trial chord with a relative scale
-            step *= max(std::sqrt(options_.delta_chord / dchord), half());
+            real_type scale_step = max(std::sqrt(options_.delta_chord / dchord),
+                                       options_.min_chord_shrink);
+            step *= scale_step;
         }
         else
         {
@@ -353,9 +354,11 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
         if (err_eps_sq > 1)
         {
             // Step failed; compute the size of re-trial step.
-            step *= max(options_.safety
-                            * fastpow(err_eps_sq, half() * options_.pshrink),
-                        options_.max_stepping_decrease);
+            real_type scale_step
+                = max(options_.safety
+                          * fastpow(err_eps_sq, half() * options_.pshrink),
+                      options_.max_stepping_decrease);
+            step *= scale_step;
         }
         else
         {

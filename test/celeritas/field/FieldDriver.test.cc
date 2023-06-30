@@ -132,6 +132,28 @@ TEST_F(FieldDriverTest, types)
               sizeof(driver));
 }
 
+TEST_F(FieldDriverTest, one_step_count)
+{
+    FieldDriverOptions driver_options;
+    driver_options.max_nsteps = 32;
+
+    real_type field_strength = 1.0 * units::tesla;
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        UniformField({0, 0, field_strength}), units::ElementaryCharge{-1});
+    FieldDriver<decltype(stepper)&> driver{driver_options, stepper};
+
+    MevEnergy e{1e-7};
+    real_type radius = this->calc_curvature(e, field_strength);
+
+    OdeState state;
+    state.pos = {radius, 0, 0};
+    state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
+
+    auto result = driver.advance(0.8 * units::centimeter, state);
+    EXPECT_EQ(54, stepper.count());
+    EXPECT_SOFT_EQ(0.0036132419872272675, result.step);
+}
+
 TEST_F(FieldDriverTest, step_counts)
 {
     FieldDriverOptions driver_options;
