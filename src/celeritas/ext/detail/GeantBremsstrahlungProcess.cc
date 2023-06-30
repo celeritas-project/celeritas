@@ -51,12 +51,6 @@ GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(ModelSelection selection)
 
 //---------------------------------------------------------------------------//
 /*!
- * Empty destructor.
- */
-GeantBremsstrahlungProcess::~GeantBremsstrahlungProcess() = default;
-
-//---------------------------------------------------------------------------//
-/*!
  * Define applicability based on particle definition.
  */
 bool GeantBremsstrahlungProcess::IsApplicable(

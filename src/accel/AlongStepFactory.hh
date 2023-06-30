@@ -87,6 +87,10 @@ class AlongStepFactoryInterface
 
     // Emit an along-step action
     virtual result_type operator()(argument_type input) const = 0;
+
+  protected:
+    AlongStepFactoryInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(AlongStepFactoryInterface)
 };
 
 //---------------------------------------------------------------------------//
@@ -96,7 +100,7 @@ class AlongStepFactoryInterface
  * The constructor is a lazily evaluated function that must return the field
  * vector in native Geant4 units.  If unspecified, the field is zero.
  */
-class UniformAlongStepFactory : public AlongStepFactoryInterface
+class UniformAlongStepFactory final : public AlongStepFactoryInterface
 {
   public:
     //!@{
@@ -123,7 +127,7 @@ class UniformAlongStepFactory : public AlongStepFactoryInterface
  * Create an along-step method for a two-dimensional (r-z in the cylindical
  * coordinate system) map field (RZMapField).
  */
-class RZMapFieldAlongStepFactory : public AlongStepFactoryInterface
+class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
 {
   public:
     //!@{

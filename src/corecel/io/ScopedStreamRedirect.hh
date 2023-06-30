@@ -11,6 +11,8 @@
 #include <sstream>
 #include <string>
 
+#include "corecel/Macros.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -41,6 +43,11 @@ class ScopedStreamRedirect
 
     // Restore stream on destruction
     ~ScopedStreamRedirect();
+
+    //!@{
+    //! Prevent copying and moving for RAII class
+    CELER_DELETE_COPY_MOVE(ScopedStreamRedirect)
+    //!@}
 
     // Get redirected output, with trailing whitespaces removed
     std::string str();
