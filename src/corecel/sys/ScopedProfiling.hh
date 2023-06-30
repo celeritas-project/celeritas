@@ -11,6 +11,7 @@
 #include <string>
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {
@@ -53,16 +54,19 @@ class ScopedProfiling
   public:
     // Whether profiling is enabled
     static bool enable_profiling();
+
     // Activate profiling with options
     explicit ScopedProfiling(Input input);
     // Activate profiling
     explicit ScopedProfiling(std::string const& name);
+
     // Deactivate profiling
     ~ScopedProfiling();
-    // Can't outlive the scope it was created in to correctly match each push /
-    // pop. Must strictly follows RAII semantics (automatic storage duration)
-    ScopedProfiling(ScopedProfiling const&) = delete;
-    ScopedProfiling& operator=(ScopedProfiling const&) = delete;
+
+    //!@{
+    //! Prevent copying and moving for RAII class
+    CELER_DELETE_COPY_MOVE(ScopedProfiling)
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

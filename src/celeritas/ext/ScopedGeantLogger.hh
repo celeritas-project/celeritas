@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 
 class G4coutDestination;
 
@@ -31,6 +32,10 @@ class ScopedGeantLogger
 
     // Clear on destruction
     ~ScopedGeantLogger();
+    //!@{
+    //! Prevent copying and moving for RAII class
+    CELER_DELETE_COPY_MOVE(ScopedGeantLogger)
+    //!@}
 
   private:
 #if CELERITAS_USE_GEANT4

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {
@@ -30,6 +31,10 @@ class ScopedRootErrorHandler
 
     // Return to the previous error handler.
     ~ScopedRootErrorHandler();
+    //!@{
+    //! Prevent copying and moving for RAII class
+    CELER_DELETE_COPY_MOVE(ScopedRootErrorHandler)
+    //!@}
 
   private:
     using ErrorHandlerFuncPtr = void (*)(int, bool, char const*, char const*);
