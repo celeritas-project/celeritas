@@ -221,6 +221,7 @@ celeritas_add_test(orange/Orange.test.cc)
 celeritas_add_test(orange/Translator.test.cc)
 
 # Base detail
+celeritas_add_test(orange/detail/BIHMaker.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 
 #-------------------------------------#

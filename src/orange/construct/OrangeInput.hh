@@ -59,7 +59,7 @@ struct VolumeInput
     std::vector<LocalSurfaceId> faces{};
     //! RPN region definition for this volume, using local surface index
     std::vector<logic_int> logic{};
-    //! Axis-aligned bounding box (TODO: currently unused)
+    //! Axis-aligned bounding box
     BoundingBox bbox{};
 
     //! Special flags

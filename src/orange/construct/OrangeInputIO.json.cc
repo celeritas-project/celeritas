@@ -154,7 +154,8 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     // Parse bbox
     if (j.contains("bbox"))
     {
-        j.at("bbox").get_to(value.bbox);
+        auto const& bbox = j.at("bbox");
+        value.bbox = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
     }
 
     // Read scalars, including optional flags

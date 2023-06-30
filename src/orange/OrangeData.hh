@@ -15,6 +15,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#include "BoundingBox.hh"
 #include "OrangeTypes.hh"
 #include "univ/detail/Types.hh"
 
@@ -61,6 +62,8 @@ struct VolumeRecord
     logic_int max_intersections{0};
     logic_int flags{0};
     DaughterId daughter_id;
+    BoundingBox bbox;
+
     // TODO (KENO geometry): zorder
 
     //! Flag values (bit field)
@@ -148,6 +151,41 @@ struct RaggedRightIndexerData
 
 //---------------------------------------------------------------------------//
 /*!
+ * Data for a single Bounding Inverval Hierarchy node
+ *
+ * Leaf nodes must contain exactly one bounding box
+ */
+struct BIHNode
+{
+    enum Edge : size_type
+    {
+        left = 0,
+        right = 1
+    };
+
+    // inner node only
+    Array<BIHNodeId, 2> children;
+    Array<float, 2> partitions;
+
+    // leaf only
+    ItemRange<LocalVolumeId> vol_ids;
+
+    CELER_FUNCTION bool is_inner() const
+    {
+        return this->children[Edge::left] && this->children[Edge::right];
+    }
+
+    CELER_FUNCTION bool is_leaf() const { return !vol_ids.empty(); }
+
+    //! True if either a valid inner or leaf node
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return this->is_inner() ^ this->is_leaf();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Scalar data for a single "unit" of volumes defined by surfaces.
  */
 struct SimpleUnitRecord
@@ -161,8 +199,10 @@ struct SimpleUnitRecord
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
+    // Bounding Interval Hierachy nodes, the first being the root
+    ItemRange<BIHNode> bih_nodes;
+
     // TODO: transforms
-    // TODO: acceleration structure (bvh/kdtree/grid)
     LocalVolumeId background{};  //!< Default if not in any other volume
     bool simple_safety{};
 
@@ -273,6 +313,7 @@ struct OrangeParamsData
     Items<SurfaceType> surface_types;
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
+    Items<BIHNode> bih_nodes;
 
     Items<Daughter> daughters;
     Items<Translation> translations;

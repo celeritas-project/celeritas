@@ -668,7 +668,7 @@ TEST_F(FieldLayersTest, initialize)
     }
     {
         auto init = tracker.initialize(this->make_state({0, -3, 0}, {0, 0, 1}));
-        EXPECT_EQ("world", this->id_to_label(init.volume));
+        EXPECT_EQ("world.bg", this->id_to_label(init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
@@ -691,7 +691,7 @@ TEST_F(FieldLayersTest, cross_boundary)
         {
             // From background to volume
             auto init = tracker.cross_boundary(this->make_state_crossing(
-                {0, -1.5 + eps, 0}, {0, -1, 0}, "world", "layerbox1.py", '+'));
+                {0, -1.5 + eps, 0}, {0, -1, 0}, "world.bg", "layerbox1.py", '+'));
             EXPECT_EQ("layer1", this->id_to_label(init.volume));
             EXPECT_EQ("layerbox1.py", this->id_to_label(init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
@@ -700,7 +700,7 @@ TEST_F(FieldLayersTest, cross_boundary)
             // From volume to background
             auto init = tracker.cross_boundary(this->make_state_crossing(
                 {0, -2.5 - eps, 0}, {0, -1, 0}, "layer1", "layerbox1.my", '+'));
-            EXPECT_EQ("world", this->id_to_label(init.volume));
+            EXPECT_EQ("world.bg", this->id_to_label(init.volume));
             EXPECT_EQ("layerbox1.my", this->id_to_label(init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
         }
@@ -713,7 +713,7 @@ TEST_F(FieldLayersTest, intersect)
 
     {
         SCOPED_TRACE("straightforward");
-        auto state = this->make_state({0, -1, 0}, {0, 1, 0}, "world");
+        auto state = this->make_state({0, -1, 0}, {0, 1, 0}, "world.bg");
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
         EXPECT_EQ("layerbox2.my", this->id_to_label(isect.surface.id()));
@@ -722,7 +722,7 @@ TEST_F(FieldLayersTest, intersect)
     }
     {
         SCOPED_TRACE("crossing internal planes");
-        auto state = this->make_state({9.6, 4, 9.7}, {-1, -1, -1}, "world");
+        auto state = this->make_state({9.6, 4, 9.7}, {-1, -1, -1}, "world.bg");
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
         EXPECT_EQ("layerbox3.py", this->id_to_label(isect.surface.id()));

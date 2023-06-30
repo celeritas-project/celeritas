@@ -25,6 +25,8 @@
 #include "orange/surf/Surfaces.hh"
 #include "orange/surf/detail/SurfaceAction.hh"
 
+#include "BIHMaker.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -159,10 +161,13 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
+    std::vector<BoundingBox> bboxes;
     for (auto i : range(inp.volumes.size()))
     {
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
+
+        bboxes.push_back(inp.volumes[i].bbox);
 
         // Add embedded universes
         if (inp.daughter_map.find(LocalVolumeId(i)) != inp.daughter_map.end())
@@ -186,6 +191,13 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::VolumeRecordId>(
         make_builder(&orange_data_->volume_records)
             .insert_back(vol_records.begin(), vol_records.end()));
+
+    // Create BIH tree
+    detail::BIHMaker bih_maker(std::move(bboxes),
+                               &orange_data_->local_volume_ids);
+    auto nodes = bih_maker();
+    unit.bih_nodes = make_builder(&orange_data_->bih_nodes)
+                         .insert_back(nodes.begin(), nodes.end());
 
     // Save connectivity
     {
@@ -326,6 +338,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                        .insert_back(v.faces.begin(), v.faces.end());
     output.logic = make_builder(&orange_data_->logic_ints)
                        .insert_back(input_logic.begin(), input_logic.end());
+    output.bbox = v.bbox;
     output.max_intersections = max_intersections;
     output.flags = v.flags;
     if (simple_safety)
