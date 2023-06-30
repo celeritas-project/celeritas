@@ -8,15 +8,20 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/ArrayIO.hh"
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 
 #include "FieldDriverOptions.hh"
 #include "Types.hh"
 #include "detail/FieldUtils.hh"
+using std::cout;
+using std::endl;
 
 namespace celeritas
 {
@@ -141,12 +146,18 @@ template<class StepperT>
 CELER_FUNCTION DriverResult
 FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
 {
+    cout << color_code('b') << "Step up to " << step << color_code(' ')
+         << " from " << state.pos << endl;
+
     if (step <= options_.minimum_step)
     {
+        cout << " - quick advance" << endl;
+
         // If the input is a very tiny step, do a "quick advance".
         DriverResult result;
         result.state = apply_step_(step, state).end_state;
         result.step = step;
+        cout << color_code('g') << "==> distance " << result.step << endl;
         return result;
     }
 
@@ -165,6 +176,8 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
+    cout << color_code('g') << "==> substep " << output.end.step
+         << color_code(' ') << endl;
     CELER_ENSURE(output.end.step > 0 && output.end.step <= step);
     return output.end;
 }
@@ -183,6 +196,8 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
     // Output with a step control error
     ChordSearch output;
 
+    cout << " - find next chord" << endl;
+
     bool succeeded = false;
     auto remaining_steps = options_.max_nsteps;
     FieldStepperResult result;
@@ -197,18 +212,29 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
         real_type dchord = detail::distance_chord(
             state, result.mid_state, result.end_state);
 
+        cout << "  + step " << step << " -> dchord " << dchord;
+
         if (dchord > options_.delta_chord + options_.dchord_tol)
         {
             // Estimate a new trial chord with a relative scale
             real_type scale_step = max(std::sqrt(options_.delta_chord / dchord),
                                        options_.min_chord_shrink);
             step *= scale_step;
+            cout << " -> scale by 1 - " << (1 - scale_step);
         }
         else
         {
+            // Close enough to the desired chord tolerance
+            cout << " -> " << color_code('g') << "converged" << color_code(' ');
             succeeded = true;
         }
+        cout << endl;
     } while (!succeeded && --remaining_steps > 0);
+    if (remaining_steps == 0)
+    {
+        cout << "  + " << color_code('y') << "failed to converge"
+             << color_code(' ') << endl;
+    }
 
     // Update step, position and momentum
     output.end.step = step;
@@ -231,6 +257,9 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
     real_type step, OdeState const& state, real_type hinitial) const
 {
     CELER_ASSERT(step > 0);
+
+    cout << " - accurate advance to " << step << " with initial step "
+         << hinitial << endl;
 
     // Set an initial proposed step and evaluate the minimum threshold
     real_type end_curve_length = step;
@@ -257,12 +286,19 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
     do
     {
         CELER_ASSERT(h > 0);
+        cout << "  + integrating substep " << h << " from "
+             << output.end.state.pos << endl;
+
         output = this->integrate_step(h, output.end.state);
 
         curve_length += output.end.step;
 
+        cout << "  + integrated substep " << h << " -> " << output.end.step
+             << ", proposed step " << output.proposed_step;
+
         if (h < h_threshold || curve_length >= end_curve_length)
         {
+            cout << " -> " << color_code('g') << "complete" << color_code(' ');
             succeeded = true;
         }
         else
@@ -270,8 +306,16 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
             h = celeritas::min(
                 celeritas::max(output.proposed_step, options_.minimum_step),
                 end_curve_length - curve_length);
+            cout << "\n    " << color_code('x') << remaining_steps
+                 << " remaining" << color_code(' ');
         }
+        cout << endl;
     } while (!succeeded && --remaining_steps > 0);
+    if (remaining_steps == 0)
+    {
+        cout << "  + " << color_code('y') << "failed to converge"
+             << color_code(' ') << endl;
+    }
 
     // Curve length may be slightly longer than step due to roundoff in
     // accumulation
@@ -304,6 +348,8 @@ FieldDriver<StepperT>::integrate_step(real_type step,
     }
     else
     {
+        cout << "   * quick advance\n";
+
         // Do an integration step for a small step (a.k.a quick advance)
         FieldStepperResult result = apply_step_(step, state);
 
@@ -335,6 +381,8 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
     -> Integration
 {
     CELER_EXPECT(step >= options_.minimum_step);
+    cout << "   * one good step\n";
+
     // Output with a proposed next step
     Integration output;
 
@@ -351,6 +399,8 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
         err_eps_sq = detail::rel_err_sq(result.err_state, step, state.mom)
                      / ipow<2>(options_.epsilon_rel_max);
 
+        cout << "    # apply step " << step
+             << " -> err/eps=" << std::sqrt(err_eps_sq);
         if (err_eps_sq > 1)
         {
             // Step failed; compute the size of re-trial step.
@@ -359,13 +409,21 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
                           * fastpow(err_eps_sq, half() * options_.pshrink),
                       options_.max_stepping_decrease);
             step *= scale_step;
+            cout << " -> scale by " << scale_step;
         }
         else
         {
             // Success or possibly nan!
+            cout << " -> " << color_code('g') << "converged" << color_code(' ');
             succeeded = true;
         }
+        cout << endl;
     } while (!succeeded && --remaining_steps > 0);
+    if (remaining_steps == 0)
+    {
+        cout << "    # " << color_code('y') << "failed to converge"
+             << color_code(' ') << endl;
+    }
 
     // Update state, step taken by this trial and the next predicted step
     output.end.state = result.end_state;
