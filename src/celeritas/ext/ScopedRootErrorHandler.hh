@@ -32,7 +32,7 @@ class ScopedRootErrorHandler
     // Return to the previous error handler.
     ~ScopedRootErrorHandler();
     //!@{
-    //! no move; no copying
+    //! Prevent copying and moving for RAII class
     CELER_DELETE_COPY_MOVE(ScopedRootErrorHandler)
     //!@}
 

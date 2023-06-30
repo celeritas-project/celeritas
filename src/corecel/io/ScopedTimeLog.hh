@@ -49,7 +49,7 @@ class ScopedTimeLog
     inline ~ScopedTimeLog();
 
     //!@{
-    //! Prevent moving and copying
+    //! Prevent copying and moving for RAII class
     CELER_DELETE_COPY_MOVE(ScopedTimeLog)
     //!@}
 

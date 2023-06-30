@@ -41,7 +41,7 @@ class ScopedTimeAndRedirect
     ~ScopedTimeAndRedirect();
 
     //!@{
-    //! Prevent moving and copying
+    //! Prevent copying and moving for RAII class
     CELER_DELETE_COPY_MOVE(ScopedTimeAndRedirect)
     //!@}
 

@@ -40,10 +40,10 @@ class LoggerMessage
     ~LoggerMessage();
 
     //!@{
-    //! Prevent copying and allow moving
+    //! Prevent copying but allow moving
     LoggerMessage(LoggerMessage const&) = delete;
-    LoggerMessage(LoggerMessage&&) = default;
     LoggerMessage& operator=(LoggerMessage const&) = delete;
+    LoggerMessage(LoggerMessage&&) = default;
     LoggerMessage& operator=(LoggerMessage&&) = default;
     //!@}
 

@@ -54,14 +54,17 @@ class ScopedProfiling
   public:
     // Whether profiling is enabled
     static bool enable_profiling();
+
     // Activate profiling with options
     explicit ScopedProfiling(Input input);
     // Activate profiling
     explicit ScopedProfiling(std::string const& name);
+
     // Deactivate profiling
     ~ScopedProfiling();
+
     //!@{
-    //! Prevent moving and copying
+    //! Prevent copying and moving for RAII class
     CELER_DELETE_COPY_MOVE(ScopedProfiling)
     //!@}
 };

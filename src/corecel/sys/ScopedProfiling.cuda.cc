@@ -34,6 +34,7 @@ namespace
 //---------------------------------------------------------------------------//
 /*!
  * Global registry for strings used by NVTX.
+ *
  * This is implemented as a free function instead of a class static member in
  * ScopedProfiling to hide the NVTX dependency from users of the
  * interface.
@@ -101,8 +102,17 @@ nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
     attributes.category = input.category;
     return attributes;
 }
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
+//---------------------------------------------------------------------------//
+/*!
+ * Whether profiling is enabled.
+ *
+ * This is true only if the \c CELER_ENABLE_PROFILING environment variable is
+ * set to a non-empty value.
+ */
 bool ScopedProfiling::enable_profiling()
 {
     static bool const result = [] {

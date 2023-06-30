@@ -60,8 +60,8 @@ class StepCollector
     // Default destructor and move and copy
     ~StepCollector();
     StepCollector(StepCollector const&);
-    StepCollector(StepCollector&&);
     StepCollector& operator=(StepCollector const&);
+    StepCollector(StepCollector&&);
     StepCollector& operator=(StepCollector&&);
 
     // See which data are being gathered

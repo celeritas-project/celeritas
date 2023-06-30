@@ -33,7 +33,7 @@ class ScopedGeantExceptionHandler
     // Clear on destruction
     ~ScopedGeantExceptionHandler();
     //!@{
-    //! no move; no copying
+    //! Prevent copying and moving for RAII class
     CELER_DELETE_COPY_MOVE(ScopedGeantExceptionHandler)
     //!@}
 

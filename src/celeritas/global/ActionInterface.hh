@@ -67,8 +67,11 @@ class ActionInterface
     virtual std::string description() const = 0;
 
   protected:
+    //!@{
+    //! Allow construction and assignment only through daughter classes
     ActionInterface() = default;
     CELER_DEFAULT_COPY_MOVE(ActionInterface)
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

@@ -206,6 +206,7 @@ tell what variables are in use or may be useful.
  CELER_DEBUG_DEVICE      corecel   Increase device error checking and output
  CELER_DISABLE_DEVICE    corecel   Disable CUDA/HIP support
  CELER_DISABLE_PARALLEL  corecel   Disable MPI support
+ CELER_ENABLE_PROFILING  corecel   Set up NVTX profiling ranges
  CELER_LOG               corecel   Set the "global" logger verbosity
  CELER_LOG_LOCAL         corecel   Set the "local" logger verbosity
  CELER_PROFILE_DEVICE    corecel   Record extra kernel launch information

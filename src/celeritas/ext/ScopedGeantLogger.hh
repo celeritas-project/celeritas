@@ -33,7 +33,7 @@ class ScopedGeantLogger
     // Clear on destruction
     ~ScopedGeantLogger();
     //!@{
-    //! no move; no copying
+    //! Prevent copying and moving for RAII class
     CELER_DELETE_COPY_MOVE(ScopedGeantLogger)
     //!@}
 
