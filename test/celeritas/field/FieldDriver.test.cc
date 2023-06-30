@@ -213,7 +213,7 @@ TEST_F(RevolutionFieldDriverTest, advance)
     real_type total_step_length{0};
 
     // Try the stepper by hstep for (num_revolutions * num_steps) times
-    real_type delta = driver_options.errcon;
+    real_type eps = 1.0e-4;
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {
         y_expected.pos
@@ -228,12 +228,12 @@ TEST_F(RevolutionFieldDriverTest, advance)
         }
 
         // Check the total error and the state (position, momentum)
-        EXPECT_VEC_NEAR(y_expected.pos, y.pos, delta);
+        EXPECT_VEC_NEAR(y_expected.pos, y.pos, eps);
     }
 
     // Check the total error, step/curve length
     EXPECT_SOFT_NEAR(
-        total_step_length, circumference * test_params.revolutions, delta);
+        total_step_length, circumference * test_params.revolutions, eps);
 }
 
 TEST_F(RevolutionFieldDriverTest, accurate_advance)
@@ -256,7 +256,7 @@ TEST_F(RevolutionFieldDriverTest, accurate_advance)
 
     // Try the stepper by hstep for (num_revolutions * num_steps) times
     real_type total_curved_length{0};
-    real_type delta = driver_options.errcon;
+    real_type eps = 1.0e-4;
 
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {
@@ -272,12 +272,12 @@ TEST_F(RevolutionFieldDriverTest, accurate_advance)
             y_accurate = end.state;
         }
         // Check the total error and the state (position, momentum)
-        EXPECT_VEC_NEAR(y_expected.pos, y.pos, delta);
+        EXPECT_VEC_NEAR(y_expected.pos, y.pos, eps);
     }
 
     // Check the total error, step/curve length
     EXPECT_LT(total_curved_length - circumference * test_params.revolutions,
-              delta);
+              eps);
 }
 
 //---------------------------------------------------------------------------//

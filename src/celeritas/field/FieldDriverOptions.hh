@@ -19,6 +19,7 @@ namespace celeritas
  *
  * TODO: replace epsilon_rel_max with 1/epsilon_rel_max^2
  * TODO: replace safety with step_shrink_mul (or something to indicate that
+ * TODO: deletee errcon
  * it's a multiplicative factor for reducing the step, not anything with
  * geometry)
  */
@@ -39,7 +40,7 @@ struct FieldDriverOptions
     //! Targeted discretization error for "integrate step"
     real_type epsilon_rel_max = 1.0e-3;
 
-    //! Targeted discretization error for "one good step"
+    //! UNUSED: Targeted discretization error for "one good step"
     real_type errcon = 1.0e-4;
 
     //! Exponent to increase a step size
@@ -75,7 +76,6 @@ struct FieldDriverOptions
 	       && (delta_intersection > minimum_step)
 	       && (epsilon_step > 0 && epsilon_step < 1)
 	       && (epsilon_rel_max > 0)
-	       && (errcon > 0)
 	       && (pgrow < 0)
 	       && (pshrink < 0)
 	       && (safety > 0 && safety < 1)
