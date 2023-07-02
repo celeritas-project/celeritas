@@ -9,6 +9,7 @@
 #include "celeritas/field/FieldDriver.hh"
 
 #include "corecel/Types.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
@@ -112,6 +113,30 @@ make_mag_field_driver(FieldT&& field,
                         ::celeritas::forward<FieldT>(field), charge)};
 }
 
+//! Z oriented field of 2**(y / scale)
+struct ExpZField
+{
+    real_type strength{1 * units::tesla};
+    real_type scale{1};
+
+    Real3 operator()(Real3 const& pos) const
+    {
+        return {0, 0, this->strength * std::exp2(pos[1] / scale)};
+    }
+};
+
+//! sin(1/z), scaled and with multiplicative constant
+struct HorribleZField
+{
+    real_type strength{1};
+    real_type scale{1};
+
+    Real3 operator()(Real3 const& pos) const
+    {
+        return {0, 0, this->strength * std::sin(this->scale / pos[2])};
+    }
+};
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -132,26 +157,78 @@ TEST_F(FieldDriverTest, types)
               sizeof(driver));
 }
 
-TEST_F(FieldDriverTest, one_step_count)
+// Field strength changes quickly with z, so different chord steps require
+// different substeps
+TEST_F(FieldDriverTest, unpleasant_field)
 {
+    constexpr auto cm = units::centimeter;
+
     FieldDriverOptions driver_options;
     driver_options.max_nsteps = 32;
 
     real_type field_strength = 1.0 * units::tesla;
-    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
-        UniformField({0, 0, field_strength}), units::ElementaryCharge{-1});
-    FieldDriver<decltype(stepper)&> driver{driver_options, stepper};
-
-    MevEnergy e{1e-7};
+    MevEnergy e{1.0};
     real_type radius = this->calc_curvature(e, field_strength);
+
+    // Vary by a factor of 1024 over the radius of curvature
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        ExpZField{field_strength, radius / 10}, units::ElementaryCharge{-1});
+    FieldDriver<decltype(stepper)&> driver{driver_options, stepper};
 
     OdeState state;
     state.pos = {radius, 0, 0};
     state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
 
-    auto result = driver.advance(0.8 * units::centimeter, state);
-    EXPECT_EQ(54, stepper.count());
-    EXPECT_SOFT_EQ(0.0036132419872272675, result.step);
+    real_type distance{0};
+    for (auto i : range(1, 6))
+    {
+        auto result = driver.advance(i * cm, state);
+        distance += result.step;
+        state = result.state;
+    }
+    EXPECT_EQ(30, stepper.count());
+    EXPECT_SOFT_EQ(7.2243970683861667, distance);
+}
+
+// As the track moves along +z near 0, the field strength oscillates horribly,
+// so the "one good step" convergence requires more than one iteration (which
+// doesn't happen for any of the other more well-behaved fields).
+TEST_F(FieldDriverTest, horrible_field)
+{
+    constexpr auto cm = units::centimeter;
+
+    FieldDriverOptions driver_options;
+    driver_options.max_nsteps = 32;
+
+    real_type field_strength = 1.0 * units::tesla;
+    MevEnergy e{1.0};
+    real_type radius = this->calc_curvature(e, field_strength);
+
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        HorribleZField{field_strength, radius / 10},
+        units::ElementaryCharge{-1});
+    FieldDriver<decltype(stepper)&> driver{driver_options, stepper};
+
+    OdeState state;
+    state.pos = {radius, 0, -radius / 5};
+    state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
+
+    real_type accum{0};
+    for (int i = 1; i < 5; ++i)
+    {
+        auto result = driver.advance(0.05 * cm, state);
+        accum += result.step;
+        state = result.state;
+    }
+    EXPECT_EQ(19, stepper.count());
+    EXPECT_SOFT_EQ(0.2, accum);
+    EXPECT_SOFT_NEAR(0,
+                     distance(Real3({0.48839126874570266,
+                                     0.14055631310339731,
+                                     0.046552225487429072}),
+                              state.pos),
+                     1e-10)
+        << state.pos;
 }
 
 TEST_F(FieldDriverTest, step_counts)

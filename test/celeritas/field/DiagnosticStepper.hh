@@ -62,9 +62,6 @@ class DiagnosticStepper
 template<class StepperT>
 CELER_FUNCTION DiagnosticStepper(StepperT&&)->DiagnosticStepper<StepperT>;
 
-template<class StepperT>
-CELER_FUNCTION DiagnosticStepper(StepperT&)->DiagnosticStepper<StepperT&>;
-
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
