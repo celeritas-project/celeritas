@@ -467,6 +467,7 @@ celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 #-------------------------------------#
 # Mat
 set(CELERITASTEST_PREFIX celeritas/mat)
+celeritas_add_test(celeritas/mat/IsotopeSelector.test.cc)
 celeritas_add_test(celeritas/mat/ElementSelector.test.cc)
 celeritas_add_device_test(celeritas/mat/Material)
 

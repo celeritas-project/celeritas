@@ -56,7 +56,7 @@ CELER_FUNCTION IsotopeComponentId IsotopeSelector::operator()(Engine& rng) const
     auto const& isotopes = element_.isotopes();
     real_type rand = generate_canonical(rng);
     size_type i = 0;
-    for (i : range(element_.num_isotopes()))
+    for (; i < element_.num_isotopes(); i++)
     {
         if (rand < isotopes[i].fraction)
         {
