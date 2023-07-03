@@ -64,6 +64,8 @@ struct StepPointSelection
  * Which track properties to gather at every step.
  *
  * These should correspond to the data items in StepStateDataImpl.
+ *
+ * TODO: particle -> particle_id for consistency
  */
 struct StepSelection
 {

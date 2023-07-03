@@ -11,6 +11,7 @@
 #include <G4LogicalVolumeStore.hh>
 #include <G4NistManager.hh>
 #include <G4Orb.hh>
+#include <G4ParticleDefinition.hh>
 
 #include "celeritas_config.h"
 #include "corecel/ScopedLogStorer.hh"
@@ -73,9 +74,21 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
         return result;
     }
 
+    std::vector<std::string>
+    particle_names(HitManager::VecParticle const& particles) const
+    {
+        std::vector<std::string> result;
+        for (auto* par : particles)
+        {
+            CELER_ASSERT(par);
+            result.push_back(par->GetParticleName());
+        }
+        return result;
+    }
+
     HitManager make_hit_manager()
     {
-        return HitManager(*this->geometry(), sd_setup_, 1);
+        return HitManager(*this->geometry(), *this->particle(), sd_setup_, 1);
     }
 
   protected:
@@ -90,6 +103,7 @@ TEST_F(SimpleCmsTest, no_change)
 {
     HitManager man = this->make_hit_manager();
 
+    EXPECT_EQ(0, man.geant_particles().size());
     EXPECT_EQ(2, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
     static char const* const expected_vnames[]
@@ -103,14 +117,24 @@ TEST_F(SimpleCmsTest, no_change)
 
 TEST_F(SimpleCmsTest, delete_one)
 {
+    // Create tracks for each particle type
+    sd_setup_.track = true;
+
     sd_setup_.skip_volumes = find_geant_volumes({"had_calorimeter"});
     HitManager man = this->make_hit_manager();
 
+    // Check volumes
     EXPECT_EQ(1, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
-
     static char const* const expected_vnames[] = {"em_calorimeter"};
     EXPECT_VEC_EQ(expected_vnames, vnames);
+
+    // Check particles
+    auto pnames = this->particle_names(man.geant_particles());
+    static std::string const expected_pnames[] = {"gamma", "e-", "e+"};
+    EXPECT_VEC_EQ(expected_pnames, pnames);
+
+    // Check log
     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
