@@ -77,8 +77,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                    << "cannot set 'locate_touchable' because the pre-step "
                       "position is not being collected");
 
-    // Create pre- and post-step
+    // Create step and step-owned structures
     step_ = std::make_unique<G4Step>();
+    step_->NewSecondaryVector();
 
 #if G4VERSION_NUMBER >= 1103
 #    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
@@ -121,7 +122,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
     }
 
-    // Create track
+    // Create track if user requested particle types
     for (G4ParticleDefinition const* pd : particles)
     {
         CELER_ASSERT(pd);
@@ -132,10 +133,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     }
 
     // Create secondary vector if using track data
-    if (!tracks_.empty())
-    {
-        step_->NewSecondaryVector();
-    }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
     CELER_LOG_LOCAL(debug) << "Setting up " << detector_volumes_->size()
