@@ -79,6 +79,9 @@ class FieldPropagator
         return FieldPropagatorOptions::max_substeps;
     }
 
+    // Intersection tolerance
+    inline CELER_FUNCTION real_type delta_intersection() const;
+
     // Distance to bump or to consider a "zero" movement
     inline CELER_FUNCTION real_type bump_distance() const;
 
@@ -181,7 +184,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         // Do a detailed check boundary check from the start position toward
         // the substep end point. Travel to the end of the chord, plus a little
         // extra.
-        if (chord.length >= driver_.minimum_step())
+        if (chord.length >= this->bump_distance())
         {
             // Only update the direction if the chord length is nontrivial.
             // This is usually the case but might be skipped in two cases:
@@ -194,7 +197,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             geo_.set_dir(chord.dir);
         }
         auto linear_step
-            = geo_.find_next_step(chord.length + driver_.delta_intersection());
+            = geo_.find_next_step(chord.length + this->delta_intersection());
 
         // Scale the effective substep length to travel by the fraction along
         // the chord to the boundary. This value can be slightly larger than 1
@@ -226,12 +229,12 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             // near tangent). Reduce substep size and try again.
             remaining = substep.step / 2;
         }
-        else if (update_length <= driver_.minimum_step()
+        else if (update_length <= this->bump_distance()
                  || detail::is_intercept_close(state_.pos,
                                                chord.dir,
                                                linear_step.distance,
                                                substep.state.pos,
-                                               driver_.delta_intersection()))
+                                               this->delta_intersection()))
         {
             // We're close enough to the boundary that the next trial step
             // would be less than the driver's minimum step.
@@ -272,7 +275,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             // fraction along the chord, and retry the driver step.
             remaining = update_length;
         }
-    } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
+    } while (remaining > 0 && remaining_substeps > 0);
 
     if (remaining_substeps == 0 && result.distance < step)
     {
@@ -332,15 +335,25 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
 
 //---------------------------------------------------------------------------//
 /*!
- * Distance to bump or to consider a "zero" movement.
+ * Distance close enough to a boundary to mark as being on the boundary.
  *
- * Currently this is set to the field driver's minimum step, but it should
- * probably be related to the geometry instead.
+ * TODO: change delta intersection from property in FieldDriverOptions to
+ * another FieldPropagatorOptions
+ */
+template<class DriverT, class GTV>
+CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::delta_intersection() const
+{
+    return driver_.delta_intersection();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Distance to bump or to consider a "zero" movement.
  */
 template<class DriverT, class GTV>
 CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::bump_distance() const
 {
-    return driver_.minimum_step();
+    return this->delta_intersection() * real_type(0.1);
 }
 
 //---------------------------------------------------------------------------//
