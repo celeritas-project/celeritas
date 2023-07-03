@@ -30,7 +30,8 @@ class ExplicitActionInterface;
  *
  * Various attributes on the step, track, and pre/post step points may be
  * available depending on the selected options.
- * - Disabling \c track will leave \c G4Step::GetTrack as null
+ * - Disabling \c track will leave \c G4Step::GetTrack and \c
+ *   G4Step::GetSecondary as null
  * - Enabling \c locate_touchable will also set \c Material and \c
  *   MaterialCutsCouple
  * - Enabling \c track will set particle the \c Charge attribute on the

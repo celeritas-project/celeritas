@@ -77,7 +77,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                    << "cannot set 'locate_touchable' because the pre-step "
                       "position is not being collected");
 
-    // Create temporary objects
+    // Create pre- and post-step
     step_ = std::make_unique<G4Step>();
 
 #if G4VERSION_NUMBER >= 1103
@@ -129,6 +129,12 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
             new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector()));
         tracks_.back()->SetTrackID(-1);
         tracks_.back()->SetParentID(-1);
+    }
+
+    // Create secondary vector if using track data
+    if (!tracks_.empty())
+    {
+        step_->NewSecondaryVector();
     }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
@@ -245,6 +251,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
             // Copy attributes from logical volume
             points[sp]->SetMaterial(lv->GetMaterial());
             points[sp]->SetMaterialCutsCouple(lv->GetMaterialCutsCouple());
+            points[sp]->SetSensitiveDetector(lv->GetSensitiveDetector());
         }
 
         if (!tracks_.empty())
@@ -260,6 +267,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 //---------------------------------------------------------------------------//
 /*!
  * Recreate the track from the particle ID and saved post-step data.
+ *
+ * This is a bit like \c G4Step::UpdateTrack .
  */
 void HitProcessor::update_track(ParticleId id) const
 {
