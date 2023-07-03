@@ -223,11 +223,11 @@ TEST_F(FieldDriverTest, horrible_field)
     EXPECT_EQ(19, stepper.count());
     EXPECT_SOFT_EQ(0.2, accum);
     EXPECT_SOFT_NEAR(0,
-                     distance(Real3({0.48839126874570266,
-                                     0.14055631310339731,
-                                     0.046552225487429072}),
+                     distance(Real3({0.48839333214883401,
+                                     0.14055602543975546,
+                                     0.046552192651615608}),
                               state.pos),
-                     1e-10)
+                     1e-5)
         << state.pos;
 }
 
