@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -36,6 +38,11 @@ class ScopedMpiInit
 
     // Call MPI finalize on destruction
     ~ScopedMpiInit();
+
+    //!@{
+    //! Prevent copying and moving for RAII class
+    CELER_DELETE_COPY_MOVE(ScopedMpiInit)
+    //!@}
 
   private:
     static Status status_;

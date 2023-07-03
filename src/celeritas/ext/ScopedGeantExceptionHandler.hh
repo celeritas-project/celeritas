@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 
 class G4VExceptionHandler;
 
@@ -31,6 +32,10 @@ class ScopedGeantExceptionHandler
 
     // Clear on destruction
     ~ScopedGeantExceptionHandler();
+    //!@{
+    //! Prevent copying and moving for RAII class
+    CELER_DELETE_COPY_MOVE(ScopedGeantExceptionHandler)
+    //!@}
 
   private:
 #if CELERITAS_USE_GEANT4

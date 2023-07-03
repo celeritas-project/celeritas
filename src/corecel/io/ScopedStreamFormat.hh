@@ -9,6 +9,8 @@
 
 #include <ios>
 
+#include "corecel/Macros.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -31,6 +33,11 @@ class ScopedStreamFormat
 
     // Restore formats on destruction
     inline ~ScopedStreamFormat();
+
+    //!@{
+    //! Prevent copying and moving for RAII class
+    CELER_DELETE_COPY_MOVE(ScopedStreamFormat)
+    //!@}
 
   private:
     std::ios* stream_;

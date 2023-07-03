@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepKernels.hh"
 
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"
@@ -36,6 +37,7 @@ void launch_limit_msc_step(ExplicitActionInterface const& action,
                            CoreParams const& params,
                            CoreState<MemSpace::device>& state)
 {
+    ScopedProfiling profile_this{"limit-step-msc-urban"};
     auto execute_thread = make_along_step_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
@@ -52,6 +54,7 @@ void launch_propagate(ExplicitActionInterface const& action,
                       CoreParams const& params,
                       CoreState<MemSpace::device>& state)
 {
+    ScopedProfiling profile_this{"propagate"};
     auto execute_thread = make_along_step_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
@@ -69,6 +72,7 @@ void launch_apply_msc(ExplicitActionInterface const& action,
                       CoreParams const& params,
                       CoreState<MemSpace::device>& state)
 {
+    ScopedProfiling profile_this{"scatter-msc-urban"};
     auto execute_thread = make_along_step_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),

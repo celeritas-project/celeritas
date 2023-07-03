@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/sys/Stopwatch.hh"
 
 #include "ColorUtils.hh"
@@ -46,6 +47,11 @@ class ScopedTimeLog
 
     // Print on destruction
     inline ~ScopedTimeLog();
+
+    //!@{
+    //! Prevent copying and moving for RAII class
+    CELER_DELETE_COPY_MOVE(ScopedTimeLog)
+    //!@}
 
   private:
     Logger* logger_{nullptr};

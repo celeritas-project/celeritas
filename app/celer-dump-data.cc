@@ -474,7 +474,7 @@ void print_em_params(ImportEmParameters const& em_params)
          << PEP_STREAM_PARAM(msc_range_factor)
          << PEP_STREAM_PARAM(msc_safety_factor)
          << PEP_STREAM_PARAM(msc_lambda_limit) << PEP_STREAM_BOOL(apply_cuts)
-         << endl;
+         << PEP_STREAM_PARAM(screening_factor) << endl;
 #undef PEP_STREAM_PARAM
 #undef PEP_STREAM_BOOL
 }

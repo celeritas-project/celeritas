@@ -216,3 +216,27 @@
             }                                              \
         } while (0),                                       \
         HANDLE_EXCEPTION)
+
+/*!
+ * \def CELER_DEFAULT_COPY_MOVE
+ *
+ * Explicitly declares defaulted copy and move constructors ans assignment
+ * operators.
+ */
+#define CELER_DEFAULT_COPY_MOVE(CLS)      \
+    CLS(CLS const&) = default;            \
+    CLS& operator=(CLS const&) = default; \
+    CLS(CLS&&) = default;                 \
+    CLS& operator=(CLS&&) = default;
+
+/*!
+ * \def CELER_DELETE_COPY_MOVE
+ *
+ * Explicitly declares deleted copy and move constructors ans assignment
+ * operators.
+ */
+#define CELER_DELETE_COPY_MOVE(CLS)      \
+    CLS(CLS const&) = delete;            \
+    CLS& operator=(CLS const&) = delete; \
+    CLS(CLS&&) = delete;                 \
+    CLS& operator=(CLS&&) = delete;

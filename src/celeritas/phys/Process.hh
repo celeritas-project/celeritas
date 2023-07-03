@@ -68,6 +68,13 @@ class Process
 
     //! Name of the process
     virtual std::string label() const = 0;
+
+  protected:
+    //!@{
+    //! Allow construction and assignment only through daughter classes
+    Process() = default;
+    CELER_DEFAULT_COPY_MOVE(Process)
+    //!@}
 };
 
 //---------------------------------------------------------------------------//
