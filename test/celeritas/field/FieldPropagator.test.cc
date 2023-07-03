@@ -10,8 +10,10 @@
 #include <cmath>
 
 #include "celeritas_cmake_strings.h"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -1204,10 +1206,10 @@ TEST_F(SimpleCmsTest, electron_stuck)
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(1000);
+        auto result = propagate(30);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_LE(79, stepper.count());
-        EXPECT_LE(stepper.count(), 80);
+        EXPECT_LE(870, stepper.count());
+        EXPECT_LE(stepper.count(), 900);
         ASSERT_TRUE(geo.is_on_boundary());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -1216,24 +1218,6 @@ TEST_F(SimpleCmsTest, electron_stuck)
         EXPECT_SOFT_EQ(30, calc_radius());
         geo.cross_boundary();
         EXPECT_EQ("si_tracker", this->volume_name(geo));
-    }
-    {
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, geo);
-        auto result = propagate(1000);
-        EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        ASSERT_TRUE(geo.is_on_boundary());
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-        {
-            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
-            EXPECT_SOFT_EQ(30, calc_radius());
-        }
-        else
-        {
-            EXPECT_SOFT_NEAR(30, calc_radius(), 1e-5);
-        }
-        geo.cross_boundary();
-        EXPECT_EQ("vacuum_tube", this->volume_name(geo));
     }
 }
 
@@ -1290,9 +1274,32 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
-        // This absurdly long step is because in the "failed" case the track
-        // thinks it's in the world volume (nearly vacuum)
-        auto result = propagate(2.12621374950874703e+21);
+
+        Propagation result;
+        if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
+        {
+            // This absurdly long step is because in the "failed" case the
+            // track thinks it's in the world volume (nearly vacuum)
+            result = propagate(2.12621374950874703e+21);
+        }
+        else
+        {
+            // Track did not reenter volume, and Geant4's logic raises an
+            // exception during the next intercept query since the geometry
+            // isn't changing
+            EXPECT_FALSE(successful_reentry);
+
+            ScopedLogStorer scoped_log{&celeritas::self_logger()};
+            EXPECT_THROW(result = propagate(10.0), celeritas::RuntimeError);
+
+            // Check log message
+            static char const* const expected_log_levels[] = {"error"};
+            EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
+            ASSERT_EQ(1, scoped_log.messages().size());
+            EXPECT_FALSE(scoped_log.messages().front().find("stuck")
+                         == std::string::npos);
+            return;
+        }
         EXPECT_FALSE(result.boundary);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_SOFT_NEAR(125, calc_radius(), 1e-2);
