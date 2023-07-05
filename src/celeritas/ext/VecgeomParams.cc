@@ -45,7 +45,7 @@ namespace celeritas
  */
 VecgeomParams::VecgeomParams(std::string const& filename)
 {
-    CELER_LOG(status) << "Loading VecGeom geometry from GDML at " << filename;
+    CELER_LOG(info) << "Loading VecGeom geometry from GDML at " << filename;
     if (!ends_with(filename, ".gdml"))
     {
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
@@ -189,7 +189,7 @@ auto VecgeomParams::find_volumes(std::string const& name) const
 void VecgeomParams::build_tracking()
 {
     CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
-    CELER_LOG(status) << "Initializing tracking information";
+    CELER_LOG(debug) << "Initializing tracking information";
     ScopedMem record_mem("VecgeomParams.build_tracking");
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");

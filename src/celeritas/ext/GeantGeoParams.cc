@@ -210,6 +210,7 @@ void GeantGeoParams::build_tracking()
     CELER_ASSERT(geo_man);
     if (!geo_man->IsGeometryClosed())
     {
+        CELER_LOG(debug) << "Initializing tracking information";
         geo_man->CloseGeometry(
             /* optimize = */ true, /* verbose = */ false, host_ref_.world);
         closed_geometry_ = true;
