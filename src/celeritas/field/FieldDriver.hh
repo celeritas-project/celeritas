@@ -157,16 +157,11 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
     ChordSearch output = this->find_next_chord(step, state);
     CELER_ASSERT(output.end.step <= step);
 
-    // Evaluate the relative error
-    real_type rel_error_sq = output.err_sq
-                             / (options_.epsilon_step * output.end.step);
-
-    if (rel_error_sq > 1)
+    if (output.err_sq > 1)
     {
         // Discard the original end state and advance more accurately with the
         // newly proposed step
-        real_type next_step = step
-                              * this->new_step_scale(ipow<2>(rel_error_sq));
+        real_type next_step = step * this->new_step_scale(output.err_sq);
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
@@ -320,9 +315,7 @@ FieldDriver<StepperT>::integrate_step(real_type step,
         // Compute a proposed new step
         real_type err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
                            / ipow<2>(options_.epsilon_rel_max);
-        output.proposed_step
-            = step
-              * this->new_step_scale(err_sq / (options_.epsilon_step * step));
+        output.proposed_step = step * this->new_step_scale(err_sq);
     }
 
     return output;
@@ -370,10 +363,9 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
     // Update state, step taken by this trial and the next predicted step
     output.end.state = result.end_state;
     output.end.step = step;
-    output.proposed_step = step
-                           * (err_sq > ipow<2>(options_.errcon)
-                                  ? this->new_step_scale(err_sq)
-                                  : options_.max_stepping_increase);
+    output.proposed_step
+        = step
+          * min(this->new_step_scale(err_sq), options_.max_stepping_increase);
 
     return output;
 }

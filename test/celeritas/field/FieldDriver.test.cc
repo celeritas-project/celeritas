@@ -186,8 +186,8 @@ TEST_F(FieldDriverTest, unpleasant_field)
         distance += result.step;
         state = result.state;
     }
-    EXPECT_EQ(33, stepper.count());
-    EXPECT_SOFT_EQ(7.2169115414296314, distance);
+    EXPECT_EQ(31, stepper.count());
+    EXPECT_SOFT_EQ(7.2232269169635632, distance);
 }
 
 // As the track moves along +z near 0, the field strength oscillates horribly,
@@ -220,12 +220,12 @@ TEST_F(FieldDriverTest, horrible_field)
         accum += result.step;
         state = result.state;
     }
-    EXPECT_EQ(23, stepper.count());
+    EXPECT_EQ(9, stepper.count());
     EXPECT_SOFT_EQ(0.2, accum);
     EXPECT_SOFT_NEAR(0,
-                     distance(Real3({0.49051449384873164,
-                                     0.14023728367864752,
-                                     0.046574329126744189}),
+                     distance(Real3({0.49120878051539413,
+                                     0.14017717257531165,
+                                     0.04668993728754612}),
                               state.pos),
                      1e-5)
         << state.pos;
@@ -273,8 +273,8 @@ TEST_F(FieldDriverTest, step_counts)
     static double const expected_radii[] = {0.00010663611598835,
         0.0010663663247419, 0.010668826843187, 0.11173141982667,
         3.5019461121752, 333.73450257138, 33356.579970281};
-    static unsigned int const expected_counts[] = {5u, 93u, 776u, 786u, 1u,
-        13u, 88u, 96u, 1u, 5u, 28u, 35u, 1u, 1u, 7u, 15u, 1u, 1u, 2u, 9u, 1u,
+    static unsigned int const expected_counts[] = {1u, 93u, 779u, 786u, 1u,
+        12u, 90u, 96u, 1u, 1u, 29u, 35u, 1u, 1u, 7u, 15u, 1u, 1u, 2u, 9u, 1u,
         1u, 1u, 5u, 1u, 1u, 1u, 2u};
     static double const expected_lengths[] = {0.0001, 0.01, 0.077563521220272,
         0.077562922424298, 0.0001, 0.01, 0.076209386999884, 0.076210431034511,

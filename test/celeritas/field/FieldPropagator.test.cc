@@ -871,7 +871,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
          */
         auto result = propagate(0.1 * dr, 0);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(3, stepper.count());
+        EXPECT_EQ(1, stepper.count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(-5.0, geo.pos()[0]);
@@ -895,11 +895,11 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
          ==> distance 0.448159 (in 0 steps)
          */
         auto result = propagate(1e-6 * dr, 0);
-        EXPECT_TRUE(result.boundary);  // WRONG? false
-        EXPECT_EQ(3, stepper.count());
-        EXPECT_SOFT_EQ(0.44815810742726675, result.distance);
+        EXPECT_FALSE(result.boundary);
+        EXPECT_EQ(1, stepper.count());
+        EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
-        EXPECT_LE(-5.0, geo.pos()[0]);  // WRONG? LT
+        EXPECT_LT(-5.0, geo.pos()[0]);
         EXPECT_LT(
             distance(Real3{-4.9999998999999997, 3.0685999199146494e-15, 0},
                      geo.pos()),
@@ -921,8 +921,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
 
         auto result = propagate(-0.1 * dr, 0);
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(3, stepper.count());
-        EXPECT_SOFT_EQ(0.40277610833495897, result.distance);
+        EXPECT_EQ(1, stepper.count());
+        EXPECT_SOFT_EQ(0.40277704609562048, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()), 1e-6)
             << geo.pos();
@@ -940,8 +940,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
          */
         auto result = propagate(-1e-6 * dr, 0);
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(3, stepper.count());
-        EXPECT_SOFT_EQ(0.44815719979635865, result.distance);
+        EXPECT_EQ(1, stepper.count());
+        EXPECT_SOFT_EQ(0.44815824321522935, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, -4.3877702173875065e-07, 0}, geo.pos()),
                   1e-6)
@@ -1009,18 +1009,19 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
 
     static int const expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
     EXPECT_VEC_EQ(expected_boundary, boundary);
-    static double const expected_distances[] = {0.00785398163,
-                                                0.00282334506,
-                                                0.00448798951,
-                                                0.00282597038,
+    static double const expected_distances[] = {0.0078534718906499,
+                                                0.0028235332722979,
+                                                0.0044879852658442,
+                                                0.0028259738005751,
                                                 1e-05,
                                                 1e-05,
+                                                9.9999658622419e-09,
                                                 1e-08,
-                                                1e-08,
-                                                9.99379755e-12,
+                                                9.9981633254417e-12,
                                                 1e-11};
     EXPECT_VEC_NEAR(expected_distances, distances, 1e-5);
-    static int const expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
+
+    static int const expected_substeps[] = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
 
     EXPECT_VEC_EQ(expected_substeps, substeps);
     static char const* expected_volumes[] = {"world",
@@ -1062,18 +1063,18 @@ TEST_F(TwoBoxTest, nonuniform_field)
 
     // clang-format off
     static double const expected_all_pos[] = {
-        -2.082588410019, 0.698321021704, 0.70710499699532,
-        -2.5772834156698, 1.1563858825744, 1.4142082224578,
-        -3.0638597711046, 0.77477404071578, 2.1213130872795,
-        -2.5584330807733, 0.58519791464035, 2.8284269544963,
-        -2.9044449938663, 0.86374380213917, 3.5355750324309,
-        -2.580544641158, 0.76589682238491, 4.2428026858314,
-        -2.7422321216414, 0.60282499262184, 4.9501039569049,
-        -2.6938835431219, 0.61388130598869, 5};
+        -2.0825709359803, 0.69832583461676, 0.70710666844698,
+        -2.5772824508968, 1.1564020888258, 1.4141930958099,
+        -3.0638510057122, 0.77473521479087, 2.1212684403177,
+        -2.5583491669886, 0.58538464818192, 2.8283305521706,
+        -2.9046903231357, 0.86312856101992, 3.5354509992431,
+        -2.5810335650695, 0.76746368848985, 4.242728100241,
+        -2.7387773891353, 0.6033529790486, 4.9501400379322,
+        -2.6908755627764, 0.61552642042372, 5};
     // clang-format on
     EXPECT_VEC_SOFT_EQ(expected_all_pos, all_pos);
 
-    static int const expected_step_counter[] = {5, 7, 12, 13, 19, 22, 26, 10};
+    static int const expected_step_counter[] = {3, 3, 6, 6, 9, 11, 15, 9};
     EXPECT_VEC_EQ(expected_step_counter, step_counter);
 }
 
@@ -1205,8 +1206,8 @@ TEST_F(SimpleCmsTest, electron_stuck)
             = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_LE(92, stepper.count());
-        EXPECT_LE(stepper.count(), 93);
+        EXPECT_LE(79, stepper.count());
+        EXPECT_LE(stepper.count(), 80);
         ASSERT_TRUE(geo.is_on_boundary());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -1307,8 +1308,8 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         {
             // Repeated substep bisection failed; particle is bumped
             EXPECT_SOFT_EQ(1e-6, result.distance);
-            // Minor floating point differences among geometries
-            EXPECT_SOFT_NEAR(real_type(103), real_type(stepper.count()), 0.03);
+            // Minor floating point differences could make this 98 or so
+            EXPECT_SOFT_NEAR(real_type(99), real_type(stepper.count()), 0.03);
             EXPECT_FALSE(result.looping);
         }
     }
