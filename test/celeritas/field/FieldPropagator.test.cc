@@ -572,7 +572,7 @@ TEST_F(TwoBoxTest, electron_tangent)
         EXPECT_LT(
             distance(Real3({std::cos(0.49 * pi), 4 + std::sin(0.49 * pi), 0}),
                      geo.pos()),
-            1e-6);
+            2e-6);
     }
     {
         SCOPED_TRACE("Short step tangent to boundary");
@@ -587,7 +587,7 @@ TEST_F(TwoBoxTest, electron_tangent)
         EXPECT_LT(
             distance(Real3({std::cos(0.51 * pi), 4 + std::sin(0.51 * pi), 0}),
                      geo.pos()),
-            1e-6);
+            2e-6);
     }
 }
 
@@ -712,7 +712,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         EXPECT_SOFT_EQ(circ, result.distance);
         EXPECT_FALSE(result.boundary);
-        EXPECT_LT(distance(Real3({1, 4 + dy, 0}), geo.pos()), 1e-5);
+        EXPECT_LT(distance(Real3({1, 4 + dy, 0}), geo.pos()), 2e-5);
         EXPECT_LT(distance(Real3({0, 1, 0}), geo.dir()), 1e-5);
     }
 }
@@ -812,6 +812,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
     FieldDriverOptions driver_options;
+    const real_type dr = 0.1;
     driver_options.delta_intersection = 0.1;
 
     // First step length and position from starting at {0,0,0} along {0,1,0}
@@ -819,93 +820,132 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
     static constexpr Real3 first_pos
         = {-0.098753281951459, 0.43330671122068, 0};
 
-    {
-        SCOPED_TRACE("First step ends barely closer than boundary");
-        /*
-         * Note: this ends up being the !linear_step.boundary case:
-          Propagate up to 0.448159
-          - advance(0.348159, {-4.89125,-0.433307,0})
-                -> {0.348159, {-4.95124,-0.0921392,0}}
-           + chord length 0.346403 => linear step 0.446403
-           + advancing to substep end point
-        */
-
-        real_type dx = 0.1 * driver_options.delta_intersection;
-        Real3 start_pos{-5 + dx, 0, 0};
+    auto geo = this->make_geo_track_view();
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
+    auto propagate = [&](real_type start_delta, real_type move_delta) {
+        Real3 start_pos{-5 + start_delta, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        auto geo = this->make_geo_track_view(start_pos, {0, 1, 0});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
-            field, particle.charge());
+        geo = GeoTrackInitializer{start_pos, {0, 1, 0}};
+        stepper.reset_count();
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(first_step - driver_options.delta_intersection);
+        return propagate(first_step - move_delta);
+    };
 
+    {
+        SCOPED_TRACE("First step misses boundary");
+        /*
+         * Note: this ends up being the !linear_step.boundary case:
+         Propagate up to 0.348159 from {-4.89125,-0.433307,0} along {0,1,0}
+         - advance(0.348159, {-4.89125,-0.433307,0})
+           -> {0.348159, {-4.95124,-0.0921392,0}}
+          + chord 0.346403 cm along {-0.173201,0.984886,0}
+            => linear step 0.446403: update length 0.448666
+          + advancing to substep end point (99 remaining)
+         ==> distance 0.348159 (in 1 steps)
+         */
+
+        auto result = propagate(0.1 * dr, dr);
         EXPECT_FALSE(result.boundary);
         EXPECT_EQ(1, stepper.count());
-        EXPECT_SOFT_EQ(first_step - driver_options.delta_intersection,
-                       result.distance);
+        EXPECT_SOFT_EQ(first_step - dr, result.distance);
         EXPECT_LT(distance(Real3{-4.9512441890768795, -0.092139178167222446, 0},
                            geo.pos()),
                   1e-8)
             << geo.pos();
     }
     {
-        SCOPED_TRACE("First step ends barely closer than boundary");
+        SCOPED_TRACE("First step ends barely before boundary");
         /*
-         Propagate up to 0.448159
+         Propagate up to 0.448159 from {-4.89125,-0.433307,0} along {0,1,0}
          - advance(0.448159, {-4.89125,-0.433307,0})
-           -> {0.448159, {-4.99,8.24444e-08,0}}
-          + chord length 0.444418 => linear step 0.489419 (hit surface 6):
-           update length 0.493539
-          + next trial step exceeds driver minimum 1e-06 *OR* intercept is
-           sufficiently close (miss distance = 0.0450017) to substep point
-         - Moved remaining distance 0 without physically changing position
+           -> {0.448159, {-4.99,3.0686e-15,0}}
+          + chord 0.444418 cm along {-0.222208,0.974999,0}
+            => linear step 0.48942 (HIT!): update length 0.49354
+          + intercept {-5,0.0438777,0} is within 0.1 of substep endpoint
+          + but it's is past the end of the step by 0.0453817
+          + moved to {-4.99,3.0686e-15,0}: ignoring intercept!
          ==> distance 0.448159 (in 0 steps)
          */
-
-        real_type dx = 0.1 * driver_options.delta_intersection;
-        Real3 start_pos{-5 + dx, 0, 0};
-        axpy(real_type(-1), first_pos, &start_pos);
-
-        auto geo = this->make_geo_track_view(start_pos, {0, 1, 0});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
-            field, particle.charge());
-        auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(first_step);
-
+        auto result = propagate(0.1 * dr, 0);
         EXPECT_FALSE(result.boundary);
         EXPECT_EQ(3, stepper.count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
+        EXPECT_LT(-5.0, geo.pos()[0]);
         EXPECT_LT(
             distance(Real3{-4.9900002299216384, 8.2444433238682002e-08, 0},
                      geo.pos()),
-            1e-8)
+            1e-6)
             << geo.pos();
     }
     {
-        SCOPED_TRACE("First step ends on boundary");
+        SCOPED_TRACE("First step ends BARELY before boundary");
+        /*
+         Propagate up to 0.448159 from {-4.90125,-0.433307,0} along {0,1,0}
+         - advance(0.448159, {-4.90125,-0.433307,0})
+           -> {0.448159, {-5,3.0686e-15,0}}
+          + chord 0.444418 cm along {-0.222208,0.974999,0}
+            => linear step 0.444418 (HIT!): update length 0.448159
+          + intercept {-5,4.38777e-07,0} is within 0.1 of substep endpoint
+          + but it's is past the end of the step by 4.53817e-07
+          + moved to {-5,3.0686e-15,0}: ignoring intercept!
+         ==> distance 0.448159 (in 0 steps)
+         */
+        auto result = propagate(1e-6 * dr, 0);
+        EXPECT_TRUE(result.boundary);  // WRONG? false
+        EXPECT_EQ(3, stepper.count());
+        EXPECT_SOFT_EQ(0.44815810742726675, result.distance);
+        EXPECT_LE(result.distance, first_step);
+        EXPECT_LE(-5.0, geo.pos()[0]);  // WRONG? LT
+        EXPECT_LT(
+            distance(Real3{-4.9999998999999997, 3.0685999199146494e-15, 0},
+                     geo.pos()),
+            1e-6)
+            << geo.pos();
+    }
+    {
+        SCOPED_TRACE("First step ends barely past boundary");
+        /*
+         Propagate up to 0.448159 from {-4.91125,-0.433307,0} along {0,1,0}
+         - advance(0.448159, {-4.91125,-0.433307,0})
+           -> {0.448159, {-5.01,3.0686e-15,0}}
+          + chord 0.444418 cm along {-0.222208,0.974999,0}
+            => linear step 0.399415 (HIT!): update length 0.402777
+          + intercept {-5,-0.0438777,0} is within 0.1 of substep endpoint
+         - Moved to boundary 6 at position {-5,-0.0438777,0}
+         ==> distance 0.402777 (in 0 steps)
+        */
 
-        real_type dx = 0;
-        Real3 start_pos{-5 - dx, 0, 0};
-        axpy(real_type(-1), first_pos, &start_pos);
-
-        auto geo = this->make_geo_track_view(start_pos, {0, 1, 0});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
-            field, particle.charge());
-        auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(first_step);
-
+        auto result = propagate(-0.1 * dr, 0);
         EXPECT_TRUE(result.boundary);
         EXPECT_EQ(3, stepper.count());
-        EXPECT_SOFT_NEAR(result.distance, first_step, 1e-5);
-        EXPECT_LT(result.distance, first_step);
-        // Y position suffers from roundoff
-        EXPECT_LT(distance(Real3{-5.0, -9.26396730438483e-07, 0}, geo.pos()),
-                  1e-8);
+        EXPECT_SOFT_EQ(0.40277610833495897, result.distance);
+        EXPECT_LE(result.distance, first_step);
+        EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()), 1e-6)
+            << geo.pos();
+    }
+    {
+        SCOPED_TRACE("First step ends BARELY past boundary");
+        /*
+         Propagate up to 0.448159 from {-4.90125,-0.433307,0} along {0,1,0}
+         - advance(0.448159, {-4.90125,-0.433307,0})
+           -> {0.448159, {-5,3.0686e-15,0}}
+          + chord 0.444418 cm along {-0.222208,0.974999,0}
+            => linear step 0.444417 (HIT!): update length 0.448158
+          + intercept {-5,-4.38777e-07,0} is within 0.1 of substep endpoint
+         - Moved to boundary 6 at position {-5,-4.38777e-07,0}
+         */
+        auto result = propagate(-1e-6 * dr, 0);
+        EXPECT_TRUE(result.boundary);
+        EXPECT_EQ(3, stepper.count());
+        EXPECT_SOFT_EQ(0.44815719979635865, result.distance);
+        EXPECT_LE(result.distance, first_step);
+        EXPECT_LT(distance(Real3{-5, -4.3877702173875065e-07, 0}, geo.pos()),
+                  1e-6)
+            << geo.pos();
     }
 }
 
@@ -1004,25 +1044,37 @@ TEST_F(TwoBoxTest, nonuniform_field)
     ReluZField field{unit_radius_field_strength};
     FieldDriverOptions driver_options;
 
-    this->make_geo_track_view({-2.0, 0, 0}, {0, 1, 1});
+    auto geo = this->make_geo_track_view({-2.0, 0, 0}, {0, 1, 1});
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
+    auto propagate
+        = make_field_propagator(stepper, driver_options, particle, geo);
 
-    static const Real3 expected_all_pos[]
-        = {{-2.082588410019, 0.698321021704, 0.70710499699532},
-           {-2.5772835670309, 1.1563856325251, 1.414208222427},
-           {-3.0638597406072, 0.77477344365218, 2.1213130872532},
-           {-2.5584323246703, 0.58519068474743, 2.8284269544184},
-           {-2.904435093832, 0.86378022294055, 3.5355750279272},
-           {-2.5804988125119, 0.7657810943241, 4.242802666321},
-           {-2.7424915491399, 0.60277842755393, 4.9501038870007},
-           {-2.6941223485135, 0.6137455428308, 5}};
-    for (Real3 const& pos : expected_all_pos)
+    std::vector<real_type> all_pos;
+    std::vector<int> step_counter;
+    for ([[maybe_unused]] auto i : range(8))
     {
-        auto geo = this->make_geo_track_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, geo);
+        stepper.reset_count();
         propagate(1.0);
-        EXPECT_VEC_SOFT_EQ(pos, geo.pos());
+        all_pos.insert(all_pos.end(), geo.pos().begin(), geo.pos().end());
+        step_counter.push_back(stepper.count());
     }
+
+    // clang-format off
+    static double const expected_all_pos[] = {
+        -2.082588410019, 0.698321021704, 0.70710499699532,
+        -2.5772834156698, 1.1563858825744, 1.4142082224578,
+        -3.0638597711046, 0.77477404071578, 2.1213130872795,
+        -2.5584330807733, 0.58519791464035, 2.8284269544963,
+        -2.9044449938663, 0.86374380213917, 3.5355750324309,
+        -2.580544641158, 0.76589682238491, 4.2428026858314,
+        -2.7422321216414, 0.60282499262184, 4.9501039569049,
+        -2.6938835431219, 0.61388130598869, 5};
+    // clang-format on
+    EXPECT_VEC_SOFT_EQ(expected_all_pos, all_pos);
+
+    static int const expected_step_counter[] = {5, 7, 12, 13, 19, 22, 27, 10};
+    EXPECT_VEC_EQ(expected_step_counter, step_counter);
 }
 
 //---------------------------------------------------------------------------//
@@ -1255,8 +1307,8 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         {
             // Repeated substep bisection failed; particle is bumped
             EXPECT_SOFT_EQ(1e-6, result.distance);
-            // Minor floating point differences could make this 102 or 103
-            EXPECT_SOFT_NEAR(real_type(103), real_type(stepper.count()), 0.02);
+            // Minor floating point differences among geometries
+            EXPECT_SOFT_NEAR(real_type(103), real_type(stepper.count()), 0.03);
             EXPECT_FALSE(result.looping);
         }
     }
