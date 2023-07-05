@@ -236,7 +236,7 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
         // Check whether the distance to the chord is smaller than the
         // reference
         real_type dchord = detail::distance_chord(
-            state, result.mid_state, result.end_state);
+            state.pos, result.mid_state.pos, result.end_state.pos);
 
         cout << "  + step " << step << " to " << result.end_state.pos
              << " by way of " << result.mid_state.pos
