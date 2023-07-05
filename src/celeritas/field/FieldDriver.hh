@@ -95,8 +95,7 @@ class FieldDriver
                                                     OdeState const& state) const;
 
     // Propose a next step size from a given step size and associated error
-    inline CELER_FUNCTION real_type new_step_size(real_type step,
-                                                  real_type error) const;
+    inline CELER_FUNCTION real_type new_step_scale(real_type error) const;
 
     //// COMMON PROPERTIES ////
 
@@ -166,7 +165,7 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
     {
         // Discard the original end state and advance more accurately with the
         // newly proposed step
-        real_type next_step = this->new_step_size(step, rel_error);
+        real_type next_step = step * this->new_step_scale(rel_error);
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
@@ -202,11 +201,12 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
         real_type dchord = detail::distance_chord(
             state, result.mid_state, result.end_state);
 
-        // TODO: drop dchord_tol?
         if (dchord > options_.delta_chord + options_.dchord_tol)
         {
             // Estimate a new trial chord with a relative scale
-            step *= max(std::sqrt(options_.delta_chord / dchord), half());
+            real_type scale_step = max(std::sqrt(options_.delta_chord / dchord),
+                                       options_.min_chord_shrink);
+            step *= scale_step;
         }
         else
         {
@@ -319,8 +319,9 @@ FieldDriver<StepperT>::integrate_step(real_type step,
         // Compute a proposed new step
         real_type err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
                            / ipow<2>(options_.epsilon_rel_max);
-        output.proposed_step = this->new_step_size(
-            step, err_sq / (options_.epsilon_step * step));
+        output.proposed_step
+            = step
+              * this->new_step_scale(err_sq / (options_.epsilon_step * step));
     }
 
     return output;
@@ -354,12 +355,9 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
 
         if (err_sq > 1)
         {
-            // Step failed; compute the size of re-trial step.
-            real_type step_shrink
-                = options_.safety * fastpow(err_sq, half() * options_.pshrink);
-
             // Truncation error too large, reduce stepsize with a low bound
-            step = max(step_shrink, options_.max_stepping_decrease) * step;
+            step *= max(this->new_step_scale(std::sqrt(err_sq)),
+                        options_.max_stepping_decrease);
         }
         else
         {
@@ -371,10 +369,10 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
     // Update state, step taken by this trial and the next predicted step
     output.end.state = result.end_state;
     output.end.step = step;
-    output.proposed_step = (err_sq > ipow<2>(options_.errcon))
-                               ? options_.safety * step
-                                     * fastpow(err_sq, half() * options_.pgrow)
-                               : options_.max_stepping_increase * step;
+    output.proposed_step = step
+                           * (err_sq > ipow<2>(options_.errcon)
+                                  ? this->new_step_scale(std::sqrt(err_sq))
+                                  : options_.max_stepping_increase);
 
     return output;
 }
@@ -385,12 +383,12 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
  */
 template<class StepperT>
 CELER_FUNCTION real_type
-FieldDriver<StepperT>::new_step_size(real_type step, real_type rel_error) const
+FieldDriver<StepperT>::new_step_scale(real_type rel_error) const
 {
     CELER_ASSERT(rel_error >= 0);
-    real_type scale_factor = fastpow(
-        rel_error, rel_error > 1 ? options_.pshrink : options_.pgrow);
-    return options_.safety * step * scale_factor;
+    return options_.safety
+           * fastpow(rel_error,
+                     rel_error > 1 ? options_.pshrink : options_.pgrow);
 }
 
 //---------------------------------------------------------------------------//
