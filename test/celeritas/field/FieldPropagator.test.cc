@@ -258,9 +258,14 @@ TEST_F(TwoBoxTest, electron_interior)
         result = propagate(1e-10);
         EXPECT_DOUBLE_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
-        EXPECT_VEC_NEAR(
-            Real3({3.8085385881855, -2.3814749713353e-07, 0}), geo.pos(), 1e-7);
-        EXPECT_VEC_NEAR(Real3({6.2529888474538e-08, 1, 0}), geo.dir(), 1e-7);
+        EXPECT_LT(
+            distance(Real3{3.8085385881854572, -2.3814740158881384e-07, 0},
+                     geo.pos()),
+            1e-7)
+            << geo.pos();
+        EXPECT_LT(distance(Real3{6.2529863957031237e-08, 1, 0}, geo.dir()),
+                  1e-7)
+            << geo.dir();
         EXPECT_EQ(1, stepper.count());
     }
 }
@@ -1068,13 +1073,13 @@ TEST_F(TwoBoxTest, nonuniform_field)
         -3.0638510057122, 0.77473521479087, 2.1212684403177,
         -2.5583491669886, 0.58538464818192, 2.8283305521706,
         -2.9046903231357, 0.86312856101992, 3.5354509992431,
-        -2.5810335650695, 0.76746368848985, 4.242728100241,
-        -2.7387773891353, 0.6033529790486, 4.9501400379322,
-        -2.6908755627764, 0.61552642042372, 5};
+        -2.5810335651735, 0.76746369206978, 4.2427280983243,
+        -2.7387865356906, 0.60334652795357, 4.9501301076543,
+        -2.6908751291835, 0.61552103995325, 5};
     // clang-format on
-    EXPECT_VEC_SOFT_EQ(expected_all_pos, all_pos);
+    EXPECT_VEC_SOFT_EQ(expected_all_pos, all_pos) << repr(all_pos);
 
-    static int const expected_step_counter[] = {3, 3, 6, 6, 9, 11, 15, 9};
+    static int const expected_step_counter[] = {3, 3, 6, 6, 9, 11, 14, 5};
     EXPECT_VEC_EQ(expected_step_counter, step_counter);
 }
 
@@ -1206,8 +1211,8 @@ TEST_F(SimpleCmsTest, electron_stuck)
             = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_LE(79, stepper.count());
-        EXPECT_LE(stepper.count(), 80);
+        EXPECT_LE(59, stepper.count());
+        EXPECT_LE(stepper.count(), 60);
         ASSERT_TRUE(geo.is_on_boundary());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -1299,9 +1304,9 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         if (successful_reentry)
         {
             // Extremely long propagation stopped by substep countdown
-            EXPECT_SOFT_EQ(11.676851876556075, result.distance);
+            EXPECT_SOFT_EQ(11.030626490923556, result.distance);
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_EQ(7800, stepper.count());
+            EXPECT_EQ(5000, stepper.count());
             EXPECT_TRUE(result.looping);
         }
         else
