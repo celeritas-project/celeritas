@@ -200,18 +200,34 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
  * Each iteration reduces the step length by a factor of no more than \c
  * min_chord_shrink , but is based on an approximate "exact" correction factor
  * if the chord length is very small and the curve is circular.
- * The sagitta \em h is related to the chord length \em s and radius of
+ * The sagitta \em h is related to the step length \em s and radius of
  * curvature \em r with the trig expression: \f[
    r - h = r \cos \frac{s}{2r}
   \f]
  * For small chord lengths or a large radius, we expand
  * \f$ \cos \theta \sim 1 \frac{\theta^2}{2} \f$, giving a radius of curvature
  * \f[ r = \frac{s^2}{8h} \; . \f]
- * Given a trial step (chord length) \em s and resulting sagitta of \em h,
- * the exact step needed to give a chord length of \f$ \epsilon = {} \f$ \c
+ * Given a trial step (arc length) \em s and resulting sagitta of \em h,
+ * the exact step needed to give a sagitta of \f$ \epsilon = {} \f$ \c
  * delta_chord is \f[
    s' = s \sqrt{\frac{\epsilon}{h}} \,.
  * \f]
+ *
+ * If the step is long enough to circle back on itself (e.g. a low-energy
+ * electron in a field) then the change in angle will be much greater than 1,
+ * leading to possibly too long of a step. In the case of a purely circular
+ * motion, the chord length \c d is related to the radius of curvature and the
+ * sagitta by \f[
+  \frac{d}{2} = \sqrt{h (2r - h)}
+ * \f]
+ * if the "small chord" estimate is valid, then we can substitute the estimated
+ * radius of curvature to find a relationship between the chord length,
+ * sagitta, and step length: \f[
+   4 h^2 + d^2 = s^2
+ * \f]
+ * If this relationship is not satisfied, then our step length is long or we're
+ * not integrating a circle.
+
  */
 template<class StepperT>
 CELER_FUNCTION auto
@@ -238,11 +254,26 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
         real_type dchord = detail::distance_chord(
             state.pos, result.mid_state.pos, result.end_state.pos);
 
+        real_type distance_err_sq
+            = ipow<2>(step)
+              / (distance_sq(state.pos, result.end_state.pos)
+                 + ipow<2>(2 * dchord));
+
         cout << "  + step " << step << " to " << result.end_state.pos
              << " by way of " << result.mid_state.pos
-             << " -> dchord=" << dchord;
+             << " -> dchord=" << dchord << ", dist_err_sq=" << distance_err_sq;
 
-        if (dchord > options_.delta_chord + options_.dchord_tol)
+        if (distance_err_sq > 1 + options_.epsilon_long_chord)
+        {
+            // Step curls back on itself: update dchord estimate
+            real_type scale_step = options_.min_chord_shrink
+                                   / std::sqrt(distance_err_sq);
+            step *= scale_step;
+            cout << " -> " << color_code('y')
+                 << "way too long:" << color_code(' ') << " scale by 1 - "
+                 << (1 - scale_step);
+        }
+        else if (dchord > options_.delta_chord + options_.dchord_tol)
         {
             // Estimate a new trial chord with a relative scale
             real_type scale_step = max(std::sqrt(options_.delta_chord / dchord),

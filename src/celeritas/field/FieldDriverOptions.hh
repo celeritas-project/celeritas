@@ -23,6 +23,7 @@ namespace celeritas
  * it's a multiplicative factor for reducing the step, not anything with
  * geometry)
  * TODO: remove errcon
+ * TODO: epsilon for unitless, tolerance for lengths?
  */
 struct FieldDriverOptions
 {
@@ -67,6 +68,9 @@ struct FieldDriverOptions
 
     //! Chord distance fudge factor
     static constexpr inline real_type dchord_tol = 1e-5 * units::millimeter;
+
+    //! Chord distance/sagitta ratio tolerance
+    static constexpr inline real_type epsilon_long_chord = 0.1;
 
     //! Lowest allowable scaling factor when searching for a chord
     static constexpr inline real_type min_chord_shrink = 0.5;

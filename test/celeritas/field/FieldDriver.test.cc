@@ -188,8 +188,8 @@ TEST_F(FieldDriverTest, unpleasant_field)
         distance += result.step;
         state = result.state;
     }
-    EXPECT_EQ(31, stepper.count());
-    EXPECT_SOFT_EQ(7.2232269169635632, distance);
+    EXPECT_EQ(28, stepper.count());
+    EXPECT_SOFT_EQ(9.7011773019513114, distance);
 }
 
 // As the track moves along +z near 0, the field strength oscillates horribly,
@@ -253,20 +253,22 @@ TEST_F(FieldDriverTest, pathological_chord)
     std::vector<unsigned int> counts;
     std::vector<real_type> lengths;
 
+    real_type const eps = 0;
     for (auto rev : {0.01, 1.0, 2.0, 4.0, 8.0})
     {
         stepper.reset_count();
-        auto end = driver.advance(rev * 2 * constants::pi * radius, state);
+        auto end
+            = driver.advance((rev + eps) * 2 * constants::pi * radius, state);
         counts.push_back(stepper.count());
         lengths.push_back(end.step);
     }
 
-    static unsigned int const expected_counts[] = {1u, 6u, 1u, 1u, 1u};
+    static unsigned int const expected_counts[] = {1u, 6u, 5u, 6u, 7u};
     static double const expected_lengths[] = {0.029802281646312,
-                                              0.30937398137671,
-                                              5.9604563292623,
-                                              11.920912658525,
-                                              23.841825317049};
+                                              0.30936865386382,
+                                              0.30936877899171,
+                                              0.30936877899171,
+                                              0.3093686200038};
     EXPECT_VEC_EQ(expected_counts, counts);
     EXPECT_VEC_SOFT_EQ(expected_lengths, lengths);
 }
@@ -323,6 +325,10 @@ TEST_F(FieldDriverTest, step_counts)
         0.99606836440819, 0.0001, 0.01, 1, 9.7158185571513, 0.0001, 0.01, 1,
         97.132215683182};
     // clang-format on
+
+    PRINT_EXPECTED(radii);
+    PRINT_EXPECTED(counts);
+    PRINT_EXPECTED(lengths);
 
     EXPECT_VEC_SOFT_EQ(expected_radii, radii);
     EXPECT_VEC_EQ(expected_counts, counts);
