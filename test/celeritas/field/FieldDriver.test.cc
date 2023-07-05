@@ -273,7 +273,7 @@ TEST_F(FieldDriverTest, step_counts)
     static double const expected_radii[] = {0.00010663611598835,
         0.0010663663247419, 0.010668826843187, 0.11173141982667,
         3.5019461121752, 333.73450257138, 33356.579970281};
-    static unsigned int const expected_counts[] = {4u, 93u, 776u, 786u, 1u,
+    static unsigned int const expected_counts[] = {5u, 93u, 776u, 786u, 1u,
         13u, 88u, 96u, 1u, 5u, 28u, 35u, 1u, 1u, 7u, 15u, 1u, 1u, 2u, 9u, 1u,
         1u, 1u, 5u, 1u, 1u, 1u, 2u};
     static double const expected_lengths[] = {0.0001, 0.01, 0.077563521220272,

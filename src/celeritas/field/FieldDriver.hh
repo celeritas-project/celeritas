@@ -95,7 +95,7 @@ class FieldDriver
                                                     OdeState const& state) const;
 
     // Propose a next step size from a given step size and associated error
-    inline CELER_FUNCTION real_type new_step_scale(real_type error) const;
+    inline CELER_FUNCTION real_type new_step_scale(real_type error_sq) const;
 
     //// COMMON PROPERTIES ////
 
@@ -158,14 +158,15 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
     CELER_ASSERT(output.end.step <= step);
 
     // Evaluate the relative error
-    real_type rel_error = output.err_sq
-                          / (options_.epsilon_step * output.end.step);
+    real_type rel_error_sq = output.err_sq
+                             / (options_.epsilon_step * output.end.step);
 
-    if (rel_error > 1)
+    if (rel_error_sq > 1)
     {
         // Discard the original end state and advance more accurately with the
         // newly proposed step
-        real_type next_step = step * this->new_step_scale(rel_error);
+        real_type next_step = step
+                              * this->new_step_scale(ipow<2>(rel_error_sq));
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
@@ -356,7 +357,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
         if (err_sq > 1)
         {
             // Truncation error too large, reduce stepsize with a low bound
-            step *= max(this->new_step_scale(std::sqrt(err_sq)),
+            step *= max(this->new_step_scale(err_sq),
                         options_.max_stepping_decrease);
         }
         else
@@ -371,7 +372,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
     output.end.step = step;
     output.proposed_step = step
                            * (err_sq > ipow<2>(options_.errcon)
-                                  ? this->new_step_scale(std::sqrt(err_sq))
+                                  ? this->new_step_scale(err_sq)
                                   : options_.max_stepping_increase);
 
     return output;
@@ -383,12 +384,12 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
  */
 template<class StepperT>
 CELER_FUNCTION real_type
-FieldDriver<StepperT>::new_step_scale(real_type rel_error) const
+FieldDriver<StepperT>::new_step_scale(real_type err_sq) const
 {
-    CELER_ASSERT(rel_error >= 0);
+    CELER_ASSERT(err_sq >= 0);
     return options_.safety
-           * fastpow(rel_error,
-                     rel_error > 1 ? options_.pshrink : options_.pgrow);
+           * fastpow(err_sq,
+                     half() * (err_sq > 1 ? options_.pshrink : options_.pgrow));
 }
 
 //---------------------------------------------------------------------------//
