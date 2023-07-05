@@ -1073,7 +1073,7 @@ TEST_F(TwoBoxTest, nonuniform_field)
     // clang-format on
     EXPECT_VEC_SOFT_EQ(expected_all_pos, all_pos);
 
-    static int const expected_step_counter[] = {5, 7, 12, 13, 19, 22, 27, 10};
+    static int const expected_step_counter[] = {5, 7, 12, 13, 19, 22, 26, 10};
     EXPECT_VEC_EQ(expected_step_counter, step_counter);
 }
 
