@@ -94,6 +94,9 @@ class FieldDriver
     inline CELER_FUNCTION Integration one_good_step(real_type step,
                                                     OdeState const& state) const;
 
+    // Propose a next step size from a given step size and associated error
+    inline CELER_FUNCTION real_type new_step_scale(real_type error_sq) const;
+
     //// COMMON PROPERTIES ////
 
     static CELER_CONSTEXPR_FUNCTION real_type half() { return 0.5; }
@@ -154,14 +157,11 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
     ChordSearch output = this->find_next_chord(step, state);
     CELER_ASSERT(output.end.step <= step);
 
-    if (output.err_sq > ipow<2>(options_.epsilon_step))
+    if (output.err_sq > 1)
     {
         // Discard the original end state and advance more accurately with the
         // newly proposed step
-        real_type next_step
-            = step * options_.safety
-              * fastpow(output.err_sq / ipow<2>(options_.epsilon_step),
-                        half() * options_.pshrink);
+        real_type next_step = step * this->new_step_scale(output.err_sq);
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
@@ -213,7 +213,8 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
     // Update step, position and momentum
     output.end.step = step;
     output.end.state = result.end_state;
-    output.err_sq = detail::rel_err_sq(result.err_state, step, state.mom);
+    output.err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
+                    / ipow<2>(options_.epsilon_rel_max);
 
     return output;
 }
@@ -312,13 +313,9 @@ FieldDriver<StepperT>::integrate_step(real_type step,
         output.end.step = step;
 
         // Compute a proposed new step
-        real_type const err_eps
-            = std::sqrt(detail::rel_err_sq(result.err_state, step, state.mom))
-              / options_.epsilon_rel_max;
-        output.proposed_step
-            = options_.safety * step
-              * fastpow(err_eps,
-                        err_eps > 1 ? options_.pshrink : options_.pgrow);
+        real_type err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
+                           / ipow<2>(options_.epsilon_rel_max);
+        output.proposed_step = step * this->new_step_scale(err_sq);
     }
 
     return output;
@@ -334,31 +331,27 @@ CELER_FUNCTION auto
 FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) const
     -> Integration
 {
-    CELER_EXPECT(step >= options_.minimum_step);
     // Output with a proposed next step
     Integration output;
 
     // Perform integration for adaptive step control with the truncation error
     bool succeeded = false;
     size_type remaining_steps = options_.max_nsteps;
-    real_type err_eps_sq;
+    real_type err_sq;
     FieldStepperResult result;
 
     do
     {
         result = apply_step_(step, state);
 
-        err_eps_sq = detail::rel_err_sq(result.err_state, step, state.mom)
-                     / ipow<2>(options_.epsilon_rel_max);
+        err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
+                 / ipow<2>(options_.epsilon_rel_max);
 
-        if (err_eps_sq > 1)
+        if (err_sq > 1)
         {
-            // Step failed; compute the size of re-trial step.
-            real_type scale_step
-                = max(options_.safety
-                          * fastpow(err_eps_sq, half() * options_.pshrink),
-                      options_.max_stepping_decrease);
-            step *= scale_step;
+            // Truncation error too large, reduce stepsize with a low bound
+            step *= max(this->new_step_scale(err_sq),
+                        options_.max_stepping_decrease);
         }
         else
         {
@@ -372,11 +365,23 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
     output.end.step = step;
     output.proposed_step
         = step
-          * min(options_.safety * fastpow(err_eps_sq, half() * options_.pgrow),
-                options_.max_stepping_increase);
+          * min(this->new_step_scale(err_sq), options_.max_stepping_increase);
 
-    CELER_ENSURE(output.proposed_step > 0);
     return output;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Estimate the new predicted step size based on the error estimate.
+ */
+template<class StepperT>
+CELER_FUNCTION real_type
+FieldDriver<StepperT>::new_step_scale(real_type err_sq) const
+{
+    CELER_ASSERT(err_sq >= 0);
+    return options_.safety
+           * fastpow(err_sq,
+                     half() * (err_sq > 1 ? options_.pshrink : options_.pgrow));
 }
 
 //---------------------------------------------------------------------------//

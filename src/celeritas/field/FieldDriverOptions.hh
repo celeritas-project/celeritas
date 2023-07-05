@@ -22,6 +22,7 @@ namespace celeritas
  * TODO: deletee errcon
  * it's a multiplicative factor for reducing the step, not anything with
  * geometry)
+ * TODO: remove errcon
  */
 struct FieldDriverOptions
 {

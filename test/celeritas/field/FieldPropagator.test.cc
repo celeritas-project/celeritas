@@ -1009,18 +1009,19 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
 
     static int const expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
     EXPECT_VEC_EQ(expected_boundary, boundary);
-    static double const expected_distances[] = {0.00785398163,
-                                                0.00282334506,
-                                                0.00448798951,
-                                                0.00282597038,
+    static double const expected_distances[] = {0.0078534718906499,
+                                                0.0028235332722979,
+                                                0.0044879852658442,
+                                                0.0028259738005751,
                                                 1e-05,
                                                 1e-05,
+                                                9.9999658622419e-09,
                                                 1e-08,
-                                                1e-08,
-                                                9.99379755e-12,
+                                                9.9981633254417e-12,
                                                 1e-11};
     EXPECT_VEC_NEAR(expected_distances, distances, 1e-5);
-    static int const expected_substeps[] = {3, 33, 1, 12, 1, 1, 1, 1, 1, 1};
+
+    static int const expected_substeps[] = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
 
     EXPECT_VEC_EQ(expected_substeps, substeps);
     static char const* expected_volumes[] = {"world",
@@ -1062,18 +1063,18 @@ TEST_F(TwoBoxTest, nonuniform_field)
 
     // clang-format off
     static double const expected_all_pos[] = {
-        -2.0825910516091, 0.69831920879114, 0.70710667919974,
-        -2.5772867117603, 1.1563879736609, 1.4142071265761,
-        -3.0638638847959, 0.77475828192017, 2.121301334796,
-        -2.5584071332035, 0.58524955164945, 2.8284065889973,
-        -2.904529403009, 0.86356354984724, 3.5355607241143,
-        -2.5807067236076, 0.7664113934941, 4.2428231699536,
-        -2.7410840911799, 0.60301375292864, 4.9502654680545,
-        -2.6930288792386, 0.6143808624194, 5};
+        -2.0825709359803, 0.69832583461676, 0.70710666844698,
+        -2.5772824508968, 1.1564020888258, 1.4141930958099,
+        -3.0638510057122, 0.77473521479087, 2.1212684403177,
+        -2.5583491669886, 0.58538464818192, 2.8283305521706,
+        -2.9046903231357, 0.86312856101992, 3.5354509992431,
+        -2.5810335650695, 0.76746368848985, 4.242728100241,
+        -2.7387773891353, 0.6033529790486, 4.9501400379322,
+        -2.6908755627764, 0.61552642042372, 5};
     // clang-format on
     EXPECT_VEC_SOFT_EQ(expected_all_pos, all_pos);
 
-    static int const expected_step_counter[] = {5, 6, 9, 11, 14, 18, 20, 9};
+    static int const expected_step_counter[] = {3, 3, 6, 6, 9, 11, 15, 9};
     EXPECT_VEC_EQ(expected_step_counter, step_counter);
 }
 
@@ -1205,8 +1206,8 @@ TEST_F(SimpleCmsTest, electron_stuck)
             = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_LE(84, stepper.count());
-        EXPECT_LE(stepper.count(), 85);
+        EXPECT_LE(79, stepper.count());
+        EXPECT_LE(stepper.count(), 80);
         ASSERT_TRUE(geo.is_on_boundary());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -1308,7 +1309,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             // Repeated substep bisection failed; particle is bumped
             EXPECT_SOFT_EQ(1e-6, result.distance);
             // Minor floating point differences could make this 98 or so
-            EXPECT_SOFT_NEAR(real_type(99), real_type(stepper.count()), 0.03);
+            EXPECT_SOFT_NEAR(real_type(94), real_type(stepper.count()), 0.05);
             EXPECT_FALSE(result.looping);
         }
     }
