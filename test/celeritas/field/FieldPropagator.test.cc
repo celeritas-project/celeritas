@@ -232,8 +232,8 @@ TEST_F(TwoBoxTest, electron_interior)
     EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
                        geo.dir());
     EXPECT_EQ(1, stepper.count());
-    EXPECT_EQ(1, geo.intersect_count());
-    EXPECT_EQ(0, geo.safety_count());
+    EXPECT_EQ(0, geo.intersect_count());
+    EXPECT_EQ(1, geo.safety_count());
 
     // Test the remaining quarter-turn divided into 20 steps
     {
@@ -246,7 +246,7 @@ TEST_F(TwoBoxTest, electron_interior)
             result = propagate(step / 25);
             EXPECT_SOFT_EQ(step / 25, result.distance);
             EXPECT_EQ(i + 1, stepper.count());
-            EXPECT_EQ(i + 1, geo.intersect_count());
+            EXPECT_EQ(0, geo.intersect_count());
             EXPECT_FALSE(result.boundary)
                 << "At " << geo.pos() << " along " << geo.dir();
         }
@@ -264,8 +264,8 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), 1e-6);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
         EXPECT_EQ(27, stepper.count());
-        EXPECT_EQ(7, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(6, geo.intersect_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
@@ -278,8 +278,8 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
         EXPECT_EQ(68, stepper.count());
-        EXPECT_EQ(14, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(13, geo.intersect_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
 
     // Test step that's smaller than driver's minimum (should take one
@@ -294,8 +294,8 @@ TEST_F(TwoBoxTest, electron_interior)
             Real3({3.8085385881855, -2.3814749713353e-07, 0}), geo.pos(), 1e-7);
         EXPECT_VEC_NEAR(Real3({6.2529888474538e-08, 1, 0}), geo.dir(), 1e-7);
         EXPECT_EQ(1, stepper.count());
-        EXPECT_EQ(1, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(0, geo.intersect_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
 }
 
@@ -787,8 +787,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
-        EXPECT_EQ(12, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(10, geo.intersect_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
     {
         SCOPED_TRACE("Hits y because the chord goes through x first");
@@ -817,8 +817,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
-        EXPECT_EQ(75, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(73, geo.intersect_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
     {
         SCOPED_TRACE("Barely (correctly) misses y");
@@ -841,8 +841,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
-        EXPECT_EQ(7, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(5, geo.intersect_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
 }
 
@@ -897,7 +897,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
                   1e-8)
             << geo.pos();
         EXPECT_EQ(1, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
     {
         SCOPED_TRACE("First step ends barely before boundary");
@@ -924,7 +924,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
             1e-6)
             << geo.pos();
         EXPECT_EQ(1, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
     {
         SCOPED_TRACE("First step ends BARELY before boundary");
@@ -951,7 +951,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
             1e-6)
             << geo.pos();
         EXPECT_EQ(1, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
     {
         SCOPED_TRACE("First step ends barely past boundary");
@@ -974,7 +974,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()), 1e-6)
             << geo.pos();
         EXPECT_EQ(1, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
     {
         SCOPED_TRACE("First step ends BARELY past boundary");
@@ -996,7 +996,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
                   1e-6)
             << geo.pos();
         EXPECT_EQ(1, geo.intersect_count());
-        EXPECT_EQ(0, geo.safety_count());
+        EXPECT_EQ(1, geo.safety_count());
     }
 }
 
