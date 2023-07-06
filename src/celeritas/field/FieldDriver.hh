@@ -36,6 +36,26 @@ namespace celeritas
  * a targeted relative error `epsilon_rel_max` based on the position and
  * momentum update.
  *
+ * This iteratively reduces the given step length until the sagitta is no more
+ * than \c delta_chord . The sagitta is calculated as the projection of the
+ * mid-step point onto the line between the start and end-step points.
+ *
+ * Each iteration reduces the step length by a factor of no more than \c
+ * min_chord_shrink , but is based on an approximate "exact" correction factor
+ * if the chord length is very small and the curve is circular.
+ * The sagitta \em h is related to the chord length \em s and radius of
+ * curvature \em r with the trig expression: \f[
+   r - h = r \cos \frac{s}{2r}
+  \f]
+ * For small chord lengths or a large radius, we expand
+ * \f$ \cos \theta \sim 1 \frac{\theta^2}{2} \f$, giving a radius of curvature
+ * \f[ r = \frac{s^2}{8h} \; . \f]
+ * Given a trial step (chord length) \em s and resulting sagitta of \em h,
+ * the exact step needed to give a chord length of \f$ \epsilon = {} \f$ \c
+ * delta_chord is \f[
+   s' = s \sqrt{\frac{\epsilon}{h}} \,.
+ * \f]
+ *
  * \note This class is based on G4ChordFinder and G4MagIntegratorDriver.
  */
 template<class StepperT>
@@ -192,26 +212,6 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
 //---------------------------------------------------------------------------//
 /*!
  * Find the maximum step length that satisfies a maximum "miss distance".
- *
- * This iteratively reduces the given step length until the sagitta is no more
- * than \c delta_chord . The sagitta is calculated as the projection of the
- * mid-step point onto the line between the start and end-step points.
- *
- * Each iteration reduces the step length by a factor of no more than \c
- * min_chord_shrink , but is based on an approximate "exact" correction factor
- * if the chord length is very small and the curve is circular.
- * The sagitta \em h is related to the chord length \em s and radius of
- * curvature \em r with the trig expression: \f[
-   r - h = r \cos \frac{s}{2r}
-  \f]
- * For small chord lengths or a large radius, we expand
- * \f$ \cos \theta \sim 1 \frac{\theta^2}{2} \f$, giving a radius of curvature
- * \f[ r = \frac{s^2}{8h} \; . \f]
- * Given a trial step (chord length) \em s and resulting sagitta of \em h,
- * the exact step needed to give a chord length of \f$ \epsilon = {} \f$ \c
- * delta_chord is \f[
-   s' = s \sqrt{\frac{\epsilon}{h}} \,.
- * \f]
  */
 template<class StepperT>
 CELER_FUNCTION auto
