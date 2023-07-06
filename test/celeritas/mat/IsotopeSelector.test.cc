@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -83,15 +83,11 @@ class IsotopeSelectorTest : public Test
                           "H2"}};
         mats = std::make_shared<MaterialParams>(std::move(inp));
         host_mats = mats->host_ref();
-
-        // Allocate storage
-        storage.assign(mats->max_element_components(), -1);
     }
 
     std::shared_ptr<MaterialParams> mats;
     MaterialParamsRef host_mats;
     RandomEngine rng;
-    std::vector<real_type> storage;
 };
 
 //---------------------------------------------------------------------------//
@@ -115,20 +111,20 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
 {
     std::size_t const num_loops = 1000;
 
-    // Diatomic hydrogen: two isotopes (fractions 0.9 and 0.1)
+    // Diatomic hydrogen: two isotopes (fractions 0.5 and 0.5)
     MaterialView mat_h2(host_mats, mats->find_material("H2"));
     auto const& element_h = mat_h2.make_element_view(ElementComponentId{0});
     IsotopeSelector select_iso_h(element_h);
 
-    double avg_iso_1h = 0;
-    double avg_iso_2h = 0;
+    double sampled_frac_1h = 0;
+    double sampled_frac_2h = 0;
     for ([[maybe_unused]] auto i : range(num_loops))
     {
         auto const id = select_iso_h(rng);
-        id == IsotopeComponentId{0} ? avg_iso_1h++ : avg_iso_2h++;
+        id == IsotopeComponentId{0} ? sampled_frac_1h++ : sampled_frac_2h++;
     }
-    avg_iso_1h /= num_loops;
-    avg_iso_2h /= num_loops;
+    sampled_frac_1h /= num_loops;
+    sampled_frac_2h /= num_loops;
 
     std::vector<real_type> expected_frac_h;
     for (auto const& iso_record : element_h.isotopes())
@@ -137,30 +133,30 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
     }
 
     EXPECT_EQ(2, expected_frac_h.size());
-    EXPECT_SOFT_NEAR(expected_frac_h[0], avg_iso_1h, std::sqrt(num_loops));
-    EXPECT_SOFT_NEAR(expected_frac_h[1], avg_iso_2h, std::sqrt(num_loops));
+    EXPECT_SOFT_NEAR(expected_frac_h[0], sampled_frac_1h, std::sqrt(num_loops));
+    EXPECT_SOFT_NEAR(expected_frac_h[1], sampled_frac_2h, std::sqrt(num_loops));
 
     // Sodium iodide: Iodide has 3 isotopes (fractions 0.05, 0.15, and 081)
     MaterialView mat_nai(host_mats, mats->find_material("NaI"));
     auto const& element_i = mat_nai.make_element_view(ElementComponentId{1});
     IsotopeSelector select_iso_i(element_i);
 
-    double avg_iso_125i = 0;
-    double avg_iso_126i = 0;
-    double avg_iso_127i = 0;
+    double sampled_frac_125i = 0;
+    double sampled_frac_126i = 0;
+    double sampled_frac_127i = 0;
     for ([[maybe_unused]] auto i : range(num_loops))
     {
         auto const id = select_iso_h(rng);
         if (id == IsotopeComponentId{0})
-            avg_iso_125i++;
+            sampled_frac_125i++;
         if (id == IsotopeComponentId{1})
-            avg_iso_126i++;
+            sampled_frac_126i++;
         if (id == IsotopeComponentId{2})
-            avg_iso_127i++;
+            sampled_frac_127i++;
     }
-    avg_iso_125i /= num_loops;
-    avg_iso_126i /= num_loops;
-    avg_iso_127i /= num_loops;
+    sampled_frac_125i /= num_loops;
+    sampled_frac_126i /= num_loops;
+    sampled_frac_127i /= num_loops;
 
     std::vector<real_type> expected_frac_i;
     for (auto const& iso_record : element_i.isotopes())
@@ -169,9 +165,12 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
     }
 
     EXPECT_EQ(3, expected_frac_i.size());
-    EXPECT_SOFT_NEAR(expected_frac_i[0], avg_iso_125i, std::sqrt(num_loops));
-    EXPECT_SOFT_NEAR(expected_frac_i[1], avg_iso_126i, std::sqrt(num_loops));
-    EXPECT_SOFT_NEAR(expected_frac_i[2], avg_iso_127i, std::sqrt(num_loops));
+    EXPECT_SOFT_NEAR(
+        expected_frac_i[0], sampled_frac_125i, std::sqrt(num_loops));
+    EXPECT_SOFT_NEAR(
+        expected_frac_i[1], sampled_frac_126i, std::sqrt(num_loops));
+    EXPECT_SOFT_NEAR(
+        expected_frac_i[2], sampled_frac_127i, std::sqrt(num_loops));
 }
 
 //---------------------------------------------------------------------------//
