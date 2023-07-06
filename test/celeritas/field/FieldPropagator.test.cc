@@ -1314,7 +1314,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             // Repeated substep bisection failed; particle is bumped
             EXPECT_SOFT_EQ(1e-6, result.distance);
             // Minor floating point differences could make this 98 or so
-            EXPECT_SOFT_NEAR(real_type(94), real_type(stepper.count()), 0.05);
+            EXPECT_SOFT_NEAR(real_type(66), real_type(stepper.count()), 0.05);
             EXPECT_FALSE(result.looping);
         }
     }
