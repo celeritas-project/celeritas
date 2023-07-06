@@ -58,7 +58,7 @@ class IsotopeSelectorTest : public Test
             // H
             {AtomicNumber{1},
              AmuMass{1.008},
-             {{IsotopeId{0}, 0.9}, {IsotopeId{1}, 0.1}},
+             {{IsotopeId{0}, 0.5}, {IsotopeId{1}, 0.5}},
              "H"},
             // Na
             {AtomicNumber{11}, AmuMass{22.98976928}, {{IsotopeId{2}, 1}}, "Na"},
@@ -130,15 +130,15 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
     avg_iso_1h /= num_loops;
     avg_iso_2h /= num_loops;
 
-    std::vector<real_type> fracs_h2;
+    std::vector<real_type> expected_frac_h;
     for (auto const& iso_record : element_h.isotopes())
     {
-        fracs_h2.push_back(iso_record.fraction);
+        expected_frac_h.push_back(iso_record.fraction);
     }
 
-    EXPECT_EQ(2, fracs_h2.size());
-    EXPECT_SOFT_NEAR(fracs_h2[0], avg_iso_1h, std::sqrt(num_loops));
-    EXPECT_SOFT_NEAR(fracs_h2[1], avg_iso_2h, std::sqrt(num_loops));
+    EXPECT_EQ(2, expected_frac_h.size());
+    EXPECT_SOFT_NEAR(expected_frac_h[0], avg_iso_1h, std::sqrt(num_loops));
+    EXPECT_SOFT_NEAR(expected_frac_h[1], avg_iso_2h, std::sqrt(num_loops));
 
     // Sodium iodide: Iodide has 3 isotopes (fractions 0.05, 0.15, and 081)
     MaterialView mat_nai(host_mats, mats->find_material("NaI"));
@@ -162,16 +162,16 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
     avg_iso_126i /= num_loops;
     avg_iso_127i /= num_loops;
 
-    std::vector<real_type> fracs_i;
+    std::vector<real_type> expected_frac_i;
     for (auto const& iso_record : element_i.isotopes())
     {
-        fracs_i.push_back(iso_record.fraction);
+        expected_frac_i.push_back(iso_record.fraction);
     }
 
-    EXPECT_EQ(3, fracs_i.size());
-    EXPECT_SOFT_NEAR(fracs_i[0], avg_iso_125i, std::sqrt(num_loops));
-    EXPECT_SOFT_NEAR(fracs_i[1], avg_iso_126i, std::sqrt(num_loops));
-    EXPECT_SOFT_NEAR(fracs_i[2], avg_iso_127i, std::sqrt(num_loops));
+    EXPECT_EQ(3, expected_frac_i.size());
+    EXPECT_SOFT_NEAR(expected_frac_i[0], avg_iso_125i, std::sqrt(num_loops));
+    EXPECT_SOFT_NEAR(expected_frac_i[1], avg_iso_126i, std::sqrt(num_loops));
+    EXPECT_SOFT_NEAR(expected_frac_i[2], avg_iso_127i, std::sqrt(num_loops));
 }
 
 //---------------------------------------------------------------------------//

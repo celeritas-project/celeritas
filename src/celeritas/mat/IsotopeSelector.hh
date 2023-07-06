@@ -54,14 +54,13 @@ template<class Engine>
 CELER_FUNCTION IsotopeComponentId IsotopeSelector::operator()(Engine& rng) const
 {
     auto const& isotopes = element_.isotopes();
-    real_type rand = generate_canonical(rng);
+    real_type cumulative = -generate_canonical(rng);
     size_type i = 0;
-    for (; i < element_.num_isotopes(); i++)
+    for (; i < isotopes.size(); ++i)
     {
-        if (rand < isotopes[i].fraction)
-        {
+        cumulative += isotopes[i].fraction;
+        if (cumulative > 0)
             break;
-        }
     }
     return IsotopeComponentId{i};
 }
