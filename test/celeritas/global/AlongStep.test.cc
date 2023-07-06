@@ -249,8 +249,8 @@ TEST_F(MockAlongStepFieldTest, basic)
         inp.energy = MevEnergy{0.1};
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0.0872, result.eloss);
-        EXPECT_SOFT_EQ(0.072315483508565, result.displacement);
-        EXPECT_SOFT_EQ(-0.78966779070793, result.angle);
+        EXPECT_SOFT_EQ(0.072418792650354114, result.displacement);
+        EXPECT_SOFT_EQ(-0.79121191105706501, result.angle);
         EXPECT_SOFT_EQ(1.1636639210937e-11, result.time);
         EXPECT_SOFT_EQ(0.14533333333333, result.step);
         EXPECT_SOFT_EQ(0.00013079999999999, result.mfp);

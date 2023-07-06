@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "accel/detail/HitProcessor.hh"
 
+#include <G4ParticleTable.hh>
+
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 #include "accel/SDTestBase.hh"
@@ -31,18 +34,23 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
 {
   protected:
     using VecLV = std::vector<G4LogicalVolume const*>;
-    using SPConstVecLV = std::shared_ptr<VecLV const>;
+    using VecParticle = HitProcessor::VecParticle;
+    using SPConstVecLV = HitProcessor::SPConstVecLV;
 
     void SetUp() override;
     SetStr detector_volumes() const final;
 
     SPConstVecLV make_detector_volumes();
+    VecParticle make_particles();
+    HitProcessor make_hit_processor();
+
     DetectorStepOutput make_dso() const;
 
     SimpleHitsResult const& get_hits(std::string const& name) const;
 
   protected:
     StepSelection selection_;
+    bool locate_touchable_{false};
 };
 
 //---------------------------------------------------------------------------//
@@ -53,6 +61,7 @@ void SimpleCmsTest::SetUp()
     selection_.points[StepPoint::pre].energy = true;
     selection_.points[StepPoint::pre].pos = true;
     selection_.points[StepPoint::post].time = true;
+    selection_.particle = true;
 }
 
 auto SimpleCmsTest::detector_volumes() const -> SetStr
@@ -78,6 +87,30 @@ auto SimpleCmsTest::make_detector_volumes() -> SPConstVecLV
         CELER_ASSERT(lv.back());
     }
     return std::make_shared<VecLV>(std::move(lv));
+}
+
+auto SimpleCmsTest::make_particles() -> VecParticle
+{
+    VecParticle result;
+    if (!selection_.particle)
+    {
+        return result;
+    }
+
+    auto& g4particles = *G4ParticleTable::GetParticleTable();
+    for (auto p : {pdg::gamma(), pdg::electron(), pdg::positron()})
+    {
+        result.push_back(g4particles.FindParticle(p.get()));
+    }
+    return result;
+}
+
+auto SimpleCmsTest::make_hit_processor() -> HitProcessor
+{
+    return HitProcessor{this->make_detector_volumes(),
+                        this->make_particles(),
+                        selection_,
+                        locate_touchable_};
 }
 
 auto SimpleCmsTest::get_hits(std::string const& name) const
@@ -135,13 +168,21 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             {0, 0, -1},
         };
     }
+    if (selection_.particle)
+    {
+        dso.particle = {
+            ParticleId{2},
+            ParticleId{1},
+            ParticleId{0},
+        };
+    }
     return dso;
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, no_touchable)
 {
-    HitProcessor process_hits{this->make_detector_volumes(), selection_, false};
+    HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
     process_hits(dso_hits);
     dso_hits.energy_deposition = {
@@ -168,6 +209,8 @@ TEST_F(SimpleCmsTest, no_touchable)
         static double const expected_energy_deposition[] = {0.2, 0.5};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
+        static char const* const expected_particle[] = {"e-", "e-"};
+        EXPECT_VEC_EQ(expected_particle, result.particle);
         static double const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
         static double const expected_pre_pos[] = {0, 150, 10, 0, 150, 10};
@@ -180,6 +223,8 @@ TEST_F(SimpleCmsTest, no_touchable)
         static double const expected_energy_deposition[] = {0.3, 0.6};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
+        static char const* const expected_particle[] = {"gamma", "gamma"};
+        EXPECT_VEC_EQ(expected_particle, result.particle);
         static double const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
         static double const expected_pre_pos[] = {0, 200, -20, 0, 200, -20};
@@ -192,8 +237,10 @@ TEST_F(SimpleCmsTest, no_touchable)
 //---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, touchable_midvol)
 {
+    selection_.particle = false;
     selection_.points[StepPoint::pre].dir = true;
-    HitProcessor process_hits{this->make_detector_volumes(), selection_, true};
+    locate_touchable_ = true;
+    HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
     process_hits(dso_hits);
     process_hits(dso_hits);
@@ -222,7 +269,8 @@ TEST_F(SimpleCmsTest, touchable_midvol)
 TEST_F(SimpleCmsTest, touchable_edgecase)
 {
     selection_.points[StepPoint::pre].dir = true;
-    HitProcessor process_hits{this->make_detector_volumes(), selection_, true};
+    locate_touchable_ = true;
+    HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
     auto& pos = dso_hits.points[StepPoint::pre].pos;
     auto& dir = dso_hits.points[StepPoint::pre].dir;

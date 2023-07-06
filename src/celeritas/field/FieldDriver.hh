@@ -22,7 +22,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Integrate with and control the quality of the field integration stepper.
+ * Advance the field state by a single substep based on user tolerances.
+ *
+ * The substep length is based on the radius of curvature for the step,
+ * ensuring that the "miss distance" (sagitta, the distance between the
+ * straight-line arc and the furthest point) is less than the \c delta_chord
+ * option. This target length is reduced into sub-substeps if necessary to meet
+ * a targeted relative error `epsilon_rel_max` based on the position and
+ * momentum update.
  *
  * \note This class is based on G4ChordFinder and G4MagIntegratorDriver.
  */
@@ -71,7 +78,7 @@ class FieldDriver
     struct ChordSearch
     {
         DriverResult end;  //!< Step taken and post-step state
-        real_type error;  //!< Stepper error
+        real_type err_sq;  //!< Square of the truncation error
     };
 
     struct Integration
@@ -95,8 +102,7 @@ class FieldDriver
                                                     OdeState const& state) const;
 
     // Propose a next step size from a given step size and associated error
-    inline CELER_FUNCTION real_type new_step_size(real_type step,
-                                                  real_type error) const;
+    inline CELER_FUNCTION real_type new_step_scale(real_type error_sq) const;
 
     //// COMMON PROPERTIES ////
 
@@ -158,15 +164,11 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
     ChordSearch output = this->find_next_chord(step, state);
     CELER_ASSERT(output.end.step <= step);
 
-    // Evaluate the relative error
-    real_type rel_error = output.error
-                          / (options_.epsilon_step * output.end.step);
-
-    if (rel_error > 1)
+    if (output.err_sq > 1)
     {
         // Discard the original end state and advance more accurately with the
         // newly proposed step
-        real_type next_step = this->new_step_size(step, rel_error);
+        real_type next_step = step * this->new_step_scale(output.err_sq);
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
@@ -176,8 +178,27 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the next acceptable chord of which the sagitta is smaller than
- * a given reference (delta_chord) and evaluate the associated error.
+ * Find the maximum step length that satisfies a maximum "miss distance".
+ *
+ * This iteratively reduces the given step length until the sagitta is no more
+ * than \c delta_chord . The sagitta is calculated as the projection of the
+ * mid-step point onto the line between the start and end-step points.
+ *
+ * Each iteration reduces the step length by a factor of no more than \c
+ * min_chord_shrink , but is based on an approximate "exact" correction factor
+ * if the chord length is very small and the curve is circular.
+ * The sagitta \em h is related to the chord length \em s and radius of
+ * curvature \em r with the trig expression: \f[
+   r - h = r \cos \frac{s}{2r}
+  \f]
+ * For small chord lengths or a large radius, we expand
+ * \f$ \cos \theta \sim 1 \frac{\theta^2}{2} \f$, giving a radius of curvature
+ * \f[ r = \frac{s^2}{8h} \; . \f]
+ * Given a trial step (chord length) \em s and resulting sagitta of \em h,
+ * the exact step needed to give a chord length of \f$ \epsilon = {} \f$ \c
+ * delta_chord is \f[
+   s' = s \sqrt{\frac{\epsilon}{h}} \,.
+ * \f]
  */
 template<class StepperT>
 CELER_FUNCTION auto
@@ -205,7 +226,9 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
         if (dchord > options_.delta_chord + options_.dchord_tol)
         {
             // Estimate a new trial chord with a relative scale
-            step *= max(std::sqrt(options_.delta_chord / dchord), half());
+            real_type scale_step = max(std::sqrt(options_.delta_chord / dchord),
+                                       options_.min_chord_shrink);
+            step *= scale_step;
         }
         else
         {
@@ -216,8 +239,8 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
     // Update step, position and momentum
     output.end.step = step;
     output.end.state = result.end_state;
-    output.error = detail::truncation_error(
-        step, options_.epsilon_rel_max, state, result.err_state);
+    output.err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
+                    / ipow<2>(options_.epsilon_rel_max);
 
     return output;
 }
@@ -313,14 +336,12 @@ FieldDriver<StepperT>::integrate_step(real_type step,
 
         // Update position and momentum
         output.end.state = result.end_state;
-
-        real_type dyerr = detail::truncation_error(
-            step, options_.epsilon_rel_max, state, result.err_state);
         output.end.step = step;
 
         // Compute a proposed new step
-        output.proposed_step = this->new_step_size(
-            step, dyerr / (options_.epsilon_step * step));
+        real_type err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
+                           / ipow<2>(options_.epsilon_rel_max);
+        output.proposed_step = step * this->new_step_scale(err_sq);
     }
 
     return output;
@@ -339,26 +360,24 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
     // Output with a proposed next step
     Integration output;
 
-    // Perform integration for adaptive step control with the trunction error
+    // Perform integration for adaptive step control with the truncation error
     bool succeeded = false;
     size_type remaining_steps = options_.max_nsteps;
-    real_type errmax2;
+    real_type err_sq;
     FieldStepperResult result;
 
     do
     {
         result = apply_step_(step, state);
-        errmax2 = detail::truncation_error(
-            step, options_.epsilon_rel_max, state, result.err_state);
 
-        if (errmax2 > 1)
+        err_sq = detail::rel_err_sq(result.err_state, step, state.mom)
+                 / ipow<2>(options_.epsilon_rel_max);
+
+        if (err_sq > 1)
         {
-            // Step failed; compute the size of re-trial step.
-            real_type htemp = options_.safety * step
-                              * fastpow(errmax2, half() * options_.pshrink);
-
             // Truncation error too large, reduce stepsize with a low bound
-            step = max(htemp, options_.max_stepping_decrease * step);
+            step *= max(this->new_step_scale(err_sq),
+                        options_.max_stepping_decrease);
         }
         else
         {
@@ -370,10 +389,9 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
     // Update state, step taken by this trial and the next predicted step
     output.end.state = result.end_state;
     output.end.step = step;
-    output.proposed_step = (errmax2 > ipow<2>(options_.errcon))
-                               ? options_.safety * step
-                                     * fastpow(errmax2, half() * options_.pgrow)
-                               : options_.max_stepping_increase * step;
+    output.proposed_step
+        = step
+          * min(this->new_step_scale(err_sq), options_.max_stepping_increase);
 
     return output;
 }
@@ -384,12 +402,12 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
  */
 template<class StepperT>
 CELER_FUNCTION real_type
-FieldDriver<StepperT>::new_step_size(real_type step, real_type rel_error) const
+FieldDriver<StepperT>::new_step_scale(real_type err_sq) const
 {
-    CELER_ASSERT(rel_error >= 0);
-    real_type scale_factor = fastpow(
-        rel_error, rel_error > 1 ? options_.pshrink : options_.pgrow);
-    return options_.safety * step * scale_factor;
+    CELER_ASSERT(err_sq >= 0);
+    return options_.safety
+           * fastpow(err_sq,
+                     half() * (err_sq > 1 ? options_.pshrink : options_.pgrow));
 }
 
 //---------------------------------------------------------------------------//

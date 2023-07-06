@@ -43,13 +43,16 @@ struct ImportEmParameters
     double msc_lambda_limit{0.1};
     //! Kill secondaries below production cut
     bool apply_cuts{false};
+    //! Nuclear screening factor for single/multiple Coulomb scattering
+    double screening_factor{1};
 
     //! Whether parameters are assigned and valid
     explicit operator bool() const
     {
         return linear_loss_limit > 0 && lowest_electron_energy > 0
                && msc_range_factor > 0 && msc_range_factor < 1
-               && msc_safety_factor >= 0.1 && msc_lambda_limit > 0;
+               && msc_safety_factor >= 0.1 && msc_lambda_limit > 0
+               && screening_factor > 0;
     }
 };
 

@@ -667,6 +667,7 @@ ImportEmParameters import_em_parameters()
     import.msc_safety_factor = g4.MscSafetyFactor();
     import.msc_lambda_limit = g4.MscLambdaLimit() / cm;
     import.apply_cuts = g4.ApplyCuts();
+    import.screening_factor = g4.ScreeningFactor();
 
     CELER_ENSURE(import);
     return import;

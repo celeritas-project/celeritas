@@ -9,8 +9,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/ArrayIO.hh"
-#include "corecel/io/ColorUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "orange/Types.hh"
