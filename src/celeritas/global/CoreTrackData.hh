@@ -12,6 +12,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialData.hh"
+#include "celeritas/geo/SafetyCacheData.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/phys/CutoffData.hh"
 #include "celeritas/phys/ParticleData.hh"
@@ -110,6 +111,7 @@ struct CoreStateData
     using ThreadItems = Collection<T, W, M, ThreadId>;
 
     GeoStateData<W, M> geometry;
+    SafetyCacheStateData<W, M> safety_cache;
     MaterialStateData<W, M> materials;
     ParticleStateData<W, M> particles;
     PhysicsStateData<W, M> physics;
@@ -127,8 +129,8 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && materials && particles && physics && rng && sim
-               && init && stream_id;
+        return geometry && safety_cache && materials && particles && physics
+               && rng && sim && init && stream_id;
     }
 
     //! Assign from another set of data
@@ -137,6 +139,7 @@ struct CoreStateData
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
+        safety_cache = other.safety_cache;
         materials = other.materials;
         particles = other.particles;
         physics = other.physics;

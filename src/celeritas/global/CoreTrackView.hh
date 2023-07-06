@@ -10,6 +10,7 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/SafetyCacheTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -46,6 +47,15 @@ class CoreTrackView
 
     // Return a geometry view
     inline CELER_FUNCTION GeoTrackView make_geo_view() const;
+
+    // Return a safety cache view that owns a geometry track view
+    inline CELER_FUNCTION SafetyCacheTrackView<GeoTrackView>
+    make_safety_cache_view() const;
+
+    // Return a safety cache view from an existing geometry track view
+    template<class GTV>
+    inline CELER_FUNCTION SafetyCacheTrackView<GTV>
+    make_safety_cache_view(GTV&& geo_view) const;
 
     // Return a geometry-material view
     inline CELER_FUNCTION GeoMaterialView make_geo_material_view() const;
@@ -127,6 +137,29 @@ CELER_FUNCTION auto CoreTrackView::make_geo_view() const -> GeoTrackView
 {
     return GeoTrackView{
         params_.geometry, states_.geometry, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a safety cache view from an existing geometry view.
+ */
+CELER_FUNCTION auto CoreTrackView::make_safety_cache_view() const
+    -> SafetyCacheTrackView<GeoTrackView>
+{
+    return this->make_safety_cache_view(this->make_geo_view());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a safety cache view from an existing geometry view.
+ */
+template<class GTV>
+CELER_FUNCTION auto CoreTrackView::make_safety_cache_view(GTV&& geo_view) const
+    -> SafetyCacheTrackView<GTV>
+{
+    return SafetyCacheTrackView{::celeritas::forward<GTV>(geo_view),
+                                states_.safety_cache,
+                                this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

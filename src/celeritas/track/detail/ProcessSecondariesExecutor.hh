@@ -15,6 +15,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/SafetyCacheTrackView.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -126,21 +127,37 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 
             if (!initialized && sim.status() != TrackStatus::alive)
             {
-                ParticleTrackView particle(
-                    params->particles, state->particles, tid);
-                PhysicsTrackView phys(
-                    params->physics, state->physics, {}, {}, tid);
-
                 // The parent was killed, so initialize the first secondary in
-                // the parent's track slot. Keep the parent's geometry state
-                // but get the direction from the secondary. Reset the physics
-                // state so the multiple scattering range properties are
-                // cleared. The material state will be the same as the
-                // parent's.
+                // the parent's track slot.
                 sim = ti.sim;
+                bool use_safety;
+                {
+                    ParticleTrackView particle(
+                        params->particles, state->particles, tid);
+
+                    particle = ti.particle;
+                    use_safety = particle.use_safety();
+                }
+                // Keep the parent's geometry state but get the direction from
+                // the secondary.
                 geo = GeoTrackView::DetailedInitializer{geo, ti.geo.dir};
-                particle = ti.particle;
-                phys = {};
+
+                // Update the safety cache since 'use_safety' may have changed
+                {
+                    SafetyCacheTrackView cache{geo, state->safety_cache, tid};
+                    cache = {cache, use_safety};
+                }
+
+                // The material state will be the same as the parent's.
+
+                // Reset the physics state so the multiple scattering range
+                // properties are cleared
+                {
+                    PhysicsTrackView phys(
+                        params->physics, state->physics, {}, {}, tid);
+
+                    phys = {};
+                }
                 initialized = true;
 
                 // TODO: make it easier to determine what states need to be

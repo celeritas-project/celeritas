@@ -14,6 +14,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/SafetyCacheTrackView.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -92,15 +93,18 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     }
 
     // Initialize the particle physics data
+    bool use_safety;
     {
         ParticleTrackView particle(
             params->particles, state->particles, vacancy);
         particle = init.particle;
+        use_safety = particle.use_safety();
     }
 
-    // Initialize the geometry
+    // Initialize the geometry and safety cache
     {
         GeoTrackView geo(params->geometry, state->geometry, vacancy);
+        SafetyCacheTrackView cache{geo, state->safety_cache, vacancy};
         if (tid < counters.num_secondaries)
         {
             // Copy the geometry state from the parent for improved
@@ -110,6 +114,13 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
             GeoTrackView const parent_geo(
                 params->geometry, state->geometry, parent_id);
             geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
+
+            // Copy the safety cache
+            SafetyCacheTrackView const parent_cache{
+                parent_geo, state->safety_cache, parent_id};
+            using SafetyDetailedInit =
+                typename decltype(parent_cache)::DetailedInitializer;
+            cache = SafetyDetailedInit{parent_cache, use_safety};
         }
         else
         {
@@ -121,6 +132,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
                            << "track started outside the geometry at "
                            << init.geo.pos);
 #endif
+            cache = SafetyCacheInitializer{use_safety};
         }
 
         // Initialize the material

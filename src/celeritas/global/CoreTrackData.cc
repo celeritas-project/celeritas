@@ -33,6 +33,7 @@ void resize(CoreStateData<Ownership::value, M>* state,
     // Geant4 state is stream-local
     resize(&state->geometry, params.geometry, stream_id, size);
 #endif
+    resize(&state->safety_cache, size);
     resize(&state->materials, params.materials, size);
     resize(&state->particles, params.particles, size);
     resize(&state->physics, params.physics, size);
