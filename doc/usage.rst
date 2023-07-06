@@ -39,6 +39,30 @@ of ``target_link_libraries`` with a customized version::
   include(CeleritasLibrary)
   celeritas_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
 
+As ``celeritas_target_link_libraries`` decays to ``target_link_libraries`` if
+CUDA and VecGeom are not used, you can use it safely to link nearly all targets consuming
+Celeritas, or Celeritas consumers, in your project to track the appropriate sequence
+of linking for the final application whether CPU-only or CUDA enabled::
+
+  add_library(myconsumer SHARED ...)
+  celeritas_target_link_libraries(myconsumer PUBLIC Celeritas::celeritas)
+
+  add_executable(myapplication ...)
+  celeritas_target_link_libraries(myapplication PRIVATE myconsumer)
+
+The one exception to this is when your project builds a shared library that will
+be loaded into an application at runtime (e.g. via ``dlopen``). To correctly link
+targets of this type, you should use ``target_link_libraries`` and link to both
+the primary Celeritas target and its device code counterpart::
+
+  add_library(myplugin MODULE ...)
+  target_link_libraries(myplugin PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
+
+Celeritas device code counterpart target names are always the name of the primary
+target appended with ``_final``. They are only present if Celeritas was built with CUDA
+support so it is recommended to use the CMake generator expression above to support
+CUDA or CPU-only builds transparently.
+
 The :ref:`example_minimal` example demonstrates how to use Celeritas as a
 library with a short standalone CMake project.
 
