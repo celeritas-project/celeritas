@@ -46,7 +46,9 @@ struct FieldPropagatorOptions
  * the closest distance between two positions by the field stepper and the
  * linear projection to the volume boundary.
  *
- * \note This follows similar methods as in Geant4's G4PropagatorInField class.
+ * \note The equivalent computations in Geant4 are performed in
+ * \c G4PropagatorInField::ComputeStep and
+ * \c G4VIntersectionLocator::IntersectChord
  */
 template<class DriverT, class GTV>
 class FieldPropagator
