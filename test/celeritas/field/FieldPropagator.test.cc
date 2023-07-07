@@ -31,6 +31,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "CMSParameterizedField.hh"
+#include "DiagnosticGeoTrackView.hh"
 #include "DiagnosticStepper.hh"
 #include "celeritas_test.hh"
 
@@ -52,9 +53,17 @@ using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 
 class FieldPropagatorTestBase : public GenericCoreGeoTestBase
 {
-  public:
-    using SPConstParticle = std::shared_ptr<ParticleParams const>;
+    using Base = GenericCoreGeoTestBase;
 
+  public:
+    //!@{
+    //! \name Type aliases
+    using SPConstParticle = std::shared_ptr<ParticleParams const>;
+    using DGeoTrackView
+        = DiagnosticGeoTrackView<GenericCoreGeoTestBase::GeoTrackView>;
+    //!@}
+
+  public:
     void SetUp() override;
 
     SPConstParticle const& particle() const
@@ -74,9 +83,9 @@ class FieldPropagatorTestBase : public GenericCoreGeoTestBase
         return view;
     }
 
-    template<class Field>
+    template<class Field, class GTV>
     real_type calc_field_curvature(ParticleTrackView const& particle,
-                                   GeoTrackView const& geo,
+                                   GTV const& geo,
                                    Field const& calc_field) const
     {
         auto field_strength = norm(calc_field(geo.pos()));
@@ -88,6 +97,18 @@ class FieldPropagatorTestBase : public GenericCoreGeoTestBase
     SPConstGeo build_geometry() final
     {
         return this->build_geometry_from_basename();
+    }
+
+    //! Get a single-thread host track view
+    DGeoTrackView make_geo_track_view()
+    {
+        return DGeoTrackView{Base::make_geo_track_view()};
+    }
+
+    //! Get and initialize a single-thread host track view
+    DGeoTrackView make_geo_track_view(Real3 const& pos, Real3 dir)
+    {
+        return DGeoTrackView{Base::make_geo_track_view(pos, dir)};
     }
 
   private:
@@ -211,9 +232,12 @@ TEST_F(TwoBoxTest, electron_interior)
     EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
                        geo.dir());
     EXPECT_EQ(1, stepper.count());
+    EXPECT_EQ(1, geo.intersect_count());
+    EXPECT_EQ(0, geo.safety_count());
 
     // Test the remaining quarter-turn divided into 20 steps
     {
+        geo.reset_count();
         stepper.reset_count();
         real_type step = 0.5 * pi * radius - 1e-2;
         for (auto i : range(25))
@@ -222,6 +246,7 @@ TEST_F(TwoBoxTest, electron_interior)
             result = propagate(step / 25);
             EXPECT_SOFT_EQ(step / 25, result.distance);
             EXPECT_EQ(i + 1, stepper.count());
+            EXPECT_EQ(i + 1, geo.intersect_count());
             EXPECT_FALSE(result.boundary)
                 << "At " << geo.pos() << " along " << geo.dir();
         }
@@ -232,29 +257,36 @@ TEST_F(TwoBoxTest, electron_interior)
     // Test a very long (next quarter-turn) step
     {
         SCOPED_TRACE("Quarter turn");
+        geo.reset_count();
         stepper.reset_count();
         result = propagate(0.5 * pi * radius);
         EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), 1e-6);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
         EXPECT_EQ(27, stepper.count());
+        EXPECT_EQ(7, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
     {
         SCOPED_TRACE("Half turn");
+        geo.reset_count();
         stepper.reset_count();
         result = propagate(pi * radius);
         EXPECT_SOFT_EQ(pi * radius, result.distance);
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
         EXPECT_EQ(68, stepper.count());
+        EXPECT_EQ(14, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
 
     // Test step that's smaller than driver's minimum (should take one
     // iteration in the propagator loop)
     {
         stepper.reset_count();
+        geo.reset_count();
         result = propagate(1e-10);
         EXPECT_DOUBLE_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
@@ -262,6 +294,8 @@ TEST_F(TwoBoxTest, electron_interior)
             Real3({3.8085385881855, -2.3814749713353e-07, 0}), geo.pos(), 1e-7);
         EXPECT_VEC_NEAR(Real3({6.2529888474538e-08, 1, 0}), geo.dir(), 1e-7);
         EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ(1, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
 }
 
@@ -753,6 +787,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
+        EXPECT_EQ(12, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
     {
         SCOPED_TRACE("Hits y because the chord goes through x first");
@@ -781,6 +817,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
+        EXPECT_EQ(75, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
     {
         SCOPED_TRACE("Barely (correctly) misses y");
@@ -803,6 +841,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
+        EXPECT_EQ(7, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
 }
 
@@ -827,8 +867,9 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         Real3 start_pos{-5 + start_delta, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        geo = GeoTrackInitializer{start_pos, {0, 1, 0}};
         stepper.reset_count();
+        geo.reset_count();
+        geo = GeoTrackInitializer{start_pos, {0, 1, 0}};
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
         return propagate(first_step - move_delta);
@@ -855,6 +896,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
                            geo.pos()),
                   1e-8)
             << geo.pos();
+        EXPECT_EQ(1, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
     {
         SCOPED_TRACE("First step ends barely before boundary");
@@ -880,6 +923,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
                      geo.pos()),
             1e-6)
             << geo.pos();
+        EXPECT_EQ(1, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
     {
         SCOPED_TRACE("First step ends BARELY before boundary");
@@ -905,6 +950,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
                      geo.pos()),
             1e-6)
             << geo.pos();
+        EXPECT_EQ(1, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
     {
         SCOPED_TRACE("First step ends barely past boundary");
@@ -926,6 +973,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()), 1e-6)
             << geo.pos();
+        EXPECT_EQ(1, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
     {
         SCOPED_TRACE("First step ends BARELY past boundary");
@@ -946,6 +995,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         EXPECT_LT(distance(Real3{-5, -4.3877702173875065e-07, 0}, geo.pos()),
                   1e-6)
             << geo.pos();
+        EXPECT_EQ(1, geo.intersect_count());
+        EXPECT_EQ(0, geo.safety_count());
     }
 }
 
