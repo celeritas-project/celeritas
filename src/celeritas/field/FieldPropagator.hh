@@ -196,23 +196,22 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         }
 
         Propagation linear_step;
-        safety -= chord.length;
+        linear_step.distance = chord.length + driver_.delta_intersection();
+        safety -= linear_step.distance;
         if (safety < 0 && !result.boundary)
         {
             // Calculate the nearest boundary distance, up to the possible
             // remaining step length
-            safety = geo_.find_safety(remaining) - chord.length;
+            safety = geo_.find_safety(remaining) - linear_step.distance;
         }
 
         if (safety > 0)
         {
             linear_step.boundary = false;
-            linear_step.distance = chord.length;
         }
         else
         {
-            linear_step = geo_.find_next_step(chord.length
-                                              + driver_.delta_intersection());
+            linear_step = geo_.find_next_step(linear_step.distance);
         }
 
         // Scale the effective substep length to travel by the fraction along
@@ -290,6 +289,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             // Decrease the allowed substep (curved path distance) by the
             // fraction along the chord, and retry the driver step.
             remaining = update_length;
+            // Revert safety trial
+            safety += chord.length;
         }
     } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
 
