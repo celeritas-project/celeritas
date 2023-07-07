@@ -80,10 +80,11 @@ class SafetyCacheTrackView : public detail::SafetyCacheTrackViewBase
     //! Whether the given point is inside the safety sphere
     using Base::is_inside;
 
-    //! Calculate the cached safety distance at the current position
+    //! Calculate the cached safety distance at the current position (must be
+    //! inside)
     CELER_FIF real_type safety() const
     {
-        return Base::calc_safety(geo_.pos());
+        return Base::calc_safety_inside(geo_.pos());
     }
 
     // Calculate or return the safety up to the given distance
@@ -160,7 +161,7 @@ class SafetyCacheTrackView<GTV const&> : public detail::SafetyCacheTrackViewBase
     //! Calculate the cached safety distance at the current position
     CELER_FIF real_type safety() const
     {
-        return Base::calc_safety(geo_.pos());
+        return Base::calc_safety_inside(geo_.pos());
     }
 
     //!@{

@@ -97,6 +97,10 @@ class SafetyCacheTrackViewBase
     // Calculate the distance to the edge of the current safety sphere
     inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
+    // Calculate the distance to the edge of the current safety sphere when
+    // inside
+    inline CELER_FUNCTION real_type calc_safety_inside(Real3 const& pos) const;
+
   private:
     StateRef const& state_;
     TrackSlotId tid_;
@@ -155,9 +159,9 @@ CELER_FUNCTION bool SafetyCacheTrackViewBase::is_inside(Real3 const& pos) const
  * Calculate the distance from the point to the edge of the safety sphere.
  *
  * This is just the distance from the given point to the edge of the safety
- * sphere.
- *
- * \note The input position must be within the safety sphere.
+ * sphere. If the current point is *outside* the sphere (because e.g. the
+ * position was updated *without* using the safety cache) then the result will
+ * be negative.
  */
 CELER_FUNCTION real_type
 SafetyCacheTrackViewBase::calc_safety(Real3 const& pos) const
@@ -167,10 +171,15 @@ SafetyCacheTrackViewBase::calc_safety(Real3 const& pos) const
         return 0;
 
     real_type to_origin = celeritas::distance(this->origin(), pos);
-    CELER_EXPECT(to_origin <= this->radius());
     return this->radius() - to_origin;
 }
-
+CELER_FUNCTION real_type
+SafetyCacheTrackViewBase::calc_safety_inside(Real3 const& pos) const
+{
+    real_type sft = this->calc_safety(pos);
+    CELER_ENSURE(sft >= 0);
+    return sft;
+}
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
