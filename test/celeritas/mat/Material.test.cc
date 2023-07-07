@@ -24,6 +24,7 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/mat/detail/Utils.hh"
 
+#include "MaterialTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -103,91 +104,12 @@ TEST(MaterialUtils, radiation_length)
 namespace test
 {
 //---------------------------------------------------------------------------//
-class MaterialTest : public Test
+class MaterialTest : public MaterialTestBase, public Test
 {
   protected:
-    void SetUp() override
-    {
-        MaterialParams::Input inp;
+    void SetUp() override { params = build_material(); }
 
-        // Using nuclear masses provided by Geant4 11.0.3
-        inp.isotopes = {
-            // H
-            {AtomicNumber{1}, AtomicNumber{1}, units::MevMass{938.272}, "1H"},
-            {AtomicNumber{1}, AtomicNumber{2}, units::MevMass{1875.61}, "2H"},
-            // Al
-            {AtomicNumber{13},
-             AtomicNumber{27},
-             units::MevMass{25126.5},
-             "27Al"},
-            {AtomicNumber{13},
-             AtomicNumber{28},
-             units::MevMass{26058.3},
-             "28Al"},
-            // Na
-            {AtomicNumber{11},
-             AtomicNumber{23},
-             units::MevMass{21409.2},
-             "23Na"},
-            // I
-            {AtomicNumber{53},
-             AtomicNumber{125},
-             units::MevMass{116321},
-             "125I"},
-            {AtomicNumber{53},
-             AtomicNumber{126},
-             units::MevMass{117253},
-             "126I"},
-            {AtomicNumber{53},
-             AtomicNumber{127},
-             units::MevMass{118184},
-             "127I"}};
-
-        inp.elements = {
-            {AtomicNumber{1},
-             units::AmuMass{1.008},
-             {{IsotopeId{0}, 0.9}, {IsotopeId{1}, 0.1}},
-             "H"},
-            {AtomicNumber{13},
-             units::AmuMass{26.9815385},
-             {{IsotopeId{2}, 0.7}, {IsotopeId{3}, 0.3}},
-             "Al"},
-            {AtomicNumber{11},
-             units::AmuMass{22.98976928},
-             {{IsotopeId{4}, 1}},
-             "Na"},
-            {AtomicNumber{53},
-             units::AmuMass{126.90447},
-             {{IsotopeId{5}, 0.05}, {IsotopeId{6}, 0.15}, {IsotopeId{7}, 0.8}},
-             "I"},
-        };
-
-        inp.materials = {
-            // Sodium iodide
-            {2.948915064677e+22,
-             293.0,
-             MatterState::solid,
-             {{ElementId{2}, 0.5}, {ElementId{3}, 0.5}},
-             "NaI"},
-            // Void
-            {0, 0, MatterState::unspecified, {}, "hard vacuum"},
-            // Diatomic hydrogen
-            {1.0739484359044669e+20,
-             100.0,
-             MatterState::gas,
-             {{ElementId{0}, 1.0}},
-             Label{"H2", "1"}},
-            // Diatomic hydrogen with the same name and different properties
-            {1.072e+20,
-             110.0,
-             MatterState::gas,
-             {{ElementId{0}, 1.0}},
-             Label{"H2", "2"}},
-        };
-        params = std::make_shared<MaterialParams>(std::move(inp));
-    }
-
-    std::shared_ptr<MaterialParams> params;
+    SPConstMaterial params;
 };
 
 //---------------------------------------------------------------------------//
