@@ -160,14 +160,12 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
     result.boundary = geo_.is_on_boundary();
     result.distance = 0;
 
-    // Calculate the nearest boundary distance, up to the possible step length
-    real_type safety = result.boundary ? 0 : geo_.find_safety(step);
-
     // Break the curved steps into substeps as determined by the driver *and*
     // by the proximity of geometry boundaries. Test for intersection with the
     // geometry boundary in each substep. This loop is guaranteed to converge
     // since the trial step always decreases *or* the actual position advances.
     real_type remaining = step;
+    real_type safety = 0;
     auto remaining_substeps = this->max_substeps();
     do
     {
@@ -199,6 +197,13 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
 
         Propagation linear_step;
         safety -= chord.length;
+        if (safety < 0 && !result.boundary)
+        {
+            // Calculate the nearest boundary distance, up to the possible
+            // remaining step length
+            safety = geo_.find_safety(remaining) - chord.length;
+        }
+
         if (safety > 0)
         {
             linear_step.boundary = false;

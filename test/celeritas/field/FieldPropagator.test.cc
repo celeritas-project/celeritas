@@ -264,8 +264,8 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), 1e-6);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
         EXPECT_EQ(27, stepper.count());
-        EXPECT_EQ(6, geo.intersect_count());
-        EXPECT_EQ(1, geo.safety_count());
+        EXPECT_EQ(0, geo.intersect_count());
+        EXPECT_EQ(6, geo.safety_count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
@@ -278,8 +278,8 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
         EXPECT_EQ(68, stepper.count());
-        EXPECT_EQ(13, geo.intersect_count());
-        EXPECT_EQ(1, geo.safety_count());
+        EXPECT_EQ(0, geo.intersect_count());
+        EXPECT_EQ(12, geo.safety_count());
     }
 
     // Test step that's smaller than driver's minimum (should take one
@@ -788,7 +788,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
         EXPECT_EQ(10, geo.intersect_count());
-        EXPECT_EQ(1, geo.safety_count());
+        EXPECT_EQ(11, geo.safety_count());
     }
     {
         SCOPED_TRACE("Hits y because the chord goes through x first");
@@ -818,7 +818,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
         EXPECT_EQ(73, geo.intersect_count());
-        EXPECT_EQ(1, geo.safety_count());
+        EXPECT_EQ(74, geo.safety_count());
     }
     {
         SCOPED_TRACE("Barely (correctly) misses y");
@@ -842,7 +842,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
         EXPECT_EQ(5, geo.intersect_count());
-        EXPECT_EQ(1, geo.safety_count());
+        EXPECT_EQ(6, geo.safety_count());
     }
 }
 
