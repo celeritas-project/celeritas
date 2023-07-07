@@ -55,8 +55,9 @@ CELER_FUNCTION IsotopeComponentId IsotopeSelector::operator()(Engine& rng) const
 {
     auto const& isotopes = element_.isotopes();
     real_type cumulative = -generate_canonical(rng);
+    size_type imax = isotopes.size() - 1;
     size_type i = 0;
-    for (; i < isotopes.size(); ++i)
+    for (; i < imax; ++i)
     {
         cumulative += isotopes[i].fraction;
         if (cumulative > 0)

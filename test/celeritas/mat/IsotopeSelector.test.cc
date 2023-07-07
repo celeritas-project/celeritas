@@ -13,6 +13,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/random/SequenceEngine.hh"
 
+#include "MaterialTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -26,7 +27,7 @@ using MaterialParamsRef = MaterialParams::HostRef;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class IsotopeSelectorTest : public Test
+class IsotopeSelectorTest : public MaterialTestBase, public Test
 {
   public:
     //!@{
@@ -37,55 +38,11 @@ class IsotopeSelectorTest : public Test
   protected:
     void SetUp() override
     {
-        using units::AmuMass;
-        using units::MevMass;
-
-        MaterialParams::Input inp;
-
-        // Using nuclear masses provided by Geant4 11.0.3
-        inp.isotopes = {
-            // H
-            {AtomicNumber{1}, AtomicNumber{1}, MevMass{938.272}, "1H"},
-            {AtomicNumber{1}, AtomicNumber{2}, MevMass{1875.61}, "2H"},
-            // Na
-            {AtomicNumber{11}, AtomicNumber{23}, MevMass{21409.2}, "23Na"},
-            // I
-            {AtomicNumber{53}, AtomicNumber{125}, MevMass{116321}, "125I"},
-            {AtomicNumber{53}, AtomicNumber{126}, MevMass{117253}, "126I"},
-            {AtomicNumber{53}, AtomicNumber{127}, MevMass{118184}, "127I"}};
-
-        inp.elements = {
-            // H
-            {AtomicNumber{1},
-             AmuMass{1.008},
-             {{IsotopeId{0}, 0.5}, {IsotopeId{1}, 0.5}},
-             "H"},
-            // Na
-            {AtomicNumber{11}, AmuMass{22.98976928}, {{IsotopeId{2}, 1}}, "Na"},
-            // I
-            {AtomicNumber{53},
-             AmuMass{126.90447},
-             {{IsotopeId{3}, 0.05}, {IsotopeId{4}, 0.15}, {IsotopeId{5}, 0.8}},
-             "I"},
-        };
-
-        inp.materials = {// Sodium iodide
-                         {2.948915064677e+22,
-                          293.0,
-                          MatterState::solid,
-                          {{ElementId{1}, 0.5}, {ElementId{2}, 0.5}},
-                          "NaI"},
-                         // Diatomic hydrogen
-                         {1.0739484359044669e+20,
-                          100.0,
-                          MatterState::gas,
-                          {{ElementId{0}, 1.0}},
-                          "H2"}};
-        mats = std::make_shared<MaterialParams>(std::move(inp));
+        mats = build_material();
         host_mats = mats->host_ref();
     }
 
-    std::shared_ptr<MaterialParams> mats;
+    SPConstMaterial mats;
     MaterialParamsRef host_mats;
     RandomEngine rng;
 };
@@ -111,8 +68,8 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
 {
     std::size_t const num_loops = 1000;
 
-    // Diatomic hydrogen: two isotopes (fractions 0.5 and 0.5)
-    MaterialView mat_h2(host_mats, mats->find_material("H2"));
+    // Diatomic hydrogen: two isotopes (fractions 0.9 and 0.1)
+    MaterialView mat_h2(host_mats, MaterialId{2});
     auto const& element_h = mat_h2.make_element_view(ElementComponentId{0});
     IsotopeSelector select_iso_h(element_h);
 
@@ -136,7 +93,7 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
     EXPECT_SOFT_NEAR(expected_frac_h[0], sampled_frac_1h, std::sqrt(num_loops));
     EXPECT_SOFT_NEAR(expected_frac_h[1], sampled_frac_2h, std::sqrt(num_loops));
 
-    // Sodium iodide: Iodide has 3 isotopes (fractions 0.05, 0.15, and 081)
+    // Sodium iodide: Iodide has 3 isotopes (fractions 0.05, 0.15, and 0.8)
     MaterialView mat_nai(host_mats, mats->find_material("NaI"));
     auto const& element_i = mat_nai.make_element_view(ElementComponentId{1});
     IsotopeSelector select_iso_i(element_i);
