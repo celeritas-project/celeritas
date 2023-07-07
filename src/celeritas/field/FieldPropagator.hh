@@ -204,7 +204,9 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         {
             // Calculate the nearest boundary distance, up to the possible
             // remaining step length
-            safety = geo_.find_safety(remaining) - linear_step.distance;
+            safety = geo_.find_safety(remaining
+                                      + 2 * driver_.delta_intersection())
+                     - linear_step.distance;
         }
 
         if (safety > 0)

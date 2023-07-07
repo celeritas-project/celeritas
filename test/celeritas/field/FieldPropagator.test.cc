@@ -232,7 +232,7 @@ TEST_F(TwoBoxTest, electron_interior)
     EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
                        geo.dir());
     EXPECT_EQ(1, stepper.count());
-    EXPECT_EQ(1, geo.intersect_count());
+    EXPECT_EQ(0, geo.intersect_count());
     EXPECT_EQ(1, geo.safety_count());
 
     // Test the remaining quarter-turn divided into 20 steps
@@ -294,7 +294,7 @@ TEST_F(TwoBoxTest, electron_interior)
             Real3({3.8085385881855, -2.3814749713353e-07, 0}), geo.pos(), 1e-7);
         EXPECT_VEC_NEAR(Real3({6.2529888474538e-08, 1, 0}), geo.dir(), 1e-7);
         EXPECT_EQ(1, stepper.count());
-        EXPECT_EQ(1, geo.intersect_count());
+        EXPECT_EQ(0, geo.intersect_count());
         EXPECT_EQ(1, geo.safety_count());
     }
 }

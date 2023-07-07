@@ -7,6 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
+
+#include "corecel/Types.hh"
+#include "orange/Types.hh"
+
 namespace celeritas
 {
 namespace test
