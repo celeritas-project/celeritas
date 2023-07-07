@@ -13,6 +13,8 @@
 #include "detail/ElossApplier.hh"  // IWYU pragma: associated
 #include "detail/MscApplier.hh"  // IWYU pragma: associated
 #include "detail/MscStepLimitApplier.hh"  // IWYU pragma: associated
+#include "detail/PostStepSafetyCalculator.hh"  // IWYU pragma: associated
+#include "detail/PreStepSafetyCalculator.hh"  // IWYU pragma: associated
 #include "detail/PropagationApplier.hh"  // IWYU pragma: associated
 #include "detail/TimeUpdater.hh"  // IWYU pragma: associated
 #include "detail/TrackUpdater.hh"  // IWYU pragma: associated
@@ -51,7 +53,9 @@ CELER_FUNCTION void
 AlongStep<MH, MP, EH>::operator()(CoreTrackView const& track)
 {
     detail::MscStepLimitApplier{msc}(track);
+    detail::PreStepSafetyCalculator{msc}(track);
     detail::PropagationApplier{make_propagator}(track);
+    detail::PostStepSafetyCalculator{msc}(track);
     detail::MscApplier{msc}(track);
     detail::TimeUpdater{}(track);
     detail::ElossApplier{eloss}(track);

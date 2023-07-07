@@ -22,6 +22,8 @@
 #include "MeanELoss.hh"
 #include "MscApplier.hh"
 #include "MscStepLimitApplier.hh"
+#include "PostStepSafetyCalculator.hh"
+#include "PreStepSafetyCalculator.hh"
 #include "PropagationApplier.hh"
 #include "TimeUpdater.hh"
 #include "TrackUpdater.hh"
@@ -37,15 +39,27 @@ void launch_limit_msc_step(ExplicitActionInterface const& action,
                            CoreParams const& params,
                            CoreState<MemSpace::device>& state)
 {
-    ScopedProfiling profile_this{"limit-step-msc-urban"};
-    auto execute_thread = make_along_step_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        action.action_id(),
-        detail::MscStepLimitApplier{UrbanMsc{msc_data}});
-    static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-        action, "limit-step-msc-urban");
-    launch_kernel(params, state, action, execute_thread);
+    {
+        auto execute_thread = make_along_step_track_executor(
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            action.action_id(),
+            detail::PreStepSafetyCalculator{UrbanMsc{msc_data}});
+        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+            action, "pre-step-safety-urban");
+        launch_kernel(params, state, action, execute_thread);
+    }
+    {
+        ScopedProfiling profile_this{"limit-step-msc-urban"};
+        auto execute_thread = make_along_step_track_executor(
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            action.action_id(),
+            detail::MscStepLimitApplier{UrbanMsc{msc_data}});
+        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+            action, "limit-step-msc-urban");
+        launch_kernel(params, state, action, execute_thread);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -73,14 +87,26 @@ void launch_apply_msc(ExplicitActionInterface const& action,
                       CoreState<MemSpace::device>& state)
 {
     ScopedProfiling profile_this{"scatter-msc-urban"};
-    auto execute_thread = make_along_step_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        action.action_id(),
-        detail::MscApplier{UrbanMsc{msc_data}});
-    static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-        action, "scatter-msc-urban");
-    launch_kernel(params, state, action, execute_thread);
+    {
+        auto execute_thread = make_along_step_track_executor(
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            action.action_id(),
+            detail::PostStepSafetyCalculator{UrbanMsc{msc_data}});
+        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+            action, "post-step-safety-urban");
+        launch_kernel(params, state, action, execute_thread);
+    }
+    {
+        auto execute_thread = make_along_step_track_executor(
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            action.action_id(),
+            detail::MscApplier{UrbanMsc{msc_data}});
+        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+            action, "scatter-msc-urban");
+        launch_kernel(params, state, action, execute_thread);
+    }
 }
 
 //---------------------------------------------------------------------------//

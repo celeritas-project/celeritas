@@ -20,8 +20,15 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "AlongStep.hh"
+#include "detail/ElossApplier.hh"
 #include "detail/MeanELoss.hh"
+#include "detail/MscApplier.hh"
+#include "detail/MscStepLimitApplier.hh"
+#include "detail/PostStepSafetyCalculator.hh"
+#include "detail/PreStepSafetyCalculator.hh"
+#include "detail/PropagationApplier.hh"
+#include "detail/TimeUpdater.hh"
+#include "detail/TrackUpdater.hh"
 #include "detail/UniformFieldPropagatorFactory.hh"
 
 namespace celeritas
@@ -64,14 +71,25 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
 
     if (msc_)
     {
-        launch_impl(
-            MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
+        PreStepSafetyCalculator pre_safety{
+            UrbanMsc{msc_->ref<MemSpace::native>()}};
+        MscStepLimitApplier apply_msc{UrbanMsc{msc_->ref<MemSpace::native>()}};
+        launch_impl([&pre_safety, &apply_msc](CoreTrackView const& track) {
+            pre_safety(track);
+            apply_msc(track);
+        });
     }
     launch_impl(
         PropagationApplier{UniformFieldPropagatorFactory{field_params_}});
     if (msc_)
     {
-        launch_impl(MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
+        PostStepSafetyCalculator post_safety{
+            UrbanMsc{msc_->ref<MemSpace::native>()}};
+        MscApplier apply_msc{UrbanMsc{msc_->ref<MemSpace::native>()}};
+        launch_impl([&post_safety, &apply_msc](CoreTrackView const& track) {
+            post_safety(track);
+            apply_msc(track);
+        });
     }
     launch_impl([](CoreTrackView const& track) {
         detail::TimeUpdater{}(track);

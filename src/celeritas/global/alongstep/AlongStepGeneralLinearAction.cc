@@ -28,6 +28,8 @@
 #include "detail/MeanELoss.hh"  // IWYU pragma: associated
 #include "detail/MscApplier.hh"
 #include "detail/MscStepLimitApplier.hh"
+#include "detail/PostStepSafetyCalculator.hh"
+#include "detail/PreStepSafetyCalculator.hh"
 #include "detail/PropagationApplier.hh"
 #include "detail/TimeUpdater.hh"
 #include "detail/TrackUpdater.hh"
@@ -93,13 +95,24 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
 
     if (msc_)
     {
-        launch_impl(
-            MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
+        PreStepSafetyCalculator pre_safety{
+            UrbanMsc{msc_->ref<MemSpace::native>()}};
+        MscStepLimitApplier apply_msc{UrbanMsc{msc_->ref<MemSpace::native>()}};
+        launch_impl([&pre_safety, &apply_msc](CoreTrackView const& track) {
+            pre_safety(track);
+            apply_msc(track);
+        });
     }
     launch_impl(PropagationApplier{LinearPropagatorFactory{}});
     if (msc_)
     {
-        launch_impl(MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
+        PostStepSafetyCalculator post_safety{
+            UrbanMsc{msc_->ref<MemSpace::native>()}};
+        MscApplier apply_msc{UrbanMsc{msc_->ref<MemSpace::native>()}};
+        launch_impl([&post_safety, &apply_msc](CoreTrackView const& track) {
+            post_safety(track);
+            apply_msc(track);
+        });
     }
     launch_impl(detail::TimeUpdater{});
     if (fluct_)

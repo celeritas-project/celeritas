@@ -42,8 +42,14 @@ class UrbanMsc
     inline CELER_FUNCTION bool
     is_applicable(CoreTrackView const&, real_type step) const;
 
+    // Pre-step safety minimum
+    inline CELER_FUNCTION real_type safety_pre(CoreTrackView const& track) const;
+
     // Update the physical and geometric step lengths
     inline CELER_FUNCTION void limit_step(CoreTrackView const&, StepLimit*);
+
+    // Post-step safety minimum
+    inline CELER_FUNCTION real_type safety_post(CoreTrackView const& track) const;
 
     // Apply MSC
     inline CELER_FUNCTION void apply_step(CoreTrackView const&, StepLimit*);
@@ -92,6 +98,19 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the maximum required safety radius before step limiting.
+ */
+CELER_FUNCTION real_type UrbanMsc::safety_pre(CoreTrackView const& track) const
+{
+    CELER_EXPECT(!track.make_geo_view().is_on_boundary());
+    auto phys = track.make_physics_view();
+    auto par = track.make_particle_view();
+    detail::UrbanMscHelper msc_helper(msc_params_, par, phys);
+    return msc_helper.max_step();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Update the physical and geometric step lengths.
  */
 CELER_FUNCTION void
@@ -111,7 +130,7 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
             return step_limit->step;
         }
 
-        auto geo = track.make_geo_view();
+        auto geo = track.make_safety_cache_view();
 
         real_type safety = 0;
         if (!geo.is_on_boundary())
@@ -121,7 +140,7 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
             // steps are closer, we need to find the safety distance up to the
             // potential travel radius of the particle at its current energy.
             real_type const max_step = msc_helper.max_step();
-            safety = geo.find_safety(max_step);
+            safety = geo.safety();
             if (safety >= max_step)
             {
                 // The nearest boundary is further than the maximum expected
@@ -188,13 +207,42 @@ UrbanMsc::limit_step(CoreTrackView const& track, StepLimit* step_limit)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the maximum required safety radius before step limiting.
+ */
+CELER_FUNCTION real_type UrbanMsc::safety_post(CoreTrackView const& track) const
+{
+    CELER_EXPECT(!track.make_geo_view().is_on_boundary());
+    // Calculate the safety up to the maximum needed by UrbanMscScatter
+    auto const& msc_step = track.make_physics_step_view().msc_step();
+    if (!msc_step.is_displaced)
+    {
+        // No displacement: update not needed
+        return 0;
+    }
+
+    // Calculate the safety up to the maximum needed by UrbanMscScatter
+    real_type displ = detail::UrbanMscScatter::calc_displacement(
+        msc_step.geom_path, msc_step.true_path);
+
+    // The extra factor here is because UrbanMscScatter compares the
+    // displacement length against the safety * (1 - eps), which we
+    // bound here using [1 + 2*eps > 1/(1 - eps)], and we want to check
+    // to at least the minimum geometry limit.
+    // TODO: this is hacky and relies on UrbanMscScatter internals...
+    displ = max(displ * (1 + 2 * msc_params_.params.safety_tol),
+                msc_params_.params.geom_limit);
+    return displ;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Apply MSC.
  */
 CELER_FUNCTION void
 UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
 {
     auto par = track.make_particle_view();
-    auto geo = track.make_geo_view();
+    auto geo = track.make_safety_cache_view();
     auto phys = track.make_physics_view();
 
     // Replace step with actual geometry distance traveled
@@ -226,17 +274,7 @@ UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
         if (msc_step.is_displaced)
         {
             CELER_ASSERT(!geo.is_on_boundary());
-            // Calculate the safety up to the maximum needed by UrbanMscScatter
-            real_type displ = detail::UrbanMscScatter::calc_displacement(
-                msc_step.geom_path, msc_step.true_path);
-            // The extra factor here is because UrbanMscScatter compares the
-            // displacement length against the safety * (1 - eps), which we
-            // bound here using [1 + 2*eps > 1/(1 - eps)], and we want to check
-            // to at least the minimum geometry limit.
-            // TODO: this is hacky and relies on UrbanMscScatter internals...
-            displ = max(displ * (1 + 2 * msc_params_.params.safety_tol),
-                        msc_params_.params.geom_limit);
-            safety = geo.find_safety(displ);
+            safety = geo.safety();
             if (CELER_UNLIKELY(safety == 0))
             {
                 // The track is effectively on a boundary without being

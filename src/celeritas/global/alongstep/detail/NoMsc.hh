@@ -32,11 +32,23 @@ struct NoMsc
         return false;
     }
 
+    //! Get the maximum required safety radius before step limiting
+    CELER_FUNCTION real_type safety_pre(CoreTrackView const&) const
+    {
+        return 0;
+    }
+
     //! No updates needed to the physical and geometric step lengths
     CELER_FUNCTION void limit_step(CoreTrackView const&, StepLimit*) const {}
 
     //! MSC is never applied
     CELER_FUNCTION void apply_step(CoreTrackView const&, StepLimit*) const {}
+
+    //! Get the maximum required safety radius after step limiting
+    CELER_FUNCTION real_type safety_post(CoreTrackView const&) const
+    {
+        return 0;
+    }
 };
 
 //---------------------------------------------------------------------------//
