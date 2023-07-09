@@ -194,7 +194,10 @@
  * RuntimeError if it fails. If CUDA is disabled, throw an unconfigured
  * assertion.
  *
- * If it fails, we call \c cudaGetLastError to clear the error code.
+ * If it fails, we call \c cudaGetLastError to clear the error code. Note that
+ * this will \em not clear the code in a few fatal error cases (kernel
+ assertion
+ * failure, invalid memory access) and all subsequent CUDA calls will fail.
  *
  * \code
    CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
