@@ -503,7 +503,7 @@ inline __host__ void device_debug_error(DebugErrorType which,
                                         char const* file,
                                         unsigned int line)
 {
-    throw DebugError({which, condition, __FILE__, __LINE__});
+    throw DebugError({which, condition, file, line});
 }
 
 //! Device-only call for HIP (must always be declared; only used if
