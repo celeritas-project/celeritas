@@ -491,7 +491,7 @@ class RichContextException : public std::exception
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
 //! Host+device definition for CUDA when \c assert is unavailable
 inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
-    DebugErrorType, char const* condition, char const* file, unsigned int line)
+    DebugErrorType, char const* condition, char const* file, int line)
 {
     printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
            file,
@@ -504,7 +504,7 @@ inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
 inline __host__ void device_debug_error(DebugErrorType which,
                                         char const* condition,
                                         char const* file,
-                                        unsigned int line)
+                                        int line)
 {
     throw DebugError({which, condition, file, line});
 }
@@ -512,7 +512,7 @@ inline __host__ void device_debug_error(DebugErrorType which,
 //! Device-only call for HIP (must always be declared; only used if
 //! NDEBUG)
 inline __attribute__((noinline)) __device__ void device_debug_error(
-    DebugErrorType, char const* condition, char const* file, unsigned int line)
+    DebugErrorType, char const* condition, char const* file, int line)
 {
     printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
            file,
