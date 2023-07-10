@@ -141,8 +141,8 @@ endif()
 
 ### Configuration ###
 celeritas_set_default(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON)
-celeritas_set_default(CMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY ON)
-celeritas_set_default(CMAKE_FIND_PACKAGE_NO_SYSTEM_PACKAGE_REGISTRY ON)
+celeritas_set_default(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
+celeritas_set_default(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY FALSE)
 
 ### Build flags ###
 if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
