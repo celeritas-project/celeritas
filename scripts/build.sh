@@ -1,6 +1,7 @@
 #!/bin/sh -e
 
 cd "$(dirname $0)"/..
+echo "Working directory: $(pwd)"
 
 SYSTEM_NAME=${LMOD_SYSTEM_NAME}
 if [ -z "${SYSTEM_NAME}" ]; then
@@ -35,8 +36,24 @@ fi
 CMAKE_PRESET=$1
 shift
 
+# Check if we should skip build or test steps
+if [[ $1 == "--no-build" || $1 == "--no-test" ]]; then
+  STEP_OPTIONS=$1
+  shift
+fi
+
 set -x
 
 cmake --preset=${CMAKE_PRESET} "$@"
-cmake --build --preset=${CMAKE_PRESET}
-ctest --preset=${CMAKE_PRESET}
+
+if [[ $STEP_OPTIONS != "--no-build" ]]; then
+  cmake --build --preset=${CMAKE_PRESET}
+else 
+  echo "Skipping build step"
+fi
+
+if [[ $STEP_OPTIONS != "--no-test" ]]; then
+  ctest --preset=${CMAKE_PRESET}
+else
+  echo "Skipping test step"
+fi

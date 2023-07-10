@@ -37,6 +37,7 @@ celeritas_target_include_directories(testcel_harness
 if(CELERITAS_USE_HIP)
   set_source_files_properties(
     celeritas/field/FieldDriver.test.cu
+    celeritas/field/DormandPrinceStepper.test.cu
     celeritas/field/FieldPropagator.test.cu
     celeritas/field/Steppers.test.cu
     celeritas/field/UserMapField.test.cu
@@ -375,6 +376,7 @@ set(CELERITASTEST_PREFIX celeritas/field)
 celeritas_add_test(celeritas/field/Fields.test.cc)
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
+celeritas_add_device_test(celeritas/field/DormandPrinceStepper)
 celeritas_add_test(celeritas/field/FieldPropagator.test.cc
   ${_needs_geo} LINK_LIBRARIES ${_core_geo_lib})
 celeritas_add_test(celeritas/field/LinearPropagator.test.cc
