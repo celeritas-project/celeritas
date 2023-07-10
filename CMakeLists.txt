@@ -29,7 +29,7 @@ include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 
 #----------------------------------------------------------------------------#
-# OPTIONS
+# MAIN OPTIONS
 #----------------------------------------------------------------------------#
 
 # NOTE: languages must be *first* because their settings affect the
@@ -59,49 +59,25 @@ option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps"
   ${CELERITAS_USE_JSON})
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
 
-if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
-  message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
-    "when building with CUDA + MPI.")
-endif()
-if(CMAKE_VERSION VERSION_LESS 3.18 AND CELERITAS_USE_CUDA
-    AND CELERITAS_USE_VecGeom)
-  message(FATAL_ERROR "VecGeom+CUDA requires CMake 3.18 or higher to support "
-    "\"Separable compilation\".")
-endif()
-if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
-  message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
-    "with this version of CMake. Set CMAKE_CUDA_FLAGS.")
-endif()
-
-if(CMAKE_VERSION VERSION_LESS 3.22 AND CELERITAS_USE_HIP)
-  message(WARNING "HIP support is immature; CMake 3.22+ is recommended.")
-endif()
-
-# Library
-option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-if(NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
-  # Inform installed binaries of external library rpaths
-  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
-endif()
-if(BUILD_SHARED_LIBS AND NOT DEFINED CMAKE_INSTALL_RPATH)
-  # Inform installed binaries of internal library rpaths
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
-endif()
-
-# Build flags
+# Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" ON)
-if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
-  if(CELERITAS_DEBUG)
-    set(_default_build_type "Debug")
-  else()
-    set(_default_build_type "Release")
-  endif()
-  set(CMAKE_BUILD_TYPE "${_default_build_type}" CACHE STRING "Build type" FORCE)
-  message(STATUS "Set default CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
-  unset(_default_build_type)
-endif()
 
-# Define CELERITAS_CORE_RNG option for random number generator selection
+# Secondary testing options
+if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
+  set(_default_lock ON)
+else()
+  set(_default_lock OFF)
+endif()
+cmake_dependent_option(CELERITAS_TEST_RESOURCE_LOCK
+  "Only run one GPU-enabled test at a time" "${_default_lock}"
+  "CELERITAS_BUILD_TESTS" OFF
+)
+
+#----------------------------------------------------------------------------#
+# CELERITAS CORE IMPLEMENTATION OPTIONS
+#----------------------------------------------------------------------------#
+
+# CELERITAS_CORE_RNG: random number generator selection
 celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
 celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
 celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
@@ -110,7 +86,7 @@ celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
 celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
 
-# Runtime geometry selection: default to VecGeom if available
+# CELERITAS_CORE_GEO: runtime geometry selection
 if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
   set(_allow_vecgeom TRUE)
 else()
@@ -132,20 +108,63 @@ celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
 celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
-if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
-  set(_default_lock ON)
-else()
-  set(_default_lock OFF)
-endif()
-cmake_dependent_option(CELERITAS_TEST_RESOURCE_LOCK
-  "Only run one GPU-enabled test at a time" "${_default_lock}"
-  "CELERITAS_BUILD_TESTS" OFF
-)
+#----------------------------------------------------------------------------#
+# CMAKE VERSION CHECKS
+#----------------------------------------------------------------------------#
 
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-  # Default CMake standard to C++17 for this directory and underneath
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_EXTENSIONS OFF)
+if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
+  message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
+    "when building with CUDA + MPI.")
+endif()
+if(CMAKE_VERSION VERSION_LESS 3.18 AND CELERITAS_USE_CUDA
+    AND CELERITAS_USE_VecGeom)
+  message(FATAL_ERROR "VecGeom+CUDA requires CMake 3.18 or higher to support "
+    "\"Separable compilation\".")
+endif()
+if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
+  message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
+    "with this version of CMake. Set CMAKE_CUDA_FLAGS.")
+endif()
+if(CMAKE_VERSION VERSION_LESS 3.22 AND CELERITAS_USE_HIP)
+  message(WARNING "HIP support is immature; CMake 3.22+ is recommended.")
+endif()
+
+#----------------------------------------------------------------------------#
+# CMAKE INTRINSIC OPTIONS
+#
+# These are generally used to initialize properties on targets, and it's
+# possible Celeritas is being built inside another project. Instead of saving
+# these as cache variables (which change the defaults project-wide, including
+# changing behavior of other code that was loaded before Celeritas) set them as
+# local variables to be inherited underneath Celeritas.
+#----------------------------------------------------------------------------#
+
+### Build flags ###
+if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
+  if(CELERITAS_DEBUG)
+    set(_default_build_type "Debug")
+  else()
+    set(_default_build_type "Release")
+  endif()
+  set(CMAKE_BUILD_TYPE "${_default_build_type}" CACHE STRING "Build type" FORCE)
+  message(STATUS "Set default CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+  unset(_default_build_type)
+endif()
+celeritas_set_default(CMAKE_CXX_STANDARD 17)
+celeritas_set_default(CMAKE_CXX_EXTENSIONS OFF)
+if(CELERITAS_USE_CUDA)
+  celeritas_set_default(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
+  celeritas_set_default(CMAKE_CUDA_EXTENSIONS ${CMAKE_CXX_EXTENSIONS})
+endif()
+
+### Linking flags ###
+# Default to building shared libraries
+celeritas_set_default(BUILD_SHARED_LIBS ON)
+# Inform installed binaries of external library rpaths
+celeritas_set_default(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+if(BUILD_SHARED_LIBS)
+  # Inform installed binaries of internal library rpaths
+  celeritas_set_default(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 endif()
 
 #----------------------------------------------------------------------------#
@@ -168,15 +187,7 @@ if(CELERITAS_USE_CUDA)
   # Use host compiler by default to ensure ABI consistency
   set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING
     "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists")
-
   enable_language(CUDA)
-
-  if(NOT DEFINED CMAKE_CUDA_STANDARD)
-    set(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
-    set(CMAKE_CUDA_EXTENSIONS ${CMAKE_CXX_EXTENSIONS})
-  endif()
-  unset(CMAKE_CUDA_FLAGS_DEBUG_INIT)
-
   find_package(CUDAToolkit REQUIRED QUIET)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
@@ -337,7 +348,7 @@ if(CELERITAS_USE_SWIG)
 endif()
 
 #----------------------------------------------------------------------------#
-# TESTS
+# UNIT TESTS
 #----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_TESTS)
@@ -346,7 +357,7 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #----------------------------------------------------------------------------#
-# DEMO/HELPER APPS
+# APPLICATIONS AND BINARIES
 #----------------------------------------------------------------------------#
 
 add_subdirectory(app)

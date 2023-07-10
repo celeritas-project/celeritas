@@ -27,6 +27,10 @@ CMake configuration utility functions for Celeritas.
   packages. If given, the ``<find_package>`` package name will searched for
   instead of ``<package>``.
 
+.. command:: celeritas_set_default
+
+  Set a locally-scoped value for the given variable if it is undefined.
+
 .. command:: celeritas_check_python_module
 
    Determine whether a given Python module is available with the current
@@ -192,6 +196,15 @@ macro(celeritas_optional_package package)
 
   option("${_var}" "${_docstring}" "${_val}")
 endmacro()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_set_default name value)
+  if(NOT DEFINED ${name})
+    message(VERBOSE "Celeritas: set default ${name}=${value}")
+    set(${name} "${value}" PARENT_SCOPE)
+  endif()
+endfunction()
 
 #-----------------------------------------------------------------------------#
 
