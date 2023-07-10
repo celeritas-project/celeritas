@@ -194,7 +194,10 @@
  * RuntimeError if it fails. If CUDA is disabled, throw an unconfigured
  * assertion.
  *
- * If it fails, we call \c cudaGetLastError to clear the error code.
+ * If it fails, we call \c cudaGetLastError to clear the error code. Note that
+ * this will \em not clear the code in a few fatal error cases (kernel
+ assertion
+ * failure, invalid memory access) and all subsequent CUDA calls will fail.
  *
  * \code
    CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
@@ -488,7 +491,7 @@ class RichContextException : public std::exception
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
 //! Host+device definition for CUDA when \c assert is unavailable
 inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
-    DebugErrorType, char const* condition, char const* file, unsigned int line)
+    DebugErrorType, char const* condition, char const* file, int line)
 {
     printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
            file,
@@ -501,15 +504,15 @@ inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
 inline __host__ void device_debug_error(DebugErrorType which,
                                         char const* condition,
                                         char const* file,
-                                        unsigned int line)
+                                        int line)
 {
-    throw DebugError({which, condition, __FILE__, __LINE__});
+    throw DebugError({which, condition, file, line});
 }
 
 //! Device-only call for HIP (must always be declared; only used if
 //! NDEBUG)
 inline __attribute__((noinline)) __device__ void device_debug_error(
-    DebugErrorType, char const* condition, char const* file, unsigned int line)
+    DebugErrorType, char const* condition, char const* file, int line)
 {
     printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
            file,

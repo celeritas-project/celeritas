@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/ScopedProfiling.nvtx.cc
+//! \file corecel/sys/ScopedProfiling.cuda.cc
 //---------------------------------------------------------------------------//
 
 #include "ScopedProfiling.hh"

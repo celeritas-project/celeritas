@@ -16,6 +16,7 @@
 #    include <psapi.h>
 #    include <windows.h>
 #endif
+#include <iostream>
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
@@ -125,10 +126,19 @@ ScopedMem::~ScopedMem()
 
         if (celeritas::device())
         {
-            std::ptrdiff_t stop_usage = get_gpu_mem();
-            entry.gpu_usage = native_value_to<KibiBytes>(stop_usage);
-            entry.gpu_delta
-                = native_value_to<KibiBytes>(stop_usage - gpu_start_used_);
+            try
+            {
+                std::ptrdiff_t stop_usage = get_gpu_mem();
+                entry.gpu_usage = native_value_to<KibiBytes>(stop_usage);
+                entry.gpu_delta
+                    = native_value_to<KibiBytes>(stop_usage - gpu_start_used_);
+            }
+            catch (std::exception const& e)
+            {
+                std::cerr << "An error occurred while calculating GPU memory "
+                             "usage for '"
+                          << entry.label << ": " << e.what() << std::endl;
+            }
         }
 
         registry_.value()->pop();
