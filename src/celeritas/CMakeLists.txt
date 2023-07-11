@@ -139,10 +139,6 @@ if(CELERITAS_USE_HepMC3)
   )
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_hepmc>)
   list(APPEND PRIVATE_DEPS celeritas_hepmc)
-else()
-  list(APPEND SOURCES
-    io/EventReader.nohepmc.cc
-  )
 endif()
 
 if(CELERITAS_USE_JSON)

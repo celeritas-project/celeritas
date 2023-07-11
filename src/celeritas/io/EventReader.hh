@@ -8,8 +8,11 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
+#include "celeritas_config.h"
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 
 namespace HepMC3
@@ -41,7 +44,7 @@ class EventReader
 
   public:
     // Construct from a filename
-    EventReader(char const* filename, SPConstParticles params);
+    EventReader(std::string const& filename, SPConstParticles params);
 
     // Default destructor in .cc
     ~EventReader();
@@ -59,6 +62,26 @@ class EventReader
     // Number of events read
     size_type event_count_{0};
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+#if !CELERITAS_USE_HEPMC3
+EventReader::EventReader(std::string const&, SPConstParticles)
+{
+    (void)sizeof(params_);
+    (void)sizeof(input_file_);
+    (void)sizeof(event_count_);
+    CELER_NOT_CONFIGURED("HepMC3");
+}
+
+EventReader::~EventReader() = default;
+
+auto EventReader::operator()() -> result_type
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

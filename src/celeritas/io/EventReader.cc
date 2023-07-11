@@ -23,7 +23,7 @@ namespace celeritas
 /*!
  * Construct from a filename.
  */
-EventReader::EventReader(char const* filename, SPConstParticles params)
+EventReader::EventReader(std::string const& filename, SPConstParticles params)
     : params_(std::move(params))
 {
     CELER_EXPECT(params_);
