@@ -34,8 +34,9 @@ namespace
 /*!
  * Launch the given executor using thread ids in the thread_range
  */
-template<class F>
+template<class F, int threadsPerBlock, int blocksPerSm>
 __global__ void
+__launch_bounds__(threadsPerBlock, blocksPerSm)
 launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
@@ -62,7 +63,7 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
  }
  * \endcode
  */
-template<class F>
+template<class F, int threadsPerBlock = 256, int blocksPerSm = 1>
 class ActionLauncher
 {
     static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP)
@@ -73,14 +74,14 @@ class ActionLauncher
   public:
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(), &launch_action_impl<F>}
+        : calc_launch_params_{action.label(), &launch_action_impl<F, threadsPerBlock, blocksPerSm>}
     {
     }
 
     //! Create a launcher with a string extension
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
         : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              &launch_action_impl<F>}
+                              &launch_action_impl<F, threadsPerBlock, blocksPerSm>}
     {
     }
 
@@ -94,7 +95,7 @@ class ActionLauncher
             CELER_DEVICE_PREFIX(Stream_t)
             stream = celeritas::device().stream(stream_id).get();
             auto config = calc_launch_params_(threads.size());
-            launch_action_impl<F>
+            launch_action_impl<F, threadsPerBlock, blocksPerSm>
                 <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
                     threads, call_thread);
         }
