@@ -133,6 +133,7 @@ endif()
 if(CELERITAS_USE_HepMC3)
   celeritas_add_object_library(celeritas_hepmc
     io/EventReader.cc
+    io/EventWriter.cc
   )
   target_link_libraries(celeritas_hepmc
     PRIVATE Celeritas::corecel HepMC3::HepMC3

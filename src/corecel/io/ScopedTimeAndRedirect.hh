@@ -30,9 +30,6 @@ namespace celeritas
         vecgeom::DoNoisyAndLongStuff();
     }
    \endcode
- *
- * \warning During scope, you should be sure *NOT* to call the logger, which by
- * default prints to cerr.
  */
 class ScopedTimeAndRedirect
 {
