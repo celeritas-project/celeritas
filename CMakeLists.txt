@@ -145,6 +145,7 @@ celeritas_set_default(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
 celeritas_set_default(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY FALSE)
 
 ### Build flags ###
+# Default to debug or released based on value of CELERITAS_DEBUG
 if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   if(CELERITAS_DEBUG)
     set(_default_build_type "Debug")
@@ -155,15 +156,17 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   message(STATUS "Set default CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
   unset(_default_build_type)
 endif()
+# Default to using C++17 everywhere
 celeritas_set_default(CMAKE_CXX_STANDARD 17)
 celeritas_set_default(CMAKE_CXX_EXTENSIONS OFF)
 if(CELERITAS_USE_CUDA)
+  # Default to setting CUDA C++ standard the same as C++
   celeritas_set_default(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
   celeritas_set_default(CMAKE_CUDA_EXTENSIONS ${CMAKE_CXX_EXTENSIONS})
 endif()
 
 ### Linking flags ###
-# Default to building shared libraries
+# Default to building shared libraries (*not* a cache variable)
 celeritas_set_default(BUILD_SHARED_LIBS ON)
 # Inform installed binaries of external library rpaths
 celeritas_set_default(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
@@ -175,9 +178,11 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 ### Installation flags ###
+# When developing add checking for proper usage of `install(`
 if(CELERITAS_DEBUG)
   celeritas_set_default(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION ON)
 endif()
+# Avoid printing details about already installed files
 celeritas_set_default(CMAKE_INSTALL_MESSAGE LAZY)
 
 #----------------------------------------------------------------------------#
