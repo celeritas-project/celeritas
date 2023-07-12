@@ -13,6 +13,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
 namespace HepMC3
@@ -22,6 +23,7 @@ class Reader;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class ParticleParams;
 struct Primary;
 
@@ -46,8 +48,8 @@ class EventReader
     // Construct from a filename
     EventReader(std::string const& filename, SPConstParticles params);
 
-    // Default destructor in .cc
-    ~EventReader();
+    //! Prevent copying and moving
+    CELER_DELETE_COPY_MOVE(EventReader);
 
     // Read a single event from the event record
     result_type operator()();
@@ -57,7 +59,7 @@ class EventReader
     SPConstParticles params_;
 
     // HepMC3 event record reader
-    std::shared_ptr<HepMC3::Reader> input_file_;
+    std::shared_ptr<HepMC3::Reader> reader_;
 
     // Number of events read
     size_type event_count_{0};
@@ -70,12 +72,10 @@ class EventReader
 EventReader::EventReader(std::string const&, SPConstParticles)
 {
     (void)sizeof(params_);
-    (void)sizeof(input_file_);
+    (void)sizeof(reader_);
     (void)sizeof(event_count_);
     CELER_NOT_CONFIGURED("HepMC3");
 }
-
-EventReader::~EventReader() = default;
 
 auto EventReader::operator()() -> result_type
 {

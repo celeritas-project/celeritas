@@ -11,7 +11,9 @@
 #include <HepMC3/ReaderFactory.h>
 
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
@@ -28,17 +30,18 @@ EventReader::EventReader(std::string const& filename, SPConstParticles params)
 {
     CELER_EXPECT(params_);
 
-    // Turn off HepMC3 diagnostic output that pollutes our own output
-    HepMC3::Setup::set_debug_level(-1);
+    CELER_LOG(info) << "Opening event file at " << filename;
+    ScopedTimeAndRedirect temp_{"HepMC3"};
 
     // Determine the input file format and construct the appropriate reader
-    input_file_ = HepMC3::deduce_reader(filename);
-    CELER_ENSURE(input_file_);
-}
+    HepMC3::Setup::set_debug_level(1);
+    reader_ = HepMC3::deduce_reader(filename);
 
-//---------------------------------------------------------------------------//
-//! Default destructor
-EventReader::~EventReader() = default;
+    CELER_LOG(debug) << "Reader type: "
+                     << TypeDemangler<HepMC3::Reader>()(*reader_);
+
+    CELER_ENSURE(reader_);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -48,10 +51,13 @@ auto EventReader::operator()() -> result_type
 {
     // Parse the next event from the record
     HepMC3::GenEvent gen_event;
-    input_file_->read_event(gen_event);
+    {
+        ScopedTimeAndRedirect temp_{"HepMC3"};
+        reader_->read_event(gen_event);
+    }
 
     // There are no more events
-    if (input_file_->failed())
+    if (reader_->failed())
     {
         return {};
     }
@@ -79,7 +85,7 @@ auto EventReader::operator()() -> result_type
         primary.track_id = TrackId(track_id++);
 
         // Get the position of the primary
-        auto pos = gen_event.event_pos();
+        auto const& pos = gen_particle->production_vertex()->position();
         primary.position = {pos.x() * units::centimeter,
                             pos.y() * units::centimeter,
                             pos.z() * units::centimeter};
