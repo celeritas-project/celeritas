@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/EventReader.test.cc
+//! \file celeritas/io/EventIO.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/io/EventReader.hh"
 

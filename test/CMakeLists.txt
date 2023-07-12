@@ -354,7 +354,6 @@ if(CELERITAS_USE_Geant4)
   )
 endif()
 
-celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc
   ${_needs_geant4} LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
   FILTER
@@ -462,6 +461,7 @@ celeritas_add_test(celeritas/grid/XsCalculator.test.cc)
 #-------------------------------------#
 # IO
 set(CELERITASTEST_PREFIX celeritas/io)
+celeritas_add_test(celeritas/io/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-------------------------------------#
