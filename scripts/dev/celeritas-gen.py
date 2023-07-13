@@ -22,7 +22,7 @@ CXX_TOP = '''\
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \\file {dirname}/{basename}
+//! \\file {dirname}{basename}
 //---------------------------------------------------------------------------//
 '''
 
@@ -77,14 +77,12 @@ CODE_FILE = '''\
 '''
 
 TEST_HARNESS_FILE = '''\
-#include "{dirname}/{name}.{hext}"
+#include "{dirname}{name}.{hext}"
 
 #include "celeritas_test.hh"
 // #include "{name}.test.hh"
 
 {namespace_begin}
-namespace test
-{{
 //---------------------------------------------------------------------------//
 
 class {name}Test : public ::celeritas::test::Test
@@ -106,7 +104,6 @@ TEST_F({name}Test, host)
 // }}
 
 //---------------------------------------------------------------------------//
-}}  // namespace test
 {namespace_end}
 '''
 
@@ -119,8 +116,6 @@ TEST_HEADER_FILE = '''
 #include "corecel/Types.hh"
 
 {namespace_begin}
-namespace test
-{{
 //---------------------------------------------------------------------------//
 // DATA
 //---------------------------------------------------------------------------//
@@ -239,7 +234,6 @@ inline void {lowabbr}_test(
 #endif
 
 //---------------------------------------------------------------------------//
-}}  // namespace test
 {namespace_end}
 '''
 
@@ -252,8 +246,6 @@ TEST_CODE_FILE = '''\
 #include "corecel/sys/Device.hh"
 
 {namespace_begin}
-namespace test
-{{
 namespace
 {{
 //---------------------------------------------------------------------------//
@@ -291,7 +283,6 @@ void {lowabbr}_test(
 }}
 
 //---------------------------------------------------------------------------//
-}}  // namespace test
 {namespace_end}
 '''
 
@@ -500,25 +491,29 @@ HEXT = {
 }
 
 
-def removed_toplevel(filestr):
-    """Strip the leading directory from filestr.
-    """
-    return filestr.partition(os.path.sep)[-1]
-
 def generate(repodir, filename, namespace):
     if os.path.exists(filename):
         print("Skipping existing file " + filename)
         return
 
     dirname = os.path.relpath(filename, start=repodir)
-    dirname = removed_toplevel(dirname)
-    dirname = os.path.dirname(dirname)
-    basename = os.path.basename(filename)
-    (name, _, longext) = basename.partition('.')
+    all_dirs = dirname.split(os.sep)
 
     if namespace is None:
-        namespace = 'celeritas' + ('::detail' if dirname.endswith('/detail')
-                                   else '')
+        namespace = 'celeritas'
+        if all_dirs[0] == 'app':
+            namespace += '::app'
+        elif all_dirs[0] == 'test':
+            namespace += '::test'
+        if all_dirs[-1] == 'detail':
+            namespace += '::detail'
+
+    dirname = os.sep.join(all_dirs[1:-1])
+    if dirname:
+        dirname += os.sep
+
+    basename = os.path.basename(filename)
+    (name, _, longext) = basename.partition('.')
 
     lang = None
     template = None
