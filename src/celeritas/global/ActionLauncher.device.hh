@@ -34,10 +34,21 @@ namespace
 /*!
  * Launch the given executor using thread ids in the thread_range
  */
-template<class F, int threadsPerBlock, int blocksPerSm>
+
+template<class F>
 __global__ void
-__launch_bounds__(threadsPerBlock, blocksPerSm)
 launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
+{
+    auto tid = celeritas::KernelParamCalculator::thread_id();
+    if (!(tid < thread_range.size()))
+        return;
+    execute_thread(*(thread_range.cbegin() + tid.get()));
+}
+
+template<class F, int... bounds>
+__global__ void __launch_bounds__(bounds...)
+    launch_bounded_action_impl(Range<ThreadId> const thread_range,
+                               F execute_thread)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < thread_range.size()))
@@ -63,7 +74,7 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
  }
  * \endcode
  */
-template<class F, int threadsPerBlock = 256, int blocksPerSm = 1>
+template<class F, int... bounds>
 class ActionLauncher
 {
     static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP)
@@ -73,15 +84,30 @@ class ActionLauncher
 
   public:
     //! Create a launcher from an action
+    template<size_t S = sizeof...(bounds), std::enable_if_t<(S > 0), bool> = true>
     explicit ActionLauncher(ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(), &launch_action_impl<F, threadsPerBlock, blocksPerSm>}
+        : calc_launch_params_{action.label(),
+                              &launch_bounded_action_impl<F, bounds...>}
+    {
+    }
+
+    template<size_t S = sizeof...(bounds), std::enable_if_t<S == 0, bool> = true>
+    explicit ActionLauncher(ExplicitActionInterface const& action)
+        : calc_launch_params_{action.label(), &launch_action_impl<F>}
     {
     }
 
     //! Create a launcher with a string extension
+    template<size_t S = sizeof...(bounds), std::enable_if_t<(S > 0), bool> = true>
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
         : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              &launch_action_impl<F, threadsPerBlock, blocksPerSm>}
+                              &launch_bounded_action_impl<F, bounds...>}
+    {
+    }
+    template<size_t S = sizeof...(bounds), std::enable_if_t<S == 0, bool> = true>
+    ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
+        : calc_launch_params_{action.label() + "-" + std::string(ext),
+                              &launch_action_impl<F>}
     {
     }
 
@@ -95,9 +121,18 @@ class ActionLauncher
             CELER_DEVICE_PREFIX(Stream_t)
             stream = celeritas::device().stream(stream_id).get();
             auto config = calc_launch_params_(threads.size());
-            launch_action_impl<F, threadsPerBlock, blocksPerSm>
-                <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                    threads, call_thread);
+            if constexpr (sizeof...(bounds) > 0)
+            {
+                launch_bounded_action_impl<F, bounds...>
+                    <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
+                        threads, call_thread);
+            }
+            else
+            {
+                launch_action_impl<F>
+                    <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
+                        threads, call_thread);
+            }
         }
     }
 

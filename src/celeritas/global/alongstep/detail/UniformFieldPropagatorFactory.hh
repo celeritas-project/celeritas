@@ -22,6 +22,11 @@ namespace detail
  */
 struct UniformFieldPropagatorFactory
 {
+#if CELER_USE_DEVICE
+    static constexpr int maxThreadsPerBlock = 256;
+    static constexpr int minWarpsPerWS = 1;
+#endif
+
     CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const
     {
         return make_mag_field_propagator<DormandPrinceStepper>(
