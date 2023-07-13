@@ -65,7 +65,7 @@ class ScopedProfiling
 
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DELETE_COPY_MOVE(ScopedProfiling)
+    CELER_DELETE_COPY_MOVE(ScopedProfiling);
     //!@}
 };
 

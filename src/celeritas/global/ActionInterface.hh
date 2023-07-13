@@ -70,7 +70,7 @@ class ActionInterface
     //!@{
     //! Allow construction and assignment only through daughter classes
     ActionInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(ActionInterface)
+    CELER_DEFAULT_COPY_MOVE(ActionInterface);
     //!@}
 };
 
