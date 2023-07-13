@@ -102,8 +102,7 @@ void EventWriter::operator()(argument_type primaries)
 
     std::set<EventId::size_type> mismatched_events;
 
-    HepMC3::GenEvent evt;
-    evt.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
+    HepMC3::GenEvent evt(HepMC3::Units::MEV, HepMC3::Units::CM);
 
     // Vertex and corresponding celeritas position
     HepMC3::GenVertexPtr vtx;
@@ -173,7 +172,7 @@ void EventWriter::operator()(argument_type primaries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a string corresponding to a state of matter.
+ * Get a string corresponding to an event record format.
  */
 char const* to_cstring(EventWriter::Format value)
 {

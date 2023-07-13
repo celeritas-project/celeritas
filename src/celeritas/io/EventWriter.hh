@@ -59,7 +59,7 @@ class EventWriter
                 Format fmt);
 
     //! Prevent copying and moving due to file ownership
-    CELER_DELETE_COPY_MOVE(EventWriter);
+    CELER_DELETE_COPY_MOVE(EventWriter)
 
     // Write all the primaries from a single event
     void operator()(argument_type primaries);
@@ -68,7 +68,7 @@ class EventWriter
     // Shared standard model particle data
     SPConstParticles particles_;
 
-    // HepMC3 event record reader
+    // HepMC3 event record writer
     std::shared_ptr<HepMC3::Writer> writer_;
 
     // Number of events written

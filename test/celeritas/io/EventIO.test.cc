@@ -155,7 +155,7 @@ TEST_P(EventIO, write_read)
         primaries[3].time = primaries[2].time;
         for (auto i : range(primaries.size()))
         {
-            primaries[i].track_id = TrackId{i * 2};
+            primaries[i].track_id = TrackId(i * 2);
         }
         return primaries;
     }();

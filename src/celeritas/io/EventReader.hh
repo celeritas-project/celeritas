@@ -49,7 +49,7 @@ class EventReader
     EventReader(std::string const& filename, SPConstParticles params);
 
     //! Prevent copying and moving
-    CELER_DELETE_COPY_MOVE(EventReader);
+    CELER_DELETE_COPY_MOVE(EventReader)
 
     // Read a single event from the event record
     result_type operator()();
