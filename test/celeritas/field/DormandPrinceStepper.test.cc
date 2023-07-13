@@ -25,11 +25,30 @@ class DormandPrinceStepperTest : public Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-
-TEST_F(DormandPrinceStepperTest, gpu)
+TEST_F(DormandPrinceStepperTest, gpu_result)
 {
-    dormand_prince_cuda_test();
-    // CELER_LOG(info) << "Time taken by function: some nanoseconds";
+
+    auto expected = simulate_multi_next_chord();
+    auto actual = simulate_multi_next_chord();
+
+    for (int i = 0; i < number_of_states; i++)
+    {
+        CELER_VALIDATE(compare_results(expected.results[i], actual.results[i]),
+                    << "Error at state " << std::to_string(i) << "\n" 
+                    << print_results(expected.results[i], actual.results[i]));
+    }
+
+}
+
+TEST_F(DormandPrinceStepperTest, gpu_time)
+{
+    auto old = simulate_multi_next_chord();
+    auto multi_threaded = simulate_multi_next_chord();
+
+    CELER_LOG(info) << "Old time: " << old.milliseconds << " ms";
+    CELER_LOG(info) << "Multi-threaded time: " << multi_threaded.milliseconds << " ms";
+
+    CELER_VALIDATE(multi_threaded.milliseconds <= old.milliseconds, << "Multi-threaded is not faster than old implementation");
 }
 
 //---------------------------------------------------------------------------//

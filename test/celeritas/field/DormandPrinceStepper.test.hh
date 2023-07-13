@@ -10,6 +10,7 @@
 #include "celeritas/field/DormandPrinceStepper.hh" // for DormandPrinceStepper
 #include "celeritas/field/MagFieldEquation.hh"    // for MagFieldEquation
 #include "corecel/io/Logger.hh" // for CELER_LOG
+#include "celeritas/field/FieldDriver.hh" // for FieldDriver
 
 namespace celeritas
 {
@@ -17,7 +18,25 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using celeritas::units::ElementaryCharge;
+using Evaluator_t = celeritas::MagFieldEquation<Real3 (&)(const Real3&)>;
+using Stepper_DormandPrince   = celeritas::DormandPrinceStepper<Evaluator_t&>;
 // using time_unit = std::chrono::nanoseconds;
+
+//---------------------------------------------------------------------------//
+// CONSTANTS
+//---------------------------------------------------------------------------//
+constexpr int number_iterations = 40;
+constexpr double initial_step_size = 1.0;
+constexpr double delta_chord = 1.0;
+constexpr double half = 0.5;
+constexpr OdeState initial_states [5]= {
+    OdeState{{1, 2, 3}, {0, 0, 1}},
+    OdeState{{0, 0, 0}, {0, 0, 1}},
+    OdeState{{-1, -2, -3}, {0, 0, 1}},
+    OdeState{{1, 2, 3}, {0, 0, -1}},
+    OdeState{{1, 2, 3}, {0, 5, 0}},
+};
+constexpr int number_of_states = sizeof(initial_states) / sizeof(initial_states[0]);
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
@@ -53,60 +72,61 @@ inline void print_result(FieldStepperResult const& result){
     CELER_LOG(info) << "Final end state momentum:   " << result.end_state.mom[0] << ", " << result.end_state.mom[1] << ", " << result.end_state.mom[2];
 }
 
-inline CELER_FUNCTION void run_one_dormand_prince_step(){
-
-    // Set up equation
-    auto eval = make_dummy_equation(dormand_prince_dummy_field);
-    auto stepper = DormandPrinceStepper{eval};
-
-    // Set up dummy initial state
-    OdeState state = eval({{1, 2, 3}, {0, 0, 1}});
-
-    // set step
-    using real_type = double;
-    real_type step = 1.0;
-    FieldStepperResult result;
-
-    for (int i = 0; i < 50; ++i)
-    {
-        result = stepper(step, state);
-        real_type dchord = detail::distance_chord(
-            state, result.mid_state, result.end_state);
-        step *= max(std::sqrt(1 / dchord), 0.5);
-    }
-
-    // CELER_LOG(debug) << "Initial state position: " << state.pos[0] << ", " << state.pos[1] << ", " << state.pos[2];
-    // CELER_LOG(debug) << "Initial state momentum: " << state.mom[0] << ", " << state.mom[1] << ", " << state.mom[2];
-    
-    // Catch start time
-    // auto start = std::chrono::high_resolution_clock::now();
-    
-    // auto new_state = stepper(1, state);
-
-    // Catch end time
-    // auto end = std::chrono::high_resolution_clock::now();
-    // auto duration = std::chrono::duration_cast<time_unit>(end - start);
-
-    // Show result
-    // CELER_LOG(debug) << "Final mid state position: " << new_state.mid_state.pos[0] << ", " << new_state.mid_state.pos[1] << ", " << new_state.mid_state.pos[2];
-    // CELER_LOG(debug) << "Final mid state momentum: " << new_state.mid_state.mom[0] << ", " << new_state.mid_state.mom[1] << ", " << new_state.mid_state.mom[2];
-    // CELER_LOG(debug) << "Final error state position: " << new_state.err_state.pos[0] << ", " << new_state.err_state.pos[1] << ", " << new_state.err_state.pos[2];
-    // CELER_LOG(debug) << "Final error state momentum: " << new_state.err_state.mom[0] << ", " << new_state.err_state.mom[1] << ", " << new_state.err_state.mom[2];
-    // CELER_LOG(debug) << "Final end state position: " << new_state.end_state.pos[0] << ", " << new_state.end_state.pos[1] << ", " << new_state.end_state.pos[2];
-    // CELER_LOG(debug) << "Final end state momentum: " << new_state.end_state.mom[0] << ", " << new_state.end_state.mom[1] << ", " << new_state.end_state.mom[2];
-
-    // Check that the duration is less than 1 second
-    // auto time_limit = std::chrono::seconds{1};
-    // EXPECT_LT(duration.count(),
-    //  std::chrono::duration_cast<time_unit>(time_limit).count());
-
-    // return duration;
-
+inline std::string print_results(FieldStepperResult const& expected, FieldStepperResult const&  actual){
+    std::string result;
+    result =  "Expected mid state position:   " + std::to_string(expected.mid_state.pos[0]) + ", " + std::to_string(expected.mid_state.pos[1]) + ", " + std::to_string(expected.mid_state.pos[2]) + "\n";
+    result += "Actual mid state position:     " + std::to_string(actual.mid_state.pos[0]) + ", " + std::to_string(actual.mid_state.pos[1]) + ", " + std::to_string(actual.mid_state.pos[2]) + "\n";
+    result += "Expected mid state momentum:   " + std::to_string(expected.mid_state.mom[0]) + ", " + std::to_string(expected.mid_state.mom[1]) + ", " + std::to_string(expected.mid_state.mom[2]) + "\n";
+    result += "Actual mid state momentum:     " + std::to_string(actual.mid_state.mom[0]) + ", " + std::to_string(actual.mid_state.mom[1]) + ", " + std::to_string(actual.mid_state.mom[2]) + "\n";
+    result += "Expected error state position: " + std::to_string(expected.err_state.pos[0]) + ", " + std::to_string(expected.err_state.pos[1]) + ", " + std::to_string(expected.err_state.pos[2]) + "\n";
+    result += "Actual error state position:   " + std::to_string(actual.err_state.pos[0]) + ", " + std::to_string(actual.err_state.pos[1]) + ", " + std::to_string(actual.err_state.pos[2]) + "\n";
+    result += "Expected error state momentum: " + std::to_string(expected.err_state.mom[0]) + ", " + std::to_string(expected.err_state.mom[1]) + ", " + std::to_string(expected.err_state.mom[2]) + "\n";
+    result += "Actual error state momentum:   " + std::to_string(actual.err_state.mom[0]) + ", " + std::to_string(actual.err_state.mom[1]) + ", " + std::to_string(actual.err_state.mom[2]) + "\n";
+    result += "Expected end state position:   " + std::to_string(expected.end_state.pos[0]) + ", " + std::to_string(expected.end_state.pos[1]) + ", " + std::to_string(expected.end_state.pos[2]) + "\n";
+    result += "Actual end state position:     " + std::to_string(actual.end_state.pos[0]) + ", " + std::to_string(actual.end_state.pos[1]) + ", " + std::to_string(actual.end_state.pos[2]) + "\n";
+    result += "Expected end state momentum:   " + std::to_string(expected.end_state.mom[0]) + ", " + std::to_string(expected.end_state.mom[1]) + ", " + std::to_string(expected.end_state.mom[2]) + "\n";
+    result += "Actual end state momentum:     " + std::to_string(actual.end_state.mom[0]) + ", " + std::to_string(actual.end_state.mom[1]) + ", " + std::to_string(actual.end_state.mom[2]) + "\n";
+    return result;
 }
+
+inline CELER_FUNCTION bool compare_results(FieldStepperResult& e1, FieldStepperResult& e2){
+    // Comparing mid state
+    if (e1.mid_state.pos[0] != e2.mid_state.pos[0]) return false;
+    if (e1.mid_state.pos[1] != e2.mid_state.pos[1]) return false;
+    if (e1.mid_state.pos[2] != e2.mid_state.pos[2]) return false;
+    if (e1.mid_state.mom[0] != e2.mid_state.mom[0]) return false;
+    if (e1.mid_state.mom[1] != e2.mid_state.mom[1]) return false;
+    if (e1.mid_state.mom[2] != e2.mid_state.mom[2]) return false;
+
+    // Comparing err state
+    if (e1.err_state.pos[0] != e2.err_state.pos[0]) return false;
+    if (e1.err_state.pos[1] != e2.err_state.pos[1]) return false;
+    if (e1.err_state.pos[2] != e2.err_state.pos[2]) return false;
+    if (e1.err_state.mom[0] != e2.err_state.mom[0]) return false;
+    if (e1.err_state.mom[1] != e2.err_state.mom[1]) return false;
+    if (e1.err_state.mom[2] != e2.err_state.mom[2]) return false;
+
+    // Comparing end state
+    if (e1.end_state.pos[0] != e2.end_state.pos[0]) return false;
+    if (e1.end_state.pos[1] != e2.end_state.pos[1]) return false;
+    if (e1.end_state.pos[2] != e2.end_state.pos[2]) return false;
+    if (e1.end_state.mom[0] != e2.end_state.mom[0]) return false;
+    if (e1.end_state.mom[1] != e2.end_state.mom[1]) return false;
+    if (e1.end_state.mom[2] != e2.end_state.mom[2]) return false;
+
+    return true;
+}
+
+struct KernelResult
+{
+    FieldStepperResult *results;
+    float milliseconds;
+};
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 void dormand_prince_cuda_test();
+KernelResult simulate_multi_next_chord();
 
 #if !CELER_USE_DEVICE
 inline void dormand_prince_cuda_test()
@@ -114,7 +134,14 @@ inline void dormand_prince_cuda_test()
     CELER_NOT_CONFIGURED("CUDA or HIP");
     return nullptr;
 }
+
+inline KernelResult simulate_multi_next_chord()
+{ 
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+    return nullptr;
+}
 #endif
+
 
 //---------------------------------------------------------------------------//
 }  // namespace test
