@@ -50,7 +50,7 @@ class ScopedTimeLog
 
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DELETE_COPY_MOVE(ScopedTimeLog)
+    CELER_DELETE_COPY_MOVE(ScopedTimeLog);
     //!@}
 
   private:

@@ -227,7 +227,7 @@
     CLS(CLS const&) = default;            \
     CLS& operator=(CLS const&) = default; \
     CLS(CLS&&) = default;                 \
-    CLS& operator=(CLS&&) = default;
+    CLS& operator=(CLS&&) = default
 
 /*!
  * \def CELER_DELETE_COPY_MOVE
@@ -239,4 +239,4 @@
     CLS(CLS const&) = delete;            \
     CLS& operator=(CLS const&) = delete; \
     CLS(CLS&&) = delete;                 \
-    CLS& operator=(CLS&&) = delete;
+    CLS& operator=(CLS&&) = delete

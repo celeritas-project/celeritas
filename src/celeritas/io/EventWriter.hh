@@ -59,7 +59,7 @@ class EventWriter
                 Format fmt);
 
     //! Prevent copying and moving due to file ownership
-    CELER_DELETE_COPY_MOVE(EventWriter)
+    CELER_DELETE_COPY_MOVE(EventWriter);
 
     // Write all the primaries from a single event
     void operator()(argument_type primaries);
