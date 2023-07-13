@@ -19,12 +19,13 @@
 #include "celeritas_config.h"
 
 #if CELERITAS_USE_HEPMC3
-#include <HepMC3/GenParticle.h>
-#include <HepMC3/GenEvent.h>
-#include <HepMC3/ReaderFactory.h>
-#include <HepMC3/WriterAscii.h>
-#include <HepMC3/Print.h>
-#include <HepMC3/Selector.h>
+#    include <HepMC3/GenEvent.h>
+#    include <HepMC3/GenParticle.h>
+#    include <HepMC3/Print.h>
+#    include <HepMC3/ReaderAscii.h>
+#    include <HepMC3/Selector.h>
+#    include <HepMC3/WriterAscii.h>
+
 #endif
 
 using celeritas::units::MevEnergy;
@@ -395,10 +396,10 @@ TEST_F(HepMC3Example, read)
 #if CELERITAS_USE_HEPMC3
     using namespace HepMC3;
     ASSERT_FALSE(this->test_filename_.empty());
-    HepMC3::Setup::set_debug_level(1);
-    auto reader = HepMC3::deduce_reader(this->test_filename_);
+    Setup::set_debug_level(1);
+    auto reader = std::make_shared<ReaderAscii>(this->test_filename_);
 
-    HepMC3::GenEvent evt;
+    GenEvent evt;
     reader->read_event(evt);
     Print::listing(evt);
     Print::content(evt);

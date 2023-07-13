@@ -69,7 +69,7 @@ class EventReader
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_HEPMC3
-EventReader::EventReader(std::string const&, SPConstParticles)
+inline EventReader::EventReader(std::string const&, SPConstParticles)
 {
     (void)sizeof(params_);
     (void)sizeof(reader_);
@@ -77,7 +77,7 @@ EventReader::EventReader(std::string const&, SPConstParticles)
     CELER_NOT_CONFIGURED("HepMC3");
 }
 
-auto EventReader::operator()() -> result_type
+inline auto EventReader::operator()() -> result_type
 {
     CELER_ASSERT_UNREACHABLE();
 }

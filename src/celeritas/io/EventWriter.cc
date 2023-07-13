@@ -51,7 +51,7 @@ EventWriter::Format filename_to_format(std::string const& filename)
  * Construct by parsing the extension.
  */
 EventWriter::EventWriter(std::string const& filename, SPConstParticles params)
-    : EventWriter{filename, params, filename_to_format(filename)}
+    : EventWriter{filename, std::move(params), filename_to_format(filename)}
 {
 }
 
