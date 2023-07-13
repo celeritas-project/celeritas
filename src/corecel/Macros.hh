@@ -220,8 +220,8 @@
 /*!
  * \def CELER_DEFAULT_COPY_MOVE
  *
- * Explicitly declares defaulted copy and move constructors ans assignment
- * operators.
+ * Explicitly declare defaulted copy and move constructors and assignment
+ * operators. Use this if the destructor is declared explicitly.
  */
 #define CELER_DEFAULT_COPY_MOVE(CLS)      \
     CLS(CLS const&) = default;            \
@@ -232,8 +232,8 @@
 /*!
  * \def CELER_DELETE_COPY_MOVE
  *
- * Explicitly declares deleted copy and move constructors ans assignment
- * operators.
+ * Explicitly declare *deleted* copy and move constructors and assignment
+ * operators. Use this for scoped RAII classes.
  */
 #define CELER_DELETE_COPY_MOVE(CLS)      \
     CLS(CLS const&) = delete;            \
