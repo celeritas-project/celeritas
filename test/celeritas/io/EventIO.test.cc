@@ -16,6 +16,16 @@
 #include "celeritas/phys/Primary.hh"
 
 #include "celeritas_test.hh"
+#include "celeritas_config.h"
+
+#if CELERITAS_USE_HEPMC3
+#include <HepMC3/GenParticle.h>
+#include <HepMC3/GenEvent.h>
+#include <HepMC3/ReaderFactory.h>
+#include <HepMC3/WriterAscii.h>
+#include <HepMC3/Print.h>
+#include <HepMC3/Selector.h>
+#endif
 
 using celeritas::units::MevEnergy;
 
@@ -254,6 +264,162 @@ TEST_P(EventIO, write_read)
 INSTANTIATE_TEST_SUITE_P(EventReaderTests,
                          EventIO,
                          testing::Values("hepmc3", "hepmc2", "hepevt"));
+
+//---------------------------------------------------------------------------//
+// STANDALONE TEST: HepMC3/examples/BasicExamples/basic_tree.cc
+//---------------------------------------------------------------------------//
+
+#define HepMC3Example DISABLED_StandaloneIOTest
+class HepMC3Example : public Test
+{
+  public:
+    static std::string test_filename_;
+};
+
+std::string HepMC3Example::test_filename_{};
+
+TEST_F(HepMC3Example, write)
+{
+#if CELERITAS_USE_HEPMC3
+    using namespace HepMC3;
+    // Copyright (C) 2014-2022 The HepMC collaboration
+
+    // In this example we will place the following event into HepMC "by hand"
+    //
+    //     name status pdg_id  parent Px       Py    Pz       Energy      Mass
+    //  1  !p+!    3   2212    0,0    0.000    0.000 7000.000 7000.000    0.938
+    //  3  !p+!    3   2212    0,0    0.000    0.000-7000.000 7000.000    0.938
+    //=========================================================================
+    //  2  !d!     3      1    1,1    0.750   -1.569   32.191   32.238    0.000
+    //  4  !u~!    3     -2    2,2   -3.047  -19.000  -54.629   57.920    0.000
+    //  5  !W-!    3    -24    1,2    1.517   -20.68  -20.605   85.925   80.799
+    //  6  !gamma! 1     22    1,2   -3.813    0.113   -1.833    4.233    0.000
+    //  7  !d!     1      1    5,5   -2.445   28.816    6.082   29.552    0.010
+    //  8  !u~!    1     -2    5,5    3.962  -49.498  -26.687   56.373    0.006
+
+    // now we build the graph, which will looks like
+    //                       p7                         #
+    // p1                   /                           #
+    //   \v1__p2      p5---v4                           #
+    //         \_v3_/       \                           #
+    //         /    \        p8                         #
+    //    v2__p4     \                                  #
+    //   /            p6                                #
+    // p3                                               #
+    //                                                  #
+    GenEvent evt(Units::GEV, Units::MM);
+
+    //  px      py pz       e pdgid status
+    GenParticlePtr p1 = std::make_shared<GenParticle>(
+        FourVector(0.0, 0.0, 7000.0, 7000.0), 2212, 3);
+    GenParticlePtr p2 = std::make_shared<GenParticle>(
+        FourVector(0.750, -1.569, 32.191, 32.238), 1, 3);
+    GenParticlePtr p3 = std::make_shared<GenParticle>(
+        FourVector(0.0, 0.0, -7000.0, 7000.0), 2212, 3);
+    GenParticlePtr p4 = std::make_shared<GenParticle>(
+        FourVector(-3.047, -19.0, -54.629, 57.920), -2, 3);
+
+    GenVertexPtr v1 = std::make_shared<GenVertex>();
+    v1->add_particle_in(p1);
+    v1->add_particle_out(p2);
+    evt.add_vertex(v1);
+
+    // Set vertex status if needed
+    v1->set_status(4);
+
+    GenVertexPtr v2 = std::make_shared<GenVertex>();
+    v2->add_particle_in(p3);
+    v2->add_particle_out(p4);
+    evt.add_vertex(v2);
+
+    GenVertexPtr v3 = std::make_shared<GenVertex>();
+    v3->add_particle_in(p2);
+    v3->add_particle_in(p4);
+    evt.add_vertex(v3);
+
+    GenParticlePtr p5 = std::make_shared<GenParticle>(
+        FourVector(-3.813, 0.113, -1.833, 4.233), 22, 1);
+    GenParticlePtr p6 = std::make_shared<GenParticle>(
+        FourVector(1.517, -20.68, -20.605, 85.925), -24, 3);
+
+    v3->add_particle_out(p5);
+    v3->add_particle_out(p6);
+
+    GenVertexPtr v4 = std::make_shared<GenVertex>();
+    v4->add_particle_in(p6);
+    evt.add_vertex(v4);
+
+    GenParticlePtr p7 = std::make_shared<GenParticle>(
+        FourVector(-2.445, 28.816, 6.082, 29.552), 1, 1);
+    GenParticlePtr p8 = std::make_shared<GenParticle>(
+        FourVector(3.962, -49.498, -26.687, 56.373), -2, 1);
+
+    v4->add_particle_out(p7);
+    v4->add_particle_out(p8);
+
+    // Example of adding event attributes
+    std::shared_ptr<GenPdfInfo> pdf_info = std::make_shared<GenPdfInfo>();
+    evt.add_attribute("GenPdfInfo", pdf_info);
+
+    pdf_info->set(1, 2, 3.4, 5.6, 7.8, 9.0, 1.2, 3, 4);
+
+    std::shared_ptr<GenHeavyIon> heavy_ion = std::make_shared<GenHeavyIon>();
+    evt.add_attribute("GenHeavyIon", heavy_ion);
+
+    heavy_ion->set(1, 2, 3, 4, 5, 6, 7, 8, 9, 0.1, 2.3, 4.5, 6.7);
+
+    std::shared_ptr<GenCrossSection> cross_section
+        = std::make_shared<GenCrossSection>();
+    evt.add_attribute("GenCrossSection", cross_section);
+
+    cross_section->set_cross_section(1.2, 3.4);
+
+    std::shared_ptr<Attribute> tool1 = std::make_shared<IntAttribute>(1);
+    std::shared_ptr<Attribute> tool999 = std::make_shared<IntAttribute>(999);
+    std::shared_ptr<Attribute> test_attribute
+        = std::make_shared<StringAttribute>("test attribute");
+    std::shared_ptr<Attribute> test_attribute2
+        = std::make_shared<StringAttribute>("test attribute2");
+
+    p2->add_attribute("tool", tool1);
+    p2->add_attribute("other", test_attribute);
+
+    p4->add_attribute("tool", tool1);
+
+    p6->add_attribute("tool", tool999);
+    p6->add_attribute("other", test_attribute2);
+
+    v3->add_attribute("vtx_att", test_attribute);
+    v4->add_attribute("vtx_att", test_attribute2);
+
+    Print::listing(evt);
+    Print::content(evt);
+
+    this->test_filename_ = this->make_unique_filename(".hepmc3");
+    WriterAscii writer(this->test_filename_);
+    writer.write_event(evt);
+    writer.close();
+#else
+    GTEST_SKIP() << "HepMC3 is unavailable";
+#endif
+}
+
+TEST_F(HepMC3Example, read)
+{
+#if CELERITAS_USE_HEPMC3
+    using namespace HepMC3;
+    ASSERT_FALSE(this->test_filename_.empty());
+    HepMC3::Setup::set_debug_level(1);
+    auto reader = HepMC3::deduce_reader(this->test_filename_);
+
+    HepMC3::GenEvent evt;
+    reader->read_event(evt);
+    Print::listing(evt);
+    Print::content(evt);
+#else
+    GTEST_SKIP() << "HepMC3 is unavailable";
+#endif
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

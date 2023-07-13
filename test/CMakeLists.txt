@@ -461,7 +461,8 @@ celeritas_add_test(celeritas/grid/XsCalculator.test.cc)
 #-------------------------------------#
 # IO
 set(CELERITASTEST_PREFIX celeritas/io)
-celeritas_add_test(celeritas/io/EventIO.test.cc ${_needs_hepmc})
+celeritas_add_test(celeritas/io/EventIO.test.cc ${_needs_hepmc}
+  LINK_LIBRARIES ${HepMC3_LIBRARIES})
 celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-------------------------------------#
