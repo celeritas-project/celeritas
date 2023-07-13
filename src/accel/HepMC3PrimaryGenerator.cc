@@ -91,7 +91,7 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 
     {
         // Read the next event from the file.
-        G4AutoLock scoped_lock{read_mutex_};
+        std::lock_guard scoped_lock{read_mutex_};
         reader_->read_event(gen_event);
         CELER_ASSERT(!reader_->failed());
     }
