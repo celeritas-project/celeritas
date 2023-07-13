@@ -105,11 +105,14 @@ void EventWriter::operator()(argument_type primaries)
     HepMC3::GenVertexPtr vtx;
     Primary const* vtx_primary{nullptr};
 
-    // See HepMC2 manual
-    enum HepStatus
+    // See HepMC2 user manual (page 13): we only use 0 and 1
+    enum StatusCode
     {
-        test_status = 0,
-        final_state_status = 1,
+        meaningless_code = 0,
+        final_code = 1,
+        decayed_code = 2,
+        documentation_code = 3,
+        beam_code = 4,
     };
 
     // Loop over all primaries
@@ -133,14 +136,15 @@ void EventWriter::operator()(argument_type primaries)
                 if (!vtx)
                 {
                     // No 'primary' particle exists: fake one
-                    return std::make_shared<HepMC3::GenParticle>();
+                    auto result = std::make_shared<HepMC3::GenParticle>();
+                    result->set_status(meaningless_code);
+                    return result;
                 }
                 CELER_ASSERT(!vtx->particles_out().empty());
                 return vtx->particles_out().back();
             }();
             vtx = std::make_shared<HepMC3::GenVertex>(pos);
             vtx->add_particle_in(last_par);
-            vtx->set_status(final_state_status);
             evt.add_vertex(vtx);
         }
 
@@ -149,7 +153,7 @@ void EventWriter::operator()(argument_type primaries)
         vtx->add_particle_out(par);
 
         par->set_pid(particles_->id_to_pdg(p.particle_id).get());
-        par->set_status(final_state_status);
+        par->set_status(final_code);
 
         HepMC3::FourVector mom;
         mom.set_px(p.direction[0]);
@@ -165,7 +169,6 @@ void EventWriter::operator()(argument_type primaries)
 
         // Note: primary's track ID is ignored
     }
-    evt.add_vertex(vtx);
 
     if (CELER_UNLIKELY(!mismatched_events.empty()))
     {
