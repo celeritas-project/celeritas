@@ -217,6 +217,7 @@ endif()
 
 if(CELERITAS_USE_HepMC3 AND NOT HepMC3_FOUND)
   find_package(HepMC3 REQUIRED)
+  set(HepMC3_LIBRARIES HepMC3::HepMC3)
 endif()
 
 if(CELERITAS_USE_JSON AND NOT nlohmann_json_FOUND)
