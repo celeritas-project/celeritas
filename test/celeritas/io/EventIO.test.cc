@@ -35,7 +35,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class EventIO : public Test, public ::testing::WithParamInterface<char const*>
+class EventIOTest : public Test,
+                    public ::testing::WithParamInterface<char const*>
 {
   protected:
     void SetUp() override
@@ -80,7 +81,7 @@ class EventIO : public Test, public ::testing::WithParamInterface<char const*>
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_P(EventIO, read_all_formats)
+TEST_P(EventIOTest, read_all_formats)
 {
     std::string const ext = this->GetParam();
     std::string filename
@@ -140,7 +141,7 @@ TEST_P(EventIO, read_all_formats)
     EXPECT_TRUE(primaries.empty());
 }
 
-TEST_P(EventIO, write_read)
+TEST_P(EventIOTest, write_read)
 {
     std::vector<Primary> primaries = [&particles = *this->particles_] {
         auto proton_id = particles.find(pdg::proton());
@@ -227,21 +228,6 @@ TEST_P(EventIO, write_read)
         } while (!primaries.empty());
     }
 
-    if (ext != "hepmc3")
-    {
-        GTEST_SKIP() << "other file formats can't seem to read their own "
-                        "writer output";
-    }
-
-#if 0
-    PRINT_EXPECTED(pdg);
-    PRINT_EXPECTED(energy);
-    PRINT_EXPECTED(pos);
-    PRINT_EXPECTED(dir);
-    PRINT_EXPECTED(time);
-    PRINT_EXPECTED(event);
-    PRINT_EXPECTED(track);
-#endif
     // clang-format off
     static int const expected_pdg[] = {22, 2212, 22, 2212, 22, 2212, 22, 2212, 2212, 22};
     static double const expected_energy[] = {1.23, 2.34, 1.23, 2.34, 1.23, 2.34, 1.23, 2.34, 3.45, 1.23};
@@ -256,13 +242,13 @@ TEST_P(EventIO, write_read)
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_pos, pos);
     EXPECT_VEC_SOFT_EQ(expected_dir, dir);
-    EXPECT_VEC_SOFT_EQ(expected_time, time);
+    EXPECT_VEC_NEAR(expected_time, time, (ext == "hepevt" ? 1e-6 : 1e-12));
     EXPECT_VEC_EQ(expected_event, event);
     EXPECT_VEC_EQ(expected_track, track);
 }
 
-INSTANTIATE_TEST_SUITE_P(EventReaderTests,
-                         EventIO,
+INSTANTIATE_TEST_SUITE_P(EventIO,
+                         EventIOTest,
                          testing::Values("hepmc3", "hepmc2", "hepevt"));
 
 //---------------------------------------------------------------------------//

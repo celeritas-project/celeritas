@@ -9,6 +9,8 @@
 
 #include <set>
 #include <HepMC3/GenParticle.h>
+#include <HepMC3/GenVertex.h>
+#include <HepMC3/Print.h>
 #include <HepMC3/WriterAscii.h>
 #include <HepMC3/WriterAsciiHepMC2.h>
 #include <HepMC3/WriterHEPEVT.h>
@@ -60,20 +62,15 @@ EventWriter::EventWriter(std::string const& filename, SPConstParticles params)
 EventWriter::EventWriter(std::string const& filename,
                          SPConstParticles particles,
                          Format fmt)
-    : particles_(particles)
+    : particles_{particles}, fmt_{fmt}
 {
     CELER_EXPECT(!filename.empty());
     CELER_EXPECT(particles_);
+    CELER_EXPECT(fmt_ != Format::size_);
 
     CELER_LOG(info) << "Creating " << to_cstring(fmt) << " event file at "
                     << filename;
     ScopedTimeAndRedirect temp_{"HepMC3"};
-
-    if (fmt != Format::hepmc3)
-    {
-        CELER_LOG(warning) << "Writing to a event file format other than "
-                              "hepmc3 may result in an unreadable file";
-    }
 
     writer_ = [&]() -> std::shared_ptr<HepMC3::Writer> {
         switch (fmt)
@@ -108,22 +105,20 @@ void EventWriter::operator()(argument_type primaries)
     HepMC3::GenVertexPtr vtx;
     Primary const* vtx_primary{nullptr};
 
+    // See HepMC2 manual
+    enum HepStatus
+    {
+        test_status = 0,
+        final_state_status = 1,
+    };
+
     // Loop over all primaries
     for (Primary const& p : primaries)
     {
-        auto par = std::make_shared<HepMC3::GenParticle>();
-
-        par->set_pid(particles_->id_to_pdg(p.particle_id).get());
-        par->set_status(4);  // "incoming beam particle" from HepMC2 manual
-
         if (!vtx_primary || vtx_primary->time != p.time
             || vtx_primary->position != p.position)
         {
-            if (vtx)
-            {
-                evt.add_vertex(vtx);
-            }
-            // Position has changed: add a new vertex
+            // Position or time has changed: add a new vertex
             vtx_primary = &p;
 
             HepMC3::FourVector pos;
@@ -131,8 +126,30 @@ void EventWriter::operator()(argument_type primaries)
             pos.set_y(p.position[1]);
             pos.set_z(p.position[2]);
             pos.set_t(p.time / units::centimeter * constants::c_light);
+
+            // Use the last particle from the previous vertex as an "in"
+            // particle (needed for the file format to be correct)
+            auto last_par = [&vtx] {
+                if (!vtx)
+                {
+                    // No 'primary' particle exists: fake one
+                    return std::make_shared<HepMC3::GenParticle>();
+                }
+                CELER_ASSERT(!vtx->particles_out().empty());
+                return vtx->particles_out().back();
+            }();
             vtx = std::make_shared<HepMC3::GenVertex>(pos);
+            vtx->add_particle_in(last_par);
+            vtx->set_status(final_state_status);
+            evt.add_vertex(vtx);
         }
+
+        CELER_ASSERT(vtx);
+        auto par = std::make_shared<HepMC3::GenParticle>();
+        vtx->add_particle_out(par);
+
+        par->set_pid(particles_->id_to_pdg(p.particle_id).get());
+        par->set_status(final_state_status);
 
         HepMC3::FourVector mom;
         mom.set_px(p.direction[0]);
@@ -147,12 +164,6 @@ void EventWriter::operator()(argument_type primaries)
         }
 
         // Note: primary's track ID is ignored
-
-        // Note: the particle has to be added to both in *and* out to be
-        // readable in hepmc3 format
-        CELER_ASSERT(vtx);
-        vtx->add_particle_in(par);
-        vtx->add_particle_out(par);
     }
     evt.add_vertex(vtx);
 
@@ -161,6 +172,12 @@ void EventWriter::operator()(argument_type primaries)
         CELER_LOG(warning)
             << "Overwriting primary event IDs with " << event_count_ << ": "
             << join(mismatched_events.begin(), mismatched_events.end(), ", ");
+    }
+
+    if (fmt_ == Format::hepevt)
+    {
+        // HEPEVT files can only write in GeV/mm
+        evt.set_units(HepMC3::Units::GEV, HepMC3::Units::MM);
     }
 
     {

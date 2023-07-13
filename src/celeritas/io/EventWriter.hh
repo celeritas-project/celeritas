@@ -68,6 +68,8 @@ class EventWriter
     // Shared standard model particle data
     SPConstParticles particles_;
 
+    Format fmt_;
+
     // HepMC3 event record writer
     std::shared_ptr<HepMC3::Writer> writer_;
 

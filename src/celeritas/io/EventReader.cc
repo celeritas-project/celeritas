@@ -7,9 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "EventReader.hh"
 
+#include <set>
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/ReaderFactory.h>
 
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -55,25 +57,47 @@ auto EventReader::operator()() -> result_type
         ScopedTimeAndRedirect temp_{"HepMC3"};
         reader_->read_event(gen_event);
     }
-
     // There are no more events
     if (reader_->failed())
     {
         return {};
     }
 
+    EventId const event_id{event_count_++};
+
     // Convert the energy units to MeV and the length units to cm
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
+
+    std::set<int> missing_pdg;
 
     result_type result;
     int track_id = 0;
     for (auto gen_particle : gen_event.particles())
     {
+        HepMC3::GenParticleData const& part_data = gen_particle->data();
+        if (part_data.status <= 0)
+        {
+            // Skip particles that should not be tracked
+            // Status codes (page 13):
+            // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
+            if (part_data.momentum.e() > 0)
+            {
+                CELER_LOG_LOCAL(debug)
+                    << "Skipped status code " << part_data.status << " for "
+                    << part_data.momentum.e() << " MeV primary";
+            }
+            continue;
+        }
+
         // Get the PDG code and check if this particle type is defined for
         // the current physics
         PDGNumber pdg{gen_particle->pid()};
         ParticleId particle_id{params_->find(pdg)};
-        CELER_ASSERT(particle_id);
+        if (CELER_UNLIKELY(!particle_id))
+        {
+            missing_pdg.insert(pdg.unchecked_get());
+            continue;
+        }
 
         Primary primary;
 
@@ -81,7 +105,7 @@ auto EventReader::operator()() -> result_type
         primary.particle_id = particle_id;
 
         // Set the event and track number
-        primary.event_id = EventId(event_count_);
+        primary.event_id = event_id;
         primary.track_id = TrackId(track_id++);
 
         // Get the position of the primary
@@ -104,7 +128,12 @@ auto EventReader::operator()() -> result_type
 
         result.push_back(primary);
     }
-    ++event_count_;
+
+    CELER_VALIDATE(missing_pdg.empty(),
+                   << "Event " << event_id.get()
+                   << " contains unknown particle types: PDG "
+                   << join(missing_pdg.begin(), missing_pdg.end(), ", "));
+
     return result;
 }
 
