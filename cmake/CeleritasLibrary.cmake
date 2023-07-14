@@ -359,6 +359,7 @@ function(celeritas_rdc_add_library target)
   add_library(Celeritas::${target}_final ALIAS ${target}_final)
   set_target_properties(${target}_final PROPERTIES
     ${_common_props}
+    LINK_DEPENDS $<TARGET_FILE:${target}${_staticsuf}>
     CELERITAS_CUDA_LIBRARY_TYPE Final
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
     EXPORT_PROPERTIES "CELERITAS_CUDA_LIBRARY_TYPE;CELERITAS_CUDA_FINAL_LIBRARY;CELERITAS_CUDA_MIDDLE_LIBRARY;CELERITAS_CUDA_STATIC_LIBRARY"
