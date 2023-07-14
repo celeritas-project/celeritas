@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "celeritas_cmake_strings.h"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
@@ -28,6 +29,7 @@
 
 #include "../GenericGeoTestBase.hh"
 #include "CMSParameterizedField.hh"
+#include "CheckedGeoTrackView.hh"
 #include "DiagnosticStepper.hh"
 #include "FieldTestBase.hh"
 #include "celeritas_test.hh"
@@ -39,7 +41,6 @@ namespace test
 //---------------------------------------------------------------------------//
 using constants::pi;
 using constants::sqrt_three;
-using units::MevEnergy;
 
 template<class E>
 using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
@@ -51,15 +52,38 @@ using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 class FieldPropagatorTestBase : public GenericCoreGeoTestBase,
                                 public FieldTestBase
 {
+    using GCGBase = GenericCoreGeoTestBase;
+    using FBase = FieldTestBase;
+
+  public:
+    //!@{
+    //! \name Type aliases
+    using CGeoTrackView
+        = CheckedGeoTrackView<GenericCoreGeoTestBase::GeoTrackView>;
+    //!@}
+
   protected:
     SPConstGeo build_geometry() final
     {
         return this->build_geometry_from_basename();
     }
 
+    //! Get a single-thread host track view
+    CGeoTrackView make_geo_track_view()
+    {
+        return CGeoTrackView{GCGBase::make_geo_track_view()};
+    }
+
+    //! Get and initialize a single-thread host track view
+    CGeoTrackView make_geo_track_view(Real3 const& pos, Real3 dir)
+    {
+        return CGeoTrackView{GCGBase::make_geo_track_view(pos, dir)};
+    }
+
     SPConstParticle build_particle() const final;
 };
 
+//---------------------------------------------------------------------------//
 auto FieldPropagatorTestBase::build_particle() const -> SPConstParticle
 {
     // Create particle defs
@@ -167,9 +191,12 @@ TEST_F(TwoBoxTest, electron_interior)
     EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
                        geo.dir());
     EXPECT_EQ(1, stepper.count());
+    EXPECT_EQ(1, geo.intersect_count());
+    EXPECT_EQ(0, geo.safety_count());
 
     // Test the remaining quarter-turn divided into 20 steps
     {
+        geo.reset_count();
         stepper.reset_count();
         real_type step = 0.5 * pi * radius - 1e-2;
         for (auto i : range(25))
@@ -406,6 +433,7 @@ TEST_F(TwoBoxTest, electron_super_small_step)
     for (real_type delta : {1e-14, 1e-8, 1e-2, 0.1})
     {
         auto geo = this->make_geo_track_view({90, 90, 90}, {1, 0, 0});
+        EXPECT_EQ("world", this->volume_name(geo));
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -1224,6 +1252,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         EXPECT_FALSE(result.looping);
     }
     {
+        ScopedLogStorer scoped_log_{&celeritas::self_logger()};
         ASSERT_TRUE(geo.is_on_boundary());
         // Simulate MSC making us reentrant
         geo.set_dir({-1.31178657592616127e-01,
@@ -1237,6 +1266,14 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             // system configurations, VecGeom will end up in the world volume,
             // so we don't test in all cases.
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+
+            // This message comes from the CheckedGeoTrackView
+            static char const* const expected_log_messages[]
+                = {"Volume did not change from 3 when crossing boundary at "
+                   "{123.254,-20.8187,-40.8262}"};
+            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+            static char const* const expected_log_levels[] = {"warning"};
+            EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
         }
     }
     {
