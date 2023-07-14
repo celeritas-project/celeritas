@@ -11,12 +11,10 @@
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/ArrayIO.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
-#include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
@@ -26,12 +24,12 @@
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
 
+#include "../GenericGeoTestBase.hh"
 #include "CMSParameterizedField.hh"
 #include "DiagnosticStepper.hh"
+#include "FieldTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -50,59 +48,19 @@ using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class FieldPropagatorTestBase : public GenericCoreGeoTestBase
+class FieldPropagatorTestBase : public GenericCoreGeoTestBase,
+                                public FieldTestBase
 {
-  public:
-    using SPConstParticle = std::shared_ptr<ParticleParams const>;
-
-    void SetUp() override;
-
-    SPConstParticle const& particle() const
-    {
-        CELER_ENSURE(particle_);
-        return particle_;
-    }
-
-    ParticleTrackView make_particle_view(PDGNumber pdg, MevEnergy energy)
-    {
-        CELER_EXPECT(pdg && energy > zero_quantity());
-        ParticleId pid = this->particle()->find(pdg);
-        CELER_ASSERT(pid);
-        ParticleTrackView view{
-            this->particle()->host_ref(), par_state_.ref(), TrackSlotId{0}};
-        view = {pid, energy};
-        return view;
-    }
-
-    template<class Field>
-    real_type calc_field_curvature(ParticleTrackView const& particle,
-                                   GeoTrackView const& geo,
-                                   Field const& calc_field) const
-    {
-        auto field_strength = norm(calc_field(geo.pos()));
-        return native_value_from(particle.momentum())
-               / (std::fabs(native_value_from(particle.charge()))
-                  * field_strength);
-    }
-
+  protected:
     SPConstGeo build_geometry() final
     {
         return this->build_geometry_from_basename();
     }
 
-  private:
-    //// TYPE ALIASES ////
-    template<template<Ownership, MemSpace> class T>
-    using HostStateStore = CollectionStateStore<T, MemSpace::host>;
-    using ParStateStore = HostStateStore<ParticleStateData>;
-
-    //// DATA ////
-
-    std::shared_ptr<ParticleParams const> particle_;
-    ParStateStore par_state_;
+    SPConstParticle build_particle() const final;
 };
 
-void FieldPropagatorTestBase::SetUp()
+auto FieldPropagatorTestBase::build_particle() const -> SPConstParticle
 {
     // Create particle defs
     using namespace units;
@@ -119,9 +77,7 @@ void FieldPropagatorTestBase::SetUp()
             ElementaryCharge{1},
             stable},
            {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
-    particle_ = std::make_shared<ParticleParams>(std::move(defs));
-
-    par_state_ = ParStateStore(particle_->host_ref(), 1);
+    return std::make_shared<ParticleParams>(std::move(defs));
 }
 
 //---------------------------------------------------------------------------//

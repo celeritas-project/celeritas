@@ -319,13 +319,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
 //---------------------------------------------------------------------------//
 // EXPLICIT TEMPLATE INSTANTIATIONS
 //---------------------------------------------------------------------------//
-template class GenericGeoTestBase<OrangeParams>;
-#if CELERITAS_USE_VECGEOM
-template class GenericGeoTestBase<VecgeomParams>;
-#endif
-#if CELERITAS_USE_GEANT4
-template class GenericGeoTestBase<GeantGeoParams>;
-#endif
+CELERTEST_INST_GEO(GenericGeoTestBase);
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
