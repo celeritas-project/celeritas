@@ -759,6 +759,9 @@ function(celeritas_target_link_libraries target)
             PRIVATE
             $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>
           )
+          set_property(TARGET ${_target_final} APPEND
+            PROPERTY LINK_DEPENDS $<TARGET_FILE:${_libstatic}>
+          )
 
           # Also pass on the the options and definitions.
           celeritas_transfer_setting(${_libstatic} ${_target_final} COMPILE_OPTIONS)
