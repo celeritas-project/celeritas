@@ -335,7 +335,11 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
 
 //---------------------------------------------------------------------------//
 /*!
- * The current volume ID (null if outside).
+ * The current volume ID.
+ *
+ * \note It is allowable to call this function when "outside", because the
+ * outside in ORANGE is just a special volume. Other geometries may not have
+ * that behavior.
  */
 CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 {
