@@ -28,9 +28,6 @@ using SurfaceId = OpaqueId<struct Surface>;
 //! Identifier for a geometry volume
 using VolumeId = OpaqueId<struct Volume>;
 
-//! Identifier for a BIHNode objects
-using BIHNodeId = OpaqueId<struct BIHNode>;
-
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//

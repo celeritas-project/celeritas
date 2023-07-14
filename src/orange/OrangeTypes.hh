@@ -30,6 +30,9 @@ namespace celeritas
 //! Integer type for volume CSG tree representation
 using logic_int = unsigned short int;
 
+//! Identifier for a BIHNode objects
+using BIHNodeId = OpaqueId<struct BIHNode>;
+
 //! Identifier for a daughter universe
 using DaughterId = OpaqueId<struct Daughter>;
 
