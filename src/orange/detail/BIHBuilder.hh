@@ -48,7 +48,7 @@ class BIHBuilder
     explicit CELER_FUNCTION BIHBuilder(VecBBox bboxes, Storage* storage);
 
     // Create BIH Nodes
-    CELER_FUNCTION VecNodes operator()();
+    CELER_FUNCTION VecNodes operator()() const;
 
   private:
     /// TYPES ///
@@ -65,7 +65,7 @@ class BIHBuilder
         double location;
         explicit CELER_FUNCTION operator bool() const
         {
-            return axis == Axis::x || axis == Axis::y || axis == Axis::y;
+            return axis != Axis::size_;
         }
     };
 
@@ -77,11 +77,11 @@ class BIHBuilder
     //// HELPER FUNCTIONS ////
 
     // Recursively construct BIH nodes for a vector of bbox indices
-    void construct_tree(VecIndices const& indices, VecNodes& nodes);
+    void construct_tree(VecIndices const& indices, VecNodes& nodes) const;
 
     // Find a suitable partition for the given bounding boxes
     Partition
-    find_partition(VecIndices const& indicies, VecReal3 const& centers);
+    find_partition(VecIndices const& indicies, VecReal3 const& centers) const;
 
     // Divide bboxes into left and right branches based on a partition
     PairVecIndices partition_bboxes(VecIndices const& indices,
@@ -89,26 +89,26 @@ class BIHBuilder
                                     Partition const& p);
 
     // Add leaf volume ids to a given node
-    void make_leaf(BIHNode& node, VecIndices const& indices);
+    void make_leaf(BIHNode& node, VecIndices const& indices) const;
 
     // Calculate the centers of each bounding box
-    CELER_FUNCTION VecReal3 centers(VecIndices const& indices);
+    CELER_FUNCTION VecReal3 centers(VecIndices const& indices) const;
 
     // Create sorted and uniquified X, Y, Z values of bbox centers
-    AxesCenters axes_centers(VecReal3 const& centers);
+    AxesCenters axes_centers(VecReal3 const& centers) const;
 
     // Bounding box of a collection of bounding boxes
-    CELER_FUNCTION BoundingBox meta_bbox(VecIndices const& indices);
+    CELER_FUNCTION BoundingBox meta_bbox(VecIndices const& indices) const;
 
     // Create a vector of axes sorted from longest to shortest.
-    CELER_FUNCTION VecAxes sort_axes(BoundingBox const& bbox);
+    CELER_FUNCTION VecAxes sort_axes(BoundingBox const& bbox) const;
 
     // Check that only the first bounding box (i.e. exterior volume) is fully
     // inf.
-    CELER_FUNCTION bool check_bbox_extents();
+    CELER_FUNCTION bool check_bbox_extents() const;
 
     // Check if a bounding box spans (-inf, inf) in every direction.
-    CELER_FUNCTION bool fully_inf(BoundingBox const& bbox);
+    CELER_FUNCTION bool fully_inf(BoundingBox const& bbox) const;
 };
 
 //---------------------------------------------------------------------------//
