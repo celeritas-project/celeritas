@@ -25,7 +25,7 @@
 #include "orange/surf/Surfaces.hh"
 #include "orange/surf/detail/SurfaceAction.hh"
 
-#include "BIHMaker.hh"
+#include "BIHBuilder.hh"
 
 namespace celeritas
 {
@@ -193,9 +193,9 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
             .insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree
-    detail::BIHMaker bih_maker(std::move(bboxes),
-                               &orange_data_->local_volume_ids);
-    auto nodes = bih_maker();
+    detail::BIHBuilder bih_builder(std::move(bboxes),
+                                   &orange_data_->local_volume_ids);
+    auto nodes = bih_builder();
     unit.bih_nodes = make_builder(&orange_data_->bih_nodes)
                          .insert_back(nodes.begin(), nodes.end());
 

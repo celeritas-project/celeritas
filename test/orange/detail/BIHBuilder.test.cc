@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHMaker.test.cc
+//! \file orange/detail/BIHBuilder.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/detail/BIHMaker.hh"
+#include "orange/detail/BIHBuilder.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
@@ -13,13 +13,13 @@
 
 #include "celeritas_test.hh"
 
-using BIHMaker = celeritas::detail::BIHMaker;
+using BIHBuilder = celeritas::detail::BIHBuilder;
 
 namespace celeritas
 {
 namespace test
 {
-class BIHMakerTest : public Test
+class BIHBuilderTest : public Test
 {
   public:
     void SetUp()
@@ -66,7 +66,7 @@ class BIHMakerTest : public Test
  *           2.5
  */
 
-TEST_F(BIHMakerTest, fourboxes)
+TEST_F(BIHBuilderTest, fourboxes)
 {
     bboxes_.push_back({{0, 0, 0}, {1.6, 1, 100}});
     bboxes_.push_back({{1.2, 0, 0}, {2.8, 1, 100}});
@@ -74,7 +74,7 @@ TEST_F(BIHMakerTest, fourboxes)
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
-    BIHMaker bih(bboxes_, &storage_);
+    BIHBuilder bih(bboxes_, &storage_);
     auto nodes = bih();
 
     EXPECT_EQ(7, nodes.size());

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHMaker.hh
+//! \file orange/detail/BIHBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -30,7 +30,7 @@ namespace detail
  * Interval Hierarchy" Eurographics Symposium on Rendering, 2006,
  * doi:10.2312/EGWR/EGSR06/139-149}
  */
-class BIHMaker
+class BIHBuilder
 {
   public:
     //!@{
@@ -45,7 +45,7 @@ class BIHMaker
 
   public:
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    explicit CELER_FUNCTION BIHMaker(VecBBox bboxes, Storage* storage);
+    explicit CELER_FUNCTION BIHBuilder(VecBBox bboxes, Storage* storage);
 
     // Create BIH Nodes
     CELER_FUNCTION VecNodes operator()();

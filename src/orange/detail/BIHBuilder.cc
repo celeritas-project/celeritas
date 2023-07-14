@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHMaker.cc
+//! \file orange/detail/BIHBuilder.cc
 //---------------------------------------------------------------------------//
-#include "BIHMaker.hh"
+#include "BIHBuilder.hh"
 
 #include <iostream>
 #include <limits>
@@ -32,7 +32,7 @@ namespace detail
 /*!
  * Construct from vector of bounding boxes and storage for LocalVolumeIds.
  */
-BIHMaker::BIHMaker(VecBBox bboxes, BIHMaker::Storage* storage)
+BIHBuilder::BIHBuilder(VecBBox bboxes, BIHBuilder::Storage* storage)
     : bboxes_(bboxes), storage_(storage)
 {
     // Check that we have at least two bounding boxes, with the first being
@@ -45,7 +45,7 @@ BIHMaker::BIHMaker(VecBBox bboxes, BIHMaker::Storage* storage)
 /*!
  * Create BIH Nodes.
  */
-BIHMaker::VecNodes BIHMaker::operator()()
+BIHBuilder::VecNodes BIHBuilder::operator()()
 {
     // Create a vector of indices, excluding index 0 (i.e., the exterior)
     VecIndices indices(bboxes_.size() - 1);
@@ -65,7 +65,7 @@ BIHMaker::VecNodes BIHMaker::operator()()
 /*!
  * Recursively construct BIH nodes for a vector of bbox indices.
  */
-void BIHMaker::construct_tree(VecIndices const& indices, VecNodes& nodes)
+void BIHBuilder::construct_tree(VecIndices const& indices, VecNodes& nodes)
 {
     nodes.push_back(BIHNode());
     auto current_index = nodes.size() - 1;
@@ -115,8 +115,8 @@ void BIHMaker::construct_tree(VecIndices const& indices, VecNodes& nodes)
  *
  * If no suitable partition is found an empty Partition object is returned.
  */
-BIHMaker::Partition
-BIHMaker::find_partition(VecIndices const& indices, VecReal3 const& centers)
+BIHBuilder::Partition
+BIHBuilder::find_partition(VecIndices const& indices, VecReal3 const& centers)
 {
     CELER_EXPECT(indices.size() == centers.size());
 
@@ -153,9 +153,10 @@ BIHMaker::find_partition(VecIndices const& indices, VecReal3 const& centers)
 /*!
  * Divide bboxes into left and right branches based on a partition.
  */
-BIHMaker::PairVecIndices BIHMaker::partition_bboxes(VecIndices const& indices,
-                                                    VecReal3 const& centers,
-                                                    Partition const& p)
+BIHBuilder::PairVecIndices
+BIHBuilder::partition_bboxes(VecIndices const& indices,
+                             VecReal3 const& centers,
+                             Partition const& p)
 {
     CELER_EXPECT(!indices.empty());
     CELER_EXPECT(!centers.empty());
@@ -183,7 +184,7 @@ BIHMaker::PairVecIndices BIHMaker::partition_bboxes(VecIndices const& indices,
 /*!
  * Add leaf volume ids to a given node.
  */
-void BIHMaker::make_leaf(BIHNode& node, VecIndices const& indices)
+void BIHBuilder::make_leaf(BIHNode& node, VecIndices const& indices)
 {
     CELER_EXPECT(!node);
     CELER_EXPECT(!indices.empty());
@@ -196,7 +197,7 @@ void BIHMaker::make_leaf(BIHNode& node, VecIndices const& indices)
 /*!
  * Calculate the centers of each bounding box.
  */
-BIHMaker::VecReal3 BIHMaker::centers(VecIndices const& indices)
+BIHBuilder::VecReal3 BIHBuilder::centers(VecIndices const& indices)
 {
     CELER_EXPECT(!indices.empty());
     VecReal3 centers(indices.size());
@@ -219,7 +220,7 @@ BIHMaker::VecReal3 BIHMaker::centers(VecIndices const& indices)
 /*!
  * Create sorted and uniquified X, Y, Z values of bbox centers.
  */
-BIHMaker::AxesCenters BIHMaker::axes_centers(VecReal3 const& centers)
+BIHBuilder::AxesCenters BIHBuilder::axes_centers(VecReal3 const& centers)
 {
     CELER_EXPECT(!centers.empty());
 
@@ -247,7 +248,7 @@ BIHMaker::AxesCenters BIHMaker::axes_centers(VecReal3 const& centers)
 /*!
  * Bounding box of a collection of bounding boxes.
  */
-BoundingBox BIHMaker::meta_bbox(VecIndices const& indices)
+BoundingBox BIHBuilder::meta_bbox(VecIndices const& indices)
 {
     CELER_EXPECT(!indices.empty());
 
@@ -274,7 +275,7 @@ BoundingBox BIHMaker::meta_bbox(VecIndices const& indices)
 /*!
  * Create a vector of axes sorted from longest to shortest.
  */
-BIHMaker::VecAxes BIHMaker::sort_axes(BoundingBox const& bbox)
+BIHBuilder::VecAxes BIHBuilder::sort_axes(BoundingBox const& bbox)
 {
     VecAxes axes;
     std::vector<double> lengths;
@@ -296,7 +297,7 @@ BIHMaker::VecAxes BIHMaker::sort_axes(BoundingBox const& bbox)
 /*!
  * Check that only the first bounding box (i.e. exterior volume) is fully inf.
  */
-bool BIHMaker::check_bbox_extents()
+bool BIHBuilder::check_bbox_extents()
 {
     return this->fully_inf(bboxes_[0])
            && std::all_of(
@@ -309,7 +310,7 @@ bool BIHMaker::check_bbox_extents()
 /*!
  * Check if a bounding box spans (-inf, inf) in every direction.
  */
-bool BIHMaker::fully_inf(BoundingBox const& bbox)
+bool BIHBuilder::fully_inf(BoundingBox const& bbox)
 {
     auto max_double = std::numeric_limits<double>::max();
 

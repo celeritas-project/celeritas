@@ -16,7 +16,7 @@ list(APPEND SOURCES
   OrangeParams.cc
   OrangeTypes.cc
   construct/SurfaceInputBuilder.cc
-  detail/BIHMaker.cc
+  detail/BIHBuilder.cc
   detail/RectArrayInserter.cc
   detail/UnitInserter.cc
   surf/SurfaceIO.cc
