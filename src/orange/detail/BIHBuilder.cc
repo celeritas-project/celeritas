@@ -16,7 +16,7 @@ namespace
 /*!
  * Sort and uniquify a vector.
  */
-void sort_and_uniquify(std::vector<double>& vec)
+void sort_and_uniquify(std::vector<celeritas::real_type>& vec)
 {
     std::sort(vec.begin(), vec.end());
     auto last = std::unique(vec.begin(), vec.end());
@@ -251,7 +251,7 @@ BoundingBox BIHBuilder::meta_bbox(VecIndices const& indices) const
 {
     CELER_EXPECT(!indices.empty());
 
-    auto inf = std::numeric_limits<double>::infinity();
+    auto inf = std::numeric_limits<real_type>::infinity();
 
     Real3 lower = {inf, inf, inf};
     Real3 upper = {-inf, -inf, -inf};
@@ -277,7 +277,7 @@ BoundingBox BIHBuilder::meta_bbox(VecIndices const& indices) const
 BIHBuilder::VecAxes BIHBuilder::sort_axes(BoundingBox const& bbox) const
 {
     VecAxes axes;
-    std::vector<double> lengths;
+    std::vector<real_type> lengths;
 
     for (auto axis : range(Axis::size_))
     {
@@ -311,12 +311,12 @@ bool BIHBuilder::check_bbox_extents() const
  */
 bool BIHBuilder::fully_inf(BoundingBox const& bbox) const
 {
-    auto max_double = std::numeric_limits<double>::max();
+    auto max_real = std::numeric_limits<real_type>::max();
 
     for (auto axis : range(Axis::size_))
     {
         auto ax = to_int(axis);
-        if (bbox.lower()[ax] > -max_double || bbox.upper()[ax] < max_double)
+        if (bbox.lower()[ax] > -max_real || bbox.upper()[ax] < max_real)
         {
             return false;
         }

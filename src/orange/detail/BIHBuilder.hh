@@ -62,7 +62,7 @@ class BIHBuilder
     struct Partition
     {
         Axis axis = Axis::size_;
-        double location;
+        BIHNode::partition_location_type location;
         explicit CELER_FUNCTION operator bool() const
         {
             return axis != Axis::size_;
@@ -86,7 +86,7 @@ class BIHBuilder
     // Divide bboxes into left and right branches based on a partition
     PairVecIndices partition_bboxes(VecIndices const& indices,
                                     VecReal3 const& centers,
-                                    Partition const& p);
+                                    Partition const& p) const;
 
     // Add leaf volume ids to a given node
     void make_leaf(BIHNode& node, VecIndices const& indices) const;

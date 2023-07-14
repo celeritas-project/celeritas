@@ -61,9 +61,6 @@ class BIHBuilderTest : public Test
  *                   /        \
  *                 / \      /   \
  *                1   2    4, 5   3
- *
- * 0.8     2     3.9
- *           2.5
  */
 
 TEST_F(BIHBuilderTest, fourboxes)
