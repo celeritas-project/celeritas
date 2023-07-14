@@ -418,7 +418,6 @@ void GeantGeoTrackView::move_internal(real_type dist)
     axpy(convert_to_geant(dist, CLHEP::cm), g4dir_, &g4pos_);
     next_step_ -= dist;
     navi_.LocateGlobalPointWithinVolume(g4pos_);
-    navi_.PrintState();
 
     safety_radius_ = -1;
     g4safety_ = 0;
@@ -437,7 +436,6 @@ void GeantGeoTrackView::move_internal(Real3 const& pos)
     g4pos_ = convert_to_geant(pos_, CLHEP::cm);
     next_step_ = 0;
     navi_.LocateGlobalPointWithinVolume(g4pos_);
-    navi_.PrintState();
 
     safety_radius_ = -1;
     g4safety_ = 0;

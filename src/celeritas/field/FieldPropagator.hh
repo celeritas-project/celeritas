@@ -319,11 +319,14 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         axpy(result.distance, dir, &state_.pos);
         geo_.move_internal(state_.pos);
     }
+    else
+    {
+        CELER_ENSURE(result.boundary == geo_.is_on_boundary());
+    }
 
     // Due to accumulation errors from multiple substeps or chord-finding
     // within the driver, the distance may be very slightly beyond the
     // requested step.
-    CELER_ENSURE(result.boundary == geo_.is_on_boundary());
     CELER_ENSURE(
         result.distance > 0
         && (result.distance <= step || soft_equal(result.distance, step)));

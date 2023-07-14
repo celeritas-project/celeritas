@@ -151,7 +151,8 @@ template<class GTV>
 Propagation CheckedGeoTrackView<GTV>::find_next_step()
 {
     CELER_EXPECT(!this->is_outside());
-    return this->find_next_step(std::numeric_limits<real_type>::max());
+    ++num_intersect_;
+    return GTV::find_next_step();
 }
 
 //---------------------------------------------------------------------------//
@@ -174,6 +175,7 @@ Propagation CheckedGeoTrackView<GTV>::find_next_step(real_type distance)
 template<class GTV>
 void CheckedGeoTrackView<GTV>::move_internal(real_type step)
 {
+    CELER_EXPECT(!this->is_outside());
     GTV::move_internal(step);
     CELER_VALIDATE(!this->is_on_boundary() && !this->is_outside()
                        && GTV::find_safety() > 0,
@@ -205,13 +207,13 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
                        << this->volume_id().get());
         checked_internal_ = true;
     }
-    if (orig_safety == 0)
+    if (orig_safety == 0 && !this->is_on_boundary())
     {
         real_type new_safety = GTV::find_safety();
         if (!(new_safety > 0))
         {
             CELER_LOG_LOCAL(warning)
-                << "moved internally from boundary but safety didn't "
+                << "Moved internally from boundary but safety didn't "
                    "increase: volume "
                 << this->volume_id().get() << " at " << this->pos();
         }

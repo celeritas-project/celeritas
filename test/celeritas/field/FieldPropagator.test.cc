@@ -1277,6 +1277,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         }
     }
     {
+        ScopedLogStorer scoped_log_{&celeritas::self_logger()};
         auto particle = this->make_particle_view(
             pdg::electron(), MevEnergy{3.25917780979408864e-02});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
@@ -1287,7 +1288,19 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         // thinks it's in the world volume (nearly vacuum)
         auto result = propagate(2.12621374950874703e+21);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+        {
+            // Track got bumped but the internal navigation is
+            EXPECT_TRUE(geo.is_on_boundary());
+            static char const* const expected_log_levels[]
+                = {"error", "warning"};
+            EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+        }
+        else
+        {
+            EXPECT_EQ(result.boundary, geo.is_on_boundary());
+            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+        }
         EXPECT_SOFT_NEAR(125, calc_radius(), 1e-2);
         if (successful_reentry)
         {
