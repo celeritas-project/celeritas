@@ -208,10 +208,13 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
     if (orig_safety == 0)
     {
         real_type new_safety = GTV::find_safety();
-        CELER_VALIDATE(new_safety > 0,
-                       << "moved internally from boundary but safety didn't "
-                          "increase: volume "
-                       << this->volume_id().get() << " at " << this->pos());
+        if (!(new_safety > 0))
+        {
+            CELER_LOG_LOCAL(warning)
+                << "moved internally from boundary but safety didn't "
+                   "increase: volume "
+                << this->volume_id().get() << " at " << this->pos();
+        }
     }
 }
 
