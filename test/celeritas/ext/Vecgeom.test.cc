@@ -775,6 +775,27 @@ TEST_F(SolidsTest, reflected_vol)
 }
 
 //---------------------------------------------------------------------------//
+// CMS EXTERIOR TEST
+//---------------------------------------------------------------------------//
+
+class CmseTest : public VecgeomTestBase
+{
+  public:
+    SPConstGeo build_geometry() final { return this->load_vgdml("cmse.gdml"); }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(CmseTest, trace)
+{
+    {
+        SCOPED_TRACE("Center -x");
+    }
+}
+
+//---------------------------------------------------------------------------//
+// ARBITRARY TEST
+//---------------------------------------------------------------------------//
 
 class DISABLED_ArbitraryTest : public VecgeomTestBase
 {

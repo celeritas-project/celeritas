@@ -106,7 +106,7 @@ auto FieldPropagatorTestBase::build_particle() const -> SPConstParticle
 
 //---------------------------------------------------------------------------//
 
-class TwoBoxTest : public FieldPropagatorTestBase
+class TwoBoxesTest : public FieldPropagatorTestBase
 {
     std::string geometry_basename() const override { return "two-boxes"; }
 };
@@ -119,6 +119,14 @@ class LayersTest : public FieldPropagatorTestBase
 class SimpleCmsTest : public FieldPropagatorTestBase
 {
     std::string geometry_basename() const override { return "simple-cms"; }
+};
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#    define CmseTest DISABLED_CmseTest
+#endif
+class CmseTest : public FieldPropagatorTestBase
+{
+    std::string geometry_basename() const override { return "cmse"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -162,7 +170,7 @@ constexpr real_type unit_radius_field_strength{3.5019461121752274
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(TwoBoxTest, electron_interior)
+TEST_F(TwoBoxesTest, electron_interior)
 {
     // Initialize position and direction so its curved track is centered about
     // the origin, moving counterclockwise from the right
@@ -248,7 +256,7 @@ TEST_F(TwoBoxTest, electron_interior)
     }
 }
 
-TEST_F(TwoBoxTest, positron_interior)
+TEST_F(TwoBoxesTest, positron_interior)
 {
     // Initialize position and direction so its curved track (radius 1) is
     // centered about the origin, moving *clockwise* from the right
@@ -273,7 +281,7 @@ TEST_F(TwoBoxTest, positron_interior)
 }
 
 // Gamma in magnetic field should have a linear path
-TEST_F(TwoBoxTest, gamma_interior)
+TEST_F(TwoBoxesTest, gamma_interior)
 {
     auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
 
@@ -334,7 +342,7 @@ TEST_F(TwoBoxTest, gamma_interior)
 }
 
 // Field really shouldn't matter to a gamma right?
-TEST_F(TwoBoxTest, gamma_pathological)
+TEST_F(TwoBoxesTest, gamma_pathological)
 {
     auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
 
@@ -360,7 +368,7 @@ TEST_F(TwoBoxTest, gamma_pathological)
 }
 
 // Gamma exits the inner volume
-TEST_F(TwoBoxTest, gamma_exit)
+TEST_F(TwoBoxesTest, gamma_exit)
 {
     auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
     UniformZField field(12345.6);
@@ -425,7 +433,7 @@ TEST_F(TwoBoxTest, gamma_exit)
     }
 }
 
-TEST_F(TwoBoxTest, electron_super_small_step)
+TEST_F(TwoBoxesTest, electron_super_small_step)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{2});
     UniformZField field(1 * units::tesla);
@@ -446,7 +454,7 @@ TEST_F(TwoBoxTest, electron_super_small_step)
 }
 
 // Electron takes small steps up to and from a boundary
-TEST_F(TwoBoxTest, electron_small_step)
+TEST_F(TwoBoxesTest, electron_small_step)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -537,7 +545,7 @@ TEST_F(TwoBoxTest, electron_small_step)
 }
 
 // Electron will be tangent to the boundary at the top of its curved path.
-TEST_F(TwoBoxTest, electron_tangent)
+TEST_F(TwoBoxesTest, electron_tangent)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -576,7 +584,7 @@ TEST_F(TwoBoxTest, electron_tangent)
 }
 
 // Electron crosses and reenters
-TEST_F(TwoBoxTest, electron_cross)
+TEST_F(TwoBoxesTest, electron_cross)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(0.5 * unit_radius_field_strength);
@@ -647,7 +655,7 @@ TEST_F(TwoBoxTest, electron_cross)
 }
 
 // Electron barely crosses boundary
-TEST_F(TwoBoxTest, electron_tangent_cross)
+TEST_F(TwoBoxesTest, electron_tangent_cross)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -701,7 +709,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
     }
 }
 
-TEST_F(TwoBoxTest, electron_corner_hit)
+TEST_F(TwoBoxesTest, electron_corner_hit)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -791,7 +799,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 }
 
 // Endpoint of a step is very close to the boundary.
-TEST_F(TwoBoxTest, electron_step_endpoint)
+TEST_F(TwoBoxesTest, electron_step_endpoint)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -934,7 +942,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
 }
 
 // Electron barely crosses boundary
-TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
+TEST_F(TwoBoxesTest, electron_tangent_cross_smallradius)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
 
@@ -1023,7 +1031,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
 
 // Heuristic test: plotting points with finer propagation distance show a track
 // with decreasing radius
-TEST_F(TwoBoxTest, nonuniform_field)
+TEST_F(TwoBoxesTest, nonuniform_field)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     ReluZField field{unit_radius_field_strength};
@@ -1319,6 +1327,63 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             EXPECT_FALSE(result.looping);
         }
     }
+}
+
+TEST_F(CmseTest, coarse)
+{
+    // Build propagator
+    UniformZField field{0};
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
+
+    FieldDriverOptions driver_options;
+    driver_options.delta_intersection = 0.001;
+    driver_options.delta_chord = 0.1;
+
+    std::vector<int> num_boundary;
+    std::vector<int> num_step;
+    std::vector<int> num_intercept;
+    std::vector<int> num_integration;
+
+    for (real_type radius : {5, 10, 20, 50})
+    {
+        auto geo = this->make_geo_track_view({2 * radius + 0.01, 0, -300},
+                                             {0, 1, 1});
+        field = UniformZField(unit_radius_field_strength / radius);
+        EXPECT_SOFT_EQ(radius,
+                       this->calc_field_curvature(particle, geo, field));
+
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, geo);
+
+        int step_count = 0;
+        int boundary_count = 0;
+        int const max_steps = 10000;
+        while (!geo.is_outside() && step_count++ < max_steps)
+        {
+            auto result = propagate(radius);
+            if (result.boundary)
+            {
+                geo.cross_boundary();
+                ++boundary_count;
+            }
+        }
+        num_boundary.push_back(boundary_count);
+        num_step.push_back(step_count);
+        num_intercept.push_back(geo.intersect_count());
+        num_integration.push_back(stepper.count());
+        stepper.reset_count();
+    }
+
+    static int const expected_num_boundary[] = {134, 100, 60, 19};
+    static int const expected_num_step[] = {10001, 6450, 3236, 205};
+    static int const expected_num_intercept[] = {30419, 19506, 16170, 1429};
+    static int const expected_num_integration[] = {80659, 58189, 54818, 5414};
+    EXPECT_VEC_EQ(expected_num_boundary, num_boundary);
+    EXPECT_VEC_EQ(expected_num_step, num_step);
+    EXPECT_VEC_EQ(expected_num_intercept, num_intercept);
+    EXPECT_VEC_EQ(expected_num_integration, num_integration);
 }
 
 //---------------------------------------------------------------------------//

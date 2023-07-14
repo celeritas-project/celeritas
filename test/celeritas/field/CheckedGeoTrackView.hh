@@ -165,7 +165,16 @@ Propagation CheckedGeoTrackView<GTV>::find_next_step(real_type distance)
     CELER_EXPECT(distance > 0);
     CELER_EXPECT(!this->is_outside());
     ++num_intersect_;
-    return GTV::find_next_step(distance);
+    auto result = GTV::find_next_step(distance);
+    if (result.boundary && !this->is_on_boundary())
+    {
+        real_type safety = GTV::find_safety(distance);
+        CELER_VALIDATE(safety <= result.distance,
+                       << "safety " << safety << " exceeds actual distance "
+                       << result.distance << " to boundary at " << this->pos()
+                       << " in " << this->volume_id().get());
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
