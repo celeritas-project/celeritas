@@ -343,6 +343,7 @@ if(CELERITAS_USE_VecGeom)
     FILTER
       "FourLevelsTest.*"
       "SolidsTest.*"
+      "CmseTest.*"
       ${_vecgeom_geant_tests}
   )
 endif()

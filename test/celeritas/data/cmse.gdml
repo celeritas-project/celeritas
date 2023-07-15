@@ -207,14 +207,7 @@
       <zplane rmax="1000" z="26000"/>
       <zplane rmax="1000" z="450000"/>
     </polycone>
-    <polycone aunit="deg" deltaphi="360" lunit="mm" name="OCMS0x7f4a9a62d360" startphi="0">
-      <zplane rmax="1000" z="-450000"/>
-      <zplane rmax="1000" z="-27000"/>
-      <zplane rmax="17500" z="-27000"/>
-      <zplane rmax="17500" z="27000"/>
-      <zplane rmax="1000" z="27000"/>
-      <zplane rmax="1000" z="450000"/>
-    </polycone>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="OCMS0x7f4a9a62d360" rmax="17500" startphi="0" z="900000"/>
   </solids>
 
   <structure>

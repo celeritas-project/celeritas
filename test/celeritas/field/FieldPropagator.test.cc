@@ -21,6 +21,7 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformZField.hh"
+#include "celeritas/geo/CheckedGeoTrackView.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -29,7 +30,6 @@
 
 #include "../GenericGeoTestBase.hh"
 #include "CMSParameterizedField.hh"
-#include "CheckedGeoTrackView.hh"
 #include "DiagnosticStepper.hh"
 #include "FieldTestBase.hh"
 #include "celeritas_test.hh"

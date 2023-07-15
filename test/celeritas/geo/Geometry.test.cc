@@ -171,6 +171,43 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 }
 
 //---------------------------------------------------------------------------//
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#    define CmseTest DISABLED_CmseTest
+#endif
+class CmseTest : public HeuristicGeoTestBase
+{
+  protected:
+    std::string_view geometry_basename() const override { return "cmse"sv; }
+
+    HeuristicGeoScalars build_scalars() const final
+    {
+        HeuristicGeoScalars result;
+        result.lower = {-80, -80, -4500};
+        result.upper = {80, 80, 4500};
+        result.log_min_step = std::log(1e-4);
+        result.log_max_step = std::log(1e3);
+        return result;
+    }
+
+    size_type num_steps() const final { return 1024; }
+    SpanConstStr reference_volumes() const final;
+    SpanConstReal reference_avg_path() const final;
+};
+
+auto CmseTest::reference_volumes() const -> SpanConstStr
+{
+    static const std::string vols[] = {"inner", "middle", "outer", "world"};
+    return make_span(vols);
+}
+
+auto CmseTest::reference_avg_path() const -> SpanConstReal
+{
+    // static const real_type paths[] = {0.2013, 3.346, 6.696, 375.5};
+    return {};  // make_span(paths);
+}
+
+//---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
 
@@ -255,6 +292,33 @@ TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
     real_type tol = not_orange_geo ? 0.025 : 1e-3;
+    this->run_device(512, tol);
+}
+
+//---------------------------------------------------------------------------//
+// THREE_SPHERES
+//---------------------------------------------------------------------------//
+
+TEST_F(CmseTest, host)
+{
+    auto const& bbox = this->geometry()->bbox();
+    real_type const geo_eps
+        = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.001 : 0;
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{-1750 + geo_eps, -1750 + geo_eps, -45000 + geo_eps}),
+        bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1750 + geo_eps, 1750 + geo_eps, 45000 + geo_eps}),
+                       bbox.upper());
+
+    real_type tol = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 1e-6
+                                                                     : 1e-3;
+    this->run_host(512, tol);
+}
+
+TEST_F(CmseTest, TEST_IF_CELER_DEVICE(device))
+{
+    real_type tol = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 1e-6
+                                                                     : 1e-3;
     this->run_device(512, tol);
 }
 

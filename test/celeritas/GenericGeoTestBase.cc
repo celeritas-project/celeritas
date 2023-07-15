@@ -21,6 +21,8 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/io/ImportVolume.hh"
 
+#include "geo/CheckedGeoTrackView.hh"
+
 #if CELERITAS_USE_VECGEOM
 #    include "celeritas/ext/VecgeomData.hh"
 #    include "celeritas/ext/VecgeomParams.hh"
@@ -275,7 +277,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
 {
     TrackingResult result;
 
-    GeoTrackView geo = this->make_geo_track_view(pos, dir);
+    GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
 
     if (geo.is_outside())
     {
