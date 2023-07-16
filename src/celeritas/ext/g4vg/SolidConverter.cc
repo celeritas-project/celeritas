@@ -393,7 +393,7 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
     PlacedBoolVolumes pv = this->convert_bool_impl(
         static_cast<G4BooleanSolid const&>(solid_base));
     return GeoManager::MakeInstance<UnplacedBooleanVolume<kIntersection>>(
-        kSubtraction, pv[0], pv[1]);
+        kIntersection, pv[0], pv[1]);
 }
 
 //---------------------------------------------------------------------------//
@@ -654,7 +654,7 @@ auto SolidConverter::unionsolid(arg_type solid_base) -> result_type
     PlacedBoolVolumes pv = this->convert_bool_impl(
         static_cast<G4BooleanSolid const&>(solid_base));
     return GeoManager::MakeInstance<UnplacedBooleanVolume<kUnion>>(
-        kSubtraction, pv[0], pv[1]);
+        kUnion, pv[0], pv[1]);
 }
 
 //---------------------------------------------------------------------------//
