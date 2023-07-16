@@ -51,9 +51,9 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
     //! Get the number of steps to execute
     virtual size_type num_steps() const = 0;
     //! Build a list of volumes to compare average paths
-    virtual SpanConstStr reference_volumes() const;
+    virtual SpanConstStr reference_volumes() const = 0;
     //! Return the vector of path lengths mapped by sorted volume name
-    virtual SpanConstReal reference_avg_path() const;
+    virtual SpanConstReal reference_avg_path() const = 0;
 
   protected:
     //// TEST EXECUTION ////
@@ -65,11 +65,6 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
     //!@}
 
   private:
-    //// DATA ////
-
-    // Backend data for default reference_volumes implementation
-    mutable std::vector<std::string> temp_str_;
-
     //// HELPER FUNCTIONS ////
 
     template<MemSpace M>
