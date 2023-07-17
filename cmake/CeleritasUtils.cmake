@@ -373,7 +373,7 @@ function(celeritas_define_options var doc)
     endif()
   endif()
   set(_last_var _LAST_${var})
-  if(NOT ${var} STREQUAL ${_last_var}) # compare *values* of variable names
+  if(NOT "${_val}" STREQUAL "${${_last_var}}")
     message(STATUS "Set ${var}=${_val}")
     set(${_last_var} "${_val}" CACHE INTERNAL "")
   endif()
