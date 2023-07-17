@@ -664,40 +664,38 @@ auto SolidConverter::unionsolid(arg_type solid_base) -> result_type
 auto SolidConverter::convert_bool_impl(G4BooleanSolid const& bs)
     -> PlacedBoolVolumes
 {
-    Array<G4VSolid const*, 2> solids;
-    Array<std::string, 2> labels;
-    static Array<char const*, 2> const lr = {{"left", "right"}};
-    for (auto i : range(solids.size()))
-    {
-        solids[i] = bs.GetConstituentSolid(i);
-        CELER_ASSERT(solids[i]);
+    Array<G4VSolid const*, 2> solids{
+        {bs.GetConstituentSolid(0), bs.GetConstituentSolid(1)}};
 
-        // Construct name
-        std::ostringstream os;
-        os << "[TEMP]@" << bs.GetName() << '/' << lr[i] << '/'
-           << solids[i]->GetName();
-        labels[i] = os.str();
+    Transformation3D inverse;
+    {
+        // The "right" shape should be a G4DisplacedSolid which holds the
+        // matrix: replace solid and get inverse transform
+        CELER_EXPECT(!dynamic_cast<G4DisplacedSolid const*>(solids[0]));
+        CELER_EXPECT(dynamic_cast<G4DisplacedSolid const*>(solids[1]));
+        auto* displaced = static_cast<G4DisplacedSolid const*>(solids[1]);
+        solids[1] = displaced->GetConstituentMovedSolid();
+        inverse = convert_transform_(displaced->GetTransform().Invert());
     }
 
-    // The "right" shape should be a G4DisplacedSolid which holds the
-    // matrix
-    CELER_EXPECT(!dynamic_cast<G4DisplacedSolid const*>(solids[0]));
-    CELER_EXPECT(dynamic_cast<G4DisplacedSolid const*>(solids[1]));
-    auto const* displaced = static_cast<G4DisplacedSolid const*>(solids[1]);
-    solids[1] = displaced->GetConstituentMovedSolid();
-
-    Transformation3D inverse
-        = convert_transform_(displaced->GetTransform().Invert());
+    static Array<char const*, 2> const lr = {{"left", "right"}};
     Array<Transformation3D const*, 2> transforms
         = {{&Transformation3D::kIdentity, &inverse}};
-    Array<VUnplacedVolume const*, 2> converted;
     PlacedBoolVolumes result;
 
     for (auto i : range(solids.size()))
     {
-        converted[i] = (*this)(*solids[i]);
-        // XXX: assume VecGeom takes ownership of the LV?
-        auto* temp_lv = new LogicalVolume(labels[i].c_str(), converted[i]);
+        // Convert solid
+        VUnplacedVolume const* converted = (*this)(*solids[i]);
+
+        // Construct name
+        std::ostringstream label;
+        label << "[TEMP]@" << bs.GetName() << '/' << lr[i] << '/'
+              << solids[i]->GetName();
+
+        // Create temporary LV from converted solid
+        auto* temp_lv = new LogicalVolume(label.str().c_str(), converted);
+        // Place the transformed LV
         result[i] = temp_lv->Place(transforms[i]);
     }
 
