@@ -192,7 +192,7 @@ TEST_P(EventIOTest, write_read)
         // Write a single primary with incorrect ID
         primaries.erase(primaries.begin() + 1, primaries.end());
         {
-            ScopedLogStorer scoped_log_{&celeritas::world_logger()};
+            ScopedLogStorer scoped_log_{&celeritas::self_logger()};
             write_event(primaries);
             static char const* const expected_log_messages[]
                 = {"Overwriting primary event IDs with 2: 1"};

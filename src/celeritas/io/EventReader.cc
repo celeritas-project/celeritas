@@ -64,6 +64,13 @@ auto EventReader::operator()() -> result_type
     }
 
     EventId const event_id{event_count_++};
+    if (static_cast<EventId::size_type>(gen_event.event_number())
+        != event_id.get())
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Overwriting event ID " << gen_event.event_number()
+            << " from file with sequential event ID " << event_id.get();
+    }
 
     // Convert the energy units to MeV and the length units to cm
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
