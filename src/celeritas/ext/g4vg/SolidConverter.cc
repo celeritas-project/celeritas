@@ -90,6 +90,12 @@
 #include "Scaler.hh"
 #include "Transformer.hh"
 
+using namespace vecgeom;
+
+namespace celeritas
+{
+namespace g4vg
+{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -111,15 +117,21 @@ namespace
     double const phi = std::atan2(tan_theta_sin_phi, tan_theta_cos_phi);
     return {theta, phi};
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a boolean volume in vecgeom.
+ */
+template<vecgeom::BooleanOperation Op>
+VUnplacedVolume*
+make_unplaced_boolean(VPlacedVolume const* left, VPlacedVolume const* right)
+{
+    return GeoManager::MakeInstance<UnplacedBooleanVolume<Op>>(Op, left, right);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
-using namespace vecgeom;
-
-namespace celeritas
-{
-namespace g4vg
-{
 //---------------------------------------------------------------------------//
 /*!
  * Convert a geant4 solid to a VecGeom "unplaced volume".
@@ -392,8 +404,7 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
 {
     PlacedBoolVolumes pv = this->convert_bool_impl(
         static_cast<G4BooleanSolid const&>(solid_base));
-    return GeoManager::MakeInstance<UnplacedBooleanVolume<kIntersection>>(
-        kIntersection, pv[0], pv[1]);
+    return make_unplaced_boolean<kIntersection>(pv[0], pv[1]);
 }
 
 //---------------------------------------------------------------------------//
@@ -523,8 +534,7 @@ auto SolidConverter::subtractionsolid(arg_type solid_base) -> result_type
 {
     PlacedBoolVolumes pv = this->convert_bool_impl(
         static_cast<G4BooleanSolid const&>(solid_base));
-    return GeoManager::MakeInstance<UnplacedBooleanVolume<kSubtraction>>(
-        kSubtraction, pv[0], pv[1]);
+    return make_unplaced_boolean<kSubtraction>(pv[0], pv[1]);
 }
 
 //---------------------------------------------------------------------------//
@@ -653,8 +663,7 @@ auto SolidConverter::unionsolid(arg_type solid_base) -> result_type
 {
     PlacedBoolVolumes pv = this->convert_bool_impl(
         static_cast<G4BooleanSolid const&>(solid_base));
-    return GeoManager::MakeInstance<UnplacedBooleanVolume<kUnion>>(
-        kUnion, pv[0], pv[1]);
+    return make_unplaced_boolean<kUnion>(pv[0], pv[1]);
 }
 
 //---------------------------------------------------------------------------//
