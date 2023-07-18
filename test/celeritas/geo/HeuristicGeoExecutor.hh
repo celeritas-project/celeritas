@@ -20,6 +20,10 @@
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
+#if !CELER_DEVICE_SOURCE
+#    include "corecel/cont/ArrayIO.hh"
+#endif
+
 #include "HeuristicGeoData.hh"
 
 namespace celeritas
@@ -62,7 +66,12 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
         init.pos = sample_pos(rng);
         init.dir = sample_dir(rng);
         geo = init;
+#if !CELER_DEVICE_SOURCE
+        CELER_VALIDATE(!geo.is_outside(),
+                       << "failed to initialize at " << init.pos);
+#else
         CELER_ASSERT(!geo.is_outside());
+#endif
 
         state.status[tid] = LifeStatus::alive;
     }

@@ -33,6 +33,7 @@
 #    include "celeritas/ext/GeantGeoParams.hh"
 #    include "celeritas/ext/GeantGeoTrackView.hh"
 #endif
+#include "TestMacros.hh"
 
 using std::cout;
 using namespace std::literals;
@@ -310,6 +311,34 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
             geo.move_internal(next.distance / 2);
             geo.find_next_step();
             result.halfway_safeties.push_back(geo.find_safety());
+
+            if (result.halfway_safeties.back() > 0)
+            {
+                // Check reinitialization if not tangent to a surface
+                GeoTrackInitializer const init{geo.pos(), geo.dir()};
+                auto prev_id = geo.volume_id();
+                geo = init;
+                if (geo.is_outside())
+                {
+                    ADD_FAILURE() << "reinitialization put the track outside "
+                                     "the geometry at"
+                                  << init.pos;
+                    break;
+                }
+                if (geo.volume_id() != prev_id)
+                {
+                    ADD_FAILURE()
+                        << "reinitialization changed the volume at "
+                        << init.pos << " along " << init.dir << " from "
+                        << result.volumes.back() << " to "
+                        << this->volume_name(geo) << " (alleged safety: "
+                        << result.halfway_safeties.back() << ")";
+                    continue;
+                }
+                auto new_next = geo.find_next_step();
+                EXPECT_TRUE(new_next.boundary);
+                EXPECT_SOFT_NEAR(new_next.distance, next.distance / 2, 1e-10);
+            }
         }
         geo.move_to_boundary();
         geo.cross_boundary();
