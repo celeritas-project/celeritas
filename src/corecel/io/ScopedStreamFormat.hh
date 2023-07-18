@@ -36,7 +36,7 @@ class ScopedStreamFormat
 
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DELETE_COPY_MOVE(ScopedStreamFormat)
+    CELER_DELETE_COPY_MOVE(ScopedStreamFormat);
     //!@}
 
   private:

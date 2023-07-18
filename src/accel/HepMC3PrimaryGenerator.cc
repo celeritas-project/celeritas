@@ -124,9 +124,12 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
             // Skip particles that should not be tracked
             // Status codes (page 13):
             // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
-            CELER_LOG_LOCAL(info)
-                << "Skipped status code " << part_data.status << " for "
-                << part_data.momentum.e() << " MeV primary";
+            if (part_data.momentum.e() > 0)
+            {
+                CELER_LOG_LOCAL(debug)
+                    << "Skipped status code " << part_data.status << " for "
+                    << part_data.momentum.e() << " MeV primary";
+            }
             continue;
         }
 
