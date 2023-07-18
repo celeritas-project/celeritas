@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestBase.hh"
 
+#include <limits>
+
 #include "celeritas_config.h"
 #if CELERITAS_USE_GEANT4
 #    include <G4LogicalVolume.hh>
@@ -276,6 +278,16 @@ template<class HP>
 auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
+    return this->track(pos, dir, std::numeric_limits<int>::max());
+}
+
+//---------------------------------------------------------------------------//
+template<class HP>
+auto GenericGeoTestBase<HP>::track(Real3 const& pos,
+                                   Real3 const& dir,
+                                   int max_step) -> TrackingResult
+{
+    CELER_EXPECT(max_step > 0);
     TrackingResult result;
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
@@ -291,10 +303,11 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
             geo.move_to_boundary();
             geo.cross_boundary();
             EXPECT_TRUE(geo.is_on_boundary());
+            --max_step;
         }
     }
 
-    while (!geo.is_outside())
+    while (!geo.is_outside() && max_step > 0)
     {
         result.volumes.push_back(this->volume_name(geo));
         auto next = geo.find_next_step();
@@ -333,7 +346,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
                         << result.volumes.back() << " to "
                         << this->volume_name(geo) << " (alleged safety: "
                         << result.halfway_safeties.back() << ")";
-                    continue;
+                    result.volumes.back() += "/" + this->volume_name(geo);
                 }
                 auto new_next = geo.find_next_step();
                 EXPECT_TRUE(new_next.boundary);
@@ -342,6 +355,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
         }
         geo.move_to_boundary();
         geo.cross_boundary();
+        --max_step;
     }
 
     return result;

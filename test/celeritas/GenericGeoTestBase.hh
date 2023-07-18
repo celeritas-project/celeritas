@@ -159,6 +159,9 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
 
     //! Find linear segments until outside
     TrackingResult track(Real3 const& pos, Real3 const& dir);
+    //! Find linear segments until outside (maximum count
+    TrackingResult track(Real3 const& pos, Real3 const& dir, int max_step);
+
     //! Try to map Geant4 volumes using ImportVolume and name
     GeantVolResult
     get_import_geant_volumes(G4VPhysicalVolume const* world) const

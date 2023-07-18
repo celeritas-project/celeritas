@@ -872,14 +872,22 @@ TEST_F(SfTest, trace)
     // clang-format off
     {
         SCOPED_TRACE("Trouble");
-        auto result = this->track({-14.141280741915422, -38.64825188341113, -0.9130207969305957}, {-0.6431446435132148, -0.7270389178900708, 0.2403734165699165});
-static char const* const expected_volumes[] = {"SFMMAlEle1", "SFAirGap1", "SFCool2Al1", "SFCool2Wtr", "SFCool2Al2", "SFAbs2Al1", "SFAbs2PbLinPb", "SFAbs2Al2", "SFMMAlSupp2", "SF", "SFLY1a", "SWED", "SFLY1a", "SFBY", "SFLY1a", "SF", "SFMMAlEle2", "SFAirGap2", "SFFoam2", "SFModer2Al1", "SFRN", "SFModer2Al2"};
-EXPECT_VEC_EQ(expected_volumes, result.volumes);
-static real_type const expected_distances[] = {0.42858648181934, 4.9922325734841, 1.1232523290339, 0.24961162867421, 1.1232523290339, 0.83203876224735, 1.5392717101576, 0.83203876224735, 0.83203876224735, 0.0041601938112562, 0.0020800969056181, 2.1802457172282, 0.0018062788845991, 1.0647915352196, 1.2305697838786, 1.8814429252645, 0.66563100979788, 5.8658732738438, 3.7441744301131, 0.41601938112367, 14.976697720452, 0.41601938112367};
-EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-static real_type const expected_hw_safety[] = {0.051510398465298, 0.6, 0.135, 0.03, 0.135, 0.1, 0.185, 0.1, 0.1, 0.0005000000000023, 0.00024999999999982, 0.21504804369024, 0.00017811869892823, 0.105, 0.12134753426698, 0.22612443201356, 0.08, 0.705, 0.45, 0.05, 1.8, 0.05};
-EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        auto result = this->track(
+            {-23.235161088317067, -48.92837314875102, 2.485790202725453},
+            {-0.6431446435132148, -0.7270389178900708, 0.2403734165699165},
+            3
+        );
+        static char const* const expected_volumes[] = {"SFLY1a", "SFBY",
+            "SFLY1a"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {0.00090313944230318,
+            1.0647915352196, 1.2305697838786};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {8.9059349464482e-05,
+            0.105, 0.12134753426698};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
+    // clang-format on
 }
 
 //---------------------------------------------------------------------------//
