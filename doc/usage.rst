@@ -32,35 +32,35 @@ and if VecGeom or CUDA are disabled a single line to link::
 
    target_link_libraries(mycode PUBLIC Celeritas::celeritas)
 
-Because of complexities involving CUDA Relocatable Device Code, linking when
-using both CUDA and VecGeom requires an additional include and the replacement
-of ``target_link_libraries`` with a customized version::
+Because of complexities involving CUDA Relocatable Device Code, consuming Celeritas
+with CUDA and VecGeom support requires an additional include and the use of wrappers 
+around CMake's target commands::
 
   include(CeleritasLibrary)
+  celeritas_add_executable(mycode ...)
   celeritas_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
 
-As ``celeritas_target_link_libraries`` decays to ``target_link_libraries`` if
-CUDA and VecGeom are not used, you can use it safely to link nearly all targets consuming
-Celeritas in your project to track the appropriate sequence of linking for the 
-final application whether CPU-only or CUDA enabled::
+As the ``celeritas_...`` functions decay to the wrapped CMake commands if CUDA and VecGeom
+you can use them to safely build and link nearly all targets consuming
+Celeritas in your project. This provides tracking of the appropriate sequence of linking for the 
+final application whether it uses CUDA code or not, and whether Celeritas is CPU-only or CUDA enabled::
 
-  add_library(myconsumer SHARED ...)
+  celeritas_add_library(myconsumer SHARED ...)
   celeritas_target_link_libraries(myconsumer PUBLIC Celeritas::celeritas)
 
-  add_executable(myapplication ...)
+  celeritas_add_executable(myapplication ...)
   celeritas_target_link_libraries(myapplication PRIVATE myconsumer)
 
 If your project builds shared libraries that are intended to be loaded at application
 runtime (e.g. via ``dlopen``), you should prefer use the the CMake ``MODULE`` target type::
 
-  add_library(myplugin MODULE ...)
+  celeritas_add_library(myplugin MODULE ...)
   celeritas_target_link_libraries(myplugin PRIVATE Celeritas::celeritas)
 
 This is recommended as ``celeritas_target_link_libraries`` understands these as a final
 target for which all device symbols require resolving. If you are forced to use the ``SHARED`` 
-target type for plugin libraries (e.g. via your project), then to correctly link these
-for runtime loading you must explicitly link to both the primary Celeritas target and 
-its device code counterpart::
+target type for plugin libraries (e.g. via your project), then these should be declared with
+the bare CMake commands with linking to both the primary Celeritas target and its device code counterpart::
 
   add_library(mybadplugin SHARED ...)
   target_link_libraries(mybadplugin PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
