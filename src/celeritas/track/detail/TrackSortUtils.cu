@@ -206,7 +206,7 @@ void count_tracks_per_action(
         thrust::fill(start, start + offsets.size(), ThreadId{});
         CELER_DEVICE_CHECK_ERROR();
         CELER_LAUNCH_KERNEL(tracks_per_action,
-                            celeritas::device().default_block_size(),
+                            celeritas::device().block_size(),
                             states.size(),
                             celeritas::device().stream(states.stream_id).get(),
                             states,

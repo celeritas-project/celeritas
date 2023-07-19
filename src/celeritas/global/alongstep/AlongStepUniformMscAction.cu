@@ -47,7 +47,7 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
         static ActionLauncher<
             decltype(execute_thread),
             detail::UniformFieldPropagatorFactory::maxThreadsPerBlock,
-            detail::UniformFieldPropagatorFactory::minWarpsPerWS> const
+            detail::UniformFieldPropagatorFactory::minBlocksPerMultiprocessor> const
             launch_kernel(*this, "propagate");
         launch_kernel(params, state, *this, execute_thread);
     }

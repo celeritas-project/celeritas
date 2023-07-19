@@ -121,7 +121,7 @@ void trace(GeoParamsCRefDevice const& geo_params,
     CELER_EXPECT(image);
 
     CELER_LAUNCH_KERNEL(trace,
-                        device().default_block_size(),
+                        device().block_size(),
                         image.dims[0],
                         0,
                         geo_params,

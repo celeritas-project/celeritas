@@ -154,7 +154,7 @@ template<class F>
 KernelParamCalculator::KernelParamCalculator(std::string_view name,
                                              F* kernel_func_ptr)
     : KernelParamCalculator(
-        name, kernel_func_ptr, celeritas::device().default_block_size())
+        name, kernel_func_ptr, celeritas::device().block_size())
 {
 }
 

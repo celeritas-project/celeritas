@@ -96,7 +96,7 @@ SATestOutput sa_test(SATestInput const& input)
     thrust::device_vector<SATestOutput> out(1);
 
     CELER_LAUNCH_KERNEL(sa_test,
-                        device().default_block_size(),
+                        device().block_size(),
                         input.num_threads,
                         0,
                         input,
@@ -105,7 +105,7 @@ SATestOutput sa_test(SATestInput const& input)
 
     // Access secondaries after the first kernel completed
     CELER_LAUNCH_KERNEL(sa_post_test,
-                        device().default_block_size(),
+                        device().block_size(),
                         input.num_threads,
                         0,
                         input,

@@ -55,6 +55,9 @@ class StreamStorage;
  */
 class Device
 {
+    // Default number of threads per block
+    static constexpr unsigned int default_block_size_ = 256u;
+
   public:
     //!@{
     //! \name Type aliases
@@ -67,6 +70,12 @@ class Device
 
     // Whether verbose messages and error checking are enabled
     static bool debug();
+
+    // Default number of threads per block
+    inline static constexpr unsigned int default_block_size()
+    {
+        return default_block_size_;
+    }
 
     //// CONSTRUCTORS ////
 
@@ -105,8 +114,8 @@ class Device
     //! Number of execution units per compute unit (1 for NVIDIA, 4 for AMD)
     unsigned int eu_per_cu() const { return eu_per_cu_; }
 
-    //! Default number of threads per block
-    unsigned int default_block_size() const { return default_block_size_; }
+    //! Number of threads per block
+    unsigned int block_size() const { return block_size_; }
 
     //! Additional potentially interesting diagnostics
     MapStrInt const& extra() const { return extra_; }
@@ -131,7 +140,7 @@ class Device
     int max_threads_per_cu_ = 0;
     unsigned int threads_per_warp_ = 0;
     unsigned int eu_per_cu_ = 0;
-    unsigned int default_block_size_ = 256u;
+    unsigned int block_size_ = default_block_size_;
     MapStrInt extra_;
     SPStreamStorage streams_;
 };

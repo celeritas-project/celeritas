@@ -68,7 +68,7 @@ PTVTestOutput ptv_test(PTVTestInput input)
                                          * PTVTestOutput::props_per_thread());
 
     CELER_LAUNCH_KERNEL(ptv_test,
-                        device().default_block_size(),
+                        device().block_size(),
                         init.size(),
                         0,
                         init.size(),

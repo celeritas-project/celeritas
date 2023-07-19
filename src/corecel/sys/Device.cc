@@ -201,13 +201,13 @@ Device::Device(int id)
     std::string const& bsize_str = celeritas::getenv("CELER_BLOCK_SIZE");
     if (!bsize_str.empty())
     {
-        default_block_size_ = std::stoi(bsize_str);
-        CELER_VALIDATE(default_block_size_ >= threads_per_warp_
-                           && default_block_size_ <= max_threads_per_block,
+        block_size_ = std::stoi(bsize_str);
+        CELER_VALIDATE(block_size_ >= threads_per_warp_
+                           && block_size_ <= max_threads_per_block,
                        << "Invalid block size: number of threads must be in ["
                        << threads_per_warp_ << ", " << max_threads_per_block
                        << "]");
-        CELER_VALIDATE(default_block_size_ % threads_per_warp_ == 0,
+        CELER_VALIDATE(block_size_ % threads_per_warp_ == 0,
                        << "Invalid block size: number of threads must be "
                           "evenly divisible by "
                        << threads_per_warp_);
