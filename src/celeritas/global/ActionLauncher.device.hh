@@ -45,8 +45,8 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
     execute_thread(*(thread_range.cbegin() + tid.get()));
 }
 
-template<class F, int... bounds>
-__global__ void __launch_bounds__(bounds...)
+template<class F, int T, int B = 1>
+__global__ void __launch_bounds__(T, B)
     launch_bounded_action_impl(Range<ThreadId> const thread_range,
                                F execute_thread)
 {
@@ -62,6 +62,9 @@ __global__ void __launch_bounds__(bounds...)
 //---------------------------------------------------------------------------//
 /*!
  * Profile and launch Celeritas kernels from inside an action.
+ * Additionals - up to two - int template arguments can be specified that will
+ * be forwarded to \c __launch_bounds__ to constraint kernel registers usages.
+ * The CUDA-specific 3rd argument \c maxBlocksPerCluster is not supported.
  *
  * Example:
  * \code
@@ -81,33 +84,32 @@ class ActionLauncher
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
+    static_assert(sizeof...(bounds) <= 2,
+                  "ActionLauncher expects two or less variadic template "
+                  "arguments");
+
+  private:
+    using kernel_func_ptr_t = void (*)(Range<ThreadId> const, F);
+
+    // TODO: better way to conditionnaly init
+    static constexpr kernel_func_ptr_t kernel_func_ptr = [] {
+        if constexpr (sizeof...(bounds) == 0)
+            return &launch_action_impl<F>;
+        else
+            return &launch_bounded_action_impl<F, bounds...>;
+    }();
 
   public:
     //! Create a launcher from an action
-    template<size_t S = sizeof...(bounds), std::enable_if_t<(S > 0), bool> = true>
     explicit ActionLauncher(ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(),
-                              &launch_bounded_action_impl<F, bounds...>}
-    {
-    }
-
-    template<size_t S = sizeof...(bounds), std::enable_if_t<S == 0, bool> = true>
-    explicit ActionLauncher(ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(), &launch_action_impl<F>}
+        : calc_launch_params_{action.label(), kernel_func_ptr}
     {
     }
 
     //! Create a launcher with a string extension
-    template<size_t S = sizeof...(bounds), std::enable_if_t<(S > 0), bool> = true>
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
         : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              &launch_bounded_action_impl<F, bounds...>}
-    {
-    }
-    template<size_t S = sizeof...(bounds), std::enable_if_t<S == 0, bool> = true>
-    ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
-        : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              &launch_action_impl<F>}
+                              kernel_func_ptr}
     {
     }
 
@@ -121,18 +123,10 @@ class ActionLauncher
             CELER_DEVICE_PREFIX(Stream_t)
             stream = celeritas::device().stream(stream_id).get();
             auto config = calc_launch_params_(threads.size());
-            if constexpr (sizeof...(bounds) > 0)
-            {
-                launch_bounded_action_impl<F, bounds...>
-                    <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                        threads, call_thread);
-            }
-            else
-            {
-                launch_action_impl<F>
-                    <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
-                        threads, call_thread);
-            }
+            (*kernel_func_ptr)<<<config.blocks_per_grid,
+                                 config.threads_per_block,
+                                 0,
+                                 stream>>>(threads, call_thread);
         }
     }
 
