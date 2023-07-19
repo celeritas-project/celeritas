@@ -50,18 +50,20 @@ final application whether CPU-only or CUDA enabled::
   add_executable(myapplication ...)
   celeritas_target_link_libraries(myapplication PRIVATE myconsumer)
 
-The two exceptions to this are when your project builds a CMake ``SHARED`` library that:
+If your project builds shared libraries that are intended to be loaded at application
+runtime (e.g. via ``dlopen``), you should prefer use the the CMake ``MODULE`` target type::
 
-* will be loaded into an application at runtime (e.g. via ``dlopen``).
-* is intended to be linked to by downstream projects that do not use Celeritas
+  add_library(myplugin MODULE ...)
+  celeritas_target_link_libraries(myplugin PRIVATE Celeritas::celeritas)
 
-In the first case the CMake target type should be changed to ``MODULE`` for which
-CMake and ``celeritas_target_link_libraries`` correctly handle device linking. For
-the second case, or if you cannot use ``MODULE``, you must use ``target_link_libraries`` 
-and link to both the primary Celeritas target and its device code counterpart::
+This is recommended as ``celeritas_target_link_libraries`` understands these as a final
+target for which all device symbols require resolving. If you are forced to use the ``SHARED`` 
+target type for plugin libraries (e.g. via your project), then to correctly link these
+for runtime loading you must explicitly link to both the primary Celeritas target and 
+its device code counterpart::
 
-  add_library(mylibrary SHARED ...)
-  target_link_libraries(mylibrary PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
+  add_library(mybadplugin SHARED ...)
+  target_link_libraries(mybadplugin PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
 
 Celeritas device code counterpart target names are always the name of the primary
 target appended with ``_final``. They are only present if Celeritas was built with CUDA
