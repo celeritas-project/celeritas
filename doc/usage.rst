@@ -59,11 +59,14 @@ runtime (e.g. via ``dlopen``), you should prefer use the the CMake ``MODULE`` ta
 
 This is recommended as ``celeritas_target_link_libraries`` understands these as a final
 target for which all device symbols require resolving. If you are forced to use the ``SHARED`` 
-target type for plugin libraries (e.g. via your project), then these should be declared with
-the bare CMake commands with linking to both the primary Celeritas target and its device code counterpart::
+target type for plugin libraries (e.g. via your project's own wrapper functions), then these should 
+be declared with the CMake or project-specific commands with linking to both the primary Celeritas
+target and its device code counterpart::
 
   add_library(mybadplugin SHARED ...)
+  # ... or myproject_add_library(mybadplugin ...)
   target_link_libraries(mybadplugin PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
+  # ... or otherwise declare the plugin as requiring linking to the two targets
 
 Celeritas device code counterpart target names are always the name of the primary
 target appended with ``_final``. They are only present if Celeritas was built with CUDA
