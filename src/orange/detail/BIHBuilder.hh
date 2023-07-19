@@ -36,19 +36,23 @@ class BIHBuilder
     //!@{
     //! \name Type aliases
     using VecBBox = std::vector<BoundingBox>;
-    using Storage = Collection<LocalVolumeId,
-                               Ownership::value,
-                               MemSpace::host,
-                               OpaqueId<LocalVolumeId>>;
+    using LVIStorage = Collection<LocalVolumeId,
+                                  Ownership::value,
+                                  MemSpace::host,
+                                  OpaqueId<LocalVolumeId>>;
+    using NodeStorage
+        = Collection<BIHNode, Ownership::value, MemSpace::host, OpaqueId<BIHNode>>;
     using VecNodes = std::vector<BIHNode>;
     //!@}
 
   public:
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    explicit CELER_FUNCTION BIHBuilder(VecBBox bboxes, Storage* storage);
+    explicit CELER_FUNCTION BIHBuilder(VecBBox bboxes,
+                                       LVIStorage* lvi_storage,
+                                       NodeStorage* node_storage);
 
     // Create BIH Nodes
-    CELER_FUNCTION VecNodes operator()() const;
+    CELER_FUNCTION BIHParams operator()() const;
 
   private:
     /// TYPES ///
@@ -62,7 +66,7 @@ class BIHBuilder
     struct Partition
     {
         Axis axis = Axis::size_;
-        BIHNode::partition_location_type location;
+        real_type location;
         explicit CELER_FUNCTION operator bool() const
         {
             return axis != Axis::size_;
@@ -72,7 +76,8 @@ class BIHBuilder
     //// DATA ////
 
     VecBBox bboxes_;
-    Storage* storage_;
+    LVIStorage* lvi_storage_;
+    NodeStorage* node_storage_;
 
     //// HELPER FUNCTIONS ////
 
@@ -106,9 +111,6 @@ class BIHBuilder
     // Check that only the first bounding box (i.e. exterior volume) is fully
     // inf.
     CELER_FUNCTION bool check_bbox_extents() const;
-
-    // Check if a bounding box spans (-inf, inf) in every direction.
-    CELER_FUNCTION bool fully_inf(BoundingBox const& bbox) const;
 };
 
 //---------------------------------------------------------------------------//

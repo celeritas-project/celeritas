@@ -8,6 +8,7 @@
 #include "UnitInserter.hh"
 
 #include <algorithm>
+#include <iostream>
 #include <set>
 #include <vector>
 
@@ -193,11 +194,15 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
             .insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree
-    detail::BIHBuilder bih_builder(std::move(bboxes),
-                                   &orange_data_->local_volume_ids);
-    auto nodes = bih_builder();
-    unit.bih_nodes = make_builder(&orange_data_->bih_nodes)
-                         .insert_back(nodes.begin(), nodes.end());
+    if (std::all_of(bboxes.begin(), bboxes.end(), [](BoundingBox const& b) {
+            return b;
+        }))
+    {
+        detail::BIHBuilder bih_builder(std::move(bboxes),
+                                       &orange_data_->local_volume_ids,
+                                       &orange_data_->bih_nodes);
+        unit.bih_params = bih_builder();
+    }
 
     // Save connectivity
     {

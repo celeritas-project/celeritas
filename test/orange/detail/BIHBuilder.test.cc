@@ -31,7 +31,9 @@ class BIHBuilderTest : public Test
   protected:
     std::vector<BoundingBox> bboxes_;
     Collection<LocalVolumeId, Ownership::value, MemSpace::host, OpaqueId<LocalVolumeId>>
-        storage_;
+        lvi_storage_;
+    Collection<BIHNode, Ownership::value, MemSpace::host, OpaqueId<BIHNode>>
+        node_storage_;
 };
 
 //---------------------------------------------------------------------------//
@@ -71,45 +73,53 @@ TEST_F(BIHBuilderTest, fourboxes)
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
-    BIHBuilder bih(bboxes_, &storage_);
-    auto nodes = bih();
+    BIHBuilder bih(bboxes_, &lvi_storage_, &node_storage_);
+    auto bih_params = bih();
+    auto nodes = bih_params.nodes;
 
     EXPECT_EQ(7, nodes.size());
 
-    EXPECT_TRUE(nodes[0].is_inner());
-    EXPECT_SOFT_EQ(2.8, nodes[0].partitions[BIHNode::Edge::left]);
-    EXPECT_SOFT_EQ(0, nodes[0].partitions[BIHNode::Edge::right]);
-    EXPECT_EQ(1, nodes[0].children[BIHNode::Edge::left].unchecked_get());
-    EXPECT_EQ(4, nodes[0].children[BIHNode::Edge::right].unchecked_get());
+    auto node = node_storage_[OpaqueId<BIHNode>(0)];
+    EXPECT_TRUE(node.is_inner());
+    EXPECT_SOFT_EQ(2.8, node.partitions[BIHNode::Edge::left]);
+    EXPECT_SOFT_EQ(0, node.partitions[BIHNode::Edge::right]);
+    EXPECT_EQ(1, node.children[BIHNode::Edge::left].unchecked_get());
+    EXPECT_EQ(4, node.children[BIHNode::Edge::right].unchecked_get());
 
-    EXPECT_TRUE(nodes[1].is_inner());
-    EXPECT_SOFT_EQ(1.6, nodes[1].partitions[BIHNode::Edge::left]);
-    EXPECT_SOFT_EQ(1.2, nodes[1].partitions[BIHNode::Edge::right]);
-    EXPECT_EQ(2, nodes[1].children[BIHNode::Edge::left].unchecked_get());
-    EXPECT_EQ(3, nodes[1].children[BIHNode::Edge::right].unchecked_get());
+    node = node_storage_[OpaqueId<BIHNode>(1)];
+    EXPECT_TRUE(node.is_inner());
+    EXPECT_SOFT_EQ(1.6, node.partitions[BIHNode::Edge::left]);
+    EXPECT_SOFT_EQ(1.2, node.partitions[BIHNode::Edge::right]);
+    EXPECT_EQ(2, node.children[BIHNode::Edge::left].unchecked_get());
+    EXPECT_EQ(3, node.children[BIHNode::Edge::right].unchecked_get());
 
-    EXPECT_TRUE(nodes[2].is_leaf());
-    EXPECT_EQ(1, nodes[2].vol_ids.size());
-    EXPECT_EQ(1, storage_[nodes[2].vol_ids[0]].unchecked_get());
+    node = node_storage_[OpaqueId<BIHNode>(2)];
+    EXPECT_TRUE(node.is_leaf());
+    EXPECT_EQ(1, node.vol_ids.size());
+    EXPECT_EQ(1, lvi_storage_[node.vol_ids[0]].unchecked_get());
 
-    EXPECT_TRUE(nodes[3].is_leaf());
-    EXPECT_EQ(1, nodes[3].vol_ids.size());
-    EXPECT_EQ(2, storage_[nodes[3].vol_ids[0]].unchecked_get());
+    node = node_storage_[OpaqueId<BIHNode>(3)];
+    EXPECT_TRUE(node.is_leaf());
+    EXPECT_EQ(1, node.vol_ids.size());
+    EXPECT_EQ(2, lvi_storage_[node.vol_ids[0]].unchecked_get());
 
-    EXPECT_TRUE(nodes[4].is_inner());
-    EXPECT_SOFT_EQ(5, nodes[4].partitions[BIHNode::Edge::left]);
-    EXPECT_SOFT_EQ(2.8, nodes[4].partitions[BIHNode::Edge::right]);
-    EXPECT_EQ(5, nodes[4].children[BIHNode::Edge::left].unchecked_get());
-    EXPECT_EQ(6, nodes[4].children[BIHNode::Edge::right].unchecked_get());
+    node = node_storage_[OpaqueId<BIHNode>(4)];
+    EXPECT_TRUE(node.is_inner());
+    EXPECT_SOFT_EQ(5, node.partitions[BIHNode::Edge::left]);
+    EXPECT_SOFT_EQ(2.8, node.partitions[BIHNode::Edge::right]);
+    EXPECT_EQ(5, node.children[BIHNode::Edge::left].unchecked_get());
+    EXPECT_EQ(6, node.children[BIHNode::Edge::right].unchecked_get());
 
-    EXPECT_TRUE(nodes[5].is_leaf());
-    EXPECT_EQ(2, nodes[5].vol_ids.size());
-    EXPECT_EQ(4, storage_[nodes[5].vol_ids[0]].unchecked_get());
-    EXPECT_EQ(5, storage_[nodes[5].vol_ids[1]].unchecked_get());
+    node = node_storage_[OpaqueId<BIHNode>(5)];
+    EXPECT_TRUE(node.is_leaf());
+    EXPECT_EQ(2, node.vol_ids.size());
+    EXPECT_EQ(4, lvi_storage_[node.vol_ids[0]].unchecked_get());
+    EXPECT_EQ(5, lvi_storage_[node.vol_ids[1]].unchecked_get());
 
-    EXPECT_TRUE(nodes[6].is_leaf());
-    EXPECT_EQ(1, nodes[6].vol_ids.size());
-    EXPECT_EQ(3, storage_[nodes[6].vol_ids[0]].unchecked_get());
+    node = node_storage_[OpaqueId<BIHNode>(6)];
+    EXPECT_TRUE(node.is_leaf());
+    EXPECT_EQ(1, node.vol_ids.size());
+    EXPECT_EQ(3, lvi_storage_[node.vol_ids[0]].unchecked_get());
 }
 
 //---------------------------------------------------------------------------//

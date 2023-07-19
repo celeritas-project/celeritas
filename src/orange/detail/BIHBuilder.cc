@@ -10,6 +10,8 @@
 #include <iostream>
 #include <limits>
 
+#include "BoundingBoxUtils.hh"
+
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -32,31 +34,48 @@ namespace detail
 /*!
  * Construct from vector of bounding boxes and storage for LocalVolumeIds.
  */
-BIHBuilder::BIHBuilder(VecBBox bboxes, BIHBuilder::Storage* storage)
-    : bboxes_(bboxes), storage_(storage)
+BIHBuilder::BIHBuilder(VecBBox bboxes,
+                       BIHBuilder::LVIStorage* lvi_storage,
+                       BIHBuilder::NodeStorage* node_storage)
+    : bboxes_(bboxes), lvi_storage_(lvi_storage), node_storage_(node_storage)
 {
-    // Check that we have at least two bounding boxes, with the first being
-    // the exterior volume
-    CELER_EXPECT(bboxes.size() >= 2);
-    CELER_EXPECT(this->check_bbox_extents());
+    CELER_EXPECT(!bboxes.empty());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create BIH Nodes.
  */
-BIHBuilder::VecNodes BIHBuilder::operator()() const
+BIHParams BIHBuilder::operator()() const
 {
     // Create a vector of indices, excluding index 0 (i.e., the exterior)
-    VecIndices indices(bboxes_.size() - 1);
-    size_type id = 0;
-    std::generate(
-        indices.begin(), indices.end(), [&] { return LocalVolumeId{++id}; });
+    VecIndices indices;
+    VecIndices inf_volids;
+
+    for (auto i : range(bboxes_.size()))
+    {
+        LocalVolumeId id(i);
+
+        if (!fully_inf(bboxes_[i]))
+        {
+            indices.push_back(id);
+        }
+        else
+        {
+            inf_volids.push_back(id);
+        }
+    }
 
     VecNodes nodes;
     this->construct_tree(indices, nodes);
 
-    return nodes;
+    BIHParams params;
+    params.nodes
+        = make_builder(node_storage_).insert_back(nodes.begin(), nodes.end());
+    params.inf_volids = make_builder(lvi_storage_)
+                            .insert_back(inf_volids.begin(), inf_volids.end());
+
+    return params;
 }
 
 //---------------------------------------------------------------------------//
@@ -85,8 +104,10 @@ void BIHBuilder::construct_tree(VecIndices const& indices, VecNodes& nodes) cons
             CELER_EXPECT(!left_indices.empty() && !right_indices.empty());
 
             nodes[current_index].partitions
-                = {this->meta_bbox(left_indices).upper()[ax],
-                   this->meta_bbox(right_indices).lower()[ax]};
+                = {static_cast<BIHNode::partition_location_type>(
+                       this->meta_bbox(left_indices).upper()[ax]),
+                   static_cast<BIHNode::partition_location_type>(
+                       this->meta_bbox(right_indices).lower()[ax])};
 
             // Recursively construct the left and right branches
             nodes[current_index].children[BIHNode::Edge::left]
@@ -138,7 +159,6 @@ BIHBuilder::Partition BIHBuilder::find_partition(VecIndices const& indices,
         {
             partition.axis = axis;
             auto size = axes_centers[ax].size();
-
             partition.location
                 = (axes_centers[ax][size / 2 - 1] + axes_centers[ax][size / 2])
                   / 2;
@@ -189,7 +209,7 @@ void BIHBuilder::make_leaf(BIHNode& node, VecIndices const& indices) const
     CELER_EXPECT(!indices.empty());
 
     node.vol_ids
-        = make_builder(storage_).insert_back(indices.begin(), indices.end());
+        = make_builder(lvi_storage_).insert_back(indices.begin(), indices.end());
 }
 
 //---------------------------------------------------------------------------//
@@ -298,30 +318,11 @@ BIHBuilder::VecAxes BIHBuilder::sort_axes(BoundingBox const& bbox) const
  */
 bool BIHBuilder::check_bbox_extents() const
 {
-    return this->fully_inf(bboxes_[0])
+    return fully_inf(bboxes_[0])
            && std::all_of(
                bboxes_.begin() + 1, bboxes_.end(), [this](BoundingBox bbox) {
-                   return !this->fully_inf(bbox);
+                   return !fully_inf(bbox);
                });
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check if a bounding box spans (-inf, inf) in every direction.
- */
-bool BIHBuilder::fully_inf(BoundingBox const& bbox) const
-{
-    auto max_real = std::numeric_limits<real_type>::max();
-
-    for (auto axis : range(Axis::size_))
-    {
-        auto ax = to_int(axis);
-        if (bbox.lower()[ax] > -max_real || bbox.upper()[ax] < max_real)
-        {
-            return false;
-        }
-    }
-    return true;
 }
 
 //---------------------------------------------------------------------------//

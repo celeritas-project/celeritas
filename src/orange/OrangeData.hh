@@ -186,6 +186,16 @@ struct BIHNode
     }
 };
 
+struct BIHParams
+{
+    // Bounding Interval Hierachy nodes, the first being the root
+    ItemRange<BIHNode> nodes;
+
+    // VolumeIds for which bboxes have infinite extents, and are therefore
+    // note included in the tree
+    ItemRange<LocalVolumeId> inf_volids;
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Scalar data for a single "unit" of volumes defined by surfaces.
@@ -201,8 +211,8 @@ struct SimpleUnitRecord
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
-    // Bounding Interval Hierachy nodes, the first being the root
-    ItemRange<BIHNode> bih_nodes;
+    // Bounding Interval Hierachy tree parameters
+    BIHParams bih_params;
 
     // TODO: transforms
     LocalVolumeId background{};  //!< Default if not in any other volume
