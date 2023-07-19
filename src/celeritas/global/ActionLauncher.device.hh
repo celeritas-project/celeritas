@@ -32,12 +32,12 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch the given executor using thread ids in the thread_range
+ * Celeritas executor kernel implementation.
  */
 
 template<class F>
-__global__ void
-launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
+__device__ CELER_FORCEINLINE void
+launch_kernel_impl(Range<ThreadId> const thread_range, F& execute_thread)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < thread_range.size()))
@@ -47,7 +47,19 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch the given executor using thread ids in the thread_range with 
+ * Launch the given executor using thread ids in the thread_range
+ */
+
+template<class F>
+__global__ void
+launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
+{
+    launch_kernel_impl(thread_range, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch the given executor using thread ids in the thread_range with
  \c __launch_bounds__
  */
 
@@ -66,10 +78,7 @@ __global__ void __launch_bounds__(T, B_FINAL)
     launch_bounded_action_impl(Range<ThreadId> const thread_range,
                                F execute_thread)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (!(tid < thread_range.size()))
-        return;
-    execute_thread(*(thread_range.cbegin() + tid.get()));
+    launch_kernel_impl(thread_range, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
