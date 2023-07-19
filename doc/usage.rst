@@ -41,8 +41,8 @@ of ``target_link_libraries`` with a customized version::
 
 As ``celeritas_target_link_libraries`` decays to ``target_link_libraries`` if
 CUDA and VecGeom are not used, you can use it safely to link nearly all targets consuming
-Celeritas, or Celeritas consumers, in your project to track the appropriate sequence
-of linking for the final application whether CPU-only or CUDA enabled::
+Celeritas in your project to track the appropriate sequence of linking for the 
+final application whether CPU-only or CUDA enabled::
 
   add_library(myconsumer SHARED ...)
   celeritas_target_link_libraries(myconsumer PUBLIC Celeritas::celeritas)
@@ -50,13 +50,18 @@ of linking for the final application whether CPU-only or CUDA enabled::
   add_executable(myapplication ...)
   celeritas_target_link_libraries(myapplication PRIVATE myconsumer)
 
-The one exception to this is when your project builds a shared library that will
-be loaded into an application at runtime (e.g. via ``dlopen``). To correctly link
-targets of this type, you should use ``target_link_libraries`` and link to both
-the primary Celeritas target and its device code counterpart::
+The two exceptions to this are when your project builds a CMake ``SHARED`` library that:
 
-  add_library(myplugin MODULE ...)
-  target_link_libraries(myplugin PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
+* will be loaded into an application at runtime (e.g. via ``dlopen``).
+* is intended to be linked to by downstream projects that do not use Celeritas
+
+In the first case the CMake target type should be changed to ``MODULE`` for which
+CMake and ``celeritas_target_link_libraries`` correctly handle device linking. For
+the second case, or if you cannot use ``MODULE``, you must use ``target_link_libraries`` 
+and link to both the primary Celeritas target and its device code counterpart::
+
+  add_library(mylibrary SHARED ...)
+  target_link_libraries(mylibrary PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
 
 Celeritas device code counterpart target names are always the name of the primary
 target appended with ``_final``. They are only present if Celeritas was built with CUDA
