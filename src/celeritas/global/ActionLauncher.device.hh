@@ -67,7 +67,7 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
 template<class F, int T, int B = 1, int B_FINAL = B>
 #elif CELERITAS_USE_HIP
 // see
-// https://docs.amd.com/projects/HIP/en/docs-5.2.0/reference/kernel_language.html#porting-from-cuda-launch-bounds
+// https://rocm.docs.amd.com/projects/HIP/en/latest/reference/kernel_language.html#porting-from-cuda-launch-bounds
 template<class F, int T, int B = 1, int B_FINAL = (B * T) / 32>
 #else
 static_assert(false,
