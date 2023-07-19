@@ -25,7 +25,6 @@
 #    include <HepMC3/ReaderAscii.h>
 #    include <HepMC3/Selector.h>
 #    include <HepMC3/WriterAscii.h>
-
 #endif
 
 using celeritas::units::MevEnergy;
@@ -40,6 +39,19 @@ class EventIOTest : public Test,
                     public ::testing::WithParamInterface<char const*>
 {
   protected:
+    struct ReadAllResult
+    {
+        std::vector<int> pdg;
+        std::vector<double> energy;
+        std::vector<double> pos;
+        std::vector<double> dir;
+        std::vector<double> time;
+        std::vector<int> event;
+        std::vector<int> track;
+
+        void print_expected() const;
+    };
+
     void SetUp() override
     {
         using units::ElementaryCharge;
@@ -75,8 +87,66 @@ class EventIOTest : public Test,
         });
     }
 
+    template<class F>
+    ReadAllResult read_all(F&& read_event)
+    {
+        ReadAllResult result;
+        std::vector<Primary> primaries;
+        while (primaries = read_event(), !primaries.empty())
+        {
+            for (auto const& p : primaries)
+            {
+                result.pdg.push_back(
+                    particles_->id_to_pdg(p.particle_id).unchecked_get());
+                result.energy.push_back(p.energy.value());
+                result.pos.insert(
+                    result.pos.end(), p.position.begin(), p.position.end());
+                result.dir.insert(
+                    result.dir.end(), p.direction.begin(), p.direction.end());
+                result.time.push_back(p.time);
+                result.event.push_back(p.event_id.unchecked_get());
+                result.track.push_back(p.track_id.unchecked_get());
+            }
+        }
+        return result;
+    }
+
     std::shared_ptr<ParticleParams> particles_;
 };
+
+void EventIOTest::ReadAllResult::print_expected() const
+{
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "static int const expected_pdg[] = "
+         << repr(this->pdg)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_pdg, result.pdg);\n"
+            "static double const expected_energy[] = "
+         << repr(this->energy)
+         << ";\n"
+            "EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);\n"
+            "static double const expected_pos[] = "
+         << repr(this->pos)
+         << ";\n"
+            "EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);\n"
+            "static double const expected_dir[] = "
+         << repr(this->dir)
+         << ";\n"
+            "EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-9);\n"
+            "static double const expected_time[] = "
+         << repr(this->time)
+         << ";\n"
+            "EXPECT_VEC_SOFT_EQ(expected_time, result.time);\n"
+            "static int const expected_event[] = "
+         << repr(this->event)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_event, result.event);\n"
+            "static int const expected_track[] = "
+         << repr(this->track)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_track, result.track);\n"
+            "/*** END CODE ***/\n";
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -91,55 +161,108 @@ TEST_P(EventIOTest, read_all_formats)
     // Determine the event record format and open the file
     EventReader read_event(filename, particles_);
 
-    int const expected_pdg[] = {2212, 1, 2212, -2, 22, -24, 1, -2};
-
-    double const expected_energy[] = {
-        7.e6, 3.2238e4, 7.e6, 5.7920e4, 4.233e3, 8.5925e4, 2.9552e4, 5.6373e4};
-
-    double const expected_direction[][3] = {
-        {0, 0, 1},
-        {2.326451417389850e-2, -4.866936365179566e-2, 9.985439676959555e-1},
-        {0, 0, -1},
-        {-5.260794237813896e-2, -3.280442747570201e-1, -9.431963518790131e-1},
-        {-9.009470900796461e-1, 2.669997932835038e-2, -4.331067443262500e-1},
-        {5.189457940206315e-2, -7.074356638330033e-1, -7.048700122475354e-1},
-        {-8.273504806466310e-2, 9.750892208717103e-1, 2.058055469649411e-1},
-        {7.028153760960004e-2, -8.780402697122620e-1, -4.733981307893478e-1}};
-
     // Read events from the event record
-    int event_count = 0;
-    std::vector<Primary> primaries;
-    do
-    {
-        primaries = read_event();
-        ASSERT_TRUE(primaries.empty()
-                    || primaries.size() == std::size(expected_pdg));
-        for (auto i : range(primaries.size()))
-        {
-            auto const& primary = primaries[i];
+    auto result = read_all(read_event);
+    // clang-format off
+    static int const expected_pdg[] = {2212, 1, 2212, -2, 22, -24, 1, -2, 2212,
+        1, 2212, -2, 22, -24, 1, -2};
+    EXPECT_VEC_EQ(expected_pdg, result.pdg);
+    static double const expected_energy[] = {7000000, 32238, 7000000, 57920,
+        4233, 85925, 29552, 56373, 7000000, 32238, 7000000, 57920, 4233, 85925,
+        29552, 56373};
+    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
+    static double const expected_dir[] = {0, 0, 1, 0.023264514173899,
+        -0.048669363651796, 0.99854396769596, 0, 0, -1, -0.052607942378139,
+        -0.32804427475702, -0.94319635187901, -0.90094709007965,
+        0.02669997932835, -0.43310674432625, 0.051894579402063,
+        -0.707435663833, -0.70487001224754, -0.082735048064663,
+        0.97508922087171, 0.20580554696494, 0.0702815376096, -0.87804026971226,
+        -0.47339813078935, 0, 0, 1, 0.023264514173899, -0.048669363651796,
+        0.99854396769596, 0, 0, -1, -0.052607942378139, -0.32804427475702,
+        -0.94319635187901, -0.90094709007965, 0.02669997932835,
+        -0.43310674432625, 0.051894579402063, -0.707435663833,
+        -0.70487001224754, -0.082735048064663, 0.97508922087171,
+        0.20580554696494, 0.0702815376096, -0.87804026971226,
+        -0.47339813078935};
+    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-10);
+    static double const expected_time[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0};
+    EXPECT_VEC_SOFT_EQ(expected_time, result.time);
+    static int const expected_event[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+        1, 1, 1};
+    EXPECT_VEC_EQ(expected_event, result.event);
+    static int const expected_track[] = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4,
+        5, 6, 7};
+    EXPECT_VEC_EQ(expected_track, result.track);
+    // clang-format on
 
-            // Check that the particle types were read correctly
-            EXPECT_EQ(
-                expected_pdg[i],
-                particles_->id_to_pdg(primary.particle_id).unchecked_get());
-
-            // Check that the event IDs match
-            EXPECT_EQ(event_count, primary.event_id.unchecked_get());
-
-            // Check that the position, direction, and energy were read
-            // correctly
-            double const expected_position[] = {0, 0, 0};
-            EXPECT_VEC_SOFT_EQ(expected_position, primary.position);
-            EXPECT_VEC_SOFT_EQ(expected_direction[i], primary.direction);
-            EXPECT_DOUBLE_EQ(expected_energy[i],
-                             value_as<MevEnergy>(primary.energy));
-            EXPECT_EQ(0, primary.time);
-        }
-        ++event_count;
-    } while (!primaries.empty());
     // Event reader should keep returning an empty vector
-    primaries = read_event();
-    EXPECT_TRUE(primaries.empty());
+    EXPECT_TRUE(read_event().empty());
+}
+
+TEST_P(EventIOTest, single_event_rwr)
+{
+    std::string const inp_filename
+        = this->test_data_path("celeritas", "test-input.hepmc3");
+    std::string const ext = this->GetParam();
+    std::string const out_filename
+        = this->make_unique_filename(std::string{"."} + ext);
+
+    std::vector<Primary> primaries;
+    // Read and write the single-event version
+    {
+        EventReader read_event(inp_filename, particles_);
+        EventWriter write_event(out_filename, particles_);
+        while (primaries = read_event(), !primaries.empty())
+        {
+            write_event(primaries);
+        }
+    }
+
+    // Read it in and check
+    auto result = this->read_all(EventReader(out_filename, particles_));
+    // clang-format off
+    static const int expected_pdg[] = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+        22, 22, 22, 22, 22};
+    EXPECT_VEC_EQ(expected_pdg, result.pdg);
+    static const double expected_energy[] = {1000, 1000, 1000, 1000, 1000,
+        1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
+    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    static const double expected_pos[] = {0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
+        50, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
+    static const double expected_dir[] = {0.51986662880921, -0.42922054684247,
+        -0.73858541172893, 0.73395459362337, 0.1872657519039, 0.65287226366497,
+        -0.40053358211222, -0.081839341522929, 0.91261994925569,
+        -0.51571621418069, 0.12578032404407, 0.84747631029693,
+        -0.50829382271803, 0.51523183971419, -0.69005328861721,
+        0.25183128898268, -0.2021612079861, -0.94642054493493,
+        -0.25247976702327, 0.94617275708722, -0.20251192801867,
+        0.3406634478685, -0.90517210965059, 0.25418864490188, 0.8319269271936,
+        -0.54330006912643, 0.11279460402625, 0.23445050406753,
+        -0.36984950110653, -0.89902408625895, 0.17562103500567,
+        -0.47618127501539, 0.86163138602784, -0.60694965185736,
+        0.69697036183621, 0.38189584291025, 0.51336099392838, 0.54197742792439,
+        0.66537279590717, -0.36655746400947, 0.80035990702067,
+        0.47440451601225, -0.7896979371307, -0.54961247309096,
+        -0.27258631204511};
+    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);
+    static const double expected_time[] = {4.1028383709373e-09,
+        4.1028383709373e-09, 4.1028383709373e-09, 4.1028383709373e-09,
+        4.1028383709373e-09, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    EXPECT_VEC_SOFT_EQ(expected_time, result.time);
+    static const int expected_event[] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2,
+        2, 2};
+    EXPECT_VEC_EQ(expected_event, result.event);
+    static const int expected_track[] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2,
+        3, 4};
+    EXPECT_VEC_EQ(expected_track, result.track);
+    // clang-format on
 }
 
 TEST_P(EventIOTest, write_read)
@@ -203,31 +326,7 @@ TEST_P(EventIOTest, write_read)
     }
 
     // Read events
-    std::vector<int> pdg;
-    std::vector<double> energy;
-    std::vector<double> pos;
-    std::vector<double> dir;
-    std::vector<double> time;
-    std::vector<int> event;
-    std::vector<int> track;
-    {
-        EventReader read_event(filename, particles_);
-        do
-        {
-            primaries = read_event();
-            for (auto const& p : primaries)
-            {
-                pdg.push_back(
-                    particles_->id_to_pdg(p.particle_id).unchecked_get());
-                energy.push_back(p.energy.value());
-                pos.insert(pos.end(), p.position.begin(), p.position.end());
-                dir.insert(dir.end(), p.direction.begin(), p.direction.end());
-                time.push_back(p.time);
-                event.push_back(p.event_id.unchecked_get());
-                track.push_back(p.track_id.unchecked_get());
-            }
-        } while (!primaries.empty());
-    }
+    auto result = this->read_all(EventReader(filename, particles_));
 
     // clang-format off
     static int const expected_pdg[] = {22, 2212, 22, 2212, 22, 2212, 22, 2212, 2212, 22};
@@ -239,13 +338,14 @@ TEST_P(EventIOTest, write_read)
     static int const expected_track[] = {0, 1, 2, 3, 0, 1, 2, 3, 4, 0};
     // clang-format on
 
-    EXPECT_VEC_EQ(expected_pdg, pdg);
-    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
-    EXPECT_VEC_SOFT_EQ(expected_pos, pos);
-    EXPECT_VEC_SOFT_EQ(expected_dir, dir);
-    EXPECT_VEC_NEAR(expected_time, time, (ext == "hepevt" ? 1e-6 : 1e-12));
-    EXPECT_VEC_EQ(expected_event, event);
-    EXPECT_VEC_EQ(expected_track, track);
+    EXPECT_VEC_EQ(expected_pdg, result.pdg);
+    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
+    EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
+    EXPECT_VEC_NEAR(
+        expected_time, result.time, (ext == "hepevt" ? 1e-6 : 1e-12));
+    EXPECT_VEC_EQ(expected_event, result.event);
+    EXPECT_VEC_EQ(expected_track, result.track);
 }
 
 INSTANTIATE_TEST_SUITE_P(EventIO,
