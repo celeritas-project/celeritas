@@ -185,6 +185,12 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
             "secondaryStackFactor",
             "At least the average number of secondaries per track slot");
 
+    directories_.emplace_back(new CelerDirectory(
+        "/celer/detector/", "Celeritas sensitive detector setup options"));
+    add_cmd(&options->sd.enabled,
+            "enabled",
+            "Call back to Geant4 sensitive detectors");
+
     if (Device::num_devices() > 0)
     {
         directories_.emplace_back(new CelerDirectory(
