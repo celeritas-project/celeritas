@@ -71,6 +71,18 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("true");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("countTrackSteps",
+                                                count_track_steps_);
+        cmd.SetGuidance("Collect the distribution of steps per Geant4 track");
+        cmd.SetDefaultValue("false");
+    }
+    {
+        auto& cmd
+            = messenger_->DeclareProperty("trackStepBins", track_step_bins_);
+        cmd.SetGuidance("Number of bins in the track step counter");
+        cmd.SetDefaultValue(std::to_string(track_step_bins_));
+    }
+    {
         messenger_->DeclareMethod("magFieldZ",
                                   &GlobalSetup::SetMagFieldZTesla,
                                   "Set Z-axis magnetic field strength (T)");

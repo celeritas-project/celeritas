@@ -12,6 +12,8 @@
 
 #include "accel/SharedParams.hh"
 
+#include "TrackStepCounter.hh"
+
 namespace celeritas
 {
 namespace app
@@ -26,6 +28,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     //!@{
     //! \name Type aliases
     using SPParams = std::shared_ptr<SharedParams>;
+    using SPStepCounter = std::shared_ptr<TrackStepCounter>;
     //!@}
 
   public:
@@ -35,7 +38,9 @@ class ActionInitialization final : public G4VUserActionInitialization
 
   private:
     SPParams params_;
+    SPStepCounter step_counter_;
     mutable bool init_celeritas_;
+    mutable bool init_diagnostics_;
 };
 
 //---------------------------------------------------------------------------//

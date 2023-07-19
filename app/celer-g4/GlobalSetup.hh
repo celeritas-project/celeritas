@@ -38,6 +38,8 @@ class GlobalSetup
     int GetRootBufferSize() const { return root_buffer_size_; }
     bool GetWriteSDHits() const { return write_sd_hits_; }
     bool StripGDMLPointers() const { return strip_gdml_pointers_; }
+    bool CountTrackSteps() const { return count_track_steps_; }
+    int GetTrackStepBins() const { return track_step_bins_; }
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
@@ -70,6 +72,8 @@ class GlobalSetup
     int root_buffer_size_{128000};
     bool write_sd_hits_{false};
     bool strip_gdml_pointers_{true};
+    bool count_track_steps_{false};
+    int track_step_bins_{1000};
     G4ThreeVector field_;
 
     std::unique_ptr<G4GenericMessenger> messenger_;
