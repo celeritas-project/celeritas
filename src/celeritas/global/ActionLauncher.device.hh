@@ -45,8 +45,24 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
     execute_thread(*(thread_range.cbegin() + tid.get()));
 }
 
-template<class F, int T, int B = 1>
-__global__ void __launch_bounds__(T, B)
+//---------------------------------------------------------------------------//
+/*!
+ * Launch the given executor using thread ids in the thread_range with 
+ \c __launch_bounds__
+ */
+
+#if CELERITAS_USE_CUDA
+template<class F, int T, int B = 1, int B_FINAL = B>
+#elif CELERITAS_USE_HIP
+// see
+// https://docs.amd.com/projects/HIP/en/docs-5.2.0/reference/kernel_language.html#porting-from-cuda-launch-bounds
+template<class F, int T, int B = 1, int B_FINAL = (B * T) / 32>
+#else
+static_assert(false,
+              "Compiling device code without setting either "
+              "CELERITAS_USE_CUDA or CELERITAS_USE_HIP");
+#endif
+__global__ void __launch_bounds__(T, B_FINAL)
     launch_bounded_action_impl(Range<ThreadId> const thread_range,
                                F execute_thread)
 {
@@ -64,6 +80,11 @@ __global__ void __launch_bounds__(T, B)
  * Profile and launch Celeritas kernels from inside an action.
  * Additionals - up to two - int template arguments can be specified that will
  * be forwarded to \c __launch_bounds__ to constraint kernel registers usages.
+ *
+ * Semantics of \c __launch_bounds__ 2nd argument differs between CUDA and HIP.
+ * \c ActionLauncher expects Cuda semantics. If Celeritas is built targeting
+ * HIP, it will automatically convert that argument to match HIP semantics.
+ *
  * The CUDA-specific 3rd argument \c maxBlocksPerCluster is not supported.
  *
  * Example:
