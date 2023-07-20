@@ -182,7 +182,7 @@ struct BIHNode
     //! True if either a valid inner or leaf node
     explicit CELER_FUNCTION operator bool() const
     {
-        return this->is_inner() ^ this->is_leaf();
+        return this->is_inner() != this->is_leaf();
     }
 };
 
