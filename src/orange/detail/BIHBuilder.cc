@@ -56,7 +56,7 @@ BIHParams BIHBuilder::operator()() const
     {
         LocalVolumeId id(i);
 
-        if (!fully_inf(bboxes_[i]))
+        if (!is_infinite(bboxes_[i]))
         {
             indices.push_back(id);
         }
@@ -310,19 +310,6 @@ BIHBuilder::VecAxes BIHBuilder::sort_axes(BoundingBox const& bbox) const
         return lengths[to_int(axis1)] > lengths[to_int(axis2)];
     });
     return axes;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check that only the first bounding box (i.e. exterior volume) is fully inf.
- */
-bool BIHBuilder::check_bbox_extents() const
-{
-    return fully_inf(bboxes_[0])
-           && std::all_of(
-               bboxes_.begin() + 1, bboxes_.end(), [this](BoundingBox bbox) {
-                   return !fully_inf(bbox);
-               });
 }
 
 //---------------------------------------------------------------------------//

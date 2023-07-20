@@ -107,10 +107,6 @@ class BIHBuilder
 
     // Create a vector of axes sorted from longest to shortest.
     CELER_FUNCTION VecAxes sort_axes(BoundingBox const& bbox) const;
-
-    // Check that only the first bounding box (i.e. exterior volume) is fully
-    // inf.
-    CELER_FUNCTION bool check_bbox_extents() const;
 };
 
 //---------------------------------------------------------------------------//

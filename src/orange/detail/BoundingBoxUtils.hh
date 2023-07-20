@@ -18,7 +18,7 @@ namespace detail
 /*!
  * Check if a bounding box spans (-inf, inf) in every direction.
  */
-inline CELER_FUNCTION bool fully_inf(BoundingBox const& bbox)
+inline CELER_FUNCTION bool is_infinite(BoundingBox const& bbox)
 {
     CELER_EXPECT(bbox);
 
