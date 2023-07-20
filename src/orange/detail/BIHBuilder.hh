@@ -9,6 +9,7 @@
 
 #include <vector>
 
+#include "corecel/cont/Range.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 
@@ -60,7 +61,6 @@ class BIHBuilder
     using VecReal3 = std::vector<Real3>;
     using VecIndices = std::vector<LocalVolumeId>;
     using PairVecIndices = std::pair<VecIndices, VecIndices>;
-    using VecAxes = std::vector<Axis>;
     using AxesCenters = std::vector<std::vector<double>>;
 
     struct Partition
@@ -96,17 +96,11 @@ class BIHBuilder
     // Add leaf volume ids to a given node
     void make_leaf(BIHNode& node, VecIndices const& indices) const;
 
-    // Calculate the centers of each bounding box
-    CELER_FUNCTION VecReal3 centers(VecIndices const& indices) const;
-
     // Create sorted and uniquified X, Y, Z values of bbox centers
     AxesCenters axes_centers(VecReal3 const& centers) const;
 
     // Bounding box of a collection of bounding boxes
-    CELER_FUNCTION BoundingBox meta_bbox(VecIndices const& indices) const;
-
-    // Create a vector of axes sorted from longest to shortest.
-    CELER_FUNCTION VecAxes sort_axes(BoundingBox const& bbox) const;
+    CELER_FUNCTION BoundingBox all_bbox_union(VecIndices const& indices) const;
 };
 
 //---------------------------------------------------------------------------//

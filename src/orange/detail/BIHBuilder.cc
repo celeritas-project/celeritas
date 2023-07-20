@@ -7,9 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "BIHBuilder.hh"
 
-#include <iostream>
-#include <limits>
-
 #include "BoundingBoxUtils.hh"
 
 namespace
@@ -91,7 +88,14 @@ void BIHBuilder::construct_tree(VecIndices const& indices, VecNodes& nodes) cons
 
     if (indices.size() > 1)
     {
-        auto centers = this->centers(indices);
+        VecReal3 centers(indices.size());
+        std::transform(indices.begin(),
+                       indices.end(),
+                       centers.begin(),
+                       [&](LocalVolumeId id) {
+                           return center(bboxes_[id.unchecked_get()]);
+                       });
+
         auto p = this->find_partition(indices, centers);
 
         if (p)
@@ -105,9 +109,9 @@ void BIHBuilder::construct_tree(VecIndices const& indices, VecNodes& nodes) cons
 
             nodes[current_index].partitions
                 = {static_cast<BIHNode::partition_location_type>(
-                       this->meta_bbox(left_indices).upper()[ax]),
+                       this->all_bbox_union(left_indices).upper()[ax]),
                    static_cast<BIHNode::partition_location_type>(
-                       this->meta_bbox(right_indices).lower()[ax])};
+                       this->all_bbox_union(right_indices).lower()[ax])};
 
             // Recursively construct the left and right branches
             nodes[current_index].children[BIHNode::Edge::left]
@@ -141,8 +145,8 @@ BIHBuilder::Partition BIHBuilder::find_partition(VecIndices const& indices,
 {
     CELER_EXPECT(indices.size() == centers.size());
 
-    auto mb = this->meta_bbox(indices);
-    VecAxes sorted_axes = this->sort_axes(mb);
+    auto mb = this->all_bbox_union(indices);
+    auto sorted_axes = sort_axes(mb);
     auto axes_centers = this->axes_centers(centers);
 
     Partition partition;
@@ -214,29 +218,6 @@ void BIHBuilder::make_leaf(BIHNode& node, VecIndices const& indices) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the centers of each bounding box.
- */
-BIHBuilder::VecReal3 BIHBuilder::centers(VecIndices const& indices) const
-{
-    CELER_EXPECT(!indices.empty());
-    VecReal3 centers(indices.size());
-    for (auto i : range(indices.size()))
-    {
-        Real3 center;
-        auto bbox = bboxes_[indices[i].unchecked_get()];
-
-        for (auto axis : range(Axis::size_))
-        {
-            auto ax = to_int(axis);
-            center[ax] = (bbox.lower()[ax] + bbox.upper()[ax]) / 2;
-        }
-        centers[i] = center;
-    }
-    return centers;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create sorted and uniquified X, Y, Z values of bbox centers.
  */
 BIHBuilder::AxesCenters BIHBuilder::axes_centers(VecReal3 const& centers) const
@@ -267,49 +248,18 @@ BIHBuilder::AxesCenters BIHBuilder::axes_centers(VecReal3 const& centers) const
 /*!
  * Bounding box of a collection of bounding boxes.
  */
-BoundingBox BIHBuilder::meta_bbox(VecIndices const& indices) const
+BoundingBox BIHBuilder::all_bbox_union(VecIndices const& indices) const
 {
     CELER_EXPECT(!indices.empty());
 
-    auto inf = std::numeric_limits<real_type>::infinity();
+    auto bbox = bboxes_[indices.front().unchecked_get()];
 
-    Real3 lower = {inf, inf, inf};
-    Real3 upper = {-inf, -inf, -inf};
-
-    for (auto id : indices)
+    for (auto id = std::next(indices.begin()); id != indices.end(); ++id)
     {
-        auto bbox = bboxes_[id.unchecked_get()];
-        for (auto axis : range(Axis::size_))
-        {
-            auto ax = to_int(axis);
-            lower[ax] = std::min(lower[ax], bbox.lower()[ax]);
-            upper[ax] = std::max(upper[ax], bbox.upper()[ax]);
-        }
+        bbox = bbox_union(bbox, bboxes_[id->unchecked_get()]);
     }
 
-    return {lower, upper};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a vector of axes sorted from longest to shortest.
- */
-BIHBuilder::VecAxes BIHBuilder::sort_axes(BoundingBox const& bbox) const
-{
-    VecAxes axes;
-    std::vector<real_type> lengths;
-
-    for (auto axis : range(Axis::size_))
-    {
-        auto ax = to_int(axis);
-        axes.push_back(axis);
-        lengths.push_back(bbox.upper()[ax] - bbox.lower()[ax]);
-    }
-
-    std::sort(axes.begin(), axes.end(), [&](Axis axis1, Axis axis2) {
-        return lengths[to_int(axis1)] > lengths[to_int(axis2)];
-    });
-    return axes;
+    return bbox;
 }
 
 //---------------------------------------------------------------------------//
