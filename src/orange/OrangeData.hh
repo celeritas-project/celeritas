@@ -151,9 +151,7 @@ struct RaggedRightIndexerData
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single Bounding Inverval Hierarchy node
- *
- * Leaf nodes must contain exactly one bounding box
+ * Data for a single Bounding Interval Hierarchy node.
  */
 struct BIHNode
 {
