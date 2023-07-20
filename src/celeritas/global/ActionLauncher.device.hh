@@ -70,9 +70,8 @@ template<class F, int T, int B = 1, int B_FINAL = B>
 // https://rocm.docs.amd.com/projects/HIP/en/latest/reference/kernel_language.html#porting-from-cuda-launch-bounds
 template<class F, int T, int B = 1, int B_FINAL = (B * T) / 32>
 #else
-static_assert(false,
-              "Compiling device code without setting either "
-              "CELERITAS_USE_CUDA or CELERITAS_USE_HIP");
+#    error \
+        "Compiling device code without setting either CELERITAS_USE_CUDA or CELERITAS_USE_HIP"
 #endif
 __global__ void __launch_bounds__(T, B_FINAL)
     launch_bounded_action_impl(Range<ThreadId> const thread_range,
