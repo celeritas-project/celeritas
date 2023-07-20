@@ -154,8 +154,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     // Parse bbox
     if (j.contains("bbox"))
     {
-        auto const& bbox = j.at("bbox");
-        value.bbox = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
+        j.at("bbox").get_to(value.bbox);
     }
 
     // Read scalars, including optional flags
@@ -188,8 +187,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         j.at("surface_names").get_to(value.surfaces.labels);
     }
     {
-        auto const& bbox = j.at("bbox");
-        value.bbox = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
+        j.at("bbox").get_to(value.bbox);
     }
 
     if (j.contains("parent_cells"))

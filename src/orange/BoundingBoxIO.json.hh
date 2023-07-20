@@ -21,8 +21,7 @@ namespace celeritas
  */
 inline void from_json(nlohmann::json const& j, BoundingBox& bbox)
 {
-    auto arrays = j.at("bbox").get<Array<Real3, 2>>();
-    bbox = {arrays[0], arrays[1]};
+    bbox = {j[0].get<Real3>(), j[1].get<Real3>()};
 }
 
 //---------------------------------------------------------------------------//
