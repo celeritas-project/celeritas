@@ -87,7 +87,7 @@ __global__ void __launch_bounds__(T, B_FINAL)
 //---------------------------------------------------------------------------//
 /*!
  * Profile and launch Celeritas kernels from inside an action.
- * Additionals - up to two - int template arguments can be specified that will
+ * Additional - up to two - int template arguments can be specified that will
  * be forwarded to \c __launch_bounds__ to constraint kernel registers usages.
  *
  * Semantics of \c __launch_bounds__ 2nd argument differs between CUDA and HIP.
@@ -121,7 +121,7 @@ class ActionLauncher
   private:
     using kernel_func_ptr_t = void (*)(Range<ThreadId> const, F);
 
-    // TODO: better way to conditionnaly init
+    // TODO: better way to conditionally constexpr init?
     static constexpr kernel_func_ptr_t kernel_func_ptr = [] {
         if constexpr (sizeof...(bounds) == 0)
             return &launch_action_impl<F>;
