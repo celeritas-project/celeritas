@@ -58,7 +58,7 @@ BIHParams BIHBuilder::operator()() const
     }
 
     VecNodes nodes;
-    this->construct_tree(indices, nodes);
+    this->construct_tree(indices, nodes, static_cast<BIHNodeId>(-1));
 
     BIHParams params;
     params.nodes
@@ -75,10 +75,13 @@ BIHParams BIHBuilder::operator()() const
 /*!
  * Recursively construct BIH nodes for a vector of bbox indices.
  */
-void BIHBuilder::construct_tree(VecIndices const& indices, VecNodes& nodes) const
+void BIHBuilder::construct_tree(VecIndices const& indices,
+                                VecNodes& nodes,
+                                BIHNodeId parent) const
 {
     nodes.push_back(BIHNode());
     auto current_index = nodes.size() - 1;
+    nodes[current_index].parent = parent;
 
     if (indices.size() > 1)
     {
@@ -107,10 +110,11 @@ void BIHBuilder::construct_tree(VecIndices const& indices, VecNodes& nodes) cons
             // Recursively construct the left and right branches
             nodes[current_index].children[BIHNode::Edge::left]
                 = BIHNodeId(nodes.size());
-            this->construct_tree(left_indices, nodes);
+            this->construct_tree(left_indices, nodes, BIHNodeId(current_index));
             nodes[current_index].children[BIHNode::Edge::right]
                 = BIHNodeId(nodes.size());
-            this->construct_tree(right_indices, nodes);
+            this->construct_tree(
+                right_indices, nodes, BIHNodeId(current_index));
         }
         else
         {

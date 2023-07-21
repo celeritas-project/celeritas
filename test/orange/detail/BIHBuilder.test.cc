@@ -81,6 +81,7 @@ TEST_F(BIHBuilderTest, fourboxes)
 
     auto node = node_storage_[nodes[0]];
     EXPECT_TRUE(node.is_inner());
+    EXPECT_FALSE(node.parent);
     EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::left].axis);
     EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::right].axis);
     EXPECT_SOFT_EQ(2.8, node.bounding_planes[BIHNode::Edge::left].location);
@@ -90,6 +91,7 @@ TEST_F(BIHBuilderTest, fourboxes)
 
     node = node_storage_[nodes[1]];
     EXPECT_TRUE(node.is_inner());
+    EXPECT_EQ(BIHNodeId{0}, node.parent);
     EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::left].axis);
     EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::right].axis);
     EXPECT_SOFT_EQ(1.6, node.bounding_planes[BIHNode::Edge::left].location);
@@ -98,17 +100,20 @@ TEST_F(BIHBuilderTest, fourboxes)
     EXPECT_EQ(3, node.children[BIHNode::Edge::right].unchecked_get());
 
     node = node_storage_[nodes[2]];
+    EXPECT_EQ(BIHNodeId{1}, node.parent);
     EXPECT_TRUE(node.is_leaf());
     EXPECT_EQ(1, node.vol_ids.size());
     EXPECT_EQ(1, lvi_storage_[node.vol_ids[0]].unchecked_get());
 
     node = node_storage_[nodes[3]];
+    EXPECT_EQ(BIHNodeId{1}, node.parent);
     EXPECT_TRUE(node.is_leaf());
     EXPECT_EQ(1, node.vol_ids.size());
     EXPECT_EQ(2, lvi_storage_[node.vol_ids[0]].unchecked_get());
 
     node = node_storage_[nodes[4]];
     EXPECT_TRUE(node.is_inner());
+    EXPECT_EQ(BIHNodeId{0}, node.parent);
     EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::left].axis);
     EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::right].axis);
     EXPECT_SOFT_EQ(5, node.bounding_planes[BIHNode::Edge::left].location);
@@ -118,12 +123,14 @@ TEST_F(BIHBuilderTest, fourboxes)
 
     node = node_storage_[nodes[5]];
     EXPECT_TRUE(node.is_leaf());
+    EXPECT_EQ(BIHNodeId{4}, node.parent);
     EXPECT_EQ(2, node.vol_ids.size());
     EXPECT_EQ(4, lvi_storage_[node.vol_ids[0]].unchecked_get());
     EXPECT_EQ(5, lvi_storage_[node.vol_ids[1]].unchecked_get());
 
     node = node_storage_[nodes[6]];
     EXPECT_TRUE(node.is_leaf());
+    EXPECT_EQ(BIHNodeId{4}, node.parent);
     EXPECT_EQ(1, node.vol_ids.size());
     EXPECT_EQ(3, lvi_storage_[node.vol_ids[0]].unchecked_get());
 }

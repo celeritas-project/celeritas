@@ -75,7 +75,9 @@ class BIHBuilder
     //// HELPER FUNCTIONS ////
 
     // Recursively construct BIH nodes for a vector of bbox indices
-    void construct_tree(VecIndices const& indices, VecNodes& nodes) const;
+    void construct_tree(VecIndices const& indices,
+                        VecNodes& nodes,
+                        BIHNodeId parent) const;
 
     // Divide bboxes into left and right branches based on a partition
     PairVecIndices apply_partition(VecIndices const& indices,

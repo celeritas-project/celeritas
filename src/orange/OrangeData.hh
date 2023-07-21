@@ -169,6 +169,8 @@ struct BIHNode
         right = 1
     };
 
+    BIHNodeId parent;
+
     // inner node only
     Array<BIHNodeId, 2> children;
     Array<BoundingPlane, 2> bounding_planes;
