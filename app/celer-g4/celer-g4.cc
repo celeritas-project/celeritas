@@ -29,6 +29,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "accel/ExceptionConverter.hh"
@@ -113,6 +114,13 @@ void run(int argc, char** argv)
     CELER_TRY_HANDLE(num_events = PrimaryGeneratorAction::NumEvents(),
                      ExceptionConverter{"demo-geant000"});
 
+    if (!celeritas::getenv("CELER_DISABLE").empty())
+    {
+        CELER_LOG(info)
+            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
+               "environment variable is present and non-empty";
+    }
+
     CELER_LOG(status) << "Transporting " << num_events << " events";
     run_manager->BeamOn(num_events);
 }
@@ -135,6 +143,7 @@ int main(int argc, char* argv[])
                   << "Environment variables:\n"
                   << "  G4FORCE_RUN_MANAGER_TYPE: MT or Serial\n"
                   << "  G4FORCENUMBEROFTHREADS: set CPU worker thread count\n"
+                  << "  CELER_DISABLE: nonempty disables offloading\n"
                   << "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
                   << "  CELER_LOG: global logging level\n"
                   << "  CELER_LOG_LOCAL: thread-local logging level\n"

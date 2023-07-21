@@ -11,6 +11,7 @@
 #include <G4Event.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/sys/Environment.hh"
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
@@ -25,7 +26,9 @@ namespace app
  * Construct with thread-local Celeritas data.
  */
 EventAction::EventAction(SPConstParams params, SPTransporter transport)
-    : params_(params), transport_(transport)
+    : params_(params)
+    , transport_(transport)
+    , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(transport_);
@@ -38,6 +41,9 @@ EventAction::EventAction(SPConstParams params, SPTransporter transport)
 void EventAction::BeginOfEventAction(G4Event const* event)
 {
     CELER_LOG_LOCAL(debug) << "Starting event " << event->GetEventID();
+
+    if (disable_offloading_)
+        return;
 
     // Set event ID in local transporter
     ExceptionConverter call_g4exception{"celer0002"};
@@ -53,9 +59,12 @@ void EventAction::EndOfEventAction(G4Event const* event)
 {
     CELER_EXPECT(event);
 
-    // Transport any tracks left in the buffer
-    ExceptionConverter call_g4exception{"celer0004", params_.get()};
-    CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+    if (!disable_offloading_)
+    {
+        // Transport any tracks left in the buffer
+        ExceptionConverter call_g4exception{"celer0004", params_.get()};
+        CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+    }
 
     if (GlobalSetup::Instance()->GetWriteSDHits())
     {

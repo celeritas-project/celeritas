@@ -42,6 +42,7 @@ class EventAction final : public G4UserEventAction
   private:
     SPConstParams params_;
     SPTransporter transport_;
+    bool disable_offloading_;
 };
 
 //---------------------------------------------------------------------------//
