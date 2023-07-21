@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeData.hh"
+#include "orange/detail/BIHPartitioner.hh"
 
 namespace celeritas
 {
@@ -63,44 +64,25 @@ class BIHBuilder
     using PairVecIndices = std::pair<VecIndices, VecIndices>;
     using AxesCenters = std::vector<std::vector<double>>;
 
-    struct Partition
-    {
-        Axis axis = Axis::size_;
-        real_type location;
-        explicit CELER_FUNCTION operator bool() const
-        {
-            return axis != Axis::size_;
-        }
-    };
-
     //// DATA ////
 
     VecBBox bboxes_;
+    VecReal3 centers_;
     LVIStorage* lvi_storage_;
     NodeStorage* node_storage_;
+    BIHPartitioner partitioner_;
 
     //// HELPER FUNCTIONS ////
 
     // Recursively construct BIH nodes for a vector of bbox indices
     void construct_tree(VecIndices const& indices, VecNodes& nodes) const;
 
-    // Find a suitable partition for the given bounding boxes
-    Partition
-    find_partition(VecIndices const& indicies, VecReal3 const& centers) const;
-
     // Divide bboxes into left and right branches based on a partition
-    PairVecIndices partition_bboxes(VecIndices const& indices,
-                                    VecReal3 const& centers,
-                                    Partition const& p) const;
+    PairVecIndices apply_partition(VecIndices const& indices,
+                                   BIHPartitioner::Partition const& p) const;
 
     // Add leaf volume ids to a given node
     void make_leaf(BIHNode& node, VecIndices const& indices) const;
-
-    // Create sorted and uniquified X, Y, Z values of bbox centers
-    AxesCenters axes_centers(VecReal3 const& centers) const;
-
-    // Bounding box of a collection of bounding boxes
-    CELER_FUNCTION BoundingBox all_bbox_union(VecIndices const& indices) const;
 };
 
 //---------------------------------------------------------------------------//

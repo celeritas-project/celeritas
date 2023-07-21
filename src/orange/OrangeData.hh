@@ -155,7 +155,13 @@ struct RaggedRightIndexerData
  */
 struct BIHNode
 {
-    using partition_location_type = float;
+    using location_type = float;
+
+    struct BoundingPlane
+    {
+        Axis axis;
+        location_type location;
+    };
 
     enum Edge : size_type
     {
@@ -165,7 +171,7 @@ struct BIHNode
 
     // inner node only
     Array<BIHNodeId, 2> children;
-    Array<partition_location_type, 2> partitions;
+    Array<BoundingPlane, 2> bounding_planes;
 
     // leaf only
     ItemRange<LocalVolumeId> vol_ids;

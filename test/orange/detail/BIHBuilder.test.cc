@@ -75,48 +75,54 @@ TEST_F(BIHBuilderTest, fourboxes)
 
     BIHBuilder bih(bboxes_, &lvi_storage_, &node_storage_);
     auto bih_params = bih();
-    auto nodes = bih_params.nodes;
 
+    auto nodes = bih_params.nodes;
     EXPECT_EQ(7, nodes.size());
 
-    auto node = node_storage_[OpaqueId<BIHNode>(0)];
+    auto node = node_storage_[nodes[0]];
     EXPECT_TRUE(node.is_inner());
-    EXPECT_SOFT_EQ(2.8, node.partitions[BIHNode::Edge::left]);
-    EXPECT_SOFT_EQ(0, node.partitions[BIHNode::Edge::right]);
+    EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::left].axis);
+    EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::right].axis);
+    EXPECT_SOFT_EQ(2.8, node.bounding_planes[BIHNode::Edge::left].location);
+    EXPECT_SOFT_EQ(0, node.bounding_planes[BIHNode::Edge::right].location);
     EXPECT_EQ(1, node.children[BIHNode::Edge::left].unchecked_get());
     EXPECT_EQ(4, node.children[BIHNode::Edge::right].unchecked_get());
 
-    node = node_storage_[OpaqueId<BIHNode>(1)];
+    node = node_storage_[nodes[1]];
     EXPECT_TRUE(node.is_inner());
-    EXPECT_SOFT_EQ(1.6, node.partitions[BIHNode::Edge::left]);
-    EXPECT_SOFT_EQ(1.2, node.partitions[BIHNode::Edge::right]);
+    EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::left].axis);
+    EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::right].axis);
+    EXPECT_SOFT_EQ(1.6, node.bounding_planes[BIHNode::Edge::left].location);
+    EXPECT_SOFT_EQ(1.2, node.bounding_planes[BIHNode::Edge::right].location);
     EXPECT_EQ(2, node.children[BIHNode::Edge::left].unchecked_get());
     EXPECT_EQ(3, node.children[BIHNode::Edge::right].unchecked_get());
 
-    node = node_storage_[OpaqueId<BIHNode>(2)];
+    node = node_storage_[nodes[2]];
     EXPECT_TRUE(node.is_leaf());
     EXPECT_EQ(1, node.vol_ids.size());
     EXPECT_EQ(1, lvi_storage_[node.vol_ids[0]].unchecked_get());
 
-    node = node_storage_[OpaqueId<BIHNode>(3)];
+    node = node_storage_[nodes[3]];
     EXPECT_TRUE(node.is_leaf());
     EXPECT_EQ(1, node.vol_ids.size());
     EXPECT_EQ(2, lvi_storage_[node.vol_ids[0]].unchecked_get());
 
-    node = node_storage_[OpaqueId<BIHNode>(4)];
+    node = node_storage_[nodes[4]];
     EXPECT_TRUE(node.is_inner());
-    EXPECT_SOFT_EQ(5, node.partitions[BIHNode::Edge::left]);
-    EXPECT_SOFT_EQ(2.8, node.partitions[BIHNode::Edge::right]);
+    EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::left].axis);
+    EXPECT_EQ(Axis{0}, node.bounding_planes[BIHNode::Edge::right].axis);
+    EXPECT_SOFT_EQ(5, node.bounding_planes[BIHNode::Edge::left].location);
+    EXPECT_SOFT_EQ(2.8, node.bounding_planes[BIHNode::Edge::right].location);
     EXPECT_EQ(5, node.children[BIHNode::Edge::left].unchecked_get());
     EXPECT_EQ(6, node.children[BIHNode::Edge::right].unchecked_get());
 
-    node = node_storage_[OpaqueId<BIHNode>(5)];
+    node = node_storage_[nodes[5]];
     EXPECT_TRUE(node.is_leaf());
     EXPECT_EQ(2, node.vol_ids.size());
     EXPECT_EQ(4, lvi_storage_[node.vol_ids[0]].unchecked_get());
     EXPECT_EQ(5, lvi_storage_[node.vol_ids[1]].unchecked_get());
 
-    node = node_storage_[OpaqueId<BIHNode>(6)];
+    node = node_storage_[nodes[6]];
     EXPECT_TRUE(node.is_leaf());
     EXPECT_EQ(1, node.vol_ids.size());
     EXPECT_EQ(3, lvi_storage_[node.vol_ids[0]].unchecked_get());

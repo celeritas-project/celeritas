@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "orange/BoundingBox.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {
@@ -82,7 +83,7 @@ inline CELER_FUNCTION Real3 center(BoundingBox const& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate bounding box enclosing two bounding boxes
+ * Calculate bounding box enclosing two bounding boxes.
  */
 inline CELER_FUNCTION BoundingBox bbox_union(BoundingBox const& a,
                                              BoundingBox const& b)
@@ -99,6 +100,27 @@ inline CELER_FUNCTION BoundingBox bbox_union(BoundingBox const& a,
     }
 
     return {lower, upper};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate bounding box enclosing bounding boxes for specified indices.
+ */
+inline CELER_FUNCTION BoundingBox
+bbox_union(std::vector<BoundingBox> const& bboxes,
+           std::vector<LocalVolumeId> const& indices)
+{
+    CELER_EXPECT(!bboxes.empty());
+    CELER_EXPECT(!indices.empty());
+
+    auto result = bboxes[indices.front().unchecked_get()];
+
+    for (auto id = std::next(indices.begin()); id != indices.end(); ++id)
+    {
+        result = bbox_union(result, bboxes[id->unchecked_get()]);
+    }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
