@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/TrackStepCounter.hh
+//! \file celer-g4/GeantStepDiagnostic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -27,7 +27,7 @@ namespace app
  * For the diagnostic class that collects the same result for tracks
  * transported with Celeritas, see: \sa StepDiagnostic.
  */
-class TrackStepCounter final : public OutputInterface
+class GeantStepDiagnostic final : public OutputInterface
 {
   public:
     //!@{
@@ -38,27 +38,21 @@ class TrackStepCounter final : public OutputInterface
     //!@}
 
   public:
-    // Construct in an uninitialized state
-    TrackStepCounter() = default;
-
     // Construct with number of bins and threads
-    TrackStepCounter(size_type num_bins, size_type num_threads);
+    GeantStepDiagnostic(size_type num_bins, size_type num_threads);
 
     //! Default destructor
-    ~TrackStepCounter();
+    ~GeantStepDiagnostic();
 
     //!@{
     //! \name Output interface
     //! Category of data to write
     Category category() const final { return Category::result; }
     //! Key for the entry inside the category.
-    std::string label() const final { return "track-step-count"; }
+    std::string label() const final { return "g4-step-diagnostic"; }
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;
     //!@}
-
-    // Initialize the diagnostic on the "master" thread
-    inline void Initialize(size_type num_bins, size_type num_threads);
 
     // Update the step tally from the given track
     void Update(G4Track const* track);
@@ -69,22 +63,10 @@ class TrackStepCounter final : public OutputInterface
     // Get a sorted vector of PDGs
     std::vector<int> GetPDGs() const;
 
-    //! Whether this instance is initialized
-    explicit operator bool() const { return !thread_store_.empty(); }
-
   private:
     std::vector<MapIntVecCount> thread_store_;
     size_type num_bins_;
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize the diagnostic on the "master" thread.
- */
-void TrackStepCounter::Initialize(size_type num_bins, size_type num_threads)
-{
-    *this = TrackStepCounter(num_bins, num_threads);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace app

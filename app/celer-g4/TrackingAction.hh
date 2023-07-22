@@ -13,7 +13,7 @@
 #include "accel/LocalTransporter.hh"
 #include "accel/SharedParams.hh"
 
-#include "TrackStepCounter.hh"
+#include "GeantDiagnostics.hh"
 
 namespace celeritas
 {
@@ -33,14 +33,14 @@ class TrackingAction final : public G4UserTrackingAction
     //!@{
     //! \name Type aliases
     using SPConstParams = std::shared_ptr<SharedParams const>;
-    using SPStepCounter = std::shared_ptr<TrackStepCounter>;
+    using SPDiagnostics = std::shared_ptr<GeantDiagnostics>;
     using SPTransporter = std::shared_ptr<LocalTransporter>;
     //!@}
 
   public:
     TrackingAction(SPConstParams params,
                    SPTransporter transport,
-                   SPStepCounter step_counter);
+                   SPDiagnostics diagnostics);
 
     void PreUserTrackingAction(G4Track const* track) final;
     void PostUserTrackingAction(G4Track const* track) final;
@@ -48,7 +48,7 @@ class TrackingAction final : public G4UserTrackingAction
   private:
     SPConstParams params_;
     SPTransporter transport_;
-    SPStepCounter step_counter_;
+    SPDiagnostics diagnostics_;
     bool disable_offloading_;
 };
 

@@ -29,8 +29,8 @@ ActionInitialization::ActionInitialization()
 {
     // Create params to be shared across worker threads
     params_ = std::make_shared<SharedParams>();
-    // Create track step counter to be shared across worker threads
-    step_counter_ = std::make_shared<TrackStepCounter>();
+    // Create Geant4 diagnostics to be shared across worker threads
+    diagnostics_ = std::make_shared<GeantDiagnostics>();
     // Make global setup commands available to UI
     GlobalSetup::Instance();
 }
@@ -52,7 +52,7 @@ void ActionInitialization::BuildForMaster() const
         new RunAction{GlobalSetup::Instance()->GetSetupOptions(),
                       params_,
                       nullptr,
-                      step_counter_,
+                      diagnostics_,
                       init_celeritas_,
                       init_diagnostics_});
 
@@ -81,14 +81,14 @@ void ActionInitialization::Build() const
         new RunAction{GlobalSetup::Instance()->GetSetupOptions(),
                       params_,
                       transport,
-                      step_counter_,
+                      diagnostics_,
                       init_celeritas_,
                       init_diagnostics_});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
     this->SetUserAction(new EventAction{params_, transport});
     // Tracking action offloads tracks to device and kills them
-    this->SetUserAction(new TrackingAction{params_, transport, step_counter_});
+    this->SetUserAction(new TrackingAction{params_, transport, diagnostics_});
 }
 
 //---------------------------------------------------------------------------//

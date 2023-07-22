@@ -12,7 +12,7 @@
 
 #include "accel/SharedParams.hh"
 
-#include "TrackStepCounter.hh"
+#include "GeantDiagnostics.hh"
 
 namespace celeritas
 {
@@ -28,7 +28,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     //!@{
     //! \name Type aliases
     using SPParams = std::shared_ptr<SharedParams>;
-    using SPStepCounter = std::shared_ptr<TrackStepCounter>;
+    using SPDiagnostics = std::shared_ptr<GeantDiagnostics>;
     //!@}
 
   public:
@@ -38,7 +38,7 @@ class ActionInitialization final : public G4VUserActionInitialization
 
   private:
     SPParams params_;
-    SPStepCounter step_counter_;
+    SPDiagnostics diagnostics_;
     mutable bool init_celeritas_;
     mutable bool init_diagnostics_;
 };

@@ -32,15 +32,15 @@ namespace app
  */
 TrackingAction::TrackingAction(SPConstParams params,
                                SPTransporter transport,
-                               SPStepCounter step_counter)
+                               SPDiagnostics diagnostics)
     : params_(params)
     , transport_(transport)
-    , step_counter_(step_counter)
+    , diagnostics_(diagnostics)
     , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(transport_);
-    CELER_EXPECT(step_counter_);
+    CELER_EXPECT(diagnostics_);
 }
 
 //---------------------------------------------------------------------------//
@@ -84,9 +84,9 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
  */
 void TrackingAction::PostUserTrackingAction(G4Track const* track)
 {
-    if (*step_counter_)
+    if (diagnostics_->StepDiagnostic())
     {
-        step_counter_->Update(track);
+        diagnostics_->StepDiagnostic()->Update(track);
     }
 }
 

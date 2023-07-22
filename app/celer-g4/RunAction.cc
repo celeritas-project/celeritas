@@ -17,7 +17,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
@@ -36,19 +35,20 @@ namespace app
 RunAction::RunAction(SPConstOptions options,
                      SPParams params,
                      SPTransporter transport,
-                     SPStepCounter step_counter,
+                     SPDiagnostics diagnostics,
                      bool init_celeritas,
                      bool init_diagnostics)
     : options_{std::move(options)}
     , params_{std::move(params)}
     , transport_{std::move(transport)}
-    , step_counter_{std::move(step_counter)}
+    , diagnostics_{std::move(diagnostics)}
     , init_celeritas_{init_celeritas}
     , init_diagnostics_{init_diagnostics}
     , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
 {
     CELER_EXPECT(options_);
     CELER_EXPECT(params_);
+    CELER_EXPECT(diagnostics_);
 }
 
 //---------------------------------------------------------------------------//
@@ -90,32 +90,14 @@ void RunAction::BeginOfRunAction(G4Run const* run)
             // Allocate data in shared thread-local transporter
             CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
                              call_g4exception);
-            CELER_ENSURE(*transport_);
+            CELER_ASSERT(*transport_);
         }
     }
 
     if (init_diagnostics_)
     {
-        output_reg_ = *params_ ? params_->Params()->output_reg()
-                               : std::make_shared<OutputRegistry>();
-
-        // Create the track step diagnostic
-        if (GlobalSetup::Instance()->CountTrackSteps())
-        {
-            size_type num_streams
-                = *params_ ? params_->Params()->max_streams()
-                           : get_num_threads(*G4RunManager::GetRunManager());
-
-            CELER_TRY_HANDLE(
-                step_counter_->Initialize(
-                    GlobalSetup::Instance()->GetTrackStepBins(), num_streams),
-                call_g4exception);
-            CELER_ASSERT(*step_counter_);
-
-            // Add to output interface
-            CELER_TRY_HANDLE(output_reg_->insert(step_counter_),
-                             call_g4exception);
-        }
+        CELER_TRY_HANDLE(diagnostics_->Initialize(params_), call_g4exception);
+        CELER_ASSERT(*diagnostics_);
     }
 }
 
@@ -145,31 +127,10 @@ void RunAction::EndOfRunAction(G4Run const*)
             CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
         }
     }
-    else if (init_diagnostics_)
-    {
-        // Write the diagnostic output if it wasn't done as part of the
-        // Celeritas finalization
-        // TODO: duplcated in SharedParams
-        std::string output_file
-            = GlobalSetup::Instance()->GetSetupOptions()->output_file;
-        if (!output_file.empty())
-        {
-#if CELERITAS_USE_JSON
-            CELER_LOG(info) << "Writing Geant4 diagnostic output to \""
-                            << output_file << '"';
 
-            std::ofstream outf(output_file);
-            CELER_VALIDATE(outf,
-                           << "failed to open output file at \"" << output_file
-                           << '"');
-            output_reg_->output(&outf);
-#else
-            CELER_LOG(warning)
-                << "JSON support is not enabled, so no output will "
-                   "be written to \""
-                << output_file << '"';
-#endif
-        }
+    if (init_diagnostics_)
+    {
+        CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
     }
 
     if (GlobalSetup::Instance()->GetWriteSDHits())

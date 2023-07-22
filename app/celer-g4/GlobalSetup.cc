@@ -71,16 +71,16 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("true");
     }
     {
-        auto& cmd = messenger_->DeclareProperty("countTrackSteps",
-                                                count_track_steps_);
+        auto& cmd
+            = messenger_->DeclareProperty("stepDiagnostic", step_diagnostic_);
         cmd.SetGuidance("Collect the distribution of steps per Geant4 track");
         cmd.SetDefaultValue("false");
     }
     {
-        auto& cmd
-            = messenger_->DeclareProperty("trackStepBins", track_step_bins_);
-        cmd.SetGuidance("Number of bins in the track step counter");
-        cmd.SetDefaultValue(std::to_string(track_step_bins_));
+        auto& cmd = messenger_->DeclareProperty("stepDiagnosticBins",
+                                                step_diagnostic_bins_);
+        cmd.SetGuidance("Number of bins for the Geant4 step diagnostic");
+        cmd.SetDefaultValue(std::to_string(step_diagnostic_bins_));
     }
     {
         messenger_->DeclareMethod("magFieldZ",

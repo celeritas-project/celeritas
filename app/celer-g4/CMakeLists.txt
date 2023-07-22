@@ -10,12 +10,13 @@ if(CELERITAS_USE_Geant4)
     ActionInitialization.cc
     DetectorConstruction.cc
     EventAction.cc
+    GeantDiagnostics.cc
+    GeantStepDiagnostic.cc
     GlobalSetup.cc
     PrimaryGeneratorAction.cc
     RunAction.cc
     SensitiveDetector.cc
     SensitiveHit.cc
-    TrackStepCounter.cc
     TrackingAction.cc
   )
   set(LIBRARIES Celeritas::accel)

@@ -10,12 +10,11 @@
 #include <memory>
 #include <G4UserRunAction.hh>
 
-#include "corecel/io/OutputRegistry.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
 
-#include "TrackStepCounter.hh"
+#include "GeantDiagnostics.hh"
 
 namespace celeritas
 {
@@ -39,16 +38,15 @@ class RunAction final : public G4UserRunAction
     //! \name Type aliases
     using SPConstOptions = std::shared_ptr<SetupOptions const>;
     using SPParams = std::shared_ptr<SharedParams>;
-    using SPStepCounter = std::shared_ptr<TrackStepCounter>;
     using SPTransporter = std::shared_ptr<LocalTransporter>;
-    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
+    using SPDiagnostics = std::shared_ptr<GeantDiagnostics>;
     //!@}
 
   public:
     RunAction(SPConstOptions options,
               SPParams params,
               SPTransporter transport,
-              SPStepCounter step_counter,
+              SPDiagnostics diagnostics,
               bool init_celeritas,
               bool init_diagnostics);
 
@@ -59,11 +57,10 @@ class RunAction final : public G4UserRunAction
     SPConstOptions options_;
     SPParams params_;
     SPTransporter transport_;
-    SPStepCounter step_counter_;
+    SPDiagnostics diagnostics_;
     bool init_celeritas_;
     bool init_diagnostics_;
     bool disable_offloading_;
-    SPOutputRegistry output_reg_;
 };
 
 //---------------------------------------------------------------------------//

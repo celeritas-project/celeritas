@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/TrackStepCounter.cc
+//! \file celer-g4/GeantStepDiagnostic.cc
 //---------------------------------------------------------------------------//
-#include "TrackStepCounter.hh"
+#include "GeantStepDiagnostic.hh"
 
 #include <algorithm>
 #include <G4Track.hh>
@@ -30,7 +30,8 @@ namespace app
  *
  * The two extra bins are for underflow and overflow.
  */
-TrackStepCounter::TrackStepCounter(size_type num_bins, size_type num_threads)
+GeantStepDiagnostic::GeantStepDiagnostic(size_type num_bins,
+                                         size_type num_threads)
     : num_bins_(num_bins + 2)
 {
     CELER_EXPECT(num_bins_ > 2);
@@ -41,13 +42,13 @@ TrackStepCounter::TrackStepCounter(size_type num_bins, size_type num_threads)
 
 //---------------------------------------------------------------------------//
 //! Default destructor
-TrackStepCounter::~TrackStepCounter() = default;
+GeantStepDiagnostic::~GeantStepDiagnostic() = default;
 
 //---------------------------------------------------------------------------//
 /*!
  * Write output to the given JSON object.
  */
-void TrackStepCounter::output(JsonPimpl* j) const
+void GeantStepDiagnostic::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
     using json = nlohmann::json;
@@ -68,7 +69,7 @@ void TrackStepCounter::output(JsonPimpl* j) const
 /*!
  * Update the step tally from the given track.
  */
-void TrackStepCounter::Update(G4Track const* track)
+void GeantStepDiagnostic::Update(G4Track const* track)
 {
     CELER_EXPECT(track);
 
@@ -98,7 +99,7 @@ void TrackStepCounter::Update(G4Track const* track)
 /*!
  * Get the diagnostic results accumulated over all threads.
  */
-auto TrackStepCounter::CalcSteps() const -> VecVecCount
+auto GeantStepDiagnostic::CalcSteps() const -> VecVecCount
 {
     auto pdgs = this->GetPDGs();
     VecVecCount result(pdgs.size(), VecCount(num_bins_));
@@ -124,7 +125,7 @@ auto TrackStepCounter::CalcSteps() const -> VecVecCount
 /*!
  * Get a sorted vector of PDGs.
  */
-std::vector<int> TrackStepCounter::GetPDGs() const
+std::vector<int> GeantStepDiagnostic::GetPDGs() const
 {
     std::set<int> pdgs;
     for (auto const& pdg_to_count : thread_store_)
