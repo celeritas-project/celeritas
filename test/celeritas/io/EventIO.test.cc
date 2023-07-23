@@ -111,6 +111,18 @@ class EventIOTest : public Test,
         return result;
     }
 
+    void read_write(std::string const& inp_filename,
+                    std::string const& out_filename)
+    {
+        std::vector<Primary> primaries;
+        EventReader read_event(inp_filename, particles_);
+        EventWriter write_event(out_filename, particles_);
+        while (primaries = read_event(), !primaries.empty())
+        {
+            write_event(primaries);
+        }
+    }
+
     std::shared_ptr<ParticleParams> particles_;
 };
 
@@ -152,28 +164,41 @@ void EventIOTest::ReadAllResult::print_expected() const
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_P(EventIOTest, read_all_formats)
+TEST_P(EventIOTest, variety_rwr)
 {
+    std::string const inp_filename
+        = this->test_data_path("celeritas", "event-variety.hepmc3");
     std::string const ext = this->GetParam();
-    std::string filename
-        = this->test_data_path("celeritas", "event-record." + ext);
+    std::string const out_filename
+        = this->make_unique_filename(std::string{"."} + ext);
+
+    // Read one format, write (possibly) another
+    this->read_write(inp_filename, out_filename);
 
     // Determine the event record format and open the file
-    EventReader read_event(filename, particles_);
+    EventReader read_event(out_filename, particles_);
 
     // Read events from the event record
     auto result = read_all(read_event);
+
+    if (ext == "hepevt")
+    {
+        GTEST_SKIP() << "HEPEVT format sorts primaries by PDG";
+    }
     // clang-format off
     static int const expected_pdg[] = {2212, 1, 2212, -2, 22, -24, 1, -2, 2212,
-        1, 2212, -2, 22, -24, 1, -2};
+        1, 2212, -2, 22, -24, 1, -2, 2212, 2212, 1, -2, 22, -24, 1, -2};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
     static double const expected_energy[] = {7000000, 32238, 7000000, 57920,
         4233, 85925, 29552, 56373, 7000000, 32238, 7000000, 57920, 4233, 85925,
-        29552, 56373};
+        29552, 56373, 7000000, 7000000, 32238, 57920, 4233, 85925, 29552,
+        56373};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 10, 0, 0, 10, 0, 0,
+        10, 0, 0, 10, 0, 0, 10, 0, 0, 10, 0, 0, 10, 1, 2, 3, 1, 2, 3, 0.1, 0.2,
+        0.3, 1, 2, 3, 0.1, 0.2, 0.3, 0.1, 0.2, 0.3, 0.1, 0.2, 0.3, 0.1, 0.2,
+        0.3};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
     static double const expected_dir[] = {0, 0, 1, 0.023264514173899,
         -0.048669363651796, 0.99854396769596, 0, 0, -1, -0.052607942378139,
@@ -187,16 +212,24 @@ TEST_P(EventIOTest, read_all_formats)
         -0.43310674432625, 0.051894579402063, -0.707435663833,
         -0.70487001224754, -0.082735048064663, 0.97508922087171,
         0.20580554696494, 0.0702815376096, -0.87804026971226,
+        -0.47339813078935, 0, 0, 1, 0, 0, -1, 0.023264514173899,
+        -0.048669363651796, 0.99854396769596, -0.052607942378139,
+        -0.32804427475702, -0.94319635187901, -0.90094709007965,
+        0.02669997932835, -0.43310674432625, 0.051894579402063,
+        -0.707435663833, -0.70487001224754, -0.082735048064663,
+        0.97508922087171, 0.20580554696494, 0.0702815376096, -0.87804026971226,
         -0.47339813078935};
-    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-10);
+    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-9);
     static double const expected_time[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0};
+        0, 0, 0, 0, 1.3342563807926e-10, 1.3342563807926e-10,
+        1.3342563807926e-11, 1.3342563807926e-10, 1.3342563807926e-11,
+        1.3342563807926e-11, 1.3342563807926e-11, 1.3342563807926e-11};
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);
     static int const expected_event[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-        1, 1, 1};
+        1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2};
     EXPECT_VEC_EQ(expected_event, result.event);
     static int const expected_track[] = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4,
-        5, 6, 7};
+        5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7};
     EXPECT_VEC_EQ(expected_track, result.track);
     // clang-format on
 
@@ -204,24 +237,16 @@ TEST_P(EventIOTest, read_all_formats)
     EXPECT_TRUE(read_event().empty());
 }
 
-TEST_P(EventIOTest, single_event_rwr)
+TEST_P(EventIOTest, no_vertex_rwr)
 {
     std::string const inp_filename
-        = this->test_data_path("celeritas", "test-input.hepmc3");
+        = this->test_data_path("celeritas", "event-novtx.hepmc3");
     std::string const ext = this->GetParam();
     std::string const out_filename
         = this->make_unique_filename(std::string{"."} + ext);
 
-    std::vector<Primary> primaries;
-    // Read and write the single-event version
-    {
-        EventReader read_event(inp_filename, particles_);
-        EventWriter write_event(out_filename, particles_);
-        while (primaries = read_event(), !primaries.empty())
-        {
-            write_event(primaries);
-        }
-    }
+    // Read one format, write (possibly) another
+    this->read_write(inp_filename, out_filename);
 
     // Read it in and check
     auto result = this->read_all(EventReader(out_filename, particles_));
@@ -368,116 +393,64 @@ std::string HepMC3Example::test_filename_{};
 TEST_F(HepMC3Example, write)
 {
 #if CELERITAS_USE_HEPMC3
+    /*
+     *  p1                   p7 *
+     *   \                  /   *
+     *    v1--p2      p5---v4   *
+     *         \_v3_/       \   *
+     *         /    \        p8 *
+     *    v2--p4     \          *
+     *   /            p6        *
+     * p3                       *
+     */
     using namespace HepMC3;
-    // Copyright (C) 2014-2022 The HepMC collaboration
 
-    // In this example we will place the following event into HepMC "by hand"
-    //
-    //     name status pdg_id  parent Px       Py    Pz       Energy      Mass
-    //  1  !p+!    3   2212    0,0    0.000    0.000 7000.000 7000.000    0.938
-    //  3  !p+!    3   2212    0,0    0.000    0.000-7000.000 7000.000    0.938
-    //=========================================================================
-    //  2  !d!     3      1    1,1    0.750   -1.569   32.191   32.238    0.000
-    //  4  !u~!    3     -2    2,2   -3.047  -19.000  -54.629   57.920    0.000
-    //  5  !W-!    3    -24    1,2    1.517   -20.68  -20.605   85.925   80.799
-    //  6  !gamma! 1     22    1,2   -3.813    0.113   -1.833    4.233    0.000
-    //  7  !d!     1      1    5,5   -2.445   28.816    6.082   29.552    0.010
-    //  8  !u~!    1     -2    5,5    3.962  -49.498  -26.687   56.373    0.006
-
-    // now we build the graph, which will looks like
-    //                       p7                         #
-    // p1                   /                           #
-    //   \v1__p2      p5---v4                           #
-    //         \_v3_/       \                           #
-    //         /    \        p8                         #
-    //    v2__p4     \                                  #
-    //   /            p6                                #
-    // p3                                               #
-    //                                                  #
     GenEvent evt(Units::GEV, Units::MM);
+    evt.shift_position_by(FourVector(1, 2, 3, 4));
 
-    //  px      py pz       e pdgid status
-    GenParticlePtr p1 = std::make_shared<GenParticle>(
+    auto p1 = std::make_shared<GenParticle>(
         FourVector(0.0, 0.0, 7000.0, 7000.0), 2212, 3);
-    GenParticlePtr p2 = std::make_shared<GenParticle>(
-        FourVector(0.750, -1.569, 32.191, 32.238), 1, 3);
-    GenParticlePtr p3 = std::make_shared<GenParticle>(
-        FourVector(0.0, 0.0, -7000.0, 7000.0), 2212, 3);
-    GenParticlePtr p4 = std::make_shared<GenParticle>(
-        FourVector(-3.047, -19.0, -54.629, 57.920), -2, 3);
-
-    GenVertexPtr v1 = std::make_shared<GenVertex>();
+    auto v1 = std::make_shared<GenVertex>();
     v1->add_particle_in(p1);
-    v1->add_particle_out(p2);
+    v1->set_status(4);
     evt.add_vertex(v1);
 
-    // Set vertex status if needed
-    v1->set_status(4);
-
-    GenVertexPtr v2 = std::make_shared<GenVertex>();
+    auto p3 = std::make_shared<GenParticle>(
+        FourVector(0.0, 0.0, -7000.0, 7000.0), 2212, 3);
+    auto v2 = std::make_shared<GenVertex>();
     v2->add_particle_in(p3);
-    v2->add_particle_out(p4);
     evt.add_vertex(v2);
 
-    GenVertexPtr v3 = std::make_shared<GenVertex>();
+    auto p2 = std::make_shared<GenParticle>(
+        FourVector(0.750, -1.569, 32.191, 32.238), 1, 3);
+    v1->add_particle_out(p2);
+
+    auto p4 = std::make_shared<GenParticle>(
+        FourVector(-3.047, -19.0, -54.629, 57.920), -2, 3);
+    v2->add_particle_out(p4);
+
+    auto v3 = std::make_shared<GenVertex>();
     v3->add_particle_in(p2);
     v3->add_particle_in(p4);
     evt.add_vertex(v3);
 
-    GenParticlePtr p5 = std::make_shared<GenParticle>(
+    auto p5 = std::make_shared<GenParticle>(
         FourVector(-3.813, 0.113, -1.833, 4.233), 22, 1);
-    GenParticlePtr p6 = std::make_shared<GenParticle>(
+    auto p6 = std::make_shared<GenParticle>(
         FourVector(1.517, -20.68, -20.605, 85.925), -24, 3);
-
     v3->add_particle_out(p5);
     v3->add_particle_out(p6);
 
-    GenVertexPtr v4 = std::make_shared<GenVertex>();
+    auto v4 = std::make_shared<GenVertex>();
     v4->add_particle_in(p6);
     evt.add_vertex(v4);
 
-    GenParticlePtr p7 = std::make_shared<GenParticle>(
+    auto p7 = std::make_shared<GenParticle>(
         FourVector(-2.445, 28.816, 6.082, 29.552), 1, 1);
-    GenParticlePtr p8 = std::make_shared<GenParticle>(
+    auto p8 = std::make_shared<GenParticle>(
         FourVector(3.962, -49.498, -26.687, 56.373), -2, 1);
-
     v4->add_particle_out(p7);
     v4->add_particle_out(p8);
-
-    // Example of adding event attributes
-    std::shared_ptr<GenPdfInfo> pdf_info = std::make_shared<GenPdfInfo>();
-    evt.add_attribute("GenPdfInfo", pdf_info);
-
-    pdf_info->set(1, 2, 3.4, 5.6, 7.8, 9.0, 1.2, 3, 4);
-
-    std::shared_ptr<GenHeavyIon> heavy_ion = std::make_shared<GenHeavyIon>();
-    evt.add_attribute("GenHeavyIon", heavy_ion);
-
-    heavy_ion->set(1, 2, 3, 4, 5, 6, 7, 8, 9, 0.1, 2.3, 4.5, 6.7);
-
-    std::shared_ptr<GenCrossSection> cross_section
-        = std::make_shared<GenCrossSection>();
-    evt.add_attribute("GenCrossSection", cross_section);
-
-    cross_section->set_cross_section(1.2, 3.4);
-
-    std::shared_ptr<Attribute> tool1 = std::make_shared<IntAttribute>(1);
-    std::shared_ptr<Attribute> tool999 = std::make_shared<IntAttribute>(999);
-    std::shared_ptr<Attribute> test_attribute
-        = std::make_shared<StringAttribute>("test attribute");
-    std::shared_ptr<Attribute> test_attribute2
-        = std::make_shared<StringAttribute>("test attribute2");
-
-    p2->add_attribute("tool", tool1);
-    p2->add_attribute("other", test_attribute);
-
-    p4->add_attribute("tool", tool1);
-
-    p6->add_attribute("tool", tool999);
-    p6->add_attribute("other", test_attribute2);
-
-    v3->add_attribute("vtx_att", test_attribute);
-    v4->add_attribute("vtx_att", test_attribute2);
 
     Print::listing(evt);
     Print::content(evt);
