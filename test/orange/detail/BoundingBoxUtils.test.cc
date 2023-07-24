@@ -50,6 +50,12 @@ TEST(BoundingBoxUtilsTest, center)
     EXPECT_VEC_SOFT_EQ(Real3({-4.5, -9, -13.5}), center(bbox));
 }
 
+TEST(BoundingBoxUtilsTest, surface_area)
+{
+    BoundingBox bbox = {{-1, -2, -3}, {6, 4, 5}};
+    EXPECT_SOFT_EQ(2 * (7 * 6 + 7 * 8 + 6 * 8), surface_area(bbox));
+}
+
 TEST(BoundingBoxUtilsTest, bbox_union)
 {
     BoundingBox bbox1 = {{-10, -20, -30}, {10, 2, 3}};

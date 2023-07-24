@@ -22,7 +22,7 @@ namespace detail
 /*!
  * Check if a bounding box spans (-inf, inf) in every direction.
  */
-inline CELER_FUNCTION bool is_infinite(BoundingBox const& bbox)
+inline bool is_infinite(BoundingBox const& bbox)
 {
     CELER_EXPECT(bbox);
 
@@ -43,7 +43,7 @@ inline CELER_FUNCTION bool is_infinite(BoundingBox const& bbox)
 /*!
  * Create a vector of axes sorted from longest to shortest.
  */
-inline CELER_FUNCTION std::vector<Axis> sort_axes(BoundingBox const& bbox)
+inline std::vector<Axis> sort_axes(BoundingBox const& bbox)
 {
     CELER_EXPECT(bbox);
 
@@ -65,9 +65,9 @@ inline CELER_FUNCTION std::vector<Axis> sort_axes(BoundingBox const& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the centers of each bounding box.
+ * Calculate the center of a bounding box.
  */
-inline CELER_FUNCTION Real3 center(BoundingBox const& bbox)
+inline Real3 center(BoundingBox const& bbox)
 {
     CELER_EXPECT(bbox);
 
@@ -83,10 +83,31 @@ inline CELER_FUNCTION Real3 center(BoundingBox const& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the surface area of a bounding box.
+ */
+inline real_type surface_area(BoundingBox const& bbox)
+{
+    CELER_EXPECT(bbox);
+
+    Array<real_type, to_int(Axis::size_)> lengths;
+
+    for (auto axis : range(Axis::size_))
+    {
+        auto ax = to_int(axis);
+        lengths[ax] = bbox.upper()[ax] - bbox.lower()[ax];
+    }
+
+    return 2
+           * (lengths[to_int(Axis::x)] * lengths[to_int(Axis::y)]
+              + lengths[to_int(Axis::x)] * lengths[to_int(Axis::z)]
+              + lengths[to_int(Axis::y)] * lengths[to_int(Axis::z)]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate bounding box enclosing two bounding boxes.
  */
-inline CELER_FUNCTION BoundingBox bbox_union(BoundingBox const& a,
-                                             BoundingBox const& b)
+inline BoundingBox bbox_union(BoundingBox const& a, BoundingBox const& b)
 {
     CELER_EXPECT(a && b);
 
@@ -106,9 +127,8 @@ inline CELER_FUNCTION BoundingBox bbox_union(BoundingBox const& a,
 /*!
  * Calculate bounding box enclosing bounding boxes for specified indices.
  */
-inline CELER_FUNCTION BoundingBox
-bbox_union(std::vector<BoundingBox> const& bboxes,
-           std::vector<LocalVolumeId> const& indices)
+inline BoundingBox bbox_union(std::vector<BoundingBox> const& bboxes,
+                              std::vector<LocalVolumeId> const& indices)
 {
     CELER_EXPECT(!bboxes.empty());
     CELER_EXPECT(!indices.empty());

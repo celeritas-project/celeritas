@@ -39,27 +39,28 @@ class BIHPartitioner
         BoundingBox left_bbox;
         BoundingBox right_bbox;
 
-        explicit CELER_FUNCTION operator bool() const
+        explicit operator bool() const
         {
             return axis != Axis::size_ && std::isfinite(location)
                    && !left_indices.empty() && !right_indices.empty()
                    && left_bbox && right_bbox;
         }
     };
+
     //!@}
 
   public:
     //! Default constructor
-    CELER_FORCEINLINE_FUNCTION BIHPartitioner() {}
+    BIHPartitioner() {}
 
     // Construct from vector of bounding boxes and respective centers.
-    explicit CELER_FUNCTION BIHPartitioner(VecBBox* bboxes, VecReal3* centers);
+    explicit BIHPartitioner(VecBBox* bboxes, VecReal3* centers);
 
     // Determine is a set of bounding boxes can be partitioned
-    CELER_FUNCTION bool is_partitionable(VecIndices const& indices) const;
+    bool is_partitionable(VecIndices const& indices) const;
 
     // Find a suitable partition for the given bounding boxes
-    CELER_FUNCTION Partition operator()(VecIndices const& indicies) const;
+    Partition operator()(VecIndices const& indicies) const;
 
   private:
     /// TYPES ///
@@ -76,6 +77,8 @@ class BIHPartitioner
 
     // Divide bboxes into left and right branches based on a partition.
     void apply_partition(VecIndices const& indices, Partition& partition) const;
+
+    real_type calc_cost(Partition const& partition) const;
 };
 
 //---------------------------------------------------------------------------//

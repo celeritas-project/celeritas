@@ -61,33 +61,39 @@ bool BIHPartitioner::is_partitionable(VecIndices const& indices) const
 BIHPartitioner::Partition
 BIHPartitioner::operator()(VecIndices const& indices) const
 {
-    auto sorted_axes = sort_axes(bbox_union(*bboxes_, indices));
+    using PartitionCost = std::pair<Partition, real_type>;
+    std::vector<PartitionCost> candidates;
+
     auto axes_centers = this->axes_centers(indices);
 
-    Partition partition;
-
-    for (Axis axis : sorted_axes)
+    for (auto axis : range(Axis::size_))
     {
         auto ax = to_int(axis);
 
-        if (axes_centers[ax].size() > 1)
+        for (auto i : range(axes_centers[ax].size() - 1))
         {
-            partition.axis = axis;
-            auto size = axes_centers[ax].size();
-            partition.location
-                = (axes_centers[ax][size / 2 - 1] + axes_centers[ax][size / 2])
-                  / 2;
-            break;
+            Partition p;
+            p.axis = axis;
+            p.location = (axes_centers[ax][i] + axes_centers[ax][i + 1]) / 2;
+            this->apply_partition(indices, p);
+            auto cost = this->calc_cost(p);
+            candidates.push_back(std::make_pair(p, cost));
         }
     }
 
-    if (partition.axis != Axis::size_)
-    {
-        this->apply_partition(indices, partition);
-    }
+    // Find the Partition with the lowest cost
+    auto it
+        = std::min_element(candidates.begin(),
+                           candidates.end(),
+                           [](PartitionCost const& a, PartitionCost const& b) {
+                               return a.second < b.second;
+                           });
 
-    CELER_EXPECT(partition);
-    return partition;
+    auto best_partition = it->first;
+
+    CELER_VALIDATE(best_partition, << "calculated partition not valid");
+
+    return best_partition;
 }
 
 //---------------------------------------------------------------------------//
@@ -144,6 +150,18 @@ void BIHPartitioner::apply_partition(VecIndices const& indices,
 
     p.left_bbox = bbox_union(*bboxes_, p.left_indices);
     p.right_bbox = bbox_union(*bboxes_, p.right_indices);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate cost of a particular partition
+ */
+real_type BIHPartitioner::calc_cost(Partition const& p) const
+{
+    CELER_EXPECT(p);
+
+    return surface_area(p.left_bbox) * p.left_indices.size()
+           + surface_area(p.right_bbox) * p.right_indices.size();
 }
 
 //---------------------------------------------------------------------------//
