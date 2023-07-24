@@ -38,6 +38,7 @@ class GlobalSetup
     int GetRootBufferSize() const { return root_buffer_size_; }
     bool GetWriteSDHits() const { return write_sd_hits_; }
     bool StripGDMLPointers() const { return strip_gdml_pointers_; }
+    std::string const& GetPhysicsList() const { return physics_list_; }
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
@@ -70,6 +71,7 @@ class GlobalSetup
     int root_buffer_size_{128000};
     bool write_sd_hits_{false};
     bool strip_gdml_pointers_{true};
+    std::string physics_list_{"FTFP_BERT"};
     G4ThreeVector field_;
 
     std::unique_ptr<G4GenericMessenger> messenger_;
