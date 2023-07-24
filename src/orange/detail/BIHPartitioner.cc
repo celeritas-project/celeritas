@@ -40,6 +40,20 @@ BIHPartitioner::BIHPartitioner(VecBBox* bboxes, VecReal3* centers)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Determine if a set of bounding boxes can be partitioned
+ */
+bool BIHPartitioner::is_partitionable(VecIndices const& indices) const
+{
+    auto centers = this->axes_centers(indices);
+    return std::any_of(centers.begin(),
+                       centers.end(),
+                       [](std::vector<real_type> const& centers) {
+                           return centers.size() > 1;
+                       });
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Find a suitable partition for the given bounding boxes.
  *
  * If no suitable partition is found an empty Partition object is returned.
@@ -54,7 +68,6 @@ BIHPartitioner::operator()(VecIndices const& indices) const
 
     for (Axis axis : sorted_axes)
     {
-        printf("CHECKING Parition on AXIS %i\n", to_int(axis));
         auto ax = to_int(axis);
 
         if (axes_centers[ax].size() > 1)
@@ -64,10 +77,16 @@ BIHPartitioner::operator()(VecIndices const& indices) const
             partition.location
                 = (axes_centers[ax][size / 2 - 1] + axes_centers[ax][size / 2])
                   / 2;
-            printf("\tChoosing partition location %f\n", partition.location);
             break;
         }
     }
+
+    if (partition.axis != Axis::size_)
+    {
+        this->apply_partition(indices, partition);
+    }
+
+    CELER_EXPECT(partition);
     return partition;
 }
 
@@ -99,6 +118,32 @@ BIHPartitioner::axes_centers(VecIndices const& indices) const
     }
 
     return axes_centers;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Divide bboxes into left and right branches based on a partition.
+ */
+void BIHPartitioner::apply_partition(VecIndices const& indices,
+                                     Partition& p) const
+{
+    CELER_EXPECT(!indices.empty());
+
+    for (auto i : range(indices.size()))
+    {
+        if (centers_->at(indices[i].unchecked_get())[to_int(p.axis)]
+            < p.location)
+        {
+            p.left_indices.push_back(indices[i]);
+        }
+        else
+        {
+            p.right_indices.push_back(indices[i]);
+        }
+    }
+
+    p.left_bbox = bbox_union(*bboxes_, p.left_indices);
+    p.right_bbox = bbox_union(*bboxes_, p.right_indices);
 }
 
 //---------------------------------------------------------------------------//

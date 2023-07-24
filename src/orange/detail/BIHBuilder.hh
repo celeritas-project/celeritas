@@ -79,10 +79,6 @@ class BIHBuilder
                         VecNodes& nodes,
                         BIHNodeId parent) const;
 
-    // Divide bboxes into left and right branches based on a partition
-    PairVecIndices apply_partition(VecIndices const& indices,
-                                   BIHPartitioner::Partition const& p) const;
-
     // Add leaf volume ids to a given node
     void make_leaf(BIHNode& node, VecIndices const& indices) const;
 };

@@ -39,7 +39,6 @@ BIHBuilder::BIHBuilder(VecBBox bboxes,
  */
 BIHParams BIHBuilder::operator()() const
 {
-    // Create a vector of indices, excluding index 0 (i.e., the exterior)
     VecIndices indices;
     VecIndices inf_volids;
 
@@ -83,43 +82,29 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     auto current_index = nodes.size() - 1;
     nodes[current_index].parent = parent;
 
-    if (indices.size() > 1)
+    if (partitioner_.is_partitionable(indices))
     {
         auto p = partitioner_(indices);
+        auto ax = to_int(p.axis);
 
-        if (p)
-        {
-            auto ax = to_int(p.axis);
+        BIHNode::BoundingPlane left_plane{
+            p.axis,
+            static_cast<BIHNode::location_type>(p.left_bbox.upper()[ax])};
 
-            auto [left_indices, right_indices] = apply_partition(indices, p);
+        BIHNode::BoundingPlane right_plane{
+            p.axis,
+            static_cast<BIHNode::location_type>(p.right_bbox.lower()[ax])};
 
-            CELER_EXPECT(!left_indices.empty() && !right_indices.empty());
+        nodes[current_index].bounding_planes = {left_plane, right_plane};
 
-            BIHNode::BoundingPlane left_plane{
-                p.axis,
-                static_cast<BIHNode::location_type>(
-                    bbox_union(bboxes_, left_indices).upper()[ax])};
+        // Recursively construct the left and right branches
+        nodes[current_index].children[BIHNode::Edge::left]
+            = BIHNodeId(nodes.size());
+        this->construct_tree(p.left_indices, nodes, BIHNodeId(current_index));
 
-            BIHNode::BoundingPlane right_plane{
-                p.axis,
-                static_cast<BIHNode::location_type>(
-                    bbox_union(bboxes_, right_indices).lower()[ax])};
-
-            nodes[current_index].bounding_planes = {left_plane, right_plane};
-
-            // Recursively construct the left and right branches
-            nodes[current_index].children[BIHNode::Edge::left]
-                = BIHNodeId(nodes.size());
-            this->construct_tree(left_indices, nodes, BIHNodeId(current_index));
-            nodes[current_index].children[BIHNode::Edge::right]
-                = BIHNodeId(nodes.size());
-            this->construct_tree(
-                right_indices, nodes, BIHNodeId(current_index));
-        }
-        else
-        {
-            this->make_leaf(nodes[current_index], indices);
-        }
+        nodes[current_index].children[BIHNode::Edge::right]
+            = BIHNodeId(nodes.size());
+        this->construct_tree(p.right_indices, nodes, BIHNodeId(current_index));
     }
     else
     {
@@ -127,34 +112,6 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     }
 
     CELER_EXPECT(nodes[current_index]);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Divide bboxes into left and right branches based on a partition.
- */
-BIHBuilder::PairVecIndices
-BIHBuilder::apply_partition(VecIndices const& indices,
-                            BIHPartitioner::Partition const& p) const
-{
-    CELER_EXPECT(!indices.empty());
-
-    VecIndices left;
-    VecIndices right;
-
-    for (auto i : range(indices.size()))
-    {
-        if (centers_[indices[i].unchecked_get()][to_int(p.axis)] < p.location)
-        {
-            left.push_back(indices[i]);
-        }
-        else
-        {
-            right.push_back(indices[i]);
-        }
-    }
-
-    return std::make_pair(left, right);
 }
 
 //---------------------------------------------------------------------------//
