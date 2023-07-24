@@ -71,6 +71,11 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("true");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("physicsList", physics_list_);
+        cmd.SetGuidance("Select the physics list");
+        cmd.SetDefaultValue(physics_list_);
+    }
+    {
         auto& cmd
             = messenger_->DeclareProperty("stepDiagnostic", step_diagnostic_);
         cmd.SetGuidance("Collect the distribution of steps per Geant4 track");

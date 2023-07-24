@@ -31,8 +31,6 @@ ActionInitialization::ActionInitialization()
     params_ = std::make_shared<SharedParams>();
     // Create Geant4 diagnostics to be shared across worker threads
     diagnostics_ = std::make_shared<GeantDiagnostics>();
-    // Make global setup commands available to UI
-    GlobalSetup::Instance();
 }
 
 //---------------------------------------------------------------------------//
