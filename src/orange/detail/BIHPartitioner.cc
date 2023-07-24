@@ -44,6 +44,8 @@ BIHPartitioner::BIHPartitioner(VecBBox* bboxes, VecReal3* centers)
  */
 bool BIHPartitioner::is_partitionable(VecIndices const& indices) const
 {
+    CELER_EXPECT(!indices.empty());
+
     auto centers = this->axes_centers(indices);
     return std::any_of(centers.begin(),
                        centers.end(),
@@ -55,12 +57,12 @@ bool BIHPartitioner::is_partitionable(VecIndices const& indices) const
 //---------------------------------------------------------------------------//
 /*!
  * Find a suitable partition for the given bounding boxes.
- *
- * If no suitable partition is found an empty Partition object is returned.
  */
 BIHPartitioner::Partition
 BIHPartitioner::operator()(VecIndices const& indices) const
 {
+    CELER_EXPECT(!indices.empty());
+
     using PartitionCost = std::pair<Partition, real_type>;
     std::vector<PartitionCost> candidates;
 
@@ -105,6 +107,8 @@ BIHPartitioner::operator()(VecIndices const& indices) const
 BIHPartitioner::AxesCenters
 BIHPartitioner::axes_centers(VecIndices const& indices) const
 {
+    CELER_EXPECT(!indices.empty());
+
     AxesCenters axes_centers{{}, {}, {}};
 
     for (auto id : indices)
@@ -154,7 +158,7 @@ void BIHPartitioner::apply_partition(VecIndices const& indices,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate cost of a particular partition
+ * Calculate the cost of partition using a surface area heuristic.
  */
 real_type BIHPartitioner::calc_cost(Partition const& p) const
 {

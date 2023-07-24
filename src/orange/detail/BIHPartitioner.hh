@@ -18,6 +18,13 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Partition bounding boxes using a surface area heuristic.
+ *
+ * The class take a vector of bounding boxes as an input, and outputs a
+ * Partition object describing the optional partition. To find the optimal
+ * partition, all possible candidate partitions along the x, y, and z axis are
+ * evaluated using a cost function. The cost function is based on a standard
+ * surface area heuristic.
  */
 class BIHPartitioner
 {
@@ -75,9 +82,10 @@ class BIHPartitioner
     // Create sorted and uniquified X, Y, Z values of bbox centers
     AxesCenters axes_centers(VecIndices const& indices) const;
 
-    // Divide bboxes into left and right branches based on a partition.
+    // Divide bboxes into left and right branches based on a partition
     void apply_partition(VecIndices const& indices, Partition& partition) const;
 
+    // Calculate the cost of partition using a surface area heuristic
     real_type calc_cost(Partition const& partition) const;
 };
 
