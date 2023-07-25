@@ -54,7 +54,10 @@ class GeantDiagnostics
     inline SPStepDiagnostic StepDiagnostic() const;
 
     //! Whether this instance is initialized
-    explicit operator bool() const { return !output_filename_.empty(); }
+    explicit operator bool() const
+    {
+        return !output_filename_.empty() || !this->any_enabled();
+    }
 
   private:
     //// DATA ////
