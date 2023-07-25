@@ -85,18 +85,18 @@ TEST_F(BIHBuilderTest, basic)
     BIHBuilder bih(
         bboxes_, &lvi_storage_, &inner_node_storage_, &leaf_node_storage_);
     auto bih_params = bih();
-    EXPECT_EQ(1, bih_params.inf_volids.size());
+    ASSERT_EQ(1, bih_params.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0}, lvi_storage_[bih_params.inf_volids[0]]);
 
     auto inner_nodes = bih_params.inner_nodes;
     auto leaf_nodes = bih_params.leaf_nodes;
-    EXPECT_EQ(3, inner_nodes.size());
-    EXPECT_EQ(4, leaf_nodes.size());
+    ASSERT_EQ(3, inner_nodes.size());
+    ASSERT_EQ(4, leaf_nodes.size());
 
     // N0, I0
     {
         auto node = inner_node_storage_[inner_nodes[0]];
-        EXPECT_FALSE(node.parent);
+        ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
@@ -111,7 +111,7 @@ TEST_F(BIHBuilderTest, basic)
     // N1, I1
     {
         auto node = inner_node_storage_[inner_nodes[1]];
-        EXPECT_EQ(BIHNodeId{0}, node.parent);
+        ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
@@ -126,7 +126,7 @@ TEST_F(BIHBuilderTest, basic)
     // N2, I2
     {
         auto node = inner_node_storage_[inner_nodes[2]];
-        EXPECT_EQ(BIHNodeId{0}, node.parent);
+        ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
@@ -141,7 +141,7 @@ TEST_F(BIHBuilderTest, basic)
     // N3, L0
     {
         auto node = leaf_node_storage_[leaf_nodes[0]];
-        EXPECT_EQ(BIHNodeId{1}, node.parent);
+        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(1, lvi_storage_[node.vol_ids[0]].unchecked_get());
     }
@@ -149,7 +149,7 @@ TEST_F(BIHBuilderTest, basic)
     // N3, L1
     {
         auto node = leaf_node_storage_[leaf_nodes[1]];
-        EXPECT_EQ(BIHNodeId{1}, node.parent);
+        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(2, lvi_storage_[node.vol_ids[0]].unchecked_get());
     }
@@ -157,7 +157,7 @@ TEST_F(BIHBuilderTest, basic)
     // N5, L2
     {
         auto node = leaf_node_storage_[leaf_nodes[2]];
-        EXPECT_EQ(BIHNodeId{2}, node.parent);
+        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(2, node.vol_ids.size());
         EXPECT_EQ(4, lvi_storage_[node.vol_ids[0]].unchecked_get());
         EXPECT_EQ(5, lvi_storage_[node.vol_ids[1]].unchecked_get());
@@ -166,7 +166,7 @@ TEST_F(BIHBuilderTest, basic)
     // N6, L3
     {
         auto node = leaf_node_storage_[leaf_nodes[3]];
-        EXPECT_EQ(BIHNodeId{2}, node.parent);
+        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(3, lvi_storage_[node.vol_ids[0]].unchecked_get());
     }
@@ -238,18 +238,18 @@ TEST_F(BIHBuilderTest, grid)
     BIHBuilder bih(
         bboxes_, &lvi_storage_, &inner_node_storage_, &leaf_node_storage_);
     auto bih_params = bih();
-    EXPECT_EQ(1, bih_params.inf_volids.size());
+    ASSERT_EQ(1, bih_params.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0}, lvi_storage_[bih_params.inf_volids[0]]);
 
     auto inner_nodes = bih_params.inner_nodes;
     auto leaf_nodes = bih_params.leaf_nodes;
-    EXPECT_EQ(11, inner_nodes.size());
-    EXPECT_EQ(12, leaf_nodes.size());
+    ASSERT_EQ(11, inner_nodes.size());
+    ASSERT_EQ(12, leaf_nodes.size());
 
     // N0, I0
     {
         auto node = inner_node_storage_[inner_nodes[0]];
-        EXPECT_FALSE(node.parent);
+        ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{1}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
         EXPECT_EQ(Axis{1},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
@@ -264,7 +264,7 @@ TEST_F(BIHBuilderTest, grid)
     // N1, I1
     {
         auto node = inner_node_storage_[inner_nodes[1]];
-        EXPECT_EQ(BIHNodeId{0}, node.parent);
+        ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
@@ -279,7 +279,7 @@ TEST_F(BIHBuilderTest, grid)
     // N2, I2
     {
         auto node = inner_node_storage_[inner_nodes[2]];
-        EXPECT_EQ(BIHNodeId{1}, node.parent);
+        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{1}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
         EXPECT_EQ(Axis{1},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
@@ -294,7 +294,7 @@ TEST_F(BIHBuilderTest, grid)
     // N3, I3
     {
         auto node = inner_node_storage_[inner_nodes[3]];
-        EXPECT_EQ(BIHNodeId{1}, node.parent);
+        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
@@ -309,7 +309,7 @@ TEST_F(BIHBuilderTest, grid)
     // N4, I4
     {
         auto node = inner_node_storage_[inner_nodes[4]];
-        EXPECT_EQ(BIHNodeId{3}, node.parent);
+        ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(Axis{1}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
         EXPECT_EQ(Axis{1},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
@@ -324,7 +324,7 @@ TEST_F(BIHBuilderTest, grid)
     // N5, I5
     {
         auto node = inner_node_storage_[inner_nodes[5]];
-        EXPECT_EQ(BIHNodeId{3}, node.parent);
+        ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(Axis{1}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
         EXPECT_EQ(Axis{1},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
@@ -339,7 +339,7 @@ TEST_F(BIHBuilderTest, grid)
     // N11, I0
     {
         auto node = leaf_node_storage_[leaf_nodes[0]];
-        EXPECT_EQ(BIHNodeId{2}, node.parent);
+        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(1, lvi_storage_[node.vol_ids[0]].unchecked_get());
     }
@@ -347,7 +347,7 @@ TEST_F(BIHBuilderTest, grid)
     // N12, L1
     {
         auto node = leaf_node_storage_[leaf_nodes[1]];
-        EXPECT_EQ(BIHNodeId{2}, node.parent);
+        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(2, lvi_storage_[node.vol_ids[0]].unchecked_get());
     }
@@ -355,7 +355,7 @@ TEST_F(BIHBuilderTest, grid)
     // N13, L2
     {
         auto node = leaf_node_storage_[leaf_nodes[2]];
-        EXPECT_EQ(BIHNodeId{4}, node.parent);
+        ASSERT_EQ(BIHNodeId{4}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(5, lvi_storage_[node.vol_ids[0]].unchecked_get());
     }
@@ -363,7 +363,7 @@ TEST_F(BIHBuilderTest, grid)
     // N14, L3
     {
         auto node = leaf_node_storage_[leaf_nodes[3]];
-        EXPECT_EQ(BIHNodeId{4}, node.parent);
+        ASSERT_EQ(BIHNodeId{4}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(6, lvi_storage_[node.vol_ids[0]].unchecked_get());
     }
@@ -371,7 +371,7 @@ TEST_F(BIHBuilderTest, grid)
     // N15, L4
     {
         auto node = leaf_node_storage_[leaf_nodes[4]];
-        EXPECT_EQ(BIHNodeId{5}, node.parent);
+        ASSERT_EQ(BIHNodeId{5}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(9, lvi_storage_[node.vol_ids[0]].unchecked_get());
     }
@@ -379,7 +379,7 @@ TEST_F(BIHBuilderTest, grid)
     // N16, L5
     {
         auto node = leaf_node_storage_[leaf_nodes[5]];
-        EXPECT_EQ(BIHNodeId{5}, node.parent);
+        ASSERT_EQ(BIHNodeId{5}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(10, lvi_storage_[node.vol_ids[0]].unchecked_get());
     }
