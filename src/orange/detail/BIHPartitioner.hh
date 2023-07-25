@@ -76,6 +76,7 @@ class BIHPartitioner
     //// DATA ////
     VecBBox* bboxes_;
     VecReal3* centers_;
+    static constexpr real_type uniquify_tol_ = 1E-12;
 
     //// HELPER FUNCTIONS ////
 

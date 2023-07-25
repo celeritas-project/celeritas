@@ -15,10 +15,17 @@ namespace
 /*!
  * Sort and uniquify a vector.
  */
-void sort_and_uniquify(std::vector<celeritas::real_type>& vec)
+void sort_and_uniquify(std::vector<celeritas::real_type>& vec,
+                       celeritas::real_type tol)
 {
     std::sort(vec.begin(), vec.end());
-    auto last = std::unique(vec.begin(), vec.end());
+
+    auto last = std::unique(vec.begin(),
+                            vec.end(),
+                            [&](celeritas::real_type a, celeritas::real_type b) {
+                                return std::abs(a - b) < tol;
+                            });
+
     vec.erase(last, vec.end());
 }
 }  // namespace
@@ -119,7 +126,7 @@ BIHPartitioner::axes_centers(VecIndices const& indices) const
     for (auto axis : range(Axis::size_))
     {
         auto ax = to_int(axis);
-        sort_and_uniquify(axes_centers[ax]);
+        sort_and_uniquify(axes_centers[ax], uniquify_tol_);
     }
 
     return axes_centers;
