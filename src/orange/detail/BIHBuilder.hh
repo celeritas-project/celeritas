@@ -12,7 +12,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "orange/BoundingBox.hh"
-#include "orange/OrangeData.hh"
+#include "orange/detail/BIHData.hh"
 #include "orange/detail/BIHPartitioner.hh"
 
 namespace celeritas

@@ -17,6 +17,7 @@
 
 #include "BoundingBox.hh"
 #include "OrangeTypes.hh"
+#include "detail/BIHData.hh"
 #include "univ/detail/Types.hh"
 
 namespace celeritas
@@ -151,69 +152,6 @@ struct RaggedRightIndexerData
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single inner node in a Bounding Interval Hierarchy.
- */
-struct BIHInnerNode
-{
-    using location_type = float;
-
-    struct BoundingPlane
-    {
-        Axis axis;
-        location_type location;
-    };
-
-    enum Edge : size_type
-    {
-        left = 0,
-        right = 1
-    };
-
-    BIHNodeId parent;
-
-    // inner node only
-    Array<BIHNodeId, 2> children;
-    Array<BoundingPlane, 2> bounding_planes;
-
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return this->children[Edge::left] && this->children[Edge::right];
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Data for a single leaf node in a Bounding Interval Hierarchy.
- */
-struct BIHLeafNode
-{
-    BIHNodeId parent;
-
-    ItemRange<LocalVolumeId> vol_ids;
-
-    //! True if either a valid inner or leaf node
-    explicit CELER_FUNCTION operator bool() const { return !vol_ids.empty(); }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Data a Bounding Interval Hierarchy.
- */
-struct BIHParams
-{
-    // Inner nodes, the first being the root
-    ItemRange<BIHInnerNode> inner_nodes;
-
-    // Leaf nodes
-    ItemRange<BIHLeafNode> leaf_nodes;
-
-    // VolumeIds for which bboxes have infinite extents, and are therefore
-    // note included in the tree
-    ItemRange<LocalVolumeId> inf_volids;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Scalar data for a single "unit" of volumes defined by surfaces.
  */
 struct SimpleUnitRecord
@@ -228,7 +166,7 @@ struct SimpleUnitRecord
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
     // Bounding Interval Hierachy tree parameters
-    BIHParams bih_params;
+    detail::BIHParams bih_params;
 
     // TODO: transforms
     LocalVolumeId background{};  //!< Default if not in any other volume
@@ -341,8 +279,8 @@ struct OrangeParamsData
     Items<SurfaceType> surface_types;
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
-    Items<BIHInnerNode> bih_inner_nodes;
-    Items<BIHLeafNode> bih_leaf_nodes;
+    Items<detail::BIHInnerNode> bih_inner_nodes;
+    Items<detail::BIHLeafNode> bih_leaf_nodes;
 
     Items<Daughter> daughters;
     Items<Translation> translations;

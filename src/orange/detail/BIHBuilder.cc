@@ -5,10 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHBuilder.cc
 //---------------------------------------------------------------------------//
-
 #include "BIHBuilder.hh"
-
-#include <iostream>
 
 #include "BoundingBoxUtils.hh"
 
@@ -194,10 +191,12 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
 
     for (auto& inner_node : inner_nodes)
     {
-        inner_node.children[0]
-            = new_ids[inner_node.children[0].unchecked_get()];
-        inner_node.children[1]
-            = new_ids[inner_node.children[1].unchecked_get()];
+        inner_node.children[BIHInnerNode::Edge::left]
+            = new_ids[inner_node.children[BIHInnerNode::Edge::left]
+                          .unchecked_get()];
+        inner_node.children[BIHInnerNode::Edge::right]
+            = new_ids[inner_node.children[BIHInnerNode::Edge::right]
+                          .unchecked_get()];
 
         // Handle root node
         if (inner_node.parent)

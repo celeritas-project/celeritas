@@ -14,6 +14,8 @@
 #include "celeritas_test.hh"
 
 using BIHBuilder = celeritas::detail::BIHBuilder;
+using BIHInnerNode = celeritas::detail::BIHInnerNode;
+using BIHLeafNode = celeritas::detail::BIHLeafNode;
 
 namespace celeritas
 {
