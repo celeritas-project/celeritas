@@ -63,8 +63,8 @@ BIHPartitioner::operator()(VecIndices const& indices) const
 {
     CELER_EXPECT(!indices.empty());
 
-    using PartitionCost = std::pair<Partition, real_type>;
-    std::vector<PartitionCost> candidates;
+    Partition best_partition;
+    real_type best_cost = std::numeric_limits<real_type>::infinity();
 
     auto axes_centers = this->axes_centers(indices);
 
@@ -79,19 +79,14 @@ BIHPartitioner::operator()(VecIndices const& indices) const
             p.location = (axes_centers[ax][i] + axes_centers[ax][i + 1]) / 2;
             this->apply_partition(indices, p);
             auto cost = this->calc_cost(p);
-            candidates.push_back(std::make_pair(p, cost));
+
+            if (cost < best_cost)
+            {
+                best_partition = p;
+                best_cost = cost;
+            }
         }
     }
-
-    // Find the Partition with the lowest cost
-    auto it
-        = std::min_element(candidates.begin(),
-                           candidates.end(),
-                           [](PartitionCost const& a, PartitionCost const& b) {
-                               return a.second < b.second;
-                           });
-
-    auto best_partition = it->first;
 
     CELER_VALIDATE(best_partition, << "calculated partition not valid");
 
