@@ -16,6 +16,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Environment.hh"
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
@@ -37,6 +38,7 @@ RunAction::RunAction(SPConstOptions options,
     , params_{std::move(params)}
     , transport_{std::move(transport)}
     , init_celeritas_{init_celeritas}
+    , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
 {
     CELER_EXPECT(options_);
     CELER_EXPECT(params_);
@@ -48,6 +50,9 @@ RunAction::RunAction(SPConstOptions options,
  */
 void RunAction::BeginOfRunAction(G4Run const* run)
 {
+    if (disable_offloading_)
+        return;
+
     CELER_EXPECT(run);
 
     ExceptionConverter call_g4exception{"celer0001"};
@@ -89,21 +94,25 @@ void RunAction::BeginOfRunAction(G4Run const* run)
  */
 void RunAction::EndOfRunAction(G4Run const*)
 {
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
     ExceptionConverter call_g4exception{"celer0005"};
 
-    if (transport_)
+    if (!disable_offloading_)
     {
-        // Deallocate Celeritas state data (ensures that objects are deleted on
-        // the thread in which they're created, necessary by some geant4
-        // thread-local allocators)
-        CELER_TRY_HANDLE(transport_->Finalize(), call_g4exception);
-    }
+        CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
 
-    if (init_celeritas_)
-    {
-        // Clear shared data and write
-        CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
+        if (transport_)
+        {
+            // Deallocate Celeritas state data (ensures that objects are
+            // deleted on the thread in which they're created, necessary by
+            // some geant4 thread-local allocators)
+            CELER_TRY_HANDLE(transport_->Finalize(), call_g4exception);
+        }
+
+        if (init_celeritas_)
+        {
+            // Clear shared data and write
+            CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
+        }
     }
 
     if (GlobalSetup::Instance()->GetWriteSDHits())
