@@ -261,6 +261,7 @@ celeritas_polysource(em/model/MuBremsstrahlungModel)
 celeritas_polysource(em/model/RayleighModel)
 celeritas_polysource(em/model/RelativisticBremModel)
 celeritas_polysource(em/model/SeltzerBergerModel)
+celeritas_polysource(em/model/WentzelModel)
 celeritas_polysource(geo/detail/BoundaryAction)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
@@ -312,3 +313,6 @@ celeritas_target_link_libraries(celeritas
 )
 
 #-----------------------------------------------------------------------------#
+ 
+ 
+ 
