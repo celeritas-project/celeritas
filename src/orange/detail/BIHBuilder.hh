@@ -60,13 +60,13 @@ class BIHBuilder
 
   public:
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    explicit CELER_FUNCTION BIHBuilder(VecBBox bboxes,
-                                       LVIStorage* lvi_storage,
-                                       InnerNodeStorage* inner_node_storage,
-                                       LeafNodeStorage* leaf_node_storage);
+    explicit BIHBuilder(VecBBox bboxes,
+                        LVIStorage* lvi_storage,
+                        InnerNodeStorage* inner_node_storage,
+                        LeafNodeStorage* leaf_node_storage);
 
     // Create BIH Nodes
-    CELER_FUNCTION BIHParams operator()() const;
+    BIHParams operator()() const;
 
   private:
     /// TYPES ///
