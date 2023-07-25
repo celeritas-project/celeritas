@@ -27,6 +27,12 @@ else()
   set(LIBRARIES)
 endif()
 
+if(CELERITAS_USE_JSON)
+  list(APPEND LIBRARIES
+    nlohmann_json::nlohmann_json
+  )
+endif()
+
 if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
   function(celeritas_local_root_generate_dictionary name)
     # No need for the rootmap file for an executable.
