@@ -22,7 +22,7 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
- * Diagnostics for tracking done on the Geant4 side (i.e. not offloaded).
+ * Diagnostics for Geant4 (i.e., for tracks not offloaded to Celeritas).
  *
  * A single instance of this class should be created by the master thread and
  * shared across all threads.
@@ -54,14 +54,13 @@ class GeantDiagnostics
     inline SPStepDiagnostic StepDiagnostic() const;
 
     //! Whether this instance is initialized
-    explicit operator bool() const { return static_cast<bool>(params_); }
+    explicit operator bool() const { return !output_filename_.empty(); }
 
   private:
     //// DATA ////
 
-    SPConstParams params_;
-    SPOutputRegistry output_reg_;
     std::string output_filename_;
+    SPOutputRegistry output_reg_;
     SPStepDiagnostic step_diagnostic_;
 
     //// HELPER FUNCTIONS ////

@@ -54,7 +54,7 @@ class GeantStepDiagnostic final : public OutputInterface
     void output(JsonPimpl*) const final;
     //!@}
 
-    // Update the step tally from the given track
+    // Update the step count from the given track
     void Update(G4Track const* track);
 
     // Get the results accumulated over all threads

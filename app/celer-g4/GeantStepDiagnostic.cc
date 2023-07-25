@@ -28,7 +28,7 @@ namespace app
 /*!
  * Construct with number of bins and threads.
  *
- * The two extra bins are for underflow and overflow.
+ * The final bin is for overflow.
  */
 GeantStepDiagnostic::GeantStepDiagnostic(size_type num_bins,
                                          size_type num_threads)
@@ -67,16 +67,16 @@ void GeantStepDiagnostic::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Update the step tally from the given track.
+ * Update the step count from the given track.
  */
 void GeantStepDiagnostic::Update(G4Track const* track)
 {
     CELER_EXPECT(track);
 
-    // Don't tally if the track wasn't transported with Geant4
     size_type num_steps = track->GetCurrentStepNumber();
     if (num_steps == 0)
     {
+        // Don't tally if the track wasn't transported with Geant4
         return;
     }
 
@@ -106,14 +106,14 @@ auto GeantStepDiagnostic::CalcSteps() const -> VecVecCount
 
     for (auto const& pdg_to_count : thread_store_)
     {
-        for (auto pdg : range(pdgs.size()))
+        for (auto pdg_idx : range(pdgs.size()))
         {
-            auto iter = pdg_to_count.find(pdgs[pdg]);
+            auto iter = pdg_to_count.find(pdgs[pdg_idx]);
             if (iter != pdg_to_count.end())
             {
-                for (auto bin : range(iter->second.size()))
+                for (auto step_idx : range(iter->second.size()))
                 {
-                    result[pdg][bin] += iter->second[bin];
+                    result[pdg_idx][step_idx] += iter->second[step_idx];
                 }
             }
         }
