@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <variant>
 #include <vector>
 
 #include "corecel/cont/Range.hh"
@@ -42,16 +43,27 @@ class BIHBuilder
                                   Ownership::value,
                                   MemSpace::host,
                                   OpaqueId<LocalVolumeId>>;
-    using NodeStorage
-        = Collection<BIHNode, Ownership::value, MemSpace::host, OpaqueId<BIHNode>>;
-    using VecNodes = std::vector<BIHNode>;
+    using InnerNodeStorage = Collection<BIHInnerNode,
+                                        Ownership::value,
+                                        MemSpace::host,
+                                        OpaqueId<BIHInnerNode>>;
+    using LeafNodeStorage = Collection<BIHLeafNode,
+                                       Ownership::value,
+                                       MemSpace::host,
+                                       OpaqueId<BIHLeafNode>>;
+    using VecNodes = std::vector<std::variant<BIHInnerNode, BIHLeafNode>>;
+    using VecInnerNodes = std::vector<BIHInnerNode>;
+    using VecLeafNodes = std::vector<BIHLeafNode>;
+    using ArrangedNodes = std::pair<VecInnerNodes, VecLeafNodes>;
+
     //!@}
 
   public:
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
     explicit CELER_FUNCTION BIHBuilder(VecBBox bboxes,
                                        LVIStorage* lvi_storage,
-                                       NodeStorage* node_storage);
+                                       InnerNodeStorage* inner_node_storage,
+                                       LeafNodeStorage* leaf_node_storage);
 
     // Create BIH Nodes
     CELER_FUNCTION BIHParams operator()() const;
@@ -69,7 +81,8 @@ class BIHBuilder
     VecBBox bboxes_;
     VecReal3 centers_;
     LVIStorage* lvi_storage_;
-    NodeStorage* node_storage_;
+    InnerNodeStorage* inner_node_storage_;
+    LeafNodeStorage* leaf_node_storage_;
     BIHPartitioner partitioner_;
 
     //// HELPER FUNCTIONS ////
@@ -79,8 +92,8 @@ class BIHBuilder
                         VecNodes& nodes,
                         BIHNodeId parent) const;
 
-    // Add leaf volume ids to a given node
-    void make_leaf(BIHNode& node, VecIndices const& indices) const;
+    // Seperate nodes into inner and leaf vectors and renumber accordingly
+    ArrangedNodes arrange_nodes(VecNodes nodes) const;
 };
 
 //---------------------------------------------------------------------------//

@@ -5,12 +5,34 @@
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHBuilder.cc
 //---------------------------------------------------------------------------//
+
 #include "BIHBuilder.hh"
+
+#include <iostream>
 
 #include "BoundingBoxUtils.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Variadic-templated struct for overloaded operator() calls.
+ */
+template<typename... Ts>
+struct Overload : Ts...
+{
+    using Ts::operator()...;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * "Deduction guide" for instantiating Overload objects w/o specifying types.
+ */
+template<class... Ts>
+Overload(Ts...) -> Overload<Ts...>;
+}  // namespace
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -19,8 +41,12 @@ namespace detail
  */
 BIHBuilder::BIHBuilder(VecBBox bboxes,
                        BIHBuilder::LVIStorage* lvi_storage,
-                       BIHBuilder::NodeStorage* node_storage)
-    : bboxes_(bboxes), lvi_storage_(lvi_storage), node_storage_(node_storage)
+                       BIHBuilder::InnerNodeStorage* inner_node_storage,
+                       BIHBuilder::LeafNodeStorage* leaf_node_storage)
+    : bboxes_(bboxes)
+    , lvi_storage_(lvi_storage)
+    , inner_node_storage_(inner_node_storage)
+    , leaf_node_storage_(leaf_node_storage)
 {
     CELER_EXPECT(!bboxes_.empty());
 
@@ -59,9 +85,15 @@ BIHParams BIHBuilder::operator()() const
     VecNodes nodes;
     this->construct_tree(indices, nodes, static_cast<BIHNodeId>(-1));
 
+    auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
+
     BIHParams params;
-    params.nodes
-        = make_builder(node_storage_).insert_back(nodes.begin(), nodes.end());
+    params.inner_nodes
+        = make_builder(inner_node_storage_)
+              .insert_back(inner_nodes.begin(), inner_nodes.end());
+    params.leaf_nodes = make_builder(leaf_node_storage_)
+                            .insert_back(leaf_nodes.begin(), leaf_nodes.end());
+
     params.inf_volids = make_builder(lvi_storage_)
                             .insert_back(inf_volids.begin(), inf_volids.end());
 
@@ -78,53 +110,112 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes& nodes,
                                 BIHNodeId parent) const
 {
-    nodes.push_back(BIHNode());
-    auto current_index = nodes.size() - 1;
-    nodes[current_index].parent = parent;
+    auto current_index = nodes.size();
+    nodes.resize(nodes.size() + 1);
 
     if (partitioner_.is_partitionable(indices))
     {
+        BIHInnerNode node;
+        node.parent = parent;
+
         auto p = partitioner_(indices);
         auto ax = to_int(p.axis);
 
-        BIHNode::BoundingPlane left_plane{
+        BIHInnerNode::BoundingPlane left_plane{
             p.axis,
-            static_cast<BIHNode::location_type>(p.left_bbox.upper()[ax])};
+            static_cast<BIHInnerNode::location_type>(p.left_bbox.upper()[ax])};
 
-        BIHNode::BoundingPlane right_plane{
+        BIHInnerNode::BoundingPlane right_plane{
             p.axis,
-            static_cast<BIHNode::location_type>(p.right_bbox.lower()[ax])};
+            static_cast<BIHInnerNode::location_type>(p.right_bbox.lower()[ax])};
 
-        nodes[current_index].bounding_planes = {left_plane, right_plane};
+        node.bounding_planes = {left_plane, right_plane};
 
         // Recursively construct the left and right branches
-        nodes[current_index].children[BIHNode::Edge::left]
-            = BIHNodeId(nodes.size());
+        node.children[BIHInnerNode::Edge::left] = BIHNodeId(nodes.size());
         this->construct_tree(p.left_indices, nodes, BIHNodeId(current_index));
 
-        nodes[current_index].children[BIHNode::Edge::right]
-            = BIHNodeId(nodes.size());
+        node.children[BIHInnerNode::Edge::right] = BIHNodeId(nodes.size());
         this->construct_tree(p.right_indices, nodes, BIHNodeId(current_index));
+
+        CELER_EXPECT(node);
+        nodes[current_index] = node;
     }
     else
     {
-        this->make_leaf(nodes[current_index], indices);
-    }
+        BIHLeafNode node;
+        node.parent = parent;
+        node.vol_ids = make_builder(lvi_storage_)
+                           .insert_back(indices.begin(), indices.end());
 
-    CELER_EXPECT(nodes[current_index]);
+        CELER_EXPECT(node);
+        nodes[current_index] = node;
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add leaf volume ids to a given node.
+ * Seperate nodes into inner and leaf vectors and renumber accordingly.
  */
-void BIHBuilder::make_leaf(BIHNode& node, VecIndices const& indices) const
+BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
 {
-    CELER_EXPECT(!node);
-    CELER_EXPECT(!indices.empty());
+    VecInnerNodes inner_nodes;
+    VecLeafNodes leaf_nodes;
 
-    node.vol_ids
-        = make_builder(lvi_storage_).insert_back(indices.begin(), indices.end());
+    std::vector<bool> is_leaf;
+    std::vector<BIHNodeId> new_ids;
+
+    auto visit_node
+        = Overload{[&](BIHInnerNode const& node) {
+                       new_ids.push_back(BIHNodeId(inner_nodes.size()));
+                       inner_nodes.push_back(node);
+                       is_leaf.push_back(false);
+                   },
+                   [&](BIHLeafNode const& node) {
+                       new_ids.push_back(BIHNodeId(leaf_nodes.size()));
+                       leaf_nodes.push_back(node);
+                       is_leaf.push_back(true);
+                   }};
+
+    for (auto const& node : nodes)
+    {
+        std::visit(visit_node, node);
+    }
+
+    size_type offset = inner_nodes.size();
+
+    for (auto i : range(nodes.size()))
+    {
+        if (is_leaf[i])
+        {
+            new_ids[i] = new_ids[i] + offset;
+        }
+    }
+
+    for (auto& inner_node : inner_nodes)
+    {
+        inner_node.children[0]
+            = new_ids[inner_node.children[0].unchecked_get()];
+        inner_node.children[1]
+            = new_ids[inner_node.children[1].unchecked_get()];
+
+        // Handle root node
+        if (inner_node.parent)
+        {
+            inner_node.parent = new_ids[inner_node.parent.unchecked_get()];
+        }
+    }
+
+    for (auto& leaf_node : leaf_nodes)
+    {
+        // Handle where the entire tree is a single leaf node
+        if (leaf_node.parent)
+        {
+            leaf_node.parent = new_ids[leaf_node.parent.unchecked_get()];
+        }
+    }
+
+    return std::make_pair(inner_nodes, leaf_nodes);
 }
 
 //---------------------------------------------------------------------------//

@@ -151,9 +151,9 @@ struct RaggedRightIndexerData
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single Bounding Interval Hierarchy node.
+ * Data for a single inner node in a Bounding Interval Hierarchy.
  */
-struct BIHNode
+struct BIHInnerNode
 {
     using location_type = float;
 
@@ -175,27 +175,37 @@ struct BIHNode
     Array<BIHNodeId, 2> children;
     Array<BoundingPlane, 2> bounding_planes;
 
-    // leaf only
-    ItemRange<LocalVolumeId> vol_ids;
-
-    CELER_FUNCTION bool is_inner() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return this->children[Edge::left] && this->children[Edge::right];
     }
-
-    CELER_FUNCTION bool is_leaf() const { return !vol_ids.empty(); }
-
-    //! True if either a valid inner or leaf node
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return this->is_inner() != this->is_leaf();
-    }
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Data for a single leaf node in a Bounding Interval Hierarchy.
+ */
+struct BIHLeafNode
+{
+    BIHNodeId parent;
+
+    ItemRange<LocalVolumeId> vol_ids;
+
+    //! True if either a valid inner or leaf node
+    explicit CELER_FUNCTION operator bool() const { return !vol_ids.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data a Bounding Interval Hierarchy.
+ */
 struct BIHParams
 {
-    // Bounding Interval Hierachy nodes, the first being the root
-    ItemRange<BIHNode> nodes;
+    // Inner nodes, the first being the root
+    ItemRange<BIHInnerNode> inner_nodes;
+
+    // Leaf nodes
+    ItemRange<BIHLeafNode> leaf_nodes;
 
     // VolumeIds for which bboxes have infinite extents, and are therefore
     // note included in the tree
@@ -331,7 +341,8 @@ struct OrangeParamsData
     Items<SurfaceType> surface_types;
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
-    Items<BIHNode> bih_nodes;
+    Items<BIHInnerNode> bih_inner_nodes;
+    Items<BIHLeafNode> bih_leaf_nodes;
 
     Items<Daughter> daughters;
     Items<Translation> translations;
