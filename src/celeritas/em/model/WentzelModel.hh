@@ -19,7 +19,7 @@ namespace celeritas
 {
 class MaterialParams;
 class ParticleParams;
-class ImportEmParameters;
+struct ImportEmParameters;
 
 //---------------------------------------------------------------------------//
 /*!
