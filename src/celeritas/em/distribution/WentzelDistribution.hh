@@ -291,14 +291,18 @@ CELER_FUNCTION real_type WentzelDistribution::compute_max_electron_cos_t() const
 {
     // TODO: Need to validate against Geant4 results
     const real_type max_energy = is_electron_ ? inc_energy_ / 2 : inc_energy_;
-    const real_type transferred_energy = min(cutoff_energy_, max_energy);
+    const real_type recoil_energy = min(cutoff_energy_, max_energy);
+    const real_type final_energy = inc_energy_ - recoil_energy;
 
-    // Incident and transferred energy ratios
-    const real_type r1 = transferred_energy
-                         / (transferred_energy + 2 * inc_mass_);
-    const real_type r2 = inc_energy_ / (inc_energy_ + 2 * inc_mass_);
-    const real_type ctm = sqrt(r1 / r2);
-    return clamp(ctm, real_type{0}, real_type{1});
+    const real_type recoil_mom_sq
+        = recoil_energy
+          * (recoil_energy + 2 * value_as<Mass>(data_.electron_mass));
+    const real_type final_mom_sq = final_energy
+                                   * (final_energy + 2 * inc_mass_);
+    const real_type cos_t_max = (inc_mom_sq() + final_mom_sq - recoil_mom_sq)
+                                / (2 * sqrt(inc_mom_sq() * final_mom_sq));
+
+    return clamp(cos_t_max, real_type{0}, real_type{1});
 }
 
 //---------------------------------------------------------------------------//
