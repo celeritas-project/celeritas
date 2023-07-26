@@ -116,7 +116,7 @@ void EventWriter::operator()(argument_type primaries)
     enum StatusCode
     {
         meaningless_code = 0,
-        final_code = 1,
+        final_code = 1,  //!< Only these are to be transported!
         decayed_code = 2,
         documentation_code = 3,
         beam_code = 4,

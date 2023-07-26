@@ -81,20 +81,14 @@ auto EventReader::operator()() -> result_type
 
     result_type result;
     int track_id = 0;
-    for (auto par : evt.particles())
+    for (auto const& par : evt.particles())
     {
-        HepMC3::GenParticleData const& part_data = par->data();
-        if (part_data.status <= 0)
+        if (par->data().status != 1)
         {
-            // Skip particles that should not be tracked
+            // Skip particles that should not be tracked: Geant4 HepMCEx01
+            // skips everything but 1 (event generator output)
             // Status codes (page 13):
             // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
-            if (part_data.momentum.e() > 0)
-            {
-                CELER_LOG_LOCAL(debug)
-                    << "Skipped status code " << part_data.status << " for "
-                    << part_data.momentum.e() << " MeV primary";
-            }
             continue;
         }
 
@@ -117,7 +111,7 @@ auto EventReader::operator()() -> result_type
         primary.event_id = event_id;
         primary.track_id = TrackId(track_id++);
 
-        // Get the position of the primary
+        // Get the position of the vertex
         auto const& pos = par->production_vertex()->position();
         primary.position = {pos.x() * units::centimeter,
                             pos.y() * units::centimeter,
@@ -136,6 +130,11 @@ auto EventReader::operator()() -> result_type
 
         result.push_back(primary);
     }
+
+    CELER_VALIDATE(!result.empty(),
+                   << "event " << event_id.get()
+                   << " did not contain any primaries suitable for "
+                      "simulation");
 
     CELER_VALIDATE(missing_pdg.empty(),
                    << "event " << event_id.get()
