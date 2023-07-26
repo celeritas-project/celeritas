@@ -55,11 +55,6 @@ class BIHBuilder
                                        Ownership::value,
                                        MemSpace::host,
                                        OpaqueId<BIHLeafNode>>;
-    using VecNodes = std::vector<std::variant<BIHInnerNode, BIHLeafNode>>;
-    using VecInnerNodes = std::vector<BIHInnerNode>;
-    using VecLeafNodes = std::vector<BIHLeafNode>;
-    using ArrangedNodes = std::pair<VecInnerNodes, VecLeafNodes>;
-
     //!@}
 
   public:
@@ -80,6 +75,10 @@ class BIHBuilder
     using VecIndices = std::vector<LocalVolumeId>;
     using PairVecIndices = std::pair<VecIndices, VecIndices>;
     using AxesCenters = std::vector<std::vector<double>>;
+    using VecNodes = std::vector<std::variant<BIHInnerNode, BIHLeafNode>>;
+    using VecInnerNodes = std::vector<BIHInnerNode>;
+    using VecLeafNodes = std::vector<BIHLeafNode>;
+    using ArrangedNodes = std::pair<VecInnerNodes, VecLeafNodes>;
 
     //// DATA ////
 
@@ -95,7 +94,7 @@ class BIHBuilder
 
     // Recursively construct BIH nodes for a vector of bbox indices
     void construct_tree(VecIndices const& indices,
-                        VecNodes& nodes,
+                        VecNodes* nodes,
                         BIHNodeId parent) const;
 
     // Seperate nodes into inner and leaf vectors and renumber accordingly

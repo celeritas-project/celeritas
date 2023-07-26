@@ -80,7 +80,7 @@ BIHTree BIHBuilder::operator()() const
     }
 
     VecNodes nodes;
-    this->construct_tree(indices, nodes, static_cast<BIHNodeId>(-1));
+    this->construct_tree(indices, &nodes, BIHNodeId{});
 
     auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
@@ -108,11 +108,11 @@ BIHTree BIHBuilder::operator()() const
  * Recursively construct BIH nodes for a vector of bbox indices.
  */
 void BIHBuilder::construct_tree(VecIndices const& indices,
-                                VecNodes& nodes,
+                                VecNodes* nodes,
                                 BIHNodeId parent) const
 {
-    auto current_index = nodes.size();
-    nodes.resize(nodes.size() + 1);
+    auto current_index = nodes->size();
+    nodes->resize(nodes->size() + 1);
 
     auto p = partitioner_(indices);
 
@@ -136,18 +136,18 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         node.bounding_planes = {left_plane, right_plane};
 
         // Recursively construct the left and right branches
-        node.children[BIHInnerNode::Edge::left] = BIHNodeId(nodes.size());
+        node.children[BIHInnerNode::Edge::left] = BIHNodeId(nodes->size());
         this->construct_tree(p.indices[BIHInnerNode::Edge::left],
                              nodes,
                              BIHNodeId(current_index));
 
-        node.children[BIHInnerNode::Edge::right] = BIHNodeId(nodes.size());
+        node.children[BIHInnerNode::Edge::right] = BIHNodeId(nodes->size());
         this->construct_tree(p.indices[BIHInnerNode::Edge::right],
                              nodes,
                              BIHNodeId(current_index));
 
         CELER_EXPECT(node);
-        nodes[current_index] = node;
+        (*nodes)[current_index] = node;
     }
     else
     {
@@ -157,7 +157,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
                            .insert_back(indices.begin(), indices.end());
 
         CELER_EXPECT(node);
-        nodes[current_index] = node;
+        (*nodes)[current_index] = node;
     }
 }
 
@@ -225,7 +225,8 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
         }
     }
 
-    return std::make_pair(inner_nodes, leaf_nodes);
+    return {std::move(inner_nodes), std::move(leaf_nodes)};
+    ;
 }
 
 //---------------------------------------------------------------------------//
