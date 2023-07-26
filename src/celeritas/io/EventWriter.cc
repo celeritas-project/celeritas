@@ -23,6 +23,8 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "EventReader.hh"
+
 namespace celeritas
 {
 namespace
@@ -67,6 +69,9 @@ EventWriter::EventWriter(std::string const& filename,
     CELER_EXPECT(!filename.empty());
     CELER_EXPECT(particles_);
     CELER_EXPECT(fmt_ != Format::size_);
+
+    // See EventReader.hh
+    set_hepmc3_verbosity_from_env();
 
     CELER_LOG(info) << "Creating " << to_cstring(fmt) << " event file at "
                     << filename;
