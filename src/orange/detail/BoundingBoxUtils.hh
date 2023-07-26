@@ -19,6 +19,30 @@ namespace detail
 {
 
 //---------------------------------------------------------------------------//
+// Host/device functions
+//---------------------------------------------------------------------------//
+/*!
+ * Determine if a point is contained in a bounding box.
+ */
+inline CELER_FUNCTION bool is_inside(BoundingBox const& bbox, Real3 point)
+{
+    CELER_EXPECT(bbox);
+
+    for (auto axis : range(Axis::size_))
+    {
+        auto ax = to_int(axis);
+        if (point[ax] < bbox.lower()[ax] || point[ax] > bbox.upper()[ax])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+// Host-only functions
+//---------------------------------------------------------------------------//
 /*!
  * Check if a bounding box spans (-inf, inf) in every direction.
  */
@@ -37,30 +61,6 @@ inline bool is_infinite(BoundingBox const& bbox)
         }
     }
     return true;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a vector of axes sorted from longest to shortest.
- */
-inline std::vector<Axis> sort_axes(BoundingBox const& bbox)
-{
-    CELER_EXPECT(bbox);
-
-    std::vector<Axis> axes;
-    std::vector<real_type> lengths;
-
-    for (auto axis : range(Axis::size_))
-    {
-        auto ax = to_int(axis);
-        axes.push_back(axis);
-        lengths.push_back(bbox.upper()[ax] - bbox.lower()[ax]);
-    }
-
-    std::sort(axes.begin(), axes.end(), [&](Axis axis1, Axis axis2) {
-        return lengths[to_int(axis1)] > lengths[to_int(axis2)];
-    });
-    return axes;
 }
 
 //---------------------------------------------------------------------------//

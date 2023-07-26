@@ -16,6 +16,15 @@ namespace detail
 namespace test
 {
 
+TEST(BoundingBoxUtilsTest, is_inside)
+{
+    BoundingBox bbox1 = {{-5, -2, -100}, {6, 1, 1}};
+    EXPECT_TRUE(is_inside(bbox1, Real3{-4, 0, 0}));
+    EXPECT_TRUE(is_inside(bbox1, Real3{-4.9, -1.9, -99.9}));
+    EXPECT_FALSE(is_inside(bbox1, Real3{-6, 0, 0}));
+    EXPECT_FALSE(is_inside(bbox1, Real3{-5.1, -2.1, -101.1}));
+}
+
 TEST(BoundingBoxUtilsTest, is_infinite)
 {
     auto max_real = std::numeric_limits<real_type>::max();
@@ -30,18 +39,6 @@ TEST(BoundingBoxUtilsTest, is_infinite)
     BoundingBox bbox3
         = {{-max_real, -inf_real, -max_real}, {max_real, inf_real, max_real}};
     EXPECT_TRUE(is_infinite(bbox3));
-}
-
-TEST(BoundingBoxUtilsTest, sort_axes)
-{
-    BoundingBox bbox1 = {{-5, -2, -100}, {6, 1, 1}};
-    EXPECT_EQ(std::vector<Axis>({Axis::z, Axis::x, Axis::y}), sort_axes(bbox1));
-
-    BoundingBox bbox2 = {{-5, -13, -10}, {6, 10, 2}};
-    EXPECT_EQ(std::vector<Axis>({Axis::y, Axis::z, Axis::x}), sort_axes(bbox2));
-
-    BoundingBox bbox3 = {{-50, -13, -10}, {6, 10, 2}};
-    EXPECT_EQ(std::vector<Axis>({Axis::x, Axis::y, Axis::z}), sort_axes(bbox3));
 }
 
 TEST(BoundingBoxUtilsTest, center)
