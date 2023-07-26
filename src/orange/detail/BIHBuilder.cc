@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "BIHBuilder.hh"
 
-#include "BoundingBoxUtils.hh"
+#include "orange/BoundingBoxUtils.hh"
 
 namespace celeritas
 {
@@ -62,7 +62,7 @@ BIHBuilder::BIHBuilder(VecBBox bboxes,
 /*!
  * Create BIH Nodes.
  */
-BIHParams BIHBuilder::operator()() const
+BIHTree BIHBuilder::operator()() const
 {
     VecIndices indices;
     VecIndices inf_volids;
@@ -86,7 +86,7 @@ BIHParams BIHBuilder::operator()() const
 
     auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
-    BIHParams params;
+    BIHTree params;
 
     params.bboxes = ItemMap<LocalVolumeId, BoundingBoxId>(
         make_builder(bbox_storage_).insert_back(bboxes_.begin(), bboxes_.end()));

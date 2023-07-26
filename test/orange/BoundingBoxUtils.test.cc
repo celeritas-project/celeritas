@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BoundingBoxUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/detail/BoundingBoxUtils.hh"
+#include "orange/BoundingBoxUtils.hh"
 
 #include "celeritas_test.hh"
 

@@ -166,7 +166,7 @@ struct SimpleUnitRecord
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
     // Bounding Interval Hierachy tree parameters
-    detail::BIHParams bih_params;
+    detail::BIHTree bih_params;
 
     // TODO: transforms
     LocalVolumeId background{};  //!< Default if not in any other volume

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BoundingBoxUtils.hh
+//! \file orange/BoundingBoxUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,9 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
-
 //---------------------------------------------------------------------------//
 // Host/device functions
 //---------------------------------------------------------------------------//
@@ -144,5 +141,4 @@ inline BoundingBox bbox_union(std::vector<BoundingBox> const& bboxes,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

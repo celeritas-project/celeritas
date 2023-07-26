@@ -71,7 +71,7 @@ class BIHBuilder
                         LeafNodeStorage* leaf_node_storage);
 
     // Create BIH Nodes
-    BIHParams operator()() const;
+    BIHTree operator()() const;
 
   private:
     /// TYPES ///

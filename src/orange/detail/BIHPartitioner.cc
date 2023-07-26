@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "BIHPartitioner.hh"
 
-#include "BoundingBoxUtils.hh"
+#include "orange/BoundingBoxUtils.hh"
 
 namespace
 {
