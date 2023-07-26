@@ -114,12 +114,13 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     auto current_index = nodes.size();
     nodes.resize(nodes.size() + 1);
 
-    if (partitioner_.is_partitionable(indices))
+    auto p = partitioner_(indices);
+
+    if (p)
     {
         BIHInnerNode node;
         node.parent = parent;
 
-        auto p = partitioner_(indices);
         auto ax = to_int(p.axis);
 
         BIHInnerNode::BoundingPlane left_plane{

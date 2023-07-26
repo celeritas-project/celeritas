@@ -65,9 +65,6 @@ class BIHPartitioner
 
     explicit inline operator bool() { return bboxes_ != nullptr; }
 
-    // Determine is a set of bounding boxes can be partitioned
-    bool is_partitionable(VecIndices const& indices) const;
-
     // Find a suitable partition for the given bounding boxes
     Partition operator()(VecIndices const& indicies) const;
 

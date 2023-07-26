@@ -47,23 +47,9 @@ BIHPartitioner::BIHPartitioner(VecBBox* bboxes, VecReal3* centers)
 
 //---------------------------------------------------------------------------//
 /*!
- * Determine if a set of bounding boxes can be partitioned
- */
-bool BIHPartitioner::is_partitionable(VecIndices const& indices) const
-{
-    CELER_EXPECT(!indices.empty());
-
-    auto centers = this->calc_axes_centers(indices);
-    return std::any_of(centers.begin(),
-                       centers.end(),
-                       [](std::vector<real_type> const& centers) {
-                           return centers.size() > 1;
-                       });
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Find a suitable partition for the given bounding boxes.
+ *
+ * If no partition is found, an empty partition is return
  */
 BIHPartitioner::Partition
 BIHPartitioner::operator()(VecIndices const& indices) const
@@ -94,8 +80,6 @@ BIHPartitioner::operator()(VecIndices const& indices) const
             }
         }
     }
-
-    CELER_VALIDATE(best_partition, << "calculated partition not valid");
 
     return best_partition;
 }
