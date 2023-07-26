@@ -26,8 +26,6 @@
 #include "orange/surf/Surfaces.hh"
 #include "orange/surf/detail/SurfaceAction.hh"
 
-#include "BIHBuilder.hh"
-
 namespace celeritas
 {
 namespace detail
@@ -146,6 +144,11 @@ UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
     // Initialize scalars
     orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
+
+    bih_builder_ = detail::BIHBuilder(&orange_data_->bboxes,
+                                      &orange_data_->local_volume_ids,
+                                      &orange_data_->bih_inner_nodes,
+                                      &orange_data_->bih_leaf_nodes);
 }
 
 //---------------------------------------------------------------------------//
@@ -198,12 +201,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
             return b;
         }))
     {
-        detail::BIHBuilder bih_builder(std::move(bboxes),
-                                       &orange_data_->bboxes,
-                                       &orange_data_->local_volume_ids,
-                                       &orange_data_->bih_inner_nodes,
-                                       &orange_data_->bih_leaf_nodes);
-        unit.bih_params = bih_builder();
+        unit.bih_params = bih_builder_(std::move(bboxes));
     }
 
     // Save connectivity

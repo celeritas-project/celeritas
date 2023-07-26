@@ -58,15 +58,17 @@ class BIHBuilder
     //!@}
 
   public:
+    //! Default constructor
+    BIHBuilder() = default;
+
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    explicit BIHBuilder(VecBBox bboxes,
-                        BboxStorage* bbox_storage,
+    explicit BIHBuilder(BboxStorage* bbox_storage,
                         LVIStorage* lvi_storage,
                         InnerNodeStorage* inner_node_storage,
                         LeafNodeStorage* leaf_node_storage);
 
     // Create BIH Nodes
-    BIHTree operator()() const;
+    BIHTree operator()(VecBBox bboxes);
 
   private:
     /// TYPES ///

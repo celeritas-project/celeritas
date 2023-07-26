@@ -36,30 +36,30 @@ namespace detail
 /*!
  * Construct from vector of bounding boxes and storage for LocalVolumeIds.
  */
-BIHBuilder::BIHBuilder(VecBBox bboxes,
-                       BIHBuilder::BboxStorage* bbox_storage,
+BIHBuilder::BIHBuilder(BIHBuilder::BboxStorage* bbox_storage,
                        BIHBuilder::LVIStorage* lvi_storage,
                        BIHBuilder::InnerNodeStorage* inner_node_storage,
                        BIHBuilder::LeafNodeStorage* leaf_node_storage)
-    : bboxes_(std::move(bboxes))
-    , bbox_storage_(bbox_storage)
+    : bbox_storage_(bbox_storage)
     , lvi_storage_(lvi_storage)
     , inner_node_storage_(inner_node_storage)
     , leaf_node_storage_(leaf_node_storage)
 {
-    CELER_EXPECT(!bboxes_.empty());
-
-    centers_.resize(bboxes_.size());
-    std::transform(
-        bboxes_.begin(), bboxes_.end(), centers_.begin(), &celeritas::center);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create BIH Nodes.
  */
-BIHTree BIHBuilder::operator()() const
+BIHTree BIHBuilder::operator()(VecBBox bboxes)
 {
+    // Store bounding boxes and their corresponding centers
+    CELER_EXPECT(!bboxes.empty());
+    bboxes_ = std::move(bboxes);
+    centers_.resize(bboxes_.size());
+    std::transform(
+        bboxes_.begin(), bboxes_.end(), centers_.begin(), &celeritas::center);
+
     VecIndices indices;
     VecIndices inf_volids;
 

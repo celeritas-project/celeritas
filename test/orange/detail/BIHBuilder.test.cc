@@ -86,12 +86,11 @@ TEST_F(BIHBuilderTest, basic)
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
-    BIHBuilder bih(bboxes_,
-                   &bbox_storage_,
+    BIHBuilder bih(&bbox_storage_,
                    &lvi_storage_,
                    &inner_node_storage_,
                    &leaf_node_storage_);
-    auto bih_params = bih();
+    auto bih_params = bih(std::move(bboxes_));
     ASSERT_EQ(1, bih_params.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0}, lvi_storage_[bih_params.inf_volids[0]]);
 
@@ -248,12 +247,11 @@ TEST_F(BIHBuilderTest, grid)
     bboxes_.push_back({{2, 2, 0}, {3, 3, 100}});
     bboxes_.push_back({{2, 3, 0}, {3, 4, 100}});
 
-    BIHBuilder bih(bboxes_,
-                   &bbox_storage_,
+    BIHBuilder bih(&bbox_storage_,
                    &lvi_storage_,
                    &inner_node_storage_,
                    &leaf_node_storage_);
-    auto bih_params = bih();
+    auto bih_params = bih(std::move(bboxes_));
     ASSERT_EQ(1, bih_params.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0}, lvi_storage_[bih_params.inf_volids[0]]);
 
