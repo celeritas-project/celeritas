@@ -104,7 +104,7 @@ class SharedParams
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
-    std::shared_ptr<detail::OffloadWriter> offload_writer_;
+    SPOffloadWriter offload_writer_;
 
     //// HELPER FUNCTIONS ////
 
