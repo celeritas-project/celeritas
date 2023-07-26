@@ -20,8 +20,10 @@ namespace celeritas
 namespace detail
 {
 class HitManager;
+class OffloadWriter;
 }
 class CoreParams;
+struct Primary;
 struct SetupOptions;
 class StepCollector;
 
@@ -44,7 +46,6 @@ class SharedParams
     //!@{
     //! \name Type aliases
     using SPConstParams = std::shared_ptr<CoreParams const>;
-    using SPHitManager = std::shared_ptr<detail::HitManager>;
     using VecG4ParticleDef = std::vector<G4ParticleDefinition const*>;
     //!@}
 
@@ -84,8 +85,14 @@ class SharedParams
     //!@{
     //! \name Internal use only
 
+    using SPHitManager = std::shared_ptr<detail::HitManager>;
+    using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+
     //! Hit manager, to be used only by LocalTransporter
     SPHitManager const& hit_manager() const { return hit_manager_; }
+
+    //! Optional offload writer, only for use by LocalTransporter
+    SPOffloadWriter const& offload_writer() const { return offload_writer_; }
 
     //!@}
 
@@ -93,10 +100,11 @@ class SharedParams
     //// DATA ////
 
     std::shared_ptr<CoreParams> params_;
-    std::shared_ptr<detail::HitManager> hit_manager_;
+    SPHitManager hit_manager_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
+    SPOffloadWriter offload_writer_;
 
     //// HELPER FUNCTIONS ////
 

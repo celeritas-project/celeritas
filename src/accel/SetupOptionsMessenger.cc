@@ -169,6 +169,9 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
     add_cmd(&options->physics_output_file,
             "physicsOutputFile",
             "Filename for ROOT dump of physics data");
+    add_cmd(&options->offload_output_file,
+            "offloadOutputFile",
+            "Filename for HepMC3 copy of offloaded tracks as events");
     add_cmd(&options->max_num_tracks,
             "maxNumTracks",
             "Number of track \"slots\" to be transported simultaneously");

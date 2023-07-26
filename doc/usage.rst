@@ -247,6 +247,8 @@ tell what variables are in use or may be useful.
  CUDA_STACK_SIZE         celeritas Change ``cudaLimitStackSize`` for VecGeom
  CUDA_HEAP_SIZE          celeritas Change ``cudaLimitMallocHeapSize`` (VG)
  G4VG_COMPARE_VOLUMES    celeritas Check G4VG volume capacity when converting
+ VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity
+ HEPMC3_VERBOSE          celeritas HepMC3 debug verbosity
  CELER_DISABLE           accel     Disable Celeritas offloading entirely
  CELER_STRIP_SOURCEDIR   accel     Strip directories from exception output
  ======================= ========= ==========================================
