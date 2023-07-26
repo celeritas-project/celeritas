@@ -274,7 +274,7 @@ void {lowabbr}_test(
     const {corecel_ns}DeviceRef<{capabbr}TestStateData>& state)
 {{
     CELER_LAUNCH_KERNEL({lowabbr}_test,
-                        {corecel_ns}device().block_size(),
+                        {corecel_ns}device().default_block_size(),
                         state.size(),
                         params.ref<MemSpace::native>(),
                         state);
