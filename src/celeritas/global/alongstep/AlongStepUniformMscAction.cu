@@ -44,11 +44,8 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
             this->action_id(),
             detail::PropagationApplier{
                 detail::UniformFieldPropagatorFactory{field_params_}});
-        static ActionLauncher<
-            decltype(execute_thread),
-            detail::UniformFieldPropagatorFactory::max_block_size,
-            detail::UniformFieldPropagatorFactory::min_warps_per_eu> const
-            launch_kernel(*this, "propagate");
+        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+            *this, "propagate");
         launch_kernel(params, state, *this, execute_thread);
     }
     if (this->has_msc())

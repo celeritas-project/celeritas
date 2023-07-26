@@ -24,6 +24,7 @@
 #include "ActionInterface.hh"
 #include "CoreParams.hh"
 #include "CoreState.hh"
+#include "ExecutorInterface.hh"
 #include "KernelContextException.hh"
 
 namespace celeritas
@@ -80,6 +81,44 @@ __global__ void __launch_bounds__(T, __B)
     launch_kernel_impl(thread_range, execute_thread);
 }
 
+template<
+    class F,
+    class __E = typename F::Executor,
+    std::enable_if_t<!has_max_block_size_v<__E> && !has_min_warps_per_eu_v<__E>, bool>
+    = true>
+constexpr auto kernel_impl() -> decltype(&launch_action_impl<F>)
+{
+    constexpr auto ptr = &launch_action_impl<F>;
+    return ptr;
+}
+
+template<
+    class F,
+    class __E = typename F::Executor,
+    std::enable_if_t<has_max_block_size_v<__E> && has_min_warps_per_eu_v<__E>, bool>
+    = true>
+constexpr auto kernel_impl()
+    -> decltype(&launch_bounded_action_impl<F,
+                                            __E::max_block_size,
+                                            __E::min_warps_per_eu>)
+{
+    constexpr auto ptr
+        = &launch_bounded_action_impl<F, __E::max_block_size, __E::min_warps_per_eu>;
+    return ptr;
+}
+
+template<
+    class F,
+    class __E = typename F::Executor,
+    std::enable_if_t<has_max_block_size_v<__E> && !has_min_warps_per_eu_v<__E>, bool>
+    = true>
+constexpr auto kernel_impl()
+    -> decltype(&launch_bounded_action_impl<F, __E::max_block_size>)
+{
+    constexpr auto ptr = &launch_bounded_action_impl<F, __E::max_block_size>;
+    return ptr;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -106,27 +145,19 @@ __global__ void __launch_bounds__(T, __B)
  }
  * \endcode
  */
-template<class F, int... bounds>
+template<class F>
 class ActionLauncher
 {
     static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP)
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
-    static_assert(sizeof...(bounds) <= 2,
-                  "ActionLauncher expects two or less variadic template "
-                  "arguments");
 
   private:
     using kernel_func_ptr_t = void (*)(Range<ThreadId> const, F);
 
     // TODO: better way to conditionally constexpr init?
-    static constexpr kernel_func_ptr_t kernel_func_ptr = [] {
-        if constexpr (sizeof...(bounds) == 0)
-            return &launch_action_impl<F>;
-        else
-            return &launch_bounded_action_impl<F, bounds...>;
-    }();
+    static constexpr kernel_func_ptr_t kernel_func_ptr = kernel_impl<F>();
 
   public:
     //! Create a launcher from an action

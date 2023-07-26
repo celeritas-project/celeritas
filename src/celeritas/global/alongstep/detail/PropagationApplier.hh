@@ -7,41 +7,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/global/ExecutorInterface.hh"
 
 namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-/*!
- * Apply propagation over the step.
- *
- * \tparam MP Propagator factory
- *
- * MP should be a function-like object:
- * \code Propagator(*)(CoreTrackView const&) \endcode
- */
-template<class MP>
-struct PropagationApplier
-{
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
-
-    MP make_propagator;
-};
-
-//---------------------------------------------------------------------------//
-// DEDUCTION GUIDES
-//---------------------------------------------------------------------------//
-template<class MP>
-CELER_FUNCTION PropagationApplier(MP&&)->PropagationApplier<MP>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 template<class MP>
 CELER_FUNCTION void
-PropagationApplier<MP>::operator()(CoreTrackView const& track)
+propagation_impl(MP& make_propagator, CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
     StepLimit& step_limit = sim.step_limit();
@@ -124,6 +105,83 @@ PropagationApplier<MP>::operator()(CoreTrackView const& track)
         step_limit.action = track.propagation_limit_action();
     }
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply propagation over the step.
+ *
+ * \tparam MP Propagator factory
+ *
+ * MP should be a function-like object:
+ * \code Propagator(*)(CoreTrackView const&) \endcode
+ */
+
+template<class MP, typename = bool>
+struct PropagationApplier
+{
+    //!@{
+    //! \name Type aliases
+    using Propagator = MP;
+    //!@}
+
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track)
+    {
+        propagation_impl(make_propagator, track);
+    }
+
+    MP make_propagator;
+};
+
+template<class MP>
+struct PropagationApplier<
+    MP,
+    std::enable_if_t<celeritas::has_max_block_size_v<MP>
+                         && celeritas::has_min_warps_per_eu_v<MP>,
+                     bool>>
+{
+    //!@{
+    //! \name Type aliases
+    using Propagator = MP;
+    //!@}
+
+    static constexpr int max_block_size = Propagator::max_block_size;
+    static constexpr int min_warps_per_eu = Propagator::min_warps_per_eu;
+
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track)
+    {
+        propagation_impl(make_propagator, track);
+    }
+
+    MP make_propagator;
+};
+
+template<class MP>
+struct PropagationApplier<
+    MP,
+    std::enable_if_t<celeritas::has_max_block_size_v<MP>
+                         && !celeritas::has_min_warps_per_eu_v<MP>,
+                     bool>>
+{
+    //!@{
+    //! \name Type aliases
+    using Propagator = MP;
+    //!@}
+
+    static constexpr int max_block_size = Propagator::max_block_size;
+
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track)
+    {
+        propagation_impl(make_propagator, track);
+    }
+
+    MP make_propagator;
+};
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class MP>
+CELER_FUNCTION PropagationApplier(MP&&)->PropagationApplier<MP>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
