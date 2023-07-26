@@ -18,10 +18,8 @@ namespace
 {
 void fix_inf(celeritas::Real3* point)
 {
-    static constexpr auto max_real
-        = std::numeric_limits<celeritas::real_type>::max();
-    static constexpr auto inf
-        = std::numeric_limits<celeritas::real_type>::infinity();
+    constexpr auto max_real = std::numeric_limits<celeritas::real_type>::max();
+    constexpr auto inf = std::numeric_limits<celeritas::real_type>::infinity();
 
     for (auto axis : range(celeritas::Axis::size_))
     {

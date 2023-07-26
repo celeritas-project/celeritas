@@ -9,6 +9,7 @@
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
@@ -23,25 +24,25 @@ namespace detail
  */
 struct BIHInnerNode
 {
-    using location_type = float;
+    using position_type = float;
 
     struct BoundingPlane
     {
         Axis axis;
-        location_type location;
+        position_type position;
     };
 
-    enum Edge : size_type
+    enum class Edge
     {
-        left = 0,
-        right = 1
+        left,
+        right,
+        size_
     };
 
     BIHNodeId parent;
 
-    // inner node only
-    Array<BIHNodeId, 2> children;
-    Array<BoundingPlane, 2> bounding_planes;
+    EnumArray<Edge, BIHNodeId> children;
+    EnumArray<Edge, BoundingPlane> bounding_planes;
 
     explicit CELER_FUNCTION operator bool() const
     {

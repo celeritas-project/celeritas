@@ -38,7 +38,7 @@ class BIHPartitioner
     struct Partition
     {
         Axis axis = Axis::size_;
-        real_type location = std::numeric_limits<real_type>::infinity();
+        real_type position = std::numeric_limits<real_type>::infinity();
 
         VecIndices left_indices;
         VecIndices right_indices;
@@ -48,7 +48,7 @@ class BIHPartitioner
 
         explicit operator bool() const
         {
-            return axis != Axis::size_ && std::isfinite(location)
+            return axis != Axis::size_ && std::isfinite(position)
                    && !left_indices.empty() && !right_indices.empty()
                    && left_bbox && right_bbox;
         }
@@ -63,7 +63,7 @@ class BIHPartitioner
     // Construct from vector of bounding boxes and respective centers.
     explicit BIHPartitioner(VecBBox* bboxes, VecReal3* centers);
 
-    explicit inline operator bool(){return bboxes_ != nullptr};
+    explicit inline operator bool() { return bboxes_ != nullptr; }
 
     // Determine is a set of bounding boxes can be partitioned
     bool is_partitionable(VecIndices const& indices) const;

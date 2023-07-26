@@ -114,9 +114,9 @@ TEST_F(BIHBuilderTest, basic)
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
         EXPECT_SOFT_EQ(
-            2.8, node.bounding_planes[BIHInnerNode::Edge::left].location);
+            2.8, node.bounding_planes[BIHInnerNode::Edge::left].position);
         EXPECT_SOFT_EQ(
-            0, node.bounding_planes[BIHInnerNode::Edge::right].location);
+            0, node.bounding_planes[BIHInnerNode::Edge::right].position);
         EXPECT_EQ(1, node.children[BIHInnerNode::Edge::left].unchecked_get());
         EXPECT_EQ(2, node.children[BIHInnerNode::Edge::right].unchecked_get());
     }
@@ -129,9 +129,9 @@ TEST_F(BIHBuilderTest, basic)
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
         EXPECT_SOFT_EQ(
-            1.6, node.bounding_planes[BIHInnerNode::Edge::left].location);
+            1.6, node.bounding_planes[BIHInnerNode::Edge::left].position);
         EXPECT_SOFT_EQ(
-            1.2, node.bounding_planes[BIHInnerNode::Edge::right].location);
+            1.2, node.bounding_planes[BIHInnerNode::Edge::right].position);
         EXPECT_EQ(3, node.children[BIHInnerNode::Edge::left].unchecked_get());
         EXPECT_EQ(4, node.children[BIHInnerNode::Edge::right].unchecked_get());
     }
@@ -144,9 +144,9 @@ TEST_F(BIHBuilderTest, basic)
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
         EXPECT_SOFT_EQ(
-            5, node.bounding_planes[BIHInnerNode::Edge::left].location);
+            5, node.bounding_planes[BIHInnerNode::Edge::left].position);
         EXPECT_SOFT_EQ(
-            2.8, node.bounding_planes[BIHInnerNode::Edge::right].location);
+            2.8, node.bounding_planes[BIHInnerNode::Edge::right].position);
         EXPECT_EQ(5, node.children[BIHInnerNode::Edge::left].unchecked_get());
         EXPECT_EQ(6, node.children[BIHInnerNode::Edge::right].unchecked_get());
     }
@@ -271,9 +271,9 @@ TEST_F(BIHBuilderTest, grid)
         EXPECT_EQ(Axis{1},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
         EXPECT_SOFT_EQ(
-            2, node.bounding_planes[BIHInnerNode::Edge::left].location);
+            2, node.bounding_planes[BIHInnerNode::Edge::left].position);
         EXPECT_SOFT_EQ(
-            2, node.bounding_planes[BIHInnerNode::Edge::right].location);
+            2, node.bounding_planes[BIHInnerNode::Edge::right].position);
         EXPECT_EQ(1, node.children[BIHInnerNode::Edge::left].unchecked_get());
         EXPECT_EQ(6, node.children[BIHInnerNode::Edge::right].unchecked_get());
     }
@@ -286,9 +286,9 @@ TEST_F(BIHBuilderTest, grid)
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
         EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::left].location);
+            1, node.bounding_planes[BIHInnerNode::Edge::left].position);
         EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::right].location);
+            1, node.bounding_planes[BIHInnerNode::Edge::right].position);
         EXPECT_EQ(2, node.children[BIHInnerNode::Edge::left].unchecked_get());
         EXPECT_EQ(3, node.children[BIHInnerNode::Edge::right].unchecked_get());
     }
@@ -301,9 +301,9 @@ TEST_F(BIHBuilderTest, grid)
         EXPECT_EQ(Axis{1},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
         EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::left].location);
+            1, node.bounding_planes[BIHInnerNode::Edge::left].position);
         EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::right].location);
+            1, node.bounding_planes[BIHInnerNode::Edge::right].position);
         EXPECT_EQ(11, node.children[BIHInnerNode::Edge::left].unchecked_get());
         EXPECT_EQ(12, node.children[BIHInnerNode::Edge::right].unchecked_get());
     }
@@ -316,9 +316,9 @@ TEST_F(BIHBuilderTest, grid)
         EXPECT_EQ(Axis{0},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
         EXPECT_SOFT_EQ(
-            2, node.bounding_planes[BIHInnerNode::Edge::left].location);
+            2, node.bounding_planes[BIHInnerNode::Edge::left].position);
         EXPECT_SOFT_EQ(
-            2, node.bounding_planes[BIHInnerNode::Edge::right].location);
+            2, node.bounding_planes[BIHInnerNode::Edge::right].position);
         EXPECT_EQ(4, node.children[BIHInnerNode::Edge::left].unchecked_get());
         EXPECT_EQ(5, node.children[BIHInnerNode::Edge::right].unchecked_get());
     }
@@ -331,9 +331,9 @@ TEST_F(BIHBuilderTest, grid)
         EXPECT_EQ(Axis{1},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
         EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::left].location);
+            1, node.bounding_planes[BIHInnerNode::Edge::left].position);
         EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::right].location);
+            1, node.bounding_planes[BIHInnerNode::Edge::right].position);
         EXPECT_EQ(13, node.children[BIHInnerNode::Edge::left].unchecked_get());
         EXPECT_EQ(14, node.children[BIHInnerNode::Edge::right].unchecked_get());
     }
@@ -346,9 +346,9 @@ TEST_F(BIHBuilderTest, grid)
         EXPECT_EQ(Axis{1},
                   node.bounding_planes[BIHInnerNode::Edge::right].axis);
         EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::left].location);
+            1, node.bounding_planes[BIHInnerNode::Edge::left].position);
         EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::right].location);
+            1, node.bounding_planes[BIHInnerNode::Edge::right].position);
         EXPECT_EQ(15, node.children[BIHInnerNode::Edge::left].unchecked_get());
         EXPECT_EQ(16, node.children[BIHInnerNode::Edge::right].unchecked_get());
     }

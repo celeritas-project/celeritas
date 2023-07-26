@@ -83,7 +83,7 @@ BIHPartitioner::operator()(VecIndices const& indices) const
         {
             Partition p;
             p.axis = axis;
-            p.location = (axes_centers[ax][i] + axes_centers[ax][i + 1]) / 2;
+            p.position = (axes_centers[ax][i] + axes_centers[ax][i + 1]) / 2;
             this->apply_partition(indices, p);
             auto cost = this->calc_cost(p);
 
@@ -144,7 +144,7 @@ void BIHPartitioner::apply_partition(VecIndices const& indices,
     for (auto i : range(indices.size()))
     {
         if (centers_->at(indices[i].unchecked_get())[to_int(p.axis)]
-            < p.location)
+            < p.position)
         {
             p.left_indices.push_back(indices[i]);
         }
