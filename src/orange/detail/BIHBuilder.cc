@@ -124,20 +124,26 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 
         BIHInnerNode::BoundingPlane left_plane{
             p.axis,
-            static_cast<BIHInnerNode::position_type>(p.left_bbox.upper()[ax])};
+            static_cast<BIHInnerNode::position_type>(
+                p.bboxes[BIHInnerNode::Edge::left].upper()[ax])};
 
         BIHInnerNode::BoundingPlane right_plane{
             p.axis,
-            static_cast<BIHInnerNode::position_type>(p.right_bbox.lower()[ax])};
+            static_cast<BIHInnerNode::position_type>(
+                p.bboxes[BIHInnerNode::Edge::right].lower()[ax])};
 
         node.bounding_planes = {left_plane, right_plane};
 
         // Recursively construct the left and right branches
         node.children[BIHInnerNode::Edge::left] = BIHNodeId(nodes.size());
-        this->construct_tree(p.left_indices, nodes, BIHNodeId(current_index));
+        this->construct_tree(p.indices[BIHInnerNode::Edge::left],
+                             nodes,
+                             BIHNodeId(current_index));
 
         node.children[BIHInnerNode::Edge::right] = BIHNodeId(nodes.size());
-        this->construct_tree(p.right_indices, nodes, BIHNodeId(current_index));
+        this->construct_tree(p.indices[BIHInnerNode::Edge::right],
+                             nodes,
+                             BIHNodeId(current_index));
 
         CELER_EXPECT(node);
         nodes[current_index] = node;

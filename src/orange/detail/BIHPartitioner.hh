@@ -9,6 +9,7 @@
 
 #include <vector>
 
+#include "corecel/cont/EnumArray.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 
@@ -40,17 +41,16 @@ class BIHPartitioner
         Axis axis = Axis::size_;
         real_type position = std::numeric_limits<real_type>::infinity();
 
-        VecIndices left_indices;
-        VecIndices right_indices;
-
-        BoundingBox left_bbox;
-        BoundingBox right_bbox;
+        EnumArray<BIHInnerNode::Edge, VecIndices> indices;
+        EnumArray<BIHInnerNode::Edge, BoundingBox> bboxes;
 
         explicit operator bool() const
         {
             return axis != Axis::size_ && std::isfinite(position)
-                   && !left_indices.empty() && !right_indices.empty()
-                   && left_bbox && right_bbox;
+                   && !indices[BIHInnerNode::Edge::left].empty()
+                   && !indices[BIHInnerNode::Edge::right].empty()
+                   && bboxes[BIHInnerNode::Edge::left]
+                   && bboxes[BIHInnerNode::Edge::right];
         }
     };
 
@@ -83,7 +83,7 @@ class BIHPartitioner
     //// HELPER FUNCTIONS ////
 
     // Create sorted and uniquified X, Y, Z values of bbox centers
-    AxesCenters axes_centers(VecIndices const& indices) const;
+    AxesCenters calc_axes_centers(VecIndices const& indices) const;
 
     // Divide bboxes into left and right branches based on a partition
     void apply_partition(VecIndices const& indices, Partition& partition) const;

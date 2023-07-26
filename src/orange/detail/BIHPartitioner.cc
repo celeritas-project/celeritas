@@ -53,7 +53,7 @@ bool BIHPartitioner::is_partitionable(VecIndices const& indices) const
 {
     CELER_EXPECT(!indices.empty());
 
-    auto centers = this->axes_centers(indices);
+    auto centers = this->calc_axes_centers(indices);
     return std::any_of(centers.begin(),
                        centers.end(),
                        [](std::vector<real_type> const& centers) {
@@ -73,7 +73,7 @@ BIHPartitioner::operator()(VecIndices const& indices) const
     Partition best_partition;
     real_type best_cost = std::numeric_limits<real_type>::infinity();
 
-    auto axes_centers = this->axes_centers(indices);
+    auto axes_centers = this->calc_axes_centers(indices);
 
     for (auto axis : range(Axis::size_))
     {
@@ -89,7 +89,7 @@ BIHPartitioner::operator()(VecIndices const& indices) const
 
             if (cost < best_cost)
             {
-                best_partition = p;
+                best_partition = std::move(p);
                 best_cost = cost;
             }
         }
@@ -107,7 +107,7 @@ BIHPartitioner::operator()(VecIndices const& indices) const
  * Create sorted and uniquified X, Y, Z values of bbox centers.
  */
 BIHPartitioner::AxesCenters
-BIHPartitioner::axes_centers(VecIndices const& indices) const
+BIHPartitioner::calc_axes_centers(VecIndices const& indices) const
 {
     CELER_EXPECT(!indices.empty());
 
@@ -116,7 +116,7 @@ BIHPartitioner::axes_centers(VecIndices const& indices) const
     for (auto id : indices)
     {
         CELER_ASSERT(id < centers_->size());
-        Real3 center = (*centers)[id.unchecked_get()];
+        Real3 center = (*centers_)[id.unchecked_get()];
         for (auto axis : range(Axis::size_))
         {
             auto ax = to_int(axis);
@@ -148,16 +148,18 @@ void BIHPartitioner::apply_partition(VecIndices const& indices,
         if ((*centers_)[indices[i].unchecked_get()][to_int(p.axis)]
             < p.position)
         {
-            p.left_indices.push_back(indices[i]);
+            p.indices[BIHInnerNode::Edge::left].push_back(indices[i]);
         }
         else
         {
-            p.right_indices.push_back(indices[i]);
+            p.indices[BIHInnerNode::Edge::right].push_back(indices[i]);
         }
     }
 
-    p.left_bbox = bbox_union(*bboxes_, p.left_indices);
-    p.right_bbox = bbox_union(*bboxes_, p.right_indices);
+    p.bboxes[BIHInnerNode::Edge::left]
+        = bbox_union(*bboxes_, p.indices[BIHInnerNode::Edge::left]);
+    p.bboxes[BIHInnerNode::Edge::right]
+        = bbox_union(*bboxes_, p.indices[BIHInnerNode::Edge::right]);
 }
 
 //---------------------------------------------------------------------------//
@@ -168,8 +170,10 @@ real_type BIHPartitioner::calc_cost(Partition const& p) const
 {
     CELER_EXPECT(p);
 
-    return surface_area(p.left_bbox) * p.left_indices.size()
-           + surface_area(p.right_bbox) * p.right_indices.size();
+    return surface_area(p.bboxes[BIHInnerNode::Edge::left])
+               * p.indices[BIHInnerNode::Edge::left].size()
+           + surface_area(p.bboxes[BIHInnerNode::Edge::right])
+                 * p.indices[BIHInnerNode::Edge::right].size();
 }
 
 //---------------------------------------------------------------------------//
