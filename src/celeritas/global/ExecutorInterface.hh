@@ -13,28 +13,27 @@
 namespace celeritas
 {
 
-template<typename T, typename = bool>
+template<typename T, typename = void>
 struct has_max_block_size : std::false_type
 {
 };
 
-// cast to void to avoid potential overload of "," operator
+// Expression SFINAE to detect member of template
 template<typename T>
-struct has_max_block_size<T, decltype((void)T::max_block_size, true)>
-    : std::true_type
+struct has_max_block_size<T, decltype((void)T::max_block_size)> : std::true_type
 {
 };
 
 template<typename T>
 constexpr bool has_max_block_size_v = has_max_block_size<T>::value;
 
-template<typename T, typename = bool>
+template<typename T, typename = void>
 struct has_min_warps_per_eu : std::false_type
 {
 };
 
 template<typename T>
-struct has_min_warps_per_eu<T, decltype((void)T::min_warps_per_eu, true)>
+struct has_min_warps_per_eu<T, decltype((void)T::min_warps_per_eu)>
     : std::true_type
 {
 };

@@ -119,8 +119,13 @@ constexpr auto kernel_impl()
 //---------------------------------------------------------------------------//
 /*!
  * Profile and launch Celeritas kernels from inside an action.
- * Additional - up to two - int template arguments can be specified that will
- * be forwarded to \c __launch_bounds__ to constraint kernel registers usages.
+ * The executor template argument expects a member type named \c Executor
+ (F::Executor).
+ * \c F::Executor can have two static constexpr int variables named
+ max_block_size and/or min_warps_per_eu.
+ * If present, the kernel will use appropriate \c __launch_bounds__.
+ * If \c F::Executor::min_warps_per_eu then \c F::Executor::max_block_size must
+ * also be present or launch bounds won't apply,
  *
  * Semantics of \c __launch_bounds__ 2nd argument differs between CUDA and HIP.
  * \c ActionLauncher expects HIP semantics. If Celeritas is built targeting

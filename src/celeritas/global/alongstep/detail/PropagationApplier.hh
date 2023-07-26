@@ -116,14 +116,9 @@ propagation_impl(MP& make_propagator, CoreTrackView const& track)
  * \code Propagator(*)(CoreTrackView const&) \endcode
  */
 
-template<class MP, typename = bool>
+template<class MP, typename = void>
 struct PropagationApplier
 {
-    //!@{
-    //! \name Type aliases
-    using Propagator = MP;
-    //!@}
-
     inline CELER_FUNCTION void operator()(CoreTrackView const& track)
     {
         propagation_impl(make_propagator, track);
@@ -135,15 +130,10 @@ struct PropagationApplier
 template<class MP>
 struct PropagationApplier<
     MP,
-    std::enable_if_t<celeritas::kernel_max_blocks_min_warps<MP>, bool>>
+    std::enable_if_t<celeritas::kernel_max_blocks_min_warps<MP>>>
 {
-    //!@{
-    //! \name Type aliases
-    using Propagator = MP;
-    //!@}
-
-    static constexpr int max_block_size = Propagator::max_block_size;
-    static constexpr int min_warps_per_eu = Propagator::min_warps_per_eu;
+    static constexpr int max_block_size = MP::max_block_size;
+    static constexpr int min_warps_per_eu = MP::min_warps_per_eu;
 
     inline CELER_FUNCTION void operator()(CoreTrackView const& track)
     {
@@ -154,15 +144,9 @@ struct PropagationApplier<
 };
 
 template<class MP>
-struct PropagationApplier<MP,
-                          std::enable_if_t<celeritas::kernel_max_blocks<MP>, bool>>
+struct PropagationApplier<MP, std::enable_if_t<celeritas::kernel_max_blocks<MP>>>
 {
-    //!@{
-    //! \name Type aliases
-    using Propagator = MP;
-    //!@}
-
-    static constexpr int max_block_size = Propagator::max_block_size;
+    static constexpr int max_block_size = MP::max_block_size;
 
     inline CELER_FUNCTION void operator()(CoreTrackView const& track)
     {
