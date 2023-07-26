@@ -32,6 +32,8 @@ class BIHBuilderTest : public Test
 
   protected:
     std::vector<BoundingBox> bboxes_;
+    Collection<BoundingBox, Ownership::value, MemSpace::host, OpaqueId<BoundingBox>>
+        bbox_storage_;
     Collection<LocalVolumeId, Ownership::value, MemSpace::host, OpaqueId<LocalVolumeId>>
         lvi_storage_;
     Collection<BIHInnerNode, Ownership::value, MemSpace::host, OpaqueId<BIHInnerNode>>
@@ -84,12 +86,21 @@ TEST_F(BIHBuilderTest, basic)
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
-    BIHBuilder bih(
-        bboxes_, &lvi_storage_, &inner_node_storage_, &leaf_node_storage_);
+    BIHBuilder bih(bboxes_,
+                   &bbox_storage_,
+                   &lvi_storage_,
+                   &inner_node_storage_,
+                   &leaf_node_storage_);
     auto bih_params = bih();
     ASSERT_EQ(1, bih_params.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0}, lvi_storage_[bih_params.inf_volids[0]]);
 
+    // Test bounding box storage
+    auto bbox1 = bbox_storage_[bih_params.bboxes[LocalVolumeId{2}]];
+    EXPECT_VEC_SOFT_EQ(Real3({1.2, 0., 0.}), bbox1.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({2.8, 1., 100.}), bbox1.upper());
+
+    // Test nodes
     auto inner_nodes = bih_params.inner_nodes;
     auto leaf_nodes = bih_params.leaf_nodes;
     ASSERT_EQ(3, inner_nodes.size());
@@ -237,12 +248,16 @@ TEST_F(BIHBuilderTest, grid)
     bboxes_.push_back({{2, 2, 0}, {3, 3, 100}});
     bboxes_.push_back({{2, 3, 0}, {3, 4, 100}});
 
-    BIHBuilder bih(
-        bboxes_, &lvi_storage_, &inner_node_storage_, &leaf_node_storage_);
+    BIHBuilder bih(bboxes_,
+                   &bbox_storage_,
+                   &lvi_storage_,
+                   &inner_node_storage_,
+                   &leaf_node_storage_);
     auto bih_params = bih();
     ASSERT_EQ(1, bih_params.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0}, lvi_storage_[bih_params.inf_volids[0]]);
 
+    // Test nodes
     auto inner_nodes = bih_params.inner_nodes;
     auto leaf_nodes = bih_params.leaf_nodes;
     ASSERT_EQ(11, inner_nodes.size());

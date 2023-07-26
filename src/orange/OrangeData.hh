@@ -279,6 +279,7 @@ struct OrangeParamsData
     Items<SurfaceType> surface_types;
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
+    Items<BoundingBox> bboxes;
     Items<detail::BIHInnerNode> bih_inner_nodes;
     Items<detail::BIHLeafNode> bih_leaf_nodes;
 

@@ -37,10 +37,12 @@ namespace detail
  * Construct from vector of bounding boxes and storage for LocalVolumeIds.
  */
 BIHBuilder::BIHBuilder(VecBBox bboxes,
+                       BIHBuilder::BboxStorage* bbox_storage,
                        BIHBuilder::LVIStorage* lvi_storage,
                        BIHBuilder::InnerNodeStorage* inner_node_storage,
                        BIHBuilder::LeafNodeStorage* leaf_node_storage)
     : bboxes_(bboxes)
+    , bbox_storage_(bbox_storage)
     , lvi_storage_(lvi_storage)
     , inner_node_storage_(inner_node_storage)
     , leaf_node_storage_(leaf_node_storage)
@@ -85,6 +87,10 @@ BIHParams BIHBuilder::operator()() const
     auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
     BIHParams params;
+
+    params.bboxes = ItemMap<LocalVolumeId, BoundingBoxId>(
+        make_builder(bbox_storage_).insert_back(bboxes_.begin(), bboxes_.end()));
+
     params.inner_nodes
         = make_builder(inner_node_storage_)
               .insert_back(inner_nodes.begin(), inner_nodes.end());

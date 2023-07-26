@@ -65,10 +65,13 @@ struct BIHLeafNode
 
 //---------------------------------------------------------------------------//
 /*!
- * Data a Bounding Interval Hierarchy.
+ * Data for a Bounding Interval Hierarchy.
  */
 struct BIHParams
 {
+    // All bounding boxes managed by the BIH
+    ItemMap<LocalVolumeId, BoundingBoxId> bboxes;
+
     // Inner nodes, the first being the root
     ItemRange<BIHInnerNode> inner_nodes;
 

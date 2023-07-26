@@ -19,6 +19,9 @@ namespace celeritas
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
+//! Identifier for a bounding box
+using BoundingBoxId = OpaqueId<struct BoundingBox>;
+
 //! Fixed-size array for 3D space
 using Real3 = Array<real_type, 3>;
 
