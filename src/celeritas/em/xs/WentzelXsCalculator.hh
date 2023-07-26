@@ -23,7 +23,7 @@ class WentzelXsCalculator
 {
   public:
     // Construct the calculator from the given values
-    inline CELER_FUNCTION WentzelXsCalculator(int target_z,
+    inline CELER_FUNCTION WentzelXsCalculator(AtomicNumber target_z,
                                               real_type screening_coefficient,
                                               real_type cos_t_max_elec);
 
@@ -32,7 +32,7 @@ class WentzelXsCalculator
 
   private:
     // Target atomic number
-    int const target_z_;
+    AtomicNumber const target_z_;
 
     // Moliere screening coefficient
     real_type const screening_coefficient_;
@@ -54,14 +54,14 @@ class WentzelXsCalculator
  * Construct with state data
  */
 CELER_FUNCTION
-WentzelXsCalculator::WentzelXsCalculator(int target_z,
+WentzelXsCalculator::WentzelXsCalculator(AtomicNumber target_z,
                                          real_type screening_coefficient,
                                          real_type cos_t_max_elec)
     : target_z_(target_z)
     , screening_coefficient_(screening_coefficient)
     , cos_t_max_elec_(cos_t_max_elec)
 {
-    CELER_EXPECT(target_z_ > 0);
+    CELER_EXPECT(target_z_.get() > 0);
     CELER_EXPECT(screening_coefficient > 0);
     CELER_EXPECT(cos_t_max_elec >= -1 && cos_t_max_elec <= 1);
 }
@@ -88,7 +88,7 @@ CELER_FUNCTION real_type WentzelXsCalculator::operator()() const
  */
 CELER_FUNCTION real_type WentzelXsCalculator::nuclear_xsec() const
 {
-    return target_z_ / (1 + screening_coefficient_);
+    return target_z_.get() / (1 + screening_coefficient_);
 }
 
 //---------------------------------------------------------------------------//

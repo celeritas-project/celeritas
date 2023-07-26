@@ -34,11 +34,22 @@ struct WentzelIds
 //---------------------------------------------------------------------------//
 /*!
  * Per-element data used by the WentzelModel
+ *
+ * The matrix of coefficients used to approximate the ratio of the Mott to
+ * Rutherford cross sections was developed in
+ * T. Lijian, H. Quing and L. Zhengming, Radiat. Phys. Chem. 45 (1995),
+ *   235-245
+ * and
+ * M. J. Boschini et al. arXiv:1111.4042
  */
 struct WentzelElementData
 {
-    // Matrix of Mott coefficients
-    real_type mott_coeff[5][6];
+    using BetaArray = Array<real_type, 6>;
+    using ThetaArray = Array<real_type, 5>;
+
+    // TODO: Having ThetaArray::size() would make this a lot better!
+    //! Matrix of Mott coefficients [theta][beta]
+    Array<BetaArray, 5> mott_coeff;
 };
 
 //---------------------------------------------------------------------------//
@@ -75,11 +86,8 @@ struct WentzelData
     // Mass of the electron
     Mass electron_mass;
 
-    // Squared screening radius for incident electrons
-    MomentumSq screen_r_sq_elec;
-
-    // Nuclear form factor momentum scale
-    MomentumSq form_momentum_scale;
+    // User-defined factor for the screening coefficient
+    real_type screening_factor;
 
     // Model for the form factor to use
     NuclearFormFactorType form_factor_type;
@@ -99,8 +107,7 @@ struct WentzelData
         elem_data = other.elem_data;
         electron_mass = other.electron_mass;
         form_factor_type = other.form_factor_type;
-        screen_r_sq_elec = other.screen_r_sq_elec;
-        form_momentum_scale = other.form_momentum_scale;
+        screening_factor = other.screening_factor;
         return *this;
     }
 };

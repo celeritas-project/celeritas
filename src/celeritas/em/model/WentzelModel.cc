@@ -11,6 +11,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/data/WentzelData.hh"
 #include "celeritas/em/executor/WentzelExecutor.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/model/detail/MottInterpolatedCoefficients.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -60,19 +61,8 @@ WentzelModel::WentzelModel(ActionId id,
     // TODO: Select form factor
     host_data.form_factor_type = NuclearFormFactorType::Exponential;
 
-    // Thomas-Fermi constant C_TF
-    const real_type ctf = fastpow(3 * constants::pi / 4, real_type{2} / 3) / 2;
-
-    // Prefactor of the screen R squared
-    host_data.screen_r_sq_elec = native_value_to<units::MevMomentumSq>(
-        em_params.screening_factor
-        * ipow<2>(constants::hbar_planck / (2 * ctf * constants::a0_bohr)));
-
-    // This is the inverse of Geant's constn
-    // need to multiply by 2 to match Geant's magic number
-    host_data.form_momentum_scale = native_value_to<units::MevMomentumSq>(
-        12 / ipow<2>(1.27 * (1e-15 * units::meter) / constants::hbar_planck)
-        / 2);
+    // Pass user-defined screening factor
+    host_data.screening_factor = em_params.screening_factor;
 
     // Load Mott coefficients
     build_data(host_data, materials);
@@ -91,14 +81,11 @@ auto WentzelModel::applicability() const -> SetApplicability
 {
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
-    // TODO: construct actual energy range
-    electron_applic.lower = zero_quantity();
-    electron_applic.upper = max_quantity();
+    electron_applic.lower = detail::coulomb_scattering_limit();
+    electron_applic.upper = detail::high_energy_limit();
 
-    Applicability positron_applic;
+    Applicability positron_applic = electron_applic;
     positron_applic.particle = this->host_ref().ids.positron;
-    positron_applic.lower = zero_quantity();
-    positron_applic.upper = max_quantity();
 
     return {electron_applic, positron_applic};
 }

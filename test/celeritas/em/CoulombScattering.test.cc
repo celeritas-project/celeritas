@@ -115,9 +115,6 @@ TEST_F(CoulombScatteringTest, wokvi_data)
 {
     WentzelHostRef const& data = model_->host_ref();
 
-    EXPECT_SOFT_EQ(144849.41614676395, data.form_momentum_scale.value());
-    EXPECT_SOFT_EQ(4.4349544106046192e-06, data.screen_r_sq_elec.value());
-
     // Check element data is filled in correctly
     unsigned int const num_elements = this->material_params()->num_elements();
     for (auto el_id : range(ElementId(num_elements)))
@@ -139,8 +136,8 @@ TEST_F(CoulombScatteringTest, wokvi_data)
 
 TEST_F(CoulombScatteringTest, wokvi_xs)
 {
-    int const target_z
-        = this->material_params()->get(ElementId(0)).atomic_number().get();
+    AtomicNumber const target_z
+        = this->material_params()->get(ElementId(0)).atomic_number();
 
     static double const cos_ts[] = {1, 0.8, 0.3, 0, -0.4, -0.7, -1};
     static double const screenings[] = {1, 1.13, 1.73, 2.5};

@@ -11,16 +11,12 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/em/data/WentzelData.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottXsCalculator.hh"
 #include "celeritas/em/xs/WentzelXsCalculator.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-/*
- * References:
- *      Fern - Fernandez-Varea 1992
- *      PRM - Geant4 Physics Reference Manual Release 11.1
- */
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -28,6 +24,16 @@ namespace celeritas
  * Helper class for \c WentzelInteractor .
  *
  * Samples the scattering direction for the Wentzel model.
+ *
+ * References:
+ * [Fern] J.M. Fernandez-Varea, R. Mayol and F. Salvat. On the theory
+ *        and simulation of multiple elastic scattering of electrons. Nucl.
+ *        Instrum. and Method. in Phys. Research B, 73:447-473, Apr 1993.
+ *        doi:10.1016/0168-583X(93)95827-R
+ * [LR11] C. Leroy and P.G. Rancoita. Principles of Radiation Interaction in
+ *        Matter and Detection. World Scientific (Singapore), 3rd edition,
+ *        2011.
+ * [PRM]  Geant4 Physics Reference Manual (Release 11.1) sections 8.2 and 8.5
  */
 class WentzelDistribution
 {
@@ -91,10 +97,7 @@ class WentzelDistribution
     //! Helper function for calculating the flat form factor
     inline CELER_FUNCTION real_type flat_form_factor(real_type x) const;
 
-    //! Target isotope's atomic number
-    inline CELER_FUNCTION int target_Z() const;
-
-    //! Incident momentum squared
+    //! Calculate incident momentum squared
     inline CELER_FUNCTION real_type inc_mom_sq() const;
 };
 
@@ -103,8 +106,6 @@ class WentzelDistribution
 //---------------------------------------------------------------------------//
 /*!
  * Construct with state and data from WentzelInteractor
- *
- * TODO: Reference for factors?
  */
 CELER_FUNCTION
 WentzelDistribution::WentzelDistribution(real_type inc_energy,
@@ -144,7 +145,8 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
     real_type cos_t2 = -1;
 
     // Randomly choose if scattered off of electrons instead
-    const WentzelXsCalculator xsec(target_Z(), screen_coeff, cos_t_max_elec);
+    const WentzelXsCalculator xsec(
+        target_.atomic_number(), screen_coeff, cos_t_max_elec);
     const real_type elec_ratio = xsec();
     if (uniform_sample(rng) < elec_ratio)
     {
@@ -156,15 +158,21 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
     else
     {
         // TODO: Geant has a different form momentum scale for hydrogen?
-        const real_type scale
-            = (target_Z() == 1)
-                  ? 1 / 3.097e-6
-                  : value_as<MomentumSq>(data_.form_momentum_scale);
+        real_type scale = 1 / 3.097e-6;
+        if (target_.atomic_number().get() > 1)
+        {
+            scale = native_value_to<MomentumSq>(
+                        12
+                        * ipow<2>(2 * constants::hbar_planck
+                                  / (real_type(1.27e-15) * units::meter)))
+                        .value();
+        }
 
         // Set nuclear form factor
         form_factor_coeff
             = inc_mom_sq()
-              * fastpow((real_type)target_.atomic_mass_number().get(), 2 * 0.27)
+              * fastpow(real_type(target_.atomic_mass_number().get()),
+                        2 * real_type(0.27))
               / scale;
     }
 
@@ -198,7 +206,13 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
 //---------------------------------------------------------------------------//
 /*!
  * Calculates the form factor based on the form factor model.
- * TODO: Reference?
+ *
+ * The models are described in [LR11] section 2.4.2.1 and parameterize the
+ * charge distribution inside a nucleus. The same models are used as in
+ * Geant4, and are:
+ *      Exponential: [LR11] eqn 2.262
+ *      Gaussian: [LR11] eqn 2.264
+ *      Flat (uniform-uniform folded): [LR11] 2.265
  */
 CELER_FUNCTION real_type WentzelDistribution::calculate_form_factor(
     real_type formf, real_type cos_t) const
@@ -212,9 +226,9 @@ CELER_FUNCTION real_type WentzelDistribution::calculate_form_factor(
                                 * 2;
             return flat_form_factor(x)
                    * flat_form_factor(
-                       x * 0.6
+                       x * real_type{0.6}
                        * fastpow(value_as<Mass>(target_.nuclear_mass()),
-                                 static_cast<real_type>(1) / 3));
+                                 real_type{1} / 3));
         }
         break;
         case NuclearFormFactorType::Exponential:
@@ -228,8 +242,8 @@ CELER_FUNCTION real_type WentzelDistribution::calculate_form_factor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Flat form factor
- * TODO: Reference?
+ * Helper function for calculating the flat form factors, see [LR16] eqn
+ * 2.265.
  */
 CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x) const
 {
@@ -238,16 +252,7 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x) cons
 
 //---------------------------------------------------------------------------//
 /*!
- * Atomic number of the target isotope
- */
-CELER_FUNCTION int WentzelDistribution::target_Z() const
-{
-    return target_.atomic_number().get();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Helper function to calculate the incident momentum squared.
+ * Helper function to calculate the incident momentum squared
  */
 CELER_FUNCTION real_type WentzelDistribution::inc_mom_sq() const
 {
@@ -256,30 +261,40 @@ CELER_FUNCTION real_type WentzelDistribution::inc_mom_sq() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculates the Moilere screening coefficient.
+ * Calculate the Moilere screening coefficient.
  */
 CELER_FUNCTION real_type WentzelDistribution::compute_screening_coefficient() const
 {
     // TODO: Reference for just proton correction?
     real_type correction = 1;
-    const real_type sq_cbrt_z = fastpow(static_cast<real_type>(target_Z()),
-                                        static_cast<real_type>(2) / 3);
-    if (target_Z() > 1)
+    const real_type sq_cbrt_z
+        = fastpow(real_type(target_.atomic_number().get()), real_type{2} / 3);
+    if (target_.atomic_number().get() > 1)
     {
         const real_type tau = inc_energy_ / inc_mass_;
         // TODO: Reference for this factor?
         const real_type factor = sqrt(tau / (tau + sq_cbrt_z));
         const real_type inv_beta_sq = 1 + ipow<2>(inc_mass_) / inc_mom_sq();
 
-        correction = min(
-            target_Z() * 1.13,
-            1.13
-                + 3.76 * ipow<2>(target_Z() * constants::alpha_fine_structure)
-                      * inv_beta_sq * factor);
+        correction = min(target_.atomic_number().get() * 1.13,
+                         1.13
+                             + 3.76
+                                   * ipow<2>(target_.atomic_number().get()
+                                             * constants::alpha_fine_structure)
+                                   * inv_beta_sq * factor);
     }
 
-    return correction * value_as<MomentumSq>(data_.screen_r_sq_elec)
-           * sq_cbrt_z / inc_mom_sq();
+    // Thomas-Fermi constant C_TF.
+    const real_type ctf = fastpow(3 * constants::pi / 4, real_type{2} / 3) / 2;
+
+    // Screening R^2 prefactor for incident electrons
+    const real_type screen_r_sq_elec
+        = native_value_to<MomentumSq>(
+              ipow<2>(constants::hbar_planck / (2 * ctf * constants::a0_bohr)))
+              .value();
+
+    return correction * data_.screening_factor * screen_r_sq_elec * sq_cbrt_z
+           / inc_mom_sq();
 }
 
 //---------------------------------------------------------------------------//
@@ -290,19 +305,23 @@ CELER_FUNCTION real_type WentzelDistribution::compute_screening_coefficient() co
 CELER_FUNCTION real_type WentzelDistribution::compute_max_electron_cos_t() const
 {
     // TODO: Need to validate against Geant4 results
-    const real_type max_energy = is_electron_ ? inc_energy_ / 2 : inc_energy_;
-    const real_type recoil_energy = min(cutoff_energy_, max_energy);
-    const real_type final_energy = inc_energy_ - recoil_energy;
+    const real_type max_energy = is_electron_ ? real_type{0.5} * inc_energy_
+                                              : inc_energy_;
+    const real_type final_energy = inc_energy_
+                                   - min(cutoff_energy_, max_energy);
 
-    const real_type recoil_mom_sq
-        = recoil_energy
-          * (recoil_energy + 2 * value_as<Mass>(data_.electron_mass));
-    const real_type final_mom_sq = final_energy
-                                   * (final_energy + 2 * inc_mass_);
-    const real_type cos_t_max = (inc_mom_sq() + final_mom_sq - recoil_mom_sq)
-                                / (2 * sqrt(inc_mom_sq() * final_mom_sq));
+    if (final_energy > 0)
+    {
+        const real_type incident_ratio = 1 + 2 * inc_mass_ / inc_energy_;
+        const real_type final_ratio = 1 + 2 * inc_mass_ / final_energy;
+        const real_type cos_t_max = sqrt(incident_ratio / final_ratio);
 
-    return clamp(cos_t_max, real_type{0}, real_type{1});
+        return clamp(cos_t_max, real_type{0}, real_type{1});
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 //---------------------------------------------------------------------------//

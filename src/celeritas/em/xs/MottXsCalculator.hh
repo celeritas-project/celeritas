@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/em/data/WentzelData.hh"
 
 namespace celeritas
@@ -16,6 +17,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Calculates the ratio of Mott cross section to the Rutherford cross section.
+ *
+ * The ratio is an interpolated approximation developed in
+ * T. Lijian, H. Quing and L. Zhengming, Radiat. Phys. Chem. 45 (1995),
+ *   235-245
+ * and described in the Geant Physics Reference Manual [PRM] (Release 1.11)
+ * section 8.4.
  */
 class MottXsCalculator
 {
@@ -32,6 +39,9 @@ class MottXsCalculator
   private:
     WentzelElementData const& element_data_;
     real_type beta_;
+
+    template<class T>
+    inline CELER_FUNCTION void generate_powers(T& powers, real_type x) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -63,37 +73,47 @@ MottXsCalculator::MottXsCalculator(WentzelElementData const& element_data,
 CELER_FUNCTION
 real_type MottXsCalculator::operator()(real_type cos_theta) const
 {
+    CELER_EXPECT(cos_theta >= -1 && cos_theta <= 1);
+
+    // (Exponent) Base for theta powers
     const real_type fcos_t = sqrt(1 - cos_theta);
 
     // Mean velocity of electrons between ~KeV and 900 MeV
     const real_type beta_shift = 0.7181228;
+
+    // (Exponent) Base for beta powers
     const real_type beta0 = beta_ - beta_shift;
 
-    // Construct [0,5] powers of beta0
-    real_type b[6];
-    b[0] = 1.0;
-    for (int i = 1; i < 6; i++)
-    {
-        b[i] = beta0 * b[i - 1];
-    }
+    // Construct arrays of powers
+    WentzelElementData::BetaArray beta_powers;
+    generate_powers(beta_powers, beta0);
 
-    // Compute the ratio, summing over powers of fcos_t
-    real_type f0 = 1.0;
-    real_type ratio = 0;
-    for (int j = 0; j <= 4; j++)
-    {
-        // Calculate the a_j coefficient
-        real_type a = 0.0;
-        for (int k = 0; k <= 5; k++)
-        {
-            a += element_data_.mott_coeff[j][k] * b[k];
-        }
-        // Sum in power series of fcos_t
-        ratio += a * f0;
-        f0 *= fcos_t;
-    }
+    WentzelElementData::ThetaArray theta_powers;
+    generate_powers(theta_powers, fcos_t);
 
-    return ratio;
+    // Inner product the arrays of powers with the coefficient matrix
+    WentzelElementData::ThetaArray theta_coeffs;
+    for (auto i : range(theta_coeffs.size()))
+    {
+        theta_coeffs[i] = dot_product(element_data_.mott_coeff[i], beta_powers);
+    }
+    return dot_product(theta_coeffs, theta_powers);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Fills the array with powers of x from \f$ x^0, x^1, ..., x^{N-1} \f$,
+ * where \f$ N \f$ is the size of the array.
+ */
+template<class T>
+CELER_FUNCTION void
+MottXsCalculator::generate_powers(T& powers, real_type x) const
+{
+    powers[0] = 1;
+    for (size_type i : range(1u, powers.size()))
+    {
+        powers[i] = x * powers[i - 1];
+    }
 }
 
 //---------------------------------------------------------------------------//
