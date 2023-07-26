@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/GeantStepDiagnostic.cc
+//! \file accel/GeantStepDiagnostic.cc
 //---------------------------------------------------------------------------//
 #include "GeantStepDiagnostic.hh"
 
@@ -21,8 +21,6 @@
 #endif
 
 namespace celeritas
-{
-namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -141,5 +139,4 @@ std::vector<int> GeantStepDiagnostic::GetPDGs() const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

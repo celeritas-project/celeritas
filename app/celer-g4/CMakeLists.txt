@@ -11,7 +11,6 @@ if(CELERITAS_USE_Geant4)
     DetectorConstruction.cc
     EventAction.cc
     GeantDiagnostics.cc
-    GeantStepDiagnostic.cc
     GlobalSetup.cc
     PrimaryGeneratorAction.cc
     RunAction.cc

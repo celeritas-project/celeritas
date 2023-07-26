@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/GeantStepDiagnostic.hh
+//! \file accel/GeantStepDiagnostic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,8 +17,6 @@
 #include "corecel/io/OutputInterface.hh"
 
 namespace celeritas
-{
-namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -69,5 +67,4 @@ class GeantStepDiagnostic final : public OutputInterface
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

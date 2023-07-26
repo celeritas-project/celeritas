@@ -12,9 +12,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "accel/GeantStepDiagnostic.hh"
 #include "accel/SharedParams.hh"
-
-#include "GeantStepDiagnostic.hh"
 
 namespace celeritas
 {
@@ -51,7 +50,7 @@ class GeantDiagnostics
     void Finalize();
 
     // Access the step diagnostic
-    inline SPStepDiagnostic StepDiagnostic() const;
+    inline SPStepDiagnostic const& StepDiagnostic() const;
 
     //! Whether this instance is initialized
     explicit operator bool() const
@@ -84,7 +83,7 @@ void GeantDiagnostics::Initialize(SPConstParams params)
 /*!
  * Access the step diagnostic.
  */
-auto GeantDiagnostics::StepDiagnostic() const -> SPStepDiagnostic
+auto GeantDiagnostics::StepDiagnostic() const -> SPStepDiagnostic const&
 {
     CELER_EXPECT(*this);
     return step_diagnostic_;
