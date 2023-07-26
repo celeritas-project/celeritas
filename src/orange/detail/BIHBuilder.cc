@@ -136,15 +136,13 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         node.bounding_planes = {left_plane, right_plane};
 
         // Recursively construct the left and right branches
-        node.children[BIHInnerNode::Edge::left] = BIHNodeId(nodes->size());
-        this->construct_tree(p.indices[BIHInnerNode::Edge::left],
-                             nodes,
-                             BIHNodeId(current_index));
 
-        node.children[BIHInnerNode::Edge::right] = BIHNodeId(nodes->size());
-        this->construct_tree(p.indices[BIHInnerNode::Edge::right],
-                             nodes,
-                             BIHNodeId(current_index));
+        for (auto edge : range(BIHInnerNode::Edge::size_))
+        {
+            node.children[edge] = BIHNodeId(nodes->size());
+            this->construct_tree(
+                p.indices[edge], nodes, BIHNodeId(current_index));
+        }
 
         CELER_EXPECT(node);
         (*nodes)[current_index] = node;
@@ -202,12 +200,11 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
 
     for (auto& inner_node : inner_nodes)
     {
-        inner_node.children[BIHInnerNode::Edge::left]
-            = new_ids[inner_node.children[BIHInnerNode::Edge::left]
-                          .unchecked_get()];
-        inner_node.children[BIHInnerNode::Edge::right]
-            = new_ids[inner_node.children[BIHInnerNode::Edge::right]
-                          .unchecked_get()];
+        for (auto edge : range(BIHInnerNode::Edge::size_))
+        {
+            inner_node.children[edge]
+                = new_ids[inner_node.children[edge].unchecked_get()];
+        }
 
         // Handle root node
         if (inner_node.parent)
