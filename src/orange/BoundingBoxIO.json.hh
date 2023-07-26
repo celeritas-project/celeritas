@@ -7,11 +7,32 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <limits>
 #include <nlohmann/json.hpp>
 
 #include "corecel/cont/ArrayIO.json.hh"
 
 #include "BoundingBox.hh"
+
+namespace
+{
+void fix_inf(celeritas::Real3* point)
+{
+    static constexpr auto max_real
+        = std::numeric_limits<celeritas::real_type>::max();
+    static constexpr auto inf
+        = std::numeric_limits<celeritas::real_type>::infinity();
+
+    for (auto axis : range(celeritas::Axis::size_))
+    {
+        auto ax = to_int(axis);
+        if ((*point)[ax] == max_real)
+        {
+            (*point)[ax] = inf;
+        }
+    }
+}
+}  // namespace
 
 namespace celeritas
 {
@@ -21,7 +42,16 @@ namespace celeritas
  */
 inline void from_json(nlohmann::json const& j, BoundingBox& bbox)
 {
-    bbox = {j[0].get<Real3>(), j[1].get<Real3>()};
+    CELER_VALIDATE(j.size() == 2,
+                   << " bounding box must have lower and upper extents");
+
+    auto lower = j[0].get<Real3>();
+    auto upper = j[1].get<Real3>();
+
+    fix_inf(&lower);
+    fix_inf(&upper);
+
+    bbox = {lower, upper};
 }
 
 //---------------------------------------------------------------------------//
