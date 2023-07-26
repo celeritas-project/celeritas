@@ -23,8 +23,8 @@ namespace detail
 struct UniformFieldPropagatorFactory
 {
 #if CELER_USE_DEVICE
-    static constexpr int maxThreadsPerBlock = 256;
-    static constexpr int minWarpsPerWS = 1;
+    static constexpr int max_block_size = 256;
+    static constexpr int min_warps_per_eu = 8;
 #endif
 
     CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const
