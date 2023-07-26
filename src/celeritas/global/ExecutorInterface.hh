@@ -18,6 +18,7 @@ struct has_max_block_size : std::false_type
 {
 };
 
+// cast to void to avoid potential overload of "," operator
 template<typename T>
 struct has_max_block_size<T, decltype((void)T::max_block_size, true)>
     : std::true_type
@@ -40,5 +41,17 @@ struct has_min_warps_per_eu<T, decltype((void)T::min_warps_per_eu, true)>
 
 template<typename T>
 constexpr bool has_min_warps_per_eu_v = has_min_warps_per_eu<T>::value;
+
+template<typename T>
+constexpr bool kernel_no_bound
+    = !has_max_block_size_v<T> && !has_min_warps_per_eu_v<T>;
+
+template<typename T>
+constexpr bool kernel_max_blocks
+    = has_max_block_size_v<T> && !has_min_warps_per_eu_v<T>;
+
+template<typename T>
+constexpr bool kernel_max_blocks_min_warps
+    = has_max_block_size_v<T> && has_min_warps_per_eu_v<T>;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

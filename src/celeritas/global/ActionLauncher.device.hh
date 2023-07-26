@@ -81,22 +81,18 @@ __global__ void __launch_bounds__(T, __B)
     launch_kernel_impl(thread_range, execute_thread);
 }
 
-template<
-    class F,
-    class __E = typename F::Executor,
-    std::enable_if_t<!has_max_block_size_v<__E> && !has_min_warps_per_eu_v<__E>, bool>
-    = true>
+template<class F,
+         class __E = typename F::Executor,
+         std::enable_if_t<kernel_no_bound<__E>, bool> = true>
 constexpr auto kernel_impl() -> decltype(&launch_action_impl<F>)
 {
     constexpr auto ptr = &launch_action_impl<F>;
     return ptr;
 }
 
-template<
-    class F,
-    class __E = typename F::Executor,
-    std::enable_if_t<has_max_block_size_v<__E> && has_min_warps_per_eu_v<__E>, bool>
-    = true>
+template<class F,
+         class __E = typename F::Executor,
+         std::enable_if_t<kernel_max_blocks_min_warps<__E>, bool> = true>
 constexpr auto kernel_impl()
     -> decltype(&launch_bounded_action_impl<F,
                                             __E::max_block_size,
@@ -107,11 +103,9 @@ constexpr auto kernel_impl()
     return ptr;
 }
 
-template<
-    class F,
-    class __E = typename F::Executor,
-    std::enable_if_t<has_max_block_size_v<__E> && !has_min_warps_per_eu_v<__E>, bool>
-    = true>
+template<class F,
+         class __E = typename F::Executor,
+         std::enable_if_t<kernel_max_blocks<__E>, bool> = true>
 constexpr auto kernel_impl()
     -> decltype(&launch_bounded_action_impl<F, __E::max_block_size>)
 {

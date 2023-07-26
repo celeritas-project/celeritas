@@ -135,9 +135,7 @@ struct PropagationApplier
 template<class MP>
 struct PropagationApplier<
     MP,
-    std::enable_if_t<celeritas::has_max_block_size_v<MP>
-                         && celeritas::has_min_warps_per_eu_v<MP>,
-                     bool>>
+    std::enable_if_t<celeritas::kernel_max_blocks_min_warps<MP>, bool>>
 {
     //!@{
     //! \name Type aliases
@@ -156,11 +154,8 @@ struct PropagationApplier<
 };
 
 template<class MP>
-struct PropagationApplier<
-    MP,
-    std::enable_if_t<celeritas::has_max_block_size_v<MP>
-                         && !celeritas::has_min_warps_per_eu_v<MP>,
-                     bool>>
+struct PropagationApplier<MP,
+                          std::enable_if_t<celeritas::kernel_max_blocks<MP>, bool>>
 {
     //!@{
     //! \name Type aliases
