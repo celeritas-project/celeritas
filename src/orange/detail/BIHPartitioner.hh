@@ -58,10 +58,12 @@ class BIHPartitioner
 
   public:
     //! Default constructor
-    BIHPartitioner() {}
+    BIHPartitioner() = default;
 
     // Construct from vector of bounding boxes and respective centers.
     explicit BIHPartitioner(VecBBox* bboxes, VecReal3* centers);
+
+    explicit inline operator bool(){return bboxes_ != nullptr};
 
     // Determine is a set of bounding boxes can be partitioned
     bool is_partitionable(VecIndices const& indices) const;

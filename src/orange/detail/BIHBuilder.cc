@@ -41,7 +41,7 @@ BIHBuilder::BIHBuilder(VecBBox bboxes,
                        BIHBuilder::LVIStorage* lvi_storage,
                        BIHBuilder::InnerNodeStorage* inner_node_storage,
                        BIHBuilder::LeafNodeStorage* leaf_node_storage)
-    : bboxes_(bboxes)
+    : bboxes_(std::move(bboxes))
     , bbox_storage_(bbox_storage)
     , lvi_storage_(lvi_storage)
     , inner_node_storage_(inner_node_storage)
