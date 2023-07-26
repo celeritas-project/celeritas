@@ -34,7 +34,7 @@ struct ProcessPrimariesExecutor
     //// TYPES ////
 
     using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
-    using Executor = ProcessPrimariesExecutor;
+    using Applier = ProcessPrimariesExecutor;
 
     //// DATA ////
 

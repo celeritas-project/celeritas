@@ -54,7 +54,7 @@ class TrackExecutor
     //! \name Type aliases
     using ParamsPtr = CoreParamsPtr<MemSpace::native>;
     using StatePtr = CoreStatePtr<MemSpace::native>;
-    using Executor = T;
+    using Applier = T;
     //!@}
 
   public:
@@ -100,7 +100,7 @@ class ConditionalTrackExecutor
     //! \name Type aliases
     using ParamsPtr = CoreParamsPtr<MemSpace::native>;
     using StatePtr = CoreStatePtr<MemSpace::native>;
-    using Executor = T;
+    using Applier = T;
     //!@}
 
   public:

@@ -37,7 +37,7 @@ struct LocateAliveExecutor
 
     using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
     using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
-    using Executor = LocateAliveExecutor;
+    using Applier = LocateAliveExecutor;
 
     //// DATA ////
 

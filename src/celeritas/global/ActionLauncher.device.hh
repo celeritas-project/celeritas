@@ -22,9 +22,9 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "ActionInterface.hh"
+#include "ApplierInterface.hh"
 #include "CoreParams.hh"
 #include "CoreState.hh"
-#include "ExecutorInterface.hh"
 #include "KernelContextException.hh"
 
 namespace celeritas
@@ -81,35 +81,38 @@ __global__ void __launch_bounds__(T, __B)
     launch_kernel_impl(thread_range, execute_thread);
 }
 
+// Select the correct kernel at compile time depending on the executor's launch
+// bounds.
+
 template<class F,
-         class __E = typename F::Executor,
-         std::enable_if_t<kernel_no_bound<__E>, bool> = true>
-constexpr auto kernel_impl() -> decltype(&launch_action_impl<F>)
+         class __A = typename F::Applier,
+         std::enable_if_t<kernel_no_bound<__A>, bool> = true>
+constexpr auto select_kernel() -> decltype(&launch_action_impl<F>)
 {
     constexpr auto ptr = &launch_action_impl<F>;
     return ptr;
 }
 
 template<class F,
-         class __E = typename F::Executor,
-         std::enable_if_t<kernel_max_blocks_min_warps<__E>, bool> = true>
-constexpr auto kernel_impl()
+         class __A = typename F::Applier,
+         std::enable_if_t<kernel_max_blocks_min_warps<__A>, bool> = true>
+constexpr auto select_kernel()
     -> decltype(&launch_bounded_action_impl<F,
-                                            __E::max_block_size,
-                                            __E::min_warps_per_eu>)
+                                            __A::max_block_size,
+                                            __A::min_warps_per_eu>)
 {
     constexpr auto ptr
-        = &launch_bounded_action_impl<F, __E::max_block_size, __E::min_warps_per_eu>;
+        = &launch_bounded_action_impl<F, __A::max_block_size, __A::min_warps_per_eu>;
     return ptr;
 }
 
 template<class F,
-         class __E = typename F::Executor,
-         std::enable_if_t<kernel_max_blocks<__E>, bool> = true>
-constexpr auto kernel_impl()
-    -> decltype(&launch_bounded_action_impl<F, __E::max_block_size>)
+         class __A = typename F::Applier,
+         std::enable_if_t<kernel_max_blocks<__A>, bool> = true>
+constexpr auto select_kernel()
+    -> decltype(&launch_bounded_action_impl<F, __A::max_block_size>)
 {
-    constexpr auto ptr = &launch_bounded_action_impl<F, __E::max_block_size>;
+    constexpr auto ptr = &launch_bounded_action_impl<F, __A::max_block_size>;
     return ptr;
 }
 
@@ -119,12 +122,12 @@ constexpr auto kernel_impl()
 //---------------------------------------------------------------------------//
 /*!
  * Profile and launch Celeritas kernels from inside an action.
- * The executor template argument expects a member type named \c Executor
- (F::Executor).
- * \c F::Executor can have two static constexpr int variables named
+ * The executor template argument expects a member type named \c Applier
+ (F::Applier).
+ * \c F::Applier can have two static constexpr int variables named
  max_block_size and/or min_warps_per_eu.
  * If present, the kernel will use appropriate \c __launch_bounds__.
- * If \c F::Executor::min_warps_per_eu then \c F::Executor::max_block_size must
+ * If \c F::Applier::min_warps_per_eu then \c F::Applier::max_block_size must
  * also be present or launch bounds won't apply,
  *
  * Semantics of \c __launch_bounds__ 2nd argument differs between CUDA and HIP.
@@ -156,7 +159,7 @@ class ActionLauncher
     using kernel_func_ptr_t = void (*)(Range<ThreadId> const, F);
 
     // TODO: better way to conditionally constexpr init?
-    static constexpr kernel_func_ptr_t kernel_func_ptr = kernel_impl<F>();
+    static constexpr kernel_func_ptr_t kernel_func_ptr = select_kernel<F>();
 
   public:
     //! Create a launcher from an action

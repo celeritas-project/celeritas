@@ -9,8 +9,8 @@
 
 #include <type_traits>
 
+#include "celeritas/global/ApplierInterface.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/global/ExecutorInterface.hh"
 
 namespace celeritas
 {
