@@ -345,7 +345,6 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                        .insert_back(v.faces.begin(), v.faces.end());
     output.logic = make_builder(&orange_data_->logic_ints)
                        .insert_back(input_logic.begin(), input_logic.end());
-    output.bbox = v.bbox;
     output.max_intersections = max_intersections;
     output.flags = v.flags;
     if (simple_safety)

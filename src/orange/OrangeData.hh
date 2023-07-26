@@ -63,7 +63,6 @@ struct VolumeRecord
     logic_int max_intersections{0};
     logic_int flags{0};
     DaughterId daughter_id;
-    BoundingBox bbox;
 
     // TODO (KENO geometry): zorder
 
