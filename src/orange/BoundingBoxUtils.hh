@@ -47,7 +47,7 @@ inline bool is_infinite(BoundingBox const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    auto max_real = std::numeric_limits<real_type>::max();
+    constexpr auto max_real = std::numeric_limits<real_type>::max();
 
     for (auto axis : range(Axis::size_))
     {
