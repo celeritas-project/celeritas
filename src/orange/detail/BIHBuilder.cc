@@ -52,8 +52,6 @@ BIHBuilder::BIHBuilder(VecBBox bboxes,
     centers_.resize(bboxes_.size());
     std::transform(
         bboxes_.begin(), bboxes_.end(), centers_.begin(), &celeritas::center);
-
-    partitioner_ = BIHPartitioner(&bboxes_, &centers_);
 }
 
 //---------------------------------------------------------------------------//
@@ -114,7 +112,8 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
 
-    auto p = partitioner_(indices);
+    BIHPartitioner partitioner(&bboxes_, &centers_);
+    auto p = partitioner(indices);
 
     if (p)
     {

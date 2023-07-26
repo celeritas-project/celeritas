@@ -61,7 +61,7 @@ class BIHPartitioner
     BIHPartitioner() = default;
 
     // Construct from vector of bounding boxes and respective centers.
-    explicit BIHPartitioner(VecBBox* bboxes, VecReal3* centers);
+    explicit BIHPartitioner(VecBBox const* bboxes, VecReal3 const* centers);
 
     explicit inline operator bool() { return bboxes_ != nullptr; }
 
@@ -73,8 +73,8 @@ class BIHPartitioner
     using AxesCenters = std::vector<std::vector<real_type>>;
 
     //// DATA ////
-    VecBBox* bboxes_{nullptr};
-    VecReal3* centers_{nullptr};
+    VecBBox const* bboxes_{nullptr};
+    VecReal3 const* centers_{nullptr};
     static constexpr real_type uniquify_tol_ = 1E-12;
 
     //// HELPER FUNCTIONS ////

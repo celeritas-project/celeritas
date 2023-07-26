@@ -88,7 +88,6 @@ class BIHBuilder
     LVIStorage* lvi_storage_;
     InnerNodeStorage* inner_node_storage_;
     LeafNodeStorage* leaf_node_storage_;
-    BIHPartitioner partitioner_;
 
     //// HELPER FUNCTIONS ////
 

@@ -38,7 +38,7 @@ namespace detail
 /*!
  * Construct from vector of bounding boxes and respective centers.
  */
-BIHPartitioner::BIHPartitioner(VecBBox* bboxes, VecReal3* centers)
+BIHPartitioner::BIHPartitioner(VecBBox const* bboxes, VecReal3 const* centers)
     : bboxes_(bboxes), centers_(centers)
 {
     CELER_EXPECT(!bboxes_->empty());
