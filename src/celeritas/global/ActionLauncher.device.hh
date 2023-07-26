@@ -64,16 +64,16 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
  */
 
 #if CELERITAS_USE_CUDA
-template<class F, int T, int B = 1, int B_FINAL = B>
+template<class F, int T, int B = 1, int __B = (B * 32) / T>
 #elif CELERITAS_USE_HIP
 // see
 // https://rocm.docs.amd.com/projects/HIP/en/latest/reference/kernel_language.html#porting-from-cuda-launch-bounds
-template<class F, int T, int B = 1, int B_FINAL = (B * T) / 32>
+template<class F, int T, int B = 1, int __B = B>
 #else
 #    error \
         "Compiling device code without setting either CELERITAS_USE_CUDA or CELERITAS_USE_HIP"
 #endif
-__global__ void __launch_bounds__(T, B_FINAL)
+__global__ void __launch_bounds__(T, __B)
     launch_bounded_action_impl(Range<ThreadId> const thread_range,
                                F execute_thread)
 {
@@ -90,8 +90,8 @@ __global__ void __launch_bounds__(T, B_FINAL)
  * be forwarded to \c __launch_bounds__ to constraint kernel registers usages.
  *
  * Semantics of \c __launch_bounds__ 2nd argument differs between CUDA and HIP.
- * \c ActionLauncher expects Cuda semantics. If Celeritas is built targeting
- * HIP, it will automatically convert that argument to match HIP semantics.
+ * \c ActionLauncher expects HIP semantics. If Celeritas is built targeting
+ * CUDA, it will automatically convert that argument to match CUDA semantics.
  *
  * The CUDA-specific 3rd argument \c maxBlocksPerCluster is not supported.
  *
