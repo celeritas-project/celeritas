@@ -12,10 +12,6 @@
 #include "celeritas/field/UniformField.hh"  // IWYU pragma: associated
 #include "celeritas/field/UniformFieldData.hh"  // IWYU pragma: associated
 
-#if CELER_USE_DEVICE
-#    include "corecel/sys/Device.hh"
-#endif
-
 namespace celeritas
 {
 namespace detail
@@ -27,9 +23,8 @@ namespace detail
 struct UniformFieldPropagatorFactory
 {
 #if CELER_USE_DEVICE
-    static constexpr int maxThreadsPerBlock
-        = celeritas::Device::default_block_size();
-    static constexpr int minBlocksPerMultiprocessor = 1;
+    static constexpr int maxThreadsPerBlock = 256;
+    static constexpr int minWarpsPerWS = 1;
 #endif
 
     CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const

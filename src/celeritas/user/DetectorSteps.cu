@@ -89,7 +89,7 @@ void gather_step(DeviceRef<StepStateData> const& state, size_type num_valid)
     }
 
     CELER_LAUNCH_KERNEL(gather_step,
-                        celeritas::device().block_size(),
+                        celeritas::device().default_block_size(),
                         num_valid,
                         celeritas::device().stream(state.stream_id).get(),
                         state,
