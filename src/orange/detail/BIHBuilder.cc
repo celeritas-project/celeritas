@@ -50,10 +50,8 @@ BIHBuilder::BIHBuilder(VecBBox bboxes,
     CELER_EXPECT(!bboxes_.empty());
 
     centers_.resize(bboxes_.size());
-    std::transform(bboxes_.begin(),
-                   bboxes_.end(),
-                   centers_.begin(),
-                   [&](BoundingBox const& bbox) { return center(bbox); });
+    std::transform(
+        bboxes_.begin(), bboxes_.end(), centers_.begin(), &celeritas::center);
 
     partitioner_ = BIHPartitioner(&bboxes_, &centers_);
 }

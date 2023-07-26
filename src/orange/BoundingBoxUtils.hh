@@ -130,9 +130,10 @@ inline BoundingBox bbox_union(std::vector<BoundingBox> const& bboxes,
     CELER_EXPECT(!bboxes.empty());
     CELER_EXPECT(!indices.empty());
 
-    auto result = bboxes[indices.front().unchecked_get()];
-
-    for (auto id = std::next(indices.begin()); id != indices.end(); ++id)
+    auto id = indices.begin();
+    auto result = bboxes[id->unchecked_get()];
+    ++id;
+    for (; id != indices.end(); ++id)
     {
         result = bbox_union(result, bboxes[id->unchecked_get()]);
     }

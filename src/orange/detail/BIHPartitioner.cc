@@ -115,7 +115,8 @@ BIHPartitioner::axes_centers(VecIndices const& indices) const
 
     for (auto id : indices)
     {
-        Real3 center = centers_->at(id.unchecked_get());
+        CELER_ASSERT(id < centers_->size());
+        Real3 center = (*centers)[id.unchecked_get()];
         for (auto axis : range(Axis::size_))
         {
             auto ax = to_int(axis);
@@ -143,7 +144,8 @@ void BIHPartitioner::apply_partition(VecIndices const& indices,
 
     for (auto i : range(indices.size()))
     {
-        if (centers_->at(indices[i].unchecked_get())[to_int(p.axis)]
+        CELER_ASSERT(indices[i] < centers_->size());
+        if ((*centers_)[indices[i].unchecked_get()][to_int(p.axis)]
             < p.position)
         {
             p.left_indices.push_back(indices[i]);

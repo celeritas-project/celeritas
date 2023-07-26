@@ -76,8 +76,8 @@ class BIHPartitioner
     using AxesCenters = std::vector<std::vector<real_type>>;
 
     //// DATA ////
-    VecBBox* bboxes_;
-    VecReal3* centers_;
+    VecBBox* bboxes_{nullptr};
+    VecReal3* centers_{nullptr};
     static constexpr real_type uniquify_tol_ = 1E-12;
 
     //// HELPER FUNCTIONS ////
