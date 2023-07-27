@@ -12,6 +12,7 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/em/model/detail/MottInterpolatedCoefficients.hh"
 
 namespace celeritas
 {
@@ -44,12 +45,12 @@ struct WentzelIds
  */
 struct WentzelElementData
 {
-    using BetaArray = Array<real_type, 6>;
-    using ThetaArray = Array<real_type, 5>;
+    using BetaArray = Array<real_type, detail::num_mott_beta_bins>;
+    using ThetaArray = Array<real_type, detail::num_mott_theta_bins>;
 
-    // TODO: Having ThetaArray::size() would make this a lot better!
+    // TODO: Having ThetaArray::size() would make this nicer
     //! Matrix of Mott coefficients [theta][beta]
-    Array<BetaArray, 5> mott_coeff;
+    Array<BetaArray, detail::num_mott_theta_bins> mott_coeff;
 };
 
 //---------------------------------------------------------------------------//
@@ -83,9 +84,6 @@ struct WentzelData
     // Per element form factors
     ElementItems<WentzelElementData> elem_data;
 
-    // Mass of the electron
-    Mass electron_mass;
-
     // User-defined factor for the screening coefficient
     real_type screening_factor;
 
@@ -105,7 +103,6 @@ struct WentzelData
         CELER_EXPECT(other);
         ids = other.ids;
         elem_data = other.elem_data;
-        electron_mass = other.electron_mass;
         form_factor_type = other.form_factor_type;
         screening_factor = other.screening_factor;
         return *this;

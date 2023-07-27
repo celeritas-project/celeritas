@@ -7,10 +7,19 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
+
 namespace celeritas
 {
 namespace detail
 {
+//!@{
+//! \name Dimensions for Mott coefficient matrices
+inline constexpr size_type num_mott_beta_bins = 6;
+inline constexpr size_type num_mott_theta_bins = 5;
+inline constexpr size_type num_mott_elements = 93;
+//!@}
+
 //---------------------------------------------------------------------------//
 /*!
  * Interpolated Mott coefficients used by the Lijian, Quing, Zhengming
@@ -20,7 +29,7 @@ namespace detail
  * For higher Z values, the PRM cites a numerical solution by Boschini
  * et al (2013), but does not implement it.
  */
-static const real_type interpolated_mott_coeffs[93][5][6] = {
+static const real_type interpolated_mott_coeffs[num_mott_elements][num_mott_theta_bins][num_mott_beta_bins] = {
     {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},

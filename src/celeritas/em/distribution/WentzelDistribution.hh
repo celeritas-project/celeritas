@@ -99,6 +99,12 @@ class WentzelDistribution
 
     //! Calculate incident momentum squared
     inline CELER_FUNCTION real_type inc_mom_sq() const;
+
+    //! Calculate the nuclear form momentum scale
+    inline CELER_FUNCTION real_type nuclear_form_momentum_scale() const;
+
+    //! Calculate the screening coefficient R^2 for electrons
+    inline CELER_FUNCTION real_type screen_r_sq_elec() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -157,23 +163,12 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
     }
     else
     {
-        // TODO: Geant has a different form momentum scale for hydrogen?
-        real_type scale = 1 / 3.097e-6;
-        if (target_.atomic_number().get() > 1)
-        {
-            scale = native_value_to<MomentumSq>(
-                        12
-                        * ipow<2>(2 * constants::hbar_planck
-                                  / (real_type(1.27e-15) * units::meter)))
-                        .value();
-        }
-
         // Set nuclear form factor
         form_factor_coeff
             = inc_mom_sq()
               * fastpow(real_type(target_.atomic_mass_number().get()),
                         2 * real_type(0.27))
-              / scale;
+              / nuclear_form_momentum_scale();
     }
 
     // Sample scattering angle [Fern 92] where cos(theta) = 1 + 2*mu
@@ -276,30 +271,20 @@ CELER_FUNCTION real_type WentzelDistribution::compute_screening_coefficient() co
         const real_type factor = sqrt(tau / (tau + sq_cbrt_z));
         const real_type inv_beta_sq = 1 + ipow<2>(inc_mass_) / inc_mom_sq();
 
-        correction = min(target_.atomic_number().get() * 1.13,
-                         1.13
-                             + 3.76
+        correction = min(target_.atomic_number().get() * real_type{1.13},
+                         real_type{1.13}
+                             + real_type{3.76}
                                    * ipow<2>(target_.atomic_number().get()
                                              * constants::alpha_fine_structure)
                                    * inv_beta_sq * factor);
     }
 
-    // Thomas-Fermi constant C_TF.
-    const real_type ctf = fastpow(3 * constants::pi / 4, real_type{2} / 3) / 2;
-
-    // Screening R^2 prefactor for incident electrons
-    const real_type screen_r_sq_elec
-        = native_value_to<MomentumSq>(
-              ipow<2>(constants::hbar_planck / (2 * ctf * constants::a0_bohr)))
-              .value();
-
-    return correction * data_.screening_factor * screen_r_sq_elec * sq_cbrt_z
-           / inc_mom_sq();
+    return correction * screen_r_sq_elec() * sq_cbrt_z / inc_mom_sq();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculates the (cosine of the) maximum polar angle that incident particle
+ * Calculate the (cosine of the) maximum polar angle that incident particle
  * can scatter off of the target's electrons.
  */
 CELER_FUNCTION real_type WentzelDistribution::compute_max_electron_cos_t() const
@@ -322,6 +307,41 @@ CELER_FUNCTION real_type WentzelDistribution::compute_max_electron_cos_t() const
     {
         return 0;
     }
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the momentum scale for the nuclear form factor. This should
+ * be a constant function but it has a special case for hydrogen.
+ */
+CELER_FUNCTION real_type WentzelDistribution::nuclear_form_momentum_scale() const
+{
+    // TODO: Geant has a different form momentum scale for hydrogen?
+    if (target_.atomic_number().get() == 1)
+    {
+        return 1 / real_type{3.097e-6};
+    }
+    return native_value_to<MomentumSq>(
+               12
+               * ipow<2>(2 * constants::hbar_planck
+                         / (real_type(1.27e-15) * units::meter)))
+        .value();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the screening R^2 coefficient for incident electrons. This is
+ * the constant prefactor of [PRM] eqn 8.51
+ */
+CELER_FUNCTION real_type WentzelDistribution::screen_r_sq_elec() const
+{
+    // Thomas-Fermi constant C_TF.
+    const real_type ctf = fastpow(3 * constants::pi / 4, real_type{2} / 3) / 2;
+
+    return data_.screening_factor
+           * native_value_to<MomentumSq>(
+                 ipow<2>(constants::hbar_planck
+                         / (2 * ctf * constants::a0_bohr)))
+                 .value();
 }
 
 //---------------------------------------------------------------------------//

@@ -55,9 +55,6 @@ WentzelModel::WentzelModel(ActionId id,
                    << "missing IDs (required for " << this->description()
                    << ")");
 
-    // Electron mass
-    host_data.electron_mass = particles.get(host_data.ids.electron).mass();
-
     // TODO: Select form factor
     host_data.form_factor_type = NuclearFormFactorType::Exponential;
 
