@@ -110,7 +110,7 @@ CELER_FUNCTION void
 MottXsCalculator::generate_powers(T& powers, real_type x) const
 {
     powers[0] = 1;
-    for (size_type i : range(1u, powers.size()))
+    for (size_type i : range(size_type{1}, powers.size()))
     {
         powers[i] = x * powers[i - 1];
     }
