@@ -143,16 +143,16 @@ void WentzelModel::build_data(HostVal<WentzelData>& host_data,
     for (auto el_id : range(ElementId{num_elements}))
     {
         ElementView const& element = materials.get(el_id);
-        const AtomicNumber z = element.atomic_number();
+        AtomicNumber z = element.atomic_number();
 
         WentzelElementData z_data;
 
         // Load Mott coefficients
         // Currently only support up to Z=92 (Uranium) as taken from Geant4
-        int const index = (z.get() <= 92) ? z.get() : 0;
-        for (int i = 0; i < 5; i++)
+        size_type index = (z.get() <= 92) ? z.get() : 0;
+        for (auto i : range(detail::num_mott_theta_bins))
         {
-            for (int j = 0; j < 6; j++)
+            for (auto j : range(detail::num_mott_beta_bins))
             {
                 z_data.mott_coeff[i][j]
                     = detail::interpolated_mott_coeffs[index][i][j];

@@ -142,8 +142,8 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
 {
     UniformRealDistribution<real_type> uniform_sample;
 
-    const real_type screen_coeff = compute_screening_coefficient();
-    const real_type cos_t_max_elec = compute_max_electron_cos_t();
+    real_type screen_coeff = compute_screening_coefficient();
+    real_type cos_t_max_elec = compute_max_electron_cos_t();
 
     // Parameters for scattering of a nucleus
     real_type form_factor_coeff = 0;
@@ -151,9 +151,9 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
     real_type cos_t2 = -1;
 
     // Randomly choose if scattered off of electrons instead
-    const WentzelXsCalculator xsec(
+    WentzelXsCalculator xsec(
         target_.atomic_number(), screen_coeff, cos_t_max_elec);
-    const real_type elec_ratio = xsec();
+    real_type elec_ratio = xsec();
     if (uniform_sample(rng) < elec_ratio)
     {
         // TODO: Can simplify this logic with
@@ -173,9 +173,9 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
 
     // Sample scattering angle [Fern 92] where cos(theta) = 1 + 2*mu
     // For incident electrons / positrons, theta_min = 0 always
-    const real_type w1 = 1 - cos_t1 + 2 * screen_coeff;
-    const real_type w2 = 1 - cos_t2 + 2 * screen_coeff;
-    const real_type cos_theta = clamp(
+    real_type w1 = 1 - cos_t1 + 2 * screen_coeff;
+    real_type w2 = 1 - cos_t2 + 2 * screen_coeff;
+    real_type cos_theta = clamp(
         1 + 2 * screen_coeff - w1 * w2 / (w1 + uniform_sample(rng) * (w2 - w1)),
         real_type{-1},
         real_type{1});
@@ -183,9 +183,8 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
     // Calculate rejection for fake scattering
     // TODO: Reference?
     MottXsCalculator mott_xsec(element_data_, inc_energy_, inc_mass_);
-    const real_type form_factor
-        = calculate_form_factor(form_factor_coeff, cos_theta);
-    const real_type g_rej = mott_xsec(cos_theta) * ipow<2>(form_factor);
+    real_type form_factor = calculate_form_factor(form_factor_coeff, cos_theta);
+    real_type g_rej = mott_xsec(cos_theta) * ipow<2>(form_factor);
 
     if (uniform_sample(rng) > g_rej)
     {
@@ -193,8 +192,8 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
     }
 
     // Calculate scattered vector assuming azimuthal angle is isotropic
-    const real_type sin_theta = sqrt((1 - cos_theta) * (1 + cos_theta));
-    const real_type phi = 2 * celeritas::constants::pi * uniform_sample(rng);
+    real_type sin_theta = sqrt((1 - cos_theta) * (1 + cos_theta));
+    real_type phi = 2 * celeritas::constants::pi * uniform_sample(rng);
     return {sin_theta * cos(phi), sin_theta * sin(phi), cos_theta};
 }
 
@@ -217,8 +216,7 @@ CELER_FUNCTION real_type WentzelDistribution::calculate_form_factor(
         case NuclearFormFactorType::Flat: {
             // In units MeV
             const real_type ccoef = 0.00508;
-            const real_type x = sqrt(2 * inc_mom_sq() * (1 - cos_t)) * ccoef
-                                * 2;
+            real_type x = sqrt(2 * inc_mom_sq() * (1 - cos_t)) * ccoef * 2;
             return flat_form_factor(x)
                    * flat_form_factor(
                        x * real_type{0.6}
@@ -262,14 +260,14 @@ CELER_FUNCTION real_type WentzelDistribution::compute_screening_coefficient() co
 {
     // TODO: Reference for just proton correction?
     real_type correction = 1;
-    const real_type sq_cbrt_z
+    real_type sq_cbrt_z
         = fastpow(real_type(target_.atomic_number().get()), real_type{2} / 3);
     if (target_.atomic_number().get() > 1)
     {
-        const real_type tau = inc_energy_ / inc_mass_;
+        real_type tau = inc_energy_ / inc_mass_;
         // TODO: Reference for this factor?
-        const real_type factor = sqrt(tau / (tau + sq_cbrt_z));
-        const real_type inv_beta_sq = 1 + ipow<2>(inc_mass_) / inc_mom_sq();
+        real_type factor = sqrt(tau / (tau + sq_cbrt_z));
+        real_type inv_beta_sq = 1 + ipow<2>(inc_mass_) / inc_mom_sq();
 
         correction = min(target_.atomic_number().get() * real_type{1.13},
                          real_type{1.13}
@@ -290,16 +288,15 @@ CELER_FUNCTION real_type WentzelDistribution::compute_screening_coefficient() co
 CELER_FUNCTION real_type WentzelDistribution::compute_max_electron_cos_t() const
 {
     // TODO: Need to validate against Geant4 results
-    const real_type max_energy = is_electron_ ? real_type{0.5} * inc_energy_
-                                              : inc_energy_;
-    const real_type final_energy = inc_energy_
-                                   - min(cutoff_energy_, max_energy);
+    real_type max_energy = is_electron_ ? real_type{0.5} * inc_energy_
+                                        : inc_energy_;
+    real_type final_energy = inc_energy_ - min(cutoff_energy_, max_energy);
 
     if (final_energy > 0)
     {
-        const real_type incident_ratio = 1 + 2 * inc_mass_ / inc_energy_;
-        const real_type final_ratio = 1 + 2 * inc_mass_ / final_energy;
-        const real_type cos_t_max = sqrt(incident_ratio / final_ratio);
+        real_type incident_ratio = 1 + 2 * inc_mass_ / inc_energy_;
+        real_type final_ratio = 1 + 2 * inc_mass_ / final_energy;
+        real_type cos_t_max = sqrt(incident_ratio / final_ratio);
 
         return clamp(cos_t_max, real_type{0}, real_type{1});
     }

@@ -73,8 +73,8 @@ WentzelXsCalculator::WentzelXsCalculator(AtomicNumber target_z,
  */
 CELER_FUNCTION real_type WentzelXsCalculator::operator()() const
 {
-    const real_type nuc_xsec = nuclear_xsec();
-    const real_type elec_xsec = electron_xsec();
+    real_type nuc_xsec = nuclear_xsec();
+    real_type elec_xsec = electron_xsec();
 
     return elec_xsec / (nuc_xsec + elec_xsec);
 }

@@ -56,7 +56,7 @@ MottXsCalculator::MottXsCalculator(WentzelElementData const& element_data,
                                    real_type inc_mass)
     : element_data_(element_data)
 {
-    real_type const inc_mom = sqrt(inc_energy * (inc_energy + 2 * inc_mass));
+    real_type inc_mom = sqrt(inc_energy * (inc_energy + 2 * inc_mass));
     beta_ = inc_mom / (inc_energy + inc_mass);
     CELER_EXPECT(beta_ < 1);
 }
@@ -76,13 +76,13 @@ real_type MottXsCalculator::operator()(real_type cos_theta) const
     CELER_EXPECT(cos_theta >= -1 && cos_theta <= 1);
 
     // (Exponent) Base for theta powers
-    const real_type fcos_t = sqrt(1 - cos_theta);
+    real_type fcos_t = sqrt(1 - cos_theta);
 
     // Mean velocity of electrons between ~KeV and 900 MeV
     const real_type beta_shift = 0.7181228;
 
     // (Exponent) Base for beta powers
-    const real_type beta0 = beta_ - beta_shift;
+    real_type beta0 = beta_ - beta_shift;
 
     // Construct arrays of powers
     WentzelElementData::BetaArray beta_powers;

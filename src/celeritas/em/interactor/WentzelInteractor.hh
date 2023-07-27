@@ -127,7 +127,7 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
 {
     // Select an isotope of the target nucleus
     IsotopeSelector iso_select(element_);
-    const IsotopeView target = element_.make_isotope_view(iso_select(rng));
+    IsotopeView target = element_.make_isotope_view(iso_select(rng));
 
     // Distribution model governing the scattering
     WentzelDistribution distrib(inc_energy_,
@@ -142,7 +142,7 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
     Interaction result;
 
     // Sample the new direction
-    const Real3 new_direction = distrib(rng);
+    Real3 new_direction = distrib(rng);
     result.direction = rotate(inc_direction_, new_direction);
 
     // Recoil energy is kinetic energy transfered to the atom
@@ -167,8 +167,8 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
 CELER_FUNCTION real_type WentzelInteractor::calc_recoil_energy(
     Real3 const& new_direction, Mass const& target_mass) const
 {
-    const real_type cos_theta = new_direction[2];
-    const real_type inc_mom_sq = inc_energy_ * (inc_energy_ + 2 * inc_mass_);
+    real_type cos_theta = new_direction[2];
+    real_type inc_mom_sq = inc_energy_ * (inc_energy_ + 2 * inc_mass_);
     return inc_mom_sq * (1 - cos_theta)
            / (value_as<Mass>(target_mass)
               + (inc_mass_ + inc_energy_) * (1 - cos_theta));
