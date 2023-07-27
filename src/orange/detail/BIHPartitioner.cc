@@ -67,10 +67,8 @@ BIHPartitioner::operator()(VecIndices const& indices) const
 
         for (auto i : range(axes_centers[ax].size() - 1))
         {
-            Partition p;
-            p.axis = axis;
-            p.position = (axes_centers[ax][i] + axes_centers[ax][i + 1]) / 2;
-            this->apply_partition(indices, p);
+            auto position = (axes_centers[ax][i] + axes_centers[ax][i + 1]) / 2;
+            auto p = this->make_partition(indices, axis, position);
             auto cost = this->calc_cost(p);
 
             if (cost < best_cost)
@@ -121,10 +119,16 @@ BIHPartitioner::calc_axes_centers(VecIndices const& indices) const
 /*!
  * Divide bboxes into left and right branches based on a partition.
  */
-void BIHPartitioner::apply_partition(VecIndices const& indices,
-                                     Partition& p) const
+BIHPartitioner::Partition
+BIHPartitioner::make_partition(VecIndices const& indices,
+                               Axis axis,
+                               real_type position) const
 {
     CELER_EXPECT(!indices.empty());
+
+    Partition p;
+    p.axis = axis;
+    p.position = position;
 
     for (auto i : range(indices.size()))
     {
@@ -144,6 +148,8 @@ void BIHPartitioner::apply_partition(VecIndices const& indices,
         = bbox_union(*bboxes_, p.indices[BIHInnerNode::Edge::left]);
     p.bboxes[BIHInnerNode::Edge::right]
         = bbox_union(*bboxes_, p.indices[BIHInnerNode::Edge::right]);
+
+    return p;
 }
 
 //---------------------------------------------------------------------------//

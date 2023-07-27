@@ -82,8 +82,10 @@ class BIHPartitioner
     // Create sorted and uniquified X, Y, Z values of bbox centers
     AxesCenters calc_axes_centers(VecIndices const& indices) const;
 
-    // Divide bboxes into left and right branches based on a partition
-    void apply_partition(VecIndices const& indices, Partition& partition) const;
+    // Create a partition object
+    Partition make_partition(VecIndices const& indices,
+                             Axis axis,
+                             real_type position) const;
 
     // Calculate the cost of partition using a surface area heuristic
     real_type calc_cost(Partition const& partition) const;
