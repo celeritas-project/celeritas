@@ -39,10 +39,6 @@ GeantStepDiagnostic::GeantStepDiagnostic(size_type num_bins,
 }
 
 //---------------------------------------------------------------------------//
-//! Default destructor
-GeantStepDiagnostic::~GeantStepDiagnostic() = default;
-
-//---------------------------------------------------------------------------//
 /*!
  * Write output to the given JSON object.
  */

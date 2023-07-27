@@ -39,9 +39,6 @@ class GeantStepDiagnostic final : public OutputInterface
     // Construct with number of bins and threads
     GeantStepDiagnostic(size_type num_bins, size_type num_threads);
 
-    //! Default destructor
-    ~GeantStepDiagnostic();
-
     //!@{
     //! \name Output interface
     //! Category of data to write
