@@ -60,10 +60,24 @@ class DormandPrinceMultiStepper
 };
 
 //---------------------------------------------------------------------------//
+// MACROS
+//---------------------------------------------------------------------------//
+#define UPDATE_STATE(index, state, coefficient, k)        \
+    state.pos[index - 1] = coefficient * k.pos[index - 1] \
+                           + state.pos[index - 1];        \
+    state.mom[index - 1] = coefficient * k.mom[index - 1] \
+                           + state.mom[index - 1];
+
+#define DISPATCH_VECT_MULT(mask) \
+    __syncwarp(mask);            \
+    __syncwarp(mask);
+
+//---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION DormandPrinceMultiStepper(EquationT&&)->DormandPrinceMultiStepper<EquationT>;
+CELER_FUNCTION DormandPrinceMultiStepper(EquationT&&)
+    ->DormandPrinceMultiStepper<EquationT>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

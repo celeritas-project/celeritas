@@ -9,12 +9,32 @@
 
 #if !CELER_USE_DEVICE
 template<class E>
- auto
-DormandPrinceMultiStepper<E>::operator()(real_type step,
-                                    OdeState const& beg_state,
-                                    int id, int index) const
-    -> result_type
-{
-    CELER_NOT_CONFIGURED("CUDA or HIP");
-}
+auto DormandPrinceMultiStepper<E>::operator()(real_type step,
+                                              OdeState const& beg_state,
+                                              int id,
+                                              int index,
+                                              OdeState* ks,
+                                              OdeState* along_state,
+                                              FieldStepperResult* result) const
+
+    template<class E>
+    auto DormandPrinceMultiStepper<E>::run_sequential(
+        real_type step,
+        OdeState const& beg_state,
+        int id,
+        int mask,
+        OdeState* ks,
+        OdeState* along_state,
+        FieldStepperResult* result) const
+
+    template<class E>
+    auto DormandPrinceMultiStepper<E>::run_aside(
+        real_type step,
+        OdeState const& beg_state,
+        int id,
+        int index,
+        int mask,
+        OdeState* ks,
+        OdeState* along_state,
+        FieldStepperResult* result) const;
 #endif

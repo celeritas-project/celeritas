@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/field/DormandPrinceStepper.hh" // for DormandPrinceStepper
-#include "celeritas/field/DormandPrinceMultiStepper.hh" // for DormandPrinceMultiStepper
-#include "celeritas/field/DormandPrinceMultiStepper.cu" // TODO: remove this linea
-#include "celeritas/field/MagFieldEquation.hh"    // for MagFieldEquation
-#include "corecel/io/Logger.hh" // for CELER_LOG
-#include "celeritas/field/FieldDriver.hh" // for FieldDriver
+#include "celeritas/field/DormandPrinceMultiStepper.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"
+// TODO: remove this line to only use .hh
+#include "corecel/io/Logger.hh"
+#include "celeritas/field/DormandPrinceMultiStepper.cu"
+#include "celeritas/field/FieldDriver.hh"
+#include "celeritas/field/MagFieldEquation.hh"
 
 namespace celeritas
 {
@@ -20,7 +21,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using celeritas::units::ElementaryCharge;
-using Evaluator_t = celeritas::MagFieldEquation<Real3 (&)(const Real3&)>;
+using Evaluator_t = celeritas::MagFieldEquation<Real3 (&)(Real3 const&)>;
 using Stepper_uni   = celeritas::DormandPrinceStepper<Evaluator_t&>;
 using Stepper_multi = celeritas::DormandPrinceMultiStepper<Evaluator_t&>;
 

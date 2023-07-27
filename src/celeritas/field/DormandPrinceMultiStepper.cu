@@ -19,8 +19,12 @@ namespace celeritas
 template<class E>
 CELER_FUNCTION auto
 DormandPrinceMultiStepper<E>::operator()(real_type step,
-                                    OdeState const& beg_state,
-                                    int id, int index, OdeState *ks, OdeState *along_state, FieldStepperResult *result) const
+                                         OdeState const& beg_state,
+                                         int id,
+                                         int index,
+                                         OdeState* ks,
+                                         OdeState* along_state,
+                                         FieldStepperResult* result) const
     -> result_type
 {
     int mask = (4 * 4 - 1) << (id * 4);
@@ -40,8 +44,13 @@ DormandPrinceMultiStepper<E>::operator()(real_type step,
 template<class E>
 CELER_FUNCTION void
 DormandPrinceMultiStepper<E>::run_aside(real_type step,
-                                    OdeState const& beg_state,
-                                    int id, int index, int mask, OdeState *ks, OdeState *along_state, FieldStepperResult *result) const
+                                        OdeState const& beg_state,
+                                        int id,
+                                        int index,
+                                        int mask,
+                                        OdeState* ks,
+                                        OdeState* along_state,
+                                        FieldStepperResult* result) const
 {
     using R = real_type;
     // Coefficients for Dormand-Prince Rks[4](4)7M
@@ -87,7 +96,8 @@ DormandPrinceMultiStepper<E>::run_aside(real_type step,
     constexpr R c77 = 11237099 / R(235043384);
 
     // Coefficients for the vector multiplication
-    constexpr R axx[] = {a11, a21, a22, a31, a32, a33, a41, a42, a43, a44, a51, a52, a53, a54, a55, a61, a63, a64, a65, a66};
+    constexpr R axx[] = {a11, a21, a22, a31, a32, a33, a41, a42, a43, a44,
+                         a51, a52, a53, a54, a55, a61, a63, a64, a65, a66};
     constexpr R dxx[] = {d71, d73, d74, d75, d76, d77};
     constexpr R cxx[] = {c71, c73, c74, c75, c76, c77};
 
@@ -96,8 +106,8 @@ DormandPrinceMultiStepper<E>::run_aside(real_type step,
     for (int i = 0; i < 5; i++){
         __syncwarp(mask);
         for (int j = 0; j <= i; j++){
-            along_state->pos[index-1] = (step * axx[coef_counter]) * ks[j].pos[index-1] + along_state->pos[index-1];
-            along_state->mom[index-1] = (step * axx[coef_counter]) * ks[j].mom[index-1] + along_state->mom[index-1];
+            UPDATE_STATE(
+                index, (*along_state), step * axx[coef_counter], ks[j]);
             coef_counter++;
         }
         __syncwarp(mask);
@@ -107,8 +117,7 @@ DormandPrinceMultiStepper<E>::run_aside(real_type step,
     __syncwarp(mask);
     for (int j = 0; j < 6; j++){
         if (j==1) continue; // because a62 = 0
-        result->end_state.pos[index-1] = (step * axx[coef_counter]) * ks[j].pos[index-1] + result->end_state.pos[index-1];
-        result->end_state.mom[index-1] = (step * axx[coef_counter]) * ks[j].mom[index-1] + result->end_state.mom[index-1];
+        UPDATE_STATE(index, result->end_state, step * axx[coef_counter], ks[j]);
         coef_counter++;
     }
     __syncwarp(mask);
@@ -118,21 +127,23 @@ DormandPrinceMultiStepper<E>::run_aside(real_type step,
     coef_counter = 0;
     for (int j = 0; j < 7; j++){
         if (j==1) continue; // because d72 and c72 = 0
-        result->err_state.pos[index-1] = (step * dxx[coef_counter]) * ks[j].pos[index-1] + result->err_state.pos[index-1];
-        result->err_state.mom[index-1] = (step * dxx[coef_counter]) * ks[j].mom[index-1] + result->err_state.mom[index-1];
-        result->mid_state.pos[index-1] = (step * cxx[coef_counter] / R(2)) * ks[j].pos[index-1] + result->mid_state.pos[index-1];
-        result->mid_state.mom[index-1] = (step * cxx[coef_counter] / R(2)) * ks[j].mom[index-1] + result->mid_state.mom[index-1];
+        UPDATE_STATE(index, result->err_state, step * dxx[coef_counter], ks[j]);
+        UPDATE_STATE(
+            index, result->mid_state, step * cxx[coef_counter] / R(2), ks[j]);
         coef_counter++;
     }
     __syncwarp(mask);
 }
 
-
 template<class E>
 CELER_FUNCTION void
 DormandPrinceMultiStepper<E>::run_sequential(real_type step,
-                                    OdeState const& beg_state,
-                                    int id, int mask, OdeState *ks, OdeState *along_state, FieldStepperResult *result) const
+                                             OdeState const& beg_state,
+                                             int id,
+                                             int mask,
+                                             OdeState* ks,
+                                             OdeState* along_state,
+                                             FieldStepperResult* result) const
 {
     debug_print("Mask for thread %d index %d is %d\n", id, 0, mask);
 
@@ -140,43 +151,37 @@ DormandPrinceMultiStepper<E>::run_sequential(real_type step,
     debug_print("Step 1 ------------------\n");
     ks[0] = calc_rhs_(beg_state);
     *along_state = beg_state;
-    __syncwarp(mask);
-    __syncwarp(mask);
+    DISPATCH_VECT_MULT(mask);
 
     // Second step
     debug_print("Step 2 ------------------\n");
     ks[1] = calc_rhs_(*along_state);
     *along_state = beg_state;
-    __syncwarp(mask);
-    __syncwarp(mask);
+    DISPATCH_VECT_MULT(mask);
 
     // Third step
     debug_print("Step 3 ------------------\n");
     ks[2] = calc_rhs_(*along_state);
     *along_state = beg_state;
-    __syncwarp(mask);
-    __syncwarp(mask);
+    DISPATCH_VECT_MULT(mask);
 
     // Fourth step
     debug_print("Step 4 ------------------\n");
     ks[3] = calc_rhs_(*along_state);
     *along_state = beg_state;
-    __syncwarp(mask);
-    __syncwarp(mask);
-   
+    DISPATCH_VECT_MULT(mask);
+
     // Fifth step
     debug_print("Step 5 ------------------\n");
     ks[4] = calc_rhs_(*along_state);
     *along_state = beg_state;
-   __syncwarp(mask);
-    __syncwarp(mask);
+    DISPATCH_VECT_MULT(mask);
 
     // Sixth step
     debug_print("Step 6 ------------------\n");
     ks[5] = calc_rhs_(*along_state);
     result->end_state = beg_state;
-    __syncwarp(mask);
-    __syncwarp(mask);
+    DISPATCH_VECT_MULT(mask);
 
     // Seventh step: the final step
     ks[6] = calc_rhs_(result->end_state);
@@ -184,10 +189,12 @@ DormandPrinceMultiStepper<E>::run_sequential(real_type step,
     // The error estimate and the mid point
     result->err_state = {{0, 0, 0}, {0, 0, 0}};
     result->mid_state = beg_state;
-    __syncwarp(mask);
-    __syncwarp(mask);
+    DISPATCH_VECT_MULT(mask);
 
-    debug_print("Result mid state pos: %f %f %f\n", result->mid_state.pos[0], result->mid_state.pos[1], result->mid_state.pos[2]);
+    debug_print("Result mid state pos: %f %f %f\n",
+                result->mid_state.pos[0],
+                result->mid_state.pos[1],
+                result->mid_state.pos[2]);
     debug_print("Finish main task for thread %d index %d\n", id, 0);
 }
 
