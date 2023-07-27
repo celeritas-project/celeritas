@@ -121,25 +121,4 @@ inline BoundingBox bbox_union(BoundingBox const& a, BoundingBox const& b)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Calculate bounding box enclosing bounding boxes for specified indices.
- */
-inline BoundingBox bbox_union(std::vector<BoundingBox> const& bboxes,
-                              std::vector<LocalVolumeId> const& indices)
-{
-    CELER_EXPECT(!bboxes.empty());
-    CELER_EXPECT(!indices.empty());
-
-    auto id = indices.begin();
-    auto result = bboxes[id->unchecked_get()];
-    ++id;
-    for (; id != indices.end(); ++id)
-    {
-        result = bbox_union(result, bboxes[id->unchecked_get()]);
-    }
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -9,6 +9,7 @@
 
 #include "corecel/math/SoftEqual.hh"
 #include "orange/BoundingBoxUtils.hh"
+#include "orange/detail/BIHUtils.hh"
 
 namespace
 {
