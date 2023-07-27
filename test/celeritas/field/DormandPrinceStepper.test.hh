@@ -8,6 +8,8 @@
 #pragma once
 
 #include "celeritas/field/DormandPrinceStepper.hh" // for DormandPrinceStepper
+#include "celeritas/field/DormandPrinceMultiStepper.hh" // for DormandPrinceMultiStepper
+#include "celeritas/field/DormandPrinceMultiStepper.cu" // TODO: remove this linea
 #include "celeritas/field/MagFieldEquation.hh"    // for MagFieldEquation
 #include "corecel/io/Logger.hh" // for CELER_LOG
 #include "celeritas/field/FieldDriver.hh" // for FieldDriver
@@ -19,18 +21,17 @@ namespace test
 //---------------------------------------------------------------------------//
 using celeritas::units::ElementaryCharge;
 using Evaluator_t = celeritas::MagFieldEquation<Real3 (&)(const Real3&)>;
-using Stepper_DormandPrince   = celeritas::DormandPrinceStepper<Evaluator_t&>;
-// using time_unit = std::chrono::nanoseconds;
+using Stepper_uni   = celeritas::DormandPrinceStepper<Evaluator_t&>;
+using Stepper_multi = celeritas::DormandPrinceMultiStepper<Evaluator_t&>;
 
 //---------------------------------------------------------------------------//
 // CONSTANTS
 //---------------------------------------------------------------------------//
-constexpr int number_iterations = 40;
-constexpr double initial_step_size = 1.0;
-constexpr double delta_chord = 1.0;
-constexpr double half = 0.5;
+constexpr int one_thread = 1;
+constexpr int multi_thread = 4;
+constexpr int number_iterations = 1;
 constexpr OdeState initial_states [5]= {
-    OdeState{{1, 2, 3}, {0, 0, 1}},
+    OdeState{{1, 2, 3}, {1, 1, 1}},
     OdeState{{0, 0, 0}, {0, 0, 1}},
     OdeState{{-1, -2, -3}, {0, 0, 1}},
     OdeState{{1, 2, 3}, {0, 0, -1}},
@@ -90,6 +91,26 @@ inline std::string print_results(FieldStepperResult const& expected, FieldSteppe
 }
 
 inline CELER_FUNCTION bool compare_results(FieldStepperResult& e1, FieldStepperResult& e2){
+    // Check that the results isn't 0
+    if (e1.mid_state.pos[0] == 0 &&
+        e1.mid_state.pos[1] == 0 &&
+        e1.mid_state.pos[2] == 0 &&
+        e1.mid_state.mom[0] == 0 &&
+        e1.mid_state.mom[1] == 0 &&
+        e1.mid_state.mom[2] == 0 &&
+        e1.err_state.pos[0] == 0 &&
+        e1.err_state.pos[1] == 0 &&
+        e1.err_state.pos[2] == 0 &&
+        e1.err_state.mom[0] == 0 &&
+        e1.err_state.mom[1] == 0 &&
+        e1.err_state.mom[2] == 0 &&
+        e1.end_state.pos[0] == 0 &&
+        e1.end_state.pos[1] == 0 &&
+        e1.end_state.pos[2] == 0 &&
+        e1.end_state.mom[0] == 0 &&
+        e1.end_state.mom[1] == 0 &&
+        e1.end_state.mom[2] == 0) return false;
+
     // Comparing mid state
     if (e1.mid_state.pos[0] != e2.mid_state.pos[0]) return false;
     if (e1.mid_state.pos[1] != e2.mid_state.pos[1]) return false;
@@ -125,23 +146,16 @@ struct KernelResult
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void dormand_prince_cuda_test();
-KernelResult simulate_multi_next_chord();
+KernelResult simulate_multi_next_chord(int number_threads);
+void test();
 
 #if !CELER_USE_DEVICE
-inline void dormand_prince_cuda_test()
-{ 
-    CELER_NOT_CONFIGURED("CUDA or HIP");
-    return nullptr;
-}
-
-inline KernelResult simulate_multi_next_chord()
+inline KernelResult simulate_multi_next_chord(int number_threads)
 { 
     CELER_NOT_CONFIGURED("CUDA or HIP");
     return nullptr;
 }
 #endif
-
 
 //---------------------------------------------------------------------------//
 }  // namespace test
