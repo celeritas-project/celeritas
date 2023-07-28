@@ -175,9 +175,9 @@ ConeAligned<T>::calc_intersections(Real3 const& pos,
     real_type const w = dir[v_index()];
 
     // Scaled direction
-    real_type a = (-tsq_ * ipow<2>(u)) + (ipow<2>(v)) + (ipow<2>(w));
+    real_type a = (-tsq_ * ipow<2>(u)) + ipow<2>(v) + ipow<2>(w);
     real_type half_b = (-tsq_ * x * u) + (y * v) + (z * w);
-    real_type c = (-tsq_ * ipow<2>(x)) + (ipow<2>(y)) + (ipow<2>(z));
+    real_type c = (-tsq_ * ipow<2>(x)) + ipow<2>(y) + ipow<2>(z);
 
     return detail::QuadraticSolver::solve_general(a, half_b, c, on_surface);
 }
