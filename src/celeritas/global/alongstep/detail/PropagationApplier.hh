@@ -9,7 +9,7 @@
 
 #include <type_traits>
 
-#include "celeritas/global/ApplierInterface.hh"
+#include "celeritas/global/ApplierTrait.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas

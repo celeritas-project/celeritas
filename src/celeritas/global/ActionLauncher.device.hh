@@ -22,7 +22,7 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "ActionInterface.hh"
-#include "ApplierInterface.hh"
+#include "ApplierTrait.hh"
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "KernelContextException.hh"

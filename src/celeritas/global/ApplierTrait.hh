@@ -4,7 +4,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ApplierInterface.hh
+//! \file celeritas/global/ApplierTrait.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
