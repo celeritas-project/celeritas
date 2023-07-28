@@ -147,7 +147,6 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
 
     // Parameters for scattering of a nucleus
     real_type form_factor_coeff = 0;
-    real_type cos_t1 = 1;
     real_type cos_t2 = -1;
 
     // Randomly choose if scattered off of electrons instead
@@ -156,9 +155,6 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
     real_type elec_ratio = xsec();
     if (uniform_sample(rng) < elec_ratio)
     {
-        // TODO: Can simplify this logic with
-        //       -1 <= cos_t_max_elec <= 1
-        cos_t1 = max(cos_t1, cos_t_max_elec);
         cos_t2 = max(cos_t2, cos_t_max_elec);
     }
     else
@@ -173,10 +169,10 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
 
     // Sample scattering angle [Fern 92] where cos(theta) = 1 + 2*mu
     // For incident electrons / positrons, theta_min = 0 always
-    real_type w1 = 1 - cos_t1 + 2 * screen_coeff;
-    real_type w2 = 1 - cos_t2 + 2 * screen_coeff;
+    real_type mu = real_type{0.5} * (1 - cos_t2);
+    real_type xi = uniform_sample(rng);
     real_type cos_theta = clamp(
-        1 + 2 * screen_coeff - w1 * w2 / (w1 + uniform_sample(rng) * (w2 - w1)),
+        1 + 2 * screen_coeff * mu * (1 - xi) / (screen_coeff - mu * xi),
         real_type{-1},
         real_type{1});
 
@@ -331,8 +327,9 @@ CELER_FUNCTION real_type WentzelDistribution::nuclear_form_momentum_scale() cons
  */
 CELER_FUNCTION real_type WentzelDistribution::screen_r_sq_elec() const
 {
-    // Thomas-Fermi constant C_TF.
-    const real_type ctf = fastpow(3 * constants::pi / 4, real_type{2} / 3) / 2;
+    // Thomas-Fermi constant C_TF \f$ \frac{1}{2}
+    // \left(\frac{3\pi}{4}\right)^{2/3} \f$
+    constexpr real_type ctf = 0.88534;
 
     return data_.screening_factor
            * native_value_to<MomentumSq>(

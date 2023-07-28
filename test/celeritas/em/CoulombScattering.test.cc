@@ -266,11 +266,12 @@ TEST_F(CoulombScatteringTest, distribution)
                                                  0.9999999728531,
                                                  0.99999999909264,
                                                  0.99999999999393};
-    static double const expected_screen_z[] = {2.1181757502465e-08,
-                                               5.3641196710457e-09,
-                                               1.3498490873627e-09,
-                                               5.4280909096648e-11,
-                                               3.2158426877075e-13};
+    static double const expected_screen_zs[] = {2.1181823391965e-08,
+                                                5.3641363570627e-09,
+                                                1.3498532863005e-09,
+                                                5.4281077946754e-11,
+                                                3.2158526911394e-13};
+
     static double const expected_cos_t_max[] = {0.99989885103277,
                                                 0.99997458240728,
                                                 0.99999362912075,
@@ -329,7 +330,7 @@ TEST_F(CoulombScatteringTest, distribution)
             expected_avg_angles[i], avg_angle, std::sqrt(num_samples));
     }
 
-    EXPECT_VEC_SOFT_EQ(expected_screen_z, screen_zs);
+    EXPECT_VEC_SOFT_EQ(expected_screen_zs, screen_zs);
     EXPECT_VEC_SOFT_EQ(expected_cos_t_max, cos_t_maxs);
 }
 //---------------------------------------------------------------------------//

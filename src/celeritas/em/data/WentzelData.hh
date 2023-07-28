@@ -72,9 +72,6 @@ enum class NuclearFormFactorType
 template<Ownership W, MemSpace M>
 struct WentzelData
 {
-    using Mass = units::MevMass;
-    using MomentumSq = units::MevMomentumSq;
-
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
 
