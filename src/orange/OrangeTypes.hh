@@ -98,19 +98,15 @@ enum class SurfaceType : unsigned char
     cyc,  //!< Cylinder centered on Y axis
     czc,  //!< Cylinder centered on Z axis
     sc,  //!< Sphere centered at the origin
-#if 0
     cx,  //!< Cylinder parallel to X axis
     cy,  //!< Cylinder parallel to Y axis
     cz,  //!< Cylinder parallel to Z axis
-    p,   //!< General plane
-#endif
+    p,  //!< General plane
     s,  //!< Sphere
-#if 0
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
-#endif
     gq,  //!< General quadric
     size_  //!< Sentinel value for number of surface types
 };

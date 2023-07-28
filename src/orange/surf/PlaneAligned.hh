@@ -23,7 +23,7 @@ class PlaneAligned
 {
   public:
     //@{
-    //! Type aliases
+    //! \name Type aliases
     using Intersections = Array<real_type, 1>;
     using Storage = Span<const real_type, 1>;
     //@}
@@ -92,8 +92,10 @@ using PlaneZ = PlaneAligned<Axis::z>;
 template<Axis T>
 CELER_CONSTEXPR_FUNCTION SurfaceType PlaneAligned<T>::surface_type()
 {
-    return (T == Axis::x ? SurfaceType::px
-                         : (T == Axis::y ? SurfaceType::py : SurfaceType::pz));
+    return T == Axis::x   ? SurfaceType::px
+           : T == Axis::y ? SurfaceType::py
+           : T == Axis::z ? SurfaceType::pz
+                          : SurfaceType::size_;
 }
 
 //---------------------------------------------------------------------------//
@@ -136,9 +138,11 @@ PlaneAligned<T>::calc_intersections(Real3 const& pos,
                                     SurfaceState on_surface) const
     -> Intersections
 {
-    if (on_surface == SurfaceState::off && dir[t_index()] != 0)
+    real_type const n_dir = dir[t_index()];
+    if (on_surface == SurfaceState::off && n_dir != 0)
     {
-        real_type dist = (position_ - pos[t_index()]) / dir[t_index()];
+        real_type const n_pos = pos[t_index()];
+        real_type dist = (position_ - n_pos) / n_dir;
         if (dist > 0)
         {
             return {dist};

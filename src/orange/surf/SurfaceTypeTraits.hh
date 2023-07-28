@@ -13,10 +13,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 template<Axis T>
-class PlaneAligned;
+class ConeAligned;
+template<Axis T>
+class CylAligned;
 template<Axis T>
 class CylCentered;
 class GeneralQuadric;
+class Plane;
+template<Axis T>
+class PlaneAligned;
+class SimpleQuadric;
 class Sphere;
 class SphereCentered;
 
@@ -42,19 +48,15 @@ ORANGE_SURFACE_TRAITS(cxc, CylCentered<Axis::x>);
 ORANGE_SURFACE_TRAITS(cyc, CylCentered<Axis::y>);
 ORANGE_SURFACE_TRAITS(czc, CylCentered<Axis::z>);
 ORANGE_SURFACE_TRAITS(sc,  SphereCentered);
-#if 0
 ORANGE_SURFACE_TRAITS(cx,  CylAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(cy,  CylAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(cz,  CylAligned<Axis::z>);
 ORANGE_SURFACE_TRAITS(p,   Plane);
-#endif
 ORANGE_SURFACE_TRAITS(s,   Sphere);
-#if 0
 ORANGE_SURFACE_TRAITS(kx,  ConeAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(ky,  ConeAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(kz,  ConeAligned<Axis::z>);
 ORANGE_SURFACE_TRAITS(sq,  SimpleQuadric);
-#endif
 ORANGE_SURFACE_TRAITS(gq,  GeneralQuadric);
 // clang-format on
 
