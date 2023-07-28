@@ -331,6 +331,12 @@ inline constexpr char to_char(Sense s)
 // Get a string corresponding to a surface type
 char const* to_cstring(SurfaceType);
 
+// Get a string corresponding to a surface state
+inline char const* to_cstring(SurfaceState s)
+{
+    return s == SurfaceState::off ? "off" : "on";
+}
+
 //! Get a printable character corresponding to an operator.
 namespace logic
 {
