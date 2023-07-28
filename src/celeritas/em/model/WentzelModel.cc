@@ -118,6 +118,7 @@ void WentzelModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
+//!@}
 
 //---------------------------------------------------------------------------//
 /*!
