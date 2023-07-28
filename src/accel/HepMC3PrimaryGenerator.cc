@@ -21,28 +21,6 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-/*!
- * Get the world solid volume.
- *
- * This must be called *after* detector setup, otherwise the app will crash.
- */
-G4VSolid* get_world_solid()
-{
-    auto* nav = G4TransportationManager::GetTransportationManager()
-                    ->GetNavigatorForTracking();
-    CELER_ASSERT(nav);
-    auto* world = nav->GetWorldVolume();
-    CELER_VALIDATE(world,
-                   << "detector geometry was not initialized before "
-                      "HepMC3PrimaryGenerator was instantiated");
-    auto* lv = world->GetLogicalVolume();
-    CELER_ASSERT(lv);
-    auto* solid = lv->GetSolid();
-    CELER_ENSURE(solid);
-    return solid;
-}
-
-//---------------------------------------------------------------------------//
 //! Add particles to an event using vertices
 class PrimaryInserter
 {
@@ -89,6 +67,28 @@ class PrimaryInserter
         g4_vtx_ = std::make_unique<G4PrimaryVertex>();
     }
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the world solid volume.
+ *
+ * This must be called *after* detector setup, otherwise the app will crash.
+ */
+G4VSolid* get_world_solid()
+{
+    auto* nav = G4TransportationManager::GetTransportationManager()
+                    ->GetNavigatorForTracking();
+    CELER_ASSERT(nav);
+    auto* world = nav->GetWorldVolume();
+    CELER_VALIDATE(world,
+                   << "detector geometry was not initialized before "
+                      "HepMC3PrimaryGenerator was instantiated");
+    auto* lv = world->GetLogicalVolume();
+    CELER_ASSERT(lv);
+    auto* solid = lv->GetSolid();
+    CELER_ENSURE(solid);
+    return solid;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -163,12 +163,13 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 
     for (auto const& par : evt.particles())
     {
-        if (par->data().status != 1)
+        if (par->data().status != 1 || par->end_vertex())
         {
             // Skip particles that should not be tracked: Geant4 HepMCEx01
-            // skips everything but 1 (event generator output)
-            // Status codes (page 13):
+            // skips all that don't have the status code of "final" (see
             // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
+            // ) and furthermore skips particles that are not leaves on the
+            // tree of generated particles
             continue;
         }
         ++num_primaries;

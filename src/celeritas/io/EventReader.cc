@@ -10,6 +10,7 @@
 #include <set>
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/ReaderFactory.h>
+#include <HepMC3/Setup.h>
 
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
@@ -83,12 +84,10 @@ auto EventReader::operator()() -> result_type
     int track_id = 0;
     for (auto const& par : evt.particles())
     {
-        if (par->data().status != 1)
+        if (par->data().status != 1 || par->end_vertex())
         {
-            // Skip particles that should not be tracked: Geant4 HepMCEx01
-            // skips everything but 1 (event generator output)
-            // Status codes (page 13):
-            // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
+            // Skip particles that aren't leaves on the tree of generated
+            // particles
             continue;
         }
 

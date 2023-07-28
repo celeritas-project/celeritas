@@ -370,7 +370,7 @@ INSTANTIATE_TEST_SUITE_P(EventIO,
 // STANDALONE TEST: HepMC3/examples/BasicExamples/basic_tree.cc
 //---------------------------------------------------------------------------//
 
-#define HepMC3Example DISABLED_StandaloneIOTest
+#define HepMC3Example DISABLED_HepMC3Example
 class HepMC3Example : public Test
 {
   public:

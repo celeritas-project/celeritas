@@ -11,6 +11,7 @@
 #include <HepMC3/GenParticle.h>
 #include <HepMC3/GenVertex.h>
 #include <HepMC3/Print.h>
+#include <HepMC3/Setup.h>
 #include <HepMC3/WriterAscii.h>
 #include <HepMC3/WriterAsciiHepMC2.h>
 #include <HepMC3/WriterHEPEVT.h>
@@ -108,10 +109,6 @@ void EventWriter::operator()(argument_type primaries)
 
     EventId const event_id{event_count_++};
 
-    // Vertex and corresponding celeritas position
-    HepMC3::GenVertexPtr vtx;
-    Primary const* vtx_primary{nullptr};
-
     // See HepMC2 user manual (page 13): we only use 0 and 1
     enum StatusCode
     {
@@ -121,6 +118,10 @@ void EventWriter::operator()(argument_type primaries)
         documentation_code = 3,
         beam_code = 4,
     };
+
+    // Vertex and corresponding celeritas position
+    HepMC3::GenVertexPtr vtx;
+    Primary const* vtx_primary{nullptr};
 
     // Loop over all primaries
     for (Primary const& p : primaries)
@@ -137,21 +138,10 @@ void EventWriter::operator()(argument_type primaries)
             pos.set_z(p.position[2]);
             pos.set_t(p.time / units::centimeter * constants::c_light);
 
-            // Use the last particle from the previous vertex as an "in"
-            // particle (needed for the file format to be correct)
-            auto last_par = [&vtx] {
-                if (!vtx)
-                {
-                    // No 'primary' particle exists: fake one
-                    auto result = std::make_shared<HepMC3::GenParticle>();
-                    result->set_status(meaningless_code);
-                    return result;
-                }
-                CELER_ASSERT(!vtx->particles_out().empty());
-                return vtx->particles_out().back();
-            }();
+            // Need to create a new virtual particle for each vertex
+            auto temp_par = std::make_shared<HepMC3::GenParticle>();
             vtx = std::make_shared<HepMC3::GenVertex>(pos);
-            vtx->add_particle_in(last_par);
+            vtx->add_particle_in(temp_par);
             evt.add_vertex(vtx);
         }
 
@@ -189,6 +179,14 @@ void EventWriter::operator()(argument_type primaries)
     {
         // HEPEVT files can only write in GeV/mm
         evt.set_units(HepMC3::Units::GEV, HepMC3::Units::MM);
+    }
+
+    if (HepMC3::Setup::debug_level() > 100)
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Printing listing for event " << event_id.get();
+        ScopedTimeAndRedirect temp_{"HepMC3"};
+        HepMC3::Print::listing(evt);
     }
 
     {
