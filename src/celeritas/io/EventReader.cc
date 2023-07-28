@@ -15,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
@@ -34,6 +35,8 @@ EventReader::EventReader(std::string const& filename, SPConstParticles params)
 
     CELER_LOG(info) << "Opening event file at " << filename;
     ScopedTimeAndRedirect temp_{"HepMC3"};
+
+    set_hepmc3_verbosity_from_env();
 
     // Determine the input file format and construct the appropriate reader
     HepMC3::Setup::set_debug_level(1);
@@ -64,6 +67,13 @@ auto EventReader::operator()() -> result_type
     }
 
     EventId const event_id{event_count_++};
+    if (static_cast<EventId::size_type>(gen_event.event_number())
+        != event_id.get())
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Overwriting event ID " << gen_event.event_number()
+            << " from file with sequential event ID " << event_id.get();
+    }
 
     // Convert the energy units to MeV and the length units to cm
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
@@ -130,11 +140,26 @@ auto EventReader::operator()() -> result_type
     }
 
     CELER_VALIDATE(missing_pdg.empty(),
-                   << "Event " << event_id.get()
+                   << "event " << event_id.get()
                    << " contains unknown particle types: PDG "
                    << join(missing_pdg.begin(), missing_pdg.end(), ", "));
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set HepMC3 verbosity from the environment.
+ *
+ * The default debug level is 5.
+ */
+void set_hepmc3_verbosity_from_env()
+{
+    std::string const& var = celeritas::getenv("HEPMC3_VERBOSE");
+    if (!var.empty())
+    {
+        HepMC3::Setup::set_debug_level(std::stoi(var));
+    }
 }
 
 //---------------------------------------------------------------------------//

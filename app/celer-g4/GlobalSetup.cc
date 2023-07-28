@@ -71,6 +71,11 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("true");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("physicsList", physics_list_);
+        cmd.SetGuidance("Select the physics list");
+        cmd.SetDefaultValue(physics_list_);
+    }
+    {
         messenger_->DeclareMethod("magFieldZ",
                                   &GlobalSetup::SetMagFieldZTesla,
                                   "Set Z-axis magnetic field strength (T)");

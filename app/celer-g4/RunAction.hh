@@ -53,6 +53,7 @@ class RunAction final : public G4UserRunAction
     SPParams params_;
     SPTransporter transport_;
     bool init_celeritas_;
+    bool disable_offloading_;
 };
 
 //---------------------------------------------------------------------------//

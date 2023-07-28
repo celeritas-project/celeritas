@@ -28,8 +28,6 @@ ActionInitialization::ActionInitialization() : init_celeritas_{true}
 {
     // Create params to be shared across worker threads
     params_ = std::make_shared<SharedParams>();
-    // Make global setup commands available to UI
-    GlobalSetup::Instance();
 }
 
 //---------------------------------------------------------------------------//

@@ -575,6 +575,8 @@ if(CELERITAS_USE_Geant4)
   )
 
   celeritas_add_test(accel/ExceptionConverter.test.cc)
+  celeritas_add_test(accel/HepMC3PrimaryGenerator.test.cc
+    ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitManager.test.cc
     ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc

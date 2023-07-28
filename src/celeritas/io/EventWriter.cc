@@ -23,6 +23,8 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "EventReader.hh"
+
 namespace celeritas
 {
 namespace
@@ -68,6 +70,9 @@ EventWriter::EventWriter(std::string const& filename,
     CELER_EXPECT(particles_);
     CELER_EXPECT(fmt_ != Format::size_);
 
+    // See EventReader.hh
+    set_hepmc3_verbosity_from_env();
+
     CELER_LOG(info) << "Creating " << to_cstring(fmt) << " event file at "
                     << filename;
     ScopedTimeAndRedirect temp_{"HepMC3"};
@@ -100,6 +105,8 @@ void EventWriter::operator()(argument_type primaries)
     std::set<EventId::size_type> mismatched_events;
 
     HepMC3::GenEvent evt(HepMC3::Units::MEV, HepMC3::Units::CM);
+
+    EventId const event_id{event_count_++};
 
     // Vertex and corresponding celeritas position
     HepMC3::GenVertexPtr vtx;
@@ -162,7 +169,7 @@ void EventWriter::operator()(argument_type primaries)
         mom.set_e(value_as<units::MevEnergy>(p.energy));
         par->set_momentum(mom);
 
-        if (CELER_UNLIKELY(p.event_id != EventId{event_count_}))
+        if (CELER_UNLIKELY(p.event_id != event_id))
         {
             mismatched_events.insert(p.event_id.unchecked_get());
         }
@@ -172,10 +179,11 @@ void EventWriter::operator()(argument_type primaries)
 
     if (CELER_UNLIKELY(!mismatched_events.empty()))
     {
-        CELER_LOG(warning)
-            << "Overwriting primary event IDs with " << event_count_ << ": "
+        CELER_LOG_LOCAL(warning)
+            << "Overwriting primary event IDs with " << event_id.get() << ": "
             << join(mismatched_events.begin(), mismatched_events.end(), ", ");
     }
+    evt.set_event_number(event_id.get());
 
     if (fmt_ == Format::hepevt)
     {
@@ -187,7 +195,6 @@ void EventWriter::operator()(argument_type primaries)
         ScopedTimeAndRedirect temp_{"HepMC3"};
         writer_->write_event(evt);
     }
-    ++event_count_;
 }
 
 //---------------------------------------------------------------------------//
