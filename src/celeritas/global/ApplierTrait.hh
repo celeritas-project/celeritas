@@ -20,7 +20,8 @@ struct has_max_block_size : std::false_type
 
 // Expression SFINAE to detect member of template
 template<typename T>
-struct has_max_block_size<T, decltype((void)T::max_block_size)> : std::true_type
+struct has_max_block_size<T, std::void_t<decltype(T::max_block_size)>>
+    : std::true_type
 {
 };
 
@@ -33,7 +34,7 @@ struct has_min_warps_per_eu : std::false_type
 };
 
 template<typename T>
-struct has_min_warps_per_eu<T, decltype((void)T::min_warps_per_eu)>
+struct has_min_warps_per_eu<T, std::void_t<decltype(T::min_warps_per_eu)>>
     : std::true_type
 {
 };
