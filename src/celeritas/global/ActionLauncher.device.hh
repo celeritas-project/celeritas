@@ -84,6 +84,15 @@ __global__ void __launch_bounds__(T, __B)
 // Select the correct kernel at compile time depending on the executor's launch
 // bounds.
 
+// instantiated if F doesn't define a member type F::Applier
+template<class F, std::enable_if_t<!has_applier_v<F>, bool> = true>
+constexpr auto select_kernel() -> decltype(&launch_action_impl<F>)
+{
+    constexpr auto ptr = &launch_action_impl<F>;
+    return ptr;
+}
+
+// instantiated if F::Applier has no launch bounds
 template<class F,
          class __A = typename F::Applier,
          std::enable_if_t<kernel_no_bound<__A>, bool> = true>
@@ -93,6 +102,18 @@ constexpr auto select_kernel() -> decltype(&launch_action_impl<F>)
     return ptr;
 }
 
+// instantiated if F::Applier defines one argument for launch bound
+template<class F,
+         class __A = typename F::Applier,
+         std::enable_if_t<kernel_max_blocks<__A>, bool> = true>
+constexpr auto select_kernel()
+    -> decltype(&launch_bounded_action_impl<F, __A::max_block_size>)
+{
+    constexpr auto ptr = &launch_bounded_action_impl<F, __A::max_block_size>;
+    return ptr;
+}
+
+// instantiated if F::Applier defines two arguments for launch bounds
 template<class F,
          class __A = typename F::Applier,
          std::enable_if_t<kernel_max_blocks_min_warps<__A>, bool> = true>
@@ -106,29 +127,19 @@ constexpr auto select_kernel()
     return ptr;
 }
 
-template<class F,
-         class __A = typename F::Applier,
-         std::enable_if_t<kernel_max_blocks<__A>, bool> = true>
-constexpr auto select_kernel()
-    -> decltype(&launch_bounded_action_impl<F, __A::max_block_size>)
-{
-    constexpr auto ptr = &launch_bounded_action_impl<F, __A::max_block_size>;
-    return ptr;
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Profile and launch Celeritas kernels from inside an action.
- * The executor template argument expects a member type named \c Applier
- (F::Applier).
- * \c F::Applier can have two static constexpr int variables named
- max_block_size and/or min_warps_per_eu.
+ * The template argument F may define a member type named \c Applier.
+ *
+ * \c F::Applier should have up to two static constexpr int variables named
+ * max_block_size and/or min_warps_per_eu.
  * If present, the kernel will use appropriate \c __launch_bounds__.
- * If \c F::Applier::min_warps_per_eu then \c F::Applier::max_block_size must
- * also be present or launch bounds won't apply,
+ * If \c F::Applier::min_warps_per_eu exists then \c F::Applier::max_block_size
+ * must also be present or we get a compile error.
  *
  * Semantics of \c __launch_bounds__ 2nd argument differs between CUDA and HIP.
  * \c ActionLauncher expects HIP semantics. If Celeritas is built targeting

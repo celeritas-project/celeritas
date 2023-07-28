@@ -41,6 +41,19 @@ struct has_min_warps_per_eu<T, decltype((void)T::min_warps_per_eu)>
 template<typename T>
 constexpr bool has_min_warps_per_eu_v = has_min_warps_per_eu<T>::value;
 
+template<typename T, typename = void>
+struct has_applier : std::false_type
+{
+};
+
+template<typename T>
+struct has_applier<T, std::void_t<typename T::Applier>> : std::true_type
+{
+};
+
+template<typename T>
+constexpr bool has_applier_v = has_applier<T>::value;
+
 template<typename T>
 constexpr bool kernel_no_bound
     = !has_max_block_size_v<T> && !has_min_warps_per_eu_v<T>;

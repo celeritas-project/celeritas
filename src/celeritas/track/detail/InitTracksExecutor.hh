@@ -45,7 +45,6 @@ struct InitTracksExecutor
 
     using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
     using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
-    using Applier = InitTracksExecutor;
 
     //// DATA ////
 

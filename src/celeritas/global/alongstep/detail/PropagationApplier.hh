@@ -127,6 +127,9 @@ struct PropagationApplier
     MP make_propagator;
 };
 
+// The propagator defines the kernel executed (i.e. potential launch bounds) so
+// we have to use partial specialization SFINAE to move up these constants one
+// level of abstraction.
 template<class MP>
 struct PropagationApplier<
     MP,

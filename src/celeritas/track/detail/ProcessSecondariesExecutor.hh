@@ -39,7 +39,6 @@ struct ProcessSecondariesExecutor
 
     using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
     using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
-    using Applier = ProcessSecondariesExecutor;
 
     //// DATA ////
 
