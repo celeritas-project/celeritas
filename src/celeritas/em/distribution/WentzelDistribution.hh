@@ -104,7 +104,7 @@ class WentzelDistribution
     inline CELER_FUNCTION real_type nuclear_form_momentum_scale() const;
 
     //! Calculate the screening coefficient R^2 for electrons
-    inline CELER_FUNCTION real_type screen_r_sq_elec() const;
+    CELER_CONSTEXPR_FUNCTION real_type screen_r_sq_elec() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -273,7 +273,8 @@ CELER_FUNCTION real_type WentzelDistribution::compute_screening_coefficient() co
                                    * inv_beta_sq * factor);
     }
 
-    return correction * screen_r_sq_elec() * sq_cbrt_z / inc_mom_sq();
+    return correction * data_.screening_factor * screen_r_sq_elec() * sq_cbrt_z
+           / inc_mom_sq();
 }
 
 //---------------------------------------------------------------------------//
@@ -325,17 +326,15 @@ CELER_FUNCTION real_type WentzelDistribution::nuclear_form_momentum_scale() cons
  * Calculate the screening R^2 coefficient for incident electrons. This is
  * the constant prefactor of [PRM] eqn 8.51
  */
-CELER_FUNCTION real_type WentzelDistribution::screen_r_sq_elec() const
+CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::screen_r_sq_elec() const
 {
-    // Thomas-Fermi constant C_TF \f$ \frac{1}{2}
-    // \left(\frac{3\pi}{4}\right)^{2/3} \f$
-    constexpr real_type ctf = 0.88534;
+    //! Thomas-Fermi constant C_TF
+    //! \f$ \frac{1}{2}\left(\frac{3\pi}{4}\right)^{2/3} \f$
+    constexpr real_type ctf = 0.8853413770001135;
 
-    return data_.screening_factor
-           * native_value_to<MomentumSq>(
-                 ipow<2>(constants::hbar_planck
-                         / (2 * ctf * constants::a0_bohr)))
-                 .value();
+    return native_value_to<MomentumSq>(
+               ipow<2>(constants::hbar_planck / (2 * ctf * constants::a0_bohr)))
+        .value();
 }
 
 //---------------------------------------------------------------------------//
