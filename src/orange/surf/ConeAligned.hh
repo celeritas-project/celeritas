@@ -115,7 +115,7 @@ CELER_CONSTEXPR_FUNCTION SurfaceType ConeAligned<T>::surface_type()
 /*!
  * Construct from origin and tangent of the angle of its opening.
  *
- * Given the trangular cross section of one octcant of the cone, the tangent is
+ * Given the trangular cross section of one octant of the cone, the tangent is
  * the ratio of the height to the base.
  */
 template<Axis T>
