@@ -52,8 +52,7 @@
       "description": "Build with debug, everything but VecGeom",
       "inherits": [".mpi", "base"],
       "cacheVariables": {
-        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"},
-        "CMAKE_CUDA_FLAGS": ""
+        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
