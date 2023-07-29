@@ -9,23 +9,10 @@
 
 #include "orange/OrangeTypes.hh"
 
+#include "SurfaceFwd.hh"
+
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<Axis T>
-class ConeAligned;
-template<Axis T>
-class CylAligned;
-template<Axis T>
-class CylCentered;
-class GeneralQuadric;
-class Plane;
-template<Axis T>
-class PlaneAligned;
-class SimpleQuadric;
-class Sphere;
-class SphereCentered;
-
 //---------------------------------------------------------------------------//
 /*!
  * Map surface enumeration to surface type.

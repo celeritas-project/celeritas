@@ -9,9 +9,9 @@
 
 #include <iosfwd>
 
-#include "orange/OrangeTypes.hh"
+#include "orange/Types.hh"
 
-#include "SurfaceTypeTraits.hh"
+#include "SurfaceFwd.hh"
 
 namespace celeritas
 {
