@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "DormandPrinceStepper.test.hh"
 
-#include "celeritas_test.hh"   // for CELER_EXPECT and Test
+#include "celeritas_test.hh"  // for CELER_EXPECT and Test
 
 namespace celeritas
 {
@@ -33,7 +33,6 @@ class DormandPrinceStepperTest : public Test
 
 TEST_F(DormandPrinceStepperTest, gpu_result)
 {
-
     auto expected = simulate_multi_next_chord(one_thread);
     auto actual = simulate_multi_next_chord(multi_thread);
 
@@ -43,11 +42,11 @@ TEST_F(DormandPrinceStepperTest, gpu_result)
         //                 << print_results(expected.results[i],
         //                                  actual.results[i]);
 
-        CELER_VALIDATE(compare_results(expected.results[i], actual.results[i]),
-                    << "Error at state " << std::to_string(i) << "\n" 
-                    << print_results(expected.results[i], actual.results[i]));
+        CELER_VALIDATE(
+            compare_results(expected.results[i], actual.results[i]),
+            << "Error at state " << std::to_string(i) << "\n"
+            << print_results(expected.results[i], actual.results[i]));
     }
-
 }
 
 TEST_F(DormandPrinceStepperTest, gpu_time)

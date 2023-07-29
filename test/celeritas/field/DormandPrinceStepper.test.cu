@@ -30,7 +30,8 @@ __global__ void test_kernel()
     // printf("Hello from block %d and thread %d\n", blockIdx.x, threadIdx.x);
     int i = threadIdx.x;
     int j = i;
-    if (i < 4) {
+    if (i < 4)
+    {
         j = __shfl_down_sync(0x0000000f, i, 2);
         __syncthreads();
     }
@@ -60,7 +61,8 @@ __device__ FieldStepperResult run_stepper(Stepper_uni stepper,
                                           OdeState* along_state,
                                           FieldStepperResult* result)
 {
-    if (index != 0) return FieldStepperResult();
+    if (index != 0)
+        return FieldStepperResult();
     return stepper(step, state);
 }
 
@@ -94,7 +96,8 @@ __global__ void dormand_test_arg_kernel(OdeState* states,
 
     auto id = (blockIdx.x * blockDim.x + threadIdx.x) / *number_threads;
 
-    if (id >= *num_states) return;
+    if (id >= *num_states)
+        return;
 
     auto index = (blockIdx.x * blockDim.x + threadIdx.x) % *number_threads;
     auto eval = make_dummy_equation(dormand_prince_dummy_field);
@@ -119,7 +122,7 @@ __global__ void dormand_test_arg_kernel(OdeState* states,
     }
     results[id] = res;
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -200,7 +203,8 @@ KernelResult simulate_multi_next_chord(int number_threads)
     // CELER_LAUNCH_KERNEL(dormand_test_arg,
     //                     device().threads_per_warp(), number_of_states, 0,
     //                     d_states, d_results, d_num_states);
-    if (number_threads > 1){
+    if (number_threads > 1)
+    {
         dormand_test_arg_kernel<Stepper_multi>
             <<<1, number_of_states * number_threads>>>(d_states,
                                                        d_results,
@@ -209,7 +213,9 @@ KernelResult simulate_multi_next_chord(int number_threads)
                                                        d_number_threads,
                                                        d_ks,
                                                        d_along_state);
-    } else {
+    }
+    else
+    {
         dormand_test_arg_kernel<Stepper_uni>
             <<<1, number_of_states>>>(d_states,
                                       d_results,
@@ -230,7 +236,7 @@ KernelResult simulate_multi_next_chord(int number_threads)
     // Destroy events
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
-    
+
     // Copy results back to host
     cudaMemcpy(h_results,
                d_results,

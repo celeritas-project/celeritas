@@ -1,7 +1,6 @@
 #!/bin/sh -e
 
 cd "$(dirname $0)"/..
-echo "Working directory: $(pwd)"
 
 SYSTEM_NAME=${LMOD_SYSTEM_NAME}
 if [ -z "${SYSTEM_NAME}" ]; then
