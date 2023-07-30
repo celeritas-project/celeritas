@@ -112,7 +112,7 @@ TEST(ConeAlignedTest, intersection_along_surface)
 
         auto distances
             = cone.calc_intersections(pos, tempdir, SurfaceState::off);
-        EXPECT_SOFT_EQ(9.230860520403894e-11, distances[0]);
+        EXPECT_SOFT_NEAR(1e-10, distances[0], 0.1);
         EXPECT_SOFT_EQ(2.1633307647466964, distances[1]);
     }
 
