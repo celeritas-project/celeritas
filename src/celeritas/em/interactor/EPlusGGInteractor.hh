@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
@@ -119,10 +120,7 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
 
         IsotropicDistribution<real_type> gamma_dir;
         secondaries[0].direction = gamma_dir(rng);
-        for (int i = 0; i < 3; ++i)
-        {
-            secondaries[1].direction[i] = -secondaries[0].direction[i];
-        }
+        secondaries[1].direction = -secondaries[0].direction;
     }
     else
     {

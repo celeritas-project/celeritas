@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/global/CoreTrackView.hh"
@@ -264,12 +265,7 @@ UrbanMsc::apply_step(CoreTrackView const& track, StepLimit* step_limit)
     {
         // Displacment during a boundary crossing is *not* OK
         CELER_ASSERT(!geo.is_on_boundary());
-        Real3 new_pos;
-        for (int i = 0; i < 3; ++i)
-        {
-            new_pos[i] = geo.pos()[i] + msc_result.displacement[i];
-        }
-        geo.move_internal(new_pos);
+        geo.move_internal(geo.pos() + msc_result.displacement);
     }
 }
 
