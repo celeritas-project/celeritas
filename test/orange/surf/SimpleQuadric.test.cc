@@ -32,7 +32,6 @@ TEST(Ellipsoid, origin)
     EXPECT_SOFT_EQ(zeroth, sq.zeroth());
 
     // Test intersections along major axes
-
     auto distances
         = sq.calc_intersections({-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(1.5, distances[0]);
@@ -44,6 +43,11 @@ TEST(Ellipsoid, origin)
     distances = sq.calc_intersections({0, 0, 0}, {0, 0, 1}, SurfaceState::off);
     EXPECT_SOFT_EQ(0.3, distances[1]);
     EXPECT_SOFT_EQ(no_intersection(), distances[0]);
+
+    // Test normals
+    EXPECT_VEC_SOFT_EQ((Real3{0, 0, -1}), sq.calc_normal({0, 0, -0.3}));
+    EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}), sq.calc_normal({0, 2.5, 0}));
+    EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), sq.calc_normal({-1, 0, 0}));
 }
 
 TEST(Ellipsoid, translated)

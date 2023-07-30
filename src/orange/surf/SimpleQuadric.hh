@@ -53,8 +53,8 @@ class SimpleQuadric
         return SurfaceType::sq;
     }
 
-    //! Safety is intersection along surface normal
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
+    //! Safety is *not* the intersection along surface normal
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
 
   public:
     //// CONSTRUCTORS ////
@@ -218,9 +218,9 @@ CELER_FUNCTION Real3 SimpleQuadric::calc_normal(Real3 const& pos) const
     real_type const z = pos[2];
 
     Real3 norm;
-    norm[0] = a_ * x + d_;
-    norm[1] = b_ * y + e_;
-    norm[2] = c_ * z + f_;
+    norm[0] = 2 * a_ * x + d_;
+    norm[1] = 2 * b_ * y + e_;
+    norm[2] = 2 * c_ * z + f_;
 
     normalize_direction(&norm);
     return norm;
