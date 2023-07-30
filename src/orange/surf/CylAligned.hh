@@ -18,6 +18,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<Axis T>
+class CylCentered;
+
+//---------------------------------------------------------------------------//
 /*!
  * Axis-aligned cylinder.
  *
@@ -67,6 +71,9 @@ class CylAligned
 
     // Construct from raw data
     explicit inline CELER_FUNCTION CylAligned(Storage);
+
+    // Promote implicitly from a centered axis-aligned cylinder
+    CylAligned(CylCentered<T> const& other);
 
     //// ACCESSORS ////
 

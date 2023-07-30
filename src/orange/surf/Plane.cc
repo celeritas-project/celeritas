@@ -1,0 +1,31 @@
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file orange/surf/Plane.cc
+//---------------------------------------------------------------------------//
+#include "Plane.hh"
+
+#include "PlaneAligned.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Promote implicitly from an axis-aligned plane.
+ */
+template<Axis T>
+Plane::Plane(PlaneAligned<T> const& other)
+    : Plane{other.calc_normal({0, 0, 0}), other.position()}
+{
+}
+
+//---------------------------------------------------------------------------//
+
+template Plane::Plane(PlaneAligned<Axis::x> const&);
+template Plane::Plane(PlaneAligned<Axis::y> const&);
+template Plane::Plane(PlaneAligned<Axis::z> const&);
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas

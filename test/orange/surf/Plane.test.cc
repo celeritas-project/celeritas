@@ -8,6 +8,7 @@
 #include "orange/surf/Plane.hh"
 
 #include "orange/Constants.hh"
+#include "orange/surf/PlaneAligned.hh"
 
 #include "celeritas_test.hh"
 
@@ -86,6 +87,16 @@ TEST_F(PlaneTest, tracking)
     x = {2.0, 2.0, 0.0};
     EXPECT_EQ(no_intersection(),
               calc_intersection(p, x, dir, SurfaceState::on));
+}
+
+TEST_F(PlaneTest, promotion)
+{
+    Plane px{PlaneX{1.25}};
+    EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), px.normal());
+    EXPECT_SOFT_EQ(1.25, px.displacement());
+
+    Plane py{PlaneY{2.25}};
+    EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}), py.normal());
 }
 
 //---------------------------------------------------------------------------//

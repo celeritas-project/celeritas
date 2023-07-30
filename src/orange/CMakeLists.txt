@@ -21,6 +21,11 @@ list(APPEND SOURCES
   detail/BIHPartitioner.cc
   detail/RectArrayInserter.cc
   detail/UnitInserter.cc
+  surf/CylAligned.cc
+  surf/GeneralQuadric.cc
+  surf/Plane.cc
+  surf/SimpleQuadric.cc
+  surf/Sphere.cc
   surf/SurfaceIO.cc
   transform/Transformation.cc
 )

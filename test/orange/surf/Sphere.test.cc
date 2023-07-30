@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/Sphere.hh"
 
+#include "corecel/math/Algorithms.hh"
 #include "orange/Constants.hh"
+#include "orange/surf/SphereCentered.hh"
 
 #include "celeritas_test.hh"
 
@@ -33,7 +35,7 @@ TEST(SphereTest, all)
 
     Sphere s{origin, radius};
     EXPECT_VEC_SOFT_EQ(origin, s.origin());
-    EXPECT_SOFT_EQ(radius * radius, s.radius_sq());
+    EXPECT_SOFT_EQ(ipow<2>(radius), s.radius_sq());
 
     EXPECT_EQ(SignedSense::outside, s.calc_sense({4, 5, 5}));
     EXPECT_EQ(SignedSense::inside, s.calc_sense({1, 2, -3}));
@@ -71,6 +73,14 @@ TEST(SphereTest, all)
         Real3{-6.5, 2.2, -3.3}, Real3{1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(1 + 2 * radius, distances[1]);
+}
+
+//---------------------------------------------------------------------------//
+TEST(SphereTest, promotion)
+{
+    Sphere s{SphereCentered{2.5}};
+    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), s.origin());
+    EXPECT_SOFT_EQ(ipow<2>(2.5), s.radius_sq());
 }
 
 //---------------------------------------------------------------------------//

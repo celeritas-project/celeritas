@@ -18,6 +18,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class SimpleQuadric;
+
+//---------------------------------------------------------------------------//
 /*!
  * General quadric surface.
  *
@@ -61,6 +64,9 @@ class GeneralQuadric
 
     // Construct from raw data
     explicit inline CELER_FUNCTION GeneralQuadric(Storage);
+
+    // Promote implicitly from a simple quadric
+    GeneralQuadric(SimpleQuadric const& other);
 
     //// ACCESSORS ////
 

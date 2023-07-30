@@ -8,6 +8,7 @@
 #include "orange/surf/SimpleQuadric.hh"
 
 #include "corecel/math/Algorithms.hh"
+#include "orange/surf/CylAligned.hh"
 
 #include "celeritas_test.hh"
 
@@ -50,23 +51,18 @@ TEST(Ellipsoid, origin)
     EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), sq.calc_normal({-1, 0, 0}));
 }
 
-TEST(Ellipsoid, translated)
+TEST(Ellipsoid, promotion)
 {
-    // Radius: {1, 2.5, .3} centered at {2, 3, 4}
-    SimpleQuadric sq{SimpleQuadric{{0.5625, 0.09, 6.25}, {0, 0, 0}, -0.5625},
-                     {2, 3, 4}};
+    // Radius: 2 centered at {2, 3, 0}
+    SimpleQuadric sq{CylZ{{2, 3, 0}, 2}};
 
     auto distances
-        = sq.calc_intersections({-0.5, 3, 4}, {1, 0, 0}, SurfaceState::off);
-    EXPECT_SOFT_EQ(1.5, distances[0]);
-    EXPECT_SOFT_EQ(1.5 + 2.0, distances[1]);
-    distances
-        = sq.calc_intersections({2, 5.5, 4}, {0, -1, 0}, SurfaceState::on);
-    EXPECT_SOFT_EQ(5.0, distances[0]);
-    EXPECT_SOFT_EQ(no_intersection(), distances[1]);
-    distances = sq.calc_intersections({2, 3, 4}, {0, 0, 1}, SurfaceState::off);
-    EXPECT_SOFT_EQ(0.3, distances[1]);
-    EXPECT_SOFT_EQ(no_intersection(), distances[0]);
+        = sq.calc_intersections({-0.5, 3, 0}, {1, 0, 0}, SurfaceState::off);
+    EXPECT_SOFT_EQ(0.5, distances[0]);
+    EXPECT_SOFT_EQ(0.5 + 4.0, distances[1]);
+
+    EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}), sq.calc_normal({2, 5, 0}));
+    EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), sq.calc_normal({0, 3, 0}));
 }
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/CylAligned.hh"
 
+#include "corecel/math/Algorithms.hh"
+#include "orange/surf/CylCentered.hh"
+
 #include "SurfaceTestUtils.hh"
 #include "celeritas_test.hh"
 
@@ -399,6 +402,16 @@ TEST(CylZTest, degenerate_boundary)
             }
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST(CylZTest, promotion)
+{
+    CylZ const cyl{CCylZ{2.5}};
+    EXPECT_SOFT_EQ(ipow<2>(2.5), cyl.radius_sq());
+    EXPECT_SOFT_EQ(0, cyl.origin_u());
+    EXPECT_SOFT_EQ(0, cyl.origin_v());
 }
 
 //---------------------------------------------------------------------------//

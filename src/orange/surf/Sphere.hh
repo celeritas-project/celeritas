@@ -18,6 +18,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class SphereCentered;
+
+//---------------------------------------------------------------------------//
 /*!
  * Sphere centered at an arbitrary point.
  */
@@ -49,6 +52,9 @@ class Sphere
 
     // Construct from raw data
     explicit inline CELER_FUNCTION Sphere(Storage);
+
+    // Promote implicitly from a centered sphere
+    Sphere(SphereCentered const& other);
 
     //// ACCESSORS ////
 

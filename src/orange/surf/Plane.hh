@@ -16,6 +16,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<Axis T>
+class PlaneAligned;
+
+//---------------------------------------------------------------------------//
 /*!
  * Arbitrarily oriented plane.
  *
@@ -54,6 +58,10 @@ class Plane
 
     // Construct from raw data
     explicit inline CELER_FUNCTION Plane(Storage);
+
+    // Promote implicitly from an axis-aligned plane
+    template<Axis T>
+    Plane(PlaneAligned<T> const& other);
 
     //// ACCESSORS ////
 
