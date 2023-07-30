@@ -3,25 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/GeneralQuadric.cc
+//! \file orange/surf/ConeAligned.cc
 //---------------------------------------------------------------------------//
-#include "GeneralQuadric.hh"
-
-#include "SimpleQuadric.hh"
+#include "ConeAligned.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Promote from a simple quadric.
+ * Construct with a new origin using the radius of another cone.
  */
-GeneralQuadric::GeneralQuadric(SimpleQuadric const& other)
-    : GeneralQuadric{make_array(other.second()),
-                     Real3{0, 0, 0},
-                     make_array(other.first()),
-                     other.zeroth()}
+template<Axis T>
+ConeAligned<T>::ConeAligned(Real3 const& origin, ConeAligned const& other)
+    : origin_{origin}, tsq_{other.tsq_}
 {
 }
+
+//---------------------------------------------------------------------------//
+
+template class ConeAligned<Axis::x>;
+template class ConeAligned<Axis::y>;
+template class ConeAligned<Axis::z>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

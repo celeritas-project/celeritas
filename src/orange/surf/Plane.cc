@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Promote implicitly from an axis-aligned plane.
+ * Promote from an axis-aligned plane.
  */
 template<Axis T>
 Plane::Plane(PlaneAligned<T> const& other)

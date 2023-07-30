@@ -31,6 +31,9 @@ class SimpleQuadric;
  * \f[
     ax^2 + by^2 + cz^2 + dxy + eyz + fzx + gx + hy + iz + j = 0
    \f]
+ *
+ * Note that some formulations of a general quadric include a factor of 2 for
+ * the g/h/i terms.
  */
 class GeneralQuadric
 {
@@ -65,8 +68,8 @@ class GeneralQuadric
     // Construct from raw data
     explicit inline CELER_FUNCTION GeneralQuadric(Storage);
 
-    // Promote implicitly from a simple quadric
-    GeneralQuadric(SimpleQuadric const& other);
+    // Promote from a simple quadric
+    explicit GeneralQuadric(SimpleQuadric const& other);
 
     //// ACCESSORS ////
 

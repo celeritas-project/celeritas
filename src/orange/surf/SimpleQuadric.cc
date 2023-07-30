@@ -15,7 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Promote implicitly from an axis-aligned cylinder.
+ * Promote from an axis-aligned cylinder.
  */
 template<Axis T>
 SimpleQuadric::SimpleQuadric(CylAligned<T> const& other)

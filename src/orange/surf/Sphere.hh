@@ -53,8 +53,11 @@ class Sphere
     // Construct from raw data
     explicit inline CELER_FUNCTION Sphere(Storage);
 
-    // Promote implicitly from a centered sphere
-    Sphere(SphereCentered const& other);
+    // Promote from a centered sphere
+    explicit Sphere(SphereCentered const& other);
+
+    // Construct with a new origin and the radius of another sphere
+    Sphere(Real3 const& origin, Sphere const& other);
 
     //// ACCESSORS ////
 

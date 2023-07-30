@@ -65,6 +65,9 @@ class ConeAligned
     // Construct from raw data
     explicit inline CELER_FUNCTION ConeAligned(Storage);
 
+    // Construct from cone and new origin
+    ConeAligned(Real3 const& origin, ConeAligned const& other);
+
     //// ACCESSORS ////
 
     //! Get the origin position along the normal axis

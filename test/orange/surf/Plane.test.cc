@@ -12,12 +12,13 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::constants::sqrt_two;
-
 namespace celeritas
 {
 namespace test
 {
+
+using constants::sqrt_two;
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//

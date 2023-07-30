@@ -13,10 +13,19 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Promote implicitly from a centered sphere.
+ * Promote from a centered sphere.
  */
 Sphere::Sphere(SphereCentered const& other)
     : origin_{0, 0, 0}, radius_sq_{other.radius_sq()}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with a new origin and the radius of another sphere.
+ */
+Sphere::Sphere(Real3 const& origin, Sphere const& other)
+    : origin_{origin}, radius_sq_{other.radius_sq_}
 {
 }
 

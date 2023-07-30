@@ -63,9 +63,9 @@ class SimpleQuadric
     // Construct from raw data
     explicit inline CELER_FUNCTION SimpleQuadric(Storage);
 
-    // Promote implicitly from an axis-aligned cylinder
+    // Promote from an axis-aligned cylinder
     template<Axis T>
-    SimpleQuadric(CylAligned<T> const& other);
+    explicit SimpleQuadric(CylAligned<T> const& other);
 
     //// ACCESSORS ////
 

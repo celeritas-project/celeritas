@@ -72,22 +72,28 @@ class CylAligned
     // Construct from raw data
     explicit inline CELER_FUNCTION CylAligned(Storage);
 
-    // Promote implicitly from a centered axis-aligned cylinder
-    CylAligned(CylCentered<T> const& other);
+    // Promote from a centered axis-aligned cylinder
+    explicit CylAligned(CylCentered<T> const& other);
+
+    // Construct with a new origin and the radius of another cylinder
+    CylAligned(Real3 const& origin, CylAligned const& other);
 
     //// ACCESSORS ////
 
     //! Get the origin vector along the 'u' axis
-    real_type origin_u() const { return origin_u_; }
+    CELER_FUNCTION real_type origin_u() const { return origin_u_; }
 
     //! Get the origin vector along the 'v' axis
-    real_type origin_v() const { return origin_v_; }
+    CELER_FUNCTION real_type origin_v() const { return origin_v_; }
 
     //! Get the square of the radius
-    real_type radius_sq() const { return radius_sq_; }
+    CELER_FUNCTION real_type radius_sq() const { return radius_sq_; }
 
     //! Get a view to the data for type-deleted storage
     CELER_FUNCTION Storage data() const { return {&origin_u_, 3}; }
+
+    // Helper function to get the origin as a 3-vector
+    Real3 calc_origin() const;
 
     //// CALCULATION ////
 
