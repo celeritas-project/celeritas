@@ -153,19 +153,18 @@ TEST_F(HepMC3PrimaryGeneratorTest, multiple_vertex)
 
     // clang-format off
     static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-        0.1, 0.2, 0.3, 1, 2, 3, 1, 2, 3, 1, 2, 3};
+        1, 2, 3, 1, 2, 3};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
-    static double const expected_time[] = {0, 0, 0, 0, 0.013342563807926,
-        0.13342563807926, 0.13342563807926, 0.13342563807926};
+    static double const expected_time[] = {0, 0, 0, 0, 0.13342563807926,
+        0.13342563807926};
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);
-    static int const expected_vtx[] = {0, 1, 1, 0, 1, 1, 0, 1, 2, 3, 3};
+    static int const expected_vtx[] = {0, 1, 1, 0, 1, 1, 0, 1, 1};
     EXPECT_VEC_EQ(expected_vtx, result.vtx);
-    static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 2212, 1, 22, 1, -2};
+    static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 22, 1, -2};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
     static double const expected_energy[] = {4151.3789242903, 29553.167534717,
         56374.268647472, 4151.3789242903, 29553.167534717, 56374.268647472,
-        7000000, 32175.534009255, 4151.3789242903, 29553.167534717,
-        56374.268647472};
+        4151.3789242903, 29553.167534717, 56374.268647472};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     static double const expected_dir[] = {-0.90094709007965, 0.02669997932835,
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
@@ -173,8 +172,7 @@ TEST_F(HepMC3PrimaryGeneratorTest, multiple_vertex)
         -0.47339813078935, -0.90094709007965, 0.02669997932835,
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
         0.20580554696494, 0.0702815376096, -0.87804026971226,
-        -0.47339813078935, 0, 0, 1, 0.023264514173898, -0.048669363651796,
-        0.99854396769596, -0.90094709007965, 0.02669997932835,
+        -0.47339813078935, -0.90094709007965, 0.02669997932835,
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
         0.20580554696494, 0.0702815376096, -0.87804026971226,
         -0.47339813078935};
