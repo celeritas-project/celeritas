@@ -272,10 +272,10 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
                                             8.623486582635,
                                             8.115429697208,
                                             inf,
-                                            5.436749550654,
-                                            0.9761596300109,
-                                            5.848454015622};
-        EXPECT_EQ("{- - + + - - + + - -}",
+                                            inf,
+                                            inf,
+                                            inf};
+        EXPECT_EQ("{- - + + - - + + + +}",
                   senses_to_string(host_states.sense[test_threads]));
         EXPECT_VEC_SOFT_EQ(expected_distance,
                            host_states.distance[test_threads]);
