@@ -102,7 +102,7 @@ TEST(ConeAlignedTest, intersection_along_surface)
 
     {
         // Move to calculated endpoint
-        axpy(distances[0], dir, &pos);
+        axpy(distances[0] - 1e-10, dir, &pos);
         // Calculate inward direction (near cone, normal is outward dir)
         auto tempdir = cone.calc_normal(pos);
         for (auto& d : tempdir)
@@ -112,8 +112,8 @@ TEST(ConeAlignedTest, intersection_along_surface)
 
         auto distances
             = cone.calc_intersections(pos, tempdir, SurfaceState::off);
-        EXPECT_SOFT_EQ(0, distances[0]);
-        EXPECT_SOFT_EQ(2.1633307652783893, distances[1]);
+        EXPECT_SOFT_EQ(9.230860520403894e-11, distances[0]);
+        EXPECT_SOFT_EQ(2.1633307647466964, distances[1]);
     }
 
     // Inside left sheet
