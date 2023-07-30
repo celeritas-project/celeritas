@@ -28,6 +28,7 @@ list(APPEND SOURCES
   surf/SimpleQuadric.cc
   surf/Sphere.cc
   surf/SurfaceIO.cc
+  surf/SurfaceTranslator.cc
   transform/Transformation.cc
 )
 
