@@ -25,13 +25,7 @@ class DormandPrinceStepperTest : public Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-// TEST_F(DormandPrinceStepperTest, test)
-// {
-//     test();
-//     CELER_EXPECT(true);
-// }
-
-TEST_F(DormandPrinceStepperTest, gpu_result)
+TEST_F(DormandPrinceStepperTest, global_memory_result)
 {
     auto expected = simulate_multi_next_chord(one_thread);
     auto actual = simulate_multi_next_chord(multi_thread);
@@ -49,12 +43,43 @@ TEST_F(DormandPrinceStepperTest, gpu_result)
     }
 }
 
-TEST_F(DormandPrinceStepperTest, gpu_time)
+TEST_F(DormandPrinceStepperTest, global_memory_time)
 {
     auto old = simulate_multi_next_chord(one_thread);
     CELER_LOG(info) << "Old time: " << old.milliseconds << " ms";
 
     auto multi_threaded = simulate_multi_next_chord(multi_thread);
+    CELER_LOG(info) << "Multi-threaded time: " << multi_threaded.milliseconds
+                    << " ms";
+
+    CELER_VALIDATE(multi_threaded.milliseconds <= old.milliseconds,
+                   << "Multi-threaded is not faster than old implementation");
+}
+
+TEST_F(DormandPrinceStepperTest, shared_memory_result)
+{
+    auto expected = simulate_multi_next_chord(one_thread);
+    auto actual = simulate_multi_next_chord(multi_thread, true);
+
+    for (int i = 0; i < number_of_states; i++)
+    {
+        // CELER_LOG(info) << "Result for state " << std::to_string(i) << ":\n"
+        //                 << print_results(expected.results[i],
+        //                                  actual.results[i]);
+
+        CELER_VALIDATE(
+            compare_results(expected.results[i], actual.results[i]),
+            << "Error at state " << std::to_string(i) << "\n"
+            << print_results(expected.results[i], actual.results[i]));
+    }
+}
+
+TEST_F(DormandPrinceStepperTest, shared_memory_time)
+{
+    auto old = simulate_multi_next_chord(one_thread);
+    CELER_LOG(info) << "Old time: " << old.milliseconds << " ms";
+
+    auto multi_threaded = simulate_multi_next_chord(multi_thread, true);
     CELER_LOG(info) << "Multi-threaded time: " << multi_threaded.milliseconds
                     << " ms";
 

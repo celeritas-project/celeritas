@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/DormandMultiPrinceStepperGlobal.cuda.hh
+//! \file celeritas/field/DormandMultiPrinceStepperShared.cuda.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,7 +20,7 @@ namespace celeritas
  * Based on the DormandPrinceStepper.hh, but with multiple threads.
  */
 template<class EquationT>
-class DormandPrinceMultiStepperGlobal
+class DormandPrinceMultiStepperShared
 {
   public:
     //!@{
@@ -30,7 +30,7 @@ class DormandPrinceMultiStepperGlobal
 
   public:
     //! Construct with the equation of motion
-    explicit CELER_FUNCTION DormandPrinceMultiStepperGlobal(EquationT&& eq)
+    explicit CELER_FUNCTION DormandPrinceMultiStepperShared(EquationT&& eq)
         : calc_rhs_(::celeritas::forward<EquationT>(eq))
     {
     }
@@ -38,10 +38,7 @@ class DormandPrinceMultiStepperGlobal
     // Adaptive step size control
     CELER_FUNCTION result_type operator()(real_type step,
                                           OdeState const& beg_state,
-                                          int number_threads,
-                                          OdeState* ks,
-                                          OdeState* along_state,
-                                          FieldStepperResult* result) const;
+                                          int number_threads) const;
 
     CELER_FUNCTION void run_sequential(real_type step,
                                        OdeState const& beg_state,
@@ -82,8 +79,8 @@ class DormandPrinceMultiStepperGlobal
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION DormandPrinceMultiStepperGlobal(EquationT&&)
-    ->DormandPrinceMultiStepperGlobal<EquationT>;
+CELER_FUNCTION DormandPrinceMultiStepperShared(EquationT&&)
+    ->DormandPrinceMultiStepperShared<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTIONS
@@ -100,34 +97,53 @@ CELER_FUNCTION DormandPrinceMultiStepperGlobal(EquationT&&)
 //---------------------------------------------------------------------------//
 template<class E>
 inline CELER_FUNCTION auto
-DormandPrinceMultiStepperGlobal<E>::operator()(real_type step,
+DormandPrinceMultiStepperShared<E>::operator()(real_type step,
                                                OdeState const& beg_state,
-                                               int number_threads,
-                                               OdeState* ks,
-                                               OdeState* along_state,
-                                               FieldStepperResult* result) const
+                                               int number_threads) const
     -> result_type
 {
+    int num_states = (blockDim.x * gridDim.x) / number_threads;
     int id = (threadIdx.x + blockIdx.x * blockDim.x) / number_threads;
     int index = (threadIdx.x + blockIdx.x * blockDim.x) % number_threads;
+
+    extern __shared__ void* shared_memory[];
+    OdeState* shared_ks = (OdeState*)shared_memory;
+    OdeState* shared_along_state
+        = reinterpret_cast<OdeState*>(&shared_ks[7 * num_states]);
+    FieldStepperResult* shared_result = reinterpret_cast<FieldStepperResult*>(
+        &shared_along_state[num_states]);
 
     int mask = (4 * 4 - 1) << (id * 4);
 
     if (index == 0)
     {
-        run_sequential(step, beg_state, id, mask, ks, along_state, result);
+        run_sequential(step,
+                       beg_state,
+                       id,
+                       mask,
+                       &shared_ks[7 * id],
+                       &shared_along_state[id],
+                       &shared_result[id]);
     }
     else
     {
-        run_aside(step, beg_state, id, index, mask, ks, along_state, result);
+        run_aside(step,
+                  beg_state,
+                  id,
+                  index,
+                  mask,
+                  &shared_ks[7 * id],
+                  &shared_along_state[id],
+                  &shared_result[id]);
     }
 
-    return *result;
+    // return *result;
+    return shared_result[id];
 }
 
 template<class E>
-inline CELER_FUNCTION void
-DormandPrinceMultiStepperGlobal<E>::run_aside(real_type step,
+CELER_FUNCTION void
+DormandPrinceMultiStepperShared<E>::run_aside(real_type step,
                                               OdeState const& beg_state,
                                               int id,
                                               int index,
@@ -226,8 +242,8 @@ DormandPrinceMultiStepperGlobal<E>::run_aside(real_type step,
 }
 
 template<class E>
-inline CELER_FUNCTION void
-DormandPrinceMultiStepperGlobal<E>::run_sequential(real_type step,
+CELER_FUNCTION void
+DormandPrinceMultiStepperShared<E>::run_sequential(real_type step,
                                                    OdeState const& beg_state,
                                                    int id,
                                                    int mask,
