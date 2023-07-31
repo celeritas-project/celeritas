@@ -27,15 +27,23 @@ if(Geant4_FOUND AND Geant4_VERSION VERSION_GREATER_EQUAL 11 AND CELERITAS_USE_CU
 endif()
 
 if(Geant4_VERSION VERSION_LESS 10.6)
-  # Version 10.5 and older do *not* use `target_include_directories`:
-  # make a fake target and add it to the geant library list
+  # Version 10.5 and older have some problems.
+
+  # Move definitions from CXX flags to geant4 definitions
+  string(REGEX MATCHALL "-D[a-zA-Z0-9_]+" _defs "${Geant4_CXX_FLAGS}")
+  list(APPEND Geant4_DEFINITIONS ${_defs})
+  unset(defs)
+
+  # Make a fake target with includes and definitions
   set(_tgt Geant4_headers)
   if(NOT TARGET "${_tgt}")
     add_library(${_tgt} INTERFACE)
     add_library(celeritas::${_tgt} ALIAS ${_tgt})
     target_include_directories(${_tgt} INTERFACE ${Geant4_INCLUDE_DIRS})
+    target_compile_definitions(${_tgt} INTERFACE ${Geant4_DEFINITIONS})
     install(TARGETS ${_tgt} EXPORT celeritas-targets)
   endif()
+  # Add the fake target to the list of geant4 libraries
   list(APPEND Geant4_LIBRARIES ${_tgt})
   unset(_tgt)
 endif()
