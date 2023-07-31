@@ -12,6 +12,7 @@
 #include <G4TransportationManager.hh>
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/GenParticle.h>
+#include <HepMC3/GenVertex.h>
 #include <HepMC3/Reader.h>
 
 #include "corecel/Assert.hh"
