@@ -48,7 +48,6 @@ struct WentzelElementData
     using BetaArray = Array<real_type, detail::num_mott_beta_bins>;
     using ThetaArray = Array<real_type, detail::num_mott_theta_bins>;
 
-    // TODO: Having ThetaArray::size() would make this nicer
     //! Matrix of Mott coefficients [theta][beta]
     Array<BetaArray, detail::num_mott_theta_bins> mott_coeff;
 };
@@ -59,10 +58,10 @@ struct WentzelElementData
  */
 enum class NuclearFormFactorType
 {
-    None,
-    Flat,
-    Exponential,
-    Gaussian
+    none,
+    flat,
+    exponential,
+    gaussian
 };
 
 //---------------------------------------------------------------------------//

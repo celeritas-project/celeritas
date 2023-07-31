@@ -11,9 +11,13 @@
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/em/data/WentzelData.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
 
 namespace celeritas
 {
+
+// TEST
+
 //---------------------------------------------------------------------------//
 /*!
  * Calculates the ratio of Mott cross section to the Rutherford cross section.
@@ -84,20 +88,13 @@ real_type MottXsCalculator::operator()(real_type cos_theta) const
     // (Exponent) Base for beta powers
     real_type beta0 = beta_ - beta_shift;
 
-    // Construct arrays of powers
-    WentzelElementData::BetaArray beta_powers;
-    generate_powers(beta_powers, beta0);
-
-    WentzelElementData::ThetaArray theta_powers;
-    generate_powers(theta_powers, fcos_t);
-
-    // Inner product the arrays of powers with the coefficient matrix
+    // Evaluate polynomial of powers of beta0 and fcos_t
     WentzelElementData::ThetaArray theta_coeffs;
     for (auto i : range(theta_coeffs.size()))
     {
-        theta_coeffs[i] = dot_product(element_data_.mott_coeff[i], beta_powers);
+        theta_coeffs[i] = PolyEvaluator{element_data_.mott_coeff[i]}(beta0);
     }
-    return dot_product(theta_coeffs, theta_powers);
+    return PolyEvaluator{theta_coeffs}(fcos_t);
 }
 
 //---------------------------------------------------------------------------//

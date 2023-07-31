@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/distribution/MollerEnergyDistribution.hh
+//! \file celeritas/em/distribution/WentzelDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -209,7 +209,7 @@ CELER_FUNCTION real_type WentzelDistribution::calculate_form_factor(
 {
     switch (data_.form_factor_type)
     {
-        case NuclearFormFactorType::Flat: {
+        case NuclearFormFactorType::flat: {
             // In units MeV
             const real_type ccoef = 0.00508;
             real_type x = sqrt(2 * inc_mom_sq() * (1 - cos_t)) * ccoef * 2;
@@ -220,9 +220,9 @@ CELER_FUNCTION real_type WentzelDistribution::calculate_form_factor(
                                  real_type{1} / 3));
         }
         break;
-        case NuclearFormFactorType::Exponential:
+        case NuclearFormFactorType::exponential:
             return 1 / ipow<2>(1 + formf * (1 - cos_t));
-        case NuclearFormFactorType::Gaussian:
+        case NuclearFormFactorType::gaussian:
             return exp(-2 * formf * (1 - cos_t));
         default:
             return 1;

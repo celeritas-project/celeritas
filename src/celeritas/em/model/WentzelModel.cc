@@ -56,7 +56,7 @@ WentzelModel::WentzelModel(ActionId id,
                    << ")");
 
     // TODO: Select form factor
-    host_data.form_factor_type = NuclearFormFactorType::Exponential;
+    host_data.form_factor_type = NuclearFormFactorType::exponential;
 
     // Pass user-defined screening factor
     host_data.screening_factor = em_params.screening_factor;
