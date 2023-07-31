@@ -1,10 +1,9 @@
-
 //---------------------------------*-CUDA-*----------------------------------//
 // Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ApplierTrait.hh
+//! \file celeritas/global/detail/ApplierTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,59 +11,65 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+namespace detail
+{
+//---------------------------------------------------------------------------//
 
+//! Checks if type T has a `max_block_size` static member data
 template<typename T, typename = void>
-struct has_max_block_size : std::false_type
+struct HasMaxBlockSize : std::false_type
 {
 };
 
-// Expression SFINAE to detect member of template
 template<typename T>
-struct has_max_block_size<T, std::void_t<decltype(T::max_block_size)>>
+struct HasMaxBlockSize<T, std::void_t<decltype(T::max_block_size)>>
     : std::true_type
 {
 };
 
 template<typename T>
-constexpr bool has_max_block_size_v = has_max_block_size<T>::value;
+constexpr bool has_max_block_size_v = HasMaxBlockSize<T>::value;
 
+//! Checks if type T has a `min_warps_per_eu` static member data
 template<typename T, typename = void>
-struct has_min_warps_per_eu : std::false_type
+struct HasMinWarpsPerEU : std::false_type
 {
 };
 
 template<typename T>
-struct has_min_warps_per_eu<T, std::void_t<decltype(T::min_warps_per_eu)>>
+struct HasMinWarpsPerEU<T, std::void_t<decltype(T::min_warps_per_eu)>>
     : std::true_type
 {
 };
 
 template<typename T>
-constexpr bool has_min_warps_per_eu_v = has_min_warps_per_eu<T>::value;
+constexpr bool has_min_warps_per_eu_v = HasMinWarpsPerEU<T>::value;
 
 template<typename T, typename = void>
-struct has_applier : std::false_type
+struct HasApplier : std::false_type
 {
 };
 
 template<typename T>
-struct has_applier<T, std::void_t<typename T::Applier>> : std::true_type
+struct HasApplier<T, std::void_t<typename T::Applier>> : std::true_type
 {
 };
 
 template<typename T>
-constexpr bool has_applier_v = has_applier<T>::value;
+inline constexpr bool has_applier_v = HasApplier<T>::value;
 
 template<typename T>
-constexpr bool kernel_no_bound
+inline constexpr bool kernel_no_bound
     = !has_max_block_size_v<T> && !has_min_warps_per_eu_v<T>;
 
 template<typename T>
-constexpr bool kernel_max_blocks
+inline constexpr bool kernel_max_blocks
     = has_max_block_size_v<T> && !has_min_warps_per_eu_v<T>;
 
 template<typename T>
-constexpr bool kernel_max_blocks_min_warps
+inline constexpr bool kernel_max_blocks_min_warps
     = has_max_block_size_v<T> && has_min_warps_per_eu_v<T>;
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

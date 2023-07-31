@@ -9,8 +9,8 @@
 
 #include <type_traits>
 
-#include "celeritas/global/ApplierTrait.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/global/detail/ApplierTraits.hh"
 
 namespace celeritas
 {
@@ -131,9 +131,7 @@ struct PropagationApplier
 // we have to use partial specialization SFINAE to move up these constants one
 // level of abstraction.
 template<class MP>
-struct PropagationApplier<
-    MP,
-    std::enable_if_t<celeritas::kernel_max_blocks_min_warps<MP>>>
+struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks_min_warps<MP>>>
 {
     static constexpr int max_block_size = MP::max_block_size;
     static constexpr int min_warps_per_eu = MP::min_warps_per_eu;
@@ -147,7 +145,7 @@ struct PropagationApplier<
 };
 
 template<class MP>
-struct PropagationApplier<MP, std::enable_if_t<celeritas::kernel_max_blocks<MP>>>
+struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks<MP>>>
 {
     static constexpr int max_block_size = MP::max_block_size;
 
