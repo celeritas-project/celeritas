@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 #include <CLHEP/Random/Random.h>
-#include <G4GlobalConfig.hh>
 #include <G4RunManager.hh>
 #include <G4UIExecutive.hh>
 #include <G4UImanager.hh>
@@ -23,6 +22,9 @@
 #    include <G4RunManagerFactory.hh>
 #else
 #    include <G4MTRunManager.hh>
+#endif
+#if G4VERSION_NUMBER >= 1060
+#    include <G4GlobalConfig.hh>
 #endif
 
 #include <FTFP_BERT.hh>

@@ -8,6 +8,7 @@
 #include "GeantStepDiagnostic.hh"
 
 #include <algorithm>
+#include <set>
 #include <G4Track.hh>
 
 #include "corecel/Assert.hh"

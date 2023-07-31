@@ -80,6 +80,7 @@
 #include <VecGeom/volumes/UnplacedTrd.h>
 #include <VecGeom/volumes/UnplacedTube.h>
 
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
@@ -276,12 +277,18 @@ auto SolidConverter::cuttubs(arg_type solid_base) -> result_type
 auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Ellipsoid const&>(solid_base);
+#if G4VERSION_NUMBER >= 1060
+#    define SC_G4ACCESS(NEW, OLD) NEW
+#else
+#    define SC_G4ACCESS(NEW, OLD) OLD
+#endif
     return GeoManager::MakeInstance<UnplacedEllipsoid>(
-        this->convert_scale_(solid.GetDx()),
-        this->convert_scale_(solid.GetDy()),
-        this->convert_scale_(solid.GetDz()),
+        this->convert_scale_(solid.SC_G4ACCESS(GetDx(), GetSemiAxisMax(0))),
+        this->convert_scale_(solid.SC_G4ACCESS(GetDy(), GetSemiAxisMax(1))),
+        this->convert_scale_(solid.SC_G4ACCESS(GetDz(), GetSemiAxisMax(2))),
         this->convert_scale_(solid.GetZBottomCut()),
         this->convert_scale_(solid.GetZTopCut()));
+#undef SC_G4ACCESS
 }
 
 //---------------------------------------------------------------------------//
@@ -578,12 +585,20 @@ auto SolidConverter::tessellatedsolid(arg_type solid_base) -> result_type
 auto SolidConverter::tet(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Tet const&>(solid_base);
-    G4ThreeVector anchor, p1, p2, p3;
-    solid.GetVertices(anchor, p1, p2, p3);
-    return GeoManager::MakeInstance<UnplacedTet>(this->convert_scale_(anchor),
-                                                 this->convert_scale_(p1),
-                                                 this->convert_scale_(p2),
-                                                 this->convert_scale_(p3));
+    G4ThreeVector anchor;
+    Array<G4ThreeVector, 3> points;
+#if G4VERSION_NUMBER >= 1060
+    solid.GetVertices(anchor, points[0], points[1], points[2]);
+#else
+    auto g4points = solid.GetVertices();
+    CELER_ASSERT(g4points.size() == 3);
+    std::copy(g4points.begin(), g4points.end(), points.begin());
+#endif
+    return GeoManager::MakeInstance<UnplacedTet>(
+        this->convert_scale_(anchor),
+        this->convert_scale_(points[0]),
+        this->convert_scale_(points[1]),
+        this->convert_scale_(points[2]));
 }
 
 //---------------------------------------------------------------------------//
