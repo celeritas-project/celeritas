@@ -186,14 +186,13 @@ TEST_P(EventIOTest, variety_rwr)
     }
 
     // clang-format off
-    static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 2212, 1, 22, 1,
-        -2};
+    static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 22, 1, -2};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
     static double const expected_energy[] = {4233, 29552, 56373, 4233, 29552,
-        56373, 7000000, 32238, 4233, 29552, 56373};
+        56373, 4233, 29552, 56373};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,
-        0, 0, 10, 0, 0, 10, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3};
+        0, 0, 10, 0, 0, 10, 1, 2, 3, 1, 2, 3, 1, 2, 3};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
     static double const expected_dir[] = {-0.90094709007965, 0.02669997932835,
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
@@ -201,19 +200,17 @@ TEST_P(EventIOTest, variety_rwr)
         -0.47339813078935, -0.90094709007965, 0.02669997932835,
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
         0.20580554696494, 0.0702815376096, -0.87804026971226,
-        -0.47339813078935, 0, 0, 1, 0.023264514173899, -0.048669363651796,
-        0.99854396769596, -0.90094709007965, 0.02669997932835,
+        -0.47339813078935, -0.90094709007965, 0.02669997932835,
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
         0.20580554696494, 0.0702815376096, -0.87804026971226,
         -0.47339813078935};
     EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);
     static double const expected_time[] = {0, 0, 0, 0, 0, 0,
-        1.3342563807926e-10, 1.3342563807926e-10, 1.3342563807926e-10,
-        1.3342563807926e-10, 1.3342563807926e-10};
+        1.3342563807926e-10, 1.3342563807926e-10, 1.3342563807926e-10};
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);
-    static int const expected_event[] = {0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2};
+    static int const expected_event[] = {0, 0, 0, 1, 1, 1, 2, 2, 2};
     EXPECT_VEC_EQ(expected_event, result.event);
-    static int const expected_track[] = {0, 1, 2, 0, 1, 2, 0, 1, 2, 3, 4};
+    static int const expected_track[] = {0, 1, 2, 0, 1, 2, 0, 1, 2};
     EXPECT_VEC_EQ(expected_track, result.track);
     // clang-format on
 
