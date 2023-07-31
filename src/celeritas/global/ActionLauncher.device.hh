@@ -66,24 +66,17 @@ class ActionLauncher
                   "Launched action must be a trivially copyable function "
                   "object");
 
-  private:
-    using kernel_func_ptr_t = void (*)(Range<ThreadId> const, F);
-
-    // TODO: better way to conditionally constexpr init?
-    static constexpr kernel_func_ptr_t kernel_func_ptr
-        = detail::select_kernel<F>();
-
   public:
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(), kernel_func_ptr}
+        : calc_launch_params_{action.label(), detail::launch_action_impl<F>}
     {
     }
 
     //! Create a launcher with a string extension
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
         : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              kernel_func_ptr}
+                              detail::launch_action_impl<F>}
     {
     }
 
@@ -97,10 +90,9 @@ class ActionLauncher
             CELER_DEVICE_PREFIX(Stream_t)
             stream = celeritas::device().stream(stream_id).get();
             auto config = calc_launch_params_(threads.size());
-            (*kernel_func_ptr)<<<config.blocks_per_grid,
-                                 config.threads_per_block,
-                                 0,
-                                 stream>>>(threads, call_thread);
+            detail::launch_action_impl<F>
+                <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
+                    threads, call_thread);
         }
     }
 
