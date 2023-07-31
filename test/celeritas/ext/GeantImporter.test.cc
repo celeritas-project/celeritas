@@ -282,6 +282,14 @@ class OneSteelSphere : public GeantImporterTest
 class OneSteelSphereGG : public OneSteelSphere
 {
   protected:
+    void SetUp()
+    {
+        if (geant4_version < Version{10, 6, 0})
+        {
+            GTEST_SKIP() << "Celeritas does not support gamma general for old "
+                            "Geant4 versions";
+        }
+    }
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = OneSteelSphere::build_geant_options();
