@@ -43,6 +43,10 @@ class DormandPrinceMultiStepperGlobal
                                           OdeState* along_state,
                                           FieldStepperResult* result) const;
 
+  private:
+    // Functor to calculate the force applied to a particle
+    EquationT calc_rhs_;
+
     CELER_FUNCTION void run_sequential(real_type step,
                                        OdeState const& beg_state,
                                        int id,
@@ -60,23 +64,13 @@ class DormandPrinceMultiStepperGlobal
                                   OdeState* along_state,
                                   FieldStepperResult* result) const;
 
-  private:
-    // Functor to calculate the force applied to a particle
-    EquationT calc_rhs_;
+    CELER_FUNCTION void update_state(int index,
+                                     OdeState& state,
+                                     real_type coefficient,
+                                     OdeState const& k) const;
+
+    CELER_FUNCTION void dispatch_vect_mult(int mask) const;
 };
-
-//---------------------------------------------------------------------------//
-// MACROS
-//---------------------------------------------------------------------------//
-#define UPDATE_STATE(index, state, coefficient, k)        \
-    state.pos[index - 1] = coefficient * k.pos[index - 1] \
-                           + state.pos[index - 1];        \
-    state.mom[index - 1] = coefficient * k.mom[index - 1] \
-                           + state.mom[index - 1];
-
-#define DISPATCH_VECT_MULT(mask) \
-    __syncwarp(mask);            \
-    __syncwarp(mask);
 
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
@@ -89,9 +83,58 @@ CELER_FUNCTION DormandPrinceMultiStepperGlobal(EquationT&&)
 // INLINE FUNCTIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
+template<class E>
+inline CELER_FUNCTION auto
+DormandPrinceMultiStepperGlobal<E>::operator()(result_type,
+                                               OdeState const&,
+                                               int,
+                                               OdeState*,
+                                               OdeState*,
+                                               FieldStepperResult*) const
+    -> result_type
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+    return result_type{};
+}
 
-// TODO: implement this for CPU
+inline CELER_FUNCTION KernelResult
+DormandPrinceMultiStepperGlobal<E>::run_aside(real_type step,
+                                              OdeState const& beg_state,
+                                              int id,
+                                              int index,
+                                              int mask,
+                                              OdeState* ks,
+                                              OdeState* along_state,
+                                              FieldStepperResult* result) const
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+    return result_type{};
+}
 
+inline CELER_FUNCTION KernelResult
+DormandPrinceMultiStepperGlobal<E>::run_sequential(real_type step,
+                                                   OdeState const& beg_state,
+                                                   int id,
+                                                   int mask,
+                                                   OdeState* ks,
+                                                   OdeState* along_state,
+                                                   FieldStepperResult* result) const
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+    return result_type{};
+}
+
+inline CELER_FUNCTION void DormandPrinceMultiStepperGlobal<E>::update_state(
+    int index, OdeState& state, real_type coefficient, OdeState const& k) const
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline CELER_FUNCTION void
+DormandPrinceMultiStepperGlobal<E>::dispatch_vect_mult(int mask) const
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
 #endif  // !CELER_USE_DEVICE
 #ifdef __CUDA_ARCH__
 
@@ -111,7 +154,9 @@ DormandPrinceMultiStepperGlobal<E>::operator()(real_type step,
     int id = (threadIdx.x + blockIdx.x * blockDim.x) / number_threads;
     int index = (threadIdx.x + blockIdx.x * blockDim.x) % number_threads;
 
-    int mask = (4 * 4 - 1) << ((id * 4) % 32);
+    constexpr int warp_size = 32;
+    int mask = (number_threads * number_threads - 1)
+               << ((id * number_threads) % warp_size);
 
     if (index == 0)
     {
@@ -192,7 +237,7 @@ DormandPrinceMultiStepperGlobal<E>::run_aside(real_type step,
         __syncwarp(mask);
         for (int j = 0; j <= i; j++)
         {
-            UPDATE_STATE(
+            update_state(
                 index, (*along_state), step * axx[coef_counter], ks[j]);
             coef_counter++;
         }
@@ -205,7 +250,7 @@ DormandPrinceMultiStepperGlobal<E>::run_aside(real_type step,
     {
         if (j == 1)
             continue;  // because a62 = 0
-        UPDATE_STATE(index, result->end_state, step * axx[coef_counter], ks[j]);
+        update_state(index, result->end_state, step * axx[coef_counter], ks[j]);
         coef_counter++;
     }
     __syncwarp(mask);
@@ -217,8 +262,8 @@ DormandPrinceMultiStepperGlobal<E>::run_aside(real_type step,
     {
         if (j == 1)
             continue;  // because d72 and c72 = 0
-        UPDATE_STATE(index, result->err_state, step * dxx[coef_counter], ks[j]);
-        UPDATE_STATE(
+        update_state(index, result->err_state, step * dxx[coef_counter], ks[j]);
+        update_state(
             index, result->mid_state, step * cxx[coef_counter] / R(2), ks[j]);
         coef_counter++;
     }
@@ -238,32 +283,32 @@ DormandPrinceMultiStepperGlobal<E>::run_sequential(real_type step,
     // First step
     ks[0] = calc_rhs_(beg_state);
     *along_state = beg_state;
-    DISPATCH_VECT_MULT(mask);
+    dispatch_vect_mult(mask);
 
     // Second step
     ks[1] = calc_rhs_(*along_state);
     *along_state = beg_state;
-    DISPATCH_VECT_MULT(mask);
+    dispatch_vect_mult(mask);
 
     // Third step
     ks[2] = calc_rhs_(*along_state);
     *along_state = beg_state;
-    DISPATCH_VECT_MULT(mask);
+    dispatch_vect_mult(mask);
 
     // Fourth step
     ks[3] = calc_rhs_(*along_state);
     *along_state = beg_state;
-    DISPATCH_VECT_MULT(mask);
+    dispatch_vect_mult(mask);
 
     // Fifth step
     ks[4] = calc_rhs_(*along_state);
     *along_state = beg_state;
-    DISPATCH_VECT_MULT(mask);
+    dispatch_vect_mult(mask);
 
     // Sixth step
     ks[5] = calc_rhs_(*along_state);
     result->end_state = beg_state;
-    DISPATCH_VECT_MULT(mask);
+    dispatch_vect_mult(mask);
 
     // Seventh step: the final step
     ks[6] = calc_rhs_(result->end_state);
@@ -271,9 +316,26 @@ DormandPrinceMultiStepperGlobal<E>::run_sequential(real_type step,
     // The error estimate and the mid point
     result->err_state = {{0, 0, 0}, {0, 0, 0}};
     result->mid_state = beg_state;
-    DISPATCH_VECT_MULT(mask);
+    dispatch_vect_mult(mask);
 }
 
+template<class E>
+inline CELER_FUNCTION void DormandPrinceMultiStepperGlobal<E>::update_state(
+    int index, OdeState& state, real_type coefficient, OdeState const& k) const
+{
+    state.pos[index - 1] = coefficient * k.pos[index - 1]
+                           + state.pos[index - 1];
+    state.mom[index - 1] = coefficient * k.mom[index - 1]
+                           + state.mom[index - 1];
+}
+
+template<class E>
+inline CELER_FUNCTION void
+DormandPrinceMultiStepperGlobal<E>::dispatch_vect_mult(int mask) const
+{
+    __syncwarp(mask);
+    __syncwarp(mask);
+}
 #endif  // __CUDA_ARCH__
 
 //---------------------------------------------------------------------------//

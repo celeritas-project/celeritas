@@ -32,14 +32,20 @@ TEST_F(DormandPrinceStepperTest, global_memory_result)
 
     for (int i = 0; i < number_states_sample; i++)
     {
-        // CELER_LOG(info) << "Result for state " << std::to_string(i) << ":\n"
-        //                 << print_results(expected.results[i],
-        //                                  actual.results[i]);
+        EXPECT_VEC_SOFT_EQ(expected.results[i].mid_state.pos,
+                           actual.results[i].mid_state.pos);
+        EXPECT_VEC_SOFT_EQ(expected.results[i].mid_state.mom,
+                           actual.results[i].mid_state.mom);
 
-        CELER_VALIDATE(
-            compare_results(expected.results[i], actual.results[i]),
-            << "Error at state " << std::to_string(i) << "\n"
-            << print_results(expected.results[i], actual.results[i]));
+        EXPECT_VEC_SOFT_EQ(expected.results[i].end_state.pos,
+                           actual.results[i].end_state.pos);
+        EXPECT_VEC_SOFT_EQ(expected.results[i].end_state.mom,
+                           actual.results[i].end_state.mom);
+
+        EXPECT_VEC_SOFT_EQ(expected.results[i].err_state.pos,
+                           actual.results[i].err_state.pos);
+        EXPECT_VEC_SOFT_EQ(expected.results[i].err_state.mom,
+                           actual.results[i].err_state.mom);
     }
 }
 
@@ -51,7 +57,7 @@ TEST_F(DormandPrinceStepperTest, global_memory_time)
 
     CELER_VALIDATE(multi_threaded.milliseconds <= old.milliseconds,
                    << "Multi-threaded (" << multi_threaded.milliseconds
-                   << " ms) is not faster than old implementation ("
+                   << " ms) is slower than old implementation ("
                    << old.milliseconds << " ms)");
 }
 
@@ -63,10 +69,20 @@ TEST_F(DormandPrinceStepperTest, shared_memory_result)
 
     for (int i = 0; i < number_states_sample; i++)
     {
-        CELER_VALIDATE(
-            compare_results(expected.results[i], actual.results[i]),
-            << "Error at state " << std::to_string(i) << "\n"
-            << print_results(expected.results[i], actual.results[i]));
+        EXPECT_VEC_SOFT_EQ(expected.results[i].mid_state.pos,
+                           actual.results[i].mid_state.pos);
+        EXPECT_VEC_SOFT_EQ(expected.results[i].mid_state.mom,
+                           actual.results[i].mid_state.mom);
+
+        EXPECT_VEC_SOFT_EQ(expected.results[i].end_state.pos,
+                           actual.results[i].end_state.pos);
+        EXPECT_VEC_SOFT_EQ(expected.results[i].end_state.mom,
+                           actual.results[i].end_state.mom);
+
+        EXPECT_VEC_SOFT_EQ(expected.results[i].err_state.pos,
+                           actual.results[i].err_state.pos);
+        EXPECT_VEC_SOFT_EQ(expected.results[i].err_state.mom,
+                           actual.results[i].err_state.mom);
     }
 }
 
@@ -78,15 +94,14 @@ TEST_F(DormandPrinceStepperTest, shared_memory_time)
 
     CELER_VALIDATE(multi_threaded.milliseconds <= old.milliseconds,
                    << "Multi-threaded (" << multi_threaded.milliseconds
-                   << " ms) is not faster than old implementation ("
+                   << " ms) is slower than old implementation ("
                    << old.milliseconds << " ms)");
 }
 
-TEST_F(DormandPrinceStepperTest, compare_time)
+TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_one_by_one)
 {
-    constexpr int number_max_states = 427;
-#define debug
-#ifdef debug
+    constexpr int number_max_states = 800;
+
     for (int i = 1; i < number_max_states; i++)
     {
         auto old = simulate_multi_next_chord(one_thread, i);
@@ -97,6 +112,7 @@ TEST_F(DormandPrinceStepperTest, compare_time)
             break;
         }
     }
+
     for (int i = 1; i < number_max_states; i++)
     {
         auto global_multi_threaded = simulate_multi_next_chord(multi_thread, i);
@@ -108,6 +124,7 @@ TEST_F(DormandPrinceStepperTest, compare_time)
             break;
         }
     }
+
     for (int i = 1; i < number_max_states; i++)
     {
         auto shared_multi_threaded
@@ -120,8 +137,11 @@ TEST_F(DormandPrinceStepperTest, compare_time)
             break;
         }
     }
+}
 
-#else
+TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_all)
+{
+    constexpr int number_max_states = 500;
 
     for (int i = 1; i < number_max_states; i++)
     {
@@ -135,7 +155,6 @@ TEST_F(DormandPrinceStepperTest, compare_time)
             << "\tGlobal memory=" << global_multi_threaded.milliseconds
             << "\tShared memory=" << shared_multi_threaded.milliseconds;
     }
-#endif
 }
 
 //---------------------------------------------------------------------------//

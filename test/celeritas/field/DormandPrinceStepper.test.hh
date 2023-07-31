@@ -20,12 +20,12 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using celeritas::units::ElementaryCharge;
-using Evaluator_t = celeritas::MagFieldEquation<Real3 (&)(Real3 const&)>;
-using Stepper_uni = celeritas::DormandPrinceStepper<Evaluator_t&>;
-using Stepper_multi_global
-    = celeritas::DormandPrinceMultiStepperGlobal<Evaluator_t&>;
-using Stepper_multi_shared
-    = celeritas::DormandPrinceMultiStepperShared<Evaluator_t&>;
+using EvaluatorType = celeritas::MagFieldEquation<Real3 (&)(Real3 const&)>;
+using StepperUni = celeritas::DormandPrinceStepper<EvaluatorType&>;
+using StepperMultiGlobal
+    = celeritas::DormandPrinceMultiStepperGlobal<EvaluatorType&>;
+using StepperMultiShared
+    = celeritas::DormandPrinceMultiStepperShared<EvaluatorType&>;
 
 //---------------------------------------------------------------------------//
 // CONSTANTS
@@ -218,6 +218,10 @@ inline KernelResult simulate_multi_next_chord(int number_threads,
                                               bool use_shared)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
+    CELER_LOG(error) << "Cannot simulate multi next chord with those "
+                        "settings\tnumber_threads: "
+                     << number_threads << "\tnumber_states: " << number_states
+                     << "\tuse_shared: " << use_shared;
     return KernelResult{};
 }
 #endif
