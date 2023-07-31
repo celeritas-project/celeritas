@@ -66,6 +66,16 @@ TEST(PolyEvaluatorTest, eval_int)
     }
 }
 
+TEST(PolyEvaluatorTest, deduction)
+{
+    Array<int, 5> coeffs = {1, -3, 2, 7, 5};
+    auto eval = PolyEvaluator{coeffs};
+    for (int x : {0, 1})
+    {
+        EXPECT_EQ(1 + x * 11, eval(x));
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
