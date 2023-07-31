@@ -46,6 +46,7 @@ struct HasMinWarpsPerEU<T, std::void_t<decltype(T::min_warps_per_eu)>>
 template<typename T>
 constexpr bool has_min_warps_per_eu_v = HasMinWarpsPerEU<T>::value;
 
+//! Checks if type T declared an`Applier` member type
 template<typename T, typename = void>
 struct HasApplier : std::false_type
 {
@@ -59,6 +60,7 @@ struct HasApplier<T, std::void_t<typename T::Applier>> : std::true_type
 template<typename T>
 inline constexpr bool has_applier_v = HasApplier<T>::value;
 
+//! Predicates used for \c __launch_bounds__ arguments
 template<typename T>
 inline constexpr bool kernel_no_bound
     = !has_max_block_size_v<T> && !has_min_warps_per_eu_v<T>;

@@ -94,7 +94,7 @@ constexpr auto select_kernel() -> decltype(&launch_action_impl<F>)
     return ptr;
 }
 
-// instantiated if F::Applier defines one argument for launch bound
+// instantiated if F::Applier defines one argument for launch bounds
 template<class F,
          class A_ = typename F::Applier,
          std::enable_if_t<kernel_max_blocks<A_>, bool> = true>
