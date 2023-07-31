@@ -13,6 +13,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
+  MatrixUtils.cc
   OrangeParams.cc
   OrangeTypes.cc
   construct/SurfaceInputBuilder.cc
@@ -29,7 +30,6 @@ if(CELERITAS_USE_JSON)
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
-
 
 #-----------------------------------------------------------------------------#
 # Create library

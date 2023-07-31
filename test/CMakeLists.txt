@@ -219,6 +219,7 @@ celeritas_setup_tests(SERIAL PREFIX orange
 # Base
 celeritas_add_test(orange/BoundingBox.test.cc)
 celeritas_add_test(orange/BoundingBoxUtils.test.cc)
+celeritas_add_test(orange/MatrixUtils.test.cc)
 celeritas_add_test(orange/Orange.test.cc)
 celeritas_add_test(orange/Translator.test.cc)
 
@@ -237,7 +238,6 @@ celeritas_add_test(orange/surf/PlaneAligned.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
 celeritas_add_device_test(orange/surf/SurfaceAction)
-
 
 #-------------------------------------#
 # Universe details
