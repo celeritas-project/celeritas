@@ -113,7 +113,7 @@ DormandPrinceMultiStepperShared<E>::operator()(real_type step,
     FieldStepperResult* shared_result = reinterpret_cast<FieldStepperResult*>(
         &shared_along_state[num_states]);
 
-    int mask = (4 * 4 - 1) << (id * 4);
+    int mask = (4 * 4 - 1) << ((id * 4) % 32);
 
     if (index == 0)
     {

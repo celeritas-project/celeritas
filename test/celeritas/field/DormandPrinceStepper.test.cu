@@ -114,35 +114,54 @@ __global__ void dormand_test_arg_kernel(OdeState* states,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-KernelResult simulate_multi_next_chord(int number_threads, bool use_shared)
+KernelResult simulate_multi_next_chord(int number_threads,
+                                       int number_states,
+                                       bool use_shared)
 {
     KernelResult result;
+    int arguments_size = 0;
 
     // Load initial states and results to device
     int *d_number_iterations, *d_number_threads;
+    arguments_size += sizeof(int) * 2;
 
     FieldStepperResult *h_results, *d_results;
-    h_results = new FieldStepperResult[number_of_states];
-    for (int i = 0; i < number_of_states; ++i)
+    h_results = new FieldStepperResult[number_states];
+    for (int i = 0; i < number_states; ++i)
     {
         h_results[i] = FieldStepperResult();
+        arguments_size += sizeof(FieldStepperResult);
     }
 
     OdeState *h_along_state, *d_along_state;
-    h_along_state = new OdeState[number_of_states];
-    for (int i = 0; i < number_of_states; ++i)
+    if (number_threads > 1 && !use_shared)
     {
-        h_along_state[i] = OdeState();
+        h_along_state = new OdeState[number_states];
+        for (int i = 0; i < number_states; ++i)
+        {
+            h_along_state[i] = OdeState();
+            arguments_size += sizeof(OdeState);
+        }
     }
 
     OdeState *h_ks, *d_ks;
-    h_ks = new OdeState[number_of_states * 7];
-    for (int i = 0; i < number_of_states * 7; ++i)
+    if (number_threads > 1 && !use_shared)
     {
-        h_ks[i] = OdeState();
+        h_ks = new OdeState[number_states * 7];
+        for (int i = 0; i < number_states * 7; ++i)
+        {
+            h_ks[i] = OdeState();
+            arguments_size += sizeof(OdeState);
+        }
     }
 
-    OdeState* d_states;
+    OdeState *h_states, *d_states;
+    h_states = new OdeState[number_states];
+    for (int i = 0; i < number_states; ++i)
+    {
+        h_states[i] = initial_states[i % number_states_sample];
+        arguments_size += sizeof(OdeState);
+    }
 
     // Create events
     cudaEvent_t start, stop;
@@ -150,17 +169,20 @@ KernelResult simulate_multi_next_chord(int number_threads, bool use_shared)
     cudaEventCreate(&stop);
 
     // Allocate memory on device
-    cudaMalloc(&d_results, number_of_states * sizeof(FieldStepperResult));
-    cudaMalloc(&d_states, number_of_states * sizeof(OdeState));
+    cudaMalloc(&d_results, number_states * sizeof(FieldStepperResult));
+    cudaMalloc(&d_states, number_states * sizeof(OdeState));
     cudaMalloc(&d_number_iterations, sizeof(int));
     cudaMalloc(&d_number_threads, sizeof(int));
-    cudaMalloc(&d_ks, number_of_states * 7 * sizeof(OdeState));
-    cudaMalloc(&d_along_state, number_of_states * sizeof(OdeState));
+    if (number_threads > 1 && !use_shared)
+    {
+        cudaMalloc(&d_ks, number_states * 7 * sizeof(OdeState));
+        cudaMalloc(&d_along_state, number_states * sizeof(OdeState));
+    }
 
     // Copy initial states to device
     cudaMemcpy(d_states,
                initial_states,
-               number_of_states * sizeof(OdeState),
+               number_states * sizeof(OdeState),
                cudaMemcpyHostToDevice);
     cudaMemcpy(d_number_iterations,
                &number_iterations,
@@ -168,20 +190,29 @@ KernelResult simulate_multi_next_chord(int number_threads, bool use_shared)
                cudaMemcpyHostToDevice);
     cudaMemcpy(
         d_number_threads, &number_threads, sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_ks,
-               h_ks,
-               number_of_states * 7 * sizeof(OdeState),
-               cudaMemcpyHostToDevice);
-    cudaMemcpy(d_along_state,
-               &h_along_state,
-               number_of_states * sizeof(OdeState),
-               cudaMemcpyHostToDevice);
+
+    if (number_threads > 1 && !use_shared)
+    {
+        cudaMemcpy(d_ks,
+                   h_ks,
+                   number_states * 7 * sizeof(OdeState),
+                   cudaMemcpyHostToDevice);
+        cudaMemcpy(d_along_state,
+                   &h_along_state,
+                   number_states * sizeof(OdeState),
+                   cudaMemcpyHostToDevice);
+    }
 
     // Kernel configuration
-    int thread_dimension = number_threads * number_of_states;
-    int shared_memory = number_of_states * 7 * sizeof(OdeState)
-                        + number_of_states * sizeof(OdeState)
-                        + number_of_states * sizeof(FieldStepperResult);
+    int shared_memory = 0;
+    if (use_shared)
+    {
+        shared_memory = number_states * 7 * sizeof(OdeState)
+                        + number_states * sizeof(OdeState)
+                        + number_states * sizeof(FieldStepperResult);
+    }
+    int block_dimension = 1;
+    int thread_dimension = number_threads * number_states;
 
     // Launch the kernel with the desired streamId
     cudaEventRecord(start);
@@ -190,41 +221,72 @@ KernelResult simulate_multi_next_chord(int number_threads, bool use_shared)
         if (use_shared)
         {
             dormand_test_arg_kernel<Stepper_multi_shared>
-                <<<1, thread_dimension, shared_memory>>>(d_states,
-                                                         d_results,
-                                                         d_number_iterations,
-                                                         d_number_threads,
-                                                         d_ks,
-                                                         d_along_state);
+                <<<block_dimension, thread_dimension, shared_memory>>>(
+                    d_states,
+                    d_results,
+                    d_number_iterations,
+                    d_number_threads,
+                    d_ks,
+                    d_along_state);
         }
         else
         {
             dormand_test_arg_kernel<Stepper_multi_global>
-                <<<1, thread_dimension>>>(d_states,
-                                          d_results,
-                                          d_number_iterations,
-                                          d_number_threads,
-                                          d_ks,
-                                          d_along_state);
+                <<<block_dimension, thread_dimension>>>(d_states,
+                                                        d_results,
+                                                        d_number_iterations,
+                                                        d_number_threads,
+                                                        d_ks,
+                                                        d_along_state);
         }
     }
     else
     {
         dormand_test_arg_kernel<Stepper_uni>
-            <<<1, thread_dimension>>>(d_states,
-                                      d_results,
-                                      d_number_iterations,
-                                      d_number_threads,
-                                      d_ks,
-                                      d_along_state);
+            <<<block_dimension, thread_dimension>>>(d_states,
+                                                    d_results,
+                                                    d_number_iterations,
+                                                    d_number_threads,
+                                                    d_ks,
+                                                    d_along_state);
     }
 
     cudaDeviceSynchronize();
     cudaEventRecord(stop);
 
-    // Compute the elapsed time
-    cudaDeviceSynchronize();
-    cudaEventElapsedTime(&(result.milliseconds), start, stop);
+    // Check if kernel execution generated an error
+    cudaError_t error = cudaGetLastError();
+    if (error != cudaSuccess)
+    {
+        int max_threads_per_block = 0;
+        int max_blocks = 0;
+        int max_shared_memory = 0;
+
+        cudaDeviceGetAttribute(
+            &max_threads_per_block, cudaDevAttrMaxThreadsPerBlock, 0);
+        cudaDeviceGetAttribute(&max_blocks, cudaDevAttrMaxGridDimX, 0);
+        cudaDeviceGetAttribute(
+            &max_shared_memory, cudaDevAttrMaxSharedMemoryPerBlock, 0);
+
+        std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+        std::cerr << "Launc config for " << number_states
+                  << " states: " << block_dimension << " blocks, "
+                  << thread_dimension << " threads per block, "
+                  << shared_memory << " bytes of "
+                  << "shared memory and " << arguments_size << " bytes of "
+                  << "arguments" << std::endl;
+        std::cerr << "Device properties: " << max_threads_per_block
+                  << " threads per block, " << max_blocks << " blocks and "
+                  << max_shared_memory << " bytes of shared memory"
+                  << std::endl;
+        result.milliseconds = -1;
+    }
+    else
+    {
+        // Compute the elapsed time
+        cudaDeviceSynchronize();
+        cudaEventElapsedTime(&(result.milliseconds), start, stop);
+    }
 
     // Destroy events
     cudaEventDestroy(start);
@@ -233,7 +295,7 @@ KernelResult simulate_multi_next_chord(int number_threads, bool use_shared)
     // Copy results back to host
     cudaMemcpy(h_results,
                d_results,
-               number_of_states * sizeof(FieldStepperResult),
+               number_states * sizeof(FieldStepperResult),
                cudaMemcpyDeviceToHost);
 
     // Free memory on device
@@ -241,8 +303,11 @@ KernelResult simulate_multi_next_chord(int number_threads, bool use_shared)
     cudaFree(d_states);
     cudaFree(d_number_iterations);
     cudaFree(d_number_threads);
-    cudaFree(d_ks);
-    cudaFree(d_along_state);
+    if (number_threads > 1 && !use_shared)
+    {
+        cudaFree(d_ks);
+        cudaFree(d_along_state);
+    }
 
     // Return results
     result.results = h_results;

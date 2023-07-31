@@ -111,7 +111,7 @@ DormandPrinceMultiStepperGlobal<E>::operator()(real_type step,
     int id = (threadIdx.x + blockIdx.x * blockDim.x) / number_threads;
     int index = (threadIdx.x + blockIdx.x * blockDim.x) % number_threads;
 
-    int mask = (4 * 4 - 1) << (id * 4);
+    int mask = (4 * 4 - 1) << ((id * 4) % 32);
 
     if (index == 0)
     {

@@ -32,7 +32,7 @@ using Stepper_multi_shared
 //---------------------------------------------------------------------------//
 constexpr int one_thread = 1;
 constexpr int multi_thread = 4;
-constexpr int number_iterations = 1;
+constexpr int number_iterations = 40;
 constexpr OdeState initial_states[5] = {
     OdeState{{1, 2, 3}, {1, 1, 1}},
     OdeState{{0, 0, 0}, {0, 0, 1}},
@@ -40,8 +40,8 @@ constexpr OdeState initial_states[5] = {
     OdeState{{1, 2, 3}, {0, 0, -1}},
     OdeState{{1, 2, 3}, {0, 5, 0}},
 };
-constexpr int number_of_states = sizeof(initial_states)
-                                 / sizeof(initial_states[0]);
+constexpr int number_states_sample = sizeof(initial_states)
+                                     / sizeof(initial_states[0]);
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
@@ -208,15 +208,17 @@ struct KernelResult
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-KernelResult
-simulate_multi_next_chord(int number_threads, bool use_shared = false);
+KernelResult simulate_multi_next_chord(int number_threads,
+                                       int number_states,
+                                       bool use_shared = false);
 
 #if !CELER_USE_DEVICE
-inline KernelResult
-simulate_multi_next_chord(int number_threads, bool use_shared = false)
+inline KernelResult simulate_multi_next_chord(int number_threads,
+                                              int number_states,
+                                              bool use_shared)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
-    return nullptr;
+    return KernelResult{};
 }
 #endif
 
