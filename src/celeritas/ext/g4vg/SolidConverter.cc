@@ -585,20 +585,19 @@ auto SolidConverter::tessellatedsolid(arg_type solid_base) -> result_type
 auto SolidConverter::tet(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Tet const&>(solid_base);
-    G4ThreeVector anchor;
-    Array<G4ThreeVector, 3> points;
+    Array<G4ThreeVector, 4> points;
 #if G4VERSION_NUMBER >= 1060
-    solid.GetVertices(anchor, points[0], points[1], points[2]);
+    solid.GetVertices(points[0], points[1], points[2], points[3]);
 #else
     auto g4points = solid.GetVertices();
-    CELER_ASSERT(g4points.size() == 3);
+    CELER_ASSERT(g4points.size() == 4);
     std::copy(g4points.begin(), g4points.end(), points.begin());
 #endif
     return GeoManager::MakeInstance<UnplacedTet>(
-        this->convert_scale_(anchor),
         this->convert_scale_(points[0]),
         this->convert_scale_(points[1]),
-        this->convert_scale_(points[2]));
+        this->convert_scale_(points[2]),
+        this->convert_scale_(points[3]));
 }
 
 //---------------------------------------------------------------------------//
