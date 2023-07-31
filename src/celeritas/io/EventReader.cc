@@ -34,14 +34,8 @@ EventReader::EventReader(std::string const& filename, SPConstParticles params)
 {
     CELER_EXPECT(params_);
 
-    CELER_LOG(info) << "Opening event file at " << filename;
-    ScopedTimeAndRedirect temp_{"HepMC3"};
-
-    set_hepmc3_verbosity_from_env();
-
     // Determine the input file format and construct the appropriate reader
-    HepMC3::Setup::set_debug_level(1);
-    reader_ = HepMC3::deduce_reader(filename);
+    reader_ = open_hepmc3(filename);
 
     CELER_LOG(debug) << "Reader type: "
                      << TypeDemangler<HepMC3::Reader>()(*reader_);
@@ -156,6 +150,34 @@ void set_hepmc3_verbosity_from_env()
     {
         HepMC3::Setup::set_debug_level(std::stoi(var));
     }
+    else
+    {
+        HepMC3::Setup::set_debug_level(1);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wrapper function for HepMC3::deduce_reader to avoid duplicate symbols.
+ *
+ * HepMC3 through 3.2.6 has a ReaderFactory.h that includes function
+ * *definitions* without \c inline keywords, leading to duplicate symbols.
+ * Reusing this function rather than including ReaderFactory multiple times in
+ * Celeritas is the easiest way to work around the problem.
+ *
+ * It also sets the debug level from the environment, prints a status
+ * message,and validates the file.
+ */
+std::shared_ptr<HepMC3::Reader> open_hepmc3(std::string const& filename)
+{
+    set_hepmc3_verbosity_from_env();
+
+    CELER_LOG(info) << "Opening HepMC3 input file at " << filename;
+
+    ScopedTimeAndRedirect temp_{"HepMC3"};
+    auto result = HepMC3::deduce_reader(filename);
+    CELER_VALIDATE(result, << "failed to deduce event input file type");
+    return result;
 }
 
 //---------------------------------------------------------------------------//

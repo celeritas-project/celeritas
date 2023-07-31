@@ -12,6 +12,7 @@
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
@@ -65,7 +66,7 @@ class FieldDriverTest : public Test
     Real3 calc_momentum(MevEnergy energy, Real3 const& dir)
     {
         CELER_EXPECT(is_soft_unit_vector(dir));
-        return detail::ax(this->calc_momentum(energy).value(), dir);
+        return this->calc_momentum(energy).value() * dir;
     }
 
     // Calculate momentum assuming an electron

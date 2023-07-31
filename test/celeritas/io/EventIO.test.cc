@@ -22,7 +22,7 @@
 #    include <HepMC3/GenEvent.h>
 #    include <HepMC3/GenParticle.h>
 #    include <HepMC3/Print.h>
-#    include <HepMC3/ReaderAscii.h>
+#    include <HepMC3/Reader.h>
 #    include <HepMC3/Selector.h>
 #    include <HepMC3/WriterAscii.h>
 #endif
@@ -459,7 +459,7 @@ TEST_F(HepMC3Example, read)
     using namespace HepMC3;
     ASSERT_FALSE(this->test_filename_.empty());
     Setup::set_debug_level(1);
-    auto reader = std::make_shared<ReaderAscii>(this->test_filename_);
+    auto reader = open_hepmc3(this->test_filename_);
 
     GenEvent evt;
     reader->read_event(evt);
