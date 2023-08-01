@@ -334,6 +334,11 @@ TEST_P(EventIOTest, write_read)
     // Read events
     auto result = this->read_all(EventReader(filename, particles_));
 
+    if (ext == "hepevt")
+    {
+        GTEST_SKIP() << "HEPEVT results are nondeterministic";
+    }
+
     // clang-format off
     static int const expected_pdg[] = {22, 2212, 22, 2212, 22, 2212, 22, 2212,
         2212, 22};
