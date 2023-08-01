@@ -20,14 +20,14 @@ namespace test
 TEST(PolyEvaluatorTest, make_eval)
 {
     // Third-order double poly
-    auto eval_poly = make_poly_evaluator(1.0, 3, 4.0f, 5);
+    auto eval_poly = PolyEvaluator{1.0, 3, 4.0f, 5};
     EXPECT_TRUE(
         (std::is_same<decltype(eval_poly), PolyEvaluator<double, 3>>()));
     EXPECT_EQ(4 * sizeof(double), sizeof(eval_poly));
     EXPECT_DOUBLE_EQ(63.0, eval_poly(2.0));
 
     // Second-order int poly: 3 x^2 + 1
-    auto eval_int_poly = make_poly_evaluator(1, 0, 3);
+    auto eval_int_poly = PolyEvaluator{1, 0, 3};
     EXPECT_TRUE(
         (std::is_same<decltype(eval_int_poly), PolyEvaluator<int, 2>>()));
     EXPECT_EQ(3 * sizeof(int), sizeof(eval_int_poly));
@@ -35,7 +35,8 @@ TEST(PolyEvaluatorTest, make_eval)
 
     // First-order poly from an array
     constexpr Array<int, 2> linear_data{10, 1};
-    constexpr PolyEvaluator<int, 1> eval_linear{linear_data};
+    constexpr auto eval_linear = PolyEvaluator(linear_data);
+    EXPECT_TRUE((std::is_same<decltype(eval_linear),  PolyEvaluator<int, 1> const >)));
     EXPECT_EQ(9, eval_linear(-1));
     EXPECT_EQ(10, eval_linear(0));
     EXPECT_EQ(12, eval_linear(2));
@@ -63,16 +64,6 @@ TEST(PolyEvaluatorTest, eval_int)
     for (int x : {-1, 0, 2, 8})
     {
         EXPECT_EQ(3 + 2 * x + x * x - x * x * x, eval(x));
-    }
-}
-
-TEST(PolyEvaluatorTest, deduction)
-{
-    Array<int, 5> coeffs = {1, -3, 2, 7, 5};
-    auto eval = PolyEvaluator{coeffs};
-    for (int x : {0, 1})
-    {
-        EXPECT_EQ(1 + x * 11, eval(x));
     }
 }
 
