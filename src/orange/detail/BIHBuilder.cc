@@ -35,18 +35,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from vector of bounding boxes and storage for LocalVolumeIds.
+ * Construct from a Storage object
  */
-BIHBuilder::BIHBuilder(BIHBuilder::BboxStorage* bbox_storage,
-                       BIHBuilder::LVIStorage* lvi_storage,
-                       BIHBuilder::InnerNodeStorage* inner_node_storage,
-                       BIHBuilder::LeafNodeStorage* leaf_node_storage)
-    : bbox_storage_(bbox_storage)
-    , lvi_storage_(lvi_storage)
-    , inner_node_storage_(inner_node_storage)
-    , leaf_node_storage_(leaf_node_storage)
-{
-}
+BIHBuilder::BIHBuilder(BIHStorage storage) : storage_(storage) {}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -86,15 +77,16 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
     BIHTree params;
 
     params.bboxes = ItemMap<LocalVolumeId, BoundingBoxId>(
-        make_builder(bbox_storage_).insert_back(bboxes_.begin(), bboxes_.end()));
+        make_builder(storage_.bboxes)
+            .insert_back(bboxes_.begin(), bboxes_.end()));
 
     params.inner_nodes
-        = make_builder(inner_node_storage_)
+        = make_builder(storage_.inner_nodes)
               .insert_back(inner_nodes.begin(), inner_nodes.end());
-    params.leaf_nodes = make_builder(leaf_node_storage_)
+    params.leaf_nodes = make_builder(storage_.leaf_nodes)
                             .insert_back(leaf_nodes.begin(), leaf_nodes.end());
 
-    params.inf_volids = make_builder(lvi_storage_)
+    params.inf_volids = make_builder(storage_.local_volume_ids)
                             .insert_back(inf_volids.begin(), inf_volids.end());
 
     return params;
@@ -151,7 +143,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     {
         BIHLeafNode node;
         node.parent = parent;
-        node.vol_ids = make_builder(lvi_storage_)
+        node.vol_ids = make_builder(storage_.local_volume_ids)
                            .insert_back(indices.begin(), indices.end());
 
         CELER_EXPECT(node);

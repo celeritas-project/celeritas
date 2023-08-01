@@ -66,6 +66,25 @@ struct BIHLeafNode
 
 //---------------------------------------------------------------------------//
 /*!
+ * Storage for a Bounding Interval Hierarchy tree.
+ */
+struct BIHStorage
+{
+    template<class T>
+    using Storage = Collection<T, Ownership::value, MemSpace::host>;
+    using BBoxStorage = Storage<BoundingBox>;
+    using LVIStorage = Storage<LocalVolumeId>;
+    using InnerNodeStorage = Storage<BIHInnerNode>;
+    using LeafNodeStorage = Storage<BIHLeafNode>;
+
+    BBoxStorage* bboxes;
+    LVIStorage* local_volume_ids;
+    InnerNodeStorage* inner_nodes;
+    LeafNodeStorage* leaf_nodes;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Bounding Interval Hierarchy tree.
  */
 struct BIHTree

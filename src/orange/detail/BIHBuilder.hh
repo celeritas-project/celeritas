@@ -39,33 +39,14 @@ class BIHBuilder
     //!@{
     //! \name Type aliases
     using VecBBox = std::vector<BoundingBox>;
-    using BboxStorage = Collection<BoundingBox,
-                                   Ownership::value,
-                                   MemSpace::host,
-                                   OpaqueId<BoundingBox>>;
-    using LVIStorage = Collection<LocalVolumeId,
-                                  Ownership::value,
-                                  MemSpace::host,
-                                  OpaqueId<LocalVolumeId>>;
-    using InnerNodeStorage = Collection<BIHInnerNode,
-                                        Ownership::value,
-                                        MemSpace::host,
-                                        OpaqueId<BIHInnerNode>>;
-    using LeafNodeStorage = Collection<BIHLeafNode,
-                                       Ownership::value,
-                                       MemSpace::host,
-                                       OpaqueId<BIHLeafNode>>;
     //!@}
 
   public:
     //! Default constructor
     BIHBuilder() = default;
 
-    // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    explicit BIHBuilder(BboxStorage* bbox_storage,
-                        LVIStorage* lvi_storage,
-                        InnerNodeStorage* inner_node_storage,
-                        LeafNodeStorage* leaf_node_storage);
+    // Construct from a Storage object
+    explicit BIHBuilder(BIHStorage storage);
 
     // Create BIH Nodes
     BIHTree operator()(VecBBox bboxes);
@@ -86,10 +67,7 @@ class BIHBuilder
 
     VecBBox bboxes_;
     VecReal3 centers_;
-    BboxStorage* bbox_storage_;
-    LVIStorage* lvi_storage_;
-    InnerNodeStorage* inner_node_storage_;
-    LeafNodeStorage* leaf_node_storage_;
+    BIHStorage storage_;
 
     //// HELPER FUNCTIONS ////
 

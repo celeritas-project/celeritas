@@ -145,10 +145,12 @@ UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
     orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
 
-    bih_builder_ = detail::BIHBuilder(&orange_data_->bboxes,
-                                      &orange_data_->local_volume_ids,
-                                      &orange_data_->bih_inner_nodes,
-                                      &orange_data_->bih_leaf_nodes);
+    BIHStorage storage{&(orange_data_->bboxes),
+                       &(orange_data_->local_volume_ids),
+                       &(orange_data_->bih_inner_nodes),
+                       &(orange_data_->bih_leaf_nodes)};
+
+    bih_builder_ = detail::BIHBuilder(std::move(storage));
 }
 
 //---------------------------------------------------------------------------//
