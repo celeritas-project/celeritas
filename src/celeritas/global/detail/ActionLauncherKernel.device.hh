@@ -1,4 +1,4 @@
-//----------------------------------*-C++-*----------------------------------//
+//---------------------------------*-CUDA-*----------------------------------//
 // Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,20 +16,17 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
 namespace detail
 {
-//---------------------------------------------------------------------------//
 namespace
 {
 //---------------------------------------------------------------------------//
 /*!
  * Celeritas executor kernel implementation.
  */
-
 template<class F>
 __device__ CELER_FORCEINLINE void
-launch_kernel_impl(Range<ThreadId> const thread_range, F& execute_thread)
+launch_kernel_impl(Range<ThreadId> const& thread_range, F& execute_thread)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < thread_range.size()))
@@ -38,14 +35,10 @@ launch_kernel_impl(Range<ThreadId> const thread_range, F& execute_thread)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace
+//!@{
+//! Launch the given executor using thread ids in the thread_range.
 
-//---------------------------------------------------------------------------//
-/*!
- * Launch the given executor using thread ids in the thread_range.
- */
-
-// instantiated if F doesn't define a member type F::Applier
+// Instantiated if F doesn't define a member type F::Applier
 template<class F, std::enable_if_t<!has_applier_v<F>, bool> = true>
 __global__ void
 launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
@@ -53,7 +46,7 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
     launch_kernel_impl(thread_range, execute_thread);
 }
 
-// instantiated if F::Applier has no launch bounds
+// Instantiated if F::Applier has no launch bounds
 template<class F,
          std::enable_if_t<kernel_no_bound<typename F::Applier>, bool> = true>
 __global__ void
@@ -62,7 +55,7 @@ launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
     launch_kernel_impl(thread_range, execute_thread);
 }
 
-// instantiated if F::Applier defines the first launch bounds argument
+// Instantiated if F::Applier defines the first launch bounds argument
 template<class F,
          class A_ = typename F::Applier,
          std::enable_if_t<kernel_max_blocks<A_>, bool> = true,
@@ -73,7 +66,7 @@ __global__ void __launch_bounds__(T_)
     launch_kernel_impl(thread_range, execute_thread);
 }
 
-// instantiated if F::Applier defines two arguments for launch bounds
+// Instantiated if F::Applier defines two arguments for launch bounds
 template<class F,
          class A_ = typename F::Applier,
          std::enable_if_t<kernel_max_blocks_min_warps<A_>, bool> = true,
@@ -94,5 +87,6 @@ __global__ void __launch_bounds__(T_, B_)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace
 }  // namespace detail
 }  // namespace celeritas

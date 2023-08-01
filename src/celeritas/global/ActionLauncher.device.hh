@@ -33,17 +33,18 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Profile and launch Celeritas kernels from inside an action.
-
- * The template argument F may define a member type named \c Applier.
+ *
+ * The template argument \c F may define a member type named \c Applier.
  * \c F::Applier should have up to two static constexpr int variables named
- * max_block_size and/or min_warps_per_eu.
+ * \c max_block_size and/or \c min_warps_per_eu.
  * If present, the kernel will use appropriate \c __launch_bounds__.
  * If \c F::Applier::min_warps_per_eu exists then \c F::Applier::max_block_size
  * must also be present or we get a compile error.
  *
- * Semantics of \c __launch_bounds__ 2nd argument differs between CUDA and HIP.
- * \c ActionLauncher expects HIP semantics. If Celeritas is built targeting
- * CUDA, it will automatically convert that argument to match CUDA semantics.
+ * The semantics of the second \c __launch_bounds__ argument differs between
+ * CUDA and HIP.  \c ActionLauncher expects HIP semantics. If Celeritas is
+ * built targeting CUDA, it will automatically convert that argument to match
+ * CUDA semantics.
  *
  * The CUDA-specific 3rd argument \c maxBlocksPerCluster is not supported.
  *
