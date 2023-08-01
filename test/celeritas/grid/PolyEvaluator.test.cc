@@ -36,7 +36,8 @@ TEST(PolyEvaluatorTest, make_eval)
     // First-order poly from an array
     constexpr Array<int, 2> linear_data{10, 1};
     constexpr auto eval_linear = PolyEvaluator(linear_data);
-    EXPECT_TRUE((std::is_same<decltype(eval_linear),  PolyEvaluator<int, 1> const >)));
+    EXPECT_TRUE(
+        (std::is_same<decltype(eval_linear), PolyEvaluator<int, 1> const>()));
     EXPECT_EQ(9, eval_linear(-1));
     EXPECT_EQ(10, eval_linear(0));
     EXPECT_EQ(12, eval_linear(2));
