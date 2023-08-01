@@ -121,11 +121,8 @@ ZHelixStepper<E>::operator()(real_type step, OdeState const& beg_state) const
     result.end_state = this->move(step, radius, helicity, beg_state, rhs);
 
     // Solution are exact, but assign a tolerance for numerical treatments
-    for (int i = 0; i < 3; ++i)
-    {
-        result.err_state.pos[i] = ZHelixStepper::tolerance();
-        result.err_state.mom[i] = ZHelixStepper::tolerance();
-    }
+    result.err_state.pos.fill(ZHelixStepper::tolerance());
+    result.err_state.mom.fill(ZHelixStepper::tolerance());
 
     return result;
 }

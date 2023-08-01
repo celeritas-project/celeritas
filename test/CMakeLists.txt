@@ -176,6 +176,7 @@ celeritas_add_test(corecel/io/StringUtils.test.cc)
 # Math
 set(CELERITASTEST_PREFIX corecel/math)
 celeritas_add_test(corecel/math/Algorithms.test.cc)
+celeritas_add_test(corecel/math/ArrayOperators.test.cc)
 celeritas_add_test(corecel/math/ArrayUtils.test.cc)
 celeritas_add_test(corecel/math/HashUtils.test.cc)
 celeritas_add_device_test(corecel/math/NumericLimits)
