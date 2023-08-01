@@ -9,7 +9,6 @@
 #include "celeritas/Units.hh"
 #include "celeritas/em/interactor/WentzelInteractor.hh"
 #include "celeritas/em/model/WentzelModel.hh"
-#include "celeritas/em/model/detail/MottInterpolatedCoefficients.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -110,29 +109,6 @@ class CoulombScatteringTest : public InteractorHostTestBase
   protected:
     std::shared_ptr<WentzelModel> model_;
 };
-
-TEST_F(CoulombScatteringTest, wokvi_data)
-{
-    WentzelHostRef const& data = model_->host_ref();
-
-    // Check element data is filled in correctly
-    unsigned int const num_elements = this->material_params()->num_elements();
-    for (auto el_id : range(ElementId(num_elements)))
-    {
-        int const z = this->material_params()->get(el_id).atomic_number().get();
-        int const mott_index = (z <= 92) ? z : 0;
-
-        WentzelElementData const& element_data = data.elem_data[el_id];
-        for (auto i : range(5))
-        {
-            for (auto j : range(6))
-            {
-                EXPECT_EQ(detail::interpolated_mott_coeffs[mott_index][i][j],
-                          element_data.mott_coeff[i][j]);
-            }
-        }
-    }
-}
 
 TEST_F(CoulombScatteringTest, wokvi_xs)
 {

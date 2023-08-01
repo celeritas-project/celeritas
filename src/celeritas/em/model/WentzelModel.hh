@@ -11,6 +11,7 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/WentzelData.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
@@ -78,7 +79,11 @@ class WentzelModel final : public Model
     //! Construct per element data (loads Mott coefficients)
     void build_data(HostVal<WentzelData>& host_data,
                     MaterialParams const& materials);
+
+    //! Retrieve matrix of interpolated Mott coefficients
+    static WentzelElementData::MottCoeffMatrix
+    get_mott_coeff_matrix(AtomicNumber z);
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace celeritas
+}  //  namespace celeritas

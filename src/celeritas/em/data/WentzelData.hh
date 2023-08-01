@@ -12,7 +12,6 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/em/model/detail/MottInterpolatedCoefficients.hh"
 
 namespace celeritas
 {
@@ -45,11 +44,19 @@ struct WentzelIds
  */
 struct WentzelElementData
 {
-    using BetaArray = Array<real_type, detail::num_mott_beta_bins>;
-    using ThetaArray = Array<real_type, detail::num_mott_theta_bins>;
+    //!@{
+    //! \name Dimensions for Mott coefficient matrices
+    static constexpr size_type num_mott_beta_bins = 6;
+    static constexpr size_type num_mott_theta_bins = 5;
+    static constexpr size_type num_mott_elements = 92;
+    //!@}
+
+    using BetaArray = Array<real_type, num_mott_beta_bins>;
+    using ThetaArray = Array<real_type, num_mott_theta_bins>;
+    using MottCoeffMatrix = Array<BetaArray, num_mott_theta_bins>;
 
     //! Matrix of Mott coefficients [theta][beta]
-    Array<BetaArray, detail::num_mott_theta_bins> mott_coeff;
+    MottCoeffMatrix mott_coeff;
 };
 
 //---------------------------------------------------------------------------//

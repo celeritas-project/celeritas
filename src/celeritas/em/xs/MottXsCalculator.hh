@@ -43,9 +43,6 @@ class MottXsCalculator
   private:
     WentzelElementData const& element_data_;
     real_type beta_;
-
-    template<class T>
-    inline CELER_FUNCTION void generate_powers(T& powers, real_type x) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -89,28 +86,15 @@ real_type MottXsCalculator::operator()(real_type cos_theta) const
     real_type beta0 = beta_ - beta_shift;
 
     // Evaluate polynomial of powers of beta0 and fcos_t
+    using PolyQuint = PolyEvaluator<real_type, 5>;
+    using PolyQuart = PolyEvaluator<real_type, 4>;
+
     WentzelElementData::ThetaArray theta_coeffs;
     for (auto i : range(theta_coeffs.size()))
     {
-        theta_coeffs[i] = PolyEvaluator{element_data_.mott_coeff[i]}(beta0);
+        theta_coeffs[i] = PolyQuint{element_data_.mott_coeff[i]}(beta0);
     }
-    return PolyEvaluator{theta_coeffs}(fcos_t);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Fills the array with powers of x from \f$ x^0, x^1, ..., x^{N-1} \f$,
- * where \f$ N \f$ is the size of the array.
- */
-template<class T>
-CELER_FUNCTION void
-MottXsCalculator::generate_powers(T& powers, real_type x) const
-{
-    powers[0] = 1;
-    for (size_type i : range(size_type{1}, powers.size()))
-    {
-        powers[i] = x * powers[i - 1];
-    }
+    return PolyQuart{theta_coeffs}(fcos_t);
 }
 
 //---------------------------------------------------------------------------//

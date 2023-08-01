@@ -69,7 +69,7 @@ struct Array
     //!@{
     //! \name Capacity
     CELER_CONSTEXPR_FUNCTION bool empty() const { return N == 0; }
-    static CELER_CONSTEXPR_FUNCTION size_type size() { return N; }
+    CELER_CONSTEXPR_FUNCTION size_type size() const { return N; }
     //!@}
 
     //!@{
@@ -82,15 +82,6 @@ struct Array
     }
     //!@}
 };
-
-//---------------------------------------------------------------------------//
-// DEDUCTION GUIDES
-//---------------------------------------------------------------------------//
-template<class T, ::celeritas::size_type N>
-Array(Array<T, N> array) -> Array<T, N>;
-
-template<class T, ::celeritas::size_type N>
-Array(Array<T, N> const& array) -> Array<T, N>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

@@ -92,12 +92,6 @@ class PolyEvaluator
 };
 
 //---------------------------------------------------------------------------//
-// Deduction Guides
-//---------------------------------------------------------------------------//
-template<typename T, unsigned int N>
-PolyEvaluator(Array<T, N> const& array) -> PolyEvaluator<T, N - 1>;
-
-//---------------------------------------------------------------------------//
 /*!
  * Create a polynomial evaluator from the given arguments.
  */
