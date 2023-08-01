@@ -428,6 +428,7 @@ macro(celeritas_export_var varname)
   list(APPEND CELERITAS_EXPORT_VARIABLES "set(${varname} \"${${varname}}\")")
 endmacro()
 celeritas_export_var(Celeritas_VERSION_STRING)
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Configuration options")
 get_directory_property(_cachevar_keys CACHE_VARIABLES)
 foreach(_key IN LISTS _cachevar_keys)
   if(_key MATCHES "^CELERITAS_")
@@ -435,13 +436,14 @@ foreach(_key IN LISTS _cachevar_keys)
   endif()
 endforeach()
 
-# Add other cache variables, prefixed with CELERITAS_
-foreach(_key BUILD_SHARED_LIBS)
+# Export defaulted variables
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted variables")
+foreach(_key IN LISTS CELERITAS_DEFAULT_VARIABLES)
   list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
 endforeach()
 
 # Add hints for direct dependencies and indirect geant dependencies
-list(APPEND CELERITAS_EXPORT_VARIABLES "# Hints for upstream dependencies")
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
   Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
