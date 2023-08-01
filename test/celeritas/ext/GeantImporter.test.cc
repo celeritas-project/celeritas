@@ -282,7 +282,7 @@ class OneSteelSphere : public GeantImporterTest
 class OneSteelSphereGG : public OneSteelSphere
 {
   protected:
-    void SetUp()
+    void SetUp() override
     {
         if (geant4_version < Version{10, 6, 0})
         {
