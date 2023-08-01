@@ -40,7 +40,7 @@ namespace celeritas
    corr = PolyQuad{1.41125, -1.86427e-2, 1.84035e-4)(zeff);
  * \endcode
  */
-template<class T, unsigned int N>
+template<class T, size_type N>
 class PolyEvaluator
 {
   public:
@@ -92,13 +92,13 @@ class PolyEvaluator
 };
 
 //---------------------------------------------------------------------------//
-// Deduction Guides
+// DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<typename T, unsigned int N>
+template<typename T, size_type N>
 PolyEvaluator(Array<T, N> const&) -> PolyEvaluator<T, N - 1>;
 
 template<typename... Ts>
-PolyEvaluator(Ts...)
+PolyEvaluator(Ts&&...)
     -> PolyEvaluator<typename std::common_type_t<Ts...>, sizeof...(Ts) - 1>;
 
 //---------------------------------------------------------------------------//
