@@ -32,12 +32,46 @@ and if VecGeom or CUDA are disabled a single line to link::
 
    target_link_libraries(mycode PUBLIC Celeritas::celeritas)
 
-Because of complexities involving CUDA Relocatable Device Code, linking when
-using both CUDA and VecGeom requires an additional include and the replacement
-of ``target_link_libraries`` with a customized version::
+Because of complexities involving CUDA Relocatable Device Code, consuming Celeritas
+with CUDA and VecGeom support requires an additional include and the use of wrappers 
+around CMake's target commands::
 
   include(CeleritasLibrary)
+  celeritas_add_executable(mycode ...)
   celeritas_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
+
+As the ``celeritas_...`` functions decay to the wrapped CMake commands if CUDA and VecGeom
+you can use them to safely build and link nearly all targets consuming
+Celeritas in your project. This provides tracking of the appropriate sequence of linking for the 
+final application whether it uses CUDA code or not, and whether Celeritas is CPU-only or CUDA enabled::
+
+  celeritas_add_library(myconsumer SHARED ...)
+  celeritas_target_link_libraries(myconsumer PUBLIC Celeritas::celeritas)
+
+  celeritas_add_executable(myapplication ...)
+  celeritas_target_link_libraries(myapplication PRIVATE myconsumer)
+
+If your project builds shared libraries that are intended to be loaded at application
+runtime (e.g. via ``dlopen``), you should prefer use the the CMake ``MODULE`` target type::
+
+  celeritas_add_library(myplugin MODULE ...)
+  celeritas_target_link_libraries(myplugin PRIVATE Celeritas::celeritas)
+
+This is recommended as ``celeritas_target_link_libraries`` understands these as a final
+target for which all device symbols require resolving. If you are forced to use the ``SHARED`` 
+target type for plugin libraries (e.g. via your project's own wrapper functions), then these should 
+be declared with the CMake or project-specific commands with linking to both the primary Celeritas
+target and its device code counterpart::
+
+  add_library(mybadplugin SHARED ...)
+  # ... or myproject_add_library(mybadplugin ...)
+  target_link_libraries(mybadplugin PRIVATE Celeritas::celeritas $<TARGET_NAME_IF_EXISTS:Celeritas::celeritas_final>)
+  # ... or otherwise declare the plugin as requiring linking to the two targets
+
+Celeritas device code counterpart target names are always the name of the primary
+target appended with ``_final``. They are only present if Celeritas was built with CUDA
+support so it is recommended to use the CMake generator expression above to support
+CUDA or CPU-only builds transparently.
 
 The :ref:`example_minimal` example demonstrates how to use Celeritas as a
 library with a short standalone CMake project.
@@ -213,6 +247,8 @@ tell what variables are in use or may be useful.
  CUDA_STACK_SIZE         celeritas Change ``cudaLimitStackSize`` for VecGeom
  CUDA_HEAP_SIZE          celeritas Change ``cudaLimitMallocHeapSize`` (VG)
  G4VG_COMPARE_VOLUMES    celeritas Check G4VG volume capacity when converting
+ VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity
+ HEPMC3_VERBOSE          celeritas HepMC3 debug verbosity
  CELER_DISABLE           accel     Disable Celeritas offloading entirely
  CELER_STRIP_SOURCEDIR   accel     Strip directories from exception output
  ======================= ========= ==========================================

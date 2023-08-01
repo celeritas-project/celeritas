@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
@@ -342,10 +343,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
         {
             // Displacement distance is large enough to worry about
             result.displacement = this->sample_displacement_dir(rng, phi);
-            for (int i = 0; i < 3; ++i)
-            {
-                result.displacement[i] *= length;
-            }
+            result.displacement *= length;
             result.action = MscInteraction::Action::displaced;
         }
     }

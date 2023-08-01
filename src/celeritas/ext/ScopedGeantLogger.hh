@@ -34,7 +34,7 @@ class ScopedGeantLogger
     ~ScopedGeantLogger();
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DELETE_COPY_MOVE(ScopedGeantLogger)
+    CELER_DELETE_COPY_MOVE(ScopedGeantLogger);
     //!@}
 
   private:

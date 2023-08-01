@@ -10,6 +10,7 @@ if(CELERITAS_USE_Geant4)
     ActionInitialization.cc
     DetectorConstruction.cc
     EventAction.cc
+    GeantDiagnostics.cc
     GlobalSetup.cc
     PrimaryGeneratorAction.cc
     RunAction.cc

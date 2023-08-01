@@ -50,6 +50,7 @@
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
+#include "detail/OffloadWriter.hh"
 
 namespace celeritas
 {
@@ -162,6 +163,15 @@ SharedParams::SharedParams(SetupOptions const& options)
 
     // Construct core data
     this->initialize_core(options);
+
+    // Set up output after params are constructed
+    this->try_output();
+
+    if (!options.offload_output_file.empty())
+    {
+        offload_writer_ = std::make_shared<detail::OffloadWriter>(
+            options.offload_output_file, params_->particle());
+    }
 
     CELER_ENSURE(*this);
 }
@@ -397,12 +407,11 @@ void SharedParams::initialize_core(SetupOptions const& options)
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
 
-    // Set up output after params are constructed
-    output_filename_ = options.output_file;
-    this->try_output();
-
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());
+
+    // Save output filename
+    output_filename_ = options.output_file;
 }
 
 //---------------------------------------------------------------------------//

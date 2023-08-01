@@ -5,6 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/GeantGeo.test.cc
 //---------------------------------------------------------------------------//
+#include <string_view>
+
+#include "corecel/ScopedLogStorer.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/LazyGeoManager.hh"
@@ -24,10 +29,19 @@ namespace test
 class GeantGeoTest : public GenericGeantGeoTestBase
 {
   public:
+    using SpanStringView = Span<std::string_view const>;
+
     SPConstGeo build_geometry() final
     {
-        return this->build_geometry_from_basename();
+        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+                                    LogLevel::warning};
+        auto result = this->build_geometry_from_basename();
+        EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
+            << scoped_log_;
+        return result;
     }
+
+    virtual SpanStringView expected_log_levels() const { return {}; }
 };
 
 class FourLevelsTest : public GeantGeoTest
@@ -38,6 +52,12 @@ class FourLevelsTest : public GeantGeoTest
 class SolidsTest : public GeantGeoTest
 {
     std::string geometry_basename() const override { return "solids"; }
+
+    SpanStringView expected_log_levels() const final
+    {
+        static std::string_view const levels[] = {"error"};
+        return make_span(levels);
+    }
 };
 
 //---------------------------------------------------------------------------//

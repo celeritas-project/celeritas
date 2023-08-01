@@ -25,6 +25,7 @@ namespace celeritas
 namespace detail
 {
 class HitManager;
+class OffloadWriter;
 }
 
 struct SetupOptions;
@@ -74,6 +75,7 @@ class LocalTransporter
 
   private:
     using SPHitManger = std::shared_ptr<detail::HitManager>;
+    using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
 
     struct HMFinalizer
     {
@@ -91,6 +93,8 @@ class LocalTransporter
     size_type auto_flush_{};
     size_type max_steps_{};
 
+    // Shared across threads to write flushed particles
+    SPOffloadWriter dump_primaries_;
     // Shared pointer across threads, "finalize" called when clearing
     InitializedValue<SPHitManger, HMFinalizer> hit_manager_;
 };

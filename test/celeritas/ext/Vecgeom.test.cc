@@ -11,7 +11,10 @@
 #include <string_view>
 
 #include "celeritas_cmake_strings.h"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -63,12 +66,21 @@ std::string simplify_pointers(std::string const& s)
 class VecgeomTestBase : public GenericVecgeomTestBase
 {
   public:
+    using SpanStringView = Span<std::string_view const>;
+
     //! Helper function: build with VecGeom using VGDML
     SPConstGeo load_vgdml(std::string_view filename)
     {
-        return std::make_shared<VecgeomParams>(
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                    LogLevel::warning};
+        auto result = std::make_shared<VecgeomParams>(
             this->test_data_path("celeritas", filename));
+        EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
+            << scoped_log_;
+        return result;
     }
+
+    virtual SpanStringView expected_log_levels() const { return {}; }
 };
 
 //---------------------------------------------------------------------------//
@@ -84,9 +96,14 @@ class VecgeomGeantTestBase : public VecgeomTestBase
             // Clear old geant4 data
             ::celeritas::reset_geant_geometry();
         }
+        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+                                    LogLevel::warning};
         world_volume_ = ::celeritas::load_geant_geometry_native(
             this->test_data_path("celeritas", filename));
-        return std::make_shared<VecgeomParams>(world_volume_);
+        auto result = std::make_shared<VecgeomParams>(world_volume_);
+        EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
+            << scoped_log_;
+        return result;
     }
 
     //! Test conversion for Geant4 geometry
@@ -452,6 +469,12 @@ class SolidsTest : public VecgeomTestBase
     SPConstGeo build_geometry() final
     {
         return this->load_vgdml("solids.gdml");
+    }
+
+    SpanStringView expected_log_levels() const final
+    {
+        static std::string_view const levels[] = {"warning"};
+        return make_span(levels);
     }
 };
 
@@ -903,6 +926,12 @@ class SolidsGeantTest : public VecgeomGeantTestBase
     SPConstGeo build_geometry() final
     {
         return this->load_g4_gdml("solids.gdml");
+    }
+
+    SpanStringView expected_log_levels() const final
+    {
+        static std::string_view const levels[] = {"error"};
+        return make_span(levels);
     }
 };
 

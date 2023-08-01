@@ -46,27 +46,27 @@ void MctruthTestBase::SetUp()
 void MctruthTestBase::RunResult::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static const int expected_event[] = "
+            "static int const expected_event[] = "
          << repr(this->event)
          << ";\n"
             "EXPECT_VEC_EQ(expected_event, result.event);\n"
-            "static const int expected_track[] = "
+            "static int const expected_track[] = "
          << repr(this->track)
          << ";\n"
             "EXPECT_VEC_EQ(expected_track, result.track);\n"
-            "static const int expected_step[] = "
+            "static int const expected_step[] = "
          << repr(this->step)
          << ";\n"
             "EXPECT_VEC_EQ(expected_step, result.step);\n"
-            "static const int expected_volume[] = "
+            "static int const expected_volume[] = "
          << repr(this->volume)
          << ";\n"
             "EXPECT_VEC_EQ(expected_volume, result.volume);\n"
-            "static const double expected_pos[] = "
+            "static double const expected_pos[] = "
          << repr(this->pos)
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);\n"
-            "static const double expected_dir[] = "
+            "static double const expected_dir[] = "
          << repr(this->dir)
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);\n"
