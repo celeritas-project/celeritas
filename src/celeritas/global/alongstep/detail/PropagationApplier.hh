@@ -45,7 +45,7 @@ struct PropagationApplierBaseImpl
 template<class MP, typename = void>
 struct PropagationApplier : public PropagationApplierBaseImpl<MP>
 {
-    PropagationApplier(MP&& mp)
+    CELER_FUNCTION PropagationApplier(MP&& mp)
         : PropagationApplierBaseImpl<MP>{celeritas::forward<MP>(mp)}
     {
     }
@@ -58,7 +58,7 @@ struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks_min_warps<MP>>>
     static constexpr int max_block_size = MP::max_block_size;
     static constexpr int min_warps_per_eu = MP::min_warps_per_eu;
 
-    PropagationApplier(MP&& mp)
+    CELER_FUNCTION PropagationApplier(MP&& mp)
         : PropagationApplierBaseImpl<MP>{celeritas::forward<MP>(mp)}
     {
     }
@@ -70,7 +70,7 @@ struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks<MP>>>
 {
     static constexpr int max_block_size = MP::max_block_size;
 
-    PropagationApplier(MP&& mp)
+    CELER_FUNCTION PropagationApplier(MP&& mp)
         : PropagationApplierBaseImpl<MP>{celeritas::forward<MP>(mp)}
     {
     }
