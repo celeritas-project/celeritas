@@ -24,12 +24,13 @@ namespace app
 /*!
  * Construct global data to be shared across Celeritas workers.
  */
-ActionInitialization::ActionInitialization() : init_celeritas_{true}
+ActionInitialization::ActionInitialization()
+    : init_celeritas_{true}, init_diagnostics_{true}
 {
     // Create params to be shared across worker threads
     params_ = std::make_shared<SharedParams>();
-    // Make global setup commands available to UI
-    GlobalSetup::Instance();
+    // Create Geant4 diagnostics to be shared across worker threads
+    diagnostics_ = std::make_shared<GeantDiagnostics>();
 }
 
 //---------------------------------------------------------------------------//
@@ -49,10 +50,13 @@ void ActionInitialization::BuildForMaster() const
         new RunAction{GlobalSetup::Instance()->GetSetupOptions(),
                       params_,
                       nullptr,
-                      init_celeritas_});
+                      diagnostics_,
+                      init_celeritas_,
+                      init_diagnostics_});
 
-    // Subsequent worker threads must not set up celeritas
+    // Subsequent worker threads must not set up celeritas or diagnostics
     init_celeritas_ = false;
+    init_diagnostics_ = false;
 }
 
 //---------------------------------------------------------------------------//
@@ -75,12 +79,14 @@ void ActionInitialization::Build() const
         new RunAction{GlobalSetup::Instance()->GetSetupOptions(),
                       params_,
                       transport,
-                      init_celeritas_});
+                      diagnostics_,
+                      init_celeritas_,
+                      init_diagnostics_});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
     this->SetUserAction(new EventAction{params_, transport});
     // Tracking action offloads tracks to device and kills them
-    this->SetUserAction(new TrackingAction{params_, transport});
+    this->SetUserAction(new TrackingAction{params_, transport, diagnostics_});
 }
 
 //---------------------------------------------------------------------------//

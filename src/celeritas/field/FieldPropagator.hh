@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -111,8 +112,7 @@ CELER_FUNCTION FieldPropagator<DriverT, GTV>::FieldPropagator(
     using MomentumUnits = OdeState::MomentumUnits;
 
     state_.pos = geo_.pos();
-    state_.mom
-        = detail::ax(value_as<MomentumUnits>(particle.momentum()), geo_.dir());
+    state_.mom = value_as<MomentumUnits>(particle.momentum()) * geo_.dir();
 }
 
 //---------------------------------------------------------------------------//

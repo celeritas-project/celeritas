@@ -4,6 +4,7 @@
 /event/verbose 0
 
 /celer/outputFile simple-cms.out.json
+/celer/offloadOutputFile simple-cms.offloaded.hepmc3
 /celer/maxNumTracks @CELERG4_MAX_NUM_TRACKS@
 /celer/maxNumEvents 1024
 /celer/maxInitializers @CELERG4_INIT_CAPACITY@

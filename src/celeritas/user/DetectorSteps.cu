@@ -42,16 +42,21 @@ gather_step_kernel(DeviceRef<StepStateData> const state, size_type num_valid)
         return;
     }
 
-    TrackSlotId valid_tid{state.valid_id[tid]};
+#define DS_FAST_GET(CONT, TID) CONT.data().get()[TID.unchecked_get()]
+
+    TrackSlotId valid_tid{DS_FAST_GET(state.valid_id, tid)};
     CELER_ASSERT(valid_tid < state.size());
 
-#define DS_COPY_IF_SELECTED(FIELD)                                  \
-    do                                                              \
-    {                                                               \
-        if (!state.data.FIELD.empty())                              \
-        {                                                           \
-            state.scratch.FIELD[tid] = state.data.FIELD[valid_tid]; \
-        }                                                           \
+    // Equivalent to `CONT[tid]` but without debug checking, which causes this
+    // function to grow large enough to emit warnings
+#define DS_COPY_IF_SELECTED(FIELD)                          \
+    do                                                      \
+    {                                                       \
+        if (!state.data.FIELD.empty())                      \
+        {                                                   \
+            DS_FAST_GET(state.scratch.FIELD, tid)           \
+                = DS_FAST_GET(state.data.FIELD, valid_tid); \
+        }                                                   \
     } while (0)
 
     DS_COPY_IF_SELECTED(detector);

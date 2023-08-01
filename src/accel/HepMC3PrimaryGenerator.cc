@@ -10,10 +10,13 @@
 #include <mutex>
 #include <G4PhysicalConstants.hh>
 #include <G4TransportationManager.hh>
-#include <HepMC3/ReaderFactory.h>
+#include <HepMC3/GenEvent.h>
+#include <HepMC3/GenParticle.h>
+#include <HepMC3/Reader.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/io/EventReader.hh"
 
 namespace celeritas
 {
@@ -51,21 +54,24 @@ G4VSolid* get_world_solid()
 HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
     : world_solid_{get_world_solid()}
 {
-    CELER_LOG(info) << "Loading HepMC3 input file at " << filename;
-    reader_ = HepMC3::deduce_reader(filename);
-    CELER_VALIDATE(reader_, << "failed to deduce event input file type");
+    // Fetch total number of events by opening a temporary reader
+    num_events_ = [&filename] {
+        SPReader temp_reader = open_hepmc3(filename);
+        CELER_ASSERT(temp_reader);
+        int result = 0;
+        while (!temp_reader->failed())
+        {
+            temp_reader->skip(1);
+            result++;
+        }
+        CELER_LOG(debug) << "HepMC3 file has " << result << " events";
+        return result;
+    }();
 
-    // Fetch total number of events
-    SPReader temp_reader = HepMC3::deduce_reader(filename);
-    CELER_ASSERT(temp_reader);
-    num_events_ = 0;
-    while (!temp_reader->failed())
-    {
-        temp_reader->skip(1);
-        num_events_++;
-    }
+    // Open a persistent reader
+    reader_ = open_hepmc3(filename);
 
-    CELER_LOG(debug) << "HepMC3 file has " << num_events_ << " events";
+    CELER_ENSURE(reader_);
     CELER_ENSURE(num_events_ > 0);
 }
 
@@ -91,7 +97,7 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 
     {
         // Read the next event from the file.
-        G4AutoLock scoped_lock{read_mutex_};
+        std::lock_guard scoped_lock{read_mutex_};
         reader_->read_event(gen_event);
         CELER_ASSERT(!reader_->failed());
     }

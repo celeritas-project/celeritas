@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Types.hh"
 
@@ -57,15 +58,9 @@ inline CELER_FUNCTION Array<T, 3> ax(T a, Array<T, 3> const& x)
 inline CELER_FUNCTION Chord make_chord(Real3 const& src, Real3 const& dst)
 {
     Chord result;
-    for (int i = 0; i < 3; ++i)
-    {
-        result.dir[i] = dst[i] - src[i];
-    }
+    result.dir = dst - src;
     result.length = norm(result.dir);
-    for (int i = 0; i < 3; ++i)
-    {
-        result.dir[i] /= result.length;
-    }
+    result.dir /= result.length;
     return result;
 }
 

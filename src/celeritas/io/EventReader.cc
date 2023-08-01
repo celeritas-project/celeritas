@@ -15,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
@@ -32,12 +33,8 @@ EventReader::EventReader(std::string const& filename, SPConstParticles params)
 {
     CELER_EXPECT(params_);
 
-    CELER_LOG(info) << "Opening event file at " << filename;
-    ScopedTimeAndRedirect temp_{"HepMC3"};
-
     // Determine the input file format and construct the appropriate reader
-    HepMC3::Setup::set_debug_level(1);
-    reader_ = HepMC3::deduce_reader(filename);
+    reader_ = open_hepmc3(filename);
 
     CELER_LOG(debug) << "Reader type: "
                      << TypeDemangler<HepMC3::Reader>()(*reader_);
@@ -64,6 +61,13 @@ auto EventReader::operator()() -> result_type
     }
 
     EventId const event_id{event_count_++};
+    if (static_cast<EventId::size_type>(gen_event.event_number())
+        != event_id.get())
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Overwriting event ID " << gen_event.event_number()
+            << " from file with sequential event ID " << event_id.get();
+    }
 
     // Convert the energy units to MeV and the length units to cm
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
@@ -130,10 +134,53 @@ auto EventReader::operator()() -> result_type
     }
 
     CELER_VALIDATE(missing_pdg.empty(),
-                   << "Event " << event_id.get()
+                   << "event " << event_id.get()
                    << " contains unknown particle types: PDG "
                    << join(missing_pdg.begin(), missing_pdg.end(), ", "));
 
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set HepMC3 verbosity from the environment.
+ *
+ * The default debug level is 5.
+ */
+void set_hepmc3_verbosity_from_env()
+{
+    std::string const& var = celeritas::getenv("HEPMC3_VERBOSE");
+    if (!var.empty())
+    {
+        HepMC3::Setup::set_debug_level(std::stoi(var));
+    }
+    else
+    {
+        HepMC3::Setup::set_debug_level(1);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wrapper function for HepMC3::deduce_reader to avoid duplicate symbols.
+ *
+ * HepMC3 through 3.2.6 has a ReaderFactory.h that includes function
+ * *definitions* without \c inline keywords, leading to duplicate symbols.
+ * Reusing this function rather than including ReaderFactory multiple times in
+ * Celeritas is the easiest way to work around the problem.
+ *
+ * It also sets the debug level from the environment, prints a status
+ * message,and validates the file.
+ */
+std::shared_ptr<HepMC3::Reader> open_hepmc3(std::string const& filename)
+{
+    set_hepmc3_verbosity_from_env();
+
+    CELER_LOG(info) << "Opening HepMC3 input file at " << filename;
+
+    ScopedTimeAndRedirect temp_{"HepMC3"};
+    auto result = HepMC3::deduce_reader(filename);
+    CELER_VALIDATE(result, << "failed to deduce event input file type");
     return result;
 }
 

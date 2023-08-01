@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 
@@ -108,12 +109,12 @@ MagFieldEquation<FieldT>::operator()(OdeState const& y) const -> OdeState
     // Evaluate the rate of change in particle's position per unit length: this
     // is just the direction
     OdeState result;
-    result.pos = detail::ax(momentum_inv, y.mom);
+    result.pos = momentum_inv * y.mom;
 
     // Calculate the magnetic field value at the current position
     // to calculate the force on the particle
-    result.mom = detail::ax(coeffi_ * momentum_inv,
-                            cross_product(y.mom, calc_field_(y.pos)));
+    result.mom = (coeffi_ * momentum_inv)
+                 * cross_product(y.mom, calc_field_(y.pos));
 
     return result;
 }

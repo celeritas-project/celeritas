@@ -26,6 +26,7 @@
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
 #include "detail/HitManager.hh"
+#include "detail/OffloadWriter.hh"
 
 namespace celeritas
 {
@@ -37,6 +38,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams const& params)
     : auto_flush_(options.max_num_tracks)
     , max_steps_(options.max_steps)
+    , dump_primaries_{params.offload_writer()}
     , hit_manager_{params.hit_manager()}
 {
     CELER_VALIDATE(params,
@@ -146,6 +148,12 @@ void LocalTransporter::Flush()
     CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
                           << " tracks from event " << event_id_.unchecked_get()
                           << " with Celeritas";
+
+    if (dump_primaries_)
+    {
+        // Write offload particles if user requested
+        (*dump_primaries_)(buffer_);
+    }
 
     // Abort cleanly for interrupt and user-defined signals
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};

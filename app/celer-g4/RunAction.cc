@@ -11,11 +11,14 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <G4RunManager.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Environment.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
@@ -32,14 +35,20 @@ namespace app
 RunAction::RunAction(SPConstOptions options,
                      SPParams params,
                      SPTransporter transport,
-                     bool init_celeritas)
+                     SPDiagnostics diagnostics,
+                     bool init_celeritas,
+                     bool init_diagnostics)
     : options_{std::move(options)}
     , params_{std::move(params)}
     , transport_{std::move(transport)}
+    , diagnostics_{std::move(diagnostics)}
     , init_celeritas_{init_celeritas}
+    , init_diagnostics_{init_diagnostics}
+    , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
 {
     CELER_EXPECT(options_);
     CELER_EXPECT(params_);
+    CELER_EXPECT(diagnostics_);
 }
 
 //---------------------------------------------------------------------------//
@@ -52,34 +61,43 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 
     ExceptionConverter call_g4exception{"celer0001"};
 
-    if (init_celeritas_)
+    if (!disable_offloading_)
     {
-        // This worker (or master thread) is responsible for initializing
-        // celeritas
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if (init_celeritas_)
         {
-            // To allow ORANGE to work for testing purposes, pass the GDML
-            // input filename to Celeritas
-            const_cast<SetupOptions&>(*options_).geometry_file
-                = GlobalSetup::Instance()->GetGeometryFile();
+            // This worker (or master thread) is responsible for initializing
+            // celeritas
+            if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+            {
+                // To allow ORANGE to work for testing purposes, pass the GDML
+                // input filename to Celeritas
+                const_cast<SetupOptions&>(*options_).geometry_file
+                    = GlobalSetup::Instance()->GetGeometryFile();
+            }
+
+            // Initialize shared data and setup GPU on all threads
+            CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
+            CELER_ASSERT(*params_);
+        }
+        else
+        {
+            CELER_TRY_HANDLE(SharedParams::InitializeWorker(*options_),
+                             call_g4exception);
         }
 
-        // Initialize shared data and setup GPU on all threads
-        CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
-        CELER_ASSERT(*params_);
-    }
-    else
-    {
-        CELER_TRY_HANDLE(SharedParams::InitializeWorker(*options_),
-                         call_g4exception);
+        if (transport_)
+        {
+            // Allocate data in shared thread-local transporter
+            CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
+                             call_g4exception);
+            CELER_ASSERT(*transport_);
+        }
     }
 
-    if (transport_)
+    if (init_diagnostics_)
     {
-        // Allocate data in shared thread-local transporter
-        CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
-                         call_g4exception);
-        CELER_ENSURE(*transport_);
+        CELER_TRY_HANDLE(diagnostics_->Initialize(params_), call_g4exception);
+        CELER_ASSERT(*diagnostics_);
     }
 }
 
@@ -89,21 +107,30 @@ void RunAction::BeginOfRunAction(G4Run const* run)
  */
 void RunAction::EndOfRunAction(G4Run const*)
 {
-    CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
     ExceptionConverter call_g4exception{"celer0005"};
 
-    if (transport_)
+    if (!disable_offloading_)
     {
-        // Deallocate Celeritas state data (ensures that objects are deleted on
-        // the thread in which they're created, necessary by some geant4
-        // thread-local allocators)
-        CELER_TRY_HANDLE(transport_->Finalize(), call_g4exception);
+        CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+
+        if (transport_)
+        {
+            // Deallocate Celeritas state data (ensures that objects are
+            // deleted on the thread in which they're created, necessary by
+            // some geant4 thread-local allocators)
+            CELER_TRY_HANDLE(transport_->Finalize(), call_g4exception);
+        }
+
+        if (init_celeritas_)
+        {
+            // Clear shared data and write
+            CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
+        }
     }
 
-    if (init_celeritas_)
+    if (init_diagnostics_)
     {
-        // Clear shared data and write
-        CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
+        CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
     }
 
     if (GlobalSetup::Instance()->GetWriteSDHits())

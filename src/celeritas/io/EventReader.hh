@@ -66,6 +66,14 @@ class EventReader
 };
 
 //---------------------------------------------------------------------------//
+// Set verbosity from the environment (HEPMC3_VERBOSE)
+void set_hepmc3_verbosity_from_env();
+
+//---------------------------------------------------------------------------//
+// Wrapper function for HepMC3::deduce_reader to avoid duplicate symbols
+std::shared_ptr<HepMC3::Reader> open_hepmc3(std::string const& filename);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_HEPMC3
@@ -81,6 +89,8 @@ inline auto EventReader::operator()() -> result_type
 {
     CELER_ASSERT_UNREACHABLE();
 }
+
+inline void set_hepmc3_verbosity_from_env() {}
 #endif
 
 //---------------------------------------------------------------------------//
