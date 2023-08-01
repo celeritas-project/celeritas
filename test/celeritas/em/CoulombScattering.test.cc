@@ -163,12 +163,8 @@ TEST_F(CoulombScatteringTest, mott_xs)
 {
     WentzelHostRef const& data = model_->host_ref();
 
-    real_type inc_energy
-        = value_as<units::MevEnergy>(particle_track().energy());
-    real_type inc_mass = value_as<units::MevMass>(particle_track().mass());
     WentzelElementData const& element_data = data.elem_data[ElementId(0)];
-
-    MottXsCalculator xsec(element_data, inc_energy, inc_mass);
+    MottXsCalculator xsec(element_data, sqrt(particle_track().beta_sq()));
 
     static double const cos_ts[]
         = {1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
@@ -255,9 +251,8 @@ TEST_F(CoulombScatteringTest, distribution)
 
     for (size_t i : range(energies.size()))
     {
-        const real_type inc_energy = energies[i];
-        const real_type inc_mass
-            = value_as<units::MevMass>(this->particle_track().mass());
+        this->set_inc_particle(pdg::electron(), MevEnergy{energies[i]});
+
         const IsotopeView isotope
             = this->material_track()
                   .make_material_view()
@@ -269,13 +264,8 @@ TEST_F(CoulombScatteringTest, distribution)
                 ->get(MaterialId{0})
                 .energy(this->particle_track().particle_id()));
 
-        WentzelDistribution distrib(inc_energy,
-                                    inc_mass,
-                                    isotope,
-                                    element_data,
-                                    cutoff_energy,
-                                    true,
-                                    data);
+        WentzelDistribution distrib(
+            particle_track(), isotope, element_data, cutoff_energy, data);
 
         screen_zs.push_back(distrib.compute_screening_coefficient());
         cos_t_maxs.push_back(distrib.compute_max_electron_cos_t());

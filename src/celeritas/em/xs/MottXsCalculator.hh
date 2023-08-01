@@ -33,9 +33,7 @@ class MottXsCalculator
   public:
     // Construct with state data
     inline CELER_FUNCTION
-    MottXsCalculator(WentzelElementData const& element_data,
-                     real_type inc_energy,
-                     real_type inc_mass);
+    MottXsCalculator(WentzelElementData const& element_data, real_type beta);
 
     // Ratio of Mott and Rutherford cross sections
     inline CELER_FUNCTION real_type operator()(real_type cos_t) const;
@@ -53,13 +51,10 @@ class MottXsCalculator
  */
 CELER_FUNCTION
 MottXsCalculator::MottXsCalculator(WentzelElementData const& element_data,
-                                   real_type inc_energy,
-                                   real_type inc_mass)
-    : element_data_(element_data)
+                                   real_type beta)
+    : element_data_(element_data), beta_(beta)
 {
-    real_type inc_mom = sqrt(inc_energy * (inc_energy + 2 * inc_mass));
-    beta_ = inc_mom / (inc_energy + inc_mass);
-    CELER_EXPECT(beta_ < 1);
+    CELER_EXPECT(0 <= beta_ && beta_ < 1);
 }
 
 //---------------------------------------------------------------------------//

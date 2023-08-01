@@ -14,6 +14,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/WentzelData.hh"
 #include "celeritas/em/distribution/WentzelDistribution.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/IsotopeSelector.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -45,6 +46,7 @@ class WentzelInteractor
     //! \name Type aliases
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
+    using MomentumSq = units::MevMomentumSq;
     //!@}
 
   public:
@@ -69,11 +71,8 @@ class WentzelInteractor
     // Incident direction
     Real3 const& inc_direction_;
 
-    // Incident particle energy
-    real_type const inc_energy_;
-
-    // Incident particle mass
-    real_type const inc_mass_;
+    // Incident particle
+    ParticleTrackView const& particle_;
 
     // Mott coefficients of the target element
     WentzelElementData const& element_data_;
@@ -83,9 +82,6 @@ class WentzelInteractor
 
     // Target element
     ElementView const element_;
-
-    // Predicate for if the incident particle is an electron
-    bool const is_electron_;
 
     //// HELPER FUNCTIONS ////
 
@@ -109,13 +105,15 @@ WentzelInteractor::WentzelInteractor(WentzelRef const& shared,
                                      CutoffView const& cutoffs)
     : data_(shared)
     , inc_direction_(inc_direction)
-    , inc_energy_(value_as<Energy>(particle.energy()))
-    , inc_mass_(value_as<Mass>(particle.mass()))
+    , particle_(particle)
     , element_data_(shared.elem_data[material.element_id(elcomp_id)])
     , cutoff_energy_(value_as<Energy>(cutoffs.energy(particle.particle_id())))
     , element_(material.make_element_view(elcomp_id))
-    , is_electron_(particle.particle_id() == shared.ids.electron)
 {
+    CELER_EXPECT(particle_.particle_id() == data_.ids.electron
+                 || particle_.particle_id() == data_.ids.positron);
+    CELER_EXPECT(particle_.energy() > detail::coulomb_scattering_limit()
+                 && particle_.energy() < detail::high_energy_limit());
 }
 
 //---------------------------------------------------------------------------//
@@ -130,13 +128,8 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
     IsotopeView target = element_.make_isotope_view(iso_select(rng));
 
     // Distribution model governing the scattering
-    WentzelDistribution sample_direction(inc_energy_,
-                                         inc_mass_,
-                                         target,
-                                         element_data_,
-                                         cutoff_energy_,
-                                         is_electron_,
-                                         data_);
+    WentzelDistribution sample_direction(
+        particle_, target, element_data_, cutoff_energy_, data_);
 
     // Incident particle scatters
     Interaction result;
@@ -146,11 +139,12 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
     result.direction = rotate(inc_direction_, new_direction);
 
     // Recoil energy is kinetic energy transfered to the atom
+    real_type inc_energy = value_as<Energy>(particle_.energy());
     real_type recoil_energy
         = clamp(calc_recoil_energy(new_direction, target.nuclear_mass()),
                 real_type{0},
-                inc_energy_);
-    result.energy = Energy{inc_energy_ - recoil_energy};
+                inc_energy);
+    result.energy = Energy{inc_energy - recoil_energy};
 
     // TODO: For high enough recoil energies, ions are produced
 
@@ -168,10 +162,11 @@ CELER_FUNCTION real_type WentzelInteractor::calc_recoil_energy(
     Real3 const& new_direction, Mass const& target_mass) const
 {
     real_type one_minus_cos_theta = 1 - new_direction[2];
-    real_type inc_mom_sq = inc_energy_ * (inc_energy_ + 2 * inc_mass_);
-    return inc_mom_sq * one_minus_cos_theta
+    return value_as<MomentumSq>(particle_.momentum_sq()) * one_minus_cos_theta
            / (value_as<Mass>(target_mass)
-              + (inc_mass_ + inc_energy_) * one_minus_cos_theta);
+              + (value_as<Mass>(particle_.mass())
+                 + value_as<Energy>(particle_.energy()))
+                    * one_minus_cos_theta);
 }
 
 //---------------------------------------------------------------------------//
