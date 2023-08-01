@@ -73,7 +73,7 @@ class Process
     //!@{
     //! Allow construction and assignment only through daughter classes
     Process() = default;
-    CELER_DEFAULT_COPY_MOVE(Process)
+    CELER_DEFAULT_COPY_MOVE(Process);
     //!@}
 };
 

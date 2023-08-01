@@ -71,6 +71,23 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("true");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("physicsList", physics_list_);
+        cmd.SetGuidance("Select the physics list");
+        cmd.SetDefaultValue(physics_list_);
+    }
+    {
+        auto& cmd
+            = messenger_->DeclareProperty("stepDiagnostic", step_diagnostic_);
+        cmd.SetGuidance("Collect the distribution of steps per Geant4 track");
+        cmd.SetDefaultValue("false");
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty("stepDiagnosticBins",
+                                                step_diagnostic_bins_);
+        cmd.SetGuidance("Number of bins for the Geant4 step diagnostic");
+        cmd.SetDefaultValue(std::to_string(step_diagnostic_bins_));
+    }
+    {
         messenger_->DeclareMethod("magFieldZ",
                                   &GlobalSetup::SetMagFieldZTesla,
                                   "Set Z-axis magnetic field strength (T)");

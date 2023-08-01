@@ -34,7 +34,7 @@ class ScopedGeantExceptionHandler
     ~ScopedGeantExceptionHandler();
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DELETE_COPY_MOVE(ScopedGeantExceptionHandler)
+    CELER_DELETE_COPY_MOVE(ScopedGeantExceptionHandler);
     //!@}
 
   private:

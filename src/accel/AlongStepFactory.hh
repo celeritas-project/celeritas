@@ -90,7 +90,7 @@ class AlongStepFactoryInterface
 
   protected:
     AlongStepFactoryInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(AlongStepFactoryInterface)
+    CELER_DEFAULT_COPY_MOVE(AlongStepFactoryInterface);
 };
 
 //---------------------------------------------------------------------------//

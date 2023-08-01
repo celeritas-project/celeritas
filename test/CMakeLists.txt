@@ -176,6 +176,7 @@ celeritas_add_test(corecel/io/StringUtils.test.cc)
 # Math
 set(CELERITASTEST_PREFIX corecel/math)
 celeritas_add_test(corecel/math/Algorithms.test.cc)
+celeritas_add_test(corecel/math/ArrayOperators.test.cc)
 celeritas_add_test(corecel/math/ArrayUtils.test.cc)
 celeritas_add_test(corecel/math/HashUtils.test.cc)
 celeritas_add_device_test(corecel/math/NumericLimits)
@@ -357,7 +358,6 @@ if(CELERITAS_USE_Geant4)
   )
 endif()
 
-celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc
   ${_needs_geant4} LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
   FILTER
@@ -465,6 +465,8 @@ celeritas_add_test(celeritas/grid/XsCalculator.test.cc)
 #-------------------------------------#
 # IO
 set(CELERITASTEST_PREFIX celeritas/io)
+celeritas_add_test(celeritas/io/EventIO.test.cc ${_needs_hepmc}
+  LINK_LIBRARIES ${HepMC3_LIBRARIES})
 celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-------------------------------------#
@@ -576,6 +578,8 @@ if(CELERITAS_USE_Geant4)
   )
 
   celeritas_add_test(accel/ExceptionConverter.test.cc)
+  celeritas_add_test(accel/HepMC3PrimaryGenerator.test.cc
+    ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitManager.test.cc
     ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc

@@ -169,6 +169,9 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
     add_cmd(&options->physics_output_file,
             "physicsOutputFile",
             "Filename for ROOT dump of physics data");
+    add_cmd(&options->offload_output_file,
+            "offloadOutputFile",
+            "Filename for HepMC3 copy of offloaded tracks as events");
     add_cmd(&options->max_num_tracks,
             "maxNumTracks",
             "Number of track \"slots\" to be transported simultaneously");
@@ -184,6 +187,12 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
     add_cmd(&options->secondary_stack_factor,
             "secondaryStackFactor",
             "At least the average number of secondaries per track slot");
+
+    directories_.emplace_back(new CelerDirectory(
+        "/celer/detector/", "Celeritas sensitive detector setup options"));
+    add_cmd(&options->sd.enabled,
+            "enabled",
+            "Call back to Geant4 sensitive detectors");
 
     if (Device::num_devices() > 0)
     {

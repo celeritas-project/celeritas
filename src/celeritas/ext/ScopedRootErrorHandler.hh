@@ -33,7 +33,7 @@ class ScopedRootErrorHandler
     ~ScopedRootErrorHandler();
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DELETE_COPY_MOVE(ScopedRootErrorHandler)
+    CELER_DELETE_COPY_MOVE(ScopedRootErrorHandler);
     //!@}
 
   private:

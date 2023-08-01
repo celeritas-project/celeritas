@@ -30,9 +30,6 @@ namespace celeritas
         vecgeom::DoNoisyAndLongStuff();
     }
    \endcode
- *
- * \warning During scope, you should be sure *NOT* to call the logger, which by
- * default prints to cerr.
  */
 class ScopedTimeAndRedirect
 {
@@ -42,7 +39,7 @@ class ScopedTimeAndRedirect
 
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DELETE_COPY_MOVE(ScopedTimeAndRedirect)
+    CELER_DELETE_COPY_MOVE(ScopedTimeAndRedirect);
     //!@}
 
   private:

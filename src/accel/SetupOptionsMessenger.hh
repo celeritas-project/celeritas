@@ -33,6 +33,12 @@ struct SetupOptions;
   maxInitializers      | Maximum number of track initializers
   secondaryStackFactor | At least the average number of secondaries per track
 
+ * The following option is exposed in the \c /celer/detector/ command "directory":
+ *
+  Command | Description
+  ------- | -----------------------------------------
+  enabled | Call back to Geant4 sensitive detectors
+
  * If a CUDA/HIP device is available, additional options are available under \c
  * /celer/cuda/ :
  *
