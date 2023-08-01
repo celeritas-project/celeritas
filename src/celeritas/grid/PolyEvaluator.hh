@@ -94,8 +94,8 @@ class PolyEvaluator
 //---------------------------------------------------------------------------//
 // Deduction Guides
 //---------------------------------------------------------------------------//
-template<typename T, unsigned int N>
-PolyEvaluator(Array<T, N> const&) -> PolyEvaluator<T, N - 1>;
+template<typename ArrayT>
+PolyEvaluator(ArrayT const&) -> PolyEvaluator<typename ArrayT::value_type, ArrayT::size() - 1>;
 
 template<typename... Ts>
 PolyEvaluator(Ts...)
