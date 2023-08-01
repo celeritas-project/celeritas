@@ -9,6 +9,7 @@
 
 #include <type_traits>
 
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/global/detail/ApplierTraits.hh"
 
@@ -16,13 +17,77 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Apply propagation over the step (implementation).
+ */
+template<class MP>
+struct PropagationApplierBaseImpl
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+
+    MP make_propagator;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply propagation over the step.
+ *
+ * \tparam MP Propagator factory
+ *
+ * MP should be a function-like object:
+ * \code Propagator(*)(CoreTrackView const&) \endcode
+ *
+ * This class is partially specialized with a second template argument to
+ * extract any launch bounds from the MP class. TODO: we could probably inherit
+ * from a helper class to pull in those constants (if available).
+ */
+template<class MP, typename = void>
+struct PropagationApplier : public PropagationApplierBaseImpl<MP>
+{
+    PropagationApplier(MP&& mp)
+        : PropagationApplierBaseImpl<MP>{celeritas::forward<MP>(mp)}
+    {
+    }
+};
+
+template<class MP>
+struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks_min_warps<MP>>>
+    : public PropagationApplierBaseImpl<MP>
+{
+    static constexpr int max_block_size = MP::max_block_size;
+    static constexpr int min_warps_per_eu = MP::min_warps_per_eu;
+
+    PropagationApplier(MP&& mp)
+        : PropagationApplierBaseImpl<MP>{celeritas::forward<MP>(mp)}
+    {
+    }
+};
+
+template<class MP>
+struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks<MP>>>
+    : public PropagationApplierBaseImpl<MP>
+{
+    static constexpr int max_block_size = MP::max_block_size;
+
+    PropagationApplier(MP&& mp)
+        : PropagationApplierBaseImpl<MP>{celeritas::forward<MP>(mp)}
+    {
+    }
+};
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class MP>
+CELER_FUNCTION PropagationApplier(MP&&)->PropagationApplier<MP>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 template<class MP>
 CELER_FUNCTION void
-propagation_impl(MP& make_propagator, CoreTrackView const& track)
+PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
     StepLimit& step_limit = sim.step_limit();
@@ -105,63 +170,6 @@ propagation_impl(MP& make_propagator, CoreTrackView const& track)
         step_limit.action = track.propagation_limit_action();
     }
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Apply propagation over the step.
- *
- * \tparam MP Propagator factory
- *
- * MP should be a function-like object:
- * \code Propagator(*)(CoreTrackView const&) \endcode
- */
-
-template<class MP, typename = void>
-struct PropagationApplier
-{
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track)
-    {
-        propagation_impl(make_propagator, track);
-    }
-
-    MP make_propagator;
-};
-
-// The propagator defines the kernel executed (i.e. potential launch bounds) so
-// we have to use partial specialization SFINAE to move up these constants one
-// level of abstraction.
-template<class MP>
-struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks_min_warps<MP>>>
-{
-    static constexpr int max_block_size = MP::max_block_size;
-    static constexpr int min_warps_per_eu = MP::min_warps_per_eu;
-
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track)
-    {
-        propagation_impl(make_propagator, track);
-    }
-
-    MP make_propagator;
-};
-
-template<class MP>
-struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks<MP>>>
-{
-    static constexpr int max_block_size = MP::max_block_size;
-
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track)
-    {
-        propagation_impl(make_propagator, track);
-    }
-
-    MP make_propagator;
-};
-
-//---------------------------------------------------------------------------//
-// DEDUCTION GUIDES
-//---------------------------------------------------------------------------//
-template<class MP>
-CELER_FUNCTION PropagationApplier(MP&&)->PropagationApplier<MP>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
