@@ -52,6 +52,7 @@ auto EventReader::operator()() -> result_type
     // Parse the next event from the record
     HepMC3::GenEvent evt;
     {
+        CELER_LOG(debug) << "Reading event " << event_count_;
         ScopedTimeAndRedirect temp_{"HepMC3"};
         reader_->read_event(evt);
     }
