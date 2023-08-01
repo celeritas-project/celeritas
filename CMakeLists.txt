@@ -424,10 +424,14 @@ install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
 
 # Export all cache variables that start with CELERITAS_
 set(CELERITAS_EXPORT_VARIABLES)
+macro(celeritas_export_var varname)
+  list(APPEND CELERITAS_EXPORT_VARIABLES "set(${varname} \"${${varname}}\")")
+endmacro()
+celeritas_export_var(Celeritas_VERSION_STRING)
 get_directory_property(_cachevar_keys CACHE_VARIABLES)
 foreach(_key IN LISTS _cachevar_keys)
   if(_key MATCHES "^CELERITAS_")
-    list(APPEND CELERITAS_EXPORT_VARIABLES "set(${_key} \"${${_key}}\")")
+    celeritas_export_var(${_key})
   endif()
 endforeach()
 
