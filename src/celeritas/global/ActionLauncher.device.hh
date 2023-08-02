@@ -26,6 +26,7 @@
 #include "CoreState.hh"
 #include "KernelContextException.hh"
 #include "detail/ActionLauncherKernel.device.hh"
+#include "detail/ApplierTraits.hh"
 
 namespace celeritas
 {
@@ -67,17 +68,42 @@ class ActionLauncher
                   "Launched action must be a trivially copyable function "
                   "object");
 
+    // Alias F to avoid hard error as SFINAE only works in the immediate
+    // context
+    template<typename F_ = F,
+             std::enable_if_t<!detail::has_applier_v<F_>, bool> = true>
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
+    {
+    }
+
+    template<typename F_ = F,
+             std::enable_if_t<detail::kernel_no_bound<typename F_::Applier>, bool>
+             = true>
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
+    {
+    }
+
+    template<typename F_ = F,
+             std::enable_if_t<detail::has_max_block_size_v<typename F_::Applier>, bool>
+             = true>
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{
+            name, &detail::launch_action_impl<F_>, F_::Applier::max_block_size}
+    {
+    }
+
   public:
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(), &detail::launch_action_impl<F>}
+        : ActionLauncher{action.label()}
     {
     }
 
     //! Create a launcher with a string extension
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
-        : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              &detail::launch_action_impl<F>}
+        : ActionLauncher{action.label() + "-" + std::string(ext)}
     {
     }
 
