@@ -17,7 +17,7 @@ class G4MagneticField;
 
 namespace celeritas
 {
-struct RZMapFieldParams;
+class RZMapFieldParams;
 
 namespace app
 {
