@@ -131,6 +131,7 @@ auto Converter::operator()(arg_type g4world) -> result_type
 }
 
 //---------------------------------------------------------------------------//
+//! \cond
 /*!
  * Convert a volume and its daughter volumes.
  */
@@ -201,6 +202,7 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
 
     return mother_lv;
 }
+//! \endcond
 
 //---------------------------------------------------------------------------//
 }  // namespace g4vg

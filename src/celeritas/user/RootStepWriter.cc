@@ -141,7 +141,7 @@ void RootStepWriter::process_steps(HostStepState state)
     CELER_EXPECT(state.steps);
     if (state.stream_id != StreamId{0})
     {
-        CELER_NOT_IMPLEMENTED("Thread-safe ROOT output");
+        CELER_NOT_IMPLEMENTED("thread-safe ROOT output");
     }
     tstep_ = TStepData();
 
