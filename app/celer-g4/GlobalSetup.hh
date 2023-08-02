@@ -41,7 +41,7 @@ class GlobalSetup
     std::string const& GetPhysicsList() const { return physics_list_; }
     bool StepDiagnostic() const { return step_diagnostic_; }
     int GetStepDiagnosticBins() const { return step_diagnostic_bins_; }
-    std::string GetFieldType() const { return field_type_; }
+    std::string const& GetFieldType() const { return field_type_; }
     std::string const& GetFieldFile() const { return field_file_; }
     G4ThreeVector GetMagFieldZTesla() const { return field_; }
     //!@}
