@@ -152,8 +152,8 @@ endfunction()
 
 # Define a configure file with version and configuration info
 set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
+set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
-set(CELERITAS_USE_SPHINXRTDTHEME ${CELERITAS_USE_SphinxRtdTheme})
 if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
   set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
 elseif("${Celeritas_VERSION_STRING}" MATCHES "-rc[.-][0-9]+$")
