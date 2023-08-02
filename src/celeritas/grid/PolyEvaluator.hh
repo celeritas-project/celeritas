@@ -32,7 +32,7 @@ namespace celeritas
  * \endcode
  * with
  * \code
-    corr = make_poly_evaluator(1.41125, -1.86427e-2, 1.84035e-4)(zeff);
+    corr = PolyEvaluator{1.41125, -1.86427e-2, 1.84035e-4}(zeff);
    \endcode
  * or, to use an explicit type without having to cast each coefficient:
  * \code
@@ -92,15 +92,14 @@ class PolyEvaluator
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Create a polynomial evaluator from the given arguments.
- */
+// Deduction Guides
+//---------------------------------------------------------------------------//
+template<typename ArrayT>
+PolyEvaluator(ArrayT const&) -> PolyEvaluator<typename ArrayT::value_type, ArrayT::size() - 1>;
+
 template<typename... Ts>
-constexpr auto make_poly_evaluator(Ts... args)
-{
-    using value_type = std::common_type_t<Ts...>;
-    return PolyEvaluator<value_type, sizeof...(Ts) - 1>{args...};
-}
+PolyEvaluator(Ts...)
+    -> PolyEvaluator<typename std::common_type_t<Ts...>, sizeof...(Ts) - 1>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
