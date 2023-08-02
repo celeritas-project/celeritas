@@ -23,18 +23,16 @@
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 #include "accel/AlongStepFactory.hh"
+#include "accel/RZMapMagneticField.hh"
 #include "accel/SetupOptions.hh"
 
 #include "GlobalSetup.hh"
-#include "MagneticField.hh"
 #include "SensitiveDetector.hh"
 
 namespace celeritas
 {
 namespace app
 {
-G4ThreadLocal G4MagneticField* DetectorConstruction::mag_field_ = nullptr;
-
 //---------------------------------------------------------------------------//
 /*!
  * Set up Celeritas SD options during construction.
@@ -120,12 +118,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                         "No field file was specified with /celerg4/fieldFile");
         }
         CELER_LOG_LOCAL(info) << "Using RZMapField with " << map_filename;
-        use_field_map_ = true;
 
         // Create celeritas::RZMapFieldParams from input
         RZMapFieldInput rz_map;
         std::ifstream(map_filename) >> rz_map;
         field_params_ = std::make_shared<RZMapFieldParams>(rz_map);
+        mag_field_ = std::make_shared<RZMapMagneticField>(field_params_);
 
         celeritas::app::GlobalSetup::Instance()->GetAlongStepOptions()
             = celeritas::RZMapFieldAlongStepFactory([=] { return rz_map; });
@@ -138,7 +136,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             field = GlobalSetup::Instance()->GetMagFieldZTesla();
         }
         CELER_LOG_LOCAL(info)
-            << "Using a unifrom field (0, 0, " << field[2] << ") in Tesla";
+            << "Using a uniform field (0, 0, " << field[2] << ") in Tesla";
+        mag_field_ = std::make_shared<G4UniformMagField>(field);
 
         celeritas::app::GlobalSetup::Instance()->GetAlongStepOptions()
             = UniformAlongStepFactory([&] { return field; });
@@ -190,18 +189,8 @@ void DetectorConstruction::ConstructSDandField()
     // Construct the magnetic field
     G4FieldManager* field_manager
         = G4TransportationManager::GetTransportationManager()->GetFieldManager();
-
-    if (use_field_map_)
-    {
-        mag_field_ = new MagneticField(field_params_);
-    }
-    else
-    {
-        G4ThreeVector field = GlobalSetup::Instance()->GetMagFieldZTesla();
-        mag_field_ = new G4UniformMagField(field);
-    }
-    field_manager->SetDetectorField(mag_field_);
-    field_manager->CreateChordFinder(mag_field_);
+    field_manager->SetDetectorField(mag_field_.get());
+    field_manager->CreateChordFinder(mag_field_.get());
 }
 
 //---------------------------------------------------------------------------//

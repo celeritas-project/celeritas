@@ -39,9 +39,8 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
     std::multimap<std::string, G4LogicalVolume*> detectors_;
 
     // Mangetic field
-    bool use_field_map_{false};
     std::shared_ptr<RZMapFieldParams> field_params_;
-    static G4ThreadLocal G4MagneticField* mag_field_;
+    std::shared_ptr<G4MagneticField> mag_field_;
 };
 
 //---------------------------------------------------------------------------//
