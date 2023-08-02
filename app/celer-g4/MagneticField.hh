@@ -71,7 +71,6 @@ void MagneticField::GetFieldValue(double const pos[3], double* field) const
         // Return values of the field vector in CLHEP::tesla for Geant4
         field[i] = result[i] * this->scale();
     }
-    printf("B[2]= %g\n", field[2]);
 }
 
 //---------------------------------------------------------------------------//
