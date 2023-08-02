@@ -140,7 +140,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         mag_field_ = std::make_shared<G4UniformMagField>(field);
 
         celeritas::app::GlobalSetup::Instance()->GetAlongStepOptions()
-            = UniformAlongStepFactory([&] { return field; });
+            = UniformAlongStepFactory([=] { return field; });
     }
 
     // Claim ownership of world volume and pass it to the caller
