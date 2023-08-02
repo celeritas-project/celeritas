@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MagneticField.hh
+//! \file RZMapMagneticField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,18 +12,17 @@
 #include <globals.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 
 namespace celeritas
 {
-namespace app
-{
 //---------------------------------------------------------------------------//
 /*!
  * A user magnetic field equivalent to celeritas::RZMapField.
  */
-class MagneticField : public G4MagneticField
+class RZMapMagneticField : public G4MagneticField
 {
   public:
     //!@{
@@ -33,13 +32,14 @@ class MagneticField : public G4MagneticField
 
   public:
     // Construct with RZMapFieldParams
-    inline explicit MagneticField(SPConstFieldParams field_params);
+    inline explicit RZMapMagneticField(SPConstFieldParams field_params);
 
     // Calculate values of the magnetic field vector
     inline void GetFieldValue(double const point[3], double* field) const;
 
     //// COMMON PROPERTIES ////
     static constexpr double scale() { return CLHEP::tesla / units::tesla; }
+    static constexpr real_type to_celer_cm() { return 1 / CLHEP::cm; }
 
   private:
     SPConstFieldParams params_;
@@ -50,7 +50,7 @@ class MagneticField : public G4MagneticField
 /*!
  * Construct with the Celeritas shared RZMapFieldParams.
  */
-MagneticField::MagneticField(SPConstFieldParams params)
+RZMapMagneticField::RZMapMagneticField(SPConstFieldParams params)
     : params_(std::move(params))
     , calc_field_(RZMapField{params_->ref<MemSpace::native>()})
 {
@@ -62,10 +62,11 @@ MagneticField::MagneticField(SPConstFieldParams params)
  * Evaluate values of the magnetic field vector at the given position
  * using the volume-based celetias::RZMapField.
  */
-void MagneticField::GetFieldValue(double const pos[3], double* field) const
+void RZMapMagneticField::GetFieldValue(double const pos[3], double* field) const
 {
     // Calculate the magnetic field value in the native Celeritas unit system
-    Real3 result = this->calc_field_(Real3{pos[0], pos[1], pos[2]});
+    Real3 result = this->calc_field_(Real3{pos[0], pos[1], pos[2]}
+                                     * this->to_celer_cm());
     for (auto i = 0; i < 3; ++i)
     {
         // Return values of the field vector in CLHEP::tesla for Geant4
@@ -74,5 +75,4 @@ void MagneticField::GetFieldValue(double const pos[3], double* field) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas
