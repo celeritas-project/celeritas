@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "GlobalSetup.hh"
 
-#include <fstream>
 #include <utility>
 #include <G4GenericMessenger.hh>
 
