@@ -15,6 +15,7 @@
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/math/SoftEqual.hh"
 
 #include "FieldDriverOptions.hh"
@@ -68,7 +69,7 @@ class FieldDriver
 
     // For a given trial step, advance by a sub_step within a tolerance error
     inline CELER_FUNCTION DriverResult advance(real_type step,
-                                               OdeState const& state) const;
+                                               OdeState const& state);
 
     // An adaptive step size control from G4MagIntegratorDriver
     // Move this to private after all tests with non-uniform field are done
@@ -96,6 +97,9 @@ class FieldDriver
 
     // Stepper for this field driver
     StepperT apply_step_;
+
+    // Maximum chord length based on a previous estimate
+    real_type max_chord_{numeric_limits<real_type>::infinity()};
 
     //// TYPES ////
 
@@ -174,7 +178,7 @@ FieldDriver<StepperT>::FieldDriver(FieldDriverOptions const& options,
  */
 template<class StepperT>
 CELER_FUNCTION DriverResult
-FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
+FieldDriver<StepperT>::advance(real_type step, OdeState const& state)
 {
     cout << color_code('b') << "Step up to " << step << color_code(' ')
          << " from " << state.pos << endl;
@@ -191,14 +195,22 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
         return result;
     }
 
-    // Output with a step control error
-    ChordSearch output = this->find_next_chord(step, state);
+    // Calculate the next chord length (and get an end state "for free") based
+    // on delta_chord, reusing previous estimates
+    ChordSearch output
+        = this->find_next_chord(celeritas::min(step, max_chord_), state);
     CELER_ASSERT(output.end.step <= step);
+    if (output.end.step < step)
+    {
+        // Chord length was reduced due to constraints: save the estimate for
+        // the next potential field advance inside the propagation loop
+        max_chord_ = output.end.step * (1 / options_.min_chord_shrink);
+    }
 
     if (output.err_sq > 1)
     {
         // Discard the original end state and advance more accurately with the
-        // newly proposed step
+        // newly proposed (reduced) step
         real_type next_step = step * this->new_step_scale(output.err_sq);
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
@@ -222,7 +234,7 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
     // Output with a step control error
     ChordSearch output;
 
-    cout << " - find next chord" << endl;
+    cout << " - find next chord: " << step << endl;
 
     bool succeeded = false;
     auto remaining_steps = options_.max_nsteps;

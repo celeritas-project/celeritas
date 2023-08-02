@@ -155,9 +155,8 @@ TEST_F(FieldDriverTest, types)
             FieldDriver<DormandPrinceStepper<MagFieldEquation<UniformZField>>>,
             decltype(driver)>::value));
     // Size: field vector, q / c, reference to options
-    EXPECT_EQ(
-        sizeof(real_type) + sizeof(real_type) + sizeof(FieldDriverOptions*),
-        sizeof(driver));
+    EXPECT_EQ(3 * sizeof(real_type) + sizeof(FieldDriverOptions*),
+              sizeof(driver));
 }
 
 // Field strength changes quickly with z, so different chord steps require
@@ -189,8 +188,8 @@ TEST_F(FieldDriverTest, unpleasant_field)
         distance += result.step;
         state = result.state;
     }
-    EXPECT_EQ(31, stepper.count());
-    EXPECT_SOFT_EQ(7.2232269169635632, distance);
+    EXPECT_EQ(20, stepper.count());
+    EXPECT_SOFT_EQ(2.0197620480043263, distance);
 }
 
 // As the track moves along +z near 0, the field strength oscillates horribly,
@@ -266,12 +265,12 @@ TEST_F(FieldDriverTest, pathological_chord)
         lengths.push_back(end.step);
     }
 
-    static unsigned int const expected_counts[] = {1u, 6u, 1u, 1u, 1u};
+    static unsigned int const expected_counts[] = {1u, 6u, 4u, 4u, 4u};
     static double const expected_lengths[] = {0.029802281646312,
                                               0.30937398137671,
-                                              5.9604563292623,
-                                              11.920912658525,
-                                              23.841825317049};
+                                              0.30936881116327,
+                                              0.30936881114832,
+                                              0.30936881114832};
     EXPECT_VEC_EQ(expected_counts, counts);
     EXPECT_VEC_SOFT_EQ(expected_lengths, lengths);
 }
@@ -284,7 +283,6 @@ TEST_F(FieldDriverTest, step_counts)
     real_type field_strength = 1.0 * units::tesla;
     auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
         UniformZField{field_strength}, units::ElementaryCharge{-1});
-    FieldDriver driver{driver_options, stepper};
 
     std::vector<real_type> radii;
     std::vector<unsigned int> counts;
@@ -303,6 +301,7 @@ TEST_F(FieldDriverTest, step_counts)
         state.pos = {radius, 0, 0};
         state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
 
+        FieldDriver driver{driver_options, stepper};
         for (int log_len : range(-4, 3).step(2))
         {
             real_type step_len = std::pow(10.0, log_len);
@@ -318,14 +317,14 @@ TEST_F(FieldDriverTest, step_counts)
     static double const expected_radii[] = {0.00010663611598835,
         0.0010663663247419, 0.010668826843187, 0.11173141982667,
         3.5019461121752, 333.73450257138, 33356.579970281};
-    static unsigned int const expected_counts[] = {1u, 93u, 779u, 786u, 1u,
-        12u, 90u, 96u, 1u, 1u, 29u, 35u, 1u, 1u, 7u, 15u, 1u, 1u, 2u, 9u, 1u,
+    static unsigned int const expected_counts[] = {1u, 93u, 779u, 777u, 1u,
+        12u, 90u, 87u, 1u, 1u, 29u, 25u, 1u, 1u, 7u, 5u, 1u, 1u, 2u, 3u, 1u,
         1u, 1u, 5u, 1u, 1u, 1u, 2u};
     static double const expected_lengths[] = {0.0001, 0.01, 0.077563521220272,
-        0.077562922424298, 0.0001, 0.01, 0.076209386999884, 0.076210431034511,
-        0.0001, 0.01, 0.063064075311856, 0.063064905456757, 0.0001, 0.01,
-        0.17398853544975, 0.1788332443937, 0.0001, 0.01, 0.99607291767799,
-        0.99606836440819, 0.0001, 0.01, 1, 9.7158185571513, 0.0001, 0.01, 1,
+        0.077562363386602, 0.0001, 0.01, 0.076209386999884, 0.076209671160348,
+        0.0001, 0.01, 0.063064075311856, 0.063065174124004, 0.0001, 0.01,
+        0.17398853544975, 0.17398853544975, 0.0001, 0.01, 0.99607291767799,
+        0.99607023941998, 0.0001, 0.01, 1, 9.7158185571513, 0.0001, 0.01, 1,
         97.132215683182};
     // clang-format on
 

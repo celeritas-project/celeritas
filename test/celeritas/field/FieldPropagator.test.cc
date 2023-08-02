@@ -239,7 +239,7 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), 1e-6);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
-        EXPECT_EQ(27, stepper.count());
+        EXPECT_EQ(21, stepper.count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
@@ -250,7 +250,7 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_SOFT_EQ(pi * radius, result.distance);
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
-        EXPECT_EQ(68, stepper.count());
+        EXPECT_EQ(40, stepper.count());
     }
 
     // Test step that's smaller than driver's minimum (should take one
@@ -261,8 +261,8 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_DOUBLE_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_NEAR(
-            Real3({3.8085385881855, -2.3814749713353e-07, 0}), geo.pos(), 1e-7);
-        EXPECT_VEC_NEAR(Real3({6.2529888474538e-08, 1, 0}), geo.dir(), 1e-7);
+            Real3({3.8085385881855, -2.381487075086e-07, 0}), geo.pos(), 1e-7);
+        EXPECT_VEC_NEAR(Real3({6.25302065531623e-08, 1, 0}), geo.dir(), 1e-7);
         EXPECT_EQ(1, stepper.count());
     }
 }
@@ -1064,19 +1064,16 @@ TEST_F(TwoBoxTest, nonuniform_field)
     }
 
     // clang-format off
-    static double const expected_all_pos[] = {
-        -2.0825709359803, 0.69832583461676, 0.70710666844698,
-        -2.5772824508968, 1.1564020888258, 1.4141930958099,
-        -3.0638510057122, 0.77473521479087, 2.1212684403177,
-        -2.5583491669886, 0.58538464818192, 2.8283305521706,
-        -2.9046903231357, 0.86312856101992, 3.5354509992431,
-        -2.5810335650695, 0.76746368848985, 4.242728100241,
-        -2.7387773891353, 0.6033529790486, 4.9501400379322,
-        -2.6908755627764, 0.61552642042372, 5};
+    static double const expected_all_pos[] = {-2.0825709359803,
+        0.69832583461676, 0.70710666844698, -2.5772824508968, 1.1564020888258,
+        1.4141930958099, -3.0638510057122, 0.77473521479087, 2.1212684403177,
+        -2.5583489716647, 0.58538451986626, 2.828330789556, -2.904690468079,
+        0.86312828878343, 3.5354504022784, -2.5810333947926, 0.76746526072066,
+        4.2427268982429, -2.7387860743405, 0.6033460543227, 4.9501275639478,
+        -2.6908723120116, 0.6155217193027, 5};
+    static int const expected_step_counter[] = {3, 3, 6, 6, 9, 10, 13, 8};
     // clang-format on
     EXPECT_VEC_SOFT_EQ(expected_all_pos, all_pos);
-
-    static int const expected_step_counter[] = {3, 3, 6, 6, 9, 11, 15, 9};
     EXPECT_VEC_EQ(expected_step_counter, step_counter);
 }
 
@@ -1208,8 +1205,8 @@ TEST_F(SimpleCmsTest, electron_stuck)
             = make_field_propagator(stepper, driver_options, particle, geo);
         auto result = propagate(30);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_LE(870, stepper.count());
-        EXPECT_LE(stepper.count(), 900);
+        EXPECT_LE(370, stepper.count());
+        EXPECT_LE(stepper.count(), 380);
         ASSERT_TRUE(geo.is_on_boundary());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -1306,9 +1303,9 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         if (successful_reentry)
         {
             // Extremely long propagation stopped by substep countdown
-            EXPECT_SOFT_EQ(11.676851876556075, result.distance);
+            EXPECT_SOFT_EQ(12.02714054426572, result.distance);
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_EQ(7800, stepper.count());
+            EXPECT_EQ(573, stepper.count());
             EXPECT_TRUE(result.looping);
         }
         else
