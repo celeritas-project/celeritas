@@ -89,11 +89,7 @@ class ActionLauncher
              std::enable_if_t<detail::has_max_block_size_v<A_>, bool> = true>
     explicit ActionLauncher(std::string_view name)
         : calc_launch_params_{
-            name,
-            &detail::launch_action_impl<F_>,
-            A_::max_block_size < celeritas::device().default_block_size()
-                ? A_::max_block_size
-                : celeritas::device().default_block_size()}
+            name, &detail::launch_action_impl<F_>, A_::max_block_size}
     {
     }
 
