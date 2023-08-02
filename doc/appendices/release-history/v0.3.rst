@@ -3,6 +3,97 @@
 .. SPDX-License-Identifier: CC-BY-4.0
 
 
+.. _release_v0.3.1:
+
+Version 0.3.1
+=============
+
+*Released 2023/08/01*
+
+Version 0.3.1 is a bug fix and minor feature release of Celeritas targeted at supporting
+experiment frameworks. Key enhancements are:
+
+- More track and step attributes can be set when calling back to Geant4
+  sensitive detectors
+- Offloaded tracks can be exported as a HepMC3 event file
+- Sensitive detectors callbacks from Celeritas can bebe disabled with a new
+  macro flag
+- Geant4 10.5 is now supported
+- A new step diagnostic in ``celer-g4`` prints step distributions from Geant4
+  CPU execution
+
+Key fixes:
+
+- Backward compatibility with Geant4 10.6 is fixed
+- Support more than one MSC model being defined in Geant4
+- Initializer capacity in ``celer-sim`` is nos scaled to be per thread
+
+
+New features
+------------
+
+* Launch kernels only with active tracks using "action range" *(@esseivaju, #765)*
+* Add utility for constructing SD "force_volumes" option *(@sethrj, #825)*
+* Add scoped NVTX ranges for improved profiling *(@esseivaju, #827)*
+* Add isotope data to ``MaterialParams`` *(@stognini, #831)*
+* Add ``ScopedProfiling`` to device actions *(@esseivaju, #836)*
+* Gather and set more Step/Track attributes when calling sensitive detectors *(@sethrj, #839)*
+* Add isotope selector *(@stognini, #843)*
+* Add a HepMC3 event writer *(@sethrj, #851)*
+* Add option to disable Celeritas offloading in celer-g4 *(@amandalund, #860)*
+* Add option to dump offloaded tracks as an event file *(@sethrj, #854)*
+* Expose SDSetupOptions "enabled" flag in SetupOptionsMessenger *(@drbenmorgan, #859)*
+* Add track step counter to celer-g4 *(@amandalund, #862)*
+* Define arithmetic operators for Array *(@sethrj, #868)*
+* Support Geant4@10.5 *(@sethrj, #869)*
+
+Reviewers: @sethrj *(8)*, @amandalund *(3)*, @whokion *(2)*, @hhollenb *(1)*, @drbenmorgan *(1)*
+
+Bug fixes
+---------
+
+* Fix errors when building and loading Celeritas through CMSSW *(@sethrj, #821)*
+* Divide initializer capacity by number of streams in celer-sim *(@amandalund, #824)*
+* Fix build errors from Geant4@10 *(@drbenmorgan, #830)*
+* Fix default ``combined_brems`` option to work with multiple-element materials *(@sethrj, #837)*
+* Fix app/demo-geo-check test failure when using MPI *(@stognini, #838)*
+* Unify convergence criteria in field driver *(@sethrj, #829)*
+* Fix minor issues with exceptions *(@sethrj, #846)*
+* Fix linking errors with CUDA+VecGeom caused by #847 *(@pcanal, #856)*
+* Fix inconsistencies in Geant4-to-VecGeom boolean conversion *(@sethrj, #857)*
+* Fix HepMC3 reading of vertices and status codes *(@sethrj, #863)*
+
+Reviewers: @sethrj *(4)*, @amandalund *(4)*, @whokion *(2)*, @esseivaju *(1)*
+
+Documentation improvements
+--------------------------
+
+* Update CI to VecGeom 1.2.3 *(@sethrj, #819)*
+* Document how to link loadable shared libraries with Celeritas *(@drbenmorgan, #842)*
+
+Reviewers: @pcanal *(1)*, @sethrj *(1)*
+
+Minor internal changes
+----------------------
+
+* Add field template deduction and parameterized test *(@sethrj, #820)*
+* Improve logger construction and add test helper class *(@sethrj, #826)*
+* Hotfix: fix warning when building with Geant4@11 *(@sethrj, #833)*
+* Remove variadic templating from track executor *(@sethrj, #832)*
+* Refactor hit manager SD mapping *(@sethrj, #835)*
+* Apply C++ core guidelines for copy/move assignment/construction *(@esseivaju, #834)*
+* Add ``screening_factor`` to ``ImportEmParameters`` *(@stognini, #840)*
+* cmake-rdc: add support for MODULE library. *(@pcanal, #848)*
+* Add some quality-of-life CMake defaults *(@sethrj, #847)*
+* Require semicolon for statement-like CELER_X_COPY_MOVE macros *(@sethrj, #855)*
+* Hotfix: fix duplicate HepMC3 symbols by creating a wrapper function *(@sethrj, #865)*
+* Fix large function warnings by disabling device debug code by default *(@sethrj, #866)*
+* Add PolyEvaluator deduction guides *(@hhollenb, #871)*
+* Add thread-safe assertion to RootStepWriter *(@stognini, #873)*
+
+Reviewers: @amandalund *(5)*, @sethrj *(5)*, @pcanal *(2)*, @drbenmorgan *(2)*, @hhollenb *(1)*, @esseivaju *(1)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.3.0...v0.3.1
 
 .. _release_v0.3.0:
 
