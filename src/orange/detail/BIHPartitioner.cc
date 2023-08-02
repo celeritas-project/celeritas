@@ -63,24 +63,18 @@ BIHPartitioner::operator()(VecIndices const& indices) const
     {
         auto ax = to_int(axis);
 
-        if (axes_centers[ax].size() < 2)
-        {
-            // Axis is not partitionable
-            continue;
-        }
+        // Loop through <candidates_per_axis_> equally-spaced partition
+        // candidates
 
-        // Test the middle <candidates_per_axis_> number of partitions
-        size_type min_idx = std::max(
-            static_cast<int>(axes_centers[ax].size() - candidates_per_axis_)
-                / 2,
-            0);
-        size_type max_idx
-            = std::min(min_idx + candidates_per_axis_,
-                       static_cast<size_type>(axes_centers[ax].size() - 1));
+        auto step_size
+            = std::max(static_cast<size_type>(axes_centers[ax].size()
+                                              / (candidates_per_axis_ + 1)),
+                       size_type{1});
+        auto i = step_size;
 
-        for (auto i : range(min_idx, max_idx))
+        while (i < axes_centers[ax].size())
         {
-            auto position = (axes_centers[ax][i] + axes_centers[ax][i + 1]) / 2;
+            auto position = (axes_centers[ax][i - 1] + axes_centers[ax][i]) / 2;
 
             auto p = this->make_partition(indices, axis, position);
             auto cost = this->calc_cost(p);
@@ -90,6 +84,7 @@ BIHPartitioner::operator()(VecIndices const& indices) const
                 best_partition = std::move(p);
                 best_cost = cost;
             }
+            i += step_size;
         }
     }
 
