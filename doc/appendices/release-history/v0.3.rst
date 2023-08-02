@@ -14,19 +14,20 @@ Version 0.3.1 is a bug fix and minor feature release of Celeritas targeted at su
 experiment frameworks. Key enhancements are:
 
 - More track and step attributes can be set when calling back to Geant4
-  sensitive detectors
-- Offloaded tracks can be exported as a HepMC3 event file
-- Sensitive detectors callbacks from Celeritas can bebe disabled with a new
-  macro flag
-- Geant4 10.5 is now supported
-- A new step diagnostic in ``celer-g4`` prints step distributions from Geant4
-  CPU execution
+  sensitive detectors.
+- Offloaded tracks can be exported as a HepMC3 event file.
+- Sensitive detectors callbacks from Celeritas can be disabled with a new
+  macro flag.
+- Linking against Geant4 10.5 is supported.
+- A new diagnostic in ``celer-g4`` prints step distributions from Geant4
+  CPU execution.
 
 Key fixes:
 
-- Backward compatibility with Geant4 10.6 is fixed
-- Support more than one MSC model being defined in Geant4
-- Initializer capacity in ``celer-sim`` is nos scaled to be per thread
+- Backward compatibility with Geant4 10.6 is restored.
+- Having multiple MSC models defined in Geant4 prints a warning instead of
+  aborting execution.
+- Initializer capacity in ``celer-sim`` is now scaled to be per thread.
 
 
 New features
@@ -112,11 +113,11 @@ Version 0.3.0 is a major new release of Celeritas. Key enhancements are:
 
 Key changes:
 
-- "Stuck" tracks are killed after a certain number of steps without an intersection
-- The Urban cross section model is used by default for all energies
-- ``demo-loop`` is now ``celer-sim`` and is installed alongside the library
-- ``demo-geant`` is now ``celer-g4`` and is also installed
-- Building with the C++17 standard or later is required
+- "Stuck" tracks are killed after a certain number of steps without an intersection.
+- The Urban cross section model is used by default for all energies.
+- ``demo-loop`` is now ``celer-sim`` and is installed alongside the library.
+- ``demo-geant`` is now ``celer-g4`` and is also installed.
+- Building with the C++17 standard or later is required.
 
 
 New features
