@@ -81,15 +81,14 @@ real_type MottXsCalculator::operator()(real_type cos_theta) const
     real_type beta0 = beta_ - beta_shift;
 
     // Evaluate polynomial of powers of beta0 and fcos_t
-    using PolyQuint = PolyEvaluator<real_type, 5>;
-    using PolyQuart = PolyEvaluator<real_type, 4>;
-
     WentzelElementData::ThetaArray theta_coeffs;
     for (auto i : range(theta_coeffs.size()))
     {
-        theta_coeffs[i] = PolyQuint{element_data_.mott_coeff[i]}(beta0);
+        auto evaluator = PolyEvaluator(element_data_.mott_coeff[i]);
+        theta_coeffs[i] = evaluator(beta0);
     }
-    return PolyQuart{theta_coeffs}(fcos_t);
+    auto eval = PolyEvaluator(theta_coeffs);
+    return eval(fcos_t);
 }
 
 //---------------------------------------------------------------------------//

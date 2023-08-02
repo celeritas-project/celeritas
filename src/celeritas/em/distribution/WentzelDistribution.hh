@@ -17,6 +17,7 @@
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -32,9 +33,9 @@ namespace celeritas
  *        and simulation of multiple elastic scattering of electrons. Nucl.
  *        Instrum. and Method. in Phys. Research B, 73:447-473, Apr 1993.
  *        doi:10.1016/0168-583X(93)95827-R
- * [LR11] C. Leroy and P.G. Rancoita. Principles of Radiation Interaction in
- *        Matter and Detection. World Scientific (Singapore), 3rd edition,
- *        2011.
+ * [LR15] C. Leroy and P.G. Rancoita. Principles of Radiation Interaction in
+ *        Matter and Detection. World Scientific (Singapore), 4rd edition,
+ *        2015.
  * [PRM]  Geant4 Physics Reference Manual (Release 11.1) sections 8.2 and 8.5
  */
 class WentzelDistribution
@@ -162,11 +163,16 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
 
         // Calculate rejection for fake scattering
         // TODO: Reference?
+        real_type mott_coeff
+            = 1 + real_type(1e-4) * ipow<2>(target_.atomic_number().get());
         MottXsCalculator mott_xsec(element_data_, sqrt(particle_.beta_sq()));
         real_type g_rej = mott_xsec(cos_theta)
-                          * ipow<2>(calculate_form_factor(cos_theta));
+                          * ipow<2>(calculate_form_factor(cos_theta))
+                          / mott_coeff;
 
-        if (g_rej <= 1 && !BernoulliDistribution(g_rej)(rng))
+        // g_rej can be larger than 1, so use generate canonical instead of
+        // BernoulliDistribution.
+        if (generate_canonical(rng) > g_rej)
         {
             return {0, 0, 1};
         }
@@ -181,12 +187,12 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
 /*!
  * Calculates the form factor based on the form factor model.
  *
- * The models are described in [LR11] section 2.4.2.1 and parameterize the
+ * The models are described in [LR15] section 2.4.2.1 and parameterize the
  * charge distribution inside a nucleus. The same models are used as in
  * Geant4, and are:
- *      Exponential: [LR11] eqn 2.262
- *      Gaussian: [LR11] eqn 2.264
- *      Flat (uniform-uniform folded): [LR11] 2.265
+ *      Exponential: [LR15] eqn 2.262
+ *      Gaussian: [LR15] eqn 2.264
+ *      Flat (uniform-uniform folded): [LR15] 2.265
  */
 CELER_FUNCTION real_type
 WentzelDistribution::calculate_form_factor(real_type cos_t) const
@@ -213,7 +219,7 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper function for calculating the flat form factors, see [LR16] eqn
+ * Helper function for calculating the flat form factors, see [LR15] eqn
  * 2.265.
  */
 CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x) const
@@ -284,7 +290,7 @@ CELER_FUNCTION real_type WentzelDistribution::compute_max_electron_cos_t() const
 /*!
  * Momentum coefficient used in the flat model for the nuclear form factors.
  * This is the ratio of \f$ r_1 / \hbar \f$ where \f$ r_1 \f$ is defined in
- * eqn 2.265 of [LR11].
+ * eqn 2.265 of [LR15].
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff() const
 {
@@ -297,7 +303,7 @@ CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff() const
 /*!
  * Calculates the constant prefactors of the squared momentum transfer used
  * in the exponential and Guassian nuclear form models, see eqns 2.262-2.264
- * of [LR11].
+ * of [LR15].
  *
  * Specifically, it calculates (r_n/hbar)^2 / 12. A special case is inherited
  * from Geant for hydrogen targets.
@@ -366,11 +372,10 @@ template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(
     real_type screen_coeff, real_type cos_t_max, Engine& rng) const
 {
-    UniformRealDistribution<real_type> uniform_sample;
-
+    // Sample scattering angle [Fern] eqn 92, where cos(theta) = 1 - 2*mu
     // For incident electrons / positrons, theta_min = 0 always
     real_type mu = real_type{0.5} * (1 - cos_t_max);
-    real_type xi = uniform_sample(rng);
+    real_type xi = generate_canonical(rng);
 
     return clamp(
         1 + 2 * screen_coeff * mu * (1 - xi) / (screen_coeff - mu * xi),

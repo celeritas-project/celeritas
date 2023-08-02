@@ -141,9 +141,8 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
     // Recoil energy is kinetic energy transfered to the atom
     real_type inc_energy = value_as<Energy>(particle_.energy());
     real_type recoil_energy
-        = clamp(calc_recoil_energy(new_direction, target.nuclear_mass()),
-                real_type{0},
-                inc_energy);
+        = calc_recoil_energy(new_direction, target.nuclear_mass());
+    CELER_EXPECT(0 <= recoil_energy && recoil_energy <= inc_energy);
     result.energy = Energy{inc_energy - recoil_energy};
 
     // TODO: For high enough recoil energies, ions are produced

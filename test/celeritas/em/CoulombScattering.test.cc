@@ -93,7 +93,7 @@ class CoulombScatteringTest : public InteractorHostTestBase
         SCOPED_TRACE(interaction);
 
         // Check change to parent track
-        EXPECT_GT(this->particle_track().energy().value(),
+        EXPECT_GE(this->particle_track().energy().value(),
                   interaction.energy.value());
         EXPECT_LT(0, interaction.energy.value());
         EXPECT_SOFT_EQ(1.0, norm(interaction.direction));
@@ -192,10 +192,10 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 {
     int const num_samples = 4;
 
-    static double const expected_angle[] = {
-        0.99999999991325, 0.99999999998064, 0.9999999781261, 0.99999999847986};
+    static double const expected_angle[]
+        = {0.99999999991325, 1, 0.99999999994802, 0.99999997861423};
     static double const expected_energy[]
-        = {199.99999999994, 199.99999999999, 199.99999998546, 199.99999999896};
+        = {199.99999999994, 200, 199.99999999997, 199.99999998533};
 
     auto material_view = this->material_track().make_material_view();
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
