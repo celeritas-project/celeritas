@@ -78,13 +78,13 @@ class PolyEvaluator
   private:
     const ArrayT coeffs_;
 
-    template<unsigned int M, std::enable_if_t<(M < N), int> = 0>
+    template<unsigned int M, std::enable_if_t<(M < N), bool> = true>
     CELER_CONSTEXPR_FUNCTION T calc_impl(T arg) const
     {
         return coeffs_[M] + arg * calc_impl<M + 1>(arg);
     }
 
-    template<unsigned int M, std::enable_if_t<(M == N), int> = 0>
+    template<unsigned int M, std::enable_if_t<(M == N), bool> = true>
     CELER_CONSTEXPR_FUNCTION T calc_impl(T) const
     {
         return coeffs_[N];
