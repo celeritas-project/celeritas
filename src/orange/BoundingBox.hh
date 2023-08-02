@@ -22,16 +22,19 @@ namespace celeritas
 /*!
  * Axis-aligned bounding box.
  *
- * This is currently a pretty boring class; it will be extended as needed.
- * We'll add a BoundingBoxUtils class for all the fancy operations that need
- * only the accessors we provide.
- *
  * The bounding box can be constructed in an unassigned state, in which lower
  * and upper cannot be called.
  */
+template<class T>
 class BoundingBox
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using value_type = T;
+    using array_type = Array<value_type, 3>;
+    //!@}
+
     // Construct from infinite extents
     static inline CELER_FUNCTION BoundingBox from_infinite();
 
@@ -39,23 +42,31 @@ class BoundingBox
     inline CELER_FUNCTION BoundingBox();
 
     // Construct from upper and lower points
-    inline CELER_FUNCTION BoundingBox(Real3 const& lower, Real3 const& upper);
+    inline CELER_FUNCTION
+    BoundingBox(array_type const& lower, array_type const& upper);
 
     //// ACCESSORS ////
 
     // Lower bbox coordinate
-    CELER_FORCEINLINE_FUNCTION Real3 const& lower() const;
+    CELER_FORCEINLINE_FUNCTION array_type const& lower() const;
 
     // Upper bbox coordinate
-    CELER_FORCEINLINE_FUNCTION Real3 const& upper() const;
+    CELER_FORCEINLINE_FUNCTION array_type const& upper() const;
 
     // Whether the bbox is assigned
     CELER_FORCEINLINE_FUNCTION explicit operator bool() const;
 
   private:
-    Real3 lower_;
-    Real3 upper_;
+    array_type lower_;
+    array_type upper_;
 };
+
+//---------------------------------------------------------------------------//
+// TYPE ALIASES
+//---------------------------------------------------------------------------//
+
+//! Bounding box for host metadata
+using BBox = BoundingBox<real_type>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -63,9 +74,10 @@ class BoundingBox
 /*!
  * Create a bounding box with infinite extents.
  */
-CELER_FUNCTION BoundingBox BoundingBox::from_infinite()
+template<class T>
+CELER_FUNCTION BoundingBox<T> BoundingBox<T>::from_infinite()
 {
-    constexpr real_type inf = numeric_limits<real_type>::infinity();
+    constexpr value_type inf = numeric_limits<value_type>::infinity();
     return {{-inf, -inf, -inf}, {inf, inf, inf}};
 }
 
@@ -73,9 +85,10 @@ CELER_FUNCTION BoundingBox BoundingBox::from_infinite()
 /*!
  * Create a bounding box in an invalid state.
  */
-CELER_FUNCTION BoundingBox::BoundingBox()
+template<class T>
+CELER_FUNCTION BoundingBox<T>::BoundingBox()
 {
-    lower_[0] = numeric_limits<real_type>::quiet_NaN();
+    lower_[0] = numeric_limits<value_type>::quiet_NaN();
 }
 
 //---------------------------------------------------------------------------//
@@ -85,7 +98,9 @@ CELER_FUNCTION BoundingBox::BoundingBox()
  * The lower and upper points are allowed to be equal (an empty bounding box
  * at a single point) but upper must not be less than lower.
  */
-CELER_FUNCTION BoundingBox::BoundingBox(Real3 const& lo, Real3 const& hi)
+template<class T>
+CELER_FUNCTION
+BoundingBox<T>::BoundingBox(array_type const& lo, array_type const& hi)
     : lower_(lo), upper_(hi)
 {
     CELER_EXPECT(lower_[0] <= upper_[0] && lower_[1] <= upper_[1]
@@ -96,7 +111,9 @@ CELER_FUNCTION BoundingBox::BoundingBox(Real3 const& lo, Real3 const& hi)
 /*!
  * Lower bbox coordinate (must be valid).
  */
-CELER_FUNCTION Real3 const& BoundingBox::lower() const
+template<class T>
+CELER_FUNCTION typename BoundingBox<T>::array_type const&
+BoundingBox<T>::lower() const
 {
     CELER_EXPECT(*this);
     return lower_;
@@ -106,7 +123,9 @@ CELER_FUNCTION Real3 const& BoundingBox::lower() const
 /*!
  * Upper bbox coordinate (must be valid).
  */
-CELER_FUNCTION Real3 const& BoundingBox::upper() const
+template<class T>
+CELER_FUNCTION typename BoundingBox<T>::array_type const&
+BoundingBox<T>::upper() const
 {
     CELER_EXPECT(*this);
     return upper_;
@@ -116,7 +135,8 @@ CELER_FUNCTION Real3 const& BoundingBox::upper() const
 /*!
  * Whether the bbox is in an assigned state.
  */
-CELER_FUNCTION BoundingBox::operator bool() const
+template<class T>
+CELER_FUNCTION BoundingBox<T>::operator bool() const
 {
     return !std::isnan(lower_[0]);
 }

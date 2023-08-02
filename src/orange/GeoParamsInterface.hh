@@ -34,7 +34,7 @@ class GeoParamsInterface
     virtual bool supports_safety() const = 0;
 
     //! Outer bounding box of geometry
-    virtual BoundingBox const& bbox() const = 0;
+    virtual BBox const& bbox() const = 0;
 
     //// VOLUMES ////
 
