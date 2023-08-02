@@ -48,6 +48,7 @@
 #include <G4VPhysicalVolume.hh>
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
+#include <G4Version.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -504,6 +505,7 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
         if (auto const* gg_process
             = dynamic_cast<G4GammaGeneralProcess const*>(&process))
         {
+#if G4VERSION_NUMBER >= 1060
             // Extract the real EM processes embedded inside "gamma general"
             // using an awkward string-based lookup which is the only one
             // available to us :(
@@ -516,6 +518,10 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                     processes.push_back(import_process(particle, *subprocess));
                 }
             }
+#else
+            (void)sizeof(gg_process);
+            CELER_NOT_IMPLEMENTED("GammaGeneralProcess for Geant4 < 10.6");
+#endif
         }
         else if (auto const* em_process
                  = dynamic_cast<G4VEmProcess const*>(&process))
@@ -664,8 +670,10 @@ ImportEmParameters import_em_parameters()
     import.lowest_electron_energy = g4.LowestElectronEnergy() / MeV;
     import.auger = g4.Auger();
     import.msc_range_factor = g4.MscRangeFactor();
+#if G4VERSION_NUMBER >= 1060
     import.msc_safety_factor = g4.MscSafetyFactor();
     import.msc_lambda_limit = g4.MscLambdaLimit() / cm;
+#endif
     import.apply_cuts = g4.ApplyCuts();
     import.screening_factor = g4.ScreeningFactor();
 

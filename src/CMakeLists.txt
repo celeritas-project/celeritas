@@ -62,8 +62,12 @@ endforeach()
 
 foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
   string(TOLOWER "${_var}" _lower)
+  if(DEFINED ${_var}_STRING)
+    set(_var "${_var}_STRING")
+  endif()
+  set(_value "${${_var}}")
   string(APPEND CELERITAS_CMAKE_STRINGS
-    "static const char celeritas_${_lower}[] = \"${${_var}}\";\n"
+    "static const char celeritas_${_lower}[] = \"${_value}\";\n"
   )
 endforeach()
 celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
