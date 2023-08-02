@@ -1304,6 +1304,20 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
                 = {"error", "warning"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
         }
+        else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+        {
+            EXPECT_EQ(result.boundary, geo.is_on_boundary());
+            if (!scoped_log_.empty())
+            {
+                // This happens on CI but not on my macbook
+                static char const* const expected_log_messages[]
+                    = {"Moved internally from boundary but safety didn't "
+                       "increase: volume 6 at {123.254,-20.8187,-40.8262}"};
+                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+                static char const* const expected_log_levels[] = {"warning"};
+                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+            }
+        }
         else
         {
             EXPECT_EQ(result.boundary, geo.is_on_boundary());

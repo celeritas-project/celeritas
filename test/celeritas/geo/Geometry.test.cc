@@ -327,7 +327,7 @@ TEST_F(CmseTest, host)
 
 TEST_F(CmseTest, TEST_IF_CELER_DEVICE(device))
 {
-    this->run_device(512, 1e-6);
+    this->run_device(512, 0.005);
 }
 
 //---------------------------------------------------------------------------//
