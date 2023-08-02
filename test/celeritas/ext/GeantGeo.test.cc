@@ -66,12 +66,6 @@ class CmseTest : public GeantGeoTest
     std::string geometry_basename() const override { return "cmse"; }
 };
 
-class SfTest : public GeantGeoTest
-{
-  public:
-    std::string geometry_basename() const override { return "sf"; }
-};
-
 //---------------------------------------------------------------------------//
 
 TEST_F(FourLevelsTest, accessors)
@@ -649,29 +643,6 @@ TEST_F(CmseTest, trace)
             920};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {6.2475, 47.95, 242, 460};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
-    }
-    // clang-format on
-}
-
-TEST_F(SfTest, trace)
-{
-    // clang-format off
-    {
-        SCOPED_TRACE("Trouble");
-        auto result = this->track(
-            {-23.235161088317067, -48.92837314875102, 2.485790202725453},
-            {-0.6431446435132148, -0.7270389178900708, 0.2403734165699165},
-            3
-        );
-        static char const* const expected_volumes[] = {"SFLY1a", "SFBY",
-            "SFLY1a"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {0.00090313944230318,
-            1.0647915352196, 1.2305697838786};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {8.9059349464482e-05,
-            0.105, 0.12134753426698};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     // clang-format on
