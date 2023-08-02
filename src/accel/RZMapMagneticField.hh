@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RZMapMagneticField.hh
+//! \file accel/RZMapMagneticField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4MagneticField.hh>
-#include <globals.hh>
 
 #include "corecel/Macros.hh"
 #include "corecel/math/ArrayOperators.hh"
@@ -38,8 +38,14 @@ class RZMapMagneticField : public G4MagneticField
     inline void GetFieldValue(double const point[3], double* field) const;
 
     //// COMMON PROPERTIES ////
-    static constexpr double scale() { return CLHEP::tesla / units::tesla; }
-    static constexpr real_type to_celer_cm() { return 1 / CLHEP::cm; }
+    static constexpr double from_celer_tesla()
+    {
+        return CLHEP::tesla / celeritas::units::tesla;
+    }
+    static constexpr real_type to_celer_cm()
+    {
+        return celeritas::units::centimeter / CLHEP::cm;
+    }
 
   private:
     SPConstFieldParams params_;
@@ -70,7 +76,7 @@ void RZMapMagneticField::GetFieldValue(double const pos[3], double* field) const
     for (auto i = 0; i < 3; ++i)
     {
         // Return values of the field vector in CLHEP::tesla for Geant4
-        field[i] = result[i] * this->scale();
+        field[i] = result[i] * this->from_celer_tesla();
     }
 }
 
