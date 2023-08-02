@@ -17,6 +17,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "orange/BoundingBox.hh"
 #include "orange/Types.hh"
 
 #include "Types.hh"  // IWYU pragma: export
@@ -26,6 +27,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
+
+//! Real type used for acceleration
+using fast_real_type = float;
 
 //! Integer type for volume CSG tree representation
 using logic_int = unsigned short int;
@@ -38,6 +42,12 @@ using DaughterId = OpaqueId<struct Daughter>;
 
 //! Identifier for a face within a volume
 using FaceId = OpaqueId<struct Face>;
+
+//! Bounding box used for acceleration
+using FastBBox = BoundingBox<fast_real_type>;
+
+//! Identifier for a bounding box used for acceleration
+using FastBBoxId = OpaqueId<FastBBox>;
 
 //! Identifier for the current "level", i.e., depth of embedded universe
 using LevelId = OpaqueId<struct Level>;

@@ -139,12 +139,12 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
     CELER_EXPECT(inp.radius > 0);
     UnitInput input;
 
-    BoundingBox bbox = {{-inp.radius, -inp.radius, -inp.radius},
-                        {inp.radius, inp.radius, inp.radius}};
+    BBox bbox = {{-inp.radius, -inp.radius, -inp.radius},
+                 {inp.radius, inp.radius, inp.radius}};
 
     auto inf = std::numeric_limits<real_type>::infinity();
 
-    BoundingBox inf_bbox = {{-inf, -inf, -inf}, {inf, inf, inf}};
+    BBox inf_bbox = {{-inf, -inf, -inf}, {inf, inf, inf}};
 
     {
         // Insert surfaces

@@ -27,13 +27,13 @@ class BIHBuilderTest : public Test
   public:
     void SetUp()
     {
-        auto inf = std::numeric_limits<double>::infinity();
+        auto inf = std::numeric_limits<fast_real_type>::infinity();
         bboxes_.push_back({{-inf, -inf, -inf}, {inf, inf, inf}});
     }
 
   protected:
-    std::vector<BoundingBox> bboxes_;
-    Collection<BoundingBox, Ownership::value, MemSpace::host, OpaqueId<BoundingBox>>
+    std::vector<FastBBox> bboxes_;
+    Collection<FastBBox, Ownership::value, MemSpace::host, OpaqueId<FastBBox>>
         bbox_storage;
     Collection<LocalVolumeId, Ownership::value, MemSpace::host, OpaqueId<LocalVolumeId>>
         lvi_storage;

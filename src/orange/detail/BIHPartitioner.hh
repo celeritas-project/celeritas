@@ -32,7 +32,7 @@ class BIHPartitioner
   public:
     //!@{
     //! \name Type aliases
-    using VecBBox = std::vector<BoundingBox>;
+    using VecBBox = std::vector<FastBBox>;
     using VecReal3 = std::vector<Real3>;
     using VecIndices = std::vector<LocalVolumeId>;
 
@@ -42,7 +42,7 @@ class BIHPartitioner
         real_type position = std::numeric_limits<real_type>::infinity();
 
         EnumArray<BIHInnerNode::Edge, VecIndices> indices;
-        EnumArray<BIHInnerNode::Edge, BoundingBox> bboxes;
+        EnumArray<BIHInnerNode::Edge, FastBBox> bboxes;
 
         explicit operator bool() const
         {

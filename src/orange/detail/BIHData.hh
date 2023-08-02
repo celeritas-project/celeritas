@@ -72,7 +72,7 @@ struct BIHStorage
 {
     template<class T>
     using Storage = Collection<T, Ownership::value, MemSpace::host>;
-    using BBoxStorage = Storage<BoundingBox>;
+    using BBoxStorage = Storage<FastBBox>;
     using LVIStorage = Storage<LocalVolumeId>;
     using InnerNodeStorage = Storage<BIHInnerNode>;
     using LeafNodeStorage = Storage<BIHLeafNode>;
@@ -90,7 +90,7 @@ struct BIHStorage
 struct BIHTree
 {
     // All bounding boxes managed by the BIH
-    ItemMap<LocalVolumeId, BoundingBoxId> bboxes;
+    ItemMap<LocalVolumeId, FastBBoxId> bboxes;
 
     // Inner nodes, the first being the root
     ItemRange<BIHInnerNode> inner_nodes;

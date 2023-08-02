@@ -55,7 +55,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     bool supports_safety() const final { return true; }
 
     //! Outer bounding box of geometry
-    BoundingBox const& bbox() const final { return bbox_; }
+    BBox const& bbox() const final { return bbox_; }
 
     //// VOLUMES ////
 
@@ -105,7 +105,7 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Host metadata/access
     LabelIdMultiMap<VolumeId> vol_labels_;
-    BoundingBox bbox_;
+    BBox bbox_;
 
     // Host/device storage and reference
     HostRef host_ref_;

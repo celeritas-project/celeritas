@@ -60,7 +60,7 @@ struct VolumeInput
     //! RPN region definition for this volume, using local surface index
     std::vector<logic_int> logic{};
     //! Axis-aligned bounding box
-    BoundingBox bbox{};
+    BBox bbox{};
 
     //! Special flags
     logic_int flags{0};
@@ -94,7 +94,7 @@ struct UnitInput
 
     SurfaceInput surfaces;
     std::vector<VolumeInput> volumes;
-    BoundingBox bbox;  //!< Outer bounding box
+    BBox bbox;  //!< Outer bounding box
     MapVolumeDaughter daughter_map;
 
     // Unit metadata

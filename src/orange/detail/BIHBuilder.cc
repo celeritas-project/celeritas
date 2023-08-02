@@ -49,8 +49,10 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
     CELER_EXPECT(!bboxes.empty());
     bboxes_ = std::move(bboxes);
     centers_.resize(bboxes_.size());
-    std::transform(
-        bboxes_.begin(), bboxes_.end(), centers_.begin(), &celeritas::center);
+    std::transform(bboxes_.begin(),
+                   bboxes_.end(),
+                   centers_.begin(),
+                   &celeritas::center<fast_real_type>);
 
     VecIndices indices;
     VecIndices inf_volids;
@@ -76,7 +78,7 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
 
     BIHTree params;
 
-    params.bboxes = ItemMap<LocalVolumeId, BoundingBoxId>(
+    params.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
         make_builder(storage_.bboxes)
             .insert_back(bboxes_.begin(), bboxes_.end()));
 

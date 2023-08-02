@@ -15,8 +15,8 @@ namespace celeritas
 /*!
  * Calculate bounding box enclosing bounding boxes for specified indices.
  */
-inline BoundingBox bbox_union(std::vector<BoundingBox> const& bboxes,
-                              std::vector<LocalVolumeId> const& indices)
+inline FastBBox bbox_union(std::vector<FastBBox> const& bboxes,
+                           std::vector<LocalVolumeId> const& indices)
 {
     CELER_EXPECT(!bboxes.empty());
     CELER_EXPECT(!indices.empty());

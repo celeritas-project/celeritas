@@ -15,7 +15,7 @@ namespace test
 {
 TEST(BoundingBoxUtilsTest, is_inside)
 {
-    BoundingBox bbox1 = {{-5, -2, -100}, {6, 1, 1}};
+    BBox bbox1 = {{-5, -2, -100}, {6, 1, 1}};
     EXPECT_TRUE(is_inside(bbox1, Real3{-4, 0, 0}));
     EXPECT_TRUE(is_inside(bbox1, Real3{-4.9, -1.9, -99.9}));
     EXPECT_FALSE(is_inside(bbox1, Real3{-6, 0, 0}));
@@ -27,33 +27,33 @@ TEST(BoundingBoxUtilsTest, is_infinite)
     auto max_real = std::numeric_limits<real_type>::max();
     auto inf_real = std::numeric_limits<real_type>::infinity();
 
-    BoundingBox bbox1 = {{0, 0, 0}, {1, 1, 1}};
+    BBox bbox1 = {{0, 0, 0}, {1, 1, 1}};
     EXPECT_FALSE(is_infinite(bbox1));
 
-    BoundingBox bbox2 = {{0, 0, 0}, {max_real, inf_real, max_real}};
+    BBox bbox2 = {{0, 0, 0}, {max_real, inf_real, max_real}};
     EXPECT_FALSE(is_infinite(bbox2));
 
-    BoundingBox bbox3
+    BBox bbox3
         = {{-max_real, -inf_real, -max_real}, {max_real, inf_real, max_real}};
     EXPECT_TRUE(is_infinite(bbox3));
 }
 
 TEST(BoundingBoxUtilsTest, center)
 {
-    BoundingBox bbox = {{-10, -20, -30}, {1, 2, 3}};
+    BBox bbox = {{-10, -20, -30}, {1, 2, 3}};
     EXPECT_VEC_SOFT_EQ(Real3({-4.5, -9, -13.5}), center(bbox));
 }
 
 TEST(BoundingBoxUtilsTest, surface_area)
 {
-    BoundingBox bbox = {{-1, -2, -3}, {6, 4, 5}};
+    BBox bbox = {{-1, -2, -3}, {6, 4, 5}};
     EXPECT_SOFT_EQ(2 * (7 * 6 + 7 * 8 + 6 * 8), surface_area(bbox));
 }
 
 TEST(BoundingBoxUtilsTest, bbox_union)
 {
-    BoundingBox bbox1 = {{-10, -20, -30}, {10, 2, 3}};
-    BoundingBox bbox2 = {{-15, -9, -33}, {1, 2, 10}};
+    BBox bbox1 = {{-10, -20, -30}, {10, 2, 3}};
+    BBox bbox2 = {{-15, -9, -33}, {1, 2, 10}};
 
     auto bbox3 = bbox_union(bbox1, bbox2);
 

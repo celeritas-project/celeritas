@@ -21,7 +21,9 @@ namespace celeritas
 /*!
  * Determine if a point is contained in a bounding box.
  */
-inline CELER_FUNCTION bool is_inside(BoundingBox const& bbox, Real3 point)
+template<class T>
+inline CELER_FUNCTION bool
+is_inside(BoundingBox<T> const& bbox, typename BoundingBox<T>::array_type point)
 {
     CELER_EXPECT(bbox);
 
@@ -43,11 +45,13 @@ inline CELER_FUNCTION bool is_inside(BoundingBox const& bbox, Real3 point)
 /*!
  * Check if a bounding box spans (-inf, inf) in every direction.
  */
-inline bool is_infinite(BoundingBox const& bbox)
+template<class T>
+inline bool is_infinite(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    constexpr auto max_real = std::numeric_limits<real_type>::max();
+    constexpr auto max_real
+        = std::numeric_limits<typename BoundingBox<T>::value_type>::max();
 
     for (auto axis : range(Axis::size_))
     {
@@ -64,7 +68,8 @@ inline bool is_infinite(BoundingBox const& bbox)
 /*!
  * Calculate the center of a bounding box.
  */
-inline Real3 center(BoundingBox const& bbox)
+template<class T>
+inline Real3 center(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
@@ -82,11 +87,13 @@ inline Real3 center(BoundingBox const& bbox)
 /*!
  * Calculate the surface area of a bounding box.
  */
-inline real_type surface_area(BoundingBox const& bbox)
+template<class T>
+inline typename BoundingBox<T>::value_type
+surface_area(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    Array<real_type, to_int(Axis::size_)> lengths;
+    Array<typename BoundingBox<T>::value_type, to_int(Axis::size_)> lengths;
 
     for (auto axis : range(Axis::size_))
     {
@@ -104,11 +111,13 @@ inline real_type surface_area(BoundingBox const& bbox)
 /*!
  * Calculate bounding box enclosing two bounding boxes.
  */
-inline BoundingBox bbox_union(BoundingBox const& a, BoundingBox const& b)
+template<class T>
+inline BoundingBox<T>
+bbox_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
     CELER_EXPECT(a && b);
 
-    Real3 lower, upper;
+    typename BoundingBox<T>::array_type lower, upper;
 
     for (auto axis : range(Axis::size_))
     {
@@ -117,7 +126,7 @@ inline BoundingBox bbox_union(BoundingBox const& a, BoundingBox const& b)
         upper[ax] = std::max(a.upper()[ax], b.upper()[ax]);
     }
 
-    return {lower, upper};
+    return BoundingBox<T>{lower, upper};
 }
 
 //---------------------------------------------------------------------------//

@@ -38,7 +38,7 @@ class BIHBuilder
   public:
     //!@{
     //! \name Type aliases
-    using VecBBox = std::vector<BoundingBox>;
+    using VecBBox = std::vector<FastBBox>;
     //!@}
 
   public:

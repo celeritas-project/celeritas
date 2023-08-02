@@ -16,10 +16,13 @@
 
 namespace
 {
-void fix_inf(celeritas::Real3* point)
+template<class T>
+inline void fix_inf(typename celeritas::BoundingBox<T>::array_type* point)
 {
-    constexpr auto max_real = std::numeric_limits<celeritas::real_type>::max();
-    constexpr auto inf = std::numeric_limits<celeritas::real_type>::infinity();
+    constexpr auto max_real = std::numeric_limits<
+        typename celeritas::BoundingBox<T>::value_type>::max();
+    constexpr auto inf = std::numeric_limits<
+        typename celeritas::BoundingBox<T>::value_type>::infinity();
 
     for (auto axis : range(celeritas::Axis::size_))
     {
@@ -38,25 +41,28 @@ namespace celeritas
 /*!
  * Read a quantity from a JSON file.
  */
-inline void from_json(nlohmann::json const& j, BoundingBox& bbox)
+template<class T>
+inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
 {
     CELER_VALIDATE(j.size() == 2,
                    << " bounding box must have lower and upper extents");
 
-    auto lower = j[0].get<Real3>();
-    auto upper = j[1].get<Real3>();
+    using array_type = typename BoundingBox<T>::array_type;
+    auto lower = j[0].get<array_type>();
+    auto upper = j[1].get<array_type>();
 
-    fix_inf(&lower);
-    fix_inf(&upper);
+    fix_inf<T>(&lower);
+    fix_inf<T>(&upper);
 
-    bbox = {lower, upper};
+    bbox = BoundingBox<T>{lower, upper};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Write an array to a JSON file.
  */
-inline void to_json(nlohmann::json& j, BoundingBox const& bbox)
+template<class T>
+inline void to_json(nlohmann::json& j, BoundingBox<T> const& bbox)
 {
     j = {bbox.lower(), bbox.upper()};
 }
