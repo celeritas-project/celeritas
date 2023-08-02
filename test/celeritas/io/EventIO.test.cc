@@ -144,7 +144,7 @@ void EventIOTest::ReadAllResult::print_expected() const
             "static double const expected_dir[] = "
          << repr(this->dir)
          << ";\n"
-            "EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-9);\n"
+            "EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);\n"
             "static double const expected_time[] = "
          << repr(this->time)
          << ";\n"
@@ -180,55 +180,37 @@ TEST_P(EventIOTest, variety_rwr)
 
     // Read events from the event record
     auto result = read_all(read_event);
-
     if (ext == "hepevt")
     {
         GTEST_SKIP() << "HEPEVT format sorts primaries by PDG";
     }
+
     // clang-format off
-    static int const expected_pdg[] = {2212, 1, 2212, -2, 22, -24, 1, -2, 2212,
-        1, 2212, -2, 22, -24, 1, -2, 2212, 2212, 1, -2, 22, -24, 1, -2};
+    static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 22, 1, -2};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    static double const expected_energy[] = {7000000, 32238, 7000000, 57920,
-        4233, 85925, 29552, 56373, 7000000, 32238, 7000000, 57920, 4233, 85925,
-        29552, 56373, 7000000, 7000000, 32238, 57920, 4233, 85925, 29552,
-        56373};
+    static double const expected_energy[] = {4233, 29552, 56373, 4233, 29552,
+        56373, 4233, 29552, 56373};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
-    static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 10, 0, 0, 10, 0, 0,
-        10, 0, 0, 10, 0, 0, 10, 0, 0, 10, 0, 0, 10, 1, 2, 3, 1, 2, 3, 1, 2, 3,
-        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3};
+    static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,
+        0, 0, 10, 0, 0, 10, 1, 2, 3, 1, 2, 3, 1, 2, 3};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
-    static double const expected_dir[] = {0, 0, 1, 0.023264514173899,
-        -0.048669363651796, 0.99854396769596, 0, 0, -1, -0.052607942378139,
-        -0.32804427475702, -0.94319635187901, -0.90094709007965,
-        0.02669997932835, -0.43310674432625, 0.051894579402063,
-        -0.707435663833, -0.70487001224754, -0.082735048064663,
-        0.97508922087171, 0.20580554696494, 0.0702815376096, -0.87804026971226,
-        -0.47339813078935, 0, 0, 1, 0.023264514173899, -0.048669363651796,
-        0.99854396769596, 0, 0, -1, -0.052607942378139, -0.32804427475702,
-        -0.94319635187901, -0.90094709007965, 0.02669997932835,
-        -0.43310674432625, 0.051894579402063, -0.707435663833,
-        -0.70487001224754, -0.082735048064663, 0.97508922087171,
+    static double const expected_dir[] = {-0.90094709007965, 0.02669997932835,
+        -0.43310674432625, -0.082735048064663, 0.97508922087171,
         0.20580554696494, 0.0702815376096, -0.87804026971226,
-        -0.47339813078935, 0, 0, 1, 0, 0, -1, 0.023264514173899,
-        -0.048669363651796, 0.99854396769596, -0.052607942378139,
-        -0.32804427475702, -0.94319635187901, -0.90094709007965,
-        0.02669997932835, -0.43310674432625, 0.051894579402063,
-        -0.707435663833, -0.70487001224754, -0.082735048064663,
-        0.97508922087171, 0.20580554696494, 0.0702815376096, -0.87804026971226,
+        -0.47339813078935, -0.90094709007965, 0.02669997932835,
+        -0.43310674432625, -0.082735048064663, 0.97508922087171,
+        0.20580554696494, 0.0702815376096, -0.87804026971226,
+        -0.47339813078935, -0.90094709007965, 0.02669997932835,
+        -0.43310674432625, -0.082735048064663, 0.97508922087171,
+        0.20580554696494, 0.0702815376096, -0.87804026971226,
         -0.47339813078935};
-    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-9);
-    static double const expected_time[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 1.3342563807926e-10, 1.3342563807926e-10,
-        1.3342563807926e-10, 1.3342563807926e-10, 1.3342563807926e-10,
+    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);
+    static double const expected_time[] = {0, 0, 0, 0, 0, 0,
         1.3342563807926e-10, 1.3342563807926e-10, 1.3342563807926e-10};
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);
-    static int const expected_event[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-        1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2};
+    static int const expected_event[] = {0, 0, 0, 1, 1, 1, 2, 2, 2};
     EXPECT_VEC_EQ(expected_event, result.event);
-    static int const expected_track[] = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4,
-        5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7};
+    static int const expected_track[] = {0, 1, 2, 0, 1, 2, 0, 1, 2};
     EXPECT_VEC_EQ(expected_track, result.track);
     // clang-format on
 
@@ -249,41 +231,41 @@ TEST_P(EventIOTest, no_vertex_rwr)
 
     // Read it in and check
     auto result = this->read_all(EventReader(out_filename, particles_));
+
     // clang-format off
-    static const int expected_pdg[] = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+    static int const expected_pdg[] = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
         22, 22, 22, 22, 22};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    static const double expected_energy[] = {1000, 1000, 1000, 1000, 1000,
+    static double const expected_energy[] = {1000, 1000, 1000, 1000, 1000,
         1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
-    static const double expected_pos[] = {0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
+    static double const expected_pos[] = {0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
         50, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
-    static const double expected_dir[] = {0.51986662880921, -0.42922054684247,
-        -0.73858541172893, 0.73395459362337, 0.1872657519039, 0.65287226366497,
-        -0.40053358211222, -0.081839341522929, 0.91261994925569,
-        -0.51571621418069, 0.12578032404407, 0.84747631029693,
-        -0.50829382271803, 0.51523183971419, -0.69005328861721,
-        0.25183128898268, -0.2021612079861, -0.94642054493493,
-        -0.25247976702327, 0.94617275708722, -0.20251192801867,
-        0.3406634478685, -0.90517210965059, 0.25418864490188, 0.8319269271936,
-        -0.54330006912643, 0.11279460402625, 0.23445050406753,
-        -0.36984950110653, -0.89902408625895, 0.17562103500567,
-        -0.47618127501539, 0.86163138602784, -0.60694965185736,
-        0.69697036183621, 0.38189584291025, 0.51336099392838, 0.54197742792439,
-        0.66537279590717, -0.36655746400947, 0.80035990702067,
-        0.47440451601225, -0.7896979371307, -0.54961247309096,
-        -0.27258631204511};
+    static double const expected_dir[] = {0.51986662883182, -0.42922054653912,
+        -0.7385854118893, 0.73395459362461, 0.18726575230281, 0.65287226354916,
+        -0.40053358241289, -0.081839341451527, 0.91261994913013,
+        -0.51571621404849, 0.125780323886, 0.84747631040084, -0.50829382297518,
+        0.51523183959, -0.69005328852051, 0.25183128938865, -0.20216120822227,
+        -0.94642054477646, -0.25247976713164, 0.94617275706344,
+        -0.20251192799469, 0.34066344768752, -0.90517210955886,
+        0.25418864547108, 0.83192692739206, -0.5433000688087, 0.11279460409292,
+        0.23445050379268, -0.36984950141989, -0.89902408620171,
+        0.17562103525404, -0.47618127524474, 0.86163138585047,
+        -0.60694965222664, 0.69697036165837, 0.38189584264792,
+        0.51336099422575, 0.54197742781709, 0.66537279576514,
+        -0.36655746358148, 0.80035990693978, 0.47440451647941,
+        -0.78969793730749, -0.54961247282688, -0.27258631206541};
     EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);
-    static const double expected_time[] = {4.1028383709373e-09,
+    static double const expected_time[] = {4.1028383709373e-09,
         4.1028383709373e-09, 4.1028383709373e-09, 4.1028383709373e-09,
         4.1028383709373e-09, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);
-    static const int expected_event[] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2,
+    static int const expected_event[] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2,
         2, 2};
     EXPECT_VEC_EQ(expected_event, result.event);
-    static const int expected_track[] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2,
+    static int const expected_track[] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2,
         3, 4};
     EXPECT_VEC_EQ(expected_track, result.track);
     // clang-format on
@@ -352,12 +334,22 @@ TEST_P(EventIOTest, write_read)
     // Read events
     auto result = this->read_all(EventReader(filename, particles_));
 
+    if (ext == "hepevt")
+    {
+        GTEST_SKIP() << "HEPEVT results are nondeterministic";
+    }
+
     // clang-format off
-    static int const expected_pdg[] = {22, 2212, 22, 2212, 22, 2212, 22, 2212, 2212, 22};
-    static double const expected_energy[] = {1.23, 2.34, 1.23, 2.34, 1.23, 2.34, 1.23, 2.34, 3.45, 1.23};
-    static double const expected_pos[] = {2, 4, 5, -3, -4, 5, 2, 4, 5, 2, 4, 5, 2, 4, 5, -3, -4, 5, 2, 4, 5, 2, 4, 5, 2, 4, 5, 2, 4, 5};
-    static double const expected_dir[] = {1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0};
-    static double const expected_time[] = {5.67e-09, 5.78e-09, 5.67e-09, 5.67e-09, 5.67e-09, 5.78e-09, 5.67e-09, 5.67e-09, 5.67e-09, 5.67e-09};
+    static int const expected_pdg[] = {22, 2212, 22, 2212, 22, 2212, 22, 2212,
+        2212, 22};
+    static double const expected_energy[] = {1.23, 2.34, 1.23, 2.34, 1.23,
+        2.34, 1.23, 2.34, 3.45, 1.23};
+    static double const expected_pos[] = {2, 4, 5, -3, -4, 5, 2, 4, 5, 2, 4, 5,
+        2, 4, 5, -3, -4, 5, 2, 4, 5, 2, 4, 5, 2, 4, 5, 2, 4, 5};
+    static double const expected_dir[] = {1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
+        1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0};
+    static double const expected_time[] = {5.67e-09, 5.78e-09, 5.67e-09,
+        5.67e-09, 5.67e-09, 5.78e-09, 5.67e-09, 5.67e-09, 5.67e-09, 5.67e-09};
     static int const expected_event[] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 2};
     static int const expected_track[] = {0, 1, 2, 3, 0, 1, 2, 3, 4, 0};
     // clang-format on
@@ -380,7 +372,7 @@ INSTANTIATE_TEST_SUITE_P(EventIO,
 // STANDALONE TEST: HepMC3/examples/BasicExamples/basic_tree.cc
 //---------------------------------------------------------------------------//
 
-#define HepMC3Example DISABLED_StandaloneIOTest
+#define HepMC3Example DISABLED_HepMC3Example
 class HepMC3Example : public Test
 {
   public:

@@ -10,6 +10,7 @@
 #include <set>
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/ReaderFactory.h>
+#include <HepMC3/Setup.h>
 
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
@@ -49,10 +50,11 @@ EventReader::EventReader(std::string const& filename, SPConstParticles params)
 auto EventReader::operator()() -> result_type
 {
     // Parse the next event from the record
-    HepMC3::GenEvent gen_event;
+    HepMC3::GenEvent evt;
     {
+        CELER_LOG(debug) << "Reading event " << event_count_;
         ScopedTimeAndRedirect temp_{"HepMC3"};
-        reader_->read_event(gen_event);
+        reader_->read_event(evt);
     }
     // There are no more events
     if (reader_->failed())
@@ -61,41 +63,32 @@ auto EventReader::operator()() -> result_type
     }
 
     EventId const event_id{event_count_++};
-    if (static_cast<EventId::size_type>(gen_event.event_number())
-        != event_id.get())
+    if (static_cast<EventId::size_type>(evt.event_number()) != event_id.get())
     {
         CELER_LOG_LOCAL(warning)
-            << "Overwriting event ID " << gen_event.event_number()
+            << "Overwriting event ID " << evt.event_number()
             << " from file with sequential event ID " << event_id.get();
     }
 
     // Convert the energy units to MeV and the length units to cm
-    gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
+    evt.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
 
     std::set<int> missing_pdg;
 
     result_type result;
     int track_id = 0;
-    for (auto gen_particle : gen_event.particles())
+    for (auto const& par : evt.particles())
     {
-        HepMC3::GenParticleData const& part_data = gen_particle->data();
-        if (part_data.status <= 0)
+        if (par->data().status != 1 || par->end_vertex())
         {
-            // Skip particles that should not be tracked
-            // Status codes (page 13):
-            // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
-            if (part_data.momentum.e() > 0)
-            {
-                CELER_LOG_LOCAL(debug)
-                    << "Skipped status code " << part_data.status << " for "
-                    << part_data.momentum.e() << " MeV primary";
-            }
+            // Skip particles that aren't leaves on the tree of generated
+            // particles
             continue;
         }
 
         // Get the PDG code and check if this particle type is defined for
         // the current physics
-        PDGNumber pdg{gen_particle->pid()};
+        PDGNumber pdg{par->pid()};
         ParticleId particle_id{params_->find(pdg)};
         if (CELER_UNLIKELY(!particle_id))
         {
@@ -112,8 +105,8 @@ auto EventReader::operator()() -> result_type
         primary.event_id = event_id;
         primary.track_id = TrackId(track_id++);
 
-        // Get the position of the primary
-        auto const& pos = gen_particle->production_vertex()->position();
+        // Get the position of the vertex
+        auto const& pos = par->production_vertex()->position();
         primary.position = {pos.x() * units::centimeter,
                             pos.y() * units::centimeter,
                             pos.z() * units::centimeter};
@@ -122,16 +115,20 @@ auto EventReader::operator()() -> result_type
         primary.time = pos.t() * units::centimeter / constants::c_light;
 
         // Get the direction of the primary
-        primary.direction = {gen_particle->momentum().px(),
-                             gen_particle->momentum().py(),
-                             gen_particle->momentum().pz()};
+        primary.direction = {
+            par->momentum().px(), par->momentum().py(), par->momentum().pz()};
         normalize_direction(&primary.direction);
 
         // Get the energy of the primary
-        primary.energy = units::MevEnergy{gen_particle->momentum().e()};
+        primary.energy = units::MevEnergy{par->momentum().e()};
 
         result.push_back(primary);
     }
+
+    CELER_VALIDATE(!result.empty(),
+                   << "event " << event_id.get()
+                   << " did not contain any primaries suitable for "
+                      "simulation");
 
     CELER_VALIDATE(missing_pdg.empty(),
                    << "event " << event_id.get()
