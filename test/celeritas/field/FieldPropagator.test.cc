@@ -1376,10 +1376,10 @@ TEST_F(CmseTest, coarse)
         stepper.reset_count();
     }
 
-    static int const expected_num_boundary[] = {134, 100, 60, 19};
-    static int const expected_num_step[] = {10001, 6450, 3236, 205};
-    static int const expected_num_intercept[] = {30419, 19506, 16170, 1429};
-    static int const expected_num_integration[] = {80659, 58189, 54818, 5414};
+    static int const expected_num_boundary[] = {134, 100, 60, 40};
+    static int const expected_num_step[] = {10001, 6450, 3236, 1303};
+    static int const expected_num_intercept[] = {30419, 19506, 16170, 9956};
+    static int const expected_num_integration[] = {80659, 58189, 54818, 37147};
     EXPECT_VEC_EQ(expected_num_boundary, num_boundary);
     EXPECT_VEC_EQ(expected_num_step, num_step);
     EXPECT_VEC_EQ(expected_num_intercept, num_intercept);
