@@ -27,9 +27,9 @@ inline void fix_inf(typename celeritas::BoundingBox<T>::array_type* point)
     for (auto axis : range(celeritas::Axis::size_))
     {
         auto ax = to_int(axis);
-        if ((*point)[ax] == max_real)
+        if (std::fabs((*point)[ax]) == max_real)
         {
-            (*point)[ax] = inf;
+            (*point)[ax] = std::copysign(inf, (*point)[ax]);
         }
     }
 }
