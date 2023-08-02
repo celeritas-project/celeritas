@@ -75,6 +75,7 @@ class BIHPartitioner
     //// DATA ////
     VecBBox const* bboxes_{nullptr};
     VecReal3 const* centers_{nullptr};
+    static constexpr size_type candidates_per_axis_{3};
 
     //// HELPER FUNCTIONS ////
 
