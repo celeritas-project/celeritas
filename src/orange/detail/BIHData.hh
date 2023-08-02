@@ -24,12 +24,12 @@ namespace detail
  */
 struct BIHInnerNode
 {
-    using position_type = float;
+    using real_type = float;
 
     struct BoundingPlane
     {
         Axis axis;
-        position_type position;
+        real_type position;
     };
 
     enum class Edge

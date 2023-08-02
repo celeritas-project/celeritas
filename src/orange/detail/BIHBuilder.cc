@@ -119,12 +119,12 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 
         BIHInnerNode::BoundingPlane left_plane{
             p.axis,
-            static_cast<BIHInnerNode::position_type>(
+            static_cast<BIHInnerNode::real_type>(
                 p.bboxes[BIHInnerNode::Edge::left].upper()[ax])};
 
         BIHInnerNode::BoundingPlane right_plane{
             p.axis,
-            static_cast<BIHInnerNode::position_type>(
+            static_cast<BIHInnerNode::real_type>(
                 p.bboxes[BIHInnerNode::Edge::right].lower()[ax])};
 
         node.bounding_planes = {left_plane, right_plane};
