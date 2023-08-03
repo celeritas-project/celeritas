@@ -73,32 +73,6 @@ struct BIHLeafNode
 
 //---------------------------------------------------------------------------//
 /*!
- * References to host storage while constructing a Bounding Interval Hierarchy
- * tree.
- */
-struct BIHStorage
-{
-    template<class T>
-    using Storage = Collection<T, Ownership::value, MemSpace::host>;
-    using BBoxStorage = Storage<FastBBox>;
-    using LVIStorage = Storage<LocalVolumeId>;
-    using InnerNodeStorage = Storage<BIHInnerNode>;
-    using LeafNodeStorage = Storage<BIHLeafNode>;
-
-    BBoxStorage* bboxes = nullptr;
-    LVIStorage* local_volume_ids = nullptr;
-    InnerNodeStorage* inner_nodes = nullptr;
-    LeafNodeStorage* leaf_nodes = nullptr;
-
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return bboxes != nullptr && local_volume_ids != nullptr
-               && inner_nodes != nullptr && leaf_nodes != nullptr;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Bounding Interval Hierarchy tree.
  */
 struct BIHTree
@@ -115,6 +89,11 @@ struct BIHTree
     // VolumeIds for which bboxes have infinite extents, and are therefore
     // note included in the tree
     ItemRange<LocalVolumeId> inf_volids;
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return bboxes.size() > 0 && leaf_nodes.size() > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//

@@ -33,17 +33,8 @@ class BIHBuilderTest : public Test
 
   protected:
     std::vector<FastBBox> bboxes_;
-    Collection<FastBBox, Ownership::value, MemSpace::host, OpaqueId<FastBBox>>
-        bbox_storage;
-    Collection<LocalVolumeId, Ownership::value, MemSpace::host, OpaqueId<LocalVolumeId>>
-        lvi_storage;
-    Collection<BIHInnerNode, Ownership::value, MemSpace::host, OpaqueId<BIHInnerNode>>
-        inner_node_storage;
-    Collection<BIHLeafNode, Ownership::value, MemSpace::host, OpaqueId<BIHLeafNode>>
-        leaf_node_storage;
 
-    detail::BIHStorage storage_{
-        &bbox_storage, &lvi_storage, &inner_node_storage, &leaf_node_storage};
+    BIHTreeData<Ownership::value, MemSpace::host> storage_;
 };
 
 //---------------------------------------------------------------------------//
@@ -92,26 +83,26 @@ TEST_F(BIHBuilderTest, basic)
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
-    BIHBuilder bih(storage_);
-    auto bih_params = bih(std::move(bboxes_));
-    ASSERT_EQ(1, bih_params.inf_volids.size());
+    BIHBuilder bih(&storage_);
+    auto bih_tree = bih(std::move(bboxes_));
+    ASSERT_EQ(1, bih_tree.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0},
-              (*storage_.local_volume_ids)[bih_params.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
 
     // Test bounding box storage
-    auto bbox1 = (*storage_.bboxes)[bih_params.bboxes[LocalVolumeId{2}]];
+    auto bbox1 = storage_.bboxes[bih_tree.bboxes[LocalVolumeId{2}]];
     EXPECT_VEC_SOFT_EQ(Real3({1.2, 0., 0.}), bbox1.lower());
     EXPECT_VEC_SOFT_EQ(Real3({2.8, 1., 100.}), bbox1.upper());
 
     // Test nodes
-    auto inner_nodes = bih_params.inner_nodes;
-    auto leaf_nodes = bih_params.leaf_nodes;
+    auto inner_nodes = bih_tree.inner_nodes;
+    auto leaf_nodes = bih_tree.leaf_nodes;
     ASSERT_EQ(3, inner_nodes.size());
     ASSERT_EQ(4, leaf_nodes.size());
 
     // N0, I0
     {
-        auto node = (*storage_.inner_nodes)[inner_nodes[0]];
+        auto node = storage_.inner_nodes[inner_nodes[0]];
         ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
@@ -123,7 +114,7 @@ TEST_F(BIHBuilderTest, basic)
 
     // N1, I1
     {
-        auto node = (*storage_.inner_nodes)[inner_nodes[1]];
+        auto node = storage_.inner_nodes[inner_nodes[1]];
         ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
@@ -135,7 +126,7 @@ TEST_F(BIHBuilderTest, basic)
 
     // N2, I2
     {
-        auto node = (*storage_.inner_nodes)[inner_nodes[2]];
+        auto node = storage_.inner_nodes[inner_nodes[2]];
         ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
@@ -147,40 +138,40 @@ TEST_F(BIHBuilderTest, basic)
 
     // N3, L0
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[0]];
+        auto node = storage_.leaf_nodes[leaf_nodes[0]];
         ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(
-            1, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(1,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
     }
 
     // N3, L1
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[1]];
+        auto node = storage_.leaf_nodes[leaf_nodes[1]];
         ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(
-            2, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(2,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
     }
 
     // N5, L2
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[2]];
+        auto node = storage_.leaf_nodes[leaf_nodes[2]];
         ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(2, node.vol_ids.size());
-        EXPECT_EQ(
-            4, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
-        EXPECT_EQ(
-            5, (*storage_.local_volume_ids)[node.vol_ids[1]].unchecked_get());
+        EXPECT_EQ(4,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(5,
+                  storage_.local_volume_ids[node.vol_ids[1]].unchecked_get());
     }
 
     // N6, L3
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[3]];
+        auto node = storage_.leaf_nodes[leaf_nodes[3]];
         ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(
-            3, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(3,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
     }
 }
 
@@ -249,21 +240,21 @@ TEST_F(BIHBuilderTest, grid)
     bboxes_.push_back({{2, 2, 0}, {3, 3, 100}});
     bboxes_.push_back({{2, 3, 0}, {3, 4, 100}});
 
-    BIHBuilder bih(storage_);
-    auto bih_params = bih(std::move(bboxes_));
-    ASSERT_EQ(1, bih_params.inf_volids.size());
+    BIHBuilder bih(&storage_);
+    auto bih_tree = bih(std::move(bboxes_));
+    ASSERT_EQ(1, bih_tree.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0},
-              (*storage_.local_volume_ids)[bih_params.inf_volids[0]]);
+              storage_.local_volume_ids[bih_tree.inf_volids[0]]);
 
     // Test nodes
-    auto inner_nodes = bih_params.inner_nodes;
-    auto leaf_nodes = bih_params.leaf_nodes;
+    auto inner_nodes = bih_tree.inner_nodes;
+    auto leaf_nodes = bih_tree.leaf_nodes;
     ASSERT_EQ(11, inner_nodes.size());
     ASSERT_EQ(12, leaf_nodes.size());
 
     // N0, I0
     {
-        auto node = (*storage_.inner_nodes)[inner_nodes[0]];
+        auto node = storage_.inner_nodes[inner_nodes[0]];
         ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
@@ -275,7 +266,7 @@ TEST_F(BIHBuilderTest, grid)
 
     // N1, I1
     {
-        auto node = (*storage_.inner_nodes)[inner_nodes[1]];
+        auto node = storage_.inner_nodes[inner_nodes[1]];
         ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
@@ -287,7 +278,7 @@ TEST_F(BIHBuilderTest, grid)
 
     // N2, I2
     {
-        auto node = (*storage_.inner_nodes)[inner_nodes[2]];
+        auto node = storage_.inner_nodes[inner_nodes[2]];
         ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
@@ -299,7 +290,7 @@ TEST_F(BIHBuilderTest, grid)
 
     // N3, I3
     {
-        auto node = (*storage_.inner_nodes)[inner_nodes[3]];
+        auto node = storage_.inner_nodes[inner_nodes[3]];
         ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
@@ -311,7 +302,7 @@ TEST_F(BIHBuilderTest, grid)
 
     // N4, I4
     {
-        auto node = (*storage_.inner_nodes)[inner_nodes[4]];
+        auto node = storage_.inner_nodes[inner_nodes[4]];
         ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
@@ -323,7 +314,7 @@ TEST_F(BIHBuilderTest, grid)
 
     // N5, I5
     {
-        auto node = (*storage_.inner_nodes)[inner_nodes[5]];
+        auto node = storage_.inner_nodes[inner_nodes[5]];
         ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
@@ -335,56 +326,56 @@ TEST_F(BIHBuilderTest, grid)
 
     // N11, I0
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[0]];
+        auto node = storage_.leaf_nodes[leaf_nodes[0]];
         ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(
-            1, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(1,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
     }
 
     // N12, L1
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[1]];
+        auto node = storage_.leaf_nodes[leaf_nodes[1]];
         ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(
-            2, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(2,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
     }
 
     // N13, L2
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[2]];
+        auto node = storage_.leaf_nodes[leaf_nodes[2]];
         ASSERT_EQ(BIHNodeId{4}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(
-            5, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(5,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
     }
 
     // N14, L3
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[3]];
+        auto node = storage_.leaf_nodes[leaf_nodes[3]];
         ASSERT_EQ(BIHNodeId{4}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(
-            6, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(6,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
     }
 
     // N15, L4
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[4]];
+        auto node = storage_.leaf_nodes[leaf_nodes[4]];
         ASSERT_EQ(BIHNodeId{5}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(
-            9, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(9,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
     }
 
     // N16, L5
     {
-        auto node = (*storage_.leaf_nodes)[leaf_nodes[5]];
+        auto node = storage_.leaf_nodes[leaf_nodes[5]];
         ASSERT_EQ(BIHNodeId{5}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(
-            10, (*storage_.local_volume_ids)[node.vol_ids[0]].unchecked_get());
+        EXPECT_EQ(10,
+                  storage_.local_volume_ids[node.vol_ids[0]].unchecked_get());
     }
 }
 

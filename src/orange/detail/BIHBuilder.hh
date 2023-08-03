@@ -12,7 +12,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "orange/BoundingBox.hh"
-#include "orange/detail/BIHData.hh"
+#include "orange/OrangeData.hh"
 #include "orange/detail/BIHPartitioner.hh"
 
 namespace celeritas
@@ -39,6 +39,7 @@ class BIHBuilder
     //!@{
     //! \name Type aliases
     using VecBBox = std::vector<FastBBox>;
+    using Storage = BIHTreeData<Ownership::value, MemSpace::native>;
     //!@}
 
   public:
@@ -46,7 +47,7 @@ class BIHBuilder
     BIHBuilder() = default;
 
     // Construct from a Storage object
-    explicit BIHBuilder(BIHStorage storage);
+    explicit BIHBuilder(Storage* storage);
 
     // Create BIH Nodes
     BIHTree operator()(VecBBox bboxes);
@@ -68,7 +69,7 @@ class BIHBuilder
 
     VecBBox bboxes_;
     VecReal3 centers_;
-    BIHStorage storage_;
+    Storage* storage_;
 
     //// HELPER FUNCTIONS ////
 

@@ -165,7 +165,7 @@ struct SimpleUnitRecord
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
     // Bounding Interval Hierachy tree parameters
-    detail::BIHTree bih_params;
+    detail::BIHTree bih_tree;
 
     // TODO: transforms
     LocalVolumeId background{};  //!< Default if not in any other volume
@@ -239,6 +239,52 @@ struct UniverseIndexerData
 
 //---------------------------------------------------------------------------//
 /*!
+ * Persistent data used by all BIH trees.
+ */
+template<Ownership W, MemSpace M>
+struct BIHTreeData
+{
+    template<class T>
+    using Items = Collection<T, W, M>;
+
+    // Low-level storage
+    Items<FastBBox> bboxes;
+    Items<LocalVolumeId> local_volume_ids;
+    Items<detail::BIHInnerNode> inner_nodes;
+    Items<detail::BIHLeafNode> leaf_nodes;
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        if (!inner_nodes.empty())
+        {
+            return !bboxes.empty() && !local_volume_ids.empty()
+                   && !leaf_nodes.empty();
+        }
+        else
+        {
+            // Degenerate single leaf node case
+            return !bboxes.empty() && !local_volume_ids.empty()
+                   && leaf_nodes.size() == 1;
+        }
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    BIHTreeData& operator=(BIHTreeData<W2, M2> const& other)
+    {
+        bboxes = other.bboxes;
+        local_volume_ids = other.local_volume_ids;
+        inner_nodes = other.inner_nodes;
+        leaf_nodes = other.leaf_nodes;
+
+        CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Persistent data used by ORANGE implementation.
  *
  * Most data will be accessed through the invidual units, which reference data
@@ -269,6 +315,9 @@ struct OrangeParamsData
     Items<SimpleUnitRecord> simple_units;
     Items<RectArrayRecord> rect_arrays;
 
+    // BIH tree storage
+    BIHTreeData<W, M> bih_tree_data;
+
     // Low-level storage
     Items<LocalSurfaceId> local_surface_ids;
     Items<LocalVolumeId> local_volume_ids;
@@ -278,10 +327,6 @@ struct OrangeParamsData
     Items<SurfaceType> surface_types;
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
-    Items<FastBBox> bboxes;
-    Items<detail::BIHInnerNode> bih_inner_nodes;
-    Items<detail::BIHLeafNode> bih_leaf_nodes;
-
     Items<Daughter> daughters;
     Items<Translation> translations;
 
@@ -294,6 +339,7 @@ struct OrangeParamsData
     {
         return scalars && !universe_types.empty()
                && universe_indices.size() == universe_types.size()
+               && (bih_tree_data || !simple_units.empty())
                && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
                    || surface_types.empty())
@@ -310,6 +356,8 @@ struct OrangeParamsData
         universe_indices = other.universe_indices;
         simple_units = other.simple_units;
         rect_arrays = other.rect_arrays;
+
+        bih_tree_data = other.bih_tree_data;
 
         local_surface_ids = other.local_surface_ids;
         local_volume_ids = other.local_volume_ids;

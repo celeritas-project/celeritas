@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
+#include "orange/detail/BIHTraverser.hh"
 #include "orange/surf/Surfaces.hh"
 
 #include "detail/LogicEvaluator.hh"
@@ -99,6 +100,7 @@ class SimpleUnitTracker
     //// DATA ////
     ParamsRef const& params_;
     SimpleUnitRecord const& unit_record_;
+    detail::BIHTraverser bih_traverser_;
 
     //// METHODS ////
 
@@ -138,7 +140,9 @@ class SimpleUnitTracker
  */
 CELER_FUNCTION
 SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
-    : params_(params), unit_record_(params.simple_units[suid])
+    : params_(params)
+    , unit_record_(params.simple_units[suid])
+    , bih_traverser_(params.simple_units[suid].bih_tree, params.bih_tree_data)
 {
     CELER_EXPECT(params_);
 }

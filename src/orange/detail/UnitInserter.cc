@@ -165,12 +165,7 @@ UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
     orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
 
-    BIHStorage storage{&(orange_data_->bboxes),
-                       &(orange_data_->local_volume_ids),
-                       &(orange_data_->bih_inner_nodes),
-                       &(orange_data_->bih_leaf_nodes)};
-
-    bih_builder_ = detail::BIHBuilder(std::move(storage));
+    bih_builder_ = detail::BIHBuilder(&orange_data_->bih_tree_data);
 }
 
 //---------------------------------------------------------------------------//
@@ -193,7 +188,15 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
 
-        bboxes.push_back(make_fast_bbox(inp.volumes[i].bbox));
+        // Store the bbox, or it is not supplied, and infinite bbox placeholder
+        if (inp.volumes[i].bbox)
+        {
+            bboxes.push_back(make_fast_bbox(inp.volumes[i].bbox));
+        }
+        else
+        {
+            bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
+        }
 
         // Add embedded universes
         if (inp.daughter_map.find(LocalVolumeId(i)) != inp.daughter_map.end())
@@ -219,15 +222,11 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
             .insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree
-    if (std::all_of(
-            bboxes.begin(), bboxes.end(), [](FastBBox const& b) { return b; }))
-    {
-        unit.bih_params = bih_builder_(std::move(bboxes));
-    }
-    else
-    {
-        // TODO: Handle case where geometry does not have valid bounding boxes
-    }
+    CELER_VALIDATE(std::all_of(bboxes.begin(),
+                               bboxes.end(),
+                               [](FastBBox const& b) { return b; }),
+                   << "not all bounding boxes have been assigned");
+    unit.bih_tree = bih_builder_(std::move(bboxes));
 
     // Save connectivity
     {
