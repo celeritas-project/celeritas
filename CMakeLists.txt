@@ -62,7 +62,7 @@ option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" ON)
 
-# Secondary testing options
+# Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
 else()
@@ -70,6 +70,10 @@ else()
 endif()
 cmake_dependent_option(CELERITAS_TEST_RESOURCE_LOCK
   "Only run one GPU-enabled test at a time" "${_default_lock}"
+  "CELERITAS_BUILD_TESTS" OFF
+)
+cmake_dependent_option(CELERITAS_TEST_VERBOSE
+  "Increase logging level for tests" "${CELERITAS_DEBUG}"
   "CELERITAS_BUILD_TESTS" OFF
 )
 
