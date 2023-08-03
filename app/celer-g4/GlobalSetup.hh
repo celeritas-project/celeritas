@@ -15,6 +15,8 @@
 
 #include "accel/SetupOptions.hh"
 
+#include "RunInput.hh"
+
 class G4GenericMessenger;
 
 namespace celeritas
@@ -33,14 +35,15 @@ class GlobalSetup
 
     //!@{
     //! \name Demo setup options
+    std::string const& GetInputFile() const { return input_file_; }
     std::string const& GetGeometryFile() const { return geometry_file_; }
-    std::string const& GetEventFile() const { return event_file_; }
+    std::string const& GetEventFile() const { return input_.event_file; }
     int GetRootBufferSize() const { return root_buffer_size_; }
     bool GetWriteSDHits() const { return write_sd_hits_; }
     bool StripGDMLPointers() const { return strip_gdml_pointers_; }
-    std::string const& GetPhysicsList() const { return physics_list_; }
-    bool StepDiagnostic() const { return step_diagnostic_; }
-    int GetStepDiagnosticBins() const { return step_diagnostic_bins_; }
+    PhysicsList GetPhysicsList() const { return input_.physics_list; }
+    bool StepDiagnostic() const { return input_.step_diagnostic; }
+    int GetStepDiagnosticBins() const { return input_.step_diagnostic_bins; }
     std::string const& GetFieldType() const { return field_type_; }
     std::string const& GetFieldFile() const { return field_file_; }
     G4ThreeVector GetMagFieldZTesla() const { return field_; }
@@ -61,6 +64,18 @@ class GlobalSetup
         return options_;
     }
 
+    //! Get the physics options for the GeantPhysicsList
+    GeantPhysicsOptions const& GetPhysicsOptions() const
+    {
+        return input_.physics_options;
+    }
+
+    //! Get the field driver options
+    FieldDriverOptions const& GetFieldOptions() const
+    {
+        return input_.field_options;
+    }
+
     // Set the list of ignored EM process names
     void SetIgnoreProcesses(SetupOptions::VecString ignored);
 
@@ -77,17 +92,15 @@ class GlobalSetup
 
     // Data
     std::shared_ptr<SetupOptions> options_;
+    std::string input_file_;
     std::string geometry_file_;
-    std::string event_file_;
     int root_buffer_size_{128000};
     bool write_sd_hits_{false};
     bool strip_gdml_pointers_{true};
-    std::string physics_list_{"FTFP_BERT"};
-    bool step_diagnostic_{false};
-    int step_diagnostic_bins_{1000};
     std::string field_type_{"uniform"};
     std::string field_file_;
-    G4ThreeVector field_{0, 0, 0};
+    G4ThreeVector field_;
+    RunInput input_;
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };

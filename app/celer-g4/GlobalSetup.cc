@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GlobalSetup.hh"
 
+#include <fstream>
 #include <utility>
 #include <G4GenericMessenger.hh>
 
@@ -16,6 +17,12 @@
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "accel/AlongStepFactory.hh"
 #include "accel/SetupOptionsMessenger.hh"
+
+#if CELERITAS_USE_JSON
+#    include <nlohmann/json.hpp>
+
+#    include "RunInputIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -41,18 +48,30 @@ GlobalSetup* GlobalSetup::Instance()
  */
 GlobalSetup::GlobalSetup()
 {
+    if (!input_file_.empty())
+    {
+#if CELERITAS_USE_JSON
+        // Open the auxiliary JSON input file
+        std::ifstream infile(input_file_);
+        CELER_VALIDATE(infile, << "failed to open '" << input_file_ << "'");
+        nlohmann::json::parse(infile).get_to(input_);
+#else
+        CELER_NOT_CONFIGURED("nlohmann_json");
+#endif
+    }
+
     options_ = std::make_shared<SetupOptions>();
 
     messenger_ = std::make_unique<G4GenericMessenger>(
         this, "/celerg4/", "Demo geant integration setup");
 
     {
-        auto& cmd = messenger_->DeclareProperty("geometryFile", geometry_file_);
-        cmd.SetGuidance("Filename of the GDML detector geometry");
+        auto& cmd = messenger_->DeclareProperty("inputFile", input_file_);
+        cmd.SetGuidance("Filename of the auxiliary JSON input");
     }
     {
-        auto& cmd = messenger_->DeclareProperty("eventFile", event_file_);
-        cmd.SetGuidance("Filename of the event input read by HepMC3");
+        auto& cmd = messenger_->DeclareProperty("geometryFile", geometry_file_);
+        cmd.SetGuidance("Filename of the GDML detector geometry");
     }
     {
         auto& cmd
@@ -72,24 +91,6 @@ GlobalSetup::GlobalSetup()
             "Remove pointer suffix from input logical volume names");
         cmd.SetDefaultValue("true");
     }
-    {
-        auto& cmd = messenger_->DeclareProperty("physicsList", physics_list_);
-        cmd.SetGuidance("Select the physics list");
-        cmd.SetDefaultValue(physics_list_);
-    }
-    {
-        auto& cmd
-            = messenger_->DeclareProperty("stepDiagnostic", step_diagnostic_);
-        cmd.SetGuidance("Collect the distribution of steps per Geant4 track");
-        cmd.SetDefaultValue("false");
-    }
-    {
-        auto& cmd = messenger_->DeclareProperty("stepDiagnosticBins",
-                                                step_diagnostic_bins_);
-        cmd.SetGuidance("Number of bins for the Geant4 step diagnostic");
-        cmd.SetDefaultValue(std::to_string(step_diagnostic_bins_));
-    }
-
     // Setup options for the magnetic field
     {
         auto& cmd = messenger_->DeclareProperty("fieldType", field_type_);
@@ -104,9 +105,6 @@ GlobalSetup::GlobalSetup()
         messenger_->DeclareMethod("magFieldZ",
                                   &GlobalSetup::SetMagFieldZTesla,
                                   "Set Z-axis magnetic field strength (T)");
-    }
-    {
-        // TODO: expose other options here
     }
 }
 

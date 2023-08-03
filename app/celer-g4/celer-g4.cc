@@ -110,24 +110,27 @@ void run(int argc, char** argv)
 
     // Construct geometry, SD factory, physics, actions
     run_manager->SetUserInitialization(new DetectorConstruction{});
-    if (GlobalSetup::Instance()->GetPhysicsList() == "FTFP_BERT")
+    switch (GlobalSetup::Instance()->GetPhysicsList())
     {
-        run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
-    }
-    else if (GlobalSetup::Instance()->GetPhysicsList() == "GeantPhysicsList")
-    {
-        GeantPhysicsOptions opts;
-        if (std::find(ignore_processes.begin(), ignore_processes.end(), "Rayl")
-            != ignore_processes.end())
-        {
-            opts.rayleigh_scattering = false;
+        case PhysicsList::ftfp_bert: {
+            run_manager->SetUserInitialization(
+                new FTFP_BERT{/* verbosity = */ 0});
+            break;
         }
-        run_manager->SetUserInitialization(new detail::GeantPhysicsList{opts});
-    }
-    else
-    {
-        CELER_LOG(error) << "Unknown physics list '"
-                         << GlobalSetup::Instance()->GetPhysicsList() << "'";
+        case PhysicsList::geant_physics_list: {
+            auto opts = GlobalSetup::Instance()->GetPhysicsOptions();
+            if (std::find(
+                    ignore_processes.begin(), ignore_processes.end(), "Rayl")
+                != ignore_processes.end())
+            {
+                opts.rayleigh_scattering = false;
+            }
+            run_manager->SetUserInitialization(
+                new detail::GeantPhysicsList{opts});
+            break;
+        }
+        default:
+            CELER_ASSERT_UNREACHABLE();
     }
     run_manager->SetUserInitialization(new ActionInitialization());
 
