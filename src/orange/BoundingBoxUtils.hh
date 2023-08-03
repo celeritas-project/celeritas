@@ -23,7 +23,7 @@ namespace celeritas
  */
 template<class T>
 inline CELER_FUNCTION bool
-is_inside(BoundingBox<T> const& bbox, typename BoundingBox<T>::array_type point)
+is_inside(BoundingBox<T> const& bbox, Array<T, 3> point)
 {
     CELER_EXPECT(bbox);
 
@@ -69,11 +69,11 @@ inline bool is_infinite(BoundingBox<T> const& bbox)
  * Calculate the center of a bounding box.
  */
 template<class T>
-inline Real3 center(BoundingBox<T> const& bbox)
+inline Array<T, 3> center(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    Real3 center;
+    Array<T, 3> center;
     for (auto axis : range(Axis::size_))
     {
         auto ax = to_int(axis);
@@ -93,7 +93,7 @@ surface_area(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    Array<typename BoundingBox<T>::value_type, to_int(Axis::size_)> lengths;
+    Array<T, 3> lengths;
 
     for (auto axis : range(Axis::size_))
     {
@@ -117,7 +117,8 @@ bbox_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
     CELER_EXPECT(a && b);
 
-    typename BoundingBox<T>::array_type lower, upper;
+    Array<T, 3> lower;
+    Array<T, 3> upper;
 
     for (auto axis : range(Axis::size_))
     {
