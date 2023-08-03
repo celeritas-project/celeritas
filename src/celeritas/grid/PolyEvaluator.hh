@@ -40,7 +40,7 @@ namespace celeritas
    corr = PolyQuad{1.41125, -1.86427e-2, 1.84035e-4)(zeff);
  * \endcode
  */
-template<class T, unsigned int N>
+template<class T, size_type N>
 class PolyEvaluator
 {
   public:
@@ -78,13 +78,13 @@ class PolyEvaluator
   private:
     const ArrayT coeffs_;
 
-    template<unsigned int M, std::enable_if_t<(M < N), int> = 0>
+    template<unsigned int M, std::enable_if_t<(M < N), bool> = true>
     CELER_CONSTEXPR_FUNCTION T calc_impl(T arg) const
     {
         return coeffs_[M] + arg * calc_impl<M + 1>(arg);
     }
 
-    template<unsigned int M, std::enable_if_t<(M == N), int> = 0>
+    template<unsigned int M, std::enable_if_t<(M == N), bool> = true>
     CELER_CONSTEXPR_FUNCTION T calc_impl(T) const
     {
         return coeffs_[N];
@@ -92,13 +92,13 @@ class PolyEvaluator
 };
 
 //---------------------------------------------------------------------------//
-// Deduction Guides
+// DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<typename ArrayT>
-PolyEvaluator(ArrayT const&) -> PolyEvaluator<typename ArrayT::value_type, ArrayT::size() - 1>;
+template<typename T, size_type N>
+PolyEvaluator(Array<T, N> const&) -> PolyEvaluator<T, N - 1>;
 
 template<typename... Ts>
-PolyEvaluator(Ts...)
+PolyEvaluator(Ts&&...)
     -> PolyEvaluator<typename std::common_type_t<Ts...>, sizeof...(Ts) - 1>;
 
 //---------------------------------------------------------------------------//
