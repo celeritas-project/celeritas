@@ -1419,6 +1419,14 @@ TEST_F(CmseTest, coarse)
                "{10.3162,-6.56497,796.923} (distance: 0.0001)"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     }
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        expected_num_boundary = {134, 100, 60, 40};
+        expected_num_step = {10001, 6450, 3236, 1303};
+        expected_num_intercept = {30419, 19521, 16170, 9956};
+        expected_num_integration = {80659, 58204, 41914, 26114};
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    }
     EXPECT_VEC_EQ(expected_num_boundary, num_boundary);
     EXPECT_VEC_EQ(expected_num_step, num_step);
     EXPECT_VEC_EQ(expected_num_intercept, num_intercept);
