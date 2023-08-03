@@ -1305,11 +1305,11 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             EXPECT_SOFT_NEAR(1e-8, result.distance, 1e-8);
             // Minor floating point differences could make this 98 or so
             EXPECT_SOFT_NEAR(real_type(95), real_type(stepper.count()), 0.05);
-            EXPECT_FALSE(result.looping);
             EXPECT_TRUE(result.boundary);
+            EXPECT_FALSE(result.looping);
 
-            // Depending on the host platform, the propagation can get stuck
-            if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+            if (scoped_log_.empty()) {}
+            else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
             {
                 static char const* const expected_log_levels[] = {"error"};
                 EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels())
@@ -1326,7 +1326,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             }
             else
             {
-                EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+                ADD_FAILURE() << "Logged warning/error:" << scoped_log_;
             }
         }
     }
