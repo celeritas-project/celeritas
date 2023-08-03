@@ -306,9 +306,10 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
 
     if (g4safety_ != 0 && !this->is_on_boundary())
     {
-        // Save the resulting safety distance if computed
-        safety_radius_
-            = celeritas::max(convert_from_geant(g4safety_, CLHEP::cm), 0.0);
+        // Save the resulting safety distance if computed: allow to be
+        // "negative" to prevent accidentally changing the boundary state
+        safety_radius_ = convert_from_geant(g4safety_, CLHEP::cm);
+        CELER_ASSERT(!this->is_on_boundary());
     }
 
     // Update result
@@ -350,9 +351,13 @@ real_type GeantGeoTrackView::find_safety()
 //---------------------------------------------------------------------------//
 /*!
  * Find the safety at the current position.
+ *
+ * \warning This can change the boundary state if the track was moved to or
+ * initialized a point on the boundary.
  */
 real_type GeantGeoTrackView::find_safety(real_type max_step)
 {
+    CELER_EXPECT(max_step > 0);
     if (!this->is_on_boundary() && (safety_radius_ < max_step))
     {
         real_type g4step = convert_to_geant(max_step, CLHEP::cm);

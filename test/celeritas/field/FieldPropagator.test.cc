@@ -1363,6 +1363,8 @@ TEST_F(CmseTest, coarse)
     std::vector<int> num_intercept;
     std::vector<int> num_integration;
 
+    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
+
     for (real_type radius : {5, 10, 20, 50})
     {
         auto geo = this->make_geo_track_view({2 * radius + 0.01, 0, -300},
@@ -1393,10 +1395,30 @@ TEST_F(CmseTest, coarse)
         stepper.reset_count();
     }
 
-    static int const expected_num_boundary[] = {134, 100, 60, 40};
-    static int const expected_num_step[] = {10001, 6450, 3236, 1303};
-    static int const expected_num_intercept[] = {30419, 19506, 16170, 9956};
-    static int const expected_num_integration[] = {80659, 58189, 54818, 37147};
+    std::vector<int> expected_num_boundary;
+    std::vector<int> expected_num_step;
+    std::vector<int> expected_num_intercept;
+    std::vector<int> expected_num_integration;
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        expected_num_boundary = {134, 100, 60, 40};
+        expected_num_step = {10001, 6450, 3236, 1303};
+        expected_num_intercept = {30419, 19506, 16170, 9956};
+        expected_num_integration = {80659, 58189, 54818, 37147};
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    }
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    {
+        expected_num_boundary = {134, 100, 60, 40};
+        expected_num_step = {10001, 6451, 3236, 1303};
+        expected_num_intercept = {30419, 20583, 16170, 9956};
+        expected_num_integration = {80659, 59269, 41914, 26114};
+        static char const* const expected_log_messages[]
+            = {"Moved internally from boundary but safety didn't increase: "
+               "volume 18 from {10.3161,-6.56495,796.923} to "
+               "{10.3162,-6.56497,796.923} (distance: 0.0001)"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
     EXPECT_VEC_EQ(expected_num_boundary, num_boundary);
     EXPECT_VEC_EQ(expected_num_step, num_step);
     EXPECT_VEC_EQ(expected_num_intercept, num_intercept);

@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iomanip>
+
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
@@ -166,13 +168,15 @@ Propagation CheckedGeoTrackView<GTV>::find_next_step(real_type distance)
     CELER_EXPECT(!this->is_outside());
     ++num_intersect_;
     auto result = GTV::find_next_step(distance);
-    if (result.boundary && !this->is_on_boundary())
+    if (result.boundary && result.distance > this->safety_tol()
+        && !this->is_on_boundary())
     {
         real_type safety = GTV::find_safety(distance);
         CELER_VALIDATE(safety <= result.distance,
-                       << "safety " << safety << " exceeds actual distance "
-                       << result.distance << " to boundary at " << this->pos()
-                       << " in " << this->volume_id().get());
+                       << std::setprecision(16) << "safety " << safety
+                       << " exceeds actual distance " << result.distance
+                       << " to boundary at " << this->pos() << " in "
+                       << this->volume_id().get());
     }
     return result;
 }
@@ -188,6 +192,7 @@ void CheckedGeoTrackView<GTV>::move_internal(real_type step)
     GTV::move_internal(step);
     CELER_VALIDATE(!this->is_on_boundary() && !this->is_outside()
                        && GTV::find_safety() > 0,
+                   << std::setprecision(16)
                    << "zero safety distance after moving " << step << " to "
                    << this->pos());
 }
@@ -201,6 +206,7 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
 {
     CELER_EXPECT(!this->is_outside());
     real_type orig_safety = (this->is_on_boundary() ? 0 : GTV::find_safety());
+    auto orig_pos = this->pos();
     GTV::move_internal(pos);
     CELER_ASSERT(!this->is_on_boundary());
     if (!checked_internal_ && orig_safety > this->safety_tol())
@@ -209,8 +215,10 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
         Initializer_t here{this->pos(), this->dir()};
         *this = here;
         CELER_VALIDATE(!this->is_outside(),
+                       << std::setprecision(16)
                        << "internal move ends up 'outside' at " << this->pos());
         CELER_VALIDATE(this->volume_id() == expected,
+                       << std::setprecision(16)
                        << "volume ID changed during internal move at "
                        << this->pos() << ": was " << expected.get() << ", now "
                        << this->volume_id().get());
@@ -224,7 +232,9 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
             CELER_LOG_LOCAL(warning)
                 << "Moved internally from boundary but safety didn't "
                    "increase: volume "
-                << this->volume_id().get() << " at " << this->pos();
+                << this->volume_id().get() << " from " << orig_pos << " to "
+                << this->pos() << " (distance: " << distance(orig_pos, pos)
+                << ")";
         }
     }
 }
