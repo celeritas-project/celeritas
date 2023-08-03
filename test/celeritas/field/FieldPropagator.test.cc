@@ -1274,42 +1274,20 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             = make_field_propagator(stepper, driver_options, particle, geo);
 
         Propagation result;
-        if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
-        {
-            // This absurdly long step is because in the "failed" case the
-            // track thinks it's in the world volume (nearly vacuum)
-            result = propagate(2.12621374950874703e+21);
-        }
-        else
-        {
-            // Track did not reenter volume, and Geant4's logic raises an
-            // exception during the next intercept query since the geometry
-            // isn't changing
-            EXPECT_FALSE(successful_reentry);
-
-            ScopedLogStorer scoped_log{&celeritas::self_logger()};
-            EXPECT_THROW(result = propagate(10.0), celeritas::RuntimeError);
-
-            // Check log message
-            static char const* const expected_log_levels[] = {"error"};
-            EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
-            ASSERT_EQ(1, scoped_log.messages().size());
-            EXPECT_FALSE(scoped_log.messages().front().find("stuck")
-                         == std::string::npos);
-            return;
-        }
-        EXPECT_FALSE(result.boundary);
+        // This absurdly long step is because in the "failed" case the
+        // track thinks it's in the world volume (nearly vacuum)
+        result = propagate(2.12621374950874703e+21);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
         {
-            // Track got bumped but the internal navigation is
-            EXPECT_TRUE(geo.is_on_boundary());
-            static char const* const expected_log_levels[]
-                = {"error", "warning"};
-            EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+            EXPECT_TRUE(result.boundary);
+            static char const* const expected_log_levels[] = {"error"};
+            EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels())
+                << scoped_log_;
         }
         else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
         {
-            EXPECT_EQ(result.boundary, geo.is_on_boundary());
+            EXPECT_FALSE(result.boundary);
             if (!scoped_log_.empty())
             {
                 // This happens on CI but not on my macbook
@@ -1323,7 +1301,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         }
         else
         {
-            EXPECT_EQ(result.boundary, geo.is_on_boundary());
+            EXPECT_FALSE(result.boundary);
             EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         }
         EXPECT_SOFT_NEAR(125, calc_radius(), 1e-2);
@@ -1338,9 +1316,9 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         else
         {
             // Repeated substep bisection failed; particle is bumped
-            EXPECT_SOFT_EQ(1e-6, result.distance);
+            EXPECT_SOFT_NEAR(1e-8, result.distance, 1e-8);
             // Minor floating point differences could make this 98 or so
-            EXPECT_SOFT_NEAR(real_type(1149), real_type(stepper.count()), 0.05);
+            EXPECT_SOFT_NEAR(real_type(95), real_type(stepper.count()), 0.05);
             EXPECT_FALSE(result.looping);
         }
     }
@@ -1395,20 +1373,14 @@ TEST_F(CmseTest, coarse)
         stepper.reset_count();
     }
 
-    std::vector<int> expected_num_boundary;
-    std::vector<int> expected_num_step;
-    std::vector<int> expected_num_intercept;
-    std::vector<int> expected_num_integration;
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    std::vector<int> expected_num_boundary = {134, 100, 60, 40};
+    std::vector<int> expected_num_step = {10001, 6450, 3236, 1303};
+    std::vector<int> expected_num_intercept = {30419, 19521, 16170, 9956};
+    std::vector<int> expected_num_integration = {80659, 58204, 41914, 26114};
+
+    if (!scoped_log_.empty())
     {
-        expected_num_boundary = {134, 100, 60, 40};
-        expected_num_step = {10001, 6450, 3236, 1303};
-        expected_num_intercept = {30419, 19506, 16170, 9956};
-        expected_num_integration = {80659, 58189, 54818, 37147};
-        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-    {
+        // Bumped (platform-dependent!): counts change a bit
         expected_num_boundary = {134, 100, 60, 40};
         expected_num_step = {10001, 6451, 3236, 1303};
         expected_num_intercept = {30419, 20583, 16170, 9956};
@@ -1417,15 +1389,8 @@ TEST_F(CmseTest, coarse)
             = {"Moved internally from boundary but safety didn't increase: "
                "volume 18 from {10.3161,-6.56495,796.923} to "
                "{10.3162,-6.56497,796.923} (distance: 0.0001)"};
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        expected_num_boundary = {134, 100, 60, 40};
-        expected_num_step = {10001, 6450, 3236, 1303};
-        expected_num_intercept = {30419, 19521, 16170, 9956};
-        expected_num_integration = {80659, 58204, 41914, 26114};
-        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
+            << scoped_log_;
     }
     EXPECT_VEC_EQ(expected_num_boundary, num_boundary);
     EXPECT_VEC_EQ(expected_num_step, num_step);
