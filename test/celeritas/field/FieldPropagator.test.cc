@@ -1263,6 +1263,13 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             static char const* const expected_log_levels[] = {"warning"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
         }
+        else if (!successful_reentry)
+        {
+            // This happens in Geant4 and *sometimes* in vecgeom
+            CELER_LOG(warning) << "Reentry failed for " << celeritas_core_geo
+                               << " geometry: post-propagation volume is "
+                               << this->volume_name(geo);
+        }
     }
     {
         ScopedLogStorer scoped_log_{&celeritas::self_logger()};
@@ -1278,36 +1285,15 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         // track thinks it's in the world volume (nearly vacuum)
         result = propagate(2.12621374950874703e+21);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-        {
-            EXPECT_TRUE(result.boundary);
-            static char const* const expected_log_levels[] = {"error"};
-            EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels())
-                << scoped_log_;
-        }
-        else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-        {
-            EXPECT_FALSE(result.boundary);
-            if (!scoped_log_.empty())
-            {
-                // This happens on CI but not on my macbook
-                static char const* const expected_log_messages[]
-                    = {"Moved internally from boundary but safety didn't "
-                       "increase: volume 6 at {123.254,-20.8187,-40.8262}"};
-                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-                static char const* const expected_log_levels[] = {"warning"};
-                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-            }
-        }
-        else
-        {
-            EXPECT_FALSE(result.boundary);
-            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-        }
         EXPECT_SOFT_NEAR(125, calc_radius(), 1e-2);
         if (successful_reentry)
         {
-            // Extremely long propagation stopped by substep countdown
+            // ORANGE and *sometimes* vecgeom/geant4: extremely long
+            // propagation stopped by substep countdown
+            EXPECT_FALSE(result.boundary);
+            EXPECT_TRUE(result.looping);
+            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+
             EXPECT_SOFT_EQ(12.02714054426572, result.distance);
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
             EXPECT_EQ(573, stepper.count());
@@ -1320,6 +1306,28 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             // Minor floating point differences could make this 98 or so
             EXPECT_SOFT_NEAR(real_type(95), real_type(stepper.count()), 0.05);
             EXPECT_FALSE(result.looping);
+            EXPECT_TRUE(result.boundary);
+
+            // Depending on the host platform, the propagation can get stuck
+            if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+            {
+                static char const* const expected_log_levels[] = {"error"};
+                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels())
+                    << scoped_log_;
+            }
+            else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+            {
+                static char const* const expected_log_messages[]
+                    = {"Moved internally from boundary but safety didn't "
+                       "increase: volume 6 at {123.254,-20.8187,-40.8262}"};
+                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+                static char const* const expected_log_levels[] = {"warning"};
+                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+            }
+            else
+            {
+                EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+            }
         }
     }
 }
