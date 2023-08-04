@@ -8,7 +8,7 @@
 Version 0.3.1
 =============
 
-*Released 2023/08/01*
+*Released 2023/08/04*
 
 Version 0.3.1 is a bug fix and minor feature release of Celeritas targeted at supporting
 experiment frameworks. Key enhancements are:
@@ -47,8 +47,9 @@ New features
 * Add track step counter to celer-g4 *(@amandalund, #862)*
 * Define arithmetic operators for Array *(@sethrj, #868)*
 * Support Geant4@10.5 *(@sethrj, #869)*
+* Add ``__launch_bounds__`` to kernels based on Executor properties *(@esseivaju, #853)*
 
-Reviewers: @sethrj *(8)*, @amandalund *(3)*, @whokion *(2)*, @hhollenb *(1)*, @drbenmorgan *(1)*
+Reviewers: @sethrj *(9)*, @amandalund *(3)*, @whokion *(2)*, @hhollenb *(1)*, @drbenmorgan *(1)*
 
 Bug fixes
 ---------
@@ -71,8 +72,9 @@ Documentation improvements
 
 * Update CI to VecGeom 1.2.3 *(@sethrj, #819)*
 * Document how to link loadable shared libraries with Celeritas *(@drbenmorgan, #842)*
+* Extend geometry robustness testing *(@sethrj, #858)*
 
-Reviewers: @pcanal *(1)*, @sethrj *(1)*
+Reviewers: @pcanal *(1)*, @sethrj *(1)*, @amandalund *(1)*
 
 Minor internal changes
 ----------------------
@@ -91,8 +93,12 @@ Minor internal changes
 * Fix large function warnings by disabling device debug code by default *(@sethrj, #866)*
 * Add PolyEvaluator deduction guides *(@hhollenb, #871)*
 * Add thread-safe assertion to RootStepWriter *(@stognini, #873)*
+* Export full Celeritas version string as well as defaulted CMake variables *(@sethrj, #870)*
+* Reuse chord length between successive field advances *(@sethrj, #875)*
+* Improve polynomial deduction guide *(@sethrj, #878)*
+* Validate ``KernelParamCalculator`` block size using CUDA/HIP function attributes *(@esseivaju, #877)*
 
-Reviewers: @amandalund *(5)*, @sethrj *(5)*, @pcanal *(2)*, @drbenmorgan *(2)*, @hhollenb *(1)*, @esseivaju *(1)*
+Reviewers: @sethrj *(6)*, @amandalund *(5)*, @drbenmorgan *(3)*, @pcanal *(2)*, @hhollenb *(2)*, @esseivaju *(1)*, @whokion *(1)*
 
 **Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.3.0...v0.3.1
 
