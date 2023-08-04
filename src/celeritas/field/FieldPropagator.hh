@@ -222,22 +222,23 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             --remaining_substeps;
         }
         else if (CELER_UNLIKELY(result.boundary
-                                && linear_step.distance < this->bump_distance()
-                                && this->bump_distance() < remaining))
+                                && linear_step.distance < this->bump_distance()))
         {
-            // This substep *started* on a surface and the step length is very
-            // small despite a large expected step: likely heading back into
-            // the old volume when starting on a surface (this can happen when
-            // tracking through a volume at a near tangent). Reduce substep
-            // size and try again.
+            // Likely heading back into the old volume when starting on a
+            // surface (this can happen when tracking through a volume at a
+            // near tangent). Reduce substep size and try again.
             remaining = substep.step / 2;
         }
-        else if (detail::is_intercept_close(state_.pos,
-                                            chord.dir,
-                                            linear_step.distance,
-                                            substep.state.pos,
-                                            this->delta_intersection()))
+        else if (update_length <= this->bump_distance()
+                 || detail::is_intercept_close(state_.pos,
+                                               chord.dir,
+                                               linear_step.distance,
+                                               substep.state.pos,
+                                               this->delta_intersection()))
         {
+            // We're close enough to the boundary that the next trial step
+            // would be less than the driver's minimum step.
+            // *OR*
             // The straight-line intersection point is a distance less than
             // `delta_intersection` from the substep's end position.
             // Commit the proposed state's momentum, use the
