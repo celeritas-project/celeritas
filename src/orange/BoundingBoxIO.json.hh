@@ -15,6 +15,8 @@
 
 #include "BoundingBox.hh"
 
+namespace celeritas
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -35,10 +37,8 @@ inline void fix_inf(celeritas::Array<T, 3>* point)
     }
 }
 //---------------------------------------------------------------------------//
-}  // namespace
+}  // namespace detail
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Read a quantity from a JSON file.
@@ -52,8 +52,8 @@ inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
     auto lower = j[0].get<Array<T, 3>>();
     auto upper = j[1].get<Array<T, 3>>();
 
-    fix_inf(&lower);
-    fix_inf(&upper);
+    detail::fix_inf(&lower);
+    detail::fix_inf(&upper);
 
     bbox = BoundingBox<T>{lower, upper};
 }
