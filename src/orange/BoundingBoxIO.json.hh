@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include <limits>
 #include <nlohmann/json.hpp>
 
@@ -14,15 +15,15 @@
 
 #include "BoundingBox.hh"
 
-namespace
+namespace detail
 {
+//---------------------------------------------------------------------------//
+//! Replace "max" with "inf" since the latter can't be represented in JSON.
 template<class T>
 inline void fix_inf(celeritas::Array<T, 3>* point)
 {
-    constexpr auto max_real = std::numeric_limits<
-        typename celeritas::BoundingBox<T>::value_type>::max();
-    constexpr auto inf = std::numeric_limits<
-        typename celeritas::BoundingBox<T>::value_type>::infinity();
+    constexpr auto max_real = std::numeric_limits<T>::max();
+    constexpr auto inf = std::numeric_limits<T>::infinity();
 
     for (auto axis : range(celeritas::Axis::size_))
     {
@@ -33,6 +34,7 @@ inline void fix_inf(celeritas::Array<T, 3>* point)
         }
     }
 }
+//---------------------------------------------------------------------------//
 }  // namespace
 
 namespace celeritas
@@ -50,8 +52,8 @@ inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
     auto lower = j[0].get<Array<T, 3>>();
     auto upper = j[1].get<Array<T, 3>>();
 
-    fix_inf<T>(&lower);
-    fix_inf<T>(&upper);
+    fix_inf(&lower);
+    fix_inf(&upper);
 
     bbox = BoundingBox<T>{lower, upper};
 }

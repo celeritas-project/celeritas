@@ -50,8 +50,7 @@ inline bool is_infinite(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    constexpr auto max_real
-        = std::numeric_limits<typename BoundingBox<T>::value_type>::max();
+    constexpr auto max_real = std::numeric_limits<T>::max();
 
     for (auto axis : range(Axis::size_))
     {
@@ -88,8 +87,7 @@ inline Array<T, 3> center(BoundingBox<T> const& bbox)
  * Calculate the surface area of a bounding box.
  */
 template<class T>
-inline typename BoundingBox<T>::value_type
-surface_area(BoundingBox<T> const& bbox)
+inline T surface_area(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
@@ -109,7 +107,7 @@ surface_area(BoundingBox<T> const& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate bounding box enclosing two bounding boxes.
+ * Calculate the smallest bounding box enclosing two bounding boxes.
  */
 template<class T>
 inline BoundingBox<T>
