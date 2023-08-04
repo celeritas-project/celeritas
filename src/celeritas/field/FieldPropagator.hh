@@ -85,6 +85,9 @@ class FieldPropagator
     // Distance to bump or to consider a "zero" movement
     inline CELER_FUNCTION real_type bump_distance() const;
 
+    // Smallest allowable inner loop distance to take
+    inline CELER_FUNCTION real_type minimum_substep() const;
+
   private:
     //// DATA ////
 
@@ -184,7 +187,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         // Do a detailed check boundary check from the start position toward
         // the substep end point. Travel to the end of the chord, plus a little
         // extra.
-        if (chord.length >= this->bump_distance())
+        if (chord.length >= this->minimum_substep())
         {
             // Only update the direction if the chord length is nontrivial.
             // This is usually the case but might be skipped in two cases:
@@ -229,7 +232,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             // near tangent). Reduce substep size and try again.
             remaining = substep.step / 2;
         }
-        else if (update_length <= this->bump_distance()
+        else if (update_length <= this->minimum_substep()
                  || detail::is_intercept_close(state_.pos,
                                                chord.dir,
                                                linear_step.distance,
@@ -275,7 +278,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             // fraction along the chord, and retry the driver step.
             remaining = update_length;
         }
-    } while (remaining > 0 && remaining_substeps > 0);
+    } while (remaining > this->minimum_substep() && remaining_substeps > 0);
 
     if (remaining_substeps == 0 && result.distance < step)
     {
@@ -347,6 +350,16 @@ template<class DriverT, class GTV>
 CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::delta_intersection() const
 {
     return driver_.delta_intersection();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Distance to bump or to consider a "zero" movement.
+ */
+template<class DriverT, class GTV>
+CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::minimum_substep() const
+{
+    return driver_.minimum_step();
 }
 
 //---------------------------------------------------------------------------//
