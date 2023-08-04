@@ -12,7 +12,9 @@
 #include "celeritas/em/data/WentzelData.hh"
 #include "celeritas/em/interactor/WentzelInteractor.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/mat/IsotopeSelector.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/random/RngEngine.hh"
@@ -41,13 +43,19 @@ CELER_FUNCTION Interaction WentzelExecutor::operator()(CoreTrackView const& trac
     // Material and target quantities
     auto material = track.make_material_view().make_material_view();
     auto elcomp_id = track.make_physics_step_view().element();
+    auto element_id = material.element_id(elcomp_id);
     auto cutoffs = track.make_cutoff_view();
+
+    auto rng = track.make_rng_engine();
+
+    // Select isotope
+    ElementView element = material.make_element_view(elcomp_id);
+    IsotopeSelector iso_select(element);
+    IsotopeView target = element.make_isotope_view(iso_select(rng));
 
     // Construct the interactor
     WentzelInteractor interact(
-        params, particle, dir, material, elcomp_id, cutoffs);
-
-    auto rng = track.make_rng_engine();
+        params, particle, dir, target, element_id, cutoffs);
 
     // Execute the interactor
     return interact(rng);

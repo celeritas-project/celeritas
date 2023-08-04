@@ -112,51 +112,52 @@ class CoulombScatteringTest : public InteractorHostTestBase
 
 TEST_F(CoulombScatteringTest, wokvi_xs)
 {
+    WentzelHostRef const& data = model_->host_ref();
+
     AtomicNumber const target_z
-        = this->material_params()->get(ElementId(0)).atomic_number();
+        = this->material_params()->get(ElementId{0}).atomic_number();
 
-    static double const cos_ts[] = {1, 0.8, 0.3, 0, -0.4, -0.7, -1};
-    static double const screenings[] = {1, 1.13, 1.73, 2.5};
-    static double const expected_xsecs[] = {0,
-                                            0,
-                                            0,
-                                            0,
-                                            0.0062305295950156,
-                                            0.0059359585318953,
-                                            0.005117822394691,
-                                            0.0046204620462046,
-                                            0.017565872020075,
-                                            0.017072975232163,
-                                            0.015593508008911,
-                                            0.014605067064083,
-                                            0.02247191011236,
-                                            0.02203372297507,
-                                            0.020670856364049,
-                                            0.019718309859155,
-                                            0.027613412228797,
-                                            0.027327211744653,
-                                            0.026401956314502,
-                                            0.025721784776903,
-                                            0.030713640469738,
-                                            0.030567022057892,
-                                            0.030081474711727,
-                                            0.029712858926342,
-                                            0.033333333333333,
-                                            0.033333333333333,
-                                            0.033333333333333,
-                                            0.033333333333333};
+    const real_type cutoff_energy = value_as<units::MevEnergy>(
+        this->cutoff_params()
+            ->get(MaterialId{0})
+            .energy(this->particle_track().particle_id()));
 
-    std::vector<double> xsecs;
-    for (double cos_t : cos_ts)
+    const std::vector<real_type> energies = {50, 100, 200, 1000, 13000};
+
+    static double const expected_screen_z[] = {2.1181757502465e-08,
+                                               5.3641196710457e-09,
+                                               1.3498490873627e-09,
+                                               5.4280909096648e-11,
+                                               3.2158426877075e-13};
+
+    static double const expected_cos_t_max[] = {0.99989885103277,
+                                                0.99997458240728,
+                                                0.99999362912075,
+                                                0.99999974463379,
+                                                0.99999999848823};
+
+    static double const expected_xsecs[] = {0.033319844069031,
+                                            0.033319738720425,
+                                            0.033319684608429,
+                                            0.033319640583261,
+                                            0.03331963032739};
+
+    std::vector<double> xsecs, cos_t_maxs, screen_zs;
+    for (real_type energy : energies)
     {
-        for (double screening : screenings)
-        {
-            WentzelXsCalculator xsec(target_z, screening, cos_t);
-            xsecs.push_back(xsec());
-        }
+        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
+
+        WentzelRatioCalculator calc(
+            particle_track(), target_z, data, cutoff_energy);
+
+        xsecs.push_back(calc());
+        cos_t_maxs.push_back(calc.cos_t_max_elec());
+        screen_zs.push_back(calc.screening_coefficient());
     }
 
     EXPECT_VEC_SOFT_EQ(expected_xsecs, xsecs);
+    EXPECT_VEC_SOFT_EQ(expected_screen_z, screen_zs);
+    EXPECT_VEC_SOFT_EQ(expected_cos_t_max, cos_t_maxs);
 }
 
 TEST_F(CoulombScatteringTest, mott_xs)
@@ -164,7 +165,7 @@ TEST_F(CoulombScatteringTest, mott_xs)
     WentzelHostRef const& data = model_->host_ref();
 
     WentzelElementData const& element_data = data.elem_data[ElementId(0)];
-    MottXsCalculator xsec(element_data, sqrt(particle_track().beta_sq()));
+    MottRatioCalculator xsec(element_data, sqrt(particle_track().beta_sq()));
 
     static double const cos_ts[]
         = {1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
@@ -190,21 +191,40 @@ TEST_F(CoulombScatteringTest, mott_xs)
 
 TEST_F(CoulombScatteringTest, simple_scattering)
 {
-    int const num_samples = 4;
+    int const num_samples = 10;
 
-    static double const expected_angle[]
-        = {0.99999999991325, 1, 0.99999999994802, 0.99999997861423};
-    static double const expected_energy[]
-        = {199.99999999994, 200, 199.99999999997, 199.99999998533};
+    static double const expected_angle[] = {1,
+                                            0.9999999939392,
+                                            1,
+                                            0.99999999994802,
+                                            0.99999943832054,
+                                            0.99999999733957,
+                                            0.99999999873748,
+                                            0.99999999630364,
+                                            0.99999999417121,
+                                            0.99999999941501};
+    static double const expected_energy[] = {200,
+                                             199.99999999584,
+                                             200,
+                                             199.99999999996,
+                                             199.99999961476,
+                                             199.99999999818,
+                                             199.99999999913,
+                                             199.99999999746,
+                                             199.999999996,
+                                             199.9999999996};
 
-    auto material_view = this->material_track().make_material_view();
+    const IsotopeView isotope = this->material_track()
+                                    .make_material_view()
+                                    .make_element_view(ElementComponentId{0})
+                                    .make_isotope_view(IsotopeComponentId{0});
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     WentzelInteractor interact(model_->host_ref(),
                                this->particle_track(),
                                this->direction(),
-                               material_view,
-                               ElementComponentId{0},
+                               isotope,
+                               ElementId{0},
                                cutoffs);
     RandomEngine& rng_engine = this->rng();
 
@@ -231,34 +251,24 @@ TEST_F(CoulombScatteringTest, distribution)
 
     const std::vector<real_type> energies = {50, 100, 200, 1000, 13000};
 
-    std::vector<double> screen_zs, cos_t_maxs;
-
     static double const expected_avg_angles[] = {0.99999962180819,
                                                  0.99999973999034,
                                                  0.9999999728531,
                                                  0.99999999909264,
                                                  0.99999999999393};
-    static double const expected_screen_z[] = {2.1181757502465e-08,
-                                               5.3641196710457e-09,
-                                               1.3498490873627e-09,
-                                               5.4280909096648e-11,
-                                               3.2158426877075e-13};
-    static double const expected_cos_t_max[] = {0.99989885103277,
-                                                0.99997458240728,
-                                                0.99999362912075,
-                                                0.99999974463379,
-                                                0.99999999848823};
 
     for (size_t i : range(energies.size()))
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energies[i]});
+
+        WentzelElementData const& element_data = data.elem_data[ElementId(0)];
 
         const IsotopeView isotope
             = this->material_track()
                   .make_material_view()
                   .make_element_view(ElementComponentId{0})
                   .make_isotope_view(IsotopeComponentId{0});
-        WentzelElementData const& element_data = data.elem_data[ElementId(0)];
+
         const real_type cutoff_energy = value_as<units::MevEnergy>(
             this->cutoff_params()
                 ->get(MaterialId{0})
@@ -266,9 +276,6 @@ TEST_F(CoulombScatteringTest, distribution)
 
         WentzelDistribution distrib(
             particle_track(), isotope, element_data, cutoff_energy, data);
-
-        screen_zs.push_back(distrib.compute_screening_coefficient());
-        cos_t_maxs.push_back(distrib.compute_max_electron_cos_t());
 
         RandomEngine& rng_engine = this->rng();
 
@@ -294,10 +301,8 @@ TEST_F(CoulombScatteringTest, distribution)
         EXPECT_SOFT_NEAR(
             expected_avg_angles[i], avg_angle, std::sqrt(num_samples));
     }
-
-    EXPECT_VEC_SOFT_EQ(expected_screen_z, screen_zs);
-    EXPECT_VEC_SOFT_EQ(expected_cos_t_max, cos_t_maxs);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

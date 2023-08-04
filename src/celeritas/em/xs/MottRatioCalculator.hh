@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/xs/MottXsCalculator.hh
+//! \file celeritas/em/xs/MottRatioCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,8 +16,6 @@
 namespace celeritas
 {
 
-// TEST
-
 //---------------------------------------------------------------------------//
 /*!
  * Calculates the ratio of Mott cross section to the Rutherford cross section.
@@ -28,12 +26,12 @@ namespace celeritas
  * and described in the Geant Physics Reference Manual [PRM] (Release 1.11)
  * section 8.4.
  */
-class MottXsCalculator
+class MottRatioCalculator
 {
   public:
     // Construct with state data
     inline CELER_FUNCTION
-    MottXsCalculator(WentzelElementData const& element_data, real_type beta);
+    MottRatioCalculator(WentzelElementData const& element_data, real_type beta);
 
     // Ratio of Mott and Rutherford cross sections
     inline CELER_FUNCTION real_type operator()(real_type cos_t) const;
@@ -50,8 +48,8 @@ class MottXsCalculator
  * Construct with state data
  */
 CELER_FUNCTION
-MottXsCalculator::MottXsCalculator(WentzelElementData const& element_data,
-                                   real_type beta)
+MottRatioCalculator::MottRatioCalculator(WentzelElementData const& element_data,
+                                         real_type beta)
     : element_data_(element_data), beta_(beta)
 {
     CELER_EXPECT(0 <= beta_ && beta_ < 1);
@@ -67,12 +65,12 @@ MottXsCalculator::MottXsCalculator(WentzelElementData const& element_data,
  * For 1 <= Z <= 92, an interpolated expression is used [PRM 8.48].
  */
 CELER_FUNCTION
-real_type MottXsCalculator::operator()(real_type cos_theta) const
+real_type MottRatioCalculator::operator()(real_type cos_theta) const
 {
     CELER_EXPECT(cos_theta >= -1 && cos_theta <= 1);
 
     // (Exponent) Base for theta powers
-    real_type fcos_t = sqrt(1 - cos_theta);
+    real_type fcos_t = std::sqrt(1 - cos_theta);
 
     // Mean velocity of electrons between ~KeV and 900 MeV
     const real_type beta_shift = 0.7181228;
@@ -84,11 +82,9 @@ real_type MottXsCalculator::operator()(real_type cos_theta) const
     WentzelElementData::ThetaArray theta_coeffs;
     for (auto i : range(theta_coeffs.size()))
     {
-        auto evaluator = PolyEvaluator(element_data_.mott_coeff[i]);
-        theta_coeffs[i] = evaluator(beta0);
+        theta_coeffs[i] = PolyEvaluator(element_data_.mott_coeff[i])(beta0);
     }
-    auto eval = PolyEvaluator(theta_coeffs);
-    return eval(fcos_t);
+    return PolyEvaluator(theta_coeffs)(fcos_t);
 }
 
 //---------------------------------------------------------------------------//

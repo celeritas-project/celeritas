@@ -97,7 +97,9 @@ class PolyEvaluator
 template<typename T, size_type N>
 PolyEvaluator(Array<T, N> const&) -> PolyEvaluator<T, N - 1>;
 
-template<typename... Ts>
+template<typename... Ts,
+         std::enable_if_t<std::is_arithmetic_v<std::common_type_t<Ts...>>, bool>
+         = true>
 PolyEvaluator(Ts&&...)
     -> PolyEvaluator<typename std::common_type_t<Ts...>, sizeof...(Ts) - 1>;
 

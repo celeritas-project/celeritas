@@ -12,8 +12,8 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/em/data/WentzelData.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
-#include "celeritas/em/xs/MottXsCalculator.hh"
-#include "celeritas/em/xs/WentzelXsCalculator.hh"
+#include "celeritas/em/xs/MottRatioCalculator.hh"
+#include "celeritas/em/xs/WentzelRatioCalculator.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
@@ -61,12 +61,6 @@ class WentzelDistribution
     template<class Engine>
     inline CELER_FUNCTION Real3 operator()(Engine& rng) const;
 
-    //! Calculates the Moliere screening coefficient for the given target
-    inline CELER_FUNCTION real_type compute_screening_coefficient() const;
-
-    //! Calculates the cosine of the maximum scattering angle
-    inline CELER_FUNCTION real_type compute_max_electron_cos_t() const;
-
   private:
     //// DATA ////
 
@@ -76,14 +70,14 @@ class WentzelDistribution
     // Incident particle
     ParticleTrackView const& particle_;
 
-    // Material cutoff energy for the incident particle
-    real_type const cutoff_energy_;
-
     // Target isotope
     IsotopeView const& target_;
 
     // Mott coefficients for the target element
     WentzelElementData const& element_data_;
+
+    // Ratio of elecron to total cross sections for the Wentzel model
+    WentzelRatioCalculator const wentzel_elec_ratio;
 
     //! Calculates the form factor from the scattered polar angle
     inline CELER_FUNCTION real_type calculate_form_factor(real_type cos_t) const;
@@ -93,9 +87,6 @@ class WentzelDistribution
 
     //! Calculate the nuclear form momentum scale
     inline CELER_FUNCTION real_type nuclear_form_momentum_scale() const;
-
-    //! Calculate the screening coefficient R^2 for electrons
-    CELER_CONSTEXPR_FUNCTION real_type screen_r_sq_elec() const;
 
     //! Calculate the squared momentum transfer to the target
     inline CELER_FUNCTION real_type mom_transfer_sq(real_type cos_t) const;
@@ -109,8 +100,7 @@ class WentzelDistribution
     //! Samples the scattered polar angle based on the maximum scattering
     //! angle and screening coefficient.
     template<class Engine>
-    inline CELER_FUNCTION real_type sample_cos_t(real_type screen_coeff,
-                                                 real_type cos_t_max,
+    inline CELER_FUNCTION real_type sample_cos_t(real_type cos_t_max,
                                                  Engine& rng) const;
 };
 
@@ -128,9 +118,9 @@ WentzelDistribution::WentzelDistribution(ParticleTrackView const& particle,
                                          WentzelRef const& data)
     : data_(data)
     , particle_(particle)
-    , cutoff_energy_(cutoff_energy)
     , target_(target)
     , element_data_(element_data)
+    , wentzel_elec_ratio(particle, target.atomic_number(), data, cutoff_energy)
 {
 }
 
@@ -143,36 +133,28 @@ WentzelDistribution::WentzelDistribution(ParticleTrackView const& particle,
 template<class Engine>
 CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
 {
-    real_type screen_coeff = compute_screening_coefficient();
-    real_type cos_t_max_elec = compute_max_electron_cos_t();
-
-    // Randomly choose if scattered off of electrons instead
-    WentzelXsCalculator calc_electron_prob(
-        target_.atomic_number(), screen_coeff, cos_t_max_elec);
-
     real_type cos_theta = 1;
-    if (BernoulliDistribution(calc_electron_prob())(rng))
+    if (BernoulliDistribution(wentzel_elec_ratio())(rng))
     {
         // Scattered off of electrons
-        cos_theta = sample_cos_t(screen_coeff, cos_t_max_elec, rng);
+        cos_theta = sample_cos_t(wentzel_elec_ratio.cos_t_max_elec(), rng);
     }
     else
     {
         // Scattered off of nucleus
-        cos_theta = sample_cos_t(screen_coeff, -1, rng);
+        cos_theta = sample_cos_t(-1, rng);
 
         // Calculate rejection for fake scattering
         // TODO: Reference?
         real_type mott_coeff
             = 1 + real_type(1e-4) * ipow<2>(target_.atomic_number().get());
-        MottXsCalculator mott_xsec(element_data_, sqrt(particle_.beta_sq()));
+        MottRatioCalculator mott_xsec(element_data_,
+                                      std::sqrt(particle_.beta_sq()));
         real_type g_rej = mott_xsec(cos_theta)
                           * ipow<2>(calculate_form_factor(cos_theta))
                           / mott_coeff;
 
-        // g_rej can be larger than 1, so use generate canonical instead of
-        // BernoulliDistribution.
-        if (generate_canonical(rng) > g_rej)
+        if (!BernoulliDistribution(g_rej)(rng))
         {
             return {0, 0, 1};
         }
@@ -200,7 +182,7 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
     switch (data_.form_factor_type)
     {
         case NuclearFormFactorType::flat: {
-            real_type x1 = flat_coeff() * sqrt(mom_transfer_sq(cos_t));
+            real_type x1 = flat_coeff() * std::sqrt(mom_transfer_sq(cos_t));
             real_type x0 = real_type{0.6} * x1
                            * fastpow(value_as<Mass>(target_.nuclear_mass()),
                                      real_type{1} / 3);
@@ -225,65 +207,6 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
 CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x) const
 {
     return 3 * (sin(x) - x * cos(x)) / ipow<3>(x);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the Moilere screening coefficient.
- */
-CELER_FUNCTION real_type WentzelDistribution::compute_screening_coefficient() const
-{
-    // TODO: Reference for just proton correction?
-    real_type correction = 1;
-    real_type sq_cbrt_z
-        = fastpow(real_type(target_.atomic_number().get()), real_type{2} / 3);
-    if (target_.atomic_number().get() > 1)
-    {
-        real_type tau = value_as<Energy>(particle_.energy())
-                        / value_as<Mass>(particle_.mass());
-        // TODO: Reference for this factor?
-        real_type factor = sqrt(tau / (tau + sq_cbrt_z));
-
-        correction = min(target_.atomic_number().get() * real_type{1.13},
-                         real_type{1.13}
-                             + real_type{3.76}
-                                   * ipow<2>(target_.atomic_number().get()
-                                             * constants::alpha_fine_structure)
-                                   * factor / particle_.beta_sq());
-    }
-
-    return correction * data_.screening_factor * screen_r_sq_elec() * sq_cbrt_z
-           / value_as<MomentumSq>(particle_.momentum_sq());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the (cosine of the) maximum polar angle that incident particle
- * can scatter off of the target's electrons.
- */
-CELER_FUNCTION real_type WentzelDistribution::compute_max_electron_cos_t() const
-{
-    real_type inc_energy = value_as<Energy>(particle_.energy());
-    real_type mass = value_as<Mass>(particle_.mass());
-
-    // TODO: Need to validate against Geant4 results
-    real_type max_energy = (particle_.particle_id() == data_.ids.electron)
-                               ? real_type{0.5} * inc_energy
-                               : inc_energy;
-    real_type final_energy = inc_energy - min(cutoff_energy_, max_energy);
-
-    if (final_energy > 0)
-    {
-        real_type incident_ratio = 1 + 2 * mass / inc_energy;
-        real_type final_ratio = 1 + 2 * mass / final_energy;
-        real_type cos_t_max = sqrt(incident_ratio / final_ratio);
-
-        return clamp(cos_t_max, real_type{0}, real_type{1});
-    }
-    else
-    {
-        return 0;
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -332,22 +255,6 @@ CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the screening R^2 coefficient for incident electrons. This is
- * the constant prefactor of [PRM] eqn 8.51
- */
-CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::screen_r_sq_elec() const
-{
-    //! Thomas-Fermi constant C_TF
-    //! \f$ \frac{1}{2}\left(\frac{3\pi}{4}\right)^{2/3} \f$
-    constexpr real_type ctf = 0.8853413770001135;
-
-    return native_value_to<MomentumSq>(
-               ipow<2>(constants::hbar_planck / (2 * ctf * constants::a0_bohr)))
-        .value();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate the squared momentum transfer to the target for the given
  * deflection angle \f$\cos\theta\f$ of the incident particle.
  *
@@ -369,8 +276,8 @@ CELER_FUNCTION real_type WentzelDistribution::mom_transfer_sq(real_type cos_t) c
  * branching and it's already calculated for the Wentzel cross sections.
  */
 template<class Engine>
-CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(
-    real_type screen_coeff, real_type cos_t_max, Engine& rng) const
+CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(real_type cos_t_max,
+                                                           Engine& rng) const
 {
     // Sample scattering angle [Fern] eqn 92, where cos(theta) = 1 - 2*mu
     // For incident electrons / positrons, theta_min = 0 always
@@ -378,7 +285,9 @@ CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(
     real_type xi = generate_canonical(rng);
 
     return clamp(
-        1 + 2 * screen_coeff * mu * (1 - xi) / (screen_coeff - mu * xi),
+        1
+            + 2 * wentzel_elec_ratio.screening_coefficient() * mu * (1 - xi)
+                  / (wentzel_elec_ratio.screening_coefficient() - mu * xi),
         real_type{-1},
         real_type{1});
 }

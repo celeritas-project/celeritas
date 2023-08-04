@@ -16,7 +16,6 @@
 #include "celeritas/em/distribution/WentzelDistribution.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/mat/ElementView.hh"
-#include "celeritas/mat/IsotopeSelector.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
@@ -54,8 +53,8 @@ class WentzelInteractor
     inline CELER_FUNCTION WentzelInteractor(WentzelRef const& shared,
                                             ParticleTrackView const& particle,
                                             Real3 const& inc_direction,
-                                            MaterialView const& material,
-                                            ElementComponentId const& elcomp_id,
+                                            IsotopeView const& target,
+                                            ElementId const& el_id,
                                             CutoffView const& cutoffs);
 
     //! Sample an interaction with the given RNG
@@ -65,23 +64,17 @@ class WentzelInteractor
   private:
     //// DATA ////
 
-    // Constant shared data
-    WentzelRef const& data_;
-
     // Incident direction
     Real3 const& inc_direction_;
 
     // Incident particle
     ParticleTrackView const& particle_;
 
-    // Mott coefficients of the target element
-    WentzelElementData const& element_data_;
+    // Target isotope
+    IsotopeView const& target_;
 
-    // Material's cutoff energy for the incident particle
-    real_type const cutoff_energy_;
-
-    // Target element
-    ElementView const element_;
+    // Scattering direction distribution of the Wentzel model
+    WentzelDistribution const sample_direction;
 
     //// HELPER FUNCTIONS ////
 
@@ -100,18 +93,20 @@ CELER_FUNCTION
 WentzelInteractor::WentzelInteractor(WentzelRef const& shared,
                                      ParticleTrackView const& particle,
                                      Real3 const& inc_direction,
-                                     MaterialView const& material,
-                                     ElementComponentId const& elcomp_id,
+                                     IsotopeView const& target,
+                                     ElementId const& el_id,
                                      CutoffView const& cutoffs)
-    : data_(shared)
-    , inc_direction_(inc_direction)
+    : inc_direction_(inc_direction)
     , particle_(particle)
-    , element_data_(shared.elem_data[material.element_id(elcomp_id)])
-    , cutoff_energy_(value_as<Energy>(cutoffs.energy(particle.particle_id())))
-    , element_(material.make_element_view(elcomp_id))
+    , target_(target)
+    , sample_direction(particle,
+                       target,
+                       shared.elem_data[el_id],
+                       value_as<Energy>(cutoffs.energy(particle.particle_id())),
+                       shared)
 {
-    CELER_EXPECT(particle_.particle_id() == data_.ids.electron
-                 || particle_.particle_id() == data_.ids.positron);
+    CELER_EXPECT(particle_.particle_id() == shared.ids.electron
+                 || particle_.particle_id() == shared.ids.positron);
     CELER_EXPECT(particle_.energy() > detail::coulomb_scattering_limit()
                  && particle_.energy() < detail::high_energy_limit());
 }
@@ -123,14 +118,6 @@ WentzelInteractor::WentzelInteractor(WentzelRef const& shared,
 template<class Engine>
 CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
 {
-    // Select an isotope of the target nucleus
-    IsotopeSelector iso_select(element_);
-    IsotopeView target = element_.make_isotope_view(iso_select(rng));
-
-    // Distribution model governing the scattering
-    WentzelDistribution sample_direction(
-        particle_, target, element_data_, cutoff_energy_, data_);
-
     // Incident particle scatters
     Interaction result;
 
@@ -141,7 +128,7 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
     // Recoil energy is kinetic energy transfered to the atom
     real_type inc_energy = value_as<Energy>(particle_.energy());
     real_type recoil_energy
-        = calc_recoil_energy(new_direction, target.nuclear_mass());
+        = calc_recoil_energy(new_direction, target_.nuclear_mass());
     CELER_EXPECT(0 <= recoil_energy && recoil_energy <= inc_energy);
     result.energy = Energy{inc_energy - recoil_energy};
 
