@@ -59,7 +59,7 @@ void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
         int precision_digits = std::ceil(-std::log10(tolerance) + 0.5);
 
         std::cout << "/* REFERENCE PATH LENGTHS */\n"
-                     "static const real_type paths[] = {"
+                     "static real_type const paths[] = {"
                   << std::setprecision(precision_digits)
                   << join(avg_path.begin(), avg_path.end(), ", ")
                   << "};\n"
@@ -90,38 +90,6 @@ void HeuristicGeoTestBase::run_device(size_type num_states, real_type tolerance)
 
     auto avg_path = this->get_avg_path(state.ref().accum_path, num_states);
     EXPECT_VEC_NEAR(this->reference_avg_path(), avg_path, tolerance);
-}
-
-//---------------------------------------------------------------------------//
-
-auto HeuristicGeoTestBase::reference_volumes() const -> SpanConstStr
-{
-    GeoParams const& geo = *this->geometry();
-    temp_str_.reserve(geo.num_volumes());
-    for (auto vid : range(VolumeId{geo.num_volumes()}))
-    {
-        std::string const& vol_name = geo.id_to_label(vid).name;
-        if (vol_name != "[EXTERIOR]")
-        {
-            temp_str_.push_back(vol_name);
-        }
-    }
-
-    ADD_FAILURE() << "Implement the following as "
-                     "TestCase::reference_volumes() const";
-    std::cout << "/* REFERENCE VOLUMES */\n"
-                 "static const std::string vols[] = "
-              << repr(temp_str_)
-              << ";\n"
-                 "/* END REFERENCE VOLUMES */\n";
-    return make_span(temp_str_);
-}
-
-//---------------------------------------------------------------------------//
-
-auto HeuristicGeoTestBase::reference_avg_path() const -> SpanConstReal
-{
-    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -165,11 +133,35 @@ auto HeuristicGeoTestBase::get_avg_path_impl(std::vector<real_type> const& path,
 {
     CELER_EXPECT(path.size() == this->geometry()->num_volumes());
 
+    auto const& geo = *this->geometry();
+
+    std::vector<std::string> temp_labels;
     SpanConstStr ref_vol_labels = this->reference_volumes();
+    if (ref_vol_labels.empty())
+    {
+        temp_labels.reserve(geo.num_volumes());
+        for (auto vid : range(VolumeId{geo.num_volumes()}))
+        {
+            std::string const& vol_name = geo.id_to_label(vid).name;
+            if (vol_name != "[EXTERIOR]")
+            {
+                temp_labels.push_back(vol_name);
+            }
+        }
+
+        ADD_FAILURE() << "Implement the following as "
+                         "TestCase::reference_volumes() const";
+        std::cout << "/* REFERENCE VOLUMES */\n"
+                     "static std::string const vols[] = "
+                  << repr(temp_labels)
+                  << ";\n"
+                     "/* END REFERENCE VOLUMES */\n";
+        ref_vol_labels = make_span(temp_labels);
+    }
+
     std::vector<real_type> result(ref_vol_labels.size());
 
-    auto const& geo = *this->geometry();
-    const real_type norm = 1 / real_type(num_states);
+    real_type const norm = 1 / real_type(num_states);
     for (auto i : range(ref_vol_labels.size()))
     {
         auto vol_id = geo.find_volume(ref_vol_labels[i]);

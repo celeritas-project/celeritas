@@ -30,7 +30,7 @@ namespace test
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
     CELER_LOG(info) << "captured";
     scoped_log_.print_expected();
-    CELER_EXPECT(scoped_log_.empty()) << scoped_log_;
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
    \endcode
  */
 class ScopedLogStorer

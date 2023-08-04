@@ -62,7 +62,7 @@ option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" ON)
 
-# Secondary testing options
+# Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
 else()
@@ -70,6 +70,10 @@ else()
 endif()
 cmake_dependent_option(CELERITAS_TEST_RESOURCE_LOCK
   "Only run one GPU-enabled test at a time" "${_default_lock}"
+  "CELERITAS_BUILD_TESTS" OFF
+)
+cmake_dependent_option(CELERITAS_TEST_VERBOSE
+  "Increase logging level for tests" "${CELERITAS_DEBUG}"
   "CELERITAS_BUILD_TESTS" OFF
 )
 
@@ -424,20 +428,26 @@ install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
 
 # Export all cache variables that start with CELERITAS_
 set(CELERITAS_EXPORT_VARIABLES)
+macro(celeritas_export_var varname)
+  list(APPEND CELERITAS_EXPORT_VARIABLES "set(${varname} \"${${varname}}\")")
+endmacro()
+celeritas_export_var(Celeritas_VERSION_STRING)
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Configuration options")
 get_directory_property(_cachevar_keys CACHE_VARIABLES)
 foreach(_key IN LISTS _cachevar_keys)
   if(_key MATCHES "^CELERITAS_")
-    list(APPEND CELERITAS_EXPORT_VARIABLES "set(${_key} \"${${_key}}\")")
+    celeritas_export_var(${_key})
   endif()
 endforeach()
 
-# Add other cache variables, prefixed with CELERITAS_
-foreach(_key BUILD_SHARED_LIBS)
+# Export defaulted variables
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted variables")
+foreach(_key IN LISTS CELERITAS_DEFAULT_VARIABLES)
   list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
 endforeach()
 
 # Add hints for direct dependencies and indirect geant dependencies
-list(APPEND CELERITAS_EXPORT_VARIABLES "# Hints for upstream dependencies")
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
   Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR

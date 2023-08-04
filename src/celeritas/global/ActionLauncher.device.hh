@@ -25,31 +25,29 @@
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "KernelContextException.hh"
+#include "detail/ActionLauncherKernel.device.hh"
+#include "detail/ApplierTraits.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-/*!
- * Launch the given executor using thread ids in the thread_range
- */
-template<class F>
-__global__ void
-launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
-{
-    auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (!(tid < thread_range.size()))
-        return;
-    execute_thread(*(thread_range.cbegin() + tid.get()));
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Profile and launch Celeritas kernels from inside an action.
+ *
+ * The template argument \c F may define a member type named \c Applier.
+ * \c F::Applier should have up to two static constexpr int variables named
+ * \c max_block_size and/or \c min_warps_per_eu.
+ * If present, the kernel will use appropriate \c __launch_bounds__.
+ * If \c F::Applier::min_warps_per_eu exists then \c F::Applier::max_block_size
+ * must also be present or we get a compile error.
+ *
+ * The semantics of the second \c __launch_bounds__ argument differs between
+ * CUDA and HIP.  \c ActionLauncher expects HIP semantics. If Celeritas is
+ * built targeting CUDA, it will automatically convert that argument to match
+ * CUDA semantics.
+ *
+ * The CUDA-specific 3rd argument \c maxBlocksPerCluster is not supported.
  *
  * Example:
  * \code
@@ -70,17 +68,41 @@ class ActionLauncher
                   "Launched action must be a trivially copyable function "
                   "object");
 
+    // Alias F to avoid hard error as SFINAE only works in the immediate
+    // context
+    template<class F_ = F, std::enable_if_t<!detail::has_applier_v<F_>, bool> = true>
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
+    {
+    }
+
+    template<class F_ = F,
+             std::enable_if_t<detail::kernel_no_bound<typename F_::Applier>, bool>
+             = true>
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
+    {
+    }
+
+    template<class F_ = F,
+             class A_ = typename F_::Applier,
+             std::enable_if_t<detail::has_max_block_size_v<A_>, bool> = true>
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{
+            name, &detail::launch_action_impl<F_>, A_::max_block_size}
+    {
+    }
+
   public:
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
-        : calc_launch_params_{action.label(), &launch_action_impl<F>}
+        : ActionLauncher{action.label()}
     {
     }
 
     //! Create a launcher with a string extension
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
-        : calc_launch_params_{action.label() + "-" + std::string(ext),
-                              &launch_action_impl<F>}
+        : ActionLauncher{action.label() + "-" + std::string(ext)}
     {
     }
 
@@ -94,7 +116,7 @@ class ActionLauncher
             CELER_DEVICE_PREFIX(Stream_t)
             stream = celeritas::device().stream(stream_id).get();
             auto config = calc_launch_params_(threads.size());
-            launch_action_impl<F>
+            detail::launch_action_impl<F>
                 <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
                     threads, call_thread);
         }
