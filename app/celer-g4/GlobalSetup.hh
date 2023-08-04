@@ -49,10 +49,10 @@ class GlobalSetup
     //! Get a mutable reference to the setup options for DetectorConstruction
     SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
 
-    //! Get a mutable reference to the along step options
-    SetupOptions::AlongStepFactory& GetAlongStepOptions()
+    //! Set an along step factory to the setup options
+    void SetAlongStepFactory(SetupOptions::AlongStepFactory factory)
     {
-        return options_->make_along_step;
+        options_->make_along_step = std::move(factory);
     }
 
     //! Get an immutable reference to the setup options
@@ -85,7 +85,7 @@ class GlobalSetup
     std::string physics_list_{"FTFP_BERT"};
     bool step_diagnostic_{false};
     int step_diagnostic_bins_{1000};
-    std::string field_type_{"none"};
+    std::string field_type_{"uniform"};
     std::string field_file_;
     G4ThreeVector field_{0, 0, 0};
 

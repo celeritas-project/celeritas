@@ -125,22 +125,23 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         field_params_ = std::make_shared<RZMapFieldParams>(rz_map);
         mag_field_ = std::make_shared<RZMapMagneticField>(field_params_);
 
-        celeritas::app::GlobalSetup::Instance()->GetAlongStepOptions()
-            = celeritas::RZMapFieldAlongStepFactory([=] { return rz_map; });
+        GlobalSetup::Instance()->SetAlongStepFactory(
+            RZMapFieldAlongStepFactory([=] { return rz_map; }));
     }
-    else
+    else if (field_type == "uniform")
     {
         G4ThreeVector field{0, 0, 0};
-        if (field_type == "uniform")
-        {
-            field = GlobalSetup::Instance()->GetMagFieldZTesla();
-        }
+        field = GlobalSetup::Instance()->GetMagFieldZTesla();
         CELER_LOG_LOCAL(info)
             << "Using a uniform field (0, 0, " << field[2] << ") in Tesla";
         mag_field_ = std::make_shared<G4UniformMagField>(field);
 
-        celeritas::app::GlobalSetup::Instance()->GetAlongStepOptions()
-            = UniformAlongStepFactory([=] { return field; });
+        GlobalSetup::Instance()->SetAlongStepFactory(
+            UniformAlongStepFactory([=] { return field; }));
+    }
+    else
+    {
+        CELER_VALIDATE(false, << "invalid field type '" << field_type << "'");
     }
 
     // Claim ownership of world volume and pass it to the caller
