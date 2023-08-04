@@ -222,12 +222,14 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             --remaining_substeps;
         }
         else if (CELER_UNLIKELY(result.boundary
-                                && linear_step.distance < this->bump_distance()))
+                                && linear_step.distance < this->bump_distance()
+                                && this->bump_distance() < remaining))
         {
             // This substep *started* on a surface and the step length is very
-            // small: likely heading back into the old volume when starting on
-            // a surface (this can happen when tracking through a volume at a
-            // near tangent). Reduce substep size and try again.
+            // small despite a large expected step: likely heading back into
+            // the old volume when starting on a surface (this can happen when
+            // tracking through a volume at a near tangent). Reduce substep
+            // size and try again.
             remaining = substep.step / 2;
         }
         else if (detail::is_intercept_close(state_.pos,
@@ -319,11 +321,14 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         axpy(result.distance, dir, &state_.pos);
         geo_.move_internal(state_.pos);
     }
+    else
+    {
+        CELER_ENSURE(result.boundary == geo_.is_on_boundary());
+    }
 
     // Due to accumulation errors from multiple substeps or chord-finding
     // within the driver, the distance may be very slightly beyond the
     // requested step.
-    CELER_ENSURE(result.boundary == geo_.is_on_boundary());
     CELER_ENSURE(
         result.distance > 0
         && (result.distance <= step || soft_equal(result.distance, step)));
