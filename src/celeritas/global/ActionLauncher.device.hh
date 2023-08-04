@@ -70,14 +70,13 @@ class ActionLauncher
 
     // Alias F to avoid hard error as SFINAE only works in the immediate
     // context
-    template<typename F_ = F,
-             std::enable_if_t<!detail::has_applier_v<F_>, bool> = true>
+    template<class F_ = F, std::enable_if_t<!detail::has_applier_v<F_>, bool> = true>
     explicit ActionLauncher(std::string_view name)
         : calc_launch_params_{name, &detail::launch_action_impl<F_>}
     {
     }
 
-    template<typename F_ = F,
+    template<class F_ = F,
              std::enable_if_t<detail::kernel_no_bound<typename F_::Applier>, bool>
              = true>
     explicit ActionLauncher(std::string_view name)
@@ -85,12 +84,12 @@ class ActionLauncher
     {
     }
 
-    template<typename F_ = F,
-             std::enable_if_t<detail::has_max_block_size_v<typename F_::Applier>, bool>
-             = true>
+    template<class F_ = F,
+             class A_ = typename F_::Applier,
+             std::enable_if_t<detail::has_max_block_size_v<A_>, bool> = true>
     explicit ActionLauncher(std::string_view name)
         : calc_launch_params_{
-            name, &detail::launch_action_impl<F_>, F_::Applier::max_block_size}
+            name, &detail::launch_action_impl<F_>, A_::max_block_size}
     {
     }
 
