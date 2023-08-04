@@ -58,6 +58,7 @@ except (KeyError, IOError) as e:
 
 version = celer_config['version']
 release = celer_config['release']
+html_title = f"Celeritas {version} documentation"
 
 # Set nobreathe, sphinxbib, etc for use in 'only' directives.
 for (opt, val) in celer_config['options'].items():

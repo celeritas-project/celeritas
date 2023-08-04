@@ -156,9 +156,12 @@ set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
 if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
   set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
-elseif("${Celeritas_VERSION_STRING}" MATCHES "-rc[.-][0-9]+$")
-  set(Celeritas_SHORT_VERSION "${Celeritas_VERSION_STRING}")
+elseif("${Celeritas_VERSION_STRING}" MATCHES
+    "^(.*-rc[.-][0-9]+)(\\.[0-9]+\\+[0-9a-f]+)$")
+  # Use release candidate, stripping off stuff since the tag
+  set(Celeritas_SHORT_VERSION "${CMAKE_MATCH_1}")
 else()
+  # Development version
   set(_patch "${PROJECT_VERSION_PATCH}")
   if(NOT Celeritas_VERSION_STRING MATCHES "-dev")
     # Before the next release
