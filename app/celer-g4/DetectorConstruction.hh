@@ -13,9 +13,12 @@
 #include <G4VUserDetectorConstruction.hh>
 
 class G4LogicalVolume;
+class G4MagneticField;
 
 namespace celeritas
 {
+class RZMapFieldParams;
+
 namespace app
 {
 //---------------------------------------------------------------------------//
@@ -34,6 +37,10 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
   private:
     std::unique_ptr<G4VPhysicalVolume> world_;
     std::multimap<std::string, G4LogicalVolume*> detectors_;
+
+    // Mangetic field
+    std::shared_ptr<RZMapFieldParams> field_params_;
+    std::shared_ptr<G4MagneticField> mag_field_;
 };
 
 //---------------------------------------------------------------------------//
