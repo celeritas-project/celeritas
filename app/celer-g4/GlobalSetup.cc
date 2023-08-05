@@ -11,7 +11,9 @@
 #include <G4GenericMessenger.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
 #include "accel/AlongStepFactory.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
@@ -40,7 +42,7 @@ GlobalSetup* GlobalSetup::Instance()
 GlobalSetup::GlobalSetup()
 {
     options_ = std::make_shared<SetupOptions>();
-    field_ = G4ThreeVector(0, 0, 0);
+
     messenger_ = std::make_unique<G4GenericMessenger>(
         this, "/celerg4/", "Demo geant integration setup");
 
@@ -87,6 +89,17 @@ GlobalSetup::GlobalSetup()
         cmd.SetGuidance("Number of bins for the Geant4 step diagnostic");
         cmd.SetDefaultValue(std::to_string(step_diagnostic_bins_));
     }
+
+    // Setup options for the magnetic field
+    {
+        auto& cmd = messenger_->DeclareProperty("fieldType", field_type_);
+        cmd.SetGuidance("Select the field type [rzmap|uniform]");
+        cmd.SetDefaultValue(field_type_);
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty("fieldFile", field_file_);
+        cmd.SetGuidance("Filename of the rz-map loaded by RZMapFieldInput");
+    }
     {
         messenger_->DeclareMethod("magFieldZ",
                                   &GlobalSetup::SetMagFieldZTesla,
@@ -95,10 +108,6 @@ GlobalSetup::GlobalSetup()
     {
         // TODO: expose other options here
     }
-
-    // At setup time, get the field strength (native G4units)
-    options_->make_along_step
-        = UniformAlongStepFactory([this] { return field_; });
 }
 
 //---------------------------------------------------------------------------//

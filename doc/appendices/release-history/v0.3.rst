@@ -8,7 +8,7 @@
 Version 0.3.1
 =============
 
-*Released 2023/08/04*
+*Released 2023/08/05*
 
 Version 0.3.1 is a bug fix and minor feature release of Celeritas targeted at supporting
 experiment frameworks. Key enhancements are:
@@ -48,8 +48,10 @@ New features
 * Define arithmetic operators for Array *(@sethrj, #868)*
 * Support Geant4@10.5 *(@sethrj, #869)*
 * Add ``__launch_bounds__`` to kernels based on Executor properties *(@esseivaju, #853)*
+* Add option to use RZ magnetic field and along step action in the celer-g4 application *(@whokion, #874)*
+* Add basic field driver option support to RZ map field *(@sethrj, #880)*
 
-Reviewers: @sethrj *(9)*, @amandalund *(3)*, @whokion *(2)*, @hhollenb *(1)*, @drbenmorgan *(1)*
+Reviewers: @sethrj *(10)*, @amandalund *(3)*, @whokion *(3)*, @hhollenb *(1)*, @drbenmorgan *(1)*
 
 Bug fixes
 ---------
@@ -64,8 +66,9 @@ Bug fixes
 * Fix linking errors with CUDA+VecGeom caused by #847 *(@pcanal, #856)*
 * Fix inconsistencies in Geant4-to-VecGeom boolean conversion *(@sethrj, #857)*
 * Fix HepMC3 reading of vertices and status codes *(@sethrj, #863)*
+* Restore "small step updates momentum" condition (part of #875) in field propagator *(@sethrj, #882)*
 
-Reviewers: @sethrj *(4)*, @amandalund *(4)*, @whokion *(2)*, @esseivaju *(1)*
+Reviewers: @amandalund *(5)*, @sethrj *(4)*, @whokion *(2)*, @esseivaju *(1)*
 
 Documentation improvements
 --------------------------
@@ -102,6 +105,7 @@ Reviewers: @sethrj *(6)*, @amandalund *(5)*, @drbenmorgan *(3)*, @pcanal *(2)*, 
 
 **Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.3.0...v0.3.1
 
+
 .. _release_v0.3.0:
 
 Version 0.3.0
@@ -124,7 +128,6 @@ Key changes:
 - ``demo-loop`` is now ``celer-sim`` and is installed alongside the library.
 - ``demo-geant`` is now ``celer-g4`` and is also installed.
 - Building with the C++17 standard or later is required.
-
 
 New features
 ------------
