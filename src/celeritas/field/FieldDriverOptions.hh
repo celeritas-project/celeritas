@@ -19,9 +19,8 @@ namespace celeritas
  *
  * TODO: replace epsilon_rel_max with 1/epsilon_rel_max^2
  * TODO: replace safety with step_shrink_mul (or something to indicate that
- * TODO: deletee errcon
- * it's a multiplicative factor for reducing the step, not anything with
- * geometry)
+ *       it's a multiplicative factor for reducing the step, not anything with
+ *       geometry)
  * TODO: remove errcon
  */
 struct FieldDriverOptions
@@ -53,7 +52,7 @@ struct FieldDriverOptions
     //! Scale factor for the predicted step size
     real_type safety = 0.9;
 
-    //! Largrest allowable relative increase a step size
+    //! Largest allowable relative increase a step size
     real_type max_stepping_increase = 5;
 
     //! Smallest allowable relative decrease in step size

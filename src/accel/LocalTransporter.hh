@@ -26,7 +26,7 @@ namespace detail
 {
 class HitManager;
 class OffloadWriter;
-}
+}  // namespace detail
 
 struct SetupOptions;
 class SharedParams;

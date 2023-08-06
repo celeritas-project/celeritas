@@ -70,6 +70,8 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
             el.value_r = inp.field_r[i] * units::tesla;
             fieldmap.push_back(el);
         }
+
+        host.options = inp.driver_options;
         return host;
     }();
 

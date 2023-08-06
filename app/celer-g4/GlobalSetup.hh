@@ -41,10 +41,19 @@ class GlobalSetup
     std::string const& GetPhysicsList() const { return physics_list_; }
     bool StepDiagnostic() const { return step_diagnostic_; }
     int GetStepDiagnosticBins() const { return step_diagnostic_bins_; }
+    std::string const& GetFieldType() const { return field_type_; }
+    std::string const& GetFieldFile() const { return field_file_; }
+    G4ThreeVector GetMagFieldZTesla() const { return field_; }
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
     SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
+
+    //! Set an along step factory to the setup options
+    void SetAlongStepFactory(SetupOptions::AlongStepFactory factory)
+    {
+        options_->make_along_step = std::move(factory);
+    }
 
     //! Get an immutable reference to the setup options
     std::shared_ptr<SetupOptions const> GetSetupOptions() const
@@ -76,7 +85,9 @@ class GlobalSetup
     std::string physics_list_{"FTFP_BERT"};
     bool step_diagnostic_{false};
     int step_diagnostic_bins_{1000};
-    G4ThreeVector field_;
+    std::string field_type_{"uniform"};
+    std::string field_file_;
+    G4ThreeVector field_{0, 0, 0};
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };

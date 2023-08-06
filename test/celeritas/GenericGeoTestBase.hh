@@ -17,6 +17,19 @@
 
 class G4VPhysicalVolume;
 
+//---------------------------------------------------------------------------//
+/*!
+ * \def CELERTEST_INST_GEO
+ *
+ * Explicitly instantiate a class for each available geometry params type.
+ *
+ * In a .cc file:
+ * \code
+ * CELERTEST_INST_GEO(MyTypedTestClass);
+ * \endcode
+ */
+//---------------------------------------------------------------------------//
+
 namespace celeritas
 {
 namespace test
@@ -88,7 +101,7 @@ struct GenericGeoTraits<GeantGeoParams>
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace
+}  // namespace testdetail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -146,6 +159,9 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
 
     //! Find linear segments until outside
     TrackingResult track(Real3 const& pos, Real3 const& dir);
+    //! Find linear segments until outside (maximum count
+    TrackingResult track(Real3 const& pos, Real3 const& dir, int max_step);
+
     //! Try to map Geant4 volumes using ImportVolume and name
     GeantVolResult
     get_import_geant_volumes(G4VPhysicalVolume const* world) const
@@ -181,6 +197,25 @@ using GenericOrangeTestBase = GenericGeoTestBase<OrangeParams>;
 using GenericGeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
 
 using GenericCoreGeoTestBase = GenericGeoTestBase<GeoParams>;
+
+#define CELERTEST_INST_IMPL_(CLS, GEO) template class CLS<GEO>
+
+#if CELERITAS_USE_VECGEOM
+#    define CELERTEST_INST_VG_(CLS) CELERTEST_INST_IMPL_(CLS, VecgeomParams);
+#else
+#    define CELERTEST_INST_VG_(CLS)
+#endif
+#if CELERITAS_USE_GEANT4
+#    define CELERTEST_INST_G4_(CLS) CELERTEST_INST_IMPL_(CLS, GeantGeoParams);
+#else
+#    define CELERTEST_INST_G4_(CLS)
+#endif
+
+// See documentation at top of file
+#define CELERTEST_INST_GEO(CLS) \
+    CELERTEST_INST_VG_(CLS)     \
+    CELERTEST_INST_G4_(CLS)     \
+    CELERTEST_INST_IMPL_(CLS, OrangeParams)
 
 //---------------------------------------------------------------------------//
 }  // namespace test

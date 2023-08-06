@@ -27,16 +27,12 @@ ParallelHandler::ParallelHandler(MpiCommunicator const& comm) : comm_(comm) {}
  */
 void ParallelHandler::OnTestProgramStart(::testing::UnitTest const&)
 {
-    if (comm_.rank() == 0)
+    if (CELERITAS_USE_MPI && comm_.rank() == 0)
     {
         std::cout << color_code('x') << "Testing "
-#if CELERITAS_USE_MPI
                   << "on " << comm_.size() << " process"
-                  << (comm_.size() > 1 ? "es" : "")
-#else
-                  << "in serial"
-#endif
-                  << color_code(' ') << std::endl;
+                  << (comm_.size() > 1 ? "es" : "") << color_code(' ')
+                  << std::endl;
     }
 }
 

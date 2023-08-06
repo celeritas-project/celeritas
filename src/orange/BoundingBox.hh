@@ -32,7 +32,7 @@ class BoundingBox
     //!@{
     //! \name Type aliases
     using value_type = T;
-    using array_type = Array<value_type, 3>;
+    using Array3 = Array<value_type, 3>;
     //!@}
 
     // Construct from infinite extents
@@ -42,23 +42,22 @@ class BoundingBox
     inline CELER_FUNCTION BoundingBox();
 
     // Construct from upper and lower points
-    inline CELER_FUNCTION
-    BoundingBox(array_type const& lower, array_type const& upper);
+    inline CELER_FUNCTION BoundingBox(Array3 const& lower, Array3 const& upper);
 
     //// ACCESSORS ////
 
     // Lower bbox coordinate
-    CELER_FORCEINLINE_FUNCTION array_type const& lower() const;
+    CELER_FORCEINLINE_FUNCTION Array3 const& lower() const;
 
     // Upper bbox coordinate
-    CELER_FORCEINLINE_FUNCTION array_type const& upper() const;
+    CELER_FORCEINLINE_FUNCTION Array3 const& upper() const;
 
     // Whether the bbox is assigned
     CELER_FORCEINLINE_FUNCTION explicit operator bool() const;
 
   private:
-    array_type lower_;
-    array_type upper_;
+    Array3 lower_;
+    Array3 upper_;
 };
 
 //---------------------------------------------------------------------------//
@@ -99,8 +98,7 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox()
  * at a single point) but upper must not be less than lower.
  */
 template<class T>
-CELER_FUNCTION
-BoundingBox<T>::BoundingBox(array_type const& lo, array_type const& hi)
+CELER_FUNCTION BoundingBox<T>::BoundingBox(Array3 const& lo, Array3 const& hi)
     : lower_(lo), upper_(hi)
 {
     CELER_EXPECT(lower_[0] <= upper_[0] && lower_[1] <= upper_[1]
@@ -112,7 +110,7 @@ BoundingBox<T>::BoundingBox(array_type const& lo, array_type const& hi)
  * Lower bbox coordinate (must be valid).
  */
 template<class T>
-CELER_FUNCTION typename BoundingBox<T>::array_type const&
+CELER_FUNCTION typename BoundingBox<T>::Array3 const&
 BoundingBox<T>::lower() const
 {
     CELER_EXPECT(*this);
@@ -124,7 +122,7 @@ BoundingBox<T>::lower() const
  * Upper bbox coordinate (must be valid).
  */
 template<class T>
-CELER_FUNCTION typename BoundingBox<T>::array_type const&
+CELER_FUNCTION typename BoundingBox<T>::Array3 const&
 BoundingBox<T>::upper() const
 {
     CELER_EXPECT(*this);

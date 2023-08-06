@@ -39,25 +39,26 @@ try:
 except (KeyError, IOError) as e:
     print("Failed to load config data:", e)
     build_dir = '.'
-    rtdtheme = True
+    furo = True
     try:
-        import sphinx_rtd_theme
+        import furo
     except ImportError:
-        rtdtheme = False
+        furo = False
 
     celer_config = {
         "version": "*unknown version*",
         "release": "*unknown release*",
         "options": {
             "breathe": False,
+            "furo": furo,
             "sphinxbib": False,
-            "rtdtheme": rtdtheme,
         }
     }
     tags.add('noconfig')
 
 version = celer_config['version']
 release = celer_config['release']
+html_title = f"Celeritas {version} documentation"
 
 # Set nobreathe, sphinxbib, etc for use in 'only' directives.
 for (opt, val) in celer_config['options'].items():
@@ -118,8 +119,8 @@ import monkeysphinx
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = 'alabaster'
-if celer_config['options']['rtdtheme']:
-    html_theme = 'sphinx_rtd_theme'
+if celer_config['options']['furo']:
+    html_theme = 'furo'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
