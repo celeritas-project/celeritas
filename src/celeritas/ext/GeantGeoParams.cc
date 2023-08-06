@@ -246,12 +246,12 @@ void GeantGeoParams::build_metadata()
 
         G4VisExtent const& extent = solid->GetExtent();
 
-        return BoundingBox({convert_from_geant(extent.GetXmin(), CLHEP::cm),
-                            convert_from_geant(extent.GetYmin(), CLHEP::cm),
-                            convert_from_geant(extent.GetZmin(), CLHEP::cm)},
-                           {convert_from_geant(extent.GetXmax(), CLHEP::cm),
-                            convert_from_geant(extent.GetYmax(), CLHEP::cm),
-                            convert_from_geant(extent.GetZmax(), CLHEP::cm)});
+        return BBox({convert_from_geant(extent.GetXmin(), CLHEP::cm),
+                     convert_from_geant(extent.GetYmin(), CLHEP::cm),
+                     convert_from_geant(extent.GetZmin(), CLHEP::cm)},
+                    {convert_from_geant(extent.GetXmax(), CLHEP::cm),
+                     convert_from_geant(extent.GetYmax(), CLHEP::cm),
+                     convert_from_geant(extent.GetZmax(), CLHEP::cm)});
     }();
 }
 
