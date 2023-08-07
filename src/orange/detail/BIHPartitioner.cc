@@ -51,6 +51,7 @@ BIHPartitioner::BIHPartitioner(VecBBox const* bboxes, VecReal3 const* centers)
 BIHPartitioner::Partition
 BIHPartitioner::operator()(VecIndices const& indices) const
 {
+    CELER_EXPECT(*this);
     CELER_EXPECT(!indices.empty());
 
     Partition best_partition;
@@ -69,9 +70,8 @@ BIHPartitioner::operator()(VecIndices const& indices) const
             = std::max(static_cast<size_type>(axes_centers[ax].size()
                                               / (candidates_per_axis_ + 1)),
                        size_type{1});
-        auto i = step_size;
 
-        while (i < axes_centers[ax].size())
+        for (auto i = step_size; i < axes_centers[ax].size(); i += step_size)
         {
             auto position = (axes_centers[ax][i - 1] + axes_centers[ax][i]) / 2;
 
@@ -83,7 +83,6 @@ BIHPartitioner::operator()(VecIndices const& indices) const
                 best_partition = std::move(p);
                 best_cost = cost;
             }
-            i += step_size;
         }
     }
 
@@ -107,16 +106,14 @@ BIHPartitioner::calc_axes_centers(VecIndices const& indices) const
     {
         CELER_ASSERT(id < centers_->size());
         Real3 center = (*centers_)[id.unchecked_get()];
-        for (auto axis : range(Axis::size_))
+        for (auto ax : range(to_int(Axis::size_)))
         {
-            auto ax = to_int(axis);
             axes_centers[ax].push_back(center[ax]);
         }
     }
 
-    for (auto axis : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        auto ax = to_int(axis);
         sort_and_uniquify(axes_centers[ax]);
     }
 

@@ -63,7 +63,10 @@ class BIHPartitioner
     // Construct from vector of bounding boxes and respective centers.
     explicit BIHPartitioner(VecBBox const* bboxes, VecReal3 const* centers);
 
-    explicit inline operator bool() { return bboxes_ != nullptr; }
+    explicit inline operator bool() const
+    {
+        return bboxes_ != nullptr && centers_ != nullptr;
+    }
 
     // Find a suitable partition for the given bounding boxes
     Partition operator()(VecIndices const& indicies) const;
