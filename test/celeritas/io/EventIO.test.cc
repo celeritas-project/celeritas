@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/io/EventIO.test.cc
 //---------------------------------------------------------------------------//
+#include "celeritas_config.h"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
@@ -16,7 +17,6 @@
 #include "celeritas/phys/Primary.hh"
 
 #include "celeritas_test.hh"
-#include "celeritas_config.h"
 
 #if CELERITAS_USE_HEPMC3
 #    include <HepMC3/GenEvent.h>

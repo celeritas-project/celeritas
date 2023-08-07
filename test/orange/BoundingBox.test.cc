@@ -20,7 +20,7 @@ using BoundingBoxTest = Test;
 
 TEST_F(BoundingBoxTest, null)
 {
-    BoundingBox null_bbox;
+    BBox null_bbox;
     EXPECT_FALSE(null_bbox);
     if (CELERITAS_DEBUG)
     {
@@ -31,7 +31,7 @@ TEST_F(BoundingBoxTest, null)
 
 TEST_F(BoundingBoxTest, infinite)
 {
-    BoundingBox ibb = BoundingBox::from_infinite();
+    BBox ibb = BBox::from_infinite();
     EXPECT_SOFT_EQ(-inf, ibb.lower()[0]);
     EXPECT_SOFT_EQ(-inf, ibb.lower()[1]);
     EXPECT_SOFT_EQ(-inf, ibb.lower()[2]);
@@ -45,12 +45,12 @@ TEST_F(BoundingBoxTest, standard)
     if (CELERITAS_DEBUG)
     {
         const Real3 lo{-1, -2, -3};
-        EXPECT_THROW((BoundingBox{lo, {-4, 5, 6}}), DebugError);
-        EXPECT_THROW((BoundingBox{lo, {4, -5, 6}}), DebugError);
-        EXPECT_THROW((BoundingBox{lo, {4, 5, -6}}), DebugError);
+        EXPECT_THROW((BBox{lo, {-4, 5, 6}}), DebugError);
+        EXPECT_THROW((BBox{lo, {4, -5, 6}}), DebugError);
+        EXPECT_THROW((BBox{lo, {4, 5, -6}}), DebugError);
     }
 
-    BoundingBox bb{{-1, -2, 3}, {4, 5, 6}};
+    BBox bb{{-1, -2, 3}, {4, 5, 6}};
     EXPECT_TRUE(bb);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -2, 3}), bb.lower());
     EXPECT_VEC_SOFT_EQ((Real3{4, 5, 6}), bb.upper());

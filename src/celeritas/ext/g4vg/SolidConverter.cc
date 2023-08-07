@@ -171,7 +171,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
     using MapTypeConverter
         = std::unordered_map<std::type_index, ConvertFuncPtr>;
 
-// clang-format off
+    // clang-format off
     #define VGSC_TYPE_FUNC(MIXED, LOWER) \
     {std::type_index(typeid(G4##MIXED)), &SolidConverter::LOWER}
     static const MapTypeConverter type_to_converter = {
