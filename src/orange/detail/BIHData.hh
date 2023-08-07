@@ -24,7 +24,7 @@ namespace detail
  */
 struct BIHInnerNode
 {
-    using real_type = float;
+    using real_type = fast_real_type;
 
     struct BoundingPlane
     {
