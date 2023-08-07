@@ -38,19 +38,20 @@ class BIHPartitioner
 
     struct Partition
     {
+        using Edge = BIHInnerNode::Edge;
+
         Axis axis = Axis::size_;
         real_type position = std::numeric_limits<real_type>::infinity();
 
-        EnumArray<BIHInnerNode::Edge, VecIndices> indices;
-        EnumArray<BIHInnerNode::Edge, FastBBox> bboxes;
+        EnumArray<Edge, VecIndices> indices;
+        EnumArray<Edge, FastBBox> bboxes;
 
         explicit operator bool() const
         {
             return axis != Axis::size_ && std::isfinite(position)
-                   && !indices[BIHInnerNode::Edge::left].empty()
-                   && !indices[BIHInnerNode::Edge::right].empty()
-                   && bboxes[BIHInnerNode::Edge::left]
-                   && bboxes[BIHInnerNode::Edge::right];
+                   && !indices[Edge::left].empty()
+                   && !indices[Edge::right].empty() && bboxes[Edge::left]
+                   && bboxes[Edge::right];
         }
     };
 

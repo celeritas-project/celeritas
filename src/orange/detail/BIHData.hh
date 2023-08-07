@@ -28,8 +28,8 @@ struct BIHInnerNode
 
     struct BoundingPlane
     {
-        Axis axis;
         real_type position;
+        BIHNodeId child;
     };
 
     enum class Edge
@@ -41,12 +41,13 @@ struct BIHInnerNode
 
     BIHNodeId parent;
 
-    EnumArray<Edge, BIHNodeId> children;
+    Axis axis;
     EnumArray<Edge, BoundingPlane> bounding_planes;
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return this->children[Edge::left] && this->children[Edge::right];
+        return this->bounding_planes[Edge::left].child
+               && this->bounding_planes[Edge::right].child;
     }
 };
 

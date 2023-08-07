@@ -118,22 +118,20 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     {
         BIHInnerNode node;
         node.parent = parent;
+        node.axis = p.axis;
 
         auto ax = to_int(p.axis);
 
-        BIHInnerNode::BoundingPlane left_plane{
-            p.axis, p.bboxes[Edge::left].upper()[ax]};
-
-        BIHInnerNode::BoundingPlane right_plane{
-            p.axis, p.bboxes[Edge::right].lower()[ax]};
-
-        node.bounding_planes = {left_plane, right_plane};
+        node.bounding_planes[Edge::left].position
+            = p.bboxes[Edge::left].upper()[ax];
+        node.bounding_planes[Edge::right].position
+            = p.bboxes[Edge::right].lower()[ax];
 
         // Recursively construct the left and right branches
 
         for (auto edge : range(Edge::size_))
         {
-            node.children[edge] = BIHNodeId(nodes->size());
+            node.bounding_planes[edge].child = BIHNodeId(nodes->size());
             this->construct_tree(
                 p.indices[edge], nodes, BIHNodeId(current_index));
         }
@@ -196,8 +194,8 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
     {
         for (auto edge : range(BIHInnerNode::Edge::size_))
         {
-            inner_node.children[edge]
-                = new_ids[inner_node.children[edge].unchecked_get()];
+            inner_node.bounding_planes[edge].child
+                = new_ids[inner_node.bounding_planes[edge].child.unchecked_get()];
         }
 
         // Handle root node

@@ -84,6 +84,8 @@ class BIHBuilderTest : public Test
  */
 TEST_F(BIHBuilderTest, basic)
 {
+    using Edge = BIHInnerNode::Edge;
+
     bboxes_.push_back({{0, 0, 0}, {1.6, 1, 100}});
     bboxes_.push_back({{1.2, 0, 0}, {2.8, 1, 100}});
     bboxes_.push_back({{2.8, 0, 0}, {5, 1, 100}});
@@ -111,45 +113,36 @@ TEST_F(BIHBuilderTest, basic)
     {
         auto node = (*storage_.inner_nodes)[inner_nodes[0]];
         ASSERT_FALSE(node.parent);
-        EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
-        EXPECT_EQ(Axis{0},
-                  node.bounding_planes[BIHInnerNode::Edge::right].axis);
-        EXPECT_SOFT_EQ(
-            2.8, node.bounding_planes[BIHInnerNode::Edge::left].position);
-        EXPECT_SOFT_EQ(
-            0, node.bounding_planes[BIHInnerNode::Edge::right].position);
-        EXPECT_EQ(1, node.children[BIHInnerNode::Edge::left].unchecked_get());
-        EXPECT_EQ(2, node.children[BIHInnerNode::Edge::right].unchecked_get());
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_SOFT_EQ(2.8, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(0, node.bounding_planes[Edge::right].position);
+        EXPECT_EQ(1, node.bounding_planes[Edge::left].child.unchecked_get());
+        EXPECT_EQ(2, node.bounding_planes[Edge::right].child.unchecked_get());
     }
 
     // N1, I1
     {
         auto node = (*storage_.inner_nodes)[inner_nodes[1]];
         ASSERT_EQ(BIHNodeId{0}, node.parent);
-        EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
-        EXPECT_EQ(Axis{0},
-                  node.bounding_planes[BIHInnerNode::Edge::right].axis);
-        EXPECT_SOFT_EQ(
-            1.6, node.bounding_planes[BIHInnerNode::Edge::left].position);
-        EXPECT_SOFT_EQ(
-            1.2, node.bounding_planes[BIHInnerNode::Edge::right].position);
-        EXPECT_EQ(3, node.children[BIHInnerNode::Edge::left].unchecked_get());
-        EXPECT_EQ(4, node.children[BIHInnerNode::Edge::right].unchecked_get());
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_SOFT_EQ(1.6, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1.2, node.bounding_planes[Edge::right].position);
+        EXPECT_EQ(3, node.bounding_planes[Edge::left].child.unchecked_get());
+        EXPECT_EQ(4, node.bounding_planes[Edge::right].child.unchecked_get());
     }
 
     // N2, I2
     {
         auto node = (*storage_.inner_nodes)[inner_nodes[2]];
         ASSERT_EQ(BIHNodeId{0}, node.parent);
-        EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
-        EXPECT_EQ(Axis{0},
-                  node.bounding_planes[BIHInnerNode::Edge::right].axis);
-        EXPECT_SOFT_EQ(
-            5, node.bounding_planes[BIHInnerNode::Edge::left].position);
-        EXPECT_SOFT_EQ(
-            2.8, node.bounding_planes[BIHInnerNode::Edge::right].position);
-        EXPECT_EQ(5, node.children[BIHInnerNode::Edge::left].unchecked_get());
-        EXPECT_EQ(6, node.children[BIHInnerNode::Edge::right].unchecked_get());
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_SOFT_EQ(5, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(2.8, node.bounding_planes[Edge::right].position);
+        EXPECT_EQ(5, node.bounding_planes[Edge::left].child.unchecked_get());
+        EXPECT_EQ(6, node.bounding_planes[Edge::right].child.unchecked_get());
     }
 
     // N3, L0
@@ -239,6 +232,8 @@ TEST_F(BIHBuilderTest, basic)
  */
 TEST_F(BIHBuilderTest, grid)
 {
+    using Edge = BIHInnerNode::Edge;
+
     bboxes_.push_back({{0, 0, 0}, {1, 1, 100}});
     bboxes_.push_back({{0, 1, 0}, {1, 2, 100}});
     bboxes_.push_back({{0, 2, 0}, {1, 3, 100}});
@@ -270,90 +265,72 @@ TEST_F(BIHBuilderTest, grid)
     {
         auto node = (*storage_.inner_nodes)[inner_nodes[0]];
         ASSERT_FALSE(node.parent);
-        EXPECT_EQ(Axis{1}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
-        EXPECT_EQ(Axis{1},
-                  node.bounding_planes[BIHInnerNode::Edge::right].axis);
-        EXPECT_SOFT_EQ(
-            2, node.bounding_planes[BIHInnerNode::Edge::left].position);
-        EXPECT_SOFT_EQ(
-            2, node.bounding_planes[BIHInnerNode::Edge::right].position);
-        EXPECT_EQ(1, node.children[BIHInnerNode::Edge::left].unchecked_get());
-        EXPECT_EQ(6, node.children[BIHInnerNode::Edge::right].unchecked_get());
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_SOFT_EQ(2, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(2, node.bounding_planes[Edge::right].position);
+        EXPECT_EQ(1, node.bounding_planes[Edge::left].child.unchecked_get());
+        EXPECT_EQ(6, node.bounding_planes[Edge::right].child.unchecked_get());
     }
 
     // N1, I1
     {
         auto node = (*storage_.inner_nodes)[inner_nodes[1]];
         ASSERT_EQ(BIHNodeId{0}, node.parent);
-        EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
-        EXPECT_EQ(Axis{0},
-                  node.bounding_planes[BIHInnerNode::Edge::right].axis);
-        EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::left].position);
-        EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::right].position);
-        EXPECT_EQ(2, node.children[BIHInnerNode::Edge::left].unchecked_get());
-        EXPECT_EQ(3, node.children[BIHInnerNode::Edge::right].unchecked_get());
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::right].position);
+        EXPECT_EQ(2, node.bounding_planes[Edge::left].child.unchecked_get());
+        EXPECT_EQ(3, node.bounding_planes[Edge::right].child.unchecked_get());
     }
 
     // N2, I2
     {
         auto node = (*storage_.inner_nodes)[inner_nodes[2]];
         ASSERT_EQ(BIHNodeId{1}, node.parent);
-        EXPECT_EQ(Axis{1}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
-        EXPECT_EQ(Axis{1},
-                  node.bounding_planes[BIHInnerNode::Edge::right].axis);
-        EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::left].position);
-        EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::right].position);
-        EXPECT_EQ(11, node.children[BIHInnerNode::Edge::left].unchecked_get());
-        EXPECT_EQ(12, node.children[BIHInnerNode::Edge::right].unchecked_get());
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::right].position);
+        EXPECT_EQ(11, node.bounding_planes[Edge::left].child.unchecked_get());
+        EXPECT_EQ(12, node.bounding_planes[Edge::right].child.unchecked_get());
     }
 
     // N3, I3
     {
         auto node = (*storage_.inner_nodes)[inner_nodes[3]];
         ASSERT_EQ(BIHNodeId{1}, node.parent);
-        EXPECT_EQ(Axis{0}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
-        EXPECT_EQ(Axis{0},
-                  node.bounding_planes[BIHInnerNode::Edge::right].axis);
-        EXPECT_SOFT_EQ(
-            2, node.bounding_planes[BIHInnerNode::Edge::left].position);
-        EXPECT_SOFT_EQ(
-            2, node.bounding_planes[BIHInnerNode::Edge::right].position);
-        EXPECT_EQ(4, node.children[BIHInnerNode::Edge::left].unchecked_get());
-        EXPECT_EQ(5, node.children[BIHInnerNode::Edge::right].unchecked_get());
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_SOFT_EQ(2, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(2, node.bounding_planes[Edge::right].position);
+        EXPECT_EQ(4, node.bounding_planes[Edge::left].child.unchecked_get());
+        EXPECT_EQ(5, node.bounding_planes[Edge::right].child.unchecked_get());
     }
 
     // N4, I4
     {
         auto node = (*storage_.inner_nodes)[inner_nodes[4]];
         ASSERT_EQ(BIHNodeId{3}, node.parent);
-        EXPECT_EQ(Axis{1}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
-        EXPECT_EQ(Axis{1},
-                  node.bounding_planes[BIHInnerNode::Edge::right].axis);
-        EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::left].position);
-        EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::right].position);
-        EXPECT_EQ(13, node.children[BIHInnerNode::Edge::left].unchecked_get());
-        EXPECT_EQ(14, node.children[BIHInnerNode::Edge::right].unchecked_get());
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::right].position);
+        EXPECT_EQ(13, node.bounding_planes[Edge::left].child.unchecked_get());
+        EXPECT_EQ(14, node.bounding_planes[Edge::right].child.unchecked_get());
     }
 
     // N5, I5
     {
         auto node = (*storage_.inner_nodes)[inner_nodes[5]];
         ASSERT_EQ(BIHNodeId{3}, node.parent);
-        EXPECT_EQ(Axis{1}, node.bounding_planes[BIHInnerNode::Edge::left].axis);
-        EXPECT_EQ(Axis{1},
-                  node.bounding_planes[BIHInnerNode::Edge::right].axis);
-        EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::left].position);
-        EXPECT_SOFT_EQ(
-            1, node.bounding_planes[BIHInnerNode::Edge::right].position);
-        EXPECT_EQ(15, node.children[BIHInnerNode::Edge::left].unchecked_get());
-        EXPECT_EQ(16, node.children[BIHInnerNode::Edge::right].unchecked_get());
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::right].position);
+        EXPECT_EQ(15, node.bounding_planes[Edge::left].child.unchecked_get());
+        EXPECT_EQ(16, node.bounding_planes[Edge::right].child.unchecked_get());
     }
 
     // N11, I0

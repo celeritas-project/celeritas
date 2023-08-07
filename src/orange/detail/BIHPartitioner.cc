@@ -131,6 +131,8 @@ BIHPartitioner::make_partition(VecIndices const& indices,
 {
     CELER_EXPECT(!indices.empty());
 
+    using Edge = BIHInnerNode::Edge;
+
     Partition p;
     p.axis = axis;
     p.position = position;
@@ -141,18 +143,16 @@ BIHPartitioner::make_partition(VecIndices const& indices,
         if ((*centers_)[indices[i].unchecked_get()][to_int(p.axis)]
             < p.position)
         {
-            p.indices[BIHInnerNode::Edge::left].push_back(indices[i]);
+            p.indices[Edge::left].push_back(indices[i]);
         }
         else
         {
-            p.indices[BIHInnerNode::Edge::right].push_back(indices[i]);
+            p.indices[Edge::right].push_back(indices[i]);
         }
     }
 
-    p.bboxes[BIHInnerNode::Edge::left]
-        = bbox_union(*bboxes_, p.indices[BIHInnerNode::Edge::left]);
-    p.bboxes[BIHInnerNode::Edge::right]
-        = bbox_union(*bboxes_, p.indices[BIHInnerNode::Edge::right]);
+    p.bboxes[Edge::left] = bbox_union(*bboxes_, p.indices[Edge::left]);
+    p.bboxes[Edge::right] = bbox_union(*bboxes_, p.indices[Edge::right]);
 
     return p;
 }
@@ -165,10 +165,11 @@ real_type BIHPartitioner::calc_cost(Partition const& p) const
 {
     CELER_EXPECT(p);
 
-    return surface_area(p.bboxes[BIHInnerNode::Edge::left])
-               * p.indices[BIHInnerNode::Edge::left].size()
-           + surface_area(p.bboxes[BIHInnerNode::Edge::right])
-                 * p.indices[BIHInnerNode::Edge::right].size();
+    using Edge = BIHInnerNode::Edge;
+
+    return surface_area(p.bboxes[Edge::left]) * p.indices[Edge::left].size()
+           + surface_area(p.bboxes[Edge::right])
+                 * p.indices[Edge::right].size();
 }
 
 //---------------------------------------------------------------------------//
