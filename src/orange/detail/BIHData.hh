@@ -78,10 +78,10 @@ struct BIHStorage
     using InnerNodeStorage = Storage<BIHInnerNode>;
     using LeafNodeStorage = Storage<BIHLeafNode>;
 
-    BBoxStorage* bboxes;
-    LVIStorage* local_volume_ids;
-    InnerNodeStorage* inner_nodes;
-    LeafNodeStorage* leaf_nodes;
+    BBoxStorage* bboxes = nullptr;
+    LVIStorage* local_volume_ids = nullptr;
+    InnerNodeStorage* inner_nodes = nullptr;
+    LeafNodeStorage* leaf_nodes = nullptr;
 };
 
 //---------------------------------------------------------------------------//
