@@ -11,13 +11,15 @@
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/detail/BIHUtils.hh"
 
+namespace celeritas
+{
 namespace
 {
 //---------------------------------------------------------------------------//
 /*!
  * Sort and uniquify a vector.
  */
-void sort_and_uniquify(std::vector<celeritas::real_type>& vec)
+void sort_and_uniquify(std::vector<real_type>& vec)
 {
     std::sort(vec.begin(), vec.end());
 
@@ -27,9 +29,6 @@ void sort_and_uniquify(std::vector<celeritas::real_type>& vec)
     vec.erase(last, vec.end());
 }
 }  // namespace
-
-namespace celeritas
-{
 namespace detail
 {
 //---------------------------------------------------------------------------//
