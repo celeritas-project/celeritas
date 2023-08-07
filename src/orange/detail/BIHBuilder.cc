@@ -12,6 +12,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -31,13 +33,14 @@ struct Overload : Ts...
 template<class... Ts>
 Overload(Ts&&...) -> Overload<Ts...>;
 }  // namespace
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a Storage object
  */
-BIHBuilder::BIHBuilder(BIHStorage storage) : storage_(storage) {}
+BIHBuilder::BIHBuilder(BIHStorage storage) : storage_(storage)
+{
+    CELER_EXPECT(storage_);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -104,13 +107,14 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
                                 BIHNodeId parent) const
 {
+    using Edge = BIHInnerNode::Edge;
+
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
 
-    BIHPartitioner partitioner(&bboxes_, &centers_);
-    auto p = partitioner(indices);
+    BIHPartitioner partition(&bboxes_, &centers_);
 
-    if (p)
+    if (auto p = partition(indices))
     {
         BIHInnerNode node;
         node.parent = parent;
@@ -118,20 +122,16 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         auto ax = to_int(p.axis);
 
         BIHInnerNode::BoundingPlane left_plane{
-            p.axis,
-            static_cast<BIHInnerNode::real_type>(
-                p.bboxes[BIHInnerNode::Edge::left].upper()[ax])};
+            p.axis, p.bboxes[Edge::left].upper()[ax]};
 
         BIHInnerNode::BoundingPlane right_plane{
-            p.axis,
-            static_cast<BIHInnerNode::real_type>(
-                p.bboxes[BIHInnerNode::Edge::right].lower()[ax])};
+            p.axis, p.bboxes[Edge::right].lower()[ax]};
 
         node.bounding_planes = {left_plane, right_plane};
 
         // Recursively construct the left and right branches
 
-        for (auto edge : range(BIHInnerNode::Edge::size_))
+        for (auto edge : range(Edge::size_))
         {
             node.children[edge] = BIHNodeId(nodes->size());
             this->construct_tree(
@@ -217,7 +217,6 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
     }
 
     return {std::move(inner_nodes), std::move(leaf_nodes)};
-    ;
 }
 
 //---------------------------------------------------------------------------//

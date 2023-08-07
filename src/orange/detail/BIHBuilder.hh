@@ -57,7 +57,7 @@ class BIHBuilder
     using VecReal3 = std::vector<Real3>;
     using VecIndices = std::vector<LocalVolumeId>;
     using PairVecIndices = std::pair<VecIndices, VecIndices>;
-    using AxesCenters = std::vector<std::vector<double>>;
+    using AxesCenters = std::vector<std::vector<real_type>>;
     using VecNodes = std::vector<std::variant<BIHInnerNode, BIHLeafNode>>;
     using VecInnerNodes = std::vector<BIHInnerNode>;
     using VecLeafNodes = std::vector<BIHLeafNode>;

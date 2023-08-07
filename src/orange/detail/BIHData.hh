@@ -82,6 +82,12 @@ struct BIHStorage
     LVIStorage* local_volume_ids = nullptr;
     InnerNodeStorage* inner_nodes = nullptr;
     LeafNodeStorage* leaf_nodes = nullptr;
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return bboxes != nullptr && local_volume_ids != nullptr
+               && inner_nodes != nullptr && leaf_nodes != nullptr;
+    }
 };
 
 //---------------------------------------------------------------------------//
