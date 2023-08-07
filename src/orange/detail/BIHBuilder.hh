@@ -54,6 +54,7 @@ class BIHBuilder
   private:
     /// TYPES ///
 
+    using Real3 = Array<fast_real_type, 3>;
     using VecReal3 = std::vector<Real3>;
     using VecIndices = std::vector<LocalVolumeId>;
     using PairVecIndices = std::pair<VecIndices, VecIndices>;

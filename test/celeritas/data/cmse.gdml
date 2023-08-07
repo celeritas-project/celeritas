@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="14" Z="7" name="N14">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N15">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="N">
+      <fraction n="0.99632" ref="N14"/>
+      <fraction n="0.00368" ref="N15"/>
+    </element>
+    <isotope N="16" Z="8" name="O16">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O17">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O18">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="O">
+      <fraction n="0.99757" ref="O16"/>
+      <fraction n="0.00038" ref="O17"/>
+      <fraction n="0.00205" ref="O18"/>
+    </element>
+    <isotope N="36" Z="18" name="Ar36">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="Ar38">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar">
+      <fraction n="0.003365" ref="Ar36"/>
+      <fraction n="0.000632" ref="Ar38"/>
+      <fraction n="0.996003" ref="Ar40"/>
+    </element>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="Air" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="85.5379282211833"/>
+      <D unit="g/cm3" value="0.00121399936124299"/>
+      <fraction n="0.7494" ref="N"/>
+      <fraction n="0.2369" ref="O"/>
+      <fraction n="0.0129" ref="Ar"/>
+      <fraction n="0.0008" ref="H"/>
+    </material>
+  </materials>
+
+  <solids>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="CMStoZDC0x7f4a9a7c6fa0" rmax="1000" startphi="0" z="112000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="ZDCtoFP4200x7f4a9a7c7080" rmax="1000" startphi="0" z="240000"/>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="Tracker0x7f4a9a62cb40" startphi="0">
+      <zplane rmax="1233" rmin="74" z="-2932"/>
+      <zplane rmax="1233" rmin="31.5" z="-1948"/>
+      <zplane rmax="1233" rmin="31" z="-1800"/>
+      <zplane rmax="1233" rmin="31" z="-1722"/>
+      <zplane rmax="1233" rmin="25" z="-1069.195"/>
+      <zplane rmax="1233" rmin="25" z="1069.195"/>
+      <zplane rmax="1233" rmin="31" z="1722"/>
+      <zplane rmax="1233" rmin="31" z="1800"/>
+      <zplane rmax="1233" rmin="31.5" z="1948"/>
+      <zplane rmax="1233" rmin="74" z="2932"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="CALO0x7f4a9a62cc80" startphi="0">
+      <zplane rmax="2950" rmin="89.3" z="-5541"/>
+      <zplane rmax="2950" rmin="77.633" z="-3551.5"/>
+      <zplane rmax="2950" rmin="227" z="-3551.5"/>
+      <zplane rmax="2950" rmin="227" z="-2932"/>
+      <zplane rmax="2950" rmin="1233" z="-2932"/>
+      <zplane rmax="2950" rmin="1233" z="2932"/>
+      <zplane rmax="2950" rmin="227" z="2932"/>
+      <zplane rmax="2950" rmin="227" z="3551.5"/>
+      <zplane rmax="2950" rmin="77.633" z="3551.5"/>
+      <zplane rmax="2950" rmin="89.3" z="5541"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="MUON0x7f4a9a62cd20" startphi="0">
+      <zplane rmax="8300" rmin="1086" z="-10860"/>
+      <zplane rmax="8300" rmin="1086" z="-10500"/>
+      <zplane rmax="8300" rmin="1130" z="-10500"/>
+      <zplane rmax="8300" rmin="1130" z="-10165"/>
+      <zplane rmax="8300" rmin="1041.1" z="-10165"/>
+      <zplane rmax="8300" rmin="700" z="-6835"/>
+      <zplane rmax="8300" rmin="675" z="-6610"/>
+      <zplane rmax="8300" rmin="675" z="-6590"/>
+      <zplane rmax="8300" rmin="105" z="-6500"/>
+      <zplane rmax="8300" rmin="89.3" z="-5541"/>
+      <zplane rmax="8300" rmin="2950" z="-5541"/>
+      <zplane rmax="8300" rmin="2950" z="5541"/>
+      <zplane rmax="8300" rmin="89.3" z="5541"/>
+      <zplane rmax="8300" rmin="105" z="6500"/>
+      <zplane rmax="8300" rmin="675" z="6590"/>
+      <zplane rmax="8300" rmin="675" z="6610"/>
+      <zplane rmax="8300" rmin="700" z="6835"/>
+      <zplane rmax="8300" rmin="1041.1" z="10165"/>
+      <zplane rmax="8300" rmin="1130" z="10165"/>
+      <zplane rmax="8300" rmin="1130" z="10500"/>
+      <zplane rmax="8300" rmin="1086" z="10500"/>
+      <zplane rmax="8300" rmin="1086" z="10860"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="BEAM0x7f4a9a62cbe0" startphi="0">
+      <zplane rmax="22.5" z="0"/>
+      <zplane rmax="25.623" z="1624"/>
+      <zplane rmax="26.803" z="1624"/>
+      <zplane rmax="27.017" z="1636"/>
+      <zplane rmax="25.837" z="1636"/>
+      <zplane rmax="52" z="3098"/>
+      <zplane rmax="65" z="3098"/>
+      <zplane rmax="65" z="3120"/>
+      <zplane rmax="65" z="3162"/>
+      <zplane rmax="69.5" z="3162"/>
+      <zplane rmax="69.5" z="3481"/>
+      <zplane rmax="89.3" z="5541"/>
+      <zplane rmax="105" z="6500"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="BEAM10x7f4a9a62cdc0" startphi="0">
+      <zplane rmax="105" z="6500"/>
+      <zplane rmax="117.85" z="7499"/>
+      <zplane rmax="121.5" z="7950"/>
+      <zplane rmax="122" z="7950"/>
+      <zplane rmax="159.5" z="10539"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="BEAM20x7f4a9a62ce60" startphi="0">
+      <zplane rmax="159.5" z="10539"/>
+      <zplane rmax="159.5" z="10860"/>
+      <zplane rmax="124.95" z="10860"/>
+      <zplane rmax="124.95" z="13290"/>
+      <zplane rmax="250" z="13290"/>
+      <zplane rmax="250" z="13381"/>
+      <zplane rmax="36.75" z="13381"/>
+      <zplane rmax="36.75" z="13439"/>
+      <zplane rmax="35.75" z="13439"/>
+      <zplane rmax="28.5" z="13465"/>
+      <zplane rmax="28.5" z="16030.5"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="BEAM30x7f4a9a62cf00" startphi="0">
+      <zplane rmax="75" z="16030.5"/>
+      <zplane rmax="75" z="16424"/>
+      <zplane rmax="205" z="17058"/>
+      <zplane rmax="205" z="17920"/>
+      <zplane rmax="40" z="18562"/>
+      <zplane rmax="40" z="18905"/>
+      <zplane rmax="21.5" z="18905"/>
+      <zplane rmax="21.5" z="27000"/>
+    </polycone>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="TrackerPixelNose0x7f4a8f611020" rmax="227" rmin="215" startphi="0" z="619.5"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="VCAL0x7f4a8f611100" rmax="1595" rmin="124.95" startphi="0" z="1651"/>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="TotemT10x7f4a9a62d040" startphi="0">
+      <zplane rmax="768" rmin="117.85" z="7499"/>
+      <zplane rmax="814" rmin="121.5" z="7950"/>
+      <zplane rmax="814" rmin="122" z="7950"/>
+      <zplane rmax="1041.1" rmin="154.1" z="10165"/>
+      <zplane rmax="1130" rmin="154.1" z="10165"/>
+      <zplane rmax="1130" rmin="159" z="10500"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="TotemT20x7f4a9a62d180" startphi="0">
+      <zplane rmax="250" rmin="36.75" z="13381"/>
+      <zplane rmax="250" rmin="36.75" z="13439"/>
+      <zplane rmax="250" rmin="35.75" z="13439"/>
+      <zplane rmax="250" rmin="28.5" z="13465"/>
+      <zplane rmax="250" rmin="28.5" z="14360"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="Castor0x7f4a9a62d220" startphi="0">
+      <zplane rmax="330" rmin="28.5" z="0"/>
+      <zplane rmax="330" rmin="28.5" z="1334"/>
+      <zplane rmax="330" rmin="330" z="1616.5"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="OQUA0x7f4a9a62d2c0" startphi="0">
+      <zplane rmax="3000" rmin="124.95" z="10860"/>
+      <zplane rmax="3000" rmin="124.95" z="11149.5"/>
+      <zplane rmax="3000" rmin="1595" z="11149.5"/>
+      <zplane rmax="3000" rmin="1595" z="12800.5"/>
+      <zplane rmax="3000" rmin="124.95" z="12800.5"/>
+      <zplane rmax="3000" rmin="124.95" z="13290"/>
+      <zplane rmax="3000" rmin="330" z="13290"/>
+      <zplane rmax="3000" rmin="330" z="16006.5"/>
+      <zplane rmax="3000" rmin="250" z="16006.5"/>
+      <zplane rmax="3000" rmin="250" z="18905"/>
+      <zplane rmax="3000" rmin="21.5" z="18905"/>
+      <zplane rmax="3000" rmin="21.5" z="26000"/>
+      <zplane rmax="1000" rmin="21.5" z="26000"/>
+      <zplane rmax="1000" rmin="21.5" z="27000"/>
+    </polycone>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="BSC20x7f4a8f613240" rmax="330" rmin="28.5" startphi="0" z="28"/>
+    <box lunit="mm" name="ZDC0x7f4a9a644e80" x="160" y="1280" z="1800"/>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="CMSE0x7f4a9a62c320" startphi="0">
+      <zplane rmax="1000" z="-450000"/>
+      <zplane rmax="1000" z="-26000"/>
+      <zplane rmax="8300" z="-26000"/>
+      <zplane rmax="8300" z="26000"/>
+      <zplane rmax="1000" z="26000"/>
+      <zplane rmax="1000" z="450000"/>
+    </polycone>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="OCMS0x7f4a9a62d360" rmax="17500" startphi="0" z="900000"/>
+  </solids>
+
+  <structure>
+    <volume name="CMStoZDC0x7f4a9a83fd80">
+      <materialref ref="Air"/>
+      <solidref ref="CMStoZDC0x7f4a9a7c6fa0"/>
+    </volume>
+    <volume name="ZDCtoFP4200x7f4a9a83fe00">
+      <materialref ref="Air"/>
+      <solidref ref="ZDCtoFP4200x7f4a9a7c7080"/>
+    </volume>
+    <volume name="Tracker0x7f4a9a83fe80">
+      <materialref ref="Air"/>
+      <solidref ref="Tracker0x7f4a9a62cb40"/>
+    </volume>
+    <volume name="CALO0x7f4a9a83ff00">
+      <materialref ref="Air"/>
+      <solidref ref="CALO0x7f4a9a62cc80"/>
+    </volume>
+    <volume name="MUON0x7f4a9a758080">
+      <materialref ref="Air"/>
+      <solidref ref="MUON0x7f4a9a62cd20"/>
+    </volume>
+    <volume name="BEAM0x7f4a9a83ff80">
+      <materialref ref="Air"/>
+      <solidref ref="BEAM0x7f4a9a62cbe0"/>
+    </volume>
+    <volume name="BEAM10x7f4a9a758380">
+      <materialref ref="Air"/>
+      <solidref ref="BEAM10x7f4a9a62cdc0"/>
+    </volume>
+    <volume name="BEAM20x7f4a9a758400">
+      <materialref ref="Air"/>
+      <solidref ref="BEAM20x7f4a9a62ce60"/>
+    </volume>
+    <volume name="BEAM30x7f4a9a758500">
+      <materialref ref="Air"/>
+      <solidref ref="BEAM30x7f4a9a62cf00"/>
+    </volume>
+    <volume name="TrackerPixelNose0x7f4a9a758680">
+      <materialref ref="Air"/>
+      <solidref ref="TrackerPixelNose0x7f4a8f611020"/>
+    </volume>
+    <volume name="VCAL0x7f4a9a758200">
+      <materialref ref="Air"/>
+      <solidref ref="VCAL0x7f4a8f611100"/>
+    </volume>
+    <volume name="TotemT10x7f4a9a758780">
+      <materialref ref="Air"/>
+      <solidref ref="TotemT10x7f4a9a62d040"/>
+    </volume>
+    <volume name="TotemT20x7f4a9a758880">
+      <materialref ref="Air"/>
+      <solidref ref="TotemT20x7f4a9a62d180"/>
+    </volume>
+    <volume name="CastorF0x7f4a9a758980">
+      <materialref ref="Air"/>
+      <solidref ref="Castor0x7f4a9a62d220"/>
+    </volume>
+    <volume name="CastorB0x7f4a9a758a00">
+      <materialref ref="Air"/>
+      <solidref ref="Castor0x7f4a9a62d220"/>
+    </volume>
+    <volume name="OQUA0x7f4a9a758a80">
+      <materialref ref="Air"/>
+      <solidref ref="OQUA0x7f4a9a62d2c0"/>
+    </volume>
+    <volume name="BSC20x7f4a9a758480">
+      <materialref ref="Air"/>
+      <solidref ref="BSC20x7f4a8f613240"/>
+    </volume>
+    <volume name="ZDC0x7f4a9a758b00">
+      <materialref ref="Air"/>
+      <solidref ref="ZDC0x7f4a9a644e80"/>
+    </volume>
+    <volume name="CMSE0x7f4a9a83fd00">
+      <materialref ref="Air"/>
+      <solidref ref="CMSE0x7f4a9a62c320"/>
+      <physvol copynumber="1" name="CMStoZDC0x7f4a9a757000">
+        <volumeref ref="CMStoZDC0x7f4a9a83fd80"/>
+        <position name="CMStoZDC0x7f4a9a757000_pos" unit="mm" x="0" y="0" z="83000"/>
+      </physvol>
+      <physvol copynumber="2" name="CMStoZDC0x7f4a9a757040">
+        <volumeref ref="CMStoZDC0x7f4a9a83fd80"/>
+        <position name="CMStoZDC0x7f4a9a757040_pos" unit="mm" x="0" y="0" z="-83000"/>
+      </physvol>
+      <physvol copynumber="1" name="ZDCtoFP4200x7f4a9a757180">
+        <volumeref ref="ZDCtoFP4200x7f4a9a83fe00"/>
+        <position name="ZDCtoFP4200x7f4a9a757180_pos" unit="mm" x="0" y="0" z="270000"/>
+      </physvol>
+      <physvol copynumber="2" name="ZDCtoFP4200x7f4a9a7571c0">
+        <volumeref ref="ZDCtoFP4200x7f4a9a83fe00"/>
+        <position name="ZDCtoFP4200x7f4a9a7571c0_pos" unit="mm" x="0" y="0" z="-270000"/>
+      </physvol>
+      <physvol copynumber="1" name="Tracker0x7f4a9a757600">
+        <volumeref ref="Tracker0x7f4a9a83fe80"/>
+      </physvol>
+      <physvol copynumber="1" name="CALO0x7f4a9a757ac0">
+        <volumeref ref="CALO0x7f4a9a83ff00"/>
+      </physvol>
+      <physvol copynumber="1" name="MUON0x7f4a9a75a200">
+        <volumeref ref="MUON0x7f4a9a758080"/>
+      </physvol>
+      <physvol copynumber="1" name="BEAM0x7f4a9a75a680">
+        <volumeref ref="BEAM0x7f4a9a83ff80"/>
+      </physvol>
+      <physvol copynumber="2" name="BEAM0x7f4a9a75a6c0">
+        <volumeref ref="BEAM0x7f4a9a83ff80"/>
+        <rotation name="BEAM0x7f4a9a75a6c0_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="BEAM10x7f4a9a75a7c0">
+        <volumeref ref="BEAM10x7f4a9a758380"/>
+      </physvol>
+      <physvol copynumber="2" name="BEAM10x7f4a9a75a800">
+        <volumeref ref="BEAM10x7f4a9a758380"/>
+        <rotation name="BEAM10x7f4a9a75a800_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="BEAM20x7f4a9a757a80">
+        <volumeref ref="BEAM20x7f4a9a758400"/>
+      </physvol>
+      <physvol copynumber="2" name="BEAM20x7f4a9a75ae00">
+        <volumeref ref="BEAM20x7f4a9a758400"/>
+        <rotation name="BEAM20x7f4a9a75ae00_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="BEAM30x7f4a9a75af40">
+        <volumeref ref="BEAM30x7f4a9a758500"/>
+      </physvol>
+      <physvol copynumber="2" name="BEAM30x7f4a8f615040">
+        <volumeref ref="BEAM30x7f4a9a758500"/>
+        <rotation name="BEAM30x7f4a8f615040_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="TrackerPixelNose0x7f4a8f6153c0">
+        <volumeref ref="TrackerPixelNose0x7f4a9a758680"/>
+        <position name="TrackerPixelNose0x7f4a8f6153c0_pos" unit="mm" x="0" y="0" z="3241.75"/>
+      </physvol>
+      <physvol copynumber="2" name="TrackerPixelNose0x7f4a8f615400">
+        <volumeref ref="TrackerPixelNose0x7f4a9a758680"/>
+        <position name="TrackerPixelNose0x7f4a8f615400_pos" unit="mm" x="0" y="0" z="-3241.75"/>
+        <rotation name="TrackerPixelNose0x7f4a8f615400_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="5001" name="VCAL0x7f4a8f615540">
+        <volumeref ref="VCAL0x7f4a9a758200"/>
+        <position name="VCAL0x7f4a8f615540_pos" unit="mm" x="0" y="0" z="11975"/>
+      </physvol>
+      <physvol copynumber="5002" name="VCAL0x7f4a8f615580">
+        <volumeref ref="VCAL0x7f4a9a758200"/>
+        <position name="VCAL0x7f4a8f615580_pos" unit="mm" x="0" y="0" z="-11975"/>
+        <rotation name="VCAL0x7f4a8f615580_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="TotemT10x7f4a8f6156c0">
+        <volumeref ref="TotemT10x7f4a9a758780"/>
+      </physvol>
+      <physvol copynumber="2" name="TotemT10x7f4a8f615700">
+        <volumeref ref="TotemT10x7f4a9a758780"/>
+        <rotation name="TotemT10x7f4a8f615700_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="TotemT20x7f4a8f615ac0">
+        <volumeref ref="TotemT20x7f4a9a758880"/>
+      </physvol>
+      <physvol copynumber="2" name="TotemT20x7f4a8f615b00">
+        <volumeref ref="TotemT20x7f4a9a758880"/>
+        <rotation name="TotemT20x7f4a8f615b00_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="CastorF0x7f4a8f615f80">
+        <volumeref ref="CastorF0x7f4a9a758980"/>
+        <position name="CastorF0x7f4a8f615f80_pos" unit="mm" x="0" y="0" z="14390"/>
+      </physvol>
+      <physvol copynumber="2" name="CastorB0x7f4a8f616080">
+        <volumeref ref="CastorB0x7f4a9a758a00"/>
+        <position name="CastorB0x7f4a8f616080_pos" unit="mm" x="0" y="0" z="-14390"/>
+        <rotation name="CastorB0x7f4a8f616080_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="OQUA0x7f4a8f6165c0">
+        <volumeref ref="OQUA0x7f4a9a758a80"/>
+      </physvol>
+      <physvol copynumber="2" name="OQUA0x7f4a8f616600">
+        <volumeref ref="OQUA0x7f4a9a758a80"/>
+        <rotation name="OQUA0x7f4a8f616600_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="BSC20x7f4a8f616740">
+        <volumeref ref="BSC20x7f4a9a758480"/>
+        <position name="BSC20x7f4a8f616740_pos" unit="mm" x="0" y="0" z="14376"/>
+      </physvol>
+      <physvol copynumber="2" name="BSC20x7f4a8f616780">
+        <volumeref ref="BSC20x7f4a9a758480"/>
+        <position name="BSC20x7f4a8f616780_pos" unit="mm" x="0" y="0" z="-14376"/>
+      </physvol>
+      <physvol copynumber="1" name="ZDC0x7f4a8f6168c0">
+        <volumeref ref="ZDC0x7f4a9a758b00"/>
+        <position name="ZDC0x7f4a8f6168c0_pos" unit="mm" x="0" y="0" z="140000"/>
+      </physvol>
+      <physvol copynumber="2" name="ZDC0x7f4a8f616900">
+        <volumeref ref="ZDC0x7f4a9a758b00"/>
+        <position name="ZDC0x7f4a8f616900_pos" unit="mm" x="0" y="0" z="-140000"/>
+        <rotation name="ZDC0x7f4a8f616900_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+    </volume>
+    <volume name="OCMS0x7f4a9a758e00">
+      <materialref ref="Air"/>
+      <solidref ref="OCMS0x7f4a9a62d360"/>
+      <physvol copynumber="1" name="CMSE0x7f4a8f616d40">
+        <volumeref ref="CMSE0x7f4a9a83fd00"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="OCMS0x7f4a9a758e00"/>
+  </setup>
+
+</gdml>

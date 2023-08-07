@@ -75,7 +75,7 @@ struct Array
     //!@{
     //! \name Capacity
     CELER_CONSTEXPR_FUNCTION bool empty() const { return N == 0; }
-    CELER_CONSTEXPR_FUNCTION size_type size() const { return N; }
+    static CELER_CONSTEXPR_FUNCTION size_type size() { return N; }
     //!@}
 
     //!@{

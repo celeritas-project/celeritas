@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include <limits>
 #include <nlohmann/json.hpp>
 
@@ -14,15 +15,17 @@
 
 #include "BoundingBox.hh"
 
-namespace
+namespace celeritas
 {
+namespace detail
+{
+//---------------------------------------------------------------------------//
+//! Replace "max" with "inf" since the latter can't be represented in JSON.
 template<class T>
 inline void fix_inf(typename celeritas::BoundingBox<T>::Real3* point)
 {
-    constexpr auto max_real = std::numeric_limits<
-        typename celeritas::BoundingBox<T>::value_type>::max();
-    constexpr auto inf = std::numeric_limits<
-        typename celeritas::BoundingBox<T>::value_type>::infinity();
+    constexpr auto max_real = std::numeric_limits<T>::max();
+    constexpr auto inf = std::numeric_limits<T>::infinity();
 
     for (auto axis : range(celeritas::Axis::size_))
     {
@@ -33,10 +36,9 @@ inline void fix_inf(typename celeritas::BoundingBox<T>::Real3* point)
         }
     }
 }
-}  // namespace
+//---------------------------------------------------------------------------//
+}  // namespace detail
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Read a quantity from a JSON file.
@@ -51,8 +53,8 @@ inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
     auto lower = j[0].get<Real3>();
     auto upper = j[1].get<Real3>();
 
-    fix_inf<T>(&lower);
-    fix_inf<T>(&upper);
+    detail::fix_inf<T>(&lower);
+    detail::fix_inf<T>(&upper);
 
     bbox = BoundingBox<T>{lower, upper};
 }

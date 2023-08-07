@@ -12,9 +12,11 @@
 #include <G4TransportationManager.hh>
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/GenParticle.h>
+#include <HepMC3/GenVertex.h>
 #include <HepMC3/Reader.h>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/EventReader.hh"
 
@@ -22,6 +24,54 @@ namespace celeritas
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+//! Add particles to an event using vertices
+class PrimaryInserter
+{
+  public:
+    explicit PrimaryInserter(G4Event* event) : g4_event_(event)
+    {
+        CELER_EXPECT(g4_event_);
+        g4_vtx_ = std::make_unique<G4PrimaryVertex>();
+    }
+
+    void operator()(HepMC3::GenParticle const& par)
+    {
+        auto* cur_vtx = par.production_vertex().get();
+        if (last_vtx_ && last_vtx_ != cur_vtx)
+        {
+            this->insert_vertex();
+        }
+        last_vtx_ = cur_vtx;
+
+        // Insert primary
+        auto const& p = par.momentum();
+        CELER_ASSERT(g4_vtx_);
+        g4_vtx_->SetPrimary(
+            new G4PrimaryParticle(par.pid(), p.x(), p.y(), p.z(), p.e()));
+    }
+
+    void operator()() { this->insert_vertex(); }
+
+  private:
+    G4Event* g4_event_;
+    std::unique_ptr<G4PrimaryVertex> g4_vtx_;
+    HepMC3::GenVertex const* last_vtx_ = nullptr;
+
+    void insert_vertex()
+    {
+        if (g4_vtx_->GetNumberOfParticle() == 0)
+            return;
+
+        auto const& pos = last_vtx_->position();
+        g4_vtx_->SetPosition(
+            pos.x() * CLHEP::mm, pos.y() * CLHEP::mm, pos.z() * CLHEP::mm);
+        g4_vtx_->SetT0(pos.t() / (CLHEP::mm * CLHEP::c_light));
+        g4_event_->AddPrimaryVertex(g4_vtx_.release());
+        g4_vtx_ = std::make_unique<G4PrimaryVertex>();
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the world solid volume.
@@ -52,7 +102,6 @@ G4VSolid* get_world_solid()
  * Construct with a path to a HepMC3-compatible input file.
  */
 HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
-    : world_solid_{get_world_solid()}
 {
     // Fetch total number of events by opening a temporary reader
     num_events_ = [&filename] {
@@ -93,66 +142,74 @@ HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
  */
 void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 {
-    HepMC3::GenEvent gen_event;
+    HepMC3::GenEvent evt;
 
     {
         // Read the next event from the file.
         std::lock_guard scoped_lock{read_mutex_};
-        reader_->read_event(gen_event);
+        reader_->read_event(evt);
         CELER_ASSERT(!reader_->failed());
+        CELER_ASSERT(evt.particles().size() > 0);
     }
 
-    CELER_LOG_LOCAL(info) << "Read " << gen_event.particles().size()
-                          << " primaries from HepMC event ID "
-                          << gen_event.event_number() << " for Geant4 event "
-                          << g4_event->GetEventID();
-
-    gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM);  // Geant4
-                                                                 // units
-    auto const& event_pos = gen_event.event_pos();
-
-    // Verify that vertex is inside the world volume
-    if (CELERITAS_DEBUG && CELER_UNLIKELY(!world_solid_))
+    CELER_LOG_LOCAL(debug) << "Processing " << evt.vertices().size()
+                           << " vertices with " << evt.particles().size()
+                           << " primaries from HepMC event ID "
+                           << evt.event_number();
+    if (evt.event_number() != g4_event->GetEventID())
     {
-        world_solid_ = get_world_solid();
+        CELER_LOG_LOCAL(warning)
+            << "Read event ID " << evt.event_number()
+            << " does not match Geant4 event ID " << g4_event->GetEventID();
     }
-    CELER_ASSERT(world_solid_->Inside(G4ThreeVector{
-                     event_pos.x(), event_pos.y(), event_pos.z()})
-                 == EInside::kInside);
 
-    for (auto const& gen_particle : gen_event.particles())
+    evt.set_units(HepMC3::Units::MEV, HepMC3::Units::MM);  // Geant4 units
+
+    int num_primaries{0};
+    PrimaryInserter insert_primary{g4_event};
+
+    for (auto const& par : evt.particles())
     {
-        // Convert primary to Geant4 vertex
-        HepMC3::GenParticleData const& part_data = gen_particle->data();
-
-        if (part_data.status <= 0)
+        if (par->data().status != 1 || par->end_vertex())
         {
-            // Skip particles that should not be tracked
-            // Status codes (page 13):
+            // Skip particles that should not be tracked: Geant4 HepMCEx01
+            // skips all that don't have the status code of "final" (see
             // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
-            if (part_data.momentum.e() > 0)
-            {
-                CELER_LOG_LOCAL(debug)
-                    << "Skipped status code " << part_data.status << " for "
-                    << part_data.momentum.e() << " MeV primary";
-            }
+            // ) and furthermore skips particles that are not leaves on the
+            // tree of generated particles
             continue;
         }
+        ++num_primaries;
+        insert_primary(*par);
+    }
+    insert_primary();
 
-        auto g4_vtx = std::make_unique<G4PrimaryVertex>(
-            event_pos.x(),
-            event_pos.y(),
-            event_pos.z(),
-            event_pos.t() / CLHEP::c_light);  // [ns] (Geant4 standard unit)
+    CELER_LOG_LOCAL(info) << "Read " << g4_event->GetNumberOfPrimaryVertex()
+                          << " real vertices with " << num_primaries
+                          << " real primaries from HepMC event ID "
+                          << evt.event_number();
 
-        auto const& p = part_data.momentum;
-        g4_vtx->SetPrimary(
-            new G4PrimaryParticle(part_data.pid, p.x(), p.y(), p.z(), p.e()));
-
-        g4_event->AddPrimaryVertex(g4_vtx.release());
+    // Check world solid
+    if (CELERITAS_DEBUG)
+    {
+        if (CELER_UNLIKELY(!world_solid_))
+        {
+            world_solid_ = get_world_solid();
+        }
+        CELER_ASSERT(world_solid_);
+        for (auto vtx_id : range(g4_event->GetNumberOfPrimaryVertex()))
+        {
+            G4PrimaryVertex* vtx = g4_event->GetPrimaryVertex(vtx_id);
+            CELER_ASSERT(vtx);
+            CELER_ASSERT(world_solid_->Inside(vtx->GetPosition())
+                         == EInside::kInside);
+        }
     }
 
-    CELER_ENSURE(g4_event->GetNumberOfPrimaryVertex() > 0);
+    CELER_VALIDATE(g4_event->GetNumberOfPrimaryVertex() > 0,
+                   << "event " << evt.event_number()
+                   << " did not contain any primaries suitable for "
+                      "simulation");
 }
 
 //---------------------------------------------------------------------------//

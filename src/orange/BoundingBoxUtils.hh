@@ -23,7 +23,7 @@ namespace celeritas
  */
 template<class T>
 inline CELER_FUNCTION bool
-is_inside(BoundingBox<T> const& bbox, typename BoundingBox<T>::Real3 point)
+is_inside(BoundingBox<T> const& bbox, Array<T, 3> point)
 {
     CELER_EXPECT(bbox);
 
@@ -50,8 +50,7 @@ inline bool is_infinite(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    constexpr auto max_real
-        = std::numeric_limits<typename BoundingBox<T>::value_type>::max();
+    constexpr auto max_real = std::numeric_limits<T>::max();
 
     for (auto axis : range(Axis::size_))
     {
@@ -69,11 +68,11 @@ inline bool is_infinite(BoundingBox<T> const& bbox)
  * Calculate the center of a bounding box.
  */
 template<class T>
-inline Real3 center(BoundingBox<T> const& bbox)
+inline Array<T, 3> center(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    Real3 center;
+    Array<T, 3> center;
     for (auto axis : range(Axis::size_))
     {
         auto ax = to_int(axis);
@@ -88,12 +87,11 @@ inline Real3 center(BoundingBox<T> const& bbox)
  * Calculate the surface area of a bounding box.
  */
 template<class T>
-inline typename BoundingBox<T>::value_type
-surface_area(BoundingBox<T> const& bbox)
+inline T surface_area(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    Array<typename BoundingBox<T>::value_type, to_int(Axis::size_)> lengths;
+    Array<T, 3> lengths;
 
     for (auto axis : range(Axis::size_))
     {
@@ -109,7 +107,7 @@ surface_area(BoundingBox<T> const& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate bounding box enclosing two bounding boxes.
+ * Calculate the smallest bounding box enclosing two bounding boxes.
  */
 template<class T>
 inline BoundingBox<T>
@@ -117,7 +115,8 @@ bbox_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
     CELER_EXPECT(a && b);
 
-    typename BoundingBox<T>::Real3 lower, upper;
+    Array<T, 3> lower;
+    Array<T, 3> upper;
 
     for (auto axis : range(Axis::size_))
     {

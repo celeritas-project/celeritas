@@ -256,6 +256,7 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 #-----------------------------------------------------------------------------#
 
 celeritas_add_object_library(testcel_celeritas_core
+  celeritas/field/FieldTestBase.cc
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
   celeritas/phys/InteractorHostTestBase.cc
@@ -346,6 +347,7 @@ if(CELERITAS_USE_VecGeom)
     FILTER
       "FourLevelsTest.*"
       "SolidsTest.*"
+      "CmseTest.*"
       ${_vecgeom_geant_tests}
   )
 endif()

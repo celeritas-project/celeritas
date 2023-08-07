@@ -116,15 +116,15 @@ class GlobalTestBase : public Test
     void write_output(std::ostream& os) const;
 
   protected:
-    virtual SPConstGeo build_geometry() = 0;
-    virtual SPConstMaterial build_material() = 0;
-    virtual SPConstGeoMaterial build_geomaterial() = 0;
-    virtual SPConstParticle build_particle() = 0;
-    virtual SPConstCutoff build_cutoff() = 0;
-    virtual SPConstPhysics build_physics() = 0;
-    virtual SPConstSim build_sim() = 0;
-    virtual SPConstTrackInit build_init() = 0;
-    virtual SPConstAction build_along_step() = 0;
+    [[nodiscard]] virtual SPConstGeo build_geometry() = 0;
+    [[nodiscard]] virtual SPConstMaterial build_material() = 0;
+    [[nodiscard]] virtual SPConstGeoMaterial build_geomaterial() = 0;
+    [[nodiscard]] virtual SPConstParticle build_particle() = 0;
+    [[nodiscard]] virtual SPConstCutoff build_cutoff() = 0;
+    [[nodiscard]] virtual SPConstPhysics build_physics() = 0;
+    [[nodiscard]] virtual SPConstSim build_sim() = 0;
+    [[nodiscard]] virtual SPConstTrackInit build_init() = 0;
+    [[nodiscard]] virtual SPConstAction build_along_step() = 0;
 
   private:
     SPConstRng build_rng() const;

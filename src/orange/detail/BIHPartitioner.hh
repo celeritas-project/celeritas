@@ -32,6 +32,7 @@ class BIHPartitioner
   public:
     //!@{
     //! \name Type aliases
+    using Real3 = Array<fast_real_type, 3>;
     using VecBBox = std::vector<FastBBox>;
     using VecReal3 = std::vector<Real3>;
     using VecIndices = std::vector<LocalVolumeId>;

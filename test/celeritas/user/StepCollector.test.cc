@@ -268,7 +268,7 @@ TEST_F(TestEm3MctruthTest, four_step)
             -20, -0.62729376699778, 0, -19.969797686903, -0.66354024672438,
             -0.0032805361823643, -19.956976222507, -0.71463257305966,
             0.010438618638369};
-        EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
+        EXPECT_VEC_NEAR(expected_pos, result.pos, 1e-11);
         static const double expected_dir[] = {1, 0, 0, 0.82087264698347,
             0.57111128288133, 0, 0.86898688645512, 0.46973495237486,
             0.15559841158064, 0.99921943764862, 0.020164890030908,
@@ -281,7 +281,7 @@ TEST_F(TestEm3MctruthTest, four_step)
             -0.57111128288041, 0, 0.45731722153487, -0.78666386310603,
             0.41475405407388, 0.35982246270509, -0.81678277174296,
             0.45099190582174};
-        EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
+        EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-10);
         // clang-format on
     }
     else

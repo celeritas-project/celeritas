@@ -128,7 +128,7 @@ void OutputInterfaceAdapter<T>::output(JsonPimpl* j) const
 #if CELERITAS_USE_JSON
     to_json(j->obj, *obj_);
 #else
-    CELER_NOT_IMPLEMENTED("nlohmann_json");
+    CELER_NOT_CONFIGURED("nlohmann_json");
 #endif
 }
 

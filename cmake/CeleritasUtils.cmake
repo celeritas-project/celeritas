@@ -136,6 +136,8 @@ include_guard(GLOBAL)
 
 include(CheckLanguage)
 
+set(CELERITAS_DEFAULT_VARIABLES)
+
 #-----------------------------------------------------------------------------#
 
 function(celeritas_optional_language lang)
@@ -199,12 +201,13 @@ endmacro()
 
 #-----------------------------------------------------------------------------#
 
-function(celeritas_set_default name value)
+macro(celeritas_set_default name value)
   if(NOT DEFINED ${name})
     message(VERBOSE "Celeritas: set default ${name}=${value}")
-    set(${name} "${value}" PARENT_SCOPE)
+    set(${name} "${value}")
   endif()
-endfunction()
+  list(APPEND CELERITAS_DEFAULT_VARIABLES ${name})
+endmacro()
 
 #-----------------------------------------------------------------------------#
 

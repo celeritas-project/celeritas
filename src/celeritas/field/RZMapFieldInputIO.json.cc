@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "FieldDriverOptionsIO.json.hh"
 #include "RZMapFieldInput.hh"
 
 namespace celeritas
@@ -31,6 +32,10 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
     RZFI_LOAD(max_r);
     RZFI_LOAD(field_z);
     RZFI_LOAD(field_r);
+    if (j.contains("driver_options"))
+    {
+        RZFI_LOAD(driver_options);
+    }
 #undef RZFI_LOAD
 }
 
@@ -50,6 +55,7 @@ void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
         RZFI_KEY_VALUE(max_r),
         RZFI_KEY_VALUE(field_z),
         RZFI_KEY_VALUE(field_r),
+        RZFI_KEY_VALUE(driver_options),
     };
 #undef RZFI_KEY_VALUE
 }
