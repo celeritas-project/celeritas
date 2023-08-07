@@ -66,7 +66,8 @@ struct BIHLeafNode
 
 //---------------------------------------------------------------------------//
 /*!
- * Storage for a Bounding Interval Hierarchy tree.
+ * References to host storage while constructing a Bounding Interval Hierarchy
+ * tree.
  */
 struct BIHStorage
 {
