@@ -23,7 +23,7 @@ namespace celeritas
  */
 template<class T>
 inline CELER_FUNCTION bool
-is_inside(BoundingBox<T> const& bbox, typename BoundingBox<T>::array_type point)
+is_inside(BoundingBox<T> const& bbox, typename BoundingBox<T>::Real3 point)
 {
     CELER_EXPECT(bbox);
 
@@ -117,7 +117,7 @@ bbox_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
     CELER_EXPECT(a && b);
 
-    typename BoundingBox<T>::array_type lower, upper;
+    typename BoundingBox<T>::Real3 lower, upper;
 
     for (auto axis : range(Axis::size_))
     {

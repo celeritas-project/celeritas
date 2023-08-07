@@ -17,7 +17,7 @@
 namespace
 {
 template<class T>
-inline void fix_inf(typename celeritas::BoundingBox<T>::array_type* point)
+inline void fix_inf(typename celeritas::BoundingBox<T>::Real3* point)
 {
     constexpr auto max_real = std::numeric_limits<
         typename celeritas::BoundingBox<T>::value_type>::max();
@@ -47,9 +47,9 @@ inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
     CELER_VALIDATE(j.size() == 2,
                    << " bounding box must have lower and upper extents");
 
-    using array_type = typename BoundingBox<T>::array_type;
-    auto lower = j[0].get<array_type>();
-    auto upper = j[1].get<array_type>();
+    using Real3 = typename BoundingBox<T>::Real3;
+    auto lower = j[0].get<Real3>();
+    auto upper = j[1].get<Real3>();
 
     fix_inf<T>(&lower);
     fix_inf<T>(&upper);
