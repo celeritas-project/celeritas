@@ -25,7 +25,7 @@ class DormandPrinceStepperTest : public Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-TEST_F(DormandPrinceStepperTest, global_memory_result)
+TEST_F(DormandPrinceStepperTest, result_global_memory)
 {
     auto expected = simulate_multi_next_chord(one_thread, number_states_sample);
     auto actual = simulate_multi_next_chord(multi_thread, number_states_sample);
@@ -49,7 +49,7 @@ TEST_F(DormandPrinceStepperTest, global_memory_result)
     }
 }
 
-TEST_F(DormandPrinceStepperTest, global_memory_time)
+TEST_F(DormandPrinceStepperTest, time_global_memory)
 {
     auto old = simulate_multi_next_chord(one_thread, number_states_sample);
     auto multi_threaded
@@ -61,7 +61,7 @@ TEST_F(DormandPrinceStepperTest, global_memory_time)
                    << old.milliseconds << " ms)");
 }
 
-TEST_F(DormandPrinceStepperTest, shared_memory_result)
+TEST_F(DormandPrinceStepperTest, result_shared_memory)
 {
     auto expected = simulate_multi_next_chord(one_thread, number_states_sample);
     auto actual
@@ -86,7 +86,7 @@ TEST_F(DormandPrinceStepperTest, shared_memory_result)
     }
 }
 
-TEST_F(DormandPrinceStepperTest, shared_memory_time)
+TEST_F(DormandPrinceStepperTest, time_shared_memory)
 {
     auto old = simulate_multi_next_chord(one_thread, number_states_sample);
     auto multi_threaded
@@ -98,11 +98,13 @@ TEST_F(DormandPrinceStepperTest, shared_memory_time)
                    << old.milliseconds << " ms)");
 }
 
-TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_one_by_one)
+TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_one_block)
 {
-    constexpr int number_max_states = 800;
+    constexpr int max_states_old = 768;
+    constexpr int max_states_global = 192;
+    constexpr int max_states_shared = 88;
 
-    for (int i = 1; i < number_max_states; i++)
+    for (int i = 1; i < max_states_old; i++)
     {
         auto old = simulate_multi_next_chord(one_thread, i);
         CELER_LOG(info) << "With states=" << i
@@ -113,7 +115,7 @@ TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_one_by_one)
         }
     }
 
-    for (int i = 1; i < number_max_states; i++)
+    for (int i = 1; i < max_states_global; i++)
     {
         auto global_multi_threaded = simulate_multi_next_chord(multi_thread, i);
         CELER_LOG(info) << "With states=" << i
@@ -125,7 +127,7 @@ TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_one_by_one)
         }
     }
 
-    for (int i = 1; i < number_max_states; i++)
+    for (int i = 1; i < max_states_shared; i++)
     {
         auto shared_multi_threaded
             = simulate_multi_next_chord(multi_thread, i, true);
@@ -139,11 +141,12 @@ TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_one_by_one)
     }
 }
 
-TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_all)
+TEST_F(DormandPrinceStepperTest, compare_time_multiblock)
 {
-    constexpr int number_max_states = 500;
+    constexpr int number_max_states = 1000001;
+    constexpr int step_size = 100;
 
-    for (int i = 1; i < number_max_states; i++)
+    for (int i = step_size; i <= number_max_states; i+=step_size)
     {
         auto old = simulate_multi_next_chord(one_thread, i);
         auto global_multi_threaded = simulate_multi_next_chord(multi_thread, i);

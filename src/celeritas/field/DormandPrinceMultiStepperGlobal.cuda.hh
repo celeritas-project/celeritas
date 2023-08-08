@@ -98,14 +98,14 @@ DormandPrinceMultiStepperGlobal<E>::operator()(result_type,
 }
 
 inline CELER_FUNCTION KernelResult
-DormandPrinceMultiStepperGlobal<E>::run_aside(real_type step,
-                                              OdeState const& beg_state,
-                                              int id,
-                                              int index,
-                                              int mask,
-                                              OdeState* ks,
-                                              OdeState* along_state,
-                                              FieldStepperResult* result) const
+DormandPrinceMultiStepperGlobal<E>::run_aside(real_type,
+                                              OdeState const&,
+                                              int,
+                                              int,
+                                              int,
+                                              OdeState*,
+                                              OdeState*,
+                                              FieldStepperResult* ) const
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
     return result_type{};

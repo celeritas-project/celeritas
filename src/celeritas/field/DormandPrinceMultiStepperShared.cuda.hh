@@ -38,7 +38,8 @@ class DormandPrinceMultiStepperShared
     // Adaptive step size control
     CELER_FUNCTION result_type operator()(real_type step,
                                           OdeState const& beg_state,
-                                          int number_threads) const;
+                                          int number_threads,
+                                               int number_states) const;
 
   private:
     // Functor to calculate the force applied to a particle
@@ -85,9 +86,7 @@ inline CELER_FUNCTION auto
 DormandPrinceMultiStepperShared<E>::operator()(result_type,
                                                OdeState const&,
                                                int,
-                                               OdeState*,
-                                               OdeState*,
-                                               FieldStepperResult*) const
+                                               int) const
     -> result_type
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
@@ -96,14 +95,14 @@ DormandPrinceMultiStepperShared<E>::operator()(result_type,
 
 template<class E>
 inline CELER_FUNCTION KernelResult
-DormandPrinceMultiStepperShared<E>::run_aside(real_type step,
-                                              OdeState const& beg_state,
-                                              int id,
-                                              int index,
-                                              int mask,
-                                              OdeState* ks,
-                                              OdeState* along_state,
-                                              FieldStepperResult* result) const
+DormandPrinceMultiStepperShared<E>::run_aside(real_type,
+                                              OdeState,
+                                              int,
+                                              int,
+                                              int,
+                                              OdeState*,
+                                              OdeState*,
+                                              FieldStepperResult*) const
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
     return result_type{};
@@ -111,13 +110,13 @@ DormandPrinceMultiStepperShared<E>::run_aside(real_type step,
 
 template<class E>
 inline CELER_FUNCTION KernelResult
-DormandPrinceMultiStepperShared<E>::run_sequential(real_type step,
-                                                   OdeState const& beg_state,
-                                                   int id,
-                                                   int mask,
-                                                   OdeState* ks,
-                                                   OdeState* along_state,
-                                                   FieldStepperResult* result) const
+DormandPrinceMultiStepperShared<E>::run_sequential(real_type,
+                                                   OdeState const&,
+                                                   int,
+                                                   int,
+                                                   OdeState*,
+                                                   OdeState*,
+                                                   FieldStepperResult*) const
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
     return result_type{};
@@ -146,19 +145,25 @@ template<class E>
 inline CELER_FUNCTION auto
 DormandPrinceMultiStepperShared<E>::operator()(real_type step,
                                                OdeState const& beg_state,
-                                               int number_threads) const
+                                               int number_threads,
+                                               int number_states) const
     -> result_type
 {
-    int num_states = (blockDim.x * gridDim.x) / number_threads;
     int id = (threadIdx.x + blockIdx.x * blockDim.x) / number_threads;
+    if (id >= number_states)
+    {
+        return result_type{};
+    }
     int index = (threadIdx.x + blockIdx.x * blockDim.x) % number_threads;
+    int states_block = blockDim.x / number_threads;
+    int blocId = id % states_block;
 
     extern __shared__ void* shared_memory[];
     OdeState* shared_ks = (OdeState*)shared_memory;
     OdeState* shared_along_state
-        = reinterpret_cast<OdeState*>(&shared_ks[7 * num_states]);
+        = reinterpret_cast<OdeState*>(&shared_ks[7 * states_block]);
     FieldStepperResult* shared_result = reinterpret_cast<FieldStepperResult*>(
-        &shared_along_state[num_states]);
+        &shared_along_state[states_block]);
 
     constexpr int warp_size = 32;
     int mask = (number_threads * number_threads - 1)
@@ -170,9 +175,9 @@ DormandPrinceMultiStepperShared<E>::operator()(real_type step,
                        beg_state,
                        id,
                        mask,
-                       &shared_ks[7 * id],
-                       &shared_along_state[id],
-                       &shared_result[id]);
+                       &shared_ks[7 * blocId],
+                       &shared_along_state[blocId],
+                       &shared_result[blocId]);
     }
     else
     {
@@ -181,13 +186,13 @@ DormandPrinceMultiStepperShared<E>::operator()(real_type step,
                   id,
                   index,
                   mask,
-                  &shared_ks[7 * id],
-                  &shared_along_state[id],
-                  &shared_result[id]);
+                  &shared_ks[7 * blocId],
+                  &shared_along_state[blocId],
+                  &shared_result[blocId]);
     }
 
     // return *result;
-    return shared_result[id];
+    return shared_result[blocId];
 }
 
 template<class E>
