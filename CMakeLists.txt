@@ -478,7 +478,7 @@ configure_file(
 # TODO for version 1.0.0: change COMPATIBILITY to MajorVersion
 write_basic_package_version_file(
   "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
-  COMPATIBILITY SameMinorVersion
+  COMPATIBILITY AnyNewerVersion
 )
 
 # Install generated config files
