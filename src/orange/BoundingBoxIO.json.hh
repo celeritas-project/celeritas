@@ -22,7 +22,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 //! Replace "max" with "inf" since the latter can't be represented in JSON.
 template<class T>
-inline void fix_inf(typename celeritas::BoundingBox<T>::Real3* point)
+inline void fix_inf(celeritas::Array<T, 3>* point)
 {
     constexpr auto max_real = std::numeric_limits<T>::max();
     constexpr auto inf = std::numeric_limits<T>::infinity();
@@ -49,12 +49,11 @@ inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
     CELER_VALIDATE(j.size() == 2,
                    << " bounding box must have lower and upper extents");
 
-    using Real3 = typename BoundingBox<T>::Real3;
-    auto lower = j[0].get<Real3>();
-    auto upper = j[1].get<Real3>();
+    auto lower = j[0].get<Array<T, 3>>();
+    auto upper = j[1].get<Array<T, 3>>();
 
-    detail::fix_inf<T>(&lower);
-    detail::fix_inf<T>(&upper);
+    detail::fix_inf(&lower);
+    detail::fix_inf(&upper);
 
     bbox = BoundingBox<T>{lower, upper};
 }
