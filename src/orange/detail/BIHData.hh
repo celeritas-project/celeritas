@@ -21,6 +21,12 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Data for a single inner node in a Bounding Interval Hierarchy.
+ *
+ * Note that the LEFT bounding plane position is the far right boundary of the
+ * left side of the tree, and the RIGHT bounding plane position is the far left
+ * boundary of the right side of the tree. Since the halfspaces of created by
+ * the bounding planes may overlap, the LEFT bounding plane position could be
+ * either left or right of the RIGHT bounding plane position.
  */
 struct BIHInnerNode
 {
