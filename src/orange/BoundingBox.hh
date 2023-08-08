@@ -110,8 +110,7 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
  * Lower bbox coordinate (must be valid).
  */
 template<class T>
-CELER_FUNCTION auto BoundingBox<T>::lower() const ->
-    typename BoundingBox<T>::Real3 const&
+CELER_FUNCTION auto BoundingBox<T>::lower() const -> Real3 const&
 {
     CELER_EXPECT(*this);
     return lower_;
@@ -122,8 +121,7 @@ CELER_FUNCTION auto BoundingBox<T>::lower() const ->
  * Upper bbox coordinate (must be valid).
  */
 template<class T>
-CELER_FUNCTION auto BoundingBox<T>::upper() const ->
-    typename BoundingBox<T>::Real3 const&
+CELER_FUNCTION auto BoundingBox<T>::upper() const -> Real3 const&
 {
     CELER_EXPECT(*this);
     return upper_;
