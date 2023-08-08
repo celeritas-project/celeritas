@@ -117,6 +117,7 @@ void OrangeGeoTestBase::build_geometry(OneVolInput inp)
         vi.flags = (inp.complex_tracking ? VolumeInput::Flags::internal_surfaces
                                          : 0);
         vi.label = "infinite";
+        vi.bbox = {{-0.5, -0.5, -0.5}, {0.5, 0.5, 0.5}};
         input.volumes.push_back(std::move(vi));
     }
 
@@ -138,6 +139,13 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
     CELER_EXPECT(inp.radius > 0);
     UnitInput input;
 
+    BBox bbox = {{-inp.radius, -inp.radius, -inp.radius},
+                 {inp.radius, inp.radius, inp.radius}};
+
+    auto inf = std::numeric_limits<real_type>::infinity();
+
+    BBox inf_bbox = {{-inf, -inf, -inf}, {inf, inf, inf}};
+
     {
         // Insert surfaces
         SurfaceInputBuilder insert(&input.surfaces);
@@ -151,11 +159,13 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         // Outside
         vi.logic = {0};
         vi.label = "outside";
+        vi.bbox = inf_bbox;
         input.volumes.push_back(vi);
 
         // Inside
         vi.logic = {0, logic::lnot};
         vi.label = "inside";
+        vi.bbox = bbox;
         input.volumes.push_back(vi);
     }
 
