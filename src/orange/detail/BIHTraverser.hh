@@ -50,17 +50,13 @@ class BIHTraverser
 
     // Test if any of the infinite volumes contain the point
     template<class F>
-    inline CELER_FUNCTION LocalVolumeId search_inf_vols(Real3 const& point,
-                                                        F&& functor) const;
-    // Test if a single volume contains the point
-    template<class F>
-    inline CELER_FUNCTION bool
-    test_volume(LocalVolumeId const& id, Real3 const& point, F&& functor) const;
+    inline CELER_FUNCTION LocalVolumeId search_inf_vols(F&& functor) const;
 
     // Get the ID of the next node in the traversal sequence
     inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId const& current_id,
                                               BIHNodeId const& previous_id,
                                               Real3 const& point) const;
+
     // Test if a given edge needs to be explored
     inline CELER_FUNCTION bool test_edge(BIHInnerNode const& node,
                                          BIHInnerNode::Edge edge,
@@ -128,7 +124,7 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::operator()(Real3 const& point,
 
     if (!id)
     {
-        id = this->search_inf_vols(point, functor);
+        id = this->search_inf_vols(functor);
     }
 
     return id;
@@ -145,7 +141,7 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::search_leaf(
     for (auto i : range(leaf_node.vol_ids.size()))
     {
         auto id = storage_.local_volume_ids[leaf_node.vol_ids[i]];
-        if (test_volume(id, point, functor))
+        if (test_bbox(id, point) && functor(id))
         {
             return id;
         }
@@ -158,32 +154,17 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::search_leaf(
  * Test if any of the infinite volumes contain the point.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId BIHTraverser::search_inf_vols(Real3 const& point,
-                                                           F&& functor) const
+CELER_FUNCTION LocalVolumeId BIHTraverser::search_inf_vols(F&& functor) const
 {
-    LocalVolumeId result;
-
     for (auto i : range(tree_.inf_volids.size()))
     {
         auto id = storage_.local_volume_ids[tree_.inf_volids[i]];
-        if (test_volume(id, point, functor))
+        if (functor(id))
         {
             return id;
         }
     }
     return LocalVolumeId{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Test if a single volume contains the point.
- */
-template<class F>
-CELER_FUNCTION bool BIHTraverser::test_volume(LocalVolumeId const& id,
-                                              Real3 const& point,
-                                              F&& functor) const
-{
-    return test_bbox(id, point) && functor(id, point);
 }
 
 //---------------------------------------------------------------------------//

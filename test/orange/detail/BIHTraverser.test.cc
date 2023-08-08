@@ -39,13 +39,11 @@ class BIHTraversalTest : public Test
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
     BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
 
-    static constexpr auto valid_volid_
-        = [](LocalVolumeId vol_id, [[maybe_unused]] Real3 point) -> bool {
+    static constexpr auto valid_volid_ = [](LocalVolumeId vol_id) -> bool {
         return static_cast<bool>(vol_id);
     };
 
-    static constexpr auto odd_volid_
-        = [](LocalVolumeId vol_id, [[maybe_unused]] Real3 point) -> bool {
+    static constexpr auto odd_volid_ = [](LocalVolumeId vol_id) -> bool {
         return vol_id.unchecked_get() % 2 != 0;
     };
 };

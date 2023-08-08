@@ -163,35 +163,25 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     detail::SenseCalculator calc_senses(
         this->make_local_surfaces(), state.pos, state.temp_sense);
 
-    // Loop over all volumes (TODO: use BVH)
-    for (LocalVolumeId volid : range(LocalVolumeId{this->num_volumes()}))
-    {
-        VolumeView vol = this->make_local_volume(volid);
-
-        // Calculate the local senses, and see if we're inside.
+    auto const& p = params_;
+    auto const& u = unit_record_;
+    auto evaluate_piv = [p, u, calc_senses](LocalVolumeId const& id) -> bool {
+        VolumeView vol(p, u, id);
         auto logic_state = calc_senses(vol);
 
-        // Evalulate whether the senses are "inside" the volume
-        if (!detail::LogicEvaluator(vol.logic())(logic_state.senses))
-        {
-            // State is *not* inside this volume: try the next one
-            continue;
-        }
-        if (logic_state.face)
-        {
-            // Initialized on a boundary in this volume but wasn't known
-            // to be crossing a surface. Fail safe by letting the multi-level
-            // tracking geometry (NOT YET IMPLEMENTED in GPU ORANGE) bump and
-            // try again.
-            break;
-        }
+        return detail::LogicEvaluator(vol.logic())(logic_state.senses)
+               && !logic_state.face;
+    };
 
-        // Found and not unexpectedly on a surface!
-        return {volid, {}};
+    LocalVolumeId id = bih_traverser_(state.pos, evaluate_piv);
+
+    if (!id)
+    {
+        // Not found, or default to background volume
+        id = unit_record_.background;
     }
 
-    // Not found, or default to background volume
-    return {unit_record_.background, {}};
+    return {id, {}};
 }
 
 //---------------------------------------------------------------------------//
