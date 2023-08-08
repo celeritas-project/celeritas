@@ -92,7 +92,16 @@ struct BIHTree
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return bboxes.size() > 0 && leaf_nodes.size() > 0;
+        if (!inner_nodes.empty())
+        {
+            return !bboxes.empty() && !leaf_nodes.empty();
+        }
+        else
+        {
+            // Degenerate single leaf node case. This occurs a tree owns a
+            // single volume or muliple non-partitionable volumes.
+            return !bboxes.empty() && leaf_nodes.size() == 1;
+        }
     }
 };
 

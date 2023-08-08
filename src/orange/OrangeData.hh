@@ -256,17 +256,9 @@ struct BIHTreeData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        if (!inner_nodes.empty())
-        {
-            return !bboxes.empty() && !local_volume_ids.empty()
-                   && !leaf_nodes.empty();
-        }
-        else
-        {
-            // Degenerate single leaf node case
-            return !bboxes.empty() && !local_volume_ids.empty()
-                   && leaf_nodes.size() == 1;
-        }
+        // Note that inner_nodes may be empty for single-node trees
+        return !bboxes.empty() && !local_volume_ids.empty()
+               && !leaf_nodes.empty();
     }
 
     //! Assign from another set of data
