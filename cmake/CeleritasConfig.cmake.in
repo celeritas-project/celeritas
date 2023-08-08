@@ -16,6 +16,26 @@ if(CMAKE_VERSION VERSION_LESS 3.18)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Version compatibility
+#
+# To avoid unnecessary strictness (with non-obvious error messages) we do not
+# use the `SameMajorVersion`/`SameMinorVersion` argument to
+# \c write_basic_package_version_file . Instead we check for any requested
+# package version here and warn deliberately if it doesn't match.
+#-----------------------------------------------------------------------------#
+# TODO for version 1.0.0: update logic to major version
+if(((@PROJECT_NAME@_FIND_VERSION_MAJOR EQUAL 0
+     AND @PROJECT_NAME@_FIND_VERSION_MINOR LESS @PROJECT_NAME@_VERSION_MINOR)
+    OR @PROJECT_NAME@_FIND_VERSION_MAJOR GREATER 0)
+   AND NOT @PROJECT_NAME@_FIND_VERSION_MAX VERSION_GREATER_EQUAL @PROJECT_NAME@_VERSION)
+   message(AUTHOR_WARNING "@PROJECT_NAME@ version ${@PROJECT_NAME@_VERSION} "
+     "may not be compatible with requested version "
+     "${@PROJECT_NAME@_FIND_VERSION}: please update your find_package "
+     "version range"
+   )
+endif()
+
+#-----------------------------------------------------------------------------#
 # Variables
 #-----------------------------------------------------------------------------#
 
@@ -112,7 +132,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 foreach(_dep CUDA ROOT Geant4 VecGeom MPI OpenMP)
-  set(Celeritas_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
+  set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()
 
 #-----------------------------------------------------------------------------#
