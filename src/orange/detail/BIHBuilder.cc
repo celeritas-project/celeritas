@@ -101,7 +101,7 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
     {
         // Degenerate case where all bounding boxes are infinite. Create a
         // single empty leaf node, so that the existance of leaf nodes does not
-        // need to be checked at runtime
+        // need to be checked at runtime.
 
         VecLeafNodes leaf_nodes{1};
         tree.leaf_nodes
