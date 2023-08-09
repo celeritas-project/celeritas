@@ -156,7 +156,8 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 
         if (!BernoulliDistribution(g_rej)(rng))
         {
-            return 0;
+            // Reject scattering event: no change in direction
+            cos_theta = 1;
         }
     }
 
