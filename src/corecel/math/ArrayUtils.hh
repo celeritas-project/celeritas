@@ -82,7 +82,7 @@ CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y)
     CELER_EXPECT(y);
     for (size_type i = 0; i != N; ++i)
     {
-        (*y)[i] = a * x[i] + (*y)[i];
+        (*y)[i] += a * x[i];
     }
 }
 
