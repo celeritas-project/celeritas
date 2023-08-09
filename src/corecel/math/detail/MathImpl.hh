@@ -20,7 +20,7 @@ inline constexpr double m_pi{3.14159265358979323846};
 /*!
  * Calculate sin and cosine of a fraction of pi.
  *
- * This returns exact values for half-fractions of piand
+ * This returns exact values for half-fractions of pi and
  * results in more accurate values for large integers.
  *
  * This lazy naive implementation doesn't account for edge cases like NaN and
@@ -29,7 +29,8 @@ inline constexpr double m_pi{3.14159265358979323846};
 template<class T>
 inline void sincospi(T x, T* sptr, T* cptr)
 {
-    x = std::fmod(x, T{2});
+    // Note: fmod returns value in (-2, 2)
+    x = std::fmod(x, T{2}) + (x < 0 ? T{2} : 0);
     T cval;
     T sval;
     if (x == T{0})
@@ -63,7 +64,7 @@ inline void sincospi(T x, T* sptr, T* cptr)
 }
 
 //---------------------------------------------------------------------------//
-//! Lazy implementation of sin(x / pi)
+//! Lazy implementation of sin(x * pi)
 template<class T>
 inline T sinpi(T v)
 {
@@ -74,7 +75,7 @@ inline T sinpi(T v)
 }
 
 //---------------------------------------------------------------------------//
-//! Lazy implementation of cos(x / pi)
+//! Lazy implementation of cos(x * pi)
 template<class T>
 inline T cospi(T v)
 {

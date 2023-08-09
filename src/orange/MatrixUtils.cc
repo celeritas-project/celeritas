@@ -166,10 +166,11 @@ Mat3 make_rotation(Axis ax, Turn theta)
  * This applies the new axis + turn as a rotation operator to the left of
  * the matrix.
  *
- * Rotate first by1/3
- * \example
- * auto r = make_rotation(Axes::x, Turn{0.3}, make_rotation(Axes::y, -0.6));
- * \example
+ * For example, to rotate first by 135 degrees about the Z axis, then 90
+ * degrees about the X axis:
+ * \code
+   auto r = make_rotation(Axes::x, Turn{0.25}, make_rotation(Axes::z, 0.375));
+ * \endcode
  */
 Mat3 make_rotation(Axis ax, Turn theta, Mat3 const& other)
 {

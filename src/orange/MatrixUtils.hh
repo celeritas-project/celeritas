@@ -85,7 +85,7 @@ CELER_FUNCTION Array<T, N> gemv(T alpha,
         result[i] = beta * y[i];
         for (size_type j = 0; j != N; ++j)
         {
-            result[i] = alpha * (a[i][j] * x[j]) + result[i];
+            result[i] += alpha * (a[i][j] * x[j]);
         }
     }
     return result;

@@ -448,16 +448,16 @@ inline constexpr double m_pi = detail::m_pi;
 //! CUDA/HIP equivalent routines
 #if CELER_DEVICE_SOURCE
 // CUDA and HIP define sinpi and sinpif, and sincospi, sincosf
-CELER_WRAP_MATH_FLOAT_DBL_1(::, sinpi)
-CELER_WRAP_MATH_FLOAT_DBL_1(::, cospi)
-CELER_WRAP_MATH_FLOAT_DBL_PTR_2(::, sincospi)
-CELER_WRAP_MATH_FLOAT_DBL_PTR_2(::, sincos)
+CELER_WRAP_MATH_FLOAT_DBL_1(, sinpi)
+CELER_WRAP_MATH_FLOAT_DBL_1(, cospi)
+CELER_WRAP_MATH_FLOAT_DBL_PTR_2(, sincospi)
+CELER_WRAP_MATH_FLOAT_DBL_PTR_2(, sincos)
 #elif __APPLE__
 // Apple defines __sinpi, __sinpif, __sincospi, ...
-CELER_WRAP_MATH_FLOAT_DBL_1(::__, sinpi)
-CELER_WRAP_MATH_FLOAT_DBL_1(::__, cospi)
-CELER_WRAP_MATH_FLOAT_DBL_PTR_2(::__, sincospi)
-CELER_WRAP_MATH_FLOAT_DBL_PTR_2(::__, sincos)
+CELER_WRAP_MATH_FLOAT_DBL_1(__, sinpi)
+CELER_WRAP_MATH_FLOAT_DBL_1(__, cospi)
+CELER_WRAP_MATH_FLOAT_DBL_PTR_2(__, sincospi)
+CELER_WRAP_MATH_FLOAT_DBL_PTR_2(__, sincos)
 #else
 using ::celeritas::detail::cospi;
 using ::celeritas::detail::sinpi;
