@@ -74,11 +74,14 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
         }
     }
 
-    BIHTree params;
+    BIHTree tree;
 
-    params.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
+    tree.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
         make_builder(&storage_->bboxes)
             .insert_back(bboxes_.begin(), bboxes_.end()));
+
+    tree.inf_volids = make_builder(&storage_->local_volume_ids)
+                          .insert_back(inf_volids.begin(), inf_volids.end());
 
     if (!indices.empty())
     {
@@ -86,33 +89,27 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
         this->construct_tree(indices, &nodes, BIHNodeId{});
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
-        params.inner_nodes
+        tree.inner_nodes
             = make_builder(&storage_->inner_nodes)
                   .insert_back(inner_nodes.begin(), inner_nodes.end());
 
-        params.leaf_nodes
+        tree.leaf_nodes
             = make_builder(&storage_->leaf_nodes)
                   .insert_back(leaf_nodes.begin(), leaf_nodes.end());
-
-        params.inf_volids
-            = make_builder(&storage_->local_volume_ids)
-                  .insert_back(inf_volids.begin(), inf_volids.end());
     }
     else
     {
-        // Degenerate case where all bounding boxes are infinite. Create
-        // a single leaf node with all volumes
+        // Degenerate case where all bounding boxes are infinite. Create a
+        // single empty leaf node, so that the existance of leaf nodes does not
+        // need to be checked at runtime
 
-        BIHLeafNode leaf_node;
-        leaf_node.parent = BIHNodeId{};
-        leaf_node.vol_ids
-            = make_builder(&storage_->local_volume_ids)
-                  .insert_back(inf_volids.begin(), inf_volids.end());
-        CELER_EXPECT(leaf_node);
-        params.leaf_nodes
-            = make_builder(&storage_->leaf_nodes).push_back(leaf_node);
+        VecLeafNodes leaf_nodes{1};
+        tree.leaf_nodes
+            = make_builder(&storage_->leaf_nodes)
+                  .insert_back(leaf_nodes.begin(), leaf_nodes.end());
     }
-    return params;
+
+    return tree;
 }
 
 //---------------------------------------------------------------------------//

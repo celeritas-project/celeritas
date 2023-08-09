@@ -67,7 +67,6 @@ struct BIHLeafNode
 
     ItemRange<LocalVolumeId> vol_ids;
 
-    //! True if either a valid inner or leaf node
     explicit CELER_FUNCTION operator bool() const { return !vol_ids.empty(); }
 };
 
@@ -98,8 +97,11 @@ struct BIHTree
         }
         else
         {
-            // Degenerate single leaf node case. This occurs a tree owns a
-            // single volume or muliple non-partitionable volumes.
+            // Degenerate single leaf node case. This occurs when a tree
+            // contains either:
+            // a) a single volume
+            // b) muliple non-partitionable volumes,
+            // b) only infinite volumes.
             return !bboxes.empty() && leaf_nodes.size() == 1;
         }
     }

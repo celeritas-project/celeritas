@@ -24,14 +24,10 @@ namespace celeritas
 {
 namespace test
 {
-class BIHTraversalTest : public Test
+class BIHTraverserTest : public Test
 {
   public:
-    void SetUp()
-    {
-        auto inf = std::numeric_limits<fast_real_type>::infinity();
-        bboxes_.push_back({{-inf, -inf, -inf}, {inf, inf, inf}});
-    }
+    void SetUp() {}
 
   protected:
     std::vector<FastBBox> bboxes_;
@@ -66,8 +62,9 @@ class BIHTraversalTest : public Test
  *
  *        x=0                                                x=5
  */
-TEST_F(BIHTraversalTest, basic)
+TEST_F(BIHTraverserTest, basic)
 {
+    bboxes_.push_back(FastBBox::from_infinite());
     bboxes_.push_back({{0, 0, 0}, {1.6, 1, 100}});
     bboxes_.push_back({{1.2, 0, 0}, {2.8, 1, 100}});
     bboxes_.push_back({{2.8, 0, 0}, {5, 1, 100}});
@@ -103,8 +100,9 @@ TEST_F(BIHTraversalTest, basic)
  *                  0    1    2    3
  *                          x
  */
-TEST_F(BIHTraversalTest, grid)
+TEST_F(BIHTraverserTest, grid)
 {
+    bboxes_.push_back(FastBBox::from_infinite());
     bboxes_.push_back({{0, 0, 0}, {1, 1, 100}});
     bboxes_.push_back({{0, 1, 0}, {1, 2, 100}});
     bboxes_.push_back({{0, 2, 0}, {1, 3, 100}});
@@ -137,6 +135,66 @@ TEST_F(BIHTraversalTest, grid)
                       traverser({0.5 + i, 0.5 + j, 30}, valid_volid_));
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+// Degenerate, single leaf cases
+//---------------------------------------------------------------------------//
+
+TEST_F(BIHTraverserTest, single_finite_volume)
+{
+    bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
+
+    BIHBuilder bih(&storage_);
+    auto bih_tree = bih(std::move(bboxes_));
+
+    ref_storage_ = storage_;
+    BIHTraverser traverser(bih_tree, ref_storage_);
+
+    EXPECT_EQ(LocalVolumeId{0}, traverser({0.5, 0.5, 0.5}, valid_volid_));
+}
+
+TEST_F(BIHTraverserTest, multiple_nonpartitionable_volumes)
+{
+    bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
+    bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
+
+    BIHBuilder bih(&storage_);
+    auto bih_tree = bih(std::move(bboxes_));
+
+    ref_storage_ = storage_;
+    BIHTraverser traverser(bih_tree, ref_storage_);
+
+    EXPECT_EQ(LocalVolumeId{0}, traverser({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{1}, traverser({0.5, 0.5, 0.5}, odd_volid_));
+}
+
+TEST_F(BIHTraverserTest, single_infinite_volume)
+{
+    bboxes_.push_back(FastBBox::from_infinite());
+
+    BIHBuilder bih(&storage_);
+    auto bih_tree = bih(std::move(bboxes_));
+
+    ref_storage_ = storage_;
+    BIHTraverser traverser(bih_tree, ref_storage_);
+
+    EXPECT_EQ(LocalVolumeId{0}, traverser({0.5, 0.5, 0.5}, valid_volid_));
+}
+
+TEST_F(BIHTraverserTest, multiple_infinite_volumes)
+{
+    bboxes_.push_back(FastBBox::from_infinite());
+    bboxes_.push_back(FastBBox::from_infinite());
+
+    BIHBuilder bih(&storage_);
+    auto bih_tree = bih(std::move(bboxes_));
+
+    ref_storage_ = storage_;
+    BIHTraverser traverser(bih_tree, ref_storage_);
+
+    EXPECT_EQ(LocalVolumeId{0}, traverser({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{1}, traverser({0.5, 0.5, 0.5}, odd_volid_));
 }
 
 //---------------------------------------------------------------------------//
