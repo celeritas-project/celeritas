@@ -353,20 +353,20 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 #define CELER_WRAP_MATH_FLOAT_DBL_1(PREFIX, FUNC)        \
     CELER_FORCEINLINE_FUNCTION float FUNC(float value)   \
     {                                                    \
-        return PREFIX##FUNC##f(value);                   \
+        return ::PREFIX##FUNC##f(value);                 \
     }                                                    \
     CELER_FORCEINLINE_FUNCTION double FUNC(double value) \
     {                                                    \
-        return PREFIX##FUNC(value);                      \
+        return ::PREFIX##FUNC(value);                    \
     }
 #define CELER_WRAP_MATH_FLOAT_DBL_PTR_2(PREFIX, FUNC)                        \
     CELER_FORCEINLINE_FUNCTION void FUNC(float value, float* a, float* b)    \
     {                                                                        \
-        return PREFIX##FUNC##f(value, a, b);                                 \
+        return ::PREFIX##FUNC##f(value, a, b);                               \
     }                                                                        \
     CELER_FORCEINLINE_FUNCTION void FUNC(double value, double* a, double* b) \
     {                                                                        \
-        return PREFIX##FUNC(value, a, b);                                    \
+        return ::PREFIX##FUNC(value, a, b);                                  \
     }
 
 //---------------------------------------------------------------------------//
@@ -405,7 +405,7 @@ inline CELER_FUNCTION T fastpow(T a, T b)
 }
 
 #ifdef __CUDACC__
-CELER_WRAP_MATH_FLOAT_DBL_1(::, rsqrt)
+CELER_WRAP_MATH_FLOAT_DBL_1(, rsqrt)
 #else
 //---------------------------------------------------------------------------//
 /*!
