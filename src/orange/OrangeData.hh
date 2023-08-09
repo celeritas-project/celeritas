@@ -283,7 +283,7 @@ struct OrangeParamsData
     Items<detail::BIHLeafNode> bih_leaf_nodes;
 
     Items<Daughter> daughters;
-    Items<Translation> translations;
+    Items<Real3> translations;
 
     UniverseIndexerData<W, M> universe_indexer_data;
 

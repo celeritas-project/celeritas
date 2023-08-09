@@ -64,11 +64,8 @@ using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 //! Opaque index for rectilinear array data
 using RectArrayId = OpaqueId<struct RectArrayRecord>;
 
-//! Translation of a single embedded universe
-using Translation = Real3;
-
 //! Identifier for a translation of a single embedded universe
-using TranslationId = OpaqueId<Translation>;
+using TranslationId = OpaqueId<Real3>;
 
 //! Identifier for a relocatable set of volumes
 using UniverseId = OpaqueId<struct Universe>;
