@@ -76,7 +76,7 @@ class WentzelRatioCalculator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with state data
+ * Construct with state data.
  */
 CELER_FUNCTION
 WentzelRatioCalculator::WentzelRatioCalculator(ParticleTrackView const& particle,
@@ -121,7 +121,7 @@ CELER_FUNCTION real_type WentzelRatioCalculator::screening_coefficient() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the Moilere screening coefficient as in [PRM] eqn 8.51
+ * Calculate the Moilere screening coefficient as in [PRM] eqn 8.51.
  */
 CELER_FUNCTION real_type WentzelRatioCalculator::calc_screening_coefficient(
     ParticleTrackView const& particle) const
@@ -151,7 +151,7 @@ CELER_FUNCTION real_type WentzelRatioCalculator::calc_screening_coefficient(
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the screening R^2 coefficient for incident electrons. This is
- * the constant prefactor of [PRM] eqn 8.51
+ * the constant prefactor of [PRM] eqn 8.51.
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelRatioCalculator::screen_r_sq_elec() const
 {
@@ -185,7 +185,6 @@ CELER_FUNCTION real_type WentzelRatioCalculator::calc_max_electron_cos_t(
     real_type inc_energy = value_as<Energy>(particle.energy());
     real_type mass = value_as<Mass>(particle.mass());
 
-    // TODO: Need to validate against Geant4 results
     real_type max_energy = (particle.particle_id() == data_.ids.electron)
                                ? real_type{0.5} * inc_energy
                                : inc_energy;

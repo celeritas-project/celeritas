@@ -280,24 +280,15 @@ TEST_F(CoulombScatteringTest, distribution)
         RandomEngine& rng_engine = this->rng();
 
         double avg_angle = 0;
-        double avg_x = 0;
-        double avg_y = 0;
 
         int const num_samples = 4096;
         for ([[maybe_unused]] int i : range(num_samples))
         {
-            Real3 dir = distrib(rng_engine);
-            avg_x += dir[0];
-            avg_y += dir[1];
-            avg_angle += dir[2];
+            avg_angle += distrib(rng_engine);
         }
 
-        avg_x /= num_samples;
-        avg_y /= num_samples;
         avg_angle /= num_samples;
 
-        EXPECT_SOFT_NEAR(0, avg_x, std::sqrt(num_samples));
-        EXPECT_SOFT_NEAR(0, avg_y, std::sqrt(num_samples));
         EXPECT_SOFT_NEAR(
             expected_avg_angles[i], avg_angle, std::sqrt(num_samples));
     }

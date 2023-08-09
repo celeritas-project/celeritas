@@ -29,11 +29,11 @@ namespace celeritas
 class MottRatioCalculator
 {
   public:
-    // Construct with state data
+    //! Construct with state data
     inline CELER_FUNCTION
     MottRatioCalculator(WentzelElementData const& element_data, real_type beta);
 
-    // Ratio of Mott and Rutherford cross sections
+    //! Ratio of Mott and Rutherford cross sections
     inline CELER_FUNCTION real_type operator()(real_type cos_t) const;
 
   private:
@@ -45,7 +45,7 @@ class MottRatioCalculator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with state data
+ * Construct with state data.
  */
 CELER_FUNCTION
 MottRatioCalculator::MottRatioCalculator(WentzelElementData const& element_data,

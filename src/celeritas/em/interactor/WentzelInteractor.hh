@@ -74,20 +74,19 @@ class WentzelInteractor
     IsotopeView const& target_;
 
     // Scattering direction distribution of the Wentzel model
-    WentzelDistribution const sample_direction;
+    WentzelDistribution const sample_angle;
 
     //// HELPER FUNCTIONS ////
 
-    //! Calculates the recoil energy for the given scattering direction
-    inline CELER_FUNCTION real_type calc_recoil_energy(
-        Real3 const& new_direction, Mass const& target_mass) const;
+    //! Calculates the recoil energy for the given scattering angle
+    inline CELER_FUNCTION real_type calc_recoil_energy(real_type cos_theta) const;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from shared and state data
+ * Construct from shared and state data.
  */
 CELER_FUNCTION
 WentzelInteractor::WentzelInteractor(WentzelRef const& shared,
@@ -99,11 +98,11 @@ WentzelInteractor::WentzelInteractor(WentzelRef const& shared,
     : inc_direction_(inc_direction)
     , particle_(particle)
     , target_(target)
-    , sample_direction(particle,
-                       target,
-                       shared.elem_data[el_id],
-                       value_as<Energy>(cutoffs.energy(particle.particle_id())),
-                       shared)
+    , sample_angle(particle,
+                   target,
+                   shared.elem_data[el_id],
+                   value_as<Energy>(cutoffs.energy(particle.particle_id())),
+                   shared)
 {
     CELER_EXPECT(particle_.particle_id() == shared.ids.electron
                  || particle_.particle_id() == shared.ids.positron);
@@ -122,13 +121,14 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
     Interaction result;
 
     // Sample the new direction
-    Real3 new_direction = sample_direction(rng);
-    result.direction = rotate(inc_direction_, new_direction);
+    real_type cos_theta = sample_angle(rng);
+    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
+    result.direction
+        = rotate(inc_direction_, from_spherical(cos_theta, sample_phi(rng)));
 
     // Recoil energy is kinetic energy transfered to the atom
     real_type inc_energy = value_as<Energy>(particle_.energy());
-    real_type recoil_energy
-        = calc_recoil_energy(new_direction, target_.nuclear_mass());
+    real_type recoil_energy = calc_recoil_energy(cos_theta);
     CELER_EXPECT(0 <= recoil_energy && recoil_energy <= inc_energy);
     result.energy = Energy{inc_energy - recoil_energy};
 
@@ -141,15 +141,15 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculates the recoil energy for the given scattering direction calculated
+ * Calculates the recoil energy for the given scattering angle sampled
  * by WentzelDistribution.
  */
-CELER_FUNCTION real_type WentzelInteractor::calc_recoil_energy(
-    Real3 const& new_direction, Mass const& target_mass) const
+CELER_FUNCTION real_type
+WentzelInteractor::calc_recoil_energy(real_type cos_theta) const
 {
-    real_type one_minus_cos_theta = 1 - new_direction[2];
+    real_type one_minus_cos_theta = 1 - cos_theta;
     return value_as<MomentumSq>(particle_.momentum_sq()) * one_minus_cos_theta
-           / (value_as<Mass>(target_mass)
+           / (value_as<Mass>(target_.nuclear_mass())
               + (value_as<Mass>(particle_.mass())
                  + value_as<Energy>(particle_.energy()))
                     * one_minus_cos_theta);

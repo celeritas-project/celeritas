@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
@@ -26,7 +28,7 @@ namespace celeritas
 /*!
  * Helper class for \c WentzelInteractor .
  *
- * Samples the scattering direction for the Wentzel model.
+ * Samples the polar scattering angle for the Wentzel model.
  *
  * References:
  * [Fern] J.M. Fernandez-Varea, R. Mayol and F. Salvat. On the theory
@@ -57,9 +59,9 @@ class WentzelDistribution
                         real_type cutoff_energy,
                         WentzelRef const& data);
 
-    //! Sample the scattering direction
+    //! Sample the polar scattering angle
     template<class Engine>
-    inline CELER_FUNCTION Real3 operator()(Engine& rng) const;
+    inline CELER_FUNCTION real_type operator()(Engine& rng) const;
 
   private:
     //// DATA ////
@@ -98,7 +100,7 @@ class WentzelDistribution
     inline CELER_FUNCTION real_type nuclear_form_prefactor() const;
 
     //! Samples the scattered polar angle based on the maximum scattering
-    //! angle and screening coefficient.
+    //! angle and screening coefficient
     template<class Engine>
     inline CELER_FUNCTION real_type sample_cos_t(real_type cos_t_max,
                                                  Engine& rng) const;
@@ -108,7 +110,7 @@ class WentzelDistribution
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with state and data from WentzelInteractor
+ * Construct with state and data from WentzelInteractor.
  */
 CELER_FUNCTION
 WentzelDistribution::WentzelDistribution(ParticleTrackView const& particle,
@@ -126,12 +128,10 @@ WentzelDistribution::WentzelDistribution(ParticleTrackView const& particle,
 
 //---------------------------------------------------------------------------//
 /*!
- * Samples the final direction of the interaction. This direction is in
- * the frame where the incident particle's momentum is oriented along the
- * z-axis, so it's final direction in the lab frame will need to be rotated.
+ * Samples the polar scattered angle of the incident particle.
  */
 template<class Engine>
-CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
+CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
     real_type cos_theta = 1;
     if (BernoulliDistribution(wentzel_elec_ratio())(rng))
@@ -156,13 +156,11 @@ CELER_FUNCTION Real3 WentzelDistribution::operator()(Engine& rng) const
 
         if (!BernoulliDistribution(g_rej)(rng))
         {
-            return {0, 0, 1};
+            return 0;
         }
     }
 
-    // Calculate scattered vector assuming azimuthal angle is isotropic
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    return from_spherical(cos_theta, sample_phi(rng));
+    return cos_theta;
 }
 
 //---------------------------------------------------------------------------//
@@ -193,7 +191,8 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
                    / ipow<2>(
                        1 + nuclear_form_prefactor() * mom_transfer_sq(cos_t));
         case NuclearFormFactorType::gaussian:
-            return exp(-2 * nuclear_form_prefactor() * mom_transfer_sq(cos_t));
+            return std::exp(-2 * nuclear_form_prefactor()
+                            * mom_transfer_sq(cos_t));
         default:
             return 1;
     }
@@ -206,7 +205,7 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
  */
 CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x) const
 {
-    return 3 * (sin(x) - x * cos(x)) / ipow<3>(x);
+    return 3 * (std::sin(x) - x * std::cos(x)) / ipow<3>(x);
 }
 
 //---------------------------------------------------------------------------//
@@ -217,7 +216,7 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x) cons
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff() const
 {
-    return native_value_to<units::MevMomentum>(real_type(2e-15) * units::meter
+    return native_value_to<units::MevMomentum>(2 * units::femtometer
                                                / constants::hbar_planck)
         .value();
 }
@@ -240,13 +239,13 @@ CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
     }
 
     // The ratio has units of (MeV/c)^-2, so it's easier to convert the
-    // inverse which has units of MomentumSq, then invert afterwards.
+    // inverse which has units of MomentumSq, then invert afterwards
     constexpr real_type ratio
         = 1
           / native_value_to<MomentumSq>(
                 12
                 * ipow<2>(constants::hbar_planck
-                          / (real_type(1.27e-15) * units::meter)))
+                          / (real_type(1.27) * units::femtometer)))
                 .value();
     return ratio
            * fastpow(real_type(target_.atomic_mass_number().get()),

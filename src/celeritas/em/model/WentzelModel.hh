@@ -35,26 +35,26 @@ class WentzelModel final : public Model
     //!@}
 
   public:
-    // Construct from model ID and other necessary data
+    //! Construct from model ID and other necessary data
     WentzelModel(ActionId id,
                  ParticleParams const& particles,
                  MaterialParams const& materials,
                  ImportEmParameters const& em_params,
                  SPConstImported data);
 
-    // Particle types and energy ranges that this model applies to
+    //! Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
-    // Get the microscopic cross sections for the given particle and material
+    //! Get the microscopic cross sections for the given particle and material
     MicroXsBuilders micro_xs(Applicability) const final;
 
-    // Apply the interaction kernel on host
+    //! Apply the interaction kernel on host
     void execute(CoreParams const&, CoreStateHost&) const final;
 
-    // Apply the interaction kernel on device
+    //! Apply the interaction kernel on device
     void execute(CoreParams const&, CoreStateDevice&) const final;
 
-    // ID of the model
+    //! ID of the model
     ActionId action_id() const final;
 
     //! Short name for the interaction kernel

@@ -17,7 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Particle and action ids used by WentzelModel
+ * Particle and action ids used by WentzelModel.
  */
 struct WentzelIds
 {
@@ -33,7 +33,7 @@ struct WentzelIds
 
 //---------------------------------------------------------------------------//
 /*!
- * Per-element data used by the WentzelModel
+ * Per-element data used by the WentzelModel.
  *
  * The matrix of coefficients used to approximate the ratio of the Mott to
  * Rutherford cross sections was developed in
@@ -61,7 +61,7 @@ struct WentzelElementData
 
 //---------------------------------------------------------------------------//
 /*!
- * Supported models of nuclear form factors
+ * Supported models of nuclear form factors.
  */
 enum class NuclearFormFactorType
 {
@@ -73,7 +73,7 @@ enum class NuclearFormFactorType
 
 //---------------------------------------------------------------------------//
 /*!
- * Constant shared data used by the WentzelModel
+ * Constant shared data used by the WentzelModel.
  */
 template<Ownership W, MemSpace M>
 struct WentzelData
