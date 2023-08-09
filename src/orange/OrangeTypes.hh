@@ -123,6 +123,17 @@ enum class SurfaceType : unsigned char
 
 //---------------------------------------------------------------------------//
 /*!
+ * Enumeration for mapping transform implementations to integers.
+ */
+enum class TransformType : unsigned char
+{
+    translation,  //!< Translation only
+    transformation,  //!< Translation plus rotation
+    size_
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Enumeration for type-deleted universe storage.
  *
  * See \c orange/univ/UniverseTypeTraits.hh for how these map to data and
