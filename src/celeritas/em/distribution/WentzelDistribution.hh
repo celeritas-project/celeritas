@@ -271,9 +271,6 @@ CELER_FUNCTION real_type WentzelDistribution::mom_transfer_sq(real_type cos_t) c
  * based on the maximum scattering angle. The probability is given in [Fern]
  * eqn 88 and is nomalized on the interval
  * \f$ cos\theta \in [1, \cos\theta_{max}] \f$.
- *
- * The screening coefficient is also supplied since it's calculation requires
- * branching and it's already calculated for the Wentzel cross sections.
  */
 template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(real_type cos_t_max,
