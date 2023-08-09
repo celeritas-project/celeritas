@@ -15,6 +15,18 @@
 
 namespace celeritas
 {
+namespace matrix
+{
+//---------------------------------------------------------------------------//
+//!@{
+//! Policy tags
+struct TransposePolicy
+{
+};
+inline constexpr TransposePolicy transpose{};
+//!@}
+}  // namespace matrix
+
 //---------------------------------------------------------------------------//
 // Apply a matrix to an array
 template<class T, size_type N>
@@ -25,7 +37,18 @@ inline CELER_FUNCTION Array<T, N> gemv(T alpha,
                                        Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
-//! Apply a matrix to an array without scaling or addition
+// Apply the transpose of a matrix to an array
+template<class T, size_type N>
+inline CELER_FUNCTION Array<T, N> gemv(matrix::TransposePolicy,
+                                       T alpha,
+                                       SquareMatrix<T, N> const& a,
+                                       Array<T, N> const& x,
+                                       T beta,
+                                       Array<T, N> const& y);
+
+//---------------------------------------------------------------------------//
+//!@{
+//! Apply a matrix or its transpose to an array, without scaling or addition
 template<class T, size_type N>
 inline CELER_FUNCTION Array<T, N>
 gemv(SquareMatrix<T, N> const& a, Array<T, N> const& x)
@@ -33,6 +56,13 @@ gemv(SquareMatrix<T, N> const& a, Array<T, N> const& x)
     return gemv(T{1}, a, x, T{0}, x);
 }
 
+template<class T, size_type N>
+inline CELER_FUNCTION Array<T, N>
+gemv(matrix::TransposePolicy, SquareMatrix<T, N> const& a, Array<T, N> const& x)
+{
+    return gemv(matrix::transpose, T{1}, a, x, T{0}, x);
+}
+//!@}
 //---------------------------------------------------------------------------//
 // Host-only declarations
 // (double and float (and some int) for N=3 are instantiated in MatrixUtils.cc)
@@ -67,7 +97,7 @@ SquareMatrixReal3 make_rotation(Axis ax, Turn rev, SquareMatrixReal3 const&);
  * z \gets \alpha A x + \beta y
  * \f]
  *
- * This should be equivalent to BLAS' GEMV without the option to transpose. All
+ * This should be equivalent to BLAS' GEMV without transposition. All
  * matrix orderings are C-style: mat[i][j] is for row i, column j .
  *
  * \warning This implementation is limited and slow.
@@ -86,6 +116,42 @@ CELER_FUNCTION Array<T, N> gemv(T alpha,
         for (size_type j = 0; j != N; ++j)
         {
             result[i] += alpha * (a[i][j] * x[j]);
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Naive transposed generalized matrix-vector multiply.
+ *
+ * \f[
+ * z \gets \alpha A^T x + \beta y
+ * \f]
+ *
+ * This should be equivalent to BLAS' GEMV with the 't' option. All
+ * matrix orderings are C-style: mat[i][j] is for row i, column j .
+ *
+ * \warning This implementation is limited and slow.
+ */
+template<class T, size_type N>
+CELER_FUNCTION Array<T, N> gemv(matrix::TransposePolicy,
+                                T alpha,
+                                SquareMatrix<T, N> const& a,
+                                Array<T, N> const& x,
+                                T beta,
+                                Array<T, N> const& y)
+{
+    Array<T, N> result;
+    for (size_type i = 0; i != N; ++i)
+    {
+        result[i] = beta * y[i];
+    }
+    for (size_type j = 0; j != N; ++j)
+    {
+        for (size_type i = 0; i != N; ++i)
+        {
+            result[i] += alpha * (a[j][i] * x[j]);
         }
     }
     return result;

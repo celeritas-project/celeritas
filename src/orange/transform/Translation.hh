@@ -45,7 +45,7 @@ class Translation
     explicit CELER_FUNCTION Translation(Real3 const& trans) : tra_(trans) {}
 
     // Construct inline from storage
-    explicit CELER_FUNCTION Translation(StorageSpan s);
+    explicit inline CELER_FUNCTION Translation(StorageSpan s);
 
     //// ACCESSORS ////
 

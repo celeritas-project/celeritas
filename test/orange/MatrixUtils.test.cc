@@ -50,6 +50,21 @@ TEST_F(MatrixUtilsTest, gemv)
     EXPECT_EQ((2 * -1) + 10 * (6 * 1 + 7 * 2 + 8 * 3), result[0]);
     EXPECT_EQ((2 * -2) + 10 * (6 * 0 + 7 * 1 + 8 * 2), result[1]);
     EXPECT_EQ((2 * -3) + 10 * (6 * 4 + 7 * 0 + 8 * 1), result[2]);
+
+    result = gemv(matrix::transpose, 10, mat, {6, 7, 8}, 2, {-1, -2, -3});
+    EXPECT_EQ((2 * -1) + 10 * (6 * 1 + 7 * 0 + 8 * 4), result[0]);
+    EXPECT_EQ((2 * -2) + 10 * (6 * 2 + 7 * 1 + 8 * 0), result[1]);
+    EXPECT_EQ((2 * -3) + 10 * (6 * 3 + 7 * 2 + 8 * 1), result[2]);
+
+    result = gemv(mat, {6, 7, 8});
+    EXPECT_EQ((6 * 1 + 7 * 2 + 8 * 3), result[0]);
+    EXPECT_EQ((6 * 0 + 7 * 1 + 8 * 2), result[1]);
+    EXPECT_EQ((6 * 4 + 7 * 0 + 8 * 1), result[2]);
+
+    result = gemv(matrix::transpose, mat, {6, 7, 8});
+    EXPECT_EQ((6 * 1 + 7 * 0 + 8 * 4), result[0]);
+    EXPECT_EQ((6 * 2 + 7 * 1 + 8 * 0), result[1]);
+    EXPECT_EQ((6 * 3 + 7 * 2 + 8 * 1), result[2]);
 }
 
 //---------------------------------------------------------------------------//
