@@ -70,8 +70,12 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetIntegral(options.integral_approach);
     em_parameters.SetLinearLossLimit(options.linear_loss_limit);
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
+#if G4VERSION_NUMBER >= 1060
+    // Customizable MSC safety factor/lambda limit were added in
+    // emutils-V10-05-18
     em_parameters.SetMscSafetyFactor(options.msc_safety_factor);
     em_parameters.SetMscLambdaLimit(options.msc_lambda_limit * CLHEP::cm);
+#endif
     em_parameters.SetLowestElectronEnergy(
         value_as<units::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);

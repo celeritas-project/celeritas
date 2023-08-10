@@ -12,8 +12,8 @@ spack:
     - mpi
     - "python@3.6:"
     - py-breathe
+    - py-furo
     - py-sphinx
-    - py-sphinx-rtd-theme
     - py-sphinxcontrib-bibtex
     - "root@6.24: cxxstd=17"
     - "swig@4.1:"

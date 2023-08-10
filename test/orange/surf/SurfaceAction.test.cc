@@ -86,6 +86,7 @@ class SurfaceActionTest : public OrangeGeoTestBase
                 v.faces.push_back(LocalSurfaceId{i});
             }
             v.logic.insert(v.logic.end(), {logic::ltrue, logic::lor});
+            v.bbox = {{-1, -1, -1}, {1, 1, 1}};
             unit.volumes = {std::move(v)};
         }
         {

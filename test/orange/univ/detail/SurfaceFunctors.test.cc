@@ -45,6 +45,7 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
             VolumeInput v;
             v.logic = {0, 1, logic::lor, logic::ltrue, logic::lor};
             v.faces = {LocalSurfaceId{0}, LocalSurfaceId{1}};
+            v.bbox = {{-1, -1, -1}, {1, 1, 1}};
             unit.volumes = {std::move(v)};
         }
 

@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Types.hh"
 
@@ -57,15 +58,9 @@ inline CELER_FUNCTION Array<T, 3> ax(T a, Array<T, 3> const& x)
 inline CELER_FUNCTION Chord make_chord(Real3 const& src, Real3 const& dst)
 {
     Chord result;
-    for (int i = 0; i < 3; ++i)
-    {
-        result.dir[i] = dst[i] - src[i];
-    }
+    result.dir = dst - src;
     result.length = norm(result.dir);
-    for (int i = 0; i < 3; ++i)
-    {
-        result.dir[i] /= result.length;
-    }
+    result.dir /= result.length;
     return result;
 }
 
@@ -132,17 +127,17 @@ inline CELER_FUNCTION real_type rel_err_sq(OdeState const& err_state,
  *   d = |\vec{AM}| \sin(\theta) = \frac{\vec{AM} \times \vec{AB}}{|\vec{AB}|}
  * \f]
  */
-inline CELER_FUNCTION real_type distance_chord(OdeState const& beg_state,
-                                               OdeState const& mid_state,
-                                               OdeState const& end_state)
+inline CELER_FUNCTION real_type distance_chord(Real3 const& beg_pos,
+                                               Real3 const& mid_pos,
+                                               Real3 const& end_pos)
 {
     Real3 beg_mid;
     Real3 beg_end;
 
     for (int i = 0; i < 3; ++i)
     {
-        beg_mid[i] = mid_state.pos[i] - beg_state.pos[i];
-        beg_end[i] = end_state.pos[i] - beg_state.pos[i];
+        beg_mid[i] = mid_pos[i] - beg_pos[i];
+        beg_end[i] = end_pos[i] - beg_pos[i];
     }
 
     Real3 cross = cross_product(beg_end, beg_mid);

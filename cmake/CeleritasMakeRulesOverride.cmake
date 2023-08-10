@@ -16,11 +16,6 @@ https://cmake.org/cmake/help/latest/variable/CMAKE_USER_MAKE_RULES_OVERRIDE.html
 
 #]=======================================================================]
 
-# Default to building device debug code
-# (note this only works for CMake 3.21+, see
-# https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6253 )
-set(CMAKE_CUDA_FLAGS_DEBUG_INIT "-O0 -g -G")
-
 # Enable lots of warnings for GCC and Clang by default
 foreach(_lang C CXX)
   set(_id "${CMAKE_${_lang}_COMPILER_ID}")

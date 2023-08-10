@@ -82,7 +82,7 @@ CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y)
     CELER_EXPECT(y);
     for (size_type i = 0; i != N; ++i)
     {
-        (*y)[i] = a * x[i] + (*y)[i];
+        (*y)[i] += a * x[i];
     }
 }
 
@@ -107,11 +107,11 @@ CELER_FUNCTION T dot_product(Array<T, N> const& x, Array<T, N> const& y)
  */
 template<class T>
 CELER_FUNCTION Array<T, 3>
-cross_product(Array<T, 3> const& A, Array<T, 3> const& B)
+cross_product(Array<T, 3> const& x, Array<T, 3> const& y)
 {
-    return {A[1] * B[2] - A[2] * B[1],
-            A[2] * B[0] - A[0] * B[2],
-            A[0] * B[1] - A[1] * B[0]};
+    return {x[1] * y[2] - x[2] * y[1],
+            x[2] * y[0] - x[0] * y[2],
+            x[0] * y[1] - x[1] * y[0]};
 }
 
 //---------------------------------------------------------------------------//

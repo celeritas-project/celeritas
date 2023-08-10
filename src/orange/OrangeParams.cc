@@ -56,7 +56,7 @@ struct Overload : Ts...
  * "Deduction guide" for instantiating Overload objects w/o specifying types.
  */
 template<class... Ts>
-Overload(Ts...) -> Overload<Ts...>;
+Overload(Ts&&...) -> Overload<Ts...>;
 
 //---------------------------------------------------------------------------//
 /*!

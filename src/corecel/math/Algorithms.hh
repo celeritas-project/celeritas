@@ -15,6 +15,7 @@
 #include "corecel/Macros.hh"
 
 #include "detail/AlgorithmsImpl.hh"
+#include "detail/MathImpl.hh"
 
 namespace celeritas
 {
@@ -348,6 +349,27 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 //---------------------------------------------------------------------------//
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
+//! Generate overloads for a single-argument math function
+#define CELER_WRAP_MATH_FLOAT_DBL_1(PREFIX, FUNC)        \
+    CELER_FORCEINLINE_FUNCTION float FUNC(float value)   \
+    {                                                    \
+        return ::PREFIX##FUNC##f(value);                 \
+    }                                                    \
+    CELER_FORCEINLINE_FUNCTION double FUNC(double value) \
+    {                                                    \
+        return ::PREFIX##FUNC(value);                    \
+    }
+#define CELER_WRAP_MATH_FLOAT_DBL_PTR_2(PREFIX, FUNC)                        \
+    CELER_FORCEINLINE_FUNCTION void FUNC(float value, float* a, float* b)    \
+    {                                                                        \
+        return ::PREFIX##FUNC##f(value, a, b);                               \
+    }                                                                        \
+    CELER_FORCEINLINE_FUNCTION void FUNC(double value, double* a, double* b) \
+    {                                                                        \
+        return ::PREFIX##FUNC(value, a, b);                                  \
+    }
+
+//---------------------------------------------------------------------------//
 /*!
  * Return an integer power of the input value.
  *
@@ -383,7 +405,7 @@ inline CELER_FUNCTION T fastpow(T a, T b)
 }
 
 #ifdef __CUDACC__
-using ::rsqrt;
+CELER_WRAP_MATH_FLOAT_DBL_1(, rsqrt)
 #else
 //---------------------------------------------------------------------------//
 /*!
@@ -414,6 +436,49 @@ CELER_CONSTEXPR_FUNCTION T ceil_div(T top, T bottom)
     static_assert(std::is_unsigned<T>::value, "Value is not an unsigned int");
     return (top / bottom) + (top % bottom != 0);
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Math constants (POSIX derivative);
+ */
+inline constexpr double m_pi = detail::m_pi;
+
+//---------------------------------------------------------------------------//
+//!@{
+//! CUDA/HIP equivalent routines
+#if CELER_DEVICE_SOURCE
+// CUDA and HIP define sinpi and sinpif, and sincospi, sincosf
+CELER_WRAP_MATH_FLOAT_DBL_1(, sinpi)
+CELER_WRAP_MATH_FLOAT_DBL_1(, cospi)
+CELER_WRAP_MATH_FLOAT_DBL_PTR_2(, sincospi)
+CELER_WRAP_MATH_FLOAT_DBL_PTR_2(, sincos)
+#elif __APPLE__
+// Apple defines __sinpi, __sinpif, __sincospi, ...
+CELER_WRAP_MATH_FLOAT_DBL_1(__, sinpi)
+CELER_WRAP_MATH_FLOAT_DBL_1(__, cospi)
+CELER_WRAP_MATH_FLOAT_DBL_PTR_2(__, sincospi)
+CELER_WRAP_MATH_FLOAT_DBL_PTR_2(__, sincos)
+#else
+using ::celeritas::detail::cospi;
+using ::celeritas::detail::sinpi;
+CELER_FORCEINLINE void sincos(float a, float* s, float* c)
+{
+    return detail::sincos(a, s, c);
+}
+CELER_FORCEINLINE void sincos(double a, double* s, double* c)
+{
+    return detail::sincos(a, s, c);
+}
+CELER_FORCEINLINE void sincospi(float a, float* s, float* c)
+{
+    return detail::sincospi(a, s, c);
+}
+CELER_FORCEINLINE void sincospi(double a, double* s, double* c)
+{
+    return detail::sincospi(a, s, c);
+}
+#endif
+//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -14,6 +14,8 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
 
+#include "BIHBuilder.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -41,6 +43,7 @@ class UnitInserter
 
   private:
     Data* orange_data_{nullptr};
+    detail::BIHBuilder bih_builder_;
 
     // TODO: additional caches for hashed data?
 

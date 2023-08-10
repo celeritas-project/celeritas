@@ -6,6 +6,7 @@
 //! \file celeritas/user/Diagnostic.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Span.hh"
+#include "corecel/io/StringUtils.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -132,9 +133,11 @@ TEST_F(TestEm3DiagnosticTest, host)
     auto result = this->run<MemSpace::host>(256, 32);
 
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-        && std::find(result.nonzero_action_keys.begin(),
-                     result.nonzero_action_keys.end(),
-                     "geo-propagation-limit e+")
+        && std::find_if(result.nonzero_action_keys.begin(),
+                        result.nonzero_action_keys.end(),
+                        [](std::string const& s) {
+                            return starts_with(s, "geo-propagation-limit");
+                        })
                != result.nonzero_action_keys.end())
     {
         GTEST_SKIP() << "VecGeom seems to have an edge case where tracks get "

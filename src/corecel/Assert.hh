@@ -108,8 +108,18 @@
  * \def CELER_NOT_IMPLEMENTED
  *
  * Assert if the code point is reached because a feature has yet to be fully
- * implemented. This placeholder is so that code paths can be "declared but not
- * defined" and implementations safely postponed in a greppable manner.
+ * implemented.
+ *
+ * This placeholder is so that code paths can be "declared but not defined" and
+ * implementations safely postponed in a greppable manner. This should \em not
+ * be used to define "unused" overrides for virtual classes. A correct use case
+ * would be:
+ * \code
+   if (z > AtomicNumber{26})
+   {
+       CELER_NOT_IMPLEMENTED("physics for heavy nuclides");
+   }
+ * \endcode
  */
 
 //! \cond
@@ -196,8 +206,8 @@
  *
  * If it fails, we call \c cudaGetLastError to clear the error code. Note that
  * this will \em not clear the code in a few fatal error cases (kernel
- assertion
- * failure, invalid memory access) and all subsequent CUDA calls will fail.
+ * assertion failure, invalid memory access) and all subsequent CUDA calls will
+ * fail.
  *
  * \code
    CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));

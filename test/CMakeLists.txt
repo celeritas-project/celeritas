@@ -158,6 +158,7 @@ celeritas_add_test(corecel/io/StringUtils.test.cc)
 # Math
 set(CELERITASTEST_PREFIX corecel/math)
 celeritas_add_test(corecel/math/Algorithms.test.cc)
+celeritas_add_test(corecel/math/ArrayOperators.test.cc)
 celeritas_add_test(corecel/math/ArrayUtils.test.cc)
 celeritas_add_test(corecel/math/HashUtils.test.cc)
 celeritas_add_device_test(corecel/math/NumericLimits)
@@ -199,10 +200,14 @@ celeritas_setup_tests(SERIAL PREFIX orange
 #-----------------------------------------------------------------------------#
 # Base
 celeritas_add_test(orange/BoundingBox.test.cc)
+celeritas_add_test(orange/BoundingBoxUtils.test.cc)
+celeritas_add_test(orange/MatrixUtils.test.cc)
 celeritas_add_test(orange/Orange.test.cc)
 celeritas_add_test(orange/Translator.test.cc)
 
 # Base detail
+celeritas_add_test(orange/detail/BIHBuilder.test.cc)
+celeritas_add_test(orange/detail/BIHUtils.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 
 #-------------------------------------#
@@ -219,7 +224,6 @@ celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
 celeritas_add_device_test(orange/surf/SurfaceAction)
-
 
 #-------------------------------------#
 # Universe details
@@ -238,6 +242,7 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 #-----------------------------------------------------------------------------#
 
 celeritas_add_object_library(testcel_celeritas_core
+  celeritas/field/FieldTestBase.cc
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
   celeritas/phys/InteractorHostTestBase.cc
@@ -328,6 +333,7 @@ if(CELERITAS_USE_VecGeom)
     FILTER
       "FourLevelsTest.*"
       "SolidsTest.*"
+      "CmseTest.*"
       ${_vecgeom_geant_tests}
   )
 endif()

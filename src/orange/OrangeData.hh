@@ -15,7 +15,9 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#include "BoundingBox.hh"
 #include "OrangeTypes.hh"
+#include "detail/BIHData.hh"
 #include "univ/detail/Types.hh"
 
 namespace celeritas
@@ -61,6 +63,7 @@ struct VolumeRecord
     logic_int max_intersections{0};
     logic_int flags{0};
     DaughterId daughter_id;
+
     // TODO (KENO geometry): zorder
 
     //! Flag values (bit field)
@@ -161,8 +164,10 @@ struct SimpleUnitRecord
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
+    // Bounding Interval Hierachy tree parameters
+    detail::BIHTree bih_params;
+
     // TODO: transforms
-    // TODO: acceleration structure (bvh/kdtree/grid)
     LocalVolumeId background{};  //!< Default if not in any other volume
     bool simple_safety{};
 
@@ -273,6 +278,9 @@ struct OrangeParamsData
     Items<SurfaceType> surface_types;
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
+    Items<FastBBox> bboxes;
+    Items<detail::BIHInnerNode> bih_inner_nodes;
+    Items<detail::BIHLeafNode> bih_leaf_nodes;
 
     Items<Daughter> daughters;
     Items<Translation> translations;

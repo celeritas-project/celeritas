@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestBase.hh"
 
+#include <limits>
+
 #include "celeritas_config.h"
 #if CELERITAS_USE_GEANT4
 #    include <G4LogicalVolume.hh>
@@ -21,6 +23,8 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/io/ImportVolume.hh"
 
+#include "geo/CheckedGeoTrackView.hh"
+
 #if CELERITAS_USE_VECGEOM
 #    include "celeritas/ext/VecgeomData.hh"
 #    include "celeritas/ext/VecgeomParams.hh"
@@ -31,6 +35,7 @@
 #    include "celeritas/ext/GeantGeoParams.hh"
 #    include "celeritas/ext/GeantGeoTrackView.hh"
 #endif
+#include "TestMacros.hh"
 
 using std::cout;
 using namespace std::literals;
@@ -273,9 +278,19 @@ template<class HP>
 auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
+    return this->track(pos, dir, std::numeric_limits<int>::max());
+}
+
+//---------------------------------------------------------------------------//
+template<class HP>
+auto GenericGeoTestBase<HP>::track(Real3 const& pos,
+                                   Real3 const& dir,
+                                   int max_step) -> TrackingResult
+{
+    CELER_EXPECT(max_step > 0);
     TrackingResult result;
 
-    GeoTrackView geo = this->make_geo_track_view(pos, dir);
+    GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
 
     if (geo.is_outside())
     {
@@ -288,10 +303,11 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
             geo.move_to_boundary();
             geo.cross_boundary();
             EXPECT_TRUE(geo.is_on_boundary());
+            --max_step;
         }
     }
 
-    while (!geo.is_outside())
+    while (!geo.is_outside() && max_step > 0)
     {
         result.volumes.push_back(this->volume_name(geo));
         auto next = geo.find_next_step();
@@ -308,9 +324,38 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
             geo.move_internal(next.distance / 2);
             geo.find_next_step();
             result.halfway_safeties.push_back(geo.find_safety());
+
+            if (result.halfway_safeties.back() > 0)
+            {
+                // Check reinitialization if not tangent to a surface
+                GeoTrackInitializer const init{geo.pos(), geo.dir()};
+                auto prev_id = geo.volume_id();
+                geo = init;
+                if (geo.is_outside())
+                {
+                    ADD_FAILURE() << "reinitialization put the track outside "
+                                     "the geometry at"
+                                  << init.pos;
+                    break;
+                }
+                if (geo.volume_id() != prev_id)
+                {
+                    ADD_FAILURE()
+                        << "reinitialization changed the volume at "
+                        << init.pos << " along " << init.dir << " from "
+                        << result.volumes.back() << " to "
+                        << this->volume_name(geo) << " (alleged safety: "
+                        << result.halfway_safeties.back() << ")";
+                    result.volumes.back() += "/" + this->volume_name(geo);
+                }
+                auto new_next = geo.find_next_step();
+                EXPECT_TRUE(new_next.boundary);
+                EXPECT_SOFT_NEAR(new_next.distance, next.distance / 2, 1e-10);
+            }
         }
         geo.move_to_boundary();
         geo.cross_boundary();
+        --max_step;
     }
 
     return result;
@@ -319,13 +364,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
 //---------------------------------------------------------------------------//
 // EXPLICIT TEMPLATE INSTANTIATIONS
 //---------------------------------------------------------------------------//
-template class GenericGeoTestBase<OrangeParams>;
-#if CELERITAS_USE_VECGEOM
-template class GenericGeoTestBase<VecgeomParams>;
-#endif
-#if CELERITAS_USE_GEANT4
-template class GenericGeoTestBase<GeantGeoParams>;
-#endif
+CELERTEST_INST_GEO(GenericGeoTestBase);
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

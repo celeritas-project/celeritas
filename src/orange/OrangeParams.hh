@@ -51,7 +51,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     bool supports_safety() const final { return supports_safety_; }
 
     //! Outer bounding box of geometry
-    BoundingBox const& bbox() const final { return bbox_; }
+    BBox const& bbox() const final { return bbox_; }
 
     //// VOLUMES ////
 
@@ -100,7 +100,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     // Host metadata/access
     LabelIdMultiMap<SurfaceId> surf_labels_;
     LabelIdMultiMap<VolumeId> vol_labels_;
-    BoundingBox bbox_;
+    BBox bbox_;
     bool supports_safety_{};
 
     // Host/device storage and reference

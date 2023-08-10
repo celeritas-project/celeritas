@@ -338,6 +338,11 @@ function(celeritas_add_test SOURCE_FILE)
       "CELER_LOG=debug"
       "CELER_LOG_LOCAL=diagnostic"
     )
+  else()
+    list(APPEND PARSE_ENVIRONMENT
+      "CELER_LOG=warning"
+      "CELER_LOG_LOCAL=warning"
+    )
   endif()
 
   set(_COMMON_PROPS)
