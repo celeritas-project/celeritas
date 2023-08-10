@@ -35,11 +35,12 @@ class BIHTraverserTest : public Test
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
     BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
 
-    static constexpr auto valid_volid_ = [](LocalVolumeId vol_id) -> bool {
+    static constexpr bool valid_volid_(LocalVolumeId vol_id)
+    {
         return static_cast<bool>(vol_id);
     };
-
-    static constexpr auto odd_volid_ = [](LocalVolumeId vol_id) -> bool {
+    static constexpr bool odd_volid_(LocalVolumeId vol_id)
+    {
         return vol_id.unchecked_get() % 2 != 0;
     };
 };
@@ -103,20 +104,15 @@ TEST_F(BIHTraverserTest, basic)
 TEST_F(BIHTraverserTest, grid)
 {
     bboxes_.push_back(FastBBox::from_infinite());
-    bboxes_.push_back({{0, 0, 0}, {1, 1, 100}});
-    bboxes_.push_back({{0, 1, 0}, {1, 2, 100}});
-    bboxes_.push_back({{0, 2, 0}, {1, 3, 100}});
-    bboxes_.push_back({{0, 3, 0}, {1, 4, 100}});
-
-    bboxes_.push_back({{1, 0, 0}, {2, 1, 100}});
-    bboxes_.push_back({{1, 1, 0}, {2, 2, 100}});
-    bboxes_.push_back({{1, 2, 0}, {2, 3, 100}});
-    bboxes_.push_back({{1, 3, 0}, {2, 4, 100}});
-
-    bboxes_.push_back({{2, 0, 0}, {3, 1, 100}});
-    bboxes_.push_back({{2, 1, 0}, {3, 2, 100}});
-    bboxes_.push_back({{2, 2, 0}, {3, 3, 100}});
-    bboxes_.push_back({{2, 3, 0}, {3, 4, 100}});
+    for (auto i : range(3))
+    {
+        for (auto j : range(4))
+        {
+            auto x = static_cast<fast_real_type>(i);
+            auto y = static_cast<fast_real_type>(j);
+            bboxes_.push_back({{x, y, 0}, {x + 1, y + 1, 100}});
+        }
+    }
 
     BIHBuilder bih(&storage_);
     auto bih_tree = bih(std::move(bboxes_));

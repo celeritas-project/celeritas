@@ -44,7 +44,7 @@ class BIHBuilder
     //!@{
     //! \name Type aliases
     using VecBBox = std::vector<FastBBox>;
-    using Storage = BIHTreeData<Ownership::value, MemSpace::native>;
+    using Storage = BIHTreeData<Ownership::value, MemSpace::host>;
     //!@}
 
   public:

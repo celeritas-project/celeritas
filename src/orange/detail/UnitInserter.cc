@@ -188,7 +188,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
 
-        // Store the bbox, or it is not supplied, and infinite bbox placeholder
+        // Store the bbox or an infinite bbox placeholder
         if (inp.volumes[i].bbox)
         {
             bboxes.push_back(make_fast_bbox(inp.volumes[i].bbox));

@@ -100,7 +100,7 @@ class SimpleUnitTracker
     //// DATA ////
     ParamsRef const& params_;
     SimpleUnitRecord const& unit_record_;
-    detail::BIHTraverser bih_traverser_;
+    detail::BIHTraverser bih_point_in_vol_;
 
     //// METHODS ////
 
@@ -142,7 +142,8 @@ CELER_FUNCTION
 SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
     : params_(params)
     , unit_record_(params.simple_units[suid])
-    , bih_traverser_(params.simple_units[suid].bih_tree, params.bih_tree_data)
+    , bih_point_in_vol_(params.simple_units[suid].bih_tree,
+                        params.bih_tree_data)
 {
     CELER_EXPECT(params_);
 }
@@ -165,7 +166,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
 
     auto const& p = params_;
     auto const& u = unit_record_;
-    auto evaluate_piv = [p, u, calc_senses](LocalVolumeId const& id) -> bool {
+    auto is_inside = [p, u, calc_senses](LocalVolumeId const& id) -> bool {
         VolumeView vol(p, u, id);
         auto logic_state = calc_senses(vol);
 
@@ -173,7 +174,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
                && !logic_state.face;
     };
 
-    LocalVolumeId id = bih_traverser_(state.pos, evaluate_piv);
+    LocalVolumeId id = bih_point_in_vol_(state.pos, is_inside);
 
     if (!id)
     {

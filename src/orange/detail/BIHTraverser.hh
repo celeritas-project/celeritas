@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/Algorithms.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeData.hh"
 
@@ -33,7 +34,7 @@ class BIHTraverser
     // Point-in-volume operation
     template<class F>
     inline CELER_FUNCTION LocalVolumeId operator()(Real3 const& point,
-                                                   F&& functor) const;
+                                                   F&& is_inside) const;
 
   private:
     //// DATA ////
@@ -67,11 +68,11 @@ class BIHTraverser
     template<class F>
     inline CELER_FUNCTION LocalVolumeId visit_leaf(BIHLeafNode const& leaf_node,
                                                    Real3 const& point,
-                                                   F&& functor) const;
+                                                   F&& is_inside) const;
 
     // Determine if any inf_vols contain the point
     template<class F>
-    inline CELER_FUNCTION LocalVolumeId visit_inf_vols(F&& functor) const;
+    inline CELER_FUNCTION LocalVolumeId visit_inf_vols(F&& is_inside) const;
 
     // Determine if a single bbox contains the point
     inline CELER_FUNCTION bool
@@ -98,7 +99,7 @@ BIHTraverser::BIHTraverser(BIHTree const& tree,
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId BIHTraverser::operator()(Real3 const& point,
-                                                      F&& functor) const
+                                                      F&& is_inside) const
 {
     BIHNodeId previous_node;
     BIHNodeId current_node{0};
@@ -106,9 +107,10 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::operator()(Real3 const& point,
 
     do
     {
-        if (!is_inner(current_node))
+        if (!this->is_inner(current_node))
         {
-            id = visit_leaf(this->get_leaf_node(current_node), point, functor);
+            id = this->visit_leaf(
+                this->get_leaf_node(current_node), point, is_inside);
 
             if (id)
             {
@@ -116,15 +118,14 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::operator()(Real3 const& point,
             }
         }
 
-        auto temp = current_node;
-        current_node = this->next_node(current_node, previous_node, point);
-        previous_node = temp;
+        previous_node = exchange(
+            current_node, this->next_node(current_node, previous_node, point));
 
     } while (current_node);
 
     if (!id)
     {
-        id = this->visit_inf_vols(functor);
+        id = this->visit_inf_vols(is_inside);
     }
 
     return id;
@@ -145,7 +146,7 @@ BIHNodeId BIHTraverser::next_node(BIHNodeId const& current_id,
 
     BIHNodeId next_id;
 
-    if (is_inner(current_id))
+    if (this->is_inner(current_id))
     {
         auto const& current_node = this->get_inner_node(current_id);
         if (previous_id == current_node.parent)
@@ -217,7 +218,7 @@ bool BIHTraverser::visit_edge(BIHInnerNode const& node,
 CELER_FUNCTION
 bool BIHTraverser::is_inner(BIHNodeId id) const
 {
-    return id.get() < leaf_offset_;
+    return id.unchecked_get() < leaf_offset_;
 }
 
 //---------------------------------------------------------------------------//
@@ -249,12 +250,12 @@ BIHLeafNode const& BIHTraverser::get_leaf_node(BIHNodeId id) const
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId BIHTraverser::visit_leaf(
-    BIHLeafNode const& leaf_node, Real3 const& point, F&& functor) const
+    BIHLeafNode const& leaf_node, Real3 const& point, F&& is_inside) const
 {
     for (auto i : range(leaf_node.vol_ids.size()))
     {
         auto id = storage_.local_volume_ids[leaf_node.vol_ids[i]];
-        if (visit_bbox(id, point) && functor(id))
+        if (this->visit_bbox(id, point) && is_inside(id))
         {
             return id;
         }
@@ -267,12 +268,12 @@ CELER_FUNCTION LocalVolumeId BIHTraverser::visit_leaf(
  * Determine if any volumes in inf_vols contain the point.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId BIHTraverser::visit_inf_vols(F&& functor) const
+CELER_FUNCTION LocalVolumeId BIHTraverser::visit_inf_vols(F&& is_inside) const
 {
     for (auto i : range(tree_.inf_volids.size()))
     {
         auto id = storage_.local_volume_ids[tree_.inf_volids[i]];
-        if (functor(id))
+        if (is_inside(id))
         {
             return id;
         }
