@@ -164,25 +164,33 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     detail::SenseCalculator calc_senses(
         this->make_local_surfaces(), state.pos, state.temp_sense);
 
-    auto const& p = params_;
-    auto const& u = unit_record_;
-    auto is_inside = [p, u, calc_senses](LocalVolumeId const& id) -> bool {
-        VolumeView vol(p, u, id);
+    bool on_surface;
+    auto is_inside
+        = [this, &calc_senses, &on_surface](LocalVolumeId const& id) -> bool {
+        VolumeView vol = this->make_local_volume(id);
         auto logic_state = calc_senses(vol);
-
-        return detail::LogicEvaluator(vol.logic())(logic_state.senses)
-               && !logic_state.face;
+        on_surface = static_cast<bool>(logic_state.face);
+        return detail::LogicEvaluator(vol.logic())(logic_state.senses);
     };
 
     LocalVolumeId id = bih_point_in_vol_(state.pos, is_inside);
 
-    if (!id)
+    Initialization init{{}, {}};
+
+    if (id)
+    {
+        if (!on_surface)
+        {
+            init.volume = id;
+        }
+    }
+    else
     {
         // Not found, or default to background volume
-        id = unit_record_.background;
+        init.volume = unit_record_.background;
     }
 
-    return {id, {}};
+    return init;
 }
 
 //---------------------------------------------------------------------------//
