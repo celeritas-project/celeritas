@@ -24,10 +24,11 @@ struct WentzelIds
     ActionId action;
     ParticleId electron;
     ParticleId positron;
+    ParticleId proton;
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return action && electron && positron;
+        return action && electron && positron && proton;
     }
 };
 

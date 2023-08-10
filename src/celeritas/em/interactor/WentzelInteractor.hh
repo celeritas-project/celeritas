@@ -101,7 +101,8 @@ WentzelInteractor::WentzelInteractor(WentzelRef const& shared,
     , sample_angle(particle,
                    target,
                    shared.elem_data[el_id],
-                   value_as<Energy>(cutoffs.energy(particle.particle_id())),
+                   // TODO: Use proton when supported
+                   value_as<Energy>(cutoffs.energy(shared.ids.electron)),
                    shared)
 {
     CELER_EXPECT(particle_.particle_id() == shared.ids.electron

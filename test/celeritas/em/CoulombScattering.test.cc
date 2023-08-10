@@ -28,6 +28,27 @@ class CoulombScatteringTest : public InteractorHostTestBase
   protected:
     void SetUp() override
     {
+        // Need to include protons
+        constexpr units::MevMass emass{0.5109989461};
+        auto stable = ParticleRecord::stable_decay_constant();
+        ParticleParams::Input par_inp
+            = {{"electron",
+                pdg::electron(),
+                emass,
+                celeritas::units::ElementaryCharge{-1},
+                stable},
+               {"positron",
+                pdg::positron(),
+                emass,
+                celeritas::units::ElementaryCharge{1},
+                stable},
+               {"proton",
+                pdg::proton(),
+                units::MevMass{938.28},
+                celeritas::units::ElementaryCharge{1},
+                stable}};
+        this->set_particle_params(std::move(par_inp));
+
         // Set up shared material data
         // TODO: Use multiple elements to test elements are picked correctly
         MaterialParams::Input mat_inp;
@@ -80,6 +101,7 @@ class CoulombScatteringTest : public InteractorHostTestBase
         input.particles = this->particle_params();
         input.cutoffs.insert({pdg::electron(), material_cutoffs});
         input.cutoffs.insert({pdg::positron(), material_cutoffs});
+        input.cutoffs.insert({pdg::proton(), material_cutoffs});
         this->set_cutoff_params(input);
 
         // Set incident particle to be an electron at 200 MeV
@@ -272,7 +294,7 @@ TEST_F(CoulombScatteringTest, distribution)
         const real_type cutoff_energy = value_as<units::MevEnergy>(
             this->cutoff_params()
                 ->get(MaterialId{0})
-                .energy(this->particle_track().particle_id()));
+                .energy(ParticleId{0}));  // TODO: Use proton ParticleId{2}
 
         WentzelDistribution distrib(
             particle_track(), isotope, element_data, cutoff_energy, data);
