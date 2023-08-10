@@ -19,7 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Axis-aligned double-sheeted cone.
+ * Axis-aligned cone (infinite and double-sheeted).
  *
  * For a cone parallel to the x axis:
  * \f[
@@ -59,7 +59,7 @@ class ConeAligned
   public:
     //// CONSTRUCTORS ////
 
-    // Construct with radius
+    // Construct from origin and tangent of the angle of its opening
     inline CELER_FUNCTION ConeAligned(Real3 const& origin, real_type tangent);
 
     // Construct from raw data
@@ -123,8 +123,16 @@ CELER_CONSTEXPR_FUNCTION SurfaceType ConeAligned<T>::surface_type()
 /*!
  * Construct from origin and tangent of the angle of its opening.
  *
- * Given the trangular cross section of one octant of the cone, the tangent is
- * the ratio of the height to the base.
+ * Given the triangular cross section of one octant of a finite cone (i.e. a
+ * right triangle), the tangent is the slope of its hypotenuse (height / base).
+ *
+ * \pre
+     b
+   +-------*
+   |   _--^
+ h |_--
+   O
+   \endpre
  */
 template<Axis T>
 CELER_FUNCTION
@@ -198,11 +206,11 @@ template<Axis T>
 CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
 {
     Real3 norm;
-    for (int i = 0; i < 3; ++i)
+    for (auto i = to_int(Axis::x); i < to_int(Axis::size_); ++i)
     {
         norm[i] = pos[i] - origin_[i];
     }
-    norm[t_index()] *= -tsq_;
+    norm[to_int(T)] *= -tsq_;
 
     normalize_direction(&norm);
     return norm;

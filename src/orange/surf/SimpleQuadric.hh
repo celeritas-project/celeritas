@@ -21,13 +21,6 @@ namespace celeritas
 /*!
  * General quadric expression but with no off-axis terms.
  *
- * Input:
- * \f[
-   a(x - x_0)^2 + b(y - y_0)^2 + c(z - z_0)^2
-   + 2d(x - x_0) + 2e(y - y_0) + 2f(z - z_0)
-   + g = 0
-  \f]
- *
  * Stored:
  * \f[
    ax^2 + by^2 + cz^2 + dx + ey + fz + g = 0
@@ -137,18 +130,22 @@ SimpleQuadric::SimpleQuadric(SimpleQuadric const& other, Real3 const& origin)
 {
     Real3 const orig_def{d_, e_, f_};
 
+    constexpr auto X = to_int(Axis::x);
+    constexpr auto Y = to_int(Axis::y);
+    constexpr auto Z = to_int(Axis::z);
+
     // Expand out origin into the other terms
-    d_ -= 2 * a_ * origin[0];
-    e_ -= 2 * b_ * origin[1];
-    f_ -= 2 * c_ * origin[2];
+    d_ -= 2 * a_ * origin[X];
+    e_ -= 2 * b_ * origin[Y];
+    f_ -= 2 * c_ * origin[Z];
 
-    g_ += a_ * origin[0] * origin[0];
-    g_ += b_ * origin[1] * origin[1];
-    g_ += c_ * origin[2] * origin[2];
+    g_ += a_ * origin[X] * origin[X];
+    g_ += b_ * origin[Y] * origin[Y];
+    g_ += c_ * origin[Z] * origin[Z];
 
-    g_ -= 2 * orig_def[0] * origin[0];
-    g_ -= 2 * orig_def[1] * origin[1];
-    g_ -= 2 * orig_def[2] * origin[2];
+    g_ -= 2 * orig_def[X] * origin[X];
+    g_ -= 2 * orig_def[Y] * origin[Y];
+    g_ -= 2 * orig_def[Z] * origin[Z];
 }
 
 //---------------------------------------------------------------------------//
@@ -172,9 +169,9 @@ CELER_FUNCTION SimpleQuadric::SimpleQuadric(Storage data)
  */
 CELER_FUNCTION SignedSense SimpleQuadric::calc_sense(Real3 const& pos) const
 {
-    real_type const x = pos[0];
-    real_type const y = pos[1];
-    real_type const z = pos[2];
+    real_type const x = pos[to_int(Axis::x)];
+    real_type const y = pos[to_int(Axis::y)];
+    real_type const z = pos[to_int(Axis::z)];
 
     return real_to_sense((a_ * ipow<2>(x) + b_ * ipow<2>(y) + c_ * ipow<2>(z))
                          + (d_ * x + e_ * y + f_ * z) + (g_));
@@ -190,12 +187,12 @@ SimpleQuadric::calc_intersections(Real3 const& pos,
                                   SurfaceState on_surface) const
     -> Intersections
 {
-    real_type const x = pos[0];
-    real_type const y = pos[1];
-    real_type const z = pos[2];
-    real_type const u = dir[0];
-    real_type const v = dir[1];
-    real_type const w = dir[2];
+    real_type const x = pos[to_int(Axis::x)];
+    real_type const y = pos[to_int(Axis::y)];
+    real_type const z = pos[to_int(Axis::z)];
+    real_type const u = dir[to_int(Axis::x)];
+    real_type const v = dir[to_int(Axis::y)];
+    real_type const w = dir[to_int(Axis::z)];
 
     // Quadratic values
     real_type a = (a_ * u) * u + (b_ * v) * v + (c_ * w) * w;
@@ -213,15 +210,11 @@ SimpleQuadric::calc_intersections(Real3 const& pos,
  */
 CELER_FUNCTION Real3 SimpleQuadric::calc_normal(Real3 const& pos) const
 {
-    real_type const x = pos[0];
-    real_type const y = pos[1];
-    real_type const z = pos[2];
+    real_type const x = pos[to_int(Axis::x)];
+    real_type const y = pos[to_int(Axis::y)];
+    real_type const z = pos[to_int(Axis::z)];
 
-    Real3 norm;
-    norm[0] = 2 * a_ * x + d_;
-    norm[1] = 2 * b_ * y + e_;
-    norm[2] = 2 * c_ * z + f_;
-
+    Real3 norm{2 * a_ * x + d_, 2 * b_ * y + e_, 2 * c_ * z + f_};
     normalize_direction(&norm);
     return norm;
 }
