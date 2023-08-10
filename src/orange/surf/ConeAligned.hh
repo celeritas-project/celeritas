@@ -36,6 +36,11 @@ class ConeAligned
     using Storage = Span<const real_type, 4>;
     //@}
 
+  private:
+    static constexpr Axis U{T == Axis::x ? Axis::y : Axis::x};
+    static constexpr Axis V{T == Axis::z ? Axis::y : Axis::z};
+
+  public:
     //// CLASS ATTRIBUTES ////
 
     // Surface type identifier
@@ -43,6 +48,13 @@ class ConeAligned
 
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+
+    //!@{
+    //! Axes
+    static CELER_CONSTEXPR_FUNCTION Axis t_axis() { return T; }
+    static CELER_CONSTEXPR_FUNCTION Axis u_axis() { return U; }
+    static CELER_CONSTEXPR_FUNCTION Axis v_axis() { return V; }
+    //!@}
 
   public:
     //// CONSTRUCTORS ////
@@ -77,10 +89,6 @@ class ConeAligned
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
   private:
-    static CELER_CONSTEXPR_FUNCTION int t_index();
-    static CELER_CONSTEXPR_FUNCTION int u_index();
-    static CELER_CONSTEXPR_FUNCTION int v_index();
-
     // Location of the vanishing point
     Real3 origin_;
 
@@ -143,9 +151,9 @@ CELER_FUNCTION ConeAligned<T>::ConeAligned(Storage data)
 template<Axis T>
 CELER_FUNCTION SignedSense ConeAligned<T>::calc_sense(Real3 const& pos) const
 {
-    real_type const x = pos[t_index()] - origin_[t_index()];
-    real_type const y = pos[u_index()] - origin_[u_index()];
-    real_type const z = pos[v_index()] - origin_[v_index()];
+    real_type const x = pos[to_int(T)] - origin_[to_int(T)];
+    real_type const y = pos[to_int(U)] - origin_[to_int(U)];
+    real_type const z = pos[to_int(V)] - origin_[to_int(V)];
 
     return real_to_sense((-tsq_ * ipow<2>(x)) + ipow<2>(y) + ipow<2>(z));
 }
@@ -166,13 +174,13 @@ ConeAligned<T>::calc_intersections(Real3 const& pos,
     -> Intersections
 {
     // Expand translated positions into 'xyz' coordinate system
-    real_type const x = pos[t_index()] - origin_[t_index()];
-    real_type const y = pos[u_index()] - origin_[u_index()];
-    real_type const z = pos[v_index()] - origin_[v_index()];
+    real_type const x = pos[to_int(T)] - origin_[to_int(T)];
+    real_type const y = pos[to_int(U)] - origin_[to_int(U)];
+    real_type const z = pos[to_int(V)] - origin_[to_int(V)];
 
-    real_type const u = dir[t_index()];
-    real_type const v = dir[u_index()];
-    real_type const w = dir[v_index()];
+    real_type const u = dir[to_int(T)];
+    real_type const v = dir[to_int(U)];
+    real_type const w = dir[to_int(V)];
 
     // Scaled direction
     real_type a = (-tsq_ * ipow<2>(u)) + ipow<2>(v) + ipow<2>(w);
@@ -199,26 +207,6 @@ CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
     normalize_direction(&norm);
     return norm;
 }
-
-//---------------------------------------------------------------------------//
-//!@{
-//! Integer index values for primary and orthogonal axes.
-template<Axis T>
-CELER_CONSTEXPR_FUNCTION int ConeAligned<T>::t_index()
-{
-    return static_cast<int>(T);
-}
-template<Axis T>
-CELER_CONSTEXPR_FUNCTION int ConeAligned<T>::u_index()
-{
-    return static_cast<int>(T == Axis::x ? Axis::y : Axis::x);
-}
-template<Axis T>
-CELER_CONSTEXPR_FUNCTION int ConeAligned<T>::v_index()
-{
-    return static_cast<int>(T == Axis::z ? Axis::y : Axis::z);
-}
-//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

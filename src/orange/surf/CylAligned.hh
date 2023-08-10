@@ -38,6 +38,11 @@ class CylAligned
     using Storage = Span<const real_type, 3>;
     //@}
 
+  private:
+    static constexpr Axis U{T == Axis::x ? Axis::y : Axis::x};
+    static constexpr Axis V{T == Axis::z ? Axis::y : Axis::z};
+
+  public:
     //// CLASS ATTRIBUTES ////
 
     // Surface type identifier
@@ -46,17 +51,12 @@ class CylAligned
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
 
-    //@{
-    //! Perpendicular axes
-    static CELER_CONSTEXPR_FUNCTION Axis u_axis()
-    {
-        return T == Axis::x ? Axis::y : Axis::x;
-    }
-    static CELER_CONSTEXPR_FUNCTION Axis v_axis()
-    {
-        return T == Axis::z ? Axis::y : Axis::z;
-    }
-    //@}
+    //!@{
+    //! Axes
+    static CELER_CONSTEXPR_FUNCTION Axis t_axis() { return T; }
+    static CELER_CONSTEXPR_FUNCTION Axis u_axis() { return U; }
+    static CELER_CONSTEXPR_FUNCTION Axis v_axis() { return V; }
+    //!@}
 
   public:
     //// CONSTRUCTORS ////
@@ -101,10 +101,6 @@ class CylAligned
 
     // Square of the radius
     real_type radius_sq_;
-
-    static CELER_CONSTEXPR_FUNCTION int t_index();
-    static CELER_CONSTEXPR_FUNCTION int u_index();
-    static CELER_CONSTEXPR_FUNCTION int v_index();
 };
 
 //---------------------------------------------------------------------------//
@@ -136,8 +132,8 @@ CELER_CONSTEXPR_FUNCTION SurfaceType CylAligned<T>::surface_type()
  */
 template<Axis T>
 CELER_FUNCTION CylAligned<T>::CylAligned(Real3 const& origin, real_type radius)
-    : origin_u_{origin[u_index()]}
-    , origin_v_{origin[v_index()]}
+    : origin_u_{origin[to_int(U)]}
+    , origin_v_{origin[to_int(V)]}
     , radius_sq_{ipow<2>(radius)}
 {
     CELER_EXPECT(radius > 0);
@@ -160,8 +156,8 @@ CELER_FUNCTION CylAligned<T>::CylAligned(Storage data)
 template<Axis T>
 CELER_FUNCTION SignedSense CylAligned<T>::calc_sense(Real3 const& pos) const
 {
-    real_type const u = pos[u_index()] - origin_u_;
-    real_type const v = pos[v_index()] - origin_v_;
+    real_type const u = pos[to_int(U)] - origin_u_;
+    real_type const v = pos[to_int(V)] - origin_v_;
 
     return real_to_sense(ipow<2>(u) + ipow<2>(v) - radius_sq_);
 }
@@ -178,7 +174,7 @@ CylAligned<T>::calc_intersections(Real3 const& pos,
     -> Intersections
 {
     // 1 - \omega \dot e
-    const real_type a = 1 - ipow<2>(dir[t_index()]);
+    const real_type a = 1 - ipow<2>(dir[to_int(T)]);
 
     if (a < detail::QuadraticSolver::min_a())
     {
@@ -186,12 +182,12 @@ CylAligned<T>::calc_intersections(Real3 const& pos,
         return {no_intersection(), no_intersection()};
     }
 
-    const real_type u = pos[u_index()] - origin_u_;
-    const real_type v = pos[v_index()] - origin_v_;
+    const real_type u = pos[to_int(U)] - origin_u_;
+    const real_type v = pos[to_int(V)] - origin_v_;
 
     // b/2 = \omega \dot (x - x_0)
     detail::QuadraticSolver solve_quadric(
-        a, dir[u_index()] * u + dir[v_index()] * v);
+        a, dir[to_int(U)] * u + dir[to_int(V)] * v);
     if (on_surface == SurfaceState::on)
     {
         // Solve degenerate case (c=0)
@@ -211,32 +207,12 @@ CELER_FUNCTION Real3 CylAligned<T>::calc_normal(Real3 const& pos) const
 {
     Real3 norm{0, 0, 0};
 
-    norm[u_index()] = pos[u_index()] - origin_u_;
-    norm[v_index()] = pos[v_index()] - origin_v_;
+    norm[to_int(U)] = pos[to_int(U)] - origin_u_;
+    norm[to_int(V)] = pos[to_int(V)] - origin_v_;
 
     normalize_direction(&norm);
     return norm;
 }
-
-//---------------------------------------------------------------------------//
-//!@{
-//! Integer index values for primary and orthogonal axes.
-template<Axis T>
-CELER_CONSTEXPR_FUNCTION int CylAligned<T>::t_index()
-{
-    return static_cast<int>(T);
-}
-template<Axis T>
-CELER_CONSTEXPR_FUNCTION int CylAligned<T>::u_index()
-{
-    return static_cast<int>(u_axis());
-}
-template<Axis T>
-CELER_CONSTEXPR_FUNCTION int CylAligned<T>::v_index()
-{
-    return static_cast<int>(v_axis());
-}
-//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

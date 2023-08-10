@@ -68,11 +68,6 @@ class PlaneAligned
   private:
     //! Intersection with the axis
     real_type position_;
-
-    static CELER_CONSTEXPR_FUNCTION int t_index()
-    {
-        return static_cast<int>(T);
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -124,7 +119,7 @@ CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Storage data) : position_(data[0])
 template<Axis T>
 CELER_FUNCTION SignedSense PlaneAligned<T>::calc_sense(Real3 const& pos) const
 {
-    return real_to_sense(pos[t_index()] - position_);
+    return real_to_sense(pos[to_int(T)] - position_);
 }
 
 //---------------------------------------------------------------------------//
@@ -138,10 +133,10 @@ PlaneAligned<T>::calc_intersections(Real3 const& pos,
                                     SurfaceState on_surface) const
     -> Intersections
 {
-    real_type const n_dir = dir[t_index()];
+    real_type const n_dir = dir[to_int(T)];
     if (on_surface == SurfaceState::off && n_dir != 0)
     {
-        real_type const n_pos = pos[t_index()];
+        real_type const n_pos = pos[to_int(T)];
         real_type dist = (position_ - n_pos) / n_dir;
         if (dist > 0)
         {
@@ -160,7 +155,7 @@ CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(Real3 const&) const
 {
     Real3 norm{0, 0, 0};
 
-    norm[t_index()] = 1.;
+    norm[to_int(T)] = 1.;
     return norm;
 }
 
