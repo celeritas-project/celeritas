@@ -18,6 +18,10 @@
 #include <G4UImanager.hh>
 #include <G4Version.hh>
 
+#include "accel/HepMC3PrimaryGenerator.hh"
+
+#include "GlobalSetup.hh"
+
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #else
@@ -139,6 +143,9 @@ void run(int argc, char** argv)
     int num_events{0};
     CELER_TRY_HANDLE(num_events = PrimaryGeneratorAction::NumEvents(),
                      ExceptionConverter{"demo-geant000"});
+
+    auto inp = GlobalSetup::Instance()->GetEventFile();
+    celeritas::HepMC3PrimaryGenerator::dump_to_root(inp, "primaries.root");
 
     if (!celeritas::getenv("CELER_DISABLE").empty())
     {

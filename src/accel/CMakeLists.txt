@@ -32,8 +32,8 @@ if(CELERITAS_USE_JSON)
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
 
-if(CELERITAS_USE_HepMC3)
-  list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
+if(CELERITAS_USE_HepMC3 AND CELERITAS_USE_ROOT)
+  list(APPEND PRIVATE_DEPS HepMC3::HepMC3 ROOT::Tree)
   list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
 endif()
 

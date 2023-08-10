@@ -52,6 +52,10 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
     //! Get total number of events
     int NumEvents() { return num_events_; }
 
+    //! Dump list of primaries to ROOT
+    static void dump_to_root(std::string const& hepmc3_input_filename,
+                             std::string const& root_output_filename);
+
   private:
     using SPReader = std::shared_ptr<HepMC3::Reader>;
 

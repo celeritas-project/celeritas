@@ -30,10 +30,18 @@ namespace celeritas
  * Construct from a filename.
  */
 EventReader::EventReader(std::string const& filename, SPConstParticles params)
-    : params_(std::move(params))
+    : EventReader(filename)
 {
+    params_ = std::move(params);
     CELER_EXPECT(params_);
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a filename without particle params.
+ */
+EventReader::EventReader(std::string const& filename)
+{
     // Determine the input file format and construct the appropriate reader
     reader_ = open_hepmc3(filename);
 
@@ -86,20 +94,22 @@ auto EventReader::operator()() -> result_type
             continue;
         }
 
+        Primary primary;
+
         // Get the PDG code and check if this particle type is defined for
         // the current physics
         PDGNumber pdg{par->pid()};
-        ParticleId particle_id{params_->find(pdg)};
-        if (CELER_UNLIKELY(!particle_id))
+        if (params_)
         {
-            missing_pdg.insert(pdg.unchecked_get());
-            continue;
+            ParticleId particle_id{params_->find(pdg)};
+            if (CELER_UNLIKELY(!particle_id))
+            {
+                missing_pdg.insert(pdg.unchecked_get());
+                continue;
+            }
+            // Set the registered ID of the particle
+            primary.particle_id = particle_id;
         }
-
-        Primary primary;
-
-        // Set the registered ID of the particle
-        primary.particle_id = particle_id;
 
         // Set the event and track number
         primary.event_id = event_id;

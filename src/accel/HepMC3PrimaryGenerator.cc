@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "HepMC3PrimaryGenerator.hh"
 
+#include <cmath>
 #include <mutex>
 #include <G4PhysicalConstants.hh>
 #include <G4TransportationManager.hh>
@@ -14,11 +15,16 @@
 #include <HepMC3/GenParticle.h>
 #include <HepMC3/GenVertex.h>
 #include <HepMC3/Reader.h>
+#include <TTree.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/Algorithms.hh"
+#include "orange/Types.hh"
+#include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/io/EventReader.hh"
+#include "celeritas/phys/Primary.hh"
 
 namespace celeritas
 {
@@ -210,6 +216,69 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
                    << "event " << evt.event_number()
                    << " did not contain any primaries suitable for "
                       "simulation");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy a celeritas::Real3 to an std::array<double, 3>.
+ */
+void real3_to_array(Real3 const& src, std::array<double, 3>& dst)
+{
+    std::memcpy(&dst, &src, sizeof(src));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Dump list of primaries from HepMC3 to ROOT.
+ */
+void HepMC3PrimaryGenerator::dump_to_root(
+    std::string const& hepmc3_input_filename,
+    std::string const& root_output_filename)
+{
+    using std::pow;
+    using std::sqrt;
+
+    RootFileManager root_mgr(root_output_filename.c_str());
+    auto tree = root_mgr.make_tree("primaries", "primaries");
+
+    struct Primary
+    {
+        std::size_t event_id;
+        int particle;
+        double energy;
+        double time;
+        std::array<double, 3> pos;
+        std::array<double, 3> dir;
+    } prim;
+
+    tree->Branch("event_id", &prim.event_id);
+    tree->Branch("energy", &prim.energy);
+    tree->Branch("time", &prim.time);
+    tree->Branch("pos", &prim.pos);
+    tree->Branch("dir", &prim.dir);
+
+    EventReader reader(hepmc3_input_filename);
+    auto primaries = reader();
+
+    while (!primaries.empty())
+    {
+        for (auto const& primary : primaries)
+        {
+            prim.event_id = primary.event_id.unchecked_get();
+            prim.energy = primary.energy.value();
+            prim.time = primary.time;
+            real3_to_array(primary.position, prim.pos);
+            real3_to_array(primary.direction, prim.dir);
+        }
+        tree->Fill();
+        primaries = reader();
+    }
+
+    // TTree and TFile write, and TFile close happen via destructors
+
+    CELER_LOG(status) << "Generated \'" << root_output_filename
+                      << "\' with list of primaries from \'"
+                      << hepmc3_input_filename << "\'";
 }
 
 //---------------------------------------------------------------------------//

@@ -45,6 +45,9 @@ class EventReader
     //!@}
 
   public:
+    // Construct from a filename without particle params
+    EventReader(std::string const& filename);
+
     // Construct from a filename
     EventReader(std::string const& filename, SPConstParticles params);
 
