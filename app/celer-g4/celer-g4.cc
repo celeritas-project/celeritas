@@ -42,6 +42,7 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/ExceptionConverter.hh"
+#include "accel/HepMC3RootWriter.hh"
 #include "accel/Logger.hh"
 
 #include "ActionInitialization.hh"
@@ -84,8 +85,8 @@ void run(int argc, char** argv)
     CELER_LOG(info) << "Run manager type: "
                     << TypeDemangler<G4RunManager>{}(*run_manager);
 
-    // Make global setup commands available to UI
-    GlobalSetup::Instance();
+    // Construct singleton, also making it available to UI
+    auto const& global_setup = GlobalSetup::Instance();
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
@@ -101,6 +102,10 @@ void run(int argc, char** argv)
                       << "'";
     ui->ApplyCommand(std::string("/control/execute ")
                      + std::string(macro_filename));
+
+    // Export HepMC3 primary data to ROOT
+    celeritas::HepMC3RootWriter write_to_root(global_setup->GetEventFile());
+    write_to_root("primaries.root");
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
     if (G4VERSION_NUMBER >= 1110)
@@ -143,9 +148,6 @@ void run(int argc, char** argv)
     int num_events{0};
     CELER_TRY_HANDLE(num_events = PrimaryGeneratorAction::NumEvents(),
                      ExceptionConverter{"demo-geant000"});
-
-    auto inp = GlobalSetup::Instance()->GetEventFile();
-    celeritas::HepMC3PrimaryGenerator::dump_to_root(inp, "primaries.root");
 
     if (!celeritas::getenv("CELER_DISABLE").empty())
     {
