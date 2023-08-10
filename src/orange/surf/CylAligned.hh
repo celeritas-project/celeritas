@@ -1,13 +1,13 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/CylCentered.hh
+//! \file orange/surf/CylAligned.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -19,30 +19,23 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Axis-aligned cylinder centered about the origin.
+ * Axis-aligned cylinder.
  *
- * The cylinder is centered along an Axis template parameter.
+ * The cylinder is centered about the template parameter Axis.
  *
  * For a cylinder along the x axis:
  * \f[
-    y^2 + z^2 - R^2 = 0
+    (y - y_0)^2 + (z - z_0)^2 - R^2 = 0
    \f]
- *
- * This is an optimization of the Cyl. The motivations are:
- * - Many geometries have units with concentric cylinders centered about the
- *   origin, so having this as a special case reduces the memory usage of those
- *   units (improved memory localization).
- * - Cylindrical mesh geometries have lots of these cylinders, so efficient
- *   tracking through its cells should make this optimization worthwhile.
  */
 template<Axis T>
-class CylCentered
+class CylAligned
 {
   public:
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
-    using Storage = Span<const real_type, 1>;
+    using Storage = Span<const real_type, 3>;
     //@}
 
   private:
@@ -56,7 +49,7 @@ class CylCentered
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type();
 
     //! Safety is intersection along surface normal
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
 
     //!@{
     //! Axes
@@ -69,18 +62,25 @@ class CylCentered
     //// CONSTRUCTORS ////
 
     // Construct with radius
-    explicit inline CELER_FUNCTION CylCentered(real_type radius);
+    explicit inline CELER_FUNCTION
+    CylAligned(Real3 const& origin, real_type radius);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION CylCentered(Storage);
+    explicit inline CELER_FUNCTION CylAligned(Storage);
 
     //// ACCESSORS ////
 
+    //! Get the origin vector along the 'u' axis
+    real_type origin_u() const { return origin_u_; }
+
+    //! Get the origin vector along the 'v' axis
+    real_type origin_v() const { return origin_v_; }
+
     //! Get the square of the radius
-    CELER_FUNCTION real_type radius_sq() const { return radius_sq_; }
+    real_type radius_sq() const { return radius_sq_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION Storage data() const { return {&radius_sq_, 1}; }
+    CELER_FUNCTION Storage data() const { return {&origin_u_, 3}; }
 
     //// CALCULATION ////
 
@@ -95,7 +95,11 @@ class CylCentered
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
   private:
-    //! Square of cylinder radius
+    // Off-axis location
+    real_type origin_u_;
+    real_type origin_v_;
+
+    // Square of the radius
     real_type radius_sq_;
 };
 
@@ -103,9 +107,9 @@ class CylCentered
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-using CCylX = CylCentered<Axis::x>;
-using CCylY = CylCentered<Axis::y>;
-using CCylZ = CylCentered<Axis::z>;
+using CylX = CylAligned<Axis::x>;
+using CylY = CylAligned<Axis::y>;
+using CylZ = CylAligned<Axis::z>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -114,21 +118,23 @@ using CCylZ = CylCentered<Axis::z>;
  * Surface type identifier.
  */
 template<Axis T>
-CELER_CONSTEXPR_FUNCTION SurfaceType CylCentered<T>::surface_type()
+CELER_CONSTEXPR_FUNCTION SurfaceType CylAligned<T>::surface_type()
 {
-    return T == Axis::x   ? SurfaceType::cxc
-           : T == Axis::y ? SurfaceType::cyc
-           : T == Axis::z ? SurfaceType::czc
+    return T == Axis::x   ? SurfaceType::cx
+           : T == Axis::y ? SurfaceType::cy
+           : T == Axis::z ? SurfaceType::cz
                           : SurfaceType::size_;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with radius.
+ * Construct from origin and radius.
  */
 template<Axis T>
-CELER_FUNCTION CylCentered<T>::CylCentered(real_type radius)
-    : radius_sq_(ipow<2>(radius))
+CELER_FUNCTION CylAligned<T>::CylAligned(Real3 const& origin, real_type radius)
+    : origin_u_{origin[to_int(U)]}
+    , origin_v_{origin[to_int(V)]}
+    , radius_sq_{ipow<2>(radius)}
 {
     CELER_EXPECT(radius > 0);
 }
@@ -138,7 +144,8 @@ CELER_FUNCTION CylCentered<T>::CylCentered(real_type radius)
  * Construct from raw data.
  */
 template<Axis T>
-CELER_FUNCTION CylCentered<T>::CylCentered(Storage data) : radius_sq_(data[0])
+CELER_FUNCTION CylAligned<T>::CylAligned(Storage data)
+    : origin_u_{data[0]}, origin_v_{data[1]}, radius_sq_{data[2]}
 {
 }
 
@@ -147,10 +154,10 @@ CELER_FUNCTION CylCentered<T>::CylCentered(Storage data) : radius_sq_(data[0])
  * Determine the sense of the position relative to this surface.
  */
 template<Axis T>
-CELER_FUNCTION SignedSense CylCentered<T>::calc_sense(Real3 const& pos) const
+CELER_FUNCTION SignedSense CylAligned<T>::calc_sense(Real3 const& pos) const
 {
-    const real_type u = pos[to_int(U)];
-    const real_type v = pos[to_int(V)];
+    real_type const u = pos[to_int(U)] - origin_u_;
+    real_type const v = pos[to_int(V)] - origin_v_;
 
     return real_to_sense(ipow<2>(u) + ipow<2>(v) - radius_sq_);
 }
@@ -161,9 +168,9 @@ CELER_FUNCTION SignedSense CylCentered<T>::calc_sense(Real3 const& pos) const
  */
 template<Axis T>
 CELER_FUNCTION auto
-CylCentered<T>::calc_intersections(Real3 const& pos,
-                                   Real3 const& dir,
-                                   SurfaceState on_surface) const
+CylAligned<T>::calc_intersections(Real3 const& pos,
+                                  Real3 const& dir,
+                                  SurfaceState on_surface) const
     -> Intersections
 {
     // 1 - \omega \dot e
@@ -175,8 +182,8 @@ CylCentered<T>::calc_intersections(Real3 const& pos,
         return {no_intersection(), no_intersection()};
     }
 
-    const real_type u = pos[to_int(U)];
-    const real_type v = pos[to_int(V)];
+    const real_type u = pos[to_int(U)] - origin_u_;
+    const real_type v = pos[to_int(V)] - origin_v_;
 
     // b/2 = \omega \dot (x - x_0)
     detail::QuadraticSolver solve_quadric(
@@ -196,12 +203,12 @@ CylCentered<T>::calc_intersections(Real3 const& pos,
  * Calculate outward normal at a position.
  */
 template<Axis T>
-CELER_FUNCTION Real3 CylCentered<T>::calc_normal(Real3 const& pos) const
+CELER_FUNCTION Real3 CylAligned<T>::calc_normal(Real3 const& pos) const
 {
     Real3 norm{0, 0, 0};
 
-    norm[to_int(U)] = pos[to_int(U)];
-    norm[to_int(V)] = pos[to_int(V)];
+    norm[to_int(U)] = pos[to_int(U)] - origin_u_;
+    norm[to_int(V)] = pos[to_int(V)] - origin_v_;
 
     normalize_direction(&norm);
     return norm;

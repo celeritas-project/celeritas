@@ -1,33 +1,35 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/SphereCentered.hh
+//! \file orange/surf/Plane.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Types.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
-
-#include "detail/QuadraticSolver.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sphere centered at the origin.
+ * Arbitrarily oriented plane.
+ *
+ * A plane is a first-order quadric that satisfies \f[
+    ax + bx + cz - d = 0
+    \f]
  */
-class SphereCentered
+class Plane
 {
   public:
     //@{
     //! \name Type aliases
-    using Intersections = Array<real_type, 2>;
-    using Storage = Span<const real_type, 1>;
+    using Intersections = Array<real_type, 1>;
+    using Storage = Span<const real_type, 4>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -35,7 +37,7 @@ class SphereCentered
     //! Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
     {
-        return SurfaceType::sc;
+        return SurfaceType::p;
     }
 
     //! Safety is intersection along surface normal
@@ -44,19 +46,25 @@ class SphereCentered
   public:
     //// CONSTRUCTORS ////
 
-    // Construct with origin and radius
-    explicit inline CELER_FUNCTION SphereCentered(real_type radius);
+    // Construct with normal and point
+    explicit inline CELER_FUNCTION Plane(Real3 const& n, Real3 const& d);
+
+    // Construct with normal and displacement
+    explicit inline CELER_FUNCTION Plane(Real3 const& n, real_type d);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION SphereCentered(Storage);
+    explicit inline CELER_FUNCTION Plane(Storage);
 
     //// ACCESSORS ////
 
-    //! Square of the radius
-    CELER_FUNCTION real_type radius_sq() const { return radius_sq_; }
+    //! Normal to the plane
+    CELER_FUNCTION Real3 const& normal() const { return normal_; }
+
+    //! Distance from the origin along the normal to the plane
+    CELER_FUNCTION real_type displacement() const { return d_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION Storage data() const { return {&radius_sq_, 1}; }
+    CELER_FUNCTION Storage data() const { return {&normal_[0], 4}; }
 
     //// CALCULATION ////
 
@@ -71,28 +79,41 @@ class SphereCentered
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
   private:
-    // Square of the radius
-    real_type radius_sq_;
+    // Normal to plane (a,b,c)
+    Real3 normal_;
+
+    // n \dot P (d)
+    real_type d_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with sphere radius.
+ * Construct with unit normal and point.
+ *
+ * Displacement is the dot product of the point and the normal.
  */
-CELER_FUNCTION SphereCentered::SphereCentered(real_type radius)
-    : radius_sq_(ipow<2>(radius))
+CELER_FUNCTION Plane::Plane(Real3 const& n, Real3 const& p)
+    : Plane{n, dot_product(normal_, p)}
 {
-    CELER_EXPECT(radius > 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with unit normal and displacement.
+ */
+CELER_FUNCTION Plane::Plane(Real3 const& n, real_type d) : normal_{n}, d_{d}
+{
+    CELER_EXPECT(is_soft_unit_vector(normal_));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from raw data.
  */
-CELER_FUNCTION SphereCentered::SphereCentered(Storage data)
-    : radius_sq_{data[0]}
+CELER_FUNCTION Plane::Plane(Storage data)
+    : normal_{data[0], data[1], data[2]}, d_{data[3]}
 {
 }
 
@@ -100,41 +121,40 @@ CELER_FUNCTION SphereCentered::SphereCentered(Storage data)
 /*!
  * Determine the sense of the position relative to this surface.
  */
-CELER_FUNCTION SignedSense SphereCentered::calc_sense(Real3 const& pos) const
+CELER_FUNCTION SignedSense Plane::calc_sense(Real3 const& pos) const
 {
-    return real_to_sense(dot_product(pos, pos) - radius_sq_);
+    return real_to_sense(dot_product(normal_, pos) - d_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate all possible straight-line intersections with this surface.
  */
-CELER_FUNCTION auto
-SphereCentered::calc_intersections(Real3 const& pos,
-                                   Real3 const& dir,
-                                   SurfaceState on_surface) const
+CELER_FUNCTION auto Plane::calc_intersections(Real3 const& pos,
+                                              Real3 const& dir,
+                                              SurfaceState on_surface) const
     -> Intersections
 {
-    detail::QuadraticSolver solve_quadric(real_type(1), dot_product(pos, dir));
-    if (on_surface == SurfaceState::off)
+    real_type const n_dir = dot_product(normal_, dir);
+    if (on_surface == SurfaceState::off && n_dir != 0)
     {
-        return solve_quadric(dot_product(pos, pos) - radius_sq_);
+        real_type const n_pos = dot_product(normal_, pos);
+        real_type dist = (d_ - n_pos) / n_dir;
+        if (dist > 0)
+        {
+            return {dist};
+        }
     }
-    else
-    {
-        return solve_quadric();
-    }
+    return {no_intersection()};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate outward normal at a position.
  */
-CELER_FUNCTION Real3 SphereCentered::calc_normal(Real3 const& pos) const
+CELER_FUNCTION Real3 Plane::calc_normal(Real3 const&) const
 {
-    Real3 result{pos};
-    normalize_direction(&result);
-    return result;
+    return normal_;
 }
 
 //---------------------------------------------------------------------------//

@@ -13,7 +13,6 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
-
 namespace celeritas
 {
 namespace detail
@@ -48,6 +47,10 @@ class QuadraticSolver
     static inline CELER_FUNCTION Intersections solve_general(
         real_type a, real_type half_b, real_type c, SurfaceState on_surface);
 
+    // Solve degenerate case when a ~ 0 but not on surface
+    static inline CELER_FUNCTION Intersections
+    solve_along_surface(real_type half_b, real_type c);
+
   public:
     // Construct with nonzero a, and b/2
     inline CELER_FUNCTION QuadraticSolver(real_type a, real_type half_b);
@@ -78,36 +81,64 @@ CELER_FUNCTION auto QuadraticSolver::solve_general(real_type a,
                                                    SurfaceState on_surface)
     -> Intersections
 {
-    if (std::fabs(a) >= min_a())
+    if (std::fabs(a) >= QuadraticSolver::min_a())
     {
         // Not along the surface
         QuadraticSolver solve(a, half_b);
         return on_surface == SurfaceState::on ? solve() : solve(c);
     }
-    else
+    else if (on_surface == SurfaceState::off)
     {
         // Travelling parallel to the quadric's surface
-        if (on_surface == SurfaceState::off)
-        {
-            QuadraticSolver solve(min_a(), half_b);
-            return solve(c);
-        }
-        else
-        {
-            // On and along surface: no intersections
-            return {no_intersection(), no_intersection()};
-        }
+        return QuadraticSolver::solve_along_surface(half_b, c);
     }
+
+    // On and along surface: no intersections
+    return {no_intersection(), no_intersection()};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with b/2.
+ * Solve degenerate case when parallel to but not on surface.
+ *
+ * This is the case when a is approximately zero.
+ *
+ * Note that as both a and b -> 0, |x| -> infinity. Thus, if b/a is
+ * sufficiently small, no positive root is returned (because this case
+ * corresponds to a ray crossing a surface at an extreme distance).
+ */
+CELER_FUNCTION auto
+QuadraticSolver::solve_along_surface(real_type half_b, real_type c)
+    -> Intersections
+{
+    Intersections result;
+    if (std::fabs(half_b) > QuadraticSolver::min_a())
+    {
+        // On and along surface: no intersections
+        result[0] = -c / (2 * half_b);
+        if (result[0] < 0)
+        {
+            result[0] = no_intersection();
+        }
+        result[1] = no_intersection();
+    }
+    else
+    {
+        result = {no_intersection(), no_intersection()};
+    }
+
+    // On and along surface: no intersections
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with non-degenerate a and  b/2.
  */
 CELER_FUNCTION QuadraticSolver::QuadraticSolver(real_type a, real_type half_b)
     : a_inv_(1 / a), hba_(half_b * a_inv_)
 {
-    CELER_EXPECT(std::fabs(a) >= min_a());
+    CELER_EXPECT(std::fabs(a) >= QuadraticSolver::min_a());
 }
 
 //---------------------------------------------------------------------------//

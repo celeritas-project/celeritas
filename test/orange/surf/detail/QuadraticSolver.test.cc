@@ -148,6 +148,18 @@ TEST(SolveGeneral, no_roots)
 
     EXPECT_SOFT_EQ(no_intersection(), x[0]);
     EXPECT_SOFT_EQ(no_intersection(), x[1]);
+
+    b_2 = -1e-11;
+    c = 100;
+    x = QuadraticSolver::solve_general(a, b_2, c, SurfaceState::off);
+    EXPECT_SOFT_EQ(no_intersection(), x[0]);
+    EXPECT_SOFT_EQ(no_intersection(), x[1]);
+
+    b_2 = -0.5;
+    c = 5;
+    x = QuadraticSolver::solve_general(a, b_2, c, SurfaceState::off);
+    EXPECT_SOFT_EQ(-c / (2 * b_2), x[0]);
+    EXPECT_SOFT_EQ(no_intersection(), x[1]);
 }
 
 TEST(SolveGeneral, one_root)
@@ -159,8 +171,8 @@ TEST(SolveGeneral, one_root)
 
     auto x = QuadraticSolver::solve_general(a, b_2, c, SurfaceState::off);
 
-    EXPECT_SOFT_EQ(no_intersection(), x[0]);
-    EXPECT_SOFT_NEAR(1.0e3, x[1], 1e-7);
+    EXPECT_SOFT_EQ(no_intersection(), x[1]);
+    EXPECT_SOFT_NEAR(1.0e3, x[0], 1e-7);
 }
 
 //---------------------------------------------------------------------------//

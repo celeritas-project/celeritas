@@ -35,26 +35,8 @@ celeritas_target_include_directories(testcel_harness
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_HIP)
-  set_source_files_properties(
-    celeritas/field/FieldDriver.test.cu
-    celeritas/field/FieldPropagator.test.cu
-    celeritas/field/Steppers.test.cu
-    celeritas/field/UserMapField.test.cu
-    celeritas/field/UserParamField.test.cu
-    celeritas/geo/HeuristicGeoTestBase.cu
-    celeritas/mat/Material.test.cu
-    celeritas/phys/Particle.test.cu
-    celeritas/phys/Physics.test.cu
-    celeritas/random/RngEngine.test.cu
-    celeritas/random/curand/CurandPerformance.test.cu
-    celeritas/track/MockInteractAction.cu
-    corecel/cont/Range.test.cu
-    corecel/data/Collection.test.cu
-    corecel/data/ObserverPtr.test.cu
-    corecel/data/StackAllocator.test.cu
-    corecel/math/NumericLimits.test.cu
-    orange/surf/SurfaceAction.test.cu
-    orange/univ/SimpleUnitTracker.test.cu
+  file(GLOB_RECURSE _cufiles "${CMAKE_CURRENT_SOURCE_DIR}/*.cu")
+  set_source_files_properties(${_cufiles}
     PROPERTIES LANGUAGE HIP
   )
 endif()
@@ -232,9 +214,13 @@ celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 # Surfaces
 set(CELERITASTEST_PREFIX orange/surf)
 celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
+celeritas_add_test(orange/surf/ConeAligned.test.cc)
+celeritas_add_test(orange/surf/CylAligned.test.cc)
 celeritas_add_test(orange/surf/CylCentered.test.cc)
 celeritas_add_test(orange/surf/GeneralQuadric.test.cc)
+celeritas_add_test(orange/surf/Plane.test.cc)
 celeritas_add_test(orange/surf/PlaneAligned.test.cc)
+celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
 celeritas_add_device_test(orange/surf/SurfaceAction)

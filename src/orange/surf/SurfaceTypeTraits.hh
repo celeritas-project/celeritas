@@ -9,17 +9,10 @@
 
 #include "orange/OrangeTypes.hh"
 
+#include "SurfaceFwd.hh"
+
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<Axis T>
-class PlaneAligned;
-template<Axis T>
-class CylCentered;
-class GeneralQuadric;
-class Sphere;
-class SphereCentered;
-
 //---------------------------------------------------------------------------//
 /*!
  * Map surface enumeration to surface type.
@@ -42,19 +35,15 @@ ORANGE_SURFACE_TRAITS(cxc, CylCentered<Axis::x>);
 ORANGE_SURFACE_TRAITS(cyc, CylCentered<Axis::y>);
 ORANGE_SURFACE_TRAITS(czc, CylCentered<Axis::z>);
 ORANGE_SURFACE_TRAITS(sc,  SphereCentered);
-#if 0
 ORANGE_SURFACE_TRAITS(cx,  CylAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(cy,  CylAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(cz,  CylAligned<Axis::z>);
 ORANGE_SURFACE_TRAITS(p,   Plane);
-#endif
 ORANGE_SURFACE_TRAITS(s,   Sphere);
-#if 0
 ORANGE_SURFACE_TRAITS(kx,  ConeAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(ky,  ConeAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(kz,  ConeAligned<Axis::z>);
 ORANGE_SURFACE_TRAITS(sq,  SimpleQuadric);
-#endif
 ORANGE_SURFACE_TRAITS(gq,  GeneralQuadric);
 // clang-format on
 

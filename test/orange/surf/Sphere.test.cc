@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/Sphere.hh"
 
-#include "celeritas/Constants.hh"
+#include "orange/Constants.hh"
 
 #include "celeritas_test.hh"
 

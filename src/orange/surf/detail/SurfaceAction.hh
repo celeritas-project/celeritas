@@ -13,9 +13,13 @@
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 
+#include "../ConeAligned.hh"
+#include "../CylAligned.hh"
 #include "../CylCentered.hh"
 #include "../GeneralQuadric.hh"
+#include "../Plane.hh"
 #include "../PlaneAligned.hh"
+#include "../SimpleQuadric.hh"
 #include "../Sphere.hh"
 #include "../SphereCentered.hh"
 #include "../SurfaceTypeTraits.hh"
@@ -89,31 +93,31 @@ struct StaticSurfaceAction
  *
  * The \c ST argument must be a value of type \c SurfaceType.
  */
-#define ORANGE_SURF_DISPATCH_IMPL(FUNC, ST)                 \
-    do                                                      \
-    {                                                       \
-        switch (ST)                                         \
-        {                                                   \
-            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, px);       \
-            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, py);       \
-            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, pz);       \
-            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cxc);      \
-            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cyc);      \
-            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, czc);      \
-            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, sc);       \
-            /* ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cx); */ \
-            /* ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cy); */ \
-            /* ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cz); */ \
-            /* ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, p);  */ \
-            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, s);        \
-            /* ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, kx); */ \
-            /* ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, ky); */ \
-            /* ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, kz); */ \
-            /* ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, sq); */ \
-            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, gq);       \
-            case SurfaceType::size_:                        \
-                CELER_ASSERT_UNREACHABLE();                 \
-        }                                                   \
+#define ORANGE_SURF_DISPATCH_IMPL(FUNC, ST)            \
+    do                                                 \
+    {                                                  \
+        switch (ST)                                    \
+        {                                              \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, px);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, py);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, pz);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cxc); \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cyc); \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, czc); \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, sc);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cx);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cy);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cz);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, p);   \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, s);   \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, kx);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, ky);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, kz);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, sq);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, gq);  \
+            case SurfaceType::size_:                   \
+                CELER_ASSERT_UNREACHABLE();            \
+        }                                              \
     } while (0)
 
 //---------------------------------------------------------------------------//
