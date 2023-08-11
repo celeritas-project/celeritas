@@ -16,12 +16,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Storage implementation for transformations with rotation.
+ * Apply a translation (no rotation).
  *
- * The input translation and rotation are specified by rotating the daughter's
- * coordinate system internally, then translating into the parent. The input
- * rotation must be orthogonal (real and unitary) and will be checked on
- * construction.
+ * The input translation is specified by translating the daughter's coordinate
+ * into the parent.
  */
 class Translation
 {

@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "MatrixUtils.hh"
 
+#include <cmath>
+
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
 
 using Mat3 = celeritas::SquareMatrixReal3;
 
@@ -66,11 +69,12 @@ gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b)
 /*!
  * Normalize and orthogonalize a small, dense matrix.
  *
- * \return normalization (zero if already orthonormal)
- *
  * This is used for constructing rotation matrices from user-given matrices
  * that may only have a few digits of precision (e.g. were read from an XML
  * file). It uses the modified Gram-Schmidt orthogonalization algorithm.
+ *
+ * If debug assertions are enabled, the normality of the resulting matrix will
+ * be checked. A singular matrix will fail.
  */
 template<class T, size_type N>
 void orthonormalize(SquareMatrix<T, N>* mat)
@@ -95,19 +99,8 @@ void orthonormalize(SquareMatrix<T, N>* mat)
         }
     }
 
-    // Check result for orthonormality: if the matrix is singular this will
-    // fail
-    if (CELERITAS_DEBUG)
-    {
-        for (size_type i = 0; i != N; ++i)
-        {
-            for (size_type ip = 0; ip != i; ++ip)
-            {
-                CELER_ENSURE(soft_equal(dot_product((*mat)[i], (*mat)[ip]),
-                                        static_cast<T>(i == ip ? 1 : 0)));
-            }
-        }
-    }
+    // Check result for orthonormality
+    CELER_ENSURE(soft_equal(std::fabs(determinant(*mat)), T{1}));
 }
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "Transformation.hh"
 
+#include <cmath>
+
+#include "corecel/math/SoftEqual.hh"
+#include "orange/MatrixUtils.hh"
+
 #include "Translation.hh"
 
 namespace celeritas
@@ -20,10 +25,15 @@ Transformation::Transformation() : Transformation{Translation{}} {}
 //---------------------------------------------------------------------------//
 /*!
  * Construct and check the input.
+ *
+ * The input rotation matrix should be an orthonormal matrix without
+ * reflecting, thus having a determinant of unity. It is the caller's job to
+ * ensure a user-provided low-precision matrix is orthonormalized.
  */
 Transformation::Transformation(Mat3 const& rot, Real3 const& trans)
     : rot_(rot), tra_(trans)
 {
+    CELER_EXPECT(soft_equal(determinant(rot_), real_type(1)));
 }
 
 //---------------------------------------------------------------------------//
