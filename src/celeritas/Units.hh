@@ -69,6 +69,7 @@ CELER_ICRT farad = coulomb / volt;
 //!@{
 //! \name Other common units
 CELER_ICRT millimeter = real_type(0.1) * centimeter;
+CELER_ICRT femtometer = real_type(1e-13) * centimeter;
 CELER_ICRT barn = real_type(1e-24) * centimeter * centimeter;
 //!@}
 

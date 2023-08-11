@@ -300,6 +300,7 @@ celeritas_add_test(celeritas/Constants.test.cc
 set(CELERITASTEST_PREFIX celeritas/em)
 celeritas_add_test(celeritas/em/BetheHeitler.test.cc)
 celeritas_add_test(celeritas/em/CombinedBrem.test.cc)
+celeritas_add_test(celeritas/em/CoulombScattering.test.cc)
 celeritas_add_test(celeritas/em/EPlusGG.test.cc)
 celeritas_add_test(celeritas/em/Fluctuation.test.cc)
 celeritas_add_test(celeritas/em/KleinNishina.test.cc)
@@ -603,3 +604,4 @@ celeritas_add_rootupdate_target(update-four-slabs four-steel-slabs)
 celeritas_add_rootupdate_target(update-simple-cms simple-cms)
 
 #-----------------------------------------------------------------------------#
+ 
