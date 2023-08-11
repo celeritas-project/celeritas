@@ -207,6 +207,7 @@ celeritas_add_test(orange/Translator.test.cc)
 
 # Base detail
 celeritas_add_test(orange/detail/BIHBuilder.test.cc)
+celeritas_add_test(orange/detail/BIHTraverser.test.cc)
 celeritas_add_test(orange/detail/BIHUtils.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 

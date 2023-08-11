@@ -12,7 +12,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "orange/BoundingBox.hh"
-#include "orange/detail/BIHData.hh"
+#include "orange/OrangeData.hh"
 #include "orange/detail/BIHPartitioner.hh"
 
 namespace celeritas
@@ -27,7 +27,12 @@ namespace detail
  * paper [1]. Partitioning is done on the basis of bounding box centers using
  * the "longest dimension" heuristic. All leaf nodes contain either a single
  * volume id, or multiple volume ids if the volumes have bounding boxes that
- * share the same center.
+ * share the same center. A tree may consist of a single leaf node if the
+ * tree contains only 1 volume, or multiple non-partitionable volumes. In the
+ * event that all bounding boxes are infinite, the tree will consist of a
+ * single empty leaf node with all volumes in the stored inf_vols. This final
+ * case is useful in the event that an ORANGE geometry is created via a method
+ * where volume bounding boxes are not availible.
  *
  * [1] C. Wachter, Carsten and A. Keller, "Instant Ray Tracing: The Bounding
  * Interval Hierarchy" Eurographics Symposium on Rendering, 2006,
@@ -39,6 +44,7 @@ class BIHBuilder
     //!@{
     //! \name Type aliases
     using VecBBox = std::vector<FastBBox>;
+    using Storage = BIHTreeData<Ownership::value, MemSpace::host>;
     //!@}
 
   public:
@@ -46,7 +52,7 @@ class BIHBuilder
     BIHBuilder() = default;
 
     // Construct from a Storage object
-    explicit BIHBuilder(BIHStorage storage);
+    explicit BIHBuilder(Storage* storage);
 
     // Create BIH Nodes
     BIHTree operator()(VecBBox bboxes);
@@ -68,7 +74,7 @@ class BIHBuilder
 
     VecBBox bboxes_;
     VecReal3 centers_;
-    BIHStorage storage_;
+    Storage* storage_;
 
     //// HELPER FUNCTIONS ////
 

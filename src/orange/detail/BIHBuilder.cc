@@ -37,7 +37,7 @@ Overload(Ts&&...) -> Overload<Ts...>;
 /*!
  * Construct from a Storage object
  */
-BIHBuilder::BIHBuilder(BIHStorage storage) : storage_(storage)
+BIHBuilder::BIHBuilder(Storage* storage) : storage_(storage)
 {
     CELER_EXPECT(storage_);
 }
@@ -74,27 +74,42 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
         }
     }
 
-    VecNodes nodes;
-    this->construct_tree(indices, &nodes, BIHNodeId{});
+    BIHTree tree;
 
-    auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
-
-    BIHTree params;
-
-    params.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
-        make_builder(storage_.bboxes)
+    tree.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
+        make_builder(&storage_->bboxes)
             .insert_back(bboxes_.begin(), bboxes_.end()));
 
-    params.inner_nodes
-        = make_builder(storage_.inner_nodes)
-              .insert_back(inner_nodes.begin(), inner_nodes.end());
-    params.leaf_nodes = make_builder(storage_.leaf_nodes)
-                            .insert_back(leaf_nodes.begin(), leaf_nodes.end());
+    tree.inf_volids = make_builder(&storage_->local_volume_ids)
+                          .insert_back(inf_volids.begin(), inf_volids.end());
 
-    params.inf_volids = make_builder(storage_.local_volume_ids)
-                            .insert_back(inf_volids.begin(), inf_volids.end());
+    if (!indices.empty())
+    {
+        VecNodes nodes;
+        this->construct_tree(indices, &nodes, BIHNodeId{});
+        auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
-    return params;
+        tree.inner_nodes
+            = make_builder(&storage_->inner_nodes)
+                  .insert_back(inner_nodes.begin(), inner_nodes.end());
+
+        tree.leaf_nodes
+            = make_builder(&storage_->leaf_nodes)
+                  .insert_back(leaf_nodes.begin(), leaf_nodes.end());
+    }
+    else
+    {
+        // Degenerate case where all bounding boxes are infinite. Create a
+        // single empty leaf node, so that the existance of leaf nodes does not
+        // need to be checked at runtime.
+
+        VecLeafNodes leaf_nodes{1};
+        tree.leaf_nodes
+            = make_builder(&storage_->leaf_nodes)
+                  .insert_back(leaf_nodes.begin(), leaf_nodes.end());
+    }
+
+    return tree;
 }
 
 //---------------------------------------------------------------------------//
@@ -143,7 +158,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     {
         BIHLeafNode node;
         node.parent = parent;
-        node.vol_ids = make_builder(storage_.local_volume_ids)
+        node.vol_ids = make_builder(&storage_->local_volume_ids)
                            .insert_back(indices.begin(), indices.end());
 
         CELER_EXPECT(node);
@@ -216,7 +231,6 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
 
     return {std::move(inner_nodes), std::move(leaf_nodes)};
 }
-
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

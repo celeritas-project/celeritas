@@ -117,7 +117,6 @@ void OrangeGeoTestBase::build_geometry(OneVolInput inp)
         vi.flags = (inp.complex_tracking ? VolumeInput::Flags::internal_surfaces
                                          : 0);
         vi.label = "infinite";
-        vi.bbox = {{-0.5, -0.5, -0.5}, {0.5, 0.5, 0.5}};
         input.volumes.push_back(std::move(vi));
     }
 

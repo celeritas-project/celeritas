@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
+#include "orange/detail/BIHTraverser.hh"
 #include "orange/surf/Surfaces.hh"
 
 #include "detail/LogicEvaluator.hh"
@@ -99,6 +100,7 @@ class SimpleUnitTracker
     //// DATA ////
     ParamsRef const& params_;
     SimpleUnitRecord const& unit_record_;
+    detail::BIHTraverser bih_point_in_vol_;
 
     //// METHODS ////
 
@@ -138,7 +140,10 @@ class SimpleUnitTracker
  */
 CELER_FUNCTION
 SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
-    : params_(params), unit_record_(params.simple_units[suid])
+    : params_(params)
+    , unit_record_(params.simple_units[suid])
+    , bih_point_in_vol_(params.simple_units[suid].bih_tree,
+                        params.bih_tree_data)
 {
     CELER_EXPECT(params_);
 }
@@ -159,35 +164,33 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     detail::SenseCalculator calc_senses(
         this->make_local_surfaces(), state.pos, state.temp_sense);
 
-    // Loop over all volumes (TODO: use BVH)
-    for (LocalVolumeId volid : range(LocalVolumeId{this->num_volumes()}))
-    {
-        VolumeView vol = this->make_local_volume(volid);
-
-        // Calculate the local senses, and see if we're inside.
+    bool on_surface;
+    auto is_inside
+        = [this, &calc_senses, &on_surface](LocalVolumeId const& id) -> bool {
+        VolumeView vol = this->make_local_volume(id);
         auto logic_state = calc_senses(vol);
+        on_surface = static_cast<bool>(logic_state.face);
+        return detail::LogicEvaluator(vol.logic())(logic_state.senses);
+    };
 
-        // Evalulate whether the senses are "inside" the volume
-        if (!detail::LogicEvaluator(vol.logic())(logic_state.senses))
-        {
-            // State is *not* inside this volume: try the next one
-            continue;
-        }
-        if (logic_state.face)
-        {
-            // Initialized on a boundary in this volume but wasn't known
-            // to be crossing a surface. Fail safe by letting the multi-level
-            // tracking geometry (NOT YET IMPLEMENTED in GPU ORANGE) bump and
-            // try again.
-            break;
-        }
+    LocalVolumeId id = bih_point_in_vol_(state.pos, is_inside);
 
-        // Found and not unexpectedly on a surface!
-        return {volid, {}};
+    Initialization init{{}, {}};
+
+    if (id)
+    {
+        if (!on_surface)
+        {
+            init.volume = id;
+        }
+    }
+    else
+    {
+        // Not found, or default to background volume
+        init.volume = unit_record_.background;
     }
 
-    // Not found, or default to background volume
-    return {unit_record_.background, {}};
+    return init;
 }
 
 //---------------------------------------------------------------------------//

@@ -67,34 +67,7 @@ struct BIHLeafNode
 
     ItemRange<LocalVolumeId> vol_ids;
 
-    //! True if either a valid inner or leaf node
     explicit CELER_FUNCTION operator bool() const { return !vol_ids.empty(); }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * References to host storage while constructing a Bounding Interval Hierarchy
- * tree.
- */
-struct BIHStorage
-{
-    template<class T>
-    using Storage = Collection<T, Ownership::value, MemSpace::host>;
-    using BBoxStorage = Storage<FastBBox>;
-    using LVIStorage = Storage<LocalVolumeId>;
-    using InnerNodeStorage = Storage<BIHInnerNode>;
-    using LeafNodeStorage = Storage<BIHLeafNode>;
-
-    BBoxStorage* bboxes = nullptr;
-    LVIStorage* local_volume_ids = nullptr;
-    InnerNodeStorage* inner_nodes = nullptr;
-    LeafNodeStorage* leaf_nodes = nullptr;
-
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return bboxes != nullptr && local_volume_ids != nullptr
-               && inner_nodes != nullptr && leaf_nodes != nullptr;
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -115,6 +88,23 @@ struct BIHTree
     // VolumeIds for which bboxes have infinite extents, and are therefore
     // note included in the tree
     ItemRange<LocalVolumeId> inf_volids;
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        if (!inner_nodes.empty())
+        {
+            return !bboxes.empty() && !leaf_nodes.empty();
+        }
+        else
+        {
+            // Degenerate single leaf node case. This occurs when a tree
+            // contains either:
+            // a) a single volume
+            // b) muliple non-partitionable volumes,
+            // b) only infinite volumes.
+            return !bboxes.empty() && leaf_nodes.size() == 1;
+        }
+    }
 };
 
 //---------------------------------------------------------------------------//
