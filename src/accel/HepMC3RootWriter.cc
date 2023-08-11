@@ -14,10 +14,25 @@
 #include "orange/Types.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/phys/Primary.hh"
-#include "accel/HepMC3RootEvent.hh"
+#include "accel/HepMC3RootPrimary.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Convert celeritas::Real3 to std::array<double, 3>.
+ */
+std::array<double, 3> real3_to_array(Real3 const& src)
+{
+    std::array<double, 3> dst;
+    std::memcpy(&dst, &src, sizeof(src));
+    return dst;
+}
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with HepMC3 input filename.
@@ -39,39 +54,28 @@ void HepMC3RootWriter::operator()(std::string const& root_output_name)
     RootFileManager root_mgr(root_output_name.c_str());
     auto tree = root_mgr.make_tree(this->tree_name(), this->tree_name());
 
-    HepMC3RootEvent event;
-    tree->Branch("event_id", &event.event_id);
-    tree->Branch("particle", &event.particle);
-    tree->Branch("energy", &event.energy);
-    tree->Branch("time", &event.time);
-    tree->Branch("pos_x", &event.pos_x);
-    tree->Branch("pos_y", &event.pos_y);
-    tree->Branch("pos_z", &event.pos_z);
-    tree->Branch("dir_x", &event.dir_x);
-    tree->Branch("dir_y", &event.dir_y);
-    tree->Branch("dir_z", &event.dir_z);
+    HepMC3RootPrimary write_primary;
+    tree->Branch("event_id", &write_primary.event_id);
+    tree->Branch("particle", &write_primary.particle);
+    tree->Branch("energy", &write_primary.energy);
+    tree->Branch("time", &write_primary.time);
+    tree->Branch("pos", &write_primary.pos);
+    tree->Branch("dir", &write_primary.dir);
 
-    auto primaries = reader_();
-    while (!primaries.empty())
+    auto read_primaries = reader_();
+    while (!read_primaries.empty())
     {
-        event.event_id = primaries.front().event_id.unchecked_get();
-
-        // TODO: Resize vectors before loop?
-        for (auto const& hepmc3_prim : primaries)
+        for (auto const& p : read_primaries)
         {
-            event.particle.push_back(/* pdg */ 0);  // TODO
-            event.energy.push_back(hepmc3_prim.energy.value());
-            event.time.push_back(hepmc3_prim.time);
-            event.pos_x.push_back(hepmc3_prim.position[0]);
-            event.pos_y.push_back(hepmc3_prim.position[1]);
-            event.pos_z.push_back(hepmc3_prim.position[2]);
-            event.dir_x.push_back(hepmc3_prim.direction[0]);
-            event.dir_y.push_back(hepmc3_prim.direction[1]);
-            event.dir_z.push_back(hepmc3_prim.direction[2]);
+            write_primary.event_id = p.event_id.unchecked_get();
+            write_primary.particle = 0;  // TODO
+            write_primary.energy = p.energy.value();
+            write_primary.time = p.time;
+            write_primary.pos = real3_to_array(p.position);
+            write_primary.dir = real3_to_array(p.direction);
         }
         tree->Fill();
-        event = HepMC3RootEvent();
-        primaries = reader_();
+        read_primaries = reader_();
     }
 }
 

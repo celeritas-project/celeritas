@@ -33,6 +33,7 @@ class HepMC3RootWriter
     EventReader reader_;
 
   private:
+    // Hardcoded TTree name and title
     char const* tree_name() { return "primaries"; }
 };
 

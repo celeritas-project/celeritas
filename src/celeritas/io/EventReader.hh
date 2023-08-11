@@ -45,10 +45,10 @@ class EventReader
     //!@}
 
   public:
-    // Construct from a filename without particle params
+    // Construct from a filename
     EventReader(std::string const& filename);
 
-    // Construct from a filename
+    // Construct from a filename and particle params
     EventReader(std::string const& filename, SPConstParticles params);
 
     //! Prevent copying and moving
@@ -56,6 +56,7 @@ class EventReader
 
     // Read a single event from the event record
     result_type operator()();
+    // Use a template and return T as HepMC3RootEvent or celeritas Primary?
 
   private:
     // Shared standard model particle data

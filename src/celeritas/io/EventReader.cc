@@ -27,7 +27,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a filename.
+ * Construct from a filename and particle params.
  */
 EventReader::EventReader(std::string const& filename, SPConstParticles params)
     : EventReader(filename)
@@ -38,7 +38,11 @@ EventReader::EventReader(std::string const& filename, SPConstParticles params)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a filename without particle params.
+ * Construct from a filename.
+ *
+ * \note
+ * This is intended to be used outside of Celeritas. Without \c ParticleParams
+ * \c celeritas::Primary::particle_id will not be assigned.
  */
 EventReader::EventReader(std::string const& filename)
 {

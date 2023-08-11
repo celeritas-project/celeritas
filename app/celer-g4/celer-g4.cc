@@ -42,6 +42,7 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/ExceptionConverter.hh"
+#include "accel/HepMC3RootReader.hh"
 #include "accel/HepMC3RootWriter.hh"
 #include "accel/Logger.hh"
 
@@ -86,7 +87,7 @@ void run(int argc, char** argv)
                     << TypeDemangler<G4RunManager>{}(*run_manager);
 
     // Construct singleton, also making it available to UI
-    auto const& global_setup = GlobalSetup::Instance();
+    GlobalSetup::Instance();
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
@@ -103,9 +104,20 @@ void run(int argc, char** argv)
     ui->ApplyCommand(std::string("/control/execute ")
                      + std::string(macro_filename));
 
+#if CELERITAS_USE_ROOT
     // Export HepMC3 primary data to ROOT
-    celeritas::HepMC3RootWriter write_to_root(global_setup->GetEventFile());
+    celeritas::HepMC3RootWriter write_to_root(
+        GlobalSetup::Instance()->GetEventFile());
     write_to_root("primaries.root");
+
+    // Temp test
+    celeritas::HepMC3RootReader read("primaries.root");
+    for (std::size_t i = 0; i < read.num_primaries(); i++)
+    {
+        read();
+    }
+
+#endif
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
     if (G4VERSION_NUMBER >= 1110)

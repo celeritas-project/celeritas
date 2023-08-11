@@ -39,6 +39,7 @@ if(CELERITAS_USE_HepMC3)
   if (CELERITAS_USE_ROOT)
     list(APPEND PRIVATE_DEPS ROOT::Tree)
     list(APPEND SOURCES HepMC3RootWriter.cc)
+    list(APPEND SOURCES HepMC3RootReader.cc)
   endif()
 endif()
 
