@@ -40,7 +40,7 @@ class DormandPrinceMultiStepperShared
     CELER_FUNCTION result_type operator()(real_type step,
                                           OdeState const& beg_state,
                                           int number_threads,
-                                               int number_states) const;
+                                          int number_states) const;
 
   private:
     // Functor to calculate the force applied to a particle
@@ -83,12 +83,8 @@ CELER_FUNCTION DormandPrinceMultiStepperShared(EquationT&&)
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<class E>
-inline CELER_FUNCTION auto
-DormandPrinceMultiStepperShared<E>::operator()(result_type,
-                                               OdeState const&,
-                                               int,
-                                               int) const
-    -> result_type
+inline CELER_FUNCTION auto DormandPrinceMultiStepperShared<E>::operator()(
+    result_type, OdeState const&, int, int) const -> result_type
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
     return result_type{};
@@ -150,12 +146,12 @@ DormandPrinceMultiStepperShared<E>::operator()(real_type step,
                                                int number_states) const
     -> result_type
 {
-    int id = KernelParamCalculator::thread_id().get()  / number_threads;
+    int id = KernelParamCalculator::thread_id().get() / number_threads;
     if (id >= number_states)
     {
         return result_type{};
     }
-    int index = KernelParamCalculator::thread_id().get()  % number_threads;
+    int index = KernelParamCalculator::thread_id().get() % number_threads;
     int states_block = blockDim.x / number_threads;
     int blocId = id % states_block;
 
@@ -276,7 +272,8 @@ DormandPrinceMultiStepperShared<E>::run_aside(real_type step,
     {
         if (j == 1)
             continue;  // because a62 = 0
-        update_state(index - 1, result->end_state, step * axx[coef_counter], ks[j]);
+        update_state(
+            index - 1, result->end_state, step * axx[coef_counter], ks[j]);
         coef_counter++;
     }
     __syncwarp(mask);
@@ -288,9 +285,12 @@ DormandPrinceMultiStepperShared<E>::run_aside(real_type step,
     {
         if (j == 1)
             continue;  // because d72 and c72 = 0
-        update_state(index - 1, result->err_state, step * dxx[coef_counter], ks[j]);
         update_state(
-            index - 1, result->mid_state, step * cxx[coef_counter] / R(2), ks[j]);
+            index - 1, result->err_state, step * dxx[coef_counter], ks[j]);
+        update_state(index - 1,
+                     result->mid_state,
+                     step * cxx[coef_counter] / R(2),
+                     ks[j]);
         coef_counter++;
     }
     __syncwarp(mask);
@@ -349,10 +349,8 @@ template<class E>
 inline CELER_FUNCTION void DormandPrinceMultiStepperShared<E>::update_state(
     int index, OdeState& state, real_type coefficient, OdeState const& k) const
 {
-    state.pos[index] = coefficient * k.pos[index]
-                           + state.pos[index];
-    state.mom[index] = coefficient * k.mom[index]
-                           + state.mom[index];
+    state.pos[index] = coefficient * k.pos[index] + state.pos[index];
+    state.mom[index] = coefficient * k.mom[index] + state.mom[index];
 }
 
 template<class E>

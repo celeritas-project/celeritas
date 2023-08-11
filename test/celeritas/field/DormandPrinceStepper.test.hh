@@ -8,12 +8,12 @@
 #pragma once
 
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/field/DormandPrinceMultiStepperGlobal.cuda.hh"
 #include "celeritas/field/DormandPrinceMultiStepperShared.cuda.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/MagFieldEquation.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
 
 namespace celeritas
 {
@@ -74,12 +74,35 @@ inline void build_variables(int number_states,
     {
         results[i] = FieldStepperResult();
         states[i] = initial_states[i % number_states_sample];
-        if (global_version){
+        if (global_version)
+        {
             along_states[i] = OdeState();
         }
     }
 }
 
+inline void grid_dimension(int max_threads_per_block,
+                           int wanted_threads,
+                           int* grid_size,
+                           int* block_size)
+{
+    *grid_size = wanted_threads / max_threads_per_block;
+    *grid_size += wanted_threads % max_threads_per_block == 0 ? 0 : 1;
+    int nb_warps = wanted_threads / (32 * *grid_size);
+    nb_warps += wanted_threads % (32 * *grid_size) == 0 ? 0 : 1;
+    *block_size = nb_warps * 32;
+}
+
+inline int shared_memory_size(bool use_shared, int block_size)
+{
+    if (!use_shared)
+    {
+        return 0;
+    }
+    return (block_size / 4) * 7 * sizeof(OdeState)
+           + (block_size / 4) * sizeof(OdeState)
+           + (block_size / 4) * sizeof(FieldStepperResult);
+}
 
 struct KernelResult
 {

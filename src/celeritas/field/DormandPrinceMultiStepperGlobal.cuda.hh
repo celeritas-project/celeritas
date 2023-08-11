@@ -106,7 +106,7 @@ DormandPrinceMultiStepperGlobal<E>::run_aside(real_type,
                                               int,
                                               OdeState*,
                                               OdeState*,
-                                              FieldStepperResult* ) const
+                                              FieldStepperResult*) const
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
     return result_type{};
@@ -152,8 +152,8 @@ DormandPrinceMultiStepperGlobal<E>::operator()(real_type step,
                                                FieldStepperResult* result) const
     -> result_type
 {
-    int id = KernelParamCalculator::thread_id().get()  / number_threads;
-    int index = KernelParamCalculator::thread_id().get()  % number_threads;
+    int id = KernelParamCalculator::thread_id().get() / number_threads;
+    int index = KernelParamCalculator::thread_id().get() % number_threads;
 
     constexpr int warp_size = 32;
     int mask = (number_threads * number_threads - 1)
@@ -251,7 +251,8 @@ DormandPrinceMultiStepperGlobal<E>::run_aside(real_type step,
     {
         if (j == 1)
             continue;  // because a62 = 0
-        update_state(index - 1, result->end_state, step * axx[coef_counter], ks[j]);
+        update_state(
+            index - 1, result->end_state, step * axx[coef_counter], ks[j]);
         coef_counter++;
     }
     __syncwarp(mask);
@@ -263,9 +264,12 @@ DormandPrinceMultiStepperGlobal<E>::run_aside(real_type step,
     {
         if (j == 1)
             continue;  // because d72 and c72 = 0
-        update_state(index - 1, result->err_state, step * dxx[coef_counter], ks[j]);
         update_state(
-            index - 1, result->mid_state, step * cxx[coef_counter] / R(2), ks[j]);
+            index - 1, result->err_state, step * dxx[coef_counter], ks[j]);
+        update_state(index - 1,
+                     result->mid_state,
+                     step * cxx[coef_counter] / R(2),
+                     ks[j]);
         coef_counter++;
     }
     __syncwarp(mask);
@@ -324,10 +328,8 @@ template<class E>
 inline CELER_FUNCTION void DormandPrinceMultiStepperGlobal<E>::update_state(
     int index, OdeState& state, real_type coefficient, OdeState const& k) const
 {
-    state.pos[index] = coefficient * k.pos[index]
-                           + state.pos[index];
-    state.mom[index] = coefficient * k.mom[index]
-                           + state.mom[index];
+    state.pos[index] = coefficient * k.pos[index] + state.pos[index];
+    state.mom[index] = coefficient * k.mom[index] + state.mom[index];
 }
 
 template<class E>

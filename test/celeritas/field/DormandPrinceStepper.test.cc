@@ -146,7 +146,7 @@ TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_multiblock)
     constexpr int number_max_states = 276900;
     constexpr int step_size = 100;
 
-    for (int i = step_size; i <= number_max_states; i+=step_size)
+    for (int i = step_size; i <= number_max_states; i += step_size)
     {
         auto old = simulate_multi_next_chord(one_thread, i);
         auto global_multi_threaded = simulate_multi_next_chord(multi_thread, i);

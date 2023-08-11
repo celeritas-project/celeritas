@@ -135,7 +135,7 @@ KernelResult simulate_multi_next_chord(int number_threads,
     OdeState* d_along_states;
     std::vector<OdeState> h_along_states(number_states);
 
-    //TODO: Move this into "build_variables"
+    // TODO: Move this into "build_variables"
     OdeState *h_ks, *d_ks;
     if (is_global_version)
     {
@@ -146,17 +146,22 @@ KernelResult simulate_multi_next_chord(int number_threads,
         }
     }
 
+    // TODO: use vector
     OdeState *h_states, *d_states;
     h_states = new OdeState[number_states];
 
-    build_variables(number_states, is_global_version,
-    h_results.data(), h_along_states.data(), h_states);
+    build_variables(number_states,
+                    is_global_version,
+                    h_results.data(),
+                    h_along_states.data(),
+                    h_states);
 
     // Create events
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
+    // TODO: simplify this part
     // Allocate memory on device
     cudaMalloc(&d_results, number_states * sizeof(FieldStepperResult));
     cudaMalloc(&d_states, number_states * sizeof(OdeState));
@@ -184,32 +189,17 @@ KernelResult simulate_multi_next_chord(int number_threads,
     }
 
     // Kernel configuration
-    constexpr int max_threads_per_block = 768;
-    int grid_size = number_threads * number_states / max_threads_per_block;
-    grid_size += (number_threads * number_states) % max_threads_per_block
-                    == 0
-        ? 0
-        : 1;
-    int nb_warps = number_threads * number_states / (32 * grid_size);
-    nb_warps += (number_threads * number_states) % (32 * grid_size) == 0 ? 0 : 1;
-    int block_size = nb_warps * 32;
-    int shared_memory = 0;
+    int max_threads_per_block = 768;
+    int grid_size = 0, block_size = 0;
     if (use_shared)
     {
-        constexpr int max_threads_per_block_shared = 320;
-        grid_size = number_threads * number_states / max_threads_per_block_shared;
-        grid_size += (number_threads * number_states) % max_threads_per_block_shared
-                        == 0
-            ? 0
-            : 1;
-        nb_warps = number_threads * number_states / (32 * grid_size);
-        nb_warps += (number_threads * number_states) % (32 * grid_size) == 0 ? 0 : 1;
-        block_size = nb_warps * 32;
-
-        shared_memory = (block_size / 4) * 7 * sizeof(OdeState)
-                        + (block_size / 4) * sizeof(OdeState)
-                        + (block_size / 4) * sizeof(FieldStepperResult);
+        max_threads_per_block = 320;
     }
+    grid_dimension(max_threads_per_block,
+                   number_threads * number_states,
+                   &grid_size,
+                   &block_size);
+    int shared_memory = shared_memory_size(use_shared, block_size);
 
     // Launch the kernel with the desired streamId
     cudaEventRecord(start);
@@ -218,37 +208,36 @@ KernelResult simulate_multi_next_chord(int number_threads,
         if (use_shared)
         {
             dormand_test_arg_kernel<StepperMultiShared>
-                <<<grid_size, block_size, shared_memory>>>(
-                    d_states,
-                    d_results,
-                    number_iterations,
-                    number_threads,
-                    number_states,
-                    d_ks,
-                    d_along_states);
+                <<<grid_size, block_size, shared_memory>>>(d_states,
+                                                           d_results,
+                                                           number_iterations,
+                                                           number_threads,
+                                                           number_states,
+                                                           d_ks,
+                                                           d_along_states);
         }
         else
         {
             dormand_test_arg_kernel<StepperMultiGlobal>
                 <<<grid_size, block_size>>>(d_states,
-                                                        d_results,
-                                                        number_iterations,
-                                                        number_threads,
-                                                        number_states,
-                                                        d_ks,
-                                                        d_along_states);
+                                            d_results,
+                                            number_iterations,
+                                            number_threads,
+                                            number_states,
+                                            d_ks,
+                                            d_along_states);
         }
     }
     else
     {
         dormand_test_arg_kernel<StepperUni>
             <<<grid_size, block_size>>>(d_states,
-                                                    d_results,
-                                                    number_iterations,
-                                                    number_threads,
-                                                        number_states,
-                                                    d_ks,
-                                                    d_along_states);
+                                        d_results,
+                                        number_iterations,
+                                        number_threads,
+                                        number_states,
+                                        d_ks,
+                                        d_along_states);
     }
 
     cudaDeviceSynchronize();
@@ -258,26 +247,7 @@ KernelResult simulate_multi_next_chord(int number_threads,
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess)
     {
-        int max_threads_per_block = 0;
-        int max_blocks = 0;
-        int max_shared_memory = 0;
-
-        cudaDeviceGetAttribute(
-            &max_threads_per_block, cudaDevAttrMaxThreadsPerBlock, 0);
-        cudaDeviceGetAttribute(&max_blocks, cudaDevAttrMaxGridDimX, 0);
-        cudaDeviceGetAttribute(
-            &max_shared_memory, cudaDevAttrMaxSharedMemoryPerBlock, 0);
-
         std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
-        std::cerr << "Launch config for " << number_states
-                  << " states: " << grid_size << " blocks, "
-                  << block_size << " threads per block, "
-                  << shared_memory << " bytes of "
-                  << "shared memory"<< std::endl;
-        std::cerr << "Device properties: " << max_threads_per_block
-                  << " threads per block, " << max_blocks << " blocks and "
-                  << max_shared_memory << " bytes of shared memory"
-                  << std::endl;
         result.milliseconds = -1;
     }
     else
