@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 
 #include "Types.hh"
 
@@ -149,12 +150,12 @@ DormandPrinceMultiStepperShared<E>::operator()(real_type step,
                                                int number_states) const
     -> result_type
 {
-    int id = (threadIdx.x + blockIdx.x * blockDim.x) / number_threads;
+    int id = KernelParamCalculator::thread_id().get()  / number_threads;
     if (id >= number_states)
     {
         return result_type{};
     }
-    int index = (threadIdx.x + blockIdx.x * blockDim.x) % number_threads;
+    int index = KernelParamCalculator::thread_id().get()  % number_threads;
     int states_block = blockDim.x / number_threads;
     int blocId = id % states_block;
 
@@ -263,7 +264,7 @@ DormandPrinceMultiStepperShared<E>::run_aside(real_type step,
         for (int j = 0; j <= i; j++)
         {
             update_state(
-                index, (*along_state), step * axx[coef_counter], ks[j]);
+                index - 1, (*along_state), step * axx[coef_counter], ks[j]);
             coef_counter++;
         }
         __syncwarp(mask);
@@ -275,7 +276,7 @@ DormandPrinceMultiStepperShared<E>::run_aside(real_type step,
     {
         if (j == 1)
             continue;  // because a62 = 0
-        update_state(index, result->end_state, step * axx[coef_counter], ks[j]);
+        update_state(index - 1, result->end_state, step * axx[coef_counter], ks[j]);
         coef_counter++;
     }
     __syncwarp(mask);
@@ -287,9 +288,9 @@ DormandPrinceMultiStepperShared<E>::run_aside(real_type step,
     {
         if (j == 1)
             continue;  // because d72 and c72 = 0
-        update_state(index, result->err_state, step * dxx[coef_counter], ks[j]);
+        update_state(index - 1, result->err_state, step * dxx[coef_counter], ks[j]);
         update_state(
-            index, result->mid_state, step * cxx[coef_counter] / R(2), ks[j]);
+            index - 1, result->mid_state, step * cxx[coef_counter] / R(2), ks[j]);
         coef_counter++;
     }
     __syncwarp(mask);
@@ -348,10 +349,10 @@ template<class E>
 inline CELER_FUNCTION void DormandPrinceMultiStepperShared<E>::update_state(
     int index, OdeState& state, real_type coefficient, OdeState const& k) const
 {
-    state.pos[index - 1] = coefficient * k.pos[index - 1]
-                           + state.pos[index - 1];
-    state.mom[index - 1] = coefficient * k.mom[index - 1]
-                           + state.mom[index - 1];
+    state.pos[index] = coefficient * k.pos[index]
+                           + state.pos[index];
+    state.mom[index] = coefficient * k.mom[index]
+                           + state.mom[index];
 }
 
 template<class E>

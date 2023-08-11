@@ -13,6 +13,7 @@
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/MagFieldEquation.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 
 namespace celeritas
 {
@@ -63,142 +64,22 @@ inline CELER_FUNCTION decltype(auto) make_dummy_equation(FieldT&& field)
     return Equation_t{::celeritas::forward<FieldT>(field), ElementaryCharge{3}};
 }
 
-inline void print_result(FieldStepperResult const& result)
+inline void build_variables(int number_states,
+                            bool global_version,
+                            FieldStepperResult* results,
+                            OdeState* along_states,
+                            OdeState* states)
 {
-    CELER_LOG(info)
-        << "Final mid state position:   " << result.mid_state.pos[0] << ", "
-        << result.mid_state.pos[1] << ", " << result.mid_state.pos[2];
-    CELER_LOG(info)
-        << "Final mid state momentum:   " << result.mid_state.mom[0] << ", "
-        << result.mid_state.mom[1] << ", " << result.mid_state.mom[2];
-    CELER_LOG(info)
-        << "Final error state position: " << result.err_state.pos[0] << ", "
-        << result.err_state.pos[1] << ", " << result.err_state.pos[2];
-    CELER_LOG(info)
-        << "Final error state momentum: " << result.err_state.mom[0] << ", "
-        << result.err_state.mom[1] << ", " << result.err_state.mom[2];
-    CELER_LOG(info)
-        << "Final end state position:   " << result.end_state.pos[0] << ", "
-        << result.end_state.pos[1] << ", " << result.end_state.pos[2];
-    CELER_LOG(info)
-        << "Final end state momentum:   " << result.end_state.mom[0] << ", "
-        << result.end_state.mom[1] << ", " << result.end_state.mom[2];
+    for (int i = 0; i < number_states; ++i)
+    {
+        results[i] = FieldStepperResult();
+        states[i] = initial_states[i % number_states_sample];
+        if (global_version){
+            along_states[i] = OdeState();
+        }
+    }
 }
 
-inline std::string print_results(FieldStepperResult const& expected,
-                                 FieldStepperResult const& actual)
-{
-    std::string result;
-    result = "Expected mid state position:   "
-             + std::to_string(expected.mid_state.pos[0]) + ", "
-             + std::to_string(expected.mid_state.pos[1]) + ", "
-             + std::to_string(expected.mid_state.pos[2]) + "\n";
-    result += "Actual mid state position:     "
-              + std::to_string(actual.mid_state.pos[0]) + ", "
-              + std::to_string(actual.mid_state.pos[1]) + ", "
-              + std::to_string(actual.mid_state.pos[2]) + "\n";
-    result += "Expected mid state momentum:   "
-              + std::to_string(expected.mid_state.mom[0]) + ", "
-              + std::to_string(expected.mid_state.mom[1]) + ", "
-              + std::to_string(expected.mid_state.mom[2]) + "\n";
-    result += "Actual mid state momentum:     "
-              + std::to_string(actual.mid_state.mom[0]) + ", "
-              + std::to_string(actual.mid_state.mom[1]) + ", "
-              + std::to_string(actual.mid_state.mom[2]) + "\n";
-    result += "Expected error state position: "
-              + std::to_string(expected.err_state.pos[0]) + ", "
-              + std::to_string(expected.err_state.pos[1]) + ", "
-              + std::to_string(expected.err_state.pos[2]) + "\n";
-    result += "Actual error state position:   "
-              + std::to_string(actual.err_state.pos[0]) + ", "
-              + std::to_string(actual.err_state.pos[1]) + ", "
-              + std::to_string(actual.err_state.pos[2]) + "\n";
-    result += "Expected error state momentum: "
-              + std::to_string(expected.err_state.mom[0]) + ", "
-              + std::to_string(expected.err_state.mom[1]) + ", "
-              + std::to_string(expected.err_state.mom[2]) + "\n";
-    result += "Actual error state momentum:   "
-              + std::to_string(actual.err_state.mom[0]) + ", "
-              + std::to_string(actual.err_state.mom[1]) + ", "
-              + std::to_string(actual.err_state.mom[2]) + "\n";
-    result += "Expected end state position:   "
-              + std::to_string(expected.end_state.pos[0]) + ", "
-              + std::to_string(expected.end_state.pos[1]) + ", "
-              + std::to_string(expected.end_state.pos[2]) + "\n";
-    result += "Actual end state position:     "
-              + std::to_string(actual.end_state.pos[0]) + ", "
-              + std::to_string(actual.end_state.pos[1]) + ", "
-              + std::to_string(actual.end_state.pos[2]) + "\n";
-    result += "Expected end state momentum:   "
-              + std::to_string(expected.end_state.mom[0]) + ", "
-              + std::to_string(expected.end_state.mom[1]) + ", "
-              + std::to_string(expected.end_state.mom[2]) + "\n";
-    result += "Actual end state momentum:     "
-              + std::to_string(actual.end_state.mom[0]) + ", "
-              + std::to_string(actual.end_state.mom[1]) + ", "
-              + std::to_string(actual.end_state.mom[2]) + "\n";
-    return result;
-}
-
-inline CELER_FUNCTION bool
-compare_results(FieldStepperResult& e1, FieldStepperResult& e2)
-{
-    // Check that the results isn't 0
-    if (e1.mid_state.pos[0] == 0 && e1.mid_state.pos[1] == 0
-        && e1.mid_state.pos[2] == 0 && e1.mid_state.mom[0] == 0
-        && e1.mid_state.mom[1] == 0 && e1.mid_state.mom[2] == 0
-        && e1.err_state.pos[0] == 0 && e1.err_state.pos[1] == 0
-        && e1.err_state.pos[2] == 0 && e1.err_state.mom[0] == 0
-        && e1.err_state.mom[1] == 0 && e1.err_state.mom[2] == 0
-        && e1.end_state.pos[0] == 0 && e1.end_state.pos[1] == 0
-        && e1.end_state.pos[2] == 0 && e1.end_state.mom[0] == 0
-        && e1.end_state.mom[1] == 0 && e1.end_state.mom[2] == 0)
-        return false;
-
-    // Comparing mid state
-    if (e1.mid_state.pos[0] != e2.mid_state.pos[0])
-        return false;
-    if (e1.mid_state.pos[1] != e2.mid_state.pos[1])
-        return false;
-    if (e1.mid_state.pos[2] != e2.mid_state.pos[2])
-        return false;
-    if (e1.mid_state.mom[0] != e2.mid_state.mom[0])
-        return false;
-    if (e1.mid_state.mom[1] != e2.mid_state.mom[1])
-        return false;
-    if (e1.mid_state.mom[2] != e2.mid_state.mom[2])
-        return false;
-
-    // Comparing err state
-    if (e1.err_state.pos[0] != e2.err_state.pos[0])
-        return false;
-    if (e1.err_state.pos[1] != e2.err_state.pos[1])
-        return false;
-    if (e1.err_state.pos[2] != e2.err_state.pos[2])
-        return false;
-    if (e1.err_state.mom[0] != e2.err_state.mom[0])
-        return false;
-    if (e1.err_state.mom[1] != e2.err_state.mom[1])
-        return false;
-    if (e1.err_state.mom[2] != e2.err_state.mom[2])
-        return false;
-
-    // Comparing end state
-    if (e1.end_state.pos[0] != e2.end_state.pos[0])
-        return false;
-    if (e1.end_state.pos[1] != e2.end_state.pos[1])
-        return false;
-    if (e1.end_state.pos[2] != e2.end_state.pos[2])
-        return false;
-    if (e1.end_state.mom[0] != e2.end_state.mom[0])
-        return false;
-    if (e1.end_state.mom[1] != e2.end_state.mom[1])
-        return false;
-    if (e1.end_state.mom[2] != e2.end_state.mom[2])
-        return false;
-
-    return true;
-}
 
 struct KernelResult
 {

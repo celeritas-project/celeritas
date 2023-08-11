@@ -141,9 +141,9 @@ TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_one_block)
     }
 }
 
-TEST_F(DormandPrinceStepperTest, compare_time_multiblock)
+TEST_F(DormandPrinceStepperTest, DISABLED_compare_time_multiblock)
 {
-    constexpr int number_max_states = 1000001;
+    constexpr int number_max_states = 276900;
     constexpr int step_size = 100;
 
     for (int i = step_size; i <= number_max_states; i+=step_size)

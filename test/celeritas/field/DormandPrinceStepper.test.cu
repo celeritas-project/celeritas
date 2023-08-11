@@ -32,7 +32,7 @@ __device__ FieldStepperResult run_stepper(Stepper_impl& stepper,
                                           int number_threads,
                                           int number_states,
                                           OdeState* ks,
-                                          OdeState* along_state,
+                                          OdeState* along_states,
                                           FieldStepperResult* result);
 
 template<>
@@ -42,7 +42,7 @@ __device__ FieldStepperResult run_stepper(StepperUni& stepper,
                                           int number_threads,
                                           int number_states,
                                           OdeState* ks,
-                                          OdeState* along_state,
+                                          OdeState* along_states,
                                           FieldStepperResult* result)
 {
     return stepper(step, state);
@@ -55,10 +55,10 @@ __device__ FieldStepperResult run_stepper(StepperMultiGlobal& stepper,
                                           int number_threads,
                                           int number_states,
                                           OdeState* ks,
-                                          OdeState* along_state,
+                                          OdeState* along_states,
                                           FieldStepperResult* result)
 {
-    return stepper(step, state, number_threads, ks, along_state, result);
+    return stepper(step, state, number_threads, ks, along_states, result);
 }
 
 template<>
@@ -68,7 +68,7 @@ __device__ FieldStepperResult run_stepper(StepperMultiShared& stepper,
                                           int number_threads,
                                           int number_states,
                                           OdeState* ks,
-                                          OdeState* along_state,
+                                          OdeState* along_states,
                                           FieldStepperResult* result)
 {
     return stepper(step, state, number_threads, number_states);
@@ -81,13 +81,13 @@ __global__ void dormand_test_arg_kernel(OdeState* states,
                                         int number_threads,
                                         int number_states,
                                         OdeState* ks,
-                                        OdeState* along_state)
+                                        OdeState* along_states)
 {
     constexpr double initial_step_size = 10000.0;
     constexpr double delta_chord = 1e-4;
     constexpr double half = 0.5;
 
-    auto id = (blockIdx.x * blockDim.x + threadIdx.x) / number_threads;
+    auto id = KernelParamCalculator::thread_id().get() / number_threads;
     if (id >= number_states)
     {
         return;
@@ -107,7 +107,7 @@ __global__ void dormand_test_arg_kernel(OdeState* states,
                           number_threads,
                           number_states,
                           &ks[id * 7],
-                          &along_state[id],
+                          &along_states[id],
                           &results[id]);
         auto dchord
             = detail::distance_chord(state, res.mid_state, res.end_state);
@@ -126,46 +126,31 @@ KernelResult simulate_multi_next_chord(int number_threads,
                                        bool use_shared)
 {
     KernelResult result;
-    int arguments_size = 0;
+    bool is_global_version = number_threads > 1 && !use_shared;
 
     // Load initial states and results to device
     FieldStepperResult* d_results;
     std::vector<FieldStepperResult> h_results(number_states);
-    for (int i = 0; i < number_states; ++i)
-    {
-        h_results[i] = FieldStepperResult();
-        arguments_size += sizeof(FieldStepperResult);
-    }
 
-    OdeState* d_along_state;
-    std::vector<OdeState> h_along_state(number_states);
-    if (number_threads > 1 && !use_shared)
-    {
-        for (int i = 0; i < number_states; ++i)
-        {
-            h_along_state[i] = OdeState();
-            arguments_size += sizeof(OdeState);
-        }
-    }
+    OdeState* d_along_states;
+    std::vector<OdeState> h_along_states(number_states);
 
+    //TODO: Move this into "build_variables"
     OdeState *h_ks, *d_ks;
-    if (number_threads > 1 && !use_shared)
+    if (is_global_version)
     {
         h_ks = new OdeState[number_states * 7];
         for (int i = 0; i < number_states * 7; ++i)
         {
             h_ks[i] = OdeState();
-            arguments_size += sizeof(OdeState);
         }
     }
 
     OdeState *h_states, *d_states;
     h_states = new OdeState[number_states];
-    for (int i = 0; i < number_states; ++i)
-    {
-        h_states[i] = initial_states[i % number_states_sample];
-        arguments_size += sizeof(OdeState);
-    }
+
+    build_variables(number_states, is_global_version,
+    h_results.data(), h_along_states.data(), h_states);
 
     // Create events
     cudaEvent_t start, stop;
@@ -175,10 +160,10 @@ KernelResult simulate_multi_next_chord(int number_threads,
     // Allocate memory on device
     cudaMalloc(&d_results, number_states * sizeof(FieldStepperResult));
     cudaMalloc(&d_states, number_states * sizeof(OdeState));
-    if (number_threads > 1 && !use_shared)
+    if (is_global_version)
     {
         cudaMalloc(&d_ks, number_states * 7 * sizeof(OdeState));
-        cudaMalloc(&d_along_state, number_states * sizeof(OdeState));
+        cudaMalloc(&d_along_states, number_states * sizeof(OdeState));
     }
 
     // Copy initial states to device
@@ -186,52 +171,45 @@ KernelResult simulate_multi_next_chord(int number_threads,
                h_states,
                number_states * sizeof(OdeState),
                cudaMemcpyHostToDevice);
-    if (number_threads > 1 && !use_shared)
+    if (is_global_version)
     {
         cudaMemcpy(d_ks,
                    h_ks,
                    number_states * 7 * sizeof(OdeState),
                    cudaMemcpyHostToDevice);
-        cudaMemcpy(d_along_state,
-                   h_along_state.data(),
+        cudaMemcpy(d_along_states,
+                   h_along_states.data(),
                    number_states * sizeof(OdeState),
                    cudaMemcpyHostToDevice);
     }
 
     // Kernel configuration
     constexpr int max_threads_per_block = 768;
-    int block_dimension = number_threads * number_states / max_threads_per_block;
-    block_dimension += (number_threads * number_states) % max_threads_per_block
+    int grid_size = number_threads * number_states / max_threads_per_block;
+    grid_size += (number_threads * number_states) % max_threads_per_block
                     == 0
         ? 0
         : 1;
-    int nb_warps = number_threads * number_states / (32 * block_dimension);
-    nb_warps += (number_threads * number_states) % (32 * block_dimension) == 0 ? 0 : 1;
-    int thread_dimension = nb_warps * 32;
+    int nb_warps = number_threads * number_states / (32 * grid_size);
+    nb_warps += (number_threads * number_states) % (32 * grid_size) == 0 ? 0 : 1;
+    int block_size = nb_warps * 32;
     int shared_memory = 0;
     if (use_shared)
     {
-        constexpr int max_threads_per_block_shared = 352;
-        block_dimension = number_threads * number_states / max_threads_per_block_shared;
-        block_dimension += (number_threads * number_states) % max_threads_per_block_shared
+        constexpr int max_threads_per_block_shared = 320;
+        grid_size = number_threads * number_states / max_threads_per_block_shared;
+        grid_size += (number_threads * number_states) % max_threads_per_block_shared
                         == 0
             ? 0
             : 1;
-        nb_warps = number_threads * number_states / (32 * block_dimension);
-        nb_warps += (number_threads * number_states) % (32 * block_dimension) == 0 ? 0 : 1;
-        thread_dimension = nb_warps * 32;
+        nb_warps = number_threads * number_states / (32 * grid_size);
+        nb_warps += (number_threads * number_states) % (32 * grid_size) == 0 ? 0 : 1;
+        block_size = nb_warps * 32;
 
-        shared_memory = (thread_dimension / 4) * 7 * sizeof(OdeState)
-                        + (thread_dimension / 4) * sizeof(OdeState)
-                        + (thread_dimension / 4) * sizeof(FieldStepperResult);
+        shared_memory = (block_size / 4) * 7 * sizeof(OdeState)
+                        + (block_size / 4) * sizeof(OdeState)
+                        + (block_size / 4) * sizeof(FieldStepperResult);
     }
-    // printf("%d tracks (%d thread per track) launched with %d threads (%d warps) in %d blocks, %d shared memory\n",
-    //        number_states,
-    //           number_threads,
-    //        thread_dimension,
-    //           nb_warps,
-    //        block_dimension,
-    //        shared_memory);
 
     // Launch the kernel with the desired streamId
     cudaEventRecord(start);
@@ -240,37 +218,37 @@ KernelResult simulate_multi_next_chord(int number_threads,
         if (use_shared)
         {
             dormand_test_arg_kernel<StepperMultiShared>
-                <<<block_dimension, thread_dimension, shared_memory>>>(
+                <<<grid_size, block_size, shared_memory>>>(
                     d_states,
                     d_results,
                     number_iterations,
                     number_threads,
-                                                        number_states,
+                    number_states,
                     d_ks,
-                    d_along_state);
+                    d_along_states);
         }
         else
         {
             dormand_test_arg_kernel<StepperMultiGlobal>
-                <<<block_dimension, thread_dimension>>>(d_states,
+                <<<grid_size, block_size>>>(d_states,
                                                         d_results,
                                                         number_iterations,
                                                         number_threads,
                                                         number_states,
                                                         d_ks,
-                                                        d_along_state);
+                                                        d_along_states);
         }
     }
     else
     {
         dormand_test_arg_kernel<StepperUni>
-            <<<block_dimension, thread_dimension>>>(d_states,
+            <<<grid_size, block_size>>>(d_states,
                                                     d_results,
                                                     number_iterations,
                                                     number_threads,
                                                         number_states,
                                                     d_ks,
-                                                    d_along_state);
+                                                    d_along_states);
     }
 
     cudaDeviceSynchronize();
@@ -292,11 +270,10 @@ KernelResult simulate_multi_next_chord(int number_threads,
 
         std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
         std::cerr << "Launch config for " << number_states
-                  << " states: " << block_dimension << " blocks, "
-                  << thread_dimension << " threads per block, "
+                  << " states: " << grid_size << " blocks, "
+                  << block_size << " threads per block, "
                   << shared_memory << " bytes of "
-                  << "shared memory and " << arguments_size << " bytes of "
-                  << "arguments" << std::endl;
+                  << "shared memory"<< std::endl;
         std::cerr << "Device properties: " << max_threads_per_block
                   << " threads per block, " << max_blocks << " blocks and "
                   << max_shared_memory << " bytes of shared memory"
@@ -323,10 +300,10 @@ KernelResult simulate_multi_next_chord(int number_threads,
     // Free memory on device
     cudaFree(d_results);
     cudaFree(d_states);
-    if (number_threads > 1 && !use_shared)
+    if (is_global_version)
     {
         cudaFree(d_ks);
-        cudaFree(d_along_state);
+        cudaFree(d_along_states);
     }
 
     // Return results
