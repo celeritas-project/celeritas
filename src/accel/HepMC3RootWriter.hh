@@ -17,6 +17,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Export HepMC3 primary data to ROOT.
+ *
+ * One TTree entry represents one event.
  */
 class HepMC3RootWriter
 {
@@ -30,20 +32,21 @@ class HepMC3RootWriter
   private:
     EventReader reader_;
 
-    struct Primary
-    {
-        std::size_t event_id;
-        int particle;
-        double energy;
-        double time;
-        std::array<double, 3> pos;
-        std::array<double, 3> dir;
-    };
+  private:
+    char const* tree_name() { return "primaries"; }
 };
 
 //---------------------------------------------------------------------------//
+#if !CELERITAS_USE_HEPMC3
+inline Hepmc3RootWriter(std::string const&)
+{
+    (void)sizeof(reader_);
+    CELER_NOT_CONFIGURED("HepMC3");
+}
+#endif
+
 #if !CELERITAS_USE_ROOT
-inline void operator()(std::string const&)
+inline void HepMC3RootWriter::operator()(std::string const&)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

@@ -14,23 +14,10 @@
 #include "orange/Types.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/phys/Primary.hh"
+#include "accel/HepMC3RootEvent.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-/*!
- * Copy a `celeritas::Real3` to an `std::array<double, 3>`.
- * TODO: generalize this if it's used more than here and RSW?
- */
-void real3_to_array(Real3 const& src, std::array<double, 3>& dst)
-{
-    std::memcpy(&dst, &src, sizeof(src));
-}
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with HepMC3 input filename.
@@ -46,33 +33,46 @@ HepMC3RootWriter::HepMC3RootWriter(std::string const& hepmc3_input_name)
  */
 void HepMC3RootWriter::operator()(std::string const& root_output_name)
 {
-    RootFileManager root_mgr(root_output_name.c_str());
-    auto tree = root_mgr.make_tree("primaries", "primaries");
+    CELER_LOG(info) << "Generating \'" << root_output_name
+                    << "\' with list of primaries from the HepMC3 input";
 
-    Primary primary;
-    tree->Branch("event_id", &primary.event_id);
-    tree->Branch("energy", &primary.energy);
-    tree->Branch("time", &primary.time);
-    tree->Branch("pos", &primary.pos);
-    tree->Branch("dir", &primary.dir);
+    RootFileManager root_mgr(root_output_name.c_str());
+    auto tree = root_mgr.make_tree(this->tree_name(), this->tree_name());
+
+    HepMC3RootEvent event;
+    tree->Branch("event_id", &event.event_id);
+    tree->Branch("particle", &event.particle);
+    tree->Branch("energy", &event.energy);
+    tree->Branch("time", &event.time);
+    tree->Branch("pos_x", &event.pos_x);
+    tree->Branch("pos_y", &event.pos_y);
+    tree->Branch("pos_z", &event.pos_z);
+    tree->Branch("dir_x", &event.dir_x);
+    tree->Branch("dir_y", &event.dir_y);
+    tree->Branch("dir_z", &event.dir_z);
 
     auto primaries = reader_();
     while (!primaries.empty())
     {
+        event.event_id = primaries.front().event_id.unchecked_get();
+
+        // TODO: Resize vectors before loop?
         for (auto const& hepmc3_prim : primaries)
         {
-            primary.event_id = hepmc3_prim.event_id.unchecked_get();
-            primary.energy = hepmc3_prim.energy.value();
-            primary.time = hepmc3_prim.time;
-            real3_to_array(hepmc3_prim.position, primary.pos);
-            real3_to_array(hepmc3_prim.direction, primary.dir);
-            tree->Fill();
+            event.particle.push_back(/* pdg */ 0);  // TODO
+            event.energy.push_back(hepmc3_prim.energy.value());
+            event.time.push_back(hepmc3_prim.time);
+            event.pos_x.push_back(hepmc3_prim.position[0]);
+            event.pos_y.push_back(hepmc3_prim.position[1]);
+            event.pos_z.push_back(hepmc3_prim.position[2]);
+            event.dir_x.push_back(hepmc3_prim.direction[0]);
+            event.dir_y.push_back(hepmc3_prim.direction[1]);
+            event.dir_z.push_back(hepmc3_prim.direction[2]);
         }
+        tree->Fill();
+        event = HepMC3RootEvent();
         primaries = reader_();
     }
-
-    CELER_LOG(info) << "Generated \'" << root_output_name
-                    << "\' with list of primaries from the HepMC3 input";
 }
 
 //---------------------------------------------------------------------------//
