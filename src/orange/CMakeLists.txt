@@ -30,6 +30,8 @@ list(APPEND SOURCES
   surf/SurfaceIO.cc
   surf/detail/SurfaceTranslator.cc
   surf/detail/SurfaceTransformer.cc
+  transform/TransformTransformer.cc
+  transform/TransformTranslator.cc
   transform/Transformation.cc
 )
 
