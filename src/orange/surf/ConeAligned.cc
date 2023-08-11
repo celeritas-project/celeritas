@@ -11,7 +11,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a new origin using the radius of another cone.
+ * Construct with a new origin using the opening angle of another cone.
  */
 template<Axis T>
 ConeAligned<T>::ConeAligned(Real3 const& origin, ConeAligned const& other)

@@ -25,6 +25,9 @@ namespace celeritas
  * \f[
     (y - y_0)^2 + (z - z_0)^2 - t^2 (x - x_0)^2 = 0
    \f]
+
+ * where \em t is the tangent of the opening angle (\f$r/h\f$ for a finite cone
+ * with radius \em r and height \em h).
  */
 template<Axis T>
 class ConeAligned
@@ -126,11 +129,11 @@ CELER_CONSTEXPR_FUNCTION SurfaceType ConeAligned<T>::surface_type()
 /*!
  * Construct from origin and tangent of the angle of its opening.
  *
- * Given the triangular cross section of one octant of a finite cone (i.e. a
- * right triangle), the tangent is the slope of its hypotenuse (height / base).
+ * Given a finite cone, the tangent is ratio of the radius at its base to the
+ * its height.
  *
  * \pre
-     b
+     r
    +-------*
    |   _--^
  h |_--
