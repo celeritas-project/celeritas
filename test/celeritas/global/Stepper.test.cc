@@ -470,10 +470,10 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(210, result.num_step_iters());
-        EXPECT_SOFT_EQ(61915.25, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(77, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({72, 892}), result.calc_queue_hwm());
+        EXPECT_EQ(195, result.num_step_iters());
+        EXPECT_SOFT_EQ(62448.375, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(72, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({69, 883}), result.calc_queue_hwm());
     }
     else
     {

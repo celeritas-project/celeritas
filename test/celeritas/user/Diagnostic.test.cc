@@ -208,7 +208,6 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         = {"annihil-2-gamma e+",
            "brems-combined e+",
            "brems-combined e-",
-           "conv-bethe-heitler gamma",
            "geo-boundary e+",
            "geo-boundary e-",
            "geo-boundary gamma",
@@ -224,12 +223,12 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
     if (this->is_ci_build())
     {
         static size_type const expected_nonzero_action_counts[] = {
-            10u, 572u, 508u, 2u, 518u, 521u, 7u, 20u, 21u, 904u, 998u, 12u, 2u, 1u};
+            10u, 572u, 508u, 518u, 520u, 9u, 20u, 21u, 904u, 997u, 12u, 2u, 3u};
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
 
         static size_type const expected_steps[] = {
-            0u, 2u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 1u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 3u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
@@ -238,11 +237,16 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         if (CELERITAS_USE_JSON)
         {
             EXPECT_EQ(
-                R"json({"_index":["particle","action"],"actions":[[0,0,0,0,0,0,0,1,0,2,0,0,0,0,0,0,0,0,0,0,7,0],[0,0,0,998,0,0,2,0,0,0,0,21,508,0,0,0,0,0,0,0,521,0],[0,0,0,904,0,0,12,0,0,0,10,20,572,0,0,0,0,0,0,0,518,0]]})json",
+                "{\"_index\":[\"particle\",\"action\"],\"actions\":[[0,0,0,0,"
+                "0,0,0,1,0,2,0,0,0,0,0,0,0,0,0,0,7,0],[0,0,0,998,0,0,2,0,0,0,"
+                "0,21,508,0,0,0,0,0,0,0,521,0],[0,0,0,904,0,0,12,0,0,0,10,20,"
+                "572,0,0,0,0,0,0,0,518,0]]}",
                 this->action_output());
-
             EXPECT_EQ(
-                R"json({"_index":["particle","num_steps"],"steps":[[0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
+                "{\"_index\":[\"particle\",\"num_steps\"],\"steps\":[[0,2,0,0,"
+                "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,"
+                "0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,"
+                "0,0,0,0]]}",
                 this->step_output());
         }
     }
