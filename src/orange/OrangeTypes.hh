@@ -64,11 +64,8 @@ using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 //! Opaque index for rectilinear array data
 using RectArrayId = OpaqueId<struct RectArrayRecord>;
 
-//! Translation of a single embedded universe
-using Translation = Real3;
-
 //! Identifier for a translation of a single embedded universe
-using TranslationId = OpaqueId<Translation>;
+using TranslationId = OpaqueId<Real3>;
 
 //! Identifier for a relocatable set of volumes
 using UniverseId = OpaqueId<struct Universe>;
@@ -122,6 +119,17 @@ enum class SurfaceType : unsigned char
     sq,  //!< Simple quadric
     gq,  //!< General quadric
     size_  //!< Sentinel value for number of surface types
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enumeration for mapping transform implementations to integers.
+ */
+enum class TransformType : unsigned char
+{
+    translation,  //!< Translation only
+    transformation,  //!< Translation plus rotation
+    size_
 };
 
 //---------------------------------------------------------------------------//

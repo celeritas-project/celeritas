@@ -22,6 +22,7 @@ list(APPEND SOURCES
   detail/RectArrayInserter.cc
   detail/UnitInserter.cc
   surf/SurfaceIO.cc
+  transform/Transformation.cc
 )
 
 if(CELERITAS_USE_JSON)

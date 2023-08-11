@@ -320,7 +320,7 @@ struct OrangeParamsData
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
     Items<Daughter> daughters;
-    Items<Translation> translations;
+    Items<Real3> translations;
 
     UniverseIndexerData<W, M> universe_indexer_data;
 

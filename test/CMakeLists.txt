@@ -203,13 +203,18 @@ celeritas_add_test(orange/BoundingBox.test.cc)
 celeritas_add_test(orange/BoundingBoxUtils.test.cc)
 celeritas_add_test(orange/MatrixUtils.test.cc)
 celeritas_add_test(orange/Orange.test.cc)
-celeritas_add_test(orange/Translator.test.cc)
 
 # Base detail
 celeritas_add_test(orange/detail/BIHBuilder.test.cc)
 celeritas_add_test(orange/detail/BIHTraverser.test.cc)
 celeritas_add_test(orange/detail/BIHUtils.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
+
+#-------------------------------------#
+# Transforms
+set(CELERITASTEST_PREFIX orange/transform)
+celeritas_add_test(orange/transform/Transformation.test.cc)
+celeritas_add_test(orange/transform/Translation.test.cc)
 
 #-------------------------------------#
 # Surfaces

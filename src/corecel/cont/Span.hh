@@ -177,7 +177,7 @@ template<class T, std::size_t N>
 constexpr std::size_t Span<T, N>::extent;
 
 //---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
+// FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Get a mutable fixed-size view to an array
 template<class T, std::size_t N>
@@ -216,6 +216,20 @@ template<class T>
 CELER_FUNCTION Span<const typename T::value_type> make_span(T const& cont)
 {
     return {cont.data(), cont.size()};
+}
+
+//---------------------------------------------------------------------------//
+//! Construct an array from a fixed-size span
+template<class T, std::size_t N>
+CELER_CONSTEXPR_FUNCTION Array<std::remove_cv_t<T>, N>
+make_array(Span<T, N> const& s)
+{
+    Array<std::remove_cv_t<T>, N> result;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        result[i] = s[i];
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
