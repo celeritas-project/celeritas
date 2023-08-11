@@ -50,7 +50,10 @@ class Translation
     //// ACCESSORS ////
 
     //! Translation vector
-    Real3 const& translation() const { return tra_; }
+    CELER_FORCEINLINE_FUNCTION Real3 const& translation() const
+    {
+        return tra_;
+    }
 
     //! Get a view to the data for type-deleted storage
     CELER_FUNCTION StorageSpan data() const { return {&tra_[0], 3}; }
@@ -58,16 +61,16 @@ class Translation
     //// CALCULATION ////
 
     // Transform from daughter to parent
-    inline Real3 transform_up(Real3 const& pos) const;
+    inline CELER_FUNCTION Real3 transform_up(Real3 const& pos) const;
 
     // Transform from parent to daughter
-    inline Real3 transform_down(Real3 const& parent_pos) const;
+    inline CELER_FUNCTION Real3 transform_down(Real3 const& parent_pos) const;
 
     // Rotate from daughter to parent (identity)
-    inline Real3 const& rotate_up(Real3 const& d) const;
+    inline CELER_FUNCTION Real3 const& rotate_up(Real3 const& d) const;
 
     //! Rotate from parent to daughter (identity)
-    inline Real3 const& rotate_down(Real3 const& d) const;
+    inline CELER_FUNCTION Real3 const& rotate_down(Real3 const& d) const;
 
   private:
     Real3 tra_;

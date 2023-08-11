@@ -124,8 +124,7 @@ CELER_FUNCTION Transformation::Transformation(StorageSpan s)
  *
  * Apply the rotation matrix, add the translation.
  */
-CELER_FORCEINLINE_FUNCTION Real3
-Transformation::transform_up(Real3 const& pos) const
+CELER_FUNCTION Real3 Transformation::transform_up(Real3 const& pos) const
 {
     return gemv(real_type{1}, rot_, pos, real_type{1}, tra_);
 }
@@ -137,8 +136,7 @@ Transformation::transform_up(Real3 const& pos) const
  * Subtract the translation, then apply the inverse of the rotation matrix (its
  * transpose).
  */
-CELER_FORCEINLINE_FUNCTION Real3
-Transformation::transform_down(Real3 const& pos) const
+CELER_FUNCTION Real3 Transformation::transform_down(Real3 const& pos) const
 {
     return gemv(matrix::transpose, rot_, pos - tra_);
 }
@@ -147,7 +145,7 @@ Transformation::transform_down(Real3 const& pos) const
 /*!
  * Rotate from daughter to parent.
  */
-CELER_FORCEINLINE_FUNCTION Real3 Transformation::rotate_up(Real3 const& d) const
+CELER_FUNCTION Real3 Transformation::rotate_up(Real3 const& d) const
 {
     return gemv(rot_, d);
 }
@@ -156,7 +154,7 @@ CELER_FORCEINLINE_FUNCTION Real3 Transformation::rotate_up(Real3 const& d) const
 /*!
  * Rotate from parent to daughter.
  */
-CELER_FORCEINLINE_FUNCTION Real3 Transformation::rotate_down(Real3 const& d) const
+CELER_FUNCTION Real3 Transformation::rotate_down(Real3 const& d) const
 {
     return gemv(matrix::transpose, rot_, d);
 }
