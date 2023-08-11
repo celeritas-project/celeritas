@@ -8,6 +8,7 @@
 #include "orange/surf/SimpleQuadric.hh"
 
 #include "corecel/math/Algorithms.hh"
+#include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylAligned.hh"
 
 #include "celeritas_test.hh"
@@ -51,7 +52,17 @@ TEST(Ellipsoid, origin)
     EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), sq.calc_normal({-1, 0, 0}));
 }
 
-TEST(Ellipsoid, promotion)
+TEST(Ellipsoid, promotion_cone)
+{
+    SimpleQuadric sq{ConeX{{1.1, 2.2, 3.3}, 2. / 3.}};
+
+    auto distances = sq.calc_intersections(
+        {1.1 + 3, 2.2 + 2 + 1.0, 3.3}, {0.0, -1.0, 0.0}, SurfaceState::off);
+    EXPECT_SOFT_EQ(1.0, distances[0]);
+    EXPECT_SOFT_EQ(5.0, distances[1]);
+}
+
+TEST(Ellipsoid, promotion_cyl)
 {
     // Radius: 2 centered at {2, 3, 0}
     SimpleQuadric sq{CylZ{{2, 3, 0}, 2}};

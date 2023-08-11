@@ -76,7 +76,7 @@ class ConeAligned
     //! Get the origin position along the normal axis
     CELER_FUNCTION Real3 const& origin() const { return origin_; }
 
-    //! Get the square of the tangent
+    //! Get the square of the tangent of the opening angle
     CELER_FUNCTION real_type tangent_sq() const { return tsq_; }
 
     //! Get a view to the data for type-deleted storage

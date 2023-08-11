@@ -19,6 +19,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 template<Axis T>
+class ConeAligned;
+template<Axis T>
 class CylAligned;
 
 //---------------------------------------------------------------------------//
@@ -62,6 +64,10 @@ class SimpleQuadric
 
     // Construct from raw data
     explicit inline CELER_FUNCTION SimpleQuadric(Storage);
+
+    // Promote from a cone
+    template<Axis T>
+    explicit SimpleQuadric(ConeAligned<T> const& other);
 
     // Promote from an axis-aligned cylinder
     template<Axis T>

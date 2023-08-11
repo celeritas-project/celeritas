@@ -9,10 +9,39 @@
 
 #include "corecel/cont/Range.hh"
 
+#include "ConeAligned.hh"
 #include "CylAligned.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Promote from an axis-aligned cone.
+ */
+template<Axis T>
+SimpleQuadric::SimpleQuadric(ConeAligned<T> const& other)
+{
+    constexpr auto U = ConeAligned<T>::u_axis();
+    constexpr auto V = ConeAligned<T>::v_axis();
+    Real3 const& origin = other.origin();
+
+    Real3 second;
+    second[to_int(T)] = -other.tangent_sq();
+    second[to_int(U)] = 1;
+    second[to_int(V)] = 1;
+
+    Real3 first;
+    first[to_int(T)] = 2 * origin[to_int(T)] * other.tangent_sq();
+    first[to_int(U)] = -2 * origin[to_int(U)];
+    first[to_int(V)] = -2 * origin[to_int(V)];
+
+    real_type zeroth = -other.tangent_sq() * ipow<2>(origin[to_int(T)]);
+    zeroth += ipow<2>(origin[to_int(U)]);
+    zeroth += ipow<2>(origin[to_int(V)]);
+
+    *this = SimpleQuadric{second, first, zeroth};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Promote from an axis-aligned cylinder.
@@ -20,13 +49,18 @@ namespace celeritas
 template<Axis T>
 SimpleQuadric::SimpleQuadric(CylAligned<T> const& other)
 {
-    Real3 second{1, 1, 1};
-    Real3 first{0, 0, 0};
-    real_type zeroth = -other.radius_sq();
+    constexpr auto U = CylAligned<T>::u_axis();
+    constexpr auto V = CylAligned<T>::v_axis();
 
-    second[to_int(T)] = 0;
-    first[to_int(other.u_axis())] -= 2 * other.origin_u();
-    first[to_int(other.v_axis())] -= 2 * other.origin_v();
+    Real3 second{0, 0, 0};
+    second[to_int(U)] = 1;
+    second[to_int(V)] = 1;
+
+    Real3 first{0, 0, 0};
+    first[to_int(U)] = -2 * other.origin_u();
+    first[to_int(V)] = -2 * other.origin_v();
+
+    real_type zeroth = -other.radius_sq();
     zeroth += ipow<2>(other.origin_u());
     zeroth += ipow<2>(other.origin_v());
 
@@ -34,6 +68,10 @@ SimpleQuadric::SimpleQuadric(CylAligned<T> const& other)
 }
 
 //---------------------------------------------------------------------------//
+
+template SimpleQuadric::SimpleQuadric(ConeAligned<Axis::x> const&);
+template SimpleQuadric::SimpleQuadric(ConeAligned<Axis::y> const&);
+template SimpleQuadric::SimpleQuadric(ConeAligned<Axis::z> const&);
 
 template SimpleQuadric::SimpleQuadric(CylAligned<Axis::x> const&);
 template SimpleQuadric::SimpleQuadric(CylAligned<Axis::y> const&);
