@@ -9,9 +9,11 @@
 
 #include <string>
 
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
@@ -19,7 +21,7 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 //! Physics list selection
-enum class PhysicsList
+enum class PhysicsListSelection
 {
     ftfp_bert,
     geant_physics_list,
@@ -32,30 +34,66 @@ enum class PhysicsList
  */
 struct RunInput
 {
-    // Path to HepMC3 event record file
-    std::string event_file;
+    using Real3 = Array<real_type, 3>;
 
-    // Setup options for generating primaries programmatically
-    PrimaryGeneratorOptions primary_options;
+    static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
+    static constexpr size_type unspecified{static_cast<size_type>(-1)};
+
+    // Problem definition
+    std::string geometry_file;  //!< Path to GDML file
+    std::string event_file;  //!< Path to HepMC3 event record file
+
+    // Control
+    size_type num_track_slots{};
+    size_type max_events{};
+    size_type max_steps{unspecified};
+    size_type initializer_capacity{};
+    real_type secondary_stack_factor{};
+    size_type cuda_stack_size{};
+    size_type cuda_heap_size{};
+    bool sync{false};
+    bool default_stream{false};  //!< Launch all kernels on the default stream
 
     // Physics setup options
-    PhysicsList physics_list{PhysicsList::ftfp_bert};
+    PhysicsListSelection physics_list{PhysicsListSelection::ftfp_bert};
     GeantPhysicsOptions physics_options;
 
-    // Field driver options
+    // Field setup options
+    std::string field_type{"uniform"};
+    std::string field_file;
+    Real3 field{no_field()};
     FieldDriverOptions field_options;
 
-    // Diagnostics
+    // IO
+    std::string output_file;  //!< Path to the JSON diagnostic output file
+    std::string offload_file;  //!< Path to the HepMC3 file of offloaded tracks
+    std::string macro_file;  //!< Path to macro file for Geant4 commands
+    int root_buffer_size{128000};
+    bool write_sd_hits{false};
+    bool strip_gdml_pointers{true};
+
+    // Geant4 diagnostics
     bool step_diagnostic{false};
     int step_diagnostic_bins{1000};
 
     //! Whether the run arguments are valid
     explicit operator bool() const
     {
-        return (primary_options || !event_file.empty())
+        return !geometry_file.empty() && !event_file.empty()
+               && physics_list < PhysicsListSelection::size_
+               && (field == no_field() || field_options)
+               && ((num_track_slots > 0 && max_events > 0 && max_steps > 0
+                    && initializer_capacity > 0 && secondary_stack_factor > 0)
+                   || !celeritas::getenv("CELER_DISABLE").empty())
                && (step_diagnostic_bins > 0 || !step_diagnostic);
     }
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+char const* to_cstring(PhysicsListSelection value);
 
 //---------------------------------------------------------------------------//
 }  // namespace app

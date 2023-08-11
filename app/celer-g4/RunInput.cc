@@ -17,9 +17,9 @@ namespace app
 /*!
  * Get a string corresponding to the physics list selection.
  */
-char const* to_cstring(PhysicsList value)
+char const* to_cstring(PhysicsListSelection value)
 {
-    static EnumStringMapper<PhysicsList> const to_cstring_impl{
+    static EnumStringMapper<PhysicsListSelection> const to_cstring_impl{
         "ftfp_bert",
         "geant_physics_list",
     };

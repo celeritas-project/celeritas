@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <regex>
 #include <string>
 #include <vector>
 #include <CLHEP/Random/Random.h>
@@ -83,20 +84,28 @@ void run(int argc, char** argv)
     // Make global setup commands available to UI
     GlobalSetup::Instance();
 
-    G4UImanager* ui = G4UImanager::GetUIpointer();
-    CELER_ASSERT(ui);
-    std::string_view macro_filename{argv[1]};
-    if (macro_filename == "--interactive")
+    // Read user input
+    std::string_view filename{argv[1]};
+    if (filename == "--interactive")
     {
         G4UIExecutive exec(argc, argv);
         exec.SessionStart();
         return;
     }
-
-    CELER_LOG(status) << "Executing macro commands from '" << macro_filename
-                      << "'";
-    ui->ApplyCommand(std::string("/control/execute ")
-                     + std::string(macro_filename));
+    if (std::regex_search(std::string(filename), std::regex("\\.mac$")))
+    {
+        CELER_LOG(status) << "Executing macro commands from '" << filename
+                          << "'";
+        G4UImanager* ui = G4UImanager::GetUIpointer();
+        CELER_ASSERT(ui);
+        ui->ApplyCommand(std::string("/control/execute ")
+                         + std::string(filename));
+    }
+    else
+    {
+        CELER_LOG(status) << "Reading JSON input from '" << filename << "'";
+        GlobalSetup::Instance()->ReadInput(std::string(filename));
+    }
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
     if (G4VERSION_NUMBER >= 1110)
@@ -112,12 +121,12 @@ void run(int argc, char** argv)
     run_manager->SetUserInitialization(new DetectorConstruction{});
     switch (GlobalSetup::Instance()->GetPhysicsList())
     {
-        case PhysicsList::ftfp_bert: {
+        case PhysicsListSelection::ftfp_bert: {
             run_manager->SetUserInitialization(
                 new FTFP_BERT{/* verbosity = */ 0});
             break;
         }
-        case PhysicsList::geant_physics_list: {
+        case PhysicsListSelection::geant_physics_list: {
             auto opts = GlobalSetup::Instance()->GetPhysicsOptions();
             if (std::find(
                     ignore_processes.begin(), ignore_processes.end(), "Rayl")

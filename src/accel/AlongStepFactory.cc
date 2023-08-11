@@ -46,9 +46,7 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
     -> result_type
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
-    Real3 field = get_field_ ? convert_from_geant(get_field_(), CLHEP::tesla)
-                             : Real3{0, 0, 0};
-    real_type magnitude_tesla = norm(field);
+    real_type magnitude_tesla = get_field_ ? norm(get_field_().field) : 0;
 
     if (magnitude_tesla > 0)
     {
@@ -61,18 +59,16 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
         }
 
         // Convert field units from tesla to native celeritas units
-        for (real_type& v : field)
+        for (real_type& v : get_field_().field)
         {
             v /= units::tesla;
         }
 
-        UniformFieldParams field_params;
-        field_params.field = field;
         CELER_LOG(info) << "Creating along-step action with field strength "
                         << magnitude_tesla << "T";
         return std::make_shared<AlongStepUniformMscAction>(
             input.action_id,
-            field_params,
+            get_field_(),
             UrbanMscParams::from_import(
                 *input.particle, *input.material, *input.imported));
     }
