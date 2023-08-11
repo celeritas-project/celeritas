@@ -23,45 +23,54 @@ HepMC3RootReader::HepMC3RootReader(std::string const& filename)
 {
     CELER_EXPECT(!filename.empty());
     tfile_.reset(TFile::Open(filename.c_str(), "read"));
-    CELER_ENSURE(tfile_->IsOpen());
+    CELER_ASSERT(tfile_->IsOpen());
     ttree_.reset(tfile_->Get<TTree>(tree_name()));
-    CELER_ENSURE(ttree_);
+    CELER_ASSERT(ttree_);
+
     num_entries_ = ttree_->GetEntries();
-    CELER_ENSURE(num_entries_ > 0);
+    CELER_ASSERT(num_entries_ > 0);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Read single entry from the primaries tree.
+ * Read single event from the primaries tree.
  */
-HepMC3RootPrimary HepMC3RootReader::operator()()
+auto HepMC3RootReader::operator()() -> result_type
 {
     std::lock_guard scoped_lock{read_mutex_};
 
-    CELER_VALIDATE(entry_count_ < num_entries_,
-                   << "No more entries available for \'" << tfile_->GetName()
-                   << "\'.");
-
+    CELER_EXPECT(entry_count_ <= num_entries_);
     ttree_->GetEntry(entry_count_);
-    entry_count_++;
+    auto const this_evt_id = ttree_->GetLeaf("event_id")->GetValue();
 
-    HepMC3RootPrimary primary;
-    primary.event_id = ttree_->GetLeaf("event_id")->GetValue();
-    primary.particle = ttree_->GetLeaf("particle")->GetValue();
-    primary.energy = ttree_->GetLeaf("energy")->GetValue();
-    primary.time = ttree_->GetLeaf("time")->GetValue();
-    primary.pos = this->from_leaf("pos");
-    primary.dir = this->from_leaf("dir");
+    result_type primaries;
+    for (; entry_count_ < num_entries_; entry_count_++)
+    {
+        ttree_->GetEntry(entry_count_);
+        if (ttree_->GetLeaf("event_id")->GetValue() != this_evt_id)
+        {
+            break;
+        }
 
-    CELER_LOG_LOCAL(info) << "Read event " << primary.event_id;
-    return primary;
+        HepMC3RootPrimary primary;
+        primary.event_id = ttree_->GetLeaf("event_id")->GetValue();
+        primary.particle = ttree_->GetLeaf("particle")->GetValue();
+        primary.energy = ttree_->GetLeaf("energy")->GetValue();
+        primary.time = ttree_->GetLeaf("time")->GetValue();
+        primary.pos = this->from_leaf("pos");
+        primary.dir = this->from_leaf("dir");
+        primaries.push_back(std::move(primary));
+    }
+
+    CELER_LOG_LOCAL(info) << "Read event " << this_evt_id << " with "
+                          << primaries.size() << " primaries";
+    return primaries;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Helper function to fetch an array from a TLeaf.
  */
-
 std::array<double, 3> HepMC3RootReader::from_leaf(char const* leaf_name)
 {
     CELER_EXPECT(ttree_);

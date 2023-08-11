@@ -67,14 +67,14 @@ void HepMC3RootWriter::operator()(std::string const& root_output_name)
     {
         for (auto const& p : read_primaries)
         {
-            write_primary.event_id = p.event_id.unchecked_get();
+            write_primary.event_id = p.event_id.get();
             write_primary.particle = 0;  // TODO
             write_primary.energy = p.energy.value();
             write_primary.time = p.time;
             write_primary.pos = real3_to_array(p.position);
             write_primary.dir = real3_to_array(p.direction);
+            tree->Fill();
         }
-        tree->Fill();
         read_primaries = reader_();
     }
 }

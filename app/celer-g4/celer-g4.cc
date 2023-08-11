@@ -105,16 +105,17 @@ void run(int argc, char** argv)
                      + std::string(macro_filename));
 
 #if CELERITAS_USE_ROOT
-    // Export HepMC3 primary data to ROOT
+    // Test export HepMC3 primary data to ROOT
     celeritas::HepMC3RootWriter write_to_root(
         GlobalSetup::Instance()->GetEventFile());
     write_to_root("primaries.root");
 
-    // Temp test
+    // Test import ROOT primary data
     celeritas::HepMC3RootReader read("primaries.root");
-    for (std::size_t i = 0; i < read.num_primaries(); i++)
+    auto event = read();
+    while (!event.empty())
     {
-        read();
+        event = read();
     }
 
 #endif

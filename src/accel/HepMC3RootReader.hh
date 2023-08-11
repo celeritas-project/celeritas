@@ -26,23 +26,26 @@ namespace celeritas
  * Use \c operator() to read new primaries:
  * \code
     HepMC3RootReader read("primaries.root");
-    for (auto i : range(read.num_primaries()))
+    auto event = read();
+    while (!event.empty())
     {
-        auto const primary = read();
+        event.read();
     }
  * \endcode
  */
 class HepMC3RootReader
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using result_type = std::vector<HepMC3RootPrimary>;
+    //!@}
+
     // Construct with ROOT filename
     explicit HepMC3RootReader(std::string const& filename);
 
-    // Read a single primary from the ROOT file
-    HepMC3RootPrimary operator()();
-
-    // Get total number of primaries
-    std::size_t num_primaries() { return num_entries_; }
+    // Read a single event from the ROOT file
+    result_type operator()();
 
   private:
     std::size_t entry_count_{0};  // Current TTree entry
