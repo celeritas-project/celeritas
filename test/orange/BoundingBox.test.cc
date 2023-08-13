@@ -22,16 +22,13 @@ TEST_F(BoundingBoxTest, null)
 {
     BBox null_bbox;
     EXPECT_FALSE(null_bbox);
-    if (CELERITAS_DEBUG)
-    {
-        EXPECT_THROW(null_bbox.lower(), DebugError);
-        EXPECT_THROW(null_bbox.upper(), DebugError);
-    }
+    EXPECT_GT(null_bbox.lower()[0], null_bbox.upper()[0]);
 }
 
 TEST_F(BoundingBoxTest, infinite)
 {
     BBox ibb = BBox::from_infinite();
+    EXPECT_TRUE(ibb);
     EXPECT_SOFT_EQ(-inf, ibb.lower()[0]);
     EXPECT_SOFT_EQ(-inf, ibb.lower()[1]);
     EXPECT_SOFT_EQ(-inf, ibb.lower()[2]);

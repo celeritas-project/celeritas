@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
@@ -31,29 +29,29 @@ class BoundingBox
   public:
     //!@{
     //! \name Type aliases
-    using value_type = T;
-    using Real3 = Array<value_type, 3>;
+    using real_type = T;
+    using Real3 = Array<real_type, 3>;
     //!@}
 
     // Construct from infinite extents
     static inline CELER_FUNCTION BoundingBox from_infinite();
 
     // Construct in unassigned state
-    inline CELER_FUNCTION BoundingBox();
+    CELER_CONSTEXPR_FUNCTION BoundingBox();
 
     // Construct from upper and lower points
     inline CELER_FUNCTION BoundingBox(Real3 const& lower, Real3 const& upper);
 
     //// ACCESSORS ////
 
-    // Lower bbox coordinate
-    CELER_FORCEINLINE_FUNCTION Real3 const& lower() const;
+    //! Lower bbox coordinate
+    CELER_CONSTEXPR_FUNCTION Real3 const& lower() const { return lower_; }
 
-    // Upper bbox coordinate
-    CELER_FORCEINLINE_FUNCTION Real3 const& upper() const;
+    //! Upper bbox coordinate
+    CELER_CONSTEXPR_FUNCTION Real3 const& upper() const { return upper_; }
 
-    // Whether the bbox is assigned
-    CELER_FORCEINLINE_FUNCTION explicit operator bool() const;
+    // Whether the bbox is nondegenerate
+    CELER_CONSTEXPR_FUNCTION explicit operator bool() const;
 
   private:
     Real3 lower_;
@@ -65,7 +63,7 @@ class BoundingBox
 //---------------------------------------------------------------------------//
 
 //! Bounding box for host metadata
-using BBox = BoundingBox<real_type>;
+using BBox = BoundingBox<::celeritas::real_type>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -76,18 +74,29 @@ using BBox = BoundingBox<real_type>;
 template<class T>
 CELER_FUNCTION BoundingBox<T> BoundingBox<T>::from_infinite()
 {
-    constexpr value_type inf = numeric_limits<value_type>::infinity();
+    constexpr real_type inf = numeric_limits<real_type>::infinity();
     return {{-inf, -inf, -inf}, {inf, inf, inf}};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a bounding box in an invalid state.
+ * Create a degenerate bounding box.
+ *
+ * This should naturally satisfy
+ * \code
+        calc_union(BBox{}, other) = other:
+   \endcode
+ *  and
+ * \code
+        calc_intersection(BBox{}, other) = other;
+   \endcode
  */
 template<class T>
-CELER_FUNCTION BoundingBox<T>::BoundingBox()
+CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox()
 {
-    lower_[0] = numeric_limits<value_type>::quiet_NaN();
+    constexpr real_type inf = numeric_limits<real_type>::infinity();
+    lower_ = {inf, inf, inf};
+    upper_ = {-inf, -inf, -inf};
 }
 
 //---------------------------------------------------------------------------//
@@ -101,40 +110,23 @@ template<class T>
 CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
     : lower_(lo), upper_(hi)
 {
-    CELER_EXPECT(lower_[0] <= upper_[0] && lower_[1] <= upper_[1]
-                 && lower_[2] <= upper_[2]);
+    if constexpr (CELERITAS_DEBUG)
+    {
+        for (auto ax : {Axis::x, Axis::y, Axis::z})
+        {
+            CELER_EXPECT(lower_[to_int(ax)] <= upper_[to_int(ax)]);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Lower bbox coordinate (must be valid).
+ * Whether the bbox is in a nondegenerate state.
  */
 template<class T>
-CELER_FUNCTION auto BoundingBox<T>::lower() const -> Real3 const&
+CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
 {
-    CELER_EXPECT(*this);
-    return lower_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Upper bbox coordinate (must be valid).
- */
-template<class T>
-CELER_FUNCTION auto BoundingBox<T>::upper() const -> Real3 const&
-{
-    CELER_EXPECT(*this);
-    return upper_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the bbox is in an assigned state.
- */
-template<class T>
-CELER_FUNCTION BoundingBox<T>::operator bool() const
-{
-    return !std::isnan(lower_[0]);
+    return lower_[to_int(Axis::x)] <= upper_[to_int(Axis::x)];
 }
 
 //---------------------------------------------------------------------------//
