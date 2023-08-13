@@ -29,6 +29,7 @@ list(APPEND SOURCES
   surf/Sphere.cc
   surf/SurfaceIO.cc
   surf/SurfaceTranslator.cc
+  surf/SurfaceTransformer.cc
   transform/Transformation.cc
 )
 
