@@ -24,17 +24,16 @@ TEST(BoundingBoxUtilsTest, is_inside)
 
 TEST(BoundingBoxUtilsTest, is_infinite)
 {
-    auto max_real = std::numeric_limits<real_type>::max();
     auto inf_real = std::numeric_limits<real_type>::infinity();
 
     BBox bbox1 = {{0, 0, 0}, {1, 1, 1}};
     EXPECT_FALSE(is_infinite(bbox1));
 
-    BBox bbox2 = {{0, 0, 0}, {max_real, inf_real, max_real}};
+    BBox bbox2 = {{0, 0, 0}, {inf_real, inf_real, inf_real}};
     EXPECT_FALSE(is_infinite(bbox2));
 
     BBox bbox3
-        = {{-max_real, -inf_real, -max_real}, {max_real, inf_real, max_real}};
+        = {{-inf_real, -inf_real, -inf_real}, {inf_real, inf_real, inf_real}};
     EXPECT_TRUE(is_infinite(bbox3));
 }
 

@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <limits>
+#include <algorithm>
 
 #include "corecel/cont/Range.hh"
 #include "orange/BoundingBox.hh"
@@ -50,17 +50,9 @@ inline bool is_infinite(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    constexpr auto max_real = std::numeric_limits<T>::max();
-
-    for (auto axis : range(Axis::size_))
-    {
-        auto ax = to_int(axis);
-        if (bbox.lower()[ax] > -max_real || bbox.upper()[ax] < max_real)
-        {
-            return false;
-        }
-    }
-    return true;
+    return std::all_of(bbox.lower().begin(), bbox.lower().end(), std::isinf<T>)
+           && std::all_of(
+               bbox.upper().begin(), bbox.upper().end(), std::isinf<T>);
 }
 
 //---------------------------------------------------------------------------//
