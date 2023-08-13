@@ -8,8 +8,10 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -27,9 +29,8 @@ is_inside(BoundingBox<T> const& bbox, Array<U, 3> point)
 {
     CELER_EXPECT(bbox);
 
-    for (auto axis : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        auto ax = to_int(axis);
         if (point[ax] < bbox.lower()[ax] || point[ax] > bbox.upper()[ax])
         {
             return false;
@@ -60,14 +61,13 @@ inline bool is_infinite(BoundingBox<T> const& bbox)
  * Calculate the center of a bounding box.
  */
 template<class T>
-inline Array<T, 3> center(BoundingBox<T> const& bbox)
+inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
     Array<T, 3> center;
-    for (auto axis : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        auto ax = to_int(axis);
         center[ax] = (bbox.lower()[ax] + bbox.upper()[ax]) / 2;
     }
 
@@ -79,15 +79,14 @@ inline Array<T, 3> center(BoundingBox<T> const& bbox)
  * Calculate the surface area of a bounding box.
  */
 template<class T>
-inline T surface_area(BoundingBox<T> const& bbox)
+inline T calc_surface_area(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
     Array<T, 3> lengths;
 
-    for (auto axis : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        auto ax = to_int(axis);
         lengths[ax] = bbox.upper()[ax] - bbox.lower()[ax];
     }
 
@@ -103,18 +102,15 @@ inline T surface_area(BoundingBox<T> const& bbox)
  */
 template<class T>
 inline BoundingBox<T>
-bbox_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
+calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
-    CELER_EXPECT(a && b);
-
     Array<T, 3> lower;
     Array<T, 3> upper;
 
-    for (auto axis : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        auto ax = to_int(axis);
-        lower[ax] = std::min(a.lower()[ax], b.lower()[ax]);
-        upper[ax] = std::max(a.upper()[ax], b.upper()[ax]);
+        lower[ax] = celeritas::min(a.lower()[ax], b.lower()[ax]);
+        upper[ax] = celeritas::max(a.upper()[ax], b.upper()[ax]);
     }
 
     return BoundingBox<T>{lower, upper};

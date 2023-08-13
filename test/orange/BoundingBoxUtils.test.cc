@@ -40,13 +40,13 @@ TEST(BoundingBoxUtilsTest, is_infinite)
 TEST(BoundingBoxUtilsTest, center)
 {
     BBox bbox = {{-10, -20, -30}, {1, 2, 3}};
-    EXPECT_VEC_SOFT_EQ(Real3({-4.5, -9, -13.5}), center(bbox));
+    EXPECT_VEC_SOFT_EQ(Real3({-4.5, -9, -13.5}), calc_center(bbox));
 }
 
 TEST(BoundingBoxUtilsTest, surface_area)
 {
     BBox bbox = {{-1, -2, -3}, {6, 4, 5}};
-    EXPECT_SOFT_EQ(2 * (7 * 6 + 7 * 8 + 6 * 8), surface_area(bbox));
+    EXPECT_SOFT_EQ(2 * (7 * 6 + 7 * 8 + 6 * 8), calc_surface_area(bbox));
 }
 
 TEST(BoundingBoxUtilsTest, bbox_union)
@@ -54,7 +54,7 @@ TEST(BoundingBoxUtilsTest, bbox_union)
     BBox bbox1 = {{-10, -20, -30}, {10, 2, 3}};
     BBox bbox2 = {{-15, -9, -33}, {1, 2, 10}};
 
-    auto bbox3 = bbox_union(bbox1, bbox2);
+    auto bbox3 = calc_union(bbox1, bbox2);
 
     EXPECT_VEC_SOFT_EQ(Real3({-15, -20, -33}), bbox3.lower());
     EXPECT_VEC_SOFT_EQ(Real3({10, 2, 10}), bbox3.upper());
