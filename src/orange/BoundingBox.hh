@@ -14,7 +14,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
 
-#include "Types.hh"
+#include "OrangeTypes.hh"
 
 namespace celeritas
 {
@@ -36,6 +36,15 @@ class BoundingBox
     using Real3 = Array<real_type, 3>;
     //!@}
 
+    // Closed, axis-aligned halfspace.
+    struct Halfspace
+    {
+        Sense sense;
+        Axis axis;
+        T position;
+    };
+
+  public:
     // Construct from infinite extents
     static inline CELER_FUNCTION BoundingBox from_infinite();
 
@@ -59,6 +68,11 @@ class BoundingBox
 
     // Whether the bbox is nondegenerate
     CELER_CONSTEXPR_FUNCTION explicit operator bool() const;
+
+    //// MUTATORS ////
+
+    // Intersect in place with a half-space
+    CELER_CONSTEXPR_FUNCTION void clip(Halfspace hs);
 
   private:
     Real3 lower_;
@@ -166,6 +180,25 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
     return lower_[to_int(Axis::x)] <= upper_[to_int(Axis::x)]
            && lower_[to_int(Axis::y)] <= upper_[to_int(Axis::y)]
            && lower_[to_int(Axis::z)] <= upper_[to_int(Axis::z)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Intersect in place with a half-space.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION void BoundingBox<T>::clip(Halfspace hs)
+{
+    if (hs.sense == Sense::inside)
+    {
+        upper_[to_int(hs.axis)]
+            = ::celeritas::min(upper_[to_int(hs.axis)], hs.position);
+    }
+    else
+    {
+        lower_[to_int(hs.axis)]
+            = ::celeritas::max(lower_[to_int(hs.axis)], hs.position);
+    }
 }
 
 //---------------------------------------------------------------------------//

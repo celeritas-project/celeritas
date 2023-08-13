@@ -26,6 +26,11 @@ TEST_F(BoundingBoxTest, null)
 
     constexpr auto dumb_bbox = BBox::from_unchecked({3, 0, 0}, {-1, 0, 0});
     EXPECT_FALSE(dumb_bbox);
+
+    BBox ibb = BBox::from_infinite();
+    ibb.clip(BBox::Halfspace{Sense::outside, Axis::x, 2});
+    ibb.clip(BBox::Halfspace{Sense::inside, Axis::x, 1});
+    EXPECT_FALSE(ibb);
 }
 
 TEST_F(BoundingBoxTest, infinite)
@@ -54,6 +59,12 @@ TEST_F(BoundingBoxTest, standard)
     EXPECT_TRUE(bb);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -2, 3}), bb.lower());
     EXPECT_VEC_SOFT_EQ((Real3{4, 5, 6}), bb.upper());
+
+    bb.clip(BBox::Halfspace{Sense::inside, Axis::x, 2});
+    bb.clip(BBox::Halfspace{Sense::outside, Axis::z, 4});
+    bb.clip(BBox::Halfspace{Sense::inside, Axis::y, 0});
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, 4}), bb.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 0, 6}), bb.upper());
 }
 
 //---------------------------------------------------------------------------//
