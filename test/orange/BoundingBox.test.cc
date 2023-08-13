@@ -28,8 +28,8 @@ TEST_F(BoundingBoxTest, null)
     EXPECT_FALSE(dumb_bbox);
 
     BBox ibb = BBox::from_infinite();
-    ibb.clip(BBox::Halfspace{Sense::outside, Axis::x, 2});
-    ibb.clip(BBox::Halfspace{Sense::inside, Axis::x, 1});
+    ibb.clip(Sense::outside, Axis::x, 2);
+    ibb.clip(Sense::inside, Axis::x, 1);
     EXPECT_FALSE(ibb);
 }
 
@@ -60,9 +60,9 @@ TEST_F(BoundingBoxTest, standard)
     EXPECT_VEC_SOFT_EQ((Real3{-1, -2, 3}), bb.lower());
     EXPECT_VEC_SOFT_EQ((Real3{4, 5, 6}), bb.upper());
 
-    bb.clip(BBox::Halfspace{Sense::inside, Axis::x, 2});
-    bb.clip(BBox::Halfspace{Sense::outside, Axis::z, 4});
-    bb.clip(BBox::Halfspace{Sense::inside, Axis::y, 0});
+    bb.clip(Sense::inside, Axis::x, 2);
+    bb.clip(Sense::outside, Axis::z, 4);
+    bb.clip(Sense::inside, Axis::y, 0);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -2, 4}), bb.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 0, 6}), bb.upper());
 }

@@ -36,14 +36,6 @@ class BoundingBox
     using Real3 = Array<real_type, 3>;
     //!@}
 
-    // Closed, axis-aligned halfspace.
-    struct Halfspace
-    {
-        Sense sense;
-        Axis axis;
-        T position;
-    };
-
   public:
     // Construct from infinite extents
     static inline CELER_FUNCTION BoundingBox from_infinite();
@@ -72,7 +64,8 @@ class BoundingBox
     //// MUTATORS ////
 
     // Intersect in place with a half-space
-    CELER_CONSTEXPR_FUNCTION void clip(Halfspace hs);
+    CELER_CONSTEXPR_FUNCTION void
+    clip(Sense sense, Axis axis, real_type position);
 
   private:
     Real3 lower_;
@@ -187,17 +180,16 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
  * Intersect in place with a half-space.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION void BoundingBox<T>::clip(Halfspace hs)
+CELER_CONSTEXPR_FUNCTION void
+BoundingBox<T>::clip(Sense sense, Axis axis, real_type position)
 {
-    if (hs.sense == Sense::inside)
+    if (sense == Sense::inside)
     {
-        upper_[to_int(hs.axis)]
-            = ::celeritas::min(upper_[to_int(hs.axis)], hs.position);
+        upper_[to_int(axis)] = ::celeritas::min(upper_[to_int(axis)], position);
     }
     else
     {
-        lower_[to_int(hs.axis)]
-            = ::celeritas::max(lower_[to_int(hs.axis)], hs.position);
+        lower_[to_int(axis)] = ::celeritas::max(lower_[to_int(axis)], position);
     }
 }
 
