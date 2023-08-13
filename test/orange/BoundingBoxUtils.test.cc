@@ -13,7 +13,11 @@ namespace celeritas
 {
 namespace test
 {
-TEST(BoundingBoxUtilsTest, is_inside)
+class BoundingBoxUtilsTest : public Test
+{
+};
+
+TEST_F(BoundingBoxUtilsTest, is_inside)
 {
     BBox bbox1 = {{-5, -2, -100}, {6, 1, 1}};
     EXPECT_TRUE(is_inside(bbox1, Real3{-4, 0, 0}));
@@ -22,7 +26,7 @@ TEST(BoundingBoxUtilsTest, is_inside)
     EXPECT_FALSE(is_inside(bbox1, Real3{-5.1, -2.1, -101.1}));
 }
 
-TEST(BoundingBoxUtilsTest, is_infinite)
+TEST_F(BoundingBoxUtilsTest, is_infinite)
 {
     auto inf_real = std::numeric_limits<real_type>::infinity();
 
@@ -37,27 +41,71 @@ TEST(BoundingBoxUtilsTest, is_infinite)
     EXPECT_TRUE(is_infinite(bbox3));
 }
 
-TEST(BoundingBoxUtilsTest, center)
+TEST_F(BoundingBoxUtilsTest, center)
 {
     BBox bbox = {{-10, -20, -30}, {1, 2, 3}};
     EXPECT_VEC_SOFT_EQ(Real3({-4.5, -9, -13.5}), calc_center(bbox));
 }
 
-TEST(BoundingBoxUtilsTest, surface_area)
+TEST_F(BoundingBoxUtilsTest, surface_area)
 {
     BBox bbox = {{-1, -2, -3}, {6, 4, 5}};
     EXPECT_SOFT_EQ(2 * (7 * 6 + 7 * 8 + 6 * 8), calc_surface_area(bbox));
 }
 
-TEST(BoundingBoxUtilsTest, bbox_union)
+TEST_F(BoundingBoxUtilsTest, bbox_union)
 {
-    BBox bbox1 = {{-10, -20, -30}, {10, 2, 3}};
-    BBox bbox2 = {{-15, -9, -33}, {1, 2, 10}};
+    auto ubox = calc_union(BBox{{-10, -20, -30}, {10, 2, 3}},
+                           BBox{{-15, -9, -33}, {1, 2, 10}});
 
-    auto bbox3 = calc_union(bbox1, bbox2);
+    EXPECT_VEC_SOFT_EQ(Real3({-15, -20, -33}), ubox.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({10, 2, 10}), ubox.upper());
 
-    EXPECT_VEC_SOFT_EQ(Real3({-15, -20, -33}), bbox3.lower());
-    EXPECT_VEC_SOFT_EQ(Real3({10, 2, 10}), bbox3.upper());
+    {
+        SCOPED_TRACE("degenerate");
+        auto dubox = calc_union(ubox, BBox{});
+        EXPECT_VEC_SOFT_EQ(ubox.lower(), dubox.lower());
+        EXPECT_VEC_SOFT_EQ(ubox.upper(), dubox.upper());
+    }
+    {
+        SCOPED_TRACE("double degenerate");
+        auto ddbox = calc_union(BBox{}, BBox{});
+        EXPECT_FALSE(ddbox);
+    }
+}
+
+TEST_F(BoundingBoxUtilsTest, bbox_intersection)
+{
+    auto ibox = calc_intersection(BBox{{-10, -20, -30}, {10, 2, 3}},
+                                  BBox{{-15, -9, -33}, {1, 2, 10}});
+
+    EXPECT_VEC_SOFT_EQ(Real3({-10, -9, -30}), ibox.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 2, 3}), ibox.upper());
+
+    {
+        SCOPED_TRACE("degenerate");
+        auto dibox = calc_intersection(ibox, BBox{});
+        EXPECT_FALSE(dibox);
+        EXPECT_VEC_SOFT_EQ(BBox{}.lower(), dibox.lower());
+        EXPECT_VEC_SOFT_EQ(BBox{}.upper(), dibox.upper());
+    }
+    {
+        SCOPED_TRACE("double degenerate");
+        auto ddbox = calc_intersection(BBox{}, BBox{});
+        EXPECT_FALSE(ddbox);
+    }
+    {
+        SCOPED_TRACE("partial degenerate x");
+        auto dibox = calc_intersection(BBox{{-2, -inf, -inf}, {2, inf, inf}},
+                                       BBox{{3, -inf, -inf}, {10, inf, inf}});
+        EXPECT_FALSE(dibox);
+    }
+    {
+        SCOPED_TRACE("partial degenerate y");
+        auto dibox = calc_intersection(BBox{{-inf, -2, -inf}, {inf, 2, inf}},
+                                       BBox{{-inf, 3, -inf}, {inf, 10, inf}});
+        EXPECT_FALSE(dibox);
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -101,19 +101,42 @@ inline T calc_surface_area(BoundingBox<T> const& bbox)
  * Calculate the smallest bounding box enclosing two bounding boxes.
  */
 template<class T>
-inline BoundingBox<T>
+inline constexpr BoundingBox<T>
 calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
     Array<T, 3> lower;
     Array<T, 3> upper;
 
-    for (auto ax : range(to_int(Axis::size_)))
+    for (size_type ax = 0; ax != 3; ++ax)
     {
         lower[ax] = celeritas::min(a.lower()[ax], b.lower()[ax]);
         upper[ax] = celeritas::max(a.upper()[ax], b.upper()[ax]);
     }
 
-    return BoundingBox<T>{lower, upper};
+    return BoundingBox<T>::from_unchecked(lower, upper);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the intersection of two bounding boxes.
+ *
+ * If there is no intersection, the result will be a degenerate bounding box
+ * (evaluating to 'false').
+ */
+template<class T>
+inline constexpr BoundingBox<T>
+calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
+{
+    Array<T, 3> lower;
+    Array<T, 3> upper;
+
+    for (size_type ax = 0; ax != 3; ++ax)
+    {
+        lower[ax] = celeritas::max(a.lower()[ax], b.lower()[ax]);
+        upper[ax] = celeritas::min(a.upper()[ax], b.upper()[ax]);
+    }
+
+    return BoundingBox<T>::from_unchecked(lower, upper);
 }
 
 //---------------------------------------------------------------------------//

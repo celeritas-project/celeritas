@@ -23,6 +23,9 @@ TEST_F(BoundingBoxTest, null)
     BBox null_bbox;
     EXPECT_FALSE(null_bbox);
     EXPECT_GT(null_bbox.lower()[0], null_bbox.upper()[0]);
+
+    constexpr auto dumb_bbox = BBox::from_unchecked({3, 0, 0}, {-1, 0, 0});
+    EXPECT_FALSE(dumb_bbox);
 }
 
 TEST_F(BoundingBoxTest, infinite)

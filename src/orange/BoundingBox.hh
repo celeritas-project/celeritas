@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
@@ -36,6 +38,10 @@ class BoundingBox
     // Construct from infinite extents
     static inline CELER_FUNCTION BoundingBox from_infinite();
 
+    // Construct from unchecked lower/upper bounds
+    static inline CELER_FUNCTION BoundingBox from_unchecked(Real3 const& lower,
+                                                            Real3 const& upper);
+
     // Construct in unassigned state
     CELER_CONSTEXPR_FUNCTION BoundingBox();
 
@@ -56,6 +62,10 @@ class BoundingBox
   private:
     Real3 lower_;
     Real3 upper_;
+
+    // Implementation of 'from_unchecked' (true type 'tag')
+    CELER_CONSTEXPR_FUNCTION
+    BoundingBox(std::true_type, Real3 const& lower, Real3 const& upper);
 };
 
 //---------------------------------------------------------------------------//
@@ -76,6 +86,20 @@ CELER_FUNCTION BoundingBox<T> BoundingBox<T>::from_infinite()
 {
     constexpr real_type inf = numeric_limits<real_type>::infinity();
     return {{-inf, -inf, -inf}, {inf, inf, inf}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a bounding box from unchecked lower/upper bounds.
+ *
+ * This should be used exclusively for utilities that understand the
+ * "degenerate" implementation of the bounding box.
+ */
+template<class T>
+CELER_FUNCTION BoundingBox<T>
+BoundingBox<T>::from_unchecked(Real3 const& lo, Real3 const& hi)
+{
+    return BoundingBox<T>{std::true_type{}, lo, hi};
 }
 
 //---------------------------------------------------------------------------//
@@ -117,6 +141,18 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
             CELER_EXPECT(lower_[to_int(ax)] <= upper_[to_int(ax)]);
         }
     }
+    CELER_ENSURE(*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a possibly degenerate bounding box from two points.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION
+BoundingBox<T>::BoundingBox(std::true_type, Real3 const& lo, Real3 const& hi)
+    : lower_(lo), upper_(hi)
+{
 }
 
 //---------------------------------------------------------------------------//
@@ -126,7 +162,9 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
 template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
 {
-    return lower_[to_int(Axis::x)] <= upper_[to_int(Axis::x)];
+    return lower_[to_int(Axis::x)] <= upper_[to_int(Axis::x)]
+           && lower_[to_int(Axis::y)] <= upper_[to_int(Axis::y)]
+           && lower_[to_int(Axis::z)] <= upper_[to_int(Axis::z)];
 }
 
 //---------------------------------------------------------------------------//
