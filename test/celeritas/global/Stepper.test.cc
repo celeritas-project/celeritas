@@ -404,10 +404,10 @@ TEST_F(TestEm3NoMsc, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(331, result.num_step_iters());
-        EXPECT_SOFT_EQ(62216, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(256, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({95, 1182}), result.calc_queue_hwm());
+        EXPECT_EQ(326, result.num_step_iters());
+        EXPECT_SOFT_EQ(61146, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(247, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({93, 1182}), result.calc_queue_hwm());
     }
     else
     {
@@ -470,10 +470,10 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(206, result.num_step_iters());
-        EXPECT_SOFT_EQ(62127.625, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(195, result.num_step_iters());
+        EXPECT_SOFT_EQ(62448.375, result.calc_avg_steps_per_primary());
         EXPECT_EQ(72, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({70, 908}), result.calc_queue_hwm());
+        EXPECT_EQ(RunResult::StepCount({69, 883}), result.calc_queue_hwm());
     }
     else
     {
@@ -822,10 +822,10 @@ TEST_F(OneSteelSphere, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(16, result.num_step_iters());
-        EXPECT_SOFT_EQ(15.8671875, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(18, result.num_step_iters());
+        EXPECT_SOFT_EQ(16.578125, result.calc_avg_steps_per_primary());
         EXPECT_EQ(7, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({5, 114}), result.calc_queue_hwm());
+        EXPECT_EQ(RunResult::StepCount({5, 119}), result.calc_queue_hwm());
     }
     else
     {

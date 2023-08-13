@@ -167,33 +167,34 @@ TEST_F(TestEm3DiagnosticTest, host)
 
     if (this->is_ci_build())
     {
-        static size_type const expected_nonzero_action_counts[] = {124u,
-                                                                   391u,
-                                                                   476u,
-                                                                   19u,
-                                                                   59u,
-                                                                   1010u,
-                                                                   274u,
-                                                                   281u,
-                                                                   1813u,
+        static size_type const expected_nonzero_action_counts[] = {121ul,
+                                                                   389ul,
+                                                                   480ul,
+                                                                   16ul,
+                                                                   57ul,
+                                                                   1024ul,
+                                                                   276ul,
+                                                                   290ul,
+                                                                   1798ul,
                                                                    15u,
                                                                    19u,
-                                                                   1186u,
-                                                                   1549u,
-                                                                   567u,
-                                                                   87u,
-                                                                   24u,
-                                                                   298u};
+                                                                   1171ul,
+                                                                   1541ul,
+                                                                   572ul,
+                                                                   86ul,
+                                                                   26ul,
+                                                                   311ul};
+
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
 
         static size_type const expected_steps[]
-            = {0u, 316u, 209u, 91u, 33u, 35u, 21u, 20u, 7u,  11u, 10u,
-               1u, 2u,   3u,   3u,  1u,  1u,  1u,  0u,  0u,  1u,  1u,
-               0u, 742u, 39u,  11u, 7u,  10u, 6u,  10u, 11u, 5u,  3u,
-               7u, 11u,  11u,  10u, 14u, 4u,  4u,  3u,  3u,  3u,  23u,
-               0u, 2u,   2u,   1u,  1u,  6u,  5u,  7u,  4u,  6u,  8u,
-               7u, 7u,   13u,  8u,  7u,  3u,  2u,  5u,  6u,  2u,  24u};
+            = {0u, 308u, 214u, 97u, 42u, 32u, 26u, 17u, 5u,  8u, 8u,
+               5u, 2u,   5u,   2u,  0u,  1u,  1u,  1u,  0u,  0u, 1u,
+               0u, 756u, 42u,  12u, 10u, 9u,  8u,  5u,  10u, 5u, 3u,
+               7u, 10u,  10u,  11u, 13u, 4u,  4u,  4u,  3u,  3u, 23u,
+               0u, 2u,   2u,   1u,  2u,  4u,  5u,  7u,  4u,  6u, 7u,
+               7u, 7u,   13u,  8u,  6u,  3u,  2u,  5u,  6u,  2u, 24u};
         EXPECT_VEC_EQ(expected_steps, result.steps);
     }
 }
@@ -207,7 +208,6 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         = {"annihil-2-gamma e+",
            "brems-combined e+",
            "brems-combined e-",
-           "conv-bethe-heitler gamma",
            "geo-boundary e+",
            "geo-boundary e-",
            "geo-boundary gamma",
@@ -223,12 +223,12 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
     if (this->is_ci_build())
     {
         static size_type const expected_nonzero_action_counts[] = {
-            10u, 572u, 508u, 2u, 518u, 521u, 7u, 20u, 21u, 904u, 998u, 12u, 2u, 1u};
+            10u, 572u, 508u, 518u, 520u, 9u, 20u, 21u, 904u, 997u, 12u, 2u, 3u};
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
 
         static size_type const expected_steps[] = {
-            0u, 2u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 1u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 3u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
@@ -237,11 +237,16 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         if (CELERITAS_USE_JSON)
         {
             EXPECT_EQ(
-                R"json({"_index":["particle","action"],"actions":[[0,0,0,0,0,0,0,1,0,2,0,0,0,0,0,0,0,0,0,0,7,0],[0,0,0,998,0,0,2,0,0,0,0,21,508,0,0,0,0,0,0,0,521,0],[0,0,0,904,0,0,12,0,0,0,10,20,572,0,0,0,0,0,0,0,518,0]]})json",
+                "{\"_index\":[\"particle\",\"action\"],\"actions\":[[0,0,0,0,"
+                "0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0],[0,0,0,997,0,0,2,0,0,0,"
+                "0,21,508,0,0,0,0,0,0,0,520,0],[0,0,0,904,0,0,12,0,0,0,10,20,"
+                "572,0,0,0,0,0,0,0,518,0]]}",
                 this->action_output());
-
             EXPECT_EQ(
-                R"json({"_index":["particle","num_steps"],"steps":[[0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
+                "{\"_index\":[\"particle\",\"num_steps\"],\"steps\":[[0,0,0,0,"
+                "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,"
+                "0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,"
+                "0,0,0,0]]}",
                 this->step_output());
         }
     }
