@@ -100,6 +100,14 @@ TEST_F(PlaneTest, promotion)
     EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}), py.normal());
 }
 
+TEST_F(PlaneTest, construction)
+{
+    // Make a rotated plane in the xy axis
+    Plane p{{1 / sqrt_two, 1 / sqrt_two, 0.0}, {2 / sqrt_two, 2 / sqrt_two, 2}};
+    EXPECT_VEC_SOFT_EQ((Real3{1 / sqrt_two, 1 / sqrt_two, 0}), p.normal());
+    EXPECT_SOFT_EQ(2, p.displacement());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

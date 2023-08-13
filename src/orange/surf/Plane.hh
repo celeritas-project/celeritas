@@ -51,7 +51,7 @@ class Plane
     //// CONSTRUCTORS ////
 
     // Construct with normal and point
-    explicit inline CELER_FUNCTION Plane(Real3 const& n, Real3 const& d);
+    explicit inline CELER_FUNCTION Plane(Real3 const& n, Real3 const& p);
 
     // Construct with normal and displacement
     explicit inline CELER_FUNCTION Plane(Real3 const& n, real_type d);
@@ -103,7 +103,7 @@ class Plane
  * Displacement is the dot product of the point and the normal.
  */
 CELER_FUNCTION Plane::Plane(Real3 const& n, Real3 const& p)
-    : Plane{n, dot_product(normal_, p)}
+    : Plane{n, dot_product(n, p)}
 {
 }
 
