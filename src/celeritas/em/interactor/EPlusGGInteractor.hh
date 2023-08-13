@@ -139,9 +139,8 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         do
         {
             epsil = sample_eps(rng);
-        } while (BernoulliDistribution(1 - epsil
-                                       + (2 * (tau + 1) * epsil - 1)
-                                             / (epsil * ipow<2>(tau2)))(rng));
+        } while (BernoulliDistribution(
+            epsil - (2 * (tau + 1) * epsil - 1) / (epsil * ipow<2>(tau2)))(rng));
 
         // Scattered Gamma angles
         const real_type cost = (epsil * tau2 - 1)
