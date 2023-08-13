@@ -22,8 +22,9 @@ namespace celeritas
 /*!
  * Axis-aligned bounding box.
  *
- * The bounding box can be constructed in an unassigned state, in which lower
- * and upper cannot be called.
+ * The default bounding box is "degenerate", which encloses no space and
+ * evaluates to "false". A degenerate bounding box still has the ability to be
+ * unioned and intersected with other bounding boxes with the expected effect.
  */
 template<class T>
 class BoundingBox
@@ -39,8 +40,8 @@ class BoundingBox
     static inline CELER_FUNCTION BoundingBox from_infinite();
 
     // Construct from unchecked lower/upper bounds
-    static inline CELER_FUNCTION BoundingBox from_unchecked(Real3 const& lower,
-                                                            Real3 const& upper);
+    static CELER_CONSTEXPR_FUNCTION BoundingBox
+    from_unchecked(Real3 const& lower, Real3 const& upper);
 
     // Construct in unassigned state
     CELER_CONSTEXPR_FUNCTION BoundingBox();
@@ -96,7 +97,7 @@ CELER_FUNCTION BoundingBox<T> BoundingBox<T>::from_infinite()
  * "degenerate" implementation of the bounding box.
  */
 template<class T>
-CELER_FUNCTION BoundingBox<T>
+CELER_CONSTEXPR_FUNCTION BoundingBox<T>
 BoundingBox<T>::from_unchecked(Real3 const& lo, Real3 const& hi)
 {
     return BoundingBox<T>{std::true_type{}, lo, hi};
@@ -125,7 +126,7 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox()
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a valid bounding box from two points.
+ * Create a nondegenerate bounding box from two points.
  *
  * The lower and upper points are allowed to be equal (an empty bounding box
  * at a single point) but upper must not be less than lower.
