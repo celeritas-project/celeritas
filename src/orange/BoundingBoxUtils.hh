@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <algorithm>
 #include <cmath>
 
 #include "corecel/cont/Range.hh"
@@ -29,15 +28,10 @@ is_inside(BoundingBox<T> const& bbox, Array<U, 3> point)
 {
     CELER_EXPECT(bbox);
 
-    for (auto ax : range(to_int(Axis::size_)))
-    {
-        if (point[ax] < bbox.lower()[ax] || point[ax] > bbox.upper()[ax])
-        {
-            return false;
-        }
-    }
-
-    return true;
+    constexpr auto axes = range(to_int(Axis::size_));
+    return all_of(axes.begin(), axes.end(), [&point, &bbox](int ax) {
+        return point[ax] >= bbox.lower()[ax] && point[ax] <= bbox.upper()[ax];
+    });
 }
 
 //---------------------------------------------------------------------------//
@@ -51,8 +45,8 @@ inline bool is_infinite(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
     auto isinf = [](T value) { return std::isinf(value); };
-    return std::all_of(bbox.lower().begin(), bbox.lower().end(), isinf)
-           && std::all_of(bbox.upper().begin(), bbox.upper().end(), isinf);
+    return all_of(bbox.lower().begin(), bbox.lower().end(), isinf)
+           && all_of(bbox.upper().begin(), bbox.upper().end(), isinf);
 }
 
 //---------------------------------------------------------------------------//
