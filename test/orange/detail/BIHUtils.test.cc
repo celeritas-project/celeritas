@@ -15,6 +15,8 @@ namespace detail
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+
 TEST(BIHUtilsTest, bbox_vector_union)
 {
     FastBBox bbox1 = {{-10, -20, -30}, {10, 2, 3}};
@@ -29,14 +31,15 @@ TEST(BIHUtilsTest, bbox_vector_union)
 
     using Real3 = Array<fast_real_type, 3>;
 
-    auto bbox4 = bbox_union(bboxes, ids_subset);
+    auto bbox4 = calc_union(bboxes, ids_subset);
     EXPECT_VEC_SOFT_EQ(Real3({-15, -20, -33}), bbox4.lower());
     EXPECT_VEC_SOFT_EQ(Real3({10, 2, 10}), bbox4.upper());
 
-    auto bbox5 = bbox_union(bboxes, ids_all);
+    auto bbox5 = calc_union(bboxes, ids_all);
     EXPECT_VEC_SOFT_EQ(Real3({-15, -20, -34}), bbox5.lower());
     EXPECT_VEC_SOFT_EQ(Real3({10, 2, 10}), bbox5.upper());
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail
