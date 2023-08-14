@@ -20,20 +20,19 @@ if(CELERITAS_USE_Geant4)
     TrackingAction.cc
   )
   set(LIBRARIES Celeritas::accel)
+  if(CELERITAS_USE_JSON)
+    list(APPEND SOURCES
+      RunInputIO.json.cc
+    )
+    list(APPEND LIBRARIES
+      nlohmann_json::nlohmann_json
+    )
+  endif()
 else()
   set(SOURCES
     celer-g4.nogeant.cc
   )
   set(LIBRARIES)
-endif()
-
-if(CELERITAS_USE_JSON)
-  list(APPEND SOURCES
-    RunInputIO.json.cc
-  )
-  list(APPEND LIBRARIES
-    nlohmann_json::nlohmann_json
-  )
 endif()
 
 if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
