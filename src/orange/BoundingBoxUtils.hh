@@ -50,10 +50,9 @@ template<class T>
 inline bool is_infinite(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
-
-    return std::all_of(bbox.lower().begin(), bbox.lower().end(), std::isinf<T>)
-           && std::all_of(
-               bbox.upper().begin(), bbox.upper().end(), std::isinf<T>);
+    auto isinf = static_cast<bool (*)(T)>(std::isinf);
+    return std::all_of(bbox.lower().begin(), bbox.lower().end(), isinf)
+           && std::all_of(bbox.upper().begin(), bbox.upper().end(), isinf);
 }
 
 //---------------------------------------------------------------------------//
