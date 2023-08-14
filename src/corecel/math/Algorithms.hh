@@ -115,7 +115,7 @@ struct Less<void>
  * Whether the predicate is true for all items.
  */
 template<class InputIt, class Predicate>
-bool all_of(InputIt iter, InputIt last, Predicate p)
+inline CELER_FUNCTION bool all_of(InputIt iter, InputIt last, Predicate p)
 {
     for (; iter != last; ++iter)
     {
@@ -130,7 +130,7 @@ bool all_of(InputIt iter, InputIt last, Predicate p)
  * Whether the predicate is true for any item.
  */
 template<class InputIt, class Predicate>
-bool any_of(InputIt iter, InputIt last, Predicate p)
+inline CELER_FUNCTION bool any_of(InputIt iter, InputIt last, Predicate p)
 {
     for (; iter != last; ++iter)
     {
