@@ -254,7 +254,7 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
 /*!
  * Change the sense across a surface.
  */
-CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 {
     return static_cast<Sense>(!static_cast<bool>(orig));
 }
@@ -263,7 +263,8 @@ CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 /*!
  * Change whether a boundary crossing is reentrant or exiting.
  */
-CELER_CONSTEXPR_FUNCTION BoundaryResult flip_boundary(BoundaryResult orig)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION BoundaryResult
+flip_boundary(BoundaryResult orig)
 {
     return static_cast<BoundaryResult>(!static_cast<bool>(orig));
 }
@@ -288,7 +289,8 @@ CELER_CONSTEXPR_FUNCTION BoundaryResult flip_boundary(BoundaryResult orig)
  *
  * NaN values are treated as "outside".
  */
-CELER_CONSTEXPR_FUNCTION SignedSense real_to_sense(real_type quadric)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense
+real_to_sense(real_type quadric)
 {
     return static_cast<SignedSense>(!(quadric <= 0) - (quadric < 0));
 }
