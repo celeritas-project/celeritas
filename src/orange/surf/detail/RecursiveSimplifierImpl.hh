@@ -40,6 +40,13 @@ class RecursiveSimplifierImpl
             // Could not simplify further: call back with sense and surface
             return func_(sense_, surf);
         }
+        else if (result.valueless_by_exception())
+        {
+            // Prevent release code from throwing "bad variant access":
+            // this should never be reached because all of our constructors are
+            // well-behaved and we never replace an existing variant value
+            CELER_ASSERT_UNREACHABLE();
+        }
         else
         {
             return std::visit(*this, result);
