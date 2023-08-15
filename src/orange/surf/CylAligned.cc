@@ -13,23 +13,29 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct from the square of the radius and the origin.
+ *
+ * This is used for surface simplification.
+ */
+template<Axis T>
+CylAligned<T> CylAligned<T>::from_radius_sq(Real3 const& origin, real_type rsq)
+{
+    CELER_EXPECT(rsq > 0);
+
+    CylAligned<T> result;
+    result.origin_u_ = origin[to_int(U)];
+    result.origin_v_ = origin[to_int(V)];
+    result.radius_sq_ = rsq;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Promote from a centered axis-aligned cylinder.
  */
 template<Axis T>
 CylAligned<T>::CylAligned(CylCentered<T> const& other)
     : origin_u_{0}, origin_v_{0}, radius_sq_{other.radius_sq()}
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a new origin using the radius of another cylinder.
- */
-template<Axis T>
-CylAligned<T>::CylAligned(Real3 const& origin, CylAligned const& other)
-    : origin_u_{origin[to_int(U)]}
-    , origin_v_{origin[to_int(V)]}
-    , radius_sq_{other.radius_sq_}
 {
 }
 

@@ -62,14 +62,14 @@ class ConeAligned
   public:
     //// CONSTRUCTORS ////
 
+    // Construct with square of tangent for simplification
+    static ConeAligned from_tangent_sq(Real3 const& origin, real_type tsq);
+
     // Construct from origin and tangent of the angle of its opening
     inline CELER_FUNCTION ConeAligned(Real3 const& origin, real_type tangent);
 
     // Construct from raw data
     explicit inline CELER_FUNCTION ConeAligned(Storage);
-
-    // Construct from cone and new origin
-    ConeAligned(Real3 const& origin, ConeAligned const& other);
 
     //// ACCESSORS ////
 
@@ -100,6 +100,9 @@ class ConeAligned
 
     // Quadric value
     real_type tsq_;
+
+    //! Private default constructor for manual construction
+    ConeAligned() = default;
 };
 
 //---------------------------------------------------------------------------//

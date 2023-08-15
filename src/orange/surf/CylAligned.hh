@@ -65,18 +65,17 @@ class CylAligned
   public:
     //// CONSTRUCTORS ////
 
+    // Construct with square of radius for simplification
+    static CylAligned from_radius_sq(Real3 const& origin, real_type rsq);
+
     // Construct with radius
-    explicit inline CELER_FUNCTION
-    CylAligned(Real3 const& origin, real_type radius);
+    inline CELER_FUNCTION CylAligned(Real3 const& origin, real_type radius);
 
     // Construct from raw data
     explicit inline CELER_FUNCTION CylAligned(Storage);
 
     // Promote from a centered axis-aligned cylinder
     explicit CylAligned(CylCentered<T> const& other);
-
-    // Construct with a new origin and the radius of another cylinder
-    CylAligned(Real3 const& origin, CylAligned const& other);
 
     //// ACCESSORS ////
 
@@ -114,6 +113,9 @@ class CylAligned
 
     // Square of the radius
     real_type radius_sq_;
+
+    //! Private default constructor for manual construction
+    CylAligned() = default;
 };
 
 //---------------------------------------------------------------------------//

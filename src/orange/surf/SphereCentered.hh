@@ -44,6 +44,9 @@ class SphereCentered
   public:
     //// CONSTRUCTORS ////
 
+    // Construct with square of radius for simplification
+    static inline SphereCentered from_radius_sq(real_type rsq);
+
     // Construct with origin and radius
     explicit inline CELER_FUNCTION SphereCentered(real_type radius);
 
@@ -77,6 +80,18 @@ class SphereCentered
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from the square of the radius.
+ *
+ * This is used for surface simplification.
+ */
+SphereCentered SphereCentered::from_radius_sq(real_type rsq)
+{
+    CELER_EXPECT(rsq > 0);
+    return SphereCentered(Storage{&rsq, 1});
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with sphere radius.

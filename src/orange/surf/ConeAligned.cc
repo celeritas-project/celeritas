@@ -11,12 +11,17 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a new origin using the opening angle of another cone.
+ * Construct with square of tangent for simplification.
  */
 template<Axis T>
-ConeAligned<T>::ConeAligned(Real3 const& origin, ConeAligned const& other)
-    : origin_{origin}, tsq_{other.tsq_}
+ConeAligned<T>
+ConeAligned<T>::from_tangent_sq(Real3 const& origin, real_type tsq)
 {
+    CELER_EXPECT(tsq > 0);
+    ConeAligned result;
+    result.origin_ = origin;
+    result.tsq_ = tsq;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
