@@ -75,7 +75,7 @@ class CylAligned
     explicit inline CELER_FUNCTION CylAligned(Storage);
 
     // Promote from a centered axis-aligned cylinder
-    explicit CylAligned(CylCentered<T> const& other);
+    explicit CylAligned(CylCentered<T> const& other) noexcept;
 
     //// ACCESSORS ////
 

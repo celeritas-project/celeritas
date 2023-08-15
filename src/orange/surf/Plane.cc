@@ -16,16 +16,16 @@ namespace celeritas
  * Promote from an axis-aligned plane.
  */
 template<Axis T>
-Plane::Plane(PlaneAligned<T> const& other)
-    : Plane{other.calc_normal({0, 0, 0}), other.position()}
+Plane::Plane(PlaneAligned<T> const& other) noexcept
+    : normal_{other.calc_normal({0, 0, 0})}, d_{other.position()}
 {
 }
 
 //---------------------------------------------------------------------------//
 
-template Plane::Plane(PlaneAligned<Axis::x> const&);
-template Plane::Plane(PlaneAligned<Axis::y> const&);
-template Plane::Plane(PlaneAligned<Axis::z> const&);
+template Plane::Plane(PlaneAligned<Axis::x> const&) noexcept;
+template Plane::Plane(PlaneAligned<Axis::y> const&) noexcept;
+template Plane::Plane(PlaneAligned<Axis::z> const&) noexcept;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

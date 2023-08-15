@@ -13,19 +13,25 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Promote from a centered sphere.
+ * Construct from the square of the radius.
+ *
+ * This is used for surface simplification.
  */
-Sphere::Sphere(SphereCentered const& other)
-    : origin_{0, 0, 0}, radius_sq_{other.radius_sq()}
+Sphere Sphere::from_radius_sq(Real3 const& origin, real_type rsq)
 {
+    CELER_EXPECT(rsq > 0);
+    Sphere result;
+    result.origin_ = origin;
+    result.radius_sq_ = rsq;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a new origin and the radius of another sphere.
+ * Promote from a centered sphere.
  */
-Sphere::Sphere(Real3 const& origin, Sphere const& other)
-    : origin_{origin}, radius_sq_{other.radius_sq_}
+Sphere::Sphere(SphereCentered const& other) noexcept
+    : origin_{0, 0, 0}, radius_sq_{other.radius_sq()}
 {
 }
 

@@ -61,7 +61,7 @@ class Plane
 
     // Promote from an axis-aligned plane
     template<Axis T>
-    explicit Plane(PlaneAligned<T> const& other);
+    explicit Plane(PlaneAligned<T> const& other) noexcept;
 
     //// ACCESSORS ////
 

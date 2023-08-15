@@ -15,7 +15,7 @@ namespace celeritas
 /*!
  * Promote from a simple quadric.
  */
-GeneralQuadric::GeneralQuadric(SimpleQuadric const& other)
+GeneralQuadric::GeneralQuadric(SimpleQuadric const& other) noexcept
     : GeneralQuadric{make_array(other.second()),
                      Real3{0, 0, 0},
                      make_array(other.first()),

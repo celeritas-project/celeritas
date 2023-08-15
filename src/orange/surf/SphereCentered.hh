@@ -76,6 +76,9 @@ class SphereCentered
   private:
     // Square of the radius
     real_type radius_sq_;
+
+    //! Private default constructor for manual construction
+    SphereCentered() = default;
 };
 
 //---------------------------------------------------------------------------//
@@ -89,7 +92,9 @@ class SphereCentered
 SphereCentered SphereCentered::from_radius_sq(real_type rsq)
 {
     CELER_EXPECT(rsq > 0);
-    return SphereCentered(Storage{&rsq, 1});
+    SphereCentered result;
+    result.radius_sq_ = rsq;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

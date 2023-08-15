@@ -34,7 +34,7 @@ CylAligned<T> CylAligned<T>::from_radius_sq(Real3 const& origin, real_type rsq)
  * Promote from a centered axis-aligned cylinder.
  */
 template<Axis T>
-CylAligned<T>::CylAligned(CylCentered<T> const& other)
+CylAligned<T>::CylAligned(CylCentered<T> const& other) noexcept
     : origin_u_{0}, origin_v_{0}, radius_sq_{other.radius_sq()}
 {
 }

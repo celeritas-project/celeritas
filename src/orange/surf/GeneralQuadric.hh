@@ -69,7 +69,7 @@ class GeneralQuadric
     explicit inline CELER_FUNCTION GeneralQuadric(Storage);
 
     // Promote from a simple quadric
-    explicit GeneralQuadric(SimpleQuadric const& other);
+    explicit GeneralQuadric(SimpleQuadric const& other) noexcept;
 
     //// ACCESSORS ////
 

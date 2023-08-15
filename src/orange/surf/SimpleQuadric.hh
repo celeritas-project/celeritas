@@ -22,6 +22,8 @@ template<Axis T>
 class ConeAligned;
 template<Axis T>
 class CylAligned;
+class Plane;
+class Sphere;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -65,13 +67,19 @@ class SimpleQuadric
     // Construct from raw data
     explicit inline CELER_FUNCTION SimpleQuadric(Storage);
 
-    // Promote from a cone
-    template<Axis T>
-    explicit SimpleQuadric(ConeAligned<T> const& other);
+    // Promote from a plane
+    explicit SimpleQuadric(Plane const& other) noexcept;
 
     // Promote from an axis-aligned cylinder
     template<Axis T>
-    explicit SimpleQuadric(CylAligned<T> const& other);
+    explicit SimpleQuadric(CylAligned<T> const& other) noexcept;
+
+    // Promote from a sphere
+    explicit SimpleQuadric(Sphere const& other) noexcept;
+
+    // Promote from a cone
+    template<Axis T>
+    explicit SimpleQuadric(ConeAligned<T> const& other) noexcept;
 
     //// ACCESSORS ////
 
