@@ -38,10 +38,10 @@ class SurfaceSimplifier
 
   public:
     // Construct with snapping tolerance and reference to sense
-    inline SurfaceSimplifier(real_type tol, Sense* s);
+    inline SurfaceSimplifier(Sense* s, real_type tol);
 
     //! Construct with reference to sense that may be flipped
-    explicit inline SurfaceSimplifier(Sense* s) : SurfaceSimplifier{1e-10, s}
+    explicit inline SurfaceSimplifier(Sense* s) : SurfaceSimplifier{s, 1e-10}
     {
     }
 
@@ -54,19 +54,22 @@ class SurfaceSimplifier
     Optional<CylCentered<T>> operator()(CylAligned<T> const&) const;
 
     // Plane may be flipped, adjusted, or become axis-aligned
-    Optional<Plane> operator()(Plane const&);
+    Optional<PlaneAligned<Axis::x>, PlaneAligned<Axis::y>, PlaneAligned<Axis::z>, Plane>
+    operator()(Plane const&);
 
     // Sphere near center can be snapped
     Optional<SphereCentered> operator()(Sphere const&) const;
 
-    // Simple quadric with near-zero terms can be another second-order surface
-    Optional<Sphere,
+    // Simple quadric can be normalized or simplified
+    Optional<Plane,
+             Sphere,
+             CylAligned<Axis::x>,
+             CylAligned<Axis::y>,
+             CylAligned<Axis::z>,
              ConeAligned<Axis::x>,
              ConeAligned<Axis::y>,
              ConeAligned<Axis::z>,
-             CylAligned<Axis::x>,
-             CylAligned<Axis::y>,
-             CylAligned<Axis::z>>
+             SimpleQuadric>
     operator()(SimpleQuadric const&);
 
     // Quadric with no cross terms is simple
@@ -74,14 +77,14 @@ class SurfaceSimplifier
 
     //! Default: no simplifcation
     template<class S>
-    std::variant<std::monostate> operator()(S const&)
+    std::variant<std::monostate> operator()(S const&) const
     {
         return {};
     }
 
   private:
-    real_type tol_;
     Sense* sense_;
+    real_type tol_;
 };
 
 //---------------------------------------------------------------------------//
@@ -90,11 +93,11 @@ class SurfaceSimplifier
 /*!
  * Construct with snapping tolerance and reference to sense.
  */
-SurfaceSimplifier::SurfaceSimplifier(real_type tol, Sense* s)
-    : tol_{tol}, sense_{s}
+SurfaceSimplifier::SurfaceSimplifier(Sense* s, real_type tol)
+    : sense_{s}, tol_{tol}
 {
-    CELER_EXPECT(tol_ >= 0);
     CELER_EXPECT(sense_);
+    CELER_EXPECT(tol_ >= 0);
 }
 
 //---------------------------------------------------------------------------//

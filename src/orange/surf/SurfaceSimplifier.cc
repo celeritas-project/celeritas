@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "SurfaceSimplifier.hh"
 
+#include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 
 #include "ConeAligned.hh"
@@ -18,6 +21,10 @@
 #include "SimpleQuadric.hh"
 #include "Sphere.hh"
 #include "SphereCentered.hh"
+#include "detail/QuadricConeConverter.hh"
+#include "detail/QuadricCylConverter.hh"
+#include "detail/QuadricPlaneConverter.hh"
+#include "detail/QuadricSphereConverter.hh"
 
 namespace celeritas
 {
@@ -57,11 +64,24 @@ ORANGE_INSTANTIATE_OP(PlaneAligned, PlaneAligned);
 //---------------------------------------------------------------------------//
 /*!
  * Cylinder at origin will be simplified.
+ *
+ * \verbatim
+   distance({0,0}, {u,v}) < tol
+   sqrt(u^2 + v^2) < tol
+   u^2 + v^2 < tol^2
+   \endverbatim
  */
 template<Axis T>
-auto SurfaceSimplifier::operator()(CylAligned<T> const&) const
+auto SurfaceSimplifier::operator()(CylAligned<T> const& c) const
     -> Optional<CylCentered<T>>
 {
+    real_type origin_dist = ipow<2>(c.origin_u()) + ipow<2>(c.origin_v());
+    if (origin_dist < ipow<2>(tol_))
+    {
+        // Snap to zero since it's not already zero
+        return CylCentered<T>::from_radius_sq(c.radius_sq());
+    }
+    // No simplification performed
     return {};
 }
 
@@ -70,9 +90,81 @@ ORANGE_INSTANTIATE_OP(CylCentered, CylAligned);
 //---------------------------------------------------------------------------//
 /*!
  * Plane may be flipped, adjusted, or become axis-aligned.
+ *
+ * If a plane has a normal of {-1, 0 + eps, 0}, it will first be truncated to
+ * {-1, 0, 0}, then flipped to {1, 0, 0}, and a new Plane will be return. That
+ * plane can *then* be simplified to
  */
-auto SurfaceSimplifier::operator()(Plane const&) -> Optional<Plane>
+auto SurfaceSimplifier::operator()(Plane const& p)
+    -> Optional<PlaneX, PlaneY, PlaneZ, Plane>
 {
+    Real3 n{p.normal()};
+    real_type d{p.displacement()};
+
+    // First, look for axis-aligned plane
+    {
+        SoftEqual soft_equal{tol_};
+        if (soft_equal(real_type{1}, n[to_int(Axis::x)]))
+            return PlaneX{d};
+        if (soft_equal(real_type{1}, n[to_int(Axis::y)]))
+            return PlaneY{d};
+        if (soft_equal(real_type{1}, n[to_int(Axis::z)]))
+            return PlaneZ{d};
+    }
+
+    bool changed{false};
+
+    // Snap nearly-zero normals to zero and record which ones are nonzero
+    {
+        SoftZero const soft_zero{tol_};
+        for (auto axis : range(Axis::size_))
+        {
+            auto ax = to_int(axis);
+            if (n[ax] != 0 && soft_zero(n[ax]))
+            {
+                n[ax] = 0;
+                changed = true;
+            }
+        }
+    }
+
+    // To prevent opposite-value planes from being defined but not
+    // deduplicated, ensure the first non-zero normal component is in the
+    // positive half-space. This also takes care of flipping orthogonal planes
+    // defined like {-x = 3}, translating them to { x = -3 }.
+    for (auto ax : range(to_int(Axis::size_)))
+    {
+        if (n[ax] > 0)
+        {
+            break;
+        }
+        else if (n[ax] < 0)
+        {
+            // Flip the sign of any remaining nonzero axes
+            // (previous axes are zero so just skip them)
+            for (auto ax2 : range(ax, to_int(Axis::size_)))
+            {
+                n[ax2] = 0 - n[ax2];
+            }
+            // Flip sign of d (without introducing -0)
+            d = 0 - d;
+            // Flip sense
+            *sense_ = flip_sense(*sense_);
+            changed = true;
+            break;
+        }
+    }
+
+    if (changed)
+    {
+        // The direction was changed: renormalize and return the updated plane
+        real_type norm_factor = 1 / celeritas::norm(n);
+        n *= norm_factor;
+        d *= norm_factor;
+        return Plane{n, d};
+    }
+
+    // No simplification performed
     return {};
 }
 
@@ -80,9 +172,15 @@ auto SurfaceSimplifier::operator()(Plane const&) -> Optional<Plane>
 /*!
  * Sphere near center can be snapped.
  */
-auto SurfaceSimplifier::operator()(Sphere const&) const
+auto SurfaceSimplifier::operator()(Sphere const& s) const
     -> Optional<SphereCentered>
 {
+    if (dot_product(s.origin(), s.origin()) < ipow<2>(tol_))
+    {
+        // Sphere is less than tolerance from the origin
+        return SphereCentered::from_radius_sq(s.radius_sq());
+    }
+    // No simplification performed
     return {};
 }
 
@@ -90,25 +188,105 @@ auto SurfaceSimplifier::operator()(Sphere const&) const
 /*!
  * Simple quadric with near-zero terms can be another second-order surface.
  */
-auto SurfaceSimplifier::operator()(SimpleQuadric const&)
-    -> Optional<Sphere,
+auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
+    -> Optional<Plane,
+                Sphere,
+                CylAligned<Axis::x>,
+                CylAligned<Axis::y>,
+                CylAligned<Axis::z>,
                 ConeAligned<Axis::x>,
                 ConeAligned<Axis::y>,
                 ConeAligned<Axis::z>,
-                CylAligned<Axis::x>,
-                CylAligned<Axis::y>,
-                CylAligned<Axis::z>>
+                SimpleQuadric>
 {
+    // Determine possible simplifications by calculating number of zeros
+    int num_pos{0};
+    int num_neg{0};
+    for (auto v : sq.second())
+    {
+        if (v < -tol_)
+            ++num_neg;
+        else if (v > tol_)
+            ++num_pos;
+    }
+
+    if (num_pos == 0 && num_neg == 0)
+    {
+        // It's a plane
+        return detail::QuadricPlaneConverter{tol_}(sq);
+    }
+    else if (num_neg > num_pos)
+    {
+        // Normalize sign so that it has more positive signs than negative
+        auto arr = make_array(sq.data());
+        for (auto& v : arr)
+        {
+            v = 0 - v;  // Avoid signed zero
+        }
+
+        // Flip sense
+        *sense_ = flip_sense(*sense_);
+
+        // Construct reversed-sign quadric
+        return SimpleQuadric{make_span(arr)};
+    }
+    else if (num_pos == 3)
+    {
+        // Could be a sphere
+        detail::QuadricSphereConverter to_sphere{tol_};
+        if (auto s = to_sphere(sq))
+            return *s;
+    }
+    else if (num_pos == 2)
+    {
+        // One element is zero or negative: could be a cylinder or cone
+        if (num_neg == 1)
+        {
+            // Cone: one second-order term less than zero, others equal
+            detail::QuadricConeConverter to_cone{tol_};
+            if (auto c = to_cone(AxisTag<Axis::x>{}, sq))
+                return *c;
+            if (auto c = to_cone(AxisTag<Axis::y>{}, sq))
+                return *c;
+            if (auto c = to_cone(AxisTag<Axis::z>{}, sq))
+                return *c;
+        }
+        else
+        {
+            // Cyl: one second-order term is zero, others are equal
+            detail::QuadricCylConverter to_cyl{tol_};
+            if (auto c = to_cyl(AxisTag<Axis::x>{}, sq))
+                return *c;
+            if (auto c = to_cyl(AxisTag<Axis::y>{}, sq))
+                return *c;
+            if (auto c = to_cyl(AxisTag<Axis::z>{}, sq))
+                return *c;
+        }
+    }
+
+    // No simplification performed
     return {};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Quadric with no cross terms is simple.
+ * Quadric with no cross terms is "simple".
+ *
+ * TODO: guard against different-signed GQs?
  */
-auto SurfaceSimplifier::operator()(GeneralQuadric const&)
+auto SurfaceSimplifier::operator()(GeneralQuadric const& gq)
     -> Optional<SimpleQuadric>
 {
+    SoftZero const soft_zero{tol_};
+
+    auto cross = gq.cross();
+    if (std::all_of(cross.begin(), cross.end(), SoftZero{tol_}))
+    {
+        // No cross terms
+        return SimpleQuadric{
+            make_array(gq.second()), make_array(gq.first()), gq.zeroth()};
+    }
+
     return {};
 }
 

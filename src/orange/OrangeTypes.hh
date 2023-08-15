@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <type_traits>
 #include <utility>
 
 #include "corecel/Macros.hh"
@@ -36,6 +37,12 @@ using fast_real_type = float;
 
 //! Integer type for volume CSG tree representation
 using logic_int = unsigned short int;
+
+//! Helper class for some template dispatch functions
+template<Axis T>
+using AxisTag = std::integral_constant<Axis, T>;
+
+//// ID TYPES ////
 
 //! Identifier for a BIHNode objects
 using BIHNodeId = OpaqueId<struct BIHNode>;
