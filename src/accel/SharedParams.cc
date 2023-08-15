@@ -171,6 +171,10 @@ SharedParams::SharedParams(SetupOptions const& options)
     {
         offload_writer_ = std::make_shared<detail::OffloadWriter>(
             options.offload_output_file, params_->particle());
+
+        std::string root_filename = options.offload_output_file + ".root";
+        root_offload_writer_ = std::make_shared<detail::RootOffloadWriter>(
+            root_filename, params_->particle());
     }
 
     CELER_ENSURE(*this);

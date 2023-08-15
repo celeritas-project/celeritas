@@ -13,6 +13,8 @@
 
 #include "corecel/Assert.hh"
 
+#include "detail/RootOffloadWriter.hh"
+
 class G4ParticleDefinition;
 
 namespace celeritas
@@ -87,12 +89,19 @@ class SharedParams
 
     using SPHitManager = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+    using SPRootOffloadWriter = std::shared_ptr<detail::RootOffloadWriter>;
 
     //! Hit manager, to be used only by LocalTransporter
     SPHitManager const& hit_manager() const { return hit_manager_; }
 
     //! Optional offload writer, only for use by LocalTransporter
     SPOffloadWriter const& offload_writer() const { return offload_writer_; }
+
+    //! Optional offload writer, only for use by LocalTransporter
+    SPRootOffloadWriter const& root_offload_writer() const
+    {
+        return root_offload_writer_;
+    }
 
     //!@}
 
@@ -105,6 +114,7 @@ class SharedParams
     VecG4ParticleDef particles_;
     std::string output_filename_;
     SPOffloadWriter offload_writer_;
+    SPRootOffloadWriter root_offload_writer_;
 
     //// HELPER FUNCTIONS ////
 

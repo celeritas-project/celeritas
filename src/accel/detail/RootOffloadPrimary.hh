@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/HepMC3RootPrimary.hh
+//! \file accel/detail/RootOffloadPrimary.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,20 +12,14 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
- * Flattened data stored/read to/from a ROOT file via \c HepMC3RootWriter and
- * \c HepMC3RootReader .
+ * Flattened data stored/read to/from a ROOT file via \c RootOffloadWriter and
+ * \c RootOffloadReader .
  */
-struct HepMC3RootPrimary
-{
-    std::size_t event_id;
-    int particle;
-    double energy;
-    double time;
-    std::array<double, 3> pos;
-    std::array<double, 3> dir;
-};
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

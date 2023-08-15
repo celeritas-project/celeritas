@@ -42,8 +42,6 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/ExceptionConverter.hh"
-#include "accel/HepMC3RootReader.hh"
-#include "accel/HepMC3RootWriter.hh"
 #include "accel/Logger.hh"
 
 #include "ActionInitialization.hh"
@@ -103,22 +101,6 @@ void run(int argc, char** argv)
                       << "'";
     ui->ApplyCommand(std::string("/control/execute ")
                      + std::string(macro_filename));
-
-#if CELERITAS_USE_ROOT
-    // Test export HepMC3 primary data to ROOT
-    celeritas::HepMC3RootWriter write_to_root(
-        GlobalSetup::Instance()->GetEventFile());
-    write_to_root("primaries.root");
-
-    // Test import ROOT primary data
-    celeritas::HepMC3RootReader read("primaries.root");
-    auto event = read();
-    while (!event.empty())
-    {
-        event = read();
-    }
-
-#endif
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
     if (G4VERSION_NUMBER >= 1110)

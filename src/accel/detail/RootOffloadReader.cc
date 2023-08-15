@@ -3,23 +3,29 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/HepMC3RootReader.cc
+//! \file accel/detail/RootOffloadReader.cc
 //---------------------------------------------------------------------------//
-#include "HepMC3RootReader.hh"
+#include "RootOffloadReader.hh"
 
+#include <type_traits>
 #include <TFile.h>
 #include <TLeaf.h>
 #include <TTree.h>
 
 #include "corecel/io/Logger.hh"
-
+#include "celeritas/Types.hh"
+#include "celeritas/phys/ParticleParams.hh"
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with ROOT input filename.
  */
-HepMC3RootReader::HepMC3RootReader(std::string const& filename)
+RootOffloadReader::RootOffloadReader(std::string const& filename,
+                                     SPConstParticles params)
+    : params_(std::move(params))
 {
     CELER_EXPECT(!filename.empty());
     tfile_.reset(TFile::Open(filename.c_str(), "read"));
@@ -35,7 +41,7 @@ HepMC3RootReader::HepMC3RootReader(std::string const& filename)
 /*!
  * Read single event from the primaries tree.
  */
-auto HepMC3RootReader::operator()() -> result_type
+auto RootOffloadReader::operator()() -> result_type
 {
     std::lock_guard scoped_lock{read_mutex_};
 
@@ -52,13 +58,15 @@ auto HepMC3RootReader::operator()() -> result_type
             break;
         }
 
-        HepMC3RootPrimary primary;
-        primary.event_id = ttree_->GetLeaf("event_id")->GetValue();
-        primary.particle = ttree_->GetLeaf("particle")->GetValue();
-        primary.energy = ttree_->GetLeaf("energy")->GetValue();
-        primary.time = ttree_->GetLeaf("time")->GetValue();
-        primary.pos = this->from_leaf("pos");
-        primary.dir = this->from_leaf("dir");
+        Primary primary;
+        primary.event_id = EventId{this->from_leaf<std::size_t>("event_id")};
+        primary.track_id = TrackId{this->from_leaf<std::size_t>("track_id")};
+        primary.particle_id
+            = params_->find(PDGNumber{this->from_leaf<int>("particle")});
+        primary.energy = units::MevEnergy{this->from_leaf<double>("energy")};
+        primary.time = this->from_leaf<double>("time");
+        primary.position = this->from_leaf<Real3>("pos");
+        primary.direction = this->from_leaf<Real3>("dir");
         primaries.push_back(std::move(primary));
     }
 
@@ -69,17 +77,28 @@ auto HepMC3RootReader::operator()() -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper function to fetch an array from a TLeaf.
+ * Helper function to fetch leaves.
  */
-std::array<double, 3> HepMC3RootReader::from_leaf(char const* leaf_name)
+template<class T>
+auto RootOffloadReader::from_leaf(char const* leaf_name) -> T
 {
     CELER_EXPECT(ttree_);
     auto const leaf = ttree_->GetLeaf(leaf_name);
     CELER_ASSERT(leaf);
-    CELER_ASSERT(leaf->GetLen() == 3);
 
-    return {leaf->GetValue(0), leaf->GetValue(1), leaf->GetValue(2)};
+    if (std::is_same<T, Real3>::value)
+    {
+        CELER_ASSERT(leaf->GetLen() == 3);
+        Real3 val{leaf->GetValue(0), leaf->GetValue(1), leaf->GetValue(2)};
+        return val;
+    }
+
+    else
+    {
+        return static_cast<T>(leaf->GetValue());
+    }
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
