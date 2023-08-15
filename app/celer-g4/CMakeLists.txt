@@ -108,16 +108,17 @@ else()
     "${CELER_APP_DATA_DIR}/ttbarbits-12evt-118prim.hepmc3")
 endif()
 if(CELERITAS_USE_ROOT)
-  set(CELERG4_ROOT_OPTIONS "/celerg4/rootBufferSize 128000
-/celerg4/writeSDHits true")
+  set(CELERG4_WRITE_SD_HITS "true")
+else()
+  set(CELERG4_WRITE_SD_HITS "false")
 endif()
 configure_file(
-  "simple-cms-test.mac.in"
-  "simple-cms-test.mac" @ONLY
+  "simple-cms-test.inp.json.in"
+  "simple-cms-test.inp.json" @ONLY
 )
 add_test(NAME "app/celer-g4"
   COMMAND "$<TARGET_FILE:celer-g4>"
-  "simple-cms-test.mac"
+  "simple-cms-test.inp.json"
 )
 set(_env
   ${CELER_G4ENV}
