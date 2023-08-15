@@ -13,8 +13,6 @@
 #include "celeritas/ext/RootUniquePtr.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "RootOffloadPrimary.hh"
-
 // ROOT forward declaration
 class TFile;
 class TTree;
@@ -32,7 +30,7 @@ namespace detail
  *
  * Use \c operator() to read new primaries:
  * \code
-    RootOffloadReader read("primaries.root");
+    RootOffloadReader read("primaries.root", particle_params);
     auto event = read();
     while (!event.empty())
     {
@@ -57,6 +55,8 @@ class RootOffloadReader
     result_type operator()();
 
   private:
+    //// DATA ////
+
     SPConstParticles params_;
     std::size_t entry_count_{0};  // Current TTree entry
     std::size_t num_entries_;  // Total number of entries in the TTree
@@ -64,13 +64,17 @@ class RootOffloadReader
     UPExtern<TTree> ttree_;
     std::mutex read_mutex_;
 
-  private:
+    //// HELPER FUNCTIONS ////
+
     // Hardcoded ROOT TTree name defined by RootOffloadWriter
     char const* tree_name() { return "primaries"; }
 
-    // Helper function to fetch leaf data
+    // Fetch basic data types from leaves
     template<class T>
     auto from_leaf(char const* leaf_name) -> T;
+
+    // Fetch arrays from leaves
+    Real3 from_array_leaf(char const* leaf_name);
 };
 
 //---------------------------------------------------------------------------//
@@ -86,9 +90,20 @@ inline RootOffloadReader::RootOffloadReader(std::string const&)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline RootOffloadReader RootOffloadReader::operator()()
+inline RootOffloadReader::result_type RootOffloadReader::operator()()
 {
-    CELER_NOT_CONFIGURED("ROOT");
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline template<class T>
+auto RootOffloadReader::from_leaf(char const*) -> T
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+Real3 RootOffloadReader::from_leaf(char const*)
+{
+    CELER_ASSERT_UNREACHABLE();
 }
 #endif
 

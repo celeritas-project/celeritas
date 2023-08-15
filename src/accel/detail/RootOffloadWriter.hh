@@ -34,6 +34,7 @@ class RootOffloadWriter
     //! \name Type aliases
     using Primaries = std::vector<Primary>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
+
     //!@}
 
     // Construct with ROOT output filename
@@ -44,6 +45,8 @@ class RootOffloadWriter
     void operator()(Primaries const& primaries);
 
   private:
+    //// DATA ////
+
     // Basic data types stored to ROOT to avoid the need of a dictionary
     struct RootOffloadPrimary
     {
@@ -62,7 +65,8 @@ class RootOffloadWriter
     RootOffloadPrimary primary_;  // Temporary object stored to the ROOT TTree
     std::mutex write_mutex_;
 
-  private:
+    //// HELPER FUNCTIONS ////
+
     // Hardcoded TTree name and title
     char const* tree_name() { return "primaries"; }
 };

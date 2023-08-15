@@ -7,14 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "RootOffloadReader.hh"
 
-#include <type_traits>
 #include <TFile.h>
 #include <TLeaf.h>
 #include <TTree.h>
 
 #include "corecel/io/Logger.hh"
-#include "celeritas/Types.hh"
 #include "celeritas/phys/ParticleParams.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -65,8 +64,8 @@ auto RootOffloadReader::operator()() -> result_type
             = params_->find(PDGNumber{this->from_leaf<int>("particle")});
         primary.energy = units::MevEnergy{this->from_leaf<double>("energy")};
         primary.time = this->from_leaf<double>("time");
-        primary.position = this->from_leaf<Real3>("pos");
-        primary.direction = this->from_leaf<Real3>("dir");
+        primary.position = this->from_array_leaf("pos");
+        primary.direction = this->from_array_leaf("dir");
         primaries.push_back(std::move(primary));
     }
 
@@ -85,18 +84,20 @@ auto RootOffloadReader::from_leaf(char const* leaf_name) -> T
     CELER_EXPECT(ttree_);
     auto const leaf = ttree_->GetLeaf(leaf_name);
     CELER_ASSERT(leaf);
+    return static_cast<T>(leaf->GetValue());
+}
 
-    if (std::is_same<T, Real3>::value)
-    {
-        CELER_ASSERT(leaf->GetLen() == 3);
-        Real3 val{leaf->GetValue(0), leaf->GetValue(1), leaf->GetValue(2)};
-        return val;
-    }
-
-    else
-    {
-        return static_cast<T>(leaf->GetValue());
-    }
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to fetch leaves containing `std::array<double, 3>`.
+ */
+Real3 RootOffloadReader::from_array_leaf(char const* leaf_name)
+{
+    CELER_EXPECT(ttree_);
+    auto const leaf = ttree_->GetLeaf(leaf_name);
+    CELER_ASSERT(leaf);
+    CELER_ASSERT(leaf->GetLen() == 3);
+    return {leaf->GetValue(0), leaf->GetValue(1), leaf->GetValue(2)};
 }
 
 //---------------------------------------------------------------------------//

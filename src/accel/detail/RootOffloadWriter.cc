@@ -59,6 +59,8 @@ RootOffloadWriter::RootOffloadWriter(std::string const& root_output_name,
  */
 void RootOffloadWriter::operator()(Primaries const& primaries)
 {
+    CELER_EXPECT(!primaries.empty());
+
     std::scoped_lock{write_mutex_};
     for (auto const& p : primaries)
     {
