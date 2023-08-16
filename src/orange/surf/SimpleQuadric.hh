@@ -123,6 +123,8 @@ class SimpleQuadric
  * Construct with coefficients.
  *
  * The quadric is ill-defined if all non-constants are zero.
+ *
+ * TODO: normalize?
  */
 CELER_FUNCTION
 SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)

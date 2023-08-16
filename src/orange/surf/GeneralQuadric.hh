@@ -116,6 +116,8 @@ class GeneralQuadric
 //---------------------------------------------------------------------------//
 /*!
  * Construct with all coefficients.
+ *
+ * TODO: normalize?
  */
 CELER_FUNCTION GeneralQuadric::GeneralQuadric(Real3 const& abc,
                                               Real3 const& def,
@@ -132,6 +134,8 @@ CELER_FUNCTION GeneralQuadric::GeneralQuadric(Real3 const& abc,
     , i_(ghi[2])
     , j_(j)
 {
+    CELER_EXPECT(a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0 || f_ != 0
+                 || g_ != 0 || h_ != 0 || i_ != 0);
 }
 
 //---------------------------------------------------------------------------//
