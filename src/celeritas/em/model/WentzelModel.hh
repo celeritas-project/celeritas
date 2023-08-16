@@ -20,7 +20,11 @@ namespace celeritas
 {
 class MaterialParams;
 class ParticleParams;
-struct ImportEmParameters;
+
+namespace detail
+{
+struct CoulombScatteringOptions;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -39,7 +43,7 @@ class WentzelModel final : public Model
     WentzelModel(ActionId id,
                  ParticleParams const& particles,
                  MaterialParams const& materials,
-                 ImportEmParameters const& em_params,
+                 detail::CoulombScatteringOptions const& options,
                  SPConstImported data);
 
     //! Particle types and energy ranges that this model applies to

@@ -15,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
+#include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
@@ -62,6 +63,7 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
     , brem_combined_(options.brem_combined)
     , enable_lpm_(data.em_params.lpm)
     , use_integral_xs_(data.em_params.integral_approach)
+    , coulomb_screening_factor_(data.em_params.screening_factor)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.particle);
@@ -118,6 +120,7 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         {IPC::annihilation, &ProcessBuilder::build_annihilation},
         {IPC::compton, &ProcessBuilder::build_compton},
         {IPC::conversion, &ProcessBuilder::build_conversion},
+        {IPC::coulomb_scat, &ProcessBuilder::build_coulomb},
         {IPC::e_brems, &ProcessBuilder::build_ebrems},
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
         {IPC::photoelectric, &ProcessBuilder::build_photoelectric},
@@ -210,6 +213,17 @@ auto ProcessBuilder::build_annihilation() -> SPProcess
     return std::make_shared<EPlusAnnihilationProcess>(this->particle(),
                                                       options);
 }
+
+//---------------------------------------------------------------------------//
+auto ProcessBuilder::build_coulomb() -> SPProcess
+{
+    CoulombScatteringProcess::Options options;
+    options.screening_factor = coulomb_screening_factor_;
+
+    return std::make_shared<CoulombScatteringProcess>(
+        this->particle(), this->material(), this->imported(), options);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Warn and return a null process.

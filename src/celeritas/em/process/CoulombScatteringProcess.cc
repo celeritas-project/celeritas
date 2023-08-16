@@ -19,28 +19,24 @@ namespace celeritas
 CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
                                                    SPConstMaterials materials,
                                                    SPConstImported process_data,
-                                                   SPConstEmParameters em_params)
+                                                   Options const& options)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::coulomb_scat,
                 {pdg::electron(), pdg::positron()})
-    , em_params_(em_params)
+    , options_(options)
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
-    CELER_EXPECT(em_params_);
 }
 
 auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
-    return {std::make_shared<WentzelModel>(*start_id++,
-                                           *particles_,
-                                           *materials_,
-                                           *em_params_,
-                                           imported_.processes())};
+    return {std::make_shared<WentzelModel>(
+        *start_id++, *particles_, *materials_, options_, imported_.processes())};
 }
 
 auto CoulombScatteringProcess::step_limits(Applicability applic) const

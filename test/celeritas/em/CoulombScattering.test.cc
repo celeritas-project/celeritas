@@ -9,6 +9,7 @@
 #include "celeritas/Units.hh"
 #include "celeritas/em/interactor/WentzelInteractor.hh"
 #include "celeritas/em/model/WentzelModel.hh"
+#include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -86,10 +87,13 @@ class CoulombScatteringTest : public InteractorHostTestBase
                 {std::move(ip_electron), std::move(ip_positron)});
         }
 
+        // Use default options
+        CoulombScatteringProcess::Options options;
+
         model_ = std::make_shared<WentzelModel>(ActionId{0},
                                                 *this->particle_params(),
                                                 *this->material_params(),
-                                                ImportEmParameters{},
+                                                options,
                                                 this->imported_processes());
 
         // Set cutoffs

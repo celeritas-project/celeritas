@@ -10,6 +10,7 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
+#include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
@@ -417,6 +418,55 @@ TEST_F(ProcessBuilderTest, rayleigh)
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("scat-rayleigh", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(1, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    {
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+
+        // Test micro xs
+        for (auto const& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            auto material = this->material()->get(mat_id);
+            EXPECT_EQ(material.num_elements(), builders.size());
+            for (auto elcomp_idx : range(material.num_elements()))
+            {
+                EXPECT_TRUE(builders[elcomp_idx]);
+            }
+        }
+    }
+}
+
+TEST_F(ProcessBuilderTest, coulomb)
+{
+    Options pbopts;
+    pbopts.brem_combined = false;
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), pbopts);
+
+    // Create process
+    std::cout << "Creating process...\n";
+    auto process = build_process(IPC::coulomb_scat);
+    EXPECT_PROCESS_TYPE(CoulombScatteringProcess, process.get());
+    std::cout << "\tdone.\n";
+
+    // Test model
+    std::cout << "Building models...\n";
+    auto models = process->build_models(ActionIdIter{});
+    std::cout << "\tdone.\n";
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("coulomb scattering", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
