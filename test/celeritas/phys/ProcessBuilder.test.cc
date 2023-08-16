@@ -455,20 +455,18 @@ TEST_F(ProcessBuilderTest, coulomb)
         this->import_data(), this->particle(), this->material(), pbopts);
 
     // Create process
-    std::cout << "Creating process...\n";
     auto process = build_process(IPC::coulomb_scat);
     EXPECT_PROCESS_TYPE(CoulombScatteringProcess, process.get());
-    std::cout << "\tdone.\n";
 
     // Test model
-    std::cout << "Building models...\n";
     auto models = process->build_models(ActionIdIter{});
-    std::cout << "\tdone.\n";
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("coulomb scattering", models.front()->label());
+    EXPECT_EQ("coulomb-wentzel", models.front()->label());
+
+    // Applicabilities for electron and positron
     auto all_applic = models.front()->applicability();
-    ASSERT_EQ(1, all_applic.size());
+    ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
     for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
@@ -499,3 +497,4 @@ TEST_F(ProcessBuilderTest, coulomb)
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
+ 

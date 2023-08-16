@@ -24,11 +24,11 @@ struct WentzelIds
     ActionId action;
     ParticleId electron;
     ParticleId positron;
-    ParticleId proton;
+    // ParticleId proton;
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return action && electron && positron && proton;
+        return action && electron && positron /* && proton */;
     }
 };
 
@@ -119,3 +119,4 @@ using WentzelRef = NativeCRef<WentzelData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+ 

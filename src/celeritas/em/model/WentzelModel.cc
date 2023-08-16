@@ -50,7 +50,7 @@ WentzelModel::WentzelModel(ActionId id,
     host_data.ids.action = id;
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.positron = particles.find(pdg::positron());
-    host_data.ids.proton = particles.find(pdg::proton());
+    // host_data.ids.proton = particles.find(pdg::proton());
 
     CELER_VALIDATE(host_data.ids,
                    << "missing IDs (required for " << this->description()
@@ -924,3 +924,4 @@ WentzelModel::get_mott_coeff_matrix(AtomicNumber z)
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+ 
