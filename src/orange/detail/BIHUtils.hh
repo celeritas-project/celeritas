@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
+
 #include "orange/BoundingBoxUtils.hh"
 
 namespace celeritas
