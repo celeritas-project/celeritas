@@ -39,6 +39,21 @@ class PlaneTest : public Test
     }
 };
 
+TEST_F(PlaneTest, construction)
+{
+    // Make a rotated plane in the xy axis
+    Plane p{{1 / sqrt_two, 1 / sqrt_two, 0.0}, {2 / sqrt_two, 2 / sqrt_two, 2}};
+    EXPECT_VEC_SOFT_EQ((Real3{1 / sqrt_two, 1 / sqrt_two, 0}), p.normal());
+    EXPECT_SOFT_EQ(2, p.displacement());
+
+    Plane px{PlaneX{1.25}};
+    EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), px.normal());
+    EXPECT_SOFT_EQ(1.25, px.displacement());
+
+    Plane py{PlaneY{2.25}};
+    EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}), py.normal());
+}
+
 TEST_F(PlaneTest, tracking)
 {
     // Make a rotated plane in the xy axis
@@ -88,24 +103,6 @@ TEST_F(PlaneTest, tracking)
     x = {2.0, 2.0, 0.0};
     EXPECT_EQ(no_intersection(),
               calc_intersection(p, x, dir, SurfaceState::on));
-}
-
-TEST_F(PlaneTest, promotion)
-{
-    Plane px{PlaneX{1.25}};
-    EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), px.normal());
-    EXPECT_SOFT_EQ(1.25, px.displacement());
-
-    Plane py{PlaneY{2.25}};
-    EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}), py.normal());
-}
-
-TEST_F(PlaneTest, construction)
-{
-    // Make a rotated plane in the xy axis
-    Plane p{{1 / sqrt_two, 1 / sqrt_two, 0.0}, {2 / sqrt_two, 2 / sqrt_two, 2}};
-    EXPECT_VEC_SOFT_EQ((Real3{1 / sqrt_two, 1 / sqrt_two, 0}), p.normal());
-    EXPECT_SOFT_EQ(2, p.displacement());
 }
 
 //---------------------------------------------------------------------------//

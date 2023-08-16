@@ -24,6 +24,22 @@ using Intersections = Sphere::Intersections;
 constexpr real_type sqrt_third = 1 / constants::sqrt_three;
 
 //---------------------------------------------------------------------------//
+TEST(SphereTest, construction)
+{
+    Sphere s{{-1.1, 2.2, -3.3}, 4.4};
+    EXPECT_VEC_SOFT_EQ((Real3{-1.1, 2.2, -3.3}), s.origin());
+    EXPECT_SOFT_EQ(ipow<2>(4.4), s.radius_sq());
+
+    auto s2 = Sphere::from_radius_sq({1, 2, 3}, s.radius_sq());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), s2.origin());
+    EXPECT_SOFT_EQ(s.radius_sq(), s2.radius_sq());
+
+    Sphere sc{SphereCentered{2.5}};
+    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), sc.origin());
+    EXPECT_SOFT_EQ(ipow<2>(2.5), sc.radius_sq());
+}
+
+//---------------------------------------------------------------------------//
 TEST(SphereTest, all)
 {
     EXPECT_EQ(SurfaceType::s, Sphere::surface_type());
@@ -73,14 +89,6 @@ TEST(SphereTest, all)
         Real3{-6.5, 2.2, -3.3}, Real3{1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(1 + 2 * radius, distances[1]);
-}
-
-//---------------------------------------------------------------------------//
-TEST(SphereTest, promotion)
-{
-    Sphere s{SphereCentered{2.5}};
-    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), s.origin());
-    EXPECT_SOFT_EQ(ipow<2>(2.5), s.radius_sq());
 }
 
 //---------------------------------------------------------------------------//
