@@ -15,10 +15,8 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
 class ParticleParams;
 
-//---------------------------------------------------------------------------//
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -34,7 +32,6 @@ class RootOffloadWriter
     //! \name Type aliases
     using Primaries = std::vector<Primary>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
-
     //!@}
 
     // Construct with ROOT output filename
@@ -61,7 +58,7 @@ class RootOffloadWriter
 
     RootFileManager tfile_mgr_;
     SPConstParticles params_;
-    UPRootWritable<TTree> ttree_;
+    UPRootAutoSave<TTree> ttree_;
     RootOffloadPrimary primary_;  // Temporary object stored to the ROOT TTree
     std::mutex write_mutex_;
 

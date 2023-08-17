@@ -51,6 +51,7 @@
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
+#include "detail/RootOffloadWriter.hh"
 
 namespace celeritas
 {

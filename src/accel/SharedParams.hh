@@ -13,8 +13,6 @@
 
 #include "corecel/Assert.hh"
 
-#include "detail/RootOffloadWriter.hh"
-
 class G4ParticleDefinition;
 
 namespace celeritas
@@ -23,6 +21,7 @@ namespace detail
 {
 class HitManager;
 class OffloadWriter;
+class RootOffloadWriter;
 }  // namespace detail
 class CoreParams;
 struct Primary;
