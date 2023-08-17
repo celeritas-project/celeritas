@@ -176,7 +176,8 @@ int main(int argc, char* argv[])
 {
     if (argc != 2 || argv[1] == "--help"sv || argv[1] == "-h"sv)
     {
-        std::cerr << "usage: " << argv[0] << " {commands}.mac\n"
+        std::cerr << "usage: " << argv[0] << " {input}.json\n"
+                  << "       " << argv[0] << " {commands}.mac\n"
                   << "       " << argv[0] << " --interactive\n"
                   << "Environment variables:\n"
                   << "  G4FORCE_RUN_MANAGER_TYPE: MT or Serial\n"
