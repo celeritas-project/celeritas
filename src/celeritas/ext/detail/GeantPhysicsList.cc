@@ -349,4 +349,3 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
- 

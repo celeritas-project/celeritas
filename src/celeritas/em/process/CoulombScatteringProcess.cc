@@ -63,7 +63,7 @@ auto CoulombScatteringProcess::step_limits(Applicability applic) const
  */
 std::string CoulombScatteringProcess::label() const
 {
-    return "Coulomb Scattering";
+    return "Coulomb scattering";
 }
 
 //---------------------------------------------------------------------------//

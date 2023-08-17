@@ -497,4 +497,3 @@ TEST_F(ProcessBuilderTest, coulomb)
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
- 
