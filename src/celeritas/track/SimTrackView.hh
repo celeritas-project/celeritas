@@ -95,11 +95,14 @@ class SimTrackView
     // Whether the track is alive or inactive or dying
     CELER_FORCEINLINE_FUNCTION TrackStatus status() const;
 
-    // Limiting step and action to take
-    CELER_FORCEINLINE_FUNCTION StepLimit const& step_limit() const;
+    // Limiting step
+    CELER_FORCEINLINE_FUNCTION real_type step_length() const;
 
-    // Mutable access to step limit (TODO: hack)
-    CELER_FORCEINLINE_FUNCTION StepLimit& step_limit();
+    // Mutable access to limiting step
+    CELER_FORCEINLINE_FUNCTION real_type& step_length();
+
+    // Access post-step action to take
+    inline CELER_FUNCTION ActionId post_step_action() const;
 
     // Access along-step action to take
     inline CELER_FUNCTION ActionId along_step_action() const;
@@ -147,7 +150,8 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.num_looping_steps[track_slot_] = 0;
     states_.time[track_slot_] = other.time;
     states_.status[track_slot_] = other.status;
-    states_.step_limit[track_slot_] = {};
+    states_.steps[track_slot_] = {};
+    states_.post_step_action[track_slot_] = {};
     states_.along_step_action[track_slot_] = {};
     return *this;
 }
@@ -216,7 +220,8 @@ CELER_FUNCTION void SimTrackView::reset_step_limit(StepLimit const& sl)
     CELER_EXPECT(sl.step >= 0);
     CELER_EXPECT(static_cast<bool>(sl.action)
                  != (sl.step == numeric_limits<real_type>::infinity()));
-    states_.step_limit[track_slot_] = sl;
+    states_.steps[track_slot_] = sl.step;
+    states_.post_step_action[track_slot_] = sl.action;
 }
 
 //---------------------------------------------------------------------------//
@@ -243,7 +248,7 @@ CELER_FUNCTION void SimTrackView::reset_step_limit()
 CELER_FUNCTION void SimTrackView::force_step_limit(ActionId action)
 {
     CELER_ASSERT(action);
-    states_.step_limit[track_slot_].action = action;
+    states_.post_step_action[track_slot_] = action;
 }
 
 //---------------------------------------------------------------------------//
@@ -255,10 +260,10 @@ CELER_FUNCTION void SimTrackView::force_step_limit(ActionId action)
  */
 CELER_FUNCTION void SimTrackView::force_step_limit(StepLimit const& sl)
 {
-    CELER_ASSERT(sl.step >= 0
-                 && sl.step <= states_.step_limit[track_slot_].step);
+    CELER_ASSERT(sl.step >= 0 && sl.step <= states_.steps[track_slot_]);
 
-    states_.step_limit[track_slot_] = sl;
+    states_.steps[track_slot_] = sl.step;
+    states_.post_step_action[track_slot_] = sl.action;
 }
 
 //---------------------------------------------------------------------------//
@@ -273,12 +278,22 @@ CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
 {
     CELER_ASSERT(sl.step >= 0);
 
-    bool is_limiting = (sl.step < states_.step_limit[track_slot_].step);
+    bool is_limiting = (sl.step < states_.steps[track_slot_]);
     if (is_limiting)
     {
-        states_.step_limit[track_slot_] = sl;
+        states_.steps[track_slot_] = sl.step;
+        states_.post_step_action[track_slot_] = sl.action;
     }
     return is_limiting;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access post-step action to take.
+ */
+CELER_FUNCTION ActionId SimTrackView::post_step_action() const
+{
+    return states_.post_step_action[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -378,20 +393,20 @@ CELER_FUNCTION TrackStatus SimTrackView::status() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the current limiting step and action.
+ * Get the current limiting step.
  */
-CELER_FUNCTION StepLimit const& SimTrackView::step_limit() const
+CELER_FUNCTION real_type SimTrackView::step_length() const
 {
-    return states_.step_limit[track_slot_];
+    return states_.steps[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Mutable access to step limit.
+ * Get mutable access to the current limiting step.
  */
-CELER_FUNCTION StepLimit& SimTrackView::step_limit()
+CELER_FUNCTION real_type& SimTrackView::step_length()
 {
-    return states_.step_limit[track_slot_];
+    return states_.steps[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
