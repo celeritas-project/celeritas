@@ -141,7 +141,8 @@ else()
   set(_props)
   set(_labels app)
 endif()
-if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
+if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4
+    OR CELERITAS_CORE_GEO STREQUAL "Geant4")
   list(APPEND _props DISABLED true)
 endif()
 
