@@ -132,23 +132,25 @@ CELER_CONSTEXPR_FUNCTION SurfaceType ConeAligned<T>::surface_type()
 /*!
  * Construct from origin and tangent of the angle of its opening.
  *
- * Given a finite cone, the tangent is ratio of the radius at its base to the
- * its height.
+ * Given a finite cone, the tangent is the ratio of its base radius to its
+ * height.
  *
- * \pre
+ * In the cone, below, the tangent of the inner angle
+ * \f$ \tan(\theta) = r/h \f$ is the second argument.
+ * \verbatim
      r
    +-------*
    |   _--^
  h |_--
    O
-   \endpre
+   \endverbatim
  */
 template<Axis T>
 CELER_FUNCTION
 ConeAligned<T>::ConeAligned(Real3 const& origin, real_type tangent)
     : origin_{origin}, tsq_{ipow<2>(tangent)}
 {
-    CELER_EXPECT(tangent >= 0);
+    CELER_EXPECT(tangent > 0);
 }
 
 //---------------------------------------------------------------------------//
