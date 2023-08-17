@@ -38,7 +38,7 @@ CELER_FUNCTION void
 DiscreteSelectExecutor::operator()(celeritas::CoreTrackView const& track)
 {
     CELER_EXPECT(track.make_sim_view().status() == TrackStatus::alive);
-    CELER_EXPECT(track.make_sim_view().step_limit().action
+    CELER_EXPECT(track.make_sim_view().post_step_action()
                  == track.make_physics_view().scalars().discrete_action());
     // Reset the MFP counter, to be resampled if the track survives the
     // interaction
