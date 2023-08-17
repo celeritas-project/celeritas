@@ -112,6 +112,8 @@ struct SetupOptions
     std::string physics_output_file;
     //! Filename to dump a HepMC3 copy of offloaded tracks as events
     std::string offload_output_file;
+    //! Filename to dump a ROOT copy of offloaded tracks as events
+    std::string offload_root_output_file;
     //!@}
 
     //!@{

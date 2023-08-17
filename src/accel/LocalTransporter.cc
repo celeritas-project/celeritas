@@ -153,8 +153,12 @@ void LocalTransporter::Flush()
 
     if (dump_primaries_)
     {
-        // Write offload particles if user requested
+        // Write offload particles to HepMC3 if user requested
         (*dump_primaries_)(buffer_);
+    }
+    if (dump_primaries_root_)
+    {
+        // Write offload particles to ROOT if user requested
         (*dump_primaries_root_)(buffer_);
     }
 

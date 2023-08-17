@@ -96,7 +96,7 @@ class SharedParams
     //! Optional offload writer, only for use by LocalTransporter
     SPOffloadWriter const& offload_writer() const { return offload_writer_; }
 
-    //! Optional offload writer, only for use by LocalTransporter
+    //! Optional ROOT offload writer, only for use by LocalTransporter
     SPRootOffloadWriter const& root_offload_writer() const
     {
         return root_offload_writer_;
