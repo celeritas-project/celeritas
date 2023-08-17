@@ -16,7 +16,6 @@
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/Translator.hh"
 
 namespace celeritas
 {
@@ -81,7 +80,7 @@ struct VolumeInput
 struct DaughterInput
 {
     UniverseId universe_id;
-    Translation translation;
+    Real3 translation;
 };
 
 //---------------------------------------------------------------------------//

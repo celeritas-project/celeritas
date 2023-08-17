@@ -21,9 +21,9 @@ namespace celeritas
 /*!
  * Determine if a point is contained in a bounding box.
  */
-template<class T>
+template<class T, class U>
 inline CELER_FUNCTION bool
-is_inside(BoundingBox<T> const& bbox, Array<T, 3> point)
+is_inside(BoundingBox<T> const& bbox, Array<U, 3> point)
 {
     CELER_EXPECT(bbox);
 

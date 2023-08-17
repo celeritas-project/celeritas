@@ -17,6 +17,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "orange/BoundingBox.hh"
 #include "orange/Types.hh"
 
 #include "Types.hh"  // IWYU pragma: export
@@ -27,14 +28,26 @@ namespace celeritas
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
+//! Real type used for acceleration
+using fast_real_type = float;
+
 //! Integer type for volume CSG tree representation
 using logic_int = unsigned short int;
+
+//! Identifier for a BIHNode objects
+using BIHNodeId = OpaqueId<struct BIHNode>;
 
 //! Identifier for a daughter universe
 using DaughterId = OpaqueId<struct Daughter>;
 
 //! Identifier for a face within a volume
 using FaceId = OpaqueId<struct Face>;
+
+//! Bounding box used for acceleration
+using FastBBox = BoundingBox<fast_real_type>;
+
+//! Identifier for a bounding box used for acceleration
+using FastBBoxId = OpaqueId<FastBBox>;
 
 //! Identifier for the current "level", i.e., depth of embedded universe
 using LevelId = OpaqueId<struct Level>;
@@ -51,11 +64,8 @@ using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 //! Opaque index for rectilinear array data
 using RectArrayId = OpaqueId<struct RectArrayRecord>;
 
-//! Translation of a single embedded universe
-using Translation = Real3;
-
 //! Identifier for a translation of a single embedded universe
-using TranslationId = OpaqueId<Translation>;
+using TranslationId = OpaqueId<Real3>;
 
 //! Identifier for a relocatable set of volumes
 using UniverseId = OpaqueId<struct Universe>;
@@ -98,21 +108,28 @@ enum class SurfaceType : unsigned char
     cyc,  //!< Cylinder centered on Y axis
     czc,  //!< Cylinder centered on Z axis
     sc,  //!< Sphere centered at the origin
-#if 0
     cx,  //!< Cylinder parallel to X axis
     cy,  //!< Cylinder parallel to Y axis
     cz,  //!< Cylinder parallel to Z axis
-    p,   //!< General plane
-#endif
+    p,  //!< General plane
     s,  //!< Sphere
-#if 0
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
-#endif
     gq,  //!< General quadric
     size_  //!< Sentinel value for number of surface types
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enumeration for mapping transform implementations to integers.
+ */
+enum class TransformType : unsigned char
+{
+    translation,  //!< Translation only
+    transformation,  //!< Translation plus rotation
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -334,6 +351,12 @@ inline constexpr char to_char(Sense s)
 
 // Get a string corresponding to a surface type
 char const* to_cstring(SurfaceType);
+
+// Get a string corresponding to a surface state
+inline char const* to_cstring(SurfaceState s)
+{
+    return s == SurfaceState::off ? "off" : "on";
+}
 
 //! Get a printable character corresponding to an operator.
 namespace logic

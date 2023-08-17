@@ -35,26 +35,8 @@ celeritas_target_include_directories(testcel_harness
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_HIP)
-  set_source_files_properties(
-    celeritas/field/FieldDriver.test.cu
-    celeritas/field/FieldPropagator.test.cu
-    celeritas/field/Steppers.test.cu
-    celeritas/field/UserMapField.test.cu
-    celeritas/field/UserParamField.test.cu
-    celeritas/geo/HeuristicGeoTestBase.cu
-    celeritas/mat/Material.test.cu
-    celeritas/phys/Particle.test.cu
-    celeritas/phys/Physics.test.cu
-    celeritas/random/RngEngine.test.cu
-    celeritas/random/curand/CurandPerformance.test.cu
-    celeritas/track/MockInteractAction.cu
-    corecel/cont/Range.test.cu
-    corecel/data/Collection.test.cu
-    corecel/data/ObserverPtr.test.cu
-    corecel/data/StackAllocator.test.cu
-    corecel/math/NumericLimits.test.cu
-    orange/surf/SurfaceAction.test.cu
-    orange/univ/SimpleUnitTracker.test.cu
+  file(GLOB_RECURSE _cufiles "${CMAKE_CURRENT_SOURCE_DIR}/*.cu")
+  set_source_files_properties(${_cufiles}
     PROPERTIES LANGUAGE HIP
   )
 endif()
@@ -219,23 +201,35 @@ celeritas_setup_tests(SERIAL PREFIX orange
 # Base
 celeritas_add_test(orange/BoundingBox.test.cc)
 celeritas_add_test(orange/BoundingBoxUtils.test.cc)
+celeritas_add_test(orange/MatrixUtils.test.cc)
 celeritas_add_test(orange/Orange.test.cc)
-celeritas_add_test(orange/Translator.test.cc)
 
 # Base detail
+celeritas_add_test(orange/detail/BIHBuilder.test.cc)
+celeritas_add_test(orange/detail/BIHTraverser.test.cc)
+celeritas_add_test(orange/detail/BIHUtils.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
+
+#-------------------------------------#
+# Transforms
+set(CELERITASTEST_PREFIX orange/transform)
+celeritas_add_test(orange/transform/Transformation.test.cc)
+celeritas_add_test(orange/transform/Translation.test.cc)
 
 #-------------------------------------#
 # Surfaces
 set(CELERITASTEST_PREFIX orange/surf)
 celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
+celeritas_add_test(orange/surf/ConeAligned.test.cc)
+celeritas_add_test(orange/surf/CylAligned.test.cc)
 celeritas_add_test(orange/surf/CylCentered.test.cc)
 celeritas_add_test(orange/surf/GeneralQuadric.test.cc)
+celeritas_add_test(orange/surf/Plane.test.cc)
 celeritas_add_test(orange/surf/PlaneAligned.test.cc)
+celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
 celeritas_add_device_test(orange/surf/SurfaceAction)
-
 
 #-------------------------------------#
 # Universe details
@@ -312,6 +306,7 @@ celeritas_add_test(celeritas/Constants.test.cc
 set(CELERITASTEST_PREFIX celeritas/em)
 celeritas_add_test(celeritas/em/BetheHeitler.test.cc)
 celeritas_add_test(celeritas/em/CombinedBrem.test.cc)
+celeritas_add_test(celeritas/em/CoulombScattering.test.cc)
 celeritas_add_test(celeritas/em/EPlusGG.test.cc)
 celeritas_add_test(celeritas/em/Fluctuation.test.cc)
 celeritas_add_test(celeritas/em/KleinNishina.test.cc)
@@ -615,3 +610,4 @@ celeritas_add_rootupdate_target(update-four-slabs four-steel-slabs)
 celeritas_add_rootupdate_target(update-simple-cms simple-cms)
 
 #-----------------------------------------------------------------------------#
+ 

@@ -117,16 +117,18 @@ TEST_F(EPlusGGInteractorTest, basic)
     EXPECT_EQ(2 * num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    double const expected_energy1[] = {
-        9.58465334147939, 10.4793460046007, 3.88444170212412, 2.82099830657521};
+    double const expected_energy1[] = {0.432998201097281,
+                                       0.595079388679535,
+                                       0.527077606856619,
+                                       0.266407915356902};
 
     double const expected_energy2[] = {
-        1.43734455072061, 0.542651887599318, 7.13755619007588, 8.20099958562479};
+        10.5889996911027, 10.4269185035205, 10.4949202853434, 10.7555899768431};
 
-    double const expected_angle[] = {0.993884655017147,
-                                     0.998663395567878,
-                                     0.911748167069523,
-                                     0.859684696937321};
+    double const expected_angle[] = {-0.18912233467373,
+                                     0.148337256571676,
+                                     0.0320262042116524,
+                                     -0.963881322481829};
 
     EXPECT_VEC_SOFT_EQ(expected_energy1, energy1);
     EXPECT_VEC_SOFT_EQ(expected_energy2, energy2);
@@ -219,7 +221,7 @@ TEST_F(EPlusGGInteractorTest, stress_test)
     // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to RNG
     double const expected_avg_engine_samples[]
-        = {4, 10.08703613281, 19.54248046875, 22.75891113281, 35.08276367188};
+        = {4, 9.8341064453125, 7.19775390625, 6.960205078125, 6.5401611328125};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 

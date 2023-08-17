@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -25,21 +26,6 @@
 #include "orange/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
-
-namespace
-{
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a Translation object from a Span into a vector of translation data.
- */
-celeritas::Translation
-make_translation(celeritas::Span<celeritas::real_type const> const& trans)
-{
-    CELER_EXPECT(trans.size() == 3);
-    return celeritas::Translation{trans[0], trans[1], trans[2]};
-}
-}  // namespace
 
 namespace celeritas
 {
@@ -111,6 +97,20 @@ std::vector<logic_int> parse_logic(char const* c)
     return result;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Get the i'th slice of a span of data.
+ */
+template<size_type N, class T>
+decltype(auto) slice(Span<T> data, size_type i)
+{
+    CELER_ASSERT(N * (i + 1) <= data.size());
+    Array<std::remove_const_t<T>, N> result;
+    std::copy_n(data.data() + i * N, N, result.begin());
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -209,10 +209,8 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         UnitInput::MapVolumeDaughter daughter_map;
         for (auto i : range(parent_cells.size()))
         {
-            daughter_map[LocalVolumeId{parent_cells[i]}]
-                = {UniverseId{daughters[i]},
-                   make_translation(
-                       Span<real_type const>(translations.data() + 3 * i, 3))};
+            daughter_map[LocalVolumeId{parent_cells[i]}] = {
+                UniverseId{daughters[i]}, slice<3>(make_span(translations), i)};
         }
 
         value.daughter_map = std::move(daughter_map);
@@ -248,8 +246,7 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
         for (auto i : range(daughters.size()))
         {
             value.daughters.push_back({UniverseId{daughters[i]},
-                                       make_translation(Span<real_type const>(
-                                           translations.data() + 3 * i, 3))});
+                                       slice<3>(make_span(translations), i)});
         }
     }
 }

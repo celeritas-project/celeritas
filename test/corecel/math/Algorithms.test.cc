@@ -294,5 +294,53 @@ TEST(MathTest, ceil_div)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST(MathTest, sincos)
+{
+    {
+        double s{0}, c{0};
+        sincos(0.123, &s, &c);
+        EXPECT_DOUBLE_EQ(std::sin(0.123), s);
+        EXPECT_DOUBLE_EQ(std::cos(0.123), c);
+    }
+    {
+        float s{0}, c{0};
+        sincos(0.123f, &s, &c);
+        EXPECT_FLOAT_EQ(std::sin(0.123f), s);
+        EXPECT_FLOAT_EQ(std::cos(0.123f), c);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST(MathTest, sincospi)
+{
+    EXPECT_DOUBLE_EQ(std::sin(m_pi * 0.1), sinpi(0.1));
+    EXPECT_DOUBLE_EQ(std::cos(m_pi * 0.1), cospi(0.1));
+
+    double s{0}, c{0};
+    sincospi(0.123, &s, &c);
+    EXPECT_DOUBLE_EQ(std::sin(m_pi * 0.123), s);
+    EXPECT_DOUBLE_EQ(std::cos(m_pi * 0.123), c);
+
+    // Test special cases
+    sincospi(0, &s, &c);
+    EXPECT_EQ(double(0.0), s);
+    EXPECT_EQ(double(1.0), c);
+
+    sincospi(0.5, &s, &c);
+    EXPECT_EQ(double(1.0), s);
+    EXPECT_EQ(double(0.0), c);
+
+    sincospi(1.0, &s, &c);
+    EXPECT_EQ(double(0.0), s);
+    EXPECT_EQ(double(-1.0), c);
+
+    sincospi(1.5, &s, &c);
+    EXPECT_EQ(double(-1.0), s);
+    EXPECT_EQ(double(0.0), c);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

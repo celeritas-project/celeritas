@@ -17,8 +17,7 @@ namespace celeritas
  */
 char const* to_cstring(SurfaceType value)
 {
-    static EnumStringMapper<SurfaceType> const to_cstring_impl
-    {
+    static EnumStringMapper<SurfaceType> const to_cstring_impl{
         // clang-format off
         "px",
         "py",
@@ -27,19 +26,15 @@ char const* to_cstring(SurfaceType value)
         "cyc",
         "czc",
         "sc",
-#if 0
         "cx",
         "cy",
         "cz",
         "p",
-#endif
         "s",
-#if 0
         "kx",
         "ky",
         "kz",
         "sq",
-#endif
         "gq",
         // clang-format on
     };

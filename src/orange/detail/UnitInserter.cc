@@ -8,6 +8,7 @@
 #include "UnitInserter.hh"
 
 #include <algorithm>
+#include <iostream>
 #include <set>
 #include <vector>
 
@@ -130,6 +131,26 @@ struct NumIntersectionGetter
 };
 
 //---------------------------------------------------------------------------//
+//! Create a FastBBox from a BBox
+celeritas::FastBBox make_fast_bbox(celeritas::BBox bbox)
+{
+    if (!bbox)
+    {
+        return FastBBox();
+    }
+
+    using Real3 = celeritas::Array<celeritas::fast_real_type, 3>;
+    Real3 lower, upper;
+    for (auto axis : range(celeritas::Axis::size_))
+    {
+        auto ax = celeritas::to_int(axis);
+        lower[ax] = bbox.lower()[ax];
+        upper[ax] = bbox.upper()[ax];
+    }
+    return {lower, upper};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -143,6 +164,8 @@ UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
     // Initialize scalars
     orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
+
+    bih_builder_ = detail::BIHBuilder(&orange_data_->bih_tree_data);
 }
 
 //---------------------------------------------------------------------------//
@@ -159,10 +182,21 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
+    std::vector<FastBBox> bboxes;
     for (auto i : range(inp.volumes.size()))
     {
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
+
+        // Store the bbox or an infinite bbox placeholder
+        if (inp.volumes[i].bbox)
+        {
+            bboxes.push_back(make_fast_bbox(inp.volumes[i].bbox));
+        }
+        else
+        {
+            bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
+        }
 
         // Add embedded universes
         if (inp.daughter_map.find(LocalVolumeId(i)) != inp.daughter_map.end())
@@ -186,6 +220,13 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::VolumeRecordId>(
         make_builder(&orange_data_->volume_records)
             .insert_back(vol_records.begin(), vol_records.end()));
+
+    // Create BIH tree
+    CELER_VALIDATE(std::all_of(bboxes.begin(),
+                               bboxes.end(),
+                               [](FastBBox const& b) { return b; }),
+                   << "not all bounding boxes have been assigned");
+    unit.bih_tree = bih_builder_(std::move(bboxes));
 
     // Save connectivity
     {

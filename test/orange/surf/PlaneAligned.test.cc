@@ -36,7 +36,7 @@ class PlaneAlignedTest : public Test
                                 Real3 dir,
                                 SurfaceState s = SurfaceState::off)
     {
-        static_assert(sizeof(typename S::Intersections) == sizeof(double),
+        static_assert(sizeof(typename S::Intersections) == sizeof(real_type),
                       "Expected plane to have a single intercept");
         return surf.calc_intersections(pos, dir, s)[0];
     }
@@ -124,6 +124,7 @@ TEST_F(PlaneAlignedTest, plane_z)
     EXPECT_SOFT_EQ(0.01, calc_intersection(p, {0.0, 0.0, 0.01}, mz));
     EXPECT_EQ(no_intersection(), calc_intersection(p, {-1.01, 0.0, 0.0}, px));
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

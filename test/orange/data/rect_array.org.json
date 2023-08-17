@@ -66,6 +66,18 @@
 ],
 "cells": [
 {
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
 "faces": [
 0,
 1,
@@ -80,6 +92,18 @@
 "zorder": 2
 },
 {
+"bbox": [
+[
+-6.0,
+-3.0,
+-5.0
+],
+[
+6.0,
+9.0,
+5.0
+]
+],
 "faces": [
 4,
 5,
@@ -93,6 +117,18 @@
 "zorder": 2
 },
 {
+"bbox": [
+[
+-12.0,
+-4.0,
+-5.0
+],
+[
+12.0,
+10.0,
+5.0
+]
+],
 "faces": [
 0,
 1,
@@ -116,7 +152,7 @@
 ],
 "md": {
 "name": "global",
-"provenance": "rect_array.org.omn:98"
+"provenance": "rect_array.org.omn:92"
 },
 "parent_cells": [
 1
@@ -197,6 +233,18 @@
 ],
 "cells": [
 {
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
 "faces": [],
 "flags": 2,
 "logic": "* ~",
@@ -204,10 +252,22 @@
 "zorder": 65534
 },
 {
+"bbox": [
+[
+-6.0,
+-3.0,
+-5.0
+],
+[
+6.0,
+9.0,
+5.0
+]
+],
 "faces": [],
 "logic": "*",
 "num_intersections": 0,
-"zorder": 2
+"zorder": 3
 }
 ],
 "daughters": [
@@ -215,7 +275,7 @@
 ],
 "md": {
 "name": "arr",
-"provenance": "rect_array.org.omn:79"
+"provenance": "rect_array.org.omn:74"
 },
 "parent_cells": [
 1
@@ -301,7 +361,7 @@
 "md": {
 "description": "Embedded unplaced array",
 "name": "arr+",
-"provenance": "rect_array.org.omn:79"
+"provenance": "rect_array.org.omn:74"
 },
 "parent_cells": [
 0,
@@ -450,6 +510,18 @@
 ],
 "cells": [
 {
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
 "faces": [],
 "flags": 2,
 "logic": "* ~",
@@ -457,6 +529,18 @@
 "zorder": 65534
 },
 {
+"bbox": [
+[
+-1.5,
+-1.5,
+-2.5
+],
+[
+1.5,
+1.5,
+2.5
+]
+],
 "faces": [],
 "logic": "*",
 "num_intersections": 0,
@@ -466,7 +550,7 @@
 "daughters": [],
 "md": {
 "name": "T",
-"provenance": "rect_array.org.omn:12"
+"provenance": "rect_array.org.omn:8"
 },
 "parent_cells": [],
 "surface_names": [],
@@ -497,6 +581,18 @@
 ],
 "cells": [
 {
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
 "faces": [],
 "flags": 2,
 "logic": "* ~",
@@ -504,6 +600,18 @@
 "zorder": 65534
 },
 {
+"bbox": [
+[
+-1.5,
+-1.5,
+0.0
+],
+[
+1.5,
+1.5,
+5.0
+]
+],
 "faces": [],
 "logic": "*",
 "num_intersections": 0,
@@ -513,7 +621,7 @@
 "daughters": [],
 "md": {
 "name": "H",
-"provenance": "rect_array.org.omn:33"
+"provenance": "rect_array.org.omn:29"
 },
 "parent_cells": [],
 "surface_names": [],
@@ -544,6 +652,18 @@
 ],
 "cells": [
 {
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
 "faces": [],
 "flags": 2,
 "logic": "* ~",
@@ -551,6 +671,18 @@
 "zorder": 65534
 },
 {
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+6.0,
+3.0,
+5.0
+]
+],
 "faces": [],
 "logic": "*",
 "num_intersections": 0,
@@ -560,7 +692,7 @@
 "daughters": [],
 "md": {
 "name": "C",
-"provenance": "rect_array.org.omn:54"
+"provenance": "rect_array.org.omn:50"
 },
 "parent_cells": [],
 "surface_names": [],

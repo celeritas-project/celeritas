@@ -58,16 +58,25 @@ class SurfaceActionTest : public OrangeGeoTestBase
             insert(PlaneX(1), "px");
             insert(PlaneY(2), "py");
             insert(PlaneZ(3), "pz");
-            insert(CCylX(5), "mycyl");
-            insert(CCylY(6), "mycyl");
-            insert(CCylZ(7), "mycyl");
+            insert(CCylX(5), "mycylx");
+            insert(CCylY(6), "mycyly");
+            insert(CCylZ(7), "mycylz");
+            insert(SphereCentered(1.0), "csph");
+            insert(CylX({1, 2, 3}, 0.5), "acylx");
+            insert(CylY({1, 2, 3}, 0.6), "acyly");
+            insert(CylZ({1, 2, 3}, 0.7), "acylz");
             insert(Sphere({1, 2, 3}, 1.5), "mysph");
+            insert(ConeX({1, 2, 3}, 0.2), "aconex");
+            insert(ConeY({1, 2, 3}, 0.4), "aconey");
+            insert(ConeZ({1, 2, 3}, 0.6), "aconez");
+            insert(SimpleQuadric({0, 1, 2}, {6, 7, 8}, 9), "sq");
             insert(GeneralQuadric({0, 1, 2}, {3, 4, 5}, {6, 7, 8}, 9), "gq");
+            EXPECT_EQ(16, unit.surfaces.size());
         }
         {
             // Create a volume
             VolumeInput v;
-            for (logic_int i : range(8))
+            for (logic_int i : range(unit.surfaces.size()))
             {
                 v.logic.push_back(i);
                 if (i != 0)
@@ -77,10 +86,11 @@ class SurfaceActionTest : public OrangeGeoTestBase
                 v.faces.push_back(LocalSurfaceId{i});
             }
             v.logic.insert(v.logic.end(), {logic::ltrue, logic::lor});
+            v.bbox = {{-1, -1, -1}, {1, 1, 1}};
             unit.volumes = {std::move(v)};
         }
         {
-            unit.bbox = {{-1, -1, -1}, {1, 1, 1}};
+            unit.bbox = {{-3, -2, -1}, {6, 8, 10}};
         }
 
         // Construct a single dummy volume
@@ -89,7 +99,8 @@ class SurfaceActionTest : public OrangeGeoTestBase
 
     void fill_uniform_box(Span<Real3> pos)
     {
-        UniformBoxDistribution<> sample_box{{-3, -2, -1}, {6, 8, 10}};
+        auto const& bbox = this->params().bbox();
+        UniformBoxDistribution<> sample_box{bbox.lower(), bbox.upper()};
         for (Real3& d : pos)
         {
             d = sample_box(rng_);
@@ -170,17 +181,24 @@ TEST_F(SurfaceActionTest, string)
         strings.push_back(surf_to_string(id));
     }
 
-    // clang-format off
-    const std::string expected_strings[] = {
+    char const* const expected_strings[] = {
         "Plane: x=1",
         "Plane: y=2",
         "Plane: z=3",
         "Cyl x: r=5",
         "Cyl y: r=6",
         "Cyl z: r=7",
+        "Sphere: r=1",
+        "Cyl x: r=0.5 at y=2, z=3",
+        "Cyl y: r=0.6 at x=1, z=3",
+        "Cyl z: r=0.7 at x=1, y=2",
         "Sphere: r=1.5 at {1,2,3}",
-        "GQuadric: {0,1,2} {3,4,5} {6,7,8} 9"};
-    // clang-format on
+        "Cone x: t=0.2 at {1,2,3}",
+        "Cone y: t=0.4 at {1,2,3}",
+        "Cone z: t=0.6 at {1,2,3}",
+        "SQuadric: {0,1,2} {6,7,8} 9",
+        "GQuadric: {0,1,2} {3,4,5} {6,7,8} 9",
+    };
     EXPECT_VEC_EQ(expected_strings, strings);
 }
 
@@ -203,21 +221,21 @@ TEST_F(SurfaceActionTest, host_distances)
     }
 
     auto test_threads = range(TrackSlotId{10});
-    // PRINT_EXPECTED(senses_to_string(state_ref.sense[test_threads]));
-    // PRINT_EXPECTED(state_ref.distance[test_threads]);
 
-    double const expected_distance[] = {inf,
-                                        inf,
-                                        inf,
-                                        inf,
-                                        8.623486582635,
-                                        8.115429697208,
-                                        inf,
-                                        5.436749550654,
-                                        0.9761596300109,
-                                        5.848454015622};
+    double const expected_distance[] = {
+        inf,
+        inf,
+        inf,
+        inf,
+        8.6234865826355,
+        8.1154296972082,
+        inf,
+        inf,
+        inf,
+        inf,
+    };
 
-    EXPECT_EQ("{- - + + - - + + - -}",
+    EXPECT_EQ("{- - + + - - + + + +}",
               senses_to_string(state_ref.sense[test_threads]));
     EXPECT_VEC_SOFT_EQ(expected_distance, state_ref.distance[test_threads]);
 }
@@ -255,10 +273,10 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
                                             8.623486582635,
                                             8.115429697208,
                                             inf,
-                                            5.436749550654,
-                                            0.9761596300109,
-                                            5.848454015622};
-        EXPECT_EQ("{- - + + - - + + - -}",
+                                            inf,
+                                            inf,
+                                            inf};
+        EXPECT_EQ("{- - + + - - + + + +}",
                   senses_to_string(host_states.sense[test_threads]));
         EXPECT_VEC_SOFT_EQ(expected_distance,
                            host_states.distance[test_threads]);
