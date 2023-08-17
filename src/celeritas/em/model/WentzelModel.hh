@@ -24,7 +24,7 @@ class ParticleParams;
 namespace detail
 {
 struct CoulombScatteringOptions;
-}
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!

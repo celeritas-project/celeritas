@@ -295,9 +295,9 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
         auto process = std::make_unique<G4CoulombScattering>();
         auto model = std::make_unique<G4eCoulombScatteringModel>();
-        // process->SetMinKinEnergy(msc_energy_limit);
-        // model->SetLowEnergyLimit(msc_energy_limit);
-        // model->SetActivationLowEnergyLimit(msc_energy_limit);
+        process->SetMinKinEnergy(msc_energy_limit);
+        model->SetLowEnergyLimit(msc_energy_limit);
+        model->SetActivationLowEnergyLimit(msc_energy_limit);
         process->SetEmModel(model.release());
         physics_list->RegisterProcess(process.release(), p);
     }

@@ -16,6 +16,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct from host data.
+ */
 CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
                                                    SPConstMaterials materials,
                                                    SPConstImported process_data,
@@ -30,8 +33,13 @@ CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
+    CELER_EXPECT(options_);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct the models associated with this process.
+ */
 auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
@@ -39,12 +47,20 @@ auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const
         *start_id++, *particles_, *materials_, options_, imported_.processes())};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Get the interaction cross sections for the given energy range.
+ */
 auto CoulombScatteringProcess::step_limits(Applicability applic) const
     -> StepLimitBuilders
 {
     return imported_.step_limits(std::move(applic));
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Name of the process.
+ */
 std::string CoulombScatteringProcess::label() const
 {
     return "Coulomb Scattering";

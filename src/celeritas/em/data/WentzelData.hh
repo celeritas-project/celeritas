@@ -24,10 +24,11 @@ struct WentzelIds
     ActionId action;
     ParticleId electron;
     ParticleId positron;
-    // ParticleId proton;
+    // ParticleId proton; // TODO: enable when protons are supported
 
     explicit CELER_FUNCTION operator bool() const
     {
+        // TODO: enable when protons are supported
         return action && electron && positron /* && proton */;
     }
 };

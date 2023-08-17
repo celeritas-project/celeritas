@@ -50,6 +50,7 @@ WentzelModel::WentzelModel(ActionId id,
     host_data.ids.action = id;
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.positron = particles.find(pdg::positron());
+    // TODO: Enable protons when supported
     // host_data.ids.proton = particles.find(pdg::proton());
 
     CELER_VALIDATE(host_data.ids,
@@ -924,4 +925,3 @@ WentzelModel::get_mott_coeff_matrix(AtomicNumber z)
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
- 

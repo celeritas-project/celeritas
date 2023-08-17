@@ -29,6 +29,9 @@ struct CoulombScatteringOptions
 
     //! User defined screening factor
     real_type screening_factor{1};
+
+    //! Check if the options are valid
+    explicit operator bool() const { return screening_factor > 0; }
 };
 }  // namespace detail
 
