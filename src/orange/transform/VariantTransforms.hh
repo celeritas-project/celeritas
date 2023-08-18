@@ -15,8 +15,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! std::variant class of all surfaces (same order as TransformType).
-using VariantTransforms = std::variant<Translation, Transformation>;
+//! std::variant for all transforms, with optional "no transform"
+using VariantTransforms
+    = std::variant<std::monostate, Translation, Transformation>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
