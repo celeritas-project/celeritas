@@ -178,11 +178,11 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
         return result;
     }());
 
-    sim.step_length() = gp.step;
+    sim.step_length(gp.step);
     if (limited)
     {
         // Physical step was further limited by MSC
-        sim.force_step_limit(phys.scalars().msc_action());
+        sim.post_step_action(phys.scalars().msc_action());
     }
 }
 
@@ -219,7 +219,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track)
 
     // Update full path length traveled along the step based on MSC to
     // correctly calculate energy loss, step time, etc.
-    sim.step_length() = msc_step.true_path;
+    sim.step_length(msc_step.true_path);
 
     auto msc_result = [&] {
         real_type safety = 0;

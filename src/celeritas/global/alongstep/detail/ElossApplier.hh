@@ -79,12 +79,12 @@ CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
         {
             // Immediately kill stopped particles with no at rest processes
             sim.status(TrackStatus::killed);
-            sim.force_step_limit(phys.scalars().range_action());
+            sim.post_step_action(phys.scalars().range_action());
         }
         else
         {
             // Particle slowed down to zero: force a discrete interaction
-            sim.force_step_limit(phys.scalars().discrete_action());
+            sim.post_step_action(phys.scalars().discrete_action());
         }
     }
 }

@@ -119,12 +119,12 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
         // The track is looping, i.e. progressing little over many
         // integration steps in the field propagator (likely a low energy
         // particle in a low density material/strong magnetic field).
-        sim.step_length() = p.distance;
+        sim.step_length(p.distance);
 
         // Kill the track if it's stable and below the threshold energy or
         // above the threshold number of steps allowed while looping.
         auto particle = track.make_particle_view();
-        sim.force_step_limit([&track, &particle, &sim] {
+        sim.post_step_action([&track, &particle, &sim] {
             if (particle.is_stable()
                 && sim.is_looping(particle.particle_id(), particle.energy()))
             {
@@ -156,8 +156,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
     {
         // Stopped at a geometry boundary: this is the new step action.
         CELER_ASSERT(p.distance <= sim.step_length());
-        sim.step_length() = p.distance;
-        sim.force_step_limit(track.boundary_action());
+        sim.force_step_limit({p.distance, track.boundary_action()});
     }
     else if (p.distance < sim.step_length())
     {
@@ -165,8 +164,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
         // all in the field propagator, and will get bumped a small
         // distance. This primarily occurs with reentrant tracks on a
         // boundary with VecGeom.
-        sim.step_length() = p.distance;
-        sim.force_step_limit(track.propagation_limit_action());
+        sim.force_step_limit({p.distance, track.propagation_limit_action()});
     }
 }
 

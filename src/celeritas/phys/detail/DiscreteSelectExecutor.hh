@@ -56,7 +56,7 @@ DiscreteSelectExecutor::operator()(celeritas::CoreTrackView const& track)
         CELER_ASSERT(action);
         // Save it as the next kernel
         auto sim = track.make_sim_view();
-        sim.force_step_limit(action);
+        sim.post_step_action(action);
     }
 
     CELER_ENSURE(!phys.has_interaction_mfp());
