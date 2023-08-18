@@ -128,7 +128,7 @@ class RootStepWriter final : public StepInterface
     SPRootFileManager root_manager_;
     SPParticleParams particles_;
     StepSelection selection_;
-    UPRootAutoSave<TTree> tstep_tree_;
+    UPRootWritable<TTree> tstep_tree_;
     TStepData tstep_;  // Members are used as refs of the TTree branches
     std::function<bool(TStepData const&)> filter_;
 };

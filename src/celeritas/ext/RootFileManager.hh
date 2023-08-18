@@ -33,7 +33,7 @@ class RootFileManager
     explicit RootFileManager(char const* filename);
 
     // Create tree by passing a name and title
-    UPRootAutoSave<TTree> make_tree(char const* name, char const* title);
+    UPRootWritable<TTree> make_tree(char const* name, char const* title);
 
     // Manually write TFile
     void write();
@@ -49,7 +49,7 @@ inline RootFileManager::RootFileManager(char const*)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline UPRootAutoSave<TTree>
+inline UPRootWritable<TTree>
 RootFileManager::make_tree(char const*, char const*)
 {
     CELER_NOT_CONFIGURED("ROOT");

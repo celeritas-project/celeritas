@@ -17,23 +17,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Call `TObject->Write()` before deletion. Used by TFile and TTree writer
- * classes. Can only be used if and only if a single ROOT file is open at any
- * given time.
+ * Call `TObject->Write()` before deletion. Used by TFile and TTree classes.
  */
 template<class T>
 struct RootWritableDeleter
-{
-    void operator()(T* ptr);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Call `TTree->AutoSave()` before deletion. Used by TTree to correctly update
- * `gDirectory` before writing the tree.
- */
-template<class T>
-struct RootAutoSaveDeleter
 {
     void operator()(T* ptr);
 };
@@ -53,8 +40,6 @@ struct ExternDeleter
 // Type aliases
 template<class T>
 using UPRootWritable = std::unique_ptr<T, RootWritableDeleter<T>>;
-template<class T>
-using UPRootAutoSave = std::unique_ptr<T, RootAutoSaveDeleter<T>>;
 template<class T>
 using UPExtern = std::unique_ptr<T, ExternDeleter<T>>;
 

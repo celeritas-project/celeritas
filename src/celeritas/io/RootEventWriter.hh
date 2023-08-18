@@ -56,7 +56,7 @@ class RootEventWriter
 
     RootFileManager tfile_mgr_;
     SPConstParticles params_;
-    UPRootAutoSave<TTree> ttree_;
+    UPRootWritable<TTree> ttree_;
     RootOffloadPrimary primary_;  // Temporary object stored to the ROOT TTree
     std::mutex write_mutex_;
 
