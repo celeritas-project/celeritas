@@ -217,7 +217,7 @@ auto ProcessBuilder::build_annihilation() -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_coulomb() -> SPProcess
 {
-    CoulombScatteringProcess::Options options;
+    WentzelModel::Options options;
     options.screening_factor = coulomb_screening_factor_;
 
     return std::make_shared<CoulombScatteringProcess>(

@@ -88,7 +88,7 @@ class CoulombScatteringTest : public InteractorHostTestBase
         }
 
         // Use default options
-        CoulombScatteringProcess::Options options;
+        WentzelModel::Options options;
 
         model_ = std::make_shared<WentzelModel>(ActionId{0},
                                                 *this->particle_params(),

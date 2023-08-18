@@ -19,10 +19,11 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
-                                                   SPConstMaterials materials,
-                                                   SPConstImported process_data,
-                                                   Options const& options)
+CoulombScatteringProcess::CoulombScatteringProcess(
+    SPConstParticles particles,
+    SPConstMaterials materials,
+    SPConstImported process_data,
+    WentzelModel::Options const& options)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,

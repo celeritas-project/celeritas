@@ -21,11 +21,6 @@ namespace celeritas
 class MaterialParams;
 class ParticleParams;
 
-namespace detail
-{
-struct CoulombScatteringOptions;
-}  // namespace detail
-
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the Wentzel model interaction.
@@ -38,12 +33,26 @@ class WentzelModel final : public Model
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
+    //! Wentzel model configuration options
+    struct Options
+    {
+        //! Nuclear form factor model
+        NuclearFormFactorType form_factor_model{
+            NuclearFormFactorType::exponential};
+
+        //! User defined screening factor
+        real_type screening_factor{1};
+
+        //! Check if the options are valid
+        explicit operator bool() const { return screening_factor > 0; }
+    };
+
   public:
     //! Construct from model ID and other necessary data
     WentzelModel(ActionId id,
                  ParticleParams const& particles,
                  MaterialParams const& materials,
-                 detail::CoulombScatteringOptions const& options,
+                 Options const& options,
                  SPConstImported data);
 
     //! Particle types and energy ranges that this model applies to

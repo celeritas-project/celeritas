@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "celeritas/em/data/WentzelData.hh"
+#include "celeritas/em/model/WentzelModel.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
@@ -18,22 +19,6 @@
 
 namespace celeritas
 {
-
-namespace detail
-{
-//! Coulomb Scattering configuration options
-struct CoulombScatteringOptions
-{
-    //! Nuclear form factor model
-    NuclearFormFactorType form_factor_model{NuclearFormFactorType::exponential};
-
-    //! User defined screening factor
-    real_type screening_factor{1};
-
-    //! Check if the options are valid
-    explicit operator bool() const { return screening_factor > 0; }
-};
-}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -47,7 +32,6 @@ class CoulombScatteringProcess : public Process
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
-    using Options = detail::CoulombScatteringOptions;
     //!@}
 
   public:
@@ -55,7 +39,7 @@ class CoulombScatteringProcess : public Process
     CoulombScatteringProcess(SPConstParticles particles,
                              SPConstMaterials materials,
                              SPConstImported process_data,
-                             Options const& options);
+                             WentzelModel::Options const& options);
 
     //! Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -73,7 +57,7 @@ class CoulombScatteringProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    Options options_;
+    WentzelModel::Options options_;
 };
 
 //---------------------------------------------------------------------------//

@@ -33,7 +33,7 @@ namespace celeritas
 WentzelModel::WentzelModel(ActionId id,
                            ParticleParams const& particles,
                            MaterialParams const& materials,
-                           detail::CoulombScatteringOptions const& options,
+                           Options const& options,
                            SPConstImported data)
     : imported_(data,
                 particles,
