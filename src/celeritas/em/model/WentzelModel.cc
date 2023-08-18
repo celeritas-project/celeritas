@@ -12,6 +12,7 @@
 #include "celeritas/em/data/WentzelData.hh"
 #include "celeritas/em/executor/WentzelExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
+#include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/TrackExecutor.hh"
@@ -32,7 +33,7 @@ namespace celeritas
 WentzelModel::WentzelModel(ActionId id,
                            ParticleParams const& particles,
                            MaterialParams const& materials,
-                           ImportEmParameters const& em_params,
+                           Options const& options,
                            SPConstImported data)
     : imported_(data,
                 particles,
@@ -55,11 +56,11 @@ WentzelModel::WentzelModel(ActionId id,
                    << "missing IDs (required for " << this->description()
                    << ")");
 
-    // TODO: Select form factor
-    host_data.form_factor_type = NuclearFormFactorType::exponential;
+    // Select form factor
+    host_data.form_factor_type = options.form_factor_model;
 
     // Pass user-defined screening factor
-    host_data.screening_factor = em_params.screening_factor;
+    host_data.screening_factor = options.screening_factor;
 
     // Load Mott coefficients
     build_data(host_data, materials);

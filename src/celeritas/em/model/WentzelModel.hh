@@ -20,7 +20,6 @@ namespace celeritas
 {
 class MaterialParams;
 class ParticleParams;
-struct ImportEmParameters;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -34,12 +33,29 @@ class WentzelModel final : public Model
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
+    //! Wentzel model configuration options
+    struct Options
+    {
+        //! Nuclear form factor model
+        NuclearFormFactorType form_factor_model{
+            NuclearFormFactorType::exponential};
+
+        //! User defined screening factor
+        real_type screening_factor{1};
+
+        //! Whether to use integral method to sample interaction length
+        bool use_integral_xs{true};
+
+        //! Check if the options are valid
+        explicit operator bool() const { return screening_factor > 0; }
+    };
+
   public:
     //! Construct from model ID and other necessary data
     WentzelModel(ActionId id,
                  ParticleParams const& particles,
                  MaterialParams const& materials,
-                 ImportEmParameters const& em_params,
+                 Options const& options,
                  SPConstImported data);
 
     //! Particle types and energy ranges that this model applies to
