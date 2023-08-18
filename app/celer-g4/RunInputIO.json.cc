@@ -81,7 +81,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
                        || !j.contains("physics_options"),
                    << "'physics_options' can only be specified for "
                       "'geant_physics_list'");
-    CELER_VALIDATE(v.field != RunInput::no_field()
+    CELER_VALIDATE((v.field != RunInput::no_field() || v.field_type == "rzmap")
                        || !j.contains("field_options"),
                    << "'field_options' cannot be specified without providing "
                       "'field'");
