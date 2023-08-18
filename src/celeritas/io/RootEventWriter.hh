@@ -58,7 +58,6 @@ class RootEventWriter
     SPConstParticles params_;
     UPRootWritable<TTree> ttree_;
     RootOffloadPrimary primary_;  // Temporary object stored to the ROOT TTree
-    std::mutex write_mutex_;
 
     //// HELPER FUNCTIONS ////
 
@@ -74,7 +73,6 @@ inline RootEventWriter(std::string const&, SPConstParticles params)
     (void)sizeof(params_);
     (void)sizeof(ttree_);
     (void)sizeof(primary_);
-    (void)sizeof(write_mutex_);
     CELER_NOT_CONFIGURED("ROOT");
 }
 

@@ -58,7 +58,6 @@ void RootEventWriter::operator()(Primaries const& primaries)
 {
     CELER_EXPECT(!primaries.empty());
 
-    std::scoped_lock{write_mutex_};
     for (auto const& p : primaries)
     {
         primary_.event_id = p.event_id.get();

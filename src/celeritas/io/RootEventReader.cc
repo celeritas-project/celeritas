@@ -40,8 +40,6 @@ RootEventReader::RootEventReader(std::string const& filename,
  */
 auto RootEventReader::operator()() -> result_type
 {
-    std::lock_guard scoped_lock{read_mutex_};
-
     CELER_EXPECT(entry_count_ <= num_entries_);
     ttree_->GetEntry(entry_count_);
     auto const this_evt_id = ttree_->GetLeaf("event_id")->GetValue();
