@@ -54,12 +54,13 @@ auto RootEventReader::operator()() -> result_type
         }
 
         Primary primary;
-        primary.event_id = EventId{this->from_leaf<std::size_t>("event_id")};
-        primary.track_id = TrackId{this->from_leaf<std::size_t>("track_id")};
+        primary.event_id = EventId{this->from_leaf<size_type>("event_id")};
+        primary.track_id = TrackId{this->from_leaf<size_type>("track_id")};
         primary.particle_id
             = params_->find(PDGNumber{this->from_leaf<int>("particle")});
-        primary.energy = units::MevEnergy{this->from_leaf<double>("energy")};
-        primary.time = this->from_leaf<double>("time");
+        primary.energy
+            = units::MevEnergy{this->from_leaf<real_type>("energy")};
+        primary.time = this->from_leaf<real_type>("time");
         primary.position = this->from_array_leaf("pos");
         primary.direction = this->from_array_leaf("dir");
         primaries.push_back(std::move(primary));
