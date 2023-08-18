@@ -28,7 +28,8 @@ struct WentzelIds
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return action && electron && positron && proton;
+        // TODO: enable when protons are supported
+        return action && electron && positron /* && proton */;
     }
 };
 
@@ -119,3 +120,4 @@ using WentzelRef = NativeCRef<WentzelData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+ 

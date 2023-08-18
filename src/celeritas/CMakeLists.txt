@@ -20,6 +20,7 @@ list(APPEND SOURCES
   em/detail/Utils.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
+  em/process/CoulombScatteringProcess.cc
   em/process/EIonizationProcess.cc
   em/process/EPlusAnnihilationProcess.cc
   em/process/GammaConversionProcess.cc
@@ -313,4 +314,5 @@ celeritas_target_link_libraries(celeritas
 )
 
 #-----------------------------------------------------------------------------#
+ 
  
