@@ -219,6 +219,7 @@ auto ProcessBuilder::build_coulomb() -> SPProcess
 {
     WentzelModel::Options options;
     options.screening_factor = coulomb_screening_factor_;
+    options.use_integral_xs = use_integral_xs_;
 
     return std::make_shared<CoulombScatteringProcess>(
         this->particle(), this->material(), this->imported(), options);

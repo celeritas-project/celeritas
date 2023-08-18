@@ -43,6 +43,9 @@ class WentzelModel final : public Model
         //! User defined screening factor
         real_type screening_factor{1};
 
+        //! Whether to use integral method to sample interaction length
+        bool use_integral_xs{true};
+
         //! Check if the options are valid
         explicit operator bool() const { return screening_factor > 0; }
     };

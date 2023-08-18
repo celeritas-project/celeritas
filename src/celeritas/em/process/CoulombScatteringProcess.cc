@@ -68,4 +68,14 @@ std::string CoulombScatteringProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Whether to use the integral method to sample interaction length.
+ * May be controlled via options provided in the constructor.
+ */
+bool CoulombScatteringProcess::use_integral_xs() const
+{
+    return options_.use_integral_xs;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

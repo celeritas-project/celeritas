@@ -44,11 +44,11 @@ class CoulombScatteringProcess : public Process
     //! Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
 
-    //! Get the interaction cross sections fro the given energy range
+    //! Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability range) const final;
 
     //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final { return false; }
+    bool use_integral_xs() const final;
 
     // Name of the process
     std::string label() const final;
