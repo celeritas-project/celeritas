@@ -51,7 +51,6 @@
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
-#include "detail/RootOffloadWriter.hh"
 
 namespace celeritas
 {
@@ -172,12 +171,6 @@ SharedParams::SharedParams(SetupOptions const& options)
     {
         offload_writer_ = std::make_shared<detail::OffloadWriter>(
             options.offload_output_file, params_->particle());
-    }
-
-    if (!options.offload_root_output_file.empty())
-    {
-        root_offload_writer_ = std::make_shared<detail::RootOffloadWriter>(
-            options.offload_root_output_file, params_->particle());
     }
 
     CELER_ENSURE(*this);

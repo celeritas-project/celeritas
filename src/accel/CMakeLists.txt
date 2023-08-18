@@ -38,8 +38,6 @@ if(CELERITAS_USE_HepMC3)
 
   if (CELERITAS_USE_ROOT)
     list(APPEND PRIVATE_DEPS ROOT::Tree)
-    list(APPEND SOURCES detail/RootOffloadWriter.cc)
-    list(APPEND SOURCES detail/RootOffloadReader.cc)
   endif()
 endif()
 

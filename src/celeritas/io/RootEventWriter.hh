@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/RootOffloadWriter.hh
+//! \file celeritas/io/RootEventWriter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,15 +17,13 @@ namespace celeritas
 {
 class ParticleParams;
 
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Export primary data to ROOT.
  *
  * One TTree entry represents one primary.
  */
-class RootOffloadWriter
+class RootEventWriter
 {
   public:
     //!@{
@@ -35,8 +33,8 @@ class RootOffloadWriter
     //!@}
 
     // Construct with ROOT output filename
-    explicit RootOffloadWriter(std::string const& root_output_name,
-                               SPConstParticles params);
+    explicit RootEventWriter(std::string const& root_output_name,
+                             SPConstParticles params);
 
     // Export primaries to ROOT
     void operator()(Primaries const& primaries);
@@ -70,7 +68,7 @@ class RootOffloadWriter
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootOffloadWriter(std::string const&, SPConstParticles params)
+inline RootEventWriter(std::string const&, SPConstParticles params)
 {
     (void)sizeof(tfile_mgr_);
     (void)sizeof(params_);
@@ -80,12 +78,11 @@ inline RootOffloadWriter(std::string const&, SPConstParticles params)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void RootOffloadWriter::operator()(Primaries const&)
+inline void RootEventWriter::operator()(Primaries const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

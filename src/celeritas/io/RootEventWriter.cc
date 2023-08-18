@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/RootOffloadWriter.cc
+//! \file celeritas/io/RootEventWriter.cc
 //---------------------------------------------------------------------------//
-#include "RootOffloadWriter.hh"
+#include "RootEventWriter.hh"
 
 #include <TFile.h>
 #include <TTree.h>
@@ -16,8 +16,6 @@
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 namespace celeritas
-{
-namespace detail
 {
 namespace
 {
@@ -38,8 +36,8 @@ std::array<double, 3> real3_to_array(Real3 const& src)
 /*!
  * Construct with ROOT output filename.
  */
-RootOffloadWriter::RootOffloadWriter(std::string const& root_output_name,
-                                     SPConstParticles params)
+RootEventWriter::RootEventWriter(std::string const& root_output_name,
+                                 SPConstParticles params)
     : tfile_mgr_(root_output_name.c_str()), params_(std::move(params))
 {
     ttree_ = tfile_mgr_.make_tree(this->tree_name(), this->tree_name());
@@ -56,7 +54,7 @@ RootOffloadWriter::RootOffloadWriter(std::string const& root_output_name,
 /*!
  * Export primaries to ROOT.
  */
-void RootOffloadWriter::operator()(Primaries const& primaries)
+void RootEventWriter::operator()(Primaries const& primaries)
 {
     CELER_EXPECT(!primaries.empty());
 
@@ -75,5 +73,4 @@ void RootOffloadWriter::operator()(Primaries const& primaries)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

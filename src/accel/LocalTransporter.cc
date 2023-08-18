@@ -27,7 +27,6 @@
 #include "SharedParams.hh"
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
-#include "detail/RootOffloadWriter.hh"
 
 namespace celeritas
 {
@@ -40,7 +39,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     : auto_flush_(options.max_num_tracks)
     , max_steps_(options.max_steps)
     , dump_primaries_{params.offload_writer()}
-    , dump_primaries_root_{params.root_offload_writer()}
     , hit_manager_{params.hit_manager()}
 {
     CELER_VALIDATE(params,
@@ -153,13 +151,8 @@ void LocalTransporter::Flush()
 
     if (dump_primaries_)
     {
-        // Write offload particles to HepMC3 if user requested
+        // Write offload particles if user requested
         (*dump_primaries_)(buffer_);
-    }
-    if (dump_primaries_root_)
-    {
-        // Write offload particles to ROOT if user requested
-        (*dump_primaries_root_)(buffer_);
     }
 
     // Abort cleanly for interrupt and user-defined signals

@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/RootOffloadReader.cc
+//! \file celeritas/io/RootEventReader.cc
 //---------------------------------------------------------------------------//
-#include "RootOffloadReader.hh"
+#include "RootEventReader.hh"
 
 #include <TFile.h>
 #include <TLeaf.h>
@@ -16,14 +16,12 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with ROOT input filename.
  */
-RootOffloadReader::RootOffloadReader(std::string const& filename,
-                                     SPConstParticles params)
+RootEventReader::RootEventReader(std::string const& filename,
+                                 SPConstParticles params)
     : params_(std::move(params))
 {
     CELER_EXPECT(!filename.empty());
@@ -40,7 +38,7 @@ RootOffloadReader::RootOffloadReader(std::string const& filename,
 /*!
  * Read single event from the primaries tree.
  */
-auto RootOffloadReader::operator()() -> result_type
+auto RootEventReader::operator()() -> result_type
 {
     std::lock_guard scoped_lock{read_mutex_};
 
@@ -79,7 +77,7 @@ auto RootOffloadReader::operator()() -> result_type
  * Helper function to fetch leaves.
  */
 template<class T>
-auto RootOffloadReader::from_leaf(char const* leaf_name) -> T
+auto RootEventReader::from_leaf(char const* leaf_name) -> T
 {
     CELER_EXPECT(ttree_);
     auto const leaf = ttree_->GetLeaf(leaf_name);
@@ -91,7 +89,7 @@ auto RootOffloadReader::from_leaf(char const* leaf_name) -> T
 /*!
  * Helper function to fetch leaves containing `std::array<double, 3>`.
  */
-Real3 RootOffloadReader::from_array_leaf(char const* leaf_name)
+Real3 RootEventReader::from_array_leaf(char const* leaf_name)
 {
     CELER_EXPECT(ttree_);
     auto const leaf = ttree_->GetLeaf(leaf_name);
@@ -101,5 +99,4 @@ Real3 RootOffloadReader::from_array_leaf(char const* leaf_name)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

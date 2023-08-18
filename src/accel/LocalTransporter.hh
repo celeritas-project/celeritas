@@ -26,7 +26,7 @@ namespace detail
 {
 class HitManager;
 class OffloadWriter;
-class RootOffloadWriter;
+class RootEventWriter;
 }  // namespace detail
 
 struct SetupOptions;
@@ -77,7 +77,7 @@ class LocalTransporter
   private:
     using SPHitManger = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
-    using SPRootOffloadWriter = std::shared_ptr<detail::RootOffloadWriter>;
+    using SPRootOffloadWriter = std::shared_ptr<detail::RootEventWriter>;
 
     struct HMFinalizer
     {
@@ -97,7 +97,6 @@ class LocalTransporter
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
-    SPRootOffloadWriter dump_primaries_root_;
     // Shared pointer across threads, "finalize" called when clearing
     InitializedValue<SPHitManger, HMFinalizer> hit_manager_;
 };
