@@ -400,10 +400,11 @@ CELER_FUNCTION real_type SimTrackView::step_length() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get mutable access to the current limiting step.
+ * Update the current limiting step.
  */
 CELER_FUNCTION void SimTrackView::step_length(real_type length)
 {
+    CELER_EXPECT(length > 0);
     states_.steps[track_slot_] = length;
 }
 
