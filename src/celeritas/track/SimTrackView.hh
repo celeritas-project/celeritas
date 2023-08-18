@@ -107,8 +107,8 @@ class SimTrackView
     // Access along-step action to take
     inline CELER_FUNCTION ActionId along_step_action() const;
 
-    // Mutable access to along-step action to take (TODO: hack
-    inline CELER_FUNCTION ActionId& along_step_action();
+    // Update along-step action to take
+    inline CELER_FUNCTION void along_step_action(ActionId action);
 
     //// PARAMETER DATA ////
 
@@ -234,7 +234,7 @@ CELER_FUNCTION void SimTrackView::reset_step_limit()
     limit.step = numeric_limits<real_type>::infinity();
     limit.action = {};
     this->reset_step_limit(limit);
-    this->along_step_action() = {};
+    this->along_step_action({});
 }
 
 //---------------------------------------------------------------------------//
@@ -307,13 +307,11 @@ CELER_FUNCTION ActionId SimTrackView::along_step_action() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Mutable access to along-step action to take.
- *
- * (TODO: hack)
+ * Update along-step action to take.
  */
-CELER_FUNCTION ActionId& SimTrackView::along_step_action()
+CELER_FUNCTION void SimTrackView::along_step_action(ActionId action)
 {
-    return states_.along_step_action[track_slot_];
+    states_.along_step_action[track_slot_] = action;
 }
 
 //---------------------------------------------------------------------------//
