@@ -99,7 +99,7 @@ class AlongStepFactoryInterface
  * Create an along-step method for a uniform (or zero) field.
  *
  * The constructor is a lazily evaluated function that must return the field
- * vector. If unspecified, the field is zero.
+ * definition and driver configuration. If unspecified, the field is zero.
  */
 class UniformAlongStepFactory final : public AlongStepFactoryInterface
 {

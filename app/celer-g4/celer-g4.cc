@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
-#include <regex>
 #include <string>
 #include <vector>
 #include <CLHEP/Random/Random.h>
@@ -33,6 +32,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
@@ -92,7 +92,7 @@ void run(int argc, char** argv)
         exec.SessionStart();
         return;
     }
-    if (std::regex_search(std::string(filename), std::regex("\\.mac$")))
+    if (ends_with(filename, ".mac"sv))
     {
         CELER_LOG(status) << "Executing macro commands from '" << filename
                           << "'";

@@ -133,18 +133,24 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     }
     else if (field_type == "uniform")
     {
-        UniformFieldParams input;
-        input.field = GlobalSetup::Instance()->GetMagFieldZTesla();
-        input.options = GlobalSetup::Instance()->GetFieldOptions();
-
-        G4ThreeVector field = convert_to_geant(input.field, CLHEP::tesla);
-        if (field.mag() > 0)
+        auto field = GlobalSetup::Instance()->GetMagFieldZTesla();
+        if (norm(field) > 0)
         {
             CELER_LOG_LOCAL(info)
-                << "Using a uniform field (0, 0, " << field[2] << ") in Tesla";
+                << "Using a uniform field (0, 0, " << field[2] << ") in tesla";
         }
-        mag_field_ = std::make_shared<G4UniformMagField>(field);
+        mag_field_ = std::make_shared<G4UniformMagField>(
+            convert_to_geant(field, CLHEP::tesla));
 
+        // Convert field units from tesla to native celeritas units
+        for (real_type& v : field)
+        {
+            v /= units::tesla;
+        }
+
+        UniformFieldParams input;
+        input.field = field;
+        input.options = GlobalSetup::Instance()->GetFieldOptions();
         GlobalSetup::Instance()->SetAlongStepFactory(
             UniformAlongStepFactory([=] { return input; }));
     }
