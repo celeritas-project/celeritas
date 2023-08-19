@@ -48,6 +48,9 @@ class RootEventReader
     explicit RootEventReader(std::string const& filename,
                              SPConstParticles params);
 
+    //! Prevent copying and moving
+    CELER_DELETE_COPY_MOVE(RootEventReader);
+
     // Read a single event from the ROOT file
     result_type operator()();
 

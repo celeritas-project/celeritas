@@ -36,6 +36,9 @@ class RootEventWriter
     explicit RootEventWriter(std::string const& root_output_name,
                              SPConstParticles params);
 
+    //! Prevent copying and moving
+    CELER_DELETE_COPY_MOVE(RootEventWriter);
+
     // Export primaries to ROOT
     void operator()(Primaries const& primaries);
 
