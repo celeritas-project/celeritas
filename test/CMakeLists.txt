@@ -248,31 +248,35 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 #-----------------------------------------------------------------------------#
 
 celeritas_add_object_library(testcel_celeritas_core
-  celeritas/field/FieldTestBase.cc
-  celeritas/grid/CalculatorTestBase.cc
-  celeritas/phys/InteractionIO.cc
-  celeritas/phys/InteractorHostTestBase.cc
-  celeritas/phys/SecondaryIO.cc
-  celeritas/phys/MockModel.cc
-  celeritas/phys/MockProcess.cc
   celeritas/GeantTestBase.cc
-  celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
+  celeritas/GlobalTestBase.cc
   celeritas/ImportedDataTestBase.cc
   celeritas/LazyGeoManager.cc
   celeritas/MockTestBase.cc
   celeritas/RootTestBase.cc
   celeritas/SimpleTestBase.cc
+  celeritas/field/FieldTestBase.cc
+  celeritas/field/FieldTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
+  celeritas/io/EventIOTestBase.cc
+  celeritas/phys/InteractionIO.cc
+  celeritas/phys/InteractorHostTestBase.cc
+  celeritas/phys/MockModel.cc
+  celeritas/phys/MockProcess.cc
+  celeritas/phys/SecondaryIO.cc
+  celeritas/user/CaloTestBase.cc
   celeritas/user/DiagnosticTestBase.cc
   celeritas/user/ExampleMctruth.cc
-  celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
   celeritas/user/StepCollectorTestBase.cc
 )
+set(_common_testcel_libs
+  Celeritas::testcel_core Celeritas::testcel_harness Celeritas::celeritas
+)
 celeritas_target_link_libraries(testcel_celeritas_core
-  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${nlohmann_json_LIBRARIES}
+  PRIVATE ${_common_testcel_libs} ${nlohmann_json_LIBRARIES}
 )
 
 # Geometry
@@ -288,12 +292,12 @@ celeritas_add_library(testcel_celeritas
   $<TARGET_OBJECTS:testcel_celeritas_geo>
 )
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE Celeritas::celeritas Celeritas::testcel_harness
-  ${_geo_libs} ${nlohmann_json_LIBRARIES} Celeritas::orange
+  PRIVATE ${_common_testcel_libs} ${nlohmann_json_LIBRARIES}
+  Celeritas::orange ${_geo_libs}
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
-  LINK_LIBRARIES testcel_celeritas testcel_core Celeritas::celeritas
+  LINK_LIBRARIES ${_common_testcel_libs} Celeritas::testcel_celeritas
 )
 
 #-----------------------------------------------------------------------------#
@@ -610,4 +614,4 @@ celeritas_add_rootupdate_target(update-four-slabs four-steel-slabs)
 celeritas_add_rootupdate_target(update-simple-cms simple-cms)
 
 #-----------------------------------------------------------------------------#
- 
+
