@@ -12,6 +12,7 @@
 #include <TTree.h>
 
 #include "corecel/io/Logger.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
@@ -24,14 +25,17 @@ RootEventReader::RootEventReader(std::string const& filename,
                                  SPConstParticles params)
     : params_(std::move(params))
 {
+    ScopedRootErrorHandler scoped_root_error;
+
     CELER_EXPECT(!filename.empty());
     tfile_.reset(TFile::Open(filename.c_str(), "read"));
     CELER_ASSERT(tfile_->IsOpen());
     ttree_.reset(tfile_->Get<TTree>(tree_name()));
     CELER_ASSERT(ttree_);
-
     num_entries_ = ttree_->GetEntries();
     CELER_ASSERT(num_entries_ > 0);
+
+    scoped_root_error.throw_if_errors();
 }
 
 //---------------------------------------------------------------------------//
@@ -40,22 +44,32 @@ RootEventReader::RootEventReader(std::string const& filename,
  */
 auto RootEventReader::operator()() -> result_type
 {
-    CELER_EXPECT(entry_count_ <= num_entries_);
-    ttree_->GetEntry(entry_count_);
-    auto const this_evt_id = ttree_->GetLeaf("event_id")->GetValue();
+    ScopedRootErrorHandler scoped_root_error;
 
+    CELER_EXPECT(entry_count_ <= num_entries_);
+    size_type this_evt_id;
+    TrackId track_id{0};
     result_type primaries;
+
     for (; entry_count_ < num_entries_; entry_count_++)
     {
         ttree_->GetEntry(entry_count_);
-        if (ttree_->GetLeaf("event_id")->GetValue() != this_evt_id)
+
+        if (primaries.empty())
         {
+            // First entry, define event id
+            this_evt_id = this->from_leaf<size_type>("event_id");
+        }
+
+        if (this->from_leaf<size_type>("event_id") != this_evt_id)
+        {
+            // End of primaries in this event; stop
             break;
         }
 
         Primary primary;
+        primary.track_id = track_id;
         primary.event_id = EventId{this->from_leaf<size_type>("event_id")};
-        primary.track_id = TrackId{this->from_leaf<size_type>("track_id")};
         primary.particle_id
             = params_->find(PDGNumber{this->from_leaf<int>("particle")});
         primary.energy
@@ -64,10 +78,13 @@ auto RootEventReader::operator()() -> result_type
         primary.position = this->from_array_leaf("pos");
         primary.direction = this->from_array_leaf("dir");
         primaries.push_back(std::move(primary));
+
+        track_id++;
     }
 
-    CELER_LOG_LOCAL(info) << "Read event " << this_evt_id << " with "
-                          << primaries.size() << " primaries";
+    scoped_root_error.throw_if_errors();
+    CELER_LOG_LOCAL(debug) << "Read event " << this_evt_id << " with "
+                           << primaries.size() << " primaries";
     return primaries;
 }
 
