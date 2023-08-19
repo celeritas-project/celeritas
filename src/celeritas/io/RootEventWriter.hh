@@ -59,7 +59,7 @@ class RootEventWriter
 
     RootFileManager tfile_mgr_;
     SPConstParticles params_;
-    UPRootWritable<TTree> ttree_;
+    UPRootTreeWritable ttree_;
     RootOffloadPrimary primary_;  // Temporary object stored to the ROOT TTree
 
     //// HELPER FUNCTIONS ////
