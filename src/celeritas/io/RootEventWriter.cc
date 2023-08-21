@@ -7,10 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "RootEventWriter.hh"
 
+#include <set>
 #include <TFile.h>
 #include <TTree.h>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "orange/Types.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
@@ -39,7 +41,9 @@ std::array<double, 3> real3_to_array(Real3 const& src)
  */
 RootEventWriter::RootEventWriter(std::string const& root_output_name,
                                  SPConstParticles params)
-    : tfile_mgr_(root_output_name.c_str()), params_(std::move(params))
+    : tfile_mgr_(root_output_name.c_str())
+    , params_(std::move(params))
+    , event_id_(static_cast<size_type>(-1))
 {
     ScopedRootErrorHandler scoped_root_error;
 
@@ -63,15 +67,31 @@ void RootEventWriter::operator()(Primaries const& primaries)
     CELER_EXPECT(!primaries.empty());
     ScopedRootErrorHandler scoped_root_error;
 
+    // Increment contiguous event id
+    event_id_++;
+
+    std::set<EventId::size_type> mismatched_events;
     for (auto const& p : primaries)
     {
-        primary_.event_id = p.event_id.get();
+        if (p.event_id.get() != event_id_)
+        {
+            mismatched_events.insert(p.event_id.unchecked_get());
+        }
+
+        primary_.event_id = event_id_;
         primary_.particle = params_->id_to_pdg(p.particle_id).get();
         primary_.energy = p.energy.value();
         primary_.time = p.time;
         primary_.pos = real3_to_array(p.position);
         primary_.dir = real3_to_array(p.direction);
         ttree_->Fill();
+    }
+
+    if (!mismatched_events.empty())
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Overwriting primary event IDs with " << event_id_ << ": "
+            << join(mismatched_events.begin(), mismatched_events.end(), ", ");
     }
 
     scoped_root_error.throw_if_errors();

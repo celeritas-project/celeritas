@@ -59,6 +59,7 @@ class RootEventWriter
 
     RootFileManager tfile_mgr_;
     SPConstParticles params_;
+    size_type event_id_;  // Contiguous event id
     UPRootTreeWritable ttree_;
     RootOffloadPrimary primary_;  // Temporary object stored to the ROOT TTree
 
