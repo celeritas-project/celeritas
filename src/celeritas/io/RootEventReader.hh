@@ -13,10 +13,6 @@
 #include "celeritas/ext/RootUniquePtr.hh"
 #include "celeritas/phys/Primary.hh"
 
-// ROOT forward declaration
-class TFile;
-class TTree;
-
 namespace celeritas
 {
 class ParticleParams;
@@ -28,10 +24,10 @@ class ParticleParams;
  * Each \c operator() call returns a vector of primaries from a single event.
  * \code
     RootEventReader read("primaries.root", particle_params);
-    auto event = read();
-    while (!event.empty())
+    RootEventReader::result_type event;
+    while (event = read(), !event.empty())
     {
-        event.read();
+        // Do stuff
     }
  * \endcode
  */

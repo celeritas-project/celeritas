@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "orange/Types.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 namespace celeritas
@@ -40,6 +41,8 @@ RootEventWriter::RootEventWriter(std::string const& root_output_name,
                                  SPConstParticles params)
     : tfile_mgr_(root_output_name.c_str()), params_(std::move(params))
 {
+    ScopedRootErrorHandler scoped_root_error;
+
     ttree_ = tfile_mgr_.make_tree(this->tree_name(), this->tree_name());
     ttree_->Branch("event_id", &primary_.event_id);
     ttree_->Branch("particle", &primary_.particle);
@@ -47,6 +50,8 @@ RootEventWriter::RootEventWriter(std::string const& root_output_name,
     ttree_->Branch("time", &primary_.time);
     ttree_->Branch("pos", &primary_.pos);
     ttree_->Branch("dir", &primary_.dir);
+
+    scoped_root_error.throw_if_errors();
 }
 
 //---------------------------------------------------------------------------//
@@ -56,6 +61,7 @@ RootEventWriter::RootEventWriter(std::string const& root_output_name,
 void RootEventWriter::operator()(Primaries const& primaries)
 {
     CELER_EXPECT(!primaries.empty());
+    ScopedRootErrorHandler scoped_root_error;
 
     for (auto const& p : primaries)
     {
@@ -67,6 +73,8 @@ void RootEventWriter::operator()(Primaries const& primaries)
         primary_.dir = real3_to_array(p.direction);
         ttree_->Fill();
     }
+
+    scoped_root_error.throw_if_errors();
 }
 
 //---------------------------------------------------------------------------//

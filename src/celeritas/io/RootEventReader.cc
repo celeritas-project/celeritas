@@ -47,7 +47,7 @@ auto RootEventReader::operator()() -> result_type
     ScopedRootErrorHandler scoped_root_error;
 
     CELER_EXPECT(entry_count_ <= num_entries_);
-    size_type this_evt_id;
+    size_type expected_evt_id;
     TrackId track_id{0};
     result_type primaries;
 
@@ -55,21 +55,21 @@ auto RootEventReader::operator()() -> result_type
     {
         ttree_->GetEntry(entry_count_);
 
+        auto const entry_evt_id = this->from_leaf<size_type>("event_id");
         if (primaries.empty())
         {
             // First entry, define event id
-            this_evt_id = this->from_leaf<size_type>("event_id");
+            expected_evt_id = entry_evt_id;
         }
-
-        if (this->from_leaf<size_type>("event_id") != this_evt_id)
+        if (entry_evt_id != expected_evt_id)
         {
-            // End of primaries in this event; stop
+            // End of primaries in this event; Rewing entry and stop
             break;
         }
 
         Primary primary;
         primary.track_id = track_id;
-        primary.event_id = EventId{this->from_leaf<size_type>("event_id")};
+        primary.event_id = EventId{entry_evt_id};
         primary.particle_id
             = params_->find(PDGNumber{this->from_leaf<int>("particle")});
         primary.energy
@@ -83,7 +83,7 @@ auto RootEventReader::operator()() -> result_type
     }
 
     scoped_root_error.throw_if_errors();
-    CELER_LOG_LOCAL(debug) << "Read event " << this_evt_id << " with "
+    CELER_LOG_LOCAL(debug) << "Read event " << expected_evt_id << " with "
                            << primaries.size() << " primaries";
     return primaries;
 }
