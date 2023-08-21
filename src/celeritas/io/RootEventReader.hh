@@ -41,8 +41,7 @@ class RootEventReader
     //!@}
 
     // Construct with ROOT filename
-    explicit RootEventReader(std::string const& filename,
-                             SPConstParticles params);
+    RootEventReader(std::string const& filename, SPConstParticles params);
 
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(RootEventReader);
@@ -74,14 +73,13 @@ class RootEventReader
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootEventReader::RootEventReader(std::string const&)
+inline RootEventReader::RootEventReader(std::string const&, SPConstParticles)
 {
-    (void)sizeof(num_entries_);
+    (void)sizeof(params_);
     (void)sizeof(entry_count_);
+    (void)sizeof(num_entries_);
     (void)sizeof(tfile_);
     (void)sizeof(ttree_);
-    (void)sizeof(read_mutex_);
-    (void)sizeof(event_);
     CELER_NOT_CONFIGURED("ROOT");
 }
 
@@ -90,13 +88,13 @@ inline RootEventReader::result_type RootEventReader::operator()()
     CELER_ASSERT_UNREACHABLE();
 }
 
-inline template<class T>
+template<class T>
 auto RootEventReader::from_leaf(char const*) -> T
 {
     CELER_ASSERT_UNREACHABLE();
 }
 
-Real3 RootEventReader::from_leaf(char const*)
+inline Real3 RootEventReader::from_array_leaf(char const*)
 {
     CELER_ASSERT_UNREACHABLE();
 }

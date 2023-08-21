@@ -27,7 +27,8 @@ TEST_F(EventIOTest, write_read)
 
     // Write events
     {
-        RootEventWriter write_event(filename, this->particles());
+        auto root_mgr = std::make_shared<RootFileManager>(filename.c_str());
+        RootEventWriter write_event(root_mgr, this->particles());
         this->write_test_event(std::ref(write_event));
     }
 

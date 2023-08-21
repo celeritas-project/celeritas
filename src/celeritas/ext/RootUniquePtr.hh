@@ -50,20 +50,20 @@ struct ExternDeleter
 
 //---------------------------------------------------------------------------//
 // Type aliases
-using UPRootTreeWritable = std::unique_ptr<TTree, RootTreeAutoSaveDeleter>;
 using UPRootFileWritable = std::unique_ptr<TFile, RootFileWritableDeleter>;
+using UPRootTreeWritable = std::unique_ptr<TTree, RootTreeAutoSaveDeleter>;
 
 template<class T>
 using UPExtern = std::unique_ptr<T, ExternDeleter<T>>;
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-void RootFileWritableDeleter::operator()(TFile*)
+inline void RootFileWritableDeleter::operator()(TFile*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-void RootTreeAutoSaveDeleter::operator()(TTree*)
+inline void RootTreeAutoSaveDeleter::operator()(TTree*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

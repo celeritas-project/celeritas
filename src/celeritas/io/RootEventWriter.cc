@@ -39,15 +39,15 @@ std::array<double, 3> real3_to_array(Real3 const& src)
 /*!
  * Construct with ROOT output filename.
  */
-RootEventWriter::RootEventWriter(std::string const& root_output_name,
+RootEventWriter::RootEventWriter(SPRootFileManager root_file_manager,
                                  SPConstParticles params)
-    : tfile_mgr_(root_output_name.c_str())
+    : tfile_mgr_(root_file_manager)
     , params_(std::move(params))
     , event_id_(static_cast<size_type>(-1))
 {
     ScopedRootErrorHandler scoped_root_error;
 
-    ttree_ = tfile_mgr_.make_tree(this->tree_name(), this->tree_name());
+    ttree_ = tfile_mgr_->make_tree(this->tree_name(), this->tree_name());
     ttree_->Branch("event_id", &primary_.event_id);
     ttree_->Branch("particle", &primary_.particle);
     ttree_->Branch("energy", &primary_.energy);

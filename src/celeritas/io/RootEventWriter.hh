@@ -30,11 +30,12 @@ class RootEventWriter
     //! \name Type aliases
     using Primaries = std::vector<Primary>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPRootFileManager = std::shared_ptr<RootFileManager>;
     //!@}
 
     // Construct with ROOT output filename
-    explicit RootEventWriter(std::string const& root_output_name,
-                             SPConstParticles params);
+    RootEventWriter(SPRootFileManager root_file_manager,
+                    SPConstParticles params);
 
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(RootEventWriter);
@@ -57,7 +58,7 @@ class RootEventWriter
         std::array<double, 3> dir;
     };
 
-    RootFileManager tfile_mgr_;
+    SPRootFileManager tfile_mgr_;
     SPConstParticles params_;
     size_type event_id_;  // Contiguous event id
     UPRootTreeWritable ttree_;
@@ -71,10 +72,11 @@ class RootEventWriter
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootEventWriter(std::string const&, SPConstParticles params)
+inline RootEventWriter::RootEventWriter(SPRootFileManager, SPConstParticles)
 {
     (void)sizeof(tfile_mgr_);
     (void)sizeof(params_);
+    (void)sizeof(event_id_);
     (void)sizeof(ttree_);
     (void)sizeof(primary_);
     CELER_NOT_CONFIGURED("ROOT");
