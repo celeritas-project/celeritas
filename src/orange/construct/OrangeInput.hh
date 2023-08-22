@@ -139,7 +139,7 @@ struct OrangeInput
 
     // TODO: Calculate automatically in Shift by traversing the parent/daughter
     // tree
-    size_type max_level = 3;
+    size_type max_level = 4;
 
     // TODO: array of universe types and universe ID -> offset
     // or maybe std::variant when we require C++17
