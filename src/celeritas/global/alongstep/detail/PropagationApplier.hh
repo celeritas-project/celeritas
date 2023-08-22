@@ -166,7 +166,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
         // distance. This primarily occurs with reentrant tracks on a
         // boundary with VecGeom.
         sim.step_length(p.distance);
-        sim.post_step_action(track.boundary_action());
+        sim.post_step_action(track.propagation_limit_action());
     }
 }
 
