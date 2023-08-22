@@ -3,15 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/transform/TransformTransformer.hh
+//! \file orange/transform/detail/TransformTransformer.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <variant>
+
+#include "orange/MatrixUtils.hh"
 #include "orange/Types.hh"
 
-#include "Transformation.hh"
+#include "../Transformation.hh"
+#include "../Translation.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -59,11 +65,14 @@ class TransformTransformer
     //! Construct with the new reference frame of the transformation
     explicit TransformTransformer(Transformation const& tr) : tr_{tr} {}
 
+    //! Transform an identity
+    Transformation operator()(std::monostate) const { return tr_; }
+
     //!@{
     //! Transform a transformation
-    Transformation operator()(Mat3 const&) const;
-    Transformation operator()(Transformation const&) const;
-    Transformation operator()(Translation const&) const;
+    inline Transformation operator()(Mat3 const&) const;
+    inline Transformation operator()(Transformation const&) const;
+    inline Transformation operator()(Translation const&) const;
     //!@}
 
   private:
@@ -71,4 +80,35 @@ class TransformTransformer
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Apply a transformation to a rotation matrix.
+ */
+Transformation TransformTransformer::operator()(Mat3 const& other) const
+{
+    return Transformation{gemm(tr_.rotation(), other), tr_.translation()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a transformation to a transform.
+ */
+Transformation
+TransformTransformer::operator()(Transformation const& other) const
+{
+    return Transformation{gemm(tr_.rotation(), other.rotation()),
+                          tr_.transform_up(other.translation())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a transformation to a translation.
+ */
+Transformation TransformTransformer::operator()(Translation const& other) const
+{
+    return Transformation{tr_.rotation(),
+                          tr_.transform_up(other.translation())};
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

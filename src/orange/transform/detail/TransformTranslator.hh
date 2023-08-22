@@ -3,17 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/transform/TransformTranslator.hh
+//! \file orange/transform/detail/TransformTranslator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <variant>
+
+#include "corecel/math/ArrayOperators.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/Types.hh"
 
-#include "Translation.hh"
+#include "../Transformation.hh"
+#include "../Translation.hh"
 
 namespace celeritas
 {
-class Transformation;
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Apply a translation to a transform to get another transform.
@@ -51,15 +57,46 @@ class TransformTranslator
 
     //// TRANSFORMATIONS ////
 
-    Transformation operator()(Mat3 const&) const;
+    //! Transform an identity
+    Translation operator()(std::monostate) const { return tr_; }
 
-    Transformation operator()(Transformation const&) const;
+    inline Transformation operator()(Mat3 const&) const;
 
-    Translation operator()(Translation const&) const;
+    inline Transformation operator()(Transformation const&) const;
+
+    inline Translation operator()(Translation const&) const;
 
   private:
     Translation tr_;
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Apply a translation to a rotation matrix.
+ */
+Transformation TransformTranslator::operator()(Mat3 const& rot) const
+{
+    return Transformation{rot, tr_.translation()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a translation to a transform.
+ */
+Transformation TransformTranslator::operator()(Transformation const& tr) const
+{
+    return Transformation{tr.rotation(), tr.translation() + tr_.translation()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a translation to another translation.
+ */
+Translation TransformTranslator::operator()(Translation const& tl) const
+{
+    return Translation{tl.translation() + tr_.translation()};
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

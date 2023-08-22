@@ -213,8 +213,7 @@ celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 #-------------------------------------#
 # Transforms
 set(CELERITASTEST_PREFIX orange/transform)
-celeritas_add_test(orange/transform/TransformTranslator.test.cc)
-celeritas_add_test(orange/transform/TransformTransformer.test.cc)
+celeritas_add_test(orange/transform/VariantTransform.test.cc)
 celeritas_add_test(orange/transform/Transformation.test.cc)
 celeritas_add_test(orange/transform/Translation.test.cc)
 

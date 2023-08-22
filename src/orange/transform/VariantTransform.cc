@@ -8,9 +8,10 @@
 #include "celeritas_config.h"
 #undef CELERITAS_DEBUG
 #define CELERITAS_DEBUG 0
-#include "TransformTransformer.hh"
-#include "TransformTranslator.hh"
+
 #include "VariantTransform.hh"
+#include "detail/TransformTransformer.hh"
+#include "detail/TransformTranslator.hh"
 
 namespace celeritas
 {
@@ -26,7 +27,10 @@ struct TransWrapper
     T apply;
 
     // Apply to a monostate
-    VariantTransform operator()(std::monostate) const { return {}; }
+    VariantTransform operator()(std::monostate m) const
+    {
+        return this->apply(m);
+    }
 
     // Apply to a translation
     VariantTransform operator()(Translation const& right) const
@@ -50,27 +54,29 @@ struct VariantTransformDispatcher
 {
     VariantTransform const& right;
 
-    //! Apply to identity transform (no change)
+    //! Apply an identity transform (no change)
     VariantTransform operator()(std::monostate) const { return right; }
 
-    //! Apply to a translation
+    //! Apply a translation
     VariantTransform operator()(Translation const& left) const
     {
         if (right.valueless_by_exception())
         {
             CELER_ASSERT_UNREACHABLE();
         }
-        return std::visit(TransWrapper{TransformTranslator{left}}, right);
+        return std::visit(TransWrapper{detail::TransformTranslator{left}},
+                          right);
     }
 
-    //! Apply to a transformation
+    //! Apply a transformation
     VariantTransform operator()(Transformation const& left) const
     {
         if (right.valueless_by_exception())
         {
             CELER_ASSERT_UNREACHABLE();
         }
-        return std::visit(TransWrapper{TransformTransformer{left}}, right);
+        return std::visit(TransWrapper{detail::TransformTransformer{left}},
+                          right);
     }
 };
 
