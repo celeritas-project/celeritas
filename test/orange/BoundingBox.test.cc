@@ -33,6 +33,23 @@ TEST_F(BoundingBoxTest, null)
     EXPECT_FALSE(ibb);
 }
 
+TEST_F(BoundingBoxTest, degenerate)
+{
+    // Two coincident square faces
+    BBox bbox{{-2, 1, -2}, {2, 1, 2}};
+    EXPECT_TRUE(bbox);
+    EXPECT_LT(bbox.lower()[0], bbox.upper()[0]);
+    EXPECT_EQ(bbox.lower()[1], bbox.upper()[1]);
+
+    BBox ibb = BBox::from_infinite();
+    ibb.clip(Sense::outside, Axis::z, 1);
+    ibb.clip(Sense::inside, Axis::z, 1);
+    EXPECT_TRUE(ibb);
+
+    // Triple-degenerate: only contains a single point
+    EXPECT_TRUE(BBox{{1, 1, 1}, {1, 1, 1}});
+}
+
 TEST_F(BoundingBoxTest, infinite)
 {
     BBox ibb = BBox::from_infinite();

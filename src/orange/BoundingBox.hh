@@ -22,9 +22,19 @@ namespace celeritas
 /*!
  * Axis-aligned bounding box.
  *
- * The default bounding box is "degenerate", which encloses no space and
- * evaluates to "false". A degenerate bounding box still has the ability to be
- * unioned and intersected with other bounding boxes with the expected effect.
+ * Bounding boxes "contain" all points inside \em and on their faces. See \c
+ * is_inside in \c BoundingBoxUtils.hh .
+ *
+ * The default bounding box is "null", which has at least one \c lower
+ * coordinate greater than its \c upper coordinate: it evaluates to \c false .
+ * A null bounding box still has the ability to be unioned and intersected with
+ * other bounding boxes with the expected effect, but geometrical operations on
+ * it (center, surface area, volume) are prohibited.
+ *
+ * A "degenerate" bounding box is one that is well-defined but has zero volume
+ * because at least one lower coorindate is equal to the corresponding upper
+ * coordinate. Any point on the surface of this bounding box is still "inside".
+ * It may have nonzero surface area but will have zero volume.
  */
 template<class T>
 class BoundingBox
@@ -58,7 +68,7 @@ class BoundingBox
     //! Upper bbox coordinate
     CELER_CONSTEXPR_FUNCTION Real3 const& upper() const { return upper_; }
 
-    // Whether the bbox is nondegenerate
+    // Whether the bbox is non-null
     CELER_CONSTEXPR_FUNCTION explicit operator bool() const;
 
     //// MUTATORS ////
@@ -101,7 +111,7 @@ CELER_FUNCTION BoundingBox<T> BoundingBox<T>::from_infinite()
  * Create a bounding box from unchecked lower/upper bounds.
  *
  * This should be used exclusively for utilities that understand the
- * "degenerate" implementation of the bounding box.
+ * "null" implementation of the bounding box.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>
@@ -112,7 +122,7 @@ BoundingBox<T>::from_unchecked(Real3 const& lo, Real3 const& hi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a degenerate bounding box.
+ * Create a null bounding box.
  *
  * This should naturally satisfy
  * \code
@@ -133,7 +143,7 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox()
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a nondegenerate bounding box from two points.
+ * Create a non-null bounding box from two points.
  *
  * The lower and upper points are allowed to be equal (an empty bounding box
  * at a single point) but upper must not be less than lower.
@@ -154,7 +164,7 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a possibly degenerate bounding box from two points.
+ * Create a possibly null bounding box from two points.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION
@@ -165,7 +175,7 @@ BoundingBox<T>::BoundingBox(std::true_type, Real3 const& lo, Real3 const& hi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the bbox is in a nondegenerate state.
+ * Whether the bbox is in a valid state.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
