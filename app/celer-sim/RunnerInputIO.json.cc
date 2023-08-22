@@ -109,7 +109,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     CELER_VALIDATE(!v.mctruth_filter || !v.mctruth_filename.empty(),
                    << "'mctruth_filter' cannot be specified without providing "
                       "'mctruth_filename'");
-    CELER_VALIDATE(v.mag_field == RunnerInput::no_field()
+    CELER_VALIDATE(v.mag_field != RunnerInput::no_field()
                        || !j.contains("field_options"),
                    << "'field_options' cannot be specified without providing "
                       "'mag_field'");

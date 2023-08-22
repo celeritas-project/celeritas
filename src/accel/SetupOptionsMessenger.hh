@@ -27,6 +27,7 @@ struct SetupOptions;
   geometryFile         | Override detector geometry with a custom GDML
   outputFile           | Filename for JSON diagnostic output
   physicsOutputFile    | Filename for ROOT dump of physics data
+  offloadOutputFile    | Filename for HepMC3 copy of offloaded tracks as events
   maxNumTracks         | Number of tracks to be transported simultaneously
   maxNumEvents         | Maximum number of events in use
   maxNumSteps          | Limit on number of step iterations before aborting
@@ -34,7 +35,7 @@ struct SetupOptions;
   secondaryStackFactor | At least the average number of secondaries per track
 
  * The following option is exposed in the \c /celer/detector/ command
- "directory":
+ * "directory":
  *
   Command | Description
   ------- | -----------------------------------------

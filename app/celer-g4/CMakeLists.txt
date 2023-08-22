@@ -14,11 +14,20 @@ if(CELERITAS_USE_Geant4)
     GlobalSetup.cc
     PrimaryGeneratorAction.cc
     RunAction.cc
+    RunInput.cc
     SensitiveDetector.cc
     SensitiveHit.cc
     TrackingAction.cc
   )
   set(LIBRARIES Celeritas::accel)
+  if(CELERITAS_USE_JSON)
+    list(APPEND SOURCES
+      RunInputIO.json.cc
+    )
+    list(APPEND LIBRARIES
+      nlohmann_json::nlohmann_json
+    )
+  endif()
 else()
   set(SOURCES
     celer-g4.nogeant.cc
@@ -99,16 +108,17 @@ else()
     "${CELER_APP_DATA_DIR}/ttbarbits-12evt-118prim.hepmc3")
 endif()
 if(CELERITAS_USE_ROOT)
-  set(CELERG4_ROOT_OPTIONS "/celerg4/rootBufferSize 128000
-/celerg4/writeSDHits true")
+  set(CELERG4_WRITE_SD_HITS "true")
+else()
+  set(CELERG4_WRITE_SD_HITS "false")
 endif()
 configure_file(
-  "simple-cms-test.mac.in"
-  "simple-cms-test.mac" @ONLY
+  "simple-cms-test.inp.json.in"
+  "simple-cms-test.inp.json" @ONLY
 )
 add_test(NAME "app/celer-g4"
   COMMAND "$<TARGET_FILE:celer-g4>"
-  "simple-cms-test.mac"
+  "simple-cms-test.inp.json"
 )
 set(_env
   ${CELER_G4ENV}
@@ -131,7 +141,8 @@ else()
   set(_props)
   set(_labels app)
 endif()
-if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
+if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4
+    OR CELERITAS_CORE_GEO STREQUAL "Geant4")
   list(APPEND _props DISABLED true)
 endif()
 

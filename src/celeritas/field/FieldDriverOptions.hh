@@ -89,5 +89,28 @@ struct FieldDriverOptions
     }
 };
 
+//! Equality operator
+constexpr bool
+operator==(FieldDriverOptions const& a, FieldDriverOptions const& b)
+{
+    // clang-format off
+    return a.minimum_step == b.minimum_step
+           && a.delta_chord == b.delta_chord
+           && a.delta_intersection == b.delta_intersection
+           && a.epsilon_step == b.epsilon_step
+           && a.epsilon_rel_max == b.epsilon_rel_max
+           && a.errcon == b.errcon
+           && a.pgrow == b.pgrow
+           && a.pshrink == b.pshrink
+           && a.safety == b.safety
+           && a.max_stepping_increase == b.max_stepping_increase
+           && a.max_stepping_decrease == b.max_stepping_decrease
+           && a.max_nsteps == b.max_nsteps
+           && a.initial_step_tol == b.initial_step_tol
+           && a.dchord_tol == b.dchord_tol
+           && a.min_chord_shrink == b.min_chord_shrink;
+    // clang-format on
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

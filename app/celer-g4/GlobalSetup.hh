@@ -13,7 +13,10 @@
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ThreeVector.hh>
 
+#include "celeritas/ext/Convert.geant.hh"
 #include "accel/SetupOptions.hh"
+
+#include "RunInput.hh"
 
 class G4GenericMessenger;
 
@@ -33,17 +36,25 @@ class GlobalSetup
 
     //!@{
     //! \name Demo setup options
-    std::string const& GetGeometryFile() const { return geometry_file_; }
-    std::string const& GetEventFile() const { return event_file_; }
-    int GetRootBufferSize() const { return root_buffer_size_; }
-    bool GetWriteSDHits() const { return write_sd_hits_; }
-    bool StripGDMLPointers() const { return strip_gdml_pointers_; }
-    std::string const& GetPhysicsList() const { return physics_list_; }
-    bool StepDiagnostic() const { return step_diagnostic_; }
-    int GetStepDiagnosticBins() const { return step_diagnostic_bins_; }
-    std::string const& GetFieldType() const { return field_type_; }
-    std::string const& GetFieldFile() const { return field_file_; }
-    G4ThreeVector GetMagFieldZTesla() const { return field_; }
+    std::string const& GetGeometryFile() const { return input_.geometry_file; }
+    std::string const& GetEventFile() const { return input_.event_file; }
+    int GetRootBufferSize() const { return input_.root_buffer_size; }
+    bool GetWriteSDHits() const { return input_.write_sd_hits; }
+    bool StripGDMLPointers() const { return input_.strip_gdml_pointers; }
+    PhysicsListSelection GetPhysicsList() const { return input_.physics_list; }
+    GeantPhysicsOptions const& GetPhysicsOptions() const
+    {
+        return input_.physics_options;
+    }
+    bool StepDiagnostic() const { return input_.step_diagnostic; }
+    int GetStepDiagnosticBins() const { return input_.step_diagnostic_bins; }
+    std::string const& GetFieldType() const { return input_.field_type; }
+    std::string const& GetFieldFile() const { return input_.field_file; }
+    Real3 GetMagFieldZTesla() const { return input_.field; }
+    FieldDriverOptions const& GetFieldOptions() const
+    {
+        return input_.field_options;
+    }
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
@@ -65,10 +76,10 @@ class GlobalSetup
     void SetIgnoreProcesses(SetupOptions::VecString ignored);
 
     //! Set the field to this value (T) along the z axis
-    void SetMagFieldZTesla(double f)
-    {
-        field_ = G4ThreeVector(0, 0, f * CLHEP::tesla);
-    }
+    void SetMagFieldZTesla(double f) { input_.field = Real3{0, 0, f}; }
+
+    // Read input from JSON
+    void ReadInput(std::string const& filename);
 
   private:
     // Private constructor since we're a singleton
@@ -77,17 +88,7 @@ class GlobalSetup
 
     // Data
     std::shared_ptr<SetupOptions> options_;
-    std::string geometry_file_;
-    std::string event_file_;
-    int root_buffer_size_{128000};
-    bool write_sd_hits_{false};
-    bool strip_gdml_pointers_{true};
-    std::string physics_list_{"FTFP_BERT"};
-    bool step_diagnostic_{false};
-    int step_diagnostic_bins_{1000};
-    std::string field_type_{"uniform"};
-    std::string field_file_;
-    G4ThreeVector field_{0, 0, 0};
+    RunInput input_;
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };
