@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/CylAligned.hh"
 
+#include "corecel/math/Algorithms.hh"
+#include "orange/surf/CylCentered.hh"
+
 #include "SurfaceTestUtils.hh"
 #include "celeritas_test.hh"
 
@@ -15,6 +18,25 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+TEST(CylTest, construction)
+{
+    CylX cyl{{1, 2, 3}, 4};
+    EXPECT_SOFT_EQ(2, cyl.origin_u());
+    EXPECT_SOFT_EQ(3, cyl.origin_v());
+    EXPECT_SOFT_EQ(ipow<2>(4), cyl.radius_sq());
+    EXPECT_VEC_EQ((Real3{0, 2, 3}), cyl.calc_origin());
+
+    auto cyly = CylY::from_radius_sq({1, 2, 3}, cyl.radius_sq());
+    EXPECT_SOFT_EQ(1, cyly.origin_u());
+    EXPECT_SOFT_EQ(3, cyly.origin_v());
+    EXPECT_SOFT_EQ(cyl.radius_sq(), cyly.radius_sq());
+
+    CylZ const ccyl{CCylZ{2.5}};
+    EXPECT_SOFT_EQ(ipow<2>(2.5), ccyl.radius_sq());
+    EXPECT_SOFT_EQ(0, ccyl.origin_u());
+    EXPECT_SOFT_EQ(0, ccyl.origin_v());
+}
+
 TEST(CylXTest, sense)
 {
     CylX cyl{{0, 0, 0}, 4.0};

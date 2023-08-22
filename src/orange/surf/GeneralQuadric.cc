@@ -1,28 +1,27 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/UniformFieldData.hh
+//! \file orange/surf/GeneralQuadric.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "GeneralQuadric.hh"
 
-#include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
-
-#include "FieldDriverOptions.hh"
+#include "SimpleQuadric.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-
-struct UniformFieldParams
+/*!
+ * Promote from a simple quadric.
+ */
+GeneralQuadric::GeneralQuadric(SimpleQuadric const& other) noexcept
+    : GeneralQuadric{make_array(other.second()),
+                     Real3{0, 0, 0},
+                     make_array(other.first()),
+                     other.zeroth()}
 {
-    using Real3 = Array<real_type, 3>;
-
-    Real3 field{0, 0, 0};
-    FieldDriverOptions options;
-};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

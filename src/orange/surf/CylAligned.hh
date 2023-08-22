@@ -18,6 +18,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<Axis T>
+class CylCentered;
+
+//---------------------------------------------------------------------------//
 /*!
  * Axis-aligned cylinder.
  *
@@ -61,26 +65,34 @@ class CylAligned
   public:
     //// CONSTRUCTORS ////
 
+    // Construct with square of radius for simplification
+    static CylAligned from_radius_sq(Real3 const& origin, real_type rsq);
+
     // Construct with radius
-    explicit inline CELER_FUNCTION
-    CylAligned(Real3 const& origin, real_type radius);
+    inline CELER_FUNCTION CylAligned(Real3 const& origin, real_type radius);
 
     // Construct from raw data
     explicit inline CELER_FUNCTION CylAligned(Storage);
 
+    // Promote from a centered axis-aligned cylinder
+    explicit CylAligned(CylCentered<T> const& other) noexcept;
+
     //// ACCESSORS ////
 
     //! Get the origin vector along the 'u' axis
-    real_type origin_u() const { return origin_u_; }
+    CELER_FUNCTION real_type origin_u() const { return origin_u_; }
 
     //! Get the origin vector along the 'v' axis
-    real_type origin_v() const { return origin_v_; }
+    CELER_FUNCTION real_type origin_v() const { return origin_v_; }
 
     //! Get the square of the radius
-    real_type radius_sq() const { return radius_sq_; }
+    CELER_FUNCTION real_type radius_sq() const { return radius_sq_; }
 
     //! Get a view to the data for type-deleted storage
     CELER_FUNCTION Storage data() const { return {&origin_u_, 3}; }
+
+    // Helper function to get the origin as a 3-vector
+    Real3 calc_origin() const;
 
     //// CALCULATION ////
 
@@ -101,6 +113,9 @@ class CylAligned
 
     // Square of the radius
     real_type radius_sq_;
+
+    //! Private default constructor for manual construction
+    CylAligned() = default;
 };
 
 //---------------------------------------------------------------------------//

@@ -18,6 +18,14 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<Axis T>
+class ConeAligned;
+template<Axis T>
+class CylAligned;
+class Plane;
+class Sphere;
+
+//---------------------------------------------------------------------------//
 /*!
  * General quadric expression but with no off-axis terms.
  *
@@ -56,12 +64,22 @@ class SimpleQuadric
     inline CELER_FUNCTION
     SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g);
 
-    // Construct from another SQ and a translation
-    inline CELER_FUNCTION
-    SimpleQuadric(SimpleQuadric const& other, Real3 const& translation);
-
     // Construct from raw data
     explicit inline CELER_FUNCTION SimpleQuadric(Storage);
+
+    // Promote from a plane
+    explicit SimpleQuadric(Plane const& other) noexcept;
+
+    // Promote from an axis-aligned cylinder
+    template<Axis T>
+    explicit SimpleQuadric(CylAligned<T> const& other) noexcept;
+
+    // Promote from a sphere
+    explicit SimpleQuadric(Sphere const& other) noexcept;
+
+    // Promote from a cone
+    template<Axis T>
+    explicit SimpleQuadric(ConeAligned<T> const& other) noexcept;
 
     //// ACCESSORS ////
 
@@ -105,6 +123,8 @@ class SimpleQuadric
  * Construct with coefficients.
  *
  * The quadric is ill-defined if all non-constants are zero.
+ *
+ * TODO: normalize?
  */
 CELER_FUNCTION
 SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
@@ -118,34 +138,6 @@ SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
 {
     CELER_EXPECT(a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0
                  || f_ != 0);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with another quadric and a translation.
- */
-CELER_FUNCTION
-SimpleQuadric::SimpleQuadric(SimpleQuadric const& other, Real3 const& origin)
-    : SimpleQuadric{other}
-{
-    Real3 const orig_def{d_, e_, f_};
-
-    constexpr auto X = to_int(Axis::x);
-    constexpr auto Y = to_int(Axis::y);
-    constexpr auto Z = to_int(Axis::z);
-
-    // Expand out origin into the other terms
-    d_ -= 2 * a_ * origin[X];
-    e_ -= 2 * b_ * origin[Y];
-    f_ -= 2 * c_ * origin[Z];
-
-    g_ += a_ * origin[X] * origin[X];
-    g_ += b_ * origin[Y] * origin[Y];
-    g_ += c_ * origin[Z] * origin[Z];
-
-    g_ -= 2 * orig_def[X] * origin[X];
-    g_ -= 2 * orig_def[Y] * origin[Y];
-    g_ -= 2 * orig_def[Z] * origin[Z];
 }
 
 //---------------------------------------------------------------------------//

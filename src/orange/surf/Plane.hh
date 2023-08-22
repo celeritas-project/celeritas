@@ -16,6 +16,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<Axis T>
+class PlaneAligned;
+
+//---------------------------------------------------------------------------//
 /*!
  * Arbitrarily oriented plane.
  *
@@ -47,13 +51,17 @@ class Plane
     //// CONSTRUCTORS ////
 
     // Construct with normal and point
-    explicit inline CELER_FUNCTION Plane(Real3 const& n, Real3 const& d);
+    explicit inline CELER_FUNCTION Plane(Real3 const& n, Real3 const& p);
 
     // Construct with normal and displacement
     explicit inline CELER_FUNCTION Plane(Real3 const& n, real_type d);
 
     // Construct from raw data
     explicit inline CELER_FUNCTION Plane(Storage);
+
+    // Promote from an axis-aligned plane
+    template<Axis T>
+    explicit Plane(PlaneAligned<T> const& other) noexcept;
 
     //// ACCESSORS ////
 
@@ -75,8 +83,8 @@ class Plane
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
-    // Calculate outward normal at a position
-    inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+    // Calculate outward normal at a position on the surface
+    inline CELER_FUNCTION Real3 calc_normal(Real3 const&) const;
 
   private:
     // Normal to plane (a,b,c)
@@ -95,7 +103,7 @@ class Plane
  * Displacement is the dot product of the point and the normal.
  */
 CELER_FUNCTION Plane::Plane(Real3 const& n, Real3 const& p)
-    : Plane{n, dot_product(normal_, p)}
+    : Plane{n, dot_product(n, p)}
 {
 }
 
@@ -150,9 +158,9 @@ CELER_FUNCTION auto Plane::calc_intersections(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate outward normal at a position.
+ * Calculate outward normal at a position on the surface.
  */
-CELER_FUNCTION Real3 Plane::calc_normal(Real3 const&) const
+CELER_FORCEINLINE_FUNCTION Real3 Plane::calc_normal(Real3 const&) const
 {
     return normal_;
 }

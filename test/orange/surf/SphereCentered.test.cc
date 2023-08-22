@@ -22,16 +22,23 @@ using Intersections = SphereCentered::Intersections;
 constexpr real_type sqrt_third = 1 / constants::sqrt_three;
 
 //---------------------------------------------------------------------------//
-TEST(SphereCenteredTest, all)
+TEST(SphereCenteredTest, construction)
 {
     EXPECT_EQ(SurfaceType::sc, SphereCentered::surface_type());
     EXPECT_EQ(1, SphereCentered::Storage::extent);
     EXPECT_EQ(2, SphereCentered::Intersections{}.size());
 
-    real_type radius = 4.4;
+    SphereCentered s{3};
+    EXPECT_SOFT_EQ(ipow<2>(3), s.radius_sq());
 
+    auto s2 = SphereCentered::from_radius_sq(s.radius_sq());
+    EXPECT_SOFT_EQ(s.radius_sq(), s2.radius_sq());
+}
+
+TEST(SphereCenteredTest, maths)
+{
+    real_type radius = 4.4;
     SphereCentered s{radius};
-    EXPECT_SOFT_EQ(radius * radius, s.radius_sq());
 
     EXPECT_EQ(SignedSense::outside, s.calc_sense({2, 3, 5}));
     EXPECT_EQ(SignedSense::inside, s.calc_sense({2, 3, 1}));
