@@ -72,6 +72,9 @@ gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b)
  * \f[
  * C \gets A^T * B
  * \f]
+ *
+ * \note The first argument is a "tag" that alters the behavior of this
+ * function versus the non-transposed one.
  */
 template<class T, size_type N>
 SquareMatrix<T, N> gemm(matrix::TransposePolicy,
