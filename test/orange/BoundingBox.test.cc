@@ -47,7 +47,7 @@ TEST_F(BoundingBoxTest, degenerate)
     EXPECT_TRUE(ibb);
 
     // Triple-degenerate: only contains a single point
-    EXPECT_TRUE(BBox{{1, 1, 1}, {1, 1, 1}});
+    EXPECT_TRUE((BBox{{1, 1, 1}, {1, 1, 1}}));
 }
 
 TEST_F(BoundingBoxTest, infinite)
