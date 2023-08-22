@@ -63,9 +63,6 @@ class SimTrackView
     // Reset step limiter to the given limit
     inline CELER_FUNCTION void reset_step_limit(StepLimit const& sl);
 
-    // Limit the step and override if the step is equal
-    inline CELER_FUNCTION void force_step_limit(StepLimit const& sl);
-
     // Limit the step by this distance and action
     inline CELER_FUNCTION bool step_limit(StepLimit const& sl);
 
@@ -150,7 +147,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.num_looping_steps[track_slot_] = 0;
     states_.time[track_slot_] = other.time;
     states_.status[track_slot_] = other.status;
-    states_.steps[track_slot_] = {};
+    states_.step_length[track_slot_] = {};
     states_.post_step_action[track_slot_] = {};
     states_.along_step_action[track_slot_] = {};
     return *this;
@@ -220,7 +217,7 @@ CELER_FUNCTION void SimTrackView::reset_step_limit(StepLimit const& sl)
     CELER_EXPECT(sl.step >= 0);
     CELER_EXPECT(static_cast<bool>(sl.action)
                  != (sl.step == numeric_limits<real_type>::infinity()));
-    states_.steps[track_slot_] = sl.step;
+    states_.step_length[track_slot_] = sl.step;
     states_.post_step_action[track_slot_] = sl.action;
 }
 
@@ -253,21 +250,6 @@ CELER_FUNCTION void SimTrackView::post_step_action(ActionId action)
 
 //---------------------------------------------------------------------------//
 /*!
- * Forcibly limit the step by this distance and action.
- *
- * If the step limits are the same, the new action overrides. The new step must
- * not be greater than the current step.
- */
-CELER_FUNCTION void SimTrackView::force_step_limit(StepLimit const& sl)
-{
-    CELER_ASSERT(sl.step >= 0 && sl.step <= states_.steps[track_slot_]);
-
-    states_.steps[track_slot_] = sl.step;
-    states_.post_step_action[track_slot_] = sl.action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Limit the step by this distance and action.
  *
  * If the step limits are the same, the original action is retained.
@@ -278,10 +260,10 @@ CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
 {
     CELER_ASSERT(sl.step >= 0);
 
-    bool is_limiting = (sl.step < states_.steps[track_slot_]);
+    bool is_limiting = (sl.step < states_.step_length[track_slot_]);
     if (is_limiting)
     {
-        states_.steps[track_slot_] = sl.step;
+        states_.step_length[track_slot_] = sl.step;
         states_.post_step_action[track_slot_] = sl.action;
     }
     return is_limiting;
@@ -395,7 +377,7 @@ CELER_FUNCTION TrackStatus SimTrackView::status() const
  */
 CELER_FUNCTION real_type SimTrackView::step_length() const
 {
-    return states_.steps[track_slot_];
+    return states_.step_length[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -405,7 +387,7 @@ CELER_FUNCTION real_type SimTrackView::step_length() const
 CELER_FUNCTION void SimTrackView::step_length(real_type length)
 {
     CELER_EXPECT(length > 0);
-    states_.steps[track_slot_] = length;
+    states_.step_length[track_slot_] = length;
 }
 
 //---------------------------------------------------------------------------//

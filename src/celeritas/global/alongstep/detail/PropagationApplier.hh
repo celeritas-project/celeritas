@@ -156,7 +156,8 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
     {
         // Stopped at a geometry boundary: this is the new step action.
         CELER_ASSERT(p.distance <= sim.step_length());
-        sim.force_step_limit({p.distance, track.boundary_action()});
+        sim.step_length(p.distance);
+        sim.post_step_action(track.boundary_action());
     }
     else if (p.distance < sim.step_length())
     {
@@ -164,7 +165,8 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
         // all in the field propagator, and will get bumped a small
         // distance. This primarily occurs with reentrant tracks on a
         // boundary with VecGeom.
-        sim.force_step_limit({p.distance, track.propagation_limit_action()});
+        sim.step_length(p.distance);
+        sim.post_step_action(track.boundary_action());
     }
 }
 

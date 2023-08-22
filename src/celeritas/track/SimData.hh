@@ -130,7 +130,7 @@ struct SimStateData
                             //!< [s]
 
     Items<TrackStatus> status;
-    Items<real_type> steps;
+    Items<real_type> step_length;
     Items<ActionId> post_step_action;
     Items<ActionId> along_step_action;
 
@@ -141,7 +141,7 @@ struct SimStateData
     {
         return !track_ids.empty() && !parent_ids.empty() && !event_ids.empty()
                && !num_steps.empty() && !num_looping_steps.empty()
-               && !time.empty() && !status.empty() && !steps.empty()
+               && !time.empty() && !status.empty() && !step_length.empty()
                && !post_step_action.empty() && !along_step_action.empty();
     }
 
@@ -163,7 +163,7 @@ struct SimStateData
         num_looping_steps = other.num_looping_steps;
         time = other.time;
         status = other.status;
-        steps = other.steps;
+        step_length = other.step_length;
         post_step_action = other.post_step_action;
         along_step_action = other.along_step_action;
         return *this;
@@ -195,7 +195,7 @@ void resize(SimStateData<Ownership::value, M>* data, size_type size)
     resize(&data->status, size);
     fill(TrackStatus::inactive, &data->status);
 
-    resize(&data->steps, size);
+    resize(&data->step_length, size);
     resize(&data->post_step_action, size);
     resize(&data->along_step_action, size);
 
