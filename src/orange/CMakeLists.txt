@@ -33,6 +33,7 @@ list(APPEND SOURCES
   transform/TransformTransformer.cc
   transform/TransformTranslator.cc
   transform/Transformation.cc
+  transform/VariantTransform.cc
 )
 
 if(CELERITAS_USE_JSON)
