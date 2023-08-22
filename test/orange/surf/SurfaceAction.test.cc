@@ -23,7 +23,7 @@
 #include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/surf/Surfaces.hh"
-#include "orange/surf/VariantSurfaces.hh"
+#include "orange/surf/VariantSurface.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
@@ -168,9 +168,9 @@ struct GetTypeSize
 //---------------------------------------------------------------------------//
 
 // The surface action functors are equivalent to a variant visitor
-TEST_F(SurfaceActionTest, variant_surfaces)
+TEST_F(SurfaceActionTest, variant_surface)
 {
-    std::vector<VariantSurfaces> surfaces{
+    std::vector<VariantSurface> surfaces{
         PlaneZ{3},
         CCylX{5},
         Sphere{{1, 2, 3}, 1.5},

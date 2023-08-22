@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/detail/VariantSurfacesImpl.hh
+//! \file orange/surf/detail/VariantSurfaceImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -36,17 +36,16 @@ struct SurfaceTypeIntTraits
 //!@{
 //! Helper for expanding an integer sequence into a variant
 template<class Seq>
-struct VariantSurfacesImpl;
+struct VariantSurfaceImpl;
 template<STInt... Is>
-struct VariantSurfacesImpl<std::integer_sequence<STInt, Is...>>
+struct VariantSurfaceImpl<std::integer_sequence<STInt, Is...>>
 {
     using type = std::variant<typename SurfaceTypeIntTraits<Is>::type...>;
 };
 //!@}
 
 //! Get a variant with all the surface types
-using VariantSurfaces_t =
-    typename VariantSurfacesImpl<SurfaceTypeIntRange>::type;
+using VariantSurface_t = typename VariantSurfaceImpl<SurfaceTypeIntRange>::type;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
