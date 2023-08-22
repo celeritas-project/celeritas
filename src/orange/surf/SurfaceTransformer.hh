@@ -20,9 +20,6 @@ namespace celeritas
  *
  * The transform gives the new origin and rotation for the surface: rotation is
  * applied first, then translation.
- *
- * A sphere centered about the origin will be translated to a a sphere with its
- * center on the given point.
  */
 class SurfaceTransformer
 {

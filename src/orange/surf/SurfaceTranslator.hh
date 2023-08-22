@@ -19,7 +19,7 @@ namespace celeritas
  * Apply a translation to a surface to get another surface.
  *
  * The translation is the new origin for the surface, i.e. daughter-to-parent.
- * A sphere centered about the origin will be translated to a a sphere with its
+ * A sphere centered about the origin will be translated to a sphere with its
  * center on the given point.
  */
 class SurfaceTranslator

@@ -37,7 +37,7 @@ namespace
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transformed axis-aligned plane.
+ * Transform an axis-aligned plane.
  */
 template<Axis T>
 Plane SurfaceTransformer::operator()(PlaneAligned<T> const& other) const
@@ -49,7 +49,7 @@ ORANGE_INSTANTIATE_OP(Plane, PlaneAligned);
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transformed axis-aligned cylinder.
+ * Transform a centered cylinder.
  */
 template<Axis T>
 GeneralQuadric SurfaceTransformer::operator()(CylCentered<T> const& other) const
@@ -61,7 +61,7 @@ ORANGE_INSTANTIATE_OP(GeneralQuadric, CylCentered);
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transformed sphere.
+ * Transform a sphere.
  */
 Sphere SurfaceTransformer::operator()(SphereCentered const& other) const
 {
@@ -70,7 +70,7 @@ Sphere SurfaceTransformer::operator()(SphereCentered const& other) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transformed axis-aligned cylinder.
+ * Transform an axis-aligned cylinder.
  */
 template<Axis T>
 GeneralQuadric SurfaceTransformer::operator()(CylAligned<T> const& other) const
@@ -82,7 +82,7 @@ ORANGE_INSTANTIATE_OP(GeneralQuadric, CylAligned);
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transformed general plane.
+ * Transform a plane.
  */
 Plane SurfaceTransformer::operator()(Plane const& other) const
 {
@@ -97,7 +97,7 @@ Plane SurfaceTransformer::operator()(Plane const& other) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transformed sphere.
+ * Transform a sphere.
  */
 Sphere SurfaceTransformer::operator()(Sphere const& other) const
 {
@@ -108,7 +108,7 @@ Sphere SurfaceTransformer::operator()(Sphere const& other) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transformed cone.
+ * Transform a cone.
  */
 template<Axis T>
 GeneralQuadric SurfaceTransformer::operator()(ConeAligned<T> const& other) const
@@ -120,7 +120,7 @@ ORANGE_INSTANTIATE_OP(GeneralQuadric, ConeAligned);
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transformed simple quadric.
+ * Transform a simple quadric.
  */
 GeneralQuadric SurfaceTransformer::operator()(SimpleQuadric const& other) const
 {
@@ -129,7 +129,7 @@ GeneralQuadric SurfaceTransformer::operator()(SimpleQuadric const& other) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transformed quadric.
+ * Transform a quadric.
  *
  * See celeritas-doc/nb/geometry/quadric-transform.ipynb . The implementation
  * below is less than optimal because we don't need to explicitly construct the
