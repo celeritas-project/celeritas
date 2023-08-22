@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/transform/VariantTransforms.hh
+//! \file orange/transform/VariantTransform.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //! std::variant for all transforms, with optional "no transform"
-using VariantTransforms
+using VariantTransform
     = std::variant<std::monostate, Translation, Transformation>;
 
 //---------------------------------------------------------------------------//
