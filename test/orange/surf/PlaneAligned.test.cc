@@ -51,6 +51,7 @@ TEST_F(PlaneAlignedTest, x_plane)
     PlaneX p(1.0);
 
     EXPECT_EQ((Real3{1.0, 0.0, 0.0}), p.calc_normal(Real3{1.0, 0.1, -4.2}));
+    EXPECT_EQ((Real3{1.0, 0.0, 0.0}), p.calc_normal());
 
     // Test sense
     EXPECT_EQ(SignedSense::outside, p.calc_sense(Real3{1.01, 0.1, 0.0}));

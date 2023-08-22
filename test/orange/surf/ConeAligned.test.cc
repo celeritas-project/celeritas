@@ -18,12 +18,20 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-TEST(ConeAlignedTest, sense)
+TEST(ConeAlignedTest, construction)
 {
     ConeX cone{{0, 0, 1}, 0.5};
     EXPECT_VEC_SOFT_EQ((Real3{0, 0, 1}), cone.origin());
     EXPECT_SOFT_EQ(ipow<2>(0.5), cone.tangent_sq());
 
+    auto coney = ConeY::from_tangent_sq({1, 0, 1}, cone.tangent_sq());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 0, 1}), coney.origin());
+    EXPECT_SOFT_EQ(ipow<2>(0.5), coney.tangent_sq());
+}
+
+TEST(ConeAlignedTest, sense)
+{
+    ConeX cone{{0, 0, 1}, 0.5};
     EXPECT_EQ(SignedSense::inside, cone.calc_sense({2, 0, 1}));
     EXPECT_EQ(SignedSense::inside, cone.calc_sense({2, 0.99, 1}));
     EXPECT_EQ(SignedSense::outside, cone.calc_sense({2, 1.01, 1}));

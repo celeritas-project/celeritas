@@ -8,15 +8,17 @@
 #include "orange/surf/Plane.hh"
 
 #include "orange/Constants.hh"
+#include "orange/surf/PlaneAligned.hh"
 
 #include "celeritas_test.hh"
-
-using celeritas::constants::sqrt_two;
 
 namespace celeritas
 {
 namespace test
 {
+
+using constants::sqrt_two;
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -36,6 +38,21 @@ class PlaneTest : public Test
         return surf.calc_intersections(pos, dir, s)[0];
     }
 };
+
+TEST_F(PlaneTest, construction)
+{
+    // Make a rotated plane in the xy axis
+    Plane p{{1 / sqrt_two, 1 / sqrt_two, 0.0}, {2 / sqrt_two, 2 / sqrt_two, 2}};
+    EXPECT_VEC_SOFT_EQ((Real3{1 / sqrt_two, 1 / sqrt_two, 0}), p.normal());
+    EXPECT_SOFT_EQ(2, p.displacement());
+
+    Plane px{PlaneX{1.25}};
+    EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), px.normal());
+    EXPECT_SOFT_EQ(1.25, px.displacement());
+
+    Plane py{PlaneY{2.25}};
+    EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}), py.normal());
+}
 
 TEST_F(PlaneTest, tracking)
 {

@@ -36,10 +36,14 @@ TEST(TestCCylX, construction)
     EXPECT_EQ(2, CCylX::Intersections{}.size());
 
     CCylX c(4.0);
+    EXPECT_SOFT_EQ(ipow<2>(4), c.radius_sq());
 
     const real_type expected_data[] = {ipow<2>(4)};
 
     EXPECT_VEC_SOFT_EQ(expected_data, c.data());
+
+    auto cy = CCylY::from_radius_sq(c.radius_sq());
+    EXPECT_SOFT_EQ(c.radius_sq(), cy.radius_sq());
 }
 
 TEST(TestCCylX, sense)

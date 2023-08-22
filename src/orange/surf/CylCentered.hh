@@ -68,6 +68,9 @@ class CylCentered
   public:
     //// CONSTRUCTORS ////
 
+    // Construct with square of radius for simplification
+    static inline CylCentered from_radius_sq(real_type rsq);
+
     // Construct with radius
     explicit inline CELER_FUNCTION CylCentered(real_type radius);
 
@@ -97,6 +100,9 @@ class CylCentered
   private:
     //! Square of cylinder radius
     real_type radius_sq_;
+
+    //! Private default constructor for manual construction
+    CylCentered() = default;
 };
 
 //---------------------------------------------------------------------------//
@@ -120,6 +126,22 @@ CELER_CONSTEXPR_FUNCTION SurfaceType CylCentered<T>::surface_type()
            : T == Axis::y ? SurfaceType::cyc
            : T == Axis::z ? SurfaceType::czc
                           : SurfaceType::size_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from the square of the radius.
+ *
+ * This is used for surface simplification.
+ */
+template<Axis T>
+CylCentered<T> CylCentered<T>::from_radius_sq(real_type rsq)
+{
+    CELER_EXPECT(rsq > 0);
+
+    CylCentered<T> result;
+    result.radius_sq_ = rsq;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

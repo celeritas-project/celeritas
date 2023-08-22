@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/GeneralQuadric.hh"
 
+#include "corecel/math/Algorithms.hh"
+#include "orange/surf/SimpleQuadric.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -16,6 +19,28 @@ namespace test
 //---------------------------------------------------------------------------//
 
 using Intersections = GeneralQuadric::Intersections;
+
+//---------------------------------------------------------------------------//
+TEST(GeneralQuadricTest, construction)
+{
+    GeneralQuadric gq{SimpleQuadric{{ipow<2>(2.5) * ipow<2>(0.3),
+                                     ipow<2>(1.0) * ipow<2>(0.3),
+                                     ipow<2>(1.0) * ipow<2>(2.5)},
+                                    {0, 0, 0},
+                                    -1 * ipow<2>(2.5) * ipow<2>(0.3)}};
+
+    auto distances
+        = gq.calc_intersections({-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
+    EXPECT_SOFT_EQ(1.5, distances[0]);
+    EXPECT_SOFT_EQ(1.5 + 2.0, distances[1]);
+    distances
+        = gq.calc_intersections({0, 2.5, 0}, {0, -1, 0}, SurfaceState::on);
+    EXPECT_SOFT_EQ(5.0, distances[0]);
+    EXPECT_SOFT_EQ(no_intersection(), distances[1]);
+    distances = gq.calc_intersections({0, 0, 0}, {0, 0, 1}, SurfaceState::off);
+    EXPECT_SOFT_EQ(0.3, distances[1]);
+    EXPECT_SOFT_EQ(no_intersection(), distances[0]);
+}
 
 //---------------------------------------------------------------------------//
 /*!
