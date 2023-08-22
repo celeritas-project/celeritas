@@ -35,7 +35,7 @@ CELER_FUNCTION void TimeUpdater::operator()(CoreTrackView const& track)
         // For very small energies (< numeric_limits<real_type>::epsilon)
         // the calculated speed can be zero.
         auto sim = track.make_sim_view();
-        real_type delta_time = sim.step_limit().step / speed;
+        real_type delta_time = sim.step_length() / speed;
         sim.add_time(delta_time);
     }
 }

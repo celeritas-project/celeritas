@@ -39,7 +39,7 @@ BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
 {
     CELER_EXPECT([track] {
         auto sim = track.make_sim_view();
-        return sim.step_limit().action == track.boundary_action()
+        return sim.post_step_action() == track.boundary_action()
                && sim.status() == TrackStatus::alive;
     }());
 
