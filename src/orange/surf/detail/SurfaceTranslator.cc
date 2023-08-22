@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/SurfaceTranslator.cc
+//! \file orange/surf/detail/SurfaceTranslator.cc
 //---------------------------------------------------------------------------//
 #include "SurfaceTranslator.hh"
 
@@ -11,17 +11,19 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/MatrixUtils.hh"
 
-#include "ConeAligned.hh"
-#include "CylAligned.hh"
-#include "CylCentered.hh"
-#include "GeneralQuadric.hh"
-#include "Plane.hh"
-#include "PlaneAligned.hh"
-#include "SimpleQuadric.hh"
-#include "Sphere.hh"
-#include "SphereCentered.hh"
+#include "../ConeAligned.hh"
+#include "../CylAligned.hh"
+#include "../CylCentered.hh"
+#include "../GeneralQuadric.hh"
+#include "../Plane.hh"
+#include "../PlaneAligned.hh"
+#include "../SimpleQuadric.hh"
+#include "../Sphere.hh"
+#include "../SphereCentered.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 namespace
 {
@@ -177,4 +179,5 @@ GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

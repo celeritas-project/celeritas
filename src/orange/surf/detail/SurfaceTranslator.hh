@@ -3,57 +3,61 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/SurfaceTransformer.hh
+//! \file orange/surf/detail/SurfaceTranslator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "orange/Types.hh"
-#include "orange/transform/Transformation.hh"
+#include "orange/transform/Translation.hh"
 
-#include "SurfaceFwd.hh"
+#include "../SurfaceFwd.hh"
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
- * Apply a transformation to a surface to get another surface.
+ * Apply a translation to a surface to get another surface.
  *
- * The transform gives the new origin and rotation for the surface: rotation is
- * applied first, then translation.
+ * The translation is the new origin for the surface, i.e. daughter-to-parent.
+ * A sphere centered about the origin will be translated to a sphere with its
+ * center on the given point.
  */
-class SurfaceTransformer
+class SurfaceTranslator
 {
   public:
-    //! Construct with the transformation to apply
-    explicit SurfaceTransformer(Transformation const& trans) : tr_{trans} {}
+    //! Construct with the new origin of the surface
+    explicit SurfaceTranslator(Translation const& trans) : tr_{trans} {}
 
     //// SURFACE FUNCTIONS ////
 
     template<Axis T>
-    Plane operator()(PlaneAligned<T> const&) const;
+    PlaneAligned<T> operator()(PlaneAligned<T> const&) const;
 
     template<Axis T>
-    GeneralQuadric operator()(CylCentered<T> const&) const;
+    CylAligned<T> operator()(CylCentered<T> const&) const;
 
     Sphere operator()(SphereCentered const&) const;
 
     template<Axis T>
-    GeneralQuadric operator()(CylAligned<T> const&) const;
+    CylAligned<T> operator()(CylAligned<T> const&) const;
 
     Plane operator()(Plane const&) const;
 
     Sphere operator()(Sphere const&) const;
 
     template<Axis T>
-    GeneralQuadric operator()(ConeAligned<T> const&) const;
+    ConeAligned<T> operator()(ConeAligned<T> const&) const;
 
-    GeneralQuadric operator()(SimpleQuadric const&) const;
+    SimpleQuadric operator()(SimpleQuadric const&) const;
 
     GeneralQuadric operator()(GeneralQuadric const&) const;
 
   private:
-    Transformation tr_;
+    Translation tr_;
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

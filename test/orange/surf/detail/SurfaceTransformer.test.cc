@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/SurfaceTransformer.test.cc
+//! \file orange/surf/detail/SurfaceTransformer.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surf/SurfaceTransformer.hh"
+#include "orange/surf/detail/SurfaceTransformer.hh"
 
 #include "orange/Constants.hh"
 #include "orange/MatrixUtils.hh"
@@ -22,6 +22,8 @@
 #include "celeritas_test.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 namespace test
 {
@@ -172,4 +174,5 @@ TEST_F(SurfaceTransformerTest, general_quadric)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace detail
 }  // namespace celeritas
