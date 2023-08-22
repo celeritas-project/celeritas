@@ -17,7 +17,7 @@ namespace celeritas
  */
 template<Axis T>
 Plane::Plane(PlaneAligned<T> const& other) noexcept
-    : normal_{other.calc_normal({0, 0, 0})}, d_{other.position()}
+    : normal_{other.calc_normal()}, d_{other.position()}
 {
 }
 

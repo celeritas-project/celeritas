@@ -83,8 +83,8 @@ class Plane
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
-    // Calculate outward normal at a position
-    inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+    // Calculate outward normal at a position on the surface
+    inline CELER_FUNCTION Real3 calc_normal(Real3 const&) const;
 
   private:
     // Normal to plane (a,b,c)
@@ -158,9 +158,9 @@ CELER_FUNCTION auto Plane::calc_intersections(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate outward normal at a position.
+ * Calculate outward normal at a position on the surface.
  */
-CELER_FUNCTION Real3 Plane::calc_normal(Real3 const&) const
+CELER_FORCEINLINE_FUNCTION Real3 Plane::calc_normal(Real3 const&) const
 {
     return normal_;
 }

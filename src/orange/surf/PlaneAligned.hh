@@ -53,6 +53,9 @@ class PlaneAligned
     //! Get a view to the data for type-deleted storage
     CELER_FUNCTION Storage data() const { return {&position_, 1}; }
 
+    // Construct outward normal vector
+    inline CELER_FUNCTION Real3 calc_normal() const;
+
     //// CALCULATION ////
 
     // Determine the sense of the position relative to this surface
@@ -114,6 +117,19 @@ CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Storage data) : position_(data[0])
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate outward normal.
+ */
+template<Axis T>
+CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal() const
+{
+    Real3 norm{0, 0, 0};
+
+    norm[to_int(T)] = 1.;
+    return norm;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Determine the sense of the position relative to this surface.
  */
 template<Axis T>
@@ -148,15 +164,12 @@ PlaneAligned<T>::calc_intersections(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate outward normal at a position.
+ * Calculate outward normal at a position on the surface.
  */
 template<Axis T>
 CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(Real3 const&) const
 {
-    Real3 norm{0, 0, 0};
-
-    norm[to_int(T)] = 1.;
-    return norm;
+    return this->calc_normal();
 }
 
 //---------------------------------------------------------------------------//
