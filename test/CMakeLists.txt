@@ -15,9 +15,9 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 celeritas_add_library(testcel_harness
   Test.cc
-  testdetail/TestMacrosImpl.cc
   testdetail/NonMasterResultPrinter.cc
   testdetail/ParallelHandler.cc
+  testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
 )
 target_compile_features(testcel_harness PUBLIC cxx_std_14)
@@ -250,27 +250,27 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 #-----------------------------------------------------------------------------#
 
 celeritas_add_object_library(testcel_celeritas_core
-  celeritas/field/FieldTestBase.cc
-  celeritas/grid/CalculatorTestBase.cc
-  celeritas/io/EventIOTestBase.cc
-  celeritas/phys/InteractionIO.cc
-  celeritas/phys/InteractorHostTestBase.cc
-  celeritas/phys/SecondaryIO.cc
-  celeritas/phys/MockModel.cc
-  celeritas/phys/MockProcess.cc
   celeritas/GeantTestBase.cc
-  celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
+  celeritas/GlobalTestBase.cc
   celeritas/ImportedDataTestBase.cc
   celeritas/LazyGeoManager.cc
   celeritas/MockTestBase.cc
   celeritas/RootTestBase.cc
   celeritas/SimpleTestBase.cc
+  celeritas/field/FieldTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
+  celeritas/grid/CalculatorTestBase.cc
+  celeritas/io/EventIOTestBase.cc
+  celeritas/phys/InteractionIO.cc
+  celeritas/phys/InteractorHostTestBase.cc
+  celeritas/phys/MockModel.cc
+  celeritas/phys/MockProcess.cc
+  celeritas/phys/SecondaryIO.cc
+  celeritas/user/CaloTestBase.cc
   celeritas/user/DiagnosticTestBase.cc
   celeritas/user/ExampleMctruth.cc
-  celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
   celeritas/user/StepCollectorTestBase.cc
 )
@@ -568,8 +568,8 @@ celeritas_add_test(celeritas/user/StepCollector.test.cc
 
 if(CELERITAS_USE_Geant4)
   celeritas_add_library(testcel_accel
-    accel/SimpleSensitiveDetector.cc
     accel/SDTestBase.cc
+    accel/SimpleSensitiveDetector.cc
   )
   celeritas_target_link_libraries(testcel_accel
     PUBLIC testcel_celeritas testcel_core testcel_harness Celeritas::accel
