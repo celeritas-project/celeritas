@@ -74,13 +74,13 @@ class Range
     //// CONSTRUCTORS ////
 
     //! Empty constructor for empty range
-    CELER_FORCEINLINE_FUNCTION Range() : begin_{}, end_{} {}
+    CELER_CONSTEXPR_FUNCTION Range() : begin_{}, end_{} {}
 
     //! Construct from stop
-    CELER_FORCEINLINE_FUNCTION Range(T end) : begin_{}, end_(end) {}
+    CELER_CONSTEXPR_FUNCTION Range(T end) : begin_{}, end_(end) {}
 
     //! Construct from start/stop
-    CELER_FORCEINLINE_FUNCTION Range(T begin, T end) : begin_(begin), end_(end)
+    CELER_CONSTEXPR_FUNCTION Range(T begin, T end) : begin_(begin), end_(end)
     {
     }
 
@@ -88,32 +88,32 @@ class Range
 
     //!@{
     //! Iterators
-    CELER_FORCEINLINE_FUNCTION const_iterator begin() const { return begin_; }
-    CELER_FORCEINLINE_FUNCTION const_iterator cbegin() const { return begin_; }
-    CELER_FORCEINLINE_FUNCTION const_iterator end() const { return end_; }
-    CELER_FORCEINLINE_FUNCTION const_iterator cend() const { return end_; }
+    CELER_CONSTEXPR_FUNCTION const_iterator begin() const { return begin_; }
+    CELER_CONSTEXPR_FUNCTION const_iterator cbegin() const { return begin_; }
+    CELER_CONSTEXPR_FUNCTION const_iterator end() const { return end_; }
+    CELER_CONSTEXPR_FUNCTION const_iterator cend() const { return end_; }
     //!@}
 
     //! Array-like access
-    CELER_FORCEINLINE_FUNCTION value_type operator[](size_type i) const
+    CELER_CONSTEXPR_FUNCTION value_type operator[](size_type i) const
     {
         return *(begin_ + i);
     }
 
     //! Number of elements
-    CELER_FORCEINLINE_FUNCTION size_type size() const
+    CELER_CONSTEXPR_FUNCTION size_type size() const
     {
         return TraitsT::to_counter(*end_) - TraitsT::to_counter(*begin_);
     }
 
     //! Whether the range has no elements
-    CELER_FORCEINLINE_FUNCTION bool empty() const { return begin_ == end_; }
+    CELER_CONSTEXPR_FUNCTION bool empty() const { return begin_ == end_; }
 
     //! First item in the range
-    CELER_FORCEINLINE_FUNCTION value_type front() const { return *begin_; }
+    CELER_CONSTEXPR_FUNCTION value_type front() const { return *begin_; }
 
     //! Last item in the range
-    CELER_FORCEINLINE_FUNCTION value_type back() const
+    CELER_CONSTEXPR_FUNCTION value_type back() const
     {
         return (*this)[this->size() - 1];
     }
@@ -122,7 +122,7 @@ class Range
 
     //! Return a stepped range using a different integer type
     template<class U, std::enable_if_t<std::is_signed<U>::value, U> = 0>
-    CELER_FUNCTION detail::StepRange<step_type<U>> step(U step)
+    CELER_CONSTEXPR_FUNCTION detail::StepRange<step_type<U>> step(U step)
     {
         if (step < 0)
         {
@@ -135,7 +135,7 @@ class Range
     //! \cond
     //! Return a stepped range using a different integer type
     template<class U, std::enable_if_t<std::is_unsigned<U>::value, U> = 0>
-    CELER_FUNCTION detail::StepRange<step_type<U>> step(U step)
+    CELER_CONSTEXPR_FUNCTION detail::StepRange<step_type<U>> step(U step)
     {
         return {*begin_, *end_, step};
     }
@@ -163,17 +163,20 @@ class Count
     using value_type = T;
     //@}
 
-    CELER_FUNCTION Count() : begin_{} {}
-    CELER_FUNCTION Count(T begin) : begin_(begin) {}
+    CELER_CONSTEXPR_FUNCTION Count() : begin_{} {}
+    CELER_CONSTEXPR_FUNCTION Count(T begin) : begin_(begin) {}
 
-    CELER_FUNCTION detail::InfStepRange<T> step(T step)
+    CELER_CONSTEXPR_FUNCTION detail::InfStepRange<T> step(T step)
     {
         return {*begin_, step};
     }
 
-    CELER_FUNCTION const_iterator begin() const { return begin_; }
-    CELER_FUNCTION const_iterator end() const { return const_iterator(); }
-    CELER_FUNCTION bool empty() const { return false; }
+    CELER_CONSTEXPR_FUNCTION const_iterator begin() const { return begin_; }
+    CELER_CONSTEXPR_FUNCTION const_iterator end() const
+    {
+        return const_iterator();
+    }
+    CELER_CONSTEXPR_FUNCTION bool empty() const { return false; }
 
   private:
     const_iterator begin_;
@@ -184,7 +187,7 @@ class Count
  * Return a range over fixed beginning and end values.
  */
 template<class T>
-CELER_FUNCTION Range<T> range(T begin, T end)
+CELER_CONSTEXPR_FUNCTION Range<T> range(T begin, T end)
 {
     return {begin, end};
 }
@@ -194,7 +197,7 @@ CELER_FUNCTION Range<T> range(T begin, T end)
  * Return a range with the default start value (0 for numeric types)
  */
 template<class T>
-CELER_FUNCTION Range<T> range(T end)
+CELER_CONSTEXPR_FUNCTION Range<T> range(T end)
 {
     return {end};
 }
@@ -204,7 +207,7 @@ CELER_FUNCTION Range<T> range(T end)
  * Count upward from zero.
  */
 template<class T>
-CELER_FUNCTION Count<T> count()
+CELER_CONSTEXPR_FUNCTION Count<T> count()
 {
     return {};
 }
@@ -214,7 +217,7 @@ CELER_FUNCTION Count<T> count()
  * Count upward from a value.
  */
 template<class T>
-CELER_FUNCTION Count<T> count(T begin)
+CELER_CONSTEXPR_FUNCTION Count<T> count(T begin)
 {
     return {begin};
 }

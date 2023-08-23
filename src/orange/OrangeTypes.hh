@@ -17,13 +17,16 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "orange/BoundingBox.hh"
 #include "orange/Types.hh"
 
 #include "Types.hh"  // IWYU pragma: export
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<class T>
+class BoundingBox;
+
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
