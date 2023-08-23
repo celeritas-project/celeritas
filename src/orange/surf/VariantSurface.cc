@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/transform/VariantTransform.cc
+//! \file orange/surf/VariantSurface.cc
 //---------------------------------------------------------------------------//
-#include "VariantTransform.hh"
+#include "VariantSurface.hh"
 
-#include "detail/TransformTransformer.hh"
-#include "detail/TransformTranslator.hh"
+#include "detail/SurfaceTransformer.hh"
+#include "detail/SurfaceTranslator.hh"
 
 namespace celeritas
 {
@@ -16,15 +16,15 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Wrap a Transformer or Translator to return a variant.
+ * Wrap a Transformer or Translator to return a uniform variant.
  */
 template<class T>
-struct VarTransWrapper
+struct VarSurfWrapper
 {
     T apply;
 
     template<class U>
-    VariantTransform operator()(U&& other)
+    VariantSurface operator()(U&& other)
     {
         return this->apply(std::forward<U>(other));
     }
@@ -32,35 +32,35 @@ struct VarTransWrapper
 
 // Deduction guide
 template<class T>
-VarTransWrapper(T&&) -> VarTransWrapper<T>;
+VarSurfWrapper(T&&) -> VarSurfWrapper<T>;
 
 //---------------------------------------------------------------------------//
 struct VariantTransformDispatcher
 {
-    VariantTransform const& right;
+    VariantSurface const& right;
 
     //! Apply an identity transform (no change)
-    VariantTransform operator()(std::monostate) const { return right; }
+    VariantSurface operator()(std::monostate) const { return right; }
 
     //! Apply a translation
-    VariantTransform operator()(Translation const& left) const
+    VariantSurface operator()(Translation const& left) const
     {
         if (right.valueless_by_exception())
         {
             CELER_ASSERT_UNREACHABLE();
         }
-        return std::visit(VarTransWrapper{detail::TransformTranslator{left}},
+        return std::visit(VarSurfWrapper{detail::SurfaceTranslator{left}},
                           right);
     }
 
     //! Apply a transformation
-    VariantTransform operator()(Transformation const& left) const
+    VariantSurface operator()(Transformation const& left) const
     {
         if (right.valueless_by_exception())
         {
             CELER_ASSERT_UNREACHABLE();
         }
-        return std::visit(VarTransWrapper{detail::TransformTransformer{left}},
+        return std::visit(VarSurfWrapper{detail::SurfaceTransformer{left}},
                           right);
     }
 };
@@ -70,22 +70,10 @@ struct VariantTransformDispatcher
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply the left "daughter-to-parent" transform to the right.
- *
- * The resulting variant may be a monostate (identity), translation (no
- * rotation), or full transformation.
- *
- * The resulting transform has rotation
- * \f[
-   \mathbf{R}' = \mathbf{R}_R
- * \f]
- * and translation
- * \f[
-   \mathbf{t}' = \mathbf{R}_L\mathbf{t}_R + \mathbf{t}_L
- * \f]
+ * Apply a variant "daughter-to-parent" transform to a surface.
  */
-[[nodiscard]] VariantTransform
-apply_transform(VariantTransform const& left, VariantTransform const& right)
+[[nodiscard]] VariantSurface
+apply_transform(VariantTransform const& left, VariantSurface const& right)
 {
     if (left.valueless_by_exception())
     {

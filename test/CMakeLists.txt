@@ -213,9 +213,9 @@ celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 #-------------------------------------#
 # Transforms
 set(CELERITASTEST_PREFIX orange/transform)
-celeritas_add_test(orange/transform/VariantTransform.test.cc)
 celeritas_add_test(orange/transform/Transformation.test.cc)
 celeritas_add_test(orange/transform/Translation.test.cc)
+celeritas_add_test(orange/transform/VariantTransform.test.cc)
 
 #-------------------------------------#
 # Surfaces
@@ -230,6 +230,7 @@ celeritas_add_test(orange/surf/PlaneAligned.test.cc)
 celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
+celeritas_add_test(orange/surf/VariantSurface.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTransformer.test.cc)
 celeritas_add_device_test(orange/surf/SurfaceAction)
