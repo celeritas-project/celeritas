@@ -98,7 +98,6 @@ struct SimTrackInitializer
     real_type time{0};  //!< Time elapsed in lab frame since start of event [s]
 
     TrackStatus status{TrackStatus::inactive};
-    StepLimit step_limit;
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -131,8 +130,8 @@ struct SimStateData
                             //!< [s]
 
     Items<TrackStatus> status;
-    // TODO: separate into post-step action, distance
-    Items<StepLimit> step_limit;
+    Items<real_type> step_length;
+    Items<ActionId> post_step_action;
     Items<ActionId> along_step_action;
 
     //// METHODS ////
@@ -142,8 +141,8 @@ struct SimStateData
     {
         return !track_ids.empty() && !parent_ids.empty() && !event_ids.empty()
                && !num_steps.empty() && !num_looping_steps.empty()
-               && !time.empty() && !status.empty() && !step_limit.empty()
-               && !along_step_action.empty();
+               && !time.empty() && !status.empty() && !step_length.empty()
+               && !post_step_action.empty() && !along_step_action.empty();
     }
 
     //! State size
@@ -164,7 +163,8 @@ struct SimStateData
         num_looping_steps = other.num_looping_steps;
         time = other.time;
         status = other.status;
-        step_limit = other.step_limit;
+        step_length = other.step_length;
+        post_step_action = other.post_step_action;
         along_step_action = other.along_step_action;
         return *this;
     }
@@ -195,7 +195,8 @@ void resize(SimStateData<Ownership::value, M>* data, size_type size)
     resize(&data->status, size);
     fill(TrackStatus::inactive, &data->status);
 
-    resize(&data->step_limit, size);
+    resize(&data->step_length, size);
+    resize(&data->post_step_action, size);
     resize(&data->along_step_action, size);
 
     CELER_ENSURE(*data);

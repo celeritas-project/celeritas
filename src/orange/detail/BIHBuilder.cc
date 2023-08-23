@@ -55,7 +55,7 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
     std::transform(bboxes_.begin(),
                    bboxes_.end(),
                    centers_.begin(),
-                   &celeritas::center<fast_real_type>);
+                   &celeritas::calc_center<fast_real_type>);
 
     VecIndices indices;
     VecIndices inf_volids;

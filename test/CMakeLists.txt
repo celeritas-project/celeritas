@@ -15,9 +15,9 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 celeritas_add_library(testcel_harness
   Test.cc
-  testdetail/TestMacrosImpl.cc
   testdetail/NonMasterResultPrinter.cc
   testdetail/ParallelHandler.cc
+  testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
 )
 target_compile_features(testcel_harness PUBLIC cxx_std_14)
@@ -229,6 +229,8 @@ celeritas_add_test(orange/surf/PlaneAligned.test.cc)
 celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
+celeritas_add_test(orange/surf/detail/SurfaceTranslator.test.cc)
+celeritas_add_test(orange/surf/detail/SurfaceTransformer.test.cc)
 celeritas_add_device_test(orange/surf/SurfaceAction)
 
 #-------------------------------------#
@@ -256,7 +258,6 @@ celeritas_add_object_library(testcel_celeritas_core
   celeritas/MockTestBase.cc
   celeritas/RootTestBase.cc
   celeritas/SimpleTestBase.cc
-  celeritas/field/FieldTestBase.cc
   celeritas/field/FieldTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
@@ -568,8 +569,8 @@ celeritas_add_test(celeritas/user/StepCollector.test.cc
 
 if(CELERITAS_USE_Geant4)
   celeritas_add_library(testcel_accel
-    accel/SimpleSensitiveDetector.cc
     accel/SDTestBase.cc
+    accel/SimpleSensitiveDetector.cc
   )
   celeritas_target_link_libraries(testcel_accel
     PUBLIC testcel_celeritas testcel_core testcel_harness Celeritas::accel

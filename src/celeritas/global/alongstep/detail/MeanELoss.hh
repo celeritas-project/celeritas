@@ -84,7 +84,7 @@ CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
 
     CELER_ENSURE(eloss <= particle.energy());
     CELER_ENSURE(eloss != particle.energy()
-                 || track.make_sim_view().step_limit().action
+                 || track.make_sim_view().post_step_action()
                         == phys.scalars().range_action());
     return eloss;
 }

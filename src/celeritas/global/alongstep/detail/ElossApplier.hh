@@ -47,11 +47,12 @@ CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
     }
 
     auto sim = track.make_sim_view();
-    StepLimit const& step_limit = sim.step_limit();
+    auto step = sim.step_length();
+    auto post_step_action = sim.post_step_action();
 
     // Calculate energy loss, possibly applying tracking cuts
-    bool apply_cut = (step_limit.action != track.boundary_action());
-    auto deposited = eloss.calc_eloss(track, step_limit.step, apply_cut);
+    bool apply_cut = (post_step_action != track.boundary_action());
+    auto deposited = eloss.calc_eloss(track, step, apply_cut);
     CELER_ASSERT(deposited <= particle.energy());
     CELER_ASSERT(apply_cut || deposited != particle.energy());
 
@@ -72,18 +73,18 @@ CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
     if (particle.is_stopped())
     {
         // Particle lost all energy over the step
-        CELER_ASSERT(step_limit.action != track.boundary_action());
+        CELER_ASSERT(post_step_action != track.boundary_action());
         auto const phys = track.make_physics_view();
         if (!phys.has_at_rest())
         {
             // Immediately kill stopped particles with no at rest processes
             sim.status(TrackStatus::killed);
-            sim.step_limit().action = phys.scalars().range_action();
+            sim.post_step_action(phys.scalars().range_action());
         }
         else
         {
             // Particle slowed down to zero: force a discrete interaction
-            sim.step_limit().action = phys.scalars().discrete_action();
+            sim.post_step_action(phys.scalars().discrete_action());
         }
     }
 }

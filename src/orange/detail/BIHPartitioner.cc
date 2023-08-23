@@ -151,8 +151,8 @@ BIHPartitioner::make_partition(VecIndices const& indices,
         }
     }
 
-    p.bboxes[Edge::left] = bbox_union(*bboxes_, p.indices[Edge::left]);
-    p.bboxes[Edge::right] = bbox_union(*bboxes_, p.indices[Edge::right]);
+    p.bboxes[Edge::left] = calc_union(*bboxes_, p.indices[Edge::left]);
+    p.bboxes[Edge::right] = calc_union(*bboxes_, p.indices[Edge::right]);
 
     return p;
 }
@@ -167,8 +167,9 @@ real_type BIHPartitioner::calc_cost(Partition const& p) const
 
     using Edge = BIHInnerNode::Edge;
 
-    return surface_area(p.bboxes[Edge::left]) * p.indices[Edge::left].size()
-           + surface_area(p.bboxes[Edge::right])
+    return calc_surface_area(p.bboxes[Edge::left])
+               * p.indices[Edge::left].size()
+           + calc_surface_area(p.bboxes[Edge::right])
                  * p.indices[Edge::right].size();
 }
 

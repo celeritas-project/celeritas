@@ -90,14 +90,13 @@ CELER_FUNCTION void
 PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
-    StepLimit& step_limit = sim.step_limit();
-    if (step_limit.step == 0)
+    if (sim.step_length() == 0)
     {
         // Track is stopped: no movement or energy loss will happen
         // (could be a stopped positron waiting for annihilation, or a
         // particle waiting to decay?)
         CELER_ASSERT(track.make_particle_view().is_stopped());
-        CELER_ASSERT(step_limit.action
+        CELER_ASSERT(sim.post_step_action()
                      == track.make_physics_view().scalars().discrete_action());
         CELER_ASSERT(track.make_physics_view().has_at_rest());
         return;
@@ -107,7 +106,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
     Propagation p;
     {
         auto propagate = make_propagator(track);
-        p = propagate(step_limit.step);
+        p = propagate(sim.step_length());
         tracks_can_loop = propagate.tracks_can_loop();
     }
 
@@ -120,21 +119,21 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
         // The track is looping, i.e. progressing little over many
         // integration steps in the field propagator (likely a low energy
         // particle in a low density material/strong magnetic field).
-        step_limit.step = p.distance;
+        sim.step_length(p.distance);
 
         // Kill the track if it's stable and below the threshold energy or
         // above the threshold number of steps allowed while looping.
         auto particle = track.make_particle_view();
-        step_limit.action = [&track, &particle, &sim] {
+        sim.post_step_action([&track, &particle, &sim] {
             if (particle.is_stable()
                 && sim.is_looping(particle.particle_id(), particle.energy()))
             {
                 return track.abandon_looping_action();
             }
             return track.propagation_limit_action();
-        }();
+        }());
 
-        if (step_limit.action == track.abandon_looping_action())
+        if (sim.post_step_action() == track.abandon_looping_action())
         {
             // TODO: move this branch into a separate post-step kernel.
             // If the track is looping (or if it's a stuck track that was
@@ -156,18 +155,18 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
     else if (p.boundary)
     {
         // Stopped at a geometry boundary: this is the new step action.
-        CELER_ASSERT(p.distance <= step_limit.step);
-        step_limit.step = p.distance;
-        step_limit.action = track.boundary_action();
+        CELER_ASSERT(p.distance <= sim.step_length());
+        sim.step_length(p.distance);
+        sim.post_step_action(track.boundary_action());
     }
-    else if (p.distance < step_limit.step)
+    else if (p.distance < sim.step_length())
     {
         // Some tracks may get stuck on a boundary and fail to move at
         // all in the field propagator, and will get bumped a small
         // distance. This primarily occurs with reentrant tracks on a
         // boundary with VecGeom.
-        step_limit.step = p.distance;
-        step_limit.action = track.propagation_limit_action();
+        sim.step_length(p.distance);
+        sim.post_step_action(track.propagation_limit_action());
     }
 }
 

@@ -51,7 +51,7 @@ class EventIOTestBase : public Test
         void print_expected() const;
     };
 
-    // Create partilces
+    // Create particles
     void SetUp() override;
 
     // Read all primaries from a file

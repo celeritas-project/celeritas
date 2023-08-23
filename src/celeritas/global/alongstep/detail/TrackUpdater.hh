@@ -34,19 +34,18 @@ CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView const& track)
     auto sim = track.make_sim_view();
     if (sim.status() != TrackStatus::killed)
     {
-        StepLimit const& step_limit = sim.step_limit();
-        CELER_ASSERT(step_limit.step > 0
+        CELER_ASSERT(sim.step_length() > 0
                      || track.make_particle_view().is_stopped());
-        CELER_ASSERT(step_limit.action);
+        CELER_ASSERT(sim.post_step_action());
         auto phys = track.make_physics_view();
-        if (step_limit.action != phys.scalars().discrete_action())
+        if (sim.post_step_action() != phys.scalars().discrete_action())
         {
             // Reduce remaining mean free paths to travel. The 'discrete
             // action' case is launched separately and resets the
             // interaction MFP itself.
             auto step = track.make_physics_step_view();
             real_type mfp = phys.interaction_mfp()
-                            - step_limit.step * step.macro_xs();
+                            - sim.step_length() * step.macro_xs();
             CELER_ASSERT(mfp > 0);
             phys.interaction_mfp(mfp);
         }
