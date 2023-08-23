@@ -87,17 +87,6 @@ inline RootEventReader::result_type RootEventReader::operator()()
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
-template<class T>
-auto RootEventReader::from_leaf(char const*) -> T
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-
-inline Real3 RootEventReader::from_array_leaf(char const*)
-{
-    CELER_ASSERT_UNREACHABLE();
-}
 #endif
 
 //---------------------------------------------------------------------------//

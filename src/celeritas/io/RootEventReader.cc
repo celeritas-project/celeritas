@@ -25,9 +25,9 @@ RootEventReader::RootEventReader(std::string const& filename,
                                  SPConstParticles params)
     : params_(std::move(params))
 {
+    CELER_EXPECT(!filename.empty());
     ScopedRootErrorHandler scoped_root_error;
 
-    CELER_EXPECT(!filename.empty());
     tfile_.reset(TFile::Open(filename.c_str(), "read"));
     CELER_ASSERT(tfile_->IsOpen());
     ttree_.reset(tfile_->Get<TTree>(tree_name()));
@@ -44,9 +44,9 @@ RootEventReader::RootEventReader(std::string const& filename,
  */
 auto RootEventReader::operator()() -> result_type
 {
+    CELER_EXPECT(entry_count_ <= num_entries_);
     ScopedRootErrorHandler scoped_root_error;
 
-    CELER_EXPECT(entry_count_ <= num_entries_);
     EventId expected_evt_id{0};
     TrackId track_id{0};
     result_type primaries;

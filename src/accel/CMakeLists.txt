@@ -35,10 +35,6 @@ endif()
 if(CELERITAS_USE_HepMC3)
   list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
   list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
-
-  if (CELERITAS_USE_ROOT)
-    list(APPEND PRIVATE_DEPS ROOT::Tree)
-  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

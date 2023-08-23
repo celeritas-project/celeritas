@@ -27,25 +27,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a filename and particle params.
+ * Construct from a filename.
  */
 EventReader::EventReader(std::string const& filename, SPConstParticles params)
-    : EventReader(filename)
+    : params_(std::move(params))
 {
-    params_ = std::move(params);
     CELER_EXPECT(params_);
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Construct from a filename.
- *
- * \note
- * This is intended to be used outside of Celeritas. Without \c ParticleParams
- * \c celeritas::Primary::particle_id will not be assigned.
- */
-EventReader::EventReader(std::string const& filename)
-{
     // Determine the input file format and construct the appropriate reader
     reader_ = open_hepmc3(filename);
 
@@ -98,22 +86,20 @@ auto EventReader::operator()() -> result_type
             continue;
         }
 
-        Primary primary;
-
         // Get the PDG code and check if this particle type is defined for
         // the current physics
         PDGNumber pdg{par->pid()};
-        if (params_)
+        ParticleId particle_id{params_->find(pdg)};
+        if (CELER_UNLIKELY(!particle_id))
         {
-            ParticleId particle_id{params_->find(pdg)};
-            if (CELER_UNLIKELY(!particle_id))
-            {
-                missing_pdg.insert(pdg.unchecked_get());
-                continue;
-            }
-            // Set the registered ID of the particle
-            primary.particle_id = particle_id;
+            missing_pdg.insert(pdg.unchecked_get());
+            continue;
         }
+
+        Primary primary;
+
+        // Set the registered ID of the particle
+        primary.particle_id = particle_id;
 
         // Set the event and track number
         primary.event_id = event_id;
