@@ -5,11 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file orange/transform/VariantTransform.cc
 //---------------------------------------------------------------------------//
-#include "celeritas_config.h"
-#undef CELERITAS_DEBUG
-#define CELERITAS_DEBUG 0
-
 #include "VariantTransform.hh"
+
 #include "detail/TransformTransformer.hh"
 #include "detail/TransformTranslator.hh"
 
