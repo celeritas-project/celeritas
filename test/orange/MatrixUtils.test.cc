@@ -89,6 +89,9 @@ TEST_F(MatrixUtilsTest, gemm)
 
     auto result = gemm(a, b);
     EXPECT_EQ(result, (Mat3{Vec3{9, 8, 0}, Vec3{1, 0, -2}, Vec3{-11, 0, 0}}));
+
+    result = gemm(matrix::transpose, a, b);
+    EXPECT_EQ(result, (Mat3{Vec3{-6, -4, 3}, Vec3{10, 4, 0}, Vec3{2, 4, 5}}));
 }
 
 //---------------------------------------------------------------------------//

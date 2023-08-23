@@ -77,6 +77,12 @@ template<class T, size_type N>
 SquareMatrix<T, N>
 gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b);
 
+// Perform a matrix-matrix multiply with A transposed
+template<class T, size_type N>
+SquareMatrix<T, N> gemm(matrix::TransposePolicy,
+                        SquareMatrix<T, N> const& a,
+                        SquareMatrix<T, N> const& b);
+
 // Normalize and orthogonalize a small, dense matrix
 template<class T, size_type N>
 void orthonormalize(SquareMatrix<T, N>* mat);

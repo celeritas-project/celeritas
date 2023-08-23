@@ -67,6 +67,39 @@ gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Naive square matrix-matrix multiply with the first matrix transposed.
+ *
+ * \f[
+ * C \gets A^T * B
+ * \f]
+ *
+ * \note The first argument is a "tag" that alters the behavior of this
+ * function versus the non-transposed one.
+ */
+template<class T, size_type N>
+SquareMatrix<T, N> gemm(matrix::TransposePolicy,
+                        SquareMatrix<T, N> const& a,
+                        SquareMatrix<T, N> const& b)
+{
+    SquareMatrix<T, N> result;
+    for (size_type i = 0; i != N; ++i)
+    {
+        for (size_type j = 0; j != N; ++j)
+        {
+            // Reset target row
+            result[i][j] = 0;
+            // Accumulate dot products
+            for (size_type k = 0; k != N; ++k)
+            {
+                result[i][j] += b[k][j] * a[k][i];
+            }
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Normalize and orthogonalize a small, dense matrix.
  *
  * This is used for constructing rotation matrices from user-given matrices
@@ -174,18 +207,37 @@ Mat3 make_rotation(Axis ax, Turn theta, Mat3 const& other)
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 template int determinant(SquareMatrix<int, 3> const&);
+template float determinant(SquareMatrix<float, 3> const&);
+template double determinant(SquareMatrix<double, 3> const&);
+
+template void orthonormalize(SquareMatrix<float, 3>*);
+template void orthonormalize(SquareMatrix<double, 3>*);
+
+// GEMM
 template SquareMatrix<int, 3>
 gemm(SquareMatrix<int, 3> const&, SquareMatrix<int, 3> const&);
-
-template float determinant(SquareMatrix<float, 3> const&);
 template SquareMatrix<float, 3>
 gemm(SquareMatrix<float, 3> const&, SquareMatrix<float, 3> const&);
-template void orthonormalize(SquareMatrix<float, 3>*);
-
-template double determinant(SquareMatrix<double, 3> const&);
 template SquareMatrix<double, 3>
 gemm(SquareMatrix<double, 3> const&, SquareMatrix<double, 3> const&);
-template void orthonormalize(SquareMatrix<double, 3>*);
+
+// GEMM transpose
+template SquareMatrix<int, 3> gemm(matrix::TransposePolicy,
+                                   SquareMatrix<int, 3> const&,
+                                   SquareMatrix<int, 3> const&);
+template SquareMatrix<float, 3> gemm(matrix::TransposePolicy,
+                                     SquareMatrix<float, 3> const&,
+                                     SquareMatrix<float, 3> const&);
+template SquareMatrix<double, 3> gemm(matrix::TransposePolicy,
+                                      SquareMatrix<double, 3> const&,
+                                      SquareMatrix<double, 3> const&);
+
+// 4x4 real GEMM and transpose
+template SquareMatrix<real_type, 4>
+gemm(SquareMatrix<real_type, 4> const&, SquareMatrix<real_type, 4> const&);
+template SquareMatrix<real_type, 4> gemm(matrix::TransposePolicy,
+                                         SquareMatrix<real_type, 4> const&,
+                                         SquareMatrix<real_type, 4> const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
