@@ -19,6 +19,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Copier.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/Device.hh"
@@ -59,14 +60,39 @@ void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 
 //---------------------------------------------------------------------------//
 
-template<class F>
-void sort_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
+__global__ void
+reorder_actions_kernel(ObserverPtr<TrackSlotId::size_type const> track_slots,
+                       ObserverPtr<ActionId const> actions,
+                       ObserverPtr<ActionId::size_type> out_actions,
+                       size_type size)
 {
-    auto start = device_pointer_cast(track_slots.data());
-    thrust::sort(thrust::device.on(celeritas::device().stream(stream_id).get()),
-                 start,
-                 start + track_slots.size(),
-                 std::forward<F>(func));
+    if (ThreadId tid = celeritas::KernelParamCalculator::thread_id();
+        tid < size)
+    {
+        out_actions.get()[tid.get()]
+            = actions.get()[track_slots.get()[tid.get()]].get();
+    }
+}
+
+void sort_impl(TrackSlots const& track_slots,
+               ObserverPtr<ActionId const> actions,
+               StreamId stream_id)
+{
+    DeviceVector<ActionId::size_type> reordered_actions(track_slots.size());
+    CELER_LAUNCH_KERNEL(reorder_actions,
+                        celeritas::device().default_block_size(),
+                        track_slots.size(),
+                        celeritas::device().stream(stream_id).get(),
+                        track_slots.data(),
+                        actions,
+                        make_observer(reordered_actions.data()),
+                        track_slots.size());
+    auto start = reordered_actions.data();
+    thrust::sort_by_key(
+        thrust::device.on(celeritas::device().stream(stream_id).get()),
+        start,
+        start + reordered_actions.size(),
+        device_pointer_cast(track_slots.data()));
     CELER_DEVICE_CHECK_ERROR();
 }
 
@@ -171,15 +197,13 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
                                   alive_predicate{states.sim.status.data()},
                                   states.stream_id);
         case TrackOrder::sort_along_step_action:
-            return sort_impl(
-                states.track_slots,
-                action_comparator{states.sim.along_step_action.data()},
-                states.stream_id);
+            return sort_impl(states.track_slots,
+                             states.sim.along_step_action.data(),
+                             states.stream_id);
         case TrackOrder::sort_step_limit_action:
-            return sort_impl(
-                states.track_slots,
-                action_comparator{states.sim.post_step_action.data()},
-                states.stream_id);
+            return sort_impl(states.track_slots,
+                             states.sim.post_step_action.data(),
+                             states.stream_id);
         default:
             CELER_ASSERT_UNREACHABLE();
     }
