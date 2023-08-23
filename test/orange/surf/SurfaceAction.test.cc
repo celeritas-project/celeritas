@@ -23,6 +23,7 @@
 #include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/surf/Surfaces.hh"
+#include "orange/surf/VariantSurface.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
@@ -166,6 +167,31 @@ struct GetTypeSize
 // TESTS
 //---------------------------------------------------------------------------//
 
+// The surface action functors are equivalent to a variant visitor
+TEST_F(SurfaceActionTest, variant_surface)
+{
+    std::vector<VariantSurface> surfaces{
+        PlaneZ{3},
+        CCylX{5},
+        Sphere{{1, 2, 3}, 1.5},
+        ConeY{{1, 2, 3}, 0.4},
+        SimpleQuadric{{0, 1, 2}, {6, 7, 8}, 9},
+    };
+    std::vector<std::string> strings;
+    for (auto const& vs : surfaces)
+    {
+        strings.push_back(std::visit(ToString{}, vs));
+    }
+    static char const* const expected_strings[] = {
+        "Plane: z=3",
+        "Cyl x: r=5",
+        "Sphere: r=1.5 at {1,2,3}",
+        "Cone y: t=0.4 at {1,2,3}",
+        "SQuadric: {0,1,2} {6,7,8} 9",
+    };
+    EXPECT_VEC_EQ(expected_strings, strings);
+}
+
 TEST_F(SurfaceActionTest, string)
 {
     // Create functor
@@ -181,7 +207,7 @@ TEST_F(SurfaceActionTest, string)
         strings.push_back(surf_to_string(id));
     }
 
-    char const* const expected_strings[] = {
+    static char const* const expected_strings[] = {
         "Plane: x=1",
         "Plane: y=2",
         "Plane: z=3",
