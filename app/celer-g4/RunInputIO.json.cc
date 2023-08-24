@@ -65,6 +65,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_OPTION(field_options);
 
     RI_LOAD_OPTION(output_file);
+    RI_LOAD_OPTION(physics_output_file);
     RI_LOAD_OPTION(offload_output_file);
     RI_LOAD_OPTION(macro_file);
     RI_LOAD_OPTION(root_buffer_size);
@@ -127,6 +128,8 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE_OPTION(field);
     RI_SAVE_OPTION(field_options);
 
+    RI_SAVE_OPTION(output_file);
+    RI_SAVE_OPTION(physics_output_file);
     RI_SAVE_OPTION(offload_output_file);
     RI_SAVE_OPTION(macro_file);
     RI_SAVE_OPTION(root_buffer_size);

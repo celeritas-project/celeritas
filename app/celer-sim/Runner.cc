@@ -332,7 +332,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read events from a HepMC3 file or build using a primary generator.
+ * Read events from a file or build using a primary generator.
  */
 void Runner::build_events(RunnerInput const& inp)
 {
