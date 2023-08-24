@@ -72,14 +72,14 @@ struct VariantTransformDispatcher
 /*!
  * Apply a variant "daughter-to-parent" transform to a surface.
  */
-[[nodiscard]] VariantSurface
-apply_transform(VariantTransform const& left, VariantSurface const& right)
+[[nodiscard]] VariantSurface apply_transform(VariantTransform const& transform,
+                                             VariantSurface const& surface)
 {
-    if (left.valueless_by_exception())
+    if (transform.valueless_by_exception())
     {
         CELER_ASSERT_UNREACHABLE();
     }
-    return std::visit(VariantTransformDispatcher{right}, left);
+    return std::visit(VariantTransformDispatcher{surface}, transform);
 }
 
 //---------------------------------------------------------------------------//

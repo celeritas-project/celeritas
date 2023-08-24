@@ -28,19 +28,27 @@ namespace detail
  * another transformation: the translation needed to relocate a "lower"
  * universe to a new coordinate system in the "higher" universe.
  *
- * The operation returns a new transform defined
- * \f[
-   \mathbf{T}' = \mathbf{T}_L \mathbf{T}_R
+ * Given a transform operator \b T defined \f[
+   \mathbf{T} x = \mathbf{R} x + t
  * \f]
- * where T is the argument, \f$\mathbf{T}_L\f$ is the constructor argument (the
- * operator itself), and the result \f$\mathbf{T}'\f$ is the return value.
+ * and a translation operator defined \f[
+   \mathbf{\tilde T} x = x + t
+ * \f]
+ * where \f$ \mathbf{R} = \mathbf{I} \f$ is the implicit rotation matrix for
+ * a translation, this operation returns a new transform
+ * \f[
+   \mathbf{T}' = \mathbf{\tilde T}_A \mathbf{T}_B
+ * \f]
+ * where \f$\mathbf{\tilde T}_A\f$ is the constructor argument, \b T_B is the
+ argument passed to the call operator,
+ * and the \f$\mathbf{T}'\f$ is the return value.
  * The resulting transform has rotation
  * \f[
-   \mathbf{R}' = \mathbf{R}_R
+   \mathbf{R}' = \mathbf{R}_B
  * \f]
  * and translation
  * \f[
-   \mathbf{t}' = \mathbf{R}_L\mathbf{t}_R + \mathbf{t}_L
+   \mathbf{t}' = \mathbf{t}_B + \mathbf{t}_A
  * \f]
  */
 class TransformTranslator

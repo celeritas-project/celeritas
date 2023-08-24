@@ -22,8 +22,8 @@ using VariantSurface = detail::VariantSurface_t;
 
 //---------------------------------------------------------------------------//
 // Apply a variant "daughter-to-parent" transform to a surface
-[[nodiscard]] VariantSurface
-apply_transform(VariantTransform const& left, VariantSurface const& right);
+[[nodiscard]] VariantSurface apply_transform(VariantTransform const& transform,
+                                             VariantSurface const& surface);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
