@@ -70,7 +70,7 @@ reorder_actions_kernel(ObserverPtr<TrackSlotId::size_type const> track_slots,
         tid < size)
     {
         out_actions.get()[tid.get()]
-            = actions.get()[track_slots.get()[tid.get()]].get();
+            = actions.get()[track_slots.get()[tid.get()]].unchecked_get();
     }
 }
 
