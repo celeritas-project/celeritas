@@ -34,6 +34,9 @@ namespace celeritas
  * distributions. If more than one PDG number is specified, an equal number of
  * each particle type will be produced. Each \c operator() call will return a
  * single event until \c num_events events have been generated.
+ *
+ * \todo Hardcode engine to mt19937 and inherit from EventReaderInterface (or
+ * even change that name).
  */
 template<class Engine>
 class PrimaryGenerator
