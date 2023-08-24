@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "VariantTransform.hh"
 
+#include "corecel/cont/VariantUtils.hh"
+
 #include "detail/TransformTransformer.hh"
 #include "detail/TransformTranslator.hh"
 
@@ -14,26 +16,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Wrap a Transformer or Translator to return a variant.
- */
-template<class T>
-struct VarTransWrapper
-{
-    T apply;
-
-    template<class U>
-    VariantTransform operator()(U&& other)
-    {
-        return this->apply(std::forward<U>(other));
-    }
-};
-
-// Deduction guide
-template<class T>
-VarTransWrapper(T&&) -> VarTransWrapper<T>;
-
 //---------------------------------------------------------------------------//
 struct VariantTransformDispatcher
 {
@@ -49,8 +31,9 @@ struct VariantTransformDispatcher
         {
             CELER_ASSERT_UNREACHABLE();
         }
-        return std::visit(VarTransWrapper{detail::TransformTranslator{left}},
-                          right);
+        return std::visit(
+            return_as<VariantTransform>(detail::TransformTranslator{left}),
+            right);
     }
 
     //! Apply a transformation
@@ -60,8 +43,9 @@ struct VariantTransformDispatcher
         {
             CELER_ASSERT_UNREACHABLE();
         }
-        return std::visit(VarTransWrapper{detail::TransformTransformer{left}},
-                          right);
+        return std::visit(
+            return_as<VariantTransform>(detail::TransformTransformer{left}),
+            right);
     }
 };
 

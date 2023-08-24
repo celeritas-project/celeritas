@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "VariantSurface.hh"
 
+#include "corecel/cont/VariantUtils.hh"
+
 #include "detail/SurfaceTransformer.hh"
 #include "detail/SurfaceTranslator.hh"
 
@@ -14,26 +16,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Wrap a Transformer or Translator to return a uniform variant.
- */
-template<class T>
-struct VarSurfWrapper
-{
-    T apply;
-
-    template<class U>
-    VariantSurface operator()(U&& other)
-    {
-        return this->apply(std::forward<U>(other));
-    }
-};
-
-// Deduction guide
-template<class T>
-VarSurfWrapper(T&&) -> VarSurfWrapper<T>;
-
 //---------------------------------------------------------------------------//
 struct VariantTransformDispatcher
 {
@@ -49,8 +31,8 @@ struct VariantTransformDispatcher
         {
             CELER_ASSERT_UNREACHABLE();
         }
-        return std::visit(VarSurfWrapper{detail::SurfaceTranslator{left}},
-                          right);
+        return std::visit(
+            return_as<VariantSurface>(detail::SurfaceTranslator{left}), right);
     }
 
     //! Apply a transformation
@@ -60,8 +42,8 @@ struct VariantTransformDispatcher
         {
             CELER_ASSERT_UNREACHABLE();
         }
-        return std::visit(VarSurfWrapper{detail::SurfaceTransformer{left}},
-                          right);
+        return std::visit(
+            return_as<VariantSurface>(detail::SurfaceTransformer{left}), right);
     }
 };
 
