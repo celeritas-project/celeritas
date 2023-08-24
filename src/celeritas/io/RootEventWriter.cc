@@ -62,7 +62,7 @@ RootEventWriter::RootEventWriter(SPRootFileManager root_file_manager,
 /*!
  * Export primaries to ROOT.
  */
-void RootEventWriter::operator()(Primaries const& primaries)
+void RootEventWriter::operator()(VecPrimary const& primaries)
 {
     CELER_EXPECT(!primaries.empty());
     ScopedRootErrorHandler scoped_root_error;
