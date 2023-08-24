@@ -77,11 +77,11 @@ struct VariantTransformDispatcher
  *
  * The resulting transform has rotation
  * \f[
-   \mathbf{R}' = \mathbf{R}_R
+   \mathbf{R}' = \mathbf{R}_2
  * \f]
  * and translation
  * \f[
-   \mathbf{t}' = \mathbf{R}_L\mathbf{t}_R + \mathbf{t}_L
+   \mathbf{t}' = \mathbf{R}_1\mathbf{t}_2 + \mathbf{t}_1
  * \f]
  */
 [[nodiscard]] VariantTransform
