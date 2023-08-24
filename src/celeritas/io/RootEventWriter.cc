@@ -47,6 +47,9 @@ RootEventWriter::RootEventWriter(SPRootFileManager root_file_manager,
 {
     ScopedRootErrorHandler scoped_root_error;
 
+    CELER_LOG(info) << "Creating event tree '" << this->tree_name() << "' at "
+                    << tfile_mgr_->filename();
+
     ttree_ = tfile_mgr_->make_tree(this->tree_name(), this->tree_name());
     ttree_->Branch("event_id", &primary_.event_id);
     ttree_->Branch("particle", &primary_.particle);
