@@ -65,9 +65,10 @@ struct RunInput
     FieldDriverOptions field_options;
 
     // IO
-    std::string output_file;  //!< Path to the JSON diagnostic output file
-    std::string offload_file;  //!< Path to the HepMC3 file of offloaded tracks
-    std::string macro_file;  //!< Path to macro file for Geant4 commands
+    std::string output_file;  //!< Write JSON diagnostics here
+    std::string offload_output_file;  //!< Write offloaded tracks to
+                                      //!< HepMC3/ROOT
+    std::string macro_file;  //!< Read Geant4 commands
     int root_buffer_size{128000};
     bool write_sd_hits{false};
     bool strip_gdml_pointers{true};

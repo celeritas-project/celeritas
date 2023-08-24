@@ -153,7 +153,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
     ui->ApplyCommand("/celer/cuda/defaultStream"
                      + to_string(input_.default_stream));
     ui->ApplyCommand("/celer/outputFile " + input_.output_file);
-    ui->ApplyCommand("/celer/offloadFile " + input_.offload_file);
+    ui->ApplyCommand("/celer/offloadOutputFile " + input_.offload_output_file);
 
     // Execute macro for Geant4 commands (e.g. to set verbosity)
     if (!input_.macro_file.empty())
