@@ -27,30 +27,23 @@ namespace detail
  * another transformation: the translation needed to relocate a "lower"
  * universe to a new coordinate system in the "higher" universe.
  *
- * The operation returns a new transform defined
- * \f[
-   \mathbf{T}' = \mathbf{T}_L \mathbf{T}_R
+ * Given a transform operator \b T defined \f[
+   \mathbf{T}x = \mathbf{R} x + t
  * \f]
- * where T is the argument, \f$\mathbf{T}_L\f$ is the constructor argument (the
- * operator itself), and the result \f$\mathbf{T}'\f$ is the return value.
- * The resulting transform is:
+ * this operation returns a new transform
  * \f[
-   \mathbf{x}' = \mathbf{T}_L\mathbf{x}
-   = \mathbf{R}_L\mathbf{x} + \mathbf{t}_L
+   \mathbf{T}' = \mathbf{T}_A \mathbf{T}_B
  * \f]
- * Then
+ * where \f$\mathbf{T}_A\f$ is the constructor argument
+ * (the operator itself), \b T_B is the argument passed to the call operator,
+ * and the \f$\mathbf{T}'\f$ is the return value.
+ * The new transform has rotation
  * \f[
-   \mathbf{T}_L\mathbf{T}_R\mathbf{x} = \mathbf{T}_L\mathbf{x}' =
-   \mathbf{R}_L\mathbf{x}' + \mathbf{t}_L = \mathbf{R}_L(
-   \mathbf{R}_R\mathbf{x} + \mathbf{t}_R) + \mathbf{t}_L
-   \f]
- * Then the new transform has rotation
- * \f[
-   \mathbf{R}' = \mathbf{R}_L\mathbf{R}_R
+   \mathbf{R}' = \mathbf{R}_A\mathbf{R}_B
  * \f]
  * and translation
  * \f[
-   \mathbf{t}' = \mathbf{R}_L\mathbf{t}_R + \mathbf{t}_L
+   \mathbf{t}' = \mathbf{R}_A\mathbf{t}_B + \mathbf{t}_A
  * \f]
  */
 class TransformTransformer
