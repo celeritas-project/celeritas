@@ -41,10 +41,13 @@ std::array<double, 3> real3_to_array(Real3 const& src)
  */
 RootEventWriter::RootEventWriter(SPRootFileManager root_file_manager,
                                  SPConstParticles params)
-    : tfile_mgr_(root_file_manager)
+    : tfile_mgr_(std::move(root_file_manager))
     , params_(std::move(params))
     , event_id_(static_cast<size_type>(-1))
 {
+    CELER_EXPECT(tfile_mgr_);
+    CELER_EXPECT(params_);
+
     ScopedRootErrorHandler scoped_root_error;
 
     CELER_LOG(info) << "Creating event tree '" << this->tree_name() << "' at "

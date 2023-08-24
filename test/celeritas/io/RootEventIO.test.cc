@@ -17,13 +17,13 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class EventIOTest : public EventIOTestBase
+class RootEventIOTest : public EventIOTestBase
 {
 };
 
-TEST_F(EventIOTest, write_read)
+TEST_F(RootEventIOTest, write_read)
 {
-    std::string filename = this->make_unique_filename(std::string{".root"});
+    std::string filename = this->make_unique_filename(".root");
 
     // Write events
     {

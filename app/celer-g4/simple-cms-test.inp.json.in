@@ -2,7 +2,7 @@
  "geometry_file": "@PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml",
  "event_file": "@CELERG4_EVENTS@",
  "output_file": "simple-cms.out.json",
- "offload_output_file": "simple-cms.offloaded.hepmc3",
+ "offload_output_file": "@CELERG4_OFFLOAD_FILE@",
  "num_track_slots": @CELERG4_MAX_NUM_TRACKS@,
  "max_events": 1024,
  "initializer_capacity": @CELERG4_INIT_CAPACITY@,
