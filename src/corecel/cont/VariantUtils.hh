@@ -7,30 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
 #include <utility>
+#include <variant>
+
+#include "detail/VariantUtilsImpl.hh"
 
 namespace celeritas
 {
-namespace detail
-{
-//---------------------------------------------------------------------------//
-/*!
- * Implementation of \c return_as.
- */
-template<class T, class F>
-struct ReturnAsImpl
-{
-    F apply;
-
-    template<class U>
-    T operator()(U&& other)
-    {
-        return this->apply(std::forward<U>(other));
-    }
-};
-//---------------------------------------------------------------------------//
-}  // namespace detail
-
 //---------------------------------------------------------------------------//
 /*!
  * Create a wrapper functor for unifying the return type.
@@ -45,6 +29,20 @@ detail::ReturnAsImpl<T, F> return_as(F&& func)
 {
     return {std::forward<F>(func)};
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Define a variant that contains all the classes mapped by an enum+traits.
+ *
+ * For example: \code
+    using VariantSurface = EnumVariant<SurfaceType, SurfaceTypeTraits>;
+ * \endcode
+ * is equivalent to: \code
+    using VariantSurface = std::variant<PlaneX, PlaneY, ..., GeneralQuadric>;
+ * \endcode
+ */
+template<class E, template<E> class ETraits>
+using EnumVariant = typename detail::EnumVariantImpl<E, ETraits>::type;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
