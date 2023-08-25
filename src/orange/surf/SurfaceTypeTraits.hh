@@ -15,16 +15,38 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Helper struct for mapping enums to classes.
+ *
+ * \todo This will be moved later for reuse in other type-deleted storage.
+ */
+template<class E, E EV, class T>
+struct EnumToClass
+{
+    using enum_type = E;
+    using type = T;
+
+    static constexpr enum_type value = EV;
+
+    constexpr operator E() const noexcept { return value; }
+    constexpr enum_type operator()() const noexcept { return value; }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Map surface enumeration to surface type.
+ *
+ * This class can be passed as a "tag" to functors that can then retrieve its
+ * value or the associated class. It can be implicitly converted into a
+ * SurfaceType enum for use in template parameters.
  */
 template<SurfaceType S>
 struct SurfaceTypeTraits;
 
-#define ORANGE_SURFACE_TRAITS(ENUM_VALUE, CLS)        \
-    template<>                                        \
-    struct SurfaceTypeTraits<SurfaceType::ENUM_VALUE> \
-    {                                                 \
-        using type = CLS;                             \
+#define ORANGE_SURFACE_TRAITS(ENUM_VALUE, CLS)                          \
+    template<>                                                          \
+    struct SurfaceTypeTraits<SurfaceType::ENUM_VALUE>                   \
+        : public EnumToClass<SurfaceType, SurfaceType::ENUM_VALUE, CLS> \
+    {                                                                   \
     }
 
 // clang-format off
@@ -48,6 +70,46 @@ ORANGE_SURFACE_TRAITS(gq,  GeneralQuadric);
 // clang-format on
 
 #undef ORANGE_SURFACE_TRAITS
+
+//---------------------------------------------------------------------------//
+/*!
+ * Expand a macro to a switch statement over all possible surface types.
+ *
+ * The \c func argument should be a functor that takes a single argument which
+ * is a SurfaceTypeTraits instance.
+ */
+template<class F>
+constexpr decltype(auto) visit_surface_type(F&& func, SurfaceType st)
+{
+#define ORANGE_ST_VISIT_CASE(TYPE)          \
+    case SurfaceType::TYPE:                 \
+        return celeritas::forward<F>(func)( \
+            SurfaceTypeTraits<SurfaceType::TYPE>{})
+
+    switch (st)
+    {
+        ORANGE_ST_VISIT_CASE(px);
+        ORANGE_ST_VISIT_CASE(py);
+        ORANGE_ST_VISIT_CASE(pz);
+        ORANGE_ST_VISIT_CASE(cxc);
+        ORANGE_ST_VISIT_CASE(cyc);
+        ORANGE_ST_VISIT_CASE(czc);
+        ORANGE_ST_VISIT_CASE(sc);
+        ORANGE_ST_VISIT_CASE(cx);
+        ORANGE_ST_VISIT_CASE(cy);
+        ORANGE_ST_VISIT_CASE(cz);
+        ORANGE_ST_VISIT_CASE(p);
+        ORANGE_ST_VISIT_CASE(s);
+        ORANGE_ST_VISIT_CASE(kx);
+        ORANGE_ST_VISIT_CASE(ky);
+        ORANGE_ST_VISIT_CASE(kz);
+        ORANGE_ST_VISIT_CASE(sq);
+        ORANGE_ST_VISIT_CASE(gq);
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+#undef ORANGE_ST_VISIT_CASE
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
