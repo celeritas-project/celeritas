@@ -50,6 +50,16 @@
  * side effects are as expected when leaving a function.
  */
 /*!
+ * \def CELER_ASSUME
+ *
+ * Always-on compiler assumption. This should be used very rarely: you should
+ * make sure the resulting assembly is simplified in optimize mode from using
+ * the assumption. For example, sometimes informing the compiler of an
+ * assumption can reduce code bloat by skipping standard library exception
+ * handling code (e.g. in \c std::visit by assuming \c
+ * !var_obj.valueless_by_exception() ).
+ */
+/*!
  * \def CELER_VALIDATE
  *
  * Always-on runtime assertion macro. This can check user input and input data
@@ -156,6 +166,14 @@
         CELER_DEBUG_THROW_(MSG, WHICH); \
         ::celeritas::unreachable();     \
     } while (0)
+#define CELER_NDEBUG_ASSUME_(COND)      \
+    do                                  \
+    {                                   \
+        if (CELER_UNLIKELY(!(COND)))    \
+        {                               \
+            ::celeritas::unreachable(); \
+        }                               \
+    } while (0)
 #define CELER_NOASSERT_(COND)   \
     do                          \
     {                           \
@@ -167,12 +185,14 @@
 #    define CELER_EXPECT(COND) CELER_DEBUG_ASSERT_(COND, precondition)
 #    define CELER_ASSERT(COND) CELER_DEBUG_ASSERT_(COND, internal)
 #    define CELER_ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
+#    define CELER_ASSUME(COND) CELER_DEBUG_ASSERT_(COND, assumption)
 #    define CELER_ASSERT_UNREACHABLE() \
         CELER_DEBUG_FAIL_("unreachable code point encountered", unreachable)
 #else
 #    define CELER_EXPECT(COND) CELER_NOASSERT_(COND)
 #    define CELER_ASSERT(COND) CELER_NOASSERT_(COND)
 #    define CELER_ENSURE(COND) CELER_NOASSERT_(COND)
+#    define CELER_ASSUME(COND) CELER_NDEBUG_ASSUME_(COND)
 #    define CELER_ASSERT_UNREACHABLE() ::celeritas::unreachable()
 #endif
 
@@ -367,6 +387,7 @@ enum class DebugErrorType
     unconfigured,  //!< Internal assertion: required feature not enabled
     unimplemented,  //!< Internal assertion: not yet implemented
     postcondition,  //!< Postcondition contract violation
+    assumption,  //!< "Assume" violation
 };
 
 enum class RuntimeErrorType

@@ -27,10 +27,7 @@ struct VariantTransformDispatcher
     //! Apply a translation
     VariantSurface operator()(Translation const& left) const
     {
-        if (right.valueless_by_exception())
-        {
-            CELER_ASSERT_UNREACHABLE();
-        }
+        CELER_ASSUME(!right.valueless_by_exception());
         return std::visit(
             return_as<VariantSurface>(detail::SurfaceTranslator{left}), right);
     }
@@ -38,10 +35,7 @@ struct VariantTransformDispatcher
     //! Apply a transformation
     VariantSurface operator()(Transformation const& left) const
     {
-        if (right.valueless_by_exception())
-        {
-            CELER_ASSERT_UNREACHABLE();
-        }
+        CELER_ASSUME(!right.valueless_by_exception());
         return std::visit(
             return_as<VariantSurface>(detail::SurfaceTransformer{left}), right);
     }
@@ -57,10 +51,7 @@ struct VariantTransformDispatcher
 [[nodiscard]] VariantSurface apply_transform(VariantTransform const& transform,
                                              VariantSurface const& surface)
 {
-    if (transform.valueless_by_exception())
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
+    CELER_ASSUME(!transform.valueless_by_exception());
     return std::visit(VariantTransformDispatcher{surface}, transform);
 }
 
