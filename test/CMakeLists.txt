@@ -15,9 +15,9 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 celeritas_add_library(testcel_harness
   Test.cc
-  testdetail/TestMacrosImpl.cc
   testdetail/NonMasterResultPrinter.cc
   testdetail/ParallelHandler.cc
+  testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
 )
 target_compile_features(testcel_harness PUBLIC cxx_std_14)
@@ -215,6 +215,7 @@ celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 set(CELERITASTEST_PREFIX orange/transform)
 celeritas_add_test(orange/transform/Transformation.test.cc)
 celeritas_add_test(orange/transform/Translation.test.cc)
+celeritas_add_test(orange/transform/VariantTransform.test.cc)
 
 #-------------------------------------#
 # Surfaces
@@ -231,6 +232,7 @@ celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
 celeritas_add_test(orange/surf/SurfaceSimplifier.test.cc)
+celeritas_add_test(orange/surf/VariantSurface.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTransformer.test.cc)
 celeritas_add_device_test(orange/surf/SurfaceAction)
@@ -252,31 +254,35 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 #-----------------------------------------------------------------------------#
 
 celeritas_add_object_library(testcel_celeritas_core
-  celeritas/field/FieldTestBase.cc
-  celeritas/grid/CalculatorTestBase.cc
-  celeritas/phys/InteractionIO.cc
-  celeritas/phys/InteractorHostTestBase.cc
-  celeritas/phys/SecondaryIO.cc
-  celeritas/phys/MockModel.cc
-  celeritas/phys/MockProcess.cc
   celeritas/GeantTestBase.cc
-  celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
+  celeritas/GlobalTestBase.cc
   celeritas/ImportedDataTestBase.cc
   celeritas/LazyGeoManager.cc
   celeritas/MockTestBase.cc
   celeritas/RootTestBase.cc
   celeritas/SimpleTestBase.cc
+  celeritas/field/FieldTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
+  celeritas/grid/CalculatorTestBase.cc
+  celeritas/io/EventIOTestBase.cc
+  celeritas/phys/InteractionIO.cc
+  celeritas/phys/InteractorHostTestBase.cc
+  celeritas/phys/MockModel.cc
+  celeritas/phys/MockProcess.cc
+  celeritas/phys/SecondaryIO.cc
+  celeritas/user/CaloTestBase.cc
   celeritas/user/DiagnosticTestBase.cc
   celeritas/user/ExampleMctruth.cc
-  celeritas/user/CaloTestBase.cc
   celeritas/user/MctruthTestBase.cc
   celeritas/user/StepCollectorTestBase.cc
 )
+set(_common_testcel_libs
+  Celeritas::testcel_core Celeritas::testcel_harness Celeritas::celeritas
+)
 celeritas_target_link_libraries(testcel_celeritas_core
-  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${nlohmann_json_LIBRARIES}
+  PRIVATE ${_common_testcel_libs} ${nlohmann_json_LIBRARIES}
 )
 
 # Geometry
@@ -292,12 +298,12 @@ celeritas_add_library(testcel_celeritas
   $<TARGET_OBJECTS:testcel_celeritas_geo>
 )
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE Celeritas::celeritas Celeritas::testcel_harness
-  ${_geo_libs} ${nlohmann_json_LIBRARIES} Celeritas::orange
+  PRIVATE ${_common_testcel_libs} ${nlohmann_json_LIBRARIES}
+  Celeritas::orange ${_geo_libs}
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
-  LINK_LIBRARIES testcel_celeritas testcel_core Celeritas::celeritas
+  LINK_LIBRARIES ${_common_testcel_libs} Celeritas::testcel_celeritas
 )
 
 #-----------------------------------------------------------------------------#
@@ -466,6 +472,7 @@ celeritas_add_test(celeritas/grid/XsCalculator.test.cc)
 set(CELERITASTEST_PREFIX celeritas/io)
 celeritas_add_test(celeritas/io/EventIO.test.cc ${_needs_hepmc}
   LINK_LIBRARIES ${HepMC3_LIBRARIES})
+celeritas_add_test(celeritas/io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-------------------------------------#
@@ -566,8 +573,8 @@ celeritas_add_test(celeritas/user/StepCollector.test.cc
 
 if(CELERITAS_USE_Geant4)
   celeritas_add_library(testcel_accel
-    accel/SimpleSensitiveDetector.cc
     accel/SDTestBase.cc
+    accel/SimpleSensitiveDetector.cc
   )
   celeritas_target_link_libraries(testcel_accel
     PUBLIC testcel_celeritas testcel_core testcel_harness Celeritas::accel

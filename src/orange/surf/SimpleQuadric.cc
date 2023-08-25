@@ -55,9 +55,11 @@ SimpleQuadric::SimpleQuadric(CylAligned<T> const& other) noexcept
     *this = SimpleQuadric{second, first, zeroth};
 }
 
+//! \cond
 template SimpleQuadric::SimpleQuadric(CylAligned<Axis::x> const&) noexcept;
 template SimpleQuadric::SimpleQuadric(CylAligned<Axis::y> const&) noexcept;
 template SimpleQuadric::SimpleQuadric(CylAligned<Axis::z> const&) noexcept;
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -110,9 +112,11 @@ SimpleQuadric::SimpleQuadric(ConeAligned<T> const& other) noexcept
     *this = SimpleQuadric{second, first, zeroth};
 }
 
+//! \cond
 template SimpleQuadric::SimpleQuadric(ConeAligned<Axis::x> const&) noexcept;
 template SimpleQuadric::SimpleQuadric(ConeAligned<Axis::y> const&) noexcept;
 template SimpleQuadric::SimpleQuadric(ConeAligned<Axis::z> const&) noexcept;
+//! \endcond
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

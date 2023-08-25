@@ -38,7 +38,7 @@ class RootExporter
     void operator()(ImportData const& data);
 
   private:
-    UPRootWritable<TFile> root_output_;
+    UPRootFileWritable root_output_;
 
   private:
     // ROOT TTree name

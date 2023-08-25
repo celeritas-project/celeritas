@@ -29,9 +29,11 @@ list(APPEND SOURCES
   surf/Sphere.cc
   surf/SurfaceIO.cc
   surf/SurfaceSimplifier.cc
+  surf/VariantSurface.cc
   surf/detail/SurfaceTranslator.cc
   surf/detail/SurfaceTransformer.cc
   transform/Transformation.cc
+  transform/VariantTransform.cc
 )
 
 if(CELERITAS_USE_JSON)

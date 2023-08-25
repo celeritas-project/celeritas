@@ -23,9 +23,11 @@ Plane::Plane(PlaneAligned<T> const& other) noexcept
 
 //---------------------------------------------------------------------------//
 
+//! \cond
 template Plane::Plane(PlaneAligned<Axis::x> const&) noexcept;
 template Plane::Plane(PlaneAligned<Axis::y> const&) noexcept;
 template Plane::Plane(PlaneAligned<Axis::z> const&) noexcept;
+//! \endcond
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
