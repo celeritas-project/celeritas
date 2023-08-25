@@ -50,7 +50,7 @@ template<class F>
 void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 {
     auto start = device_pointer_cast(track_slots.data());
-    thrust::partition(thrust::cuda::par_nosync.on(
+    thrust::partition(THRUST_NATIVE_NS::par_nosync.on(
                           celeritas::device().stream(stream_id).get()),
                       start,
                       start + track_slots.size(),
@@ -88,7 +88,7 @@ void sort_impl(TrackSlots const& track_slots,
                         make_observer(reordered_actions.data()),
                         track_slots.size());
     auto start = reordered_actions.data();
-    thrust::sort_by_key(thrust::cuda::par_nosync.on(
+    thrust::sort_by_key(THRUST_NATIVE_NS::par_nosync.on(
                             celeritas::device().stream(stream_id).get()),
                         start,
                         start + reordered_actions.size(),
@@ -161,7 +161,8 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots
                                         StreamId stream_id)
 {
     thrust::sequence(
-        thrust::cuda::par_nosync.on(celeritas::device().stream(stream_id).get()),
+        THRUST_NATIVE_NS::par_nosync.on(
+            celeritas::device().stream(stream_id).get()),
         thrust::device_pointer_cast(track_slots.data()),
         thrust::device_pointer_cast(track_slots.data() + track_slots.size()),
         0);
@@ -182,7 +183,7 @@ void shuffle_track_slots<MemSpace::device>(
     thrust::default_random_engine g{
         static_cast<result_type>(track_slots.size())};
     auto start = thrust::device_pointer_cast(track_slots.data());
-    thrust::shuffle(thrust::cuda::par_nosync.on(
+    thrust::shuffle(THRUST_NATIVE_NS::par_nosync.on(
                         celeritas::device().stream(stream_id).get()),
                     start,
                     start + track_slots.size(),
