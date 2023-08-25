@@ -28,10 +28,12 @@ list(APPEND SOURCES
   surf/SimpleQuadric.cc
   surf/Sphere.cc
   surf/SurfaceIO.cc
+  surf/VariantSurface.cc
   surf/detail/SurfaceClipperImpl.cc
   surf/detail/SurfaceTranslator.cc
   surf/detail/SurfaceTransformer.cc
   transform/Transformation.cc
+  transform/VariantTransform.cc
 )
 
 if(CELERITAS_USE_JSON)

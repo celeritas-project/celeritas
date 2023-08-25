@@ -194,6 +194,8 @@ if(CELERITAS_USE_ROOT)
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
     user/RootStepWriter.cc
+    io/RootEventReader.cc
+    io/RootEventWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 

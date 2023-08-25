@@ -51,7 +51,9 @@ SurfaceTranslator::operator()(PlaneAligned<T> const& other) const
     return PlaneAligned<T>{other.position() + origin};
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(PlaneAligned, PlaneAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -63,7 +65,9 @@ CylAligned<T> SurfaceTranslator::operator()(CylCentered<T> const& other) const
     return (*this)(CylAligned<T>{other});
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(CylAligned, CylCentered);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -85,7 +89,9 @@ CylAligned<T> SurfaceTranslator::operator()(CylAligned<T> const& other) const
                                          other.radius_sq());
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(CylAligned, CylAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -119,7 +125,9 @@ ConeAligned<T> SurfaceTranslator::operator()(ConeAligned<T> const& other) const
                                            other.tangent_sq());
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!

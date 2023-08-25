@@ -18,6 +18,10 @@
 #include <G4UImanager.hh>
 #include <G4Version.hh>
 
+#include "accel/HepMC3PrimaryGenerator.hh"
+
+#include "GlobalSetup.hh"
+
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #else
@@ -81,7 +85,7 @@ void run(int argc, char** argv)
     CELER_LOG(info) << "Run manager type: "
                     << TypeDemangler<G4RunManager>{}(*run_manager);
 
-    // Make global setup commands available to UI
+    // Construct singleton, also making it available to UI
     GlobalSetup::Instance();
 
     // Read user input
