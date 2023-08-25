@@ -30,12 +30,14 @@ namespace detail
 template<MemSpace M,
          typename Size,
          typename = std::enable_if_t<std::is_unsigned_v<Size>>>
-void fill_track_slots(Span<Size> track_slots);
+void fill_track_slots(Span<Size> track_slots, StreamId);
 
 template<>
-void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots);
+void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots,
+                                      StreamId);
 template<>
-void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots);
+void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots,
+                                        StreamId);
 
 //---------------------------------------------------------------------------//
 // Shuffle tracks
@@ -43,14 +45,14 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots
 template<MemSpace M,
          typename Size,
          typename = std::enable_if_t<std::is_unsigned_v<Size>>>
-void shuffle_track_slots(Span<Size> track_slots);
+void shuffle_track_slots(Span<Size> track_slots, StreamId);
 
 template<>
 void shuffle_track_slots<MemSpace::host>(
-    Span<TrackSlotId::size_type> track_slots);
+    Span<TrackSlotId::size_type> track_slots, StreamId);
 template<>
 void shuffle_track_slots<MemSpace::device>(
-    Span<TrackSlotId::size_type> track_slots);
+    Span<TrackSlotId::size_type> track_slots, StreamId);
 
 //---------------------------------------------------------------------------//
 // Sort or partition tracks
@@ -113,13 +115,15 @@ struct ActionAccessor
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
-inline void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
+inline void
+fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>, StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 template<>
-inline void shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>)
+inline void
+shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>, StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

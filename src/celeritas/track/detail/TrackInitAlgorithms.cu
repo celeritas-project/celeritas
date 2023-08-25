@@ -35,7 +35,7 @@ size_type remove_if_alive(
 {
     auto start = device_pointer_cast(vacancies.data());
     auto end = thrust::remove_if(
-        thrust::device.on(celeritas::device().stream(stream_id).get()),
+        thrust::cuda::par_nosync.on(celeritas::device().stream(stream_id).get()),
         start,
         start + vacancies.size(),
         IsEqual{occupied()});
@@ -63,7 +63,7 @@ size_type exclusive_scan_counts(
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
     auto stop = thrust::exclusive_scan(
-        thrust::device.on(celeritas::device().stream(stream_id).get()),
+        thrust::cuda::par_nosync.on(celeritas::device().stream(stream_id).get()),
         data,
         data + counts.size(),
         data,

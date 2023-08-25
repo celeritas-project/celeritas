@@ -43,10 +43,10 @@ void resize(CoreStateData<Ownership::value, M>* state,
     state->stream_id = stream_id;
 
     Span track_slots{state->track_slots[AllItems<TrackSlotId::size_type, M>{}]};
-    detail::fill_track_slots<M>(track_slots);
+    detail::fill_track_slots<M>(track_slots, stream_id);
     if (params.init.track_order == TrackOrder::shuffled)
     {
-        detail::shuffle_track_slots<M>(track_slots);
+        detail::shuffle_track_slots<M>(track_slots, stream_id);
     }
 
     CELER_ENSURE(state);

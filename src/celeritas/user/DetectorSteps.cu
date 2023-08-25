@@ -151,7 +151,8 @@ void copy_steps<MemSpace::device>(
     // Store the thread IDs of active tracks that are in a detector
     auto start = thrust::device_pointer_cast(state.valid_id.data().get());
     auto end = thrust::copy_if(
-        thrust::device,
+        thrust::cuda::par_nosync.on(
+            celeritas::device().stream(state.stream_id).get()),
         thrust::make_counting_iterator(size_type(0)),
         thrust::make_counting_iterator(state.size()),
         thrust::device_pointer_cast(state.data.detector.data().get()),
