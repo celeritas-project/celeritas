@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/Translator.hh
+//! \file orange/transform/Translation.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

@@ -47,7 +47,9 @@ Plane SurfaceTransformer::operator()(PlaneAligned<T> const& other) const
     return (*this)(Plane{other});
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(Plane, PlaneAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -59,7 +61,9 @@ GeneralQuadric SurfaceTransformer::operator()(CylCentered<T> const& other) const
     return (*this)(CylAligned<T>{other});
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(GeneralQuadric, CylCentered);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -80,7 +84,9 @@ GeneralQuadric SurfaceTransformer::operator()(CylAligned<T> const& other) const
     return (*this)(SimpleQuadric{other});
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(GeneralQuadric, CylAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -118,7 +124,9 @@ GeneralQuadric SurfaceTransformer::operator()(ConeAligned<T> const& other) const
     return (*this)(SimpleQuadric{other});
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(GeneralQuadric, ConeAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!

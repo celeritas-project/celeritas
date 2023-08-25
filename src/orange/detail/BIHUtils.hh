@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/BIHUtils.hh
+//! \file orange/detail/BIHUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

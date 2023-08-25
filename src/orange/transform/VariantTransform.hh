@@ -3,27 +3,26 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/VariantSurface.hh
+//! \file orange/transform/VariantTransform.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <variant>
 
-#include "orange/transform/VariantTransform.hh"
-
-#include "detail/AllSurfaces.hh"
-#include "detail/VariantSurfaceImpl.hh"
+#include "Transformation.hh"
+#include "Translation.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! std::variant class of all surfaces.
-using VariantSurface = detail::VariantSurface_t;
+//! std::variant for all transforms, with optional identity transform
+using VariantTransform
+    = std::variant<std::monostate, Translation, Transformation>;
 
 //---------------------------------------------------------------------------//
-// Apply a variant "daughter-to-parent" transform to a surface
-[[nodiscard]] VariantSurface apply_transform(VariantTransform const& transform,
-                                             VariantSurface const& surface);
+// Apply the left "daughter-to-parent" transform to the right.
+[[nodiscard]] VariantTransform
+apply_transform(VariantTransform const& left, VariantTransform const& right);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
