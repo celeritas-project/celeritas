@@ -14,6 +14,9 @@
 
 namespace celeritas
 {
+template<class T>
+class BoundingBox;
+
 //---------------------------------------------------------------------------//
 //! std::variant for all transforms, with optional identity transform
 using VariantTransform
@@ -23,6 +26,12 @@ using VariantTransform
 // Apply the left "daughter-to-parent" transform to the right.
 [[nodiscard]] VariantTransform
 apply_transform(VariantTransform const& left, VariantTransform const& right);
+
+//---------------------------------------------------------------------------//
+// Dispatch left "daughter-to-parent" transform to bounding box utilities
+[[nodiscard]] BoundingBox<real_type>
+apply_transform(VariantTransform const& left,
+                BoundingBox<real_type> const& right);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

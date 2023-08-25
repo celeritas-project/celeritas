@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+class Translation;
+class Transformation;
 //---------------------------------------------------------------------------//
 // Host/device functions
 //---------------------------------------------------------------------------//
@@ -176,6 +178,12 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 
     return BoundingBox<T>::from_unchecked(lower, upper);
 }
+
+//---------------------------------------------------------------------------//
+// Calculate the bounding box of a transformed box
+BBox calc_transform(Translation const& tr, BBox const& a);
+
+BBox calc_transform(Transformation const& tr, BBox const& a);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

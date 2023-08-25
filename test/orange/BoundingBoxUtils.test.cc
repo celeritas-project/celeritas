@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "orange/BoundingBoxUtils.hh"
 
+#include "orange/MatrixUtils.hh"
+#include "orange/transform/Transformation.hh"
+#include "orange/transform/Translation.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -37,16 +41,13 @@ TEST_F(BoundingBoxUtilsTest, is_inside)
 
 TEST_F(BoundingBoxUtilsTest, is_infinite)
 {
-    auto inf_real = std::numeric_limits<real_type>::infinity();
-
     BBox bbox1 = {{0, 0, 0}, {1, 1, 1}};
     EXPECT_FALSE(is_infinite(bbox1));
 
-    BBox bbox2 = {{0, 0, 0}, {inf_real, inf_real, inf_real}};
+    BBox bbox2 = {{0, 0, 0}, {inf, inf, inf}};
     EXPECT_FALSE(is_infinite(bbox2));
 
-    BBox bbox3
-        = {{-inf_real, -inf_real, -inf_real}, {inf_real, inf_real, inf_real}};
+    BBox bbox3 = {{-inf, -inf, -inf}, {inf, inf, inf}};
     EXPECT_TRUE(is_infinite(bbox3));
 
     if (CELERITAS_DEBUG)
@@ -170,6 +171,56 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
         auto dibox = calc_intersection(BBox{{-inf, -2, -inf}, {inf, 2, inf}},
                                        BBox{{-inf, 3, -inf}, {inf, 10, inf}});
         EXPECT_FALSE(dibox);
+    }
+}
+
+TEST_F(BoundingBoxUtilsTest, bbox_translate)
+{
+    Translation const tr{{1, 2, 3}};
+    auto bb = calc_transform(tr, BBox{{1, 2, 3}, {4, 5, 6}});
+    EXPECT_VEC_SOFT_EQ(Real3({2, 4, 6}), bb.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({5, 7, 9}), bb.upper());
+
+    bb = calc_transform(tr, BBox::from_infinite());
+    EXPECT_EQ(bb.lower(), BBox::from_infinite().lower());
+    EXPECT_EQ(bb.upper(), BBox::from_infinite().upper());
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(calc_transform(tr, BBox{}), DebugError);
+    }
+}
+
+TEST_F(BoundingBoxUtilsTest, bbox_transform)
+{
+    // Daughter to parent: rotate quarter turn around Z, then add 1 to Z
+    Transformation tr{make_rotation(Axis::z, Turn{0.25}), Real3{0, 0, 1}};
+
+    auto bb = calc_transform(tr, BBox{{1, 2, 3}, {4, 5, 6}});
+    EXPECT_VEC_SOFT_EQ(Real3({-5, 1, 4}), bb.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({-2, 4, 7}), bb.upper());
+
+    // Test infinities
+    bb = calc_transform(tr, BBox{{-inf, 2, 3}, {inf, 5, 6}});
+    EXPECT_VEC_SOFT_EQ(Real3({-5, -inf, 4}), bb.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({-2, inf, 7}), bb.upper());
+
+    // Transform again
+    bb = calc_transform(tr, bb);
+    EXPECT_VEC_SOFT_EQ(Real3({-inf, -5, 5}), bb.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({inf, -2, 8}), bb.upper());
+
+    // Transform a part of a turn that results in rotated but still infinite
+    // space
+    bb = calc_transform(
+        Transformation{make_rotation(Axis::z, Turn{0.001}), Real3{0, 0, 0}},
+        BBox{{-inf, 2, 3}, {inf, 5, 6}});
+    EXPECT_VEC_SOFT_EQ(Real3({-inf, -inf, 3}), bb.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({inf, inf, 6}), bb.upper());
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(calc_transform(tr, BBox{}), DebugError);
     }
 }
 

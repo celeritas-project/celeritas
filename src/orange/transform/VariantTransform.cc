@@ -8,6 +8,7 @@
 #include "VariantTransform.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "orange/BoundingBoxUtils.hh"
 
 #include "detail/TransformTransformer.hh"
 #include "detail/TransformTranslator.hh"
@@ -50,6 +51,28 @@ struct VariantTransformDispatcher
 };
 
 //---------------------------------------------------------------------------//
+//! Call the "calc_transform" free function
+template<class T>
+struct VariantBboxDispatcher
+{
+    BoundingBox<T> const& right;
+
+    //! Apply an identity transform (no change)
+    BoundingBox<T> operator()(std::monostate) const { return right; }
+
+    //! Apply a translation
+    template<class U>
+    BoundingBox<T> operator()(U const& left) const
+    {
+        return calc_transform(left, right);
+    }
+};
+
+// Deduction guide
+template<class T>
+VariantBboxDispatcher(BoundingBox<T> const&) -> VariantBboxDispatcher<T>;
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -76,6 +99,20 @@ apply_transform(VariantTransform const& left, VariantTransform const& right)
         CELER_ASSERT_UNREACHABLE();
     }
     return std::visit(VariantTransformDispatcher{right}, left);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Dispatch left "daughter-to-parent" transform to bounding box utilities.
+ */
+[[nodiscard]] BBox
+apply_transform(VariantTransform const& left, BBox const& right)
+{
+    if (left.valueless_by_exception())
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+    return std::visit(VariantBboxDispatcher{right}, left);
 }
 
 //---------------------------------------------------------------------------//
