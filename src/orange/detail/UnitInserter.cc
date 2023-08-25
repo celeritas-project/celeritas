@@ -21,6 +21,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/Surfaces.hh"
@@ -131,26 +132,6 @@ struct NumIntersectionGetter
 };
 
 //---------------------------------------------------------------------------//
-//! Create a FastBBox from a BBox
-celeritas::FastBBox make_fast_bbox(celeritas::BBox bbox)
-{
-    if (!bbox)
-    {
-        return FastBBox();
-    }
-
-    using Real3 = celeritas::Array<celeritas::fast_real_type, 3>;
-    Real3 lower, upper;
-    for (auto axis : range(celeritas::Axis::size_))
-    {
-        auto ax = celeritas::to_int(axis);
-        lower[ax] = bbox.lower()[ax];
-        upper[ax] = bbox.upper()[ax];
-    }
-    return {lower, upper};
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -191,7 +172,8 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         // Store the bbox or an infinite bbox placeholder
         if (inp.volumes[i].bbox)
         {
-            bboxes.push_back(make_fast_bbox(inp.volumes[i].bbox));
+            bboxes.push_back(
+                calc_bumped<fast_real_type, real_type>(inp.volumes[i].bbox));
         }
         else
         {
