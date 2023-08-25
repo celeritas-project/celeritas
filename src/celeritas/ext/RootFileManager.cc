@@ -37,6 +37,15 @@ RootFileManager::RootFileManager(char const* filename)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the filename of the associated ROOT file.
+ */
+char const* RootFileManager::filename() const
+{
+    return tfile_->GetName();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create tree by providing its name and title.
  *
  * It is still possible to simply create a `TTree("name", "title")` in any

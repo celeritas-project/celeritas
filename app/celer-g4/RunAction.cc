@@ -66,16 +66,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         if (init_celeritas_)
         {
             // This worker (or master thread) is responsible for initializing
-            // celeritas
-            if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-            {
-                // To allow ORANGE to work for testing purposes, pass the GDML
-                // input filename to Celeritas
-                const_cast<SetupOptions&>(*options_).geometry_file
-                    = GlobalSetup::Instance()->GetGeometryFile();
-            }
-
-            // Initialize shared data and setup GPU on all threads
+            // celeritas: initialize shared data and setup GPU on all threads
             CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
             CELER_ASSERT(*params_);
         }

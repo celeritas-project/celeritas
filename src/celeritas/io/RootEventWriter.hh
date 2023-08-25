@@ -13,6 +13,8 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "EventIOInterface.hh"
+
 namespace celeritas
 {
 class ParticleParams;
@@ -23,12 +25,11 @@ class ParticleParams;
  *
  * One TTree entry represents one primary.
  */
-class RootEventWriter
+class RootEventWriter : public EventWriterInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using Primaries = std::vector<Primary>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPRootFileManager = std::shared_ptr<RootFileManager>;
     //!@}
@@ -41,7 +42,7 @@ class RootEventWriter
     CELER_DELETE_COPY_MOVE(RootEventWriter);
 
     // Export primaries to ROOT
-    void operator()(Primaries const& primaries);
+    void operator()(VecPrimary const& primaries);
 
   private:
     //// DATA ////
@@ -82,7 +83,7 @@ inline RootEventWriter::RootEventWriter(SPRootFileManager, SPConstParticles)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void RootEventWriter::operator()(Primaries const&)
+inline void RootEventWriter::operator()(VecPrimary const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

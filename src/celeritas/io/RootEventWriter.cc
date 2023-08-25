@@ -41,11 +41,17 @@ std::array<double, 3> real3_to_array(Real3 const& src)
  */
 RootEventWriter::RootEventWriter(SPRootFileManager root_file_manager,
                                  SPConstParticles params)
-    : tfile_mgr_(root_file_manager)
+    : tfile_mgr_(std::move(root_file_manager))
     , params_(std::move(params))
     , event_id_(static_cast<size_type>(-1))
 {
+    CELER_EXPECT(tfile_mgr_);
+    CELER_EXPECT(params_);
+
     ScopedRootErrorHandler scoped_root_error;
+
+    CELER_LOG(info) << "Creating event tree '" << this->tree_name() << "' at "
+                    << tfile_mgr_->filename();
 
     ttree_ = tfile_mgr_->make_tree(this->tree_name(), this->tree_name());
     ttree_->Branch("event_id", &primary_.event_id);
@@ -62,7 +68,7 @@ RootEventWriter::RootEventWriter(SPRootFileManager root_file_manager,
 /*!
  * Export primaries to ROOT.
  */
-void RootEventWriter::operator()(Primaries const& primaries)
+void RootEventWriter::operator()(VecPrimary const& primaries)
 {
     CELER_EXPECT(!primaries.empty());
     ScopedRootErrorHandler scoped_root_error;

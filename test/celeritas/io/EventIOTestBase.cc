@@ -93,7 +93,7 @@ void EventIOTestBase::SetUp()
 /*!
  * Read all primaries from a file.
  */
-auto EventIOTestBase::read_all(ReadFunc read_event) const -> ReadAllResult
+auto EventIOTestBase::read_all(Reader& read_event) const -> ReadAllResult
 {
     ReadAllResult result;
     VecPrimary primaries;
@@ -120,7 +120,7 @@ auto EventIOTestBase::read_all(ReadFunc read_event) const -> ReadAllResult
 /*!
  * Write several events.
  */
-void EventIOTestBase::write_test_event(WriteFunc write_event) const
+void EventIOTestBase::write_test_event(Writer& write_event) const
 {
     std::vector<Primary> primaries = [&particles = *this->particles_] {
         auto proton_id = particles.find(pdg::proton());
@@ -178,9 +178,9 @@ void EventIOTestBase::write_test_event(WriteFunc write_event) const
 /*!
  * Read and check the test primaries from a file.
  */
-void EventIOTestBase::read_check_test_event(ReadFunc read_event) const
+void EventIOTestBase::read_check_test_event(Reader& read_event) const
 {
-    auto result = this->read_all(std::move(read_event));
+    auto result = this->read_all(read_event);
 
     // clang-format off
     static int const expected_pdg[] = {22, 2212, 22, 2212, 22, 2212, 22, 2212,

@@ -109,8 +109,10 @@ else()
 endif()
 if(CELERITAS_USE_ROOT)
   set(CELERG4_WRITE_SD_HITS "true")
+  set(CELERG4_OFFLOAD_FILE "simple-cms.offloaded.root")
 else()
   set(CELERG4_WRITE_SD_HITS "false")
+  set(CELERG4_OFFLOAD_FILE "simple-cms.offloaded.hepmc3")
 endif()
 configure_file(
   "simple-cms-test.inp.json.in"

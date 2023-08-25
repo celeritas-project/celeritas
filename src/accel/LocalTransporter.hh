@@ -26,7 +26,6 @@ namespace detail
 {
 class HitManager;
 class OffloadWriter;
-class RootEventWriter;
 }  // namespace detail
 
 struct SetupOptions;
@@ -77,7 +76,6 @@ class LocalTransporter
   private:
     using SPHitManger = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
-    using SPRootOffloadWriter = std::shared_ptr<detail::RootEventWriter>;
 
     struct HMFinalizer
     {
