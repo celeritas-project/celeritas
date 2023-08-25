@@ -28,10 +28,10 @@ using VariantTransform
 apply_transform(VariantTransform const& left, VariantTransform const& right);
 
 //---------------------------------------------------------------------------//
-// Dispatch left "daughter-to-parent" transform to bounding box utilities
+// Dispatch "daughter-to-parent" transform to bounding box utilities
 [[nodiscard]] BoundingBox<real_type>
-apply_transform(VariantTransform const& left,
-                BoundingBox<real_type> const& right);
+apply_transform(VariantTransform const& transform,
+                BoundingBox<real_type> const& bbox);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

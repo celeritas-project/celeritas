@@ -51,26 +51,14 @@ struct VariantTransformDispatcher
 };
 
 //---------------------------------------------------------------------------//
-//! Call the "calc_transform" free function
+/*!
+ * Apply an identity transform to a bounding box.
+ */
 template<class T>
-struct VariantBboxDispatcher
+BoundingBox<T> calc_transform(std::monostate, BoundingBox<T> const& bbox)
 {
-    BoundingBox<T> const& right;
-
-    //! Apply an identity transform (no change)
-    BoundingBox<T> operator()(std::monostate) const { return right; }
-
-    //! Apply a translation
-    template<class U>
-    BoundingBox<T> operator()(U const& left) const
-    {
-        return calc_transform(left, right);
-    }
-};
-
-// Deduction guide
-template<class T>
-VariantBboxDispatcher(BoundingBox<T> const&) -> VariantBboxDispatcher<T>;
+    return bbox;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -103,16 +91,18 @@ apply_transform(VariantTransform const& left, VariantTransform const& right)
 
 //---------------------------------------------------------------------------//
 /*!
- * Dispatch left "daughter-to-parent" transform to bounding box utilities.
+ * Dispatch "daughter-to-parent" transform to bounding box utilities.
  */
 [[nodiscard]] BBox
-apply_transform(VariantTransform const& left, BBox const& right)
+apply_transform(VariantTransform const& transform, BBox const& bbox)
 {
-    if (left.valueless_by_exception())
+    if (transform.valueless_by_exception())
     {
         CELER_ASSERT_UNREACHABLE();
     }
-    return std::visit(VariantBboxDispatcher{right}, left);
+    // Dispatch to bounding box utils or "monostate" case above
+    return std::visit([&bbox](auto&& t) { return calc_transform(t, bbox); },
+                      transform);
 }
 
 //---------------------------------------------------------------------------//
