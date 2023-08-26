@@ -10,7 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
 
-#include "detail/SurfaceAction.hh"
+#include "detail/SurfaceActionImpl.hh"
 
 namespace celeritas
 {

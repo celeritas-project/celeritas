@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/detail/SurfaceAction.hh
+//! \file orange/surf/detail/SurfaceActionImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -23,7 +23,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for applying an action functor to a generic surface.
+ * Helper class for visiting a type-deleted surface.
  *
  * The function-like instance of \c F must accept any surface type as an
  * argument: this should always just be a templated \c operator() on the
