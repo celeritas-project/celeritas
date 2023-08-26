@@ -27,8 +27,11 @@ struct EnumToClass
 
     static constexpr enum_type value = EV;
 
-    constexpr operator E() const noexcept { return value; }
-    constexpr enum_type operator()() const noexcept { return value; }
+    CELER_CONSTEXPR_FUNCTION operator E() const noexcept { return value; }
+    CELER_CONSTEXPR_FUNCTION enum_type operator()() const noexcept
+    {
+        return value;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -79,7 +82,8 @@ ORANGE_SURFACE_TRAITS(gq,  GeneralQuadric);
  * is a SurfaceTypeTraits instance.
  */
 template<class F>
-constexpr decltype(auto) visit_surface_type(F&& func, SurfaceType st)
+CELER_CONSTEXPR_FUNCTION decltype(auto)
+visit_surface_type(F&& func, SurfaceType st)
 {
 #define ORANGE_ST_VISIT_CASE(TYPE)          \
     case SurfaceType::TYPE:                 \
