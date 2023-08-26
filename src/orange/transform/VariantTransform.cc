@@ -28,10 +28,7 @@ struct VariantTransformDispatcher
     //! Apply a translation
     VariantTransform operator()(Translation const& left) const
     {
-        if (right.valueless_by_exception())
-        {
-            CELER_ASSERT_UNREACHABLE();
-        }
+        CELER_ASSUME(!right.valueless_by_exception());
         return std::visit(
             return_as<VariantTransform>(detail::TransformTranslator{left}),
             right);
@@ -40,10 +37,7 @@ struct VariantTransformDispatcher
     //! Apply a transformation
     VariantTransform operator()(Transformation const& left) const
     {
-        if (right.valueless_by_exception())
-        {
-            CELER_ASSERT_UNREACHABLE();
-        }
+        CELER_ASSUME(!right.valueless_by_exception());
         return std::visit(
             return_as<VariantTransform>(detail::TransformTransformer{left}),
             right);
@@ -82,10 +76,7 @@ BoundingBox<T> calc_transform(std::monostate, BoundingBox<T> const& bbox)
 [[nodiscard]] VariantTransform
 apply_transform(VariantTransform const& left, VariantTransform const& right)
 {
-    if (left.valueless_by_exception())
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
+    CELER_ASSUME(!left.valueless_by_exception());
     return std::visit(VariantTransformDispatcher{right}, left);
 }
 
@@ -96,10 +87,7 @@ apply_transform(VariantTransform const& left, VariantTransform const& right)
 [[nodiscard]] BBox
 apply_transform(VariantTransform const& transform, BBox const& bbox)
 {
-    if (transform.valueless_by_exception())
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
+    CELER_ASSUME(!transform.valueless_by_exception());
     // Dispatch to bounding box utils or "monostate" case above
     return std::visit([&bbox](auto&& t) { return calc_transform(t, bbox); },
                       transform);

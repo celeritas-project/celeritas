@@ -99,7 +99,7 @@ EventWriter::EventWriter(std::string const& filename,
 /*!
  * Write all primaries from a single event.
  */
-void EventWriter::operator()(argument_type primaries)
+void EventWriter::operator()(VecPrimary const& primaries)
 {
     CELER_EXPECT(!primaries.empty());
 

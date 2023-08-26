@@ -13,6 +13,8 @@
 #include "celeritas/ext/RootUniquePtr.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "EventIOInterface.hh"
+
 namespace celeritas
 {
 class ParticleParams;
@@ -31,7 +33,7 @@ class ParticleParams;
     }
  * \endcode
  */
-class RootEventReader
+class RootEventReader : public EventReaderInterface
 {
   public:
     //!@{
@@ -47,7 +49,7 @@ class RootEventReader
     CELER_DELETE_COPY_MOVE(RootEventReader);
 
     // Read a single event from the ROOT file
-    result_type operator()();
+    result_type operator()() final;
 
   private:
     //// DATA ////

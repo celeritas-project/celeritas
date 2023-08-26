@@ -9,12 +9,13 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
+
+#include "EventIOInterface.hh"
 
 namespace HepMC3
 {
@@ -25,19 +26,17 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ParticleParams;
-struct Primary;
 
 //---------------------------------------------------------------------------//
 /*!
  * Write events using HepMC3.
  */
-class EventWriter
+class EventWriter : public EventWriterInterface
 {
   public:
     //!@{
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
-    using argument_type = std::vector<Primary> const&;
     //!@}
 
     //! Output format
@@ -62,7 +61,7 @@ class EventWriter
     CELER_DELETE_COPY_MOVE(EventWriter);
 
     // Write all the primaries from a single event
-    void operator()(argument_type primaries);
+    void operator()(VecPrimary const& primaries) final;
 
   private:
     // Shared standard model particle data

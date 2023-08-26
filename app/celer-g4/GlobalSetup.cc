@@ -134,30 +134,35 @@ void GlobalSetup::ReadInput(std::string const& filename)
     nlohmann::json::parse(infile).get_to(input_);
     CELER_ASSERT(input_);
 
+    // Input options
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    {
+        // To allow ORANGE to work for testing purposes, pass the GDML
+        // input filename to Celeritas
+        options_->geometry_file = input_.geometry_file;
+    }
+
+    // Output options
+    options_->output_file = input_.output_file;
+    options_->physics_output_file = input_.physics_output_file;
+    options_->offload_output_file = input_.offload_output_file;
+
     // Apply Celeritas \c SetupOptions commands
-    G4UImanager* ui = G4UImanager::GetUIpointer();
-    CELER_ASSERT(ui);
-    ui->ApplyCommand("/celer/maxNumTracks "
-                     + to_string(input_.num_track_slots));
-    ui->ApplyCommand("/celer/maxNumEvents " + to_string(input_.max_events));
-    ui->ApplyCommand("/celer/maxNumSteps " + to_string(input_.max_steps));
-    ui->ApplyCommand("/celer/maxInitializers "
-                     + to_string(input_.initializer_capacity));
-    ui->ApplyCommand("/celer/secondaryStackFactor "
-                     + to_string(input_.secondary_stack_factor));
-    ui->ApplyCommand("/celer/cuda/stackSize "
-                     + to_string(input_.cuda_stack_size));
-    ui->ApplyCommand("/celer/cuda/heapSize "
-                     + to_string(input_.cuda_heap_size));
-    ui->ApplyCommand("/celer/cuda/sync" + to_string(input_.sync));
-    ui->ApplyCommand("/celer/cuda/defaultStream"
-                     + to_string(input_.default_stream));
-    ui->ApplyCommand("/celer/outputFile " + input_.output_file);
-    ui->ApplyCommand("/celer/offloadFile " + input_.offload_file);
+    options_->max_num_tracks = input_.num_track_slots;
+    options_->max_num_events = input_.max_events;
+    options_->max_steps = input_.max_steps;
+    options_->initializer_capacity = input_.initializer_capacity;
+    options_->secondary_stack_factor = input_.secondary_stack_factor;
+    options_->cuda_stack_size = input_.cuda_stack_size;
+    options_->cuda_heap_size = input_.cuda_heap_size;
+    options_->sync = input_.sync;
+    options_->default_stream = input_.default_stream;
 
     // Execute macro for Geant4 commands (e.g. to set verbosity)
     if (!input_.macro_file.empty())
     {
+        G4UImanager* ui = G4UImanager::GetUIpointer();
+        CELER_ASSERT(ui);
         ui->ApplyCommand("/control/execute " + input_.macro_file);
     }
 #else

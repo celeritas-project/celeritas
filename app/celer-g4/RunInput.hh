@@ -31,6 +31,8 @@ enum class PhysicsListSelection
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
+ *
+ * \todo Unify names with celer-sim and SetupOptions.
  */
 struct RunInput
 {
@@ -65,9 +67,10 @@ struct RunInput
     FieldDriverOptions field_options;
 
     // IO
-    std::string output_file;  //!< Path to the JSON diagnostic output file
-    std::string offload_file;  //!< Path to the HepMC3 file of offloaded tracks
-    std::string macro_file;  //!< Path to macro file for Geant4 commands
+    std::string output_file;  //!< Save JSON diagnostics
+    std::string physics_output_file;  //!< Save physics data
+    std::string offload_output_file;  //!< Save offloaded tracks to HepMC3/ROOT
+    std::string macro_file;  //!< Load additional Geant4 commands
     int root_buffer_size{128000};
     bool write_sd_hits{false};
     bool strip_gdml_pointers{true};
