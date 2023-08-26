@@ -15,6 +15,9 @@
 
 #include "celeritas_config.h"
 
+//---------------------------------------------------------------------------//
+// MACROS
+//---------------------------------------------------------------------------//
 /*!
  * \def CELER_FUNCTION
  *
@@ -92,34 +95,15 @@
  * CELER_ASSERT_UNREACHABLE() defined in base/Assert.hh should be used instead
  * (to provide a more detailed error message in case the point *is* reached).
  */
-/*!
- * \def CELER_ASSUME
- *
- * Add an always-on compiler assumption about the input data. This should
- * be used very rarely, and perhaps in addition to a CELER_EXPECT macro that
- * makes a similar assertion. Sometimes informing the compiler of an assumption
- * (such as the maximum range of an integer variable) can reduce code bloat and
- * silence odd warnings.
- */
 #if (!defined(__CUDA_ARCH__) && (defined(__clang__) || defined(__GNUC__))) \
     || defined(__NVCOMPILER)                                               \
     || (defined(__CUDA_ARCH__) && CUDART_VERSION >= 11030)                 \
     || defined(__HIP_DEVICE_COMPILE__)
 #    define CELER_UNREACHABLE __builtin_unreachable()
-#    define CELER_ASSUME(COND)                 \
-        do                                     \
-        {                                      \
-            if (__builtin_expect(!!(COND), 0)) \
-            {                                  \
-                __builtin_unreachable();       \
-            }                                  \
-        } while (0)
 #elif defined(_MSC_VER)
 #    define CELER_UNREACHABLE __assume(false)
-#    define CELER_ASSUME(COND) __assume(COND)
 #else
 #    define CELER_UNREACHABLE
-#    define CELER_ASSUME(COND) (void)sizeof(COND)
 #endif
 
 /*!
@@ -240,3 +224,5 @@
     CLS& operator=(CLS const&) = delete; \
     CLS(CLS&&) = delete;                 \
     CLS& operator=(CLS&&) = delete
+
+//---------------------------------------------------------------------------//
