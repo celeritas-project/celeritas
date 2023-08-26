@@ -78,6 +78,7 @@ void SurfaceClipper::operator()(Sense sense, S const& surf)
  */
 void SurfaceClipper::operator()(Sense sense, VariantSurface const& surf)
 {
+    CELER_ASSUME(!surf.valueless_by_exception());
     if (sense == Sense::inside)
     {
         return std::visit(detail::SurfaceClipperImpl<Sense::inside>{bbox_},
