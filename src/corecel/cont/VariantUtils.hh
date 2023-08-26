@@ -9,12 +9,31 @@
 
 #include <type_traits>
 #include <utility>
-#include <variant>
 
 #include "detail/VariantUtilsImpl.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Helper class for dispatching type-specific lambdas.
+ *
+ * Example applied to a variant that converts to int or string: \code
+  std::visit(Overload{[](int a) { cout << a + 2; },
+                      [](std::string const& s) { cout << '"' << s << '"'; }},
+             my_variant);
+ * \endcode
+ */
+template<typename... Ts>
+struct Overload : Ts...
+{
+    using Ts::operator()...;
+};
+
+// Template deduction guide
+template<class... Ts>
+Overload(Ts&&...) -> Overload<Ts...>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Create a wrapper functor for unifying the return type.

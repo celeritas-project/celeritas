@@ -17,6 +17,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
@@ -41,23 +42,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Variadic-templated struct for overloaded operator() calls.
- */
-template<typename... Ts>
-struct Overload : Ts...
-{
-    using Ts::operator()...;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * "Deduction guide" for instantiating Overload objects w/o specifying types.
- */
-template<class... Ts>
-Overload(Ts&&...) -> Overload<Ts...>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Load a geometry from the given filename.
