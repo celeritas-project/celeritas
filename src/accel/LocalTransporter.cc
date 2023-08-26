@@ -20,6 +20,8 @@
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/io/EventWriter.hh"
+#include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 

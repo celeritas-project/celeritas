@@ -16,6 +16,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
+#include "EventIOInterface.hh"
+
 namespace HepMC3
 {
 class Reader;
@@ -35,7 +37,7 @@ struct Primary;
  * until all events have been read. Supported formats are Asciiv3, IO_GenEvent,
  * HEPEVT, and LHEF.
  */
-class EventReader
+class EventReader : public EventReaderInterface
 {
   public:
     //!@{
@@ -52,7 +54,7 @@ class EventReader
     CELER_DELETE_COPY_MOVE(EventReader);
 
     // Read a single event from the event record
-    result_type operator()();
+    result_type operator()() final;
 
   private:
     // Shared standard model particle data

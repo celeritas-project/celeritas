@@ -9,6 +9,7 @@
 
 #include <functional>
 
+#include "celeritas/io/EventIOInterface.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
@@ -32,8 +33,8 @@ class EventIOTestBase : public Test
     //!@{
     //! \name Type aliases
     using VecPrimary = std::vector<Primary>;
-    using ReadFunc = std::function<VecPrimary()>;
-    using WriteFunc = std::function<void(VecPrimary const&)>;
+    using Reader = EventReaderInterface;
+    using Writer = EventWriterInterface;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     //!@}
 
@@ -55,12 +56,12 @@ class EventIOTestBase : public Test
     void SetUp() override;
 
     // Read all primaries from a file
-    ReadAllResult read_all(ReadFunc read_event) const;
+    ReadAllResult read_all(Reader& read_event) const;
 
     // Write test primaries to a file
-    void write_test_event(WriteFunc write_event) const;
+    void write_test_event(Writer& write_event) const;
     // Read and check the test primaries to a file
-    void read_check_test_event(ReadFunc read_event) const;
+    void read_check_test_event(Reader& read_event) const;
 
     // Access particles
     SPConstParticles const& particles() const { return particles_; }

@@ -117,6 +117,8 @@ char const* to_cstring(DebugErrorType which)
             return "feature is not yet implemented";
         case DebugErrorType::postcondition:
             return "postcondition failed";
+        case DebugErrorType::assumption:
+            return "assumption failed";
     }
     return "";
 }
