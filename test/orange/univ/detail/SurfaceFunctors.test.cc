@@ -100,9 +100,8 @@ TEST_F(SurfaceFunctorsTest, calc_sense)
 
 TEST_F(SurfaceFunctorsTest, num_intersections)
 {
-    auto num_intersections = make_static_surface_action<NumIntersections>();
-    EXPECT_EQ(1, num_intersections(PlaneX::surface_type()));
-    EXPECT_EQ(2, num_intersections(Sphere::surface_type()));
+    EXPECT_EQ(1, visit_surface_type(NumIntersections{}, SurfaceType::px));
+    EXPECT_EQ(2, visit_surface_type(NumIntersections{}, SurfaceType::sc));
 }
 
 //---------------------------------------------------------------------------//

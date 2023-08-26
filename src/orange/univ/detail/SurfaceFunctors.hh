@@ -32,11 +32,12 @@ struct CalcSense
 
 //---------------------------------------------------------------------------//
 //! Get the number of intersections of a surface
-template<class S>
 struct NumIntersections
 {
-    CELER_CONSTEXPR_FUNCTION size_type operator()() const noexcept
+    template<class ST>
+    CELER_CONSTEXPR_FUNCTION size_type operator()(ST) const noexcept
     {
+        using S = typename ST::type;
         return typename S::Intersections{}.size();
     }
 };
