@@ -43,9 +43,7 @@ class UnitInserter
 
   private:
     Data* orange_data_{nullptr};
-    detail::BIHBuilder bih_builder_;
-
-    // TODO: additional caches for hashed data?
+    BIHBuilder build_bih_tree_;
 
     //// HELPER METHODS ////
 
