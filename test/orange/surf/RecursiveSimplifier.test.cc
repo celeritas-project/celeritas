@@ -29,13 +29,12 @@ TEST_F(RecursiveSimplifierTest, single)
 {
     std::vector<std::string> result;
 
-    RecursiveSimplifier simplify{[&](Sense sense, auto&& surf) {
-                                     std::ostringstream os;
-                                     os << to_char(sense)
-                                        << std::setprecision(12) << surf;
-                                     result.push_back(os.str());
-                                 },
-                                 1e-6};
+    auto append_to_result = [&](Sense sense, auto&& surf) {
+        std::ostringstream os;
+        os << to_char(sense) << std::setprecision(12) << surf;
+        result.push_back(os.str());
+    };
+    RecursiveSimplifier simplify{append_to_result, 1e-6};
 
     // No simplification will occur
     simplify(Sense::inside, PlaneZ{1.5});
@@ -56,13 +55,12 @@ TEST_F(RecursiveSimplifierTest, variant)
     std::vector<std::string> stypes;
     std::vector<real_type> sdata;
 
-    RecursiveSimplifier simplify{
-        [&](Sense sense, auto&& surf) {
-            senses.push_back(to_char(sense));
-            stypes.push_back(to_cstring(surf.surface_type()));
-            sdata.insert(sdata.end(), surf.data().begin(), surf.data().end());
-        },
-        1e-6};
+    auto append_to_result = [&](Sense sense, auto&& surf) {
+        senses.push_back(to_char(sense));
+        stypes.push_back(to_cstring(surf.surface_type()));
+        sdata.insert(sdata.end(), surf.data().begin(), surf.data().end());
+    };
+    RecursiveSimplifier simplify{append_to_result, 1e-6};
 
     std::vector<std::pair<Sense, VariantSurface>> const surfaces{
         {Sense::inside, SimpleQuadric{Plane{PlaneX{1}}}},

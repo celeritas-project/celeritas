@@ -19,14 +19,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Recursively simplify and call the given function on the final surface.
+ * Recursively simplify, then call the given function on the final surface.
  *
  * Example:
  * \code
   RecursiveSimplifier print_simplified([](Sense s, auto&& surf) {
       cout << to_char(s) << surf << endl;
   }, 1e-10);
+  // Invoke on a compile-time surface type
   print_simplified(Sense::inside, Plane{{1,0,0}, 4});
+  // Invoke on a run-time surface type
   for (auto&& [sense, surf] : my_senses_and_variants)
   {
       print_simplified(sense, surf);

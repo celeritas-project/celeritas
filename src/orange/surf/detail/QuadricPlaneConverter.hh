@@ -17,10 +17,7 @@ namespace detail
 {
 //-------------------------------------------------------------------------//
 /*!
- * Try to convert a simple quadric to a cylinder.
- *
- * The simple quadric must have already undergone normalization (zero or one
- * negative signs in the second order terms).
+ * Try to convert a simple quadric to a plane.
  */
 class QuadricPlaneConverter
 {

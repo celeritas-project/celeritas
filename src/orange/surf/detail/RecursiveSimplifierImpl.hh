@@ -15,7 +15,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Recursively simplify and call the given function on the final surface.
+ * Recursively simplify, then call the given function on the final surface.
  *
  * This implementation class allows std::visit to be used with the surface
  * while retaining updates to the associated Sense that the user requested.

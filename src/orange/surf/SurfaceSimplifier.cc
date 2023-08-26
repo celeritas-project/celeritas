@@ -92,8 +92,8 @@ ORANGE_INSTANTIATE_OP(CylCentered, CylAligned);
  * Plane may be flipped, adjusted, or become axis-aligned.
  *
  * If a plane has a normal of {-1, 0 + eps, 0}, it will first be truncated to
- * {-1, 0, 0}, then flipped to {1, 0, 0}, and a new Plane will be return. That
- * plane can *then* be simplified to
+ * {-1, 0, 0}, then flipped to {1, 0, 0}, and a new Plane will be returned.
+ * That plane can *then* be simplified to an axis-aligned one.
  */
 auto SurfaceSimplifier::operator()(Plane const& p)
     -> Optional<PlaneX, PlaneY, PlaneZ, Plane>
@@ -187,6 +187,9 @@ auto SurfaceSimplifier::operator()(Sphere const& s) const
 //---------------------------------------------------------------------------//
 /*!
  * Simple quadric with near-zero terms can be another second-order surface.
+ *
+ * TODO: renormalize so that second-order terms are O(1) (and simplifying
+ * quadrics that are scaled by a constant)?
  */
 auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
     -> Optional<Plane,
@@ -237,31 +240,27 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
         if (auto s = to_sphere(sq))
             return *s;
     }
-    else if (num_pos == 2)
+    else if (num_pos == 2 && num_neg == 1)
     {
-        // One element is zero or negative: could be a cylinder or cone
-        if (num_neg == 1)
-        {
-            // Cone: one second-order term less than zero, others equal
-            detail::QuadricConeConverter to_cone{tol_};
-            if (auto c = to_cone(AxisTag<Axis::x>{}, sq))
-                return *c;
-            if (auto c = to_cone(AxisTag<Axis::y>{}, sq))
-                return *c;
-            if (auto c = to_cone(AxisTag<Axis::z>{}, sq))
-                return *c;
-        }
-        else
-        {
-            // Cyl: one second-order term is zero, others are equal
-            detail::QuadricCylConverter to_cyl{tol_};
-            if (auto c = to_cyl(AxisTag<Axis::x>{}, sq))
-                return *c;
-            if (auto c = to_cyl(AxisTag<Axis::y>{}, sq))
-                return *c;
-            if (auto c = to_cyl(AxisTag<Axis::z>{}, sq))
-                return *c;
-        }
+        // Cone: one second-order term less than zero, others equal
+        detail::QuadricConeConverter to_cone{tol_};
+        if (auto c = to_cone(AxisTag<Axis::x>{}, sq))
+            return *c;
+        if (auto c = to_cone(AxisTag<Axis::y>{}, sq))
+            return *c;
+        if (auto c = to_cone(AxisTag<Axis::z>{}, sq))
+            return *c;
+    }
+    else if (num_pos == 2 && num_neg == 0)
+    {
+        // Cyl: one second-order term is zero, others are equal
+        detail::QuadricCylConverter to_cyl{tol_};
+        if (auto c = to_cyl(AxisTag<Axis::x>{}, sq))
+            return *c;
+        if (auto c = to_cyl(AxisTag<Axis::y>{}, sq))
+            return *c;
+        if (auto c = to_cyl(AxisTag<Axis::z>{}, sq))
+            return *c;
     }
 
     // No simplification performed
@@ -277,8 +276,6 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
 auto SurfaceSimplifier::operator()(GeneralQuadric const& gq)
     -> Optional<SimpleQuadric>
 {
-    SoftZero const soft_zero{tol_};
-
     auto cross = gq.cross();
     if (std::all_of(cross.begin(), cross.end(), SoftZero{tol_}))
     {

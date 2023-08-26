@@ -21,8 +21,8 @@ namespace detail
 /*!
  * Try to convert a simple quadric to a cylinder.
  *
- * The simple quadric must have already undergone normalization (zero or one
- * negative signs in the second order terms).
+ * The simple quadric must have already undergone normalization (one
+ * second-order term approximately zero, the others positive).
  */
 class QuadricCylConverter
 {

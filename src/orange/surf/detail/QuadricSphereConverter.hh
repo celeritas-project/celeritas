@@ -74,6 +74,10 @@ QuadricSphereConverter::QuadricSphereConverter(real_type tol)
 std::optional<Sphere>
 QuadricSphereConverter::operator()(SimpleQuadric const& sq) const
 {
+    CELER_EXPECT(std::all_of(
+        sq.second().begin(), sq.second().end(), [this](real_type v) {
+            return v >= 0 || soft_equal_(v, 0);
+        }));
     constexpr auto X = to_int(Axis::x);
     constexpr auto Y = to_int(Axis::y);
     constexpr auto Z = to_int(Axis::z);
