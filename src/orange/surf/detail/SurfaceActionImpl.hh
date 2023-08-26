@@ -56,23 +56,6 @@ class SurfaceAction
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Convert a surface type to a class property via a traits class.
- *
- * The traits class \c T must be templated on surface type, and (like \c
- * std::integral_constant ) have a \verbatim
-      constexpr value_type operator()() const noexcept
- * \endverbatim
- * member function for extracting the desired value.
- */
-template<template<class> class T>
-struct StaticSurfaceAction
-{
-    // Apply to the surface specified by a surface ID
-    inline CELER_FUNCTION decltype(auto) operator()(SurfaceType type) const;
-};
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -101,22 +84,6 @@ CELER_FUNCTION auto SurfaceAction<F>::operator()(LocalSurfaceId id)
             return action_(surfaces_.make_surface<S>(id));
         },
         surfaces_.surface_type(id));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Apply to the surface specified by the given surface ID.
- */
-template<template<class> class T>
-CELER_FUNCTION decltype(auto)
-StaticSurfaceAction<T>::operator()(SurfaceType type) const
-{
-    return visit_surface_type(
-        [](auto st_traits) {
-            using S = typename decltype(st_traits)::type;
-            return T<S>{}();
-        },
-        type);
 }
 
 //---------------------------------------------------------------------------//

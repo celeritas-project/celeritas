@@ -120,10 +120,6 @@ class SurfaceActionTest : public OrangeGeoTestBase
     std::mt19937 rng_;
 };
 
-class StaticSurfaceActionTest : public Test
-{
-};
-
 //---------------------------------------------------------------------------//
 // HELPERS
 //---------------------------------------------------------------------------//
@@ -142,25 +138,6 @@ struct ToString
     ToString() = default;
     ToString(ToString const&) = delete;
     ToString(ToString&&) = default;
-};
-
-//---------------------------------------------------------------------------//
-//! Get the amount of storage
-template<class S>
-struct GetStorageSize
-{
-    constexpr size_type operator()() const noexcept
-    {
-        return S::Storage::extent * sizeof(typename S::Storage::value_type);
-    }
-};
-
-//---------------------------------------------------------------------------//
-//! Get the actual size of a surface instance
-template<class S>
-struct GetTypeSize
-{
-    constexpr size_type operator()() const noexcept { return sizeof(S); }
 };
 
 //---------------------------------------------------------------------------//
@@ -190,6 +167,22 @@ TEST_F(SurfaceActionTest, variant_surface)
         "SQuadric: {0,1,2} {6,7,8} 9",
     };
     EXPECT_VEC_EQ(expected_strings, strings);
+}
+
+TEST_F(SurfaceActionTest, surface_traits_visitor)
+{
+    // Get the surface type reported by a surface
+    auto get_surface_type = [](auto surf_traits) -> SurfaceType {
+        using Surface = typename decltype(surf_traits)::type;
+        return Surface::surface_type();
+    };
+
+    // Check that all surface types can be visited and are consistent
+    for (auto st : range(SurfaceType::size_))
+    {
+        SurfaceType actual_st = visit_surface_type(get_surface_type, st);
+        EXPECT_EQ(st, actual_st);
+    }
 }
 
 TEST_F(SurfaceActionTest, string)
@@ -306,19 +299,6 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
                   senses_to_string(host_states.sense[test_threads]));
         EXPECT_VEC_SOFT_EQ(expected_distance,
                            host_states.distance[test_threads]);
-    }
-}
-
-//---------------------------------------------------------------------------//
-//! Loop through all surface types and ensure "storage" type is correctly sized
-TEST_F(StaticSurfaceActionTest, check_surface_sizes)
-{
-    auto get_expected_storage = make_static_surface_action<GetTypeSize>();
-    auto get_actual_storage = make_static_surface_action<GetStorageSize>();
-
-    for (auto st : range(SurfaceType::size_))
-    {
-        EXPECT_EQ(get_expected_storage(st), get_actual_storage(st));
     }
 }
 
