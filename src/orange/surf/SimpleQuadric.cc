@@ -8,6 +8,7 @@
 #include "SimpleQuadric.hh"
 
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 
 #include "ConeAligned.hh"
@@ -26,7 +27,7 @@ namespace celeritas
  * \f$ dx + ey + fz + g = 0 \f$ .
  */
 SimpleQuadric::SimpleQuadric(Plane const& other) noexcept
-    : SimpleQuadric{{0, 0, 0}, other.normal(), 0 - other.displacement()}
+    : SimpleQuadric{{0, 0, 0}, other.normal(), negate(other.displacement())}
 {
 }
 

@@ -140,14 +140,14 @@ auto SurfaceSimplifier::operator()(Plane const& p)
         }
         else if (n[ax] < 0)
         {
-            // Flip the sign of any remaining nonzero axes
+            // Flip the sign of this and any remaining nonzero axes
             // (previous axes are zero so just skip them)
             for (auto ax2 : range(ax, to_int(Axis::size_)))
             {
-                n[ax2] = 0 - n[ax2];
+                n[ax2] = negate(n[ax2]);
             }
             // Flip sign of d (without introducing -0)
-            d = 0 - d;
+            d = negate(d);
             // Flip sense
             *sense_ = flip_sense(*sense_);
             changed = true;
@@ -221,7 +221,7 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
         auto arr = make_array(sq.data());
         for (auto& v : arr)
         {
-            v = 0 - v;  // Avoid signed zero
+            v = negate(v);
         }
 
         // Flip sense

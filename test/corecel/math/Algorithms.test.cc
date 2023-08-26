@@ -313,6 +313,21 @@ TEST(MathTest, ceil_div)
 
 //---------------------------------------------------------------------------//
 
+TEST(MathTest, negate)
+{
+    double const zero = 0;
+    auto negzero = -zero;
+    EXPECT_TRUE(std::signbit(negzero));
+    EXPECT_FALSE(std::signbit(negate(zero)));
+
+    constexpr auto dblinf = std::numeric_limits<double>::infinity();
+    EXPECT_DOUBLE_EQ(-2.0, negate(2.0));
+    EXPECT_DOUBLE_EQ(-dblinf, negate(dblinf));
+    EXPECT_TRUE(std::isnan(negate(std::numeric_limits<double>::quiet_NaN())));
+}
+
+//---------------------------------------------------------------------------//
+
 TEST(MathTest, sincos)
 {
     {
