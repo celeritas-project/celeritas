@@ -57,6 +57,13 @@ enum class Ownership
     const_reference,  //!< Immutable reference to the data
 };
 
+//! Allocation policy
+enum class DeviceAllocationPolicy
+{
+    sync,  //!< Device-wide synchronous allocation
+    async,  //!< Stream-ordered asynchronous memory allocation
+};
+
 #if !defined(SWIG) || SWIG_VERSION > 0x050000
 //---------------------------------------------------------------------------//
 //!@{

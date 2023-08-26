@@ -32,7 +32,7 @@ namespace celeritas
     myvec.copy_to_host(make_span(hostvec));
    \endcode
  */
-template<class T>
+template<class T, DeviceAllocationPolicy P = DeviceAllocationPolicy::sync>
 class DeviceVector
 {
 #if !CELERITAS_USE_HIP
@@ -92,13 +92,13 @@ class DeviceVector
     inline T const* data() const;
 
   private:
-    DeviceAllocation allocation_;
+    DeviceAllocation<P> allocation_;
     InitializedValue<size_type> size_;
 };
 
 // Swap two vectors.
-template<class T>
-inline void swap(DeviceVector<T>& a, DeviceVector<T>& b) noexcept;
+template<class T, DeviceAllocationPolicy P>
+inline void swap(DeviceVector<T, P>& a, DeviceVector<T, P>& b) noexcept;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -106,9 +106,9 @@ inline void swap(DeviceVector<T>& a, DeviceVector<T>& b) noexcept;
 /*!
  * Construct with a number of allocated elements.
  */
-template<class T>
-DeviceVector<T>::DeviceVector(size_type count)
-    : allocation_(count * sizeof(T)), size_(count)
+template<class T, DeviceAllocationPolicy P>
+DeviceVector<T, P>::DeviceVector(size_type count)
+    : allocation_{count * sizeof(T), nullptr}, size_{count}
 {
 }
 
@@ -116,8 +116,8 @@ DeviceVector<T>::DeviceVector(size_type count)
 /*!
  * Get the device data pointer.
  */
-template<class T>
-void DeviceVector<T>::swap(DeviceVector& other) noexcept
+template<class T, DeviceAllocationPolicy P>
+void DeviceVector<T, P>::swap(DeviceVector& other) noexcept
 {
     using std::swap;
     swap(size_, other.size_);
@@ -128,8 +128,8 @@ void DeviceVector<T>::swap(DeviceVector& other) noexcept
 /*!
  * Copy data to device.
  */
-template<class T>
-void DeviceVector<T>::copy_to_device(SpanConstT data)
+template<class T, DeviceAllocationPolicy P>
+void DeviceVector<T, P>::copy_to_device(SpanConstT data)
 {
     CELER_EXPECT(data.size() == this->size());
     allocation_.copy_to_device(
@@ -140,8 +140,8 @@ void DeviceVector<T>::copy_to_device(SpanConstT data)
 /*!
  * Copy data to host.
  */
-template<class T>
-void DeviceVector<T>::copy_to_host(SpanT data) const
+template<class T, DeviceAllocationPolicy P>
+void DeviceVector<T, P>::copy_to_host(SpanT data) const
 {
     CELER_EXPECT(data.size() == this->size());
     allocation_.copy_to_host(
@@ -152,8 +152,8 @@ void DeviceVector<T>::copy_to_host(SpanT data) const
 /*!
  * Get a device data pointer.
  */
-template<class T>
-T* DeviceVector<T>::data()
+template<class T, DeviceAllocationPolicy P>
+T* DeviceVector<T, P>::data()
 {
     return reinterpret_cast<T*>(allocation_.device_ref().data());
 }
@@ -162,8 +162,8 @@ T* DeviceVector<T>::data()
 /*!
  * Get a device data pointer.
  */
-template<class T>
-T const* DeviceVector<T>::data() const
+template<class T, DeviceAllocationPolicy P>
+T const* DeviceVector<T, P>::data() const
 {
     return reinterpret_cast<T const*>(allocation_.device_ref().data());
 }
@@ -172,8 +172,8 @@ T const* DeviceVector<T>::data() const
 /*!
  * Swap two vectors.
  */
-template<class T>
-void swap(DeviceVector<T>& a, DeviceVector<T>& b) noexcept
+template<class T, DeviceAllocationPolicy P>
+void swap(DeviceVector<T, P>& a, DeviceVector<T, P>& b) noexcept
 {
     return a.swap(b);
 }

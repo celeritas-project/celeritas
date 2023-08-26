@@ -9,6 +9,7 @@
 
 #include <algorithm>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
 #include "celeritas_test.hh"
@@ -17,6 +18,9 @@ namespace celeritas
 {
 namespace test
 {
+
+using DeviceAllocation = DeviceAllocation<DeviceAllocationPolicy::sync>;
+
 //---------------------------------------------------------------------------//
 
 TEST(DeviceAllocationTest, always)
@@ -38,7 +42,7 @@ TEST(DeviceAllocationTest, nocuda)
 
 TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
 {
-    DeviceAllocation alloc(1024);
+    DeviceAllocation alloc(1024, nullptr);
     EXPECT_EQ(1024, alloc.size());
     EXPECT_FALSE(alloc.empty());
 
@@ -76,7 +80,7 @@ TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
 
 TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(empty))
 {
-    DeviceAllocation alloc{0};
+    DeviceAllocation alloc{0UL};
     EXPECT_TRUE(alloc.empty());
     EXPECT_EQ(0, alloc.size());
     EXPECT_EQ(nullptr, alloc.device_ref().data());
