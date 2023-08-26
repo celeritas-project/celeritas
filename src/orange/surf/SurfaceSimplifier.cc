@@ -8,6 +8,7 @@
 #include "SurfaceSimplifier.hh"
 
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -21,6 +22,7 @@
 #include "SimpleQuadric.hh"
 #include "Sphere.hh"
 #include "SphereCentered.hh"
+#include "detail/PlaneAlignedConverter.hh"
 #include "detail/QuadricConeConverter.hh"
 #include "detail/QuadricCylConverter.hh"
 #include "detail/QuadricPlaneConverter.hh"
@@ -38,6 +40,23 @@ namespace
     SurfaceSimplifier::operator()(IN<Axis::y> const&) const; \
     template SurfaceSimplifier::Optional<OUT<Axis::z>>       \
     SurfaceSimplifier::operator()(IN<Axis::z> const&) const
+
+class ZeroSnapper
+{
+  public:
+    explicit ZeroSnapper(real_type tol) : soft_zero_{tol} {}
+
+    //! Transform the value so that near-zeros (and signed zeros) become zero
+    real_type operator()(real_type v) const
+    {
+        if (soft_zero_(v))
+            return 0;
+        return v;
+    }
+
+  private:
+    SoftZero<> soft_zero_;
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -98,35 +117,22 @@ ORANGE_INSTANTIATE_OP(CylCentered, CylAligned);
 auto SurfaceSimplifier::operator()(Plane const& p)
     -> Optional<PlaneX, PlaneY, PlaneZ, Plane>
 {
+    {
+        // First, try to snap to aligned plane
+        detail::PlaneAlignedConverter to_aligned{tol_};
+        if (auto pa = to_aligned(AxisTag<Axis::x>{}, p))
+            return *pa;
+        if (auto pa = to_aligned(AxisTag<Axis::y>{}, p))
+            return *pa;
+        if (auto pa = to_aligned(AxisTag<Axis::z>{}, p))
+            return *pa;
+    }
+
     Real3 n{p.normal()};
     real_type d{p.displacement()};
 
-    // First, look for axis-aligned plane
-    {
-        SoftEqual soft_equal{tol_};
-        if (soft_equal(real_type{1}, n[to_int(Axis::x)]))
-            return PlaneX{d};
-        if (soft_equal(real_type{1}, n[to_int(Axis::y)]))
-            return PlaneY{d};
-        if (soft_equal(real_type{1}, n[to_int(Axis::z)]))
-            return PlaneZ{d};
-    }
-
-    bool changed{false};
-
-    // Snap nearly-zero normals to zero and record which ones are nonzero
-    {
-        SoftZero const soft_zero{tol_};
-        for (auto axis : range(Axis::size_))
-        {
-            auto ax = to_int(axis);
-            if (n[ax] != 0 && soft_zero(n[ax]))
-            {
-                n[ax] = 0;
-                changed = true;
-            }
-        }
-    }
+    // Snap nearly-zero normals to zero
+    std::transform(n.begin(), n.end(), n.begin(), ZeroSnapper{tol_});
 
     // To prevent opposite-value planes from being defined but not
     // deduplicated, ensure the first non-zero normal component is in the
@@ -150,12 +156,11 @@ auto SurfaceSimplifier::operator()(Plane const& p)
             d = negate(d);
             // Flip sense
             *sense_ = flip_sense(*sense_);
-            changed = true;
             break;
         }
     }
 
-    if (changed)
+    if (n != p.normal())
     {
         // The direction was changed: renormalize and return the updated plane
         real_type norm_factor = 1 / celeritas::norm(n);

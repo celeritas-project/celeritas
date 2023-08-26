@@ -9,6 +9,7 @@
 
 #include <iomanip>
 
+#include "corecel/cont/ArrayIO.hh"
 #include "orange/Constants.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/surf/detail/AllSurfaces.hh"
@@ -157,6 +158,17 @@ TEST_F(SurfaceSimplifierTest, plane)
         Plane{{-1 / sqrt_two, -1 / sqrt_two, 0.0}, -2 * sqrt_two},
         Plane{{1 / sqrt_two, 1 / sqrt_two, 0.0}, 2 * sqrt_two},
         Sense::outside);
+
+    // Check vector/displacement normalization
+    Real3 n{1, 0, 1e-4};
+    normalize_direction(&n);
+    this->check_simplifies_to(Plane{n, {5.0, 0, 0}}, PlaneX{5.0});
+
+    // First pass should clip zeros and normalize
+    n = {-1, 0, 1e-7};
+    normalize_direction(&n);
+    this->check_simplifies_to(
+        Plane{n, {5.0, 0, 0}}, Plane{{1, 0, 0}, {5, 0, 0}}, Sense::outside);
 }
 
 TEST_F(SurfaceSimplifierTest, sphere)

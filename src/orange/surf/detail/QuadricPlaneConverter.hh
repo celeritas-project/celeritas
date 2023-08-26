@@ -17,7 +17,7 @@ namespace detail
 {
 //-------------------------------------------------------------------------//
 /*!
- * Try to convert a simple quadric to a plane.
+ * Convert a simple quadric to a plane.
  */
 class QuadricPlaneConverter
 {
