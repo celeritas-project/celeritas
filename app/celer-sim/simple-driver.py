@@ -13,7 +13,7 @@ from os import environ, path
 from sys import exit, argv, stderr
 
 try:
-    (geometry_filename, hepmc3_filename, rootout_filename) = argv[1:]
+    (geometry_filename, event_filename, rootout_filename) = argv[1:]
 except ValueError:
     print("usage: {} inp.gdml inp.hepmc3 mctruth.root (use '' for no ROOT output)".format(argv[0]))
     exit(1)
@@ -78,7 +78,7 @@ inp = {
     'use_device': use_device,
     'geometry_filename': geometry_filename,
     'physics_filename': physics_filename,
-    'hepmc3_filename': hepmc3_filename,
+    'event_filename': event_filename,
     'mctruth_filename': rootout_filename,
     'seed': 12345,
     'num_track_slots': num_tracks,

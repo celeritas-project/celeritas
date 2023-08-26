@@ -23,6 +23,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelRegistry.hh"
@@ -35,7 +36,9 @@
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -169,8 +172,21 @@ SharedParams::SharedParams(SetupOptions const& options)
 
     if (!options.offload_output_file.empty())
     {
-        offload_writer_ = std::make_shared<detail::OffloadWriter>(
-            options.offload_output_file, params_->particle());
+        std::unique_ptr<EventWriterInterface> writer;
+        if (ends_with(options.offload_output_file, ".root"))
+        {
+            writer.reset(
+                new RootEventWriter(std::make_shared<RootFileManager>(
+                                        options.offload_output_file.c_str()),
+                                    params_->particle()));
+        }
+        else
+        {
+            writer.reset(new EventWriter(options.offload_output_file,
+                                         params_->particle()));
+        }
+        offload_writer_
+            = std::make_shared<detail::OffloadWriter>(std::move(writer));
     }
 
     CELER_ENSURE(*this);

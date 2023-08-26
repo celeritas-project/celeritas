@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <mutex>
-#include <string>
 
-#include "celeritas/io/EventWriter.hh"
+#include "celeritas/io/EventIOInterface.hh"
 
 namespace celeritas
 {
@@ -19,38 +19,38 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Dump primaries to a shared file, one event per flush.
+ *
+ * This thin class simply adds a mutex to the output writer for thread safety.
  */
 class OffloadWriter
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParticles = std::shared_ptr<ParticleParams const>;
-    using argument_type = std::vector<Primary> const&;
+    using UPWriter = std::unique_ptr<EventWriterInterface>;
+    using argument_type = EventWriterInterface::argument_type;
     //!@}
 
   public:
-    // Construct with defaults
-    inline explicit OffloadWriter(std::string const& filename,
-                                  SPConstParticles const& particles);
+    // Construct from a writer interface
+    inline explicit OffloadWriter(UPWriter&& writer);
 
     // Write primaries
     inline void operator()(argument_type);
 
   private:
     std::mutex write_mutex_;
-    EventWriter write_event_;
+    UPWriter write_event_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a filename.
+ * Construct from a writer.
  */
-OffloadWriter::OffloadWriter(std::string const& filename,
-                             SPConstParticles const& particles)
-    : write_event_{filename, particles}
+OffloadWriter::OffloadWriter(UPWriter&& writer)
+    : write_event_{std::move(writer)}
 {
 }
 
@@ -61,7 +61,7 @@ OffloadWriter::OffloadWriter(std::string const& filename,
 void OffloadWriter::operator()(argument_type primaries)
 {
     std::lock_guard scoped_lock{write_mutex_};
-    write_event_(primaries);
+    (*write_event_)(primaries);
 }
 
 //---------------------------------------------------------------------------//

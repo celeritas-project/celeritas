@@ -63,7 +63,7 @@ TEST_P(EventIOTest, variety_rwr)
     EventReader read_event(out_filename, this->particles());
 
     // Read events from the event record
-    auto result = this->read_all(std::ref(read_event));
+    auto result = this->read_all(read_event);
     if (ext == "hepevt")
     {
         GTEST_SKIP() << "HEPEVT format sorts primaries by PDG";
@@ -115,7 +115,7 @@ TEST_P(EventIOTest, no_vertex_rwr)
 
     // Read it in and check
     EventReader read_event(out_filename, this->particles());
-    auto result = this->read_all(std::ref(read_event));
+    auto result = this->read_all(read_event);
 
     // clang-format off
     static int const expected_pdg[] = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
@@ -164,20 +164,20 @@ TEST_P(EventIOTest, write_read)
     // Write events
     {
         EventWriter write_event(filename, this->particles());
-        this->write_test_event(std::ref(write_event));
+        this->write_test_event(write_event);
     }
 
     EventReader read_event(filename, this->particles());
     if (ext == "hepevt")
     {
         // Read events but don't check
-        auto result = this->read_all(std::ref(read_event));
+        auto result = this->read_all(read_event);
 
         GTEST_SKIP() << "HEPEVT results are nondeterministic";
     }
     else
     {
-        this->read_check_test_event(std::ref(read_event));
+        this->read_check_test_event(read_event);
     }
 }
 

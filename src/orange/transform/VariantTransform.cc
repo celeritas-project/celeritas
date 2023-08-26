@@ -27,10 +27,7 @@ struct VariantTransformDispatcher
     //! Apply a translation
     VariantTransform operator()(Translation const& left) const
     {
-        if (right.valueless_by_exception())
-        {
-            CELER_ASSERT_UNREACHABLE();
-        }
+        CELER_ASSUME(!right.valueless_by_exception());
         return std::visit(
             return_as<VariantTransform>(detail::TransformTranslator{left}),
             right);
@@ -39,10 +36,7 @@ struct VariantTransformDispatcher
     //! Apply a transformation
     VariantTransform operator()(Transformation const& left) const
     {
-        if (right.valueless_by_exception())
-        {
-            CELER_ASSERT_UNREACHABLE();
-        }
+        CELER_ASSUME(!right.valueless_by_exception());
         return std::visit(
             return_as<VariantTransform>(detail::TransformTransformer{left}),
             right);
@@ -71,10 +65,7 @@ struct VariantTransformDispatcher
 [[nodiscard]] VariantTransform
 apply_transform(VariantTransform const& left, VariantTransform const& right)
 {
-    if (left.valueless_by_exception())
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
+    CELER_ASSUME(!left.valueless_by_exception());
     return std::visit(VariantTransformDispatcher{right}, left);
 }
 
