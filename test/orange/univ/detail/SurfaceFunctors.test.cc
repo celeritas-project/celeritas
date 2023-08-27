@@ -66,7 +66,7 @@ TEST_F(SurfaceFunctorsTest, calc_normal)
     pos = {1.25, 1, 1};
     EXPECT_EQ(Real3({1, 0, 0}), calc_normal(px_));
     pos = {2.25, 2.25, 0};
-    EXPECT_EQ(Real3({0, 1, 0}), calc_normal(px_));
+    EXPECT_EQ(Real3({0, 1, 0}), calc_normal(s_));
 }
 
 //---------------------------------------------------------------------------//

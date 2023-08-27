@@ -8,7 +8,7 @@
 #include "orange/univ/detail/SenseCalculator.hh"
 
 #include "orange/OrangeGeoTestBase.hh"
-#include "orange/surf/Surfaces.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 #include "orange/univ/VolumeView.hh"
 
 #include "celeritas_test.hh"
@@ -57,11 +57,9 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
         return VolumeView{host_ref, host_ref.simple_units[SimpleUnitId{0}], v};
     }
 
-    Surfaces make_surfaces() const
+    LocalSurfaceVisitor make_surf_visitor() const
     {
-        auto const& host_ref = this->host_params();
-        return Surfaces(host_ref,
-                        host_ref.simple_units[SimpleUnitId{0}].surfaces);
+        return LocalSurfaceVisitor(this->host_params(), SimpleUnitId{0});
     }
 
     //! Access the shared CPU storage space for senses
@@ -84,7 +82,7 @@ TEST_F(SenseCalculatorTest, one_volume)
 
     // Test this degenerate case (no surfaces)
     SenseCalculator calc_senses(
-        this->make_surfaces(), Real3{123, 345, 567}, this->sense_storage());
+        this->make_surf_visitor(), Real3{123, 345, 567}, this->sense_storage());
 
     auto result = calc_senses(this->make_volume_view(LocalVolumeId{0}));
     EXPECT_EQ(0, result.senses.size());
@@ -107,7 +105,7 @@ TEST_F(SenseCalculatorTest, two_volumes)
     {
         // Point is in the inner sphere
         SenseCalculator calc_senses(
-            this->make_surfaces(), Real3{0, 0.5, 0}, this->sense_storage());
+            this->make_surf_visitor(), Real3{0, 0.5, 0}, this->sense_storage());
         {
             // Test inner sphere, not on a face
             auto result = calc_senses(inner);
@@ -126,7 +124,7 @@ TEST_F(SenseCalculatorTest, two_volumes)
     {
         // Point is in on the boundary: should register as "on" the face
         SenseCalculator calc_senses(
-            this->make_surfaces(), Real3{1.5, 0, 0}, this->sense_storage());
+            this->make_surf_visitor(), Real3{1.5, 0, 0}, this->sense_storage());
         {
             auto result = calc_senses(inner);
             ASSERT_EQ(1, result.senses.size());
@@ -145,7 +143,7 @@ TEST_F(SenseCalculatorTest, two_volumes)
     {
         // Point is in the outer sphere
         SenseCalculator calc_senses(
-            this->make_surfaces(), Real3{2, 0, 0}, this->sense_storage());
+            this->make_surf_visitor(), Real3{2, 0, 0}, this->sense_storage());
         {
             auto result = calc_senses(inner);
             ASSERT_EQ(1, result.senses.size());
@@ -172,8 +170,9 @@ TEST_F(SenseCalculatorTest, five_volumes)
 
     {
         // Point is in the inner sphere
-        SenseCalculator calc_senses(
-            this->make_surfaces(), Real3{-.25, -.25, 0}, this->sense_storage());
+        SenseCalculator calc_senses(this->make_surf_visitor(),
+                                    Real3{-.25, -.25, 0},
+                                    this->sense_storage());
         {
             // Test inner sphere
             auto result = calc_senses(vol_e);
@@ -193,8 +192,9 @@ TEST_F(SenseCalculatorTest, five_volumes)
     }
     {
         // Point is between spheres, on square edge (surface 8)
-        SenseCalculator calc_senses(
-            this->make_surfaces(), Real3{0.5, -0.25, 0}, this->sense_storage());
+        SenseCalculator calc_senses(this->make_surf_visitor(),
+                                    Real3{0.5, -0.25, 0},
+                                    this->sense_storage());
         {
             // Test inner sphere
             auto result = calc_senses(vol_e);
@@ -246,8 +246,9 @@ TEST_F(SenseCalculatorTest, five_volumes)
         // given then the lower face ID will be the one considered "on".
         // +x = surface 9 = face 5
         // -y = surface 10 = face 6
-        SenseCalculator calc_senses(
-            this->make_surfaces(), Real3{1.5, -1.0, 0}, this->sense_storage());
+        SenseCalculator calc_senses(this->make_surf_visitor(),
+                                    Real3{1.5, -1.0, 0},
+                                    this->sense_storage());
         {
             // Test natural sense
             auto result = calc_senses(vol_b);

@@ -14,7 +14,6 @@
 #include "orange/OrangeData.hh"
 #include "orange/detail/BIHTraverser.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
-#include "orange/surf/Surfaces.hh"
 
 #include "detail/LogicEvaluator.hh"
 #include "detail/SenseCalculator.hh"
@@ -123,7 +122,7 @@ class SimpleUnitTracker
                                                             size_type) const;
 
     // Create a Surfaces object from the params
-    inline CELER_FUNCTION Surfaces make_local_surfaces() const;
+    inline CELER_FUNCTION LocalSurfaceVisitor make_surface_visitor() const;
 
     // Create a Volumes object from the params
     inline CELER_FUNCTION VolumeView make_local_volume(LocalVolumeId vid) const;
@@ -163,7 +162,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     CELER_EXPECT(!state.surface && !state.volume);
 
     detail::SenseCalculator calc_senses(
-        this->make_local_surfaces(), state.pos, state.temp_sense);
+        this->make_surface_visitor(), state.pos, state.temp_sense);
 
     bool on_surface;
     auto is_inside
@@ -204,7 +203,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
 {
     CELER_EXPECT(state.surface && state.volume);
     detail::SenseCalculator calc_senses(
-        this->make_local_surfaces(), state.pos, state.temp_sense);
+        this->make_surface_visitor(), state.pos, state.temp_sense);
 
     // Loop over all connected surfaces (TODO: intersect with BVH)
     for (LocalVolumeId volid : this->get_neighbors(state.surface.id()))
@@ -496,7 +495,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
     // Calculate local senses, taking current face into account
     auto logic_state = detail::SenseCalculator(
-        this->make_local_surfaces(), state.pos, state.temp_sense)(
+        this->make_surface_visitor(), state.pos, state.temp_sense)(
         vol, detail::find_face(vol, state.surface));
 
     // Current senses should put us inside the volume
@@ -590,7 +589,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
             CELER_ASSERT(vid != state.volume);
             VolumeView vol = this->make_local_volume(vid);
             auto logic_state = detail::SenseCalculator{
-                this->make_local_surfaces(), pos, state.temp_sense}(vol);
+                this->make_surface_visitor(), pos, state.temp_sense}(vol);
 
             if (detail::LogicEvaluator{vol.logic()}(logic_state.senses))
             {
@@ -617,9 +616,10 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
 /*!
  * Create a Surfaces object from the params for this unit.
  */
-CELER_FORCEINLINE_FUNCTION Surfaces SimpleUnitTracker::make_local_surfaces() const
+CELER_FORCEINLINE_FUNCTION LocalSurfaceVisitor
+SimpleUnitTracker::make_surface_visitor() const
 {
-    return Surfaces{params_, unit_record_.surfaces};
+    return LocalSurfaceVisitor{params_, unit_record_.surfaces};
 }
 
 //---------------------------------------------------------------------------//
