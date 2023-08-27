@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/SurfaceAction.test.cc
+//! \file orange/surf/LocalSurfaceVisitor.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surf/SurfaceAction.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include <algorithm>
 #include <iostream>
@@ -22,12 +22,11 @@
 #include "orange/construct/OrangeInput.hh"
 #include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/surf/SurfaceIO.hh"
-#include "orange/surf/Surfaces.hh"
 #include "orange/surf/VariantSurface.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
-#include "SurfaceAction.test.hh"
+#include "LocalSurfaceVisitor.test.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -187,17 +186,16 @@ TEST_F(SurfaceActionTest, surface_traits_visitor)
 
 TEST_F(SurfaceActionTest, string)
 {
-    // Create functor
-    auto const& host_ref = this->host_params();
-    Surfaces surfaces(host_ref,
-                      host_ref.simple_units[SimpleUnitId{0}].surfaces);
-    auto surf_to_string = make_surface_action(surfaces, ToString{});
+    // Create functor to visit the local surface
+    LocalSurfaceVisitor visit(this->host_params(), SimpleUnitId{0});
 
     // Loop over all surfaces and apply
     std::vector<std::string> strings;
-    for (auto id : range(LocalSurfaceId{surfaces.num_surfaces()}))
+    auto num_surf
+        = this->host_params().simple_units[SimpleUnitId{0}].surfaces.size();
+    for (auto id : range(LocalSurfaceId{num_surf}))
     {
-        strings.push_back(surf_to_string(id));
+        strings.push_back(visit(ToString{}, id));
     }
 
     static char const* const expected_strings[] = {
@@ -285,16 +283,8 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
         host_states = device_states;
         auto test_threads = range(TrackSlotId{10});
 
-        double const expected_distance[] = {inf,
-                                            inf,
-                                            inf,
-                                            inf,
-                                            8.623486582635,
-                                            8.115429697208,
-                                            inf,
-                                            inf,
-                                            inf,
-                                            inf};
+        double const expected_distance[] = {
+            inf, inf, inf, inf, 8.623486582635, 8.115429697208, inf, inf, inf, inf};
         EXPECT_EQ("{- - + + - - + + + +}",
                   senses_to_string(host_states.sense[test_threads]));
         EXPECT_VEC_SOFT_EQ(expected_distance,

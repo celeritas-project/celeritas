@@ -105,11 +105,6 @@ using ItemId = OpaqueId<T, size_type>;
  * of type T. It doesn't have any persistent connection to its associated
  * collection and thus must be used carefully.
  *
- * \todo It might also be good to have a `CollectionMap` -- mapping one
- * OpaqueId to another OpaqueId type (with just an offset value). This would be
- * used for example in physics, where \c ItemRange objects themselves are
- * supposed to be indexed into with a particular ID type.
- *
  * \code
    struct MyMaterial
    {

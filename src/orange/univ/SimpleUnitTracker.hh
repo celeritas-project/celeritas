@@ -13,6 +13,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
 #include "orange/detail/BIHTraverser.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 #include "orange/surf/Surfaces.hh"
 
 #include "detail/LogicEvaluator.hh"
@@ -288,11 +289,11 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
 
     // Calculate minimim distance to all local faces
     real_type result = numeric_limits<real_type>::infinity();
-    auto calc_safety = make_surface_action(this->make_local_surfaces(),
-                                           detail::CalcSafetyDistance{pos});
+    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+    detail::CalcSafetyDistance calc_safety{pos};
     for (LocalSurfaceId surface : vol.faces())
     {
-        result = celeritas::min(result, calc_safety(surface));
+        result = celeritas::min(result, visit_surface(calc_safety, surface));
     }
 
     CELER_ENSURE(result >= 0);
@@ -308,10 +309,8 @@ SimpleUnitTracker::normal(Real3 const& pos, LocalSurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf);
 
-    auto calc_normal = make_surface_action(this->make_local_surfaces(),
-                                           detail::CalcNormal{pos});
-
-    return calc_normal(surf);
+    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+    return visit_surface(detail::CalcNormal{pos}, surf);
 }
 
 //---------------------------------------------------------------------------//
@@ -369,21 +368,20 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F is_valid) const
     // Find all valid (nearby or finite, depending on F) surface intersection
     // distances inside this volume. Fill the `isect` array if the tracking
     // algorithm requires sorting.
-    auto calc_intersections = make_surface_action(
-        this->make_local_surfaces(),
-        detail::CalcIntersections<F const&>{
-            state.pos,
-            state.dir,
-            is_valid,
-            state.surface ? vol.find_face(state.surface.id()) : FaceId{},
-            vol.simple_intersection(),
-            state.temp_next});
+    detail::CalcIntersections<F const&> calc_intersections{
+        state.pos,
+        state.dir,
+        is_valid,
+        state.surface ? vol.find_face(state.surface.id()) : FaceId{},
+        vol.simple_intersection(),
+        state.temp_next};
+    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
     for (LocalSurfaceId surface : vol.faces())
     {
-        calc_intersections(surface);
+        visit_surface(calc_intersections, surface);
     }
-    CELER_ASSERT(calc_intersections.action().face_idx() == vol.num_faces());
-    size_type num_isect = calc_intersections.action().isect_idx();
+    CELER_ASSERT(calc_intersections.face_idx() == vol.num_faces());
+    size_type num_isect = calc_intersections.isect_idx();
     CELER_ASSERT(num_isect <= vol.max_intersections());
 
     if (num_isect == 0)
@@ -462,10 +460,8 @@ SimpleUnitTracker::simple_intersect(LocalState const& state,
     }
     else
     {
-        auto calc_sense = make_surface_action(this->make_local_surfaces(),
-                                              detail::CalcSense{state.pos});
-
-        SignedSense ss = calc_sense(surface);
+        LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+        SignedSense ss = visit_surface(detail::CalcSense{state.pos}, surface);
         CELER_ASSERT(ss != SignedSense::on);
         cur_sense = to_sense(ss);
     }
