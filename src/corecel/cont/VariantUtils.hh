@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/cont/VariantUtils.hh
+//! \brief Host-only utilities for use with std::variant
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -59,6 +60,8 @@ detail::ReturnAsImpl<T, F> return_as(F&& func)
  * is equivalent to: \code
     using VariantSurface = std::variant<PlaneX, PlaneY, ..., GeneralQuadric>;
  * \endcode
+ *
+ * \sa EnumClassUtils.hh
  */
 template<class E, template<E> class ETraits>
 using EnumVariant = typename detail::EnumVariantImpl<E, ETraits>::type;

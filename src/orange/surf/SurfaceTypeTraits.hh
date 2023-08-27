@@ -7,33 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/EnumClassUtils.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "SurfaceFwd.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Helper struct for mapping enums to classes.
- *
- * \todo This will be moved later for reuse in other type-deleted storage.
- */
-template<class E, E EV, class T>
-struct EnumToClass
-{
-    using enum_type = E;
-    using type = T;
-
-    static constexpr enum_type value = EV;
-
-    CELER_CONSTEXPR_FUNCTION operator E() const noexcept { return value; }
-    CELER_CONSTEXPR_FUNCTION enum_type operator()() const noexcept
-    {
-        return value;
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Map surface enumeration to surface type.
