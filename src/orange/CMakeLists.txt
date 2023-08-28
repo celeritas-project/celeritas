@@ -28,6 +28,7 @@ list(APPEND SOURCES
   surf/SimpleQuadric.cc
   surf/Sphere.cc
   surf/SurfaceIO.cc
+  surf/SurfaceSimplifier.cc
   surf/VariantSurface.cc
   surf/detail/SurfaceClipperImpl.cc
   surf/detail/SurfaceTranslator.cc
