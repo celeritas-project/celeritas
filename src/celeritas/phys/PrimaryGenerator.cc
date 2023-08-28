@@ -13,6 +13,9 @@
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
+#include "ParticleParams.hh"
+#include "Primary.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -28,6 +31,7 @@ PrimaryGenerator::PrimaryGenerator(SPConstParticles particles, Input const& inp)
 {
     CELER_EXPECT(particles);
 
+    rng_.seed(inp.seed);
     particle_id_.reserve(inp.pdg.size());
     for (auto const& pdg : inp.pdg)
     {
@@ -39,21 +43,21 @@ PrimaryGenerator::PrimaryGenerator(SPConstParticles particles, Input const& inp)
 /*!
  * Generate primary particles from a single event.
  */
-auto PrimaryGenerator::operator()(std::mt19937& rng) -> VecPrimary
+auto PrimaryGenerator::operator()() -> result_type
 {
     if (event_count_ == num_events_)
     {
         return {};
     }
 
-    VecPrimary result(primaries_per_event_);
+    result_type result(primaries_per_event_);
     for (auto i : range(primaries_per_event_))
     {
         Primary& p = result[i];
         p.particle_id = particle_id_[primary_count_ % particle_id_.size()];
-        p.energy = units::MevEnergy{sample_energy_(rng)};
-        p.position = sample_pos_(rng);
-        p.direction = sample_dir_(rng);
+        p.energy = units::MevEnergy{sample_energy_(rng_)};
+        p.position = sample_pos_(rng_);
+        p.direction = sample_dir_(rng_);
         p.time = 0;
         p.event_id = EventId{event_count_};
         p.track_id = TrackId{i};
@@ -75,9 +79,9 @@ PrimaryGenerator
 PrimaryGenerator::from_options(SPConstParticles particles,
                                PrimaryGeneratorOptions const& opts)
 {
-    using DS = DistributionSelection;
-
     CELER_EXPECT(opts);
+
+    using DS = DistributionSelection;
 
     PrimaryGenerator::Input inp;
     inp.pdg = std::move(opts.pdg);

@@ -8,18 +8,22 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <random>
 #include <vector>
 
 #include "celeritas/Types.hh"
+#include "celeritas/io/EventIOInterface.hh"
 
 #include "PDGNumber.hh"
-#include "ParticleParams.hh"
-#include "Primary.hh"
 #include "PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class ParticleParams;
+class Primary;
+
 //---------------------------------------------------------------------------//
 /*!
  * Generate a vector of primaries.
@@ -29,23 +33,22 @@ namespace celeritas
  * distributions. If more than one PDG number is specified, an equal number of
  * each particle type will be produced. Each \c operator() call will return a
  * single event until \c num_events events have been generated.
- *
- * \todo Hardcode engine to mt19937 and inherit from EventReaderInterface (or
- * even change that name).
  */
-class PrimaryGenerator
+class PrimaryGenerator : public EventReaderInterface
 {
   public:
     //!@{
+    //! \name Type aliases
     using EnergySampler = std::function<real_type(std::mt19937&)>;
     using PositionSampler = std::function<Real3(std::mt19937&)>;
     using DirectionSampler = std::function<Real3(std::mt19937&)>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
-    using VecPrimary = std::vector<Primary>;
+    using result_type = std::vector<Primary>;
     //!@}
 
     struct Input
     {
+        unsigned int seed{};
         std::vector<PDGNumber> pdg;
         size_type num_events{};
         size_type primaries_per_event{};
@@ -62,8 +65,11 @@ class PrimaryGenerator
     // Construct with options and shared particle data
     PrimaryGenerator(SPConstParticles, Input const&);
 
+    //! Prevent copying and moving
+    CELER_DELETE_COPY_MOVE(PrimaryGenerator);
+
     // Generate primary particles from a single event
-    VecPrimary operator()(std::mt19937& rng);
+    result_type operator()() final;
 
   private:
     size_type num_events_{};
@@ -74,6 +80,7 @@ class PrimaryGenerator
     std::vector<ParticleId> particle_id_;
     size_type primary_count_{0};
     size_type event_count_{0};
+    std::mt19937 rng_;
 };
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

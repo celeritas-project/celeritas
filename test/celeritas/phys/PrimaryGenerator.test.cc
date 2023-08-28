@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/phys/PrimaryGenerator.hh"
 
-#include <random>
-
 #include "corecel/math/ArrayUtils.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/DeltaDistribution.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #if CELERITAS_USE_JSON
@@ -48,7 +48,6 @@ class PrimaryGeneratorTest : public Test
     }
 
     std::shared_ptr<ParticleParams> particles_;
-    std::mt19937 rng_;
 };
 
 //---------------------------------------------------------------------------//
@@ -72,7 +71,7 @@ TEST_F(PrimaryGeneratorTest, basic)
 
     for (size_type i = 0; i < inp.num_events; ++i)
     {
-        auto primaries = generate_primaries(rng_);
+        auto primaries = generate_primaries();
         EXPECT_EQ(inp.primaries_per_event, primaries.size());
 
         for (auto const& p : primaries)
@@ -86,7 +85,7 @@ TEST_F(PrimaryGeneratorTest, basic)
             track_id.push_back(p.track_id.unchecked_get());
         }
     }
-    auto primaries = generate_primaries(rng_);
+    auto primaries = generate_primaries();
     EXPECT_TRUE(primaries.empty());
 
     static int const expected_particle_id[] = {0, 1, 0, 1, 0, 1};
@@ -111,7 +110,7 @@ TEST_F(PrimaryGeneratorTest, options)
     opts.direction = {DS::isotropic, {}};
 
     auto generate_primaries = PrimaryGenerator::from_options(particles_, opts);
-    auto primaries = generate_primaries(rng_);
+    auto primaries = generate_primaries();
     EXPECT_EQ(10, primaries.size());
 
     for (size_type i : range(primaries.size()))
@@ -128,7 +127,7 @@ TEST_F(PrimaryGeneratorTest, options)
         }
         EXPECT_TRUE(is_soft_unit_vector(p.direction));
     }
-    primaries = generate_primaries(rng_);
+    primaries = generate_primaries();
     EXPECT_TRUE(primaries.empty());
 
 #if CELERITAS_USE_JSON
