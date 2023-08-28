@@ -205,9 +205,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
     detail::SenseCalculator calc_senses(
         this->make_local_surfaces(), state.pos, state.temp_sense);
 
-    VolumeView* temp_vv;
-    detail::OnFace temp_face;
-    auto is_inside = [this, &state, &calc_senses, &temp_face, &temp_vv](
+    detail::OnLocalSurface on_surface;
+    auto is_inside = [this, &state, &calc_senses, &on_surface](
                          LocalVolumeId const& id) -> bool {
         if (id == state.volume)
         {
@@ -219,9 +218,13 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
         auto logic_state
             = calc_senses(vol, detail::find_face(vol, state.surface));
 
-        temp_vv = &vol;
-        temp_face = logic_state.face;
-        return detail::LogicEvaluator(vol.logic())(logic_state.senses);
+        if (detail::LogicEvaluator(vol.logic())(logic_state.senses))
+        {
+            // Inside: find and save the local surface ID, and end the search
+            on_surface = get_surface(vol, logic_state.face);
+            return true;
+        }
+        return false;
     };
 
     auto neighbors = this->get_neighbors(state.surface.id());
@@ -234,7 +237,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
         {
             if (is_inside(id))
             {
-                return {id, get_surface(*temp_vv, temp_face)};
+                return {id, on_surface};
             }
         }
     }
@@ -243,7 +246,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
         LocalVolumeId id = bih_point_in_vol_(state.pos, is_inside);
         if (id)
         {
-            return {id, get_surface(*temp_vv, temp_face)};
+            return {id, on_surface};
         }
     }
 

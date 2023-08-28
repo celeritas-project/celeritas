@@ -1,5 +1,3 @@
-
-
 //----------------------------------*-C++-*----------------------------------//
 // Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
@@ -177,17 +175,17 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
 
 TEST_F(BoundingBoxUtilsTest, bumped)
 {
-    auto inf_real = std::numeric_limits<real_type>::infinity();
-    auto inf_fast_real = std::numeric_limits<fast_real_type>::infinity();
+    auto inf_double = std::numeric_limits<double>::infinity();
+    auto inf_float = std::numeric_limits<float>::infinity();
 
     double long_number = 0.11223344556677;
 
-    BBox unbumped = {{-inf_real, 0, -100}, {0, long_number, inf_real}};
+    BBox unbumped = {{-inf_double, 0, -100}, {0, long_number, inf_double}};
 
-    auto bumped = calc_bumped<fast_real_type, real_type>(unbumped);
+    auto bumped = calc_bumped<float>(unbumped);
 
     // Test lower corner
-    EXPECT_EQ(-inf_fast_real, bumped.lower()[0]);
+    EXPECT_EQ(-inf_float, bumped.lower()[0]);
 
     EXPECT_SOFT_EQ(0, bumped.lower()[1]);
     EXPECT_TRUE(bumped.lower()[1] < 0);
@@ -203,12 +201,12 @@ TEST_F(BoundingBoxUtilsTest, bumped)
     EXPECT_SOFT_EQ(long_number, bumped.upper()[1]);
     EXPECT_TRUE(bumped.upper()[1] > long_number);
 
-    EXPECT_EQ(inf_fast_real, bumped.upper()[2]);
+    EXPECT_EQ(inf_float, bumped.upper()[2]);
 
     // Test the bounds are inside
-    EXPECT_TRUE(is_inside(bumped, Array<real_type, 3>{-inf_real, 0, -100}));
+    EXPECT_TRUE(is_inside(bumped, Array<double, 3>{-inf_double, 0, -100}));
     EXPECT_TRUE(
-        is_inside(bumped, Array<real_type, 3>{0, long_number, inf_real}));
+        is_inside(bumped, Array<double, 3>{0, long_number, inf_double}));
 }
 
 //---------------------------------------------------------------------------//

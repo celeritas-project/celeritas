@@ -172,8 +172,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         // Store the bbox or an infinite bbox placeholder
         if (inp.volumes[i].bbox)
         {
-            bboxes.push_back(
-                calc_bumped<fast_real_type, real_type>(inp.volumes[i].bbox));
+            bboxes.push_back(calc_bumped<fast_real_type>(inp.volumes[i].bbox));
         }
         else
         {

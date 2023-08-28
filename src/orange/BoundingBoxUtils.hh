@@ -186,7 +186,7 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
  * Infinite values are unchanged.
  */
 template<class T, class U>
-inline constexpr BoundingBox<T> calc_bumped(BoundingBox<U> const& bbox)
+inline BoundingBox<T> calc_bumped(BoundingBox<U> const& bbox)
 {
     CELER_EXPECT(bbox);
 
