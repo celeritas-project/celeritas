@@ -57,14 +57,14 @@ class PrimaryGeneratorTest : public Test
 
 TEST_F(PrimaryGeneratorTest, basic)
 {
-    PrimaryGenerator<std::mt19937>::Input inp;
+    PrimaryGenerator::Input inp;
     inp.pdg = {pdg::gamma(), pdg::electron()};
     inp.num_events = 2;
     inp.primaries_per_event = 3;
     inp.sample_energy = DeltaDistribution<real_type>(10);
     inp.sample_pos = DeltaDistribution<Real3>(Real3{1, 2, 3});
     inp.sample_dir = IsotropicDistribution<real_type>();
-    PrimaryGenerator<std::mt19937> generate_primaries(particles_, inp);
+    PrimaryGenerator generate_primaries(particles_, inp);
 
     std::vector<int> particle_id;
     std::vector<int> event_id;
@@ -110,8 +110,7 @@ TEST_F(PrimaryGeneratorTest, options)
     opts.position = {DS::box, {-3, -3, -3, 3, 3, 3}};
     opts.direction = {DS::isotropic, {}};
 
-    auto generate_primaries
-        = PrimaryGenerator<std::mt19937>::from_options(particles_, opts);
+    auto generate_primaries = PrimaryGenerator::from_options(particles_, opts);
     auto primaries = generate_primaries(rng_);
     EXPECT_EQ(10, primaries.size());
 
