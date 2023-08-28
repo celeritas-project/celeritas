@@ -178,4 +178,31 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Convert bbox with U type values to a bumped bbox with T type values.
+ *
+ * Each U lower value is bumped to the greatest T value less than the U value.
+ * Each U upper value is bumped to the lowest T value greater than the U value.
+ * Infinite values are unchanged.
+ */
+template<class T, class U>
+inline BoundingBox<T> calc_bumped(BoundingBox<U> const& bbox)
+{
+    CELER_EXPECT(bbox);
+
+    Array<T, 3> lower;
+    Array<T, 3> upper;
+
+    for (auto ax : range(to_int(Axis::size_)))
+    {
+        lower[ax] = std::nextafter(static_cast<T>(bbox.lower()[ax]),
+                                   -numeric_limits<T>::infinity());
+        upper[ax] = std::nextafter(static_cast<T>(bbox.upper()[ax]),
+                                   numeric_limits<T>::infinity());
+    }
+
+    return BoundingBox<T>::from_unchecked(lower, upper);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
