@@ -98,15 +98,19 @@ class SimpleUnitTracker
 
   private:
     //// DATA ////
+
     ParamsRef const& params_;
     SimpleUnitRecord const& unit_record_;
-    detail::BIHTraverser bih_point_in_vol_;
 
     //// METHODS ////
 
     // Get volumes that have the given surface as a "face" (connectivity)
     inline CELER_FUNCTION Span<LocalVolumeId const>
         get_neighbors(LocalSurfaceId) const;
+
+    template<class F>
+    inline CELER_FUNCTION LocalVolumeId find_volume_where(Real3 const& pos,
+                                                          F&& predicate) const;
 
     template<class F>
     inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
@@ -140,10 +144,7 @@ class SimpleUnitTracker
  */
 CELER_FUNCTION
 SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
-    : params_(params)
-    , unit_record_(params.simple_units[suid])
-    , bih_point_in_vol_(params.simple_units[suid].bih_tree,
-                        params.bih_tree_data)
+    : params_(params), unit_record_(params.simple_units[suid])
 {
     CELER_EXPECT(params_);
 }
@@ -164,33 +165,30 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     detail::SenseCalculator calc_senses(
         this->make_surface_visitor(), state.pos, state.temp_sense);
 
-    bool on_surface;
+    // Use the BIH to locate a position that's inside, and save whether it's on
+    // a surface in the found volume
+    bool on_surface{false};
     auto is_inside
-        = [this, &calc_senses, &on_surface](LocalVolumeId const& id) -> bool {
+        = [this, &calc_senses, &on_surface](LocalVolumeId id) -> bool {
         VolumeView vol = this->make_local_volume(id);
         auto logic_state = calc_senses(vol);
         on_surface = static_cast<bool>(logic_state.face);
         return detail::LogicEvaluator(vol.logic())(logic_state.senses);
     };
+    LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
 
-    LocalVolumeId id = bih_point_in_vol_(state.pos, is_inside);
-
-    Initialization init{{}, {}};
-
-    if (id)
+    if (on_surface)
     {
-        if (!on_surface)
-        {
-            init.volume = id;
-        }
+        // Prohibit initialization on a surface
+        id = {};
     }
-    else
+    else if (!id)
     {
-        // Not found, or default to background volume
-        init.volume = unit_record_.background;
+        // Not found: replace with background volume (if any)
+        id = unit_record_.background;
     }
 
-    return init;
+    return Initialization{id, {}};
 }
 
 //---------------------------------------------------------------------------//
@@ -349,6 +347,21 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(LocalSurfaceId surf) const
 
     CELER_ENSURE(!conn.neighbors.empty());
     return params_.local_volume_ids[conn.neighbors];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Search the BIH to find where the predicate is true for the point.
+ *
+ * The predicate should have the signature \code bool(LocalVolumeId) \endcode.
+ */
+template<class F>
+CELER_FUNCTION LocalVolumeId
+SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
+{
+    detail::BIHTraverser find_impl{unit_record_.bih_tree,
+                                   params_.bih_tree_data};
+    return find_impl(pos, predicate);
 }
 
 //---------------------------------------------------------------------------//
