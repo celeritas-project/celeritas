@@ -205,29 +205,49 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
     detail::SenseCalculator calc_senses(
         this->make_surface_visitor(), state.pos, state.temp_sense);
 
-    // Loop over all connected surfaces (TODO: intersect with BVH)
-    for (LocalVolumeId volid : this->get_neighbors(state.surface.id()))
-    {
-        if (volid == state.volume)
+    detail::OnLocalSurface on_surface;
+    auto is_inside = [this, &state, &calc_senses, &on_surface](
+                         LocalVolumeId const& id) -> bool {
+        if (id == state.volume)
         {
             // Cannot cross surface into the same volume
-            continue;
+            return false;
         }
-        VolumeView vol = this->make_local_volume(volid);
 
-        // Calculate the local senses and face
+        VolumeView vol = this->make_local_volume(id);
         auto logic_state
             = calc_senses(vol, detail::find_face(vol, state.surface));
 
-        // Evaluate whether the senses are "inside" the volume
-        if (!detail::LogicEvaluator(vol.logic())(logic_state.senses))
+        if (detail::LogicEvaluator(vol.logic())(logic_state.senses))
         {
-            // Not inside the volume
-            continue;
+            // Inside: find and save the local surface ID, and end the search
+            on_surface = get_surface(vol, logic_state.face);
+            return true;
         }
+        return false;
+    };
 
-        // Found the volume! Convert the face to a surface ID and return
-        return {volid, get_surface(vol, logic_state.face)};
+    auto neighbors = this->get_neighbors(state.surface.id());
+
+    // If this surface has 2 neighbors or fewer (excluding the current cell),
+    // use linear search to check neighbors. Otherwise, traverse the BIH tree.
+    if (neighbors.size() < 3)
+    {
+        for (LocalVolumeId id : neighbors)
+        {
+            if (is_inside(id))
+            {
+                return {id, on_surface};
+            }
+        }
+    }
+    else
+    {
+        LocalVolumeId id = bih_point_in_vol_(state.pos, is_inside);
+        if (id)
+        {
+            return {id, on_surface};
+        }
     }
 
     return {unit_record_.background, state.surface};

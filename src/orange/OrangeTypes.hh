@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <type_traits>
 #include <utility>
 
 #include "corecel/Macros.hh"
@@ -36,6 +37,12 @@ using fast_real_type = float;
 
 //! Integer type for volume CSG tree representation
 using logic_int = unsigned short int;
+
+//! Helper class for some template dispatch functions
+template<Axis T>
+using AxisTag = std::integral_constant<Axis, T>;
+
+//// ID TYPES ////
 
 //! Identifier for a BIHNode objects
 using BIHNodeId = OpaqueId<struct BIHNode>;
@@ -254,7 +261,7 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
 /*!
  * Change the sense across a surface.
  */
-CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 {
     return static_cast<Sense>(!static_cast<bool>(orig));
 }
@@ -263,7 +270,8 @@ CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 /*!
  * Change whether a boundary crossing is reentrant or exiting.
  */
-CELER_CONSTEXPR_FUNCTION BoundaryResult flip_boundary(BoundaryResult orig)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION BoundaryResult
+flip_boundary(BoundaryResult orig)
 {
     return static_cast<BoundaryResult>(!static_cast<bool>(orig));
 }
@@ -288,7 +296,8 @@ CELER_CONSTEXPR_FUNCTION BoundaryResult flip_boundary(BoundaryResult orig)
  *
  * NaN values are treated as "outside".
  */
-CELER_CONSTEXPR_FUNCTION SignedSense real_to_sense(real_type quadric)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense
+real_to_sense(real_type quadric)
 {
     return static_cast<SignedSense>(!(quadric <= 0) - (quadric < 0));
 }
