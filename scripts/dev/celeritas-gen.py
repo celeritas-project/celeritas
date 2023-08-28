@@ -497,7 +497,7 @@ def generate(repodir, filename, namespace):
         return
 
     dirname = os.path.relpath(filename, start=repodir)
-    all_dirs = dirname.split(os.sep)
+    all_dirs = dirname.split(os.sep)[:-1]
 
     if namespace is None:
         namespace = 'celeritas'
@@ -508,7 +508,8 @@ def generate(repodir, filename, namespace):
         if all_dirs[-1] == 'detail':
             namespace += '::detail'
 
-    dirname = os.sep.join(all_dirs[1:-1])
+    # Construct directory name with src/app/test dropped
+    dirname = os.sep.join(all_dirs[1:])
     if dirname:
         dirname += os.sep
 
@@ -562,6 +563,7 @@ def generate(repodir, filename, namespace):
             mode = os.fstat(f.fileno()).st_mode
             mode |= 0o111
             os.fchmod(f.fileno(), stat.S_IMODE(mode))
+    return filename
 
 
 def main():
@@ -573,6 +575,9 @@ def main():
     parser.add_argument(
         '--repodir',
         help='root source directory for file naming')
+    parser.add_argument('-o', '--open',
+        action='store_true',
+        help='call "open" on the created files')
     parser.add_argument(
         '--namespace', '-n',
         default=None,
@@ -582,8 +587,14 @@ def main():
         subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
         .decode().strip()
     )
+    generated = []
     for fn in args.filename:
-        generate(repodir, fn, args.namespace)
+        fn = generate(repodir, fn, args.namespace)
+        if fn:
+            generated.append(fn)
+
+    if args.open and generated:
+        subprocess.call(["open"] + generated)
 
 
 if __name__ == '__main__':
