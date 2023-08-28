@@ -24,17 +24,13 @@ namespace celeritas
  *
  * Example: \code
  LocalSurfaceVisitor visit_surface{params_};
- auto new_pos = visit_surface(
-    [&pos](auto&& T) { return t.surface_up(pos); },
-    daughter.surface_id);
+ auto sense = visit_surface(
+    [&pos](auto const& s) { return s.calc_sense(pos); },
+    surface_id);
  \endcode
  */
 class LocalSurfaceVisitor
 {
-    template<class T>
-    using Items = Collection<T, Ownership::const_reference, MemSpace::native>;
-    using RealId = OpaqueId<real_type>;
-
   public:
     //!@{
     //! \name Type aliases
@@ -57,8 +53,17 @@ class LocalSurfaceVisitor
     operator()(F&& typed_visitor, LocalSurfaceId t);
 
   private:
+    //// TYPES ////
+
+    template<class T>
+    using Items = Collection<T, Ownership::const_reference, MemSpace::native>;
+
+    //// DATA ////
+
     ParamsRef const& params_;
     SurfacesRecord const& surfaces_;
+
+    //// HELPER FUNCTIONS ////
 
     // Construct a surface from a data offset
     template<class T>
@@ -120,15 +125,17 @@ LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
 }
 
 //---------------------------------------------------------------------------//
+// PRIVATE HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
- * Apply the function to the surface specified by the given ID.
+ * Construct a surface of a given type using the data at a specific ID.
  */
 template<class T>
 CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
 {
     CELER_EXPECT(id < surfaces_.size());
 
-    RealId offset
+    OpaqueId<real_type> offset
         = this->get_item(params_.real_ids, surfaces_.data_offsets, id);
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());
