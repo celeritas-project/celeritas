@@ -662,6 +662,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
  * the boundary, but changing direction so that it goes from pointing outward
  * to inward (or vice versa) will mean that \c cross_boundary will be a
  * null-op.
+ *
+ * TODO: This needs to be updated to handle reflections through levels
  */
 CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 {
@@ -690,7 +692,11 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     }
 
     // Complete direction setting
-    lsa.dir() = newdir;
+    for (auto levelid : range(this->level() + 1))
+    {
+        auto lsa = this->make_lsa(levelid);
+        lsa.dir() = newdir;
+    }
 
     this->clear_next_step();
 }
