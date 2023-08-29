@@ -174,6 +174,42 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
     }
 }
 
+TEST_F(BoundingBoxUtilsTest, bumped)
+{
+    auto inf_double = std::numeric_limits<double>::infinity();
+    auto inf_float = std::numeric_limits<float>::infinity();
+
+    double long_number = 0.11223344556677;
+
+    BBox unbumped = {{-inf_double, 0, -100}, {0, long_number, inf_double}};
+
+    auto bumped = calc_bumped<float>(unbumped);
+
+    // Test lower corner
+    EXPECT_EQ(-inf_float, bumped.lower()[0]);
+
+    EXPECT_SOFT_EQ(0, bumped.lower()[1]);
+    EXPECT_TRUE(bumped.lower()[1] < 0);
+
+    EXPECT_SOFT_EQ(-100, bumped.lower()[2]);
+    EXPECT_TRUE(bumped.lower()[2] < -100);
+
+    // Test upper corner
+
+    EXPECT_SOFT_EQ(0, bumped.upper()[0]);
+    EXPECT_TRUE(bumped.upper()[0] > 0);
+
+    EXPECT_SOFT_EQ(long_number, bumped.upper()[1]);
+    EXPECT_TRUE(bumped.upper()[1] > long_number);
+
+    EXPECT_EQ(inf_float, bumped.upper()[2]);
+
+    // Test the bounds are inside
+    EXPECT_TRUE(is_inside(bumped, Array<double, 3>{-inf_double, 0, -100}));
+    EXPECT_TRUE(
+        is_inside(bumped, Array<double, 3>{0, long_number, inf_double}));
+}
+
 TEST_F(BoundingBoxUtilsTest, bbox_translate)
 {
     Translation const tr{{1, 2, 3}};

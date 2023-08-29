@@ -469,6 +469,16 @@ CELER_CONSTEXPR_FUNCTION T ceil_div(T top, T bottom)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Negation that won't return signed zeros.
+ */
+template<class T>
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION T negate(T value)
+{
+    return T{0} - value;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Math constants (POSIX derivative);
  */
 inline constexpr double m_pi = detail::m_pi;
