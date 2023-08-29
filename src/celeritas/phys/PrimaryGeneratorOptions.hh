@@ -7,7 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+#include <random>
+
 #include "corecel/io/StringEnumMapper.hh"
+#include "orange/Types.hh"
 
 #include "PDGNumber.hh"
 
@@ -71,6 +75,22 @@ struct PrimaryGeneratorOptions
                && position && direction;
     }
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Return a distribution for sampling the energy
+std::function<real_type(std::mt19937&)>
+make_energy_sampler(DistributionOptions options);
+
+// Return a distribution for sampling the position
+std::function<Real3(std::mt19937&)>
+make_position_sampler(DistributionOptions options);
+
+// Return a distribution for sampling the direction
+std::function<Real3(std::mt19937&)>
+make_direction_sampler(DistributionOptions options);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
