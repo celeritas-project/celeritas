@@ -38,6 +38,10 @@ class GlobalSetup
     //! \name Demo setup options
     std::string const& GetGeometryFile() const { return input_.geometry_file; }
     std::string const& GetEventFile() const { return input_.event_file; }
+    PrimaryGeneratorOptions const& GetPrimaryGeneratorOptions() const
+    {
+        return input_.primary_options;
+    }
     int GetRootBufferSize() const { return input_.root_buffer_size; }
     bool GetWriteSDHits() const { return input_.write_sd_hits; }
     bool StripGDMLPointers() const { return input_.strip_gdml_pointers; }

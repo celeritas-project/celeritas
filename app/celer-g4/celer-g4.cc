@@ -48,7 +48,8 @@
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "GlobalSetup.hh"
-#include "PrimaryGeneratorAction.hh"
+#include "HepMC3PrimaryGeneratorAction.hh"
+#include "PGPrimaryGeneratorAction.hh"
 
 using namespace std::literals::string_view_literals;
 
@@ -151,10 +152,18 @@ void run(int argc, char** argv)
     CELER_LOG(status) << "Initializing run manager";
     run_manager->Initialize();
 
-    // Load the input file
     int num_events{0};
-    CELER_TRY_HANDLE(num_events = PrimaryGeneratorAction::NumEvents(),
-                     ExceptionConverter{"demo-geant000"});
+    if (!GlobalSetup::Instance()->GetEventFile().empty())
+    {
+        // Load the input file
+        CELER_TRY_HANDLE(num_events = HepMC3PrimaryGeneratorAction::NumEvents(),
+                         ExceptionConverter{"demo-geant000"});
+    }
+    else
+    {
+        num_events
+            = GlobalSetup::Instance()->GetPrimaryGeneratorOptions().num_events;
+    }
 
     if (!celeritas::getenv("CELER_DISABLE").empty())
     {

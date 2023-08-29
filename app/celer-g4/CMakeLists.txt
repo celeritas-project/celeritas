@@ -12,7 +12,8 @@ if(CELERITAS_USE_Geant4)
     EventAction.cc
     GeantDiagnostics.cc
     GlobalSetup.cc
-    PrimaryGeneratorAction.cc
+    HepMC3PrimaryGeneratorAction.cc
+    PGPrimaryGeneratorAction.cc
     RunAction.cc
     RunInput.cc
     SensitiveDetector.cc
