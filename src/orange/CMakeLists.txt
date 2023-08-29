@@ -13,6 +13,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
+  BoundingBoxUtils.cc
   MatrixUtils.cc
   OrangeParams.cc
   OrangeTypes.cc
