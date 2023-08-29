@@ -28,13 +28,18 @@ BBox calc_transform(Translation const& tr, BBox const& a)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the bounding box of a transformed box.
+ * Calculate the axis-aligned bounding box of a transformed box.
  *
- * This method has a custom implementation of GEMV for applying exact rotations
- * to infinities if the matrix representation simply should switches vector
- * entries or flips their sign. Without the complication, floating point
- * arithmetic results in NaN from multiplying zeroes (in the matrix) by the
- * infinite values.
+ * Transforming a box usually results in an oriented bounding box, but
+ * sometimes that OBB is also an AABB. This function implicitly creates the
+ * transformed bounding box and creates an AABB that encompasses that box.
+ *
+ * The result returns an exactly transformed bounding box for axis-aligned
+ * rotations. To achieve exactness for semi-infinite bounding boxes, this
+ * method has a custom implementation of GEMV for applying exact rotations
+ * if the matrix representation simply switches vector entries or flips their
+ * sign. Without the complication, floating point arithmetic results in NaN
+ * from multiplying zeroes (in the matrix) by the infinite values.
  */
 BBox calc_transform(Transformation const& tr, BBox const& a)
 {
@@ -47,10 +52,10 @@ BBox calc_transform(Transformation const& tr, BBox const& a)
     // Specialized GEMV that ignores zeros to correctly handle infinities
     auto rotate = [&r = tr.rotation()](Real3 const& x) {
         Real3 result;
-        for (size_type i = 0; i != 3; ++i)
+        for (auto i : range(3))
         {
             result[i] = 0;
-            for (size_type j = 0; j != 3; ++j)
+            for (auto j : range(3))
             {
                 if (r[i][j] != real_type{0})
                 {
@@ -78,7 +83,7 @@ BBox calc_transform(Transformation const& tr, BBox const& a)
                 Real3 point = rotate({get_point(hi_x, Axis::x),
                                       get_point(hi_y, Axis::y),
                                       get_point(hi_z, Axis::z)});
-                for (auto ax : range(to_int(Axis::size_)))
+                for (auto ax : range(3))
                 {
                     lower[ax] = ::celeritas::min(lower[ax], point[ax]);
                     upper[ax] = ::celeritas::max(upper[ax], point[ax]);
