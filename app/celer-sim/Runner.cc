@@ -363,10 +363,8 @@ void Runner::build_events(RunnerInput const& inp)
 
     if (inp.primary_gen_options)
     {
-        std::mt19937 rng;
-        auto generate_event = PrimaryGenerator<std::mt19937>::from_options(
-            core_params_->particle(), inp.primary_gen_options);
-        read_events([&generate_event, &rng] { return generate_event(rng); });
+        read_events(PrimaryGenerator::from_options(core_params_->particle(),
+                                                   inp.primary_gen_options));
     }
     else if (ends_with(inp.event_filename, ".root"))
     {

@@ -60,6 +60,7 @@ list(APPEND SOURCES
   phys/ParticleParamsOutput.cc
   phys/PhysicsParams.cc
   phys/PhysicsParamsOutput.cc
+  phys/PrimaryGenerator.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
   random/CuHipRngData.cc
