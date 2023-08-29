@@ -47,6 +47,7 @@ struct DistributionOptions
 /*!
  * Primary generator options.
  *
+ * - \c seed: RNG seed
  * - \c pdg: PDG numbers of the primaries. An equal number of primaries of each
  *   type will be generated
  * - \c num_events: total number of events to generate
@@ -57,6 +58,7 @@ struct DistributionOptions
  */
 struct PrimaryGeneratorOptions
 {
+    unsigned int seed{};
     std::vector<PDGNumber> pdg;
     size_type num_events{};
     size_type primaries_per_event{};

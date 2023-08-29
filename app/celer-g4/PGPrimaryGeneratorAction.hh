@@ -16,6 +16,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "orange/Types.hh"
 
 namespace celeritas
 {
@@ -24,13 +25,18 @@ namespace app
 //---------------------------------------------------------------------------//
 /*!
  * Generate events from a particle gun.
+ *
+ * This generates primary particles with energy, position, and direction
+ * sampled from distributions specified by the user in \c
+ * PrimaryGeneratorOptions.
+ *
+ * \sa PrimaryGenerator
  */
 class PGPrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
     //!@{
     //! \name Type aliases
-    using Real3 = Array<real_type, 3>;
     using EnergySampler = std::function<real_type(std::mt19937&)>;
     using PositionSampler = std::function<Real3(std::mt19937&)>;
     using DirectionSampler = std::function<Real3(std::mt19937&)>;

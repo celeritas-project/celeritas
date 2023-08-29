@@ -30,6 +30,7 @@ PrimaryGenerator::from_options(SPConstParticles particles,
     CELER_EXPECT(opts);
 
     PrimaryGenerator::Input inp;
+    inp.seed = opts.seed;
     inp.pdg = std::move(opts.pdg);
     inp.num_events = opts.num_events;
     inp.primaries_per_event = opts.primaries_per_event;

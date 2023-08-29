@@ -134,7 +134,7 @@ TEST_F(PrimaryGeneratorTest, options)
     {
         nlohmann::json out = opts;
         static char const expected[]
-            = R"json({"direction":{"distribution":"isotropic","params":[]},"energy":{"distribution":"delta","params":[1.0]},"num_events":1,"pdg":[22],"position":{"distribution":"box","params":[-3.0,-3.0,-3.0,3.0,3.0,3.0]},"primaries_per_event":10})json";
+            = R"json({"direction":{"distribution":"isotropic","params":[]},"energy":{"distribution":"delta","params":[1.0]},"num_events":1,"pdg":[22],"position":{"distribution":"box","params":[-3.0,-3.0,-3.0,3.0,3.0,3.0]},"primaries_per_event":10,"seed":0})json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
 #endif

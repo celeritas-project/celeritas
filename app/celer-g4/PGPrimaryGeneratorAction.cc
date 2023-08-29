@@ -11,9 +11,6 @@
 
 #include "corecel/Macros.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
-#include "celeritas/random/distribution/DeltaDistribution.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
 #include "GlobalSetup.hh"
 
@@ -27,16 +24,18 @@ namespace app
  */
 PGPrimaryGeneratorAction::PGPrimaryGeneratorAction()
 {
-    if (G4Threading::IsMultithreadedApplication())
-    {
-        rng_.seed(G4Threading::G4GetThreadId());
-    }
-
     // Generate one particle at each call to \c GeneratePrimaryVertex()
     gun_.SetNumberOfParticles(1);
 
     auto options = GlobalSetup::Instance()->GetPrimaryGeneratorOptions();
     CELER_ASSERT(options);
+
+    auto seed = options.seed;
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        seed += G4Threading::G4GetThreadId();
+    }
+    rng_.seed(seed);
 
     num_events_ = options.num_events;
     primaries_per_event_ = options.primaries_per_event;
