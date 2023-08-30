@@ -30,6 +30,9 @@ namespace celeritas
  */
 struct OrangeParamsScalars
 {
+    // Maximum universe depth, i.e., depth of the universe tree DAG, equivalent
+    // to the VecGeom implementation. Has a value of 1 for a non-nested
+    // geometry.
     size_type max_depth{};
     size_type max_faces{};
     size_type max_intersections{};
