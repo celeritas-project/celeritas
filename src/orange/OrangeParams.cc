@@ -99,12 +99,12 @@ OrangeInput input_from_json(std::string filename)
 /*!
  * Calculate the maximum num of universe levels within the geometry
  *
- * A single-universe geometry will have a max_num_levels of 1.
+ * A single-universe geometry will have a max_depth of 1.
  * This is a recursive function, so for external callers, uid should be
  * the root universe id.
  */
-size_type calc_max_num_levels(HostVal<OrangeParamsData> const& data,
-                              UniverseId const& uid)
+size_type
+calc_max_depth(HostVal<OrangeParamsData> const& data, UniverseId const& uid)
 {
     CELER_EXPECT(uid);
 
@@ -124,7 +124,7 @@ size_type calc_max_num_levels(HostVal<OrangeParamsData> const& data,
             {
                 max_sub_depth = std::max(
                     max_sub_depth,
-                    calc_max_num_levels(
+                    calc_max_depth(
                         data,
                         data.daughters[vol_record.daughter_id].universe_id));
             }
@@ -138,7 +138,7 @@ size_type calc_max_num_levels(HostVal<OrangeParamsData> const& data,
         {
             max_sub_depth = std::max(
                 max_sub_depth,
-                calc_max_num_levels(
+                calc_max_depth(
                     data,
                     data.daughters[rect_array_record
                                        .daughters[LocalVolumeId{vol_id}]]
@@ -289,8 +289,7 @@ OrangeParams::OrangeParams(OrangeInput input)
     bbox_ = std::get<UnitInput>(input.universes.front()).bbox;
 
     // Update scalars *after* loading all units
-    host_data.scalars.max_num_levels
-        = calc_max_num_levels(host_data, UniverseId{0});
+    host_data.scalars.max_depth = calc_max_depth(host_data, UniverseId{0});
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
                    << "input geometry has at least one volume with a "
