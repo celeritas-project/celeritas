@@ -29,7 +29,10 @@ namespace
 class PrimaryInserter
 {
   public:
-    explicit PrimaryInserter(G4Event* event) : g4_event_(event)
+    explicit PrimaryInserter(G4Event* event, HepMC3::GenEvent const& evt)
+        : g4_event_(event)
+        , length_unit_(evt.length_unit())
+        , momentum_unit_(evt.momentum_unit())
     {
         CELER_EXPECT(g4_event_);
         g4_vtx_ = std::make_unique<G4PrimaryVertex>();
@@ -45,7 +48,8 @@ class PrimaryInserter
         last_vtx_ = cur_vtx;
 
         // Insert primary
-        auto const& p = par.momentum();
+        auto p = par.momentum();
+        HepMC3::Units::convert(p, momentum_unit_, HepMC3::Units::MEV);
         CELER_ASSERT(g4_vtx_);
         g4_vtx_->SetPrimary(
             new G4PrimaryParticle(par.pid(), p.x(), p.y(), p.z(), p.e()));
@@ -55,6 +59,8 @@ class PrimaryInserter
 
   private:
     G4Event* g4_event_;
+    HepMC3::Units::LengthUnit length_unit_;
+    HepMC3::Units::MomentumUnit momentum_unit_;
     std::unique_ptr<G4PrimaryVertex> g4_vtx_;
     HepMC3::GenVertex const* last_vtx_ = nullptr;
 
@@ -63,7 +69,8 @@ class PrimaryInserter
         if (g4_vtx_->GetNumberOfParticle() == 0)
             return;
 
-        auto const& pos = last_vtx_->position();
+        auto pos = last_vtx_->position();
+        HepMC3::Units::convert(pos, length_unit_, HepMC3::Units::MM);
         g4_vtx_->SetPosition(
             pos.x() * CLHEP::mm, pos.y() * CLHEP::mm, pos.z() * CLHEP::mm);
         g4_vtx_->SetT0(pos.t() / (CLHEP::mm * CLHEP::c_light));
@@ -163,10 +170,8 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
             << " does not match Geant4 event ID " << g4_event->GetEventID();
     }
 
-    evt.set_units(HepMC3::Units::MEV, HepMC3::Units::MM);  // Geant4 units
-
     int num_primaries{0};
-    PrimaryInserter insert_primary{g4_event};
+    PrimaryInserter insert_primary{g4_event, evt};
 
     for (auto const& par : evt.particles())
     {
