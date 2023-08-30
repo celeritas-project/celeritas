@@ -302,6 +302,14 @@ void activate_device(Device&& device)
 
     // Call cudaFree to wake up the device, making other timers more accurate
     CELER_DEVICE_CALL_PREFIX(Free(nullptr));
+
+    // TODO: Configurable threshold
+    CELER_DEVICE_PREFIX(MemPool_t) mempool;
+    CELER_DEVICE_CALL_PREFIX(
+        DeviceGetDefaultMemPool(&mempool, device.device_id()));
+    uint64_t threshold = UINT64_MAX;
+    CELER_DEVICE_CALL_PREFIX(MemPoolSetAttribute(
+        mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
 }
 
 //---------------------------------------------------------------------------//
