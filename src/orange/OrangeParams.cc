@@ -100,60 +100,77 @@ OrangeInput input_from_json(std::string filename)
  * Calculate the maximum num of universe levels within the geometry
  *
  * A single-universe geometry will have a max_depth of 1.
- * This is a recursive function, so for external callers, uid should be
- * the root universe id.
+ * The operator() is a recursive function, so for external callers, uid should
+ * be the root universe id.
  */
-size_type
-calc_max_depth(HostVal<OrangeParamsData> const& data, UniverseId const& uid)
+struct MaxDepthCalculator
 {
-    CELER_EXPECT(uid);
+    HostVal<OrangeParamsData> const& data_;
+    std::map<UniverseId, size_type> depths;
 
-    // Depth of the deepest daughter of uid
-    size_type max_sub_depth = 0;
+    // Construct from host data
+    MaxDepthCalculator(HostVal<OrangeParamsData> const& data) : data_(data) {}
 
-    if (data.universe_types[uid] == UniverseType::simple)
+    // Calculate max depth
+    size_type operator()(UniverseId const& uid)
     {
-        auto const& simple_unit_record
-            = data.simple_units[SimpleUnitId{data.universe_indices[uid]}];
-        for (auto vol_id : range(simple_unit_record.volumes.size()))
+        CELER_EXPECT(uid);
+
+        // Check for cached value
+        if (depths.find(uid) != depths.end())
         {
-            auto vol_record
-                = data.volume_records[simple_unit_record
-                                          .volumes[LocalVolumeId{vol_id}]];
-            if (vol_record.daughter_id)
+            return depths[uid];
+        }
+
+        // Depth of the deepest daughter of uid
+        size_type max_sub_depth = 0;
+
+        if (data_.universe_types[uid] == UniverseType::simple)
+        {
+            auto const& simple_unit_record
+                = data_.simple_units[SimpleUnitId{data_.universe_indices[uid]}];
+            for (auto vol_id : range(simple_unit_record.volumes.size()))
+            {
+                auto vol_record
+                    = data_.volume_records[simple_unit_record
+                                               .volumes[LocalVolumeId{vol_id}]];
+                if (vol_record.daughter_id)
+                {
+                    max_sub_depth = std::max(
+                        max_sub_depth,
+                        (*this)(data_.daughters[vol_record.daughter_id]
+                                    .universe_id));
+                }
+            }
+        }
+        else if (data_.universe_types[uid] == UniverseType::rect_array)
+        {
+            auto const& rect_array_record
+                = data_.rect_arrays[RectArrayId{data_.universe_indices[uid]}];
+            for (auto vol_id : range(rect_array_record.daughters.size()))
             {
                 max_sub_depth = std::max(
                     max_sub_depth,
-                    calc_max_depth(
-                        data,
-                        data.daughters[vol_record.daughter_id].universe_id));
+                    (*this)(data_
+                                .daughters[rect_array_record
+                                               .daughters[LocalVolumeId{vol_id}]]
+                                .universe_id));
             }
         }
-    }
-    else if (data.universe_types[uid] == UniverseType::rect_array)
-    {
-        auto const& rect_array_record
-            = data.rect_arrays[RectArrayId{data.universe_indices[uid]}];
-        for (auto vol_id : range(rect_array_record.daughters.size()))
+        else
         {
-            max_sub_depth = std::max(
-                max_sub_depth,
-                calc_max_depth(
-                    data,
-                    data.daughters[rect_array_record
-                                       .daughters[LocalVolumeId{vol_id}]]
-                        .universe_id));
+            CELER_ASSERT_UNREACHABLE();
         }
-    }
-    else
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
 
-    // Depth of depth of the deepest daughter, plus 1 for the current uid
-    return max_sub_depth + 1;
-}
+        // Depth of the deepest daughter, plus 1 for the current uid
+        auto max_depth = max_sub_depth + 1;
 
+        // Save to cache
+        depths[uid] = max_depth;
+
+        return max_depth;
+    }
+};
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -289,7 +306,8 @@ OrangeParams::OrangeParams(OrangeInput input)
     bbox_ = std::get<UnitInput>(input.universes.front()).bbox;
 
     // Update scalars *after* loading all units
-    host_data.scalars.max_depth = calc_max_depth(host_data, UniverseId{0});
+    MaxDepthCalculator mdc(host_data);
+    host_data.scalars.max_depth = mdc(UniverseId{0});
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
                    << "input geometry has at least one volume with a "
