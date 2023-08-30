@@ -101,7 +101,6 @@ inline auto thrust_execute_on(StreamId stream_id)
         return thrust_async_execution_policy()(Alloc(&async_memory_resource))
             .on(stream.get());
     }
-    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
