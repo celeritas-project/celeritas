@@ -35,7 +35,7 @@ size_type remove_if_alive(
     StreamId stream_id)
 {
     auto start = device_pointer_cast(vacancies.data());
-    auto end = thrust::remove_if(thrust_async_execute_on(stream_id),
+    auto end = thrust::remove_if(thrust_execute_on(stream_id),
                                  start,
                                  start + vacancies.size(),
                                  IsEqual{occupied()});
@@ -62,7 +62,7 @@ size_type exclusive_scan_counts(
 {
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
-    auto stop = thrust::exclusive_scan(thrust_async_execute_on(stream_id),
+    auto stop = thrust::exclusive_scan(thrust_execute_on(stream_id),
                                        data,
                                        data + counts.size(),
                                        data,

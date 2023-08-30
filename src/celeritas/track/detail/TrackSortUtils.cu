@@ -51,7 +51,7 @@ template<class F>
 void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 {
     auto start = device_pointer_cast(track_slots.data());
-    thrust::partition(thrust_async_execute_on(stream_id),
+    thrust::partition(thrust_execute_on(stream_id),
                       start,
                       start + track_slots.size(),
                       std::forward<F>(func));
@@ -88,7 +88,7 @@ void sort_impl(TrackSlots const& track_slots,
                         make_observer(reordered_actions.data()),
                         track_slots.size());
     auto start = reordered_actions.data();
-    thrust::sort_by_key(thrust_async_execute_on(stream_id),
+    thrust::sort_by_key(thrust_execute_on(stream_id),
                         start,
                         start + reordered_actions.size(),
                         device_pointer_cast(track_slots.data()));
@@ -160,7 +160,7 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots
                                         StreamId stream_id)
 {
     thrust::sequence(
-        thrust_async_execute_on(stream_id),
+        thrust_execute_on(stream_id),
         thrust::device_pointer_cast(track_slots.data()),
         thrust::device_pointer_cast(track_slots.data() + track_slots.size()),
         0);
@@ -181,10 +181,8 @@ void shuffle_track_slots<MemSpace::device>(
     thrust::default_random_engine g{
         static_cast<result_type>(track_slots.size())};
     auto start = thrust::device_pointer_cast(track_slots.data());
-    thrust::shuffle(thrust_async_execute_on(stream_id),
-                    start,
-                    start + track_slots.size(),
-                    g);
+    thrust::shuffle(
+        thrust_execute_on(stream_id), start, start + track_slots.size(), g);
     CELER_DEVICE_CHECK_ERROR();
 }
 

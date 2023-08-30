@@ -12,6 +12,7 @@
 #include <thrust/version.h>
 
 #include "celeritas_config.h"
+#include "corecel/Assert.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 
@@ -24,8 +25,20 @@ namespace thrust_native = thrust::hip;
 #endif
 
 //---------------------------------------------------------------------------//
+// ENUMERATIONS
+//---------------------------------------------------------------------------//
+//! Execution semantics for thrust algorithms.
+enum class ThrustExecMode
+{
+    Sync,
+    Async,
+};
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
- * Returns an execution policy depending on thrust's version
+ * Returns an execution policy depending on thrust's version.
  */
 inline auto& thrust_async_execution_policy()
 {
@@ -38,22 +51,24 @@ inline auto& thrust_async_execution_policy()
 
 //---------------------------------------------------------------------------//
 /*!
- * Returns an execution space for the given stream
+ * Returns an execution space for the given stream.
+ * The template parameter defines whether the algorithm should be executed
+ * synchronously or asynchrounously.
  */
+template<ThrustExecMode T = ThrustExecMode::Async>
 inline auto thrust_execute_on(StreamId stream_id)
 {
-    return thrust_native::par.on(celeritas::device().stream(stream_id).get());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Returns an execution space for the given stream, executing asynchronously if
- * possible
- */
-inline auto thrust_async_execute_on(StreamId stream_id)
-{
-    return thrust_async_execution_policy().on(
-        celeritas::device().stream(stream_id).get());
+    if constexpr (T == ThrustExecMode::Sync)
+    {
+        return thrust_native::par.on(
+            celeritas::device().stream(stream_id).get());
+    }
+    else if constexpr (T == ThrustExecMode::Async)
+    {
+        return thrust_async_execution_policy().on(
+            celeritas::device().stream(stream_id).get());
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
