@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //---------------------------------------------------------------------------//
 /*!
- * \file AlgorithmsImpl.hh
+ * \file corecel/math/detail/AlgorithmsImpl.hh
  * \brief Algorithm implementations directly derived from LLVM libc++
  */
 //---------------------------------------------------------------------------//

@@ -80,6 +80,7 @@
 #include <VecGeom/volumes/UnplacedTrd.h>
 #include <VecGeom/volumes/UnplacedTube.h>
 
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
@@ -90,6 +91,12 @@
 #include "Scaler.hh"
 #include "Transformer.hh"
 
+using namespace vecgeom;
+
+namespace celeritas
+{
+namespace g4vg
+{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -111,15 +118,21 @@ namespace
     double const phi = std::atan2(tan_theta_sin_phi, tan_theta_cos_phi);
     return {theta, phi};
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a boolean volume in vecgeom.
+ */
+template<vecgeom::BooleanOperation Op>
+VUnplacedVolume*
+make_unplaced_boolean(VPlacedVolume const* left, VPlacedVolume const* right)
+{
+    return GeoManager::MakeInstance<UnplacedBooleanVolume<Op>>(Op, left, right);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
-using namespace vecgeom;
-
-namespace celeritas
-{
-namespace g4vg
-{
 //---------------------------------------------------------------------------//
 /*!
  * Convert a geant4 solid to a VecGeom "unplaced volume".
@@ -158,7 +171,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
     using MapTypeConverter
         = std::unordered_map<std::type_index, ConvertFuncPtr>;
 
-// clang-format off
+    // clang-format off
     #define VGSC_TYPE_FUNC(MIXED, LOWER) \
     {std::type_index(typeid(G4##MIXED)), &SolidConverter::LOWER}
     static const MapTypeConverter type_to_converter = {
@@ -264,12 +277,18 @@ auto SolidConverter::cuttubs(arg_type solid_base) -> result_type
 auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Ellipsoid const&>(solid_base);
+#if G4VERSION_NUMBER >= 1060
+#    define SC_G4ACCESS(NEW, OLD) NEW
+#else
+#    define SC_G4ACCESS(NEW, OLD) OLD
+#endif
     return GeoManager::MakeInstance<UnplacedEllipsoid>(
-        this->convert_scale_(solid.GetDx()),
-        this->convert_scale_(solid.GetDy()),
-        this->convert_scale_(solid.GetDz()),
+        this->convert_scale_(solid.SC_G4ACCESS(GetDx(), GetSemiAxisMax(0))),
+        this->convert_scale_(solid.SC_G4ACCESS(GetDy(), GetSemiAxisMax(1))),
+        this->convert_scale_(solid.SC_G4ACCESS(GetDz(), GetSemiAxisMax(2))),
         this->convert_scale_(solid.GetZBottomCut()),
         this->convert_scale_(solid.GetZTopCut()));
+#undef SC_G4ACCESS
 }
 
 //---------------------------------------------------------------------------//
@@ -392,8 +411,7 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
 {
     PlacedBoolVolumes pv = this->convert_bool_impl(
         static_cast<G4BooleanSolid const&>(solid_base));
-    return GeoManager::MakeInstance<UnplacedBooleanVolume<kIntersection>>(
-        kSubtraction, pv[0], pv[1]);
+    return make_unplaced_boolean<kIntersection>(pv[0], pv[1]);
 }
 
 //---------------------------------------------------------------------------//
@@ -523,8 +541,7 @@ auto SolidConverter::subtractionsolid(arg_type solid_base) -> result_type
 {
     PlacedBoolVolumes pv = this->convert_bool_impl(
         static_cast<G4BooleanSolid const&>(solid_base));
-    return GeoManager::MakeInstance<UnplacedBooleanVolume<kSubtraction>>(
-        kSubtraction, pv[0], pv[1]);
+    return make_unplaced_boolean<kSubtraction>(pv[0], pv[1]);
 }
 
 //---------------------------------------------------------------------------//
@@ -568,12 +585,19 @@ auto SolidConverter::tessellatedsolid(arg_type solid_base) -> result_type
 auto SolidConverter::tet(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Tet const&>(solid_base);
-    G4ThreeVector anchor, p1, p2, p3;
-    solid.GetVertices(anchor, p1, p2, p3);
-    return GeoManager::MakeInstance<UnplacedTet>(this->convert_scale_(anchor),
-                                                 this->convert_scale_(p1),
-                                                 this->convert_scale_(p2),
-                                                 this->convert_scale_(p3));
+    Array<G4ThreeVector, 4> points;
+#if G4VERSION_NUMBER >= 1060
+    solid.GetVertices(points[0], points[1], points[2], points[3]);
+#else
+    auto g4points = solid.GetVertices();
+    CELER_ASSERT(g4points.size() == 4);
+    std::copy(g4points.begin(), g4points.end(), points.begin());
+#endif
+    return GeoManager::MakeInstance<UnplacedTet>(
+        this->convert_scale_(points[0]),
+        this->convert_scale_(points[1]),
+        this->convert_scale_(points[2]),
+        this->convert_scale_(points[3]));
 }
 
 //---------------------------------------------------------------------------//
@@ -653,8 +677,7 @@ auto SolidConverter::unionsolid(arg_type solid_base) -> result_type
 {
     PlacedBoolVolumes pv = this->convert_bool_impl(
         static_cast<G4BooleanSolid const&>(solid_base));
-    return GeoManager::MakeInstance<UnplacedBooleanVolume<kUnion>>(
-        kSubtraction, pv[0], pv[1]);
+    return make_unplaced_boolean<kUnion>(pv[0], pv[1]);
 }
 
 //---------------------------------------------------------------------------//
@@ -664,40 +687,38 @@ auto SolidConverter::unionsolid(arg_type solid_base) -> result_type
 auto SolidConverter::convert_bool_impl(G4BooleanSolid const& bs)
     -> PlacedBoolVolumes
 {
-    Array<G4VSolid const*, 2> solids;
-    Array<std::string, 2> labels;
-    static Array<char const*, 2> const lr = {{"left", "right"}};
-    for (auto i : range(solids.size()))
-    {
-        solids[i] = bs.GetConstituentSolid(i);
-        CELER_ASSERT(solids[i]);
+    Array<G4VSolid const*, 2> solids{
+        {bs.GetConstituentSolid(0), bs.GetConstituentSolid(1)}};
 
-        // Construct name
-        std::ostringstream os;
-        os << "[TEMP]@" << bs.GetName() << '/' << lr[i] << '/'
-           << solids[i]->GetName();
-        labels[i] = os.str();
+    Transformation3D inverse;
+    {
+        // The "right" shape should be a G4DisplacedSolid which holds the
+        // matrix: replace solid and get inverse transform
+        CELER_EXPECT(!dynamic_cast<G4DisplacedSolid const*>(solids[0]));
+        CELER_EXPECT(dynamic_cast<G4DisplacedSolid const*>(solids[1]));
+        auto* displaced = static_cast<G4DisplacedSolid const*>(solids[1]);
+        solids[1] = displaced->GetConstituentMovedSolid();
+        inverse = convert_transform_(displaced->GetTransform().Invert());
     }
 
-    // The "right" shape should be a G4DisplacedSolid which holds the
-    // matrix
-    CELER_EXPECT(!dynamic_cast<G4DisplacedSolid const*>(solids[0]));
-    CELER_EXPECT(dynamic_cast<G4DisplacedSolid const*>(solids[1]));
-    auto const* displaced = static_cast<G4DisplacedSolid const*>(solids[1]);
-    solids[1] = displaced->GetConstituentMovedSolid();
-
-    Transformation3D inverse
-        = convert_transform_(displaced->GetTransform().Invert());
+    static Array<char const*, 2> const lr = {{"left", "right"}};
     Array<Transformation3D const*, 2> transforms
         = {{&Transformation3D::kIdentity, &inverse}};
-    Array<VUnplacedVolume const*, 2> converted;
     PlacedBoolVolumes result;
 
     for (auto i : range(solids.size()))
     {
-        converted[i] = (*this)(*solids[i]);
-        // XXX: assume VecGeom takes ownership of the LV?
-        auto* temp_lv = new LogicalVolume(labels[i].c_str(), converted[i]);
+        // Convert solid
+        VUnplacedVolume const* converted = (*this)(*solids[i]);
+
+        // Construct name
+        std::ostringstream label;
+        label << "[TEMP]@" << bs.GetName() << '/' << lr[i] << '/'
+              << solids[i]->GetName();
+
+        // Create temporary LV from converted solid
+        auto* temp_lv = new LogicalVolume(label.str().c_str(), converted);
+        // Place the transformed LV
         result[i] = temp_lv->Place(transforms[i]);
     }
 

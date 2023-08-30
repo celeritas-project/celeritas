@@ -22,6 +22,15 @@ namespace celeritas
 //! Fixed-size array for 3D space
 using Real3 = Array<real_type, 3>;
 
+//! Alias for a small square dense matrix
+template<class T, size_type N>
+using SquareMatrix = Array<Array<T, N>, N>;
+
+//! Alias for a small square dense matrix
+using SquareMatrixReal3 = SquareMatrix<real_type, 3>;
+
+//---------------------------------------------------------------------------//
+
 //! Identifier for a surface (for surface-based geometries)
 using SurfaceId = OpaqueId<struct Surface>;
 

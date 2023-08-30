@@ -39,7 +39,7 @@ struct RunnerInput
     // Problem definition
     std::string geometry_filename;  //!< Path to GDML file
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
-    std::string hepmc3_filename;  //!< Path to HepMC3 event data
+    std::string event_filename;  //!< Path to input event data
 
     // Optional setup options for generating primaries programmatically
     PrimaryGeneratorOptions primary_gen_options;
@@ -73,7 +73,7 @@ struct RunnerInput
     real_type step_limiter{};
 
     // Options for physics
-    bool brem_combined{true};
+    bool brem_combined{false};
 
     // Track init options
     TrackOrder track_order{TrackOrder::unsorted};
@@ -85,7 +85,7 @@ struct RunnerInput
     explicit operator bool() const
     {
         return !geometry_filename.empty()
-               && (primary_gen_options || !hepmc3_filename.empty())
+               && (primary_gen_options || !event_filename.empty())
                && num_track_slots > 0 && max_steps > 0
                && initializer_capacity > 0 && max_events > 0
                && secondary_stack_factor > 0

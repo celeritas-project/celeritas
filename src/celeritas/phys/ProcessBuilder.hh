@@ -119,6 +119,7 @@ class ProcessBuilder
     bool brem_combined_;
     bool enable_lpm_;
     bool use_integral_xs_;
+    real_type coulomb_screening_factor_;
 
     //// HELPER FUNCTIONS ////
 
@@ -129,6 +130,7 @@ class ProcessBuilder
     auto build_annihilation() -> SPProcess;
     auto build_compton() -> SPProcess;
     auto build_conversion() -> SPProcess;
+    auto build_coulomb() -> SPProcess;
     auto build_ebrems() -> SPProcess;
     auto build_eioni() -> SPProcess;
     auto build_msc() -> SPProcess;

@@ -19,6 +19,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/sys/Environment.hh"
 #include "accel/ExceptionConverter.hh"
 
 namespace celeritas
@@ -29,11 +30,17 @@ namespace app
 /*!
  * Construct with Celeritas shared and thread-local data.
  */
-TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
-    : params_(params), transport_(transport)
+TrackingAction::TrackingAction(SPConstParams params,
+                               SPTransporter transport,
+                               SPDiagnostics diagnostics)
+    : params_(params)
+    , transport_(transport)
+    , diagnostics_(diagnostics)
+    , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(transport_);
+    CELER_EXPECT(diagnostics_);
 }
 
 //---------------------------------------------------------------------------//
@@ -46,6 +53,9 @@ TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
  */
 void TrackingAction::PreUserTrackingAction(G4Track const* track)
 {
+    if (disable_offloading_)
+        return;
+
     CELER_EXPECT(track);
     CELER_EXPECT(*params_);
     CELER_EXPECT(*transport_);
@@ -65,6 +75,18 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
         ExceptionConverter call_g4exception{"celer0003", params_.get()};
         CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Collect diagnostic data at the end of a track.
+ */
+void TrackingAction::PostUserTrackingAction(G4Track const* track)
+{
+    if (diagnostics_->StepDiagnostic())
+    {
+        diagnostics_->StepDiagnostic()->Update(track);
     }
 }
 

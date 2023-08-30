@@ -12,6 +12,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
+#include "IsotopeView.hh"
 #include "MaterialData.hh"
 
 namespace celeritas
@@ -53,6 +54,19 @@ class ElementView
     //! Abundance-weighted atomic mass M [amu]
     CELER_FUNCTION AmuMass atomic_mass() const { return def_.atomic_mass; }
 
+    // Number of isotopic components
+    inline CELER_FUNCTION IsotopeComponentId::size_type num_isotopes() const;
+
+    // View properties of a specific isotope
+    inline CELER_FUNCTION IsotopeView
+    make_isotope_view(IsotopeComponentId id) const;
+
+    // ID of an isotope component of this element
+    inline CELER_FUNCTION IsotopeId isotope_id(IsotopeComponentId id) const;
+
+    // Advanced access to the element's isotopes (id/fraction)
+    inline CELER_FUNCTION Span<ElIsotopeComponent const> isotopes() const;
+
     //// COMPUTED PROPERTIES ////
 
     //! Cube root of atomic number: Z^(1/3)
@@ -69,6 +83,7 @@ class ElementView
     inline CELER_FUNCTION real_type mass_radiation_coeff() const;
 
   private:
+    MaterialParamsRef const& params_;
     ElementRecord const& def_;
 };
 
@@ -80,7 +95,7 @@ class ElementView
  */
 CELER_FUNCTION
 ElementView::ElementView(MaterialParamsRef const& params, ElementId el_id)
-    : def_(params.elements[el_id])
+    : params_(params), def_(params.elements[el_id])
 {
     CELER_EXPECT(el_id < params.elements.size());
 }
@@ -94,6 +109,45 @@ ElementView::ElementView(MaterialParamsRef const& params, ElementId el_id)
 CELER_FUNCTION AtomicNumber ElementView::atomic_number() const
 {
     return def_.atomic_number;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of isotopes available for this element.
+ */
+CELER_FUNCTION IsotopeComponentId::size_type ElementView::num_isotopes() const
+{
+    return def_.isotopes.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get isotope properties for a given index.
+ */
+CELER_FUNCTION IsotopeView
+ElementView::make_isotope_view(IsotopeComponentId id) const
+{
+    CELER_EXPECT(id < this->num_isotopes());
+    return IsotopeView(params_, this->isotope_id(id));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * ID of an isotope in this element.
+ */
+CELER_FUNCTION IsotopeId ElementView::isotope_id(IsotopeComponentId id) const
+{
+    CELER_EXPECT(id < this->num_isotopes());
+    return this->isotopes()[id.get()].isotope;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * View the isotopic components (id/fraction) of this element.
+ */
+CELER_FUNCTION Span<ElIsotopeComponent const> ElementView::isotopes() const
+{
+    return params_.isocomponents[def_.isotopes];
 }
 
 //---------------------------------------------------------------------------//

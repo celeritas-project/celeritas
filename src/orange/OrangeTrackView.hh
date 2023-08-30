@@ -14,9 +14,9 @@
 
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
-#include "Translator.hh"
 #include "detail/LevelStateAccessor.hh"
 #include "detail/UniverseIndexer.hh"
+#include "transform/Translation.hh"
 #include "univ/SimpleUnitTracker.hh"
 #include "univ/UniverseTypeTraits.hh"
 #include "univ/detail/Types.hh"
@@ -263,9 +263,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
         if (daughter_id)
         {
             auto const& daughter = params_.daughters[daughter_id];
-            auto const& trans = params_.translations[daughter.translation_id];
-            TranslatorDown td(trans);
-            local.pos = td(local.pos);
+            Translation trans{params_.translations[daughter.translation_id]};
+            local.pos = trans.transform_down(local.pos);
 
             uid = daughter.universe_id;
             ++level;
@@ -335,7 +334,11 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
 
 //---------------------------------------------------------------------------//
 /*!
- * The current volume ID (null if outside).
+ * The current volume ID.
+ *
+ * \note It is allowable to call this function when "outside", because the
+ * outside in ORANGE is just a special volume. Other geometries may not have
+ * that behavior.
  */
 CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 {
@@ -540,10 +543,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
             auto daughter_id = tracker.daughter(lsa.vol());
             CELER_ASSERT(daughter_id);
             auto const& daughter = params_.daughters[daughter_id];
-            auto const& trans = params_.translations[daughter.translation_id];
-
-            TranslatorDown td(trans);
-            local_pos = td(pos);
+            Translation trans{params_.translations[daughter.translation_id]};
+            local_pos = trans.transform_down(pos);
         }
     }
 
@@ -621,8 +622,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         auto daughter = params_.daughters[daughter_id];
         // Get the translator at the parent level, in order to translate into
         // daughter
-        TranslatorDown translator(
-            params_.translations[daughter.translation_id]);
+        Translation trans{params_.translations[daughter.translation_id]};
 
         // Make the current level the daughter level
         ++level;
@@ -630,7 +630,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         auto tracker = this->make_tracker(universe_id);
 
         // Create local state on the daughter level
-        local.pos = translator(local.pos);
+        local.pos = trans.transform_down(local.pos);
         local.volume = {};
         local.surface = {};
         local.temp_sense = this->make_temp_sense();
@@ -662,6 +662,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
  * the boundary, but changing direction so that it goes from pointing outward
  * to inward (or vice versa) will mean that \c cross_boundary will be a
  * null-op.
+ *
+ * TODO: This needs to be updated to handle reflections through levels
  */
 CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 {
@@ -690,7 +692,11 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     }
 
     // Complete direction setting
-    lsa.dir() = newdir;
+    for (auto levelid : range(this->level() + 1))
+    {
+        auto lsa = this->make_lsa(levelid);
+        lsa.dir() = newdir;
+    }
 
     this->clear_next_step();
 }

@@ -21,10 +21,38 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
+ * Fundamental, invariant properties of an isotope.
+ */
+struct IsotopeRecord
+{
+    //!@{
+    //! \name Type aliases
+    using AtomicMassNumber = AtomicNumber;
+    //!@}
+
+    AtomicNumber atomic_number;  //!< Atomic number Z
+    AtomicMassNumber atomic_mass_number;  //!< Atomic number A
+    units::MevMass nuclear_mass;  //!< Nucleons' mass + binding energy
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Fractional isotope component of an element.
+ *
+ * This represents, e.g., the fraction of 2H (deuterium) in element H.
+ */
+struct ElIsotopeComponent
+{
+    IsotopeId isotope;  //!< Index in MaterialParams isotopes
+    real_type fraction;  //!< Fraction of number density
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Fundamental, invariant properties of an element.
  *
  * Add elemental properties as needed if they apply to more than one physics
- * model. (When nuclear physics is implemented, add isotopes.)
+ * model.
  *
  * Note that more than one "element def" can exist for a single atomic number:
  * there might be different enrichments of an element in the problem.
@@ -33,6 +61,7 @@ struct ElementRecord
 {
     AtomicNumber atomic_number;  //!< Z number
     units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
+    ItemRange<ElIsotopeComponent> isotopes;  //!< Isotopes for this element
 
     // COMPUTED PROPERTIES
 
@@ -90,6 +119,7 @@ struct MaterialRecord
  *
  * \sa MaterialParams (owns the pointed-to data)
  * \sa ElementView (uses the pointed-to element data in a kernel)
+ * \sa IsotopeView (uses the pointed-to isotope data in a kernel)
  * \sa MaterialView (uses the pointed-to material data in a kernel)
  */
 template<Ownership W, MemSpace M>
@@ -98,9 +128,12 @@ struct MaterialParamsData
     template<class T>
     using Items = celeritas::Collection<T, W, M>;
 
+    Items<IsotopeRecord> isotopes;
     Items<ElementRecord> elements;
+    Items<ElIsotopeComponent> isocomponents;
     Items<MatElementComponent> elcomponents;
     Items<MaterialRecord> materials;
+    IsotopeComponentId::size_type max_isotope_components{};
     ElementComponentId::size_type max_element_components{};
 
     //// MEMBER FUNCTIONS ////
@@ -116,9 +149,12 @@ struct MaterialParamsData
     MaterialParamsData& operator=(MaterialParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
+        isotopes = other.isotopes;
         elements = other.elements;
+        isocomponents = other.isocomponents;
         elcomponents = other.elcomponents;
         materials = other.materials;
+        max_isotope_components = other.max_isotope_components;
         max_element_components = other.max_element_components;
         return *this;
     }

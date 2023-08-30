@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file celer-dump-data.cc
 //---------------------------------------------------------------------------//
-#include <algorithm>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
@@ -33,8 +32,11 @@
 
 using std::cout;
 using std::endl;
+using std::fixed;
+using std::scientific;
 using std::setprecision;
 using std::setw;
+using std::stringstream;
 
 namespace celeritas
 {
@@ -78,25 +80,63 @@ void print_particles(ParticleParams const& particles)
 /*!
  * Print element properties.
  */
-void print_elements(std::vector<ImportElement>& elements)
+void print_elements(std::vector<ImportElement>& elements,
+                    std::vector<ImportIsotope>& isotopes)
 {
     CELER_LOG(info) << "Loaded " << elements.size() << " elements";
     cout << R"gfm(
 # Elements
 
-| Element ID | Name | Atomic number | Mass (AMU) |
-| ---------- | ---- | ------------- | ---------- |
+| Element ID | Name | Atomic number | Mass (AMU) | Isotopes                                 |
+| ---------- | ---- | ------------- | ---------- | ---------------------------------------- |
 )gfm";
 
     for (unsigned int element_id : range(elements.size()))
     {
         auto const& element = elements[element_id];
+
+        auto const labels = to_string(
+            join(element.isotopes_fractions.begin(),
+                 element.isotopes_fractions.end(),
+                 ", ",
+                 [&](auto const& key) { return isotopes[key.first].name; }));
+
         // clang-format off
         cout << "| "
              << setw(10) << std::left << element_id << " | "
-             << setw(4) << element.name << " | "
+             << setw(4)  << element.name << " | "
              << setw(13) << element.atomic_number << " | "
-             << setw(10) << element.atomic_mass << " |\n";
+             << setw(10) << element.atomic_mass << " | "
+             << setw(40) << labels << " |\n";
+        // clang-format on
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print isotope properties.
+ */
+void print_isotopes(std::vector<ImportIsotope>& isotopes)
+{
+    CELER_LOG(info) << "Loaded " << isotopes.size() << " isotopes";
+    cout << R"gfm(
+# Isotopes
+
+| Isotope ID | Name   | Atomic number | Atomic mass number | Nuclear mass (MeV) |
+| ---------- | ------ | ------------- | ------------------ | ------------------ |
+)gfm";
+
+    for (unsigned int isotope_id : range(isotopes.size()))
+    {
+        auto const& isotope = isotopes[isotope_id];
+        // clang-format off
+        cout << "| "
+             << setw(10) << std::left << isotope_id << " | "
+             << setw(6) << isotope.name << " | "
+             << setw(13) << isotope.atomic_number << " | "
+             << setw(18) << isotope.atomic_mass_number << " | "
+             << setw(18) << isotope.nuclear_mass << " |\n";
         // clang-format on
     }
     cout << endl;
@@ -224,7 +264,8 @@ void print_process(ImportProcess const& proc,
              << "\n"
                 "\n"
                 "Energy grids per material: \n\n"
-                "| Material             | Size  | Endpoints (MeV)             "
+                "| Material             | Size  | Endpoints (MeV)         "
+                "    "
                 " |\n"
                 "| -------------------- | ----- | "
                 "---------------------------- |\n";
@@ -252,9 +293,10 @@ void print_process(ImportProcess const& proc,
         }
 
         cout << "Microscopic cross sections:\n\n"
-                "| Material             | Element       | Endpoints (bn) |\n"
+                "| Material             | Element       | Endpoints (bn) "
+                "|\n"
                 "| -------------------- | ------------- | "
-                "----------------------------- |\n";
+                "---------------------------- |\n";
 
         for (auto m : range(model.materials.size()))
         {
@@ -432,7 +474,7 @@ void print_em_params(ImportEmParameters const& em_params)
          << PEP_STREAM_PARAM(msc_range_factor)
          << PEP_STREAM_PARAM(msc_safety_factor)
          << PEP_STREAM_PARAM(msc_lambda_limit) << PEP_STREAM_BOOL(apply_cuts)
-         << endl;
+         << PEP_STREAM_PARAM(screening_factor) << endl;
 #undef PEP_STREAM_PARAM
 #undef PEP_STREAM_BOOL
 }
@@ -624,7 +666,8 @@ int main(int argc, char* argv[])
     auto const&& particle_params = ParticleParams::from_import(data);
 
     print_particles(*particle_params);
-    print_elements(data.elements);
+    print_elements(data.elements, data.isotopes);
+    print_isotopes(data.isotopes);
     print_materials(data.materials, data.elements, *particle_params);
     print_processes(data, *particle_params);
     print_msc_models(data, *particle_params);

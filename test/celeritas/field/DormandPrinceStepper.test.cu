@@ -110,7 +110,7 @@ __global__ void dormand_test_arg_kernel(OdeState* states,
                           &along_states[id],
                           &results[id]);
         auto dchord
-            = detail::distance_chord(state, res.mid_state, res.end_state);
+            = detail::distance_chord(state.pos, res.mid_state.pos, res.end_state.pos);
         step *= max(std::sqrt(delta_chord / dchord), half);
     }
     results[id] = res;

@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <type_traits>
 #include <utility>
 
 #include "corecel/Macros.hh"
@@ -24,17 +25,39 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<class T>
+class BoundingBox;
+
+//---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
+//! Real type used for acceleration
+using fast_real_type = float;
+
 //! Integer type for volume CSG tree representation
 using logic_int = unsigned short int;
+
+//! Helper class for some template dispatch functions
+template<Axis T>
+using AxisTag = std::integral_constant<Axis, T>;
+
+//// ID TYPES ////
+
+//! Identifier for a BIHNode objects
+using BIHNodeId = OpaqueId<struct BIHNode>;
 
 //! Identifier for a daughter universe
 using DaughterId = OpaqueId<struct Daughter>;
 
 //! Identifier for a face within a volume
 using FaceId = OpaqueId<struct Face>;
+
+//! Bounding box used for acceleration
+using FastBBox = BoundingBox<fast_real_type>;
+
+//! Identifier for a bounding box used for acceleration
+using FastBBoxId = OpaqueId<FastBBox>;
 
 //! Identifier for the current "level", i.e., depth of embedded universe
 using LevelId = OpaqueId<struct Level>;
@@ -51,11 +74,8 @@ using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 //! Opaque index for rectilinear array data
 using RectArrayId = OpaqueId<struct RectArrayRecord>;
 
-//! Translation of a single embedded universe
-using Translation = Real3;
-
 //! Identifier for a translation of a single embedded universe
-using TranslationId = OpaqueId<Translation>;
+using TranslationId = OpaqueId<Real3>;
 
 //! Identifier for a relocatable set of volumes
 using UniverseId = OpaqueId<struct Universe>;
@@ -98,21 +118,28 @@ enum class SurfaceType : unsigned char
     cyc,  //!< Cylinder centered on Y axis
     czc,  //!< Cylinder centered on Z axis
     sc,  //!< Sphere centered at the origin
-#if 0
     cx,  //!< Cylinder parallel to X axis
     cy,  //!< Cylinder parallel to Y axis
     cz,  //!< Cylinder parallel to Z axis
-    p,   //!< General plane
-#endif
+    p,  //!< General plane
     s,  //!< Sphere
-#if 0
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
-#endif
     gq,  //!< General quadric
     size_  //!< Sentinel value for number of surface types
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enumeration for mapping transform implementations to integers.
+ */
+enum class TransformType : unsigned char
+{
+    translation,  //!< Translation only
+    transformation,  //!< Translation plus rotation
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -234,7 +261,7 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
 /*!
  * Change the sense across a surface.
  */
-CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 {
     return static_cast<Sense>(!static_cast<bool>(orig));
 }
@@ -243,7 +270,8 @@ CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 /*!
  * Change whether a boundary crossing is reentrant or exiting.
  */
-CELER_CONSTEXPR_FUNCTION BoundaryResult flip_boundary(BoundaryResult orig)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION BoundaryResult
+flip_boundary(BoundaryResult orig)
 {
     return static_cast<BoundaryResult>(!static_cast<bool>(orig));
 }
@@ -268,7 +296,8 @@ CELER_CONSTEXPR_FUNCTION BoundaryResult flip_boundary(BoundaryResult orig)
  *
  * NaN values are treated as "outside".
  */
-CELER_CONSTEXPR_FUNCTION SignedSense real_to_sense(real_type quadric)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense
+real_to_sense(real_type quadric)
 {
     return static_cast<SignedSense>(!(quadric <= 0) - (quadric < 0));
 }
@@ -334,6 +363,12 @@ inline constexpr char to_char(Sense s)
 
 // Get a string corresponding to a surface type
 char const* to_cstring(SurfaceType);
+
+// Get a string corresponding to a surface state
+inline char const* to_cstring(SurfaceState s)
+{
+    return s == SurfaceState::off ? "off" : "on";
+}
 
 //! Get a printable character corresponding to an operator.
 namespace logic

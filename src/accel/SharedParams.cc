@@ -23,6 +23,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelRegistry.hh"
@@ -35,7 +36,9 @@
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -50,6 +53,7 @@
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
+#include "detail/OffloadWriter.hh"
 
 namespace celeritas
 {
@@ -162,6 +166,28 @@ SharedParams::SharedParams(SetupOptions const& options)
 
     // Construct core data
     this->initialize_core(options);
+
+    // Set up output after params are constructed
+    this->try_output();
+
+    if (!options.offload_output_file.empty())
+    {
+        std::unique_ptr<EventWriterInterface> writer;
+        if (ends_with(options.offload_output_file, ".root"))
+        {
+            writer.reset(
+                new RootEventWriter(std::make_shared<RootFileManager>(
+                                        options.offload_output_file.c_str()),
+                                    params_->particle()));
+        }
+        else
+        {
+            writer.reset(new EventWriter(options.offload_output_file,
+                                         params_->particle()));
+        }
+        offload_writer_
+            = std::make_shared<detail::OffloadWriter>(std::move(writer));
+    }
 
     CELER_ENSURE(*this);
 }
@@ -385,7 +411,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
     if (options.sd)
     {
         hit_manager_ = std::make_shared<detail::HitManager>(
-            *params.geometry, options.sd, params.max_streams);
+            *params.geometry, *params.particle, options.sd, params.max_streams);
         step_collector_ = std::make_shared<StepCollector>(
             StepCollector::VecInterface{hit_manager_},
             params.geometry,
@@ -397,12 +423,11 @@ void SharedParams::initialize_core(SetupOptions const& options)
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
 
-    // Set up output after params are constructed
-    output_filename_ = options.output_file;
-    this->try_output();
-
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());
+
+    // Save output filename
+    output_filename_ = options.output_file;
 }
 
 //---------------------------------------------------------------------------//

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 
 #include "FieldDriverOptions.hh"
 
@@ -17,6 +18,8 @@ namespace celeritas
 
 struct UniformFieldParams
 {
+    using Real3 = Array<real_type, 3>;
+
     Real3 field{0, 0, 0};
     FieldDriverOptions options;
 };

@@ -98,10 +98,10 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         result.displacement += distance(geo.pos(), inp.position);
         result.angle += dot_product(geo.dir(), inp.direction);
         result.time += sim.time();
-        result.step += sim.step_limit().step;
+        result.step += sim.step_length();
         result.mfp += inp.phys_mfp - phys.interaction_mfp();
         result.alive += sim.status() == TrackStatus::alive ? 1 : 0;
-        actions[sim.step_limit().action] += 1;
+        actions[sim.post_step_action()] += 1;
     }
 
     real_type norm = 1 / real_type(num_tracks);

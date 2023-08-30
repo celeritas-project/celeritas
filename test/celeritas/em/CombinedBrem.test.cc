@@ -44,7 +44,8 @@ class CombinedBremTest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.elements = {{AtomicNumber{29}, units::AmuMass{63.546}, "Cu"}};
+        mat_inp.elements
+            = {{AtomicNumber{29}, units::AmuMass{63.546}, {}, "Cu"}};
         mat_inp.materials = {
             {0.141 * na_avogadro,
              293.0,

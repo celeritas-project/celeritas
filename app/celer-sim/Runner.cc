@@ -40,6 +40,7 @@
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -184,8 +185,7 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.output_reg = std::move(outreg);
 
     // Load geometry
-    params.geometry
-        = std::make_shared<GeoParams>(inp.geometry_filename.c_str());
+    params.geometry = std::make_shared<GeoParams>(inp.geometry_filename);
     if (!params.geometry->supports_safety())
     {
         CELER_LOG(warning) << "Geometry contains surfaces that are "
@@ -332,7 +332,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read events from a HepMC3 file or build using a primary generator.
+ * Read events from a file or build using a primary generator.
  */
 void Runner::build_events(RunnerInput const& inp)
 {
@@ -344,40 +344,37 @@ void Runner::build_events(RunnerInput const& inp)
         events_.resize(1);
     }
 
-    auto append = [&](VecPrimary& event) {
-        if (inp.merge_events)
+    auto read_events = [&](auto&& generate) {
+        auto event = generate();
+        while (!event.empty())
         {
-            events_.front().insert(
-                events_.front().end(), event.begin(), event.end());
-        }
-        else
-        {
-            events_.push_back(event);
+            if (inp.merge_events)
+            {
+                events_.front().insert(
+                    events_.front().end(), event.begin(), event.end());
+            }
+            else
+            {
+                events_.push_back(event);
+            }
+            event = generate();
         }
     };
 
     if (inp.primary_gen_options)
     {
-        std::mt19937 rng;
-        auto generate_event = PrimaryGenerator<std::mt19937>::from_options(
-            core_params_->particle(), inp.primary_gen_options);
-        auto event = generate_event(rng);
-        while (!event.empty())
-        {
-            append(event);
-            event = generate_event(rng);
-        }
+        read_events(PrimaryGenerator::from_options(core_params_->particle(),
+                                                   inp.primary_gen_options));
+    }
+    else if (ends_with(inp.event_filename, ".root"))
+    {
+        read_events(
+            RootEventReader(inp.event_filename, core_params_->particle()));
     }
     else
     {
-        EventReader read_event(inp.hepmc3_filename.c_str(),
-                               core_params_->particle());
-        auto event = read_event();
-        while (!event.empty())
-        {
-            append(event);
-            event = read_event();
-        }
+        // Assume filename is one of the HepMC3-supported extensions
+        read_events(EventReader(inp.event_filename, core_params_->particle()));
     }
 }
 

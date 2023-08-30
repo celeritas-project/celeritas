@@ -176,7 +176,14 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
     CELER_EXPECT(volume);
     auto inst_id = volume->GetInstanceID();
     CELER_ENSURE(inst_id >= 0);
-    return VolumeId{static_cast<VolumeId::size_type>(inst_id)};
+    VolumeId result{static_cast<VolumeId::size_type>(inst_id)};
+    if (!(result < this->num_volumes()))
+    {
+        // Volume is out of range: possibly an LV defined after this geometry
+        // class was created
+        result = {};
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -239,12 +246,12 @@ void GeantGeoParams::build_metadata()
 
         G4VisExtent const& extent = solid->GetExtent();
 
-        return BoundingBox({convert_from_geant(extent.GetXmin(), CLHEP::cm),
-                            convert_from_geant(extent.GetYmin(), CLHEP::cm),
-                            convert_from_geant(extent.GetZmin(), CLHEP::cm)},
-                           {convert_from_geant(extent.GetXmax(), CLHEP::cm),
-                            convert_from_geant(extent.GetYmax(), CLHEP::cm),
-                            convert_from_geant(extent.GetZmax(), CLHEP::cm)});
+        return BBox({convert_from_geant(extent.GetXmin(), CLHEP::cm),
+                     convert_from_geant(extent.GetYmin(), CLHEP::cm),
+                     convert_from_geant(extent.GetZmin(), CLHEP::cm)},
+                    {convert_from_geant(extent.GetXmax(), CLHEP::cm),
+                     convert_from_geant(extent.GetYmax(), CLHEP::cm),
+                     convert_from_geant(extent.GetZmax(), CLHEP::cm)});
     }();
 }
 

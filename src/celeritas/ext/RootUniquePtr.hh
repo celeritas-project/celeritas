@@ -13,17 +13,28 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
+class TFile;
+class TTree;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Call `TObject->Write()` before deletion. Used by TFile and TTree writer
- * classes.
+ * Call `TFile->Write()` before deletion.
  */
-template<class T>
-struct RootWritableDeleter
+struct RootFileWritableDeleter
 {
-    void operator()(T* ptr);
+    void operator()(TFile* ptr);
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Call `TTree->AutoSave()` before deletion in order to update `gDirectory`
+ * accordingly before writing the TTree.
+ */
+struct RootTreeAutoSaveDeleter
+{
+    void operator()(TTree* ptr);
 };
 
 //---------------------------------------------------------------------------//
@@ -39,15 +50,20 @@ struct ExternDeleter
 
 //---------------------------------------------------------------------------//
 // Type aliases
-template<class T>
-using UPRootWritable = std::unique_ptr<T, RootWritableDeleter<T>>;
+using UPRootFileWritable = std::unique_ptr<TFile, RootFileWritableDeleter>;
+using UPRootTreeWritable = std::unique_ptr<TTree, RootTreeAutoSaveDeleter>;
+
 template<class T>
 using UPExtern = std::unique_ptr<T, ExternDeleter<T>>;
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-template<class T>
-void RootWritableDeleter<T>::operator()(T*)
+inline void RootFileWritableDeleter::operator()(TFile*)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+inline void RootTreeAutoSaveDeleter::operator()(TTree*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

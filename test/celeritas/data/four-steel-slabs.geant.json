@@ -1,6 +1,6 @@
 {
 "brems": "all",
-"coulomb_scattering": false,
+"coulomb_scattering": true,
 "eloss_fluctuation": true,
 "em_bins_per_decade": 7,
 "integral_approach": true,
@@ -22,3 +22,4 @@
 "msc": "urban",
 "rayleigh_scattering": true
 }
+ 

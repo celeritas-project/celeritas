@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 
@@ -21,15 +22,27 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the force applied by a magnetic field.
+ * Evaluate the right hand side of the Lorentz equation.
  *
  * The templated \c FieldT must be a function-like object with the signature
  * \code
  * Real3 (*)(const Real3&)
  * \endcode
  * which returns a magnetic field vector at a given position. The field
- * strength is in Celeritas native units, so multiply by \c units::tesla if
- * necessary.
+ * strength is in Celeritas native units, not Tesla.
+ *
+ * Calling an instance of this class calculates the local derivatives of
+ * position and momentum (i.e.  direction and force) based on the given
+ * magnetic field state.
+ *
+ * \f[
+    m \frac{d^2 \vec{x}}{d t^2} = (q/c)(\vec{v} \times  \vec{B})
+    s = |v|t
+    \vec{y} = d\vec{x}/ds
+    \frac{d\vec{x}}{ds} = \vec{v}/|v|
+    \frac{d\vec{y}}{ds} = (q/pc)(\vec{y} \times \vec{B})
+   \f]
+ *
  */
 template<class FieldT>
 class MagFieldEquation
@@ -52,7 +65,7 @@ class MagFieldEquation
     // Field evaluator
     Field_t calc_field_;
 
-    // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
+    // The (Lorentz) coefficent in 1/OdeState::MomentumUnits
     real_type coeffi_;
 };
 
@@ -67,7 +80,10 @@ CELER_FUNCTION MagFieldEquation(FieldT&&, units::ElementaryCharge)
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a magnetic field equation.
+ * Construct with a magnetic field equation and particle charge.
+ *
+ * The internal coefficient is based on Celeritas native units and the
+ * "natural" unit system used by the \c ParticleTrackView.
  */
 template<class FieldT>
 CELER_FUNCTION
@@ -75,24 +91,13 @@ MagFieldEquation<FieldT>::MagFieldEquation(FieldT&& field,
                                            units::ElementaryCharge charge)
     : calc_field_(::celeritas::forward<FieldT>(field))
     , coeffi_{native_value_from(charge)
-              / native_value_from(units::MevMomentum{1})}
+              / native_value_from(OdeState::MomentumUnits{1})}
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the right hand side of the Lorentz equation.
- *
- * This calculates the force based on the given magnetic field state
- * (position and momentum).
- *
- * \f[
-    m \frac{d^2 \vec{x}}{d t^2} = (q/c)(\vec{v} \times  \vec{B})
-    s = |v|t
-    \vec{y} = d\vec{x}/ds
-    \frac{d\vec{x}}{ds} = \vec{v}/|v|
-    \frac{d\vec{y}}{ds} = (q/pc)(\vec{y} \times \vec{B})
-   \f]
  */
 template<class FieldT>
 CELER_FUNCTION auto
@@ -104,12 +109,12 @@ MagFieldEquation<FieldT>::operator()(OdeState const& y) const -> OdeState
     // Evaluate the rate of change in particle's position per unit length: this
     // is just the direction
     OdeState result;
-    result.pos = detail::ax(momentum_inv, y.mom);
+    result.pos = momentum_inv * y.mom;
 
     // Calculate the magnetic field value at the current position
     // to calculate the force on the particle
-    result.mom = detail::ax(coeffi_ * momentum_inv,
-                            cross_product(y.mom, calc_field_(y.pos)));
+    result.mom = (coeffi_ * momentum_inv)
+                 * cross_product(y.mom, calc_field_(y.pos));
 
     return result;
 }

@@ -10,6 +10,8 @@
 #include <memory>
 #include <string>
 
+#include "corecel/Macros.hh"
+
 #include "ScopedStreamRedirect.hh"
 #include "ScopedTimeLog.hh"
 
@@ -28,15 +30,17 @@ namespace celeritas
         vecgeom::DoNoisyAndLongStuff();
     }
    \endcode
- *
- * \warning During scope, you should be sure *NOT* to call the logger, which by
- * default prints to cerr.
  */
 class ScopedTimeAndRedirect
 {
   public:
     explicit ScopedTimeAndRedirect(std::string label);
     ~ScopedTimeAndRedirect();
+
+    //!@{
+    //! Prevent copying and moving for RAII class
+    CELER_DELETE_COPY_MOVE(ScopedTimeAndRedirect);
+    //!@}
 
   private:
     std::unique_ptr<ScopedStreamRedirect> stdout_;

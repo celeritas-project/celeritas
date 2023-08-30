@@ -18,6 +18,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class SimpleQuadric;
+
+//---------------------------------------------------------------------------//
 /*!
  * General quadric surface.
  *
@@ -28,6 +31,9 @@ namespace celeritas
  * \f[
     ax^2 + by^2 + cz^2 + dxy + eyz + fzx + gx + hy + iz + j = 0
    \f]
+ *
+ * Note that some formulations of a general quadric include a factor of 2 for
+ * the g/h/i terms.
  */
 class GeneralQuadric
 {
@@ -61,6 +67,9 @@ class GeneralQuadric
 
     // Construct from raw data
     explicit inline CELER_FUNCTION GeneralQuadric(Storage);
+
+    // Promote from a simple quadric
+    explicit GeneralQuadric(SimpleQuadric const& other) noexcept;
 
     //// ACCESSORS ////
 
@@ -107,6 +116,8 @@ class GeneralQuadric
 //---------------------------------------------------------------------------//
 /*!
  * Construct with all coefficients.
+ *
+ * TODO: normalize?
  */
 CELER_FUNCTION GeneralQuadric::GeneralQuadric(Real3 const& abc,
                                               Real3 const& def,
@@ -123,6 +134,8 @@ CELER_FUNCTION GeneralQuadric::GeneralQuadric(Real3 const& abc,
     , i_(ghi[2])
     , j_(j)
 {
+    CELER_EXPECT(a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0 || f_ != 0
+                 || g_ != 0 || h_ != 0 || i_ != 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -169,12 +182,12 @@ GeneralQuadric::calc_intersections(Real3 const& pos,
                                    SurfaceState on_surface) const
     -> Intersections
 {
-    const real_type x = pos[0];
-    const real_type y = pos[1];
-    const real_type z = pos[2];
-    const real_type u = dir[0];
-    const real_type v = dir[1];
-    const real_type w = dir[2];
+    real_type const x = pos[0];
+    real_type const y = pos[1];
+    real_type const z = pos[2];
+    real_type const u = dir[0];
+    real_type const v = dir[1];
+    real_type const w = dir[2];
 
     // Quadratic values
     real_type a = (a_ * u + d_ * v) * u + (b_ * v + e_ * w) * v
@@ -194,9 +207,9 @@ GeneralQuadric::calc_intersections(Real3 const& pos,
  */
 CELER_FUNCTION Real3 GeneralQuadric::calc_normal(Real3 const& pos) const
 {
-    const real_type x = pos[0];
-    const real_type y = pos[1];
-    const real_type z = pos[2];
+    real_type const x = pos[0];
+    real_type const y = pos[1];
+    real_type const z = pos[2];
 
     Real3 norm;
     norm[0] = 2 * a_ * x + d_ * y + f_ * z + g_;

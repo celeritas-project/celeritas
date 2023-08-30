@@ -20,7 +20,12 @@ namespace celeritas
  */
 void from_json(nlohmann::json const& j, FieldDriverOptions& opts)
 {
-#define FDO_INPUT(FIELD) j.at(#FIELD).get_to(opts.FIELD)
+#define FDO_INPUT(NAME)                    \
+    do                                     \
+    {                                      \
+        if (j.contains(#NAME))             \
+            j.at(#NAME).get_to(opts.NAME); \
+    } while (0)
 
     FDO_INPUT(minimum_step);
     FDO_INPUT(delta_chord);

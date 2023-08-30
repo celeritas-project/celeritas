@@ -249,8 +249,8 @@ TEST_F(MockAlongStepFieldTest, basic)
         inp.energy = MevEnergy{0.1};
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0.0872, result.eloss);
-        EXPECT_SOFT_EQ(0.072315483508565, result.displacement);
-        EXPECT_SOFT_EQ(-0.78966779070793, result.angle);
+        EXPECT_SOFT_EQ(0.072418792650354114, result.displacement);
+        EXPECT_SOFT_EQ(-0.79121191105706501, result.angle);
         EXPECT_SOFT_EQ(1.1636639210937e-11, result.time);
         EXPECT_SOFT_EQ(0.14533333333333, result.step);
         EXPECT_SOFT_EQ(0.00013079999999999, result.mfp);
@@ -263,10 +263,10 @@ TEST_F(MockAlongStepFieldTest, basic)
         inp.phys_mfp = 100;
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0.001, result.eloss);
-        EXPECT_SOFT_NEAR(0.014776612598411, result.displacement, 1e-10);
-        EXPECT_SOFT_NEAR(-0.57745338446847, result.angle, 1e-10);
-        EXPECT_SOFT_EQ(5.5782096149372e-09, result.time);
-        EXPECT_SOFT_EQ(7.4731723740905, result.step);
+        EXPECT_SOFT_NEAR(0.014775335072293276, result.displacement, 1e-10);
+        EXPECT_SOFT_NEAR(-0.57704594283791188, result.angle, 1e-10);
+        EXPECT_SOFT_EQ(5.5782056196201597e-09, result.time);
+        EXPECT_SOFT_EQ(7.4731670215320127, result.step);
         EXPECT_SOFT_EQ(0, result.mfp);
         EXPECT_SOFT_EQ(1, result.alive);
         EXPECT_EQ("physics-discrete-select", result.action);
@@ -489,7 +489,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
                          -0.0391118941072485030};
         // Step limited by distance to interaction = 2.49798914193346685e21
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(27.208980085333259, result.step);
+        EXPECT_SOFT_EQ(27.208989423735016, result.step);
         EXPECT_EQ(0, result.eloss);
         EXPECT_EQ(0, result.mfp);
         EXPECT_EQ("geo-propagation-limit", result.action);
@@ -537,8 +537,8 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
                          -0.0391118941072485030};
 
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(4.1632771293464517, result.displacement);
-        EXPECT_SOFT_NEAR(-0.59445466152831616, result.angle, 2e-12);
+        EXPECT_SOFT_EQ(4.1632772063250023, result.displacement);
+        EXPECT_SOFT_NEAR(-0.59445532857679839, result.angle, 2e-12);
     }
 }
 

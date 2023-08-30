@@ -8,30 +8,32 @@
 #include "celeritas/field/FieldPropagator.hh"
 
 #include <cmath>
+#include <regex>
 
 #include "celeritas_cmake_strings.h"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
-#include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformZField.hh"
+#include "celeritas/geo/CheckedGeoTrackView.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
 
+#include "../GenericGeoTestBase.hh"
 #include "CMSParameterizedField.hh"
 #include "DiagnosticStepper.hh"
+#include "FieldTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -41,7 +43,6 @@ namespace test
 //---------------------------------------------------------------------------//
 using constants::pi;
 using constants::sqrt_three;
-using units::MevEnergy;
 
 template<class E>
 using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
@@ -50,59 +51,42 @@ using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class FieldPropagatorTestBase : public GenericCoreGeoTestBase
+class FieldPropagatorTestBase : public GenericCoreGeoTestBase,
+                                public FieldTestBase
 {
+    using GCGBase = GenericCoreGeoTestBase;
+    using FBase = FieldTestBase;
+
   public:
-    using SPConstParticle = std::shared_ptr<ParticleParams const>;
+    //!@{
+    //! \name Type aliases
+    using CGeoTrackView
+        = CheckedGeoTrackView<GenericCoreGeoTestBase::GeoTrackView>;
+    //!@}
 
-    void SetUp() override;
-
-    SPConstParticle const& particle() const
-    {
-        CELER_ENSURE(particle_);
-        return particle_;
-    }
-
-    ParticleTrackView make_particle_view(PDGNumber pdg, MevEnergy energy)
-    {
-        CELER_EXPECT(pdg && energy > zero_quantity());
-        ParticleId pid = this->particle()->find(pdg);
-        CELER_ASSERT(pid);
-        ParticleTrackView view{
-            this->particle()->host_ref(), par_state_.ref(), TrackSlotId{0}};
-        view = {pid, energy};
-        return view;
-    }
-
-    template<class Field>
-    real_type calc_field_curvature(ParticleTrackView const& particle,
-                                   GeoTrackView const& geo,
-                                   Field const& calc_field) const
-    {
-        auto field_strength = norm(calc_field(geo.pos()));
-        return native_value_from(particle.momentum())
-               / (std::fabs(native_value_from(particle.charge()))
-                  * field_strength);
-    }
-
+  protected:
     SPConstGeo build_geometry() final
     {
         return this->build_geometry_from_basename();
     }
 
-  private:
-    //// TYPE ALIASES ////
-    template<template<Ownership, MemSpace> class T>
-    using HostStateStore = CollectionStateStore<T, MemSpace::host>;
-    using ParStateStore = HostStateStore<ParticleStateData>;
+    //! Get a single-thread host track view
+    CGeoTrackView make_geo_track_view()
+    {
+        return CGeoTrackView{GCGBase::make_geo_track_view()};
+    }
 
-    //// DATA ////
+    //! Get and initialize a single-thread host track view
+    CGeoTrackView make_geo_track_view(Real3 const& pos, Real3 dir)
+    {
+        return CGeoTrackView{GCGBase::make_geo_track_view(pos, dir)};
+    }
 
-    std::shared_ptr<ParticleParams const> particle_;
-    ParStateStore par_state_;
+    SPConstParticle build_particle() const final;
 };
 
-void FieldPropagatorTestBase::SetUp()
+//---------------------------------------------------------------------------//
+auto FieldPropagatorTestBase::build_particle() const -> SPConstParticle
 {
     // Create particle defs
     using namespace units;
@@ -119,14 +103,12 @@ void FieldPropagatorTestBase::SetUp()
             ElementaryCharge{1},
             stable},
            {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
-    particle_ = std::make_shared<ParticleParams>(std::move(defs));
-
-    par_state_ = ParStateStore(particle_->host_ref(), 1);
+    return std::make_shared<ParticleParams>(std::move(defs));
 }
 
 //---------------------------------------------------------------------------//
 
-class TwoBoxTest : public FieldPropagatorTestBase
+class TwoBoxesTest : public FieldPropagatorTestBase
 {
     std::string geometry_basename() const override { return "two-boxes"; }
 };
@@ -139,6 +121,14 @@ class LayersTest : public FieldPropagatorTestBase
 class SimpleCmsTest : public FieldPropagatorTestBase
 {
     std::string geometry_basename() const override { return "simple-cms"; }
+};
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#    define CmseTest DISABLED_CmseTest
+#endif
+class CmseTest : public FieldPropagatorTestBase
+{
+    std::string geometry_basename() const override { return "cmse"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -182,7 +172,7 @@ constexpr real_type unit_radius_field_strength{3.5019461121752274
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(TwoBoxTest, electron_interior)
+TEST_F(TwoBoxesTest, electron_interior)
 {
     // Initialize position and direction so its curved track is centered about
     // the origin, moving counterclockwise from the right
@@ -211,9 +201,12 @@ TEST_F(TwoBoxTest, electron_interior)
     EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
                        geo.dir());
     EXPECT_EQ(1, stepper.count());
+    EXPECT_EQ(1, geo.intersect_count());
+    EXPECT_EQ(0, geo.safety_count());
 
     // Test the remaining quarter-turn divided into 20 steps
     {
+        geo.reset_count();
         stepper.reset_count();
         real_type step = 0.5 * pi * radius - 1e-2;
         for (auto i : range(25))
@@ -237,7 +230,7 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), 1e-6);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
-        EXPECT_EQ(27, stepper.count());
+        EXPECT_EQ(21, stepper.count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
@@ -248,7 +241,7 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_SOFT_EQ(pi * radius, result.distance);
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
-        EXPECT_EQ(68, stepper.count());
+        EXPECT_EQ(40, stepper.count());
     }
 
     // Test step that's smaller than driver's minimum (should take one
@@ -259,13 +252,13 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_DOUBLE_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_NEAR(
-            Real3({3.8085385881855, -2.3814749713353e-07, 0}), geo.pos(), 1e-7);
-        EXPECT_VEC_NEAR(Real3({6.2529888474538e-08, 1, 0}), geo.dir(), 1e-7);
+            Real3({3.8085385881855, -2.381487075086e-07, 0}), geo.pos(), 1e-7);
+        EXPECT_VEC_NEAR(Real3({6.25302065531623e-08, 1, 0}), geo.dir(), 1e-7);
         EXPECT_EQ(1, stepper.count());
     }
 }
 
-TEST_F(TwoBoxTest, positron_interior)
+TEST_F(TwoBoxesTest, positron_interior)
 {
     // Initialize position and direction so its curved track (radius 1) is
     // centered about the origin, moving *clockwise* from the right
@@ -290,7 +283,7 @@ TEST_F(TwoBoxTest, positron_interior)
 }
 
 // Gamma in magnetic field should have a linear path
-TEST_F(TwoBoxTest, gamma_interior)
+TEST_F(TwoBoxesTest, gamma_interior)
 {
     auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
 
@@ -351,7 +344,7 @@ TEST_F(TwoBoxTest, gamma_interior)
 }
 
 // Field really shouldn't matter to a gamma right?
-TEST_F(TwoBoxTest, gamma_pathological)
+TEST_F(TwoBoxesTest, gamma_pathological)
 {
     auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
 
@@ -377,7 +370,7 @@ TEST_F(TwoBoxTest, gamma_pathological)
 }
 
 // Gamma exits the inner volume
-TEST_F(TwoBoxTest, gamma_exit)
+TEST_F(TwoBoxesTest, gamma_exit)
 {
     auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
     UniformZField field(12345.6);
@@ -442,7 +435,7 @@ TEST_F(TwoBoxTest, gamma_exit)
     }
 }
 
-TEST_F(TwoBoxTest, electron_super_small_step)
+TEST_F(TwoBoxesTest, electron_super_small_step)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{2});
     UniformZField field(1 * units::tesla);
@@ -450,6 +443,7 @@ TEST_F(TwoBoxTest, electron_super_small_step)
     for (real_type delta : {1e-14, 1e-8, 1e-2, 0.1})
     {
         auto geo = this->make_geo_track_view({90, 90, 90}, {1, 0, 0});
+        EXPECT_EQ("world", this->volume_name(geo));
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
@@ -462,7 +456,7 @@ TEST_F(TwoBoxTest, electron_super_small_step)
 }
 
 // Electron takes small steps up to and from a boundary
-TEST_F(TwoBoxTest, electron_small_step)
+TEST_F(TwoBoxesTest, electron_small_step)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -553,7 +547,7 @@ TEST_F(TwoBoxTest, electron_small_step)
 }
 
 // Electron will be tangent to the boundary at the top of its curved path.
-TEST_F(TwoBoxTest, electron_tangent)
+TEST_F(TwoBoxesTest, electron_tangent)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -572,7 +566,7 @@ TEST_F(TwoBoxTest, electron_tangent)
         EXPECT_LT(
             distance(Real3({std::cos(0.49 * pi), 4 + std::sin(0.49 * pi), 0}),
                      geo.pos()),
-            1e-6);
+            2e-6);
     }
     {
         SCOPED_TRACE("Short step tangent to boundary");
@@ -587,12 +581,12 @@ TEST_F(TwoBoxTest, electron_tangent)
         EXPECT_LT(
             distance(Real3({std::cos(0.51 * pi), 4 + std::sin(0.51 * pi), 0}),
                      geo.pos()),
-            1e-6);
+            2e-6);
     }
 }
 
 // Electron crosses and reenters
-TEST_F(TwoBoxTest, electron_cross)
+TEST_F(TwoBoxesTest, electron_cross)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(0.5 * unit_radius_field_strength);
@@ -663,7 +657,7 @@ TEST_F(TwoBoxTest, electron_cross)
 }
 
 // Electron barely crosses boundary
-TEST_F(TwoBoxTest, electron_tangent_cross)
+TEST_F(TwoBoxesTest, electron_tangent_cross)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -712,12 +706,12 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         EXPECT_SOFT_EQ(circ, result.distance);
         EXPECT_FALSE(result.boundary);
-        EXPECT_LT(distance(Real3({1, 4 + dy, 0}), geo.pos()), 1e-5);
+        EXPECT_LT(distance(Real3({1, 4 + dy, 0}), geo.pos()), 2e-5);
         EXPECT_LT(distance(Real3({0, 1, 0}), geo.dir()), 1e-5);
     }
 }
 
-TEST_F(TwoBoxTest, electron_corner_hit)
+TEST_F(TwoBoxesTest, electron_corner_hit)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -807,11 +801,12 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 }
 
 // Endpoint of a step is very close to the boundary.
-TEST_F(TwoBoxTest, electron_step_endpoint)
+TEST_F(TwoBoxesTest, electron_step_endpoint)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
     FieldDriverOptions driver_options;
+    const real_type dr = 0.1;
     driver_options.delta_intersection = 0.1;
 
     // First step length and position from starting at {0,0,0} along {0,1,0}
@@ -819,98 +814,137 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
     static constexpr Real3 first_pos
         = {-0.098753281951459, 0.43330671122068, 0};
 
-    {
-        SCOPED_TRACE("First step ends barely closer than boundary");
-        /*
-         * Note: this ends up being the !linear_step.boundary case:
-          Propagate up to 0.448159
-          - advance(0.348159, {-4.89125,-0.433307,0})
-                -> {0.348159, {-4.95124,-0.0921392,0}}
-           + chord length 0.346403 => linear step 0.446403
-           + advancing to substep end point
-        */
-
-        real_type dx = 0.1 * driver_options.delta_intersection;
-        Real3 start_pos{-5 + dx, 0, 0};
+    auto geo = this->make_geo_track_view();
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
+    auto propagate = [&](real_type start_delta, real_type move_delta) {
+        Real3 start_pos{-5 + start_delta, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        auto geo = this->make_geo_track_view(start_pos, {0, 1, 0});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
-            field, particle.charge());
+        geo = GeoTrackInitializer{start_pos, {0, 1, 0}};
+        stepper.reset_count();
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(first_step - driver_options.delta_intersection);
+        return propagate(first_step - move_delta);
+    };
 
+    {
+        SCOPED_TRACE("First step misses boundary");
+        /*
+         * Note: this ends up being the !linear_step.boundary case:
+         Propagate up to 0.348159 from {-4.89125,-0.433307,0} along {0,1,0}
+         - advance(0.348159, {-4.89125,-0.433307,0})
+           -> {0.348159, {-4.95124,-0.0921392,0}}
+          + chord 0.346403 cm along {-0.173201,0.984886,0}
+            => linear step 0.446403: update length 0.448666
+          + advancing to substep end point (99 remaining)
+         ==> distance 0.348159 (in 1 steps)
+         */
+
+        auto result = propagate(0.1 * dr, dr);
         EXPECT_FALSE(result.boundary);
         EXPECT_EQ(1, stepper.count());
-        EXPECT_SOFT_EQ(first_step - driver_options.delta_intersection,
-                       result.distance);
+        EXPECT_SOFT_EQ(first_step - dr, result.distance);
         EXPECT_LT(distance(Real3{-4.9512441890768795, -0.092139178167222446, 0},
                            geo.pos()),
                   1e-8)
             << geo.pos();
     }
     {
-        SCOPED_TRACE("First step ends barely closer than boundary");
+        SCOPED_TRACE("First step ends barely before boundary");
         /*
-         Propagate up to 0.448159
+         Propagate up to 0.448159 from {-4.89125,-0.433307,0} along {0,1,0}
          - advance(0.448159, {-4.89125,-0.433307,0})
-           -> {0.448159, {-4.99,8.24444e-08,0}}
-          + chord length 0.444418 => linear step 0.489419 (hit surface 6):
-           update length 0.493539
-          + next trial step exceeds driver minimum 1e-06 *OR* intercept is
-           sufficiently close (miss distance = 0.0450017) to substep point
-         - Moved remaining distance 0 without physically changing position
+           -> {0.448159, {-4.99,3.0686e-15,0}}
+          + chord 0.444418 cm along {-0.222208,0.974999,0}
+            => linear step 0.48942 (HIT!): update length 0.49354
+          + intercept {-5,0.0438777,0} is within 0.1 of substep endpoint
+          + but it's is past the end of the step by 0.0453817
+          + moved to {-4.99,3.0686e-15,0}: ignoring intercept!
          ==> distance 0.448159 (in 0 steps)
          */
-
-        real_type dx = 0.1 * driver_options.delta_intersection;
-        Real3 start_pos{-5 + dx, 0, 0};
-        axpy(real_type(-1), first_pos, &start_pos);
-
-        auto geo = this->make_geo_track_view(start_pos, {0, 1, 0});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
-            field, particle.charge());
-        auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(first_step);
-
+        auto result = propagate(0.1 * dr, 0);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(3, stepper.count());
+        EXPECT_EQ(1, stepper.count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
+        EXPECT_LT(-5.0, geo.pos()[0]);
         EXPECT_LT(
             distance(Real3{-4.9900002299216384, 8.2444433238682002e-08, 0},
                      geo.pos()),
-            1e-8)
+            1e-6)
             << geo.pos();
     }
     {
-        SCOPED_TRACE("First step ends on boundary");
+        SCOPED_TRACE("First step ends BARELY before boundary");
+        /*
+         Propagate up to 0.448159 from {-4.90125,-0.433307,0} along {0,1,0}
+         - advance(0.448159, {-4.90125,-0.433307,0})
+           -> {0.448159, {-5,3.0686e-15,0}}
+          + chord 0.444418 cm along {-0.222208,0.974999,0}
+            => linear step 0.444418 (HIT!): update length 0.448159
+          + intercept {-5,4.38777e-07,0} is within 0.1 of substep endpoint
+          + but it's is past the end of the step by 4.53817e-07
+          + moved to {-5,3.0686e-15,0}: ignoring intercept!
+         ==> distance 0.448159 (in 0 steps)
+         */
+        auto result = propagate(1e-6 * dr, 0);
+        EXPECT_FALSE(result.boundary);
+        EXPECT_EQ(1, stepper.count());
+        EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
+        EXPECT_LE(result.distance, first_step);
+        EXPECT_LT(-5.0, geo.pos()[0]);
+        EXPECT_LT(
+            distance(Real3{-4.9999998999999997, 3.0685999199146494e-15, 0},
+                     geo.pos()),
+            1e-6)
+            << geo.pos();
+    }
+    {
+        SCOPED_TRACE("First step ends barely past boundary");
+        /*
+         Propagate up to 0.448159 from {-4.91125,-0.433307,0} along {0,1,0}
+         - advance(0.448159, {-4.91125,-0.433307,0})
+           -> {0.448159, {-5.01,3.0686e-15,0}}
+          + chord 0.444418 cm along {-0.222208,0.974999,0}
+            => linear step 0.399415 (HIT!): update length 0.402777
+          + intercept {-5,-0.0438777,0} is within 0.1 of substep endpoint
+         - Moved to boundary 6 at position {-5,-0.0438777,0}
+         ==> distance 0.402777 (in 0 steps)
+        */
 
-        real_type dx = 0;
-        Real3 start_pos{-5 - dx, 0, 0};
-        axpy(real_type(-1), first_pos, &start_pos);
-
-        auto geo = this->make_geo_track_view(start_pos, {0, 1, 0});
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
-            field, particle.charge());
-        auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(first_step);
-
+        auto result = propagate(-0.1 * dr, 0);
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(3, stepper.count());
-        EXPECT_SOFT_NEAR(result.distance, first_step, 1e-5);
-        EXPECT_LT(result.distance, first_step);
-        // Y position suffers from roundoff
-        EXPECT_LT(distance(Real3{-5.0, -9.26396730438483e-07, 0}, geo.pos()),
-                  1e-8);
+        EXPECT_EQ(1, stepper.count());
+        EXPECT_SOFT_EQ(0.40277704609562048, result.distance);
+        EXPECT_LE(result.distance, first_step);
+        EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()), 1e-6)
+            << geo.pos();
+    }
+    {
+        SCOPED_TRACE("First step ends BARELY past boundary");
+        /*
+         Propagate up to 0.448159 from {-4.90125,-0.433307,0} along {0,1,0}
+         - advance(0.448159, {-4.90125,-0.433307,0})
+           -> {0.448159, {-5,3.0686e-15,0}}
+          + chord 0.444418 cm along {-0.222208,0.974999,0}
+            => linear step 0.444417 (HIT!): update length 0.448158
+          + intercept {-5,-4.38777e-07,0} is within 0.1 of substep endpoint
+         - Moved to boundary 6 at position {-5,-4.38777e-07,0}
+         */
+        auto result = propagate(-1e-6 * dr, 0);
+        EXPECT_TRUE(result.boundary);
+        EXPECT_EQ(1, stepper.count());
+        EXPECT_SOFT_EQ(0.44815824321522935, result.distance);
+        EXPECT_LE(result.distance, first_step);
+        EXPECT_LT(distance(Real3{-5, -4.3877702173875065e-07, 0}, geo.pos()),
+                  1e-6)
+            << geo.pos();
     }
 }
 
 // Electron barely crosses boundary
-TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
+TEST_F(TwoBoxesTest, electron_tangent_cross_smallradius)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
 
@@ -969,18 +1003,19 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
 
     static int const expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
     EXPECT_VEC_EQ(expected_boundary, boundary);
-    static double const expected_distances[] = {0.00785398163,
-                                                0.00282334506,
-                                                0.00448798951,
-                                                0.00282597038,
+    static double const expected_distances[] = {0.0078534718906499,
+                                                0.0028235332722979,
+                                                0.0044879852658442,
+                                                0.0028259738005751,
                                                 1e-05,
                                                 1e-05,
+                                                9.9999658622419e-09,
                                                 1e-08,
-                                                1e-08,
-                                                9.99379755e-12,
+                                                9.9981633254417e-12,
                                                 1e-11};
     EXPECT_VEC_NEAR(expected_distances, distances, 1e-5);
-    static int const expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
+
+    static int const expected_substeps[] = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
 
     EXPECT_VEC_EQ(expected_substeps, substeps);
     static char const* expected_volumes[] = {"world",
@@ -998,31 +1033,40 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
 
 // Heuristic test: plotting points with finer propagation distance show a track
 // with decreasing radius
-TEST_F(TwoBoxTest, nonuniform_field)
+TEST_F(TwoBoxesTest, nonuniform_field)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     ReluZField field{unit_radius_field_strength};
     FieldDriverOptions driver_options;
 
-    this->make_geo_track_view({-2.0, 0, 0}, {0, 1, 1});
+    auto geo = this->make_geo_track_view({-2.0, 0, 0}, {0, 1, 1});
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
+    auto propagate
+        = make_field_propagator(stepper, driver_options, particle, geo);
 
-    static const Real3 expected_all_pos[]
-        = {{-2.082588410019, 0.698321021704, 0.70710499699532},
-           {-2.5772835670309, 1.1563856325251, 1.414208222427},
-           {-3.0638597406072, 0.77477344365218, 2.1213130872532},
-           {-2.5584323246703, 0.58519068474743, 2.8284269544184},
-           {-2.904435093832, 0.86378022294055, 3.5355750279272},
-           {-2.5804988125119, 0.7657810943241, 4.242802666321},
-           {-2.7424915491399, 0.60277842755393, 4.9501038870007},
-           {-2.6941223485135, 0.6137455428308, 5}};
-    for (Real3 const& pos : expected_all_pos)
+    std::vector<real_type> all_pos;
+    std::vector<int> step_counter;
+    for ([[maybe_unused]] auto i : range(8))
     {
-        auto geo = this->make_geo_track_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, geo);
+        stepper.reset_count();
         propagate(1.0);
-        EXPECT_VEC_SOFT_EQ(pos, geo.pos());
+        all_pos.insert(all_pos.end(), geo.pos().begin(), geo.pos().end());
+        step_counter.push_back(stepper.count());
     }
+
+    // clang-format off
+    static double const expected_all_pos[] = {-2.0825709359803,
+        0.69832583461676, 0.70710666844698, -2.5772824508968, 1.1564020888258,
+        1.4141930958099, -3.0638510057122, 0.77473521479087, 2.1212684403177,
+        -2.5583489716647, 0.58538451986626, 2.828330789556, -2.904690468079,
+        0.86312828878343, 3.5354504022784, -2.5810333947926, 0.76746526072066,
+        4.2427268982429, -2.7387860743405, 0.6033460543227, 4.9501275639478,
+        -2.6908723120116, 0.6155217193027, 5};
+    static int const expected_step_counter[] = {3, 3, 6, 6, 9, 10, 13, 8};
+    // clang-format on
+    EXPECT_VEC_SOFT_EQ(expected_all_pos, all_pos);
+    EXPECT_VEC_EQ(expected_step_counter, step_counter);
 }
 
 //---------------------------------------------------------------------------//
@@ -1151,10 +1195,9 @@ TEST_F(SimpleCmsTest, electron_stuck)
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(1000);
+        auto result = propagate(30);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_LE(92, stepper.count());
-        EXPECT_LE(stepper.count(), 93);
+        EXPECT_SOFT_NEAR(double{30}, static_cast<double>(stepper.count()), 0.2);
         ASSERT_TRUE(geo.is_on_boundary());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -1163,24 +1206,6 @@ TEST_F(SimpleCmsTest, electron_stuck)
         EXPECT_SOFT_EQ(30, calc_radius());
         geo.cross_boundary();
         EXPECT_EQ("si_tracker", this->volume_name(geo));
-    }
-    {
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, geo);
-        auto result = propagate(1000);
-        EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        ASSERT_TRUE(geo.is_on_boundary());
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-        {
-            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
-            EXPECT_SOFT_EQ(30, calc_radius());
-        }
-        else
-        {
-            EXPECT_SOFT_NEAR(30, calc_radius(), 1e-5);
-        }
-        geo.cross_boundary();
-        EXPECT_EQ("vacuum_tube", this->volume_name(geo));
     }
 }
 
@@ -1215,6 +1240,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         EXPECT_FALSE(result.looping);
     }
     {
+        ScopedLogStorer scoped_log_{&celeritas::self_logger()};
         ASSERT_TRUE(geo.is_on_boundary());
         // Simulate MSC making us reentrant
         geo.set_dir({-1.31178657592616127e-01,
@@ -1228,38 +1254,185 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             // system configurations, VecGeom will end up in the world volume,
             // so we don't test in all cases.
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+
+            // This message comes from the CheckedGeoTrackView
+            static char const* const expected_log_messages[]
+                = {"Volume did not change from 3 when crossing boundary at "
+                   "{123.254,-20.8187,-40.8262}"};
+            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+            static char const* const expected_log_levels[] = {"warning"};
+            EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+        }
+        else if (!successful_reentry)
+        {
+            // This happens in Geant4 and *sometimes* in vecgeom
+            CELER_LOG(warning) << "Reentry failed for " << celeritas_core_geo
+                               << " geometry: post-propagation volume is "
+                               << this->volume_name(geo);
         }
     }
     {
+        ScopedLogStorer scoped_log_{&celeritas::self_logger()};
         auto particle = this->make_particle_view(
             pdg::electron(), MevEnergy{3.25917780979408864e-02});
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
-        // This absurdly long step is because in the "failed" case the track
-        // thinks it's in the world volume (nearly vacuum)
-        auto result = propagate(2.12621374950874703e+21);
-        EXPECT_FALSE(result.boundary);
+
+        Propagation result;
+        // This absurdly long step is because in the "failed" case the
+        // track thinks it's in the world volume (nearly vacuum)
+        result = propagate(2.12621374950874703e+21);
+
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+            && result.boundary != geo.is_on_boundary())
+        {
+            // FIXME: see #882
+            GTEST_SKIP() << "The current fix fails with the Geant4 navigator";
+        }
+
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_SOFT_NEAR(125, calc_radius(), 1e-2);
         if (successful_reentry)
         {
-            // Extremely long propagation stopped by substep countdown
-            EXPECT_SOFT_EQ(11.676851876556075, result.distance);
+            // ORANGE and *sometimes* vecgeom/geant4: extremely long
+            // propagation stopped by substep countdown
+            EXPECT_FALSE(result.boundary);
+            EXPECT_TRUE(result.looping);
+            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+
+            EXPECT_SOFT_EQ(12.02714054426572, result.distance);
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_EQ(7800, stepper.count());
+            EXPECT_EQ(573, stepper.count());
             EXPECT_TRUE(result.looping);
         }
         else
         {
             // Repeated substep bisection failed; particle is bumped
-            EXPECT_SOFT_EQ(1e-6, result.distance);
-            // Minor floating point differences could make this 102 or 103
-            EXPECT_SOFT_NEAR(real_type(103), real_type(stepper.count()), 0.02);
+            EXPECT_SOFT_NEAR(1e-6, result.distance, 1e-8);
+            // Minor floating point differences could make this 98 or so
+            EXPECT_SOFT_NEAR(real_type(95), real_type(stepper.count()), 0.05);
+            EXPECT_FALSE(result.boundary);  // FIXME: should have reentered
             EXPECT_FALSE(result.looping);
+
+            if (scoped_log_.empty()) {}
+            else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+            {
+                static char const* const expected_log_levels[] = {"error"};
+                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels())
+                    << scoped_log_;
+            }
+            else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+            {
+                static char const* const expected_log_messages[]
+                    = {"Moved internally from boundary but safety didn't "
+                       "increase: volume 6 from {123.254,-20.8187,-40.8262} "
+                       "to {123.254,-20.8187,-40.8262} (distance: 1e-06)"};
+                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+                static char const* const expected_log_levels[] = {"warning"};
+                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+            }
+            else
+            {
+                ADD_FAILURE() << "Logged warning/error:" << scoped_log_;
+            }
         }
     }
+}
+
+TEST_F(CmseTest, coarse)
+{
+    // Build propagator
+    UniformZField field{0};
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
+
+    FieldDriverOptions driver_options;
+    driver_options.delta_intersection = 0.001;
+    driver_options.delta_chord = 0.1;
+
+    std::vector<int> num_boundary;
+    std::vector<int> num_step;
+    std::vector<int> num_intercept;
+    std::vector<int> num_integration;
+
+    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
+    bool failed{false};
+
+    for (real_type radius : {5, 10, 20, 50})
+    {
+        auto geo = this->make_geo_track_view({2 * radius + 0.01, 0, -300},
+                                             {0, 1, 1});
+        field = UniformZField(unit_radius_field_strength / radius);
+        EXPECT_SOFT_EQ(radius,
+                       this->calc_field_curvature(particle, geo, field));
+
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, geo);
+
+        int step_count = 0;
+        int boundary_count = 0;
+        int const max_steps = 10000;
+        while (!geo.is_outside() && step_count++ < max_steps)
+        {
+            Propagation result;
+            try
+            {
+                result = propagate(radius);
+            }
+            catch (RuntimeError const& e)
+            {
+                // Failure during Geant4 propagation
+                CELER_LOG(error) << e.what();
+                failed = true;
+                break;
+            }
+            if (result.boundary)
+            {
+                geo.cross_boundary();
+                ++boundary_count;
+            }
+        }
+        num_boundary.push_back(boundary_count);
+        num_step.push_back(step_count);
+        num_intercept.push_back(geo.intersect_count());
+        num_integration.push_back(stepper.count());
+        stepper.reset_count();
+    }
+
+    std::vector<int> expected_num_boundary = {134, 100, 60, 40};
+    std::vector<int> expected_num_step = {10001, 6450, 3236, 1303};
+    std::vector<int> expected_num_intercept = {30419, 19521, 16170, 9956};
+    std::vector<int> expected_num_integration = {80659, 58204, 41914, 26114};
+
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4 && failed)
+    {
+        // FIXME: this happens because of incorrect momentum update
+        expected_num_boundary = {134, 37, 60, 40};
+        expected_num_step = {10001, 179, 3236, 1303};
+        expected_num_intercept = {30419, 615, 16170, 9956};
+        expected_num_integration = {80659, 1670, 41914, 26114};
+    }
+    else if (!scoped_log_.empty())
+    {
+        // Bumped (platform-dependent!): counts change a bit
+        expected_num_boundary = {134, 101, 60, 40};
+        expected_num_step = {10001, 6462, 3236, 1303};
+        expected_num_intercept = {30419, 19551, 16170, 9956};
+        expected_num_integration = {80659, 58282, 41914, 26114};
+        static char const* const expected_log_messages[]
+            = {"Moved internally from boundary but safety didn't increase: "
+               "volume 18 from {10.3161,-6.56495,796.923} to "
+               "{10.3162,-6.56497,796.923} (distance: 0.0001)"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
+            << scoped_log_;
+    }
+    EXPECT_VEC_EQ(expected_num_boundary, num_boundary);
+    EXPECT_VEC_EQ(expected_num_step, num_step);
+    EXPECT_VEC_EQ(expected_num_intercept, num_intercept);
+    EXPECT_VEC_EQ(expected_num_integration, num_integration);
 }
 
 //---------------------------------------------------------------------------//

@@ -10,14 +10,17 @@
 #include <cmath>
 #include <ostream>
 
-#include "corecel/cont/Span.hh"
-#include "corecel/cont/SpanIO.hh"
+#include "corecel/cont/ArrayIO.hh"
 
-#include "CylCentered.hh"
-#include "GeneralQuadric.hh"
-#include "PlaneAligned.hh"
-#include "Sphere.hh"
-#include "SphereCentered.hh"
+#include "ConeAligned.hh"  // IWYU pragma: associated
+#include "CylAligned.hh"  // IWYU pragma: associated
+#include "CylCentered.hh"  // IWYU pragma: associated
+#include "GeneralQuadric.hh"  // IWYU pragma: associated
+#include "Plane.hh"  // IWYU pragma: associated
+#include "PlaneAligned.hh"  // IWYU pragma: associated
+#include "SimpleQuadric.hh"  // IWYU pragma: associated
+#include "Sphere.hh"  // IWYU pragma: associated
+#include "SphereCentered.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -25,6 +28,29 @@ namespace celeritas
     template std::ostream& operator<<(std::ostream&, const SHAPE<Axis::x>&); \
     template std::ostream& operator<<(std::ostream&, const SHAPE<Axis::y>&); \
     template std::ostream& operator<<(std::ostream&, const SHAPE<Axis::z>&)
+
+//---------------------------------------------------------------------------//
+template<Axis T>
+std::ostream& operator<<(std::ostream& os, ConeAligned<T> const& s)
+{
+    os << "Cone " << to_char(T) << ": t=" << std::sqrt(s.tangent_sq())
+       << " at " << s.origin();
+    return os;
+}
+
+ORANGE_INSTANTIATE_SHAPE_STREAM(ConeAligned);
+
+//---------------------------------------------------------------------------//
+template<Axis T>
+std::ostream& operator<<(std::ostream& os, CylAligned<T> const& s)
+{
+    os << "Cyl " << to_char(T) << ": r=" << std::sqrt(s.radius_sq()) << " at "
+       << to_char(s.u_axis()) << '=' << s.origin_u() << ", "
+       << to_char(s.v_axis()) << '=' << s.origin_v();
+    return os;
+}
+
+ORANGE_INSTANTIATE_SHAPE_STREAM(CylAligned);
 
 //---------------------------------------------------------------------------//
 template<Axis T>
@@ -45,6 +71,13 @@ std::ostream& operator<<(std::ostream& os, GeneralQuadric const& s)
 }
 
 //---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, Plane const& s)
+{
+    os << "Plane: n=" << s.normal() << ", d=" << s.displacement();
+    return os;
+}
+
+//---------------------------------------------------------------------------//
 template<Axis T>
 std::ostream& operator<<(std::ostream& os, PlaneAligned<T> const& s)
 {
@@ -54,10 +87,17 @@ std::ostream& operator<<(std::ostream& os, PlaneAligned<T> const& s)
 
 ORANGE_INSTANTIATE_SHAPE_STREAM(PlaneAligned);
 //---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, SimpleQuadric const& s)
+{
+    os << "SQuadric: " << s.second() << ' ' << s.first() << ' ' << s.zeroth();
+
+    return os;
+}
+
+//---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Sphere const& s)
 {
-    os << "Sphere: r=" << std::sqrt(s.radius_sq()) << " at "
-       << make_span(s.origin());
+    os << "Sphere: r=" << std::sqrt(s.radius_sq()) << " at " << s.origin();
     return os;
 }
 

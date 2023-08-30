@@ -87,17 +87,7 @@ struct alive_predicate
     }
 };
 
-struct step_limit_comparator
-{
-    ObserverPtr<StepLimit const> step_limit_;
-
-    CELER_FUNCTION bool operator()(unsigned int a, unsigned int b) const
-    {
-        return step_limit_.get()[a].action < step_limit_.get()[b].action;
-    }
-};
-
-struct along_action_comparator
+struct action_comparator
 {
     ObserverPtr<ActionId const> action_;
 
@@ -107,25 +97,14 @@ struct along_action_comparator
     }
 };
 
-struct StepLimitActionAccessor
+struct ActionAccessor
 {
-    ObserverPtr<StepLimit const> step_limit_;
+    ObserverPtr<ActionId const> action_;
     ObserverPtr<TrackSlotId::size_type const> track_slots_;
 
     CELER_FUNCTION ActionId operator()(ThreadId tid) const
     {
-        return step_limit_.get()[track_slots_.get()[tid.get()]].action;
-    }
-};
-
-struct AlongStepActionAccessor
-{
-    ObserverPtr<ActionId const> along_step_;
-    ObserverPtr<TrackSlotId::size_type const> track_slots_;
-
-    CELER_FUNCTION ActionId operator()(ThreadId tid) const
-    {
-        return along_step_.get()[track_slots_.get()[tid.get()]];
+        return action_.get()[track_slots_.get()[tid.get()]];
     }
 };
 

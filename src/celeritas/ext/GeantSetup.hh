@@ -54,7 +54,9 @@ class GeantSetup
     ~GeantSetup();
 
     //!@{
-    //! Default move assignment/construction
+    //! Prevent copying but allow moving
+    GeantSetup(GeantSetup const&) = delete;
+    GeantSetup& operator=(GeantSetup const&) = delete;
     GeantSetup(GeantSetup&&) = default;
     GeantSetup& operator=(GeantSetup&&) = default;
     //!@}

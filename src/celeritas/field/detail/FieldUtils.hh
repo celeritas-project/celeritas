@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Types.hh"
 
@@ -57,15 +58,9 @@ inline CELER_FUNCTION Array<T, 3> ax(T a, Array<T, 3> const& x)
 inline CELER_FUNCTION Chord make_chord(Real3 const& src, Real3 const& dst)
 {
     Chord result;
-    for (int i = 0; i < 3; ++i)
-    {
-        result.dir[i] = dst[i] - src[i];
-    }
+    result.dir = dst - src;
     result.length = norm(result.dir);
-    for (int i = 0; i < 3; ++i)
-    {
-        result.dir[i] /= result.length;
-    }
+    result.dir /= result.length;
     return result;
 }
 
@@ -97,31 +92,28 @@ inline CELER_FUNCTION bool is_intercept_close(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the stepper truncation error square:
- * \f$ \Delta = max (\delta_{pos}^{2}, \epsilon \delta_{mom}^{2}) \f$
+ * Evaluate the square of the relative stepper truncation error.
+ *
+ * \f$ \max(\delta_\textrm{pos}^{2}, \epsilon \delta_\textrm{mom}^{2}) \f$
+ *
+ * The return value is the square of \c dyerr in
+ * \c G4MagIntegratorDriver::AccurateAdvance .
  */
-inline CELER_FUNCTION real_type truncation_error(real_type step,
-                                                 real_type eps_rel_max,
-                                                 OdeState const& beg_state,
-                                                 OdeState const& err_state)
+inline CELER_FUNCTION real_type rel_err_sq(OdeState const& err_state,
+                                           real_type step,
+                                           Real3 const& mom)
 {
     CELER_EXPECT(step > 0);
-    CELER_EXPECT(eps_rel_max > 0);
 
-    // Evaluate tolerance and squre of the position and momentum accuracy
-
-    real_type magvel2 = dot_product(beg_state.mom, beg_state.mom);
+    // Evaluate square of the position and momentum accuracy
     real_type errpos2 = dot_product(err_state.pos, err_state.pos);
     real_type errvel2 = dot_product(err_state.mom, err_state.mom);
 
-    // Scale relative to a required tolerance
-    CELER_ASSERT(errpos2 >= 0);
-    CELER_ASSERT(magvel2 > 0);
+    // Scale position error relative to step
+    errpos2 /= ipow<2>(step);
+    // Scale momentum error relative to starting momentum
+    errvel2 /= dot_product(mom, mom);
 
-    errpos2 /= ipow<2>(eps_rel_max * step);
-    errvel2 /= (magvel2 * ipow<2>(eps_rel_max));
-
-    // Return the square of the maximum truncation error
     real_type result = max(errpos2, errvel2);
     CELER_ENSURE(result >= 0);
     return result;
@@ -135,17 +127,17 @@ inline CELER_FUNCTION real_type truncation_error(real_type step,
  *   d = |\vec{AM}| \sin(\theta) = \frac{\vec{AM} \times \vec{AB}}{|\vec{AB}|}
  * \f]
  */
-inline CELER_FUNCTION real_type distance_chord(OdeState const& beg_state,
-                                               OdeState const& mid_state,
-                                               OdeState const& end_state)
+inline CELER_FUNCTION real_type distance_chord(Real3 const& beg_pos,
+                                               Real3 const& mid_pos,
+                                               Real3 const& end_pos)
 {
     Real3 beg_mid;
     Real3 beg_end;
 
     for (int i = 0; i < 3; ++i)
     {
-        beg_mid[i] = mid_state.pos[i] - beg_state.pos[i];
-        beg_end[i] = end_state.pos[i] - beg_state.pos[i];
+        beg_mid[i] = mid_pos[i] - beg_pos[i];
+        beg_end[i] = end_pos[i] - beg_pos[i];
     }
 
     Real3 cross = cross_product(beg_end, beg_mid);

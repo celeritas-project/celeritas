@@ -60,7 +60,7 @@ class LivermorePETest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mi;
-        mi.elements = {{AtomicNumber{19}, AmuMass{39.0983}, "K"}};
+        mi.elements = {{AtomicNumber{19}, AmuMass{39.0983}, {}, "K"}};
         mi.materials = {{1e-5 * na_avogadro,
                          293.,
                          MatterState::solid,

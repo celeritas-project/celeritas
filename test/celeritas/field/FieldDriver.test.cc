@@ -9,8 +9,10 @@
 #include "celeritas/field/FieldDriver.hh"
 
 #include "corecel/Types.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
@@ -18,7 +20,8 @@
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/Types.hh"
-#include "celeritas/field/UniformField.hh"
+#include "celeritas/field/UniformZField.hh"
+#include "celeritas/field/ZHelixStepper.hh"
 #include "celeritas/field/detail/FieldUtils.hh"
 
 #include "DiagnosticStepper.hh"
@@ -64,7 +67,7 @@ class FieldDriverTest : public Test
     Real3 calc_momentum(MevEnergy energy, Real3 const& dir)
     {
         CELER_EXPECT(is_soft_unit_vector(dir));
-        return detail::ax(this->calc_momentum(energy).value(), dir);
+        return this->calc_momentum(energy).value() * dir;
     }
 
     // Calculate momentum assuming an electron
@@ -112,6 +115,30 @@ make_mag_field_driver(FieldT&& field,
                         ::celeritas::forward<FieldT>(field), charge)};
 }
 
+//! Z oriented field of 2**(y / scale)
+struct ExpZField
+{
+    real_type strength{1 * units::tesla};
+    real_type scale{1};
+
+    Real3 operator()(Real3 const& pos) const
+    {
+        return {0, 0, this->strength * std::exp2(pos[1] / scale)};
+    }
+};
+
+//! sin(1/z), scaled and with multiplicative constant
+struct HorribleZField
+{
+    real_type strength{1};
+    real_type scale{1};
+
+    Real3 operator()(Real3 const& pos) const
+    {
+        return {0, 0, this->strength * std::sin(this->scale / pos[2])};
+    }
+};
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -120,16 +147,132 @@ TEST_F(FieldDriverTest, types)
 {
     FieldDriverOptions driver_options;
     auto driver = make_mag_field_driver<DormandPrinceStepper>(
-        UniformField({0, 0, 1}), driver_options, electron_charge());
+        UniformZField(1), driver_options, electron_charge());
 
     // Make sure object is holding things by value
     EXPECT_TRUE(
         (std::is_same<
-            FieldDriver<DormandPrinceStepper<MagFieldEquation<UniformField>>>,
+            FieldDriver<DormandPrinceStepper<MagFieldEquation<UniformZField>>>,
             decltype(driver)>::value));
     // Size: field vector, q / c, reference to options
-    EXPECT_EQ(sizeof(Real3) + sizeof(real_type) + sizeof(FieldDriverOptions*),
+    EXPECT_EQ(3 * sizeof(real_type) + sizeof(FieldDriverOptions*),
               sizeof(driver));
+}
+
+// Field strength changes quickly with z, so different chord steps require
+// different substeps
+TEST_F(FieldDriverTest, unpleasant_field)
+{
+    constexpr auto cm = units::centimeter;
+
+    FieldDriverOptions driver_options;
+    driver_options.max_nsteps = 32;
+
+    real_type field_strength = 1.0 * units::tesla;
+    MevEnergy e{1.0};
+    real_type radius = this->calc_curvature(e, field_strength);
+
+    // Vary by a factor of 1024 over the radius of curvature
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        ExpZField{field_strength, radius / 10}, units::ElementaryCharge{-1});
+    FieldDriver driver{driver_options, stepper};
+
+    OdeState state;
+    state.pos = {radius, 0, 0};
+    state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
+
+    real_type distance{0};
+    for (auto i : range(1, 6))
+    {
+        auto result = driver.advance(i * cm, state);
+        distance += result.step;
+        state = result.state;
+    }
+    EXPECT_EQ(20, stepper.count());
+    EXPECT_SOFT_EQ(2.0197620480043263, distance);
+}
+
+// As the track moves along +z near 0, the field strength oscillates horribly,
+// so the "one good step" convergence requires more than one iteration (which
+// doesn't happen for any of the other more well-behaved fields).
+TEST_F(FieldDriverTest, horrible_field)
+{
+    constexpr auto cm = units::centimeter;
+
+    FieldDriverOptions driver_options;
+    driver_options.max_nsteps = 32;
+
+    real_type field_strength = 1.0 * units::tesla;
+    MevEnergy e{1.0};
+    real_type radius = this->calc_curvature(e, field_strength);
+
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        HorribleZField{field_strength, radius / 10},
+        units::ElementaryCharge{-1});
+    FieldDriver driver{driver_options, stepper};
+
+    OdeState state;
+    state.pos = {radius, 0, -radius / 5};
+    state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
+
+    real_type accum{0};
+    for (int i = 1; i < 5; ++i)
+    {
+        auto result = driver.advance(0.05 * cm, state);
+        accum += result.step;
+        state = result.state;
+    }
+    EXPECT_EQ(9, stepper.count());
+    EXPECT_SOFT_EQ(0.2, accum);
+    EXPECT_SOFT_NEAR(0,
+                     distance(Real3({0.49120878051539413,
+                                     0.14017717257531165,
+                                     0.04668993728754612}),
+                              state.pos),
+                     1e-5)
+        << state.pos;
+}
+
+/*!
+ * Demonstrate the misbehavior of the chord finder for tightly circling
+ * particles.
+ */
+TEST_F(FieldDriverTest, pathological_chord)
+{
+    FieldDriverOptions driver_options;
+    driver_options.max_nsteps = std::numeric_limits<short int>::max();
+
+    real_type field_strength = 1.0 * units::tesla;
+    MevEnergy e{1.0};
+    real_type radius = this->calc_curvature(e, field_strength);
+
+    OdeState state;
+    state.pos = {radius, 0, 0};
+    state.mom = this->calc_momentum(e, {0, std::sqrt(1 - ipow<2>(0.2)), 0.2});
+
+    DiagnosticStepper stepper{ZHelixStepper{MagFieldEquation{
+        UniformZField{field_strength}, units::ElementaryCharge{-1}}}};
+    FieldDriver driver{driver_options, stepper};
+
+    std::vector<unsigned int> counts;
+    std::vector<real_type> lengths;
+
+    for (auto rev : {0.01, 1.0, 2.0, 4.0, 8.0})
+    {
+        stepper.reset_count();
+        auto end = driver.advance(rev * 2 * constants::pi * radius, state);
+        counts.push_back(stepper.count());
+        lengths.push_back(end.step);
+    }
+
+    static unsigned int const expected_counts[] = {1u, 6u, 4u, 4u, 4u};
+    static double const expected_lengths[] = {0.029802281646312,
+                                              0.30937398137671,
+                                              0.30936881116327,
+                                              0.30936881114832,
+                                              0.30936881114832};
+    EXPECT_VEC_EQ(expected_counts, counts);
+    EXPECT_VEC_SOFT_EQ(expected_lengths, lengths);
 }
 
 TEST_F(FieldDriverTest, step_counts)
@@ -139,46 +282,50 @@ TEST_F(FieldDriverTest, step_counts)
 
     real_type field_strength = 1.0 * units::tesla;
     auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
-        UniformField({0, 0, field_strength}), units::ElementaryCharge{-1});
-    FieldDriver<decltype(stepper)&> driver{driver_options, stepper};
+        UniformZField{field_strength}, units::ElementaryCharge{-1});
 
-    std::vector<real_type> energy;
     std::vector<real_type> radii;
     std::vector<unsigned int> counts;
     std::vector<real_type> lengths;
 
     // Test the number of field equation evaluations that have to be done to
-    // travel a step length of 10 cm, for electrons from 0.1 eV to 10 TeV.
-    for (int loge : range(-7, 7).step(1))
+    // travel a step length of 1e-4 cm and 10 cm, for electrons from 0.1 eV to
+    // 10 TeV.
+    for (int loge : range(-7, 7).step(2))
     {
-        MevEnergy e{std::pow(10, loge)};
+        MevEnergy e{std::pow(10.0, loge)};
         real_type radius = this->calc_curvature(e, field_strength);
+        radii.push_back(radius);
 
         OdeState state;
         state.pos = {radius, 0, 0};
         state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
 
-        stepper.reset_count();
-        auto end = driver.advance(10 * units::centimeter, state);
+        FieldDriver driver{driver_options, stepper};
+        for (int log_len : range(-4, 3).step(2))
+        {
+            real_type step_len = std::pow(10.0, log_len);
+            stepper.reset_count();
+            auto end = driver.advance(step_len * units::centimeter, state);
 
-        energy.push_back(e.value());
-        radii.push_back(radius);
-        counts.push_back(stepper.count());
-        lengths.push_back(end.step);
+            counts.push_back(stepper.count());
+            lengths.push_back(end.step);
+        }
     }
 
     // clang-format off
     static double const expected_radii[] = {0.00010663611598835,
-        0.00033721315583664, 0.0010663663247419, 0.0033722948818996,
-        0.010668826843187, 0.033885874824232, 0.11173141982667,
-        0.47431804394274, 3.5019461121752, 33.526427131057, 333.73450257138,
-        3335.8113985278, 33356.579970281, 333564.26564901};
-    static unsigned int const expected_counts[] = {782u, 247u, 92u, 45u, 31u,
-        13u, 10u, 8u, 6u, 4u, 2u, 1u, 1u, 1u};
-    static double const expected_lengths[] = {0.077562380895466,
-        0.077251971561029, 0.076209747456898, 0.072434474486632,
-        0.063064404446822, 0.085308004478855, 0.15625, 0.36823861947329,
-        0.99606722344324, 3.0796706094122, 9.7157674620814, 10, 10, 10};
+        0.0010663663247419, 0.010668826843187, 0.11173141982667,
+        3.5019461121752, 333.73450257138, 33356.579970281};
+    static unsigned int const expected_counts[] = {1u, 93u, 779u, 777u, 1u,
+        12u, 90u, 87u, 1u, 1u, 29u, 25u, 1u, 1u, 7u, 5u, 1u, 1u, 2u, 3u, 1u,
+        1u, 1u, 5u, 1u, 1u, 1u, 2u};
+    static double const expected_lengths[] = {0.0001, 0.01, 0.077563521220272,
+        0.077562363386602, 0.0001, 0.01, 0.076209386999884, 0.076209671160348,
+        0.0001, 0.01, 0.063064075311856, 0.063065174124004, 0.0001, 0.01,
+        0.17398853544975, 0.17398853544975, 0.0001, 0.01, 0.99607291767799,
+        0.99607023941998, 0.0001, 0.01, 1, 9.7158185571513, 0.0001, 0.01, 1,
+        97.132215683182};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_radii, radii);
@@ -191,9 +338,7 @@ TEST_F(FieldDriverTest, step_counts)
 TEST_F(RevolutionFieldDriverTest, advance)
 {
     auto driver = make_mag_field_driver<DormandPrinceStepper>(
-        UniformField({0, 0, 1.0 * units::tesla}),
-        driver_options,
-        electron_charge());
+        UniformZField{1.0 * units::tesla}, driver_options, electron_charge());
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -209,7 +354,7 @@ TEST_F(RevolutionFieldDriverTest, advance)
     real_type total_step_length{0};
 
     // Try the stepper by hstep for (num_revolutions * num_steps) times
-    real_type delta = driver_options.errcon;
+    real_type eps = 1.0e-4;
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {
         y_expected.pos
@@ -224,20 +369,18 @@ TEST_F(RevolutionFieldDriverTest, advance)
         }
 
         // Check the total error and the state (position, momentum)
-        EXPECT_VEC_NEAR(y_expected.pos, y.pos, delta);
+        EXPECT_VEC_NEAR(y_expected.pos, y.pos, eps);
     }
 
     // Check the total error, step/curve length
     EXPECT_SOFT_NEAR(
-        total_step_length, circumference * test_params.revolutions, delta);
+        total_step_length, circumference * test_params.revolutions, eps);
 }
 
 TEST_F(RevolutionFieldDriverTest, accurate_advance)
 {
     auto driver = make_mag_field_driver<DormandPrinceStepper>(
-        UniformField({0, 0, 1.0 * units::tesla}),
-        driver_options,
-        electron_charge());
+        UniformZField{1.0 * units::tesla}, driver_options, electron_charge());
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -252,7 +395,7 @@ TEST_F(RevolutionFieldDriverTest, accurate_advance)
 
     // Try the stepper by hstep for (num_revolutions * num_steps) times
     real_type total_curved_length{0};
-    real_type delta = driver_options.errcon;
+    real_type eps = 1.0e-4;
 
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {
@@ -268,12 +411,12 @@ TEST_F(RevolutionFieldDriverTest, accurate_advance)
             y_accurate = end.state;
         }
         // Check the total error and the state (position, momentum)
-        EXPECT_VEC_NEAR(y_expected.pos, y.pos, delta);
+        EXPECT_VEC_NEAR(y_expected.pos, y.pos, eps);
     }
 
     // Check the total error, step/curve length
     EXPECT_LT(total_curved_length - circumference * test_params.revolutions,
-              delta);
+              eps);
 }
 
 //---------------------------------------------------------------------------//

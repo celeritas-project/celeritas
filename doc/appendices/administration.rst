@@ -184,7 +184,9 @@ each release.
     for releases from the ``develop`` branch (since every pull request must
     pass) but should be checked manually for backports.
 3.  Update documentation with release notes from all pull requests newly
-    included in the release. Follow the format for previous releases: add a
+    included in the release. *Make sure this happens after all pull requests
+    targeted for this milestone have been merged*.
+    Follow the format for previous releases: add a
     summary of highlights, and enumerate the pull requests (with PR numbers and
     authorship attribution) separated by features and bug requests. Use the
     `helper notebook`_ in the Celeritas documents repository to automate this.
@@ -203,7 +205,7 @@ each release.
     regressions are detected. Create new pull requests for the serious errors
     using the standard :ref:`contributing <contributing>` process, and once the
     fixes are merged into develop, merge develop into the release branch.
-    Return to step 4.
+    Return to step 3.
 8.  If only minor updates are needed to fix the build or tests on a particular
     machine, include those as part of the "pre-release" pull request that
     includes new documentation.
@@ -230,6 +232,7 @@ After committing the release tag:
 3. Update the Spack recipe for Celeritas with the new version and sha256 value
    (either manually or using ``spack checksum``) and submit a pull request to
    the Spack project.
+4. Mark the GitHub release milestone as completed.
 
 The first commit that deviates from the most recent major or minor branch
 should be tagged (but not released!) with the next version number with a

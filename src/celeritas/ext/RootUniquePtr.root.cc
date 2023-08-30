@@ -16,16 +16,28 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Call `TObject->Write()` before deletion. Used by TFile and TTree writer
- * classes.
+ * Call `TFile->Write()` before deletion.
  */
-template<class T>
-void RootWritableDeleter<T>::operator()(T* ptr)
+void RootFileWritableDeleter::operator()(TFile* ptr)
 {
     CELER_EXPECT(ptr);
     CELER_LOG(debug) << "Writing " << ptr->ClassName() << " '"
                      << ptr->GetName() << "'";
     ptr->Write();
+    delete ptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Call `TTree->AutoSave()` before deletion. This ensures that `gDirectory` is
+ * updated accordingly when multiple TFiles are open at the same time.
+ */
+void RootTreeAutoSaveDeleter::operator()(TTree* ptr)
+{
+    CELER_EXPECT(ptr);
+    CELER_LOG(debug) << "Autosaving " << ptr->ClassName() << " '"
+                     << ptr->GetName() << "'";
+    ptr->AutoSave();
     delete ptr;
 }
 
@@ -46,9 +58,6 @@ void ExternDeleter<T>::operator()(T* ptr)
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
-template struct RootWritableDeleter<TFile>;
-template struct RootWritableDeleter<TTree>;
-
 template struct ExternDeleter<TFile>;
 template struct ExternDeleter<TTree>;
 

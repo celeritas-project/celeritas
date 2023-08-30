@@ -10,8 +10,10 @@
 #include <iostream>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4LogicalVolume.hh>
+#include <G4ParticleDefinition.hh>
 #include <G4Step.hh>
 #include <G4TouchableHistory.hh>
+#include <G4Track.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Repr.hh"
@@ -32,6 +34,11 @@ void SimpleHitsResult::print_expected() const
             "EXPECT_VEC_SOFT_EQ(expected_energy_deposition, "
             "result.energy_deposition);\n"
 
+            "static char const* const expected_particle[] = "
+         << repr(this->particle)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_particle, result.particle);\n"
+
             "static double const expected_pre_energy[] = "
          << repr(this->pre_energy)
          << ";\n"
@@ -42,7 +49,7 @@ void SimpleHitsResult::print_expected() const
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);\n"
 
-            "static char const * const expected_pre_physvol[] = "
+            "static char const* const expected_pre_physvol[] = "
          << repr(this->pre_physvol)
          << ";\n"
             "EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);\n"
@@ -70,6 +77,11 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 
     hits_.energy_deposition.push_back(step->GetTotalEnergyDeposit()
                                       / CLHEP::MeV);
+    if (auto* track = step->GetTrack())
+    {
+        hits_.particle.push_back(track->GetDefinition()->GetParticleName());
+    }
+
     hits_.pre_energy.push_back(pre_step->GetKineticEnergy() / CLHEP::MeV);
 
     for (int i : range(3))

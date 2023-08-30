@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -212,6 +213,34 @@ struct ReprTraits<unsigned long long>
 };
 
 template<>
+struct ReprTraits<std::string_view>
+{
+    static void print_type(std::ostream& os, char const* name = nullptr)
+    {
+        detail::print_simple_type(os, "std::string_view", name);
+    }
+
+    static void init(std::ostream&) {}
+    static void print_value(std::ostream& os, std::string_view value)
+    {
+        std::streamsize width = os.width();
+
+        os.width(width - value.size() - 2);
+
+        os << '"';
+        for (char c : value)
+        {
+            if (c == '\"')
+            {
+                os << '\\';
+            }
+            detail::repr_char(os, c);
+        }
+        os << '"';
+    }
+};
+
+template<>
 struct ReprTraits<std::string>
 {
     static void print_type(std::ostream& os, char const* name = nullptr)
@@ -222,16 +251,7 @@ struct ReprTraits<std::string>
     static void init(std::ostream&) {}
     static void print_value(std::ostream& os, std::string const& value)
     {
-        std::streamsize width = os.width();
-
-        os.width(width - value.size() - 2);
-
-        os << '"';
-        for (char c : value)
-        {
-            detail::repr_char(os, c);
-        }
-        os << '"';
+        ReprTraits<std::string_view>::print_value(os, value);
     }
 };
 
@@ -249,7 +269,7 @@ struct ReprTraits<char*>
     {
         if (value)
         {
-            ReprTraits<std::string>::print_value(os, value);
+            ReprTraits<std::string_view>::print_value(os, value);
         }
         else
         {

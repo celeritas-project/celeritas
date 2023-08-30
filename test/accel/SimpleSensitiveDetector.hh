@@ -19,6 +19,7 @@ namespace test
 struct SimpleHitsResult
 {
     std::vector<double> energy_deposition;  // [MeV]
+    std::vector<std::string> particle;
     std::vector<double> pre_energy;  // [MeV]
     std::vector<double> pre_pos;  // [cm]
     std::vector<std::string> pre_physvol;

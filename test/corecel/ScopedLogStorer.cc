@@ -77,14 +77,27 @@ void ScopedLogStorer::print_expected() const
          << repr(this->messages_)
          << ";\n"
             "EXPECT_VEC_EQ(expected_log_messages, "
-            "store_log_.messages());\n"
+            "scoped_log_.messages());\n"
             "static char const* const expected_log_levels[] = "
          << repr(this->levels_)
          << ";\n"
             "EXPECT_VEC_EQ(expected_log_levels, "
-            "store_log_.levels());\n"
+            "scoped_log_.levels());\n"
             "/*** END CODE ***/"
          << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print expected results.
+ */
+std::ostream& operator<<(std::ostream& os, ScopedLogStorer const& logs)
+{
+    os << "messages: " << repr(logs.messages())
+       << "\n"
+          "levels: "
+       << repr(logs.levels());
+    return os;
 }
 
 //---------------------------------------------------------------------------//

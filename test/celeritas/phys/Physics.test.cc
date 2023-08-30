@@ -721,7 +721,7 @@ auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
     using namespace constants;
 
     MaterialParams::Input mi;
-    mi.elements = {{AtomicNumber{19}, AmuMass{39.0983}, "K"}};
+    mi.elements = {{AtomicNumber{19}, AmuMass{39.0983}, {}, "K"}};
     mi.materials = {{1e-5 * na_avogadro,
                      293.,
                      MatterState::solid,

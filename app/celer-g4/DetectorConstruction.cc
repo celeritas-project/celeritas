@@ -8,14 +8,24 @@
 #include "DetectorConstruction.hh"
 
 #include <map>
+#include <G4ChordFinder.hh>
 #include <G4Exception.hh>
+#include <G4FieldManager.hh>
 #include <G4GDMLAuxStructType.hh>
 #include <G4GDMLParser.hh>
 #include <G4LogicalVolume.hh>
+#include <G4MagneticField.hh>
 #include <G4SDManager.hh>
+#include <G4TransportationManager.hh>
+#include <G4UniformMagField.hh>
 #include <G4VPhysicalVolume.hh>
 
 #include "corecel/io/Logger.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/field/RZMapFieldParams.hh"
+#include "celeritas/field/UniformFieldData.hh"
+#include "accel/AlongStepFactory.hh"
+#include "accel/RZMapMagneticField.hh"
 #include "accel/SetupOptions.hh"
 
 #include "GlobalSetup.hh"
@@ -72,7 +82,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4Exception("DetectorConstruction::Construct()",
                     "",
                     FatalException,
-                    "No GDML file was specified with setGeometryFile");
+                    "No GDML file was specified with /celerg4/geometryFile");
     }
     constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(filename, validate_gdml_schema);
@@ -95,6 +105,58 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                               "file";
         auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
         sd.enabled = false;
+    }
+
+    // Setup options for the magnetic field
+    auto field_type = GlobalSetup::Instance()->GetFieldType();
+    if (field_type == "rzmap")
+    {
+        auto map_filename = GlobalSetup::Instance()->GetFieldFile();
+        if (map_filename.empty())
+        {
+            G4Exception("DetectorConstruction::Construct()",
+                        "",
+                        FatalException,
+                        "No field file was specified with /celerg4/fieldFile");
+        }
+        CELER_LOG_LOCAL(info) << "Using RZMapField with " << map_filename;
+
+        // Create celeritas::RZMapFieldParams from input
+        RZMapFieldInput rz_map;
+        std::ifstream(map_filename) >> rz_map;
+        rz_map.driver_options = GlobalSetup::Instance()->GetFieldOptions();
+        field_params_ = std::make_shared<RZMapFieldParams>(rz_map);
+        mag_field_ = std::make_shared<RZMapMagneticField>(field_params_);
+
+        GlobalSetup::Instance()->SetAlongStepFactory(
+            RZMapFieldAlongStepFactory([=] { return rz_map; }));
+    }
+    else if (field_type == "uniform")
+    {
+        auto field = GlobalSetup::Instance()->GetMagFieldZTesla();
+        if (norm(field) > 0)
+        {
+            CELER_LOG_LOCAL(info)
+                << "Using a uniform field (0, 0, " << field[2] << ") in tesla";
+        }
+        mag_field_ = std::make_shared<G4UniformMagField>(
+            convert_to_geant(field, CLHEP::tesla));
+
+        // Convert field units from tesla to native celeritas units
+        for (real_type& v : field)
+        {
+            v /= units::tesla;
+        }
+
+        UniformFieldParams input;
+        input.field = field;
+        input.options = GlobalSetup::Instance()->GetFieldOptions();
+        GlobalSetup::Instance()->SetAlongStepFactory(
+            UniformAlongStepFactory([=] { return input; }));
+    }
+    else
+    {
+        CELER_VALIDATE(false, << "invalid field type '" << field_type << "'");
     }
 
     // Claim ownership of world volume and pass it to the caller
@@ -139,6 +201,23 @@ void DetectorConstruction::ConstructSDandField()
         // Hand SD to the manager
         sd_manager->AddNewDetector(detector.release());
     }
+
+    // Create the chord finder with the driver parameters
+    auto const& field_options = GlobalSetup::Instance()->GetFieldOptions();
+    auto chord_finder = std::make_unique<G4ChordFinder>(
+        mag_field_.get(),
+        convert_to_geant(field_options.minimum_step, CLHEP::cm));
+    chord_finder->SetDeltaChord(
+        convert_to_geant(field_options.delta_chord, CLHEP::cm));
+
+    // Construct the magnetic field
+    G4FieldManager* field_manager
+        = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+    field_manager->SetDetectorField(mag_field_.get());
+    field_manager->SetChordFinder(chord_finder.release());
+    field_manager->SetMinimumEpsilonStep(field_options.epsilon_step);
+    field_manager->SetDeltaIntersection(
+        convert_to_geant(field_options.delta_intersection, CLHEP::cm));
 }
 
 //---------------------------------------------------------------------------//

@@ -12,6 +12,8 @@
 
 #include "accel/SharedParams.hh"
 
+#include "GeantDiagnostics.hh"
+
 namespace celeritas
 {
 namespace app
@@ -26,6 +28,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     //!@{
     //! \name Type aliases
     using SPParams = std::shared_ptr<SharedParams>;
+    using SPDiagnostics = std::shared_ptr<GeantDiagnostics>;
     //!@}
 
   public:
@@ -35,7 +38,9 @@ class ActionInitialization final : public G4VUserActionInitialization
 
   private:
     SPParams params_;
+    SPDiagnostics diagnostics_;
     mutable bool init_celeritas_;
+    mutable bool init_diagnostics_;
 };
 
 //---------------------------------------------------------------------------//

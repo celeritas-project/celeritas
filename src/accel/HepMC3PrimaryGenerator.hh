@@ -56,7 +56,7 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
     using SPReader = std::shared_ptr<HepMC3::Reader>;
 
     int num_events_;  // Total number of events
-    G4VSolid* world_solid_;  // World volume solid
+    G4VSolid* world_solid_{nullptr};  // World volume solid
     SPReader reader_;  // HepMC3 input reader
     std::mutex read_mutex_;
 };

@@ -7,10 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
+#include "orange/Types.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "celeritas/Constants.hh"
 
 #include "OrangeGeoTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 using celeritas::constants::sqrt_two;
@@ -601,6 +603,22 @@ TEST_F(UniversesTest, move_internal_multiple_universes)
     geo.move_internal(0.1);
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.9, next.distance);
+}
+
+// Set direction in a daughter universe and then make sure the direction is
+// correctly returned at the top level
+TEST_F(UniversesTest, change_dir_daughter_universe)
+{
+    auto geo = this->make_track_view();
+
+    // Initialize inside daughter universe a
+    geo = Initializer_t{{1.5, -2.0, 1.0}, {1.0, 0.0, 0.0}};
+
+    // Change the direction
+    geo.set_dir({0.0, 1.0, 0.0});
+
+    // Get the direction
+    EXPECT_VEC_EQ(Real3({0.0, 1.0, 0.0}), geo.dir());
 }
 
 // Cross into daughter universe for the case where the hole cell does not share

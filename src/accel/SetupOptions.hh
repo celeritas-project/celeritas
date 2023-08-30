@@ -27,6 +27,19 @@ class ExplicitActionInterface;
  *
  * These affect only the \c HitManager construction that is responsible for
  * reconstructing CPU hits and sending directly to the Geant4 detectors.
+ *
+ * Various attributes on the step, track, and pre/post step points may be
+ * available depending on the selected options.
+ * - Disabling \c track will leave \c G4Step::GetTrack as \c nullptr
+ * - Enabling \c locate_touchable will also set \c Material and \c
+ *   MaterialCutsCouple
+ * - Enabling \c track will set particle the \c Charge attribute on the
+ *   pre-step
+ * - Requested post-step data including \c GlobalTime, \c Position, \c
+ *   KineticEnergy, and \c MomentumDirection will be copied to the \c Track
+ *   when the combination of options is enabled
+ * - Track and Parent IDs will \em never be a valid value since Celeritas track
+ *   counters are independent from Geant4 track counters.
  */
 struct SDSetupOptions
 {
@@ -34,6 +47,7 @@ struct SDSetupOptions
     {
         bool global_time{false};
         bool position{false};
+        bool direction{false};  //!< AKA momentum direction
         bool kinetic_energy{false};
     };
 
@@ -45,6 +59,8 @@ struct SDSetupOptions
     bool energy_deposition{true};
     //! Set TouchableHandle for PreStepPoint
     bool locate_touchable{false};
+    //! Create a track with the dynamic particle type and post-step data
+    bool track{false};
     //! Options for saving and converting beginning-of-step data
     StepPoint pre;
     //! Options for saving and converting end-of-step data
@@ -94,6 +110,8 @@ struct SetupOptions
     std::string output_file;
     //! Filename for ROOT dump of physics data
     std::string physics_output_file;
+    //! Filename to dump a HepMC3 copy of offloaded tracks as events
+    std::string offload_output_file;
     //!@}
 
     //!@{

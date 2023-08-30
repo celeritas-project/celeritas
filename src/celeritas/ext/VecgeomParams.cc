@@ -395,7 +395,7 @@ void VecgeomParams::build_metadata()
         Vector3D<real_type> lower, upper;
         ABBoxManager::Instance().ComputeABBox(pv, &lower, &upper);
 
-        return BoundingBox{detail::to_array(lower), detail::to_array(upper)};
+        return BBox{detail::to_array(lower), detail::to_array(upper)};
     }();
 }
 

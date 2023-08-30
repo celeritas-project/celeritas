@@ -18,8 +18,15 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class SphereCentered;
+
+//---------------------------------------------------------------------------//
 /*!
  * Sphere centered at an arbitrary point.
+ *
+ * \f[
+   (x - x_0)^2 + (y - y_0)^2 + (z - z_0)^2 - r^2 = 0
+ * \f]
  */
 class Sphere
 {
@@ -44,11 +51,17 @@ class Sphere
   public:
     //// CONSTRUCTORS ////
 
+    // Construct with square of radius for simplification
+    static Sphere from_radius_sq(Real3 const& origin, real_type rsq);
+
     // Construct with origin and radius
     inline CELER_FUNCTION Sphere(Real3 const& origin, real_type radius);
 
     // Construct from raw data
     explicit inline CELER_FUNCTION Sphere(Storage);
+
+    // Promote from a centered sphere
+    explicit Sphere(SphereCentered const& other) noexcept;
 
     //// ACCESSORS ////
 
@@ -78,6 +91,9 @@ class Sphere
     Real3 origin_;
     // Square of the radius
     real_type radius_sq_;
+
+    //! Private default constructor for manual construction
+    Sphere() = default;
 };
 
 //---------------------------------------------------------------------------//

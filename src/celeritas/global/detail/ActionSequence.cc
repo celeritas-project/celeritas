@@ -16,6 +16,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -89,11 +90,13 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 template<MemSpace M>
 void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
 {
+    ScopedProfiling profile_this{"step"};
     if (M == MemSpace::host || options_.sync)
     {
         // Execute all actions and record the time elapsed
         for (auto i : range(actions_.size()))
         {
+            ScopedProfiling profile_this{actions_[i]->label()};
             Stopwatch get_time;
             actions_[i]->execute(params, state);
             if (M == MemSpace::device)
@@ -108,6 +111,7 @@ void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
         // Just loop over the actions
         for (SPConstExplicit const& sp_action : actions_)
         {
+            ScopedProfiling profile_this{sp_action->label()};
             sp_action->execute(params, state);
         }
     }

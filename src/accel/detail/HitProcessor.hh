@@ -19,6 +19,7 @@
 class G4LogicalVolume;
 class G4Step;
 class G4Navigator;
+class G4ParticleDefinition;
 class G4Track;
 class G4VSensitiveDetector;
 
@@ -54,11 +55,13 @@ class HitProcessor
     using StepStateDeviceRef = DeviceRef<StepStateData>;
     using SPConstVecLV
         = std::shared_ptr<const std::vector<G4LogicalVolume const*>>;
+    using VecParticle = std::vector<G4ParticleDefinition const*>;
     //!@}
 
   public:
     // Construct from volumes that have SDs and step selection
     HitProcessor(SPConstVecLV detector_volumes,
+                 VecParticle const& particles,
                  StepSelection const& selection,
                  bool locate_touchable);
 
@@ -74,6 +77,12 @@ class HitProcessor
     // Generate and call hits from a detector output (for testing)
     void operator()(DetectorStepOutput const& out) const;
 
+    // Access detector volume corresponding to an ID
+    inline G4LogicalVolume const* detector_volume(DetectorId) const;
+
+    // Access thread-local SD corresponding to an ID
+    inline G4VSensitiveDetector* detector(DetectorId) const;
+
   private:
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
@@ -84,17 +93,44 @@ class HitProcessor
 
     //! Temporary step
     std::unique_ptr<G4Step> step_;
-    //! Temporary track, required by some frameworks
-    std::unique_ptr<G4Track> track_;
+    //! Tracks for each particle type
+    std::vector<std::unique_ptr<G4Track>> tracks_;
     //! Navigator for finding points
     std::unique_ptr<G4Navigator> navi_;
     //! Geant4 reference-counted pointer to a G4VTouchable
     G4TouchableHandle touch_handle_;
 
+    //! Post-step selection for copying to track
+    StepPointSelection post_step_selection_;
+
+    void update_track(ParticleId id) const;
     bool update_touchable(Real3 const& pos,
                           Real3 const& dir,
-                          G4LogicalVolume const* lv) const;
+                          G4LogicalVolume const* lv,
+                          G4VTouchable* touchable) const;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Access detector volume corresponding to an ID.
+ */
+G4LogicalVolume const* HitProcessor::detector_volume(DetectorId did) const
+{
+    CELER_EXPECT(did < detector_volumes_->size());
+    return (*detector_volumes_)[did.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access thread-local sensitive detector corresponding to an ID.
+ */
+G4VSensitiveDetector* HitProcessor::detector(DetectorId did) const
+{
+    CELER_EXPECT(did < detectors_.size());
+    return detectors_[did.unchecked_get()];
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

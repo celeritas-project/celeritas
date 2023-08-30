@@ -14,6 +14,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
+#include "FieldDriverOptions.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -36,6 +38,8 @@ struct RZMapFieldInput
     double max_r{};  //!< Last r coordinate [cm]
     std::vector<double> field_z;  //!< Flattened Z field component [tesla]
     std::vector<double> field_r;  //!< Flattened R field component [tesla]
+
+    FieldDriverOptions driver_options;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const

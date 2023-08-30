@@ -37,7 +37,7 @@ class RelativisticBremTest : public InteractorHostTestBase
     {
         // Set up shared material data
         MaterialParams::Input mi;
-        mi.elements = {{AtomicNumber{82}, units::AmuMass{207.2}, "Pb"}};
+        mi.elements = {{AtomicNumber{82}, units::AmuMass{207.2}, {}, "Pb"}};
         mi.materials = {{0.05477 * constants::na_avogadro,
                          293.15,
                          MatterState::solid,

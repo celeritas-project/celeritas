@@ -25,7 +25,7 @@ class SphereCentered
 {
   public:
     //@{
-    //! Type aliases
+    //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     using Storage = Span<const real_type, 1>;
     //@}
@@ -43,6 +43,9 @@ class SphereCentered
 
   public:
     //// CONSTRUCTORS ////
+
+    // Construct with square of radius for simplification
+    static inline SphereCentered from_radius_sq(real_type rsq);
 
     // Construct with origin and radius
     explicit inline CELER_FUNCTION SphereCentered(real_type radius);
@@ -73,10 +76,27 @@ class SphereCentered
   private:
     // Square of the radius
     real_type radius_sq_;
+
+    //! Private default constructor for manual construction
+    SphereCentered() = default;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from the square of the radius.
+ *
+ * This is used for surface simplification.
+ */
+SphereCentered SphereCentered::from_radius_sq(real_type rsq)
+{
+    CELER_EXPECT(rsq > 0);
+    SphereCentered result;
+    result.radius_sq_ = rsq;
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with sphere radius.

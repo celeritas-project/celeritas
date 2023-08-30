@@ -39,9 +39,13 @@ class LoggerMessage
     // Flush message on destruction
     ~LoggerMessage();
 
-    // Default move construct and assignment
+    //!@{
+    //! Prevent copying but allow moving
+    LoggerMessage(LoggerMessage const&) = delete;
+    LoggerMessage& operator=(LoggerMessage const&) = delete;
     LoggerMessage(LoggerMessage&&) = default;
     LoggerMessage& operator=(LoggerMessage&&) = default;
+    //!@}
 
     // Write the object to the stream if applicable
     template<class T>

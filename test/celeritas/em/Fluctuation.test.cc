@@ -66,7 +66,7 @@ class EnergyLossDistributionTest : public Test
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.elements = {{AtomicNumber{18}, AmuMass{39.948}, "Ar"}};
+        mat_inp.elements = {{AtomicNumber{18}, AmuMass{39.948}, {}, "Ar"}};
         mat_inp.materials = {
             {1.0 * na_avogadro,
              293.0,

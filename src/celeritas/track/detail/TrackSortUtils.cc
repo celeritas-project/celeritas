@@ -114,12 +114,12 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
         case TrackOrder::sort_along_step_action:
             return sort_impl(
                 states.track_slots,
-                along_action_comparator{states.sim.along_step_action.data()},
+                action_comparator{states.sim.along_step_action.data()},
                 states.stream_id);
         case TrackOrder::sort_step_limit_action:
             return sort_impl(
                 states.track_slots,
-                step_limit_comparator{states.sim.step_limit.data()},
+                action_comparator{states.sim.post_step_action.data()},
                 states.stream_id);
         default:
             CELER_ASSERT_UNREACHABLE();
@@ -144,14 +144,14 @@ void count_tracks_per_action(
             return count_tracks_per_action_impl(
                 offsets,
                 states.size(),
-                AlongStepActionAccessor{states.sim.along_step_action.data(),
-                                        states.track_slots.data()});
+                ActionAccessor{states.sim.along_step_action.data(),
+                               states.track_slots.data()});
         case TrackOrder::sort_step_limit_action:
             return count_tracks_per_action_impl(
                 offsets,
                 states.size(),
-                StepLimitActionAccessor{states.sim.step_limit.data(),
-                                        states.track_slots.data()});
+                ActionAccessor{states.sim.post_step_action.data(),
+                               states.track_slots.data()});
         default:
             return;
     }
