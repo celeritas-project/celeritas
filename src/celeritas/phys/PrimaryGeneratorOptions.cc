@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Return a distribution for sampling the energy.
  */
-std::function<real_type(std::mt19937&)>
+std::function<real_type(PrimaryGeneratorEngine&)>
 make_energy_sampler(DistributionOptions options)
 {
     CELER_EXPECT(options);
@@ -37,7 +37,7 @@ make_energy_sampler(DistributionOptions options)
 /*!
  * Return a distribution for sampling the position.
  */
-std::function<Real3(std::mt19937&)>
+std::function<Real3(PrimaryGeneratorEngine&)>
 make_position_sampler(DistributionOptions options)
 {
     CELER_EXPECT(options);
@@ -61,7 +61,7 @@ make_position_sampler(DistributionOptions options)
 /*!
  * Return a distribution for sampling the direction.
  */
-std::function<Real3(std::mt19937&)>
+std::function<Real3(PrimaryGeneratorEngine&)>
 make_direction_sampler(DistributionOptions options)
 {
     CELER_EXPECT(options);

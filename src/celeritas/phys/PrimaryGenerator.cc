@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "PrimaryGenerator.hh"
 
+#include <random>
+
 #include "corecel/cont/Range.hh"
 #include "celeritas/Units.hh"
 

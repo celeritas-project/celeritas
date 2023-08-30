@@ -7,9 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "PGPrimaryGeneratorAction.hh"
 
+#include <random>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleTable.hh>
 
 #include "corecel/Macros.hh"
+#include "celeritas/ext/Convert.geant.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 #include "GlobalSetup.hh"

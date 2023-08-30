@@ -8,7 +8,6 @@
 #pragma once
 
 #include <functional>
-#include <random>
 #include <G4Event.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleGun.hh>
@@ -17,6 +16,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "orange/Types.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
@@ -37,9 +37,9 @@ class PGPrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
   public:
     //!@{
     //! \name Type aliases
-    using EnergySampler = std::function<real_type(std::mt19937&)>;
-    using PositionSampler = std::function<Real3(std::mt19937&)>;
-    using DirectionSampler = std::function<Real3(std::mt19937&)>;
+    using EnergySampler = std::function<real_type(PrimaryGeneratorEngine&)>;
+    using PositionSampler = std::function<Real3(PrimaryGeneratorEngine&)>;
+    using DirectionSampler = std::function<Real3(PrimaryGeneratorEngine&)>;
     //!@}
 
   public:
@@ -51,7 +51,7 @@ class PGPrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 
   private:
     G4ParticleGun gun_;
-    std::mt19937 rng_;
+    PrimaryGeneratorEngine rng_;
     size_type num_events_{};
     size_type primaries_per_event_{};
     std::vector<G4ParticleDefinition*> particle_def_;

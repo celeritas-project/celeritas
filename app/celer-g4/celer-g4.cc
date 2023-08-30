@@ -157,7 +157,7 @@ void run(int argc, char** argv)
     {
         // Load the input file
         CELER_TRY_HANDLE(num_events = HepMC3PrimaryGeneratorAction::NumEvents(),
-                         ExceptionConverter{"demo-geant000"});
+                         ExceptionConverter{"celer-g4000"});
     }
     else
     {
