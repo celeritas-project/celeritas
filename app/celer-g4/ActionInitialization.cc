@@ -12,7 +12,8 @@
 
 #include "EventAction.hh"
 #include "GlobalSetup.hh"
-#include "PrimaryGeneratorAction.hh"
+#include "HepMC3PrimaryGeneratorAction.hh"
+#include "PGPrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "TrackingAction.hh"
 
@@ -68,7 +69,14 @@ void ActionInitialization::Build() const
     CELER_LOG_LOCAL(status) << "Constructing user actions on worker threads";
 
     // Primary generator emits source particles
-    this->SetUserAction(new PrimaryGeneratorAction());
+    if (!GlobalSetup::Instance()->GetEventFile().empty())
+    {
+        this->SetUserAction(new HepMC3PrimaryGeneratorAction());
+    }
+    else
+    {
+        this->SetUserAction(new PGPrimaryGeneratorAction());
+    }
 
     // Create thread-local transporter to share between actions
     auto transport = std::make_shared<LocalTransporter>();

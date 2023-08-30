@@ -14,6 +14,7 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
@@ -44,6 +45,9 @@ struct RunInput
     // Problem definition
     std::string geometry_file;  //!< Path to GDML file
     std::string event_file;  //!< Path to HepMC3 event record file
+
+    // Setup options for generating primaries from a distribution
+    PrimaryGeneratorOptions primary_options;
 
     // Control
     size_type num_track_slots{};
@@ -82,7 +86,8 @@ struct RunInput
     //! Whether the run arguments are valid
     explicit operator bool() const
     {
-        return !geometry_file.empty() && !event_file.empty()
+        return !geometry_file.empty()
+               && (primary_options || !event_file.empty())
                && physics_list < PhysicsListSelection::size_
                && (field == no_field() || field_options)
                && ((num_track_slots > 0 && max_events > 0 && max_steps > 0

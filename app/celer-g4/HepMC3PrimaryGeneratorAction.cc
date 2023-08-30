@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/PrimaryGeneratorAction.cc
+//! \file celer-g4/HepMC3PrimaryGeneratorAction.cc
 //---------------------------------------------------------------------------//
-#include "PrimaryGeneratorAction.hh"
+#include "HepMC3PrimaryGeneratorAction.hh"
 
 #include <G4Event.hh>
 
@@ -43,7 +43,7 @@ HepMC3PrimaryGenerator& shared_reader()
  *
  * This will load the HepMC3 file if not already active.
  */
-int PrimaryGeneratorAction::NumEvents()
+int HepMC3PrimaryGeneratorAction::NumEvents()
 {
     return shared_reader().NumEvents();
 }
@@ -52,7 +52,7 @@ int PrimaryGeneratorAction::NumEvents()
 /*!
  * Generate primaries from HepMC3 input file.
  */
-void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
+void HepMC3PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
     ExceptionConverter call_g4exception{"celer0000"};
     CELER_TRY_HANDLE(shared_reader().GeneratePrimaryVertex(event),

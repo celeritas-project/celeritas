@@ -12,6 +12,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
+#include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 
 namespace celeritas
 {
@@ -48,6 +49,8 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_REQUIRED(geometry_file);
     RI_LOAD_OPTION(event_file);
 
+    RI_LOAD_OPTION(primary_options);
+
     RI_LOAD_OPTION(num_track_slots);
     RI_LOAD_OPTION(max_events);
     RI_LOAD_OPTION(max_steps);
@@ -78,6 +81,9 @@ void from_json(nlohmann::json const& j, RunInput& v)
 #undef RI_LOAD_OPTION
 #undef RI_LOAD_REQUIRED
 
+    CELER_VALIDATE(v.event_file.empty() != !v.primary_options,
+                   << "either a HepMC3 filename or options to generate "
+                      "primaries must be provided (but not both)");
     CELER_VALIDATE(v.physics_list == PhysicsListSelection::geant_physics_list
                        || !j.contains("physics_options"),
                    << "'physics_options' can only be specified for "
@@ -106,6 +112,11 @@ void to_json(nlohmann::json& j, RunInput const& v)
 
     RI_SAVE_REQUIRED(geometry_file);
     RI_SAVE_OPTION(event_file);
+
+    if (v.event_file.empty())
+    {
+        RI_SAVE_REQUIRED(primary_options);
+    }
 
     RI_SAVE_OPTION(num_track_slots);
     RI_SAVE_OPTION(max_events);

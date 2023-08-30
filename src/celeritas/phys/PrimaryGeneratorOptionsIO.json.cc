@@ -76,6 +76,7 @@ void to_json(nlohmann::json& j, DistributionOptions const& opts)
  */
 void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
 {
+    j.at("seed").get_to(opts.seed);
     std::vector<int> pdg;
     auto&& pdg_input = j.at("pdg");
     if (pdg_input.is_array())
@@ -142,7 +143,8 @@ void to_json(nlohmann::json& j, PrimaryGeneratorOptions const& opts)
         opts.pdg.begin(), opts.pdg.end(), pdg.begin(), [](PDGNumber p) {
             return p.unchecked_get();
         });
-    j = nlohmann::json{{"pdg", pdg},
+    j = nlohmann::json{{"seed", opts.seed},
+                       {"pdg", pdg},
                        {"num_events", opts.num_events},
                        {"primaries_per_event", opts.primaries_per_event},
                        {"energy", opts.energy},
