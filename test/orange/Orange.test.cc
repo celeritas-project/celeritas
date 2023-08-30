@@ -532,6 +532,7 @@ TEST_F(UniversesTest, params)
     OrangeParams const& geo = this->params();
     EXPECT_EQ(12, geo.num_volumes());
     EXPECT_EQ(25, geo.num_surfaces());
+    EXPECT_EQ(3, geo.host_ref().scalars.max_level);
     EXPECT_FALSE(geo.supports_safety());
 
     EXPECT_VEC_SOFT_EQ(Real3({-2, -6, -1}), geo.bbox().lower());
@@ -820,6 +821,18 @@ TEST_F(UniversesTest, cross_between_daughters)
 
     geo.move_to_boundary();
     EXPECT_EQ("bob.mz", this->params().id_to_label(geo.surface_id()).name);
+}
+
+TEST_F(RectArrayTest, params)
+{
+    OrangeParams const& geo = this->params();
+    EXPECT_EQ(35, geo.num_volumes());
+    EXPECT_EQ(22, geo.num_surfaces());
+    EXPECT_EQ(4, geo.host_ref().scalars.max_level);
+    EXPECT_FALSE(geo.supports_safety());
+
+    EXPECT_VEC_SOFT_EQ(Real3({-12, -4, -5}), geo.bbox().lower());
+    EXPECT_VEC_SOFT_EQ(Real3({12, 10, 5}), geo.bbox().upper());
 }
 
 TEST_F(Geant4Testem15Test, safety)

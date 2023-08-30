@@ -96,6 +96,64 @@ OrangeInput input_from_json(std::string filename)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Calculate the maximum universe level, i.e. the deepest universe depth
+ *
+ * This is a recursive function, so for external callers, uid should be
+ * the root universe id.
+ */
+size_type
+calc_max_level(HostVal<OrangeParamsData> const& data, UniverseId const& uid)
+{
+    CELER_EXPECT(uid);
+
+    // Depth of the deepest daughter of uid
+    size_type max_sub_depth = 0;
+
+    if (data.universe_types[uid] == UniverseType::simple)
+    {
+        auto const& simple_unit_record
+            = data.simple_units[SimpleUnitId{data.universe_indices[uid]}];
+        for (auto vol_id : range(simple_unit_record.volumes.size()))
+        {
+            auto vol_record
+                = data.volume_records[simple_unit_record
+                                          .volumes[LocalVolumeId{vol_id}]];
+            if (vol_record.daughter_id)
+            {
+                max_sub_depth = std::max(
+                    max_sub_depth,
+                    calc_max_level(
+                        data,
+                        data.daughters[vol_record.daughter_id].universe_id));
+            }
+        }
+    }
+    else if (data.universe_types[uid] == UniverseType::rect_array)
+    {
+        auto const& rect_array_record
+            = data.rect_arrays[RectArrayId{data.universe_indices[uid]}];
+        for (auto vol_id : range(rect_array_record.daughters.size()))
+        {
+            max_sub_depth = std::max(
+                max_sub_depth,
+                calc_max_level(
+                    data,
+                    data.daughters[rect_array_record
+                                       .daughters[LocalVolumeId{vol_id}]]
+                        .universe_id));
+        }
+    }
+    else
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+    // Depth of depth of the deepest daughter, plus 1 for the current uid
+    return max_sub_depth + 1;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -230,7 +288,7 @@ OrangeParams::OrangeParams(OrangeInput input)
     bbox_ = std::get<UnitInput>(input.universes.front()).bbox;
 
     // Update scalars *after* loading all units
-    host_data.scalars.max_level = input.max_level;
+    host_data.scalars.max_level = calc_max_level(host_data, UniverseId{0});
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
                    << "input geometry has at least one volume with a "
