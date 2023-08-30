@@ -16,6 +16,7 @@
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stream.hh"
+#include "celeritas/ThrustConfig.hh"
 
 #include "Utils.hh"
 
@@ -35,7 +36,7 @@ size_type remove_if_alive(
 {
     auto start = device_pointer_cast(vacancies.data());
     auto end
-        = thrust::remove_if(THRUST_NATIVE_NS::par_nosync.on(
+        = thrust::remove_if(thrust_execution_policy().on(
                                 celeritas::device().stream(stream_id).get()),
                             start,
                             start + vacancies.size(),
@@ -64,7 +65,7 @@ size_type exclusive_scan_counts(
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
     auto stop = thrust::exclusive_scan(
-        THRUST_NATIVE_NS::par_nosync.on(
+        thrust_execution_policy().on(
             celeritas::device().stream(stream_id).get()),
         data,
         data + counts.size(),

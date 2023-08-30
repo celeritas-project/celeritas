@@ -17,12 +17,6 @@
 
 #include "ThreadId.hh"
 
-#if CELERITAS_USE_CUDA
-#    define THRUST_NATIVE_NS thrust::cuda
-#elif CELERITAS_USE_HIP
-#    define THRUST_NATIVE_NS thrust::hip
-#endif
-
 namespace celeritas
 {
 class MpiCommunicator;

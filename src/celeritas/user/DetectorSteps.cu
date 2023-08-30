@@ -17,6 +17,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Stream.hh"
+#include "celeritas/ThrustConfig.hh"
 
 #include "StepData.hh"
 
@@ -151,7 +152,7 @@ void copy_steps<MemSpace::device>(
     // Store the thread IDs of active tracks that are in a detector
     auto start = thrust::device_pointer_cast(state.valid_id.data().get());
     auto end = thrust::copy_if(
-        THRUST_NATIVE_NS::par_nosync.on(
+        thrust_execution_policy().on(
             celeritas::device().stream(state.stream_id).get()),
         thrust::make_counting_iterator(size_type(0)),
         thrust::make_counting_iterator(state.size()),
