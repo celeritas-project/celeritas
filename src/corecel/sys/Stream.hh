@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <thrust/mr/memory_resource.h>
-
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
@@ -18,6 +16,13 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 struct MockStream_st;
+template<class Pointer>
+struct MockMemoryResource
+{
+    virtual Pointer do_allocate(std::size_t, std::size_t) = 0;
+
+    virtual void do_deallocate(Pointer, std::size_t, std::size_t) = 0;
+};
 #endif
 
 //---------------------------------------------------------------------------//
@@ -25,33 +30,32 @@ struct MockStream_st;
  * Thrust async memory resource associated with a Stream.
  */
 template<class Pointer>
+#if CELER_USE_DEVICE
 class AsyncMemoryResource final : public thrust::mr::memory_resource<Pointer>
+#else
+class AsyncMemoryResource final : public MockMemoryResource<Pointer>
+#endif
 {
   public:
     //!@{
     //! \name Type aliases
     using pointer = Pointer;
-    using stream_t = CELER_DEVICE_PREFIX(Stream_t);
+#if CELER_USE_DEVICE
+    using StreamT = CELER_DEVICE_PREFIX(Stream_t);
+#else
+    using StreamT = MockStream_st*;
+#endif
     //!@}
 
-    explicit AsyncMemoryResource(stream_t stream) : stream_{stream} {}
+    explicit AsyncMemoryResource(StreamT stream) : stream_{stream} {}
     AsyncMemoryResource() : AsyncMemoryResource{nullptr} {}
 
-    pointer do_allocate(std::size_t bytes, std::size_t) override
-    {
-        void* ret;
-        CELER_DEVICE_CALL_PREFIX(MallocAsync(&ret, bytes, stream_));
+    pointer do_allocate(std::size_t bytes, std::size_t) override;
 
-        return static_cast<pointer>(ret);
-    }
-
-    void do_deallocate(pointer p, std::size_t, std::size_t) override
-    {
-        CELER_DEVICE_CALL_PREFIX(FreeAsync(p, stream_));
-    }
+    void do_deallocate(pointer p, std::size_t, std::size_t) override;
 
   private:
-    stream_t stream_{nullptr};
+    StreamT stream_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

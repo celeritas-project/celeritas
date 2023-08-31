@@ -15,6 +15,25 @@
 
 namespace celeritas
 {
+
+template<class Pointer>
+auto AsyncMemoryResource<Pointer>::do_allocate(std::size_t bytes, std::size_t)
+    -> pointer
+{
+    void* ret;
+    CELER_DEVICE_CALL_PREFIX(MallocAsync(&ret, bytes, stream_));
+
+    return static_cast<pointer>(ret);
+}
+
+template<class Pointer>
+void AsyncMemoryResource<Pointer>::do_deallocate(pointer p,
+                                                 std::size_t,
+                                                 std::size_t)
+{
+    CELER_DEVICE_CALL_PREFIX(FreeAsync(p, stream_));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct by creating a stream.
@@ -77,6 +96,12 @@ void Stream::swap(Stream& other) noexcept
     std::swap(stream_, other.stream_);
     std::swap(memory_resource_, other.memory_resource_);
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class AsyncMemoryResource<void*>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
