@@ -112,9 +112,9 @@ TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)
     EXPECT_EQ(3, generator.NumEvents());
     auto result = this->read_all(generator, generator.NumEvents());
     // clang-format off
-    static double const expected_pos[] = {0, 0, 5, 0, 0, 0, 0, 0, 0};
+    static double const expected_pos[] = {0, 0, 50, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
-    static double const expected_time[] = {0.41028383709373, 0, 0};
+    static double const expected_time[] = {4.1028383709373, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);
     static int const expected_vtx[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0};
