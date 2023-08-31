@@ -19,7 +19,7 @@ class Translation;
 
 //---------------------------------------------------------------------------//
 /*!
- * Map transform enumeration to surface type.
+ * Map transform enumeration to transform class.
  */
 template<TransformType S>
 struct TransformTypeTraits;
@@ -31,13 +31,38 @@ struct TransformTypeTraits;
         using type = CLS;                                 \
     }
 
-// clang-format off
 ORANGE_TRANSFORM_TRAITS(no_transformation, NoTransformation);
 ORANGE_TRANSFORM_TRAITS(translation, Translation);
 ORANGE_TRANSFORM_TRAITS(transformation, Transformation);
-// clang-format on
 
 #undef ORANGE_TRANSFORM_TRAITS
+
+//---------------------------------------------------------------------------//
+/*!
+ * Expand a macro to a switch statement over all possible transform types.
+ *
+ * The \c func argument should be a functor that takes a single argument which
+ * is a TransformTypeTraits instance.
+ */
+template<class F>
+CELER_CONSTEXPR_FUNCTION decltype(auto)
+visit_transform_type(F&& func, TransformType st)
+{
+#define ORANGE_TT_VISIT_CASE(TYPE)          \
+    case TransformType::TYPE:               \
+        return celeritas::forward<F>(func)( \
+            TransformTypeTraits<TransformType::TYPE>{})
+
+    switch (st)
+    {
+        ORANGE_TT_VISIT_CASE(no_transformation);
+        ORANGE_TT_VISIT_CASE(translation);
+        ORANGE_TT_VISIT_CASE(transformation);
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+#undef ORANGE_TT_VISIT_CASE
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

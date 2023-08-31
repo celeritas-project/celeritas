@@ -125,7 +125,9 @@ struct NumIntersectionGetter
 /*!
  * Construct from full parameter data.
  */
-UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
+UnitInserter::UnitInserter(Data* orange_data)
+    : orange_data_(orange_data)
+    , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
 {
     CELER_EXPECT(orange_data);
 
@@ -364,8 +366,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
 {
     Daughter daughter;
     daughter.universe_id = daughter_input.universe_id;
-    daughter.translation_id = make_builder(&orange_data_->translations)
-                                  .push_back(daughter_input.translation);
+    daughter.transform_id = insert_transform_(daughter_input.translation);
 
     vol_record->daughter_id
         = make_builder(&orange_data_->daughters).push_back(daughter);

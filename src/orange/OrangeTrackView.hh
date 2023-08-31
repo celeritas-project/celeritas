@@ -16,7 +16,7 @@
 #include "OrangeTypes.hh"
 #include "detail/LevelStateAccessor.hh"
 #include "detail/UniverseIndexer.hh"
-#include "transform/Translation.hh"
+#include "transform/TransformVisitor.hh"
 #include "univ/SimpleUnitTracker.hh"
 #include "univ/UniverseTypeTraits.hh"
 #include "univ/detail/Types.hh"
@@ -263,9 +263,11 @@ OrangeTrackView::operator=(Initializer_t const& init)
         if (daughter_id)
         {
             auto const& daughter = params_.daughters[daughter_id];
-            Translation trans{params_.translations[daughter.translation_id]};
-            local.pos = trans.transform_down(local.pos);
-
+            // Apply "transform down" based on stored transform
+            local.pos = TransformVisitor{params_}(
+                [&local](auto&& t) { return t.transform_down(local.pos); },
+                daughter.transform_id);
+            // Update universe and increase level depth
             uid = daughter.universe_id;
             ++level;
         }
@@ -542,9 +544,10 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
             auto tracker = this->make_tracker(lsa.universe());
             auto daughter_id = tracker.daughter(lsa.vol());
             CELER_ASSERT(daughter_id);
-            auto const& daughter = params_.daughters[daughter_id];
-            Translation trans{params_.translations[daughter.translation_id]};
-            local_pos = trans.transform_down(pos);
+            // Apply "transform down" based on stored transform
+            local_pos = TransformVisitor{params_}(
+                [pos](auto&& t) { return t.transform_down(pos); },
+                params_.daughters[daughter_id].transform_id);
         }
     }
 
@@ -619,24 +622,24 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     while (daughter_id)
     {
-        auto daughter = params_.daughters[daughter_id];
-        // Get the translator at the parent level, in order to translate into
-        // daughter
-        Translation trans{params_.translations[daughter.translation_id]};
+        auto const& daughter = params_.daughters[daughter_id];
 
         // Make the current level the daughter level
         ++level;
         universe_id = daughter.universe_id;
-        auto tracker = this->make_tracker(universe_id);
 
         // Create local state on the daughter level
-        local.pos = trans.transform_down(local.pos);
+        local.pos = TransformVisitor{params_}(
+            [&local](auto&& t) { return t.transform_down(local.pos); },
+            daughter.transform_id);
         local.volume = {};
         local.surface = {};
         local.temp_sense = this->make_temp_sense();
 
-        volume_id = tracker.initialize(local).volume;
-        daughter_id = tracker.daughter(volume_id);
+        // Initialize in daughter and get IDs of volume and potential daughter
+        auto daughter_tracker = this->make_tracker(universe_id);
+        volume_id = daughter_tracker.initialize(local).volume;
+        daughter_id = daughter_tracker.daughter(volume_id);
 
         auto lsa = make_lsa(LevelId{level});
         lsa.vol() = volume_id;
@@ -679,7 +682,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         // outside or vice versa).
         auto tracker = this->make_tracker(UniverseId{0});
         detail::UniverseIndexer ui(params_.universe_indexer_data);
-        const Real3 normal = tracker.normal(
+        Real3 const normal = tracker.normal(
             this->pos(), ui.local_surface(this->surface_id()).surface);
 
         if ((dot_product(normal, newdir) >= 0)
@@ -691,7 +694,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         }
     }
 
-    // Complete direction setting
+    // XXX: apply rotate_down over all levels
     for (auto levelid : range(this->level() + 1))
     {
         auto lsa = this->make_lsa(levelid);

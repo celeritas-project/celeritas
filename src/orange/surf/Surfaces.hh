@@ -20,10 +20,10 @@ namespace celeritas
 class Surfaces
 {
   public:
-    //@{
-    //! Type aliases
+    //!@{
+    //! \name Type aliases
     using ParamsRef = NativeCRef<OrangeParamsData>;
-    //@}
+    //!@}
 
   public:
     // Construct with reference to persistent data
