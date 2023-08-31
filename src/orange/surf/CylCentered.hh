@@ -42,7 +42,8 @@ class CylCentered
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
-    using Storage = Span<const real_type, 1>;
+    using StorageSpan = Span<const real_type, 1>;
+    using Storage = StorageSpan;  // DEPRECATED
     //@}
 
   private:

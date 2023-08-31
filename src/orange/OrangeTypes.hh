@@ -105,7 +105,7 @@ enum class Sense : bool
  * Enumeration for mapping surface classes to integers.
  *
  * These are ordered by number of coefficients needed for their representation:
- * 1 for `[ps].|c.o`, 3 for `c.`, 4 for `[ps]|k.`, 7 for `sq`, and 10 for `gq`.
+ * 1 for `p.|sc|c.c`, 3 for `c.`, 4 for `[ps]|k.`, 7 for `sq`, and 10 for `gq`.
  *
  * See \c orange/surf/SurfaceTypeTraits.hh for how these map to classes.
  */

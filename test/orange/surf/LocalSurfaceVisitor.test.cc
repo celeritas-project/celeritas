@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/SurfaceAction.test.cc
+//! \file orange/surf/LocalSurfaceVisitor.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surf/SurfaceAction.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include <algorithm>
 #include <iostream>
@@ -22,12 +22,11 @@
 #include "orange/construct/OrangeInput.hh"
 #include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/surf/SurfaceIO.hh"
-#include "orange/surf/Surfaces.hh"
 #include "orange/surf/VariantSurface.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
-#include "SurfaceAction.test.hh"
+#include "LocalSurfaceVisitor.test.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -120,10 +119,6 @@ class SurfaceActionTest : public OrangeGeoTestBase
     std::mt19937 rng_;
 };
 
-class StaticSurfaceActionTest : public Test
-{
-};
-
 //---------------------------------------------------------------------------//
 // HELPERS
 //---------------------------------------------------------------------------//
@@ -142,25 +137,6 @@ struct ToString
     ToString() = default;
     ToString(ToString const&) = delete;
     ToString(ToString&&) = default;
-};
-
-//---------------------------------------------------------------------------//
-//! Get the amount of storage
-template<class S>
-struct GetStorageSize
-{
-    constexpr size_type operator()() const noexcept
-    {
-        return S::Storage::extent * sizeof(typename S::Storage::value_type);
-    }
-};
-
-//---------------------------------------------------------------------------//
-//! Get the actual size of a surface instance
-template<class S>
-struct GetTypeSize
-{
-    constexpr size_type operator()() const noexcept { return sizeof(S); }
 };
 
 //---------------------------------------------------------------------------//
@@ -192,19 +168,34 @@ TEST_F(SurfaceActionTest, variant_surface)
     EXPECT_VEC_EQ(expected_strings, strings);
 }
 
+TEST_F(SurfaceActionTest, surface_traits_visitor)
+{
+    // Get the surface type reported by a surface
+    auto get_surface_type = [](auto surf_traits) -> SurfaceType {
+        using Surface = typename decltype(surf_traits)::type;
+        return Surface::surface_type();
+    };
+
+    // Check that all surface types can be visited and are consistent
+    for (auto st : range(SurfaceType::size_))
+    {
+        SurfaceType actual_st = visit_surface_type(get_surface_type, st);
+        EXPECT_EQ(st, actual_st);
+    }
+}
+
 TEST_F(SurfaceActionTest, string)
 {
-    // Create functor
-    auto const& host_ref = this->host_params();
-    Surfaces surfaces(host_ref,
-                      host_ref.simple_units[SimpleUnitId{0}].surfaces);
-    auto surf_to_string = make_surface_action(surfaces, ToString{});
+    // Create functor to visit the local surface
+    LocalSurfaceVisitor visit(this->host_params(), SimpleUnitId{0});
 
     // Loop over all surfaces and apply
     std::vector<std::string> strings;
-    for (auto id : range(LocalSurfaceId{surfaces.num_surfaces()}))
+    auto num_surf
+        = this->host_params().simple_units[SimpleUnitId{0}].surfaces.size();
+    for (auto id : range(LocalSurfaceId{num_surf}))
     {
-        strings.push_back(surf_to_string(id));
+        strings.push_back(visit(ToString{}, id));
     }
 
     static char const* const expected_strings[] = {
@@ -292,33 +283,12 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
         host_states = device_states;
         auto test_threads = range(TrackSlotId{10});
 
-        double const expected_distance[] = {inf,
-                                            inf,
-                                            inf,
-                                            inf,
-                                            8.623486582635,
-                                            8.115429697208,
-                                            inf,
-                                            inf,
-                                            inf,
-                                            inf};
+        double const expected_distance[] = {
+            inf, inf, inf, inf, 8.623486582635, 8.115429697208, inf, inf, inf, inf};
         EXPECT_EQ("{- - + + - - + + + +}",
                   senses_to_string(host_states.sense[test_threads]));
         EXPECT_VEC_SOFT_EQ(expected_distance,
                            host_states.distance[test_threads]);
-    }
-}
-
-//---------------------------------------------------------------------------//
-//! Loop through all surface types and ensure "storage" type is correctly sized
-TEST_F(StaticSurfaceActionTest, check_surface_sizes)
-{
-    auto get_expected_storage = make_static_surface_action<GetTypeSize>();
-    auto get_actual_storage = make_static_surface_action<GetStorageSize>();
-
-    for (auto st : range(SurfaceType::size_))
-    {
-        EXPECT_EQ(get_expected_storage(st), get_actual_storage(st));
     }
 }
 

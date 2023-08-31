@@ -24,7 +24,7 @@ struct CalcSense
     Real3 const& pos;
 
     template<class S>
-    CELER_FUNCTION SignedSense operator()(S&& surf)
+    CELER_FUNCTION SignedSense operator()(S const& surf)
     {
         return surf.calc_sense(this->pos);
     }
@@ -32,11 +32,12 @@ struct CalcSense
 
 //---------------------------------------------------------------------------//
 //! Get the number of intersections of a surface
-template<class S>
 struct NumIntersections
 {
-    CELER_CONSTEXPR_FUNCTION size_type operator()() const noexcept
+    template<class ST>
+    CELER_CONSTEXPR_FUNCTION size_type operator()(ST) const noexcept
     {
+        using S = typename ST::type;
         return typename S::Intersections{}.size();
     }
 };
@@ -48,7 +49,7 @@ struct CalcNormal
     Real3 const& pos;
 
     template<class S>
-    CELER_FUNCTION Real3 operator()(S&& surf)
+    CELER_FUNCTION Real3 operator()(S const& surf)
     {
         return surf.calc_normal(this->pos);
     }
@@ -68,7 +69,7 @@ struct CalcSafetyDistance
 
     //! Operate on a surface
     template<class S>
-    CELER_FUNCTION real_type operator()(S&& surf)
+    CELER_FUNCTION real_type operator()(S const& surf)
     {
         if (!S::simple_safety())
         {
@@ -134,7 +135,7 @@ class CalcIntersections
 
     //! Operate on a surface
     template<class S>
-    CELER_FUNCTION void operator()(S&& surf)
+    CELER_FUNCTION void operator()(S const& surf)
     {
         auto on_surface = (on_face_idx_ == face_idx_) ? SurfaceState::on
                                                       : SurfaceState::off;

@@ -236,7 +236,7 @@ celeritas_add_test(orange/surf/SurfaceSimplifier.test.cc)
 celeritas_add_test(orange/surf/VariantSurface.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTransformer.test.cc)
-celeritas_add_device_test(orange/surf/SurfaceAction)
+celeritas_add_device_test(orange/surf/LocalSurfaceVisitor)
 
 #-------------------------------------#
 # Universe details

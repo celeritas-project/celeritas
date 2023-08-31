@@ -4,32 +4,36 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/cont/VariantUtils.hh
+//! \brief Host-only utilities for use with std::variant
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
 #include <utility>
+
+#include "detail/VariantUtilsImpl.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
- * Implementation of \c return_as.
+ * Helper class for dispatching type-specific lambdas.
+ *
+ * Example applied to a variant that converts to int or string: \code
+  std::visit(Overload{[](int a) { cout << a + 2; },
+                      [](std::string const& s) { cout << '"' << s << '"'; }},
+             my_variant);
+ * \endcode
  */
-template<class T, class F>
-struct ReturnAsImpl
+template<typename... Ts>
+struct Overload : Ts...
 {
-    F apply;
-
-    template<class U>
-    T operator()(U&& other)
-    {
-        return this->apply(std::forward<U>(other));
-    }
+    using Ts::operator()...;
 };
-//---------------------------------------------------------------------------//
-}  // namespace detail
+
+// Template deduction guide
+template<class... Ts>
+Overload(Ts&&...) -> Overload<Ts...>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -45,6 +49,22 @@ detail::ReturnAsImpl<T, F> return_as(F&& func)
 {
     return {std::forward<F>(func)};
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Define a variant that contains all the classes mapped by an enum+traits.
+ *
+ * For example: \code
+    using VariantSurface = EnumVariant<SurfaceType, SurfaceTypeTraits>;
+ * \endcode
+ * is equivalent to: \code
+    using VariantSurface = std::variant<PlaneX, PlaneY, ..., GeneralQuadric>;
+ * \endcode
+ *
+ * \sa EnumClassUtils.hh
+ */
+template<class E, template<E> class ETraits>
+using EnumVariant = typename detail::EnumVariantImpl<E, ETraits>::type;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

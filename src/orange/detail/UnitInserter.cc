@@ -23,9 +23,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/construct/OrangeInput.hh"
-#include "orange/surf/SurfaceAction.hh"
-#include "orange/surf/Surfaces.hh"
-#include "orange/surf/detail/SurfaceAction.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 
 namespace celeritas
 {
@@ -96,17 +94,6 @@ T inplace_max(T* target, T val)
     *target = celeritas::max(orig, val);
     return orig;
 }
-
-//---------------------------------------------------------------------------//
-//! Static surface action for getting the storage requirements for a surface.
-template<class T>
-struct SurfaceDataSize
-{
-    constexpr size_type operator()() const noexcept
-    {
-        return T::Storage::extent;
-    }
-};
 
 //---------------------------------------------------------------------------//
 //! Return a surface's "simple" flag
@@ -254,12 +241,15 @@ SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
                    << s.types.size() << ") must match number of sizes ("
                    << s.sizes.size() << ")");
 
-    auto get_data_size = make_static_surface_action<SurfaceDataSize>();
+    auto get_data_size = [](auto surf_traits) {
+        using Surface = typename decltype(surf_traits)::type;
+        return Surface::Storage::extent;
+    };
 
     size_type accum_size = 0;
     for (auto i : range(s.types.size()))
     {
-        size_type expected_size = get_data_size(s.types[i]);
+        size_type expected_size = visit_surface_type(get_data_size, s.types[i]);
         CELER_VALIDATE(expected_size == s.sizes[i],
                        << "inconsistent surface data size (" << s.sizes[i]
                        << ") for entry " << i << ": "
@@ -311,22 +301,17 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     CELER_EXPECT(v.faces.empty() || v.faces.back() < surf_record.types.size());
 
     auto params_cref = make_const_ref(*orange_data_);
-    Surfaces surfaces{params_cref, surf_record};
+    LocalSurfaceVisitor visit_surface(params_cref, surf_record);
 
     // Mark as 'simple safety' if all the surfaces are simple
     bool simple_safety = true;
     logic_int max_intersections = 0;
 
-    auto get_simple_safety
-        = make_surface_action(surfaces, SimpleSafetyGetter{});
-    auto get_num_intersections
-        = make_surface_action(surfaces, NumIntersectionGetter{});
-
     for (LocalSurfaceId sid : v.faces)
     {
-        CELER_ASSERT(sid < surfaces.num_surfaces());
-        simple_safety = simple_safety && get_simple_safety(sid);
-        max_intersections += get_num_intersections(sid);
+        simple_safety = simple_safety
+                        && visit_surface(SimpleSafetyGetter{}, sid);
+        max_intersections += visit_surface(NumIntersectionGetter{}, sid);
     }
 
     auto input_logic = make_span(v.logic);

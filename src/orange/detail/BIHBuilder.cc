@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "BIHBuilder.hh"
 
+#include "corecel/cont/VariantUtils.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/detail/BIHUtils.hh"
 
@@ -14,25 +15,6 @@ namespace celeritas
 {
 namespace detail
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-/*!
- * Variadic-templated struct for overloaded operator() calls.
- */
-template<typename... Ts>
-struct Overload : Ts...
-{
-    using Ts::operator()...;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * "Deduction guide" for instantiating Overload objects w/o specifying types.
- */
-template<class... Ts>
-Overload(Ts&&...) -> Overload<Ts...>;
-}  // namespace
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a Storage object

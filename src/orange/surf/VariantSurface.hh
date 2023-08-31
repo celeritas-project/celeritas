@@ -9,16 +9,17 @@
 
 #include <variant>
 
+#include "corecel/cont/VariantUtils.hh"
 #include "orange/transform/VariantTransform.hh"
 
+#include "SurfaceTypeTraits.hh"
 #include "detail/AllSurfaces.hh"
-#include "detail/VariantSurfaceImpl.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //! std::variant class of all surfaces.
-using VariantSurface = detail::VariantSurface_t;
+using VariantSurface = EnumVariant<SurfaceType, SurfaceTypeTraits>;
 
 //---------------------------------------------------------------------------//
 // Apply a variant "daughter-to-parent" transform to a surface

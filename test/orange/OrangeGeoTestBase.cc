@@ -19,8 +19,8 @@
 #include "orange/construct/OrangeInput.hh"
 #include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/detail/UniverseIndexer.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 #include "orange/surf/Sphere.hh"
-#include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/SurfaceIO.hh"
 
 namespace celeritas
@@ -30,18 +30,6 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-struct ToStream
-{
-    std::ostream& os;
-
-    template<class S>
-    std::ostream& operator()(S&& surf) const
-    {
-        os << surf;
-        return os;
-    }
-};
-
 OrangeInput to_input(UnitInput u)
 {
     OrangeInput result;
@@ -225,18 +213,16 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     // TODO: update when multiple units are in play
     auto const& host_ref = this->host_params();
     CELER_ASSERT(host_ref.simple_units.size() == 1);
+    LocalSurfaceVisitor visit{host_ref, SimpleUnitId{0}};
 
     os << "# Surfaces\n";
-    Surfaces surfaces(host_ref,
-                      host_ref.simple_units[SimpleUnitId{0}].surfaces);
-    auto surf_to_stream = make_surface_action(surfaces, ToStream{os});
 
     // Loop over all surfaces and apply
-    for (auto id : range(LocalSurfaceId{surfaces.num_surfaces()}))
+    for (auto id : range(LocalSurfaceId{this->params().num_surfaces()}))
     {
         os << " - " << this->id_to_label(UniverseId{0}, id) << "(" << id.get()
            << "): ";
-        surf_to_stream(id);
+        visit([&os](auto const& surf) { os << surf; }, id);
         os << '\n';
     }
 }

@@ -13,7 +13,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
 #include "orange/detail/BIHTraverser.hh"
-#include "orange/surf/Surfaces.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/LogicEvaluator.hh"
 #include "detail/SenseCalculator.hh"
@@ -122,7 +122,7 @@ class SimpleUnitTracker
                                                             size_type) const;
 
     // Create a Surfaces object from the params
-    inline CELER_FUNCTION Surfaces make_local_surfaces() const;
+    inline CELER_FUNCTION LocalSurfaceVisitor make_surface_visitor() const;
 
     // Create a Volumes object from the params
     inline CELER_FUNCTION VolumeView make_local_volume(LocalVolumeId vid) const;
@@ -162,7 +162,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     CELER_EXPECT(!state.surface && !state.volume);
 
     detail::SenseCalculator calc_senses(
-        this->make_local_surfaces(), state.pos, state.temp_sense);
+        this->make_surface_visitor(), state.pos, state.temp_sense);
 
     bool on_surface;
     auto is_inside
@@ -203,7 +203,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
 {
     CELER_EXPECT(state.surface && state.volume);
     detail::SenseCalculator calc_senses(
-        this->make_local_surfaces(), state.pos, state.temp_sense);
+        this->make_surface_visitor(), state.pos, state.temp_sense);
 
     detail::OnLocalSurface on_surface;
     auto is_inside = [this, &state, &calc_senses, &on_surface](
@@ -308,11 +308,11 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
 
     // Calculate minimim distance to all local faces
     real_type result = numeric_limits<real_type>::infinity();
-    auto calc_safety = make_surface_action(this->make_local_surfaces(),
-                                           detail::CalcSafetyDistance{pos});
+    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+    detail::CalcSafetyDistance calc_safety{pos};
     for (LocalSurfaceId surface : vol.faces())
     {
-        result = celeritas::min(result, calc_safety(surface));
+        result = celeritas::min(result, visit_surface(calc_safety, surface));
     }
 
     CELER_ENSURE(result >= 0);
@@ -328,10 +328,8 @@ SimpleUnitTracker::normal(Real3 const& pos, LocalSurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf);
 
-    auto calc_normal = make_surface_action(this->make_local_surfaces(),
-                                           detail::CalcNormal{pos});
-
-    return calc_normal(surf);
+    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+    return visit_surface(detail::CalcNormal{pos}, surf);
 }
 
 //---------------------------------------------------------------------------//
@@ -389,21 +387,20 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F is_valid) const
     // Find all valid (nearby or finite, depending on F) surface intersection
     // distances inside this volume. Fill the `isect` array if the tracking
     // algorithm requires sorting.
-    auto calc_intersections = make_surface_action(
-        this->make_local_surfaces(),
-        detail::CalcIntersections<F const&>{
-            state.pos,
-            state.dir,
-            is_valid,
-            state.surface ? vol.find_face(state.surface.id()) : FaceId{},
-            vol.simple_intersection(),
-            state.temp_next});
+    detail::CalcIntersections<F const&> calc_intersections{
+        state.pos,
+        state.dir,
+        is_valid,
+        state.surface ? vol.find_face(state.surface.id()) : FaceId{},
+        vol.simple_intersection(),
+        state.temp_next};
+    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
     for (LocalSurfaceId surface : vol.faces())
     {
-        calc_intersections(surface);
+        visit_surface(calc_intersections, surface);
     }
-    CELER_ASSERT(calc_intersections.action().face_idx() == vol.num_faces());
-    size_type num_isect = calc_intersections.action().isect_idx();
+    CELER_ASSERT(calc_intersections.face_idx() == vol.num_faces());
+    size_type num_isect = calc_intersections.isect_idx();
     CELER_ASSERT(num_isect <= vol.max_intersections());
 
     if (num_isect == 0)
@@ -482,10 +479,8 @@ SimpleUnitTracker::simple_intersect(LocalState const& state,
     }
     else
     {
-        auto calc_sense = make_surface_action(this->make_local_surfaces(),
-                                              detail::CalcSense{state.pos});
-
-        SignedSense ss = calc_sense(surface);
+        LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+        SignedSense ss = visit_surface(detail::CalcSense{state.pos}, surface);
         CELER_ASSERT(ss != SignedSense::on);
         cur_sense = to_sense(ss);
     }
@@ -520,7 +515,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
     // Calculate local senses, taking current face into account
     auto logic_state = detail::SenseCalculator(
-        this->make_local_surfaces(), state.pos, state.temp_sense)(
+        this->make_surface_visitor(), state.pos, state.temp_sense)(
         vol, detail::find_face(vol, state.surface));
 
     // Current senses should put us inside the volume
@@ -614,7 +609,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
             CELER_ASSERT(vid != state.volume);
             VolumeView vol = this->make_local_volume(vid);
             auto logic_state = detail::SenseCalculator{
-                this->make_local_surfaces(), pos, state.temp_sense}(vol);
+                this->make_surface_visitor(), pos, state.temp_sense}(vol);
 
             if (detail::LogicEvaluator{vol.logic()}(logic_state.senses))
             {
@@ -641,9 +636,10 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
 /*!
  * Create a Surfaces object from the params for this unit.
  */
-CELER_FORCEINLINE_FUNCTION Surfaces SimpleUnitTracker::make_local_surfaces() const
+CELER_FORCEINLINE_FUNCTION LocalSurfaceVisitor
+SimpleUnitTracker::make_surface_visitor() const
 {
-    return Surfaces{params_, unit_record_.surfaces};
+    return LocalSurfaceVisitor{params_, unit_record_.surfaces};
 }
 
 //---------------------------------------------------------------------------//
