@@ -9,6 +9,7 @@
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
 namespace celeritas
@@ -47,11 +48,16 @@ class AsyncMemoryResource final : public MockMemoryResource<Pointer>
 #endif
     //!@}
 
+    // Construct memory resource for the stream
     explicit AsyncMemoryResource(StreamT stream) : stream_{stream} {}
+
+    // Construct with default Stream
     AsyncMemoryResource() : AsyncMemoryResource{nullptr} {}
 
+    // Allocate device memory
     pointer do_allocate(std::size_t bytes, std::size_t) override;
 
+    // Deallocate device memory
     void do_deallocate(pointer p, std::size_t, std::size_t) override;
 
   private:

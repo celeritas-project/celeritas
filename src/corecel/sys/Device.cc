@@ -192,6 +192,13 @@ Device::Device(int id)
 
     // Save for possible block size initialization
     max_threads_per_block = props.maxThreadsPerBlock;
+
+    // TODO: Configurable threshold
+    CELER_DEVICE_PREFIX(MemPool_t) mempool;
+    CELER_DEVICE_CALL_PREFIX(DeviceGetDefaultMemPool(&mempool, id_));
+    uint64_t threshold = UINT64_MAX;
+    CELER_DEVICE_CALL_PREFIX(MemPoolSetAttribute(
+        mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
 #endif
 
     // See device_runtime_api.h
@@ -212,13 +219,6 @@ Device::Device(int id)
                           "evenly divisible by "
                        << threads_per_warp_);
     }
-
-    // TODO: Configurable threshold
-    CELER_DEVICE_PREFIX(MemPool_t) mempool;
-    CELER_DEVICE_CALL_PREFIX(DeviceGetDefaultMemPool(&mempool, id_));
-    uint64_t threshold = UINT64_MAX;
-    CELER_DEVICE_CALL_PREFIX(MemPoolSetAttribute(
-        mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
 
     CELER_ENSURE(*this);
     CELER_ENSURE(!name_.empty());
