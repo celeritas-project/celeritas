@@ -38,7 +38,7 @@ class LocalSurfaceVisitor
     //!@}
 
   public:
-    // Construct from ORANGE params and simple unit record
+    // Construct from ORANGE params and surfaces redord
     inline CELER_FUNCTION
     LocalSurfaceVisitor(ParamsRef const& params,
                         SurfacesRecord const& local_surfaces);
@@ -75,6 +75,7 @@ class LocalSurfaceVisitor
                                             ItemRange<T> const& range,
                                             ItemId<U> item);
 
+    // Get a pointer to the item at the given item index.
     template<class T>
     static inline CELER_FUNCTION T const*
     get_ptr(Items<T> const& items, ItemId<T> item);
@@ -84,7 +85,9 @@ class LocalSurfaceVisitor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from ORANGE data (inside simple unit tracker).
+ * Construct from ORANGE data ans local surfaces.
+ *
+ * This is meant to be called from inside a simple unit tracker.
  */
 CELER_FORCEINLINE_FUNCTION
 LocalSurfaceVisitor::LocalSurfaceVisitor(ParamsRef const& params,
@@ -133,8 +136,6 @@ LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
 template<class T>
 CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
 {
-    CELER_EXPECT(id < surfaces_.size());
-
     OpaqueId<real_type> offset
         = this->get_item(params_.real_ids, surfaces_.data_offsets, id);
     constexpr size_type size{T::StorageSpan::extent};
@@ -146,7 +147,8 @@ CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a pointer to the item in the given range.
+ * Get a pointer to the item offset using the given range in a given
+ * collection.
  */
 template<class T, class U>
 CELER_FUNCTION T LocalSurfaceVisitor::get_item(Items<T> const& items,
@@ -162,7 +164,7 @@ CELER_FUNCTION T LocalSurfaceVisitor::get_item(Items<T> const& items,
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a pointer to the item in the given range.
+ * Get a pointer to the item at the given item index.
  */
 template<class T>
 CELER_FUNCTION T const*
