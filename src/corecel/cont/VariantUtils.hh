@@ -11,6 +11,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "corecel/Assert.hh"
+
 #include "detail/VariantUtilsImpl.hh"
 
 namespace celeritas
@@ -65,6 +67,33 @@ detail::ReturnAsImpl<T, F> return_as(F&& func)
  */
 template<class E, template<E> class ETraits>
 using EnumVariant = typename detail::EnumVariantImpl<E, ETraits>::type;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Visit a container's element by calling "visit" on the corresponding index.
+ *
+ * example: \code
+   std::vector<std::variant<int, stdd:string>> myvec{"hi", 123, "bye"};
+   ContainerVisitor visit_element{myvec};
+   visit_element([](auto&& v) { cout << v; }, 1); // Prints '123'
+   visit_element([](auto&& v) { cout << v; }, 2); // Prints 'bye'
+   \endcode
+ */
+template<class T, class U = typename std::remove_reference_t<T>::size_type>
+struct ContainerVisitor
+{
+    using index_type = U;
+
+    T container;
+
+    template<class F>
+    decltype(auto) operator()(F&& func, U const& idx) const
+    {
+        auto&& value = container[idx];
+        CELER_ASSUME(!value.valueless_by_exception());
+        return std::visit(std::forward<F>(func), std::move(value));
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
