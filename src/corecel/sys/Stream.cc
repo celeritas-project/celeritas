@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Construct by creating a stream.
  */
-Stream::Stream()
+Stream::Stream() : memory_resource_(stream_)
 {
     CELER_DEVICE_CALL_PREFIX(StreamCreate(&stream_));
 }
@@ -52,6 +52,7 @@ Stream::~Stream()
  * Move construct.
  */
 Stream::Stream(Stream&& other) noexcept
+    : memory_resource_{other.memory_resource_}
 {
     this->swap(other);
 }
@@ -74,6 +75,7 @@ Stream& Stream::operator=(Stream&& other) noexcept
 void Stream::swap(Stream& other) noexcept
 {
     std::swap(stream_, other.stream_);
+    std::swap(memory_resource_, other.memory_resource_);
 }
 
 //---------------------------------------------------------------------------//
