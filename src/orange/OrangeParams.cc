@@ -117,9 +117,11 @@ struct MaxDepthCalculator
         CELER_EXPECT(uid);
 
         // Check for cached value
-        if (depths.find(uid) != depths.end())
+        auto&& [iter, inserted] = depths.insert({uid, {}});
+        if (!inserted)
         {
-            return depths[uid];
+            // Return cached value
+            return iter->second;
         }
 
         // Depth of the deepest daughter of uid
@@ -166,7 +168,7 @@ struct MaxDepthCalculator
         auto max_depth = max_sub_depth + 1;
 
         // Save to cache
-        depths[uid] = max_depth;
+        iter->second = max_depth;
 
         return max_depth;
     }
@@ -306,8 +308,7 @@ OrangeParams::OrangeParams(OrangeInput input)
     bbox_ = std::get<UnitInput>(input.universes.front()).bbox;
 
     // Update scalars *after* loading all units
-    MaxDepthCalculator mdc(host_data);
-    host_data.scalars.max_depth = mdc(UniverseId{0});
+    host_data.scalars.max_depth = MaxDepthCalculator{host_data}(UniverseId{0});
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
                    << "input geometry has at least one volume with a "
