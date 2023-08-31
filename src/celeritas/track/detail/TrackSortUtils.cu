@@ -229,7 +229,10 @@ void count_tracks_per_action(
         // dispatch in the kernel since CELER_LAUNCH_KERNEL doesn't work
         // with templated kernels
         auto start = device_pointer_cast(make_observer(offsets.data()));
-        thrust::fill(start, start + offsets.size(), ThreadId{});
+        thrust::fill(thrust_execute_on(states.stream_id),
+                     start,
+                     start + offsets.size(),
+                     ThreadId{});
         CELER_DEVICE_CHECK_ERROR();
         CELER_LAUNCH_KERNEL(tracks_per_action,
                             celeritas::device().default_block_size(),
