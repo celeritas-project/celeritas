@@ -137,6 +137,7 @@ enum class SurfaceType : unsigned char
  */
 enum class TransformType : unsigned char
 {
+    no_transformation,  //!< Identity transform
     translation,  //!< Translation only
     transformation,  //!< Translation plus rotation
     size_
