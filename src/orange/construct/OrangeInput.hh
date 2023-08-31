@@ -136,18 +136,8 @@ struct OrangeInput
 {
     std::vector<std::variant<UnitInput, RectArrayInput>> universes;
 
-    // TODO: Calculate automatically in Shift by traversing the parent/daughter
-    // tree
-    size_type max_level = 4;
-
-    // TODO: array of universe types and universe ID -> offset
-    // or maybe std::variant when we require C++17
-
     //! Whether the unit definition is valid
-    explicit operator bool() const
-    {
-        return !universes.empty() && max_level > 0;
-    }
+    explicit operator bool() const { return !universes.empty(); }
 };
 
 //---------------------------------------------------------------------------//

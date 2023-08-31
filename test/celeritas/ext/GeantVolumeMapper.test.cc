@@ -198,7 +198,6 @@ void NestedTest::build_orange()
     }
 
     OrangeInput input;
-    input.max_level = 1;
     input.universes.push_back(std::move(ui));
     auto geo = std::make_shared<OrangeParams>(std::move(input));
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE

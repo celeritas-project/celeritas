@@ -53,6 +53,9 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
+    //! Maximum universe depth
+    size_type max_depth() const { return this->host_ref().scalars.max_depth; }
+
     //// VOLUMES ////
 
     // Number of volumes

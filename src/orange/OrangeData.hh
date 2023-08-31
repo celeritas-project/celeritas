@@ -30,7 +30,10 @@ namespace celeritas
  */
 struct OrangeParamsScalars
 {
-    size_type max_level{};
+    // Maximum universe depth, i.e., depth of the universe tree DAG, equivalent
+    // to the VecGeom implementation. Has a value of 1 for a non-nested
+    // geometry.
+    size_type max_depth{};
     size_type max_faces{};
     size_type max_intersections{};
     size_type max_logic_depth{};
@@ -42,7 +45,7 @@ struct OrangeParamsScalars
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_level > 0 && max_faces > 0 && max_intersections > 0
+        return max_depth > 0 && max_faces > 0 && max_intersections > 0
                && bump_rel > 0 && bump_abs > 0;
     }
 };
@@ -393,21 +396,21 @@ struct OrangeStateData
     StateItems<LevelId> level;
     StateItems<LevelId> surface_level;
 
-    // Dimensions {num_tracks, max_level}
+    // Dimensions {num_tracks, max_depth}
     Items<Real3> pos;
     Items<Real3> dir;
     Items<LocalVolumeId> vol;
     Items<UniverseId> universe;
 
-    // Surface crossing, dimensions {num_tracks, max_level}
+    // Surface crossing, dimensions {num_tracks, max_depth}
     Items<LocalSurfaceId> surf;
     Items<Sense> sense;
     Items<BoundaryResult> boundary;
 
     // TODO: this is problem-dependent data and should eventually be removed
-    // max_level defines the stride into the preceding pseudo-2D Collections
-    // (pos, dir, ..., etc.)
-    size_type max_level{0};
+    // max_depth defines the stride into the preceding pseudo-2D
+    // Collections (pos, dir, ..., etc.)
+    size_type max_depth{0};
 
     // Scratch space
     Items<Sense> temp_sense;  // [track][max_faces]
@@ -430,7 +433,7 @@ struct OrangeStateData
             && surf.size() == pos.size()
             && sense.size() == pos.size()
             && boundary.size() == pos.size()
-            && max_level > 0
+            && max_depth > 0
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -455,7 +458,7 @@ struct OrangeStateData
         surf = other.surf;
         sense = other.sense;
         boundary = other.boundary;
-        max_level = other.max_level;
+        max_depth = other.max_depth;
 
         temp_sense = other.temp_sense;
         temp_face = other.temp_face;
@@ -482,8 +485,8 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->level, num_tracks);
     resize(&data->surface_level, num_tracks);
 
-    data->max_level = params.scalars.max_level;
-    auto const size = data->max_level * num_tracks;
+    data->max_depth = params.scalars.max_depth;
+    auto const size = data->max_depth * num_tracks;
 
     resize(&data->pos, size);
     resize(&data->dir, size);

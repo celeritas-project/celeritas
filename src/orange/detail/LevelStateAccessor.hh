@@ -124,9 +124,9 @@ CELER_FUNCTION
 LevelStateAccessor::LevelStateAccessor(StateRef const* states,
                                        TrackSlotId tid,
                                        LevelId level_id)
-    : states_(states), index_(tid.get() * states_->max_level + level_id.get())
+    : states_(states), index_(tid.get() * states_->max_depth + level_id.get())
 {
-    CELER_EXPECT(level_id < states->max_level);
+    CELER_EXPECT(level_id < states->max_depth);
 }
 
 //---------------------------------------------------------------------------//
