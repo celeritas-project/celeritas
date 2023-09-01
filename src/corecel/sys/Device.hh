@@ -76,6 +76,15 @@ class Device
     // Construct from device ID
     explicit Device(int id);
 
+    //// DESTRUCTORS ////
+
+    // Needed for StreamStorage pimpl
+    ~Device();
+
+    //// OPERATORS ////
+
+    Device& operator=(Device&&);
+
     //// ACCESSORS ////
 
     // Get the device ID
@@ -121,7 +130,7 @@ class Device
     Stream& stream(StreamId) const;
 
   private:
-    using SPStreamStorage = std::shared_ptr<detail::StreamStorage>;
+    using UPStreamStorage = std::unique_ptr<detail::StreamStorage>;
 
     int id_ = -1;
     std::string name_ = "<DISABLED>";
@@ -133,7 +142,7 @@ class Device
     unsigned int eu_per_cu_ = 0;
     unsigned int default_block_size_ = 256u;
     MapStrInt extra_;
-    SPStreamStorage streams_;
+    UPStreamStorage streams_;
 };
 
 //---------------------------------------------------------------------------//
