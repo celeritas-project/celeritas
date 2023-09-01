@@ -95,7 +95,7 @@ TEST(SelectorTest, make_selector)
 
 TEST(SelectorTest, selector_element)
 {
-    using ElementId = OpaqueId<struct Element>;
+    using ElementId = OpaqueId<struct Element_>;
     static double const macro_xs[] = {1.0, 2.0, 4.0};
     std::vector<int> evaluated;
     auto get_xs = [&evaluated](ElementId el) {
