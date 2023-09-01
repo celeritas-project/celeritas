@@ -76,7 +76,7 @@ Device& global_device()
 // MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 
-void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p)
+void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p) noexcept
 {
     delete p;
 }

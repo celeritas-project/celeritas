@@ -123,7 +123,7 @@ class Device
   private:
     struct StreamStorageDeleter
     {
-        void operator()(detail::StreamStorage*);
+        void operator()(detail::StreamStorage*) noexcept;
     };
 
     using UPStreamStorage
