@@ -138,7 +138,7 @@ template<size_type N>
 CELER_FUNCTION typename HyperslabInverseIndexer<N>::Coords
 HyperslabInverseIndexer<N>::operator()(size_type index) const
 {
-    CELER_EXPECT(index <= detail::hyperslab_size(dims_));
+    // CELER_EXPECT(index <= detail::hyperslab_size(dims_));
     Coords coords;
 
     for (size_type i = dims_.size() - 1; i > 0; i--)

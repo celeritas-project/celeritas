@@ -19,6 +19,7 @@
 #include "transform/Translation.hh"
 #include "univ/SimpleUnitTracker.hh"
 #include "univ/UniverseTypeTraits.hh"
+#include "univ/UniverseVisitor.hh"
 #include "univ/detail/Types.hh"
 
 namespace celeritas
@@ -172,8 +173,8 @@ class OrangeTrackView
     // Iterate over layers to find the next step
     inline CELER_FUNCTION void find_next_step_impl(detail::Intersection isect);
 
-    // Create a local tracker
-    inline CELER_FUNCTION SimpleUnitTracker make_tracker(UniverseId) const;
+    //// Create a local tracker
+    // inline CELER_FUNCTION SimpleUnitTracker make_tracker(UniverseId) const;
 
     // Create local sense reference
     inline CELER_FUNCTION Span<Sense> make_temp_sense() const;
@@ -244,8 +245,13 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
     do
     {
-        auto tracker = this->make_tracker(uid);
-        auto tinit = tracker.initialize(local);
+        // auto tracker = this->make_tracker(uid);
+        // auto tinit = tracker.initialize(local);
+        UniverseVisitor visit_universe{params_};
+        detail::Initialization tinit;
+        visit_universe(
+            [&local, &tinit](auto&& t) { tinit = t.initialize(local); }, uid);
+
         // TODO: error correction/graceful failure if initialiation failed
         CELER_ASSERT(tinit.volume && !tinit.surface);
 
@@ -258,7 +264,12 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.sense() = Sense{};
         lsa.boundary() = BoundaryResult::exiting;
 
-        daughter_id = tracker.daughter(tinit.volume);
+        // daughter_id = tracker.daughter(tinit.volume);
+        visit_universe(
+            [&tinit, &daughter_id](auto&& t) {
+                daughter_id = t.daughter(tinit.volume);
+            },
+            uid);
 
         if (daughter_id)
         {
@@ -410,8 +421,15 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
         return {0, true};
     }
 
-    auto tracker = this->make_tracker(UniverseId{0});
-    auto isect = tracker.intersect(this->make_local_state(LevelId{0}));
+    // auto tracker = this->make_tracker(UniverseId{0});
+    // auto isect = tracker.intersect(this->make_local_state(LevelId{0}));
+    detail::Intersection isect;
+    UniverseVisitor visit_universe{params_};
+    auto local_state = this->make_local_state(LevelId{0});
+    visit_universe(
+        [&local_state, &isect](auto&& t) { isect = t.intersect(local_state); },
+        UniverseId{0});
+
     this->find_next_step_impl(isect);
 
     Propagation result;
@@ -451,9 +469,19 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
     if (!this->has_next_step())
     {
-        auto tracker = this->make_tracker(UniverseId{0});
-        auto isect
-            = tracker.intersect(this->make_local_state(LevelId{0}), max_step);
+        // auto tracker = this->make_tracker(UniverseId{0});
+        // auto isect
+        //     = tracker.intersect(this->make_local_state(LevelId{0}),
+        //     max_step);
+        detail::Intersection isect;
+        UniverseVisitor visit_universe{params_};
+        auto local_state = this->make_local_state(LevelId{0});
+        visit_universe(
+            [&local_state, &max_step, &isect](auto&& t) {
+                isect = t.intersect(local_state, max_step);
+            },
+            UniverseId{0});
+
         this->find_next_step_impl(isect);
     }
 
@@ -539,8 +567,13 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 
         if (i < this->level())
         {
-            auto tracker = this->make_tracker(lsa.universe());
-            auto daughter_id = tracker.daughter(lsa.vol());
+            // auto tracker = this->make_tracker(lsa.universe());
+            // auto daughter_id = tracker.daughter(lsa.vol());
+            UniverseVisitor visit_universe{params_};
+            auto daughter_id = visit_universe(
+                [&lsa](auto&& t) { return t.daughter(lsa.vol()); },
+                lsa.universe());
+
             CELER_ASSERT(daughter_id);
             auto const& daughter = params_.daughters[daughter_id];
             Translation trans{params_.translations[daughter.translation_id]};
@@ -592,8 +625,13 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     local.temp_sense = this->make_temp_sense();
 
     // Update the post-crossing volume
-    auto tracker = this->make_tracker(lsa.universe());
-    auto tinit = tracker.cross_boundary(local);
+    // auto tracker = this->make_tracker(lsa.universe());
+    // auto tinit = tracker.cross_boundary(local);
+    UniverseVisitor visit_universe{params_};
+    detail::Initialization tinit;
+    visit_universe(
+        [&local, &tinit](auto&& t) { tinit = t.cross_boundary(local); },
+        lsa.universe());
 
     CELER_ASSERT(tinit.volume);
     if (!CELERITAS_DEBUG && CELER_UNLIKELY(!tinit.volume))
@@ -615,7 +653,12 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     size_type level = sl.get();
     LocalVolumeId volume_id = tinit.volume;
     auto universe_id = lsa.universe();
-    auto daughter_id = tracker.daughter(volume_id);
+
+    // auto daughter_id = tracker.daughter(volume_id);
+    DaughterId daughter_id;
+    visit_universe([&volume_id, &daughter_id](
+                       auto&& t) { daughter_id = t.daughter(volume_id); },
+                   lsa.universe());
 
     while (daughter_id)
     {
@@ -627,7 +670,6 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         // Make the current level the daughter level
         ++level;
         universe_id = daughter.universe_id;
-        auto tracker = this->make_tracker(universe_id);
 
         // Create local state on the daughter level
         local.pos = trans.transform_down(local.pos);
@@ -635,8 +677,18 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         local.surface = {};
         local.temp_sense = this->make_temp_sense();
 
-        volume_id = tracker.initialize(local).volume;
-        daughter_id = tracker.daughter(volume_id);
+        // auto tracker = this->make_tracker(universe_id);
+        // volume_id = tracker.initialize(local).volume;
+        // daughter_id = tracker.daughter(volume_id);
+        //
+        visit_universe(
+            [&local, &volume_id](auto&& t) {
+                volume_id = t.initialize(local).volume;
+            },
+            universe_id);
+        visit_universe([&volume_id, &daughter_id](
+                           auto&& t) { daughter_id = t.daughter(volume_id); },
+                       universe_id);
 
         auto lsa = make_lsa(LevelId{level});
         lsa.vol() = volume_id;
@@ -677,10 +729,19 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         // don't leave the volume after all. Evaluate whether the direction
         // dotted with the surface normal changes (i.e. heading from inside to
         // outside or vice versa).
-        auto tracker = this->make_tracker(UniverseId{0});
         detail::UniverseIndexer ui(params_.universe_indexer_data);
-        const Real3 normal = tracker.normal(
-            this->pos(), ui.local_surface(this->surface_id()).surface);
+
+        // auto tracker = this->make_tracker(UniverseId{0});
+        // const Real3 normal = tracker.normal(
+        //     this->pos(), ui.local_surface(this->surface_id()).surface);
+        UniverseVisitor visit_universe{params_};
+        auto pos = this->pos();
+        auto local_surface = ui.local_surface(this->surface_id()).surface;
+
+        Real3 normal;
+        visit_universe([&pos, &local_surface, &normal](
+                           auto&& t) { normal = t.normal(pos, local_surface); },
+                       UniverseId{0});
 
         if ((dot_product(normal, newdir) >= 0)
             != (dot_product(normal, this->dir()) >= 0))
@@ -808,9 +869,20 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     for (auto levelid : range(LevelId{1}, this->level() + 1))
     {
         auto lsa = this->make_lsa(levelid);
-        auto tracker = this->make_tracker(lsa.universe());
-        auto local_isect = tracker.intersect(this->make_local_state(levelid),
-                                             isect.distance);
+
+        // auto tracker = this->make_tracker(lsa.universe());
+        // auto local_isect =
+        // tracker.intersect(this->make_local_state(levelid),
+        //                                      isect.distance);
+        UniverseVisitor visit_universe{params_};
+        auto local_state = this->make_local_state(levelid);
+        detail::Intersection local_isect;
+        visit_universe(
+            [&local_state, &isect, &local_isect](auto&& t) {
+                local_isect = t.intersect(local_state, isect.distance);
+            },
+            lsa.universe());
+
         if (local_isect.distance < isect.distance)
         {
             isect = local_isect;
@@ -846,8 +918,15 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
     auto lsa = this->make_lsa();
 
     CELER_ASSERT(lsa.universe() == UniverseId{0});
-    auto tracker = this->make_tracker(lsa.universe());
-    return tracker.safety(lsa.pos(), lsa.vol());
+
+    // auto tracker = this->make_tracker(lsa.universe());
+    // return tracker.safety(lsa.pos(), lsa.vol());
+    UniverseVisitor visit_universe{params_};
+    real_type safety;
+    visit_universe(
+        [&lsa, &safety](auto&& t) { safety = t.safety(lsa.pos(), lsa.vol()); },
+        lsa.universe());
+    return safety;
 }
 
 //---------------------------------------------------------------------------//
@@ -862,24 +941,25 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
     return this->find_safety();
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Create a local tracker for a universe.
- *
- * \todo Template on tracker type, allow multiple universe types (see
- * UniverseTypeTraits.hh)
- */
-CELER_FUNCTION SimpleUnitTracker OrangeTrackView::make_tracker(UniverseId id) const
-{
-    CELER_EXPECT(id < params_.universe_types.size());
-    CELER_EXPECT(id.unchecked_get() == params_.universe_indices[id]);
-
-    using TraitsT = UniverseTypeTraits<UniverseType::simple>;
-    using IdT = OpaqueId<typename TraitsT::record_type>;
-    using TrackerT = typename TraitsT::tracker_type;
-
-    return TrackerT{params_, IdT{id.unchecked_get()}};
-}
+////---------------------------------------------------------------------------//
+///*!
+// * Create a local tracker for a universe.
+// *
+// * \todo Template on tracker type, allow multiple universe types (see
+// * UniverseTypeTraits.hh)
+// */
+// CELER_FUNCTION SimpleUnitTracker OrangeTrackView::make_tracker(UniverseId
+// id) const
+//{
+//    CELER_EXPECT(id < params_.universe_types.size());
+//    CELER_EXPECT(id.unchecked_get() == params_.universe_indices[id]);
+//
+//    using TraitsT = UniverseTypeTraits<UniverseType::simple>;
+//    using IdT = OpaqueId<typename TraitsT::record_type>;
+//    using TrackerT = typename TraitsT::tracker_type;
+//
+//    return TrackerT{params_, IdT{id.unchecked_get()}};
+//}
 
 //---------------------------------------------------------------------------//
 /*!
