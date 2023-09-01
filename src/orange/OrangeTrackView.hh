@@ -185,26 +185,25 @@ class OrangeTrackView
     make_local_state(LevelId level) const;
 
     // Whether the next distance-to-boundary has been found
-    CELER_FORCEINLINE_FUNCTION bool has_next_step() const;
+    inline CELER_FUNCTION bool has_next_step() const;
 
     // Invalidate the next distance-to-boundary
-    CELER_FORCEINLINE_FUNCTION void clear_next_step();
+    inline CELER_FUNCTION void clear_next_step();
 
     // Make a LevelStateAccessor for the current thread and level
-    CELER_FORCEINLINE_FUNCTION LevelStateAccessor make_lsa() const;
+    inline CELER_FUNCTION LevelStateAccessor make_lsa() const;
 
     // Make a LevelStateAccessor for the current thread and a given level
-    CELER_FORCEINLINE_FUNCTION LevelStateAccessor make_lsa(LevelId level) const;
+    inline CELER_FUNCTION LevelStateAccessor make_lsa(LevelId level) const;
 
     // Get the daughter ID for the volume in the universe (or null)
-    CELER_FORCEINLINE_FUNCTION DaughterId
-    get_daughter(LevelStateAccessor const& lsa);
+    inline CELER_FUNCTION DaughterId get_daughter(LevelStateAccessor const& lsa);
 
     // Get the transform ID for the given daughter.
-    CELER_FORCEINLINE_FUNCTION TransformId get_transform(DaughterId daughter_id);
+    inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id);
 
     // Get the transform ID to move from this level to the one below.
-    CELER_FUNCTION TransformId get_transform(LevelId lev);
+    inline CELER_FUNCTION TransformId get_transform(LevelId lev);
 };
 
 //---------------------------------------------------------------------------//
@@ -984,7 +983,7 @@ OrangeTrackView::make_local_state(LevelId level) const
 /*!
  * Whether any next step has been calculated.
  */
-CELER_FUNCTION bool OrangeTrackView::has_next_step() const
+CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::has_next_step() const
 {
     return next_step_ != 0;
 }
@@ -996,7 +995,7 @@ CELER_FUNCTION bool OrangeTrackView::has_next_step() const
  * The next surface ID should only ever be used when next_step is zero, so it
  * is OK to wrap it with the CELERITAS_DEBUG conditional.
  */
-CELER_FUNCTION void OrangeTrackView::clear_next_step()
+CELER_FORCEINLINE_FUNCTION void OrangeTrackView::clear_next_step()
 {
     next_step_ = 0;
 }
@@ -1005,7 +1004,7 @@ CELER_FUNCTION void OrangeTrackView::clear_next_step()
 /*!
  * Make a LevelStateAccessor for the current thread and level.
  */
-CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
+CELER_FORCEINLINE_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
 {
     return this->make_lsa(this->level());
 }
@@ -1014,7 +1013,8 @@ CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
 /*!
  * Make a LevelStateAccessor for the current thread and a given level.
  */
-CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa(LevelId level) const
+CELER_FORCEINLINE_FUNCTION LevelStateAccessor
+OrangeTrackView::make_lsa(LevelId level) const
 {
     return LevelStateAccessor(&states_, track_slot_, level);
 }
@@ -1025,7 +1025,7 @@ CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa(LevelId level) const
  *
  * \return DaughterId or {} if the current volume is a leaf.
  */
-CELER_FUNCTION DaughterId
+CELER_FORCEINLINE_FUNCTION DaughterId
 OrangeTrackView::get_daughter(LevelStateAccessor const& lsa)
 {
     return this->make_tracker(lsa.universe()).daughter(lsa.vol());
@@ -1035,7 +1035,8 @@ OrangeTrackView::get_daughter(LevelStateAccessor const& lsa)
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(DaughterId daughter_id)
+CELER_FORCEINLINE_FUNCTION TransformId
+OrangeTrackView::get_transform(DaughterId daughter_id)
 {
     CELER_EXPECT(daughter_id);
     return params_.daughters[daughter_id].transform_id;
