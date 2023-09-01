@@ -68,9 +68,8 @@ inline auto thrust_execute_on(StreamId stream_id)
     else if constexpr (T == ThrustExecMode::Async)
     {
         using Alloc = thrust::mr::allocator<char, Stream::ResourceT>;
-        Stream const& stream = celeritas::device().stream(stream_id);
-        return thrust_async_execution_policy()(
-                   Alloc(&stream.get_memory_resource()))
+        Stream& stream = celeritas::device().stream(stream_id);
+        return thrust_async_execution_policy()(Alloc(&stream.memory_resource()))
             .on(stream.get());
     }
 }

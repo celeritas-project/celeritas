@@ -52,7 +52,7 @@ class AsyncMemoryResource final : public MockMemoryResource<Pointer>
     explicit AsyncMemoryResource(StreamT stream) : stream_{stream} {}
 
     // Construct with default Stream
-    AsyncMemoryResource() : AsyncMemoryResource{nullptr} {}
+    AsyncMemoryResource() = default;
 
     // Allocate device memory
     pointer do_allocate(std::size_t bytes, std::size_t) override;
@@ -104,12 +104,12 @@ class Stream
     StreamT get() const { return stream_; }
 
     // Access the thrust resource allocator associated with the stream
-    ResourceT& get_memory_resource() const { return memory_resource_; }
+    ResourceT& memory_resource() { return memory_resource_; }
 
   private:
     StreamT stream_{nullptr};
     // Thrust allocator only accept pointers to non-const
-    mutable ResourceT memory_resource_;
+    ResourceT memory_resource_;
 };
 
 //---------------------------------------------------------------------------//

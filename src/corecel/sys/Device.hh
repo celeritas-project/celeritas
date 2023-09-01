@@ -118,7 +118,7 @@ class Device
     void create_streams(unsigned int num_streams) const;
 
     // Access a stream
-    Stream const& stream(StreamId) const;
+    Stream& stream(StreamId) const;
 
   private:
     using SPStreamStorage = std::shared_ptr<detail::StreamStorage>;

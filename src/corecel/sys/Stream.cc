@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -22,13 +23,9 @@ namespace celeritas
  * Allocate device memory.
  */
 template<class Pointer>
-auto AsyncMemoryResource<Pointer>::do_allocate(std::size_t bytes, std::size_t)
-    -> pointer
+auto AsyncMemoryResource<Pointer>::do_allocate(
+    [[maybe_unused]] std::size_t bytes, std::size_t) -> pointer
 {
-#if !CELER_USE_DEVICE
-    (void)bytes;
-#endif
-
     void* ret;
     CELER_DEVICE_CALL_PREFIX(MallocAsync(&ret, bytes, stream_));
     return static_cast<pointer>(ret);
@@ -39,15 +36,28 @@ auto AsyncMemoryResource<Pointer>::do_allocate(std::size_t bytes, std::size_t)
  * Deallocate device memory.
  */
 template<class Pointer>
-void AsyncMemoryResource<Pointer>::do_deallocate(pointer p,
+void AsyncMemoryResource<Pointer>::do_deallocate([[maybe_unused]] pointer p,
                                                  std::size_t,
                                                  std::size_t)
 {
-#if !CELER_USE_DEVICE
-    (void)p;
-#endif
-
-    CELER_DEVICE_CALL_PREFIX(FreeAsync(p, stream_));
+    try
+    {
+        CELER_DEVICE_CALL_PREFIX(FreeAsync(p, stream_));
+    }
+    catch (RuntimeError const& e)
+    {
+        static int warn_count = 0;
+        if (warn_count <= 1)
+        {
+            CELER_LOG(debug) << "While freeing device memory: " << e.what();
+        }
+        if (warn_count == 1)
+        {
+            CELER_LOG(debug) << "Suppressing further AsyncMemoryResource "
+                                "warning messages";
+        }
+        ++warn_count;
+    }
 }
 
 //---------------------------------------------------------------------------//

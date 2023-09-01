@@ -193,10 +193,14 @@ Device::Device(int id)
     // Save for possible block size initialization
     max_threads_per_block = props.maxThreadsPerBlock;
 
-    // TODO: Configurable threshold
+    uint64_t threshold = UINT64_MAX;
+    if (std::string var = celeritas::getenv("CELER_MEMPOOL_RELEASE_THRESHOLD");
+        !var.empty())
+    {
+        threshold = std::stoi(var);
+    }
     CELER_DEVICE_PREFIX(MemPool_t) mempool;
     CELER_DEVICE_CALL_PREFIX(DeviceGetDefaultMemPool(&mempool, id_));
-    uint64_t threshold = UINT64_MAX;
     CELER_DEVICE_CALL_PREFIX(MemPoolSetAttribute(
         mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
 #endif
@@ -257,7 +261,7 @@ void Device::create_streams(unsigned int num_streams) const
  *
  * This returns the default stream if no streams were allocated.
  */
-Stream const& Device::stream(StreamId id) const
+Stream& Device::stream(StreamId id) const
 {
     CELER_EXPECT(streams_);
 
