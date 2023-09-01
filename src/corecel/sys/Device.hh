@@ -76,15 +76,6 @@ class Device
     // Construct from device ID
     explicit Device(int id);
 
-    //// DESTRUCTORS ////
-
-    // Needed for StreamStorage pimpl
-    ~Device();
-
-    //// OPERATORS ////
-
-    Device& operator=(Device&&);
-
     //// ACCESSORS ////
 
     // Get the device ID
@@ -130,7 +121,13 @@ class Device
     Stream& stream(StreamId) const;
 
   private:
-    using UPStreamStorage = std::unique_ptr<detail::StreamStorage>;
+    struct StreamStorageDeleter
+    {
+        void operator()(detail::StreamStorage*);
+    };
+
+    using UPStreamStorage
+        = std::unique_ptr<detail::StreamStorage, StreamStorageDeleter>;
 
     int id_ = -1;
     std::string name_ = "<DISABLED>";

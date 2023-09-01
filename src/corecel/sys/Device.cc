@@ -75,8 +75,10 @@ Device& global_device()
 // MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 
-Device::~Device() = default;
-Device& Device::operator=(Device&&) = default;
+void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p)
+{
+    delete p;
+}
 
 /*!
  * Get the number of available devices.
@@ -141,8 +143,7 @@ bool Device::debug()
 /*!
  * Construct from a device ID.
  */
-Device::Device(int id)
-    : id_(id), streams_(std::make_unique<detail::StreamStorage>())
+Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
