@@ -108,7 +108,6 @@ class Stream
 
   private:
     StreamT stream_{nullptr};
-    // Thrust allocator only accept pointers to non-const
     ResourceT memory_resource_;
 };
 
