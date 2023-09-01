@@ -246,7 +246,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     local.surface = {};
     local.temp_sense = this->make_temp_sense();
 
-    // Helpers for applying mother-to-daughter transformations
+    // Helpers for applying parent-to-daughter transformations
     TransformVisitor apply_transform{params_};
     auto transform_down_local = [&local](auto&& t) {
         local.pos = t.transform_down(local.pos);

@@ -34,7 +34,7 @@ class TransformInserter
     //!@}
 
   public:
-    // Construct with defaults
+    // Construct with pointers to target data
     inline TransformInserter(Items<TransformRecord>* transforms,
                              Items<real_type>* reals);
 
@@ -58,7 +58,7 @@ class TransformInserter
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with references to params data.
+ * Construct with pointers to target data.
  */
 TransformInserter::TransformInserter(Items<TransformRecord>* transforms,
                                      Items<real_type>* reals)
@@ -69,7 +69,7 @@ TransformInserter::TransformInserter(Items<TransformRecord>* transforms,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a translation
+ * Construct from a translation.
  *
  * \deprecated Change the ORANGE input when convenient.
  */
@@ -94,7 +94,7 @@ TransformId TransformInserter::operator()(VariantTransform const& tr)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a type.
+ * Construct from a transform with a known type.
  */
 template<class T>
 TransformId TransformInserter::operator()(T const& tr)
