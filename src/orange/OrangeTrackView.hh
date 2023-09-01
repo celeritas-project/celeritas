@@ -312,7 +312,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
         this->level() = states_.level[init.other.track_slot_];
         this->surface_level() = states_.surface_level[init.other.track_slot_];
 
-        for (auto lev : range(LevelId{this->level()}))
+        for (auto lev : range(LevelId{this->level() + 1}))
         {
             // Copy all data accessed via LSA
             auto lsa = this->make_lsa(lev);
