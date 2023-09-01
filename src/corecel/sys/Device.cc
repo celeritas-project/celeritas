@@ -8,6 +8,7 @@
 #include "Device.hh"
 
 #include <iostream>  // IWYU pragma: keep
+#include <limits>
 #include <mutex>
 #include <utility>
 
@@ -198,11 +199,11 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
     // Save for possible block size initialization
     max_threads_per_block = props.maxThreadsPerBlock;
 
-    uint64_t threshold = UINT64_MAX;
+    auto threshold = std::numeric_limits<uint64_t>::max();
     if (std::string var = celeritas::getenv("CELER_MEMPOOL_RELEASE_THRESHOLD");
         !var.empty())
     {
-        threshold = std::stoi(var);
+        threshold = std::stoul(var);
     }
     CELER_DEVICE_PREFIX(MemPool_t) mempool;
     CELER_DEVICE_CALL_PREFIX(DeviceGetDefaultMemPool(&mempool, id_));
