@@ -241,8 +241,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
     }
     else
     {
-        LocalVolumeId id = bih_point_in_vol_(state.pos, is_inside);
-        if (id)
+        if (LocalVolumeId id = this->find_volume_where(state.pos, is_inside))
         {
             return {id, on_surface};
         }
