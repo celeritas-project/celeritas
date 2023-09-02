@@ -181,7 +181,7 @@ PhysicsParams::PhysicsParams(Input inp)
  */
 auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 {
-    CELER_EXPECT(id < this->num_processes());
+    CELER_EXPECT(id < this->host_ref().process_groups.size());
     auto const& data = this->host_ref();
     return data.process_ids[data.process_groups[id].processes];
 }
