@@ -8,6 +8,7 @@
 #include "Device.hh"
 
 #include <iostream>  // IWYU pragma: keep
+#include <limits>
 #include <mutex>
 #include <utility>
 
@@ -74,6 +75,12 @@ Device& global_device()
 //---------------------------------------------------------------------------//
 // MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
+
+void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p) noexcept
+{
+    delete p;
+}
+
 /*!
  * Get the number of available devices.
  *
@@ -137,8 +144,7 @@ bool Device::debug()
 /*!
  * Construct from a device ID.
  */
-Device::Device(int id)
-    : id_(id), streams_(std::make_shared<detail::StreamStorage>())
+Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
@@ -192,6 +198,17 @@ Device::Device(int id)
 
     // Save for possible block size initialization
     max_threads_per_block = props.maxThreadsPerBlock;
+
+    auto threshold = std::numeric_limits<uint64_t>::max();
+    if (std::string var = celeritas::getenv("CELER_MEMPOOL_RELEASE_THRESHOLD");
+        !var.empty())
+    {
+        threshold = std::stoul(var);
+    }
+    CELER_DEVICE_PREFIX(MemPool_t) mempool;
+    CELER_DEVICE_CALL_PREFIX(DeviceGetDefaultMemPool(&mempool, id_));
+    CELER_DEVICE_CALL_PREFIX(MemPoolSetAttribute(
+        mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
 #endif
 
     // See device_runtime_api.h
@@ -250,7 +267,7 @@ void Device::create_streams(unsigned int num_streams) const
  *
  * This returns the default stream if no streams were allocated.
  */
-Stream const& Device::stream(StreamId id) const
+Stream& Device::stream(StreamId id) const
 {
     CELER_EXPECT(streams_);
 

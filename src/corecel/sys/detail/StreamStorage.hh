@@ -42,7 +42,7 @@ class StreamStorage
     size_type size() const { return streams_.size(); }
 
     // Access a stream
-    inline Stream const& get(StreamId) const;
+    inline Stream& get(StreamId);
 
   private:
     VecStream streams_;
@@ -57,7 +57,7 @@ class StreamStorage
  *
  * If no streams have been created the default stream is returned.
  */
-Stream const& StreamStorage::get(StreamId id) const
+Stream& StreamStorage::get(StreamId id)
 {
     if (!streams_.empty())
     {
