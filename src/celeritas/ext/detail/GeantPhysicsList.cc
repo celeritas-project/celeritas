@@ -85,6 +85,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
         em_parameters.SetMscEnergyLimit(100 * CLHEP::TeV);
     }
     em_parameters.SetApplyCuts(options.apply_cuts);
+    this->SetDefaultCutValue(options.default_cutoff * CLHEP::cm);
 
     int verb = options_.verbose ? 1 : 0;
     this->SetVerboseLevel(verb);
