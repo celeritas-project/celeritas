@@ -75,7 +75,7 @@ using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 using RectArrayId = OpaqueId<struct RectArrayRecord>;
 
 //! Identifier for a translation of a single embedded universe
-using TranslationId = OpaqueId<Real3>;
+using TransformId = OpaqueId<struct TransformRecord>;
 
 //! Identifier for a relocatable set of volumes
 using UniverseId = OpaqueId<struct Universe_>;
@@ -137,6 +137,7 @@ enum class SurfaceType : unsigned char
  */
 enum class TransformType : unsigned char
 {
+    no_transformation,  //!< Identity transform
     translation,  //!< Translation only
     transformation,  //!< Translation plus rotation
     size_
@@ -243,7 +244,7 @@ enum OperatorToken : logic_int
 struct Daughter
 {
     UniverseId universe_id;
-    TranslationId translation_id;
+    TransformId transform_id;
 };
 
 //---------------------------------------------------------------------------//

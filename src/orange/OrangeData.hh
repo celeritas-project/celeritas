@@ -157,6 +157,23 @@ struct RaggedRightIndexerData
 
 //---------------------------------------------------------------------------//
 /*!
+ * Type-deleted transform.
+ */
+struct TransformRecord
+{
+    using RealId = OpaqueId<real_type>;
+    TransformType type{TransformType::size_};
+    RealId data_offset;
+
+    //! True if values are set
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return type != TransformType::size_ && data_offset;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Scalar data for a single "unit" of volumes defined by surfaces.
  */
 struct SimpleUnitRecord
@@ -173,7 +190,6 @@ struct SimpleUnitRecord
     // Bounding Interval Hierachy tree parameters
     detail::BIHTree bih_tree;
 
-    // TODO: transforms
     LocalVolumeId background{};  //!< Default if not in any other volume
     bool simple_safety{};
 
@@ -312,6 +328,7 @@ struct OrangeParamsData
     UnivItems<size_type> universe_indices;
     Items<SimpleUnitRecord> simple_units;
     Items<RectArrayRecord> rect_arrays;
+    Items<TransformRecord> transforms;
 
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;
@@ -326,7 +343,6 @@ struct OrangeParamsData
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
     Items<Daughter> daughters;
-    Items<Real3> translations;
 
     UniverseIndexerData<W, M> universe_indexer_data;
 
@@ -354,6 +370,7 @@ struct OrangeParamsData
         universe_indices = other.universe_indices;
         simple_units = other.simple_units;
         rect_arrays = other.rect_arrays;
+        transforms = other.transforms;
 
         bih_tree_data = other.bih_tree_data;
 
@@ -366,7 +383,6 @@ struct OrangeParamsData
         connectivities = other.connectivities;
         volume_records = other.volume_records;
         daughters = other.daughters;
-        translations = other.translations;
         universe_indexer_data = other.universe_indexer_data;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));

@@ -41,7 +41,7 @@ namespace celeritas
  * assertions enabled on host memory, it will assign garbage values to aid in
  * reproducible debugging.)
  */
-template<class T, MemSpace M, class I>
+template<class T, MemSpace M = MemSpace::host, class I = ItemId<T>>
 class CollectionBuilder
 {
   public:
@@ -56,13 +56,16 @@ class CollectionBuilder
 
   public:
     //! Construct from a collection
-    explicit CollectionBuilder(CollectionT* collection) : col_(*collection) {}
+    explicit CollectionBuilder(CollectionT* collection) : col_(*collection)
+    {
+        CELER_EXPECT(collection);
+    }
 
     // Increase size to this capacity
-    inline void resize(size_type count);
+    inline void resize(std::size_t count);
 
     // Reserve space
-    inline void reserve(size_type count);
+    inline void reserve(std::size_t count);
 
     // Extend with a series of elements, returning the range inserted
     template<class InputIterator>
@@ -78,6 +81,9 @@ class CollectionBuilder
     //! Number of elements in the collection
     size_type size() const { return col_.size(); }
 
+    //! Get the size as an ID type
+    ItemIdT size_id() const { return ItemIdT{size()}; }
+
   private:
     CollectionT& col_;
 
@@ -85,12 +91,20 @@ class CollectionBuilder
     StorageT& storage() { return col_.storage(); }
     StorageT const& storage() const { return col_.storage(); }
 
-    //! Maximum elements in a Collection, in underlying storage size
-    static constexpr size_type max_size()
+    //! Maximum elements in a Collection
+    static constexpr std::size_t max_size()
     {
         return std::numeric_limits<size_type>::max();
     }
 };
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+template<class T, MemSpace M, class I>
+CollectionBuilder(Collection<T, Ownership::value, M, I>*)
+    -> CollectionBuilder<T, M, I>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -99,7 +113,7 @@ class CollectionBuilder
  * Reserve space for the given number of elements.
  */
 template<class T, MemSpace M, class I>
-void CollectionBuilder<T, M, I>::reserve(size_type count)
+void CollectionBuilder<T, M, I>::reserve(std::size_t count)
 {
     CELER_EXPECT(count <= max_size());
     static_assert(M == MemSpace::host,
@@ -120,9 +134,9 @@ auto CollectionBuilder<T, M, I>::insert_back(InputIterator first,
                  <= this->max_size());
     static_assert(M == MemSpace::host,
                   "Insertion currently works only for host memory");
-    auto start = ItemIdT{this->size()};
+    auto start = this->size_id();
     this->storage().insert(this->storage().end(), first, last);
-    return {start, ItemIdT{this->size()}};
+    return {start, this->size_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -146,9 +160,9 @@ auto CollectionBuilder<T, M, I>::push_back(T const& el) -> ItemIdT
     CELER_EXPECT(this->storage().size() + 1 <= this->max_size());
     static_assert(M == MemSpace::host,
                   "Insertion currently works only for host memory");
-    size_type idx = this->size();
+    auto result = this->size_id();
     this->storage().push_back(el);
-    return ItemIdT{idx};
+    return result;
 }
 
 template<class T, MemSpace M, class I>
@@ -157,9 +171,9 @@ auto CollectionBuilder<T, M, I>::push_back(T&& el) -> ItemIdT
     CELER_EXPECT(this->storage().size() + 1 <= this->max_size());
     static_assert(M == MemSpace::host,
                   "Insertion currently works only for host memory");
-    size_type idx = this->size();
+    auto result = this->size_id();
     this->storage().push_back(std::move(el));
-    return ItemIdT{idx};
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -167,10 +181,11 @@ auto CollectionBuilder<T, M, I>::push_back(T&& el) -> ItemIdT
  * Increase the size to the given number of elements.
  */
 template<class T, MemSpace M, class I>
-void CollectionBuilder<T, M, I>::resize(size_type size)
+void CollectionBuilder<T, M, I>::resize(std::size_t count)
 {
     CELER_EXPECT(this->storage().empty());
-    this->storage() = StorageT(size);
+    CELER_EXPECT(count <= max_size());
+    this->storage() = StorageT(count);
     if constexpr (CELERITAS_DEBUG && M == MemSpace::host)
     {
         // Fill with invalid values to help with debugging on host
@@ -199,8 +214,7 @@ make_builder(Collection<T, Ownership::value, M, I>* collection)
  * This is useful for analogy to the resize method defined for states.
  */
 template<class T, MemSpace M, class I>
-void resize(Collection<T, Ownership::value, M, I>* collection,
-            typename I::size_type size)
+void resize(Collection<T, Ownership::value, M, I>* collection, std::size_t size)
 {
     CELER_EXPECT(collection);
     CollectionBuilder<T, M, I>(collection).resize(size);

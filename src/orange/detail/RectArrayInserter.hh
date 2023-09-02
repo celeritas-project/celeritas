@@ -12,6 +12,8 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
 
+#include "TransformInserter.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -37,6 +39,7 @@ class RectArrayInserter
 
   private:
     Data* orange_data_{nullptr};
+    TransformInserter insert_transform_;
 };
 
 //---------------------------------------------------------------------------//

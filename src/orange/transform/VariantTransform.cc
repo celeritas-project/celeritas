@@ -23,7 +23,10 @@ struct VariantTransformDispatcher
     VariantTransform const& right;
 
     //! Apply an identity transform (no change)
-    VariantTransform operator()(std::monostate) const { return right; }
+    VariantTransform operator()(NoTransformation const&) const
+    {
+        return right;
+    }
 
     //! Apply a translation
     VariantTransform operator()(Translation const& left) const
@@ -49,7 +52,8 @@ struct VariantTransformDispatcher
  * Apply an identity transform to a bounding box.
  */
 template<class T>
-BoundingBox<T> calc_transform(std::monostate, BoundingBox<T> const& bbox)
+BoundingBox<T>
+calc_transform(NoTransformation const&, BoundingBox<T> const& bbox)
 {
     return bbox;
 }
