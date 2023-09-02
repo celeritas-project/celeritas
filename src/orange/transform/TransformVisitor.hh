@@ -54,7 +54,8 @@ class TransformVisitor
 
     // Apply the function to the transform specified by the given ID
     template<class F>
-    decltype(auto) operator()(F&& typed_visitor, TransformId t);
+    inline CELER_FUNCTION decltype(auto)
+    operator()(F&& typed_visitor, TransformId t);
 
   private:
     TransformRecords const& transforms_;

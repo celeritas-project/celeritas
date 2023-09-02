@@ -37,7 +37,7 @@ class NoTransformation
 
   public:
     //! Construct with an identity NoTransformation
-    explicit CELER_FUNCTION NoTransformation() = default;
+    NoTransformation() = default;
 
     //! Construct inline from storage
     explicit CELER_FUNCTION NoTransformation(StorageSpan) {}
