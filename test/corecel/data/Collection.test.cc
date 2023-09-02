@@ -103,11 +103,27 @@ TEST(ItemMap, basic)
     }
 }
 
+TEST(CollectionBuilder, accessors)
+{
+    Collection<int, Ownership::value, MemSpace::host> data;
+    using IdType = OpaqueId<int>;
+    CollectionBuilder builder{&data};
+    EXPECT_EQ(0, builder.size());
+    EXPECT_EQ(IdType{0}, builder.size_id());
+}
+
 TEST(CollectionBuilder, size_limits)
 {
-    using IdType = OpaqueId<struct Tiny, std::uint8_t>;
+    using IdType = OpaqueId<struct Tiny_, std::uint8_t>;
     Collection<double, Ownership::value, MemSpace::host, IdType> host_val;
-    auto build = make_builder(&host_val);
+    auto build = CollectionBuilder(&host_val);
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(build.reserve(257), DebugError);
+        EXPECT_THROW(build.resize(1000), DebugError);
+    }
+
     std::vector<double> dummy(254);
     auto irange = build.insert_back(dummy.begin(), dummy.end());
     EXPECT_EQ(0, irange.begin()->unchecked_get());
@@ -120,17 +136,21 @@ TEST(CollectionBuilder, size_limits)
     // with a push_back and not a range insertion.
     build.push_back(123);
 
-#if CELERITAS_DEBUG
-    // Inserting 256 elements when 255 is the max int *must* raise an error
-    // when debug assertions are enabled.
-    EXPECT_THROW(build.push_back(1234.5), DebugError);
-#else
-    // With bounds checking disabled, a one-off check when getting a reference
-    // should catch the size failure.
-    build.push_back(12345.6);
-    Collection<double, Ownership::const_reference, MemSpace::host, IdType> host_ref;
-    EXPECT_THROW(host_ref = host_val, RuntimeError);
-#endif
+    if (CELERITAS_DEBUG)
+    {
+        // Inserting 256 elements when 255 is the max int *must* raise an error
+        // when debug assertions are enabled.
+        EXPECT_THROW(build.push_back(1234.5), DebugError);
+    }
+    else
+    {
+        // With bounds checking disabled, a one-off check when getting a
+        // reference should catch the size failure.
+        build.push_back(12345.6);
+        Collection<double, Ownership::const_reference, MemSpace::host, IdType>
+            host_ref;
+        EXPECT_THROW(host_ref = host_val, RuntimeError);
+    }
 }
 
 //---------------------------------------------------------------------------//

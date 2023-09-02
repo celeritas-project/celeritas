@@ -15,6 +15,7 @@
 #include "orange/construct/OrangeInput.hh"
 
 #include "BIHBuilder.hh"
+#include "TransformInserter.hh"
 
 namespace celeritas
 {
@@ -44,6 +45,7 @@ class UnitInserter
   private:
     Data* orange_data_{nullptr};
     BIHBuilder build_bih_tree_;
+    TransformInserter insert_transform_;
 
     //// HELPER METHODS ////
 

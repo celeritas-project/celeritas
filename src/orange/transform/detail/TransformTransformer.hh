@@ -7,11 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <variant>
-
 #include "orange/MatrixUtils.hh"
 #include "orange/Types.hh"
 
+#include "../NoTransformation.hh"
 #include "../Transformation.hh"
 #include "../Translation.hh"
 
@@ -59,7 +58,10 @@ class TransformTransformer
     explicit TransformTransformer(Transformation const& tr) : tr_{tr} {}
 
     //! Transform an identity
-    Transformation operator()(std::monostate) const { return tr_; }
+    Transformation const& operator()(NoTransformation const&) const
+    {
+        return tr_;
+    }
 
     //!@{
     //! Transform a transformation

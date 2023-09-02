@@ -22,7 +22,7 @@ class GridIdFinderTest : public Test
 {
   protected:
     using Energy = units::MevEnergy;
-    using IdT = OpaqueId<struct Foo>;
+    using IdT = OpaqueId<struct Foo_>;
     using FinderT = GridIdFinder<Energy, IdT>;
 
     std::vector<Energy::value_type> grid;

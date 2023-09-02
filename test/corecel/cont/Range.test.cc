@@ -311,7 +311,7 @@ TEST(RangeTest, backward_conversion)
 
 TEST(RangeTest, opaque_id)
 {
-    using MatId = OpaqueId<struct Mat>;
+    using MatId = OpaqueId<struct Mat_>;
 
     {
         Range<MatId> fr;

@@ -118,10 +118,16 @@ class Device
     void create_streams(unsigned int num_streams) const;
 
     // Access a stream
-    Stream const& stream(StreamId) const;
+    Stream& stream(StreamId) const;
 
   private:
-    using SPStreamStorage = std::shared_ptr<detail::StreamStorage>;
+    struct StreamStorageDeleter
+    {
+        void operator()(detail::StreamStorage*) noexcept;
+    };
+
+    using UPStreamStorage
+        = std::unique_ptr<detail::StreamStorage, StreamStorageDeleter>;
 
     int id_ = -1;
     std::string name_ = "<DISABLED>";
@@ -133,7 +139,7 @@ class Device
     unsigned int eu_per_cu_ = 0;
     unsigned int default_block_size_ = 256u;
     MapStrInt extra_;
-    SPStreamStorage streams_;
+    UPStreamStorage streams_;
 };
 
 //---------------------------------------------------------------------------//

@@ -9,6 +9,10 @@
 
 #include <variant>
 
+#include "corecel/cont/VariantUtils.hh"
+
+#include "NoTransformation.hh"
+#include "TransformTypeTraits.hh"
 #include "Transformation.hh"
 #include "Translation.hh"
 
@@ -18,9 +22,8 @@ template<class T>
 class BoundingBox;
 
 //---------------------------------------------------------------------------//
-//! std::variant for all transforms, with optional identity transform
-using VariantTransform
-    = std::variant<std::monostate, Translation, Transformation>;
+//! std::variant for all transforms.
+using VariantTransform = EnumVariant<TransformType, TransformTypeTraits>;
 
 //---------------------------------------------------------------------------//
 // Apply the left "daughter-to-parent" transform to the right.

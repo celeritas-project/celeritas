@@ -245,6 +245,7 @@ tell what variables are in use or may be useful.
  CELER_ENABLE_PROFILING  corecel   Set up NVTX profiling ranges
  CELER_LOG               corecel   Set the "global" logger verbosity
  CELER_LOG_LOCAL         corecel   Set the "local" logger verbosity
+ CELER_MEMPOOL... [#mp]_ celeritas Change ``cudaMemPoolAttrReleaseThreshold``
  CELER_PROFILE_DEVICE    corecel   Record extra kernel launch information
  CUDA_HEAP_SIZE          celeritas Change ``cudaLimitMallocHeapSize`` (VG)
  CUDA_STACK_SIZE         celeritas Change ``cudaLimitStackSize`` for VecGeom
@@ -255,6 +256,8 @@ tell what variables are in use or may be useful.
  CELER_STRIP_SOURCEDIR   accel     Strip directories from exception output
  ======================= ========= ==========================================
 
+.. [#mp] CELER_MEMPOOL_RELEASE_THRESHOLD
+
 Environment variables from external libraries can also be referenced by
 Celeritas or its apps:
 
@@ -264,6 +267,7 @@ Celeritas or its apps:
  Variable                 Library   Brief description
  ======================== ========= ==========================================
  CUDA_VISIBLE_DEVICES     CUDA      Set the active CUDA device
+ HIP_VISIBLE_DEVICES      HIP       Set the active HIP device
  G4LEDATA                 Geant4    Path to low-energy EM data
  G4FORCE_RUN_MANAGER_TYPE Geant4    Use MT or Serial thread layout
  G4FORCENUMBEROFTHREADS   Geant4    Set CPU worker thread count

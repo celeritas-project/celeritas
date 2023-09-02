@@ -82,7 +82,7 @@ TEST_F(VariantTransformTest, variant_types)
     Transformation tf{make_rotation(Axis::z, Turn{0.25}), Real3{0, 0, 2}};
 
     VariantTransform const identity;
-    EXPECT_TRUE(holds_alternative<std::monostate>(
+    EXPECT_TRUE(holds_alternative<NoTransformation>(
         apply_transform(identity, identity)));
     EXPECT_TRUE(holds_alternative<Translation>(apply_transform(identity, tl)));
     EXPECT_TRUE(

@@ -45,13 +45,13 @@ using AxisTag = std::integral_constant<Axis, T>;
 //// ID TYPES ////
 
 //! Identifier for a BIHNode objects
-using BIHNodeId = OpaqueId<struct BIHNode>;
+using BIHNodeId = OpaqueId<struct BIHNode_>;
 
 //! Identifier for a daughter universe
 using DaughterId = OpaqueId<struct Daughter>;
 
 //! Identifier for a face within a volume
-using FaceId = OpaqueId<struct Face>;
+using FaceId = OpaqueId<struct Face_>;
 
 //! Bounding box used for acceleration
 using FastBBox = BoundingBox<fast_real_type>;
@@ -60,13 +60,13 @@ using FastBBox = BoundingBox<fast_real_type>;
 using FastBBoxId = OpaqueId<FastBBox>;
 
 //! Identifier for the current "level", i.e., depth of embedded universe
-using LevelId = OpaqueId<struct Level>;
+using LevelId = OpaqueId<struct Level_>;
 
 //! Local identifier for a surface within a universe
-using LocalSurfaceId = OpaqueId<struct LocalSurface>;
+using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
 
 //! Local identifier for a geometry volume within a universe
-using LocalVolumeId = OpaqueId<struct LocalVolume>;
+using LocalVolumeId = OpaqueId<struct LocalVolume_>;
 
 //! Opaque index for "simple unit" data
 using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
@@ -75,10 +75,10 @@ using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 using RectArrayId = OpaqueId<struct RectArrayRecord>;
 
 //! Identifier for a translation of a single embedded universe
-using TranslationId = OpaqueId<Real3>;
+using TransformId = OpaqueId<struct TransformRecord>;
 
 //! Identifier for a relocatable set of volumes
-using UniverseId = OpaqueId<struct Universe>;
+using UniverseId = OpaqueId<struct Universe_>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -137,6 +137,7 @@ enum class SurfaceType : unsigned char
  */
 enum class TransformType : unsigned char
 {
+    no_transformation,  //!< Identity transform
     translation,  //!< Translation only
     transformation,  //!< Translation plus rotation
     size_
@@ -243,7 +244,7 @@ enum OperatorToken : logic_int
 struct Daughter
 {
     UniverseId universe_id;
-    TranslationId translation_id;
+    TransformId transform_id;
 };
 
 //---------------------------------------------------------------------------//

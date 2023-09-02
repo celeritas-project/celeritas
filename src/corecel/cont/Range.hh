@@ -120,8 +120,8 @@ class Range
 
     //// STRIDED ACCESS ////
 
-    //! Return a stepped range using a different integer type
-    template<class U, std::enable_if_t<std::is_signed<U>::value, U> = 0>
+    //! Return a stepped range using a *signed* integer type
+    template<class U, std::enable_if_t<std::is_signed<U>::value, bool> = true>
     CELER_CONSTEXPR_FUNCTION detail::StepRange<step_type<U>> step(U step)
     {
         if (step < 0)
@@ -133,8 +133,8 @@ class Range
     }
 
     //! \cond
-    //! Return a stepped range using a different integer type
-    template<class U, std::enable_if_t<std::is_unsigned<U>::value, U> = 0>
+    //! Return a stepped range using an *unsigned* integer type
+    template<class U, std::enable_if_t<std::is_unsigned<U>::value, bool> = true>
     CELER_CONSTEXPR_FUNCTION detail::StepRange<step_type<U>> step(U step)
     {
         return {*begin_, *end_, step};

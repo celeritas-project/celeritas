@@ -11,15 +11,60 @@
 #include <iostream>
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
 {
+
+//---------------------------------------------------------------------------//
+/*!
+ * Allocate device memory.
+ */
+template<class Pointer>
+auto AsyncMemoryResource<Pointer>::do_allocate(
+    [[maybe_unused]] std::size_t bytes, std::size_t) -> pointer
+{
+    void* ret;
+    CELER_DEVICE_CALL_PREFIX(MallocAsync(&ret, bytes, stream_));
+    return static_cast<pointer>(ret);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Deallocate device memory.
+ */
+template<class Pointer>
+void AsyncMemoryResource<Pointer>::do_deallocate([[maybe_unused]] pointer p,
+                                                 std::size_t,
+                                                 std::size_t)
+{
+    try
+    {
+        CELER_DEVICE_CALL_PREFIX(FreeAsync(p, stream_));
+    }
+    catch (RuntimeError const& e)
+    {
+        static int warn_count = 0;
+        if (warn_count <= 1)
+        {
+            CELER_LOG(debug) << "While freeing device memory: " << e.what();
+        }
+        if (warn_count == 1)
+        {
+            CELER_LOG(debug) << "Suppressing further AsyncMemoryResource "
+                                "warning messages";
+        }
+        ++warn_count;
+    }
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct by creating a stream.
  */
-Stream::Stream()
+Stream::Stream() : memory_resource_(stream_)
 {
     CELER_DEVICE_CALL_PREFIX(StreamCreate(&stream_));
 }
@@ -52,6 +97,7 @@ Stream::~Stream()
  * Move construct.
  */
 Stream::Stream(Stream&& other) noexcept
+    : memory_resource_{other.memory_resource_}
 {
     this->swap(other);
 }
@@ -74,7 +120,14 @@ Stream& Stream::operator=(Stream&& other) noexcept
 void Stream::swap(Stream& other) noexcept
 {
     std::swap(stream_, other.stream_);
+    std::swap(memory_resource_, other.memory_resource_);
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class AsyncMemoryResource<void*>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

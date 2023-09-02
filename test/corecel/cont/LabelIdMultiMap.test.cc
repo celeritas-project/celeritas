@@ -23,7 +23,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 
-using CatId = OpaqueId<struct Cat>;
+using CatId = OpaqueId<struct Cat_>;
 using CatMultiMap = LabelIdMultiMap<CatId>;
 using VecLabel = CatMultiMap::VecLabel;
 
