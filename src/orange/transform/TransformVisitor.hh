@@ -21,13 +21,13 @@ namespace celeritas
 /*!
  * Apply a functor to a type-deleted transform.
  *
- * An instance of this class is like \c std::visit but accepting a TransformId
- * rather than a \c std::variant .
+ * An instance of this class is like \c std::visit but accepting a \c
+ * TransformId rather than a \c std::variant .
  *
  * Example: \code
  TransformVisitor visit_transform{params_};
  auto new_pos = visit_transform(
-    [&pos](auto&& T) { return t.transform_up(pos); },
+    [&pos](auto&& t) { return t.transform_up(pos); },
     daughter.transform_id);
  \endcode
  */
