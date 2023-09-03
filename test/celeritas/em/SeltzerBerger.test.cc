@@ -225,10 +225,28 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         max_xs.push_back(edist_helper.max_xs().value());
         xs_zero.push_back(edist_helper.xs_zero().value());
 
-        SBEnergyDistribution<SBElectronXsCorrector> sample_energy(edist_helper,
-                                                                  {});
-        // Loop over many particles
-        sample_many(inc_energy, sample_energy);
+        // Sample with the electron XS correction
+        {
+            SBEnergyDistribution<SBElectronXsCorrector> sample_energy(
+                edist_helper, {});
+            // Loop over many particles
+            sample_many(inc_energy, sample_energy);
+        }
+
+        // Sample with the positron XS correction
+        {
+            ParticleParams const& pp = *this->particle_params();
+
+            SBEnergyDistribution<SBPositronXsCorrector> sample_energy(
+                edist_helper,
+                {pp.get(pp.find(pdg::positron())).mass(),
+                 this->material_params()->get(ElementId{0}),
+                 gamma_cutoff,
+                 Energy{inc_energy}});
+
+            // Loop over many particles
+            sample_many(inc_energy, sample_energy);
+        }
     }
 
     {
