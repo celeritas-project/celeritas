@@ -105,14 +105,14 @@ class SeltzerBergerTest : public InteractorHostTestBase
     {
         CELER_EXPECT(matid);
         CELER_EXPECT(e > zero_quantity());
-        using namespace constants;
 
+        ParticleParams const& pp = *this->particle_params();
+        auto mass = pp.get(pp.find(pdg::electron())).mass();
+        real_type total_energy = e.value() + mass.value();
         auto mat = this->material_params()->get(matid);
-        constexpr auto migdal = 4 * pi * r_electron
-                                * ipow<2>(lambdabar_electron);
-
-        real_type density_factor = mat.electron_density() * migdal;
-        return EnergySq{density_factor * ipow<2>(e.value())};
+        real_type density_factor = mat.electron_density()
+                                   * detail::migdal_constant();
+        return EnergySq{density_factor * ipow<2>(total_energy)};
     }
 
     void sanity_check(Interaction const& interaction) const
@@ -284,13 +284,13 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
     const double expected_xs_zero[] = {1.98829818915769, 4.40320232447369,
         12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
-    const double expected_avg_exit_frac[] = {0.949115932248866,
-        0.497486662164049, 0.082127972143285, 0.0645177016233406,
-        0.0774717918229646, 0.0891340819129683, 0.0639090949553034,
-        0.0642877319142647};
-    const double expected_avg_engine_samples[] = {4.0791015625, 4.06005859375,
-	5.134765625, 4.65625, 4.43017578125, 4.35693359375, 9.3681640625,
-        4.65478515625};
+    static double const expected_avg_exit_frac[] = {0.94912259860422,
+        0.49765332179155, 0.082254084865518, 0.064928479979342,
+        0.077435723446377, 0.089209770419741, 0.064206311258969,
+        0.064814238042425};
+    static double const expected_avg_engine_samples[] = {4.0791015625,
+        4.060546875, 5.13623046875, 4.6572265625, 4.43115234375, 4.35791015625,
+        9.3740234375, 4.65478515625};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
