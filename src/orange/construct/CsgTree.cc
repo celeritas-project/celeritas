@@ -19,10 +19,6 @@
 
 using namespace celeritas::csg;
 
-#include <iostream>
-using std::cout;
-using std::endl;
-
 namespace celeritas
 {
 namespace
@@ -119,13 +115,11 @@ auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
     Node repl = std::visit(NodeSimplifier{*this}, n);
     if (repl != Node{NodeSimplifier::no_simplification()})
     {
-        cout << "\n  ... simplified to replacement: " << repl;
         n = std::move(repl);
     }
 
     if (auto* a = std::get_if<csg::Aliased>(&n))
     {
-        cout << "\n  ... returning alias" << n;
         return std::exchange(this->at(node_id), csg::Aliased{a->node});
     }
 
@@ -135,13 +129,11 @@ auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
     {
         // Node representation doesn't exist elsewhere in the tree
         iter->second = node_id;
-        cout << "\n  ... new node";
         return std::exchange(this->at(node_id), Node{iter->first});
     }
     if (iter->second == node_id)
     {
         // No change
-        cout << "\n  ... no change";
         return (*this)[node_id];
     }
     if (iter->second > node_id)
@@ -149,15 +141,12 @@ auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
         using std::swap;
         // A node *higher* in the tree is equivalent to this one: swap the
         // definitions so that the higher aliases the lower
-        cout << "\n  ... swapping IDs";
         swap(this->at(iter->second), this->at(node_id));
         swap(iter->second, node_id);
     }
 
     // Replace the more complex definition with an alias to a lower ID
     CELER_ASSERT(iter->second < node_id);
-    cout << "\n  ... aliasing " << node_id.get() << " to "
-         << iter->second.get();
     return std::exchange(this->at(node_id), csg::Aliased{iter->second});
 }
 
@@ -170,8 +159,6 @@ auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
 bool CsgTree::simplify(NodeId node_id)
 {
     auto repl = this->exchange(node_id, Node{this->at(node_id)});
-    cout << "\n ... comparing exchanged " << repl << " to current "
-         << this->at(node_id);
     return repl != this->at(node_id);
 }
 
@@ -228,11 +215,8 @@ NodeId replace_down(CsgTree* tree, NodeId n, Node repl)
         stack.pop_back();
         lowest_node = std::min(n, lowest_node);
 
-        cout << "Replacing " << n.get() << " with " << repl << ":";
         Node prev = tree->exchange(n, std::move(repl));
-        cout << "\n  ==> " << prev << endl;
         std::visit(NodeReplacementInserter{&stack, repl}, prev);
-        cout << "Stack size: " << stack.size() << endl;
     }
     return lowest_node;
 }
@@ -254,18 +238,7 @@ NodeId simplify_up(CsgTree* tree, NodeId start)
     NodeId result;
     for (auto node_id : range(start, NodeId{tree->size()}))
     {
-        cout << "Simpifying " << node_id.get() << ": " << (*tree)[node_id];
         bool simplified = tree->simplify(node_id);
-        cout << "\n  ==> ";
-        if (simplified)
-        {
-            cout << (*tree)[node_id];
-        }
-        else
-        {
-            cout << " (no change)";
-        }
-        cout << endl;
         if (simplified && !result)
         {
             result = node_id;
