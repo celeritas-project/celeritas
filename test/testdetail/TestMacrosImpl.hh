@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
 #include <type_traits>
 #include <vector>
 #include <gtest/gtest.h>
@@ -555,6 +556,15 @@ template<class ContainerE, class ContainerA>
     return IsVecSoftEquivImpl(
         expected, expected_expr, actual, actual_expr, BinaryOp(rel, abs));
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare two JSON objects.
+ */
+::testing::AssertionResult IsJsonEq(char const* expected_expr,
+                                    char const* actual_expr,
+                                    std::string_view expected,
+                                    std::string_view actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace testdetail
