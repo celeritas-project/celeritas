@@ -188,7 +188,6 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
 
     int const num_samples = 8192;
     std::vector<double> max_xs;
-    std::vector<double> xs_zero;
     std::vector<double> avg_exit_frac;
     std::vector<double> avg_engine_samples;
 
@@ -223,12 +222,12 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
             this->density_correction(MaterialId{0}, Energy{inc_energy}),
             gamma_cutoff);
         max_xs.push_back(edist_helper.max_xs().value());
-        xs_zero.push_back(edist_helper.xs_zero().value());
 
         // Sample with the electron XS correction
         {
             SBEnergyDistribution<SBElectronXsCorrector> sample_energy(
                 edist_helper, {});
+
             // Loop over many particles
             sample_many(inc_energy, sample_energy);
         }
@@ -280,39 +279,23 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
             // Loop over many particles
             sample_many(inc_energy, sample_energy);
         }
-
-        // Sample with the positron XS correction
-        {
-            ParticleParams const& pp = *this->particle_params();
-
-            SBEnergyDistribution<SBPositronXsCorrector> sample_energy(
-                edist_helper,
-                {pp.get(pp.find(pdg::positron())).mass(),
-                 this->material_params()->get(ElementId{0}),
-                 gamma_cutoff,
-                 Energy{inc_energy}});
-
-            // Loop over many particles
-            sample_many(inc_energy, sample_energy);
-        }
     }
 
     // clang-format off
-    const double expected_max_xs[] = {2.866525852195, 4.72696244794,
-        12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
-    const double expected_xs_zero[] = {1.98829818915769, 4.40320232447369,
+    static double const expected_max_xs[] = {2.866525852195, 4.72696244794,
         12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
     static double const expected_avg_exit_frac[] = {0.94912259860422,
-        0.49765332179155, 0.082254084865518, 0.064928479979342,
-        0.077435723446377, 0.089209770419741, 0.064206311258969,
-        0.064814238042425};
+        0.90270157074556, 0.49736065674058, 0.27711716215819,
+        0.081515129333292, 0.068559142299853, 0.065803331441324,
+        0.064344514250384, 0.079512002547402, 0.077647502218254,
+        0.085615341879476, 0.086428313853775, 0.065321200129584};
     static double const expected_avg_engine_samples[] = {4.0791015625,
-        4.060546875, 5.13623046875, 4.6572265625, 4.43115234375, 4.35791015625,
-        9.3740234375, 4.65478515625};
+        137.044921875, 4.060546875, 15.74169921875, 5.103515625, 5.26953125,
+        4.67333984375, 4.6572265625, 4.4306640625, 4.4638671875, 4.35400390625,
+        4.349609375, 9.189453125};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
-    EXPECT_VEC_SOFT_EQ(expected_xs_zero, xs_zero);
     EXPECT_VEC_SOFT_EQ(expected_avg_exit_frac, avg_exit_frac);
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

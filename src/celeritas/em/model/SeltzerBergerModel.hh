@@ -14,7 +14,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/io/ImportSBTable.hh"
-#include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -103,10 +102,7 @@ class SeltzerBergerModel final : public Model
     ImportedModelAdapter imported_;
 
     using HostXsTables = HostVal<SeltzerBergerTableData>;
-    void append_table(ElementView const& element,
-                      ImportSBTable const& table,
-                      HostXsTables* tables,
-                      Mass electron_mass) const;
+    void append_table(ImportSBTable const& table, HostXsTables* tables) const;
 };
 
 //---------------------------------------------------------------------------//
