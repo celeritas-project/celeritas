@@ -82,7 +82,7 @@ class CsgTreeTest : public ::celeritas::test::Test
         return tree_.insert(std::forward<T>(n));
     }
 
-    std::string to_json_string()
+    std::string to_json_string() const
     {
 #if CELERITAS_USE_JSON
         nlohmann::json obj{tree_};
@@ -100,11 +100,12 @@ TEST_F(CsgTreeTest, true_false)
 {
     EXPECT_EQ(2, tree_.size());  // True and false added by default
     EXPECT_EQ(true_id, this->insert(True{}));
+    EXPECT_EQ(true_id, this->insert(Negated{false_id}));
     EXPECT_EQ(false_id, this->insert(False{}));
     EXPECT_EQ(false_id, this->insert(Negated{true_id}));
 
     EXPECT_EQ(Node{True{}}, tree_[true_id]);
-    EXPECT_EQ(Node{False{}}, tree_[false_id]);
+    EXPECT_EQ(Node{Negated{true_id}}, tree_[false_id]);
 }
 
 TEST_F(CsgTreeTest, TEST_IF_CELERITAS_DEBUG(prohibited_insertion))
@@ -173,7 +174,7 @@ TEST_F(CsgTreeTest, manual_simplify)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json([["t","f",["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["S",4],["~",2],["|",[13,14]]]])json",
+            R"json([["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["S",4],["~",2],["|",[13,14]]]])json",
             this->to_json_string());
     }
 
@@ -232,7 +233,7 @@ TEST_F(CsgTreeTest, manual_simplify)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json([["t","f",["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["S",4],["=",1],["=",13]]])json",
+            R"json([["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["S",4],["=",1],["=",13]]])json",
             this->to_json_string());
     }
 }
@@ -249,15 +250,66 @@ TEST_F(CsgTreeTest, algorithms)
     auto inside_outer = this->insert(Negated{r_outer});
     auto outer_cyl = this->insert(Joined{op_and, {mz, below_pz, inside_outer}});
     auto not_inner = this->insert(Negated{inner_cyl});
-    /* auto shell = */ this->insert(Joined{op_and, {not_inner, outer_cyl}});
+    auto shell = this->insert(Joined{op_and, {not_inner, outer_cyl}});
     auto bdy_outer = this->insert(S{4});
     auto bdy = this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
+    auto zslab = this->insert(Joined{op_and, {mz, below_pz}});
 
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json([["t","f",["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["S",4],["&",[2,4,13]]]])json",
+            R"json([["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["S",4],["&",[2,4,13]],["&",[2,4]]]])json",
             this->to_json_string());
+    }
+
+    // Test postfix
+    {
+        static size_type expected_lgc[] = {0};
+        auto lgc = build_postfix(tree_, mz);
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+    }
+    {
+        static size_type expected_lgc[] = {1, logic::lnot};
+        auto lgc = build_postfix(tree_, below_pz);
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+    }
+    {
+        auto lgc = build_postfix(tree_, zslab);
+        static size_type const expected_lgc[]
+            = {0u, 1u, logic::lnot, logic::land};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+    }
+    {
+        auto lgc = build_postfix(tree_, inner_cyl);
+        static size_type const expected_lgc[]
+            = {0u, 1u, logic::lnot, logic::land, 2u, logic::lnot, logic::land};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+    }
+    {
+        auto lgc = build_postfix(tree_, shell);
+        static size_type const expected_lgc[] = {0u,
+                                                 1u,
+                                                 logic::lnot,
+                                                 logic::land,
+                                                 3u,
+                                                 logic::lnot,
+                                                 logic::land,
+                                                 0u,
+                                                 1u,
+                                                 logic::lnot,
+                                                 logic::land,
+                                                 2u,
+                                                 logic::lnot,
+                                                 logic::land,
+                                                 logic::lnot,
+                                                 logic::land};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+    }
+    {
+        auto lgc = build_postfix(tree_, bdy);
+        static size_type const expected_lgc[]
+            = {0u, 1u, logic::lnot, logic::land, 4u, logic::land};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
     }
 
     // Imply inside boundary
@@ -267,7 +319,7 @@ TEST_F(CsgTreeTest, algorithms)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json([["t","f",["=",0],["=",1],["=",0],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["=",0],["=",0]]])json",
+            R"json([["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["=",0],["=",0],["&",[2,4]]]])json",
             this->to_json_string());
     }
 
@@ -286,9 +338,83 @@ TEST_F(CsgTreeTest, algorithms)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json([["t","f",["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["=",0],["=",0]]])json",
+            R"json([["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["=",0],["=",0],["=",0]]])json",
             this->to_json_string());
     }
+}
+
+TEST_F(CsgTreeTest, replace_union)
+{
+    auto a = this->insert(S{0});
+    auto b = this->insert(S{1});
+    auto inside_a = this->insert(Negated{a});
+    auto inside_b = this->insert(Negated{b});
+    auto inside_a_or_b = this->insert(Joined{op_or, {inside_a, inside_b}});
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json([["t",["~",0],["S",0],["S",1],["~",2],["~",3],["|",[4,5]]]])json",
+            this->to_json_string());
+    }
+
+    // Imply inside neither
+    auto min_node = replace_down(&tree_, inside_a_or_b, False{});
+    EXPECT_EQ(a, min_node);
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json([["t",["~",0],["=",0],["=",0],["=",1],["=",1],["=",1]]])json",
+            this->to_json_string());
+    }
+
+    min_node = simplify_up(&tree_, min_node);
+    EXPECT_EQ(NodeId{}, min_node);
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json([["t",["~",0],["=",0],["=",0],["=",1],["=",1],["=",1]]])json",
+            this->to_json_string());
+    }
+}
+
+TEST_F(CsgTreeTest, replace_union_2)
+{
+    auto a = this->insert(S{0});
+    auto b = this->insert(S{1});
+    auto inside_a = this->insert(Negated{a});
+    this->insert(Negated{b});
+    auto outside_a_or_b = this->insert(Joined{op_or, {a, b}});
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json([["t",["~",0],["S",0],["S",1],["~",2],["~",3],["|",[2,3]]]])json",
+            this->to_json_string());
+    }
+
+    // Imply !(a | b) -> a & b
+    auto min_node = replace_down(&tree_, outside_a_or_b, False{});
+    EXPECT_EQ(a, min_node);
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json([["t",["~",0],["=",1],["=",1],["~",2],["~",3],["=",1]]])json",
+            this->to_json_string());
+    }
+
+    min_node = simplify_up(&tree_, min_node);
+    EXPECT_EQ(inside_a, min_node);
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json([["t",["~",0],["=",1],["=",1],["=",0],["=",0],["=",1]]])json",
+            this->to_json_string());
+    }
+
+    // No simplification
+    min_node = simplify_up(&tree_, min_node);
+    EXPECT_EQ(NodeId{}, min_node);
 }
 
 //---------------------------------------------------------------------------//

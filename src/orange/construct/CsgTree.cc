@@ -16,6 +16,7 @@
 
 #include "detail/NodeReplacementInserter.hh"
 #include "detail/NodeSimplifier.hh"
+#include "detail/PostfixLogicBuilder.hh"
 
 using namespace celeritas::csg;
 
@@ -58,10 +59,11 @@ struct IsUserNodeValid
  * Insert true and false and 'negated true' (which redirects to false).
  */
 CsgTree::CsgTree()
-    : nodes_{csg::True{}, csg::False{}}
+    : nodes_{csg::True{}, csg::Negated{true_node_id()}}
     , ids_{{Node{std::in_place_type<csg::True>}, true_node_id()},
            {Node{std::in_place_type<csg::False>}, false_node_id()},
-           {csg::Negated{true_node_id()}, false_node_id()}}
+           {csg::Negated{true_node_id()}, false_node_id()},
+           {csg::Negated{false_node_id()}, true_node_id()}}
 {
 }
 
@@ -178,10 +180,10 @@ auto CsgTree::at(NodeId node_id) -> Node&
  */
 std::ostream& operator<<(std::ostream& os, CsgTree const& tree)
 {
-    os << "{\n";
+    os << '{';
     for (auto n : range(csg::NodeId(tree.size())))
     {
-        os << n.unchecked_get() << ": " << tree[n] << ",\n";
+        os << n.unchecked_get() << ": " << tree[n] << ", ";
     }
     os << '}';
     return os;
@@ -244,6 +246,41 @@ NodeId simplify_up(CsgTree* tree, NodeId start)
             result = node_id;
         }
     }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Iteratively simplify all nodes in the tree.
+ *
+ * The input 'start' node should be the minimum node from a \c replace_down
+ * operation. It should take as many sweeps as the depth of the tree.
+ */
+void simplify(CsgTree* tree, NodeId start)
+{
+    CELER_EXPECT(tree);
+    CELER_EXPECT(start > tree->false_node_id() && start < tree->size());
+
+    while (start)
+    {
+        auto next_start = simplify_up(tree, start);
+        CELER_ASSERT(!next_start || next_start > start);
+        start = next_start;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a node to postfix notation.
+ */
+std::vector<LocalSurfaceId::size_type>
+build_postfix(CsgTree const& tree, csg::NodeId n)
+{
+    CELER_EXPECT(n < tree.size());
+    std::vector<LocalSurfaceId::size_type> result;
+    csg::PostfixLogicBuilder build_logic{tree, &result};
+
+    build_logic(n);
     return result;
 }
 

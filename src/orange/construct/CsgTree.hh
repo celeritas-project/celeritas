@@ -93,6 +93,13 @@ csg::NodeId replace_down(CsgTree* tree, csg::NodeId n, csg::Node repl_node);
 // Simplify the tree by sweeping
 csg::NodeId simplify_up(CsgTree* tree, csg::NodeId start);
 
+// Simplify the tree iteratively
+void simplify(CsgTree* tree, csg::NodeId start);
+
+// Convert a node to postfix notation
+std::vector<LocalSurfaceId::size_type>
+build_postfix(CsgTree const& tree, csg::NodeId n);
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//

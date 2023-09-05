@@ -61,7 +61,7 @@ class NodeReplacementInserter
 /*!
  * Construct with references to the stack and the replacement value.
  *
- * For now the rplacement must be a boolean.
+ * For now the replacement must be a boolean.
  */
 NodeReplacementInserter::NodeReplacementInserter(VecNode* stack,
                                                  Node const& repl)
@@ -103,7 +103,7 @@ void NodeReplacementInserter::operator()(False const&)
 
 //---------------------------------------------------------------------------//
 /*!
- * If replacing a queued node with a boolean, ours should match.
+ * Aliasing a node implies the alias has the same value.
  */
 void NodeReplacementInserter::operator()(Aliased const& n)
 {
@@ -112,7 +112,7 @@ void NodeReplacementInserter::operator()(Aliased const& n)
 
 //---------------------------------------------------------------------------//
 /*!
- * If replacing a queued node with a boolean, ours should match.
+ * Negating a node implies its daughter has the opposite value.
  */
 void NodeReplacementInserter::operator()(Negated const& n)
 {
@@ -121,14 +121,15 @@ void NodeReplacementInserter::operator()(Negated const& n)
 
 //---------------------------------------------------------------------------//
 /*!
- * If replacing a queued node with a boolean, ours should match.
+ * Some 'join' operations imply requirements for the daughters.
+ *
+ * If this node is "true" and it uses an "and" operation, all daughters must be
+ * true. Likewise, "false" with "or" implies all daughters are false.
  */
 void NodeReplacementInserter::operator()(Joined const& n)
 {
     if (n.op == join_token_)
     {
-        // 'true' with AND or 'false' with OR: all daughters *must* have
-        // the same value
         for (NodeId d : n.nodes)
         {
             stack_->emplace_back(d, repl_);

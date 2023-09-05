@@ -144,6 +144,11 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
         return Aliased{j.nodes.front()};
     }
 
+    // TODO: if all daughters are 'not', replace with nand/nor, and add support
+    // to logic stack (or add simplification strategy to csg tree, which may be
+    // tricky because that operation could modify the tree in place as
+    // well as increase the node depth)
+
     return std::move(j);
 }
 
