@@ -13,7 +13,6 @@
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/distribution/SBEnergyDistHelper.hh"
 #include "celeritas/mat/ElementView.hh"
 
 namespace celeritas
@@ -70,9 +69,6 @@ class SBPositronXsCorrector
     // Calculate cross section scaling factor for the given exiting energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
-    // Get the maximum differential cross section for the incident energy
-    inline CELER_FUNCTION Xs max_xs(SBEnergyDistHelper const& helper) const;
-
   private:
     //// DATA ////
 
@@ -124,19 +120,6 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
     real_type result = std::exp(alpha_z_ * celeritas::min(delta, real_type{0}));
     CELER_ENSURE(result <= 1);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the maximum differential cross section for the given incident energy.
- *
- * The positron cross section is always maximum at the first reduced photon
- * energy grid point.
- */
-CELER_FUNCTION auto
-SBPositronXsCorrector::max_xs(SBEnergyDistHelper const& helper) const -> Xs
-{
-    return helper.xs_zero();
 }
 
 //---------------------------------------------------------------------------//

@@ -27,12 +27,6 @@ struct SBElectronXsCorrector
 
     //! No cross section scaling for any exiting energy
     CELER_FUNCTION real_type operator()(units::MevEnergy) const { return 1; }
-
-    // Calculate maximum differential cross section for the incident energy
-    CELER_FUNCTION Xs max_xs(SBEnergyDistHelper const& helper) const
-    {
-        return helper.max_xs();
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -141,7 +135,7 @@ CELER_FUNCTION
 SBEnergyDistribution<X>::SBEnergyDistribution(SBEnergyDistHelper const& helper,
                                               X scale_xs)
     : helper_(helper)
-    , inv_max_xs_(1 / scale_xs.max_xs(helper).value())
+    , inv_max_xs_(1 / helper.max_xs().value())
     , scale_xs_(::celeritas::move(scale_xs))
 {
 }
