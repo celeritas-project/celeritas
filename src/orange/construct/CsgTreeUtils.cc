@@ -23,19 +23,21 @@ namespace celeritas
 /*!
  * Replace the given node ID with the replacement node.
  *
+ * This recurses through daughters of "Joined" to simplify their originating
+ * surfaces if possible.
+ * - "negated": non-constant daughter node is replaced with ~b
+ * - "replaced": non-constant daughter node is replaced with `b`
+ * - "joined": for (false, or): all daughters are "false"
+ *             for (true, and): all daughters are "true"
+ * - surface: "true"
+ * - constant: check for contradiction
+ *
  * \return Node ID of the lowest node that required simplification.
  */
 NodeId replace_down(CsgTree* tree, NodeId n, Node repl)
 {
     CELER_EXPECT(is_boolean_node(repl));
 
-    // Recursively apply implications of setting to boolean `b`
-    // - "negate": non-constant daughter node is replaced with ~b
-    // - "replace": non-constant daughter node is replaced with `b`
-    // - "join": for (false, or): all daughters are "false"
-    //           for (true, and): all daughters are "true"
-    // - surface: "true"
-    // - constant: check for contradiction
     NodeReplacementInserter::VecNode stack{{n, std::move(repl)}};
 
     NodeId lowest_node{n};
@@ -57,15 +59,13 @@ NodeId replace_down(CsgTree* tree, NodeId n, Node repl)
 /*!
  * Simplify all nodes in the tree starting with this one.
  *
- * Running this successfuly starting with the lowest node to fully simplify the
- * tree. The number of passes is *at most* equal to the depth of the tree.
- *
  * \return Lowest ID of any simplified node
  */
 NodeId simplify_up(CsgTree* tree, NodeId start)
 {
     CELER_EXPECT(tree);
     CELER_EXPECT(start < tree->size());
+
     // Sweep bottom to top to simplify the tree
     NodeId result;
     for (auto node_id : range(start, NodeId{tree->size()}))
@@ -84,7 +84,8 @@ NodeId simplify_up(CsgTree* tree, NodeId start)
  * Iteratively simplify all nodes in the tree.
  *
  * The input 'start' node should be the minimum node from a \c replace_down
- * operation. It should take as many sweeps as the depth of the tree.
+ * operation. In the worst case, it should take as many sweeps as the depth of
+ * the tree.
  */
 void simplify(CsgTree* tree, NodeId start)
 {

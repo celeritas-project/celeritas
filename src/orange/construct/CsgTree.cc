@@ -54,7 +54,7 @@ struct IsUserNodeValid
 
 //---------------------------------------------------------------------------//
 /*!
- * Insert true and false and 'negated true' (which redirects to false).
+ * Insert true and 'negated true', and define equivalence operations.
  */
 CsgTree::CsgTree()
     : nodes_{csg::True{}, csg::Negated{true_node_id()}}
