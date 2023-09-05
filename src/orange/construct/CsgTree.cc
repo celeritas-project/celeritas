@@ -69,25 +69,25 @@ CsgTree::CsgTree()
 /*!
  * Add a node of type T and return the new ID.
  *
- * This performs a single level of simplification on "joined" nodes only, since
- * the user shouldn't be inserting aliased nodes.
+ * This performs a single level of simplification.
  */
 auto CsgTree::insert(Node&& n) -> NodeId
 {
     CELER_EXPECT(!n.valueless_by_exception()
                  && std::visit(IsUserNodeValid{this->size()}, n));
 
-    if (auto* j = std::get_if<csg::Joined>(&n))
     {
-        // Replace "joined" with a simplified node
-        Node repl = NodeSimplifier{*this}(*j);
-        CELER_ASSERT(repl != Node{NodeSimplifier::no_simplification()});
-        if (auto* a = std::get_if<csg::Aliased>(&repl))
+        // Try to simplify the node up to one level when inserting.
+        Node repl = std::visit(NodeSimplifier{*this}, n);
+        if (repl != Node{NodeSimplifier::no_simplification()})
         {
-            // Joined simplified to an aliased node
-            return a->node;
+            n = std::move(repl);
+            if (auto* a = std::get_if<csg::Aliased>(&n))
+            {
+                // Simplified to an aliased node
+                return a->node;
+            }
         }
-        n = std::move(repl);
     }
 
     auto [iter, inserted] = ids_.insert({std::move(n), {}});

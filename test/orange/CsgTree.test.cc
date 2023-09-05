@@ -124,6 +124,13 @@ TEST_F(CsgTreeTest, surfaces)
     EXPECT_EQ(N{2}, this->insert(S{1}));
 }
 
+TEST_F(CsgTreeTest, negation)
+{
+    EXPECT_EQ(N{2}, this->insert(S{1}));
+    EXPECT_EQ(N{3}, this->insert(Negated{N{2}}));
+    EXPECT_EQ(N{2}, this->insert(Negated{N{3}}));
+}
+
 TEST_F(CsgTreeTest, join)
 {
     EXPECT_EQ(N{2}, this->insert(S{1}));
