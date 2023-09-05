@@ -57,7 +57,7 @@ class CsgTree
     // Get a node
     inline Node const& operator[](NodeId node_id) const;
 
-    // Aliased a node, simplifying, and returning original node
+    // Replace a node with a logically equivalent one, simplifying
     Node exchange(NodeId node_id, Node&& n);
 
     // Simplify a single node in-place [O(1)]
@@ -86,19 +86,6 @@ class CsgTree
 //---------------------------------------------------------------------------//
 // Print the tree's contents
 std::ostream& operator<<(std::ostream& os, CsgTree const&);
-
-// Replace a node in the tree with a boolean constant
-csg::NodeId replace_down(CsgTree* tree, csg::NodeId n, csg::Node repl_node);
-
-// Simplify the tree by sweeping
-csg::NodeId simplify_up(CsgTree* tree, csg::NodeId start);
-
-// Simplify the tree iteratively
-void simplify(CsgTree* tree, csg::NodeId start);
-
-// Convert a node to postfix notation
-std::vector<LocalSurfaceId::size_type>
-build_postfix(CsgTree const& tree, csg::NodeId n);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

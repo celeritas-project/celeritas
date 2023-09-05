@@ -14,9 +14,7 @@
 
 #include "corecel/cont/Range.hh"
 
-#include "detail/NodeReplacementInserter.hh"
 #include "detail/NodeSimplifier.hh"
-#include "detail/PostfixLogicBuilder.hh"
 
 using namespace celeritas::csg;
 
@@ -187,101 +185,6 @@ std::ostream& operator<<(std::ostream& os, CsgTree const& tree)
     }
     os << '}';
     return os;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Replace the given node ID with the replacement node.
- *
- * \return Node ID of the lowest node that required simplification.
- */
-NodeId replace_down(CsgTree* tree, NodeId n, Node repl)
-{
-    CELER_EXPECT(is_boolean_node(repl));
-
-    // Recursively apply implications of setting to boolean `b`
-    // - "negate": non-constant daughter node is replaced with ~b
-    // - "replace": non-constant daughter node is replaced with `b`
-    // - "join": for (false, or): all daughters are "false"
-    //           for (true, and): all daughters are "true"
-    // - surface: "true"
-    // - constant: check for contradiction
-    NodeReplacementInserter::VecNode stack{{n, std::move(repl)}};
-
-    NodeId lowest_node{n};
-
-    while (!stack.empty())
-    {
-        n = std::move(stack.back().first);
-        repl = std::move(stack.back().second);
-        stack.pop_back();
-        lowest_node = std::min(n, lowest_node);
-
-        Node prev = tree->exchange(n, std::move(repl));
-        std::visit(NodeReplacementInserter{&stack, repl}, prev);
-    }
-    return lowest_node;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Simplify all nodes in the tree starting with this one.
- *
- * Running this successfuly starting with the lowest node to fully simplify the
- * tree. The number of passes is *at most* equal to the depth of the tree.
- *
- * \return Lowest ID of any simplified node
- */
-NodeId simplify_up(CsgTree* tree, NodeId start)
-{
-    CELER_EXPECT(tree);
-    CELER_EXPECT(start < tree->size());
-    // Sweep bottom to top to simplify the tree
-    NodeId result;
-    for (auto node_id : range(start, NodeId{tree->size()}))
-    {
-        bool simplified = tree->simplify(node_id);
-        if (simplified && !result)
-        {
-            result = node_id;
-        }
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Iteratively simplify all nodes in the tree.
- *
- * The input 'start' node should be the minimum node from a \c replace_down
- * operation. It should take as many sweeps as the depth of the tree.
- */
-void simplify(CsgTree* tree, NodeId start)
-{
-    CELER_EXPECT(tree);
-    CELER_EXPECT(start > tree->false_node_id() && start < tree->size());
-
-    while (start)
-    {
-        auto next_start = simplify_up(tree, start);
-        CELER_ASSERT(!next_start || next_start > start);
-        start = next_start;
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a node to postfix notation.
- */
-std::vector<LocalSurfaceId::size_type>
-build_postfix(CsgTree const& tree, csg::NodeId n)
-{
-    CELER_EXPECT(n < tree.size());
-    std::vector<LocalSurfaceId::size_type> result;
-    csg::PostfixLogicBuilder build_logic{tree, &result};
-
-    build_logic(n);
-    return result;
 }
 
 //---------------------------------------------------------------------------//

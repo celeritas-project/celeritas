@@ -203,6 +203,7 @@ celeritas_add_test(orange/BoundingBox.test.cc)
 celeritas_add_test(orange/BoundingBoxUtils.test.cc)
 celeritas_add_test(orange/CsgTree.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+celeritas_add_test(orange/CsgTreeUtils.test.cc)
 celeritas_add_test(orange/MatrixUtils.test.cc)
 celeritas_add_test(orange/Orange.test.cc)
 
