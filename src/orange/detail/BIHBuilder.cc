@@ -40,7 +40,7 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
                    centers_.begin(),
                    &celeritas::calc_center<fast_real_type>);
 
-    // Partition bounding boxes into infinite and finite
+    // Separate infinite bounding boxes from finite
     VecIndices indices;
     VecIndices inf_volids;
     for (auto i : range(bboxes_.size()))
@@ -149,7 +149,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 
 //---------------------------------------------------------------------------//
 /*!
- * Partition nodes into inner and leaf vectors and renumber accordingly.
+ * Separate inner nodes from leaf nodes and renumber accordingly.
  */
 BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
 {
@@ -157,18 +157,18 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
     VecLeafNodes leaf_nodes;
 
     std::vector<bool> is_leaf;
-    std::vector<std::size_t> new_idx;
+    std::vector<std::size_t> new_indices;
 
     is_leaf.reserve(nodes.size());
-    new_idx.reserve(nodes.size());
+    new_indices.reserve(nodes.size());
 
     auto insert_node = Overload{[&](BIHInnerNode const& node) {
-                                    new_idx.push_back(inner_nodes.size());
+                                    new_indices.push_back(inner_nodes.size());
                                     inner_nodes.push_back(node);
                                     is_leaf.push_back(false);
                                 },
                                 [&](BIHLeafNode const& node) {
-                                    new_idx.push_back(leaf_nodes.size());
+                                    new_indices.push_back(leaf_nodes.size());
                                     leaf_nodes.push_back(node);
                                     is_leaf.push_back(true);
                                 }};
@@ -183,14 +183,15 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
     {
         if (is_leaf[i])
         {
-            new_idx[i] += offset;
+            new_indices[i] += offset;
         }
     }
 
     // Remap IDs. "parent" will only be undefined for the root node.
-    auto remapped_id = [&new_idx](BIHNodeId old) {
-        CELER_EXPECT(old < new_idx.size());
-        return BIHNodeId{static_cast<size_type>(new_idx[old.unchecked_get()])};
+    auto remapped_id = [&new_indices](BIHNodeId old) {
+        CELER_EXPECT(old < new_indices.size());
+        return BIHNodeId{
+            static_cast<size_type>(new_indices[old.unchecked_get()])};
     };
 
     for (auto& inner_node : inner_nodes)
