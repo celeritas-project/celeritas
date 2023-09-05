@@ -207,9 +207,14 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
     };
 
     // Note: the first point has a very low cross section compared to
-    // ionization so won't be encountered in practice. The differential cross
-    // section distribution is much flatter there, so there should be lower
-    // rejection. The second point is where the maximum of the differential SB
+    // ionization so won't be encountered in practice. The electron
+    // differential cross section distribution is much flatter there, so there
+    // should be lower rejection. However, the scaled positron DCS drops
+    // quickly from its maximum (equal to the electron DCS) to near zero at
+    // this point, so the rejection rate will be very high for incident
+    // positrons (see
+    // https://github.com/celeritas-project/celeritas/pull/922#discussion_r1315295079).
+    // The second point is where the maximum of the electron differential SB
     // data switches between a high-exit-energy peak and a low-exit-energy
     // peak, which should result in a higher rejection rate. The remaining
     // points are arbitrary.
