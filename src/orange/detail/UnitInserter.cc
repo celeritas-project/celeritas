@@ -127,6 +127,7 @@ struct NumIntersectionGetter
  */
 UnitInserter::UnitInserter(Data* orange_data)
     : orange_data_(orange_data)
+    , build_bih_tree_{&orange_data_->bih_tree_data}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
 {
     CELER_EXPECT(orange_data);
@@ -134,8 +135,6 @@ UnitInserter::UnitInserter(Data* orange_data)
     // Initialize scalars
     orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
-
-    bih_builder_ = detail::BIHBuilder(&orange_data_->bih_tree_data);
 }
 
 //---------------------------------------------------------------------------//
@@ -196,7 +195,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
                                bboxes.end(),
                                [](FastBBox const& b) { return b; }),
                    << "not all bounding boxes have been assigned");
-    unit.bih_tree = bih_builder_(std::move(bboxes));
+    unit.bih_tree = build_bih_tree_(std::move(bboxes));
 
     // Save connectivity
     {

@@ -44,7 +44,7 @@ class UnitInserter
 
   private:
     Data* orange_data_{nullptr};
-    BIHBuilder bih_builder_;
+    BIHBuilder build_bih_tree_;
     TransformInserter insert_transform_;
 
     //// HELPER METHODS ////
