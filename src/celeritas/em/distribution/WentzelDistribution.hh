@@ -278,15 +278,13 @@ CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(real_type cos_t_max,
 {
     // Sample scattering angle [Fern] eqn 92, where cos(theta) = 1 - 2*mu
     // For incident electrons / positrons, theta_min = 0 always
-    real_type mu = real_type{0.5} * (1 - cos_t_max);
-    real_type xi = generate_canonical(rng);
+    real_type const mu = real_type{0.5} * (1 - cos_t_max);
+    real_type const xi = generate_canonical(rng);
+    real_type const sc = wentzel_elec_ratio.screening_coefficient();
 
-    return clamp(
-        1
-            + 2 * wentzel_elec_ratio.screening_coefficient() * mu * (1 - xi)
-                  / (wentzel_elec_ratio.screening_coefficient() - mu * xi),
-        real_type{-1},
-        real_type{1});
+    return clamp(1 + 2 * sc * mu * (1 - xi) / (sc - mu * xi),
+                 real_type{-1},
+                 real_type{1});
 }
 
 //---------------------------------------------------------------------------//
