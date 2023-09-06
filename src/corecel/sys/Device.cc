@@ -148,6 +148,8 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
+    CELER_LOG_LOCAL(debug) << "Constructing device ID " << id;
+
     unsigned int max_threads_per_block = 0;
 #if CELER_USE_DEVICE
 #    if CELERITAS_USE_CUDA
@@ -242,8 +244,8 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
  */
 StreamId::size_type Device::num_streams() const
 {
-    CELER_EXPECT(streams_);
-
+    if (!streams_)
+        return 0;
     return streams_->size();
 }
 
@@ -314,7 +316,13 @@ void activate_device(Device&& device)
         // the global_device function (in debug mode) also uses this lock.
         std::lock_guard<std::mutex> scoped_lock{device_setter_mutex()};
         CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
-        d = std::move(device);
+        if (!d || (d.device_id() != device.device_id()))
+        {
+            // The device ID is different than the global device; replace it
+            auto num_streams = d.num_streams();
+            d = std::move(device);
+            d.create_streams(num_streams);
+        }
     }
 
     // Call cudaFree to wake up the device, making other timers more accurate
