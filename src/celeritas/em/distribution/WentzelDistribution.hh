@@ -79,7 +79,7 @@ class WentzelDistribution
     WentzelElementData const& element_data_;
 
     // Ratio of elecron to total cross sections for the Wentzel model
-    WentzelRatioCalculator const wentzel_elec_ratio;
+    WentzelRatioCalculator const calc_elec_ratio_;
 
     // Calculates the form factor from the scattered polar angle
     inline CELER_FUNCTION real_type calculate_form_factor(real_type cos_t) const;
@@ -121,7 +121,7 @@ WentzelDistribution::WentzelDistribution(ParticleTrackView const& particle,
     , particle_(particle)
     , target_(target)
     , element_data_(element_data)
-    , wentzel_elec_ratio(particle, target.atomic_number(), data, cutoff_energy)
+    , calc_elec_ratio_(particle, target.atomic_number(), data, cutoff_energy)
 {
 }
 
@@ -133,10 +133,10 @@ template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
     real_type cos_theta = 1;
-    if (BernoulliDistribution(wentzel_elec_ratio())(rng))
+    if (BernoulliDistribution(calc_elec_ratio_())(rng))
     {
         // Scattered off of electrons
-        cos_theta = sample_cos_t(wentzel_elec_ratio.cos_t_max_elec(), rng);
+        cos_theta = sample_cos_t(calc_elec_ratio_.cos_t_max_elec(), rng);
     }
     else
     {
@@ -285,7 +285,7 @@ CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(real_type cos_t_max,
     // For incident electrons / positrons, theta_min = 0 always
     real_type const mu = real_type{0.5} * (1 - cos_t_max);
     real_type const xi = generate_canonical(rng);
-    real_type const sc = wentzel_elec_ratio.screening_coefficient();
+    real_type const sc = calc_elec_ratio_.screening_coefficient();
 
     return clamp(1 + 2 * sc * mu * (1 - xi) / (sc - mu * xi),
                  real_type{-1},
