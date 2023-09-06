@@ -857,11 +857,55 @@ TEST_F(RectArrayTest, tracking)
 TEST_F(NestedRectArraysTest, tracking)
 {
     auto geo = this->make_track_view();
+    geo = Initializer_t{{1.5, 0.5, 0.5}, {1, 0, 0}};
+
+    EXPECT_VEC_SOFT_EQ(Real3({1.5, 0.5, 0.5}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+    EXPECT_EQ("Afill", this->params().id_to_label(geo.volume_id()).name);
+
+    auto next = geo.find_next_step();
+    EXPECT_SOFT_EQ(0.5, next.distance);
+
+    geo.move_to_boundary();
+    EXPECT_EQ("{x,1}", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("Afill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({2, 0.5, 0.5}), geo.pos());
+
+    // Cross universe boundary
+    geo.cross_boundary();
+    EXPECT_EQ("{x,1}", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({2, 0.5, 0.5}), geo.pos());
+
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(1, next.distance);
+}
+
+TEST_F(NestedRectArraysTest, leaving)
+{
+    auto geo = this->make_track_view();
     geo = Initializer_t{{3.5, 1.5, 0.5}, {1, 0, 0}};
 
     EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
+
+    auto next = geo.find_next_step();
+    EXPECT_SOFT_EQ(0.5, next.distance);
+
+    geo.move_to_boundary();
+    EXPECT_EQ("arrfill.px", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({4, 1.5, 0.5}), geo.pos());
+
+    // Cross universe boundary
+    geo.cross_boundary();
+    EXPECT_EQ("arrfill.px", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("interior", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({4, 1.5, 0.5}), geo.pos());
+
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(16, next.distance);
 }
 
 TEST_F(Geant4Testem15Test, safety)

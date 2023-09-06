@@ -19,6 +19,28 @@
 
 namespace celeritas
 {
+inline CELER_FUNCTION Array<size_type, 3>
+vol_id_to_coords(LocalVolumeId vol_id, Array<size_type, 3> dims)
+{
+    auto index = vol_id.unchecked_get();
+
+    Array<size_type, 3> coords;
+
+    for (size_type i : range(3))
+    {
+        coords[i] = index % dims[i];
+        index = (index - coords[i]) / dims[i];
+    }
+
+    return coords;
+}
+
+inline CELER_FUNCTION LocalVolumeId coords_to_vol_id(Array<size_type, 3> coords,
+                                                     Array<size_type, 3> dims)
+{
+    return LocalVolumeId{coords[0] + coords[1] * dims[0]
+                         + coords[2] * dims[0] * dims[1]};
+}
 //---------------------------------------------------------------------------//
 /*!
  * Track a particle within an axes-aligned rectilinear grid.
@@ -161,8 +183,7 @@ CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
         }
     }
 
-    VolumeIndexer to_index({record_.dims[2], record_.dims[1], record_.dims[0]});
-    return {LocalVolumeId{to_index({coords[2], coords[1], coords[0]})}, {}};
+    return Initialization{coords_to_vol_id(coords, record_.dims), {}};
 }
 
 //---------------------------------------------------------------------------//
@@ -176,13 +197,12 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
     CELER_EXPECT(state.surface && state.volume);
 
     // Find the coords of the current volume
-    VolumeIndexer to_index(record_.dims);
-    VolumeInverseIndexer to_coords(record_.dims);
-    auto coords = to_coords(state.volume.unchecked_get());
+
+    auto coords = vol_id_to_coords(state.volume, record_.dims);
     auto ax_idx = this->find_surface_axis_idx(state.surface.id());
 
     // Value for incrementing the axial coordinate upon crossing
-    int inc = (state.surface.sense() == Sense::outside) ? -1 : 1;
+    int inc = (state.surface.sense() == Sense::inside) ? -1 : 1;
 
     detail::OnLocalSurface new_surface(state.surface.id(),
                                        flip_sense(state.surface.sense()));
@@ -190,13 +210,13 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
     if ((coords[ax_idx] == 0 && inc == -1)
         || (coords[ax_idx] == record_.dims[ax_idx] - 1 && inc == 1))
     {
-        // Crossimg out
+        // Crossing out
         return {{}, new_surface};
     }
     else
     {
         coords[ax_idx] += inc;
-        return {LocalVolumeId(to_index(coords)), new_surface};
+        return {coords_to_vol_id(coords, record_.dims), new_surface};
     }
 }
 
@@ -241,8 +261,7 @@ CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
 {
     CELER_EXPECT(volid && volid.get() < this->num_volumes());
 
-    VolumeInverseIndexer to_coords(record_.dims);
-    auto coords = to_coords(volid.unchecked_get());
+    auto coords = vol_id_to_coords(volid, record_.dims);
 
     real_type min_dist = numeric_limits<real_type>::infinity();
 
@@ -302,8 +321,7 @@ RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 
-    auto coords
-        = VolumeInverseIndexer{record_.dims}(state.volume.unchecked_get());
+    auto coords = vol_id_to_coords(state.volume, record_.dims);
 
     Intersection result;
     Sense sense;
