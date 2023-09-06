@@ -84,9 +84,6 @@ class WentzelDistribution
     // Calculates the form factor from the scattered polar angle
     inline CELER_FUNCTION real_type calculate_form_factor(real_type cos_t) const;
 
-    // Helper function for calculating the flat form factor
-    inline CELER_FUNCTION real_type flat_form_factor(real_type x) const;
-
     // Calculate the nuclear form momentum scale
     inline CELER_FUNCTION real_type nuclear_form_momentum_scale() const;
 
@@ -100,6 +97,9 @@ class WentzelDistribution
     template<class Engine>
     inline CELER_FUNCTION real_type sample_cos_t(real_type cos_t_max,
                                                  Engine& rng) const;
+
+    // Helper function for calculating the flat form factor
+    inline static CELER_FUNCTION real_type flat_form_factor(real_type x);
 
     // Momentum coefficient used in the flat nuclear form factor model
     static CELER_CONSTEXPR_FUNCTION real_type flat_coeff();
@@ -187,13 +187,14 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
             real_type x0 = real_type{0.6} * x1
                            * fastpow(value_as<Mass>(target_.nuclear_mass()),
                                      real_type{1} / 3);
-            return flat_form_factor(x0) * flat_form_factor(x1);
+            return this->flat_form_factor(x0) * this->flat_form_factor(x1);
         }
         case NuclearFormFactorType::exponential:
             return 1 / ipow<2>(1 + this->nuclear_form_prefactor() * mt_sq);
         case NuclearFormFactorType::gaussian:
             return std::exp(-2 * this->nuclear_form_prefactor() * mt_sq);
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -202,7 +203,7 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
  *
  * See [LR15] eqn 2.265.
  */
-CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x) const
+CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
 {
     return 3 * (std::sin(x) - x * std::cos(x)) / ipow<3>(x);
 }
