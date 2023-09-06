@@ -410,11 +410,11 @@ void OrangeParams::process_metadata(OrangeInput const& input)
             }
         },
         [&volume_labels](RectArrayInput const& r) {
-            for (auto i : range(r.grid[to_int(Axis::x)].size() - 1))
+            for (auto k : range(r.grid[to_int(Axis::z)].size() - 1))
             {
                 for (auto j : range(r.grid[to_int(Axis::y)].size() - 1))
                 {
-                    for (auto k : range(r.grid[to_int(Axis::z)].size() - 1))
+                    for (auto i : range(r.grid[to_int(Axis::x)].size() - 1))
                     {
                         Label vl;
                         vl.name = std::string("{" + std::to_string(i) + ","
