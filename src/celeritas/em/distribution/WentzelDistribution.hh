@@ -136,12 +136,12 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
     if (BernoulliDistribution(calc_elec_ratio_())(rng))
     {
         // Scattered off of electrons
-        cos_theta = sample_cos_t(calc_elec_ratio_.cos_t_max_elec(), rng);
+        cos_theta = this->sample_cos_t(calc_elec_ratio_.cos_t_max_elec(), rng);
     }
     else
     {
         // Scattered off of nucleus
-        cos_theta = sample_cos_t(-1, rng);
+        cos_theta = this->sample_cos_t(-1, rng);
 
         // Calculate rejection for fake scattering
         // TODO: Reference?
@@ -150,7 +150,7 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
         MottRatioCalculator mott_xsec(element_data_,
                                       std::sqrt(particle_.beta_sq()));
         real_type g_rej = mott_xsec(cos_theta)
-                          * ipow<2>(calculate_form_factor(cos_theta))
+                          * ipow<2>(this->calculate_form_factor(cos_theta))
                           / mott_coeff;
 
         if (!BernoulliDistribution(g_rej)(rng))
@@ -177,24 +177,22 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 CELER_FUNCTION real_type
 WentzelDistribution::calculate_form_factor(real_type cos_t) const
 {
+    real_type mt_sq = this->mom_transfer_sq(cos_t);
     switch (data_.form_factor_type)
     {
+        case NuclearFormFactorType::none:
+            return 1;
         case NuclearFormFactorType::flat: {
-            real_type x1 = flat_coeff() * std::sqrt(mom_transfer_sq(cos_t));
+            real_type x1 = this->flat_coeff() * std::sqrt(mt_sq);
             real_type x0 = real_type{0.6} * x1
                            * fastpow(value_as<Mass>(target_.nuclear_mass()),
                                      real_type{1} / 3);
             return flat_form_factor(x0) * flat_form_factor(x1);
         }
         case NuclearFormFactorType::exponential:
-            return 1
-                   / ipow<2>(
-                       1 + nuclear_form_prefactor() * mom_transfer_sq(cos_t));
+            return 1 / ipow<2>(1 + this->nuclear_form_prefactor() * mt_sq);
         case NuclearFormFactorType::gaussian:
-            return std::exp(-2 * nuclear_form_prefactor()
-                            * mom_transfer_sq(cos_t));
-        default:
-            return 1;
+            return std::exp(-2 * this->nuclear_form_prefactor() * mt_sq);
     }
 }
 
@@ -225,40 +223,6 @@ CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the constant prefactors of the squared momentum transfer.
- *
- * This factor is used in the exponential and Gaussian nuclear form models: see
- * Eqs. 2.262--2.264 of [LR15].
- *
- * Specifically, it calculates \f$ (r_n/\bar h)^2 / 12 \f$. A special case is
- * inherited from Geant for hydrogen targets.
- *
- * TODO: precalculate this and store in atomic data.
- */
-CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
-{
-    // TODO: Geant has a different prefactor for hydrogen?
-    if (target_.atomic_number().get() == 1)
-    {
-        return real_type{1.5485e-6};
-    }
-
-    // The ratio has units of (MeV/c)^-2, so it's easier to convert the
-    // inverse which has units of MomentumSq, then invert afterwards
-    constexpr real_type ratio
-        = 1
-          / native_value_to<MomentumSq>(
-                12
-                * ipow<2>(constants::hbar_planck
-                          / (real_type(1.27) * units::femtometer)))
-                .value();
-    return ratio
-           * fastpow(real_type(target_.atomic_mass_number().get()),
-                     2 * real_type(0.27));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate the squared momentum transfer to the target for the given
  * deflection angle \f$\cos\theta\f$ of the incident particle.
  *
@@ -267,6 +231,15 @@ CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
 CELER_FUNCTION real_type WentzelDistribution::mom_transfer_sq(real_type cos_t) const
 {
     return 2 * value_as<MomentumSq>(particle_.momentum_sq()) * (1 - cos_t);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the constant prefactor of the squared momentum transfer.
+ */
+CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
+{
+    return data_.nuclear_form_prefactor[target_.isotope_id()];
 }
 
 //---------------------------------------------------------------------------//
