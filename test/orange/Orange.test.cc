@@ -83,6 +83,15 @@ class RectArrayTest : public OrangeTest
     void SetUp() override { this->build_geometry("rect_array.org.json"); }
 };
 
+#define NestedRectArraysTest TEST_IF_CELERITAS_JSON(NestedRectArraysTest)
+class NestedRectArraysTest : public OrangeTest
+{
+    void SetUp() override
+    {
+        this->build_geometry("nested_rect_arrays.org.json");
+    }
+};
+
 #define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)
 class Geant4Testem15Test : public OrangeTest
 {
@@ -833,6 +842,26 @@ TEST_F(RectArrayTest, params)
 
     EXPECT_VEC_SOFT_EQ(Real3({-12, -4, -5}), geo.bbox().lower());
     EXPECT_VEC_SOFT_EQ(Real3({12, 10, 5}), geo.bbox().upper());
+}
+
+TEST_F(RectArrayTest, tracking)
+{
+    auto geo = this->make_track_view();
+    geo = Initializer_t{{-1, 1, -1}, {1, 0, 0}};
+
+    EXPECT_VEC_SOFT_EQ(Real3({-1, 1, -1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+    EXPECT_EQ("Hfill", this->params().id_to_label(geo.volume_id()).name);
+}
+
+TEST_F(NestedRectArraysTest, tracking)
+{
+    auto geo = this->make_track_view();
+    geo = Initializer_t{{3.5, 1.5, 0.5}, {1, 0, 0}};
+
+    EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+    EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
 }
 
 TEST_F(Geant4Testem15Test, safety)
