@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/CoulombScattering.test.cc
+//! \file celeritas/em/Wentzel.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
