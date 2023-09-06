@@ -266,11 +266,8 @@ CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
 /*!
  * Calculate the local surface normal.
  */
-CELER_FUNCTION autouniv
-    / RectArrayTracker
-          .hh
-          RectArrayTracker::normal(Real3 const&,
-                                   LocalSurfaceId surf) const->Real3
+CELER_FUNCTION auto
+RectArrayTracker::normal(Real3 const&, LocalSurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf && surf.get() < this->num_surfaces());
     size_type ax = this->find_surface_axis_idx(surf);
