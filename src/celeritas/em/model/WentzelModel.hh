@@ -23,7 +23,7 @@ class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up and launch the Wentzel model interaction.
+ * Set up and launch the Wentzel Coulomb scattering model interaction.
  */
 class WentzelModel final : public Model
 {

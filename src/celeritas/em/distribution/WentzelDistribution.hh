@@ -28,7 +28,7 @@ namespace celeritas
 /*!
  * Helper class for \c WentzelInteractor .
  *
- * Samples the polar scattering angle for the Wentzel model.
+ * Samples the polar scattering angle for the Wentzel Coulomb scattering model.
  *
  * References:
  * [Fern] J.M. Fernandez-Varea, R. Mayol and F. Salvat. On the theory
@@ -51,7 +51,7 @@ class WentzelDistribution
     //!@}
 
   public:
-    //! Construct with state and date from WentzelInteractor
+    // Construct with state and date from WentzelInteractor
     inline CELER_FUNCTION
     WentzelDistribution(ParticleTrackView const& particle,
                         IsotopeView const& target,
@@ -59,7 +59,7 @@ class WentzelDistribution
                         real_type cutoff_energy,
                         WentzelRef const& data);
 
-    //! Sample the polar scattering angle
+    // Sample the polar scattering angle
     template<class Engine>
     inline CELER_FUNCTION real_type operator()(Engine& rng) const;
 
@@ -81,29 +81,28 @@ class WentzelDistribution
     // Ratio of elecron to total cross sections for the Wentzel model
     WentzelRatioCalculator const wentzel_elec_ratio;
 
-    //! Calculates the form factor from the scattered polar angle
+    // Calculates the form factor from the scattered polar angle
     inline CELER_FUNCTION real_type calculate_form_factor(real_type cos_t) const;
 
-    //! Helper function for calculating the flat form factor
+    // Helper function for calculating the flat form factor
     inline CELER_FUNCTION real_type flat_form_factor(real_type x) const;
 
-    //! Calculate the nuclear form momentum scale
+    // Calculate the nuclear form momentum scale
     inline CELER_FUNCTION real_type nuclear_form_momentum_scale() const;
 
-    //! Calculate the squared momentum transfer to the target
+    // Calculate the squared momentum transfer to the target
     inline CELER_FUNCTION real_type mom_transfer_sq(real_type cos_t) const;
 
-    //! Momentum coefficient used in the flat nuclear form factor model
-    CELER_CONSTEXPR_FUNCTION real_type flat_coeff() const;
-
-    //! Momentum prefactor used in exponential and gaussian form factors
+    // Momentum prefactor used in exponential and gaussian form factors
     inline CELER_FUNCTION real_type nuclear_form_prefactor() const;
 
-    //! Samples the scattered polar angle based on the maximum scattering
-    //! angle and screening coefficient
+    // Sample the scattered polar angle
     template<class Engine>
     inline CELER_FUNCTION real_type sample_cos_t(real_type cos_t_max,
                                                  Engine& rng) const;
+
+    // Momentum coefficient used in the flat nuclear form factor model
+    static CELER_CONSTEXPR_FUNCTION real_type flat_coeff();
 };
 
 //---------------------------------------------------------------------------//
@@ -128,7 +127,7 @@ WentzelDistribution::WentzelDistribution(ParticleTrackView const& particle,
 
 //---------------------------------------------------------------------------//
 /*!
- * Samples the polar scattered angle of the incident particle.
+ * Sample the polar scattered angle of the incident particle.
  */
 template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
@@ -166,7 +165,7 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculates the form factor based on the form factor model.
+ * Calculate the form factor based on the form factor model.
  *
  * The models are described in [LR15] section 2.4.2.1 and parameterize the
  * charge distribution inside a nucleus. The same models are used as in
@@ -201,8 +200,9 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper function for calculating the flat form factors, see [LR15] eqn
- * 2.265.
+ * Calculate the flat form factor.
+ *
+ * See [LR15] eqn 2.265.
  */
 CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x) const
 {
@@ -212,10 +212,11 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x) cons
 //---------------------------------------------------------------------------//
 /*!
  * Momentum coefficient used in the flat model for the nuclear form factors.
+ *
  * This is the ratio of \f$ r_1 / \hbar \f$ where \f$ r_1 \f$ is defined in
  * eqn 2.265 of [LR15].
  */
-CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff() const
+CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 {
     return native_value_to<units::MevMomentum>(2 * units::femtometer
                                                / constants::hbar_planck)
@@ -224,12 +225,15 @@ CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculates the constant prefactors of the squared momentum transfer used
- * in the exponential and Guassian nuclear form models, see eqns 2.262-2.264
- * of [LR15].
+ * Calculate the constant prefactors of the squared momentum transfer.
  *
- * Specifically, it calculates (r_n/hbar)^2 / 12. A special case is inherited
- * from Geant for hydrogen targets.
+ * This factor is used in the exponential and Gaussian nuclear form models: see
+ * Eqs. 2.262--2.264 of [LR15].
+ *
+ * Specifically, it calculates \f$ (r_n/\bar h)^2 / 12 \f$. A special case is
+ * inherited from Geant for hydrogen targets.
+ *
+ * TODO: precalculate this and store in atomic data.
  */
 CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
 {
@@ -267,8 +271,9 @@ CELER_FUNCTION real_type WentzelDistribution::mom_transfer_sq(real_type cos_t) c
 
 //---------------------------------------------------------------------------//
 /*!
- * Randomly samples the scattering polar angle of the incident particle
- * based on the maximum scattering angle. The probability is given in [Fern]
+ * Sample the scattering polar angle of the incident particle.
+ *
+ * The probability is given in [Fern]
  * eqn 88 and is nomalized on the interval
  * \f$ cos\theta \in [1, \cos\theta_{max}] \f$.
  */
