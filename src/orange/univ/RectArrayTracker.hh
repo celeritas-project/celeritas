@@ -338,7 +338,7 @@ RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
         }
     }
 
-    univ / RectArrayTracker.hh return result;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
