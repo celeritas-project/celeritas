@@ -145,8 +145,8 @@ template<class T>
 inline constexpr BoundingBox<T>
 calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
-    Array<T, 3> lower{};
-    Array<T, 3> upper{};
+    Array<T, 3> lower;
+    Array<T, 3> upper;
 
     for (auto ax : range(to_int(Axis::size_)))
     {
@@ -167,8 +167,8 @@ template<class T>
 inline constexpr BoundingBox<T>
 calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
-    Array<T, 3> lower{};
-    Array<T, 3> upper{};
+    Array<T, 3> lower;
+    Array<T, 3> upper;
 
     for (auto ax : range(to_int(Axis::size_)))
     {
