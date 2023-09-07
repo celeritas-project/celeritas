@@ -306,7 +306,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
 
     // Mark as 'simple safety' if all the surfaces are simple
     bool simple_safety = true;
-    logic_int max_intersections = 0;
+    size_type max_intersections = 0;
 
     for (LocalSurfaceId sid : v.faces)
     {
@@ -334,7 +334,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                        .insert_back(v.faces.begin(), v.faces.end());
     output.logic = make_builder(&orange_data_->logic_ints)
                        .insert_back(input_logic.begin(), input_logic.end());
-    output.max_intersections = max_intersections;
+    output.max_intersections = static_cast<logic_int>(max_intersections);
     output.flags = v.flags;
     if (simple_safety)
     {
