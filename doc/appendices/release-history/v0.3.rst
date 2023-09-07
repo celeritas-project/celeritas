@@ -8,11 +8,12 @@
 Version 0.3.2
 =============
 
-*Released 2023/09/06*
+*Released 2023/09/07*
 
 Version 0.3.2 is a bug fix release of Celeritas that addresses all
 identified discrepancies between Geant4 and Celeritas EM physics processes.
-
+It also should provide better performance when running Celeritas
+through Geant4 with many threads sharing the same GPU.
 
 Bug fixes
 ---------
@@ -21,8 +22,9 @@ Bug fixes
 * Fix unit conversion errors when reading from event file *(@amandalund, #916)*
 * Fix Seltzer-Berger max xs for positrons *(@amandalund, #922)*
 * Fix Geant4 step limiter when ionization is disabled *(@amandalund, #920)*
+* Fix resetting of CUDA streams when running through accel *(@sethrj, #927)*
 
-Reviewers: @sethrj *(4)*, @mrguilima *(1)*, @stognini *(1)*
+Reviewers: @sethrj *(4)*, @mrguilima *(1)*, @stognini *(1)*, @amandalund *(1)*
 
 Documentation improvements
 --------------------------
