@@ -93,7 +93,7 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 template<MemSpace M>
 void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
 {
-    Stream::StreamT stream = nullptr;
+    [[maybe_unused]] Stream::StreamT stream = nullptr;
     if (M == MemSpace::device && options_.sync)
     {
         stream = celeritas::device().stream(state.stream_id()).get();
