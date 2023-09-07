@@ -205,17 +205,26 @@ void count_tracks_per_action(
         auto start = device_pointer_cast(make_observer(offsets.data()));
         thrust::fill(start, start + offsets.size(), ThreadId{});
         CELER_DEVICE_CHECK_ERROR();
+        auto* stream = celeritas::device().stream(states.stream_id).get();
         CELER_LAUNCH_KERNEL(tracks_per_action,
                             celeritas::device().default_block_size(),
                             states.size(),
-                            celeritas::device().stream(states.stream_id).get(),
+                            stream,
                             states,
                             offsets,
                             states.size(),
                             order);
+
         Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
-        Copier<ThreadId, MemSpace::host> copy_to_host{sout};
-        copy_to_host(MemSpace::device, offsets);
+        CELER_DEVICE_CALL_PREFIX(
+            MemcpyAsync(sout.data(),
+                        offsets.data(),
+                        offsets.size() * sizeof(ThreadId),
+                        CELER_DEVICE_PREFIX(MemcpyDeviceToHost),
+                        stream));
+
+        // Copies must be complete before backfilling
+        CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
         backfill_action_count(sout, states.size());
     }
 }

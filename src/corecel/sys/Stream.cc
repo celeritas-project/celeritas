@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -22,6 +23,13 @@ namespace celeritas
 Stream::Stream()
 {
     CELER_DEVICE_CALL_PREFIX(StreamCreate(&stream_));
+#if CUDART_VERSION >= 12000
+    unsigned long long stream_id = -1;
+    CELER_CUDA_CALL(cudaStreamGetId(stream_, &stream_id));
+    CELER_LOG_LOCAL(debug) << "Created stream ID " << stream_id;
+#else
+    CELER_LOG_LOCAL(debug) << "Created stream  " << static_cast<void*>(stream_);
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -35,6 +43,8 @@ Stream::~Stream()
         try
         {
             CELER_DEVICE_CALL_PREFIX(StreamDestroy(stream_));
+            CELER_LOG_LOCAL(debug)
+                << "Destroyed stream " << static_cast<void*>(stream_);
         }
         catch (RuntimeError const& e)
         {
