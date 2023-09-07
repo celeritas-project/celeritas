@@ -83,6 +83,12 @@ class RectArrayTest : public OrangeTest
     void SetUp() override { this->build_geometry("rect_array.org.json"); }
 };
 
+#define HexArrayTest TEST_IF_CELERITAS_JSON(HexArrayTest)
+class HexArrayTest : public OrangeTest
+{
+    void SetUp() override { this->build_geometry("hex_array.org.json"); }
+};
+
 #define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)
 class Geant4Testem15Test : public OrangeTest
 {
@@ -852,6 +858,14 @@ TEST_F(Geant4Testem15Test, safety)
     next = geo.find_next_step();
     geo.move_internal(6.0);
     EXPECT_SOFT_EQ(10.0, geo.find_safety());
+}
+
+TEST_F(HexArrayTest, init)
+{
+    OrangeTrackView geo = this->make_track_view();
+
+    // Initialize
+    geo = Initializer_t{{0.0, 0.0, 0.0}, {0, 1, 0}};
 }
 
 //---------------------------------------------------------------------------//
