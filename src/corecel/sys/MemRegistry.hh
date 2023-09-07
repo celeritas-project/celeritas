@@ -20,12 +20,12 @@ namespace celeritas
 //! SI prefix for multiples of 1024
 struct Kibi
 {
-    static CELER_CONSTEXPR_FUNCTION int value() { return 1024; }
+    static CELER_CONSTEXPR_FUNCTION long int value() { return 1024; }
     static char const* label() { return "kibi"; }
 };
 
 //! 1024 bytes
-using KibiBytes = Quantity<Kibi, int>;
+using KibiBytes = Quantity<Kibi, long int>;
 //! Ordered identifiers for memory allocation segments
 using MemUsageId = OpaqueId<struct MemUsageEntry>;
 

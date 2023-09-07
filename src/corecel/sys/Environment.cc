@@ -24,8 +24,8 @@ namespace celeritas
  */
 Environment& environment()
 {
-    static Environment environ;
-    return environ;
+    static Environment result;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

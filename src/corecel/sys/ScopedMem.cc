@@ -13,9 +13,11 @@
 #elif defined(__linux__)
 #    include <sys/resource.h>
 #elif defined(_WIN32)
-#    include <psapi.h>
 #    include <windows.h>
+// Note: windows header *must* precede psapi
+#    include <psapi.h>
 #endif
+#include <cstddef>
 #include <iostream>
 
 #include "corecel/device_runtime_api.h"
@@ -74,13 +76,13 @@ MemResult get_cpu_mem()
     return result;
 }
 
-std::ptrdiff_t get_gpu_mem()
+long int get_gpu_mem()
 {
     std::size_t free{0};
     std::size_t total{0};
     CELER_DEVICE_CALL_PREFIX(MemGetInfo(&free, &total));
     CELER_ASSERT(total > free);
-    return std::ptrdiff_t(total) - std::ptrdiff_t(free);
+    return static_cast<long int>(total) - static_cast<long int>(free);
 }
 
 //---------------------------------------------------------------------------//
@@ -102,7 +104,7 @@ ScopedMem::ScopedMem(std::string_view label, MemRegistry* registry)
     MemUsageEntry& entry = registry_.value()->get(id_);
     entry.label = label;
 
-    cpu_start_hwm_ = get_cpu_mem().hwm;
+    cpu_start_hwm_ = static_cast<long int>(get_cpu_mem().hwm);
     if (celeritas::device())
     {
         gpu_start_used_ = get_gpu_mem();
@@ -120,7 +122,7 @@ ScopedMem::~ScopedMem()
         MemUsageEntry& entry = registry_.value()->get(id_);
 
         // Save CPU stats
-        std::ptrdiff_t stop_hwm = get_cpu_mem().hwm;
+        auto stop_hwm = static_cast<long int>(get_cpu_mem().hwm);
         entry.cpu_hwm = native_value_to<KibiBytes>(stop_hwm);
         entry.cpu_delta = native_value_to<KibiBytes>(stop_hwm - cpu_start_hwm_);
 
@@ -128,7 +130,7 @@ ScopedMem::~ScopedMem()
         {
             try
             {
-                std::ptrdiff_t stop_usage = get_gpu_mem();
+                auto stop_usage = static_cast<long int>(get_gpu_mem());
                 entry.gpu_usage = native_value_to<KibiBytes>(stop_usage);
                 entry.gpu_delta
                     = native_value_to<KibiBytes>(stop_usage - gpu_start_used_);
