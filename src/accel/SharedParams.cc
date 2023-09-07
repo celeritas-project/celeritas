@@ -238,8 +238,11 @@ void SharedParams::Finalize()
     CELER_LOG_LOCAL(debug) << "Resetting shared parameters";
     *this = {};
 
-    // Reset streams before the static destructor does
-    celeritas::device().create_streams(0);
+    if (auto& d = celeritas::device())
+    {
+        // Reset streams before the static destructor does
+        d.create_streams(0);
+    }
 
     CELER_ENSURE(!*this);
 }
