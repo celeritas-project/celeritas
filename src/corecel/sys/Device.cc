@@ -35,13 +35,6 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-std::mutex& device_setter_mutex()
-{
-    static std::mutex m;
-    return m;
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Active CUDA device for Celeritas calls on the local process.
  *
@@ -51,9 +44,9 @@ std::mutex& device_setter_mutex()
  * and
  * https://github.com/celeritas-project/celeritas/pull/149#discussion_r578000062
  *
- * We might need to add a "thread_local" annotation corresponding to a
- * multithreaded celeritas option. This class will always be thread safe to
- * read (if the instance isn't being modified by other threads).
+ * The device should be *activated* by the main thread, and \c
+ * activate_device_local should be called on other threads to set up the
+ * local CUDA context.
  */
 Device& global_device()
 {
@@ -289,19 +282,23 @@ Device const& device()
 
 //---------------------------------------------------------------------------//
 /*!
- * Activate the given device.
+ * Activate the global celeritas device.
  *
  * The given device must be set (true result) unless no device has yet been
  * enabled -- this allows \c make_device to create "null" devices
  * when CUDA is disabled.
  *
- * \note This function is thread safe, and even though the global device is
- * shared across threads, it should be called from each thread to correctly
- * initialize CUDA.
+ * This function may be called once only, because the global device propagates
+ * into local states (e.g. where memory is allocated) all over Celeritas.
  */
 void activate_device(Device&& device)
 {
-    CELER_EXPECT(device || !global_device());
+    static std::mutex m;
+    std::lock_guard<std::mutex> scoped_lock{m};
+    Device& d = global_device();
+    CELER_VALIDATE(!d,
+                   << "celeritas::activate_device may be called only once per "
+                      "application");
 
     if (!device)
         return;
@@ -310,20 +307,8 @@ void activate_device(Device&& device)
                            << device.device_id() << " of "
                            << Device::num_devices();
     ScopedTimeLog scoped_time(&self_logger(), 1.0);
-    Device& d = global_device();
-    {
-        // Lock *after* getting the pointer to the global_device, because
-        // the global_device function (in debug mode) also uses this lock.
-        std::lock_guard<std::mutex> scoped_lock{device_setter_mutex()};
-        CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
-        if (!d || (d.device_id() != device.device_id()))
-        {
-            // The device ID is different than the global device; replace it
-            auto num_streams = d.num_streams();
-            d = std::move(device);
-            d.create_streams(num_streams);
-        }
-    }
+    CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
+    d = std::move(device);
 
     // Call cudaFree to wake up the device, making other timers more accurate
     CELER_DEVICE_CALL_PREFIX(Free(nullptr));
@@ -361,13 +346,15 @@ void activate_device(MpiCommunicator const& comm)
  * See
  * https://developer.nvidia.com/blog/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs
  *
- * \pre activate_device was called to set \c device()
+ * \pre activate_device was called or no device is intended to be used
  */
 void activate_device_local()
 {
-    if (device())
+    Device& d = global_device();
+    if (d)
     {
-        CELER_DEVICE_CALL_PREFIX(SetDevice(device().device_id()));
+        CELER_LOG_LOCAL(debug) << "Activating device " << d.device_id();
+        CELER_DEVICE_CALL_PREFIX(SetDevice(d.device_id()));
     }
 }
 
