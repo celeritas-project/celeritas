@@ -9,6 +9,7 @@ import os
 import json
 import sys
 from pathlib import Path
+from sphinx import __version__ as sphinx_version
 
 # -- Project information -----------------------------------------------------
 
@@ -137,6 +138,19 @@ if html_theme == 'alabaster':
         'show_relbars': True,
         'show_powered_by': False,
     }
+
+mathjax3_config = {
+    "tex": {
+        "macros": {
+            "dif": r"\;\mathrm{d}",
+        },
+    },
+    "loader": {"load": ["ui/lazy", "output/svg"]},
+}
+
+if int(sphinx_version.partition('.')[0]) < 4:
+    # See https://mathjax.github.io/MathJax-demos-web/convert-configuration/convert-configuration.html
+    mathjax_config = {"TeX": { "Macros": mathjax3_config["tex"]["macros"]}}
 
 # -- Options for LaTeX output ------------------------------------------------
 
