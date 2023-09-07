@@ -33,7 +33,7 @@ void CalculatorTestBase::build(real_type emin, real_type emax, size_type count)
         {0.0, emin}, {count - 1.0, emax});
     for (auto i : range(temp_xs.size()))
     {
-        temp_xs[i] = calc_xs(i);
+        temp_xs[i] = calc_xs(static_cast<real_type>(i));
     }
 
     value_storage_ = {};

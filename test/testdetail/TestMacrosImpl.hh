@@ -322,7 +322,7 @@ std::string failure_msg(char const* expected_expr,
     using std::setw;
 
     // Calculate how many digits we need to space out
-    int idig = num_digits(failures.back().index);
+    int idig = num_digits(static_cast<unsigned long>(failures.back().index));
     int vdig = 16;
 
     // Construct our own stringstream because google test ignores setw
@@ -361,7 +361,7 @@ std::string float_failure_msg(char const* expected_expr,
     using std::setw;
 
     // Calculate how many digits we need to space out the index
-    int idig = num_digits(failures.back().index);
+    int idig = num_digits(static_cast<unsigned long>(failures.back().index));
     int vdig = std::max(std::numeric_limits<T1>::digits10,
                         std::numeric_limits<T2>::digits10);
 
