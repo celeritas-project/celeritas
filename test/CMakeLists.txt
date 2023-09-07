@@ -10,7 +10,7 @@ include(CeleritasAddTest)
 # TEST HARNESS
 #-----------------------------------------------------------------------------#
 
-set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
+file(TO_CMAKE_PATH "${PROJECT_SOURCE_DIR}" CELERITAS_SOURCE_DIR)
 configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 celeritas_add_library(testcel_harness
