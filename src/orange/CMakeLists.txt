@@ -26,6 +26,7 @@ list(APPEND SOURCES
   surf/CylAligned.cc
   surf/GeneralQuadric.cc
   surf/Plane.cc
+  surf/PlaneAligned.cc
   surf/SimpleQuadric.cc
   surf/Sphere.cc
   surf/SurfaceIO.cc
