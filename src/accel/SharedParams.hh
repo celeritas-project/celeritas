@@ -108,7 +108,6 @@ class SharedParams
 
     //// HELPER FUNCTIONS ////
 
-    static void initialize_device(SetupOptions const& options);
     void initialize_core(SetupOptions const& options);
     void try_output() const;
 };
