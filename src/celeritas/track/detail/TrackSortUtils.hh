@@ -83,7 +83,7 @@ struct alive_predicate
 {
     ObserverPtr<TrackStatus const> status_;
 
-    CELER_FUNCTION bool operator()(unsigned int track_slot) const
+    CELER_FUNCTION bool operator()(size_type track_slot) const
     {
         return status_.get()[track_slot] == TrackStatus::alive;
     }
@@ -93,7 +93,7 @@ struct action_comparator
 {
     ObserverPtr<ActionId const> action_;
 
-    CELER_FUNCTION bool operator()(unsigned int a, unsigned int b) const
+    CELER_FUNCTION bool operator()(size_type a, size_type b) const
     {
         return action_.get()[a] < action_.get()[b];
     }
