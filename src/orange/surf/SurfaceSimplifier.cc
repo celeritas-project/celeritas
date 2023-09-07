@@ -77,8 +77,9 @@ auto SurfaceSimplifier::operator()(PlaneAligned<T> const& p) const
     // No simplification performed
     return {};
 }
-
+//! \cond
 ORANGE_INSTANTIATE_OP(PlaneAligned, PlaneAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -104,7 +105,9 @@ auto SurfaceSimplifier::operator()(CylAligned<T> const& c) const
     return {};
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(CylCentered, CylAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!

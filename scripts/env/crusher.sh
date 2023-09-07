@@ -28,7 +28,11 @@ export SPACK_ROOT=/ccs/proj/csc404/spack-crusher
 export PATH=${_celer_base}/spack/view/bin:$PATH
 export CMAKE_PREFIX_PATH=${_celer_base}/spack/view:${CMAKE_PREFIX_PATH}
 export MODULEPATH=${SPACK_ROOT}/share/spack/lmod/cray-sles15-x86_64/Core:${MODULEPATH}
+
+# Set up Geant4 data 
 module load geant4-data
+test -n "${G4ENSDFSTATEDATA}"
+test -e "${G4ENSDFSTATEDATA}"
 
 # Make llvm available
 test -n "${ROCM_PATH}"

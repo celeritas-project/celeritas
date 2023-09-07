@@ -183,6 +183,11 @@ as properties of any secondary particles produced.
 .. doxygenclass:: celeritas::detail::UrbanMscScatter
    :members: none
 
+.. doxygenclass:: celeritas::SBEnergyDistribution
+   :members: none
+.. doxygenclass:: celeritas::detail::SBPositronXsCorrector
+   :members: none
+
 .. _api_importdata:
 
 Physics data

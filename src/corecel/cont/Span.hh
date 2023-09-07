@@ -224,7 +224,7 @@ template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Array<std::remove_cv_t<T>, N>
 make_array(Span<T, N> const& s)
 {
-    Array<std::remove_cv_t<T>, N> result;
+    Array<std::remove_cv_t<T>, N> result{};
     for (std::size_t i = 0; i < N; ++i)
     {
         result[i] = s[i];

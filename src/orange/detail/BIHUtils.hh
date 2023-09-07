@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "orange/BoundingBoxUtils.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {
@@ -20,15 +21,11 @@ namespace celeritas
 inline FastBBox calc_union(std::vector<FastBBox> const& bboxes,
                            std::vector<LocalVolumeId> const& indices)
 {
-    CELER_EXPECT(!bboxes.empty());
-    CELER_EXPECT(!indices.empty());
-
-    auto id = indices.begin();
-    auto result = bboxes[id->unchecked_get()];
-    ++id;
-    for (; id != indices.end(); ++id)
+    FastBBox result;
+    for (auto const& id : indices)
     {
-        result = calc_union(result, bboxes[id->unchecked_get()]);
+        CELER_ASSERT(id < bboxes.size());
+        result = calc_union(result, bboxes[id.unchecked_get()]);
     }
 
     return result;

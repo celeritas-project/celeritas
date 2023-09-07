@@ -23,6 +23,8 @@
 
 #include "celeritas_test.hh"
 
+using celeritas::detail::SBPositronXsCorrector;
+
 namespace celeritas
 {
 namespace test
