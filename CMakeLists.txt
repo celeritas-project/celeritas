@@ -180,6 +180,10 @@ if(BUILD_SHARED_LIBS)
   # Do not relink libs/binaries when dependent shared libs change
   celeritas_set_default(CMAKE_LINK_DEPENDS_NO_SHARED ON)
 endif()
+if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
+  # Make sure modules, sub-libraries, etc. are relocatable
+  celeritas_set_default(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
 
 ### Installation flags ###
 # When developing add checking for proper usage of `install(`
