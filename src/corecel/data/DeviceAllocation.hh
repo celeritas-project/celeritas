@@ -14,7 +14,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/sys/Stream.hh"
 
 namespace celeritas
 {
@@ -27,7 +26,6 @@ namespace celeritas
  * memory without using `thrust`, which requires NVCC and propagates that
  * requirement into all upstream code.
  */
-template<DeviceAllocationPolicy P>
 class DeviceAllocation
 {
   public:
@@ -36,23 +34,14 @@ class DeviceAllocation
     using size_type = std::size_t;
     using SpanBytes = Span<Byte>;
     using SpanConstBytes = Span<Byte const>;
-    using StreamT = Stream::StreamT;
     //!@}
 
   public:
     // Construct in unallocated state
-    explicit DeviceAllocation(StreamT stream)
-        : stream_{stream}, data_{nullptr, DeviceFreeDeleter{stream}} {};
-
-    // Construct in unallocated state
-    DeviceAllocation() : DeviceAllocation{nullptr} {};
+    DeviceAllocation() = default;
 
     // Construct and allocate a number of bytes
-    DeviceAllocation(size_type num_bytes, StreamT stream);
-
-    // Construct and allocate a number of bytes
-    explicit DeviceAllocation(size_type num_bytes)
-        : DeviceAllocation{num_bytes, nullptr} {};
+    DeviceAllocation(size_type num_bytes);
 
     // Swap with another allocation
     inline void swap(DeviceAllocation& other) noexcept;
@@ -82,7 +71,6 @@ class DeviceAllocation
   private:
     struct DeviceFreeDeleter
     {
-        StreamT stream_;
         void operator()(Byte*) const;
     };
     using DeviceUniquePtr = std::unique_ptr<Byte[], DeviceFreeDeleter>;
@@ -90,13 +78,11 @@ class DeviceAllocation
     //// DATA ////
 
     InitializedValue<size_type> size_;
-    StreamT stream_{nullptr};
     DeviceUniquePtr data_;
 };
 
 // Swap two allocations
-template<DeviceAllocationPolicy P>
-inline void swap(DeviceAllocation<P>& a, DeviceAllocation<P>& b) noexcept;
+inline void swap(DeviceAllocation& a, DeviceAllocation& b) noexcept;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -104,8 +90,7 @@ inline void swap(DeviceAllocation<P>& a, DeviceAllocation<P>& b) noexcept;
 /*!
  * Swap with another allocation.
  */
-template<DeviceAllocationPolicy P>
-void DeviceAllocation<P>::swap(DeviceAllocation<P>& other) noexcept
+void DeviceAllocation::swap(DeviceAllocation& other) noexcept
 {
     using std::swap;
     swap(this->data_, other.data_);
@@ -116,8 +101,7 @@ void DeviceAllocation<P>::swap(DeviceAllocation<P>& other) noexcept
 /*!
  * Get a view to the owned device memory.
  */
-template<DeviceAllocationPolicy P>
-auto DeviceAllocation<P>::device_ref() -> SpanBytes
+auto DeviceAllocation::device_ref() -> SpanBytes
 {
     return {data_.get(), size_};
 }
@@ -126,8 +110,7 @@ auto DeviceAllocation<P>::device_ref() -> SpanBytes
 /*!
  * Get a view to the owned device memory.
  */
-template<DeviceAllocationPolicy P>
-auto DeviceAllocation<P>::device_ref() const -> SpanConstBytes
+auto DeviceAllocation::device_ref() const -> SpanConstBytes
 {
     return {data_.get(), size_};
 }
@@ -136,8 +119,7 @@ auto DeviceAllocation<P>::device_ref() const -> SpanConstBytes
 /*!
  * Swap two allocations.
  */
-template<DeviceAllocationPolicy P>
-void swap(DeviceAllocation<P>& a, DeviceAllocation<P>& b) noexcept
+void swap(DeviceAllocation& a, DeviceAllocation& b) noexcept
 {
     return a.swap(b);
 }

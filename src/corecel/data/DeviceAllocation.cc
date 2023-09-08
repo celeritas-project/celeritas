@@ -20,20 +20,11 @@ namespace celeritas
 /*!
  * Allocate a buffer with the given number of bytes.
  */
-template<DeviceAllocationPolicy P>
-DeviceAllocation<P>::DeviceAllocation(size_type bytes, StreamT stream)
-    : size_{bytes}, stream_{stream}, data_{nullptr, DeviceFreeDeleter{stream}}
+DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
 {
     CELER_EXPECT(celeritas::device());
     void* ptr = nullptr;
-    if constexpr (P == DeviceAllocationPolicy::sync)
-    {
-        CELER_DEVICE_CALL_PREFIX(Malloc(&ptr, bytes));
-    }
-    else if constexpr (P == DeviceAllocationPolicy::async)
-    {
-        CELER_DEVICE_CALL_PREFIX(MallocAsync(&ptr, bytes, stream_));
-    }
+    CELER_DEVICE_CALL_PREFIX(Malloc(&ptr, bytes));
     data_.reset(static_cast<Byte*>(ptr));
 }
 
@@ -41,8 +32,7 @@ DeviceAllocation<P>::DeviceAllocation(size_type bytes, StreamT stream)
 /*!
  * Copy data to device.
  */
-template<DeviceAllocationPolicy P>
-void DeviceAllocation<P>::copy_to_device(SpanConstBytes bytes)
+void DeviceAllocation::copy_to_device(SpanConstBytes bytes)
 {
     CELER_EXPECT(bytes.size() == this->size());
     CELER_DEVICE_CALL_PREFIX(Memcpy(data_.get(),
@@ -55,8 +45,7 @@ void DeviceAllocation<P>::copy_to_device(SpanConstBytes bytes)
 /*!
  * Copy data to host.
  */
-template<DeviceAllocationPolicy P>
-void DeviceAllocation<P>::copy_to_host(SpanBytes bytes) const
+void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 {
     CELER_EXPECT(bytes.size() == this->size());
     CELER_DEVICE_CALL_PREFIX(Memcpy(bytes.data(),
@@ -67,20 +56,12 @@ void DeviceAllocation<P>::copy_to_host(SpanBytes bytes) const
 
 //---------------------------------------------------------------------------//
 //! Deleter frees data: prevent exceptions
-template<DeviceAllocationPolicy P>
-void DeviceAllocation<P>::DeviceFreeDeleter::operator()(
+void DeviceAllocation::DeviceFreeDeleter::operator()(
     [[maybe_unused]] Byte* ptr) const
 {
     try
     {
-        if constexpr (P == DeviceAllocationPolicy::sync)
-        {
-            CELER_DEVICE_CALL_PREFIX(Free(ptr));
-        }
-        else if constexpr (P == DeviceAllocationPolicy::async)
-        {
-            CELER_DEVICE_CALL_PREFIX(FreeAsync(ptr, stream_));
-        }
+        CELER_DEVICE_CALL_PREFIX(Free(ptr));
     }
     catch (RuntimeError const& e)
     {
@@ -100,11 +81,6 @@ void DeviceAllocation<P>::DeviceFreeDeleter::operator()(
         ++warn_count;
     }
 }
-
-// EXPLICIT INSTANTIATION
-//---------------------------------------------------------------------------//
-template class DeviceAllocation<DeviceAllocationPolicy::sync>;
-template class DeviceAllocation<DeviceAllocationPolicy::async>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
