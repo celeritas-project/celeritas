@@ -91,8 +91,7 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
            << "\nExpected: " << expected_expr << "\nWhich is: " << expected
            << '\n';
 
-    SoftZero<value_type> is_soft_zero(comp.abs());
-    if (is_soft_zero(expected))
+    if (SoftZero<value_type>{comp.abs()}(expected))
     {
         // Avoid divide by zero errors
         result << "(Absolute error " << actual - expected
@@ -121,7 +120,7 @@ template<class Value_E, class Value_A>
 
     // Construct with automatic or specified tolerances
     using ValueT = typename SoftPrecisionType<Value_E, Value_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     return IsSoftEquivImpl(
         expected, expected_expr, actual, actual_expr, BinaryOp());
@@ -144,7 +143,7 @@ template<class Value_E, class Value_A>
 
     // Construct with automatic or specified tolerances
     using ValueT = typename SoftPrecisionType<Value_E, Value_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     return IsSoftEquivImpl(
         expected, expected_expr, actual, actual_expr, BinaryOp(rel));
@@ -488,7 +487,7 @@ template<class ContainerE, class ContainerA>
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     // Construct with automatic or specified tolerances
     return IsVecSoftEquivImpl(
@@ -518,7 +517,7 @@ template<class ContainerE, class ContainerA>
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
@@ -549,7 +548,7 @@ template<class ContainerE, class ContainerA>
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(

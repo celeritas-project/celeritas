@@ -76,6 +76,28 @@ class SoftEqual
 
 //---------------------------------------------------------------------------//
 /*!
+ * Compare for equality before checking with the given functor.
+ */
+template<class F>
+class EqualOr : public F
+{
+  public:
+    //! Forward arguments to parent class
+    template<class... C>
+    CELER_FUNCTION EqualOr(C&&... args) : F{std::forward<C>(args)...}
+    {
+    }
+
+    //! Forward arguments to comparison operator after comparing
+    template<class T, class U>
+    bool CELER_FUNCTION operator()(T a, U b) const
+    {
+        return a == b || static_cast<F const&>(*this)(a, b);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Functor for floating point equality.
  */
 template<class RealType = ::celeritas::real_type>
@@ -110,6 +132,16 @@ class SoftZero
 
     using SETraits = detail::SoftEqualTraits<value_type>;
 };
+
+//---------------------------------------------------------------------------//
+// TEMPLATE DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+template<class T>
+CELER_FUNCTION SoftEqual(T)->SoftEqual<T>;
+template<class T>
+CELER_FUNCTION SoftEqual(T, T)->SoftEqual<T>;
+template<class F>
+CELER_FUNCTION EqualOr(F&&)->EqualOr<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

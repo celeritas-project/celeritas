@@ -107,6 +107,29 @@ TYPED_TEST(FloatingTest, soft_equal)
     EXPECT_FALSE(comp(inf, inf));
 }
 
+TYPED_TEST(FloatingTest, equal_or_soft_equal)
+{
+    using value_type = typename TestFixture::value_type;
+    using Limits_t = typename TestFixture::Limits_t;
+    const value_type nan = Limits_t::quiet_NaN();
+    const value_type inf = Limits_t::infinity();
+
+    EqualOr<SoftEqual<value_type>> comp;
+
+    EXPECT_TRUE(comp(1, 1));
+    EXPECT_TRUE(comp(0, 0));
+    EXPECT_FALSE(comp(-1, 1));
+    EXPECT_FALSE(comp(1, -1));
+    EXPECT_FALSE(comp(inf, -inf));
+    EXPECT_FALSE(comp(-inf, inf));
+
+    EXPECT_TRUE(comp(inf, inf));
+    EXPECT_TRUE(comp(1e6, 1e6 * (1 + comp.rel() / 2)));
+    EXPECT_FALSE(comp(1e6, 1e6 * (1 + comp.rel() * 2)));
+
+    EXPECT_FALSE(comp(1, nan));
+}
+
 TYPED_TEST(FloatingTest, soft_zero)
 {
     using value_type = typename TestFixture::value_type;
