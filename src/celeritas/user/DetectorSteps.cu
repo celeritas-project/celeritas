@@ -122,7 +122,7 @@ struct HasDetector
 
 //---------------------------------------------------------------------------//
 template<class T>
-void copy_field(std::vector<T>* dst,
+void copy_field(DetectorStepOutput::vector<T>* dst,
                 StateRef<T> const& src,
                 size_type num_valid,
                 Stream::StreamT stream)

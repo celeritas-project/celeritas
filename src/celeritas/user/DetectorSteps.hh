@@ -11,6 +11,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#if CELER_USE_DEVICE
+#   include "corecel/device_runtime_api.h"
+#   include "corecel/data/detail/PinnedAllocator.hh"
+#endif
 #include "corecel/cont/EnumArray.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -30,11 +34,18 @@ struct StepStateData;
 struct DetectorStepPointOutput
 {
     using Energy = units::MevEnergy;
+#if CELER_USE_DEVICE
+    template<class T>
+    using vector = std::vector<T, detail::PinnedAllocator<T>>;
+#else
+    template<class T>
+    using vector = std::vector<T>;
+#endif
 
-    std::vector<real_type> time;
-    std::vector<Real3> pos;
-    std::vector<Real3> dir;
-    std::vector<Energy> energy;
+    vector<real_type> time;
+    vector<Real3> pos;
+    vector<Real3> dir;
+    vector<Energy> energy;
 };
 
 //---------------------------------------------------------------------------//
@@ -55,18 +66,27 @@ struct DetectorStepOutput
 
     // Pre- and post-step data
     EnumArray<StepPoint, DetectorStepPointOutput> points;
+#if CELER_USE_DEVICE
+    template<class T>
+    using vector = std::vector<T, detail::PinnedAllocator<T>>;
+#else
+    template<class T>
+    using vector = std::vector<T>;
+#endif
+
+
 
     // Detector ID and track ID are always set
-    std::vector<DetectorId> detector;
-    std::vector<TrackId> track_id;
+    vector<DetectorId> detector;
+    vector<TrackId> track_id;
 
     // Additional optional data
-    std::vector<EventId> event_id;
-    std::vector<TrackId> parent_id;
-    std::vector<size_type> track_step_count;
-    std::vector<real_type> step_length;
-    std::vector<ParticleId> particle;
-    std::vector<Energy> energy_deposition;
+    vector<EventId> event_id;
+    vector<TrackId> parent_id;
+    vector<size_type> track_step_count;
+    vector<real_type> step_length;
+    vector<ParticleId> particle;
+    vector<Energy> energy_deposition;
 
     //! Number of elements in the detector output.
     size_type size() const { return detector.size(); }
