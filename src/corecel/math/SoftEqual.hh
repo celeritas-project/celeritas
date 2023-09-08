@@ -19,10 +19,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Functor for floating point equality.
+ * Functor for noninfinite floating point equality.
  *
- * \note This functor is *not commutative*: eq(a,b) will not always give the
- * same as eq(b,a).
+ * This function-like class considers an \em absolute tolerance for values near
+ * zero, and a \em relative tolerance for valuse far from zero. It correctly
+ * returns "false" if either value being compared is NaN.  The call operator is
+ * \em commutative: \c eq(a,b) should always give the same as \c eq(b,a).
+ *
+ * The actual comparison is: \f[
+ |a - b| < \max(\epsilon_r \max(|a|, |b|), \epsilon_a)
+ \f]
+ *
+ * \note The edge case where both values are infinite (with the same sign)
+ * returns *false* for equality, which could be considered reasonable because
+ * relative error is meaningless. To explicitly allow infinities to compare
+ * equal, you must test separately, e.g., `a == b || soft_eq(a, b)`.
  */
 template<class RealType = ::celeritas::real_type>
 class SoftEqual
@@ -46,8 +57,7 @@ class SoftEqual
     //// COMPARISON ////
 
     // Compare two values (implicitly casting arguments)
-    bool CELER_FUNCTION operator()(value_type expected,
-                                   value_type actual) const;
+    bool CELER_FUNCTION operator()(value_type a, value_type b) const;
 
     //// ACCESSORS ////
 
@@ -61,7 +71,7 @@ class SoftEqual
     value_type rel_;
     value_type abs_;
 
-    using traits_t = detail::SoftEqualTraits<value_type>;
+    using SETraits = detail::SoftEqualTraits<value_type>;
 };
 
 //---------------------------------------------------------------------------//
@@ -98,7 +108,7 @@ class SoftZero
   private:
     value_type abs_;
 
-    using traits_t = detail::SoftEqualTraits<value_type>;
+    using SETraits = detail::SoftEqualTraits<value_type>;
 };
 
 //---------------------------------------------------------------------------//
@@ -109,7 +119,7 @@ class SoftZero
  */
 template<class RealType>
 CELER_FUNCTION SoftEqual<RealType>::SoftEqual()
-    : SoftEqual(traits_t::rel_prec(), traits_t::abs_thresh())
+    : SoftEqual(SETraits::rel_prec(), SETraits::abs_thresh())
 {
 }
 
@@ -119,7 +129,7 @@ CELER_FUNCTION SoftEqual<RealType>::SoftEqual()
  */
 template<class RealType>
 CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
-    : SoftEqual(rel, rel * (traits_t::abs_thresh() / traits_t::rel_prec()))
+    : SoftEqual(rel, rel * (SETraits::abs_thresh() / SETraits::rel_prec()))
 {
     CELER_EXPECT(rel > 0);
 }
@@ -143,47 +153,17 @@ CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
 
 //---------------------------------------------------------------------------//
 /*!
- * Compare two values (implicitly casting arguments).
- *
- * Note that to be safe with NaN, only return \c true inside an \c if
- * conditional.
+ * Compare two values, implicitly casting arguments.
  *
  * \param expected scalar floating point reference to which value is compared
  * \param actual   scalar floating point value
  */
 template<class RealType>
 CELER_FUNCTION bool
-SoftEqual<RealType>::operator()(value_type expected, value_type actual) const
+SoftEqual<RealType>::operator()(value_type a, value_type b) const
 {
-    const value_type abs_e = std::fabs(expected);
-
-    // Typical case: relative error comparison to reference
-    if (std::fabs(actual - expected) < rel_ * abs_e)
-    {
-        return true;
-    }
-
-    const value_type eps_abs = abs_;
-    const value_type abs_a = std::fabs(actual);
-    // If one is within the absolute threshold of zero, and the other within
-    // relative of zero, they're equal
-    if ((abs_e < eps_abs) && (abs_a < rel_))
-    {
-        return true;
-    }
-    if ((abs_a < eps_abs) && (abs_e < rel_))
-    {
-        return true;
-    }
-
-    // If they're both infinite and share a sign, they're equal
-    if (std::isinf(expected) && std::isinf(actual)
-        && std::signbit(expected) == std::signbit(actual))
-    {
-        return true;
-    }
-
-    return false;
+    real_type rel = rel_ * std::fmax(std::fabs(a), std::fabs(b));
+    return std::fabs(a - b) < std::fmax(abs_, rel);
 }
 
 //---------------------------------------------------------------------------//
@@ -192,7 +172,7 @@ SoftEqual<RealType>::operator()(value_type expected, value_type actual) const
  */
 template<class RealType>
 CELER_FUNCTION SoftZero<RealType>::SoftZero()
-    : SoftZero(traits_t::abs_thresh())
+    : SoftZero(SETraits::abs_thresh())
 {
 }
 

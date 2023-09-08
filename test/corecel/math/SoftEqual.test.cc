@@ -68,10 +68,15 @@ TYPED_TEST(FloatingTest, soft_equal)
     // Test with tolerance
     EXPECT_TRUE(comp(1, 1 + comp.rel() / 2));
     EXPECT_FALSE(comp(1, 1 + comp.rel() * 2));
+    // Large scale
+    EXPECT_TRUE(comp(1e6, 1e6 * (1 + comp.rel() / 2)));
+    EXPECT_FALSE(comp(1e6, 1e6 * (1 + comp.rel() * 2)));
+    // Smaller scale
+    EXPECT_TRUE(comp(1e-6, 1e-6 * (1 + comp.rel() / 2)));
+    EXPECT_FALSE(comp(1e-6, 1e-7));
 
-    // TODO: absolute tolerace is wacky
-    EXPECT_TRUE(comp(0, comp.rel() / 2));
-    EXPECT_TRUE(comp(comp.abs() / 2, comp.rel() / 2));
+    EXPECT_FALSE(comp(0, comp.rel() / 2));
+    EXPECT_FALSE(comp(comp.abs() / 2, comp.rel() / 2));
     EXPECT_FALSE(comp(0, comp.rel()));
     EXPECT_FALSE(comp(comp.abs(), comp.rel() / 2));
     EXPECT_FALSE(comp(comp.abs(), comp.rel()));
@@ -93,10 +98,13 @@ TYPED_TEST(FloatingTest, soft_equal)
     const value_type maxval = Limits_t::max();
     EXPECT_FALSE(comp(0, inf));
     EXPECT_FALSE(comp(inf, 0));
-    EXPECT_TRUE(comp(inf, inf));
     EXPECT_FALSE(comp(inf, -inf));
     EXPECT_FALSE(comp(-inf, inf));
     EXPECT_FALSE(comp(inf, maxval));
+
+    // NOTE: values that are legitimately infinite require additional testing
+    // outside of soft equal because they're an edge case.
+    EXPECT_FALSE(comp(inf, inf));
 }
 
 TYPED_TEST(FloatingTest, soft_zero)
@@ -138,7 +146,7 @@ TYPED_TEST(FloatingTest, soft_mod)
     EXPECT_TRUE(soft_mod(value_type(1.0), value_type(0.25)));
     EXPECT_FALSE(soft_mod(value_type(1.0), value_type(0.8)));
 
-    auto tol = SoftEqual<value_type>().rel() / 2;
+    auto tol = SoftEqual<value_type>().abs() / 2;
     EXPECT_TRUE(soft_mod(value_type(1), value_type(0.25)));
     EXPECT_TRUE(soft_mod(value_type(3.6) + tol, value_type(1.2)));
     EXPECT_TRUE(soft_mod(value_type(3.6) - tol, value_type(1.2)));
