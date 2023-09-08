@@ -63,7 +63,7 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
         // Convert field units from tesla to native celeritas units
         for (real_type& v : field)
         {
-            v /= units::tesla;
+            v *= units::tesla;
         }
 
         UniformFieldParams field_params;

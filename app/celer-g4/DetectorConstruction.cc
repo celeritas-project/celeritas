@@ -135,7 +135,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         CELER_LOG_LOCAL(info)
             << "Using a uniform field (0, 0, " << field[2] << ") in Tesla";
         mag_field_ = std::make_shared<G4UniformMagField>(field);
-
         GlobalSetup::Instance()->SetAlongStepFactory(
             UniformAlongStepFactory([=] { return field; }));
     }
