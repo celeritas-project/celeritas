@@ -47,7 +47,7 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
     auto field_params = get_field_ ? get_field_() : UniformFieldParams{};
-    real_type magnitude_tesla = norm(field_params.field) * units::tesla;
+    real_type magnitude_tesla = norm(field_params.field) / units::tesla;
 
     if (magnitude_tesla > 0)
     {
