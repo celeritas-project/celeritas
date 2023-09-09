@@ -19,10 +19,10 @@
 #include "celeritas/user/RootStepWriter.hh"
 
 #ifdef _WIN32
-#include <cstdlib>
-#ifdef environ
-#undef environ
-#endif
+#    include <cstdlib>
+#    ifdef environ
+#        undef environ
+#    endif
 #endif
 
 namespace celeritas

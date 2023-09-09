@@ -11,7 +11,7 @@
 #include <cstdlib>
 #include <string>
 #ifndef _WIN32
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 #include "corecel/sys/Environment.hh"

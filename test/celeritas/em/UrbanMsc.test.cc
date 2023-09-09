@@ -300,8 +300,9 @@ TEST_F(UrbanMscTest, step_conversion)
             msc_step.alpha = gp.alpha;
             MscStepFromGeo geo_to_true(
                 msc_params_->host_ref().params, msc_step, range, lambda);
-            LogInterp calc_gstep({0, 0.9 * params.limit_min_fix()},
-                                 {static_cast<real_type>(gstep_points), gp.step});
+            LogInterp calc_gstep(
+                {0, 0.9 * params.limit_min_fix()},
+                {static_cast<real_type>(gstep_points), gp.step});
             for (auto gpt : celeritas::range(gstep_points + 1))
             {
                 // Calculate between a nearby hypothetical geometric boundary

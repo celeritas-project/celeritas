@@ -412,18 +412,18 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 template<unsigned int N, class T>
 CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
 {
-	if constexpr (N == 0)
-	{
-		return 1;
-	}
-	else if constexpr (N % 2 == 0)
-	{
-		return ipow<N / 2>(v) * ipow<N / 2>(v);
-	}
-	else
-	{
-            return v * ipow<(N - 1) / 2>(v) * ipow<(N - 1) / 2>(v);
-	    }
+    if constexpr (N == 0)
+    {
+        return 1;
+    }
+    else if constexpr (N % 2 == 0)
+    {
+        return ipow<N / 2>(v) * ipow<N / 2>(v);
+    }
+    else
+    {
+        return v * ipow<(N - 1) / 2>(v) * ipow<(N - 1) / 2>(v);
+    }
 }
 
 //---------------------------------------------------------------------------//
