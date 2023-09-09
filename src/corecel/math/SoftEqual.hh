@@ -46,13 +46,13 @@ class SoftEqual
 
   public:
     // Construct with default relative/absolute precision
-    inline CELER_FUNCTION SoftEqual();
+    CELER_CONSTEXPR_FUNCTION SoftEqual();
 
     // Construct with default absolute precision
-    inline explicit CELER_FUNCTION SoftEqual(value_type rel);
+    explicit CELER_FUNCTION SoftEqual(value_type rel);
 
     // Construct with both relative and absolute precision
-    inline CELER_FUNCTION SoftEqual(value_type rel, value_type abs);
+    CELER_FUNCTION SoftEqual(value_type rel, value_type abs);
 
     //// COMPARISON ////
 
@@ -62,10 +62,10 @@ class SoftEqual
     //// ACCESSORS ////
 
     //! Relative allowable error
-    CELER_FUNCTION value_type rel() const { return rel_; }
+    CELER_CONSTEXPR_FUNCTION value_type rel() const { return rel_; }
 
     //! Absolute tolerance
-    CELER_FUNCTION value_type abs() const { return abs_; }
+    CELER_CONSTEXPR_FUNCTION value_type abs() const { return abs_; }
 
   private:
     value_type rel_;
@@ -77,6 +77,8 @@ class SoftEqual
 //---------------------------------------------------------------------------//
 /*!
  * Compare for equality before checking with the given functor.
+ *
+ * This CRTP class allows \c SoftEqual to work for infinities.
  */
 template<class F>
 class EqualOr : public F
@@ -112,10 +114,10 @@ class SoftZero
 
   public:
     // Construct with default relative/absolute precision
-    inline CELER_FUNCTION SoftZero();
+    CELER_CONSTEXPR_FUNCTION SoftZero();
 
     // Construct with absolute precision
-    inline explicit CELER_FUNCTION SoftZero(value_type abs);
+    explicit CELER_FUNCTION SoftZero(value_type abs);
 
     //// COMPARISON ////
 
@@ -125,7 +127,7 @@ class SoftZero
     //// ACCESSORS ////
 
     //! Absolute tolerance
-    CELER_FUNCTION value_type abs() const { return abs_; }
+    CELER_CONSTEXPR_FUNCTION value_type abs() const { return abs_; }
 
   private:
     value_type abs_;
@@ -150,8 +152,8 @@ CELER_FUNCTION EqualOr(F&&)->EqualOr<F>;
  * Construct with default relative/absolute precision.
  */
 template<class RealType>
-CELER_FUNCTION SoftEqual<RealType>::SoftEqual()
-    : SoftEqual(SETraits::rel_prec(), SETraits::abs_thresh())
+CELER_CONSTEXPR_FUNCTION SoftEqual<RealType>::SoftEqual()
+    : rel_{SETraits::rel_prec()}, abs_{SETraits::abs_thresh()}
 {
 }
 
@@ -177,7 +179,7 @@ CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
  */
 template<class RealType>
 CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
-    : rel_(rel), abs_(abs)
+    : rel_{rel}, abs_{abs}
 {
     CELER_EXPECT(rel > 0);
     CELER_EXPECT(abs > 0);
@@ -203,8 +205,8 @@ SoftEqual<RealType>::operator()(value_type a, value_type b) const
  * Construct with default relative/absolute precision.
  */
 template<class RealType>
-CELER_FUNCTION SoftZero<RealType>::SoftZero()
-    : SoftZero(SETraits::abs_thresh())
+CELER_CONSTEXPR_FUNCTION SoftZero<RealType>::SoftZero()
+    : abs_(SETraits::abs_thresh())
 {
 }
 

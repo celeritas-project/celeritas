@@ -21,16 +21,20 @@ namespace test
 
 TEST(SoftEqual, default_precisions)
 {
-    using Comp_t = SoftEqual<>;
+    using Comp = SoftEqual<>;
 
-    EXPECT_DOUBLE_EQ(1e-12, Comp_t().rel());
-    EXPECT_DOUBLE_EQ(1e-14, Comp_t().abs());
+    // Check that defaults can be accessed as constexpr
+    constexpr auto rel = Comp().rel();
+    constexpr auto abs = Comp().abs();
 
-    EXPECT_DOUBLE_EQ(1e-6, Comp_t(1e-6).rel());
-    EXPECT_DOUBLE_EQ(1e-8, Comp_t(1e-6).abs());
+    EXPECT_DOUBLE_EQ(1e-12, rel);
+    EXPECT_DOUBLE_EQ(1e-14, abs);
 
-    EXPECT_DOUBLE_EQ(1e-4, Comp_t(1e-4, 1e-9).rel());
-    EXPECT_DOUBLE_EQ(1e-9, Comp_t(1e-4, 1e-9).abs());
+    EXPECT_DOUBLE_EQ(1e-6, Comp(1e-6).rel());
+    EXPECT_DOUBLE_EQ(1e-8, Comp(1e-6).abs());
+
+    EXPECT_DOUBLE_EQ(1e-4, Comp(1e-4, 1e-9).rel());
+    EXPECT_DOUBLE_EQ(1e-9, Comp(1e-4, 1e-9).abs());
 }
 
 //---------------------------------------------------------------------------//
@@ -55,9 +59,9 @@ TYPED_TEST(FloatingTest, soft_equal)
 {
     using value_type = typename TestFixture::value_type;
     using Limits_t = typename TestFixture::Limits_t;
-    using Comp_t = SoftEqual<value_type>;
+    using Comp = SoftEqual<value_type>;
 
-    Comp_t comp;
+    Comp comp;
 
     // Test basic equality
     EXPECT_TRUE(comp(1, 1));
@@ -134,9 +138,9 @@ TYPED_TEST(FloatingTest, soft_zero)
 {
     using value_type = typename TestFixture::value_type;
     using Limits_t = typename TestFixture::Limits_t;
-    using Comp_t = SoftZero<value_type>;
+    using Comp = SoftZero<value_type>;
 
-    Comp_t comp;
+    Comp comp;
 
     // Test basic equality
     EXPECT_TRUE(comp(0));
