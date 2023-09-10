@@ -73,8 +73,8 @@ class SoftSurfaceEqual
   private:
     SoftEqual<real_type> soft_eq_;
 
-    inline bool soft_eq_sq_(real_type a, real_type b) const;
-    inline bool soft_eq_distance_(Real3 const& a, Real3 const& b) const;
+    bool soft_eq_sq_(real_type a, real_type b) const;
+    bool soft_eq_distance_(Real3 const& a, Real3 const& b) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -92,33 +92,6 @@ bool ExactSurfaceEqual::operator()(S const& a, S const& b) const
     auto r = range(data_a.size());
     return std::all_of(
         r.begin(), r.end(), [&](auto i) { return data_a[i] == data_b[i]; });
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Compare the square of values for soft equality.
- *
- * \f[
- |a - b| < \max(\epsilon_r \max(|a|, |b|), \epsilon_a)
- \to
-(a - b)^2 < \max(\epsilon_r^2 (\max(|a|, |b|))^2, \epsilon_a^2)
- \f]
- *
- * If \em a and \em b are \f$ O(1) \f$ and \f$ a = b \pm \epsilon \f$ then
- *
- * \f[
-a^2 + b^2 - 2 a b < \epsilon'^2
-a^2 + b^2 - (2 b^2 \pm 2 b \epsilon) < \epsilon'^2
-a^2 - b^2 < \pm 2 b \epsilon + \epsilon'^2
-|a^2 - b^2| < 2 b \epsilon + O(\epsilon'^2)
-a^4 + b^4 < 2 a^2 b^2 + 4 \max(a^2, b^2) \epsilon^2
-\f]
- *
- * XXX not implemented correctly
- */
-bool SoftSurfaceEqual::soft_eq_sq_(real_type a, real_type b) const
-{
-    return SoftEqual{ipow<2>(soft_eq_.rel()), ipow<2>(soft_eq_.abs())}(a, b);
 }
 
 //---------------------------------------------------------------------------//

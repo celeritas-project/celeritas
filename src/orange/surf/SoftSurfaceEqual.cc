@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "SoftSurfaceEqual.hh"
 
+#include <cmath>
+
+#include "detail/AllSurfaces.hh"
+
 namespace celeritas
 {
 namespace
@@ -31,7 +35,7 @@ template<Axis T>
 bool SoftSurfaceEqual::operator()(PlaneAligned<T> const& a,
                                   PlaneAligned<T> const& b) const
 {
-    return &a == &b;
+    return soft_eq_(a.position(), b.position());
 }
 
 //! \cond
@@ -46,7 +50,7 @@ template<Axis T>
 bool SoftSurfaceEqual::operator()(CylCentered<T> const& a,
                                   CylCentered<T> const& b) const
 {
-    return &a == &b;
+    return soft_eq_sq_(a.radius_sq(), b.radius_sq());
 }
 
 //! \cond
@@ -60,7 +64,7 @@ ORANGE_INSTANTIATE_OP(CylCentered);
 bool SoftSurfaceEqual::operator()(SphereCentered const& a,
                                   SphereCentered const& b) const
 {
-    return &a == &b;
+    return soft_eq_sq_(a.radius_sq(), b.radius_sq());
 }
 
 //---------------------------------------------------------------------------//
@@ -71,7 +75,8 @@ template<Axis T>
 bool SoftSurfaceEqual::operator()(CylAligned<T> const& a,
                                   CylAligned<T> const& b) const
 {
-    return &a == &b;
+    return soft_eq_sq_(a.radius_sq(), b.radius_sq())
+           && soft_eq_distance_(a.calc_origin(), b.calc_origin());
 }
 
 //! \cond
@@ -84,7 +89,11 @@ ORANGE_INSTANTIATE_OP(CylAligned);
  */
 bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
 {
-    return &a == &b;
+    // Guard against dot product being slightly greater than 1 due to fp
+    // arithmetic
+    real_type const ndot = dot_product(a.normal(), b.normal());
+    return (ndot >= 1 || std::sqrt(1 - ndot) < soft_eq_.rel() * 3)
+           && soft_eq_(a.displacement(), b.displacement());
 }
 
 //---------------------------------------------------------------------------//
@@ -93,7 +102,8 @@ bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
  */
 bool SoftSurfaceEqual::operator()(Sphere const& a, Sphere const& b) const
 {
-    return &a == &b;
+    return soft_eq_sq_(a.radius_sq(), b.radius_sq())
+           && soft_eq_distance_(a.origin(), b.origin());
 }
 
 //---------------------------------------------------------------------------//
@@ -104,7 +114,8 @@ template<Axis T>
 bool SoftSurfaceEqual::operator()(ConeAligned<T> const& a,
                                   ConeAligned<T> const& b) const
 {
-    return &a == &b;
+    return soft_eq_sq_(a.tangent_sq(), b.tangent_sq())
+           && soft_eq_distance_(a.origin(), b.origin());
 }
 
 //! \cond
@@ -118,7 +129,9 @@ ORANGE_INSTANTIATE_OP(ConeAligned);
 bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
                                   SimpleQuadric const& b) const
 {
-    return &a == &b;
+    return soft_eq_distance_(make_array(a.second()), make_array(b.second()))
+           && soft_eq_distance_(make_array(a.first()), make_array(b.first()))
+           && soft_eq_(a.zeroth(), b.zeroth());
 }
 
 //---------------------------------------------------------------------------//
@@ -128,11 +141,23 @@ bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
 bool SoftSurfaceEqual::operator()(GeneralQuadric const& a,
                                   GeneralQuadric const& b) const
 {
-    return &a == &b;
+    return soft_eq_distance_(make_array(a.second()), make_array(b.second()))
+           && soft_eq_distance_(make_array(a.cross()), make_array(b.cross()))
+           && soft_eq_distance_(make_array(a.first()), make_array(b.first()))
+           && soft_eq_(a.zeroth(), b.zeroth());
 }
 
 //---------------------------------------------------------------------------//
 // PRIVATE HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Compare the square of values for soft equality.
+ */
+bool SoftSurfaceEqual::soft_eq_sq_(real_type a, real_type b) const
+{
+    return soft_eq_(std::sqrt(a), std::sqrt(b));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Compare the distance between two points for being less than the tolerance.
@@ -141,7 +166,7 @@ bool SoftSurfaceEqual::soft_eq_distance_(Real3 const& a, Real3 const& b) const
 {
     // This is soft equal formula but using vector distance.
     real_type rel = soft_eq_.rel() * std::fmax(norm(a), norm(b));
-    return distance(a, b) < std::fmax(soft_eq_.abs(), rel);
+    return distance(a, b) < 3 * std::fmax(soft_eq_.abs(), rel);
 }
 
 //---------------------------------------------------------------------------//

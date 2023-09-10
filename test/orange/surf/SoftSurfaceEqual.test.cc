@@ -32,14 +32,21 @@ class SoftSurfaceEqualTest : public ::celeritas::test::Test
 
     //! Check surfaces with a sphere-like constructor
     template<class S>
-    void check_equality_s(Real3 const& pt, real_type r) const
+    void
+    check_equality_s(Real3 const& pt, real_type r, Axis skip = Axis::size_) const
     {
         auto ref = S(pt, r);
         EXPECT_TRUE(softeq_(ref, S(pt + eps / 4 * norm(pt), r)));
-        EXPECT_TRUE(softeq_(ref, S(pt + Real3{0, 0, small}, r)));
+        if (skip != Axis::z)
+        {
+            EXPECT_TRUE(softeq_(ref, S(pt + Real3{0, 0, small}, r)));
+        }
         EXPECT_TRUE(softeq_(ref, S(pt, r - small)));
         EXPECT_TRUE(softeq_(ref, S(pt, r + small)));
-        EXPECT_FALSE(softeq_(ref, S(pt + Real3{large, 0, 0}, r)));
+        if (skip != Axis::x)
+        {
+            EXPECT_FALSE(softeq_(ref, S(pt + Real3{large, 0, 0}, r)));
+        }
         EXPECT_FALSE(softeq_(ref, S(pt, r - large)));
         EXPECT_FALSE(softeq_(ref, S(pt, r + large)));
     }
@@ -64,14 +71,14 @@ TEST_F(SoftSurfaceEqualTest, cyl_centered)
 TEST_F(SoftSurfaceEqualTest, sphere_centered)
 {
     EXPECT_TRUE(softeq_(SphereCentered{10}, SphereCentered{10 - 10 * small}));
-    EXPECT_FALSE(softeq_(SphereCentered{10}, SphereCentered{10 + large}));
+    EXPECT_FALSE(softeq_(SphereCentered{10}, SphereCentered{10 + 10 * large}));
 }
 
 TEST_F(SoftSurfaceEqualTest, cyl_aligned)
 {
-    this->check_equality_s<CylX>({1, 2, 3}, 0.5);
-    this->check_equality_s<CylY>({1, 2, 3}, 0.5);
-    this->check_equality_s<CylZ>({1, 2, 3}, 0.5);
+    this->check_equality_s<CylX>({1, 2, 3}, 0.5, Axis::x);
+    this->check_equality_s<CylY>({1, 2, 3}, 0.5, Axis::y);
+    this->check_equality_s<CylZ>({1, 2, 3}, 0.5, Axis::z);
 }
 
 TEST_F(SoftSurfaceEqualTest, plane)
@@ -85,14 +92,15 @@ TEST_F(SoftSurfaceEqualTest, plane)
     Real3 const npert = make_unit_vector(n + Real3{small, 0, 0});
     EXPECT_TRUE(softeq_(ref, Plane{npert, 2.0}));
 
-    Real3 const ndiff = make_unit_vector(n + Real3{0, large, 0});
+    Real3 const ndiff = make_unit_vector(n + Real3{0, 0, large});
     EXPECT_FALSE(softeq_(ref, Plane{ndiff, 2.0}));
+    EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{-1, 0, 1}), 2.0}));
 }
 
 TEST_F(SoftSurfaceEqualTest, sphere)
 {
     this->check_equality_s<Sphere>({0, 1, 2}, 1);
-    this->check_equality_s<Sphere>({-10, 5, 1}, 10);
+    this->check_equality_s<Sphere>({-0.4, 0.6, 0.5}, 0.9);
 }
 
 TEST_F(SoftSurfaceEqualTest, cone_aligned)
@@ -128,10 +136,10 @@ TEST_F(SoftSurfaceEqualTest, simple_quadric)
             SurfaceTranslator translate{Translation{center}};
             return translate(make_ellipsoid(ref_radii * scale));
         };
-        EXPECT_TRUE(softeq_(ref, make_translated({small, 0, small}, 1.0)));
+        EXPECT_TRUE(softeq_(ref, make_translated({0, small, 0}, 1.0)));
         EXPECT_TRUE(softeq_(ref, make_translated({0, 0, 0}, 1.0 + small)));
-        EXPECT_TRUE(softeq_(ref, make_translated({0, 0, large}, 1.0)));
-        EXPECT_TRUE(softeq_(ref, make_translated({0, 0, 0}, 1.0 + large)));
+        EXPECT_FALSE(softeq_(ref, make_translated({0, 0, large}, 1.0)));
+        EXPECT_FALSE(softeq_(ref, make_translated({0, 0, 0}, 1.0 + large)));
     }
 }
 
