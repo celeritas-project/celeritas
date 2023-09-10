@@ -8,15 +8,7 @@
 #include "orange/surf/detail/SurfaceTranslator.hh"
 
 #include "orange/Constants.hh"
-#include "orange/surf/ConeAligned.hh"
-#include "orange/surf/CylAligned.hh"
-#include "orange/surf/CylCentered.hh"
-#include "orange/surf/GeneralQuadric.hh"
-#include "orange/surf/Plane.hh"
-#include "orange/surf/PlaneAligned.hh"
-#include "orange/surf/SimpleQuadric.hh"
-#include "orange/surf/Sphere.hh"
-#include "orange/surf/SphereCentered.hh"
+#include "orange/surf/detail/AllSurfaces.hh"
 
 #include "celeritas_test.hh"
 
