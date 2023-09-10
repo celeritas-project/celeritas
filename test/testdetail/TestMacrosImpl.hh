@@ -501,13 +501,13 @@ template<class ContainerE, class ContainerA>
  * This signature uses the default tolerance for the appropriate floating point
  * operations.
  */
-template<class ContainerE, class ContainerA>
+template<class ContainerE, class ContainerA, class T>
 ::testing::AssertionResult IsVecSoftEquiv(char const* expected_expr,
                                           char const* actual_expr,
                                           char const*,
                                           ContainerE const& expected,
                                           ContainerA const& actual,
-                                          double rel)
+                                          T rel)
 {
     using Traits_t = TCT<ContainerE, ContainerA>;
     using value_type_E = typename Traits_t::first_type;
@@ -521,7 +521,7 @@ template<class ContainerE, class ContainerA>
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp(rel));
+        expected, expected_expr, actual, actual_expr, BinaryOp{rel});
 }
 
 //-------------------------------------------------------------------------//
@@ -530,15 +530,15 @@ template<class ContainerE, class ContainerA>
  *
  * Used by \c EXPECT_VEC_CLOSE.
  */
-template<class ContainerE, class ContainerA>
+template<class ContainerE, class ContainerA, class T>
 ::testing::AssertionResult IsVecSoftEquiv(char const* expected_expr,
                                           char const* actual_expr,
                                           char const*,
                                           char const*,
                                           ContainerE const& expected,
                                           ContainerA const& actual,
-                                          double rel,
-                                          double abs)
+                                          T rel,
+                                          T abs)
 {
     using Traits_t = TCT<ContainerE, ContainerA>;
     using value_type_E = typename Traits_t::first_type;
