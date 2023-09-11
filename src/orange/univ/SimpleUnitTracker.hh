@@ -114,7 +114,7 @@ class SimpleUnitTracker
 
     template<class F>
     inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
-                                                      F) const;
+                                                      F&&) const;
 
     inline CELER_FUNCTION Intersection simple_intersect(LocalState const&,
                                                         VolumeView const&,
@@ -387,7 +387,7 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  */
 template<class F>
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect_impl(LocalState const& state, F is_valid) const
+SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
     -> Intersection
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
@@ -399,10 +399,10 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F is_valid) const
     // Find all valid (nearby or finite, depending on F) surface intersection
     // distances inside this volume. Fill the `isect` array if the tracking
     // algorithm requires sorting.
-    detail::CalcIntersections<F const&> calc_intersections{
+    detail::CalcIntersections calc_intersections{
+        celeritas::forward<F>(is_valid),
         state.pos,
         state.dir,
-        is_valid,
         state.surface ? vol.find_face(state.surface.id()) : FaceId{},
         vol.simple_intersection(),
         state.temp_next};
