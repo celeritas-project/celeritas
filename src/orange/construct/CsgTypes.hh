@@ -129,7 +129,7 @@ std::string to_string(Node const&);
 //---------------------------------------------------------------------------//
 // Helper functions
 //---------------------------------------------------------------------------//
-//! Whether a node is a boolean true/false
+//! Whether a node is a boolean (True or False instances)
 inline constexpr bool is_boolean_node(Node const& n)
 {
     return std::holds_alternative<True>(n) || std::holds_alternative<False>(n);

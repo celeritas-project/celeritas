@@ -17,41 +17,38 @@ namespace celeritas
 namespace csg
 {
 //---------------------------------------------------------------------------//
+//!@{
+//! Write Node variants to a stream
 std::ostream& operator<<(std::ostream& os, True const&)
 {
     os << "true";
     return os;
 }
 
-//---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, False const&)
 {
     os << "false";
     return os;
 }
 
-//---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Aliased const& n)
 {
     os << "->{" << n.node.unchecked_get() << '}';
     return os;
 }
 
-//---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Negated const& n)
 {
     os << "not{" << n.node.unchecked_get() << '}';
     return os;
 }
 
-//---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Surface const& n)
 {
     os << "surface " << n.id.unchecked_get();
     return os;
 }
 
-//---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Joined const& n)
 {
     os << (n.op == op_and  ? "all"
@@ -66,7 +63,6 @@ std::ostream& operator<<(std::ostream& os, Joined const& n)
     return os;
 }
 
-//---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Node const& node)
 {
     CELER_EXPECT(!node.valueless_by_exception());
@@ -74,7 +70,9 @@ std::ostream& operator<<(std::ostream& os, Node const& node)
     return os;
 }
 
+//!@}
 //---------------------------------------------------------------------------//
+//! Convert a node variant to a string
 std::string to_string(Node const& n)
 {
     std::ostringstream os;

@@ -111,7 +111,7 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
         }
         if (d == constant_node)
         {
-            // Return early because
+            // Short circuit logic based on the logical operator
             return Aliased{constant_node};
         }
         if (d == ignore_node)

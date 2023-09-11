@@ -28,6 +28,15 @@ namespace celeritas
  * nodes are inserted into a deduplicated map of nodes that may be further
  * simplified later (see \c CsgAlgorithms).
  *
+ * The tree is a topologically sorted graph where the leaves are the lower node
+ * indices. The intent is for higher nodes to be simplified to boolean values,
+ * e.g., by representing that all points in space are inside a cylinder by
+ * replacing a \c Joined node with \c True . To facilitate this while
+ * preserving node indices, \c True and \c False nodes are automatically
+ * inserted as the first two node IDs. Because \c False is represented as "not
+ * true" during evaluation, it actually stores \c Negated{true_node_id()} and
+ * the deduplication table maps \c False to \c false_node_id() .
+ *
  * \note The node classes use aggregate initialization so cannot be created
  * directly as \c Node variant classes using \c std::in_place_type .
  */
@@ -77,7 +86,7 @@ class CsgTree
 
     //// HELPER FUNCTIONS ////
 
-    // Get a node (only this class can modify the node once added
+    // Get a node (only this class can modify the node once added)
     Node& at(NodeId node_id);
 };
 
