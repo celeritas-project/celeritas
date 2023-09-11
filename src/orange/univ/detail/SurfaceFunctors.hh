@@ -139,6 +139,15 @@ class CalcIntersections
     {
         auto on_surface = (on_face_idx_ == face_idx_) ? SurfaceState::on
                                                       : SurfaceState::off;
+        if constexpr (typename S::Intersections{}.size() == 1)
+        {
+            if (on_surface == SurfaceState::on)
+            {
+                // On surface so cannot reintersect
+                ++face_idx_;
+                return;
+            }
+        }
 
         // Calculate distance to surface along this direction
         auto all_dist = surf.calc_intersections(pos_, dir_, on_surface);
