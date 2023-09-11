@@ -18,6 +18,8 @@
 namespace celeritas
 {
 #if CELER_USE_DEVICE
+// GCC 8 and 9 are known to print a warning for "maybe unused" variables that
+// are actually used (after preprocessor logic).
 #    define CELER_UNUSED_UNLESS_DEVICE
 #else
 #    define CELER_UNUSED_UNLESS_DEVICE [[maybe_unused]]
