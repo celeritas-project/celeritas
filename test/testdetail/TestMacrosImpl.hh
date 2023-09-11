@@ -552,7 +552,7 @@ template<class ContainerE, class ContainerA, class T>
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp(rel, abs));
+        expected, expected_expr, actual, actual_expr, BinaryOp{rel, abs});
 }
 
 //---------------------------------------------------------------------------//
