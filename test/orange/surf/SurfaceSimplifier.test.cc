@@ -243,7 +243,7 @@ TEST_F(SurfaceSimplifierTest, simple_quadric)
         SCOPED_TRACE("scaled near-cylinder");
         // CylY{{1,2,3}, 2.5} -> SQ{{1,0,1}, {-2,0,-6}, 3.75}
         this->check_simplifies_to(
-            SimpleQuadric{{1, 1e-8, 1}, {-2, 0, -6}, 3.75},
+            SimpleQuadric{{1, 1e-9, 1}, {-2, 0, -6}, 3.75},
             CylY{{1, 2, 3}, 2.5});
     }
 

@@ -115,8 +115,10 @@ TEST(IsVecSoftEquiv, successes_double)
     // test comparison against zero
     expected.push_back(0.);
     actual.push_back(0.009);
-    EXPECT_TRUE(
+    EXPECT_FALSE(
         IsVecSoftEquiv("expected", "actual", "0.01", expected, actual, 0.01));
+    EXPECT_TRUE(IsVecSoftEquiv(
+        "expected", "actual", "0.01", "0.01", expected, actual, 0.01, 0.01));
 
     EXPECT_TRUE(IsVecSoftEquiv(
         "expected_array", "actual", "0.01", expected_array, actual, 0.01));
