@@ -86,7 +86,8 @@ TEST(ConstantsTest, derivative)
 {
     // Compared against definition of Dalton, table 8 of SI 2019
     EXPECT_SOFT_NEAR(1.66053906660e-27 * units::kilogram, atomic_mass, 1e-11);
-    EXPECT_SOFT_NEAR(1.602176634e-19, e_electron * units::volt, 1e-9);
+    EXPECT_SOFT_NEAR(
+        1.602176634e-19 * units::joule, e_electron * units::volt, 1e-9);
 
     // CODATA 2018 listings
     EXPECT_SOFT_NEAR(1.49241808560e-10 * units::joule,
