@@ -332,14 +332,22 @@ void InteractorHostTestBase::check_momentum_conservation(
 
     // Compare against incident particle
     {
-        Real3 delta_momentum = exit_momentum;
-        axpy(-parent_track.momentum().value(), inc_direction_, &delta_momentum);
-        EXPECT_SOFT_NEAR(0.0,
-                         dot_product(delta_momentum, delta_momentum),
-                         parent_track.momentum().value() * 1e-12)
-            << "Incident: " << inc_direction_
-            << " with p = " << parent_track.momentum().value()
-            << "* MeV/c; exiting p = " << exit_momentum;
+        constexpr real_type default_tol = SoftEqual{}.rel();
+        real_type parent_momentum_mag = parent_track.momentum().value();
+        auto exit_momentum_mag = norm(exit_momentum);
+
+        // Roundoff for lower energy particles can affect momentum calculation
+        // see RelativisticBremTest.basic_with_lpm
+        // see MollerBhabhaInteractorTest.stress_test
+        EXPECT_SOFT_NEAR(
+            parent_momentum_mag, exit_momentum_mag, default_tol * 10000);
+
+        normalize_direction(&exit_momentum);
+        EXPECT_SOFT_NEAR(real_type(1),
+                         dot_product(inc_direction_, exit_momentum),
+                         3 * default_tol)
+            << "Incident direction: " << inc_direction_
+            << "; exiting momentum direction: " << exit_momentum;
     }
 }
 
