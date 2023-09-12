@@ -83,18 +83,20 @@ TEST_F(SoftSurfaceEqualTest, cyl_aligned)
 
 TEST_F(SoftSurfaceEqualTest, plane)
 {
-    Real3 const n = make_unit_vector(Real3{1, 0, 1});
-    Plane const ref{n, 2.0};
+    Real3 const p{1, 0, 0};
+    Real3 const n = make_unit_vector(Real3{1, 1, 0});
+    Plane const ref{n, p};
 
-    EXPECT_TRUE(softeq_(ref, Plane{n, 2.0 + small}));
-    EXPECT_FALSE(softeq_(ref, Plane{n, 2.0 + large}));
+    EXPECT_TRUE(softeq_(ref, Plane{n, p + Real3{small, 0, 0}}));
+    EXPECT_FALSE(softeq_(ref, Plane{n, p + Real3{large, 0, 0}}));
 
     Real3 const npert = make_unit_vector(n + Real3{small, 0, 0});
-    EXPECT_TRUE(softeq_(ref, Plane{npert, 2.0}));
+    EXPECT_TRUE(softeq_(ref, Plane{npert, p}));
 
-    Real3 const ndiff = make_unit_vector(n + Real3{0, 0, large});
-    EXPECT_FALSE(softeq_(ref, Plane{ndiff, 2.0}));
-    EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{-1, 0, 1}), 2.0}));
+    Real3 const ndiff = make_unit_vector(n + Real3{0, large, 0});
+    EXPECT_FALSE(softeq_(ref, Plane{ndiff, p}));
+    EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{-1, 1, 0}), p}));
+    EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{1, -1, 0}), p}));
 }
 
 TEST_F(SoftSurfaceEqualTest, sphere)

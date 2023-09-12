@@ -86,14 +86,43 @@ ORANGE_INSTANTIATE_OP(CylAligned);
 //---------------------------------------------------------------------------//
 /*!
  * Compare two planes for near equality.
+ *
+ * Consider two planes with normals \em a and \em b , without loss of
+ * generality where \em a is on the \em x axis and \em b is in the \em xy
+ * plane. Suppose that to be equal, we want a intercept error of no more than
+ * \f$\delta\f$ at a unit distance from the normal (since we're assuming the
+ * error is based on the length scale of the problem). Taking a ray
+ * from (1, 1) along (-1, 0), the distance to the plane with normal \em a is 1,
+ * and the distance to plane \em b is then \f$ 1 + \delta \f$. This results
+ * in a right triangle with legs of 1 and delta and an angle \f$ \theta \f$
+ * at the origin, which is equal to the angle between the normals of the two
+ * planes. Thus we have:
+ * \f[
+   \tan \theta = \frac{\delta}{\1}
+ * \f]
+ * and
+ * \f[
+   \cos \theta = a \vdot b \equiv \mu \;.
+ * \f]
+ * thus \f[
+   \mu = \frac{1}{\sqrt{1 + \delta^2}}
+   \to
+   \delta = \sqrt{\frac{1}{\mu^2} - 1}
+ * \f]
+ * so if we want to limit the intercept error to \f$ epsilon \f$, then
+ * \f[
+   \sqrt{\frac{1}{\mu^2} - 1} < \epsilon \;.
+ * \f]
+ * and we also have to make sure the two planes are pointed into the same
+ * half-space by checking for \f$ mu > 0 \f$.
  */
 bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
 {
-    // Guard against dot product being slightly greater than 1 due to fp
-    // arithmetic
-    real_type const ndot = dot_product(a.normal(), b.normal());
-    return (ndot >= 1 || std::sqrt(1 - ndot) < soft_eq_.rel() * 3)
-           && soft_eq_(a.displacement(), b.displacement());
+    if (!soft_eq_(a.displacement(), b.displacement()))
+        return false;
+
+    real_type const mu = dot_product(a.normal(), b.normal());
+    return mu > 0 && (1 / ipow<2>(mu) - 1) < ipow<2>(soft_eq_.rel());
 }
 
 //---------------------------------------------------------------------------//
