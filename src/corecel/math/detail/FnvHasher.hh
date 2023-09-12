@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/detail/HashUtilsImpl.hh
+//! \file corecel/math/detail/FnvHasher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -40,6 +40,9 @@ namespace detail
  *
  * High dispersion, quick hashes for similar data is often needed for hash
  * tables of pairs of similar values (or strings).
+ *
+ * This hashing algorithm is *not* very fast: each byte requires an integer
+ * addition and multiply!
  */
 template<std::size_t S>
 struct FnvHashTraits;
@@ -65,6 +68,7 @@ struct FnvHashTraits<8ul>
 //---------------------------------------------------------------------------//
 /*!
  * Use a fast algorithm to construct a well-distributed hash.
+ *
  * \tparam T integer type to use for hashing.
  *
  * This utility class is meant for processing keys in hash tables with native
@@ -130,7 +134,7 @@ CELER_FORCEINLINE_FUNCTION void FnvHasher<T>::operator()(Byte byte) const
 /*!
  * Hash a size_t.
  *
- * This is useful for std::hash integration).
+ * This is useful for std::hash integration.
  */
 template<class T>
 CELER_FUNCTION void FnvHasher<T>::operator()(std::size_t value) const
@@ -143,15 +147,11 @@ CELER_FUNCTION void FnvHasher<T>::operator()(std::size_t value) const
 }
 
 //---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
+// DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-//! Create a hasher from an integer
+
 template<class T>
-CELER_FORCEINLINE_FUNCTION FnvHasher<T> make_fast_hasher(T* i)
-{
-    CELER_EXPECT(i);
-    return FnvHasher<T>{i};
-}
+FnvHasher(T*) -> FnvHasher<T>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
