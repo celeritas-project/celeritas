@@ -61,10 +61,12 @@ class ScopedMem
     //!@}
 
   private:
+    using value_type = KibiBytes::value_type;
+
     InitializedValue<MemRegistry*> registry_;
     MemUsageId id_;
-    long int cpu_start_hwm_{0};
-    long int gpu_start_used_{0};
+    value_type cpu_start_hwm_{0};
+    value_type gpu_start_used_{0};
 };
 
 //---------------------------------------------------------------------------//
