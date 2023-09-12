@@ -51,10 +51,10 @@ struct RngTally
         {
             m /= num_samples;
         }
-        EXPECT_SOFT_NEAR(0, moments[0], tol);
-        EXPECT_SOFT_NEAR(0, moments[1], tol);
-        EXPECT_SOFT_NEAR(0, moments[2], tol);
-        EXPECT_SOFT_NEAR(0, moments[3], tol);
+        EXPECT_NEAR(0, moments[0], tol);
+        EXPECT_NEAR(0, moments[1], tol);
+        EXPECT_NEAR(0, moments[2], tol);
+        EXPECT_NEAR(0, moments[3], tol);
     }
 };
 

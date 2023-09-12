@@ -43,19 +43,15 @@ TEST(ConstantsTest, exact_equivalence)
 
 TEST(ConstantsTest, formulas)
 {
-    EXPECT_SOFT_NEAR(e_electron * e_electron
-                         / (2 * alpha_fine_structure * h_planck * c_light),
-                     eps_electric,
-                     1e-11);
-    EXPECT_SOFT_NEAR(
-        1 / (eps_electric * c_light * c_light), mu_magnetic, 1e-11);
-    EXPECT_SOFT_NEAR(
+    EXPECT_SOFT_EQ(e_electron * e_electron
+                       / (2 * alpha_fine_structure * h_planck * c_light),
+                   eps_electric);
+    EXPECT_SOFT_EQ(1 / (eps_electric * c_light * c_light), mu_magnetic);
+    EXPECT_SOFT_EQ(
         hbar_planck / (alpha_fine_structure * electron_mass * c_light),
-        a0_bohr,
-        1e-11);
-    EXPECT_SOFT_NEAR(alpha_fine_structure * alpha_fine_structure * a0_bohr,
-                     r_electron,
-                     1e-11);
+        a0_bohr);
+    EXPECT_SOFT_EQ(alpha_fine_structure * alpha_fine_structure * a0_bohr,
+                   r_electron);
 }
 
 TEST(ConstantsTest, clhep)
@@ -85,16 +81,14 @@ TEST(ConstantsTest, clhep)
 TEST(ConstantsTest, derivative)
 {
     // Compared against definition of Dalton, table 8 of SI 2019
-    EXPECT_SOFT_NEAR(1.66053906660e-27 * units::kilogram, atomic_mass, 1e-11);
-    EXPECT_SOFT_NEAR(1.602176634e-19, e_electron * units::volt, 1e-11);
+    EXPECT_SOFT_EQ(1.66053906660e-27 * units::kilogram, atomic_mass);
+    EXPECT_SOFT_EQ(1.602176634e-19 * units::joule, e_electron * units::volt);
 
     // CODATA 2018 listings
-    EXPECT_SOFT_NEAR(1.49241808560e-10 * units::joule,
-                     atomic_mass * c_light * c_light,
-                     1e-11);
-    EXPECT_SOFT_NEAR(931.49410242e6 * e_electron * units::volt,
-                     atomic_mass * c_light * c_light,
-                     1e-11);
+    EXPECT_SOFT_EQ(1.49241808560e-10 * units::joule,
+                   atomic_mass * c_light * c_light);
+    EXPECT_SOFT_EQ(931.49410242e6 * e_electron * units::volt,
+                   atomic_mass * c_light * c_light);
 }
 
 //---------------------------------------------------------------------------//

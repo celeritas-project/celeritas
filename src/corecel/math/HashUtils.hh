@@ -13,10 +13,15 @@
 
 #include "corecel/Macros.hh"
 
-#include "detail/HashUtilsImpl.hh"
+#include "detail/FnvHasher.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// TODO: add CMake configuration argument so this can be swapped out with e.g.
+// xxHash
+using Hasher = detail::FnvHasher<std::size_t>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Combine hashes of the given arguments using a fast hash algorithm.
@@ -33,12 +38,12 @@ template<class... Args>
 std::size_t hash_combine(Args const&... args)
 {
     // Construct a hasher and initialize
-    std::size_t result;
-    [[maybe_unused]] auto hash_fnv = detail::make_fast_hasher(&result);
+    std::size_t result{};
+    [[maybe_unused]] Hasher hash{&result};
 
     // Hash each one of the arguments sequentially by expanding into an unused
     // initializer list.
-    (void)std::initializer_list<int>{(hash_fnv(std::hash<Args>()(args)), 0)...};
+    (void)std::initializer_list<int>{(hash(std::hash<Args>()(args)), 0)...};
 
     return result;
 }

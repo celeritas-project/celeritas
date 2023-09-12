@@ -124,6 +124,7 @@ celeritas_add_test(corecel/cont/Array.test.cc)
 celeritas_add_test(corecel/cont/InitializedValue.test.cc)
 celeritas_add_test(corecel/cont/Span.test.cc)
 celeritas_add_test(corecel/cont/LabelIdMultiMap.test.cc)
+celeritas_add_test(corecel/cont/VariantUtils.test.cc)
 celeritas_add_device_test(corecel/cont/Range)
 
 # Data
@@ -201,6 +202,8 @@ celeritas_setup_tests(SERIAL PREFIX orange
 # Base
 celeritas_add_test(orange/BoundingBox.test.cc)
 celeritas_add_test(orange/BoundingBoxUtils.test.cc)
+celeritas_add_test(orange/CsgTree.test.cc
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(orange/MatrixUtils.test.cc)
 celeritas_add_test(orange/Orange.test.cc)
 
