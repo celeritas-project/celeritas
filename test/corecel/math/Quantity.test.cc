@@ -45,12 +45,12 @@ struct DozenUnit
 
 TEST(QuantityTest, constexpr_attributes)
 {
-    EXPECT_TRUE(std::is_same_v<Revolution::value_type, double>);
+    EXPECT_TRUE((std::is_same_v<Revolution::value_type, double>));
     EXPECT_EQ(sizeof(Revolution), sizeof(double));
     EXPECT_TRUE(std::is_standard_layout<Revolution>::value);
     EXPECT_TRUE(std::is_default_constructible<Revolution>::value);
 
-    EXPECT_TRUE(std::is_same_v<DozenUnit::value_type, int>);
+    EXPECT_TRUE((std::is_same_v<Quantity<DozenUnit>::value_type, int>));
 }
 
 TEST(QuantityTest, usage)
