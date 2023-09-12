@@ -115,6 +115,11 @@ ORANGE_INSTANTIATE_OP(CylAligned);
  * \f]
  * and we also have to make sure the two planes are pointed into the same
  * half-space by checking for \f$ \mu > 0 \f$.
+ *
+ * Since this derivation is based on an absolute length scale of 1, the
+ * "absolute" (rather than relative) tolerance of the plane normals is used.
+ * For problems with larger or smaller length scales, that value will be scaled
+ * accordingly.
  */
 bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
 {
@@ -122,7 +127,7 @@ bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
         return false;
 
     real_type const mu = dot_product(a.normal(), b.normal());
-    return mu > 0 && (1 / ipow<2>(mu) - 1) < ipow<2>(soft_eq_.rel());
+    return mu > 0 && (1 / ipow<2>(mu) - 1) < ipow<2>(soft_eq_.abs());
 }
 
 //---------------------------------------------------------------------------//
