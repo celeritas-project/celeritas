@@ -32,7 +32,8 @@ namespace celeritas
 /*!
  * Perform Moller (e-e-) and Bhabha (e+e-) scattering.
  *
- * This is a model for both Moller and Bhabha scattering processes.
+ * This interaction, part of the ionization process, is when an incident
+ * electron or positron ejects an electron from the surrounding matter.
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4MollerBhabhaModel class, as documented in section 10.1.4 of the Geant4
@@ -156,6 +157,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     CELER_ASSERT(secondary_energy >= electron_cutoff_);
 
     // Same equation as in ParticleTrackView::momentum_sq()
+    // TODO: use local data ParticleTrackView
     const real_type secondary_momentum = std::sqrt(
         secondary_energy
         * (secondary_energy + 2 * value_as<Mass>(shared_.electron_mass)));
