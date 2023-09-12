@@ -50,6 +50,10 @@
 #define PRINT_EXPECTED(data) \
     ::celeritas::testdetail::print_expected(data, #data)
 
+//! JSON string equality (soft equal for floats)
+#define EXPECT_JSON_EQ(expected, actual) \
+    EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsJsonEq, expected, actual)
+
 //! Construct a test name that is disabled when assertions are enabled
 #if CELERITAS_DEBUG
 #    define TEST_IF_CELERITAS_DEBUG(name) name

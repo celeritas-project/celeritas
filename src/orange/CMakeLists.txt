@@ -17,7 +17,10 @@ list(APPEND SOURCES
   MatrixUtils.cc
   OrangeParams.cc
   OrangeTypes.cc
+  construct/CsgTree.cc
+  construct/CsgTypes.cc
   construct/SurfaceInputBuilder.cc
+  construct/detail/NodeSimplifier.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
   detail/RectArrayInserter.cc
@@ -41,6 +44,7 @@ list(APPEND SOURCES
 
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
+    construct/CsgTreeIO.json.cc
     construct/OrangeInputIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)

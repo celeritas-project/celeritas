@@ -21,16 +21,20 @@ namespace test
 
 TEST(SoftEqual, default_precisions)
 {
-    using Comp_t = SoftEqual<>;
+    using Comp = SoftEqual<>;
 
-    EXPECT_DOUBLE_EQ(1e-12, Comp_t().rel());
-    EXPECT_DOUBLE_EQ(1e-14, Comp_t().abs());
+    // Check that defaults can be accessed as constexpr
+    constexpr auto rel = Comp().rel();
+    constexpr auto abs = Comp().abs();
 
-    EXPECT_DOUBLE_EQ(1e-6, Comp_t(1e-6).rel());
-    EXPECT_DOUBLE_EQ(1e-8, Comp_t(1e-6).abs());
+    EXPECT_DOUBLE_EQ(1e-12, rel);
+    EXPECT_DOUBLE_EQ(1e-14, abs);
 
-    EXPECT_DOUBLE_EQ(1e-4, Comp_t(1e-4, 1e-9).rel());
-    EXPECT_DOUBLE_EQ(1e-9, Comp_t(1e-4, 1e-9).abs());
+    EXPECT_DOUBLE_EQ(1e-6, Comp(1e-6).rel());
+    EXPECT_DOUBLE_EQ(1e-8, Comp(1e-6).abs());
+
+    EXPECT_DOUBLE_EQ(1e-4, Comp(1e-4, 1e-9).rel());
+    EXPECT_DOUBLE_EQ(1e-9, Comp(1e-4, 1e-9).abs());
 }
 
 //---------------------------------------------------------------------------//
@@ -55,9 +59,9 @@ TYPED_TEST(FloatingTest, soft_equal)
 {
     using value_type = typename TestFixture::value_type;
     using Limits_t = typename TestFixture::Limits_t;
-    using Comp_t = SoftEqual<value_type>;
+    using Comp = SoftEqual<value_type>;
 
-    Comp_t comp;
+    Comp comp;
 
     // Test basic equality
     EXPECT_TRUE(comp(1, 1));
@@ -68,10 +72,15 @@ TYPED_TEST(FloatingTest, soft_equal)
     // Test with tolerance
     EXPECT_TRUE(comp(1, 1 + comp.rel() / 2));
     EXPECT_FALSE(comp(1, 1 + comp.rel() * 2));
+    // Large scale
+    EXPECT_TRUE(comp(1e6, 1e6 * (1 + comp.rel() / 2)));
+    EXPECT_FALSE(comp(1e6, 1e6 * (1 + comp.rel() * 2)));
+    // Smaller scale
+    EXPECT_TRUE(comp(1e-6, 1e-6 * (1 + comp.rel() / 2)));
+    EXPECT_FALSE(comp(1e-6, 1e-7));
 
-    // TODO: absolute tolerace is wacky
-    EXPECT_TRUE(comp(0, comp.rel() / 2));
-    EXPECT_TRUE(comp(comp.abs() / 2, comp.rel() / 2));
+    EXPECT_FALSE(comp(0, comp.rel() / 2));
+    EXPECT_FALSE(comp(comp.abs() / 2, comp.rel() / 2));
     EXPECT_FALSE(comp(0, comp.rel()));
     EXPECT_FALSE(comp(comp.abs(), comp.rel() / 2));
     EXPECT_FALSE(comp(comp.abs(), comp.rel()));
@@ -93,19 +102,45 @@ TYPED_TEST(FloatingTest, soft_equal)
     const value_type maxval = Limits_t::max();
     EXPECT_FALSE(comp(0, inf));
     EXPECT_FALSE(comp(inf, 0));
-    EXPECT_TRUE(comp(inf, inf));
     EXPECT_FALSE(comp(inf, -inf));
     EXPECT_FALSE(comp(-inf, inf));
     EXPECT_FALSE(comp(inf, maxval));
+
+    // NOTE: values that are legitimately infinite require additional testing
+    // outside of soft equal because they're an edge case.
+    EXPECT_FALSE(comp(inf, inf));
+}
+
+TYPED_TEST(FloatingTest, equal_or_soft_equal)
+{
+    using value_type = typename TestFixture::value_type;
+    using Limits_t = typename TestFixture::Limits_t;
+    const value_type nan = Limits_t::quiet_NaN();
+    const value_type inf = Limits_t::infinity();
+
+    EqualOr<SoftEqual<value_type>> comp;
+
+    EXPECT_TRUE(comp(1, 1));
+    EXPECT_TRUE(comp(0, 0));
+    EXPECT_FALSE(comp(-1, 1));
+    EXPECT_FALSE(comp(1, -1));
+    EXPECT_FALSE(comp(inf, -inf));
+    EXPECT_FALSE(comp(-inf, inf));
+
+    EXPECT_TRUE(comp(inf, inf));
+    EXPECT_TRUE(comp(1e6, 1e6 * (1 + comp.rel() / 2)));
+    EXPECT_FALSE(comp(1e6, 1e6 * (1 + comp.rel() * 2)));
+
+    EXPECT_FALSE(comp(1, nan));
 }
 
 TYPED_TEST(FloatingTest, soft_zero)
 {
     using value_type = typename TestFixture::value_type;
     using Limits_t = typename TestFixture::Limits_t;
-    using Comp_t = SoftZero<value_type>;
+    using Comp = SoftZero<value_type>;
 
-    Comp_t comp;
+    Comp comp;
 
     // Test basic equality
     EXPECT_TRUE(comp(0));
@@ -138,7 +173,7 @@ TYPED_TEST(FloatingTest, soft_mod)
     EXPECT_TRUE(soft_mod(value_type(1.0), value_type(0.25)));
     EXPECT_FALSE(soft_mod(value_type(1.0), value_type(0.8)));
 
-    auto tol = SoftEqual<value_type>().rel() / 2;
+    auto tol = SoftEqual<value_type>().abs() / 2;
     EXPECT_TRUE(soft_mod(value_type(1), value_type(0.25)));
     EXPECT_TRUE(soft_mod(value_type(3.6) + tol, value_type(1.2)));
     EXPECT_TRUE(soft_mod(value_type(3.6) - tol, value_type(1.2)));
