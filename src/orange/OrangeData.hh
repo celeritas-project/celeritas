@@ -389,17 +389,15 @@ struct OrangeStateData
     // Dimensions {num_tracks}
     StateItems<LevelId> level;
     StateItems<LevelId> surface_level;
+    StateItems<LocalSurfaceId> surf;
+    StateItems<Sense> sense;
+    StateItems<BoundaryResult> boundary;
 
     // Dimensions {num_tracks, max_level}
     Items<Real3> pos;
     Items<Real3> dir;
     Items<LocalVolumeId> vol;
     Items<UniverseId> universe;
-
-    // Surface crossing, dimensions {num_tracks, max_level}
-    Items<LocalSurfaceId> surf;
-    Items<Sense> sense;
-    Items<BoundaryResult> boundary;
 
     // TODO: this is problem-dependent data and should eventually be removed
     // max_level defines the stride into the preceding pseudo-2D Collections
@@ -420,13 +418,13 @@ struct OrangeStateData
         // clang-format off
         return !level.empty()
             && surface_level.size() == level.size()
+            && surf.size() == level.size()
+            && sense.size() == level.size()
+            && boundary.size() == level.size()
             && !pos.empty()
             && dir.size() == pos.size()
             && vol.size() == pos.size()
             && universe.size() == pos.size()
-            && surf.size() == pos.size()
-            && sense.size() == pos.size()
-            && boundary.size() == pos.size()
             && max_level > 0
             && !temp_sense.empty()
             && !temp_face.empty()
@@ -445,13 +443,13 @@ struct OrangeStateData
         CELER_EXPECT(other);
         level = other.level;
         surface_level = other.surface_level;
+        surf = other.surf;
+        sense = other.sense;
+        boundary = other.boundary;
         pos = other.pos;
         dir = other.dir;
         vol = other.vol;
         universe = other.universe;
-        surf = other.surf;
-        sense = other.sense;
-        boundary = other.boundary;
         max_level = other.max_level;
 
         temp_sense = other.temp_sense;
@@ -478,6 +476,9 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
 
     resize(&data->level, num_tracks);
     resize(&data->surface_level, num_tracks);
+    resize(&data->surf, num_tracks);
+    resize(&data->sense, num_tracks);
+    resize(&data->boundary, num_tracks);
 
     data->max_level = params.scalars.max_level;
     auto const size = data->max_level * num_tracks;
@@ -486,9 +487,6 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->dir, size);
     resize(&data->vol, size);
     resize(&data->universe, size);
-    resize(&data->surf, size);
-    resize(&data->sense, size);
-    resize(&data->boundary, size);
 
     size_type face_states = params.scalars.max_faces * num_tracks;
     resize(&data->temp_sense, face_states);

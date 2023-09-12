@@ -57,21 +57,6 @@ class LevelStateAccessor
         return states_->universe[OpaqueId<UniverseId>{index_}];
     }
 
-    CELER_FUNCTION LocalSurfaceId& surf()
-    {
-        return states_->surf[OpaqueId<LocalSurfaceId>{index_}];
-    }
-
-    CELER_FUNCTION Sense& sense()
-    {
-        return states_->sense[OpaqueId<Sense>{index_}];
-    }
-
-    CELER_FUNCTION BoundaryResult& boundary()
-    {
-        return states_->boundary[OpaqueId<BoundaryResult>{index_}];
-    }
-
     //// CONST ACCESSORS ////
 
     CELER_FUNCTION LocalVolumeId const& vol() const
@@ -92,21 +77,6 @@ class LevelStateAccessor
     CELER_FUNCTION UniverseId const& universe() const
     {
         return states_->universe[OpaqueId<UniverseId>{index_}];
-    }
-
-    CELER_FUNCTION LocalSurfaceId const& surf() const
-    {
-        return states_->surf[OpaqueId<LocalSurfaceId>{index_}];
-    }
-
-    CELER_FUNCTION Sense const& sense() const
-    {
-        return states_->sense[OpaqueId<Sense>{index_}];
-    }
-
-    CELER_FUNCTION BoundaryResult const& boundary() const
-    {
-        return states_->boundary[OpaqueId<BoundaryResult>{index_}];
     }
 
   private:
@@ -140,9 +110,6 @@ LevelStateAccessor::operator=(LevelStateAccessor const& other)
     this->pos() = other.pos();
     this->dir() = other.dir();
     this->universe() = other.universe();
-    this->surf() = other.surf();
-    this->sense() = other.sense();
-    this->boundary() = other.boundary();
 
     return *this;
 }
