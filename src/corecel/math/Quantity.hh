@@ -106,7 +106,7 @@ using AccessorResultType = typename AccessorTraits<T>::result_type;
  * values in your mathematical expressions, then return a new Quantity class
  * with the resulting value and correct type.
  */
-template<class UnitT, class ValueT = real_type>
+template<class UnitT, class ValueT = decltype(UnitT::value())>
 class Quantity
 {
   public:
