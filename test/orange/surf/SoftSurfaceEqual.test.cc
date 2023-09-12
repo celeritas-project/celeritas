@@ -114,34 +114,49 @@ TEST_F(SoftSurfaceEqualTest, cone_aligned)
 
 TEST_F(SoftSurfaceEqualTest, simple_quadric)
 {
+    auto ellipsoid = [](Real3 const& radii) {
+        const Real3 second{ipow<2>(radii[1]) * ipow<2>(radii[2]),
+            ipow<2>(radii[2]) * ipow<2>(radii[0]),
+            ipow<2>(radii[0]) * ipow<2>(radii[1])};
+        const real_type zeroth = -ipow<2>(radii[0]) * ipow<2>(radii[1])
+            * ipow<2>(radii[2]);
+        return SimpleQuadric{second, Real3{0, 0, 0}, zeroth};
+    };
+    auto translated = [](auto&& s, Real3 const& center) {
+            SurfaceTranslator translate{Translation{center}};
+            return translate(s);
+    };
+
     {
         SCOPED_TRACE("ellipsoid");
-        auto make_ellipsoid = [](Real3 const& radii) {
-            const Real3 second{ipow<2>(radii[1]) * ipow<2>(radii[2]),
-                               ipow<2>(radii[2]) * ipow<2>(radii[0]),
-                               ipow<2>(radii[0]) * ipow<2>(radii[1])};
-            const real_type zeroth = -ipow<2>(radii[0]) * ipow<2>(radii[1])
-                                     * ipow<2>(radii[2]);
-            return SimpleQuadric{second, Real3{0, 0, 0}, zeroth};
-        };
+        Real3 const origin{0, 0, 0};
+        Real3 const radii{1, 2.5, .3};
+        SimpleQuadric const ref = ellipsoid(radii);
+        // Perturb a single dimension
+        EXPECT_TRUE(softeq_(ref, ellipsoid({1 + small, 2.5, .3 - small})));
+        EXPECT_TRUE(softeq_(ref, ellipsoid({1 + small, 2.5 + small, .3})));
+        EXPECT_FALSE(softeq_(ref, ellipsoid({1 + large, 2.5, .3 - large})));
+        EXPECT_FALSE(softeq_(ref, ellipsoid({1 + large, 2.5 + large, .3})));
 
-        Real3 const& ref_radii{1, 2.5, .3};
-        SimpleQuadric const ref = make_ellipsoid(ref_radii);
-        EXPECT_TRUE(softeq_(ref, make_ellipsoid({1 + small, 2.5, .3 - small})));
-        EXPECT_TRUE(softeq_(ref, make_ellipsoid({1 + small, 2.5 + small, .3})));
+        // Translate and scale
+        EXPECT_TRUE(softeq_(ref, translated(ref, {0, small/2, 0})));
+        EXPECT_TRUE(softeq_(
+            ref, translated(ellipsoid(radii * (1 + small)), origin)));
+        EXPECT_FALSE(softeq_(ref, translated(ref, {0, 0, large})));
         EXPECT_FALSE(
-            softeq_(ref, make_ellipsoid({1 + large, 2.5, .3 - large})));
-        EXPECT_FALSE(
-            softeq_(ref, make_ellipsoid({1 + large, 2.5 + large, .3})));
+            softeq_(ref, translated(ellipsoid(radii * (1 + large)), origin)));
+    }
+    {
+        Real3 const origin{10, 0, 0};
+        Real3 const radii{1, 2.5, 0.75};
+        auto ref = translated(ellipsoid(radii), origin);
 
-        auto make_translated = [&](Real3 const& center, real_type scale) {
-            SurfaceTranslator translate{Translation{center}};
-            return translate(make_ellipsoid(ref_radii * scale));
-        };
-        EXPECT_TRUE(softeq_(ref, make_translated({0, small, 0}, 1.0)));
-        EXPECT_TRUE(softeq_(ref, make_translated({0, 0, 0}, 1.0 + small)));
-        EXPECT_FALSE(softeq_(ref, make_translated({0, 0, large}, 1.0)));
-        EXPECT_FALSE(softeq_(ref, make_translated({0, 0, 0}, 1.0 + large)));
+        EXPECT_TRUE(softeq_(ref, translated(ref, {0, small/2, 0})));
+        EXPECT_TRUE(softeq_(
+            ref, translated(ellipsoid(radii * (1 + small)), origin)));
+        EXPECT_FALSE(softeq_(ref, translated(ref, {0, 0, large})));
+        EXPECT_FALSE(
+            softeq_(ref, translated(ellipsoid(radii * (1 + large)), origin)));
     }
 }
 

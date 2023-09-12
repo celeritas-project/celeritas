@@ -190,12 +190,17 @@ bool SoftSurfaceEqual::soft_eq_sq_(real_type a, real_type b) const
 //---------------------------------------------------------------------------//
 /*!
  * Compare the distance between two points for being less than the tolerance.
+ *
+ * The \c SoftEqual comparison is: \f[
+ |a - b| < \max(\epsilon_r \max(|a|, |b|), \epsilon_a)
+ \f]
+ * which translates exactly to vector math.
  */
 bool SoftSurfaceEqual::soft_eq_distance_(Real3 const& a, Real3 const& b) const
 {
     // This is soft equal formula but using vector distance.
     real_type rel = soft_eq_.rel() * std::fmax(norm(a), norm(b));
-    return distance(a, b) < 3 * std::fmax(soft_eq_.abs(), rel);
+    return distance(a, b) < std::fmax(soft_eq_.abs(), rel);
 }
 
 //---------------------------------------------------------------------------//
