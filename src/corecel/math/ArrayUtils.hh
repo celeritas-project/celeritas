@@ -167,16 +167,13 @@ CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)
 /*!
  * Divide the given vector by its Euclidian norm.
  *
- * TODO: deprecate and replace with \c make_unit_vector ?
+ * \deprecated replace with \c make_unit_vector
  */
 template<class T>
 CELER_FUNCTION void normalize_direction(Array<T, 3>* direction)
 {
     CELER_EXPECT(direction);
-    const T scale_factor = 1 / norm(*direction);
-    (*direction)[0] *= scale_factor;
-    (*direction)[1] *= scale_factor;
-    (*direction)[2] *= scale_factor;
+    *direction = make_unit_vector(*direction);
 }
 
 //---------------------------------------------------------------------------//
