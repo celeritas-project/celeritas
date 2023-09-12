@@ -98,23 +98,23 @@ ORANGE_INSTANTIATE_OP(CylAligned);
  * at the origin, which is equal to the angle between the normals of the two
  * planes. Thus we have:
  * \f[
-   \tan \theta = \frac{\delta}{\1}
+   \tan \theta = \frac{\delta}{1}
  * \f]
  * and
  * \f[
-   \cos \theta = a \vdot b \equiv \mu \;.
+   \cos \theta = a \cdot b \equiv \mu \;.
  * \f]
  * thus \f[
    \mu = \frac{1}{\sqrt{1 + \delta^2}}
    \to
    \delta = \sqrt{\frac{1}{\mu^2} - 1}
  * \f]
- * so if we want to limit the intercept error to \f$ epsilon \f$, then
+ * so if we want to limit the intercept error to \f$ \epsilon \f$, then
  * \f[
    \sqrt{\frac{1}{\mu^2} - 1} < \epsilon \;.
  * \f]
  * and we also have to make sure the two planes are pointed into the same
- * half-space by checking for \f$ mu > 0 \f$.
+ * half-space by checking for \f$ \mu > 0 \f$.
  */
 bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
 {

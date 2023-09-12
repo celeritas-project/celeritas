@@ -288,7 +288,7 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
  * Test for being approximately a unit vector.
  *
  * Consider a unit vector \em v with a small perturbation along a unit vector
- * \em e: \f[
+ * \em e : \f[
    \vec v + \epsilon \vec e
   \f]
  * The magnitude squared is

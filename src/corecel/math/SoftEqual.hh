@@ -188,9 +188,6 @@ CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
 //---------------------------------------------------------------------------//
 /*!
  * Compare two values, implicitly casting arguments.
- *
- * \param expected scalar floating point reference to which value is compared
- * \param actual   scalar floating point value
  */
 template<class RealType>
 CELER_FUNCTION bool
