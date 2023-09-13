@@ -86,72 +86,108 @@ TEST_F(TouchableUpdaterTest, correct)
     EXPECT_TRUE(update({150, 0, 0}, dir, this->find_lv("em_calorimeter")));
 }
 
-TEST_F(TouchableUpdaterTest, just_inside_nowarn)
+TEST_F(TouchableUpdaterTest, just_inside)
 {
     TouchableUpdater update = this->make_touchable_updater();
-    real_type const eps = 1e-6;  // below threshold
+    real_type const eps = 0.5 * TouchableUpdater::max_quiet_step();
+    auto const* tracker_lv = this->find_lv("si_tracker");
+    auto const* calo_lv = this->find_lv("em_calorimeter");
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
-    EXPECT_TRUE(
-        update({125 - eps, 0, 0}, {1, 0, 0}, this->find_lv("si_tracker")));
-    EXPECT_TRUE(
-        update({175 - eps, 0, 0}, {1, 0, 0}, this->find_lv("em_calorimeter")));
-    EXPECT_TRUE(
-        update({125 + eps, 0, 0}, {-1, 0, 0}, this->find_lv("si_tracker")));
-    EXPECT_TRUE(update(
-        {175 + eps, 0, 0}, {-1, 0, 0}, this->find_lv("em_calorimeter")));
+    EXPECT_TRUE(update({30 + eps, 0, 0}, {1, 0, 0}, tracker_lv));
+    EXPECT_TRUE(update({125 - eps, 0, 0}, {1, 0, 0}, tracker_lv));
+
+    EXPECT_TRUE(update({125 + eps, 0, 0}, {-1, 0, 0}, calo_lv));
+    EXPECT_TRUE(update({175 - eps, 0, 0}, {-1, 0, 0}, calo_lv));
 
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
-TEST_F(TouchableUpdaterTest, just_inside_warn)
+TEST_F(TouchableUpdaterTest, just_outside_nowarn)
 {
     TouchableUpdater update = this->make_touchable_updater();
-    real_type const eps = 0.5 * celeritas::units::millimeter;
+    real_type const eps = 0.1 * TouchableUpdater::max_quiet_step()
+                          * celeritas::units::millimeter;
+    auto const* tracker_lv = this->find_lv("si_tracker");
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
-    EXPECT_TRUE(
-        update({125 - eps, 0, 0}, {1, 0, 0}, this->find_lv("si_tracker")));
-    EXPECT_TRUE(update(
-        {175 + eps, 0, 0}, {-1, 0, 0}, this->find_lv("em_calorimeter")));
+    for (auto& xdir : {1.0, -1.0})
+    {
+        EXPECT_TRUE(update({30 - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
+        EXPECT_TRUE(update({125 + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
+    }
 
-    scoped_log_.print_expected();
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
-TEST_F(TouchableUpdaterTest, just_outside)
+TEST_F(TouchableUpdaterTest, just_outside_warn)
 {
     TouchableUpdater update = this->make_touchable_updater();
-    real_type const eps = -1e-6;
+    real_type const eps = 0.1 * TouchableUpdater::max_step()
+                          * celeritas::units::millimeter;
+    auto const* tracker_lv = this->find_lv("si_tracker");
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
-    EXPECT_TRUE(
-        update({125 - eps, 0, 0}, {1, 0, 0}, this->find_lv("si_tracker")));
-    EXPECT_TRUE(update(
-        {175 + eps, 0, 0}, {-1, 0, 0}, this->find_lv("em_calorimeter")));
+    for (auto& xdir : {1.0, -1.0})
+    {
+        EXPECT_TRUE(update({30 - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
+        EXPECT_TRUE(update({125 + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
+    }
 
-    scoped_log_.print_expected();
+    static char const* const expected_log_messages[] = {
+        "Bumping navigation state by 0.10000000000003 [mm] because the "
+        "pre-step point at {299.9, 0, 0} [mm] along {1, 0, 0} is expected to "
+        "be in logical volume \"si_tracker\"@0x0 (ID=1) but navigation gives "
+        "{{pv='vacuum_tube_pv', lv=0='vacuum_tube'}}",
+        "Bumping navigation state by 0.1000000000001 [mm] because the "
+        "pre-step point at {1250.1, 0, 0} [mm] along {-1, 0, 0} is expected "
+        "to be in logical volume \"si_tracker\"@0x0 (ID=1) but navigation "
+        "gives {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}}",
+        "Bumping navigation state by 0.10000000000003 [mm] because the "
+        "pre-step point at {299.9, 0, 0} [mm] along {1, -0, -0} is expected "
+        "to be in logical volume \"si_tracker\"@0x0 (ID=1) but navigation "
+        "gives {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}}",
+        "Bumping navigation state by 0.1000000000001 [mm] because the "
+        "pre-step point at {1250.1, 0, 0} [mm] along {-1, -0, -0} is expected "
+        "to be in logical volume \"si_tracker\"@0x0 (ID=1) but navigation "
+        "gives {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}}"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[]
+        = {"warning", "warning", "warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 TEST_F(TouchableUpdaterTest, too_far)
 {
     TouchableUpdater update = this->make_touchable_updater();
-    real_type const eps = 2 * celeritas::units::millimeter;
+    real_type const eps = 10 * TouchableUpdater::max_step()
+                          * celeritas::units::millimeter;
+    auto const* tracker_lv = this->find_lv("si_tracker");
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
-    EXPECT_TRUE(
-        update({125 - eps, 0, 0}, {1, 0, 0}, this->find_lv("si_tracker")));
-    EXPECT_TRUE(update(
-        {175 + eps, 0, 0}, {-1, 0, 0}, this->find_lv("em_calorimeter")));
+    for (auto& xdir : {1.0, -1.0})
+    {
+        EXPECT_FALSE(update({30 - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
+        EXPECT_FALSE(update({125 + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
+    }
 
-    scoped_log_.print_expected();
+    static char const* const expected_log_messages[]
+        = {"Failed to bump navigation state up to a distance of 1 [mm]",
+           "Failed to bump navigation state up to a distance of 1 [mm]",
+           "Failed to bump navigation state up to a distance of 1 [mm]",
+           "Failed to bump navigation state up to a distance of 1 [mm]"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[]
+        = {"warning", "warning", "warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 //---------------------------------------------------------------------------//

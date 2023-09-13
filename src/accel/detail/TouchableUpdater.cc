@@ -47,6 +47,11 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Try to find the given point in the given logical volume.
+ *
+ * Often on boundaries, the given logical volume (known from the VecGeom volume
+ * mapping) is not consistent with the secondary Geant4 navigation volume.
+ * If that's the case, try bumping forward and backward to see if we can enter
+ * the correct volume.
  */
 bool TouchableUpdater::operator()(Real3 const& pos,
                                   Real3 const& dir,
@@ -69,46 +74,81 @@ bool TouchableUpdater::operator()(Real3 const& pos,
         return true;
     }
 
-    // We may be accidentally in the old volume and crossing into
-    // the new one: try crossing the edge. Use a fairly loose tolerance since
-    // there may be small differences between the Geant4 and VecGeom
-    // representations of the geometry.
-    double safety_distance{-1};
-    double step
-        = navi_->ComputeStep(g4pos, g4dir, this->max_step(), safety_distance);
-    if (step < this->max_step())
-    {
-        // Found a nearby volume
-        if (step > this->max_quiet_step())
+    double g4safety{-1};
+    double g4step{-1};
+
+    //! Update next step and safety
+    auto find_next_step = [&] {
+        g4step = navi_->ComputeStep(g4pos, g4dir, this->max_step(), g4safety);
+    };
+
+    //! Cross into the next touchable, updating the state and returning whether
+    //! the volume is consistent.
+    auto try_cross_boundary = [&] {
+        if (g4step >= this->max_step())
         {
-            // Warn only if the step is nontrivial
+            // No nearby volumes in this direction
+            return false;
+        }
+        else if (g4step > this->max_quiet_step())
+        {
+            // Warn since the step is nontrivial
             CELER_LOG_LOCAL(warning)
-                << "Bumping navigation state by " << repr(step / CLHEP::mm)
+                << "Bumping navigation state by " << repr(g4step / CLHEP::mm)
                 << " [mm] because the pre-step point at " << repr(g4pos)
-                << " [mm] along " << repr(dir)
+                << " [mm] along " << repr(g4dir)
                 << " is expected to be in logical volume " << PrintableLV{lv}
                 << " but navigation gives " << PrintableNavHistory{touchable_};
         }
 
+        // Move to boundary
+        axpy(g4step, g4dir, &g4pos);
         navi_->SetGeometricallyLimitedStep();
+
+        // Cross boundary
         navi_->LocateGlobalPointAndUpdateTouchable(
             g4pos,
             g4dir,
             touchable_,
             /* relative_search = */ true);
 
+        // Update volume and return whether it's correct
         pv = touchable_->GetVolume(0);
         CELER_ASSERT(pv);
-    }
-    else
+        return pv->GetLogicalVolume() == lv;
+    };
+
+    // First, find the next step along the current direction
+    find_next_step();
+    if (g4safety * 2 < g4step)
     {
-        // No nearby crossing found
-        CELER_LOG_LOCAL(warning)
-            << "Failed to bump navigation state up to a distance of "
-            << this->max_step() / CLHEP::mm << " [mm]";
+        // Step forward is more than twice the known distance to boundary:
+        // we're likely heading away from the closest intersection, so try that
+        // first
+        g4dir *= -1;
+        find_next_step();
     }
 
-    return (pv->GetLogicalVolume() == lv);
+    if (try_cross_boundary())
+    {
+        // Entered the correct volume
+        return true;
+    }
+
+    // Reset the position and flip the direction
+    g4pos = convert_to_geant(pos, CLHEP::cm);
+    g4dir *= -1;
+    if (try_cross_boundary())
+    {
+        // Entered the correct volume
+        return true;
+    }
+
+    // No nearby crossing found
+    CELER_LOG_LOCAL(warning)
+        << "Failed to bump navigation state up to a distance of "
+        << this->max_step() / CLHEP::mm << " [mm]";
+    return false;
 }
 
 //---------------------------------------------------------------------------//
