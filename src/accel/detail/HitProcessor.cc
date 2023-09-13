@@ -219,7 +219,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
             if (CELER_UNLIKELY(!success))
             {
                 // Inconsistent touchable: skip this energy deposition
-                CELER_LOG(error)
+                CELER_LOG_LOCAL(error)
                     << "Omitting energy deposition of "
                     << step_->GetTotalEnergyDeposit() / CLHEP::MeV << " [MeV]";
                 continue;

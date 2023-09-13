@@ -82,7 +82,7 @@ bool TouchableUpdater::operator()(Real3 const& pos,
         if (step > this->max_quiet_step())
         {
             // Warn only if the step is nontrivial
-            CELER_LOG(warning)
+            CELER_LOG_LOCAL(warning)
                 << "Bumping navigation state by " << repr(step / CLHEP::mm)
                 << " [mm] because the pre-step point at " << repr(g4pos)
                 << " [mm] along " << repr(dir)
@@ -103,7 +103,7 @@ bool TouchableUpdater::operator()(Real3 const& pos,
     else
     {
         // No nearby crossing found
-        CELER_LOG(warning)
+        CELER_LOG_LOCAL(warning)
             << "Failed to bump navigation state up to a distance of "
             << this->max_step() / CLHEP::mm << " [mm]";
     }
