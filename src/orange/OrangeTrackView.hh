@@ -323,6 +323,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
         this->level() = states_.level[init.other.track_slot_];
         this->surface(init.other.surface_level(),
                       {init.other.surf(), init.other.sense()});
+        this->boundary() = init.other.boundary();
 
         for (auto lev : range(LevelId{this->level() + 1}))
         {
@@ -344,6 +345,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
         apply_transform(rotate_down,
                         this->get_transform(this->get_daughter(lsa)));
     }
+
     // Save final level
     this->make_lsa().dir() = localdir;
 
