@@ -24,6 +24,7 @@ list(APPEND SOURCES
   detail/HitManager.cc
   detail/HitProcessor.cc
   detail/SensDetInserter.cc
+  detail/TouchableUpdater.cc
 )
 
 celeritas_polysource(ExceptionConverter)
