@@ -22,7 +22,7 @@ namespace celeritas
  * Functor for noninfinite floating point equality.
  *
  * This function-like class considers an \em absolute tolerance for values near
- * zero, and a \em relative tolerance for valuse far from zero. It correctly
+ * zero, and a \em relative tolerance for values far from zero. It correctly
  * returns "false" if either value being compared is NaN.  The call operator is
  * \em commutative: \c eq(a,b) should always give the same as \c eq(b,a).
  *
@@ -174,7 +174,7 @@ CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
  *
  * \param rel tolerance of relative error (default 1.0e-12 for doubles)
  *
- * \param abs threshold for absolute error when comparing to zero
+ * \param abs threshold for absolute error when comparing small quantities
  *           (default 1.0e-14 for doubles)
  */
 template<class RealType>
@@ -188,9 +188,6 @@ CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
 //---------------------------------------------------------------------------//
 /*!
  * Compare two values, implicitly casting arguments.
- *
- * \param expected scalar floating point reference to which value is compared
- * \param actual   scalar floating point value
  */
 template<class RealType>
 CELER_FUNCTION bool
@@ -214,8 +211,7 @@ CELER_CONSTEXPR_FUNCTION SoftZero<RealType>::SoftZero()
 /*!
  * Construct with specified precision.
  *
- * \param abs threshold for absolute error when comparing to zero
- *           (default 1.0e-14 for doubles)
+ * \param abs threshold for absolute error (default 1.0e-14 for doubles)
  */
 template<class RealType>
 CELER_FUNCTION SoftZero<RealType>::SoftZero(value_type abs) : abs_(abs)

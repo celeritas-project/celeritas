@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/SurfaceClipperImpl.cc
+//! \file orange/surf/detail/SurfaceClipperImpl.cc
 //---------------------------------------------------------------------------//
 #include "SurfaceClipperImpl.hh"
 
@@ -46,7 +46,9 @@ void SurfaceClipperImpl<Sense::inside>::operator()(PlaneAligned<T> const& s) con
     bbox_->clip(Sense::inside, T, s.position());
 }
 
+//!\cond
 ORANGE_INSTANTIATE_OP(Sense::inside, PlaneAligned);
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -66,7 +68,9 @@ void SurfaceClipperImpl<Sense::inside>::operator()(CylCentered<T> const& s) cons
     }
 }
 
+//!\cond
 ORANGE_INSTANTIATE_OP(Sense::inside, CylCentered);
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -101,7 +105,9 @@ void SurfaceClipperImpl<Sense::inside>::operator()(CylAligned<T> const& s) const
     }
 }
 
+//!\cond
 ORANGE_INSTANTIATE_OP(Sense::inside, CylAligned);
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -128,7 +134,9 @@ void SurfaceClipperImpl<Sense::outside>::operator()(PlaneAligned<T> const& s) co
     bbox_->clip(Sense::outside, T, s.position());
 }
 
+//!\cond
 ORANGE_INSTANTIATE_OP(Sense::outside, PlaneAligned);
+//!\endcond
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

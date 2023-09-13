@@ -43,6 +43,12 @@ template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T norm(Array<T, N> const& vec);
 
 //---------------------------------------------------------------------------//
+// Construct a vector with unit magnitude
+template<class T, size_type N>
+[[nodiscard]] inline CELER_FUNCTION Array<T, N>
+make_unit_vector(Array<T, N> const& v);
+
+//---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) distance between two points
 template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
@@ -126,6 +132,24 @@ CELER_FUNCTION T norm(Array<T, N> const& v)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a unit vector.
+ *
+ * Unit vectors have an Euclidian norm magnitude of 1.
+ */
+template<class T, size_type N>
+CELER_FUNCTION Array<T, N> make_unit_vector(Array<T, N> const& v)
+{
+    Array<T, N> result{v};
+    const T scale_factor = 1 / norm(result);
+    for (auto& el : result)
+    {
+        el *= scale_factor;
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the Euclidian (2) distance between two points.
  */
 template<class T, size_type N>
@@ -142,15 +166,14 @@ CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)
 //---------------------------------------------------------------------------//
 /*!
  * Divide the given vector by its Euclidian norm.
+ *
+ * \deprecated replace with \c make_unit_vector
  */
 template<class T>
 CELER_FUNCTION void normalize_direction(Array<T, 3>* direction)
 {
     CELER_EXPECT(direction);
-    const T scale_factor = 1 / norm(*direction);
-    (*direction)[0] *= scale_factor;
-    (*direction)[1] *= scale_factor;
-    (*direction)[2] *= scale_factor;
+    *direction = make_unit_vector(*direction);
 }
 
 //---------------------------------------------------------------------------//
@@ -265,7 +288,7 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
  * Test for being approximately a unit vector.
  *
  * Consider a unit vector \em v with a small perturbation along a unit vector
- * \em e: \f[
+ * \em e : \f[
    \vec v + \epsilon \vec e
   \f]
  * The magnitude squared is
