@@ -7,7 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+#include <random>
+
 #include "corecel/io/StringEnumMapper.hh"
+#include "orange/Types.hh"
 
 #include "PDGNumber.hh"
 
@@ -43,6 +47,7 @@ struct DistributionOptions
 /*!
  * Primary generator options.
  *
+ * - \c seed: RNG seed
  * - \c pdg: PDG numbers of the primaries. An equal number of primaries of each
  *   type will be generated
  * - \c num_events: total number of events to generate
@@ -53,6 +58,7 @@ struct DistributionOptions
  */
 struct PrimaryGeneratorOptions
 {
+    unsigned int seed{};
     std::vector<PDGNumber> pdg;
     size_type num_events{};
     size_type primaries_per_event{};
@@ -71,6 +77,24 @@ struct PrimaryGeneratorOptions
                && position && direction;
     }
 };
+
+using PrimaryGeneratorEngine = std::mt19937;
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Return a distribution for sampling the energy
+std::function<real_type(PrimaryGeneratorEngine&)>
+make_energy_sampler(DistributionOptions options);
+
+// Return a distribution for sampling the position
+std::function<Real3(PrimaryGeneratorEngine&)>
+make_position_sampler(DistributionOptions options);
+
+// Return a distribution for sampling the direction
+std::function<Real3(PrimaryGeneratorEngine&)>
+make_direction_sampler(DistributionOptions options);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

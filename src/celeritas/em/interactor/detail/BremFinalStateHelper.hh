@@ -19,7 +19,6 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Sample the angular distribution of photon from e+/e- Bremsstrahlung.
- *
  */
 class BremFinalStateHelper
 {

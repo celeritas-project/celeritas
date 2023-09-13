@@ -32,10 +32,10 @@ using SquareMatrixReal3 = SquareMatrix<real_type, 3>;
 //---------------------------------------------------------------------------//
 
 //! Identifier for a surface (for surface-based geometries)
-using SurfaceId = OpaqueId<struct Surface>;
+using SurfaceId = OpaqueId<struct Surface_>;
 
 //! Identifier for a geometry volume
-using VolumeId = OpaqueId<struct Volume>;
+using VolumeId = OpaqueId<struct Volume_>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS

@@ -241,7 +241,7 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
             const auto electron = out.secondaries.front();
             double eps = (electron.energy.value() + data_.electron_mass.value())
                          / inc_energy;
-            int eps_bin = eps * nbins;
+            auto eps_bin = static_cast<int>(eps * nbins);
             if (eps_bin >= 0 && eps_bin < nbins)
             {
                 ++eps_dist[eps_bin];

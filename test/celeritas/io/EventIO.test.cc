@@ -75,8 +75,8 @@ TEST_P(EventIOTest, variety_rwr)
     static double const expected_energy[] = {4233, 29552, 56373, 4233, 29552,
         56373, 4233, 29552, 56373};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
-    static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,
-        0, 0, 10, 0, 0, 10, 1, 2, 3, 1, 2, 3, 1, 2, 3};
+    static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        0, 0, 1, 0, 0, 1, 1, 2, 3, 1, 2, 3, 1, 2, 3};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
     static double const expected_dir[] = {-0.90094709007965, 0.02669997932835,
         -0.43310674432625, -0.082735048064663, 0.97508922087171,

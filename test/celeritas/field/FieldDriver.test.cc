@@ -369,7 +369,7 @@ TEST_F(RevolutionFieldDriverTest, advance)
         }
 
         // Check the total error and the state (position, momentum)
-        EXPECT_VEC_NEAR(y_expected.pos, y.pos, eps);
+        EXPECT_VEC_CLOSE(y_expected.pos, y.pos, eps, eps);
     }
 
     // Check the total error, step/curve length

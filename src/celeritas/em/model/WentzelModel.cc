@@ -138,7 +138,7 @@ void WentzelModel::build_data(HostVal<WentzelData>& host_data,
                               MaterialParams const& materials)
 {
     // Build element data
-    unsigned int const num_elements = materials.num_elements();
+    size_type const num_elements = materials.num_elements();
     auto elem_data = make_builder(&host_data.elem_data);
     elem_data.reserve(num_elements);
 

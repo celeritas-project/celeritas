@@ -324,7 +324,6 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
     for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
-        SCOPED_TRACE(result);
 
         average_energy += result.secondaries[0].energy.value();
         average_angle[0] += result.secondaries[0].direction[0];

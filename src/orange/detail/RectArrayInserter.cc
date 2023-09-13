@@ -27,6 +27,7 @@ namespace detail
  */
 RectArrayInserter::RectArrayInserter(Data* orange_data)
     : orange_data_(orange_data)
+    , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
 {
     CELER_EXPECT(orange_data);
 }
@@ -72,13 +73,11 @@ RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
                    << ")");
 
     std::vector<Daughter> daughters;
-    auto translations_builder = make_builder(&orange_data_->translations);
     for (auto const& daughter_input : inp.daughters)
     {
         Daughter d;
         d.universe_id = daughter_input.universe_id;
-        d.translation_id
-            = translations_builder.push_back(daughter_input.translation);
+        d.transform_id = insert_transform_(daughter_input.translation);
         daughters.push_back(d);
     }
 

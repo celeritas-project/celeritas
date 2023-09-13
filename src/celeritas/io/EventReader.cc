@@ -46,6 +46,16 @@ EventReader::EventReader(std::string const& filename, SPConstParticles params)
 //---------------------------------------------------------------------------//
 /*!
  * Read a single event from the event record.
+ *
+ * \note
+ * Units are converted manually from HepMC3 to Celeritas rather than using \c
+ * GenEvent::set_units(). This method converts the momentum units of all
+ * particles and the length units of all daughter vertices; however, it does
+ * *not* convert the length units of the root vertex. This means any particle
+ * without a vertex will not have the correct units for position and time. This
+ * may also be true for any vertices that do not have a position assigned, as
+ * their positions will be inherited from the vertices of their ancestors (or
+ * by falling back on the event position).
  */
 auto EventReader::operator()() -> result_type
 {
@@ -69,9 +79,6 @@ auto EventReader::operator()() -> result_type
             << "Overwriting event ID " << evt.event_number()
             << " from file with sequential event ID " << event_id.get();
     }
-
-    // Convert the energy units to MeV and the length units to cm
-    evt.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
 
     std::set<int> missing_pdg;
 
@@ -106,7 +113,8 @@ auto EventReader::operator()() -> result_type
         primary.track_id = TrackId(track_id++);
 
         // Get the position of the vertex
-        auto const& pos = par->production_vertex()->position();
+        auto pos = par->production_vertex()->position();
+        HepMC3::Units::convert(pos, evt.length_unit(), HepMC3::Units::CM);
         primary.position = {pos.x() * units::centimeter,
                             pos.y() * units::centimeter,
                             pos.z() * units::centimeter};
@@ -115,12 +123,13 @@ auto EventReader::operator()() -> result_type
         primary.time = pos.t() * units::centimeter / constants::c_light;
 
         // Get the direction of the primary
-        primary.direction = {
-            par->momentum().px(), par->momentum().py(), par->momentum().pz()};
+        auto mom = par->momentum();
+        HepMC3::Units::convert(mom, evt.momentum_unit(), HepMC3::Units::MEV);
+        primary.direction = {mom.px(), mom.py(), mom.pz()};
         normalize_direction(&primary.direction);
 
         // Get the energy of the primary
-        primary.energy = units::MevEnergy{par->momentum().e()};
+        primary.energy = units::MevEnergy{mom.e()};
 
         result.push_back(primary);
     }

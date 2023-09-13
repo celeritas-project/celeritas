@@ -10,8 +10,6 @@
 #include <string>
 #include <utility>
 
-#include "corecel/io/Logger.hh"
-
 #include "LoggerTypes.hh"
 #include "detail/LoggerMessage.hh"  // IWYU pragma: export
 

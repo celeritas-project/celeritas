@@ -3,15 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/SurfaceAction.test.hh
+//! \file orange/surf/LocalSurfaceVisitor.test.hh
 //---------------------------------------------------------------------------//
 #include <vector>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "orange/OrangeData.hh"
-#include "orange/surf/SurfaceAction.hh"
-#include "orange/surf/Surfaces.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 
 namespace celeritas
 {
@@ -119,18 +118,13 @@ struct CalcSenseDistanceExecutor
     CELER_FUNCTION void operator()(TrackSlotId tid) const
     {
         CELER_EXPECT(this->params.simple_units.size() == 1);
-        Surfaces surfaces(this->params,
-                          this->params.simple_units[SimpleUnitId{0}].surfaces);
-
-        auto calc_sense_dist = make_surface_action(
-            surfaces,
-            CalcSenseDistance{this->states.pos[tid],
-                              this->states.dir[tid],
-                              &this->states.sense[tid],
-                              &this->states.distance[tid]});
-
-        LocalSurfaceId sid{tid.get() % surfaces.num_surfaces()};
-        calc_sense_dist(sid);
+        LocalSurfaceVisitor visit(this->params, SimpleUnitId{0});
+        CalcSenseDistance calc_sense_dist{this->states.pos[tid],
+                                          this->states.dir[tid],
+                                          &this->states.sense[tid],
+                                          &this->states.distance[tid]};
+        auto num_surf = params.simple_units[SimpleUnitId{0}].surfaces.size();
+        visit(calc_sense_dist, LocalSurfaceId{tid.get() % num_surf});
     }
 };
 

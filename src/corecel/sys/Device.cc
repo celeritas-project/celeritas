@@ -8,6 +8,7 @@
 #include "Device.hh"
 
 #include <iostream>  // IWYU pragma: keep
+#include <limits>
 #include <mutex>
 #include <utility>
 
@@ -34,13 +35,6 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-std::mutex& device_setter_mutex()
-{
-    static std::mutex m;
-    return m;
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Active CUDA device for Celeritas calls on the local process.
  *
@@ -50,9 +44,9 @@ std::mutex& device_setter_mutex()
  * and
  * https://github.com/celeritas-project/celeritas/pull/149#discussion_r578000062
  *
- * We might need to add a "thread_local" annotation corresponding to a
- * multithreaded celeritas option. This class will always be thread safe to
- * read (if the instance isn't being modified by other threads).
+ * The device should be *activated* by the main thread, and \c
+ * activate_device_local should be called on other threads to set up the
+ * local CUDA context.
  */
 Device& global_device()
 {
@@ -74,6 +68,12 @@ Device& global_device()
 //---------------------------------------------------------------------------//
 // MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
+
+void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p) noexcept
+{
+    delete p;
+}
+
 /*!
  * Get the number of available devices.
  *
@@ -137,10 +137,11 @@ bool Device::debug()
 /*!
  * Construct from a device ID.
  */
-Device::Device(int id)
-    : id_(id), streams_(std::make_shared<detail::StreamStorage>())
+Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
+
+    CELER_LOG_LOCAL(debug) << "Constructing device ID " << id;
 
     unsigned int max_threads_per_block = 0;
 #if CELER_USE_DEVICE
@@ -192,6 +193,17 @@ Device::Device(int id)
 
     // Save for possible block size initialization
     max_threads_per_block = props.maxThreadsPerBlock;
+
+    auto threshold = std::numeric_limits<uint64_t>::max();
+    if (std::string var = celeritas::getenv("CELER_MEMPOOL_RELEASE_THRESHOLD");
+        !var.empty())
+    {
+        threshold = std::stoul(var);
+    }
+    CELER_DEVICE_PREFIX(MemPool_t) mempool;
+    CELER_DEVICE_CALL_PREFIX(DeviceGetDefaultMemPool(&mempool, id_));
+    CELER_DEVICE_CALL_PREFIX(MemPoolSetAttribute(
+        mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
 #endif
 
     // See device_runtime_api.h
@@ -225,8 +237,8 @@ Device::Device(int id)
  */
 StreamId::size_type Device::num_streams() const
 {
-    CELER_EXPECT(streams_);
-
+    if (!streams_)
+        return 0;
     return streams_->size();
 }
 
@@ -250,7 +262,7 @@ void Device::create_streams(unsigned int num_streams) const
  *
  * This returns the default stream if no streams were allocated.
  */
-Stream const& Device::stream(StreamId id) const
+Stream& Device::stream(StreamId id) const
 {
     CELER_EXPECT(streams_);
 
@@ -270,19 +282,23 @@ Device const& device()
 
 //---------------------------------------------------------------------------//
 /*!
- * Activate the given device.
+ * Activate the global celeritas device.
  *
  * The given device must be set (true result) unless no device has yet been
  * enabled -- this allows \c make_device to create "null" devices
  * when CUDA is disabled.
  *
- * \note This function is thread safe, and even though the global device is
- * shared across threads, it should be called from each thread to correctly
- * initialize CUDA.
+ * This function may be called once only, because the global device propagates
+ * into local states (e.g. where memory is allocated) all over Celeritas.
  */
 void activate_device(Device&& device)
 {
-    CELER_EXPECT(device || !global_device());
+    static std::mutex m;
+    std::lock_guard<std::mutex> scoped_lock{m};
+    Device& d = global_device();
+    CELER_VALIDATE(!d,
+                   << "celeritas::activate_device may be called only once per "
+                      "application");
 
     if (!device)
         return;
@@ -291,14 +307,8 @@ void activate_device(Device&& device)
                            << device.device_id() << " of "
                            << Device::num_devices();
     ScopedTimeLog scoped_time(&self_logger(), 1.0);
-    Device& d = global_device();
-    {
-        // Lock *after* getting the pointer to the global_device, because
-        // the global_device function (in debug mode) also uses this lock.
-        std::lock_guard<std::mutex> scoped_lock{device_setter_mutex()};
-        CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
-        d = std::move(device);
-    }
+    CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
+    d = std::move(device);
 
     // Call cudaFree to wake up the device, making other timers more accurate
     CELER_DEVICE_CALL_PREFIX(Free(nullptr));
@@ -336,13 +346,15 @@ void activate_device(MpiCommunicator const& comm)
  * See
  * https://developer.nvidia.com/blog/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs
  *
- * \pre activate_device was called to set \c device()
+ * \pre activate_device was called or no device is intended to be used
  */
 void activate_device_local()
 {
-    if (device())
+    Device& d = global_device();
+    if (d)
     {
-        CELER_DEVICE_CALL_PREFIX(SetDevice(device().device_id()));
+        CELER_LOG_LOCAL(debug) << "Activating device " << d.device_id();
+        CELER_DEVICE_CALL_PREFIX(SetDevice(d.device_id()));
     }
 }
 

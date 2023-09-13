@@ -29,15 +29,15 @@ class OrangeTest : public OrangeGeoTestBase
     using Initializer_t = GeoTrackInitializer;
 
     //! Create a host track view
-    OrangeTrackView make_track_view()
+    OrangeTrackView make_track_view(TrackSlotId tsid = TrackSlotId{0})
     {
         if (!host_state_)
         {
-            host_state_ = HostStateStore(this->host_params(), 1);
+            host_state_ = HostStateStore(this->host_params(), 2);
         }
+        CELER_EXPECT(tsid < host_state_.size());
 
-        return OrangeTrackView(
-            this->host_params(), host_state_.ref(), TrackSlotId{0});
+        return OrangeTrackView(this->host_params(), host_state_.ref(), tsid);
     }
 
   private:
@@ -538,6 +538,7 @@ TEST_F(UniversesTest, params)
     OrangeParams const& geo = this->params();
     EXPECT_EQ(12, geo.num_volumes());
     EXPECT_EQ(25, geo.num_surfaces());
+    EXPECT_EQ(3, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
 
     EXPECT_VEC_SOFT_EQ(Real3({-2, -6, -1}), geo.bbox().lower());
@@ -584,13 +585,24 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
 
-    // Initialize in daughter universe using DetailedInitializer
+    // Initialize in daughter universe using "this == &other"
     geo = OrangeTrackView::DetailedInitializer{geo, {0, 1, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
     EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
+
+    {
+        // Initialize a separate track slot
+        auto other = this->make_track_view(TrackSlotId{1});
+        other = OrangeTrackView::DetailedInitializer{geo, {1, 0, 0}};
+        EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), other.pos());
+        EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
+        EXPECT_EQ("c", this->params().id_to_label(other.volume_id()).name);
+        EXPECT_FALSE(other.is_outside());
+        EXPECT_FALSE(other.is_on_boundary());
+    }
 }
 
 TEST_F(UniversesTest, move_internal_multiple_universes)
@@ -826,6 +838,18 @@ TEST_F(UniversesTest, cross_between_daughters)
 
     geo.move_to_boundary();
     EXPECT_EQ("bob.mz", this->params().id_to_label(geo.surface_id()).name);
+}
+
+TEST_F(RectArrayTest, params)
+{
+    OrangeParams const& geo = this->params();
+    EXPECT_EQ(35, geo.num_volumes());
+    EXPECT_EQ(22, geo.num_surfaces());
+    EXPECT_EQ(4, geo.max_depth());
+    EXPECT_FALSE(geo.supports_safety());
+
+    EXPECT_VEC_SOFT_EQ(Real3({-12, -4, -5}), geo.bbox().lower());
+    EXPECT_VEC_SOFT_EQ(Real3({12, 10, 5}), geo.bbox().upper());
 }
 
 TEST_F(Geant4Testem15Test, safety)

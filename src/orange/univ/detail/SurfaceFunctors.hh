@@ -24,7 +24,7 @@ struct CalcSense
     Real3 const& pos;
 
     template<class S>
-    CELER_FUNCTION SignedSense operator()(S&& surf)
+    CELER_FUNCTION SignedSense operator()(S const& surf)
     {
         return surf.calc_sense(this->pos);
     }
@@ -32,11 +32,12 @@ struct CalcSense
 
 //---------------------------------------------------------------------------//
 //! Get the number of intersections of a surface
-template<class S>
 struct NumIntersections
 {
-    CELER_CONSTEXPR_FUNCTION size_type operator()() const noexcept
+    template<class ST>
+    CELER_CONSTEXPR_FUNCTION size_type operator()(ST) const noexcept
     {
+        using S = typename ST::type;
         return typename S::Intersections{}.size();
     }
 };
@@ -48,7 +49,7 @@ struct CalcNormal
     Real3 const& pos;
 
     template<class S>
-    CELER_FUNCTION Real3 operator()(S&& surf)
+    CELER_FUNCTION Real3 operator()(S const& surf)
     {
         return surf.calc_normal(this->pos);
     }
@@ -68,7 +69,7 @@ struct CalcSafetyDistance
 
     //! Operate on a surface
     template<class S>
-    CELER_FUNCTION real_type operator()(S&& surf)
+    CELER_FUNCTION real_type operator()(S const& surf)
     {
         if (!S::simple_safety())
         {
@@ -106,23 +107,25 @@ struct CalcSafetyDistance
 /*!
  * Fill an array with valid distances-to-intersection.
  *
+ * \tparam F Predicate for returning whether the distance is allowable
+ *
  * This assumes that each call is to the next face index, starting with face
  * zero.
  */
-template<class IsValid>
+template<class F>
 class CalcIntersections
 {
   public:
     //! Construct from the particle point, direction, face ID, and temp storage
-    CELER_FUNCTION CalcIntersections(Real3 const& pos,
+    CELER_FUNCTION CalcIntersections(F is_valid_isect,
+                                     Real3 const& pos,
                                      Real3 const& dir,
-                                     IsValid is_valid_isect,
                                      FaceId on_face,
                                      bool is_simple,
                                      TempNextFace const& next_face)
-        : pos_(pos)
+        : is_valid_isect_(celeritas::forward<F>(is_valid_isect))
+        , pos_(pos)
         , dir_(dir)
-        , is_valid_isect_(is_valid_isect)
         , on_face_idx_(on_face.unchecked_get())
         , fill_isect_(!is_simple)
         , face_(next_face.face)
@@ -134,10 +137,19 @@ class CalcIntersections
 
     //! Operate on a surface
     template<class S>
-    CELER_FUNCTION void operator()(S&& surf)
+    CELER_FUNCTION void operator()(S const& surf)
     {
         auto on_surface = (on_face_idx_ == face_idx_) ? SurfaceState::on
                                                       : SurfaceState::off;
+        if constexpr (typename S::Intersections{}.size() == 1)
+        {
+            if (on_surface == SurfaceState::on)
+            {
+                // On surface so cannot reintersect
+                ++face_idx_;
+                return;
+            }
+        }
 
         // Calculate distance to surface along this direction
         auto all_dist = surf.calc_intersections(pos_, dir_, on_surface);
@@ -168,9 +180,9 @@ class CalcIntersections
   private:
     //// DATA ////
 
+    F is_valid_isect_;
     Real3 const& pos_;
     Real3 const& dir_;
-    const IsValid is_valid_isect_;
     const size_type on_face_idx_;
     bool const fill_isect_;
     FaceId* const face_;
@@ -179,6 +191,9 @@ class CalcIntersections
     size_type face_idx_{0};
     size_type isect_idx_{0};
 };
+
+template<class F, class... Args>
+CELER_FUNCTION CalcIntersections(F&&, Args&&... args)->CalcIntersections<F>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

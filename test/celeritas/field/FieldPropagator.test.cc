@@ -278,7 +278,7 @@ TEST_F(TwoBoxesTest, positron_interior)
     // Test a quarter turn
     Propagation result = propagate(0.5 * pi * radius);
     EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
-    EXPECT_SOFT_NEAR(0, distance(Real3({0, -radius, 0}), geo.pos()), 1e-5);
+    EXPECT_NEAR(0, distance(Real3({0, -radius, 0}), geo.pos()), 1e-5);
     EXPECT_SOFT_EQ(1.0, dot_product(Real3({-1, 0, 0}), geo.dir()));
 }
 
@@ -541,8 +541,8 @@ TEST_F(TwoBoxesTest, electron_small_step)
         EXPECT_DOUBLE_EQ(delta, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_FALSE(geo.is_on_boundary());
-        EXPECT_VEC_SOFT_EQ(Real3({5 + delta, 0, 0}), geo.pos());
-        EXPECT_VEC_SOFT_EQ(Real3({1, 3 * delta, 0}), geo.dir());
+        EXPECT_LT(distance(Real3({5 + delta, 0, 0}), geo.pos()), 1e-12);
+        EXPECT_LT(distance(Real3({1, 3 * delta, 0}), geo.dir()), 1e-12);
     }
 }
 

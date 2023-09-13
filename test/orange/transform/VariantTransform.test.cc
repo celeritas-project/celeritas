@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/transform/VariantTransform.hh"
 
+#include "orange/BoundingBox.hh"
 #include "orange/transform/Transformation.hh"
 #include "orange/transform/Translation.hh"
 #include "orange/transform/detail/TransformTransformer.hh"
@@ -80,15 +81,19 @@ TEST_F(VariantTransformTest, variant_types)
     Translation tl{Real3{0, 1, 0}};
     Transformation tf{make_rotation(Axis::z, Turn{0.25}), Real3{0, 0, 2}};
 
-    EXPECT_TRUE(holds_alternative<std::monostate>(apply_transform({}, {})));
-    EXPECT_TRUE(holds_alternative<Translation>(apply_transform({}, tl)));
-    EXPECT_TRUE(holds_alternative<Transformation>(apply_transform({}, tf)));
+    VariantTransform const identity;
+    EXPECT_TRUE(holds_alternative<NoTransformation>(
+        apply_transform(identity, identity)));
+    EXPECT_TRUE(holds_alternative<Translation>(apply_transform(identity, tl)));
+    EXPECT_TRUE(
+        holds_alternative<Transformation>(apply_transform(identity, tf)));
 
-    EXPECT_TRUE(holds_alternative<Translation>(apply_transform(tl, {})));
+    EXPECT_TRUE(holds_alternative<Translation>(apply_transform(tl, identity)));
     EXPECT_TRUE(holds_alternative<Translation>(apply_transform(tl, tl)));
     EXPECT_TRUE(holds_alternative<Transformation>(apply_transform(tl, tf)));
 
-    EXPECT_TRUE(holds_alternative<Transformation>(apply_transform(tf, {})));
+    EXPECT_TRUE(
+        holds_alternative<Transformation>(apply_transform(tf, identity)));
     EXPECT_TRUE(holds_alternative<Transformation>(apply_transform(tf, tl)));
     EXPECT_TRUE(holds_alternative<Transformation>(apply_transform(tf, tf)));
 
@@ -115,6 +120,31 @@ TEST_F(VariantTransformTest, variant_types)
     {
         FAIL() << "wrong type";
     }
+}
+
+TEST_F(VariantTransformTest, bbox)
+{
+    auto bb = apply_transform(
+        VariantTransform{std::in_place_type<Translation>, Real3{1, 2, 3}},
+        BBox{{1, 2, 3}, {4, 5, 6}});
+    EXPECT_VEC_SOFT_EQ(Real3({2, 4, 6}), bb.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({5, 7, 9}), bb.upper());
+
+    bb = apply_transform(VariantTransform{std::in_place_type<Transformation>,
+                                          make_rotation(Axis::z, Turn{0.25}),
+                                          Real3{0, 0, 2}},
+                         BBox{{1, 2, 3}, {4, 5, 6}});
+    EXPECT_VEC_SOFT_EQ(Real3({-5, 1, 5}), bb.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({-2, 4, 8}), bb.upper());
+
+    // IntersectionShapeTest.we_need_to_go_deeper
+    bb = BBox{{-3, -3, -3}, {3, 3, 3}};  // a_sphere
+    bb = apply_transform(Translation{{1, 1, 0}}, bb);  // placed_meta
+    bb = apply_transform(
+        Transformation{make_rotation(Axis::x, Turn{0.25}), {0, 0, 10}},
+        bb);  // final bbox
+    EXPECT_VEC_SOFT_EQ(Real3({-2, -3, 8}), bb.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({4, 3, 14}), bb.upper());
 }
 
 //---------------------------------------------------------------------------//

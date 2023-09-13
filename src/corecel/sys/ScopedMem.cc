@@ -13,9 +13,11 @@
 #elif defined(__linux__)
 #    include <sys/resource.h>
 #elif defined(_WIN32)
-#    include <psapi.h>
 #    include <windows.h>
+// Note: windows header *must* precede psapi
+#    include <psapi.h>
 #endif
+#include <cstddef>
 #include <iostream>
 
 #include "corecel/device_runtime_api.h"
@@ -74,13 +76,13 @@ MemResult get_cpu_mem()
     return result;
 }
 
-std::ptrdiff_t get_gpu_mem()
+std::size_t get_gpu_mem()
 {
     std::size_t free{0};
     std::size_t total{0};
     CELER_DEVICE_CALL_PREFIX(MemGetInfo(&free, &total));
     CELER_ASSERT(total > free);
-    return std::ptrdiff_t(total) - std::ptrdiff_t(free);
+    return total - free;
 }
 
 //---------------------------------------------------------------------------//
@@ -120,16 +122,27 @@ ScopedMem::~ScopedMem()
         MemUsageEntry& entry = registry_.value()->get(id_);
 
         // Save CPU stats
-        std::ptrdiff_t stop_hwm = get_cpu_mem().hwm;
+        auto stop_hwm = get_cpu_mem().hwm;
         entry.cpu_hwm = native_value_to<KibiBytes>(stop_hwm);
+        if (CELER_UNLIKELY(stop_hwm < cpu_start_hwm_))
+        {
+            std::cerr << "An error occurred while calculating CPU memory "
+                         "usage for '"
+                      << entry.label << ": end HWM "
+                      << native_value_to<KibiBytes>(stop_hwm).value()
+                      << " KiB is less than beginning HWM "
+                      << native_value_to<KibiBytes>(cpu_start_hwm_).value()
+                      << " KiB\n";
+        }
         entry.cpu_delta = native_value_to<KibiBytes>(stop_hwm - cpu_start_hwm_);
 
         if (celeritas::device())
         {
             try
             {
-                std::ptrdiff_t stop_usage = get_gpu_mem();
+                auto stop_usage = get_gpu_mem();
                 entry.gpu_usage = native_value_to<KibiBytes>(stop_usage);
+                CELER_ASSERT(stop_usage >= gpu_start_used_);
                 entry.gpu_delta
                     = native_value_to<KibiBytes>(stop_usage - gpu_start_used_);
             }

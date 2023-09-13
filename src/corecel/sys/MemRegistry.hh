@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -20,12 +21,14 @@ namespace celeritas
 //! SI prefix for multiples of 1024
 struct Kibi
 {
-    static CELER_CONSTEXPR_FUNCTION int value() { return 1024; }
+    using value_type = std::size_t;
+
+    static CELER_CONSTEXPR_FUNCTION value_type value() { return 1024u; }
     static char const* label() { return "kibi"; }
 };
 
 //! 1024 bytes
-using KibiBytes = Quantity<Kibi, int>;
+using KibiBytes = Quantity<Kibi>;
 //! Ordered identifiers for memory allocation segments
 using MemUsageId = OpaqueId<struct MemUsageEntry>;
 
@@ -39,20 +42,20 @@ struct MemUsageEntry
     //! Difference in CPU memory usage from beginning to end
     KibiBytes cpu_delta{};
     //! Reported CPU "high water mark" at the end the block
-    KibiBytes cpu_hwm{-1};
+    KibiBytes cpu_hwm{};
     //! Difference in GPU memory usage from beginning to end
     KibiBytes gpu_delta{};
     //! Reported GPU "high water mark" at the end the block
-    KibiBytes gpu_usage{-1};
+    KibiBytes gpu_usage{};
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Track memory usage across the application.
  *
- * This class is not thread-safe and should generally be used during setup. The
- * memory usage entries are a tree. Pushing and popping should be done with \c
- * ScopedMem .
+ * This class is \em not thread-safe and should generally be used during setup.
+ * The memory usage entries are a tree. Pushing and popping should be done with
+ * \c ScopedMem .
  */
 class MemRegistry
 {

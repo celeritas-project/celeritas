@@ -7,12 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <variant>
-
 #include "corecel/math/ArrayOperators.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/Types.hh"
 
+#include "../NoTransformation.hh"
 #include "../Transformation.hh"
 #include "../Translation.hh"
 
@@ -66,7 +65,10 @@ class TransformTranslator
     //// TRANSFORMATIONS ////
 
     //! Transform an identity
-    Translation operator()(std::monostate) const { return tr_; }
+    Translation const& operator()(NoTransformation const&) const
+    {
+        return tr_;
+    }
 
     inline Transformation operator()(Mat3 const&) const;
 

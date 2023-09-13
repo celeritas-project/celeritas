@@ -17,6 +17,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
@@ -41,23 +42,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Variadic-templated struct for overloaded operator() calls.
- */
-template<typename... Ts>
-struct Overload : Ts...
-{
-    using Ts::operator()...;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * "Deduction guide" for instantiating Overload objects w/o specifying types.
- */
-template<class... Ts>
-Overload(Ts&&...) -> Overload<Ts...>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Load a geometry from the given filename.
@@ -95,6 +79,84 @@ OrangeInput input_from_json(std::string filename)
     return result;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the maximum num of universe levels within the geometry
+ *
+ * A single-universe geometry will have a max_depth of 1.
+ * The operator() is a recursive function, so for external callers, uid should
+ * be the root universe id.
+ */
+struct MaxDepthCalculator
+{
+    HostVal<OrangeParamsData> const& data_;
+    std::map<UniverseId, size_type> depths;
+
+    // Construct from host data
+    MaxDepthCalculator(HostVal<OrangeParamsData> const& data) : data_(data) {}
+
+    // Calculate max depth
+    size_type operator()(UniverseId const& uid)
+    {
+        CELER_EXPECT(uid);
+
+        // Check for cached value
+        auto&& [iter, inserted] = depths.insert({uid, {}});
+        if (!inserted)
+        {
+            // Return cached value
+            return iter->second;
+        }
+
+        // Depth of the deepest daughter of uid
+        size_type max_sub_depth = 0;
+
+        if (data_.universe_types[uid] == UniverseType::simple)
+        {
+            auto const& simple_unit_record
+                = data_.simple_units[SimpleUnitId{data_.universe_indices[uid]}];
+            for (auto vol_id : range(simple_unit_record.volumes.size()))
+            {
+                auto vol_record
+                    = data_.volume_records[simple_unit_record
+                                               .volumes[LocalVolumeId{vol_id}]];
+                if (vol_record.daughter_id)
+                {
+                    max_sub_depth = std::max(
+                        max_sub_depth,
+                        (*this)(data_.daughters[vol_record.daughter_id]
+                                    .universe_id));
+                }
+            }
+        }
+        else if (data_.universe_types[uid] == UniverseType::rect_array)
+        {
+            auto const& rect_array_record
+                = data_.rect_arrays[RectArrayId{data_.universe_indices[uid]}];
+            for (auto vol_id : range(rect_array_record.daughters.size()))
+            {
+                max_sub_depth = std::max(
+                    max_sub_depth,
+                    (*this)(data_
+                                .daughters[rect_array_record
+                                               .daughters[LocalVolumeId{vol_id}]]
+                                .universe_id));
+            }
+        }
+        else
+        {
+            CELER_ASSERT_UNREACHABLE();
+        }
+
+        // Depth of the deepest daughter, plus 1 for the current uid
+        auto max_depth = max_sub_depth + 1;
+
+        // Save to cache
+        iter->second = max_depth;
+
+        return max_depth;
+    }
+};
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -230,7 +292,7 @@ OrangeParams::OrangeParams(OrangeInput input)
     bbox_ = std::get<UnitInput>(input.universes.front()).bbox;
 
     // Update scalars *after* loading all units
-    host_data.scalars.max_level = input.max_level;
+    host_data.scalars.max_depth = MaxDepthCalculator{host_data}(UniverseId{0});
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
                    << "input geometry has at least one volume with a "

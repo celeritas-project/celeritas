@@ -37,7 +37,9 @@ TYPED_TEST(RealNumericLimitsTest, host)
     EXPECT_EQ(std_limits_t::infinity(), celer_limits_t::infinity());
     EXPECT_EQ(std_limits_t::max(), celer_limits_t::max());
     EXPECT_TRUE(std::isnan(celer_limits_t::quiet_NaN()));
+#ifndef _MSC_VER
     EXPECT_EQ(std_limits_t::infinity(), TypeParam(1) / TypeParam(0));
+#endif
 }
 
 #if CELER_USE_DEVICE

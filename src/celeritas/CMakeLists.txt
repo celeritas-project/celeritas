@@ -60,6 +60,8 @@ list(APPEND SOURCES
   phys/ParticleParamsOutput.cc
   phys/PhysicsParams.cc
   phys/PhysicsParamsOutput.cc
+  phys/PrimaryGenerator.cc
+  phys/PrimaryGeneratorOptions.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
   random/CuHipRngData.cc
@@ -309,6 +311,13 @@ if(NOT CELERITAS_USE_OpenMP
     PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
   )
 endif()
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  # Inheriting via dominance is correct behavior
+  celeritas_target_compile_options(celeritas
+    PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
+  )
+endif()
+  
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}

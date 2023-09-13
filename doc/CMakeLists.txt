@@ -181,7 +181,7 @@ set(DOXYGEN_XML_PROGRAMLISTING NO)
 
 # Annotations break breathe parsing
 foreach(_var
-  CELER_FUNCTION CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
+  CELER_FUNCTION CELER_FORCEINLINE CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
   [[maybe_unused]] CFIF_)
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
@@ -194,6 +194,7 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"

@@ -201,13 +201,13 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
 void GeantImporterTest::ImportXsSummary::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-         << "static const real_type expected_size[] = " << repr(this->size)
+         << "static size_type const expected_size[] = " << repr(this->size)
          << ";\n"
          << "EXPECT_VEC_EQ(expected_size, result.size);\n"
-         << "static const real_type expected_e[] = " << repr(this->energy)
+         << "static real_type const expected_e[] = " << repr(this->energy)
          << ";\n"
          << "EXPECT_VEC_SOFT_EQ(expected_e, result.energy);\n"
-         << "static const real_type expected_xs[] = " << repr(this->xs)
+         << "static real_type const expected_xs[] = " << repr(this->xs)
          << ";\n"
          << "EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);\n"
          << "/*** END CODE ***/\n";
@@ -230,7 +230,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         {
             nlohmann::json out = opts;
             static char const expected[]
-                = R"json({"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban_extended","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
+                = R"json({"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban_extended","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
             EXPECT_EQ(std::string(expected), std::string(out.dump()))
                 << "\n/*** REPLACE ***/\nR\"json(" << std::string(out.dump())
                 << ")json\"\n/******/";
@@ -686,12 +686,12 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static const real_type expected_size[] = {7ul, 5ul};
+        static size_type const expected_size[] = {7ul, 5ul};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static const real_type expected_e[]
+        static real_type const expected_e[]
             = {0.001, 1000, 0.020822442086622, 1000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        static const real_type expected_xs[] = {19.90859573288,
+        static real_type const expected_xs[] = {19.90859573288,
                                                 77.272184544415,
                                                 16.869369978465,
                                                 66.694254412524,
@@ -706,12 +706,12 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static const real_type expected_size[] = {6ul, 6ul};
+        static size_type const expected_size[] = {6ul, 6ul};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static const real_type expected_e[]
+        static real_type const expected_e[]
             = {1000, 100000000, 1000, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        static const real_type expected_xs[] = {77.086886023111,
+        static real_type const expected_xs[] = {77.086886023111,
                                                 14.346968386977,
                                                 66.448046061979,
                                                 12.347652116819,
@@ -737,12 +737,12 @@ TEST_F(FourSteelSlabsEmStandard, conv)
 
         auto result = summarize(model.materials);
 
-        static const real_type expected_size[] = {9ul, 9ul};
+        static size_type const expected_size[] = {9ul, 9ul};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static const real_type expected_e[]
+        static real_type const expected_e[]
             = {1.02199782, 100000000, 1.02199782, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        static const real_type expected_xs[] = {1.4603666285612,
+        static real_type const expected_xs[] = {1.4603666285612,
                                                 4.4976609946794,
                                                 1.250617083013,
                                                 3.8760336885145,
@@ -1186,7 +1186,7 @@ TEST_F(OneSteelSphere, physics)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static const real_type expected_size[] = {6u, 5u};
+        static size_type const expected_size[] = {6u, 5u};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[]
             = {1000, 100000000, 9549.6516356879, 100000000};

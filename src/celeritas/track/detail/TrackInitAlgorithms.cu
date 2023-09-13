@@ -16,6 +16,7 @@
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stream.hh"
+#include "celeritas/ext/Thrust.device.hh"
 
 #include "Utils.hh"
 
@@ -34,11 +35,10 @@ size_type remove_if_alive(
     StreamId stream_id)
 {
     auto start = device_pointer_cast(vacancies.data());
-    auto end = thrust::remove_if(
-        thrust::device.on(celeritas::device().stream(stream_id).get()),
-        start,
-        start + vacancies.size(),
-        IsEqual{occupied()});
+    auto end = thrust::remove_if(thrust_execute_on(stream_id),
+                                 start,
+                                 start + vacancies.size(),
+                                 IsEqual{occupied()});
     CELER_DEVICE_CHECK_ERROR();
 
     // New size of the vacancy vector
@@ -62,12 +62,11 @@ size_type exclusive_scan_counts(
 {
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
-    auto stop = thrust::exclusive_scan(
-        thrust::device.on(celeritas::device().stream(stream_id).get()),
-        data,
-        data + counts.size(),
-        data,
-        size_type(0));
+    auto stop = thrust::exclusive_scan(thrust_execute_on(stream_id),
+                                       data,
+                                       data + counts.size(),
+                                       data,
+                                       size_type(0));
     CELER_DEVICE_CHECK_ERROR();
 
     // Copy the last element (accumulated total) back to host

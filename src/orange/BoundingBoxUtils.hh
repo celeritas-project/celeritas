@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+class Translation;
+class Transformation;
 //---------------------------------------------------------------------------//
 // Host/device functions
 //---------------------------------------------------------------------------//
@@ -143,8 +145,8 @@ template<class T>
 inline constexpr BoundingBox<T>
 calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
-    Array<T, 3> lower;
-    Array<T, 3> upper;
+    Array<T, 3> lower{};
+    Array<T, 3> upper{};
 
     for (auto ax : range(to_int(Axis::size_)))
     {
@@ -165,8 +167,8 @@ template<class T>
 inline constexpr BoundingBox<T>
 calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
-    Array<T, 3> lower;
-    Array<T, 3> upper;
+    Array<T, 3> lower{};
+    Array<T, 3> upper{};
 
     for (auto ax : range(to_int(Axis::size_)))
     {
@@ -203,6 +205,12 @@ inline BoundingBox<T> calc_bumped(BoundingBox<U> const& bbox)
 
     return BoundingBox<T>::from_unchecked(lower, upper);
 }
+
+//---------------------------------------------------------------------------//
+// Calculate the bounding box of a transformed box
+BBox calc_transform(Translation const& tr, BBox const& a);
+
+BBox calc_transform(Transformation const& tr, BBox const& a);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

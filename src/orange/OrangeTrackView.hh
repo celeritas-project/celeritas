@@ -16,7 +16,7 @@
 #include "OrangeTypes.hh"
 #include "detail/LevelStateAccessor.hh"
 #include "detail/UniverseIndexer.hh"
-#include "transform/Translation.hh"
+#include "transform/TransformVisitor.hh"
 #include "univ/SimpleUnitTracker.hh"
 #include "univ/UniverseTypeTraits.hh"
 #include "univ/detail/Types.hh"
@@ -193,14 +193,8 @@ class OrangeTrackView
     inline CELER_FUNCTION detail::LocalState
     make_local_state(LevelId level) const;
 
-    // Make a LevelStateAccessor for the current thread and level
-    CELER_FORCEINLINE_FUNCTION LevelStateAccessor make_lsa() const;
-
-    // Make a LevelStateAccessor for the current thread and a given level
-    CELER_FORCEINLINE_FUNCTION LevelStateAccessor make_lsa(LevelId level) const;
-
     // Whether the next distance-to-boundary has been found
-    CELER_FORCEINLINE_FUNCTION bool has_next_step() const;
+    inline CELER_FUNCTION bool has_next_step() const;
 
     // Invalidate the next distance-to-boundary
     CELER_FORCEINLINE_FUNCTION void clear_next_step();
@@ -208,6 +202,21 @@ class OrangeTrackView
     // Assign the surface on the current level
     inline CELER_FUNCTION void
     surface(LevelId level, detail::OnLocalSurface surf);
+
+    // Make a LevelStateAccessor for the current thread and level
+    inline CELER_FUNCTION LevelStateAccessor make_lsa() const;
+
+    // Make a LevelStateAccessor for the current thread and a given level
+    inline CELER_FUNCTION LevelStateAccessor make_lsa(LevelId level) const;
+
+    // Get the daughter ID for the volume in the universe (or null)
+    inline CELER_FUNCTION DaughterId get_daughter(LevelStateAccessor const& lsa);
+
+    // Get the transform ID for the given daughter.
+    inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id);
+
+    // Get the transform ID to move from this level to the one below.
+    inline CELER_FUNCTION TransformId get_transform(LevelId lev);
 };
 
 //---------------------------------------------------------------------------//
@@ -250,11 +259,17 @@ OrangeTrackView::operator=(Initializer_t const& init)
     local.surface = {};
     local.temp_sense = this->make_temp_sense();
 
+    // Helpers for applying parent-to-daughter transformations
+    TransformVisitor apply_transform{params_};
+    auto transform_down_local = [&local](auto&& t) {
+        local.pos = t.transform_down(local.pos);
+        local.dir = t.rotate_down(local.dir);
+    };
+
     // Recurse into daughter universes starting with the outermost universe
     UniverseId uid = top_universe_id();
     DaughterId daughter_id;
     size_type level = 0;
-
     do
     {
         auto tracker = this->make_tracker(uid);
@@ -273,9 +288,9 @@ OrangeTrackView::operator=(Initializer_t const& init)
         if (daughter_id)
         {
             auto const& daughter = params_.daughters[daughter_id];
-            Translation trans{params_.translations[daughter.translation_id]};
-            local.pos = trans.transform_down(local.pos);
-
+            // Apply "transform down" based on stored transform
+            apply_transform(transform_down_local, daughter.transform_id);
+            // Update universe and increase level depth
             uid = daughter.universe_id;
             ++level;
         }
@@ -302,25 +317,35 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    for (auto i : range(states_.level[init.other.track_slot_] + 1))
-    {
-        // Copy all data accessed via LSA except for direction
-        auto lsa = this->make_lsa(LevelId{i});
-        if (this != &init.other)
-        {
-            lsa = init.other.make_lsa(LevelId{i});
-        }
-        // TODO: apply rotation when we use Transform instead of Translate
-        lsa.dir() = init.dir;
-    }
-
     if (this != &init.other)
     {
         // Copy init track's position but update the direction
         this->level() = states_.level[init.other.track_slot_];
         this->surface(init.other.surface_level(),
                       {init.other.surf(), init.other.sense()});
+
+        for (auto lev : range(LevelId{this->level() + 1}))
+        {
+            // Copy all data accessed via LSA
+            auto lsa = this->make_lsa(lev);
+            lsa = init.other.make_lsa(lev);
+        }
     }
+
+    // Transform direction from global to local
+    Real3 localdir = init.dir;
+    auto apply_transform = TransformVisitor{params_};
+    auto rotate_down
+        = [&localdir](auto&& t) { localdir = t.rotate_down(localdir); };
+    for (auto lev : range(LevelId{this->level()}))
+    {
+        auto lsa = this->make_lsa(lev);
+        lsa.dir() = localdir;
+        apply_transform(rotate_down,
+                        this->get_transform(this->get_daughter(lsa)));
+    }
+    // Save final level
+    this->make_lsa().dir() = localdir;
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -527,28 +552,30 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
  * Move within the current volume to a nearby point.
  *
  * \todo Currently it's up to the caller to make sure that the position is
- * "nearby". We should actually test this with a safety distance.
+ * "nearby". We should actually test this with an "is inside" call.
  */
 CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
+    // Transform all nonlocal levels
     auto local_pos = pos;
-
-    for (auto i : range(this->level() + 1))
+    auto apply_transform = TransformVisitor{params_};
+    auto translate_down
+        = [&local_pos](auto&& t) { local_pos = t.transform_down(local_pos); };
+    for (auto lev : range(LevelId{this->level()}))
     {
-        auto lsa = this->make_lsa(LevelId{i});
+        auto lsa = this->make_lsa(lev);
         lsa.pos() = local_pos;
 
-        if (i < this->level())
-        {
-            auto tracker = this->make_tracker(lsa.universe());
-            auto daughter_id = tracker.daughter(lsa.vol());
-            CELER_ASSERT(daughter_id);
-            auto const& daughter = params_.daughters[daughter_id];
-            Translation trans{params_.translations[daughter.translation_id]};
-            local_pos = trans.transform_down(pos);
-        }
+        // Apply "transform down" based on stored transform
+        apply_transform(translate_down,
+                        this->get_transform(this->get_daughter(lsa)));
     }
 
+    // Save final level
+    auto lsa = this->make_lsa();
+    lsa.pos() = local_pos;
+
+    // Clear surface state and next-step info
     this->surface({}, {});
     this->clear_next_step();
 }
@@ -587,10 +614,16 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     detail::LocalState local;
     local.pos = lsa.pos();
     local.dir = lsa.dir();
-
     local.volume = lsa.vol();
     local.surface = {this->surf(), flip_sense(this->sense())};
     local.temp_sense = this->make_temp_sense();
+
+    // Helpers for updating local transforms
+    TransformVisitor apply_transform{params_};
+    auto transform_down_local = [&local](auto&& t) {
+        local.pos = t.transform_down(local.pos);
+        local.dir = t.rotate_down(local.dir);
+    };
 
     // Update the post-crossing volume
     auto tracker = this->make_tracker(lsa.universe());
@@ -620,24 +653,23 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     while (daughter_id)
     {
-        auto daughter = params_.daughters[daughter_id];
-        // Get the translator at the parent level, in order to translate
-        // into daughter
-        Translation trans{params_.translations[daughter.translation_id]};
+        auto const& daughter = params_.daughters[daughter_id];
 
         // Make the current level the daughter level
         ++level;
         universe_id = daughter.universe_id;
-        auto tracker = this->make_tracker(universe_id);
 
         // Create local state on the daughter level
-        local.pos = trans.transform_down(local.pos);
+        apply_transform(transform_down_local, daughter.transform_id);
         local.volume = {};
         local.surface = {};
+        // XXX I think the next line is redundant
         local.temp_sense = this->make_temp_sense();
 
-        volume_id = tracker.initialize(local).volume;
-        daughter_id = tracker.daughter(volume_id);
+        // Initialize in daughter and get IDs of volume and potential daughter
+        auto daughter_tracker = this->make_tracker(universe_id);
+        volume_id = daughter_tracker.initialize(local).volume;
+        daughter_id = daughter_tracker.daughter(volume_id);
 
         auto lsa = make_lsa(LevelId{level});
         lsa.vol() = volume_id;
@@ -670,15 +702,24 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 
     if (this->is_on_boundary())
     {
-        // Changing direction on a boundary is dangerous, as it could mean
-        // we don't leave the volume after all. Evaluate whether the
-        // direction dotted with the surface normal changes (i.e. heading
-        // from inside to outside or vice versa).
+        // Changing direction on a boundary is dangerous, as it could mean we
+        // don't leave the volume after all.
         auto tracker = this->make_tracker(UniverseId{0});
         detail::UniverseIndexer ui(params_.universe_indexer_data);
-        const Real3 normal = tracker.normal(
+        Real3 normal = tracker.normal(
             this->pos(), ui.local_surface(this->surface_id()).surface);
 
+        // Normal is in *local* coordinates but newdir is in *global*: rotate
+        // up to check
+        auto apply_transform = TransformVisitor{params_};
+        auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
+        for (auto level : range<int>(this->level().unchecked_get()).step(-1))
+        {
+            apply_transform(rotate_up, this->get_transform(LevelId(level)));
+        }
+
+        // Evaluate whether the direction dotted with the surface normal
+        // changes (i.e. heading from inside to outside or vice versa).
         if ((dot_product(normal, newdir) >= 0)
             != (dot_product(normal, this->dir()) >= 0))
         {
@@ -688,12 +729,20 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         }
     }
 
-    // Complete direction setting
-    for (auto levelid : range(this->level() + 1))
+    // Complete direction setting by transforming direction all the way down
+    Real3 localdir = newdir;
+    auto apply_transform = TransformVisitor{params_};
+    auto rotate_down
+        = [&localdir](auto&& t) { localdir = t.rotate_down(localdir); };
+    for (auto lev : range(this->level()))
     {
-        auto lsa = this->make_lsa(levelid);
-        lsa.dir() = newdir;
+        auto lsa = this->make_lsa(lev);
+        lsa.dir() = localdir;
+        apply_transform(rotate_down,
+                        this->get_transform(this->get_daughter(lsa)));
     }
+    // Save final level
+    this->make_lsa().dir() = localdir;
 
     this->clear_next_step();
 }
@@ -964,7 +1013,7 @@ OrangeTrackView::make_local_state(LevelId level) const
 /*!
  * Whether any next step has been calculated.
  */
-CELER_FUNCTION bool OrangeTrackView::has_next_step() const
+CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::has_next_step() const
 {
     return next_step_ != 0;
 }
@@ -976,27 +1025,9 @@ CELER_FUNCTION bool OrangeTrackView::has_next_step() const
  * The next surface ID should only ever be used when next_step is zero, so it
  * is OK to wrap it with the CELERITAS_DEBUG conditional.
  */
-CELER_FUNCTION void OrangeTrackView::clear_next_step()
+CELER_FORCEINLINE_FUNCTION void OrangeTrackView::clear_next_step()
 {
     next_step_ = 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Make a LevelStateAccessor for the current thread and level.
- */
-CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
-{
-    return this->make_lsa(this->level());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Make a LevelStateAccessor for the current thread and a given level.
- */
-CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa(LevelId level) const
-{
-    return LevelStateAccessor(&states_, track_slot_, level);
 }
 
 //---------------------------------------------------------------------------//
@@ -1009,6 +1040,59 @@ OrangeTrackView::surface(LevelId level, detail::OnLocalSurface surf)
     states_.surface_level[track_slot_] = level;
     states_.surf[track_slot_] = surf.id();
     states_.sense[track_slot_] = surf.unchecked_sense();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make a LevelStateAccessor for the current thread and level.
+ */
+CELER_FORCEINLINE_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
+{
+    return this->make_lsa(this->level());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make a LevelStateAccessor for the current thread and a given level.
+ */
+CELER_FORCEINLINE_FUNCTION LevelStateAccessor
+OrangeTrackView::make_lsa(LevelId level) const
+{
+    return LevelStateAccessor(&states_, track_slot_, level);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the daughter ID for the given volume in the given universe.
+ *
+ * \return DaughterId or {} if the current volume is a leaf.
+ */
+CELER_FORCEINLINE_FUNCTION DaughterId
+OrangeTrackView::get_daughter(LevelStateAccessor const& lsa)
+{
+    return this->make_tracker(lsa.universe()).daughter(lsa.vol());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the transform ID for the given daughter.
+ */
+CELER_FORCEINLINE_FUNCTION TransformId
+OrangeTrackView::get_transform(DaughterId daughter_id)
+{
+    CELER_EXPECT(daughter_id);
+    return params_.daughters[daughter_id].transform_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the transform ID for the given daughter.
+ */
+CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev)
+{
+    CELER_EXPECT(lev < this->level());
+    LevelStateAccessor lsa(&states_, track_slot_, lev);
+    return this->get_transform(this->get_daughter(lsa));
 }
 
 //---------------------------------------------------------------------------//

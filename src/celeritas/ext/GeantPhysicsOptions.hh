@@ -109,6 +109,8 @@ struct GeantPhysicsOptions
     units::MevEnergy lowest_electron_energy{0.001};  // 1 keV
     //! Kill secondaries below the production cut
     bool apply_cuts{false};
+    //! Set the default production cut for all particle types [cm]
+    real_type default_cutoff{0.1};
     //!@}
 
     //!@{

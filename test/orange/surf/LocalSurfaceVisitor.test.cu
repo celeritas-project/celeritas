@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/SurfaceAction.test.cu
+//! \file orange/surf/LocalSurfaceVisitor.test.cu
 //---------------------------------------------------------------------------//
-#include "SurfaceAction.test.hh"
+#include "LocalSurfaceVisitor.test.hh"
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/sys/Device.hh"

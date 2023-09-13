@@ -8,6 +8,7 @@
 #include "VariantTransform.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "orange/BoundingBoxUtils.hh"
 
 #include "detail/TransformTransformer.hh"
 #include "detail/TransformTranslator.hh"
@@ -22,7 +23,10 @@ struct VariantTransformDispatcher
     VariantTransform const& right;
 
     //! Apply an identity transform (no change)
-    VariantTransform operator()(std::monostate) const { return right; }
+    VariantTransform operator()(NoTransformation const&) const
+    {
+        return right;
+    }
 
     //! Apply a translation
     VariantTransform operator()(Translation const& left) const
@@ -42,6 +46,17 @@ struct VariantTransformDispatcher
             right);
     }
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply an identity transform to a bounding box.
+ */
+template<class T>
+BoundingBox<T>
+calc_transform(NoTransformation const&, BoundingBox<T> const& bbox)
+{
+    return bbox;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -67,6 +82,19 @@ apply_transform(VariantTransform const& left, VariantTransform const& right)
 {
     CELER_ASSUME(!left.valueless_by_exception());
     return std::visit(VariantTransformDispatcher{right}, left);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Dispatch "daughter-to-parent" transform to bounding box utilities.
+ */
+[[nodiscard]] BBox
+apply_transform(VariantTransform const& transform, BBox const& bbox)
+{
+    CELER_ASSUME(!transform.valueless_by_exception());
+    // Dispatch to bounding box utils or "monostate" case above
+    return std::visit([&bbox](auto&& t) { return calc_transform(t, bbox); },
+                      transform);
 }
 
 //---------------------------------------------------------------------------//

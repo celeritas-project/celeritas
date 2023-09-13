@@ -23,9 +23,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/construct/OrangeInput.hh"
-#include "orange/surf/SurfaceAction.hh"
-#include "orange/surf/Surfaces.hh"
-#include "orange/surf/detail/SurfaceAction.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 
 namespace celeritas
 {
@@ -98,17 +96,6 @@ T inplace_max(T* target, T val)
 }
 
 //---------------------------------------------------------------------------//
-//! Static surface action for getting the storage requirements for a surface.
-template<class T>
-struct SurfaceDataSize
-{
-    constexpr size_type operator()() const noexcept
-    {
-        return T::Storage::extent;
-    }
-};
-
-//---------------------------------------------------------------------------//
 //! Return a surface's "simple" flag
 struct SimpleSafetyGetter
 {
@@ -138,15 +125,16 @@ struct NumIntersectionGetter
 /*!
  * Construct from full parameter data.
  */
-UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
+UnitInserter::UnitInserter(Data* orange_data)
+    : orange_data_(orange_data)
+    , build_bih_tree_{&orange_data_->bih_tree_data}
+    , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
 {
     CELER_EXPECT(orange_data);
 
     // Initialize scalars
     orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
-
-    bih_builder_ = detail::BIHBuilder(&orange_data_->bih_tree_data);
 }
 
 //---------------------------------------------------------------------------//
@@ -207,7 +195,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
                                bboxes.end(),
                                [](FastBBox const& b) { return b; }),
                    << "not all bounding boxes have been assigned");
-    unit.bih_tree = bih_builder_(std::move(bboxes));
+    unit.bih_tree = build_bih_tree_(std::move(bboxes));
 
     // Save connectivity
     {
@@ -254,12 +242,15 @@ SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
                    << s.types.size() << ") must match number of sizes ("
                    << s.sizes.size() << ")");
 
-    auto get_data_size = make_static_surface_action<SurfaceDataSize>();
+    auto get_data_size = [](auto surf_traits) {
+        using Surface = typename decltype(surf_traits)::type;
+        return Surface::Storage::extent;
+    };
 
     size_type accum_size = 0;
     for (auto i : range(s.types.size()))
     {
-        size_type expected_size = get_data_size(s.types[i]);
+        size_type expected_size = visit_surface_type(get_data_size, s.types[i]);
         CELER_VALIDATE(expected_size == s.sizes[i],
                        << "inconsistent surface data size (" << s.sizes[i]
                        << ") for entry " << i << ": "
@@ -311,22 +302,17 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     CELER_EXPECT(v.faces.empty() || v.faces.back() < surf_record.types.size());
 
     auto params_cref = make_const_ref(*orange_data_);
-    Surfaces surfaces{params_cref, surf_record};
+    LocalSurfaceVisitor visit_surface(params_cref, surf_record);
 
     // Mark as 'simple safety' if all the surfaces are simple
     bool simple_safety = true;
-    logic_int max_intersections = 0;
-
-    auto get_simple_safety
-        = make_surface_action(surfaces, SimpleSafetyGetter{});
-    auto get_num_intersections
-        = make_surface_action(surfaces, NumIntersectionGetter{});
+    size_type max_intersections = 0;
 
     for (LocalSurfaceId sid : v.faces)
     {
-        CELER_ASSERT(sid < surfaces.num_surfaces());
-        simple_safety = simple_safety && get_simple_safety(sid);
-        max_intersections += get_num_intersections(sid);
+        simple_safety = simple_safety
+                        && visit_surface(SimpleSafetyGetter{}, sid);
+        max_intersections += visit_surface(NumIntersectionGetter{}, sid);
     }
 
     auto input_logic = make_span(v.logic);
@@ -348,7 +334,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                        .insert_back(v.faces.begin(), v.faces.end());
     output.logic = make_builder(&orange_data_->logic_ints)
                        .insert_back(input_logic.begin(), input_logic.end());
-    output.max_intersections = max_intersections;
+    output.max_intersections = static_cast<logic_int>(max_intersections);
     output.flags = v.flags;
     if (simple_safety)
     {
@@ -379,8 +365,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
 {
     Daughter daughter;
     daughter.universe_id = daughter_input.universe_id;
-    daughter.translation_id = make_builder(&orange_data_->translations)
-                                  .push_back(daughter_input.translation);
+    daughter.transform_id = insert_transform_(daughter_input.translation);
 
     vol_record->daughter_id
         = make_builder(&orange_data_->daughters).push_back(daughter);
