@@ -95,10 +95,9 @@ bool TouchableUpdater::operator()(Real3 const& pos,
             // Warn since the step is nontrivial
             CELER_LOG_LOCAL(warning)
                 << "Bumping navigation state by " << repr(g4step / CLHEP::mm)
-                << " [mm] because the pre-step point at " << repr(g4pos)
-                << " [mm] along " << repr(g4dir)
-                << " is expected to be in logical volume " << PrintableLV{lv}
-                << " but navigation gives " << PrintableNavHistory{touchable_};
+                << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
+                << " from " << PrintableNavHistory{touchable_}
+                << " to try to reach " << PrintableLV{lv};
         }
 
         // Move to boundary
@@ -111,6 +110,12 @@ bool TouchableUpdater::operator()(Real3 const& pos,
             g4dir,
             touchable_,
             /* relative_search = */ true);
+
+        if (g4step > this->max_quiet_step())
+        {
+            CELER_LOG_LOCAL(diagnostic)
+                << "...bumped to " << PrintableNavHistory{touchable_};
+        }
 
         // Update volume and return whether it's correct
         pv = touchable_->GetVolume(0);
@@ -147,7 +152,9 @@ bool TouchableUpdater::operator()(Real3 const& pos,
     // No nearby crossing found
     CELER_LOG_LOCAL(warning)
         << "Failed to bump navigation state up to a distance of "
-        << this->max_step() / CLHEP::mm << " [mm]";
+        << this->max_step() / CLHEP::mm << " [mm] at " << repr(g4pos)
+        << " [mm] along " << repr(g4dir) << " to try to reach "
+        << PrintableLV{lv} << ": found " << PrintableNavHistory{touchable_};
     return false;
 }
 

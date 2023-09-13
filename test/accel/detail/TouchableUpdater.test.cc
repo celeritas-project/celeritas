@@ -140,26 +140,32 @@ TEST_F(TouchableUpdaterTest, just_outside_warn)
         EXPECT_TRUE(update({125 + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
     }
 
-    static char const* const expected_log_messages[] = {
-        "Bumping navigation state by 0.10000000000003 [mm] because the "
-        "pre-step point at {299.9, 0, 0} [mm] along {1, 0, 0} is expected to "
-        "be in logical volume \"si_tracker\"@0x0 (ID=1) but navigation gives "
-        "{{pv='vacuum_tube_pv', lv=0='vacuum_tube'}}",
-        "Bumping navigation state by 0.1000000000001 [mm] because the "
-        "pre-step point at {1250.1, 0, 0} [mm] along {-1, 0, 0} is expected "
-        "to be in logical volume \"si_tracker\"@0x0 (ID=1) but navigation "
-        "gives {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}}",
-        "Bumping navigation state by 0.10000000000003 [mm] because the "
-        "pre-step point at {299.9, 0, 0} [mm] along {1, -0, -0} is expected "
-        "to be in logical volume \"si_tracker\"@0x0 (ID=1) but navigation "
-        "gives {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}}",
-        "Bumping navigation state by 0.1000000000001 [mm] because the "
-        "pre-step point at {1250.1, 0, 0} [mm] along {-1, -0, -0} is expected "
-        "to be in logical volume \"si_tracker\"@0x0 (ID=1) but navigation "
-        "gives {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}}"};
+    static char const* const expected_log_messages[]
+        = {"Bumping navigation state by 0.10000000000003 [mm] at {299.9, 0, "
+           "0} [mm] along {1, 0, 0} from {{pv='vacuum_tube_pv', "
+           "lv=0='vacuum_tube'}} to try to reach \"si_tracker\"@0x0 (ID=1)",
+           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
+           "Bumping navigation state by 0.1000000000001 [mm] at {1250.1, 0, "
+           "0} [mm] along {-1, 0, 0} from {{pv='em_calorimeter_pv', "
+           "lv=2='em_calorimeter'}} to try to reach \"si_tracker\"@0x0 (ID=1)",
+           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
+           "Bumping navigation state by 0.10000000000003 [mm] at {299.9, 0, "
+           "0} [mm] along {1, -0, -0} from {{pv='vacuum_tube_pv', "
+           "lv=0='vacuum_tube'}} to try to reach \"si_tracker\"@0x0 (ID=1)",
+           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}",
+           "Bumping navigation state by 0.1000000000001 [mm] at {1250.1, 0, "
+           "0} [mm] along {-1, -0, -0} from {{pv='em_calorimeter_pv', "
+           "lv=2='em_calorimeter'}} to try to reach \"si_tracker\"@0x0 (ID=1)",
+           "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}"};
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[]
-        = {"warning", "warning", "warning", "warning"};
+    static char const* const expected_log_levels[] = {"warning",
+                                                      "diagnostic",
+                                                      "warning",
+                                                      "diagnostic",
+                                                      "warning",
+                                                      "diagnostic",
+                                                      "warning",
+                                                      "diagnostic"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
@@ -179,11 +185,19 @@ TEST_F(TouchableUpdaterTest, too_far)
         EXPECT_FALSE(update({125 + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
     }
 
-    static char const* const expected_log_messages[]
-        = {"Failed to bump navigation state up to a distance of 1 [mm]",
-           "Failed to bump navigation state up to a distance of 1 [mm]",
-           "Failed to bump navigation state up to a distance of 1 [mm]",
-           "Failed to bump navigation state up to a distance of 1 [mm]"};
+    static char const* const expected_log_messages[] = {
+        "Failed to bump navigation state up to a distance of 1 [mm] at {290, "
+        "0, 0} [mm] along {1, 0, 0} to try to reach \"si_tracker\"@0x0 "
+        "(ID=1): found {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}}",
+        "Failed to bump navigation state up to a distance of 1 [mm] at {1260, "
+        "0, 0} [mm] along {-1, 0, 0} to try to reach \"si_tracker\"@0x0 "
+        "(ID=1): found {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}}",
+        "Failed to bump navigation state up to a distance of 1 [mm] at {290, "
+        "0, 0} [mm] along {-1, 0, 0} to try to reach \"si_tracker\"@0x0 "
+        "(ID=1): found {{pv='vacuum_tube_pv', lv=0='vacuum_tube'}}",
+        "Failed to bump navigation state up to a distance of 1 [mm] at {1260, "
+        "0, 0} [mm] along {1, 0, 0} to try to reach \"si_tracker\"@0x0 "
+        "(ID=1): found {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}}"};
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     static char const* const expected_log_levels[]
         = {"warning", "warning", "warning", "warning"};
