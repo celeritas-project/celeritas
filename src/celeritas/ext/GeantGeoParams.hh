@@ -84,6 +84,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(std::string const& name) const final;
 
+    // Get the Geant4 logical volume corresponding to a volume ID
+    G4LogicalVolume const* id_to_lv(VolumeId vol_id) const;
+
     //// DATA ACCESS ////
 
     //! Access geometry data on host

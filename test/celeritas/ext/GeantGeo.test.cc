@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include <string_view>
 
+#include <G4LogicalVolume.hh>
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
@@ -81,6 +83,10 @@ TEST_F(FourLevelsTest, accessors)
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
     EXPECT_EQ("World", geom.id_to_label(VolumeId{3}).name);
     EXPECT_EQ(Label("World", "0xdeadbeef"), geom.id_to_label(VolumeId{3}));
+
+    auto const* lv = geom.id_to_lv(VolumeId{2});
+    ASSERT_TRUE(lv);
+    EXPECT_EQ("Envelope", lv->GetName());
 }
 
 //---------------------------------------------------------------------------//
