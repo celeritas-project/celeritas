@@ -17,6 +17,13 @@
 
 namespace celeritas
 {
+#if CELER_USE_DEVICE
+// GCC 8 and 9 are known to print a warning for "maybe unused" variables that
+// are actually used (after preprocessor logic).
+#    define CELER_UNUSED_UNLESS_DEVICE
+#else
+#    define CELER_UNUSED_UNLESS_DEVICE [[maybe_unused]]
+#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -24,7 +31,7 @@ namespace celeritas
  */
 template<class Pointer>
 auto AsyncMemoryResource<Pointer>::do_allocate(
-    [[maybe_unused]] std::size_t bytes, std::size_t) -> pointer
+    CELER_UNUSED_UNLESS_DEVICE std::size_t bytes, std::size_t) -> pointer
 {
     void* ret;
     CELER_DEVICE_CALL_PREFIX(MallocAsync(&ret, bytes, stream_));
@@ -36,9 +43,8 @@ auto AsyncMemoryResource<Pointer>::do_allocate(
  * Deallocate device memory.
  */
 template<class Pointer>
-void AsyncMemoryResource<Pointer>::do_deallocate([[maybe_unused]] pointer p,
-                                                 std::size_t,
-                                                 std::size_t)
+void AsyncMemoryResource<Pointer>::do_deallocate(
+    CELER_UNUSED_UNLESS_DEVICE pointer p, std::size_t, std::size_t)
 {
     try
     {

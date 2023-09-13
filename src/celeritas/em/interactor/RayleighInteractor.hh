@@ -128,8 +128,8 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
     do
     {
         // Sample index from input.prob
-        unsigned int const index = celeritas::make_selector(
-            [&input](unsigned int i) { return input.prob[i]; },
+        auto const index = celeritas::make_selector(
+            [&input](size_type i) { return input.prob[i]; },
             input.prob.size())(rng);
 
         const real_type w = input.weight[index];

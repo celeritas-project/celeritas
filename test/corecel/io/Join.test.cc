@@ -90,7 +90,7 @@ TEST_F(JoinTest, DISABLED_ginormous)
 {
     std::ofstream out(this->make_unique_filename(".txt"));
 
-    auto r = range<std::size_t>(1e7);
+    auto r = range(1000000000ull);
     out << join(r.begin(), r.end(), "\n");
 }
 

@@ -18,6 +18,13 @@
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/RootStepWriter.hh"
 
+#ifdef _WIN32
+#    include <cstdlib>
+#    ifdef environ
+#        undef environ
+#    endif
+#endif
+
 namespace celeritas
 {
 namespace app

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <atomic>
+#include <cstdint>
 #include <iosfwd>  // IWYU pragma: keep
 #include <memory>
 #include <mutex>
@@ -25,13 +26,15 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct KernelProfiling
 {
+    using value_type = std::uint_least64_t;
+
     //!< Number of times launched
-    std::atomic<int> num_launches{0};
+    std::atomic<value_type> num_launches{0};
     //!< Number of threads integrated over all launches
-    std::atomic<long long> accum_threads{0};
+    std::atomic<value_type> accum_threads{0};
 
     // Increment atomic counters given the number of threads
-    inline void log_launch(int num_threads);
+    inline void log_launch(value_type num_threads);
 };
 
 //---------------------------------------------------------------------------//
@@ -107,7 +110,7 @@ std::ostream& operator<<(std::ostream& os, KernelMetadata const& md);
 /*!
  * Accumulate counters for a kernel launch.
  */
-void KernelProfiling::log_launch(int num_threads)
+void KernelProfiling::log_launch(value_type num_threads)
 {
     CELER_EXPECT(num_threads > 0);
 

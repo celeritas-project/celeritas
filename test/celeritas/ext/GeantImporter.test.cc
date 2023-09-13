@@ -201,13 +201,13 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
 void GeantImporterTest::ImportXsSummary::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-         << "static const real_type expected_size[] = " << repr(this->size)
+         << "static size_type const expected_size[] = " << repr(this->size)
          << ";\n"
          << "EXPECT_VEC_EQ(expected_size, result.size);\n"
-         << "static const real_type expected_e[] = " << repr(this->energy)
+         << "static real_type const expected_e[] = " << repr(this->energy)
          << ";\n"
          << "EXPECT_VEC_SOFT_EQ(expected_e, result.energy);\n"
-         << "static const real_type expected_xs[] = " << repr(this->xs)
+         << "static real_type const expected_xs[] = " << repr(this->xs)
          << ";\n"
          << "EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);\n"
          << "/*** END CODE ***/\n";
@@ -686,12 +686,12 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static const real_type expected_size[] = {7ul, 5ul};
+        static size_type const expected_size[] = {7ul, 5ul};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static const real_type expected_e[]
+        static real_type const expected_e[]
             = {0.001, 1000, 0.020822442086622, 1000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        static const real_type expected_xs[] = {19.90859573288,
+        static real_type const expected_xs[] = {19.90859573288,
                                                 77.272184544415,
                                                 16.869369978465,
                                                 66.694254412524,
@@ -706,12 +706,12 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static const real_type expected_size[] = {6ul, 6ul};
+        static size_type const expected_size[] = {6ul, 6ul};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static const real_type expected_e[]
+        static real_type const expected_e[]
             = {1000, 100000000, 1000, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        static const real_type expected_xs[] = {77.086886023111,
+        static real_type const expected_xs[] = {77.086886023111,
                                                 14.346968386977,
                                                 66.448046061979,
                                                 12.347652116819,
@@ -737,12 +737,12 @@ TEST_F(FourSteelSlabsEmStandard, conv)
 
         auto result = summarize(model.materials);
 
-        static const real_type expected_size[] = {9ul, 9ul};
+        static size_type const expected_size[] = {9ul, 9ul};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static const real_type expected_e[]
+        static real_type const expected_e[]
             = {1.02199782, 100000000, 1.02199782, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        static const real_type expected_xs[] = {1.4603666285612,
+        static real_type const expected_xs[] = {1.4603666285612,
                                                 4.4976609946794,
                                                 1.250617083013,
                                                 3.8760336885145,
@@ -1186,7 +1186,7 @@ TEST_F(OneSteelSphere, physics)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static const real_type expected_size[] = {6u, 5u};
+        static size_type const expected_size[] = {6u, 5u};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[]
             = {1000, 100000000, 9549.6516356879, 100000000};

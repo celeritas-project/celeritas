@@ -10,7 +10,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <unistd.h>
+#ifndef _WIN32
+#    include <unistd.h>
+#endif
 
 #include "corecel/sys/Environment.hh"
 
@@ -23,7 +25,7 @@ namespace celeritas
 bool use_color()
 {
     const static bool result = [] {
-        FILE* stream = stderr;
+        [[maybe_unused]] FILE* stream = stderr;
         std::string color_str = celeritas::getenv("CELER_COLOR");
         if (color_str.empty())
         {
@@ -44,11 +46,13 @@ bool use_color()
             // Color is explicitly enabled
             return true;
         }
+#ifndef _WIN32
         if (!isatty(fileno(stream)))
         {
             // This stream is not a user-facing terminal
             return false;
         }
+#endif
         if (const char* term_str = std::getenv("TERM"))
         {
             if (std::string{term_str}.find("xterm") != std::string::npos)

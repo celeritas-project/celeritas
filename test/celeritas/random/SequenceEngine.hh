@@ -112,7 +112,7 @@ SequenceEngine SequenceEngine::from_reals(Span<double const> values)
     using real_type = double;
 
     CELER_EXPECT(!values.empty());
-    const real_type range = SequenceEngine::max() + real_type(1);
+    real_type const range = SequenceEngine::max() + real_type(1);
 
     SequenceEngine::VecResult elements(values.size() * 2);
     auto dst = elements.begin();
@@ -128,7 +128,7 @@ SequenceEngine SequenceEngine::from_reals(Span<double const> values)
         v *= range;
 
         // Store values
-        *dst++ = std::floor(v);
+        *dst++ = static_cast<result_type>(std::floor(v));
         *dst++ = second;
     }
     CELER_ENSURE(dst == elements.end());

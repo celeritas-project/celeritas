@@ -31,10 +31,13 @@ Test::test_data_path(std::string_view subdir, std::string_view filename)
     std::ostringstream os;
     os << celeritas_source_dir << "/test/" << subdir << "/data/" << filename;
 
-    std::string result = os.str();
-    CELER_VALIDATE(std::ifstream(result).good(),
-                   << "Failed to open test data file at " << result);
-    return result;
+    std::string path = os.str();
+    if (!filename.empty())
+    {
+        CELER_VALIDATE(std::ifstream(path).good(),
+                       << "Failed to open test data file at '" << path << "'");
+    }
+    return path;
 }
 
 //---------------------------------------------------------------------------//

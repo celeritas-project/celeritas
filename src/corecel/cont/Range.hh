@@ -137,7 +137,7 @@ class Range
     template<class U, std::enable_if_t<std::is_unsigned<U>::value, bool> = true>
     CELER_CONSTEXPR_FUNCTION detail::StepRange<step_type<U>> step(U step)
     {
-        return {*begin_, *end_, step};
+        return {*begin_, *end_, static_cast<size_type>(step)};
     }
     //! \endcond
 

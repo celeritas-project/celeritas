@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstddef>
 #include <string_view>
 
 #include "corecel/cont/InitializedValue.hh"
@@ -62,10 +61,12 @@ class ScopedMem
     //!@}
 
   private:
+    using value_type = KibiBytes::value_type;
+
     InitializedValue<MemRegistry*> registry_;
     MemUsageId id_;
-    std::ptrdiff_t cpu_start_hwm_{0};
-    std::ptrdiff_t gpu_start_used_{0};
+    value_type cpu_start_hwm_{0};
+    value_type gpu_start_used_{0};
 };
 
 //---------------------------------------------------------------------------//

@@ -180,6 +180,10 @@ if(BUILD_SHARED_LIBS)
   # Do not relink libs/binaries when dependent shared libs change
   celeritas_set_default(CMAKE_LINK_DEPENDS_NO_SHARED ON)
 endif()
+if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
+  # Make sure modules, sub-libraries, etc. are relocatable
+  celeritas_set_default(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
 
 ### Installation flags ###
 # When developing add checking for proper usage of `install(`
@@ -219,13 +223,17 @@ if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   find_package(Geant4 REQUIRED)
 endif()
 
-if(CELERITAS_USE_HepMC3 AND NOT HepMC3_FOUND)
-  find_package(HepMC3 REQUIRED)
+if(CELERITAS_USE_HepMC3)
+  if(NOT HepMC3_FOUND)
+    find_package(HepMC3 REQUIRED)
+  endif()
   set(HepMC3_LIBRARIES HepMC3::HepMC3)
 endif()
 
-if(CELERITAS_USE_JSON AND NOT nlohmann_json_FOUND)
-  find_package(nlohmann_json 3.7.0 REQUIRED)
+if(CELERITAS_USE_JSON)
+  if(NOT nlohmann_json_FOUND)
+    find_package(nlohmann_json 3.7.0 REQUIRED)
+  endif()
   set(nlohmann_json_LIBRARIES nlohmann_json::nlohmann_json)
 endif()
 
@@ -242,7 +250,9 @@ if(CELERITAS_USE_Python)
   if(CELERITAS_USE_SWIG)
     list(APPEND _components Development)
   endif()
-  find_package(Python 3.6 REQUIRED COMPONENTS ${_components})
+  if(NOT Python_FOUND)
+    find_package(Python 3.6 REQUIRED COMPONENTS ${_components})
+  endif()
   set(CELERITAS_PYTHONPATH "$ENV{PYTHONPATH}" CACHE STRING
     "Python path used for finding modules and generating documentation"
   )
@@ -259,7 +269,9 @@ if(CELERITAS_USE_SWIG AND NOT SWIG_FOUND)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  find_package(VecGeom 1.1.17 REQUIRED)
+  if(NOT VecGeom_FOUND)
+    find_package(VecGeom 1.1.17 REQUIRED)
+  endif()
 
   if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
     celeritas_error_incompatible_option(
@@ -317,11 +329,6 @@ if(CELERITAS_BUILD_DOCS)
       OFF
     )
   endif()
-endif()
-
-if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
-  # Make sure modules, sub-libraries, etc. are relocatable
-  set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 endif()
 
 #----------------------------------------------------------------------------#

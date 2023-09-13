@@ -7,6 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "NodeSimplifier.hh"
 
+#include <algorithm>
+#include <utility>
+
+#include "../CsgTypes.hh"
+
 namespace celeritas
 {
 namespace csg
