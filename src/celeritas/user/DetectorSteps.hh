@@ -11,13 +11,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#if CELER_USE_DEVICE
-#   include "corecel/device_runtime_api.h"
-#   include "corecel/data/detail/PinnedAllocator.hh"
-#endif
 #include "corecel/cont/EnumArray.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/PinnedAllocator.hh"
 
 namespace celeritas
 {

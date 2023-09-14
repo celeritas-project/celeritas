@@ -19,9 +19,6 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#if CELER_USE_DEVICE
-#   include "corecel/data/detail/PinnedAllocator.hh"
-#endif
 #include "corecel/math/Quantity.hh"
 
 #include "Join.hh"
@@ -418,8 +415,9 @@ struct ContainerReprTraits
     }
 };
 
-template<class T>
-struct ReprTraits<std::vector<T>> : public ContainerReprTraits<std::vector<T>>
+template<class T, class A>
+struct ReprTraits<std::vector<T, A>>
+    : public ContainerReprTraits<std::vector<T, A>>
 {
     using value_type = std::decay_t<T>;
 
@@ -428,19 +426,6 @@ struct ReprTraits<std::vector<T>> : public ContainerReprTraits<std::vector<T>>
         detail::print_container_type<value_type>(os, "std::vector", name);
     }
 };
-
-#if CELER_USE_DEVICE
-template<class T>
-struct ReprTraits<std::vector<T, detail::PinnedAllocator<T>>> : public ContainerReprTraits<std::vector<T, detail::PinnedAllocator<T>>>
-{
-    using value_type = std::decay_t<T>;
-
-    static void print_type(std::ostream& os, char const* name = nullptr)
-    {
-        detail::print_container_type<value_type>(os, "std::vector", name);
-    }
-};
-#endif
 
 template<class T, size_type N>
 struct ReprTraits<Array<T, N>> : public ContainerReprTraits<Array<T, N>>

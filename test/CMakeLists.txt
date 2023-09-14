@@ -559,7 +559,7 @@ if(CELERITAS_CORE_GEO STREQUAL "Geant4")
   set(_fails_g4geo DISABLE)
 endif()
 
-celeritas_add_test(celeritas/user/DetectorSteps.test.cc LINK_LIBRARIES CUDA::cudart GPU)
+celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
 celeritas_add_test(celeritas/user/Diagnostic.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fails_g4geo}
   ${_diagnostic_filter}
@@ -590,7 +590,6 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(accel/detail/HitManager.test.cc
     ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc
-    LINK_LIBRARIES CUDA::cudart
     ENVIRONMENT "${_geant4_test_env}")
 endif()
 
