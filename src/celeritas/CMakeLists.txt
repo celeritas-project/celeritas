@@ -37,9 +37,9 @@ list(APPEND SOURCES
   global/CoreState.cc
   global/CoreTrackData.cc
   global/KernelContextException.cc
-  global/PinnedAllocator.cc
   global/Stepper.cc
   global/detail/ActionSequence.cc
+  global/detail/PinnedAllocator.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridData.cc
   grid/ValueGridInserter.cc

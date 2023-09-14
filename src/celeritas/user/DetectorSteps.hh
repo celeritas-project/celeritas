@@ -14,7 +14,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/PinnedAllocator.hh"
+#include "celeritas/global/detail/PinnedAllocator.hh"
 
 namespace celeritas
 {
@@ -31,13 +31,9 @@ struct StepStateData;
 struct DetectorStepPointOutput
 {
     using Energy = units::MevEnergy;
-#if CELER_USE_DEVICE
+
     template<class T>
     using vector = std::vector<T, detail::PinnedAllocator<T>>;
-#else
-    template<class T>
-    using vector = std::vector<T>;
-#endif
 
     vector<real_type> time;
     vector<Real3> pos;
@@ -63,15 +59,9 @@ struct DetectorStepOutput
 
     // Pre- and post-step data
     EnumArray<StepPoint, DetectorStepPointOutput> points;
-#if CELER_USE_DEVICE
+
     template<class T>
     using vector = std::vector<T, detail::PinnedAllocator<T>>;
-#else
-    template<class T>
-    using vector = std::vector<T>;
-#endif
-
-
 
     // Detector ID and track ID are always set
     vector<DetectorId> detector;

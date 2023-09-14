@@ -14,7 +14,6 @@
 #include <utility>
 #include <vector>
 
-#include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
