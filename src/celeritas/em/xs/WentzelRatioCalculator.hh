@@ -38,13 +38,13 @@ class WentzelRatioCalculator
                            WentzelRef const& data,
                            real_type cutoff_energy);
 
-    //! The ratio of electron to total cross section for Coulomb scattering
+    // The ratio of electron to total cross section for Coulomb scattering
     inline CELER_FUNCTION real_type operator()() const;
 
-    //! Moilere screening coefficient
+    // Moilere screening coefficient
     inline CELER_FUNCTION real_type screening_coefficient() const;
 
-    //! (Cosine of) the maximum scattering angle off of electrons
+    // (Cosine of) the maximum scattering angle off of electrons
     inline CELER_FUNCTION real_type cos_t_max_elec() const;
 
   private:
