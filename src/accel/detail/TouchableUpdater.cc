@@ -159,6 +159,7 @@ bool TouchableUpdater::operator()(Real3 const& pos,
     // Reset the position and flip the direction
     g4pos = convert_to_geant(pos, CLHEP::cm);
     g4dir *= -1;
+    find_next_step();
     if (try_cross_boundary())
     {
         // Entered the correct volume
