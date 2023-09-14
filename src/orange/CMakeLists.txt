@@ -19,6 +19,7 @@ list(APPEND SOURCES
   OrangeTypes.cc
   construct/CsgTree.cc
   construct/CsgTypes.cc
+  construct/CsgTreeUtils.cc
   construct/SurfaceInputBuilder.cc
   construct/detail/NodeSimplifier.cc
   detail/BIHBuilder.cc
