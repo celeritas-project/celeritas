@@ -32,6 +32,7 @@ list(APPEND SOURCES
   surf/PlaneAligned.cc
   surf/SimpleQuadric.cc
   surf/Sphere.cc
+  surf/SoftSurfaceEqual.cc
   surf/SurfaceIO.cc
   surf/SurfaceSimplifier.cc
   surf/VariantSurface.cc
