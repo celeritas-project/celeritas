@@ -202,8 +202,17 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
  * Read the given event from the file in a thread-safe manner.
  *
  * Each event can only be read once. Because reading across threads may be out
- * of order, the next event to read may not be the next event in the file. Read
- * all the events into
+ * of order, the next event to read may not be the next event in the file. To
+ * fix this with minimal performance and memory impact, we read all events up
+ * to the one requested into a buffer. Once the events are buffered, we release
+ * the shared pointer (marking its location in the buffer as empty) and return
+ * it to the calling thread. Before reading new events, empty elements at the
+ * front of the buffer are released. In the usual case, the buffer should only
+ * be size(num_threads), but in the worst case (the first event is very slow
+ * and the other threads keep processing new events) it can be arbitrarily
+ * large. However, since accessing an element in a deque is a constant-time
+ * operation, this function should be constant time at best and scale with the
+ * number of threads at worst.
  */
 auto HepMC3PrimaryGenerator::read_event(size_type event_id) -> SPHepEvt
 {
