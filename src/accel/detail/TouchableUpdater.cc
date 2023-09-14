@@ -74,27 +74,30 @@ bool TouchableUpdater::operator()(Real3 const& pos,
         return true;
     }
 
+    constexpr double g4max_step = convert_to_geant(max_step(), CLHEP::cm);
+    constexpr double g4max_quiet_step
+        = convert_to_geant(max_quiet_step(), CLHEP::cm);
     double g4safety{-1};
     double g4step{-1};
 
     //! Update next step and safety
     auto find_next_step = [&] {
-        g4step = navi_->ComputeStep(g4pos, g4dir, this->max_step(), g4safety);
+        g4step = navi_->ComputeStep(g4pos, g4dir, g4max_step, g4safety);
     };
 
     //! Cross into the next touchable, updating the state and returning whether
     //! the volume is consistent.
     auto try_cross_boundary = [&] {
-        if (g4step >= this->max_step())
+        if (g4step >= g4max_step)
         {
             // No nearby volumes in this direction
             return false;
         }
-        else if (g4step > this->max_quiet_step())
+        else if (g4step > g4max_quiet_step)
         {
             // Warn since the step is nontrivial
             CELER_LOG_LOCAL(warning)
-                << "Bumping navigation state by " << repr(g4step / CLHEP::mm)
+                << "Bumping navigation state by " << repr(g4step)
                 << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
                 << " from " << PrintableNavHistory{touchable_}
                 << " to try to reach " << PrintableLV{lv};
@@ -111,7 +114,7 @@ bool TouchableUpdater::operator()(Real3 const& pos,
             touchable_,
             /* relative_search = */ true);
 
-        if (g4step > this->max_quiet_step())
+        if (g4step > g4max_quiet_step)
         {
             CELER_LOG_LOCAL(diagnostic)
                 << "...bumped to " << PrintableNavHistory{touchable_};
@@ -151,10 +154,10 @@ bool TouchableUpdater::operator()(Real3 const& pos,
 
     // No nearby crossing found
     CELER_LOG_LOCAL(warning)
-        << "Failed to bump navigation state up to a distance of "
-        << this->max_step() / CLHEP::mm << " [mm] at " << repr(g4pos)
-        << " [mm] along " << repr(g4dir) << " to try to reach "
-        << PrintableLV{lv} << ": found " << PrintableNavHistory{touchable_};
+        << "Failed to bump navigation state up to a distance of " << g4max_step
+        << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
+        << " to try to reach " << PrintableLV{lv} << ": found "
+        << PrintableNavHistory{touchable_};
     return false;
 }
 

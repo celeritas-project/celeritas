@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <CLHEP/Units/SystemOfUnits.h>
-
 #include "celeritas/Types.hh"
+#include "celeritas/Units.hh"
 
 class G4Navigator;
 class G4VTouchable;
@@ -28,11 +27,14 @@ namespace detail
 class TouchableUpdater
 {
   public:
-    //! Maximum step to try within the current volume [Geant4 distance]
-    static constexpr double max_step() { return 1 * CLHEP::mm; }
+    //! Maximum step to try within the current volume [cm]
+    static constexpr double max_step() { return 1 * units::millimeter; }
 
-    //! Warn when the step is greater than this amount [Geant4 distance]
-    static constexpr double max_quiet_step() { return 1e-3 * CLHEP::mm; }
+    //! Warn when the step is greater than this amount [cm]
+    static constexpr double max_quiet_step()
+    {
+        return 1e-3 * units::millimeter;
+    }
 
     // Construct with thread-local navigator and touchable
     inline TouchableUpdater(G4Navigator* navi, G4VTouchable* touchable);

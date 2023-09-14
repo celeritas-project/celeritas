@@ -108,8 +108,7 @@ TEST_F(TouchableUpdaterTest, just_inside)
 TEST_F(TouchableUpdaterTest, just_outside_nowarn)
 {
     TouchableUpdater update = this->make_touchable_updater();
-    real_type const eps = 0.1 * TouchableUpdater::max_quiet_step()
-                          * celeritas::units::millimeter;
+    real_type const eps = 0.1 * TouchableUpdater::max_quiet_step();
     auto const* tracker_lv = this->find_lv("si_tracker");
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
@@ -127,8 +126,7 @@ TEST_F(TouchableUpdaterTest, just_outside_nowarn)
 TEST_F(TouchableUpdaterTest, just_outside_warn)
 {
     TouchableUpdater update = this->make_touchable_updater();
-    real_type const eps = 0.1 * TouchableUpdater::max_step()
-                          * celeritas::units::millimeter;
+    real_type const eps = 0.1 * TouchableUpdater::max_step();
     auto const* tracker_lv = this->find_lv("si_tracker");
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
@@ -172,8 +170,7 @@ TEST_F(TouchableUpdaterTest, just_outside_warn)
 TEST_F(TouchableUpdaterTest, too_far)
 {
     TouchableUpdater update = this->make_touchable_updater();
-    real_type const eps = 10 * TouchableUpdater::max_step()
-                          * celeritas::units::millimeter;
+    real_type const eps = 10 * TouchableUpdater::max_step();
     auto const* tracker_lv = this->find_lv("si_tracker");
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
