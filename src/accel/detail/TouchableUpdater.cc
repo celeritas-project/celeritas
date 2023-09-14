@@ -114,15 +114,23 @@ bool TouchableUpdater::operator()(Real3 const& pos,
             touchable_,
             /* relative_search = */ true);
 
+        // Update volume and return whether it's correct
+        pv = touchable_->GetVolume(0);
+        CELER_ASSERT(pv);
+
         if (g4step > g4max_quiet_step)
         {
             CELER_LOG_LOCAL(diagnostic)
                 << "...bumped to " << PrintableNavHistory{touchable_};
         }
+        else if (pv->GetLogicalVolume() == lv)
+        {
+            CELER_LOG_LOCAL(debug)
+                << "Bumped navigation state by " << repr(g4step) << " to "
+                << repr(g4pos) << " to enter "
+                << PrintableNavHistory{touchable_};
+        }
 
-        // Update volume and return whether it's correct
-        pv = touchable_->GetVolume(0);
-        CELER_ASSERT(pv);
         return pv->GetLogicalVolume() == lv;
     };
 
@@ -130,6 +138,11 @@ bool TouchableUpdater::operator()(Real3 const& pos,
     find_next_step();
     if (g4safety * 2 < g4step)
     {
+        CELER_LOG_LOCAL(debug)
+            << "Flipping search direction: safety " << g4safety
+            << " [mm] is less than half of step " << g4step << " from "
+            << PrintableLV{pv->GetLogicalVolume()} << " while trying to reach "
+            << PrintableLV{lv};
         // Step forward is more than twice the known distance to boundary:
         // we're likely heading away from the closest intersection, so try that
         // first
