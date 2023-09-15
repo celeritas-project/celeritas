@@ -153,8 +153,8 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     // Bounding box bumper and converter: expand to twice the potential bump
     // distance from a boundary so that the bbox will enclose the point even
     // after a potential bump
-    BoundingBoxBumper<float> calc_bumped(2 * orange_data_->scalars.bump_rel,
-                                         2 * orange_data_->scalars.bump_abs);
+    BoundingBoxBumper<float> calc_bumped{2 * orange_data_->scalars.bump_rel,
+                                         2 * orange_data_->scalars.bump_abs};
 
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());

@@ -176,43 +176,56 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
 
 TEST_F(BoundingBoxUtilsTest, bumped)
 {
-    double const precise = 0.11223344556677;
+    BoundingBox<double> const ref{{-inf, 0, -100}, {0, 0.11223344556677, inf}};
 
     {
         SCOPED_TRACE("default precision");
-        BoundingBoxBumper<float> calc_bumped{};
-        auto bumped = calc_bumped(BBox{{-inf, 0, -100}, {0, precise, inf}});
-        static float const expected_lower[] = {-inff, -1e-08f, -100.0001f};
-        static float const expected_upper[] = {1e-08f, 0.1122336f, inff};
+        BoundingBoxBumper<float, double> calc_bumped{};
+        auto bumped = calc_bumped(ref);
+        static float const expected_lower[] = {-inff, -1e-14f, -100.0f};
+        static float const expected_upper[] = {1e-14f, 0.1122335f, inff};
         EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
         EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
 
-        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{-inf, 0, -100}));
-        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{0, precise, inf}));
+        EXPECT_TRUE(is_inside(bumped, ref.lower()));
+        EXPECT_TRUE(is_inside(bumped, ref.upper()));
     }
     {
         SCOPED_TRACE("double precise");
         BoundingBoxBumper<double> calc_bumped{1e-10};
-        auto bumped = calc_bumped(BBox{{-inf, 0, -100}, {0, precise, inf}});
+        auto bumped = calc_bumped(ref);
         static double const expected_lower[] = {-inf, -1e-10, -100.00000001};
         static double const expected_upper[] = {1e-10, 0.11223344566677, inf};
         EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
         EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
 
-        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{-inf, 0, -100}));
-        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{0, precise, inf}));
+        EXPECT_TRUE(is_inside(bumped, ref.lower() - 1e-11));
+        EXPECT_TRUE(is_inside(bumped, ref.upper() + 1e-11));
     }
     {
         SCOPED_TRACE("float loose");
-        BoundingBoxBumper<float> calc_bumped{1e-3, 1e-5};
-        auto bumped = calc_bumped(BBox{{-inf, 0, -100}, {0, precise, inf}});
+        BoundingBoxBumper<float, double> calc_bumped{1e-3, 1e-5};
+        auto bumped = calc_bumped(ref);
         static float const expected_lower[] = {-inff, -1e-05f, -100.1f};
         static float const expected_upper[] = {1e-05f, 0.1123457f, inff};
         EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
         EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
 
-        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{-inf, 0, -100}));
-        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{0, precise, inf}));
+        EXPECT_TRUE(is_inside(bumped, ref.lower() - 1e-6));
+        EXPECT_TRUE(is_inside(bumped, ref.upper() + 1e-6));
+    }
+    {
+        SCOPED_TRACE("float orange");
+        BBox const ref{{-2, -6, -1}, {8, 4, 2}};
+        BoundingBoxBumper<float, double> calc_bumped{2e-8, 2e-8};
+        auto bumped = calc_bumped(ref);
+        static float const expected_lower[] = {-2.f, -6.f, -1.f};
+        static float const expected_upper[] = {8.000001f, 4.f, 2.f};
+        EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
+        EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
+
+        EXPECT_TRUE(is_inside(bumped, ref.lower() - 1e-8));
+        EXPECT_TRUE(is_inside(bumped, ref.upper() + 1e-8));
     }
 }
 

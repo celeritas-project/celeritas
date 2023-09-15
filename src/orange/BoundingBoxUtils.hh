@@ -184,41 +184,44 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 /*!
  * Bump a bounding box outward and possibly convert to another type.
  * \tparam T destination type
+ * \tparam U source type
  *
  * The upper and lower coordinates are bumped outward independently using the
- * relative and absolute tolerances.
+ * relative and absolute tolerances. To ensure that the outward bump is
+ * not truncated in the destination type, the "std::nextafter" function
+ * advances to the next floating point representable number.
  */
-template<class T>
+template<class T, class U = real_type>
 class BoundingBoxBumper
 {
   public:
     //!@{
     //! \name Type aliases
     using result_type = BoundingBox<T>;
+    using argument_type = BoundingBox<U>;
     //!@}
 
   public:
     //! Construct with default "soft equal" tolerances
     BoundingBoxBumper()
-        : rel_{SoftEqual<T>{}.rel()}, abs_{SoftEqual<T>{}.abs()}
+        : rel_{SoftEqual<U>{}.rel()}, abs_{SoftEqual<U>{}.abs()}
     {
     }
 
     //! Construct with a single bump tolerance used for both relative and abs
-    explicit BoundingBoxBumper(T tol) : rel_{tol}, abs_{tol}
+    explicit BoundingBoxBumper(U tol) : rel_{tol}, abs_{tol}
     {
         CELER_EXPECT(rel_ > 0 && abs_ > 0);
     }
 
     //! Construct with relative and absolute bump tolerances
-    BoundingBoxBumper(T rel, T abs) : rel_{rel}, abs_{abs}
+    BoundingBoxBumper(U rel, U abs) : rel_{rel}, abs_{abs}
     {
         CELER_EXPECT(rel_ > 0 && abs_ > 0);
     }
 
     //! Return the expanded and converted bounding box
-    template<class U>
-    result_type operator()(BoundingBox<U> const& bbox)
+    result_type operator()(argument_type const& bbox)
     {
         CELER_EXPECT(bbox);
 
@@ -227,30 +230,26 @@ class BoundingBoxBumper
 
         for (auto ax : range(to_int(Axis::size_)))
         {
-            lower[ax] = this->bumped<-1>(static_cast<T>(bbox.lower()[ax]));
-            upper[ax] = this->bumped<+1>(static_cast<T>(bbox.upper()[ax]));
+            lower[ax] = this->bumped<-1>(bbox.lower()[ax]);
+            upper[ax] = this->bumped<+1>(bbox.upper()[ax]);
         }
 
         return result_type::from_unchecked(lower, upper);
     }
 
   private:
-    T rel_;
-    T abs_;
+    U rel_;
+    U abs_;
 
     //! Calculate the bump distance given a point: see detail::BumpCalculator
     template<int S>
-    T bumped(T value) const
+    T bumped(U value) const
     {
-        return value + S * celeritas::max(abs_, rel_ * std::fabs(value));
+        U bumped = value + S * celeritas::max(abs_, rel_ * std::fabs(value));
+        return std::nextafter(static_cast<T>(bumped),
+                              S * numeric_limits<T>::infinity());
     }
 };
-
-// Template deduction
-template<class T>
-BoundingBoxBumper(T) -> BoundingBoxBumper<T>;
-template<class T>
-BoundingBoxBumper(T, T) -> BoundingBoxBumper<T>;
 
 //---------------------------------------------------------------------------//
 // Calculate the bounding box of a transformed box
