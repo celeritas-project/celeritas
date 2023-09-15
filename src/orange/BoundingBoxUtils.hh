@@ -185,8 +185,8 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
  * Bump a bounding box outward and possibly convert to another type.
  * \tparam T destination type
  *
- * The upper and lower coordinates are bumped outward using the relative and
- * absolute tolerances
+ * The upper and lower coordinates are bumped outward independently using the
+ * relative and absolute tolerances.
  */
 template<class T>
 class BoundingBoxBumper
@@ -227,11 +227,8 @@ class BoundingBoxBumper
 
         for (auto ax : range(to_int(Axis::size_)))
         {
-            T const lo = static_cast<T>(bbox.lower()[ax]);
-            T const hi = static_cast<T>(bbox.upper()[ax]);
-            T const bump = celeritas::max(abs_, rel_ * (hi - lo));
-            lower[ax] = lo - bump;
-            upper[ax] = hi + bump;
+            lower[ax] = this->bumped<-1>(static_cast<T>(bbox.lower()[ax]));
+            upper[ax] = this->bumped<+1>(static_cast<T>(bbox.upper()[ax]));
         }
 
         return result_type::from_unchecked(lower, upper);
@@ -240,6 +237,13 @@ class BoundingBoxBumper
   private:
     T rel_;
     T abs_;
+
+    //! Calculate the bump distance given a point: see detail::BumpCalculator
+    template<int S>
+    T bumped(T value) const
+    {
+        return value + S * celeritas::max(abs_, rel_ * std::fabs(value));
+    }
 };
 
 // Template deduction

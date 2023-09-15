@@ -182,10 +182,8 @@ TEST_F(BoundingBoxUtilsTest, bumped)
         SCOPED_TRACE("default precision");
         BoundingBoxBumper<float> calc_bumped{};
         auto bumped = calc_bumped(BBox{{-inf, 0, -100}, {0, precise, inf}});
-        PRINT_EXPECTED(bumped.lower());
-        PRINT_EXPECTED(bumped.upper());
-        static float const expected_lower[] = {-inff, -1.122334e-07f, -inff};
-        static float const expected_upper[] = {inff, 0.1122336f, inff};
+        static float const expected_lower[] = {-inff, -1e-08f, -100.0001f};
+        static float const expected_upper[] = {1e-08f, 0.1122336f, inff};
         EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
         EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
 
@@ -196,23 +194,25 @@ TEST_F(BoundingBoxUtilsTest, bumped)
         SCOPED_TRACE("double precise");
         BoundingBoxBumper<double> calc_bumped{1e-10};
         auto bumped = calc_bumped(BBox{{-inf, 0, -100}, {0, precise, inf}});
-        PRINT_EXPECTED(bumped.lower());
-        PRINT_EXPECTED(bumped.upper());
-        static double const expected_lower[] = {-inf, -1e-10, -inf};
-        static double const expected_upper[] = {inf, 0.11223344566677, inf};
+        static double const expected_lower[] = {-inf, -1e-10, -100.00000001};
+        static double const expected_upper[] = {1e-10, 0.11223344566677, inf};
         EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
         EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
+
+        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{-inf, 0, -100}));
+        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{0, precise, inf}));
     }
     {
         SCOPED_TRACE("float loose");
         BoundingBoxBumper<float> calc_bumped{1e-3, 1e-5};
         auto bumped = calc_bumped(BBox{{-inf, 0, -100}, {0, precise, inf}});
-        PRINT_EXPECTED(bumped.lower());
-        PRINT_EXPECTED(bumped.upper());
-        static float const expected_lower[] = {-inff, -0.0001122335f, -inff};
-        static float const expected_upper[] = {inff, 0.1123457f, inff};
+        static float const expected_lower[] = {-inff, -1e-05f, -100.1f};
+        static float const expected_upper[] = {1e-05f, 0.1123457f, inff};
         EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
         EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
+
+        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{-inf, 0, -100}));
+        EXPECT_TRUE(is_inside(bumped, Array<double, 3>{0, precise, inf}));
     }
 }
 
