@@ -11,18 +11,20 @@
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Macros.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Perform a memcpy on the data.
- */
-void copy_bytes(MemSpace dstmem,
-                void* dst,
-                MemSpace srcmem,
-                void const* src,
-                std::size_t count)
+namespace
+{
+template<bool async>
+inline void copy_bytes_impl(MemSpace dstmem,
+                            void* dst,
+                            MemSpace srcmem,
+                            void const* src,
+                            std::size_t count,
+                            [[maybe_unused]] StreamId stream)
 {
     if (srcmem == MemSpace::host && dstmem == MemSpace::host)
     {
@@ -41,7 +43,44 @@ void copy_bytes(MemSpace dstmem,
     else
         CELER_ASSERT_UNREACHABLE();
 #endif
-    CELER_DEVICE_CALL_PREFIX(Memcpy(dst, src, count, kind));
+    if constexpr (async)
+    {
+        CELER_DEVICE_CALL_PREFIX(MemcpyAsync(
+            dst, src, count, kind, celeritas::device().stream(stream).get()));
+    }
+    else
+    {
+        CELER_DEVICE_CALL_PREFIX(Memcpy(dst, src, count, kind));
+    }
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform a memcpy on the data.
+ */
+void copy_bytes(MemSpace dstmem,
+                void* dst,
+                MemSpace srcmem,
+                void const* src,
+                std::size_t count)
+{
+    copy_bytes_impl<false>(dstmem, dst, srcmem, src, count, StreamId{0});
+}
+
+/*!
+ * Perform an asynchronous memcpy on the data.
+ */
+void copy_bytes(MemSpace dstmem,
+                void* dst,
+                MemSpace srcmem,
+                void const* src,
+                std::size_t count,
+                StreamId stream)
+{
+    copy_bytes_impl<true>(dstmem, dst, srcmem, src, count, stream);
 }
 
 //---------------------------------------------------------------------------//

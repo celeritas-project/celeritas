@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -39,6 +40,8 @@ struct Copier
     static constexpr auto dstmem = M;
 
     inline void operator()(MemSpace srcmem, Span<T const> src) const;
+    inline void
+    operator()(MemSpace srcmem, Span<T const> src, StreamId stream) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -49,6 +52,14 @@ void copy_bytes(MemSpace dstmem,
                 void const* src,
                 std::size_t count);
 
+// Asynchronously copy bytes between two memory spaces
+void copy_bytes(MemSpace dstmem,
+                void* dst,
+                MemSpace srcmem,
+                void const* src,
+                std::size_t count,
+                StreamId stream);
+
 //---------------------------------------------------------------------------//
 /*!
  * Copy data from the given source and memory space.
@@ -58,6 +69,20 @@ void Copier<T, M>::operator()(MemSpace srcmem, Span<T const> src) const
 {
     CELER_EXPECT(src.size() == dst.size());
     copy_bytes(dstmem, dst.data(), srcmem, src.data(), src.size() * sizeof(T));
+}
+
+/*!
+ * Asynchronously copy data from the given source and memory space on the given
+ * stream.
+ */
+template<class T, MemSpace M>
+void Copier<T, M>::operator()(MemSpace srcmem,
+                              Span<T const> src,
+                              StreamId stream) const
+{
+    CELER_EXPECT(src.size() == dst.size());
+    copy_bytes(
+        dstmem, dst.data(), srcmem, src.data(), src.size() * sizeof(T), stream);
 }
 
 //---------------------------------------------------------------------------//
