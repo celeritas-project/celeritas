@@ -25,7 +25,11 @@ namespace detail
 template<class T>
 void Filler<T, MemSpace::device>::operator()(Span<T> data) const
 {
-    (*this)(StreamId{0}, data);
+    thrust::fill_n(thrust_execute_on<ThrustExecMode::Sync>(StreamId{0}),
+                   thrust::device_pointer_cast<T>(data.data()),
+                   data.size(),
+                   value);
+    CELER_DEVICE_CHECK_ERROR();
 }
 
 template<class T>
