@@ -32,7 +32,15 @@ T* PinnedAllocator<T>::allocate(std::size_t n)
 
 #if CELER_USE_DEVICE
     void* p{nullptr};
-    CELER_DEVICE_CALL_PREFIX(MallocHost(&p, n * sizeof(T)));
+    // CUDA and HIP currently have a different API to allocate pinned host
+    // memory
+#    if CELERITAS_USE_CUDA
+    CELER_DEVICE_CALL_PREFIX(
+        HostAlloc(&p, n * sizeof(T), CELER_DEVICE_PREFIX(HostAllocDefault)));
+#    elif CELERITAS_USE_HIP
+    CELER_DEVICE_CALL_PREFIX(
+        HostMalloc(&p, n * sizeof(T), CELER_DEVICE_PREFIX(HostMallocDefault)));
+#    endif
     if (p)
 #else
     if (auto p = std::malloc(n * sizeof(T)); p)
