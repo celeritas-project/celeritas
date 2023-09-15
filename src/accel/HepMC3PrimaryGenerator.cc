@@ -114,7 +114,7 @@ HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
     num_events_ = [&filename] {
         SPReader temp_reader = open_hepmc3(filename);
         CELER_ASSERT(temp_reader);
-        int result = 0;
+        size_type result = 0;
         while (!temp_reader->failed())
         {
             temp_reader->skip(1);
@@ -136,44 +136,24 @@ HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
  * Add HepMC3 primaries to a Geant4 event.
  *
  * This function should be called by \c
- * G4VUserPrimaryGeneratorAction::GeneratePrimaries . It is thread safe as long
- * as \c g4_event is thread-local.
- *
- * \note
- * Current implementation is compatible with our utils/hepmc3-generator
- * (https://github.com/celeritas-project/utils) output files, including the
- * translated CMS' Pythia HEPEVT output files to HepMC3 format. Nevertheless,
- * these files do not have more complex topologies with multiple vertices with
- * mother/daughter particles. If more complex inputs are used, this will have
- * to be updated.
+ * G4VUserPrimaryGeneratorAction::GeneratePrimaries .
  */
 void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 {
-    HepMC3::GenEvent evt;
-
-    {
-        // Read the next event from the file.
-        std::lock_guard scoped_lock{read_mutex_};
-        reader_->read_event(evt);
-        CELER_ASSERT(!reader_->failed());
-        CELER_ASSERT(evt.particles().size() > 0);
-    }
-
-    CELER_LOG_LOCAL(debug) << "Processing " << evt.vertices().size()
-                           << " vertices with " << evt.particles().size()
+    CELER_EXPECT(g4_event && g4_event->GetEventID() >= 0);
+    SPHepEvt evt
+        = this->read_event(static_cast<size_type>(g4_event->GetEventID()));
+    CELER_ASSERT(evt && evt->particles().size() > 0);
+    CELER_LOG_LOCAL(debug) << "Processing " << evt->vertices().size()
+                           << " vertices with " << evt->particles().size()
                            << " primaries from HepMC event ID "
-                           << evt.event_number();
-    if (evt.event_number() != g4_event->GetEventID())
-    {
-        CELER_LOG_LOCAL(warning)
-            << "Read event ID " << evt.event_number()
-            << " does not match Geant4 event ID " << g4_event->GetEventID();
-    }
+                           << evt->event_number() << " into Geant4 event ID "
+                           << g4_event->GetEventID();
 
     int num_primaries{0};
-    PrimaryInserter insert_primary{g4_event, evt};
+    PrimaryInserter insert_primary{g4_event, *evt};
 
-    for (auto const& par : evt.particles())
+    for (auto const& par : evt->particles())
     {
         if (par->data().status != 1 || par->end_vertex())
         {
@@ -189,10 +169,10 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
     }
     insert_primary();
 
-    CELER_LOG_LOCAL(info) << "Read " << g4_event->GetNumberOfPrimaryVertex()
+    CELER_LOG_LOCAL(info) << "Loaded " << g4_event->GetNumberOfPrimaryVertex()
                           << " real vertices with " << num_primaries
-                          << " real primaries from HepMC event ID "
-                          << evt.event_number();
+                          << " real primaries for event "
+                          << g4_event->GetEventID();
 
     // Check world solid
     if (CELERITAS_DEBUG)
@@ -212,9 +192,72 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
     }
 
     CELER_VALIDATE(g4_event->GetNumberOfPrimaryVertex() > 0,
-                   << "event " << evt.event_number()
+                   << "event " << g4_event->GetEventID()
                    << " did not contain any primaries suitable for "
                       "simulation");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Read the given event from the file in a thread-safe manner.
+ *
+ * Each event can only be read once. Because reading across threads may be out
+ * of order, the next event to read may not be the next event in the file. To
+ * fix this with minimal performance and memory impact, we read all events up
+ * to the one requested into a buffer. Once the events are buffered, we release
+ * the shared pointer (marking its location in the buffer as empty) and return
+ * it to the calling thread. Before reading new events, empty elements at the
+ * front of the buffer are released. In the usual case, the buffer should only
+ * be size(num_threads), but in the worst case (the first event is very slow
+ * and the other threads keep processing new events) it can be arbitrarily
+ * large. However, since accessing an element in a deque is a constant-time
+ * operation, this function should be constant time at best and scale with the
+ * number of threads at worst.
+ */
+auto HepMC3PrimaryGenerator::read_event(size_type event_id) -> SPHepEvt
+{
+    CELER_EXPECT(event_id < num_events_);
+
+    std::lock_guard scoped_lock{read_mutex_};
+    CELER_EXPECT(event_id >= start_event_);
+
+    // Remove empties at the front of the deque
+    while (!event_buffer_.empty() && !event_buffer_.front())
+    {
+        event_buffer_.pop_front();
+        ++start_event_;
+    }
+
+    CELER_LOG_LOCAL(debug) << "Reading to event " << event_id
+                           << ": buffer has [" << start_event_ << ", "
+                           << start_event_ + event_buffer_.size() << ")";
+
+    // Read new events until we get to the requested one
+    while (event_id >= start_event_ + event_buffer_.size())
+    {
+        size_type expected_id = start_event_ + event_buffer_.size();
+        event_buffer_.push_back(std::make_shared<HepMC3::GenEvent>());
+        reader_->read_event(*event_buffer_.back());
+
+        auto read_evt_id = event_buffer_.back()->event_number();
+        CELER_VALIDATE(!reader_->failed(),
+                       << "event " << expected_id << " could not be read");
+
+        if (static_cast<size_type>(read_evt_id) != expected_id)
+        {
+            CELER_LOG(warning)
+                << "HepMC3 event IDs are not consecutive from zero: ID "
+                << read_evt_id << " is not expected ID " << expected_id;
+        }
+    }
+
+    // Get the event at the requested ID (if two threads erroneously requested
+    // the same event, the shared pointer will be false).
+    CELER_ASSERT(event_id >= start_event_
+                 && event_id < start_event_ + event_buffer_.size());
+    auto evt = std::move(event_buffer_[event_id - start_event_]);
+    CELER_ENSURE(evt);
+    return evt;
 }
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <deque>
 #include <memory>
 #include <mutex>
 #include <G4Event.hh>
@@ -14,12 +15,14 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 
 class G4VSolid;
 
 namespace HepMC3
 {
 class Reader;
+class GenEvent;
 }  // namespace HepMC3
 
 namespace celeritas
@@ -46,19 +49,29 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
     // Construct with HepMC3 filename
     explicit HepMC3PrimaryGenerator(std::string const& filename);
 
+    CELER_DELETE_COPY_MOVE(HepMC3PrimaryGenerator);
+
     //! Add primaries to Geant4 event
     void GeneratePrimaryVertex(G4Event* g4_event) final;
 
     //! Get total number of events
-    int NumEvents() { return num_events_; }
+    int NumEvents() { return static_cast<int>(num_events_); }
 
   private:
     using SPReader = std::shared_ptr<HepMC3::Reader>;
+    using SPHepEvt = std::shared_ptr<HepMC3::GenEvent>;
+    using size_type = std::size_t;
 
-    int num_events_;  // Total number of events
+    size_type num_events_{0};  // Total number of events
     G4VSolid* world_solid_{nullptr};  // World volume solid
+
     SPReader reader_;  // HepMC3 input reader
     std::mutex read_mutex_;
+    std::deque<SPHepEvt> event_buffer_;
+    size_type start_event_{0};
+
+    // Read
+    SPHepEvt read_event(size_type event_id);
 };
 
 //---------------------------------------------------------------------------//
