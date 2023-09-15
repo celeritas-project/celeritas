@@ -9,13 +9,11 @@
 
 #include <limits>
 #include <new>
-#if !CELER_USE_DEVICE
-#    include <memory>
-#endif
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/DetectorSteps.hh"
@@ -27,6 +25,7 @@ namespace detail
 template<class T>
 T* PinnedAllocator<T>::allocate(std::size_t n)
 {
+    CELER_EXPECT(n != 0);
     if (n > std::numeric_limits<std::size_t>::max() / sizeof(T))
         throw std::bad_array_new_length();
 
@@ -43,7 +42,7 @@ T* PinnedAllocator<T>::allocate(std::size_t n)
 #    endif
     if (p)
 #else
-    if (auto p = std::malloc(n * sizeof(T)); p)
+    if (auto p = ::operator new(n * sizeof(T)); p)
 #endif
     {
         return static_cast<T*>(p);
@@ -56,14 +55,21 @@ template<class T>
 void PinnedAllocator<T>::deallocate(T* p, std::size_t) noexcept
 {
 #if CELER_USE_DEVICE
-    // Not using CELER_DEVICE_CALL_PREFIX, must be noexcept
+    try
+    {
 #    if CELERITAS_USE_CUDA
-    CELER_DEVICE_PREFIX(FreeHost(p));
+        CELER_DEVICE_CALL_PREFIX(FreeHost(p));
 #    elif CELERITAS_USE_HIP
-    CELER_DEVICE_PREFIX(HostFree(p));
+        CELER_DEVICE_CALL_PREFIX(HostFree(p));
 #    endif
+    }
+    catch (RuntimeError const& e)
+    {
+        CELER_LOG(debug) << "While freeing pinned host memory: " << e.what();
+    }
+
 #else
-    std::free(p);
+    ::operator delete(p);
 #endif
 }
 //---------------------------------------------------------------------------//
