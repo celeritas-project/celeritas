@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -181,30 +182,71 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert bbox with U type values to a bumped bbox with T type values.
+ * Bump a bounding box outward and possibly convert to another type.
+ * \tparam T destination type
  *
- * Each U lower value is bumped to the greatest T value less than the U value.
- * Each U upper value is bumped to the lowest T value greater than the U value.
- * Infinite values are unchanged.
+ * The upper and lower coordinates are bumped outward using the relative and
+ * absolute tolerances
  */
-template<class T, class U>
-inline BoundingBox<T> calc_bumped(BoundingBox<U> const& bbox)
+template<class T>
+class BoundingBoxBumper
 {
-    CELER_EXPECT(bbox);
+  public:
+    //!@{
+    //! \name Type aliases
+    using result_type = BoundingBox<T>;
+    //!@}
 
-    Array<T, 3> lower;
-    Array<T, 3> upper;
-
-    for (auto ax : range(to_int(Axis::size_)))
+  public:
+    //! Construct with default "soft equal" tolerances
+    BoundingBoxBumper()
+        : rel_{SoftEqual<T>{}.rel()}, abs_{SoftEqual<T>{}.abs()}
     {
-        lower[ax] = std::nextafter(static_cast<T>(bbox.lower()[ax]),
-                                   -numeric_limits<T>::infinity());
-        upper[ax] = std::nextafter(static_cast<T>(bbox.upper()[ax]),
-                                   numeric_limits<T>::infinity());
     }
 
-    return BoundingBox<T>::from_unchecked(lower, upper);
-}
+    //! Construct with a single bump tolerance used for both relative and abs
+    explicit BoundingBoxBumper(T tol) : rel_{tol}, abs_{tol}
+    {
+        CELER_EXPECT(rel_ > 0 && abs_ > 0);
+    }
+
+    //! Construct with relative and absolute bump tolerances
+    BoundingBoxBumper(T rel, T abs) : rel_{rel}, abs_{abs}
+    {
+        CELER_EXPECT(rel_ > 0 && abs_ > 0);
+    }
+
+    //! Return the expanded and converted bounding box
+    template<class U>
+    result_type operator()(BoundingBox<U> const& bbox)
+    {
+        CELER_EXPECT(bbox);
+
+        Array<T, 3> lower;
+        Array<T, 3> upper;
+
+        for (auto ax : range(to_int(Axis::size_)))
+        {
+            T const lo = static_cast<T>(bbox.lower()[ax]);
+            T const hi = static_cast<T>(bbox.upper()[ax]);
+            T const bump = celeritas::max(abs_, rel_ * (hi - lo));
+            lower[ax] = lo - bump;
+            upper[ax] = hi + bump;
+        }
+
+        return result_type::from_unchecked(lower, upper);
+    }
+
+  private:
+    T rel_;
+    T abs_;
+};
+
+// Template deduction
+template<class T>
+BoundingBoxBumper(T) -> BoundingBoxBumper<T>;
+template<class T>
+BoundingBoxBumper(T, T) -> BoundingBoxBumper<T>;
 
 //---------------------------------------------------------------------------//
 // Calculate the bounding box of a transformed box
