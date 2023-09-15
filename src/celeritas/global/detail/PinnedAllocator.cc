@@ -57,7 +57,11 @@ void PinnedAllocator<T>::deallocate(T* p, std::size_t) noexcept
 {
 #if CELER_USE_DEVICE
     // Not using CELER_DEVICE_CALL_PREFIX, must be noexcept
+#    if CELERITAS_USE_CUDA
     CELER_DEVICE_PREFIX(FreeHost(p));
+#    elif CELERITAS_USE_HIP
+    CELER_DEVICE_PREFIX(HostFree(p));
+#    endif
 #else
     std::free(p);
 #endif
