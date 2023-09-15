@@ -10,6 +10,7 @@
 #include <vector>
 #include <G4GeometryManager.hh>
 #include <G4LogicalVolume.hh>
+#include <G4LogicalVolumeStore.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4VSolid.hh>
@@ -197,6 +198,26 @@ auto GeantGeoParams::find_volumes(std::string const& name) const
     -> SpanConstVolumeId
 {
     return vol_labels_.find_all(name);
+}
+
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the Geant4 logical volume corresponding to a volume ID.
+ *
+ * If the input volume ID is false, a null pointer will be returned.
+ */
+G4LogicalVolume const* GeantGeoParams::id_to_lv(VolumeId id) const
+{
+    CELER_EXPECT(!id || id < this->num_volumes());
+    if (!id)
+    {
+        return nullptr;
+    }
+
+    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
+    CELER_ASSERT(id < lv_store->size());
+    return (*lv_store)[id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
