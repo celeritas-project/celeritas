@@ -33,8 +33,8 @@ void Filler<T, MemSpace::device>::operator()(Span<T> data) const
 }
 
 template<class T>
-void Filler<T, MemSpace::device>::operator()(StreamId stream_id,
-                                             Span<T> data) const
+void Filler<T, MemSpace::device>::operator()(Span<T> data,
+                                             StreamId stream_id) const
 {
     thrust::fill_n(thrust_execute_on(stream_id),
                    thrust::device_pointer_cast<T>(data.data()),

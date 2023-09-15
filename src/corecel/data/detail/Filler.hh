@@ -43,7 +43,7 @@ struct Filler<T, MemSpace::device>
     T const& value;
 
     void operator()(Span<T>) const;
-    void operator()(StreamId, Span<T>) const;
+    void operator()(Span<T>, StreamId) const;
 };
 
 #if !CELER_USE_DEVICE
@@ -54,7 +54,7 @@ void Filler<T, MemSpace::device>::operator()(Span<T>) const
 }
 
 template<class T>
-void Filler<T, MemSpace::device>::operator()(StreamId, Span<T>) const
+void Filler<T, MemSpace::device>::operator()(Span<T>, StreamId) const
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
