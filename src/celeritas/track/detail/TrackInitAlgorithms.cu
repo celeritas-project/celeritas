@@ -16,7 +16,7 @@
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stream.hh"
-#include "celeritas/ext/Thrust.device.hh"
+#include "corecel/sys/Thrust.device.hh"
 
 #include "Utils.hh"
 

@@ -13,6 +13,7 @@
 #include <thrust/fill.h>
 
 #include "corecel/device_runtime_api.h"
+#include "corecel/sys/Thrust.device.hh"
 
 #include "Filler.hh"
 
@@ -24,7 +25,14 @@ namespace detail
 template<class T>
 void Filler<T, MemSpace::device>::operator()(Span<T> data) const
 {
-    thrust::fill_n(thrust::device,
+    (*this)(StreamId{0}, data);
+}
+
+template<class T>
+void Filler<T, MemSpace::device>::operator()(StreamId stream_id,
+                                             Span<T> data) const
+{
+    thrust::fill_n(thrust_execute_on(stream_id),
                    thrust::device_pointer_cast<T>(data.data()),
                    data.size(),
                    value);

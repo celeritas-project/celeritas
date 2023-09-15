@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -42,11 +43,18 @@ struct Filler<T, MemSpace::device>
     T const& value;
 
     void operator()(Span<T>) const;
+    void operator()(StreamId, Span<T>) const;
 };
 
 #if !CELER_USE_DEVICE
 template<class T>
 void Filler<T, MemSpace::device>::operator()(Span<T>) const
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+template<class T>
+void Filler<T, MemSpace::device>::operator()(StreamId, Span<T>) const
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
