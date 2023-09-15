@@ -67,7 +67,7 @@ void copy_bytes(MemSpace dstmem,
                 void const* src,
                 std::size_t count)
 {
-    copy_bytes_impl<false>(dstmem, dst, srcmem, src, count, StreamId{0});
+    copy_bytes_impl<false>(dstmem, dst, srcmem, src, count, StreamId{});
 }
 
 /*!
