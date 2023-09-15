@@ -35,7 +35,7 @@ T* PinnedAllocator<T>::allocate(std::size_t n)
     CELER_DEVICE_CALL_PREFIX(MallocHost(&p, n * sizeof(T)));
     if (p)
 #else
-    if (void* p = std::malloc(n); p)
+    if (auto p = std::malloc(n * sizeof(T)); p)
 #endif
     {
         return static_cast<T*>(p);
