@@ -583,6 +583,7 @@ if(CELERITAS_USE_Geant4)
     ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc
     ENVIRONMENT "${_geant4_test_env}")
+  celeritas_add_test(accel/detail/TouchableUpdater.test.cc)
 endif()
 
 #-----------------------------------------------------------------------------#
