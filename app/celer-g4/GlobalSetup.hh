@@ -61,6 +61,9 @@ class GlobalSetup
     }
     //!@}
 
+    //! Get the number of events
+    int GetNumEvents() { return num_events_; }
+
     //! Get a mutable reference to the setup options for DetectorConstruction
     SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
 
@@ -82,7 +85,7 @@ class GlobalSetup
     //! Set the field to this value (T) along the z axis
     void SetMagFieldZTesla(double f) { input_.field = Real3{0, 0, f}; }
 
-    // Read input from JSON
+    // Read input from macro or JSON
     void ReadInput(std::string const& filename);
 
   private:
@@ -93,6 +96,7 @@ class GlobalSetup
     // Data
     std::shared_ptr<SetupOptions> options_;
     RunInput input_;
+    int num_events_{0};
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };

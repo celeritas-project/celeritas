@@ -34,17 +34,7 @@ GeantDiagnostics::GeantDiagnostics(SPConstParams params)
     CELER_EXPECT(params);
     CELER_EXPECT(*params || !celeritas::getenv("CELER_DISABLE").empty());
 
-    // No diagnostics enabled
-    if (!this->any_enabled())
-        return;
-
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
-
-    output_filename_ = GlobalSetup::Instance()->GetSetupOptions()->output_file;
-    if (output_filename_.empty())
-    {
-        output_filename_ = "celer-g4.out.json";
-    }
 
     SPOutputRegistry output_reg = *params ? params->Params()->output_reg()
                                           : std::make_shared<OutputRegistry>();
@@ -68,6 +58,15 @@ GeantDiagnostics::GeantDiagnostics(SPConstParams params)
         output_reg->insert(step_diagnostic_);
     }
 
+    {
+        // Create the timer output
+        timer_output_ = std::make_shared<TimerOutput>(
+            GlobalSetup::Instance()->GetNumEvents());
+
+        // Add to output registry
+        output_reg->insert(timer_output_);
+    }
+
     if (!*params)
     {
         output_reg_ = std::move(output_reg);
@@ -87,36 +86,24 @@ void GeantDiagnostics::Finalize()
 {
     CELER_EXPECT(*this);
 
-    // No diagnostics enabled
-    if (!this->any_enabled())
-        return;
-
-    // Output was already written
+    // Output written by \c SharedParams
     if (!output_reg_)
         return;
 
+    auto filename = GlobalSetup::Instance()->GetSetupOptions()->output_file;
 #if CELERITAS_USE_JSON
-    CELER_LOG(info) << "Writing Geant4 diagnostic output to \""
-                    << output_filename_ << '"';
+    CELER_LOG(info) << "Writing Geant4 diagnostic output to \"" << filename
+                    << '"';
 
-    std::ofstream outf(output_filename_);
-    CELER_VALIDATE(
-        outf, << "failed to open output file at \"" << output_filename_ << '"');
+    std::ofstream outf(filename);
+    CELER_VALIDATE(outf,
+                   << "failed to open output file at \"" << filename << '"');
     output_reg_->output(&outf);
 #else
     CELER_LOG(warning)
         << "JSON support is not enabled, so no output will be written to \""
-        << output_filename_ << '"';
+        << filename << '"';
 #endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * True if any Geant4 diagnostics are enabled.
- */
-bool GeantDiagnostics::any_enabled() const
-{
-    return GlobalSetup::Instance()->StepDiagnostic();
 }
 
 //---------------------------------------------------------------------------//

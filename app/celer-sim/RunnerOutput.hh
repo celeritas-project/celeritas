@@ -38,12 +38,6 @@ struct SimulationResult
 class RunnerOutput final : public OutputInterface
 {
   public:
-    //!@{
-    //! \name Type aliases
-
-    //!@}
-
-  public:
     // Construct from simulation result
     explicit RunnerOutput(SimulationResult result);
 
