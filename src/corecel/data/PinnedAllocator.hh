@@ -16,13 +16,10 @@ namespace celeritas
  * Custom allocator for pinned host memory when Celeritas is built with device
  * support. Satisfies the Allocator named requirement.
  *
- * Definition of the class is in a separate translation unit to hide CUDA/HIP
- * dependency from users, if support for a new type is needed, add an explicit
- * instantiation of the allocator for that type. If Celeritas is built without
- * device support, the allocator will fallback to global \c ::operator new() /
- * \c ::operator delete(). Only use this when necessary (i.e. asynchronous
- * H<->D memory transfer is needed) as pinned memory reduces the memory
- * available to the systems.
+ * If Celeritas is built without device support, the allocator will fallback
+ * to global \c ::operator new() / \c ::operator delete(). Only use this
+ * when necessary (i.e. asynchronous H<->D memory transfer is needed)
+ * as pinned memory reduces the memory available to the systems.
  */
 template<class T>
 struct PinnedAllocator
