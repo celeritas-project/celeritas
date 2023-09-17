@@ -37,7 +37,7 @@ class Copier
                   "Data is not trivially copyable");
 
   public:
-    Copier(Span<T> dst) : dst_{dst} {};
+    explicit Copier(Span<T> dst) : dst_{dst} {};
     Copier(Span<T> dst, StreamId stream) : dst_{dst}, stream_{stream} {};
 
     inline void operator()(MemSpace srcmem, Span<T const> src) const;

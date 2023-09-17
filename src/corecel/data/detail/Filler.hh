@@ -41,7 +41,7 @@ template<class T>
 struct Filler<T, MemSpace::device>
 {
   public:
-    Filler(T const& value) : value_{value} {};
+    explicit Filler(T const& value) : value_{value} {};
     Filler(T const& value, StreamId stream)
         : value_{value}, stream_{stream} {};
 
