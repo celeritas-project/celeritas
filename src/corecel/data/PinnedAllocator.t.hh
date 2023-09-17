@@ -30,11 +30,11 @@ T* PinnedAllocator<T>::allocate(std::size_t n)
     // CUDA and HIP currently have a different API to allocate pinned host
     // memory
 #    if CELERITAS_USE_CUDA
-    CELER_DEVICE_CALL_PREFIX(
-        HostAlloc(&p, n * sizeof(T), CELER_DEVICE_PREFIX(HostAllocDefault)));
+    CELER_CUDA_CALL(cudaHostAlloc(
+        &p, n * sizeof(T), CELER_DEVICE_PREFIX(HostAllocDefault)));
 #    elif CELERITAS_USE_HIP
-    CELER_DEVICE_CALL_PREFIX(
-        HostMalloc(&p, n * sizeof(T), CELER_DEVICE_PREFIX(HostMallocDefault)));
+    CELER_HIP_CALL(hipHostMalloc(
+        &p, n * sizeof(T), CELER_DEVICE_PREFIX(HostMallocDefault)));
 #    endif
     if (p)
 #else
@@ -54,9 +54,9 @@ void PinnedAllocator<T>::deallocate(T* p, std::size_t) noexcept
     try
     {
 #    if CELERITAS_USE_CUDA
-        CELER_DEVICE_CALL_PREFIX(FreeHost(p));
+        CELER_CUDA_CALL(cudaFreeHost(p));
 #    elif CELERITAS_USE_HIP
-        CELER_DEVICE_CALL_PREFIX(HostFree(p));
+        CELER_HIP_CALL(hipHostFree(p));
 #    endif
     }
     catch (RuntimeError const& e)
@@ -68,5 +68,18 @@ void PinnedAllocator<T>::deallocate(T* p, std::size_t) noexcept
     ::operator delete(p);
 #endif
 }
+
+template<class T, class U>
+bool operator==(PinnedAllocator<T> const&, PinnedAllocator<U> const&)
+{
+    return true;
+}
+
+template<class T, class U>
+bool operator!=(PinnedAllocator<T> const&, PinnedAllocator<U> const&)
+{
+    return false;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

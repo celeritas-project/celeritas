@@ -14,7 +14,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Custom allocator for pinned host memory when Celeritas is built with device
- * support.
+ * support. Satisfies the Allocator named requirement.
  *
  * Definition of the class is in a separate translation unit to hide CUDA/HIP
  * dependency from users, if support for a new type is needed, add an explicit

@@ -18,40 +18,21 @@ namespace celeritas
 {
 namespace
 {
-template<bool async>
-inline void copy_bytes_impl(MemSpace dstmem,
-                            void* dst,
-                            MemSpace srcmem,
-                            void const* src,
-                            std::size_t count,
-                            [[maybe_unused]] StreamId stream)
-{
-    if (srcmem == MemSpace::host && dstmem == MemSpace::host)
-    {
-        std::memcpy(dst, src, count);
-        return;
-    }
 
+inline auto to_memcpy_kind(MemSpace src, MemSpace dst)
+{
 #if CELER_USE_DEVICE
     CELER_DEVICE_PREFIX(MemcpyKind) kind = CELER_DEVICE_PREFIX(MemcpyDefault);
-    if (srcmem == MemSpace::host && dstmem == MemSpace::device)
+    if (src == MemSpace::host && dst == MemSpace::device)
         kind = CELER_DEVICE_PREFIX(MemcpyHostToDevice);
-    else if (srcmem == MemSpace::device && dstmem == MemSpace::host)
+    else if (src == MemSpace::device && dst == MemSpace::host)
         kind = CELER_DEVICE_PREFIX(MemcpyDeviceToHost);
-    else if (srcmem == MemSpace::device && dstmem == MemSpace::device)
+    else if (src == MemSpace::device && dst == MemSpace::device)
         kind = CELER_DEVICE_PREFIX(MemcpyDeviceToDevice);
     else
         CELER_ASSERT_UNREACHABLE();
+    return kind;
 #endif
-    if constexpr (async)
-    {
-        CELER_DEVICE_CALL_PREFIX(MemcpyAsync(
-            dst, src, count, kind, celeritas::device().stream(stream).get()));
-    }
-    else
-    {
-        CELER_DEVICE_CALL_PREFIX(Memcpy(dst, src, count, kind));
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -67,7 +48,13 @@ void copy_bytes(MemSpace dstmem,
                 void const* src,
                 std::size_t count)
 {
-    copy_bytes_impl<false>(dstmem, dst, srcmem, src, count, StreamId{});
+    if (srcmem == MemSpace::host && dstmem == MemSpace::host)
+    {
+        std::memcpy(dst, src, count);
+        return;
+    }
+    CELER_DEVICE_CALL_PREFIX(
+        Memcpy(dst, src, count, to_memcpy_kind(srcmem, dstmem)));
 }
 
 /*!
@@ -80,7 +67,17 @@ void copy_bytes(MemSpace dstmem,
                 std::size_t count,
                 StreamId stream)
 {
-    copy_bytes_impl<true>(dstmem, dst, srcmem, src, count, stream);
+    if (srcmem == MemSpace::host && dstmem == MemSpace::host)
+    {
+        std::memcpy(dst, src, count);
+        return;
+    }
+    CELER_DEVICE_CALL_PREFIX(
+        MemcpyAsync(dst,
+                    src,
+                    count,
+                    to_memcpy_kind(srcmem, dstmem),
+                    celeritas::device().stream(stream).get()));
 }
 
 //---------------------------------------------------------------------------//
