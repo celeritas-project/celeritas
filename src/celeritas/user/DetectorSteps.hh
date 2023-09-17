@@ -12,9 +12,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/data/PinnedAllocator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/detail/PinnedAllocator.hh"
 
 namespace celeritas
 {
@@ -33,7 +33,7 @@ struct DetectorStepPointOutput
     using Energy = units::MevEnergy;
 
     template<class T>
-    using vector = std::vector<T, detail::PinnedAllocator<T>>;
+    using vector = std::vector<T, PinnedAllocator<T>>;
 
     vector<real_type> time;
     vector<Real3> pos;
@@ -61,7 +61,7 @@ struct DetectorStepOutput
     EnumArray<StepPoint, DetectorStepPointOutput> points;
 
     template<class T>
-    using vector = std::vector<T, detail::PinnedAllocator<T>>;
+    using vector = std::vector<T, PinnedAllocator<T>>;
 
     // Detector ID and track ID are always set
     vector<DetectorId> detector;

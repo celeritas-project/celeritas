@@ -3,15 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/PinnedAllocator.hh
+//! \file corecel/data/PinnedAllocator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cstdlib>
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -36,5 +34,4 @@ struct PinnedAllocator
     void deallocate(T*, std::size_t) noexcept;
 };
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

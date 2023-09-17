@@ -3,23 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/PinnedAllocator.cc
+//! \file corecel/PinnedAllocator.cc
 //---------------------------------------------------------------------------//
 
+#include "corecel/Types.hh"
 #include "corecel/data/PinnedAllocator.t.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/Types.hh"
-#include "celeritas/user/DetectorSteps.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Explicit instantiations
-template struct PinnedAllocator<Real3>;
-template struct PinnedAllocator<DetectorStepPointOutput::Energy>;
-template struct PinnedAllocator<DetectorId>;
-template struct PinnedAllocator<TrackId>;
-template struct PinnedAllocator<EventId>;
-template struct PinnedAllocator<ParticleId>;
+template struct PinnedAllocator<real_type>;
+template struct PinnedAllocator<size_type>;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

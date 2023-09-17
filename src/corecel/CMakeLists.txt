@@ -14,6 +14,7 @@ set(PUBLIC_DEPS)
 
 list(APPEND SOURCES
   Assert.cc
+  PinnedAllocator.cc
   data/Copier.cc
   data/DeviceAllocation.cc
   io/BuildOutput.cc
