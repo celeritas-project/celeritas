@@ -245,8 +245,8 @@ void count_tracks_per_action(
                             order);
 
         Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
-        Copier<ThreadId, MemSpace::host> copy_to_host{sout};
-        copy_to_host(MemSpace::device, offsets, states.stream_id);
+        Copier<ThreadId, MemSpace::host> copy_to_host{sout, states.stream_id};
+        copy_to_host(MemSpace::device, offsets);
 
         // Copies must be complete before backfilling
         CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));

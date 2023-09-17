@@ -38,23 +38,23 @@ struct Filler<T, MemSpace::host>
 
 //! Assign on device
 template<class T>
-struct Filler<T, MemSpace::device>
+class Filler<T, MemSpace::device>
 {
-    T const& value;
+  public:
+    Filler(T const& value) : value_{value} {};
+    Filler(T const& value, StreamId stream)
+        : value_{value}, stream_{stream} {};
 
     void operator()(Span<T>) const;
-    void operator()(Span<T>, StreamId) const;
+
+  private:
+    T const& value_;
+    StreamId stream_;
 };
 
 #if !CELER_USE_DEVICE
 template<class T>
 void Filler<T, MemSpace::device>::operator()(Span<T>) const
-{
-    CELER_NOT_CONFIGURED("CUDA or HIP");
-}
-
-template<class T>
-void Filler<T, MemSpace::device>::operator()(Span<T>, StreamId) const
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

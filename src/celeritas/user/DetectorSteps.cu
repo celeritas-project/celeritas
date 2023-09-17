@@ -133,8 +133,8 @@ void copy_field(DetectorStepOutput::vector<T>* dst,
     }
     dst->resize(num_valid);
     // Copy all items from valid threads
-    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}};
-    copy(MemSpace::device, {src.data().get(), num_valid}, stream);
+    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}, stream};
+    copy(MemSpace::device, {src.data().get(), num_valid});
 }
 
 //---------------------------------------------------------------------------//

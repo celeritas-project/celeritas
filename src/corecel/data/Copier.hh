@@ -31,17 +31,21 @@ namespace celeritas
  * \endcode
  */
 template<class T, MemSpace M>
-struct Copier
+class Copier
 {
     static_assert(std::is_trivially_copyable<T>::value,
                   "Data is not trivially copyable");
 
-    Span<T> dst;
-    static constexpr auto dstmem = M;
+  public:
+    Copier(Span<T> dst) : dst_{dst} {};
+    Copier(Span<T> dst, StreamId stream) : dst_{dst}, stream_{stream} {};
 
     inline void operator()(MemSpace srcmem, Span<T const> src) const;
-    inline void
-    operator()(MemSpace srcmem, Span<T const> src, StreamId stream) const;
+
+  private:
+    Span<T> dst_;
+    StreamId stream_;
+    static constexpr auto dstmem = M;
 };
 
 //---------------------------------------------------------------------------//
@@ -67,22 +71,21 @@ void copy_bytes(MemSpace dstmem,
 template<class T, MemSpace M>
 void Copier<T, M>::operator()(MemSpace srcmem, Span<T const> src) const
 {
-    CELER_EXPECT(src.size() == dst.size());
-    copy_bytes(dstmem, dst.data(), srcmem, src.data(), src.size() * sizeof(T));
-}
-
-/*!
- * Asynchronously copy data from the given source and memory space on the given
- * stream.
- */
-template<class T, MemSpace M>
-void Copier<T, M>::operator()(MemSpace srcmem,
-                              Span<T const> src,
-                              StreamId stream) const
-{
-    CELER_EXPECT(src.size() == dst.size());
-    copy_bytes(
-        dstmem, dst.data(), srcmem, src.data(), src.size() * sizeof(T), stream);
+    CELER_EXPECT(src.size() == dst_.size());
+    if (stream_)
+    {
+        copy_bytes(dstmem,
+                   dst_.data(),
+                   srcmem,
+                   src.data(),
+                   src.size() * sizeof(T),
+                   stream_);
+    }
+    else
+    {
+        copy_bytes(
+            dstmem, dst_.data(), srcmem, src.data(), src.size() * sizeof(T));
+    }
 }
 
 //---------------------------------------------------------------------------//
