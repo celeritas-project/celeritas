@@ -8,6 +8,7 @@
 #include <limits>
 #include <type_traits>
 
+#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
 #include "orange/OrangeTypes.hh"
@@ -30,6 +31,8 @@ namespace test
 TEST(OrangeTypes, tolerances)
 {
     EXPECT_FALSE(Tolerances{});
+
+    EXPECT_SOFT_EQ(1e-10, ipow<2>(Tolerances::sqrt_quadratic()));
 
     {
         SCOPED_TRACE("Default tolerance");

@@ -258,7 +258,10 @@ struct Daughter
  * of some spatial coordinate. In other cases (\c SurfaceSimplifier, \c
  * SoftSurfaceEqual) the similarity between surfaces is determined by solving
  * for a change in surface coefficients that results in no more than a change
- * in \f$ \epsilon \f$ of a particle intercept.
+ * in \f$ \epsilon \f$ of a particle intercept. A final special case (the \c
+ * sqrt_quadratic static variable) is used to approximate the degenerate
+ * condition \f$ a\sim 0\f$ for a particle traveling nearly parallel to a
+ * quadric surface: see \c CylAligned for a discussion.
  *
  * The absolute error should typically be constructed from the relative error
  * (since computers use floating point precision) and a characteristic length
@@ -274,6 +277,9 @@ struct Tolerances
 {
     real_type rel{};  //!< Relative error for differences
     real_type abs{};  //!< Absolute error [native length]
+
+    //! Tolerance for x^2 coefficient in quadratic solvers
+    static constexpr real_type sqrt_quadratic() { return 1e-5; }
 
     //! True if tolerances are valid
     CELER_CONSTEXPR_FUNCTION operator bool() const
