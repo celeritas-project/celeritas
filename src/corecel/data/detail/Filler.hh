@@ -38,7 +38,7 @@ struct Filler<T, MemSpace::host>
 
 //! Assign on device
 template<class T>
-class Filler<T, MemSpace::device>
+struct Filler<T, MemSpace::device>
 {
   public:
     Filler(T const& value) : value_{value} {};
