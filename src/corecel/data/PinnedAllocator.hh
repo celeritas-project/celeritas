@@ -33,5 +33,18 @@ struct PinnedAllocator
 
     void deallocate(T*, std::size_t) noexcept;
 };
+
+template<class T, class U>
+bool operator==(PinnedAllocator<T> const&, PinnedAllocator<U> const&)
+{
+    return true;
+}
+
+template<class T, class U>
+bool operator!=(PinnedAllocator<T> const&, PinnedAllocator<U> const&)
+{
+    return false;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

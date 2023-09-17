@@ -69,17 +69,5 @@ void PinnedAllocator<T>::deallocate(T* p, std::size_t) noexcept
 #endif
 }
 
-template<class T, class U>
-bool operator==(PinnedAllocator<T> const&, PinnedAllocator<U> const&)
-{
-    return true;
-}
-
-template<class T, class U>
-bool operator!=(PinnedAllocator<T> const&, PinnedAllocator<U> const&)
-{
-    return false;
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
