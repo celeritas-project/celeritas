@@ -281,8 +281,8 @@ struct Tolerance
     real_type rel{};  //!< Relative error for differences
     real_type abs{};  //!< Absolute error [native length]
 
-    //! Tolerance for x^2 coefficient in quadratic solvers
-    static constexpr real_type sqrt_quadratic() { return 1e-5; }
+    //! Intercept tolerance for parallel-to-quadric cases
+    static CELER_CONSTEXPR_FUNCTION real_type sqrt_quadratic() { return 1e-5; }
 
     //! True if tolerances are valid
     CELER_CONSTEXPR_FUNCTION operator bool() const
