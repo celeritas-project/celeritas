@@ -39,32 +39,26 @@ GeantDiagnostics::GeantDiagnostics(SPConstParams params)
     SPOutputRegistry output_reg = *params ? params->Params()->output_reg()
                                           : std::make_shared<OutputRegistry>();
 
+    size_type num_threads = [&params] {
+        if (*params)
+        {
+            return params->Params()->max_streams();
+        }
+        auto* run_man = G4RunManager::GetRunManager();
+        CELER_ASSERT(run_man);
+        return size_type(get_num_threads(*run_man));
+    }();
+
+    // Create the timer output and add to output registry
+    timer_output_ = std::make_shared<TimerOutput>(num_threads);
+    output_reg->insert(timer_output_);
+
     if (GlobalSetup::Instance()->StepDiagnostic())
     {
-        // Create the track step diagnostic
-        size_type num_threads = [&params] {
-            if (*params)
-            {
-                return params->Params()->max_streams();
-            }
-            auto* run_man = G4RunManager::GetRunManager();
-            CELER_ASSERT(run_man);
-            return size_type(get_num_threads(*run_man));
-        }();
+        // Create the track step diagnostic and add to output registry
         step_diagnostic_ = std::make_shared<GeantStepDiagnostic>(
             GlobalSetup::Instance()->GetStepDiagnosticBins(), num_threads);
-
-        // Add to output registry
         output_reg->insert(step_diagnostic_);
-    }
-
-    {
-        // Create the timer output
-        timer_output_ = std::make_shared<TimerOutput>(
-            GlobalSetup::Instance()->GetNumEvents());
-
-        // Add to output registry
-        output_reg->insert(timer_output_);
     }
 
     if (!*params)

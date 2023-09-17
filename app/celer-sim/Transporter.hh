@@ -89,7 +89,6 @@ class TransporterBase
     //!@{
     //! \name Type aliases
     using SpanConstPrimary = Span<Primary const>;
-
     //!@}
 
   public:

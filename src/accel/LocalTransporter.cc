@@ -17,9 +17,11 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -40,6 +42,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams const& params)
     : auto_flush_(options.max_num_tracks)
     , max_steps_(options.max_steps)
+    , num_streams_{params.Params()->max_streams()}
     , dump_primaries_{params.offload_writer()}
     , hit_manager_{params.hit_manager()}
 {
@@ -57,11 +60,11 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                    << "Geant4 ThreadID (" << thread_id
                    << ") is invalid (perhaps LocalTransporter is being built "
                       "on a non-worker thread?)");
-    CELER_VALIDATE(
-        static_cast<size_type>(thread_id) < params.Params()->max_streams(),
-        << "Geant4 ThreadID (" << thread_id
-        << ") is out of range for the reported number of worker threads ("
-        << params.Params()->max_streams() << ")");
+    CELER_VALIDATE(static_cast<size_type>(thread_id) < num_streams_,
+                   << "Geant4 ThreadID (" << thread_id
+                   << ") is out of range for the reported number of worker "
+                      "threads ("
+                   << num_streams_ << ")");
 
     StepperInput inp;
     inp.params = params.Params();
@@ -198,6 +201,35 @@ void LocalTransporter::Finalize()
     *this = {};
 
     CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated action times.
+ */
+auto LocalTransporter::GetActionTime() const -> MapStrReal
+{
+    CELER_EXPECT(*this);
+
+    MapStrReal result;
+    auto const& action_seq = step_->actions();
+    if (num_streams_ == 1
+        && (action_seq.sync()
+            || !celeritas::getenv("CELER_DISABLE_DEVICE").empty()))
+    {
+        // Save kernel timing if running with a single stream and if either on
+        // the device with synchronization enabled or on the host
+        auto const& action_ptrs = action_seq.actions();
+        auto const& time = action_seq.accum_time();
+
+        CELER_ASSERT(action_ptrs.size() == time.size());
+        for (auto i : range(action_ptrs.size()))
+        {
+            auto&& label = action_ptrs[i]->label();
+            result[label] = time[i];
+        }
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

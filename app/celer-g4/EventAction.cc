@@ -78,7 +78,8 @@ void EventAction::EndOfEventAction(G4Event const* event)
         HitRootIO::Instance()->WriteHits(event);
     }
 
-    diagnostics_->Timer()->RecordEventTime(event, get_event_time_());
+    // Record the time for this event
+    diagnostics_->Timer()->RecordEventTime(get_event_time_());
 
     CELER_LOG_LOCAL(debug) << "Finished event " << event->GetEventID();
 }

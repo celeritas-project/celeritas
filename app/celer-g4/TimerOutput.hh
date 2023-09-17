@@ -26,12 +26,12 @@ class TimerOutput final : public OutputInterface
   public:
     //!@{
     //! \name Type aliases
-    using VecReal = std::vector<real_type>;
+    using MapStrReal = std::unordered_map<std::string, real_type>;
     //!@}
 
   public:
-    // Construct with number of events
-    explicit TimerOutput(size_type num_events);
+    // Construct with number of threads
+    explicit TimerOutput(size_type num_threads);
 
     //!@{
     //! \name Output interface
@@ -46,12 +46,19 @@ class TimerOutput final : public OutputInterface
     // Record the total time for the run
     void RecordTotalTime(real_type time);
 
-    // Record the time for the given event
-    void RecordEventTime(G4Event const* event, real_type time);
+    // Record the accumulated action times
+    void RecordActionTime(MapStrReal&& time);
+
+    // Record the time for the event
+    void RecordEventTime(real_type time);
 
   private:
-    real_type total_time_;
+    using VecReal = std::vector<real_type>;
+
+    bool detailed_timing_;
+    MapStrReal action_time_;
     VecReal event_time_;
+    real_type total_time_;
 };
 
 //---------------------------------------------------------------------------//

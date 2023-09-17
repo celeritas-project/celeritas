@@ -102,6 +102,11 @@ void RunAction::EndOfRunAction(G4Run const*)
 {
     ExceptionConverter call_g4exception{"celer0005"};
 
+    if (transport_)
+    {
+        diagnostics_->Timer()->RecordActionTime(
+            std::move(transport_->GetActionTime()));
+    }
     if (init_diagnostics_)
     {
         diagnostics_->Timer()->RecordTotalTime(get_transport_time_());

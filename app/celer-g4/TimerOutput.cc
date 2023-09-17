@@ -21,13 +21,14 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with number of events.
+ * Construct with number of threads.
+ *
+ * Accumulated action times and per-event times are only collected in
+ * single-threaded mode.
  */
-TimerOutput::TimerOutput(size_type num_events)
+TimerOutput::TimerOutput(size_type num_threads)
+    : detailed_timing_{num_threads == 1}
 {
-    CELER_EXPECT(num_events > 0);
-
-    event_time_.resize(num_events);
 }
 
 //---------------------------------------------------------------------------//
@@ -42,7 +43,7 @@ void TimerOutput::output(JsonPimpl* j) const
     auto obj = json::object();
 
     obj["time"] = {
-        //{"actions", std::move(action_times)},
+        {"actions", action_time_},
         {"events", event_time_},
         {"total", total_time_},
         //{"setup", result_.setup_time},
@@ -57,6 +58,8 @@ void TimerOutput::output(JsonPimpl* j) const
 //---------------------------------------------------------------------------//
 /*!
  * Record the total time for the run.
+ *
+ * This should be called once by the master thread.
  */
 void TimerOutput::RecordTotalTime(real_type time)
 {
@@ -65,15 +68,26 @@ void TimerOutput::RecordTotalTime(real_type time)
 
 //---------------------------------------------------------------------------//
 /*!
- * Record the time for the given event.
+ * Record the accumulated action times.
  */
-void TimerOutput::RecordEventTime(G4Event const* event, real_type time)
+void TimerOutput::RecordActionTime(MapStrReal&& time)
 {
-    CELER_EXPECT(event);
+    if (detailed_timing_)
+    {
+        action_time_ = std::move(time);
+    }
+}
 
-    auto event_id = event->GetEventID();
-    CELER_ASSERT(event_id < static_cast<int>(event_time_.size()));
-    event_time_[event_id] = time;
+//---------------------------------------------------------------------------//
+/*!
+ * Record the time for the event.
+ */
+void TimerOutput::RecordEventTime(real_type time)
+{
+    if (detailed_timing_)
+    {
+        event_time_.push_back(time);
+    }
 }
 
 //---------------------------------------------------------------------------//
