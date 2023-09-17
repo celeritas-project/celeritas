@@ -154,7 +154,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     // the point even after a potential bump
     BoundingBoxBumper<fast_real_type> calc_bumped{
         [&tol = orange_data_->scalars.tol] {
-            Tolerances<real_type> bbox_tol;
+            Tolerance<real_type> bbox_tol;
             bbox_tol.rel = 2 * tol.rel;
             bbox_tol.abs = 2 * tol.abs;
             CELER_ENSURE(bbox_tol);

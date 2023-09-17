@@ -249,7 +249,7 @@ struct Daughter
 
 //---------------------------------------------------------------------------//
 /*!
- * Tolerances for construction and runtime bumping.
+ * Tolerance for construction and runtime bumping.
  *
  * The relative error is used for comparisons of magnitudes of values, and the
  * absolute error provides a lower bound for the comparison tolerance. In most
@@ -270,11 +270,11 @@ struct Daughter
  * be ~1e6 m.
  *
  * \note For historical reasons, the absolute tolerance used by \c SoftEqual
- * defaults to 1/100 of the relative tolerance, whereas with \c Tolerances the
+ * defaults to 1/100 of the relative tolerance, whereas with \c Tolerance the
  * equivalent behavior is setting a length scale of 0.01.
  */
 template<class T = ::celeritas::real_type>
-struct Tolerances
+struct Tolerance
 {
     using real_type = T;
 
@@ -291,17 +291,17 @@ struct Tolerances
     }
 
     // Construct from the default relative tolerance (sqrt(precision))
-    static Tolerances from_default(real_type length = 1);
+    static Tolerance from_default(real_type length = 1);
 
     // Construct from the default "soft equivalence" relative tolerance
-    static Tolerances from_softequal();
+    static Tolerance from_softequal();
 
     // Construct from a relative tolerance and a length scale
-    static Tolerances from_relative(real_type rel, real_type length = 1);
+    static Tolerance from_relative(real_type rel, real_type length = 1);
 };
 
-extern template struct Tolerances<float>;
-extern template struct Tolerances<double>;
+extern template struct Tolerance<float>;
+extern template struct Tolerance<double>;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)

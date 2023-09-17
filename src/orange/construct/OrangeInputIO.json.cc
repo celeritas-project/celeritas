@@ -255,7 +255,7 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
 /*!
  * Read tolerances.
  */
-void from_json(nlohmann::json const& j, Tolerances<>& value)
+void from_json(nlohmann::json const& j, Tolerance<>& value)
 {
     j.at("rel").get_to(value.rel);
     CELER_VALIDATE(value.rel > 0 && value.rel < 1,

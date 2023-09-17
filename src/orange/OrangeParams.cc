@@ -197,7 +197,7 @@ OrangeParams::OrangeParams(OrangeInput input)
 
     if (!input.tol)
     {
-        input.tol = Tolerances<>::from_default();
+        input.tol = Tolerance<>::from_default();
     }
 
     // Create host data for construction, setting tolerances first

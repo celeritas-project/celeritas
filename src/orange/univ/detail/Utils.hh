@@ -63,7 +63,7 @@ class IsNotFurtherThan
 class BumpCalculator
 {
   public:
-    explicit CELER_FORCEINLINE_FUNCTION BumpCalculator(Tolerances<> const& tol)
+    explicit CELER_FORCEINLINE_FUNCTION BumpCalculator(Tolerance<> const& tol)
         : tol_(tol)
     {
     }
@@ -80,7 +80,7 @@ class BumpCalculator
     }
 
   private:
-    Tolerances<> tol_;
+    Tolerance<> tol_;
 };
 
 //---------------------------------------------------------------------------//

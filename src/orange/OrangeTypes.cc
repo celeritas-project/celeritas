@@ -24,7 +24,7 @@ namespace celeritas
  * could use numeric_limits<real_type>::epsilon instead.
  */
 template<class T>
-Tolerances<T> Tolerances<T>::from_default(real_type length)
+Tolerance<T> Tolerance<T>::from_default(real_type length)
 {
     constexpr real_type sqrt_emach = [] {
         if constexpr (std::is_same_v<real_type, double>)
@@ -39,7 +39,7 @@ Tolerances<T> Tolerances<T>::from_default(real_type length)
     static_assert(real_type{1} - ipow<2>(sqrt_emach) != real_type{1},
                   "default tolerance is insufficient");
 
-    return Tolerances<T>::from_relative(sqrt_emach, length);
+    return Tolerance<T>::from_relative(sqrt_emach, length);
 }
 
 //---------------------------------------------------------------------------//
@@ -47,10 +47,10 @@ Tolerances<T> Tolerances<T>::from_default(real_type length)
  * Construct from the default "soft equivalence" tolerance.
  */
 template<class T>
-Tolerances<T> Tolerances<T>::from_softequal()
+Tolerance<T> Tolerance<T>::from_softequal()
 {
     constexpr SoftEqual<> default_seq{};
-    return Tolerances<T>::from_relative(default_seq.rel(), default_seq.abs());
+    return Tolerance<T>::from_relative(default_seq.rel(), default_seq.abs());
 }
 
 //---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ Tolerances<T> Tolerances<T>::from_softequal()
  * Construct from a relative tolerance and a length scale.
  */
 template<class T>
-Tolerances<T> Tolerances<T>::from_relative(real_type rel, real_type length)
+Tolerance<T> Tolerance<T>::from_relative(real_type rel, real_type length)
 {
     CELER_VALIDATE(rel > 0 && rel < 1,
                    << "tolerance " << rel
@@ -66,7 +66,7 @@ Tolerances<T> Tolerances<T>::from_relative(real_type rel, real_type length)
     CELER_VALIDATE(length > 0,
                    << "length scale " << length
                    << " is invalid [must be positive]");
-    Tolerances<T> result;
+    Tolerance<T> result;
     result.rel = rel;
     result.abs = rel * length;
     CELER_ENSURE(result);
@@ -107,8 +107,8 @@ char const* to_cstring(SurfaceType value)
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template struct Tolerances<float>;
-template struct Tolerances<double>;
+template struct Tolerance<float>;
+template struct Tolerance<double>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

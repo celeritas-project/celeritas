@@ -30,7 +30,7 @@ namespace test
 
 TEST(OrangeTypes, tolerances)
 {
-    using TolT = Tolerances<>;
+    using TolT = Tolerance<>;
     EXPECT_FALSE(TolT{});
 
     EXPECT_SOFT_EQ(1e-10, ipow<2>(TolT::sqrt_quadratic()));

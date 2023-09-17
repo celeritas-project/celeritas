@@ -39,7 +39,7 @@ struct OrangeParamsScalars
     size_type max_logic_depth{};
 
     // Soft comparison and dynamic "bumping" values
-    Tolerances<> tol;
+    Tolerance<> tol;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const

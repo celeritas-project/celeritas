@@ -27,7 +27,7 @@ namespace detail
  * \f]
  * has two solutions mathematically, but we only want solutions where x is real
  * and positive.  Furthermore the equation is subject to catastrophic roundoff
- * due to floating point precision (see \c Tolerances::sqrt_quadratic and the
+ * due to floating point precision (see \c Tolerance::sqrt_quadratic and the
  * derivation in \c CylAligned ).
  *
  * \return An Intersections array where each item is a positive valid
@@ -67,7 +67,7 @@ class QuadraticSolver
     //! Fuzziness for "along surface" intercept
     static CELER_CONSTEXPR_FUNCTION real_type min_a()
     {
-        return ipow<2>(Tolerances<>::sqrt_quadratic());
+        return ipow<2>(Tolerance<>::sqrt_quadratic());
     }
 };
 

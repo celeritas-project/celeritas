@@ -224,7 +224,7 @@ CylAligned<T>::calc_intersections(Real3 const& pos,
     // 1 - \omega \dot e
     const real_type a = 1 - ipow<2>(dir[to_int(T)]);
 
-    if (a < ipow<2>(Tolerances<>::sqrt_quadratic()))
+    if (a < ipow<2>(Tolerance<>::sqrt_quadratic()))
     {
         // No intersection if we're traveling along the cylinder axis
         return {no_intersection(), no_intersection()};

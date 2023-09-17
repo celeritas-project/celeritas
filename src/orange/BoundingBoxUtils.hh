@@ -197,7 +197,7 @@ class BoundingBoxBumper
   public:
     //!@{
     //! \name Type aliases
-    using TolU = Tolerances<U>;
+    using TolU = Tolerance<U>;
     using result_type = BoundingBox<T>;
     using argument_type = BoundingBox<U>;
     //!@}
