@@ -273,8 +273,11 @@ struct Daughter
  * defaults to 1/100 of the relative tolerance, whereas with \c Tolerances the
  * equivalent behavior is setting a length scale of 0.01.
  */
+template<class T = ::celeritas::real_type>
 struct Tolerances
 {
+    using real_type = T;
+
     real_type rel{};  //!< Relative error for differences
     real_type abs{};  //!< Absolute error [native length]
 
@@ -284,7 +287,7 @@ struct Tolerances
     //! True if tolerances are valid
     CELER_CONSTEXPR_FUNCTION operator bool() const
     {
-        return rel > 0 && abs > 0;
+        return rel > 0 && rel < 1 && abs > 0;
     }
 
     // Construct from the default relative tolerance (sqrt(precision))
@@ -296,6 +299,9 @@ struct Tolerances
     // Construct from a relative tolerance and a length scale
     static Tolerances from_relative(real_type rel, real_type length = 1);
 };
+
+extern template struct Tolerances<float>;
+extern template struct Tolerances<double>;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)

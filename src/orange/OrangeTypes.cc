@@ -23,7 +23,8 @@ namespace celeritas
  * Technically we're rounding the machine epsilon to a nearby power of 10. We
  * could use numeric_limits<real_type>::epsilon instead.
  */
-Tolerances Tolerances::from_default(real_type length)
+template<class T>
+Tolerances<T> Tolerances<T>::from_default(real_type length)
 {
     constexpr real_type sqrt_emach = [] {
         if constexpr (std::is_same_v<real_type, double>)
@@ -32,30 +33,32 @@ Tolerances Tolerances::from_default(real_type length)
         }
         else if constexpr (std::is_same_v<real_type, float>)
         {
-            return 1.e-4f;
+            return 5.e-3f;
         }
     }();
     static_assert(real_type{1} - ipow<2>(sqrt_emach) != real_type{1},
                   "default tolerance is insufficient");
 
-    return Tolerances::from_relative(sqrt_emach, length);
+    return Tolerances<T>::from_relative(sqrt_emach, length);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from the default "soft equivalence" tolerance.
  */
-Tolerances Tolerances::from_softequal()
+template<class T>
+Tolerances<T> Tolerances<T>::from_softequal()
 {
     constexpr SoftEqual<> default_seq{};
-    return Tolerances::from_relative(default_seq.rel(), default_seq.abs());
+    return Tolerances<T>::from_relative(default_seq.rel(), default_seq.abs());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a relative tolerance and a length scale.
  */
-Tolerances Tolerances::from_relative(real_type rel, real_type length)
+template<class T>
+Tolerances<T> Tolerances<T>::from_relative(real_type rel, real_type length)
 {
     CELER_VALIDATE(rel > 0 && rel < 1,
                    << "tolerance " << rel
@@ -63,7 +66,7 @@ Tolerances Tolerances::from_relative(real_type rel, real_type length)
     CELER_VALIDATE(length > 0,
                    << "length scale " << length
                    << " is invalid [must be positive]");
-    Tolerances result;
+    Tolerances<T> result;
     result.rel = rel;
     result.abs = rel * length;
     CELER_ENSURE(result);
@@ -99,6 +102,13 @@ char const* to_cstring(SurfaceType value)
     };
     return to_cstring_impl(value);
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template struct Tolerances<float>;
+template struct Tolerances<double>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

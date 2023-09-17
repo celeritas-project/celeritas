@@ -38,15 +38,13 @@ struct OrangeParamsScalars
     size_type max_intersections{};
     size_type max_logic_depth{};
 
-    // Multiplicative and additive values for bumping particles
-    real_type bump_rel{1e-8};
-    real_type bump_abs{1e-8};
+    // Soft comparison and dynamic "bumping" values
+    Tolerances<> tol;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_depth > 0 && max_faces > 0 && max_intersections > 0
-               && bump_rel > 0 && bump_abs > 0;
+        return max_depth > 0 && max_faces > 0 && max_intersections > 0 && tol;
     }
 };
 

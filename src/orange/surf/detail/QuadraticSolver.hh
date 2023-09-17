@@ -67,7 +67,7 @@ class QuadraticSolver
     //! Fuzziness for "along surface" intercept
     static CELER_CONSTEXPR_FUNCTION real_type min_a()
     {
-        return ipow<2>(Tolerances::sqrt_quadratic());
+        return ipow<2>(Tolerances<>::sqrt_quadratic());
     }
 };
 

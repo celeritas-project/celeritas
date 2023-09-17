@@ -192,7 +192,8 @@ TEST_F(BoundingBoxUtilsTest, bumped)
     }
     {
         SCOPED_TRACE("double precise");
-        BoundingBoxBumper<double> calc_bumped{1e-10};
+        BoundingBoxBumper<double> calc_bumped{
+            Tolerances<double>::from_relative(1e-10)};
         auto bumped = calc_bumped(ref);
         static double const expected_lower[] = {-inf, -1e-10, -100.00000001};
         static double const expected_upper[] = {1e-10, 0.11223344566677, inf};
@@ -204,7 +205,8 @@ TEST_F(BoundingBoxUtilsTest, bumped)
     }
     {
         SCOPED_TRACE("float loose");
-        BoundingBoxBumper<float, double> calc_bumped{1e-3, 1e-5};
+        BoundingBoxBumper<float, double> calc_bumped{
+            Tolerances<double>::from_relative(1e-3, /* length = */ 0.01)};
         auto bumped = calc_bumped(ref);
         static float const expected_lower[] = {-inff, -1e-05f, -100.1f};
         static float const expected_upper[] = {1e-05f, 0.1123457f, inff};
@@ -217,7 +219,8 @@ TEST_F(BoundingBoxUtilsTest, bumped)
     {
         SCOPED_TRACE("float orange");
         BBox const ref{{-2, -6, -1}, {8, 4, 2}};
-        BoundingBoxBumper<float, double> calc_bumped{2e-8, 2e-8};
+        BoundingBoxBumper<float, double> calc_bumped{
+            Tolerances<double>::from_relative(2e-8)};
         auto bumped = calc_bumped(ref);
         static float const expected_lower[] = {-2.f, -6.f, -1.f};
         static float const expected_upper[] = {8.000001f, 4.f, 2.f};
