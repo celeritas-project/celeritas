@@ -19,22 +19,20 @@ namespace celeritas
 namespace
 {
 
-inline auto to_memcpy_kind(CELER_UNUSED_UNLESS_DEVICE MemSpace src,
-                           CELER_UNUSED_UNLESS_DEVICE MemSpace dst)
-{
 #if CELER_USE_DEVICE
-    CELER_DEVICE_PREFIX(MemcpyKind) kind = CELER_DEVICE_PREFIX(MemcpyDefault);
+inline auto to_memcpy_kind(MemSpace src, MemSpace dst)
+{
     if (src == MemSpace::host && dst == MemSpace::device)
-        kind = CELER_DEVICE_PREFIX(MemcpyHostToDevice);
+        return CELER_DEVICE_PREFIX(MemcpyHostToDevice);
     else if (src == MemSpace::device && dst == MemSpace::host)
-        kind = CELER_DEVICE_PREFIX(MemcpyDeviceToHost);
+        return CELER_DEVICE_PREFIX(MemcpyDeviceToHost);
     else if (src == MemSpace::device && dst == MemSpace::device)
-        kind = CELER_DEVICE_PREFIX(MemcpyDeviceToDevice);
+        return CELER_DEVICE_PREFIX(MemcpyDeviceToDevice);
     else
         CELER_ASSERT_UNREACHABLE();
-    return kind;
-#endif
+    return CELER_DEVICE_PREFIX(MemcpyDefault);
 }
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace
