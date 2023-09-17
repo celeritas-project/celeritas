@@ -67,6 +67,8 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_OPTION(field);
     RI_LOAD_OPTION(field_options);
 
+    RI_LOAD_OPTION(enable_sd);
+
     RI_LOAD_OPTION(output_file);
     RI_LOAD_OPTION(physics_output_file);
     RI_LOAD_OPTION(offload_output_file);
@@ -138,6 +140,8 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE_OPTION(field_file);
     RI_SAVE_OPTION(field);
     RI_SAVE_OPTION(field_options);
+
+    RI_SAVE_OPTION(enable_sd);
 
     RI_SAVE_OPTION(output_file);
     RI_SAVE_OPTION(physics_output_file);
