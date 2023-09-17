@@ -5,8 +5,12 @@
 //---------------------------------------------------------------------------//
 //! \file orange/Orange.test.cc
 //---------------------------------------------------------------------------//
+#include <limits>
+#include <type_traits>
+
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/Types.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "celeritas/Constants.hh"
@@ -22,6 +26,42 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+
+TEST(OrangeTypes, tolerances)
+{
+    EXPECT_FALSE(Tolerances{});
+
+    {
+        SCOPED_TRACE("Default tolerance");
+        auto const tol = Tolerances::from_default();
+        EXPECT_TRUE(tol);
+        EXPECT_SOFT_NEAR(
+            std::sqrt(std::numeric_limits<real_type>::epsilon()), tol.rel, 0.5);
+        EXPECT_SOFT_EQ(tol.rel, tol.abs);
+        if constexpr (std::is_same_v<real_type, double>)
+        {
+            EXPECT_SOFT_EQ(1e-8, tol.rel);
+        }
+    }
+    {
+        SCOPED_TRACE("Tolerance with other length scale");
+        auto const tol = Tolerances::from_default(1e-4);
+        EXPECT_SOFT_EQ(1e-8, tol.rel);
+        EXPECT_SOFT_EQ(1e-12, tol.abs);
+    }
+    {
+        SCOPED_TRACE("Tolerance with arbitrary relative");
+        auto const tol = Tolerances::from_relative(1e-5);
+        EXPECT_SOFT_EQ(1e-5, tol.rel);
+        EXPECT_SOFT_EQ(1e-5, tol.abs);
+    }
+    {
+        SCOPED_TRACE("Tolerance with arbitrary relative and length scale");
+        auto const tol = Tolerances::from_relative(1e-5, 0.1);
+        EXPECT_SOFT_EQ(1e-5, tol.rel);
+        EXPECT_SOFT_EQ(1e-6, tol.abs);
+    }
+}
 
 class OrangeTest : public OrangeGeoTestBase
 {

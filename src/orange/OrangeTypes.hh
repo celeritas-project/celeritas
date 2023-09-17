@@ -248,6 +248,50 @@ struct Daughter
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Tolerances for construction and runtime bumping.
+ *
+ * The relative error is used for comparisons of magnitudes of values, and the
+ * absolute error provides a lower bound for the comparison tolerance. In most
+ * cases (see \c SoftEqual, \c BoundingBoxBumper , \c detail::BumpCalculator)
+ * the tolerance used is a maximum of the absolute error and the 1- or 2-norm
+ * of some spatial coordinate. In other cases (\c SurfaceSimplifier, \c
+ * SoftSurfaceEqual) the similarity between surfaces is determined by solving
+ * for a change in surface coefficients that results in no more than a change
+ * in \f$ \epsilon \f$ of a particle intercept.
+ *
+ * The absolute error should typically be constructed from the relative error
+ * (since computers use floating point precision) and a characteristic length
+ * scale for the problem being used. For detector/reactor problems the length
+ * might be ~1 cm, for microbiology it might be ~1 um, and for astronomy might
+ * be ~1e6 m.
+ *
+ * \note For historical reasons, the absolute tolerance used by \c SoftEqual
+ * defaults to 1/100 of the relative tolerance, whereas with \c Tolerances the
+ * equivalent behavior is setting a length scale of 0.01.
+ */
+struct Tolerances
+{
+    real_type rel{};  //!< Relative error for differences
+    real_type abs{};  //!< Absolute error [native length]
+
+    //! True if tolerances are valid
+    CELER_CONSTEXPR_FUNCTION operator bool() const
+    {
+        return rel > 0 && abs > 0;
+    }
+
+    // Construct from the default relative tolerance (sqrt(precision))
+    static Tolerances from_default(real_type length = 1);
+
+    // Construct from the default "soft equivalence" relative tolerance
+    static Tolerances from_softequal();
+
+    // Construct from a relative tolerance and a length scale
+    static Tolerances from_relative(real_type rel, real_type length = 1);
+};
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)
 //---------------------------------------------------------------------------//
 /*!

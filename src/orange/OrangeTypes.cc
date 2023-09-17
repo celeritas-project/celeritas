@@ -7,10 +7,69 @@
 //---------------------------------------------------------------------------//
 #include "OrangeTypes.hh"
 
+#include <type_traits>
+
+#include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Use a relative error of \f$ \sqrt(\epsilon_\textrm{machine}) \f$ .
+ *
+ * Technically we're rounding the machine epsilon to a nearby power of 10. We
+ * could use numeric_limits<real_type>::epsilon instead.
+ */
+Tolerances Tolerances::from_default(real_type length)
+{
+    constexpr real_type sqrt_emach = [] {
+        if constexpr (std::is_same_v<real_type, double>)
+        {
+            return 1.e-8;
+        }
+        else if constexpr (std::is_same_v<real_type, float>)
+        {
+            return 1.e-4f;
+        }
+    }();
+    static_assert(real_type{1} - ipow<2>(sqrt_emach) != real_type{1},
+                  "default tolerance is insufficient");
+
+    return Tolerances::from_relative(sqrt_emach, length);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from the default "soft equivalence" tolerance.
+ */
+Tolerances Tolerances::from_softequal()
+{
+    constexpr SoftEqual<> default_seq{};
+    return Tolerances::from_relative(default_seq.rel(), default_seq.abs());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a relative tolerance and a length scale.
+ */
+Tolerances Tolerances::from_relative(real_type rel, real_type length)
+{
+    CELER_VALIDATE(rel > 0 && rel < 1,
+                   << "tolerance " << rel
+                   << " is out of range [must be in (0,1)]");
+    CELER_VALIDATE(length > 0,
+                   << "length scale " << length
+                   << " is invalid [must be positive]");
+    Tolerances result;
+    result.rel = rel;
+    result.abs = rel * length;
+    CELER_ENSURE(result);
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get a string corresponding to a surface type.
