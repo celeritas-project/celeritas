@@ -28,9 +28,7 @@ inline auto to_memcpy_kind(MemSpace src, MemSpace dst)
         return CELER_DEVICE_PREFIX(MemcpyDeviceToHost);
     else if (src == MemSpace::device && dst == MemSpace::device)
         return CELER_DEVICE_PREFIX(MemcpyDeviceToDevice);
-    else
-        CELER_ASSERT_UNREACHABLE();
-    return CELER_DEVICE_PREFIX(MemcpyDefault);
+    CELER_ASSERT_UNREACHABLE();
 }
 #endif
 
