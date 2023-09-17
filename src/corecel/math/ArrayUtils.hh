@@ -43,6 +43,12 @@ template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T norm(Array<T, N> const& vec);
 
 //---------------------------------------------------------------------------//
+// Construct a vector with unit magnitude
+template<class T, size_type N>
+[[nodiscard]] inline CELER_FUNCTION Array<T, N>
+make_unit_vector(Array<T, N> const& v);
+
+//---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) distance between two points
 template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
@@ -126,6 +132,24 @@ CELER_FUNCTION T norm(Array<T, N> const& v)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a unit vector.
+ *
+ * Unit vectors have an Euclidian norm magnitude of 1.
+ */
+template<class T, size_type N>
+CELER_FUNCTION Array<T, N> make_unit_vector(Array<T, N> const& v)
+{
+    Array<T, N> result{v};
+    const T scale_factor = 1 / norm(result);
+    for (auto& el : result)
+    {
+        el *= scale_factor;
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the Euclidian (2) distance between two points.
  */
 template<class T, size_type N>
@@ -142,15 +166,14 @@ CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)
 //---------------------------------------------------------------------------//
 /*!
  * Divide the given vector by its Euclidian norm.
+ *
+ * \deprecated replace with \c make_unit_vector
  */
 template<class T>
 CELER_FUNCTION void normalize_direction(Array<T, 3>* direction)
 {
     CELER_EXPECT(direction);
-    const T scale_factor = 1 / norm(*direction);
-    (*direction)[0] *= scale_factor;
-    (*direction)[1] *= scale_factor;
-    (*direction)[2] *= scale_factor;
+    *direction = make_unit_vector(*direction);
 }
 
 //---------------------------------------------------------------------------//
@@ -264,6 +287,26 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
 /*!
  * Test for being approximately a unit vector.
  *
+ * Consider a unit vector \em v with a small perturbation along a unit vector
+ * \em e : \f[
+   \vec v + \epsilon \vec e
+  \f]
+ * The magnitude squared is
+ * \f[
+  m^2 = (v + \epsilon e) \cdot (v + \epsilon e)
+   = |v|^2 + 2 \epsilon v \cdot e +  \epsilon^2 e \cdot e
+   = 1 + 2 \epsilon v \cdot e + \epsilon^2
+ \f]
+ *
+ * Since \f[ v \cdot e  <= |v||e| = 1 \f] by the triangle inequality,
+ * then the magnitude squared of a perturbed unit vector is bounded
+ * \f[
+  m^2 = 1 \pm (2 \epsilon + \epsilon^2)
+  \f]
+ *
+ * Instead of calculating the square of the tolerance we loosely bound with
+ * another epsilon.
+ *
  * Example:
  * \code
     CELER_EXPECT(is_soft_unit_vector(v));
@@ -272,9 +315,9 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
 template<class T, size_type N>
 CELER_FUNCTION bool is_soft_unit_vector(Array<T, N> const& v)
 {
-    // (1 + eps, 0, 0) is not quite allowed for 2*eps precision; increase
-    SoftEqual<T> cmp{10 * detail::SoftEqualTraits<T>::rel_prec()};
-    return cmp(T(1), dot_product(v, v));
+    constexpr SoftEqual<T> default_soft_eq;
+    SoftEqual cmp{3 * default_soft_eq.rel(), 3 * default_soft_eq.abs()};
+    return cmp(T{1}, dot_product(v, v));
 }
 
 //---------------------------------------------------------------------------//

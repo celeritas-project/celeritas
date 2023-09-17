@@ -55,7 +55,7 @@ inline void sincospi(T x, T* sptr, T* cptr)
     }
     else
     {
-        x *= m_pi;
+        x *= static_cast<T>(m_pi);
         cval = std::cos(x);
         sval = std::sin(x);
     }

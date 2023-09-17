@@ -36,7 +36,7 @@ class BoundingBox;
 using fast_real_type = float;
 
 //! Integer type for volume CSG tree representation
-using logic_int = unsigned short int;
+using logic_int = size_type;
 
 //! Helper class for some template dispatch functions
 template<Axis T>
@@ -51,7 +51,7 @@ using BIHNodeId = OpaqueId<struct BIHNode_>;
 using DaughterId = OpaqueId<struct Daughter>;
 
 //! Identifier for a face within a volume
-using FaceId = OpaqueId<struct Face_>;
+using FaceId = OpaqueId<struct Face_, logic_int>;
 
 //! Bounding box used for acceleration
 using FastBBox = BoundingBox<fast_real_type>;

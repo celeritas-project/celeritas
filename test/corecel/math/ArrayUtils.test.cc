@@ -84,8 +84,15 @@ TEST(ArrayUtilsTest, is_soft_unit_vector)
     Real3 dir{1, 2, 3};
     normalize_direction(&dir);
     EXPECT_TRUE(is_soft_unit_vector(dir));
-    dir[0] += 1e-12;
+    constexpr real_type eps = SoftEqual{}.rel();
+    dir[0] += eps;
     EXPECT_TRUE(is_soft_unit_vector(dir));
+    dir[1] += eps;
+    EXPECT_TRUE(is_soft_unit_vector(dir));
+    dir[2] -= eps;
+    EXPECT_TRUE(is_soft_unit_vector(dir));
+    dir[0] += 10 * eps;
+    EXPECT_FALSE(is_soft_unit_vector(dir));
 }
 
 TEST(ArrayUtilsTest, rotate)

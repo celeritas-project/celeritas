@@ -38,7 +38,7 @@ enum class WontWorkColors
 
 namespace pokemon
 {
-enum Pokemon
+enum Pokemon : int
 {
     charmander = 0,
     bulbasaur,
@@ -211,8 +211,8 @@ TEST(RangeTest, different_enums)
 
 TEST(RangeTest, enum_step)
 {
-    EXPECT_TRUE((std::is_same<std::underlying_type<pokemon::Pokemon>::type,
-                              unsigned int>::value));
+    EXPECT_TRUE(
+        (std::is_same_v<std::underlying_type_t<pokemon::Pokemon>, int>));
 
     std::vector<int> vals;
     for (auto p : range(pokemon::size_).step(3u))

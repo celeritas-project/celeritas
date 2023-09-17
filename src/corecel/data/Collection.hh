@@ -294,7 +294,7 @@ class Collection
     //! Direct accesors to underlying data
     CELER_FORCEINLINE_FUNCTION size_type size() const
     {
-        return this->storage().size();
+        return static_cast<size_type>(this->storage().size());
     }
     CELER_FORCEINLINE_FUNCTION bool empty() const
     {

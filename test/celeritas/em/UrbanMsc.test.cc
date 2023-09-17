@@ -278,7 +278,7 @@ TEST_F(UrbanMscTest, step_conversion)
             msc_params_->host_ref(), helper, energy, lambda, range);
 
         LogInterp calc_pstep({0, 0.9 * params.limit_min_fix()},
-                             {pstep_points, range});
+                             {static_cast<real_type>(pstep_points), range});
         for (auto ppt : celeritas::range(pstep_points + 1))
         {
             // Calculate given a physics step between "tiny" and the maximum
@@ -300,8 +300,9 @@ TEST_F(UrbanMscTest, step_conversion)
             msc_step.alpha = gp.alpha;
             MscStepFromGeo geo_to_true(
                 msc_params_->host_ref().params, msc_step, range, lambda);
-            LogInterp calc_gstep({0, 0.9 * params.limit_min_fix()},
-                                 {gstep_points, gp.step});
+            LogInterp calc_gstep(
+                {0, 0.9 * params.limit_min_fix()},
+                {static_cast<real_type>(gstep_points), gp.step});
             for (auto gpt : celeritas::range(gstep_points + 1))
             {
                 // Calculate between a nearby hypothetical geometric boundary
@@ -372,7 +373,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                        0.102364,
                                        0.0465336,
                                        0.00708839};
-    constexpr unsigned int nsamples = std::end(energy) - std::begin(energy);
+    constexpr auto nsamples = std::size(energy);
 
     // Calculate range instead of hardcoding to ensure step and range values
     // are bit-for-bit identical when range limits the step. The first three

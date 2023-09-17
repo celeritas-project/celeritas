@@ -38,7 +38,7 @@ Version Version::from_string(std::string_view sv)
             // No version component given
             return size_type{0};
         }
-        int result = std::atoi(submatch.first);
+        int result = std::atoi(&(*submatch.first));
         return static_cast<size_type>(result);
     };
 

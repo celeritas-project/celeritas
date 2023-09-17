@@ -176,38 +176,57 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
 
 TEST_F(BoundingBoxUtilsTest, bumped)
 {
-    auto inf_double = std::numeric_limits<double>::infinity();
-    auto inf_float = std::numeric_limits<float>::infinity();
+    BoundingBox<double> const ref{{-inf, 0, -100}, {0, 0.11223344556677, inf}};
 
-    double long_number = 0.11223344556677;
+    {
+        SCOPED_TRACE("default precision");
+        BoundingBoxBumper<float, double> calc_bumped{};
+        auto bumped = calc_bumped(ref);
+        static float const expected_lower[] = {-inff, -1e-14f, -100.0f};
+        static float const expected_upper[] = {1e-14f, 0.1122335f, inff};
+        EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
+        EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
 
-    BBox unbumped = {{-inf_double, 0, -100}, {0, long_number, inf_double}};
+        EXPECT_TRUE(is_inside(bumped, ref.lower()));
+        EXPECT_TRUE(is_inside(bumped, ref.upper()));
+    }
+    {
+        SCOPED_TRACE("double precise");
+        BoundingBoxBumper<double> calc_bumped{1e-10};
+        auto bumped = calc_bumped(ref);
+        static double const expected_lower[] = {-inf, -1e-10, -100.00000001};
+        static double const expected_upper[] = {1e-10, 0.11223344566677, inf};
+        EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
+        EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
 
-    auto bumped = calc_bumped<float>(unbumped);
+        EXPECT_TRUE(is_inside(bumped, ref.lower() - 1e-11));
+        EXPECT_TRUE(is_inside(bumped, ref.upper() + 1e-11));
+    }
+    {
+        SCOPED_TRACE("float loose");
+        BoundingBoxBumper<float, double> calc_bumped{1e-3, 1e-5};
+        auto bumped = calc_bumped(ref);
+        static float const expected_lower[] = {-inff, -1e-05f, -100.1f};
+        static float const expected_upper[] = {1e-05f, 0.1123457f, inff};
+        EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
+        EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
 
-    // Test lower corner
-    EXPECT_EQ(-inf_float, bumped.lower()[0]);
+        EXPECT_TRUE(is_inside(bumped, ref.lower() - 1e-6));
+        EXPECT_TRUE(is_inside(bumped, ref.upper() + 1e-6));
+    }
+    {
+        SCOPED_TRACE("float orange");
+        BBox const ref{{-2, -6, -1}, {8, 4, 2}};
+        BoundingBoxBumper<float, double> calc_bumped{2e-8, 2e-8};
+        auto bumped = calc_bumped(ref);
+        static float const expected_lower[] = {-2.f, -6.f, -1.f};
+        static float const expected_upper[] = {8.000001f, 4.f, 2.f};
+        EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
+        EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
 
-    EXPECT_SOFT_EQ(0, bumped.lower()[1]);
-    EXPECT_TRUE(bumped.lower()[1] < 0);
-
-    EXPECT_SOFT_EQ(-100, bumped.lower()[2]);
-    EXPECT_TRUE(bumped.lower()[2] < -100);
-
-    // Test upper corner
-
-    EXPECT_SOFT_EQ(0, bumped.upper()[0]);
-    EXPECT_TRUE(bumped.upper()[0] > 0);
-
-    EXPECT_SOFT_EQ(long_number, bumped.upper()[1]);
-    EXPECT_TRUE(bumped.upper()[1] > long_number);
-
-    EXPECT_EQ(inf_float, bumped.upper()[2]);
-
-    // Test the bounds are inside
-    EXPECT_TRUE(is_inside(bumped, Array<double, 3>{-inf_double, 0, -100}));
-    EXPECT_TRUE(
-        is_inside(bumped, Array<double, 3>{0, long_number, inf_double}));
+        EXPECT_TRUE(is_inside(bumped, ref.lower() - 1e-8));
+        EXPECT_TRUE(is_inside(bumped, ref.upper() + 1e-8));
+    }
 }
 
 TEST_F(BoundingBoxUtilsTest, bbox_translate)

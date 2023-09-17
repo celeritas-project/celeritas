@@ -9,6 +9,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/sys/ScopedMem.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/em/data/WentzelData.hh"
 #include "celeritas/em/executor/WentzelExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
@@ -18,6 +19,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/io/ImportProcess.hh"
+#include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -138,7 +140,7 @@ void WentzelModel::build_data(HostVal<WentzelData>& host_data,
                               MaterialParams const& materials)
 {
     // Build element data
-    unsigned int const num_elements = materials.num_elements();
+    size_type const num_elements = materials.num_elements();
     auto elem_data = make_builder(&host_data.elem_data);
     elem_data.reserve(num_elements);
 
@@ -148,14 +150,23 @@ void WentzelModel::build_data(HostVal<WentzelData>& host_data,
         WentzelElementData z_data;
         z_data.mott_coeff
             = get_mott_coeff_matrix(materials.get(el_id).atomic_number());
-
         elem_data.push_back(z_data);
+    }
+
+    auto prefactors = make_builder(&host_data.nuclear_form_prefactor);
+    prefactors.reserve(materials.num_isotopes());
+    for (auto iso_id : range(IsotopeId{materials.num_isotopes()}))
+    {
+        prefactors.push_back(
+            this->calc_nuclear_form_prefactor(materials.get(iso_id)));
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Interpolated Mott coefficients used by the Lijian, Quing, Zhengming
+ * Get interpolated Mott coefficients for an element.
+ *
+ * These coefficients are used by the Lijian, Quing, Zhengming
  * expression [PRM 8.48] for atomic numbers 1 <= Z <= 92.
  * This data was taken from Geant4's G4MottData.hh file.
  *
@@ -920,6 +931,38 @@ WentzelModel::get_mott_coeff_matrix(AtomicNumber z)
         << WentzelElementData::num_mott_elements << ")");
 
     return mott_coeffs[index];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the constant prefactors of the squared momentum transfer.
+ *
+ * This factor is used in the exponential and Gaussian nuclear form models: see
+ * Eqs. 2.262--2.264 of [LR15].
+ *
+ * Specifically, it calculates \f$ (r_n/\bar h)^2 / 12 \f$. A special case is
+ * inherited from Geant for hydrogen targets.
+ */
+real_type WentzelModel::calc_nuclear_form_prefactor(IsotopeView const& iso)
+{
+    if (iso.atomic_number().get() == 1)
+    {
+        // TODO: Geant4 hardcodes a different prefactor for hydrogen
+        return real_type{1.5485e-6};
+    }
+
+    // The ratio has units of (MeV/c)^-2, so it's easier to convert the
+    // inverse which has units of MomentumSq, then invert afterwards
+    constexpr real_type ratio
+        = 1
+          / native_value_to<units::MevMomentumSq>(
+                12
+                * ipow<2>(constants::hbar_planck
+                          / (real_type(1.27) * units::femtometer)))
+                .value();
+    return ratio
+           * fastpow(real_type(iso.atomic_mass_number().get()),
+                     2 * real_type(0.27));
 }
 
 //---------------------------------------------------------------------------//

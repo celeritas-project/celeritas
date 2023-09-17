@@ -119,7 +119,7 @@ ActionId RayleighModel::action_id() const
 void RayleighModel::build_data(HostValue* data, MaterialParams const& materials)
 {
     // Number of elements
-    unsigned int num_elements = materials.num_elements();
+    auto num_elements = materials.num_elements();
 
     // Build data for available elements
     auto params = make_builder(&data->params);

@@ -406,14 +406,25 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
  * Example: \code
   assert(9.0 == ipow<2>(3.0));
   assert(256 == ipow<8>(2));
+  static_assert(256 == ipow<8>(2));
  \endcode
  */
 template<unsigned int N, class T>
 CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
 {
-    return (N == 0)       ? 1
-           : (N % 2 == 0) ? ipow<N / 2>(v) * ipow<N / 2>(v)
-                          : v * ipow<(N - 1) / 2>(v) * ipow<(N - 1) / 2>(v);
+    if constexpr (N == 0)
+    {
+        (void)sizeof(v);  // Suppress warning in older compilers
+        return 1;
+    }
+    else if constexpr (N % 2 == 0)
+    {
+        return ipow<N / 2>(v) * ipow<N / 2>(v);
+    }
+    else
+    {
+        return v * ipow<(N - 1) / 2>(v) * ipow<(N - 1) / 2>(v);
+    }
 }
 
 //---------------------------------------------------------------------------//

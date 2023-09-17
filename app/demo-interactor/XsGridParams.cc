@@ -31,20 +31,20 @@ namespace app
 namespace
 {
 bool is_same_log_grid(UniformGridData const& grid,
-                      std::vector<real_type> const& energy)
+                      std::vector<real_type> const& energy,
+                      real_type tol)
 {
-    SoftEqual<> soft_eq(1e-8);
     UniformGrid log_energy(grid);
     if (log_energy.size() != energy.size())
     {
         return false;
     }
-    for (auto i : range(energy.size()))
-    {
-        if (!soft_eq(std::log(energy[i]), log_energy[i]))
-            return false;
-    }
-    return true;
+
+    auto r = range(energy.size());
+    SoftEqual const soft_eq{tol};
+    return std::all_of(r.begin(), r.end(), [&](auto i) {
+        return soft_eq(std::log(energy[i]), log_energy[i]);
+    });
 }
 }  // namespace
 
@@ -69,7 +69,7 @@ XsGridParams::XsGridParams(Input const& input)
         = UniformGridData::from_bounds(std::log(input.energy.front()),
                                        std::log(input.energy.back()),
                                        input.energy.size());
-    CELER_ASSERT(is_same_log_grid(host_xs.log_energy, input.energy));
+    CELER_ASSERT(is_same_log_grid(host_xs.log_energy, input.energy, 1e-6));
     host_xs.prime_index = std::find(input.energy.begin(),
                                     input.energy.end(),
                                     input.prime_energy)

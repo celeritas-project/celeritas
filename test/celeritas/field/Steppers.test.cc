@@ -100,10 +100,10 @@ class SteppersTest : public Test
                     total_err2
                         += detail::rel_err_sq(result.err_state, hstep, y.mom);
                 }
-                real_type rel_err = std::sqrt(total_err2) / 0.001;
+                real_type tol = std::sqrt(total_err2) / 0.001;
                 // Check the state after each revolution and the total error
-                EXPECT_VEC_NEAR(expected_y.pos, y.pos, rel_err);
-                EXPECT_VEC_NEAR(expected_y.mom, y.mom, rel_err);
+                EXPECT_VEC_CLOSE(expected_y.pos, y.pos, tol, tol);
+                EXPECT_VEC_CLOSE(expected_y.mom, y.mom, tol, tol);
                 EXPECT_LT(total_err2, param.epsilon);
             }
         }

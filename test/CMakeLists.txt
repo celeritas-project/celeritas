@@ -10,7 +10,7 @@ include(CeleritasAddTest)
 # TEST HARNESS
 #-----------------------------------------------------------------------------#
 
-set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
+file(TO_CMAKE_PATH "${PROJECT_SOURCE_DIR}" CELERITAS_SOURCE_DIR)
 configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 celeritas_add_library(testcel_harness
@@ -124,6 +124,7 @@ celeritas_add_test(corecel/cont/Array.test.cc)
 celeritas_add_test(corecel/cont/InitializedValue.test.cc)
 celeritas_add_test(corecel/cont/Span.test.cc)
 celeritas_add_test(corecel/cont/LabelIdMultiMap.test.cc)
+celeritas_add_test(corecel/cont/VariantUtils.test.cc)
 celeritas_add_device_test(corecel/cont/Range)
 
 # Data
@@ -201,6 +202,8 @@ celeritas_setup_tests(SERIAL PREFIX orange
 # Base
 celeritas_add_test(orange/BoundingBox.test.cc)
 celeritas_add_test(orange/BoundingBoxUtils.test.cc)
+celeritas_add_test(orange/CsgTree.test.cc
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(orange/MatrixUtils.test.cc)
 celeritas_add_test(orange/Orange.test.cc)
 
@@ -231,6 +234,7 @@ celeritas_add_test(orange/surf/RecursiveSimplifier.test.cc)
 celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
+celeritas_add_test(orange/surf/SoftSurfaceEqual.test.cc)
 celeritas_add_test(orange/surf/SurfaceClipper.test.cc)
 celeritas_add_test(orange/surf/SurfaceSimplifier.test.cc)
 celeritas_add_test(orange/surf/VariantSurface.test.cc)
@@ -317,7 +321,6 @@ celeritas_add_test(celeritas/Constants.test.cc
 set(CELERITASTEST_PREFIX celeritas/em)
 celeritas_add_test(celeritas/em/BetheHeitler.test.cc)
 celeritas_add_test(celeritas/em/CombinedBrem.test.cc)
-celeritas_add_test(celeritas/em/CoulombScattering.test.cc)
 celeritas_add_test(celeritas/em/EPlusGG.test.cc)
 celeritas_add_test(celeritas/em/Fluctuation.test.cc)
 celeritas_add_test(celeritas/em/KleinNishina.test.cc)
@@ -330,6 +333,7 @@ celeritas_add_test(celeritas/em/SeltzerBerger.test.cc)
 celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc)
 celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
+celeritas_add_test(celeritas/em/Wentzel.test.cc)
 
 #-------------------------------------#
 # External
@@ -591,6 +595,7 @@ if(CELERITAS_USE_Geant4)
     ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc
     ENVIRONMENT "${_geant4_test_env}")
+  celeritas_add_test(accel/detail/TouchableUpdater.test.cc)
 endif()
 
 #-----------------------------------------------------------------------------#

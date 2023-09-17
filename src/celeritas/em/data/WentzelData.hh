@@ -82,9 +82,14 @@ struct WentzelData
 {
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
+    template<class T>
+    using IsotopeItems = celeritas::Collection<T, W, M, IsotopeId>;
 
     // Ids
     WentzelIds ids;
+
+    //! Constant prefactor for the squared momentum transfer [(MeV/c)^-2]
+    IsotopeItems<real_type> nuclear_form_prefactor;
 
     // Per element form factors
     ElementItems<WentzelElementData> elem_data;
@@ -98,7 +103,7 @@ struct WentzelData
     // Check if the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && !elem_data.empty();
+        return ids && !nuclear_form_prefactor.empty() && !elem_data.empty();
     }
 
     // Copy initialize from an existing WentzelData
@@ -107,6 +112,7 @@ struct WentzelData
     {
         CELER_EXPECT(other);
         ids = other.ids;
+        nuclear_form_prefactor = other.nuclear_form_prefactor;
         elem_data = other.elem_data;
         form_factor_type = other.form_factor_type;
         screening_factor = other.screening_factor;
@@ -120,4 +126,3 @@ using WentzelRef = NativeCRef<WentzelData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
- 

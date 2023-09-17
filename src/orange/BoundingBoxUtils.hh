@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -181,30 +182,74 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert bbox with U type values to a bumped bbox with T type values.
+ * Bump a bounding box outward and possibly convert to another type.
+ * \tparam T destination type
+ * \tparam U source type
  *
- * Each U lower value is bumped to the greatest T value less than the U value.
- * Each U upper value is bumped to the lowest T value greater than the U value.
- * Infinite values are unchanged.
+ * The upper and lower coordinates are bumped outward independently using the
+ * relative and absolute tolerances. To ensure that the outward bump is
+ * not truncated in the destination type, the "std::nextafter" function
+ * advances to the next floating point representable number.
  */
-template<class T, class U>
-inline BoundingBox<T> calc_bumped(BoundingBox<U> const& bbox)
+template<class T, class U = real_type>
+class BoundingBoxBumper
 {
-    CELER_EXPECT(bbox);
+  public:
+    //!@{
+    //! \name Type aliases
+    using result_type = BoundingBox<T>;
+    using argument_type = BoundingBox<U>;
+    //!@}
 
-    Array<T, 3> lower;
-    Array<T, 3> upper;
-
-    for (auto ax : range(to_int(Axis::size_)))
+  public:
+    //! Construct with default "soft equal" tolerances
+    BoundingBoxBumper()
+        : rel_{SoftEqual<U>{}.rel()}, abs_{SoftEqual<U>{}.abs()}
     {
-        lower[ax] = std::nextafter(static_cast<T>(bbox.lower()[ax]),
-                                   -numeric_limits<T>::infinity());
-        upper[ax] = std::nextafter(static_cast<T>(bbox.upper()[ax]),
-                                   numeric_limits<T>::infinity());
     }
 
-    return BoundingBox<T>::from_unchecked(lower, upper);
-}
+    //! Construct with a single bump tolerance used for both relative and abs
+    explicit BoundingBoxBumper(U tol) : rel_{tol}, abs_{tol}
+    {
+        CELER_EXPECT(rel_ > 0 && abs_ > 0);
+    }
+
+    //! Construct with relative and absolute bump tolerances
+    BoundingBoxBumper(U rel, U abs) : rel_{rel}, abs_{abs}
+    {
+        CELER_EXPECT(rel_ > 0 && abs_ > 0);
+    }
+
+    //! Return the expanded and converted bounding box
+    result_type operator()(argument_type const& bbox)
+    {
+        CELER_EXPECT(bbox);
+
+        Array<T, 3> lower;
+        Array<T, 3> upper;
+
+        for (auto ax : range(to_int(Axis::size_)))
+        {
+            lower[ax] = this->bumped<-1>(bbox.lower()[ax]);
+            upper[ax] = this->bumped<+1>(bbox.upper()[ax]);
+        }
+
+        return result_type::from_unchecked(lower, upper);
+    }
+
+  private:
+    U rel_;
+    U abs_;
+
+    //! Calculate the bump distance given a point: see detail::BumpCalculator
+    template<int S>
+    T bumped(U value) const
+    {
+        U bumped = value + S * celeritas::max(abs_, rel_ * std::fabs(value));
+        return std::nextafter(static_cast<T>(bumped),
+                              S * numeric_limits<T>::infinity());
+    }
+};
 
 //---------------------------------------------------------------------------//
 // Calculate the bounding box of a transformed box

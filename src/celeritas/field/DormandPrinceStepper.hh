@@ -139,12 +139,12 @@ DormandPrinceStepper<E>::operator()(real_type step,
     constexpr R d77 = -1 / R(40);
 
     // Coefficients for the mid point calculation by Shampine
-    constexpr R c71 = 6025192743 / R(30085553152);
-    constexpr R c73 = 51252292925 / R(65400821598);
-    constexpr R c74 = -2691868925 / R(45128329728);
-    constexpr R c75 = 187940372067 / R(1594534317056);
-    constexpr R c76 = -1776094331 / R(19743644256);
-    constexpr R c77 = 11237099 / R(235043384);
+    constexpr R c71 = R(6025192743.) / R(30085553152.);
+    constexpr R c73 = R(51252292925.) / R(65400821598.);
+    constexpr R c74 = R(-2691868925.) / R(45128329728.);
+    constexpr R c75 = R(187940372067.) / R(1594534317056.);
+    constexpr R c76 = R(-1776094331.) / R(19743644256.);
+    constexpr R c77 = R(11237099.) / R(235043384.);
 
     result_type result;
 

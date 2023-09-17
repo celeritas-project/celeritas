@@ -31,7 +31,7 @@ struct TwoPi
 {
     static double value() { return 2 * pi; }
 };
-using Revolution = Quantity<TwoPi, double>;
+using Revolution = Quantity<TwoPi>;
 
 struct DozenUnit
 {
@@ -43,11 +43,14 @@ struct DozenUnit
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST(QuantityTest, simplicity)
+TEST(QuantityTest, constexpr_attributes)
 {
+    EXPECT_TRUE((std::is_same_v<Revolution::value_type, double>));
     EXPECT_EQ(sizeof(Revolution), sizeof(double));
     EXPECT_TRUE(std::is_standard_layout<Revolution>::value);
     EXPECT_TRUE(std::is_default_constructible<Revolution>::value);
+
+    EXPECT_TRUE((std::is_same_v<Quantity<DozenUnit>::value_type, int>));
 }
 
 TEST(QuantityTest, usage)
@@ -69,7 +72,7 @@ TEST(QuantityTest, usage)
     EXPECT_DOUBLE_EQ(0.5, value_as<Revolution>(half_rev));
 
     // Check integer division works correctly
-    using Dozen = Quantity<DozenUnit, int>;
+    using Dozen = Quantity<DozenUnit>;
     auto two_dozen = native_value_to<Dozen>(24);
     EXPECT_TRUE((std::is_same_v<decltype(two_dozen), Dozen>));
     EXPECT_EQ(2, value_as<Dozen>(two_dozen));
@@ -190,7 +193,7 @@ TEST(QuantityTest, math)
 
 TEST(QuantityTest, swappiness)
 {
-    using Dozen = Quantity<DozenUnit, int>;
+    using Dozen = Quantity<DozenUnit>;
     Dozen dozen{1}, gross{12};
     {
         // ADL should prefer swap implementation
@@ -212,7 +215,7 @@ TEST(QuantityTest, swappiness)
 TEST(QuantityTest, TEST_IF_CELERITAS_JSON(io))
 {
 #if CELERITAS_USE_JSON
-    using Dozen = Quantity<DozenUnit, int>;
+    using Dozen = Quantity<DozenUnit>;
 
     {
         SCOPED_TRACE("Input as scalar");

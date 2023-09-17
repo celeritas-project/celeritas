@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
 #include <type_traits>
 #include <vector>
 #include <gtest/gtest.h>
@@ -91,8 +92,7 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
            << "\nExpected: " << expected_expr << "\nWhich is: " << expected
            << '\n';
 
-    SoftZero<value_type> is_soft_zero(comp.abs());
-    if (is_soft_zero(expected))
+    if (SoftZero<value_type>{comp.abs()}(expected))
     {
         // Avoid divide by zero errors
         result << "(Absolute error " << actual - expected
@@ -121,7 +121,7 @@ template<class Value_E, class Value_A>
 
     // Construct with automatic or specified tolerances
     using ValueT = typename SoftPrecisionType<Value_E, Value_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     return IsSoftEquivImpl(
         expected, expected_expr, actual, actual_expr, BinaryOp());
@@ -144,7 +144,7 @@ template<class Value_E, class Value_A>
 
     // Construct with automatic or specified tolerances
     using ValueT = typename SoftPrecisionType<Value_E, Value_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     return IsSoftEquivImpl(
         expected, expected_expr, actual, actual_expr, BinaryOp(rel));
@@ -322,7 +322,7 @@ std::string failure_msg(char const* expected_expr,
     using std::setw;
 
     // Calculate how many digits we need to space out
-    int idig = num_digits(failures.back().index);
+    int idig = num_digits(static_cast<unsigned long>(failures.back().index));
     int vdig = 16;
 
     // Construct our own stringstream because google test ignores setw
@@ -361,7 +361,7 @@ std::string float_failure_msg(char const* expected_expr,
     using std::setw;
 
     // Calculate how many digits we need to space out the index
-    int idig = num_digits(failures.back().index);
+    int idig = num_digits(static_cast<unsigned long>(failures.back().index));
     int vdig = std::max(std::numeric_limits<T1>::digits10,
                         std::numeric_limits<T2>::digits10);
 
@@ -488,7 +488,7 @@ template<class ContainerE, class ContainerA>
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     // Construct with automatic or specified tolerances
     return IsVecSoftEquivImpl(
@@ -502,13 +502,13 @@ template<class ContainerE, class ContainerA>
  * This signature uses the default tolerance for the appropriate floating point
  * operations.
  */
-template<class ContainerE, class ContainerA>
+template<class ContainerE, class ContainerA, class T>
 ::testing::AssertionResult IsVecSoftEquiv(char const* expected_expr,
                                           char const* actual_expr,
                                           char const*,
                                           ContainerE const& expected,
                                           ContainerA const& actual,
-                                          double rel)
+                                          T rel)
 {
     using Traits_t = TCT<ContainerE, ContainerA>;
     using value_type_E = typename Traits_t::first_type;
@@ -518,11 +518,11 @@ template<class ContainerE, class ContainerA>
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp(rel));
+        expected, expected_expr, actual, actual_expr, BinaryOp{rel});
 }
 
 //-------------------------------------------------------------------------//
@@ -531,15 +531,15 @@ template<class ContainerE, class ContainerA>
  *
  * Used by \c EXPECT_VEC_CLOSE.
  */
-template<class ContainerE, class ContainerA>
+template<class ContainerE, class ContainerA, class T>
 ::testing::AssertionResult IsVecSoftEquiv(char const* expected_expr,
                                           char const* actual_expr,
                                           char const*,
                                           char const*,
                                           ContainerE const& expected,
                                           ContainerA const& actual,
-                                          double rel,
-                                          double abs)
+                                          T rel,
+                                          T abs)
 {
     using Traits_t = TCT<ContainerE, ContainerA>;
     using value_type_E = typename Traits_t::first_type;
@@ -549,12 +549,21 @@ template<class ContainerE, class ContainerA>
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = SoftEqual<ValueT>;
+    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp(rel, abs));
+        expected, expected_expr, actual, actual_expr, BinaryOp{rel, abs});
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare two JSON objects.
+ */
+::testing::AssertionResult IsJsonEq(char const* expected_expr,
+                                    char const* actual_expr,
+                                    std::string_view expected,
+                                    std::string_view actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace testdetail

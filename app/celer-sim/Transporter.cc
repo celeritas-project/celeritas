@@ -67,7 +67,11 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     };
 
     // Abort cleanly for interrupt and user-defined signals
+#ifndef _WIN32
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
+#else
+    ScopedSignalHandler interrupted{SIGINT};
+#endif
     CELER_LOG(status) << "Transporting";
 
     Stopwatch get_step_time;

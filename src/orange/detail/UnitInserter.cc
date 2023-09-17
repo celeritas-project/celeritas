@@ -131,6 +131,8 @@ UnitInserter::UnitInserter(Data* orange_data)
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
 {
     CELER_EXPECT(orange_data);
+    CELER_EXPECT(orange_data->scalars.bump_rel > 0);
+    CELER_EXPECT(orange_data->scalars.bump_abs > 0);
 
     // Initialize scalars
     orange_data_->scalars.max_faces = 1;
@@ -148,6 +150,12 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     // Insert surfaces
     unit.surfaces = this->insert_surfaces(inp.surfaces);
 
+    // Bounding box bumper and converter: expand to twice the potential bump
+    // distance from a boundary so that the bbox will enclose the point even
+    // after a potential bump
+    BoundingBoxBumper<float> calc_bumped{2 * orange_data_->scalars.bump_rel,
+                                         2 * orange_data_->scalars.bump_abs};
+
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
@@ -160,7 +168,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         // Store the bbox or an infinite bbox placeholder
         if (inp.volumes[i].bbox)
         {
-            bboxes.push_back(calc_bumped<fast_real_type>(inp.volumes[i].bbox));
+            bboxes.push_back(calc_bumped(inp.volumes[i].bbox));
         }
         else
         {
@@ -306,7 +314,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
 
     // Mark as 'simple safety' if all the surfaces are simple
     bool simple_safety = true;
-    logic_int max_intersections = 0;
+    size_type max_intersections = 0;
 
     for (LocalSurfaceId sid : v.faces)
     {
@@ -334,7 +342,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                        .insert_back(v.faces.begin(), v.faces.end());
     output.logic = make_builder(&orange_data_->logic_ints)
                        .insert_back(input_logic.begin(), input_logic.end());
-    output.max_intersections = max_intersections;
+    output.max_intersections = static_cast<logic_int>(max_intersections);
     output.flags = v.flags;
     if (simple_safety)
     {

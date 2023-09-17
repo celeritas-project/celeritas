@@ -321,6 +321,8 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     // NOTE: As E_K -> 2e-3, engine_samples -> infinity
     for (auto particle : {pdg::electron(), pdg::positron()})
     {
+        ParticleParams const& pp = *this->particle_params();
+        SCOPED_TRACE(pp.id_to_label(pp.find(particle)));
         for (double inc_e : {5e-3, 1.0, 10.0, 100.0, 1000.0})
         {
             RandomEngine& rng_engine = this->rng();
@@ -349,6 +351,11 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                 {
                     Interaction result = mb_interact(rng_engine);
                     this->sanity_check(result);
+                    if (this->HasFailure())
+                    {
+                        // Only do one comparison in case of failure
+                        break;
+                    }
                 }
 
                 EXPECT_EQ(num_samples,
