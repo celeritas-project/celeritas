@@ -112,8 +112,7 @@ void RunAction::EndOfRunAction(G4Run const*)
 
     if (transport_ && !disable_offloading_)
     {
-        diagnostics_->Timer()->RecordActionTime(
-            std::move(transport_->GetActionTime()));
+        diagnostics_->Timer()->RecordActionTime(transport_->GetActionTime());
     }
     if (init_diagnostics_)
     {
