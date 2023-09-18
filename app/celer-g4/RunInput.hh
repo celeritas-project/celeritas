@@ -70,6 +70,9 @@ struct RunInput
     Real3 field{no_field()};
     FieldDriverOptions field_options;
 
+    // Sensitive detector hit collection
+    bool enable_sd{true};
+
     // IO
     std::string output_file;  //!< Save JSON diagnostics
     std::string physics_output_file;  //!< Save physics data

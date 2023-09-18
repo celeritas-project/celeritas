@@ -45,9 +45,6 @@ DetectorConstruction::DetectorConstruction()
 {
     auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
 
-    // Use Celeritas "hit processor" to call back to Geant4 SDs.
-    sd.enabled = true;
-
     // Only call back for nonzero energy depositions: this is currently a
     // global option for all detectors, so if any SDs extract data from tracks
     // with no local energy deposition over the step, it must be set to false.
@@ -87,24 +84,27 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(filename, validate_gdml_schema);
 
-    // Find sensitive detectors
-    for (auto const& lv_vecaux : *gdml_parser.GetAuxMap())
+    auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
+    if (sd.enabled)
     {
-        for (G4GDMLAuxStructType const& aux : lv_vecaux.second)
+        // Find sensitive detectors
+        for (auto const& lv_vecaux : *gdml_parser.GetAuxMap())
         {
-            if (aux.type == "SensDet")
+            for (G4GDMLAuxStructType const& aux : lv_vecaux.second)
             {
-                detectors_.insert({aux.value, lv_vecaux.first});
+                if (aux.type == "SensDet")
+                {
+                    detectors_.insert({aux.value, lv_vecaux.first});
+                }
             }
         }
-    }
 
-    if (detectors_.empty())
-    {
-        CELER_LOG(warning) << "No sensitive detectors were found in the GDML "
-                              "file";
-        auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
-        sd.enabled = false;
+        if (detectors_.empty())
+        {
+            CELER_LOG(warning) << "No sensitive detectors were found in the "
+                                  "GDML file";
+            sd.enabled = false;
+        }
     }
 
     // Setup options for the magnetic field
