@@ -46,7 +46,6 @@ void TimerOutput::output(JsonPimpl* j) const
         {"actions", action_time_},
         {"events", event_time_},
         {"total", total_time_},
-        //{"setup", result_.setup_time},
     };
 
     j->obj = std::move(obj);
@@ -57,7 +56,7 @@ void TimerOutput::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Record the total time for the run.
+ * Record the total time spent in transport and hit I/O (excluding setup).
  *
  * This should be called once by the master thread.
  */

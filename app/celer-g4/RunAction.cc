@@ -102,6 +102,12 @@ void RunAction::EndOfRunAction(G4Run const*)
 {
     ExceptionConverter call_g4exception{"celer0005"};
 
+    if (GlobalSetup::Instance()->GetWriteSDHits())
+    {
+        // Close ROOT output of sensitive hits
+        CELER_TRY_HANDLE(HitRootIO::Instance()->Close(), call_g4exception);
+    }
+
     if (transport_)
     {
         diagnostics_->Timer()->RecordActionTime(
@@ -130,12 +136,6 @@ void RunAction::EndOfRunAction(G4Run const*)
             // Clear shared data and write
             CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
         }
-    }
-
-    if (GlobalSetup::Instance()->GetWriteSDHits())
-    {
-        // Close ROOT output of sensitive hits
-        CELER_TRY_HANDLE(HitRootIO::Instance()->Close(), call_g4exception);
     }
 }
 
