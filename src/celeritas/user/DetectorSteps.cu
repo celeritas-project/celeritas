@@ -12,14 +12,12 @@
 #include <thrust/execution_policy.h>
 #include <thrust/iterator/counting_iterator.h>
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Stream.hh"
-#include "celeritas/ext/Thrust.device.hh"
+#include "corecel/sys/Thrust.device.hh"
 
 #include "StepData.hh"
 
@@ -122,10 +120,10 @@ struct HasDetector
 
 //---------------------------------------------------------------------------//
 template<class T>
-void copy_field(std::vector<T>* dst,
+void copy_field(DetectorStepOutput::vector<T>* dst,
                 StateRef<T> const& src,
                 size_type num_valid,
-                Stream::StreamT stream)
+                StreamId stream)
 {
     if (src.empty() || num_valid == 0)
     {
@@ -134,14 +132,9 @@ void copy_field(std::vector<T>* dst,
         return;
     }
     dst->resize(num_valid);
-
     // Copy all items from valid threads
-    CELER_DEVICE_CALL_PREFIX(
-        MemcpyAsync(dst->data(),
-                    src.data().get(),
-                    num_valid * sizeof(T),
-                    CELER_DEVICE_PREFIX(MemcpyDeviceToHost),
-                    stream));
+    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}, stream};
+    copy(MemSpace::device, {src.data().get(), num_valid});
 }
 
 //---------------------------------------------------------------------------//
@@ -175,9 +168,9 @@ void copy_steps<MemSpace::device>(
     gather_step(state, num_valid);
 
     // Resize and copy if the fields are present
-    auto* stream = celeritas::device().stream(state.stream_id).get();
 #define DS_ASSIGN(FIELD) \
-    copy_field(&(output->FIELD), state.scratch.FIELD, num_valid, stream)
+    copy_field(          \
+        &(output->FIELD), state.scratch.FIELD, num_valid, state.stream_id)
 
     DS_ASSIGN(detector);
     DS_ASSIGN(track_id);
@@ -199,7 +192,8 @@ void copy_steps<MemSpace::device>(
 #undef DS_ASSIGN
 
     // Copies must be complete before returning
-    CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
+    CELER_DEVICE_CALL_PREFIX(
+        StreamSynchronize(celeritas::device().stream(state.stream_id).get()));
 
     CELER_ENSURE(output->detector.size() == num_valid);
     CELER_ENSURE(output->track_id.size() == num_valid);

@@ -25,7 +25,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Stream.hh"
-#include "celeritas/ext/Thrust.device.hh"
+#include "corecel/sys/Thrust.device.hh"
 
 namespace celeritas
 {
@@ -245,12 +245,8 @@ void count_tracks_per_action(
                             order);
 
         Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
-        CELER_DEVICE_CALL_PREFIX(
-            MemcpyAsync(sout.data(),
-                        offsets.data(),
-                        offsets.size() * sizeof(ThreadId),
-                        CELER_DEVICE_PREFIX(MemcpyDeviceToHost),
-                        stream));
+        Copier<ThreadId, MemSpace::host> copy_to_host{sout, states.stream_id};
+        copy_to_host(MemSpace::device, offsets);
 
         // Copies must be complete before backfilling
         CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));

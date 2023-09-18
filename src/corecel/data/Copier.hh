@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -30,15 +31,21 @@ namespace celeritas
  * \endcode
  */
 template<class T, MemSpace M>
-struct Copier
+class Copier
 {
     static_assert(std::is_trivially_copyable<T>::value,
                   "Data is not trivially copyable");
 
-    Span<T> dst;
-    static constexpr auto dstmem = M;
+  public:
+    explicit Copier(Span<T> dst) : dst_{dst} {};
+    Copier(Span<T> dst, StreamId stream) : dst_{dst}, stream_{stream} {};
 
     inline void operator()(MemSpace srcmem, Span<T const> src) const;
+
+  private:
+    Span<T> dst_;
+    StreamId stream_;
+    static constexpr auto dstmem = M;
 };
 
 //---------------------------------------------------------------------------//
@@ -49,6 +56,14 @@ void copy_bytes(MemSpace dstmem,
                 void const* src,
                 std::size_t count);
 
+// Asynchronously copy bytes between two memory spaces
+void copy_bytes(MemSpace dstmem,
+                void* dst,
+                MemSpace srcmem,
+                void const* src,
+                std::size_t count,
+                StreamId stream);
+
 //---------------------------------------------------------------------------//
 /*!
  * Copy data from the given source and memory space.
@@ -56,8 +71,21 @@ void copy_bytes(MemSpace dstmem,
 template<class T, MemSpace M>
 void Copier<T, M>::operator()(MemSpace srcmem, Span<T const> src) const
 {
-    CELER_EXPECT(src.size() == dst.size());
-    copy_bytes(dstmem, dst.data(), srcmem, src.data(), src.size() * sizeof(T));
+    CELER_EXPECT(src.size() == dst_.size());
+    if (stream_)
+    {
+        copy_bytes(dstmem,
+                   dst_.data(),
+                   srcmem,
+                   src.data(),
+                   src.size() * sizeof(T),
+                   stream_);
+    }
+    else
+    {
+        copy_bytes(
+            dstmem, dst_.data(), srcmem, src.data(), src.size() * sizeof(T));
+    }
 }
 
 //---------------------------------------------------------------------------//

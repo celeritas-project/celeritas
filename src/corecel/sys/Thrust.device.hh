@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/Thrust.device.hh
+//! \file corecel/sys/Thrust.device.hh
 //! \brief Platform and version-specific thrust setup
 //---------------------------------------------------------------------------//
 #pragma once
@@ -42,13 +42,21 @@ enum class ThrustExecMode
 /*!
  * Returns an execution policy depending on thrust's version.
  */
-inline auto& thrust_async_execution_policy()
+template<ThrustExecMode T = ThrustExecMode::Async>
+inline auto& thrust_execution_policy()
 {
+    if constexpr (T == ThrustExecMode::Async)
+    {
 #if THRUST_MAJOR_VERSION == 1 && THRUST_MINOR_VERSION < 16
-    return thrust_native::par;
+        return thrust_native::par;
 #else
-    return thrust_native::par_nosync;
+        return thrust_native::par_nosync;
 #endif
+    }
+    else
+    {
+        return thrust_native::par;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -62,14 +70,14 @@ inline auto thrust_execute_on(StreamId stream_id)
 {
     if constexpr (T == ThrustExecMode::Sync)
     {
-        return thrust_native::par.on(
+        return thrust_execution_policy<T>().on(
             celeritas::device().stream(stream_id).get());
     }
     else if constexpr (T == ThrustExecMode::Async)
     {
         using Alloc = thrust::mr::allocator<char, Stream::ResourceT>;
         Stream& stream = celeritas::device().stream(stream_id);
-        return thrust_async_execution_policy()(Alloc(&stream.memory_resource()))
+        return thrust_execution_policy<T>()(Alloc(&stream.memory_resource()))
             .on(stream.get());
     }
 }

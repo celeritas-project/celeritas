@@ -39,6 +39,7 @@ list(APPEND SOURCES
   global/KernelContextException.cc
   global/Stepper.cc
   global/detail/ActionSequence.cc
+  global/detail/PinnedAllocator.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridData.cc
   grid/ValueGridInserter.cc
