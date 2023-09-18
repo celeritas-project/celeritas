@@ -13,6 +13,7 @@
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ThreeVector.hh>
 
+#include "corecel/sys/Stopwatch.hh"
 #include "celeritas/ext/Convert.geant.hh"
 #include "accel/SetupOptions.hh"
 
@@ -88,6 +89,9 @@ class GlobalSetup
     // Read input from macro or JSON
     void ReadInput(std::string const& filename);
 
+    // Get the time for setup
+    real_type GetSetupTime() { return get_setup_time_(); }
+
   private:
     // Private constructor since we're a singleton
     GlobalSetup();
@@ -96,6 +100,7 @@ class GlobalSetup
     // Data
     std::shared_ptr<SetupOptions> options_;
     RunInput input_;
+    Stopwatch get_setup_time_;
     int num_events_{0};
 
     std::unique_ptr<G4GenericMessenger> messenger_;

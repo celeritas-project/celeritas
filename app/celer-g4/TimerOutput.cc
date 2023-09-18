@@ -46,23 +46,13 @@ void TimerOutput::output(JsonPimpl* j) const
         {"actions", action_time_},
         {"events", event_time_},
         {"total", total_time_},
+        {"setup", setup_time_},
     };
 
     j->obj = std::move(obj);
 #else
     (void)sizeof(j);
 #endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Record the total time spent in transport and hit I/O (excluding setup).
- *
- * This should be called once by the master thread.
- */
-void TimerOutput::RecordTotalTime(real_type time)
-{
-    total_time_ = time;
 }
 
 //---------------------------------------------------------------------------//
@@ -87,6 +77,28 @@ void TimerOutput::RecordEventTime(real_type time)
     {
         event_time_.push_back(time);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Record the time for setup.
+ *
+ * This should be called once by the master thread.
+ */
+void TimerOutput::RecordSetupTime(real_type time)
+{
+    setup_time_ = time;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Record the total time spent in transport and hit I/O (excluding setup).
+ *
+ * This should be called once by the master thread.
+ */
+void TimerOutput::RecordTotalTime(real_type time)
+{
+    total_time_ = time;
 }
 
 //---------------------------------------------------------------------------//

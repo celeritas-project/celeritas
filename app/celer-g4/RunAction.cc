@@ -90,6 +90,8 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         CELER_TRY_HANDLE(diagnostics_->Initialize(params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 
+        diagnostics_->Timer()->RecordSetupTime(
+            GlobalSetup::Instance()->GetSetupTime());
         get_transport_time_ = {};
     }
 }
@@ -108,7 +110,7 @@ void RunAction::EndOfRunAction(G4Run const*)
         CELER_TRY_HANDLE(HitRootIO::Instance()->Close(), call_g4exception);
     }
 
-    if (transport_)
+    if (transport_ && !disable_offloading_)
     {
         diagnostics_->Timer()->RecordActionTime(
             std::move(transport_->GetActionTime()));

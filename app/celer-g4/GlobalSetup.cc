@@ -205,6 +205,9 @@ void GlobalSetup::ReadInput(std::string const& filename)
     {
         num_events_ = input_.primary_options.num_events;
     }
+
+    // Start the timer for setup time
+    get_setup_time_ = {};
 }
 
 //---------------------------------------------------------------------------//

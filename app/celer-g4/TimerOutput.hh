@@ -19,7 +19,7 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
- * Record the total time, accumulated time per action, and time per event.
+ * Record the total, setup, event, and accumulated action time.
  */
 class TimerOutput final : public OutputInterface
 {
@@ -43,14 +43,17 @@ class TimerOutput final : public OutputInterface
     void output(JsonPimpl*) const final;
     //!@}
 
-    // Record the total time for the run
-    void RecordTotalTime(real_type time);
-
     // Record the accumulated action times
     void RecordActionTime(MapStrReal&& time);
 
     // Record the time for the event
     void RecordEventTime(real_type time);
+
+    // Record the setup time
+    void RecordSetupTime(real_type time);
+
+    // Record the total time for the run
+    void RecordTotalTime(real_type time);
 
   private:
     using VecReal = std::vector<real_type>;
@@ -58,6 +61,7 @@ class TimerOutput final : public OutputInterface
     bool detailed_timing_;
     MapStrReal action_time_;
     VecReal event_time_;
+    real_type setup_time_;
     real_type total_time_;
 };
 
