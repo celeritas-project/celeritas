@@ -19,7 +19,12 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
- * Record the total, setup, event, and accumulated action time.
+ * Collect timing results and output at the end of a run.
+ *
+ * Setup and total time are always recorded. Time per event is only recorded
+ * when using a single CPU thread. The accumulated action times are recorded in
+ * serial mode and when running on the host or on the device with
+ * synchronization enabled.
  */
 class TimerOutput final : public OutputInterface
 {

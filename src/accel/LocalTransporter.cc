@@ -17,7 +17,6 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/Convert.geant.hh"
@@ -213,9 +212,7 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
 
     MapStrReal result;
     auto const& action_seq = step_->actions();
-    if (num_streams_ == 1
-        && (action_seq.sync()
-            || !celeritas::getenv("CELER_DISABLE_DEVICE").empty()))
+    if (num_streams_ == 1 && (action_seq.sync() || !celeritas::device()))
     {
         // Save kernel timing if running with a single stream and if either on
         // the device with synchronization enabled or on the host
