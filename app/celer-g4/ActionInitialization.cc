@@ -92,7 +92,7 @@ void ActionInitialization::Build() const
                       init_diagnostics_});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
-    this->SetUserAction(new EventAction{params_, transport});
+    this->SetUserAction(new EventAction{params_, transport, diagnostics_});
     // Tracking action offloads tracks to device and kills them
     this->SetUserAction(new TrackingAction{params_, transport, diagnostics_});
 }

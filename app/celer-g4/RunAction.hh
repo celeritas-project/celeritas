@@ -10,6 +10,7 @@
 #include <memory>
 #include <G4UserRunAction.hh>
 
+#include "corecel/sys/Stopwatch.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
@@ -61,6 +62,7 @@ class RunAction final : public G4UserRunAction
     bool init_celeritas_;
     bool init_diagnostics_;
     bool disable_offloading_;
+    Stopwatch get_transport_time_;
 };
 
 //---------------------------------------------------------------------------//

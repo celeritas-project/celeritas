@@ -15,7 +15,6 @@
 #include <CLHEP/Random/Random.h>
 #include <G4RunManager.hh>
 #include <G4UIExecutive.hh>
-#include <G4UImanager.hh>
 #include <G4Version.hh>
 
 #include "accel/HepMC3PrimaryGenerator.hh"
@@ -48,8 +47,6 @@
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "GlobalSetup.hh"
-#include "HepMC3PrimaryGeneratorAction.hh"
-#include "PGPrimaryGeneratorAction.hh"
 
 using namespace std::literals::string_view_literals;
 
@@ -97,18 +94,8 @@ void run(int argc, char** argv)
         exec.SessionStart();
         return;
     }
-    if (ends_with(filename, ".mac"sv))
-    {
-        CELER_LOG(status) << "Executing macro commands from '" << filename
-                          << "'";
-        G4UImanager* ui = G4UImanager::GetUIpointer();
-        CELER_ASSERT(ui);
-        ui->ApplyCommand(std::string("/control/execute ")
-                         + std::string(filename));
-    }
     else
     {
-        CELER_LOG(status) << "Reading JSON input from '" << filename << "'";
         GlobalSetup::Instance()->ReadInput(std::string(filename));
     }
 
@@ -152,19 +139,6 @@ void run(int argc, char** argv)
     CELER_LOG(status) << "Initializing run manager";
     run_manager->Initialize();
 
-    int num_events{0};
-    if (!GlobalSetup::Instance()->GetEventFile().empty())
-    {
-        // Load the input file
-        CELER_TRY_HANDLE(num_events = HepMC3PrimaryGeneratorAction::NumEvents(),
-                         ExceptionConverter{"celer-g4000"});
-    }
-    else
-    {
-        num_events
-            = GlobalSetup::Instance()->GetPrimaryGeneratorOptions().num_events;
-    }
-
     if (!celeritas::getenv("CELER_DISABLE").empty())
     {
         CELER_LOG(info)
@@ -172,6 +146,7 @@ void run(int argc, char** argv)
                "environment variable is present and non-empty";
     }
 
+    auto num_events = GlobalSetup::Instance()->GetNumEvents();
     CELER_LOG(status) << "Transporting " << num_events << " events";
     run_manager->BeamOn(num_events);
 }

@@ -14,10 +14,14 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "accel/AlongStepFactory.hh"
+#include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptionsMessenger.hh"
+
+#include "HepMC3PrimaryGeneratorAction.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -122,53 +126,88 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read input from JSON.
+ * Read input from macro or JSON.
  */
 void GlobalSetup::ReadInput(std::string const& filename)
 {
-#if CELERITAS_USE_JSON
-    using std::to_string;
-
-    std::ifstream infile(filename);
-    CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
-    nlohmann::json::parse(infile).get_to(input_);
-    CELER_ASSERT(input_);
-
-    // Input options
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    if (ends_with(filename, ".mac"))
     {
-        // To allow ORANGE to work for testing purposes, pass the GDML
-        // input filename to Celeritas
-        options_->geometry_file = input_.geometry_file;
-    }
-
-    // Output options
-    options_->output_file = input_.output_file;
-    options_->physics_output_file = input_.physics_output_file;
-    options_->offload_output_file = input_.offload_output_file;
-
-    // Apply Celeritas \c SetupOptions commands
-    options_->max_num_tracks = input_.num_track_slots;
-    options_->max_num_events = input_.max_events;
-    options_->max_steps = input_.max_steps;
-    options_->initializer_capacity = input_.initializer_capacity;
-    options_->secondary_stack_factor = input_.secondary_stack_factor;
-    options_->sd.enabled = input_.enable_sd;
-    options_->cuda_stack_size = input_.cuda_stack_size;
-    options_->cuda_heap_size = input_.cuda_heap_size;
-    options_->sync = input_.sync;
-    options_->default_stream = input_.default_stream;
-
-    // Execute macro for Geant4 commands (e.g. to set verbosity)
-    if (!input_.macro_file.empty())
-    {
+        CELER_LOG(status) << "Executing macro commands from '" << filename
+                          << "'";
         G4UImanager* ui = G4UImanager::GetUIpointer();
         CELER_ASSERT(ui);
-        ui->ApplyCommand("/control/execute " + input_.macro_file);
+        ui->ApplyCommand(std::string("/control/execute ") + filename);
     }
+    else
+    {
+#if CELERITAS_USE_JSON
+        using std::to_string;
+
+        CELER_LOG(status) << "Reading JSON input from '" << filename << "'";
+        std::ifstream infile(filename);
+        CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
+        nlohmann::json::parse(infile).get_to(input_);
+        CELER_ASSERT(input_);
+
+        // Input options
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            // To allow ORANGE to work for testing purposes, pass the GDML
+            // input filename to Celeritas
+            options_->geometry_file = input_.geometry_file;
+        }
+
+        // Output options
+        options_->output_file = input_.output_file;
+        options_->physics_output_file = input_.physics_output_file;
+        options_->offload_output_file = input_.offload_output_file;
+
+        // Apply Celeritas \c SetupOptions commands
+        options_->max_num_tracks = input_.num_track_slots;
+        options_->max_num_events = input_.max_events;
+        options_->max_steps = input_.max_steps;
+        options_->initializer_capacity = input_.initializer_capacity;
+        options_->secondary_stack_factor = input_.secondary_stack_factor;
+        options_->sd.enabled = input_.enable_sd;
+        options_->cuda_stack_size = input_.cuda_stack_size;
+        options_->cuda_heap_size = input_.cuda_heap_size;
+        options_->sync = input_.sync;
+        options_->default_stream = input_.default_stream;
+
+        // Execute macro for Geant4 commands (e.g. to set verbosity)
+        if (!input_.macro_file.empty())
+        {
+            G4UImanager* ui = G4UImanager::GetUIpointer();
+            CELER_ASSERT(ui);
+            ui->ApplyCommand("/control/execute " + input_.macro_file);
+        }
 #else
-    CELER_NOT_CONFIGURED("nlohmann_json");
+        CELER_NOT_CONFIGURED("nlohmann_json");
 #endif
+    }
+
+    // Set the filename for JSON output
+    if (input_.output_file.empty())
+    {
+        input_.output_file = "celer-g4.out.json";
+        options_->output_file = input_.output_file;
+    }
+
+    // Get the number of events
+    if (!input_.event_file.empty())
+    {
+        // Load the input file
+        CELER_TRY_HANDLE(
+            num_events_ = HepMC3PrimaryGeneratorAction::NumEvents(),
+            ExceptionConverter{"celer-g4000"});
+    }
+    else
+    {
+        num_events_ = input_.primary_options.num_events;
+    }
+
+    // Start the timer for setup time
+    get_setup_time_ = {};
 }
 
 //---------------------------------------------------------------------------//

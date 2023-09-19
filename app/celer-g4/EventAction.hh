@@ -10,8 +10,11 @@
 #include <memory>
 #include <G4UserEventAction.hh>
 
+#include "corecel/sys/Stopwatch.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SharedParams.hh"
+
+#include "GeantDiagnostics.hh"
 
 namespace celeritas
 {
@@ -31,10 +34,13 @@ class EventAction final : public G4UserEventAction
     //! \name Type aliases
     using SPConstParams = std::shared_ptr<SharedParams const>;
     using SPTransporter = std::shared_ptr<LocalTransporter>;
+    using SPDiagnostics = std::shared_ptr<GeantDiagnostics>;
     //!@}
 
   public:
-    EventAction(SPConstParams params, SPTransporter transport);
+    EventAction(SPConstParams params,
+                SPTransporter transport,
+                SPDiagnostics diagnostics);
 
     void BeginOfEventAction(G4Event const* event) final;
     void EndOfEventAction(G4Event const* event) final;
@@ -42,7 +48,9 @@ class EventAction final : public G4UserEventAction
   private:
     SPConstParams params_;
     SPTransporter transport_;
+    SPDiagnostics diagnostics_;
     bool disable_offloading_;
+    Stopwatch get_event_time_;
 };
 
 //---------------------------------------------------------------------------//

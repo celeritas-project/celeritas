@@ -13,6 +13,7 @@
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ThreeVector.hh>
 
+#include "corecel/sys/Stopwatch.hh"
 #include "celeritas/ext/Convert.geant.hh"
 #include "accel/SetupOptions.hh"
 
@@ -61,6 +62,9 @@ class GlobalSetup
     }
     //!@}
 
+    //! Get the number of events
+    int GetNumEvents() { return num_events_; }
+
     //! Get a mutable reference to the setup options for DetectorConstruction
     SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
 
@@ -82,8 +86,11 @@ class GlobalSetup
     //! Set the field to this value (T) along the z axis
     void SetMagFieldZTesla(double f) { input_.field = Real3{0, 0, f}; }
 
-    // Read input from JSON
+    // Read input from macro or JSON
     void ReadInput(std::string const& filename);
+
+    // Get the time for setup
+    real_type GetSetupTime() { return get_setup_time_(); }
 
   private:
     // Private constructor since we're a singleton
@@ -93,6 +100,8 @@ class GlobalSetup
     // Data
     std::shared_ptr<SetupOptions> options_;
     RunInput input_;
+    Stopwatch get_setup_time_;
+    int num_events_{0};
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };

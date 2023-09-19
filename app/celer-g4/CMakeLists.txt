@@ -18,6 +18,7 @@ if(CELERITAS_USE_Geant4)
     RunInput.cc
     SensitiveDetector.cc
     SensitiveHit.cc
+    TimerOutput.cc
     TrackingAction.cc
   )
   set(LIBRARIES Celeritas::accel)

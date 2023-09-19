@@ -15,6 +15,8 @@
 #include "accel/GeantStepDiagnostic.hh"
 #include "accel/SharedParams.hh"
 
+#include "TimerOutput.hh"
+
 namespace celeritas
 {
 namespace app
@@ -34,6 +36,7 @@ class GeantDiagnostics
     using SPConstParams = std::shared_ptr<SharedParams const>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPStepDiagnostic = std::shared_ptr<GeantStepDiagnostic>;
+    using SPTimerOutput = std::shared_ptr<TimerOutput>;
     //!@}
 
   public:
@@ -52,22 +55,18 @@ class GeantDiagnostics
     // Access the step diagnostic
     inline SPStepDiagnostic const& StepDiagnostic() const;
 
+    // Access the timer output
+    inline SPTimerOutput const& Timer() const;
+
     //! Whether this instance is initialized
-    explicit operator bool() const
-    {
-        return !output_filename_.empty() || !this->any_enabled();
-    }
+    explicit operator bool() const { return static_cast<bool>(timer_output_); }
 
   private:
     //// DATA ////
 
-    std::string output_filename_;
     SPOutputRegistry output_reg_;
     SPStepDiagnostic step_diagnostic_;
-
-    //// HELPER FUNCTIONS ////
-
-    bool any_enabled() const;
+    SPTimerOutput timer_output_;
 };
 
 //---------------------------------------------------------------------------//
@@ -87,6 +86,17 @@ auto GeantDiagnostics::StepDiagnostic() const -> SPStepDiagnostic const&
 {
     CELER_EXPECT(*this);
     return step_diagnostic_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the timer output.
+ */
+auto GeantDiagnostics::Timer() const -> SPTimerOutput const&
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(timer_output_);
+    return timer_output_;
 }
 
 //---------------------------------------------------------------------------//

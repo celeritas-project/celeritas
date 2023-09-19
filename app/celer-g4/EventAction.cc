@@ -25,13 +25,17 @@ namespace app
 /*!
  * Construct with thread-local Celeritas data.
  */
-EventAction::EventAction(SPConstParams params, SPTransporter transport)
+EventAction::EventAction(SPConstParams params,
+                         SPTransporter transport,
+                         SPDiagnostics diagnostics)
     : params_(params)
     , transport_(transport)
+    , diagnostics_{std::move(diagnostics)}
     , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(transport_);
+    CELER_EXPECT(diagnostics_);
 }
 
 //---------------------------------------------------------------------------//
@@ -41,6 +45,8 @@ EventAction::EventAction(SPConstParams params, SPTransporter transport)
 void EventAction::BeginOfEventAction(G4Event const* event)
 {
     CELER_LOG_LOCAL(debug) << "Starting event " << event->GetEventID();
+
+    get_event_time_ = {};
 
     if (disable_offloading_)
         return;
@@ -71,6 +77,9 @@ void EventAction::EndOfEventAction(G4Event const* event)
         // Write sensitive hits
         HitRootIO::Instance()->WriteHits(event);
     }
+
+    // Record the time for this event
+    diagnostics_->Timer()->RecordEventTime(get_event_time_());
 
     CELER_LOG_LOCAL(debug) << "Finished event " << event->GetEventID();
 }

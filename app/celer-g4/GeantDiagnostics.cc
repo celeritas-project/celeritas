@@ -34,37 +34,30 @@ GeantDiagnostics::GeantDiagnostics(SPConstParams params)
     CELER_EXPECT(params);
     CELER_EXPECT(*params || !celeritas::getenv("CELER_DISABLE").empty());
 
-    // No diagnostics enabled
-    if (!this->any_enabled())
-        return;
-
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
-
-    output_filename_ = GlobalSetup::Instance()->GetSetupOptions()->output_file;
-    if (output_filename_.empty())
-    {
-        output_filename_ = "celer-g4.out.json";
-    }
 
     SPOutputRegistry output_reg = *params ? params->Params()->output_reg()
                                           : std::make_shared<OutputRegistry>();
 
+    size_type num_threads = [&params] {
+        if (*params)
+        {
+            return params->Params()->max_streams();
+        }
+        auto* run_man = G4RunManager::GetRunManager();
+        CELER_ASSERT(run_man);
+        return size_type(get_num_threads(*run_man));
+    }();
+
+    // Create the timer output and add to output registry
+    timer_output_ = std::make_shared<TimerOutput>(num_threads);
+    output_reg->insert(timer_output_);
+
     if (GlobalSetup::Instance()->StepDiagnostic())
     {
-        // Create the track step diagnostic
-        size_type num_threads = [&params] {
-            if (*params)
-            {
-                return params->Params()->max_streams();
-            }
-            auto* run_man = G4RunManager::GetRunManager();
-            CELER_ASSERT(run_man);
-            return size_type(get_num_threads(*run_man));
-        }();
+        // Create the track step diagnostic and add to output registry
         step_diagnostic_ = std::make_shared<GeantStepDiagnostic>(
             GlobalSetup::Instance()->GetStepDiagnosticBins(), num_threads);
-
-        // Add to output registry
         output_reg->insert(step_diagnostic_);
     }
 
@@ -87,36 +80,24 @@ void GeantDiagnostics::Finalize()
 {
     CELER_EXPECT(*this);
 
-    // No diagnostics enabled
-    if (!this->any_enabled())
-        return;
-
-    // Output was already written
+    // Output written by \c SharedParams
     if (!output_reg_)
         return;
 
+    auto filename = GlobalSetup::Instance()->GetSetupOptions()->output_file;
 #if CELERITAS_USE_JSON
-    CELER_LOG(info) << "Writing Geant4 diagnostic output to \""
-                    << output_filename_ << '"';
+    CELER_LOG(info) << "Writing Geant4 diagnostic output to \"" << filename
+                    << '"';
 
-    std::ofstream outf(output_filename_);
-    CELER_VALIDATE(
-        outf, << "failed to open output file at \"" << output_filename_ << '"');
+    std::ofstream outf(filename);
+    CELER_VALIDATE(outf,
+                   << "failed to open output file at \"" << filename << '"');
     output_reg_->output(&outf);
 #else
     CELER_LOG(warning)
         << "JSON support is not enabled, so no output will be written to \""
-        << output_filename_ << '"';
+        << filename << '"';
 #endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * True if any Geant4 diagnostics are enabled.
- */
-bool GeantDiagnostics::any_enabled() const
-{
-    return GlobalSetup::Instance()->StepDiagnostic();
 }
 
 //---------------------------------------------------------------------------//
