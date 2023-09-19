@@ -172,6 +172,12 @@ auto SurfaceSimplifier::operator()(Plane const& p)
         return Plane{n, d};
     }
 
+    if (d != 0 && SoftZero<>{tol_}(d))
+    {
+        // Snap zero-distances to zero
+        return Plane{n, 0};
+    }
+
     // No simplification performed
     return {};
 }

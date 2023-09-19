@@ -20,6 +20,7 @@ namespace celeritas
 {
 namespace test
 {
+using constants::sqrt_three;
 using constants::sqrt_two;
 
 //---------------------------------------------------------------------------//
@@ -149,6 +150,7 @@ TEST_F(SurfaceSimplifierTest, cyl_aligned)
 TEST_F(SurfaceSimplifierTest, plane)
 {
     this->check_unchanged(Plane{{1 / sqrt_two, 0, 1 / sqrt_two}, 2.0});
+    this->check_unchanged(Plane{{1 / sqrt_two, 0, 1 / sqrt_two}, 0.0});
 
     this->check_round_trip<Plane>(PlaneX{4.0});
     this->check_round_trip<Plane>(PlaneY{-1.0});
@@ -158,6 +160,10 @@ TEST_F(SurfaceSimplifierTest, plane)
         Plane{{-1 / sqrt_two, -1 / sqrt_two, 0.0}, -2 * sqrt_two},
         Plane{{1 / sqrt_two, 1 / sqrt_two, 0.0}, 2 * sqrt_two},
         Sense::outside);
+
+    this->check_simplifies_to(
+        Plane{{sqrt_three / 2, 0.5, 0.0}, 1e-15},
+        Plane{{sqrt_three / 2, 0.5, 0.0}, 0 });
 
     // Check vector/displacement normalization
     Real3 n{1, 0, 1e-4};
