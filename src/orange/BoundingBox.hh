@@ -36,7 +36,7 @@ namespace celeritas
  * coordinate. Any point on the surface of this bounding box is still "inside".
  * It may have nonzero surface area but will have zero volume.
  */
-template<class T>
+template<class T = ::celeritas::real_type>
 class BoundingBox
 {
   public:
@@ -91,7 +91,7 @@ class BoundingBox
 //---------------------------------------------------------------------------//
 
 //! Bounding box for host metadata
-using BBox = BoundingBox<::celeritas::real_type>;
+using BBox = BoundingBox<>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

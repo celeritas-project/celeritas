@@ -253,6 +253,23 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Read tolerances.
+ */
+void from_json(nlohmann::json const& j, Tolerance<>& value)
+{
+    j.at("rel").get_to(value.rel);
+    CELER_VALIDATE(value.rel > 0 && value.rel < 1,
+                   << "tolerance " << value.rel
+                   << " is out of range [must be in (0,1)]");
+
+    j.at("abs").get_to(value.abs);
+    CELER_VALIDATE(value.abs > 0,
+                   << "tolerance " << value.abs
+                   << " is out of range [must be greater than zero]");
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Read a partially preprocessed geometry definition from an ORANGE JSON file.
  */
 void from_json(nlohmann::json const& j, OrangeInput& value)
@@ -263,7 +280,7 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
 
     for (auto const& uni : universes)
     {
-        auto uni_type = uni.at("_type").get<std::string>();
+        auto const& uni_type = uni.at("_type").get<std::string>();
         if (uni_type == "simple unit")
         {
             value.universes.push_back(uni.get<UnitInput>());
@@ -281,6 +298,11 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
             CELER_VALIDATE(
                 false, << "unsupported universe type '" << uni_type << "'");
         }
+    }
+
+    if (j.count("tol"))
+    {
+        j.at("tol").get_to(value.tol);
     }
 }
 

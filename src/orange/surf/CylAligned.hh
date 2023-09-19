@@ -31,6 +31,38 @@ class CylCentered;
  * \f[
     (y - y_0)^2 + (z - z_0)^2 - R^2 = 0
    \f]
+ *
+ * The axis-aligned cylinder is used to calculate a tolerance for the
+ * second-order coefficient on the quadratic equation, where a small value is
+ * approximately zero.
+ *
+ * Basing the intersection tolerance on a particle traveling nearly parallel to
+ * the cylinder, the angle \f$\theta \f$
+ * between the particle's direction and the center axis of the cylinder needed
+ * to give an intersection distance of \f$ 1/\delta \f$ when a distance of 1
+ * from the cylinder (or equivalently, an intersection of 1 when a distance
+ * \f$ \delta \f$ away) is
+ * \f[
+   \sin \theta = \frac{1}{1/\delta} \;.
+   \f]
+ * Letting \f$ \mu = \cos \theta = \Omega \cdot t \f$ we have \f[
+   \mu^2 + \delta^2 = 1 \;.
+   \f]
+ * The quadratic intersection for an axis-aligned cylinder where the particle
+ * is at \f$ R + \delta \f$ is
+ * \f[
+   0 = ax^2 + bx + c
+     = (1 - \mu^2)x^2 + 2 \sqrt{1 - \mu^2} (R + 1) x + (R + 1)^2 - R^2
+  \f]
+ * so the quadric coefficient when a particle is effectively parallel to a
+ * cylinder is:
+  \f[
+  a = (1 - \mu^2) = \delta^2 \;.
+  \f]
+ *
+ * Because \em a is calculated by subtraction, this puts a hard limit on the
+ * accuracy of the intersection distance: the default value of a=1e-10
+ * corresponds to a tolerance of 1e-5, not the default tolerance 1e-8.
  */
 template<Axis T>
 class CylAligned
@@ -192,7 +224,7 @@ CylAligned<T>::calc_intersections(Real3 const& pos,
     // 1 - \omega \dot e
     const real_type a = 1 - ipow<2>(dir[to_int(T)]);
 
-    if (a < detail::QuadraticSolver::min_a())
+    if (a < ipow<2>(Tolerance<>::sqrt_quadratic()))
     {
         // No intersection if we're traveling along the cylinder axis
         return {no_intersection(), no_intersection()};

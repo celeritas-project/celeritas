@@ -136,6 +136,9 @@ struct OrangeInput
 {
     std::vector<std::variant<UnitInput, RectArrayInput>> universes;
 
+    //! Relative and absolute error for construction and transport
+    Tolerance<> tol;
+
     //! Whether the unit definition is valid
     explicit operator bool() const { return !universes.empty(); }
 };

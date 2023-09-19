@@ -189,10 +189,10 @@ CylCentered<T>::calc_intersections(Real3 const& pos,
                                    SurfaceState on_surface) const
     -> Intersections
 {
-    // 1 - \omega \dot e
+    // 1 - (\omega \dot t)^2 where t is axis of cylinder
     const real_type a = 1 - ipow<2>(dir[to_int(T)]);
 
-    if (a < detail::QuadraticSolver::min_a())
+    if (a < ipow<2>(Tolerance<>::sqrt_quadratic()))
     {
         // No intersection if we're traveling along the cylinder axis
         return {no_intersection(), no_intersection()};

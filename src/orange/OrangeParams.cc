@@ -195,7 +195,14 @@ OrangeParams::OrangeParams(OrangeInput input)
     CELER_VALIDATE(!input.universes.empty(),
                    << "input geometry has no universes");
 
+    if (!input.tol)
+    {
+        input.tol = Tolerance<>::from_default();
+    }
+
+    // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
+    host_data.scalars.tol = input.tol;
 
     // Calculate offsets for UniverseIndexerData
     {

@@ -9,6 +9,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "../OrangeData.hh"
 #include "OrangeInput.hh"
 
 namespace celeritas
@@ -18,6 +19,7 @@ namespace celeritas
 void from_json(nlohmann::json const& j, SurfaceInput& value);
 void from_json(nlohmann::json const& j, VolumeInput& value);
 void from_json(nlohmann::json const& j, UnitInput& value);
+void from_json(nlohmann::json const& j, Tolerance<>& value);
 void from_json(nlohmann::json const& j, OrangeInput& value);
 
 //---------------------------------------------------------------------------//

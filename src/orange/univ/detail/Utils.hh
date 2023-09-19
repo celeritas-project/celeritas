@@ -63,25 +63,24 @@ class IsNotFurtherThan
 class BumpCalculator
 {
   public:
-    explicit CELER_FORCEINLINE_FUNCTION
-    BumpCalculator(OrangeParamsScalars const& scalars)
-        : scalars_(scalars)
+    explicit CELER_FORCEINLINE_FUNCTION BumpCalculator(Tolerance<> const& tol)
+        : tol_(tol)
     {
     }
 
-    inline CELER_FUNCTION real_type operator()(Real3 const& pos) const
+    CELER_FUNCTION real_type operator()(Real3 const& pos) const
     {
-        real_type result = scalars_.bump_abs;
+        real_type result = tol_.abs;
         for (real_type p : pos)
         {
-            result = celeritas::max(result, scalars_.bump_rel * std::fabs(p));
+            result = celeritas::max(result, tol_.rel * std::fabs(p));
         }
         CELER_ENSURE(result > 0);
         return result;
     }
 
   private:
-    OrangeParamsScalars const& scalars_;
+    Tolerance<> tol_;
 };
 
 //---------------------------------------------------------------------------//

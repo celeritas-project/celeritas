@@ -197,27 +197,19 @@ class BoundingBoxBumper
   public:
     //!@{
     //! \name Type aliases
+    using TolU = Tolerance<U>;
     using result_type = BoundingBox<T>;
     using argument_type = BoundingBox<U>;
     //!@}
 
   public:
     //! Construct with default "soft equal" tolerances
-    BoundingBoxBumper()
-        : rel_{SoftEqual<U>{}.rel()}, abs_{SoftEqual<U>{}.abs()}
-    {
-    }
+    BoundingBoxBumper() : tol_{TolU::from_softequal()} {}
 
-    //! Construct with a single bump tolerance used for both relative and abs
-    explicit BoundingBoxBumper(U tol) : rel_{tol}, abs_{tol}
+    //! Construct with ORANGE tolerances
+    explicit BoundingBoxBumper(TolU const& tol) : tol_{tol}
     {
-        CELER_EXPECT(rel_ > 0 && abs_ > 0);
-    }
-
-    //! Construct with relative and absolute bump tolerances
-    BoundingBoxBumper(U rel, U abs) : rel_{rel}, abs_{abs}
-    {
-        CELER_EXPECT(rel_ > 0 && abs_ > 0);
+        CELER_EXPECT(tol_);
     }
 
     //! Return the expanded and converted bounding box
@@ -238,14 +230,14 @@ class BoundingBoxBumper
     }
 
   private:
-    U rel_;
-    U abs_;
+    TolU tol_;
 
     //! Calculate the bump distance given a point: see detail::BumpCalculator
     template<int S>
     T bumped(U value) const
     {
-        U bumped = value + S * celeritas::max(abs_, rel_ * std::fabs(value));
+        U bumped = value
+                   + S * celeritas::max(tol_.abs, tol_.rel * std::fabs(value));
         return std::nextafter(static_cast<T>(bumped),
                               S * numeric_limits<T>::infinity());
     }

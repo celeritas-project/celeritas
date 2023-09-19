@@ -595,7 +595,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
 {
     // Calculate bump distance
     const real_type bump_dist
-        = detail::BumpCalculator{params_.scalars}(state.pos);
+        = detail::BumpCalculator{params_.scalars.tol}(state.pos);
 
     // Loop over distances and surface indices to cross by iterating over
     // temp_next.isect[:num_isect].

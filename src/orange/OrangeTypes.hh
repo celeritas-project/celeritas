@@ -248,6 +248,62 @@ struct Daughter
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Tolerance for construction and runtime bumping.
+ *
+ * The relative error is used for comparisons of magnitudes of values, and the
+ * absolute error provides a lower bound for the comparison tolerance. In most
+ * cases (see \c SoftEqual, \c BoundingBoxBumper , \c detail::BumpCalculator)
+ * the tolerance used is a maximum of the absolute error and the 1- or 2-norm
+ * of some spatial coordinate. In other cases (\c SurfaceSimplifier, \c
+ * SoftSurfaceEqual) the similarity between surfaces is determined by solving
+ * for a change in surface coefficients that results in no more than a change
+ * in \f$ \epsilon \f$ of a particle intercept. A final special case (the \c
+ * sqrt_quadratic static variable) is used to approximate the degenerate
+ * condition \f$ a\sim 0\f$ for a particle traveling nearly parallel to a
+ * quadric surface: see \c CylAligned for a discussion.
+ *
+ * The absolute error should typically be constructed from the relative error
+ * (since computers use floating point precision) and a characteristic length
+ * scale for the problem being used. For detector/reactor problems the length
+ * might be ~1 cm, for microbiology it might be ~1 um, and for astronomy might
+ * be ~1e6 m.
+ *
+ * \note For historical reasons, the absolute tolerance used by \c SoftEqual
+ * defaults to 1/100 of the relative tolerance, whereas with \c Tolerance the
+ * equivalent behavior is setting a length scale of 0.01.
+ */
+template<class T = ::celeritas::real_type>
+struct Tolerance
+{
+    using real_type = T;
+
+    real_type rel{};  //!< Relative error for differences
+    real_type abs{};  //!< Absolute error [native length]
+
+    //! Intercept tolerance for parallel-to-quadric cases
+    static CELER_CONSTEXPR_FUNCTION real_type sqrt_quadratic() { return 1e-5; }
+
+    //! True if tolerances are valid
+    CELER_CONSTEXPR_FUNCTION operator bool() const
+    {
+        return rel > 0 && rel < 1 && abs > 0;
+    }
+
+    // Construct from the default relative tolerance (sqrt(precision))
+    static Tolerance from_default(real_type length = 1);
+
+    // Construct from the default "soft equivalence" relative tolerance
+    static Tolerance from_softequal();
+
+    // Construct from a relative tolerance and a length scale
+    static Tolerance from_relative(real_type rel, real_type length = 1);
+};
+
+extern template struct Tolerance<float>;
+extern template struct Tolerance<double>;
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)
 //---------------------------------------------------------------------------//
 /*!
