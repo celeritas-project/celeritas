@@ -103,7 +103,6 @@ class LocalTransporter
 
     size_type auto_flush_{};
     size_type max_steps_{};
-    size_type num_streams_{};
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;

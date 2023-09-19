@@ -171,5 +171,8 @@ struct SetupOptions
 std::unordered_set<G4LogicalVolume const*>
     FindVolumes(std::unordered_set<std::string>);
 
+// Get the thread ID
+int GetThreadID();
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

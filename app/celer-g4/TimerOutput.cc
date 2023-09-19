@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "accel/SetupOptions.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -22,13 +23,13 @@ namespace app
 //---------------------------------------------------------------------------//
 /*!
  * Construct with number of threads.
- *
- * Accumulated action times and per-event times are only collected in
- * single-threaded mode.
  */
 TimerOutput::TimerOutput(size_type num_threads)
-    : detailed_timing_{num_threads == 1}
 {
+    CELER_EXPECT(num_threads > 0);
+
+    action_time_.resize(num_threads);
+    event_time_.resize(num_threads);
 }
 
 //---------------------------------------------------------------------------//
@@ -43,6 +44,7 @@ void TimerOutput::output(JsonPimpl* j) const
     auto obj = json::object();
 
     obj["time"] = {
+        {"_index", "thread"},
         {"actions", action_time_},
         {"events", event_time_},
         {"total", total_time_},
@@ -61,10 +63,9 @@ void TimerOutput::output(JsonPimpl* j) const
  */
 void TimerOutput::RecordActionTime(MapStrReal&& time)
 {
-    if (detailed_timing_)
-    {
-        action_time_ = std::move(time);
-    }
+    size_type thread_id = GetThreadID();
+    CELER_ASSERT(thread_id < action_time_.size());
+    action_time_[thread_id] = std::move(time);
 }
 
 //---------------------------------------------------------------------------//
@@ -73,10 +74,9 @@ void TimerOutput::RecordActionTime(MapStrReal&& time)
  */
 void TimerOutput::RecordEventTime(real_type time)
 {
-    if (detailed_timing_)
-    {
-        event_time_.push_back(time);
-    }
+    size_type thread_id = GetThreadID();
+    CELER_ASSERT(thread_id < event_time_.size());
+    event_time_[thread_id].push_back(time);
 }
 
 //---------------------------------------------------------------------------//

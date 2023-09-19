@@ -41,7 +41,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams const& params)
     : auto_flush_(options.max_num_tracks)
     , max_steps_(options.max_steps)
-    , num_streams_{params.Params()->max_streams()}
     , dump_primaries_{params.offload_writer()}
     , hit_manager_{params.hit_manager()}
 {
@@ -51,19 +50,16 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                       "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
 
-    // Thread ID is -1 when running serially
-    auto thread_id = G4Threading::IsMultithreadedApplication()
-                         ? G4Threading::G4GetThreadId()
-                         : 0;
+    auto thread_id = GetThreadID();
     CELER_VALIDATE(thread_id >= 0,
                    << "Geant4 ThreadID (" << thread_id
                    << ") is invalid (perhaps LocalTransporter is being built "
                       "on a non-worker thread?)");
-    CELER_VALIDATE(static_cast<size_type>(thread_id) < num_streams_,
-                   << "Geant4 ThreadID (" << thread_id
-                   << ") is out of range for the reported number of worker "
-                      "threads ("
-                   << num_streams_ << ")");
+    CELER_VALIDATE(
+        static_cast<size_type>(thread_id) < params.Params()->max_streams(),
+        << "Geant4 ThreadID (" << thread_id
+        << ") is out of range for the reported number of worker threads ("
+        << params.Params()->max_streams() << ")");
 
     StepperInput inp;
     inp.params = params.Params();
@@ -212,7 +208,7 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
 
     MapStrReal result;
     auto const& action_seq = step_->actions();
-    if (num_streams_ == 1 && (action_seq.sync() || !celeritas::device()))
+    if (action_seq.sync() || !celeritas::device())
     {
         // Save kernel timing if running with a single stream and if either on
         // the device with synchronization enabled or on the host

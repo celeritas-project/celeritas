@@ -16,6 +16,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "accel/ExceptionConverter.hh"
+#include "accel/SetupOptions.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -75,9 +76,7 @@ void GeantStepDiagnostic::Update(G4Track const* track)
         return;
     }
 
-    size_type thread_id = G4Threading::IsMultithreadedApplication()
-                              ? G4Threading::G4GetThreadId()
-                              : 0;
+    size_type thread_id = GetThreadID();
     CELER_ASSERT(thread_id < thread_store_.size());
 
     // Get the vector of counts for this particle

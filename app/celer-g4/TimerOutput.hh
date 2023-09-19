@@ -21,10 +21,9 @@ namespace app
 /*!
  * Collect timing results and output at the end of a run.
  *
- * Setup and total time are always recorded. Time per event is only recorded
- * when using a single CPU thread. The accumulated action times are recorded in
- * serial mode and when running on the host or on the device with
- * synchronization enabled.
+ * Setup time, total time, and time per event are always recorded. The
+ * accumulated action times are recorded when running on the host or on the
+ * device with synchronization enabled.
  */
 class TimerOutput final : public OutputInterface
 {
@@ -63,9 +62,8 @@ class TimerOutput final : public OutputInterface
   private:
     using VecReal = std::vector<real_type>;
 
-    bool detailed_timing_;
-    MapStrReal action_time_;
-    VecReal event_time_;
+    std::vector<MapStrReal> action_time_;
+    std::vector<VecReal> event_time_;
     real_type setup_time_;
     real_type total_time_;
 };
