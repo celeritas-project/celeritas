@@ -37,7 +37,7 @@ Tolerance<T> Tolerance<T>::from_default(real_type length)
         }
     }();
     static_assert(real_type{1} - ipow<2>(sqrt_emach) != real_type{1},
-                  "default tolerance is insufficient");
+                  "default tolerance is too low");
 
     return Tolerance<T>::from_relative(sqrt_emach, length);
 }
@@ -69,6 +69,10 @@ Tolerance<T> Tolerance<T>::from_relative(real_type rel, real_type length)
     Tolerance<T> result;
     result.rel = rel;
     result.abs = rel * length;
+
+    // Check that the tolerances aren't so low that they're denormalized
+    CELER_ENSURE(result.rel >= std::numeric_limits<T>::min());
+    CELER_ENSURE(result.abs >= std::numeric_limits<T>::min());
     CELER_ENSURE(result);
     return result;
 }
