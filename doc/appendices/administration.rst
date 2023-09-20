@@ -43,12 +43,6 @@ The roles of the Celeritas code base are related to the roles
 set out in the SciDAC project management plan (PMP). These roles should be
 reflected in the different teams and/or access restrictions in GitHub.
 
-Leadership team member
-   The "leadership team" comprises the PIs and capability leads in the PMP, or
-   their designated proxies who work directly on the Celeritas code. They are
-   responsible for the long-term and big-picture project goals, and they ensure
-   that project milestones are met.
-
 Code lead
    The code lead is the "core capability lead" described in the PMP and
    is responsible for steering the technical implementation of the codebase to
@@ -66,6 +60,14 @@ Core team member
    :ref:`contributing guidelines <contributing>`. They should regularly
    contribute new code, perform code reviews, publish new results using
    Celeritas, and/or participate in Celeritas stand-up meetings and hackathons.
+
+Core advisor
+   Advisors maintain close ties to Celeritas but are not consistently
+   developing or validating it. They should be officially part of a Celeritas
+   proposal or funded work even though they may charge only a small fraction of
+   their time. Core advisors are encouraged to perform code reviews and attend
+   meetings, and they are expected to have a leadership role in long-term
+   project planning.
 
 Contributor
    Anyone can submit a pull request that conforms to the contribution
