@@ -30,6 +30,16 @@ celeritas_target_include_directories(testcel_harness
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 
+if (CELERITAS_USE_JSON)
+  celeritas_target_include_directories(testcel_harness
+    PUBLIC
+      $<BUILD_INTERFACE:${NLOHMANN_INCLUDE_DIR}>
+  )
+  celeritas_target_link_libraries(testcel_harness
+    PUBLIC nlohmann_json::nlohmann_json
+  )
+endif()
+
 #-----------------------------------------------------------------------------#
 # HIP SUPPORT
 #-----------------------------------------------------------------------------#
