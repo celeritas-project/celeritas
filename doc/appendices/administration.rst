@@ -40,15 +40,14 @@ Roles
 =====
 
 The roles of the Celeritas code base are related to the roles
-set out in the SciDAC project management plan (PMP). These roles should be
+set out in the SciDAC project management plan. These roles should be
 reflected in the different teams and/or access restrictions in GitHub.
 
 Code lead
-   The code lead is the "core capability lead" described in the PMP and
-   is responsible for steering the technical implementation of the codebase to
-   meet the long-term project goals. One key responsibility of the code lead is
-   to set up milestones for releases and execute the release process described
-   below.
+   The code lead is responsible for steering the technical implementation of
+   Celeritas to meet the long-term project goals. One key responsibility of
+   the code lead is to set up milestones for releases and execute the release
+   process described below.
 
 Maintainer
    Maintainers should be familiar with most or all parts of the codebase and
