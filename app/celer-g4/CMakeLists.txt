@@ -54,11 +54,16 @@ if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
     )
   endfunction(celeritas_local_root_generate_dictionary)
   celeritas_local_root_generate_dictionary(HitClassesRootInterfaces)
-  list(APPEND SOURCES
+  set(IOSOURCES
     "${CMAKE_CURRENT_BINARY_DIR}/HitClassesRootInterfaces.cxx"
     HitRootIO.cc
   )
   list(APPEND LIBRARIES ROOT::Tree)
+  celeritas_add_library(celer-g4-io ${IOSOURCES})
+  celeritas_target_link_libraries(celer-g4-io
+     ${LIBRARIES}
+  )
+  list(APPEND LIBRARIES celer-g4-io)
 endif()
 
 celeritas_add_executable(celer-g4 ${SOURCES})
