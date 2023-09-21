@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -43,6 +44,9 @@ class DeviceAllocation
     // Construct and allocate a number of bytes
     DeviceAllocation(size_type num_bytes);
 
+    // Construct and allocate a number of bytes
+    DeviceAllocation(size_type num_bytes, StreamId stream);
+
     // Swap with another allocation
     inline void swap(DeviceAllocation& other) noexcept;
 
@@ -71,13 +75,15 @@ class DeviceAllocation
   private:
     struct DeviceFreeDeleter
     {
-        void operator()(Byte*) const;
+        StreamId stream_;
+        void operator()(Byte*) const noexcept;
     };
     using DeviceUniquePtr = std::unique_ptr<Byte[], DeviceFreeDeleter>;
 
     //// DATA ////
 
     InitializedValue<size_type> size_;
+    StreamId stream_;
     DeviceUniquePtr data_;
 };
 
@@ -95,6 +101,7 @@ void DeviceAllocation::swap(DeviceAllocation& other) noexcept
     using std::swap;
     swap(this->data_, other.data_);
     swap(this->size_, other.size_);
+    swap(this->stream_, other.stream_);
 }
 
 //---------------------------------------------------------------------------//
