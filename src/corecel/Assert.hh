@@ -253,11 +253,11 @@
             }                                                      \
         } while (0)
 #else
-#    define CELER_CUDA_CALL(STATEMENT)                     \
-        do                                                 \
-        {                                                  \
-            CELER_NOT_CONFIGURED("CUDA");                  \
-            (void)sizeof(celeritas_device_runtime_api_h_); \
+#    define CELER_CUDA_CALL(STATEMENT)                          \
+        do                                                      \
+        {                                                       \
+            CELER_NOT_CONFIGURED("CUDA");                       \
+            CELER_NEVER_UNUSED(celeritas_device_runtime_api_h_) \
         } while (0)
 #endif
 
@@ -295,11 +295,11 @@
             }                                                      \
         } while (0)
 #else
-#    define CELER_HIP_CALL(STATEMENT)                      \
-        do                                                 \
-        {                                                  \
-            CELER_NOT_CONFIGURED("HIP");                   \
-            (void)sizeof(celeritas_device_runtime_api_h_); \
+#    define CELER_HIP_CALL(STATEMENT)                           \
+        do                                                      \
+        {                                                       \
+            CELER_NOT_CONFIGURED("HIP");                        \
+            CELER_NEVER_UNUSED(celeritas_device_runtime_api_h_) \
         } while (0)
 #endif
 
@@ -325,11 +325,11 @@
 #elif CELERITAS_USE_HIP
 #    define CELER_DEVICE_CALL_PREFIX(STMT) CELER_HIP_CALL(hip##STMT)
 #else
-#    define CELER_DEVICE_CALL_PREFIX(STMT)                 \
-        do                                                 \
-        {                                                  \
-            CELER_NOT_CONFIGURED("CUDA or HIP");           \
-            (void)sizeof(celeritas_device_runtime_api_h_); \
+#    define CELER_DEVICE_CALL_PREFIX(STMT)                      \
+        do                                                      \
+        {                                                       \
+            CELER_NOT_CONFIGURED("CUDA or HIP");                \
+            CELER_NEVER_UNUSED(celeritas_device_runtime_api_h_) \
         } while (0)
 #endif
 

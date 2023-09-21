@@ -70,7 +70,7 @@ void copy_bytes(MemSpace dstmem,
         std::memcpy(dst, src, count);
         return;
     }
-    (void)sizeof(stream);
+    CELER_NEVER_UNUSED(stream)
     CELER_DEVICE_CALL_PREFIX(
         MemcpyAsync(dst,
                     src,

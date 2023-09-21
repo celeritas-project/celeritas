@@ -225,4 +225,12 @@
     CLS(CLS&&) = delete;                 \
     CLS& operator=(CLS&&) = delete
 
+/*!
+ * \def CELER_MARK_USED
+ *
+ * The argument is an unevaluated operand which will generate no code but force
+ * the expression to be used.
+ */
+#define CELER_NEVER_UNUSED(CODE) static_cast<void>(sizeof(CODE))
+
 //---------------------------------------------------------------------------//

@@ -75,11 +75,11 @@ class RootEventWriter : public EventWriterInterface
 #if !CELERITAS_USE_ROOT
 inline RootEventWriter::RootEventWriter(SPRootFileManager, SPConstParticles)
 {
-    (void)sizeof(tfile_mgr_);
-    (void)sizeof(params_);
-    (void)sizeof(event_id_);
-    (void)sizeof(ttree_);
-    (void)sizeof(primary_);
+    CELER_NEVER_UNUSED(tfile_mgr_)
+    CELER_NEVER_UNUSED(params_)
+    CELER_NEVER_UNUSED(event_id_)
+    CELER_NEVER_UNUSED(ttree_)
+    CELER_NEVER_UNUSED(primary_)
     CELER_NOT_CONFIGURED("ROOT");
 }
 

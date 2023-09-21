@@ -191,7 +191,7 @@ void SimpleCalo::output(JsonPimpl* j) const
 
     j->obj = std::move(obj);
 #else
-    (void)sizeof(j);
+    CELER_NEVER_UNUSED(j)
 #endif
 }
 

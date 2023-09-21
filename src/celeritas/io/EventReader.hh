@@ -81,9 +81,9 @@ std::shared_ptr<HepMC3::Reader> open_hepmc3(std::string const& filename);
 #if !CELERITAS_USE_HEPMC3
 inline EventReader::EventReader(std::string const&, SPConstParticles)
 {
-    (void)sizeof(params_);
-    (void)sizeof(reader_);
-    (void)sizeof(event_count_);
+    CELER_NEVER_UNUSED(params_)
+    CELER_NEVER_UNUSED(reader_)
+    CELER_NEVER_UNUSED(event_count_)
     CELER_NOT_CONFIGURED("HepMC3");
 }
 

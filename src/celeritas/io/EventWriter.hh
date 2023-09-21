@@ -91,10 +91,10 @@ inline EventWriter::EventWriter(std::string const& s, SPConstParticles p)
 }
 inline EventWriter::EventWriter(std::string const&, SPConstParticles, Format)
 {
-    (void)sizeof(particles_);
-    (void)sizeof(fmt_);
-    (void)sizeof(writer_);
-    (void)sizeof(event_count_);
+    CELER_NEVER_UNUSED(particles_)
+    CELER_NEVER_UNUSED(fmt_)
+    CELER_NEVER_UNUSED(writer_)
+    CELER_NEVER_UNUSED(event_count_)
     CELER_NOT_CONFIGURED("HepMC3");
 }
 
