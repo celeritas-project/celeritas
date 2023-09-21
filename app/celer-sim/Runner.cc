@@ -107,7 +107,7 @@ auto Runner::operator()(StreamId stream, EventId event) -> RunnerResult
     CELER_EXPECT(stream < this->num_streams());
     CELER_EXPECT(event < this->num_events());
 
-    auto& transport = this->build_transporter(stream);
+    auto& transport = this->get_transporter(stream);
     return (*transport)(make_span(events_[event.get()]));
 }
 
@@ -119,7 +119,7 @@ auto Runner::operator()() -> RunnerResult
 {
     CELER_EXPECT(events_.size() == 1);
 
-    auto& transport = this->build_transporter(StreamId{0});
+    auto& transport = this->get_transporter(StreamId{0});
     return (*transport)(make_span(events_.front()));
 }
 
@@ -139,6 +139,28 @@ StreamId::size_type Runner::num_streams() const
 size_type Runner::num_events() const
 {
     return events_.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated action times.
+ *
+ * Action times are only collected by the transporter when running with a
+ * single stream.
+ */
+auto Runner::get_action_times() -> MapStrReal
+{
+    auto& transport = this->get_transporter(StreamId{0});
+    if (use_device_)
+    {
+        return dynamic_cast<Transporter<MemSpace::device> const&>(*transport)
+            .get_action_times();
+    }
+    else
+    {
+        return dynamic_cast<Transporter<MemSpace::host> const&>(*transport)
+            .get_action_times();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -456,9 +478,9 @@ void Runner::build_diagnostics(RunnerInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build the transporter for the given stream.
+ * Get the transporter for the given stream, constructing if necessary.
  */
-auto Runner::build_transporter(StreamId stream) -> UPTransporterBase&
+auto Runner::get_transporter(StreamId stream) -> UPTransporterBase&
 {
     CELER_EXPECT(stream < this->num_streams());
 
