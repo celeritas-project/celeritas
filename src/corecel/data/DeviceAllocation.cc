@@ -98,7 +98,7 @@ void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 //---------------------------------------------------------------------------//
 //! Deleter frees data: prevent exceptions
 void DeviceAllocation::DeviceFreeDeleter::operator()(
-    [[maybe_unused]] Byte* ptr) const noexcept
+    [[maybe_unused]] Byte* ptr) const noexcept(CELER_USE_DEVICE)
 {
     try
     {

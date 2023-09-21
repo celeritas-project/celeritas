@@ -11,6 +11,7 @@
 #include <memory>
 #include <utility>
 
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
@@ -76,7 +77,7 @@ class DeviceAllocation
     struct DeviceFreeDeleter
     {
         StreamId stream_;
-        void operator()(Byte*) const noexcept;
+        void operator()(Byte*) const noexcept(CELER_USE_DEVICE);
     };
     using DeviceUniquePtr = std::unique_ptr<Byte[], DeviceFreeDeleter>;
 
