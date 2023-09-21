@@ -5,8 +5,10 @@
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Geant4)
-  set(SOURCES
+  set(MAINSOURCES
     celer-g4.cc
+  )
+  set (SOURCES
     ActionInitialization.cc
     DetectorConstruction.cc
     EventAction.cc
@@ -41,7 +43,7 @@ if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
   function(celeritas_local_root_generate_dictionary name)
     # No need for the rootmap file for an executable.
     set(CMAKE_ROOTTEST_NOROOTMAP TRUE)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_RUNTIME_OUTPUT_DIRECTORY})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_LIBRARY_OUTPUT_DIRECTORY})
     include_directories(
       # root_generate_dictionary cannot handle the '$<INSTALL_INTERFACE:include>'
       # part of the Celeritas::corecel target's include, so we cannot use it in
@@ -71,14 +73,22 @@ if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
     HitRootIO.cc
   )
   list(APPEND LIBRARIES ROOT::Tree)
-  celeritas_add_library(celer-g4-io ${IOSOURCES})
+  celeritas_add_library(celer-g4-io ${IOSOURCES} ${SOURCES})
   celeritas_target_link_libraries(celer-g4-io
      ${LIBRARIES}
   )
+  install(FILES
+    # "${_lib_prefix}.rootmap"
+    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libceler-g4_rdict.pcm"
+    COMPONENT runtime
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  )
   list(APPEND LIBRARIES celer-g4-io)
+else()
+   list(APPEND MAINSOURCES ${SOURCES})
 endif()
 
-celeritas_add_executable(celer-g4 ${SOURCES})
+celeritas_add_executable(celer-g4 ${MAINSOURCES})
 celeritas_target_link_libraries(celer-g4
   ${LIBRARIES}
 )
