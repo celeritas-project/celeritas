@@ -26,6 +26,8 @@ namespace celeritas
  * define and copy over suitable data. For more complex data usage (dynamic
  * size increases and assignment without memory reallocation), use \c
  * thrust::device_vector.
+ * When a \c StreamId is passed as the last constructor argument,
+ * all memory operations are asynchronous and ordered within that stream.
  *
  * \code
     DeviceVector<double> myvec(100);
