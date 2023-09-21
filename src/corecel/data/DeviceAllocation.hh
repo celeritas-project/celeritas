@@ -42,8 +42,11 @@ class DeviceAllocation
     // Construct in unallocated state
     DeviceAllocation() = default;
 
+    // Construct in unallocated state
+    explicit DeviceAllocation(StreamId stream);
+
     // Construct and allocate a number of bytes
-    DeviceAllocation(size_type num_bytes);
+    explicit DeviceAllocation(size_type num_bytes);
 
     // Construct and allocate a number of bytes
     DeviceAllocation(size_type num_bytes, StreamId stream);

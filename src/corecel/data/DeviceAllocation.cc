@@ -21,6 +21,14 @@ namespace celeritas
 /*!
  * Allocate a buffer with the given number of bytes.
  */
+DeviceAllocation::DeviceAllocation(StreamId stream)
+    : size_{0}, stream_{stream}, data_{nullptr, {stream}}
+{
+}
+
+/*!
+ * Allocate a buffer with the given number of bytes.
+ */
 DeviceAllocation::DeviceAllocation(size_type bytes) : size_{bytes}
 {
     CELER_EXPECT(celeritas::device());

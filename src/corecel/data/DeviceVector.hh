@@ -11,6 +11,7 @@
 
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #include "DeviceAllocation.hh"
 #include "ObserverPtr.hh"
@@ -57,8 +58,14 @@ class DeviceVector
     // Construct with no elements
     DeviceVector() = default;
 
+    // Construct with no elements
+    explicit DeviceVector(StreamId stream);
+
     // Construct with a number of elements
     explicit DeviceVector(size_type count);
+
+    // Construct with a number of elements
+    DeviceVector(size_type count, StreamId stream);
 
     // Swap with another vector
     inline void swap(DeviceVector& other) noexcept;
@@ -107,8 +114,25 @@ inline void swap(DeviceVector<T>& a, DeviceVector<T>& b) noexcept;
  * Construct with a number of allocated elements.
  */
 template<class T>
+DeviceVector<T>::DeviceVector(StreamId stream) : allocation_{stream}, size_{0}
+{
+}
+
+/*!
+ * Construct with a number of allocated elements.
+ */
+template<class T>
 DeviceVector<T>::DeviceVector(size_type count)
-    : allocation_(count * sizeof(T)), size_(count)
+    : allocation_{count * sizeof(T)}, size_{count}
+{
+}
+
+/*!
+ * Construct with a number of allocated elements.
+ */
+template<class T>
+DeviceVector<T>::DeviceVector(size_type count, StreamId stream)
+    : allocation_{count * sizeof(T), stream}, size_{count}
 {
 }
 
