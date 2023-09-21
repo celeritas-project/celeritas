@@ -116,7 +116,7 @@ void ActionDiagnostic::output(JsonPimpl* j) const
 
     j->obj = std::move(obj);
 #else
-    CELER_NEVER_UNUSED(j)
+    CELER_NEVER_UNUSED(j);
 #endif
 }
 

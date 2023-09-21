@@ -88,7 +88,7 @@ void OutputRegistry::output(JsonPimpl* j) const
 
     j->obj = std::move(result);
 #else
-    CELER_NEVER_UNUSED(j)
+    CELER_NEVER_UNUSED(j);
     CELER_NOT_CONFIGURED("nljson");
 #endif
 }

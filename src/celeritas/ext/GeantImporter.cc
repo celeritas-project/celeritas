@@ -519,7 +519,7 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                 }
             }
 #else
-            CELER_NEVER_UNUSED(gg_process)
+            CELER_NEVER_UNUSED(gg_process);
             CELER_NOT_IMPLEMENTED("GammaGeneralProcess for Geant4 < 10.6");
 #endif
         }

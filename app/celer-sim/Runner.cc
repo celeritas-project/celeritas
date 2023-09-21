@@ -519,7 +519,7 @@ int Runner::get_num_streams(RunnerInput const& inp)
         return num_threads;
     }
 #else
-    CELER_NEVER_UNUSED(inp)
+    CELER_NEVER_UNUSED(inp);
 #endif
     return 1;
 }

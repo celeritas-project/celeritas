@@ -231,6 +231,6 @@
  * The argument is an unevaluated operand which will generate no code but force
  * the expression to be used.
  */
-#define CELER_NEVER_UNUSED(CODE) static_cast<void>(sizeof(CODE))
+#define CELER_NEVER_UNUSED(CODE) static_cast<void>(sizeof(CODE));
 
 //---------------------------------------------------------------------------//

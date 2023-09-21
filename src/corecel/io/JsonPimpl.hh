@@ -28,7 +28,7 @@ namespace celeritas
 #if CELERITAS_USE_JSON
         json->obj = value_;
 #else
-        CELER_NEVER_UNUSED(json)
+        CELER_NEVER_UNUSED(json);
 #endif
     }
  * \endcode

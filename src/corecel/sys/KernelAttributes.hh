@@ -106,7 +106,7 @@ KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
         &result.heap_size, CELER_DEVICE_PREFIX(LimitMallocHeapSize)));
 
 #else
-    CELER_NEVER_UNUSED(func)
+    CELER_NEVER_UNUSED(func);
     CELER_ASSERT_UNREACHABLE();
 #endif
     return result;

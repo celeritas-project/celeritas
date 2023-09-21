@@ -56,7 +56,7 @@ void ActionRegistryOutput::output(JsonPimpl* j) const
         {"description", std::move(description)},
     };
 #else
-    CELER_NEVER_UNUSED(j)
+    CELER_NEVER_UNUSED(j);
 #endif
 }
 

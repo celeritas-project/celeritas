@@ -77,11 +77,11 @@ class RootEventReader : public EventReaderInterface
 #if !CELERITAS_USE_ROOT
 inline RootEventReader::RootEventReader(std::string const&, SPConstParticles)
 {
-    CELER_NEVER_UNUSED(params_)
-    CELER_NEVER_UNUSED(entry_count_)
-    CELER_NEVER_UNUSED(num_entries_)
-    CELER_NEVER_UNUSED(tfile_)
-    CELER_NEVER_UNUSED(ttree_)
+    CELER_NEVER_UNUSED(params_);
+    CELER_NEVER_UNUSED(entry_count_);
+    CELER_NEVER_UNUSED(num_entries_);
+    CELER_NEVER_UNUSED(tfile_);
+    CELER_NEVER_UNUSED(ttree_);
     CELER_NOT_CONFIGURED("ROOT");
 }
 

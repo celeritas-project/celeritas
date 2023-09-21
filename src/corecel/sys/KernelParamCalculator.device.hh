@@ -55,7 +55,7 @@
         CELER_NOT_CONFIGURED("CUDA or HIP");                                   \
         CELER_NEVER_UNUSED(GRID)                                               \
         CELER_NEVER_UNUSED(KERNEL)                                             \
-        CELER_NEVER_UNUSED(__VA_ARGS__)
+        CELER_NEVER_UNUSED(__VA_ARGS__);
 #endif
 
 namespace celeritas
