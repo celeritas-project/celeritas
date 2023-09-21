@@ -23,22 +23,13 @@ celeritas_add_library(testcel_harness
 target_compile_features(testcel_harness PUBLIC cxx_std_14)
 celeritas_target_link_libraries(testcel_harness
   PUBLIC Celeritas::corecel GTest::GTest
+  PRIVATE ${nlohmann_json_LIBRARIES}
 )
 celeritas_target_include_directories(testcel_harness
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
-
-if (CELERITAS_USE_JSON)
-  celeritas_target_include_directories(testcel_harness
-    PUBLIC
-      $<BUILD_INTERFACE:${NLOHMANN_INCLUDE_DIR}>
-  )
-  celeritas_target_link_libraries(testcel_harness
-    PUBLIC nlohmann_json::nlohmann_json
-  )
-endif()
 
 #-----------------------------------------------------------------------------#
 # HIP SUPPORT
