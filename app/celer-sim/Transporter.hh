@@ -58,14 +58,12 @@ struct TransporterInput
  */
 struct TransporterResult
 {
-    using MapStrReal = std::unordered_map<std::string, real_type>;
     using VecReal = std::vector<real_type>;
     using VecCount = std::vector<size_type>;
 
     VecCount initializers;  //!< Num starting track initializers
     VecCount active;  //!< Num tracks active at beginning of step
     VecCount alive;  //!< Num living tracks at end of step
-    MapStrReal action_times{};  //!< Accumulated action timing
     VecReal step_times;  //!< Real time per step
     size_type num_track_slots{};  //!< Number of total track slots
 };
@@ -106,11 +104,20 @@ template<MemSpace M>
 class Transporter final : public TransporterBase
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using MapStrReal = std::unordered_map<std::string, real_type>;
+    //!@}
+
+  public:
     // Construct from parameters
     explicit Transporter(TransporterInput inp);
 
     // Transport the input primaries and all secondaries produced
     TransporterResult operator()(SpanConstPrimary primaries) final;
+
+    // Get the accumulated action times
+    MapStrReal get_action_times() const;
 
   private:
     std::shared_ptr<Stepper<M>> stepper_;

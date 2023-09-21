@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -43,7 +43,7 @@ void TimerOutput::output(JsonPimpl* j) const
 
     auto obj = json::object();
 
-    obj["time"] = {
+    obj = {
         {"_index", "thread"},
         {"actions", action_time_},
         {"events", event_time_},

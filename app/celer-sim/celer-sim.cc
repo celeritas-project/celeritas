@@ -138,6 +138,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
         }
         log_and_rethrow(std::move(capture_exception));
     }
+    result.action_times = run_stream.get_action_times();
     result.total_time = get_transport_time();
     record_mem = {};
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
