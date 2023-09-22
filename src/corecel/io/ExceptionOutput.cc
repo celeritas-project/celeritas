@@ -122,7 +122,7 @@ void ExceptionOutput::output(JsonPimpl* j) const
     CELER_EXPECT(output_);
     j->obj = output_->obj;
 #else
-    CELER_NEVER_UNUSED(j);
+    CELER_DISCARD(j);
 #endif
 }
 

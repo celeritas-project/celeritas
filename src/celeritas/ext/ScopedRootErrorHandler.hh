@@ -49,8 +49,8 @@ class ScopedRootErrorHandler
 inline void ScopedRootErrorHandler::disable_signal_handler() {}
 inline ScopedRootErrorHandler::ScopedRootErrorHandler()
 {
-    CELER_NEVER_UNUSED(previous_);
-    CELER_NEVER_UNUSED(prev_errored_);
+    CELER_DISCARD(previous_);
+    CELER_DISCARD(prev_errored_);
 }
 inline ScopedRootErrorHandler::~ScopedRootErrorHandler() {}
 inline void ScopedRootErrorHandler::throw_if_errors() const {}

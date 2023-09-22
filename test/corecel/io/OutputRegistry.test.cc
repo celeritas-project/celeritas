@@ -40,8 +40,8 @@ class TestInterface final : public OutputInterface
 #if CELERITAS_USE_JSON
         json->obj = value_;
 #else
-        CELER_NEVER_UNUSED(json);
-        CELER_NEVER_UNUSED(value_);
+        CELER_DISCARD(json);
+        CELER_DISCARD(value_);
 #endif
     }
 
@@ -71,10 +71,10 @@ class MockKernelContextException : public RichContextException
         json->obj["event"] = event_;
         json->obj["track"] = track_;
 #else
-        CELER_NEVER_UNUSED(json);
-        CELER_NEVER_UNUSED(thread_);
-        CELER_NEVER_UNUSED(event_);
-        CELER_NEVER_UNUSED(track_);
+        CELER_DISCARD(json);
+        CELER_DISCARD(thread_);
+        CELER_DISCARD(event_);
+        CELER_DISCARD(track_);
 #endif
     }
 

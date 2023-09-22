@@ -73,7 +73,7 @@ void ParticleParamsOutput::output(JsonPimpl* j) const
         {"is_antiparticle", std::move(is_antiparticle)},
     };
 #else
-    CELER_NEVER_UNUSED(j);
+    CELER_DISCARD(j);
 #endif
 }
 

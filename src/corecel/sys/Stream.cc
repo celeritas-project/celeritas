@@ -25,7 +25,7 @@ template<class Pointer>
 auto AsyncMemoryResource<Pointer>::do_allocate(std::size_t bytes, std::size_t)
     -> pointer
 {
-    CELER_NEVER_UNUSED(bytes);
+    CELER_DISCARD(bytes);
     void* ret;
     CELER_DEVICE_CALL_PREFIX(MallocAsync(&ret, bytes, stream_));
     return static_cast<pointer>(ret);
@@ -40,7 +40,7 @@ void AsyncMemoryResource<Pointer>::do_deallocate(pointer p,
                                                  std::size_t,
                                                  std::size_t)
 {
-    CELER_NEVER_UNUSED(p);
+    CELER_DISCARD(p);
     try
     {
         CELER_DEVICE_CALL_PREFIX(FreeAsync(p, stream_));
