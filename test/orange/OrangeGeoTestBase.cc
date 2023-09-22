@@ -12,8 +12,10 @@
 #include <utility>
 
 #include "celeritas_config.h"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/io/Logger.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/Types.hh"
 #include "orange/construct/OrangeInput.hh"
@@ -22,6 +24,8 @@
 #include "orange/surf/LocalSurfaceVisitor.hh"
 #include "orange/surf/Sphere.hh"
 #include "orange/surf/SurfaceIO.hh"
+
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -86,8 +90,12 @@ void OrangeGeoTestBase::build_geometry(char const* filename)
     CELER_VALIDATE(CELERITAS_USE_JSON,
                    << "JSON is not enabled so geometry cannot be loaded");
 
+    ScopedLogStorer scoped_log_{&celeritas::world_logger()};
     params_
         = std::make_unique<Params>(this->test_data_path("orange", filename));
+
+    static char const* const expected_log_levels[] = {"info"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 //---------------------------------------------------------------------------//
