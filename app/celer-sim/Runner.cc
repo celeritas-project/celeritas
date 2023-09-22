@@ -279,9 +279,6 @@ void Runner::build_core_params(RunnerInput const& inp,
     }
     else
     {
-        CELER_VALIDATE(!eloss,
-                       << "energy loss fluctuations are not supported "
-                          "simultaneoulsy with magnetic field");
         UniformFieldParams field_params;
         field_params.field = inp.mag_field;
         field_params.options = inp.field_options;
@@ -292,8 +289,13 @@ void Runner::build_core_params(RunnerInput const& inp,
             f *= units::tesla;
         }
 
-        auto along_step = std::make_shared<AlongStepUniformMscAction>(
-            params.action_reg->next_id(), field_params, msc);
+        auto along_step = AlongStepUniformMscAction::from_params(
+            params.action_reg->next_id(),
+            *params.material,
+            *params.particle,
+            field_params,
+            msc,
+            eloss);
         CELER_ASSERT(along_step->field() != RunnerInput::no_field());
         params.action_reg->insert(along_step);
     }

@@ -51,7 +51,7 @@ class MockAlongStepFieldTest : public MockAlongStepTest
 
         auto& action_reg = *this->action_reg();
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, nullptr);
+            action_reg.next_id(), field_params, nullptr, nullptr);
         action_reg.insert(result);
         return result;
     }
@@ -100,7 +100,7 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, msc);
+            action_reg.next_id(), field_params, nullptr, msc);
         action_reg.insert(result);
         return result;
     }

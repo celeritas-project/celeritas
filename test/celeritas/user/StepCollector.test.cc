@@ -83,7 +83,7 @@ class TestEm3CollectorTestBase : public TestEm3Base,
             *this->particle(), *this->material(), this->imported_data());
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, msc);
+            action_reg.next_id(), field_params, nullptr, msc);
         CELER_ASSERT(result);
         CELER_ASSERT(result->has_msc());
         action_reg.insert(result);

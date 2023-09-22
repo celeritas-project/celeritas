@@ -13,6 +13,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/global/ActionLauncher.hh"
@@ -21,6 +22,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "AlongStep.hh"
+#include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
 #include "detail/UniformFieldPropagatorFactory.hh"
 
@@ -28,11 +30,39 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct the along-step action from input parameters.
+ */
+std::shared_ptr<AlongStepUniformMscAction>
+AlongStepUniformMscAction::from_params(ActionId id,
+                                       MaterialParams const& materials,
+                                       ParticleParams const& particles,
+                                       UniformFieldParams const& field_params,
+                                       SPConstMsc msc,
+                                       bool eloss_fluctuation)
+{
+    SPConstFluctuations fluct;
+    if (eloss_fluctuation)
+    {
+        fluct = std::make_shared<FluctuationParams>(particles, materials);
+    }
+
+    return std::make_shared<AlongStepUniformMscAction>(
+        id, field_params, std::move(fluct), msc);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with MSC data and field driver options.
  */
 AlongStepUniformMscAction::AlongStepUniformMscAction(
-    ActionId id, UniformFieldParams const& field_params, SPConstMsc msc)
-    : id_(id), msc_(std::move(msc)), field_params_(field_params)
+    ActionId id,
+    UniformFieldParams const& field_params,
+    SPConstFluctuations fluct,
+    SPConstMsc msc)
+    : id_(id)
+    , fluct_(std::move(fluct))
+    , msc_(std::move(msc))
+    , field_params_(field_params)
 {
     CELER_EXPECT(id_);
 }
@@ -73,11 +103,16 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
     {
         launch_impl(MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
     }
-    launch_impl([](CoreTrackView const& track) {
-        detail::TimeUpdater{}(track);
-        ElossApplier{MeanELoss{}}(track);
-        TrackUpdater{}(track);
-    });
+    launch_impl(detail::TimeUpdater{});
+    if (fluct_)
+    {
+        launch_impl(ElossApplier{FluctELoss{fluct_->ref<MemSpace::native>()}});
+    }
+    else
+    {
+        launch_impl(ElossApplier{MeanELoss{}});
+    }
+    launch_impl(TrackUpdater{});
 }
 
 //---------------------------------------------------------------------------//

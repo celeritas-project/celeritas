@@ -208,7 +208,7 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, msc);
+            action_reg.next_id(), field_params, nullptr, msc);
         action_reg.insert(result);
         return result;
     }
