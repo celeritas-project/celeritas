@@ -10,6 +10,7 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeParams.hh"
+#include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTrackView.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/Types.hh"
@@ -609,6 +610,19 @@ TEST_F(UniversesTest, params)
     EXPECT_VEC_EQ(expected, actual);
 }
 
+TEST_F(UniversesTest, output)
+{
+    OrangeParamsOutput out(this->sp_params());
+    EXPECT_EQ("orange", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":3,"max_faces":14,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":12,"inner_nodes":6,"leaf_nodes":9,"local_volume_ids":12},"connectivities":25,"daughters":3,"local_surface_ids":53,"local_volume_ids":53,"logic_ints":178,"real_ids":25,"reals":34,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"universe_indexer":{"surfaces":4,"volumes":4},"universe_indices":3,"universe_types":3,"volume_records":12}})json",
+            to_string(out));
+    }
+}
+
 TEST_F(UniversesTest, initialize_with_multiple_universes)
 {
     auto geo = this->make_track_view();
@@ -926,6 +940,19 @@ TEST_F(Geant4Testem15Test, safety)
     next = geo.find_next_step();
     geo.move_internal(6.0);
     EXPECT_SOFT_EQ(10.0, geo.find_safety());
+}
+
+TEST_F(HexArrayTest, output)
+{
+    OrangeParamsOutput out(this->sp_params());
+    EXPECT_EQ("orange", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":3,"max_faces":9,"max_intersections":10,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":58,"inner_nodes":49,"leaf_nodes":53,"local_volume_ids":58},"connectivities":53,"daughters":51,"local_surface_ids":364,"local_volume_ids":364,"logic_ints":922,"real_ids":53,"reals":281,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"universe_indexer":{"surfaces":5,"volumes":5},"universe_indices":4,"universe_types":4,"volume_records":58}})json",
+            to_string(out));
+    }
 }
 
 TEST_F(HexArrayTest, track_out)

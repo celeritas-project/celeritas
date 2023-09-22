@@ -419,9 +419,9 @@ struct OrangeStateData
     Items<LocalVolumeId> vol;
     Items<UniverseId> universe;
 
-    // TODO: this is problem-dependent data and should eventually be removed
-    // max_depth defines the stride into the preceding pseudo-2D
-    // Collections (pos, dir, ..., etc.)
+    // Note: this is duplicated from the associated OrangeParamsData .
+    // It defines the stride into the preceding pseudo-2D Collections (pos,
+    // dir, ..., etc.)
     size_type max_depth{0};
 
     // Scratch space

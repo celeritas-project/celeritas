@@ -72,14 +72,6 @@ std::vector<Sense> OrangeGeoTestBase::string_to_senses(std::string const& s)
 }
 
 //---------------------------------------------------------------------------//
-//! Default constructor
-OrangeGeoTestBase::OrangeGeoTestBase() = default;
-
-//---------------------------------------------------------------------------//
-//! Default destructor
-OrangeGeoTestBase::~OrangeGeoTestBase() = default;
-
-//---------------------------------------------------------------------------//
 /*!
  * Load a geometry from the given JSON filename.
  */

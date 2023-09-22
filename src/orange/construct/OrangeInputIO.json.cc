@@ -307,4 +307,21 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
 }
 
 //---------------------------------------------------------------------------//
+// WRITERS
+//---------------------------------------------------------------------------//
+/*!
+ * Write tolerances.
+ */
+template<class T>
+void to_json(nlohmann::json& j, Tolerance<T> const& value)
+{
+    j = {
+        {"rel", value.rel},
+        {"abs", value.abs},
+    };
+}
+
+template void to_json(nlohmann::json&, Tolerance<real_type> const&);
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

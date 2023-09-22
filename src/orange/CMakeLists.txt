@@ -16,6 +16,7 @@ list(APPEND SOURCES
   BoundingBoxUtils.cc
   MatrixUtils.cc
   OrangeParams.cc
+  OrangeParamsOutput.cc
   OrangeTypes.cc
   construct/CsgTree.cc
   construct/CsgTypes.cc
