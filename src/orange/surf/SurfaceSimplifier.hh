@@ -53,6 +53,10 @@ class SurfaceSimplifier
     template<Axis T>
     Optional<CylCentered<T>> operator()(CylAligned<T> const&) const;
 
+    // Cone near origin will be snapped
+    template<Axis T>
+    Optional<ConeAligned<T>> operator()(ConeAligned<T> const&) const;
+
     // Plane may be flipped, adjusted, or become axis-aligned
     Optional<PlaneAligned<Axis::x>, PlaneAligned<Axis::y>, PlaneAligned<Axis::z>, Plane>
     operator()(Plane const&);

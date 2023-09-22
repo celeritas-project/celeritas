@@ -190,6 +190,11 @@ TEST_F(SurfaceSimplifierTest, sphere)
 TEST_F(SurfaceSimplifierTest, cone_aligned)
 {
     this->check_unchanged(ConeX{{1, 2, 3}, 0.5});
+    this->check_simplifies_to(ConeX{{1e-7, -1e-7, 1e-9}, 0.5},
+                              ConeX{{0, 0, 0}, 0.5});
+    this->check_simplifies_to(ConeY{{10, -1e-7, 1}, 0.5},
+                              ConeY{{10, 0, 1}, 0.5});
+    this->check_unchanged(ConeX{{0, 0, 0}, 0.5});
 }
 
 TEST_F(SurfaceSimplifierTest, simple_quadric)
