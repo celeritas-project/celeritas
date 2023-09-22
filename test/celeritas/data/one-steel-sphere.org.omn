@@ -12,7 +12,7 @@ comp       : matid
     "stainless_steel" 1
 
 [UNIVERSE=general global]
-interior "world"
+interior "world_sphere"
 
 !##############################################################################
 ! SHAPES ("solids")
