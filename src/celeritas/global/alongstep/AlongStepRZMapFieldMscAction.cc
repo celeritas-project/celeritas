@@ -24,6 +24,7 @@
 
 #include "AlongStep.hh"
 #include "detail/FluctELoss.hh"
+#include "detail/MeanELoss.hh"
 #include "detail/RZMapFieldPropagatorFactory.hh"
 
 namespace celeritas
@@ -37,15 +38,19 @@ AlongStepRZMapFieldMscAction::from_params(ActionId id,
                                           MaterialParams const& materials,
                                           ParticleParams const& particles,
                                           RZMapFieldInput const& field_input,
-                                          SPConstMsc const& msc)
+                                          SPConstMsc const& msc,
+                                          bool eloss_fluctuation)
 {
     CELER_EXPECT(field_input);
-    CELER_EXPECT(msc);
+
+    SPConstFluctuations fluct;
+    if (eloss_fluctuation)
+    {
+        fluct = std::make_shared<FluctuationParams>(particles, materials);
+    }
+
     return std::make_shared<AlongStepRZMapFieldMscAction>(
-        id,
-        field_input,
-        std::make_shared<FluctuationParams>(particles, materials),
-        msc);
+        id, field_input, std::move(fluct), msc);
 }
 
 //---------------------------------------------------------------------------//
@@ -64,8 +69,6 @@ AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(field_);
-    CELER_EXPECT(fluct_);
-    CELER_EXPECT(msc_);
 }
 
 //---------------------------------------------------------------------------//
@@ -75,15 +78,41 @@ AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
 void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
                                            CoreStateHost& state) const
 {
-    auto execute = make_along_step_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        this->action_id(),
-        AlongStep{UrbanMsc{msc_->ref<MemSpace::native>()},
-                  detail::RZMapFieldPropagatorFactory{
-                      field_->ref<MemSpace::native>()},
-                  detail::FluctELoss{fluct_->ref<MemSpace::native>()}});
-    return launch_action(*this, params, state, execute);
+    using namespace ::celeritas::detail;
+
+    auto launch_impl = [&](auto&& execute_track) {
+        return launch_action(
+            *this,
+            params,
+            state,
+            make_along_step_track_executor(
+                params.ptr<MemSpace::native>(),
+                state.ptr(),
+                this->action_id(),
+                std::forward<decltype(execute_track)>(execute_track)));
+    };
+
+    if (this->has_msc())
+    {
+        launch_impl(
+            MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
+    }
+    launch_impl(PropagationApplier{
+        RZMapFieldPropagatorFactory{field_->ref<MemSpace::native>()}});
+    if (this->has_msc())
+    {
+        launch_impl(MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
+    }
+    launch_impl(detail::TimeUpdater{});
+    if (this->has_fluct())
+    {
+        launch_impl(ElossApplier{FluctELoss{fluct_->ref<MemSpace::native>()}});
+    }
+    else
+    {
+        launch_impl(ElossApplier{MeanELoss{}});
+    }
+    launch_impl(TrackUpdater{});
 }
 
 //---------------------------------------------------------------------------//

@@ -99,7 +99,8 @@ auto RZMapFieldAlongStepFactory::operator()(
         *input.particle,
         get_fieldmap_(),
         celeritas::UrbanMscParams::from_import(
-            *input.particle, *input.material, *input.imported));
+            *input.particle, *input.material, *input.imported),
+        input.imported->em_params.energy_loss_fluct);
 }
 
 //---------------------------------------------------------------------------//

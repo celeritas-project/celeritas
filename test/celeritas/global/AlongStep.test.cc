@@ -142,7 +142,8 @@ class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
                                                         *this->material(),
                                                         *this->particle(),
                                                         field_map,
-                                                        msc);
+                                                        msc,
+                                                        fluct_);
         action_reg.insert(result);
         return result;
     }

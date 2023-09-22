@@ -92,19 +92,19 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
                 std::forward<decltype(execute_track)>(execute_track)));
     };
 
-    if (msc_)
+    if (this->has_msc())
     {
         launch_impl(
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
     }
     launch_impl(
         PropagationApplier{UniformFieldPropagatorFactory{field_params_}});
-    if (msc_)
+    if (this->has_msc())
     {
         launch_impl(MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
     }
     launch_impl(detail::TimeUpdater{});
-    if (fluct_)
+    if (this->has_fluct())
     {
         launch_impl(ElossApplier{FluctELoss{fluct_->ref<MemSpace::native>()}});
     }
