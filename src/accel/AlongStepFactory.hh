@@ -49,6 +49,8 @@ struct AlongStepFactoryInput
     std::shared_ptr<PhysicsParams const> physics;
     std::shared_ptr<ImportData const> imported;
 
+    bool disable_eloss_fluct{false};
+
     //! True if all data is assigned
     explicit operator bool() const
     {

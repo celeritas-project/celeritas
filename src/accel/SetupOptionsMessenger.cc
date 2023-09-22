@@ -187,6 +187,9 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
     add_cmd(&options->secondary_stack_factor,
             "secondaryStackFactor",
             "At least the average number of secondaries per track slot");
+    add_cmd(&options->disable_eloss_fluct,
+            "disableElossFluct",
+            "Forcibly disable energy loss fluctuatiions");
 
     directories_.emplace_back(new CelerDirectory(
         "/celer/detector/", "Celeritas sensitive detector setup options"));

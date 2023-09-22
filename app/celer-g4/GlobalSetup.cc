@@ -168,6 +168,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->max_steps = input_.max_steps;
         options_->initializer_capacity = input_.initializer_capacity;
         options_->secondary_stack_factor = input_.secondary_stack_factor;
+        options_->disable_eloss_fluct = input_.disable_eloss_fluct;
         options_->sd.enabled = input_.enable_sd;
         options_->cuda_stack_size = input_.cuda_stack_size;
         options_->cuda_heap_size = input_.cuda_heap_size;

@@ -81,6 +81,7 @@ struct RunnerInput
 
     // Options for physics
     bool brem_combined{false};
+    bool disable_eloss_fluct{false};  //!< Forcibly disable eloss fluctuations
 
     // Track init options
     TrackOrder track_order{TrackOrder::unsorted};

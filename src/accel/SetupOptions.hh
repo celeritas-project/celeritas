@@ -145,6 +145,8 @@ struct SetupOptions
     //! \name Physics options
     //! Ignore the following EM process names
     VecString ignore_processes;
+    //! Forcibly disable energy loss fluctuations
+    bool disable_eloss_fluct{false};
     //!@}
 
     //!@{

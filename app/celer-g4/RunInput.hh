@@ -63,6 +63,7 @@ struct RunInput
     // Physics setup options
     PhysicsListSelection physics_list{PhysicsListSelection::ftfp_bert};
     GeantPhysicsOptions physics_options;
+    bool disable_eloss_fluct{false};  //!< Forcibly disable eloss fluctuations
 
     // Field setup options
     std::string field_type{"uniform"};

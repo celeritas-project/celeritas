@@ -33,6 +33,7 @@ struct SetupOptions;
   maxNumSteps          | Limit on number of step iterations before aborting
   maxInitializers      | Maximum number of track initializers
   secondaryStackFactor | At least the average number of secondaries per track
+  disableElossFluct    | Forcibly disable energy loss fluctuations
 
  * The following option is exposed in the \c /celer/detector/ command
  * "directory":
