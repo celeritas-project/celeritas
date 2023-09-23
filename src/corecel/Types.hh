@@ -31,7 +31,7 @@ using ull_int = unsigned long long int;
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
-//! Non-convertible type for raw data modeled after std::byte (C++17)
+// TODO: replace with std::byte
 enum class Byte : unsigned char
 {
 };
