@@ -292,8 +292,8 @@ SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
     auto* ptr = s.data.data();
     for (auto single_size : s.sizes)
     {
-        real_ids_.push_back(reals_.size_id());
-        reals_.insert_back(ptr, ptr + single_size);
+        auto surf_data = reals_.insert_back(ptr, ptr + single_size);
+        real_ids_.push_back(*surf_data.begin());
         ptr += single_size;
     }
     CELER_EXPECT(ptr == s.data.data() + s.data.size());

@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
@@ -50,15 +51,15 @@ class UnitInserter
 
     CollectionBuilder<SimpleUnitRecord> simple_units_;
 
-    CollectionBuilder<LocalSurfaceId> local_surface_ids_;
-    CollectionBuilder<LocalVolumeId> local_volume_ids_;
-    CollectionBuilder<OpaqueId<real_type>> real_ids_;
-    CollectionBuilder<logic_int> logic_ints_;
-    CollectionBuilder<real_type> reals_;
-    CollectionBuilder<SurfaceType> surface_types_;
+    DedupeCollectionBuilder<LocalSurfaceId> local_surface_ids_;
+    DedupeCollectionBuilder<LocalVolumeId> local_volume_ids_;
+    DedupeCollectionBuilder<OpaqueId<real_type>> real_ids_;
+    DedupeCollectionBuilder<logic_int> logic_ints_;
+    DedupeCollectionBuilder<real_type> reals_;
+    DedupeCollectionBuilder<SurfaceType> surface_types_;
     CollectionBuilder<ConnectivityRecord> connectivity_records_;
     CollectionBuilder<VolumeRecord> volume_records_;
-    CollectionBuilder<Daughter> daughters_;
+    DedupeCollectionBuilder<Daughter> daughters_;
 
     //// HELPER METHODS ////
 
