@@ -96,9 +96,8 @@ class FnvHasher
     // Hash a size_t (useful for std::hash integration)
     inline CELER_FUNCTION void operator()(std::size_t value) const;
 
-    // Hash a span of contiguous data
-    template<class U>
-    inline CELER_FUNCTION void operator()(Span<U const> s) const;
+    // Hash a span of bytes
+    inline CELER_FUNCTION void operator()(Span<std::byte const> s) const;
 
   private:
     using TraitsT = FnvHashTraits<sizeof(T)>;
@@ -152,15 +151,11 @@ CELER_FUNCTION void FnvHasher<T>::operator()(std::size_t value) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Hash a span of contiguous data.
+ * Hash a span of bytes.
  */
 template<class T>
-template<class U>
-CELER_FUNCTION void FnvHasher<T>::operator()(Span<U const> s) const
+CELER_FUNCTION void FnvHasher<T>::operator()(Span<std::byte const> bytes) const
 {
-    Span<std::byte const> bytes{reinterpret_cast<std::byte const*>(s.data()),
-                                s.size() * sizeof(U)};
-
     for (auto b : bytes)
     {
         (*this)(b);

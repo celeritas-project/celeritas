@@ -173,6 +173,8 @@ auto DedupeCollectionBuilder<T, I>::push_back(T const& el) -> ItemIdT
 //---------------------------------------------------------------------------//
 /*!
  * Compute a hash of the data underlying a range.
+ *
+ * By default, this uses the std::hash specialization in \c HashUtils.
  */
 template<class T, class I>
 std::size_t
@@ -180,13 +182,9 @@ DedupeCollectionBuilder<T, I>::HashRange::operator()(ItemRangeT r) const
 {
     CELER_EXPECT(*r.end() <= storage->size());
 
-    // Get data pointed to by range
+    // Hash data pointed to by range
     Span<T const> data{storage->data() + r.begin()->unchecked_get(), r.size()};
-
-    // Hash the data
-    std::size_t result;
-    Hasher{&result}(data);
-    return result;
+    return std::hash<decltype(data)>{}(data);
 }
 
 //---------------------------------------------------------------------------//
