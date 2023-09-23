@@ -68,8 +68,8 @@ class ValueGridInserter
     GenericIndex operator()(InterpolatedGrid grid, InterpolatedGrid values);
 
   private:
-    CollectionBuilder<real_type, MemSpace::host> values_;
-    CollectionBuilder<XsGridData, MemSpace::host> xs_grids_;
+    CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> values_;
+    CollectionBuilder<XsGridData, MemSpace::host, ItemId<XsGridData>> xs_grids_;
 };
 
 //---------------------------------------------------------------------------//

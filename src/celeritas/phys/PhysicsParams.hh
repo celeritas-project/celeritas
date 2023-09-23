@@ -33,11 +33,6 @@ class AtomicRelaxationParams;
 class MaterialParams;
 class ParticleParams;
 
-namespace detail
-{
-struct PhysicsDataBuilders;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Physics configuration options.
@@ -184,7 +179,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
   private:
     using SPAction = std::shared_ptr<ConcreteAction>;
     using VecModel = std::vector<std::pair<SPConstModel, ProcessId>>;
-    using Builders = detail::PhysicsDataBuilders;
+    using HostValue = celeritas::HostVal<PhysicsParamsData>;
 
     // Kernels/actions
     SPAction pre_step_action_;
@@ -205,15 +200,12 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
 
   private:
     VecModel build_models(ActionRegistry*) const;
-    void build_options(Options const& opts, Builders* b) const;
-    void build_ids(ParticleParams const& particles, Builders* b) const;
+    void build_options(Options const& opts, HostValue* data) const;
+    void build_ids(ParticleParams const& particles, HostValue* data) const;
     void build_xs(Options const& opts,
                   MaterialParams const& mats,
-                  HostVal<PhysicsParamsData> const& d,
-                  Builders* b) const;
-    void build_model_xs(MaterialParams const& mats,
-                        HostVal<PhysicsParamsData>* d,
-                        Builders* b) const;
+                  HostValue* data) const;
+    void build_model_xs(MaterialParams const& mats, HostValue* data) const;
 };
 
 //---------------------------------------------------------------------------//
