@@ -324,6 +324,9 @@ class Collection
     template<class T2, MemSpace M2, class Id2>
     friend class CollectionBuilder;
 
+    template<class T2, class Id2>
+    friend class DedupeCollectionBuilder;
+
     //!@{
     // Private accessors for collection construction/access
     using StorageT = typename detail::CollectionStorage<T, W, M>::type;
