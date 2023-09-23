@@ -135,7 +135,7 @@ UnitInserter::UnitInserter(Data* orange_data)
     , logic_ints_{&orange_data_->logic_ints}
     , reals_{&orange_data_->reals}
     , surface_types_{&orange_data_->surface_types}
-    , connectivities_{&orange_data_->connectivities}
+    , connectivity_records_{&orange_data_->connectivity_records}
     , volume_records_{&orange_data_->volume_records}
     , daughters_{&orange_data_->daughters}
 {
@@ -220,16 +220,14 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
 
     // Save connectivity
     {
-        std::vector<Connectivity> conn(connectivity.size());
+        std::vector<ConnectivityRecord> conn(connectivity.size());
         for (auto i : range(connectivity.size()))
         {
-            Connectivity c;
-            c.neighbors = local_volume_ids_.insert_back(
+            conn[i].neighbors = local_volume_ids_.insert_back(
                 connectivity[i].begin(), connectivity[i].end());
-            conn[i] = c;
         }
         unit.connectivity
-            = connectivities_.insert_back(conn.begin(), conn.end());
+            = connectivity_records_.insert_back(conn.begin(), conn.end());
     }
 
     // Save unit scalars

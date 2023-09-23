@@ -73,7 +73,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_SAVE_SIZE(logic_ints);
         OPO_SAVE_SIZE(reals);
         OPO_SAVE_SIZE(surface_types);
-        OPO_SAVE_SIZE(connectivities);
+        OPO_SAVE_SIZE(connectivity_records);
         OPO_SAVE_SIZE(volume_records);
         OPO_SAVE_SIZE(daughters);
 #    undef OPO_SAVE_SIZE

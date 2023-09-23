@@ -120,7 +120,7 @@ struct SurfacesRecord
  * This struct is associated with a specific surface; the \c neighbors range is
  * a list of local volume IDs for that surface.
  */
-struct Connectivity
+struct ConnectivityRecord
 {
     ItemRange<LocalVolumeId> neighbors;
 };
@@ -180,7 +180,7 @@ struct SimpleUnitRecord
 
     // Surface data
     SurfacesRecord surfaces;
-    ItemRange<Connectivity> connectivity;  // Index by LocalSurfaceId
+    ItemRange<ConnectivityRecord> connectivity;  // Index by LocalSurfaceId
 
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
@@ -338,7 +338,7 @@ struct OrangeParamsData
     Items<logic_int> logic_ints;
     Items<real_type> reals;
     Items<SurfaceType> surface_types;
-    Items<Connectivity> connectivities;
+    Items<ConnectivityRecord> connectivity_records;
     Items<VolumeRecord> volume_records;
     Items<Daughter> daughters;
 
@@ -378,7 +378,7 @@ struct OrangeParamsData
         logic_ints = other.logic_ints;
         reals = other.reals;
         surface_types = other.surface_types;
-        connectivities = other.connectivities;
+        connectivity_records = other.connectivity_records;
         volume_records = other.volume_records;
         daughters = other.daughters;
         universe_indexer_data = other.universe_indexer_data;

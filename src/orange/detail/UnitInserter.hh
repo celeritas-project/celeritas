@@ -56,7 +56,7 @@ class UnitInserter
     CollectionBuilder<logic_int> logic_ints_;
     CollectionBuilder<real_type> reals_;
     CollectionBuilder<SurfaceType> surface_types_;
-    CollectionBuilder<Connectivity> connectivities_;
+    CollectionBuilder<ConnectivityRecord> connectivity_records_;
     CollectionBuilder<VolumeRecord> volume_records_;
     CollectionBuilder<Daughter> daughters_;
 
