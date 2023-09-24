@@ -19,6 +19,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Copier.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/Device.hh"
@@ -77,26 +78,20 @@ void sort_impl(TrackSlots const& track_slots,
                ObserverPtr<ActionId const> actions,
                StreamId stream_id)
 {
-    auto stream = celeritas::device().stream(stream_id).get();
-    ActionId::size_type* reordered_actions;
-    // TODO: Replace with stream-aware container
-    CELER_DEVICE_CALL_PREFIX(
-        MallocAsync(&reordered_actions,
-                    sizeof(ActionId::size_type) * track_slots.size(),
-                    stream));
+    DeviceVector<ActionId::size_type> reordered_actions(track_slots.size(),
+                                                        stream_id);
     CELER_LAUNCH_KERNEL(reorder_actions,
                         celeritas::device().default_block_size(),
                         track_slots.size(),
-                        stream,
+                        celeritas::device().stream(stream_id).get(),
                         track_slots.data(),
                         actions,
-                        make_observer(reordered_actions),
+                        make_observer(reordered_actions.data()),
                         track_slots.size());
     thrust::sort_by_key(thrust_execute_on(stream_id),
-                        reordered_actions,
-                        reordered_actions + track_slots.size(),
+                        reordered_actions.data(),
+                        reordered_actions.data() + reordered_actions.size(),
                         device_pointer_cast(track_slots.data()));
-    CELER_DEVICE_CALL_PREFIX(FreeAsync(reordered_actions, stream));
     CELER_DEVICE_CHECK_ERROR();
 }
 

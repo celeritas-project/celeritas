@@ -11,6 +11,7 @@
 
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #include "DeviceAllocation.hh"
 #include "ObserverPtr.hh"
@@ -25,6 +26,8 @@ namespace celeritas
  * define and copy over suitable data. For more complex data usage (dynamic
  * size increases and assignment without memory reallocation), use \c
  * thrust::device_vector.
+ * When a \c StreamId is passed as the last constructor argument,
+ * all memory operations are asynchronous and ordered within that stream.
  *
  * \code
     DeviceVector<double> myvec(100);
@@ -57,8 +60,14 @@ class DeviceVector
     // Construct with no elements
     DeviceVector() = default;
 
+    // Construct with no elements
+    explicit DeviceVector(StreamId stream);
+
     // Construct with a number of elements
     explicit DeviceVector(size_type count);
+
+    // Construct with a number of elements
+    DeviceVector(size_type count, StreamId stream);
 
     // Swap with another vector
     inline void swap(DeviceVector& other) noexcept;
@@ -107,8 +116,25 @@ inline void swap(DeviceVector<T>& a, DeviceVector<T>& b) noexcept;
  * Construct with a number of allocated elements.
  */
 template<class T>
+DeviceVector<T>::DeviceVector(StreamId stream) : allocation_{stream}, size_{0}
+{
+}
+
+/*!
+ * Construct with a number of allocated elements.
+ */
+template<class T>
 DeviceVector<T>::DeviceVector(size_type count)
-    : allocation_(count * sizeof(T)), size_(count)
+    : allocation_{count * sizeof(T)}, size_{count}
+{
+}
+
+/*!
+ * Construct with a number of allocated elements.
+ */
+template<class T>
+DeviceVector<T>::DeviceVector(size_type count, StreamId stream)
+    : allocation_{count * sizeof(T), stream}, size_{count}
 {
 }
 
