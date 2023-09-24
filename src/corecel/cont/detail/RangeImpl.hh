@@ -23,6 +23,8 @@ namespace detail
 template<class T, class Enable = void>
 struct RangeTypeTraits
 {
+    static_assert(std::is_integral_v<T>,
+                  "Only integer types can be used in a range");
     using value_type = T;
     using counter_type = T;
     using difference_type = std::make_signed_t<counter_type>;
