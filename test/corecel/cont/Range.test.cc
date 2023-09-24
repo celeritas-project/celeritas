@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 
+#include <iterator>
+
 #include "corecel/sys/Device.hh"
 
 #include "Range.test.hh"
@@ -300,7 +302,7 @@ TEST(RangeTest, backward_conversion)
     // Result of 'step' should be original range type
     for (auto i : range<int>(5).step<signed short>(-1))
     {
-        static_assert(std::is_same<decltype(i), int>::value,
+        static_assert(std::is_same_v<decltype(i), int>,
                       "Range result should be converted to int!");
         vals.push_back(i);
         if (i > 7 || i < -2)
@@ -311,7 +313,11 @@ TEST(RangeTest, backward_conversion)
 
 TEST(RangeTest, opaque_id)
 {
-    using MatId = OpaqueId<struct Mat_>;
+    using MatId = OpaqueId<struct Mat_, unsigned short int>;
+    using RangeIter = decltype(range(MatId{0}).begin());
+    EXPECT_TRUE(
+        (std::is_same_v<std::iterator_traits<RangeIter>::difference_type,
+                        short int>));
 
     {
         Range<MatId> fr;
