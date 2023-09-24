@@ -52,20 +52,16 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
     if (magnitude_tesla > 0)
     {
         // Create a uniform field
-        if (input.imported->em_params.energy_loss_fluct)
-        {
-            CELER_LOG(error)
-                << "Magnetic field with energy loss fluctuations is "
-                   "not currently supported: using mean energy loss";
-        }
-
         CELER_LOG(info) << "Creating along-step action with field strength "
                         << magnitude_tesla << "T";
-        return std::make_shared<AlongStepUniformMscAction>(
+        return celeritas::AlongStepUniformMscAction::from_params(
             input.action_id,
+            *input.material,
+            *input.particle,
             field_params,
-            UrbanMscParams::from_import(
-                *input.particle, *input.material, *input.imported));
+            celeritas::UrbanMscParams::from_import(
+                *input.particle, *input.material, *input.imported),
+            input.imported->em_params.energy_loss_fluct);
     }
     else
     {
@@ -103,7 +99,8 @@ auto RZMapFieldAlongStepFactory::operator()(
         *input.particle,
         get_fieldmap_(),
         celeritas::UrbanMscParams::from_import(
-            *input.particle, *input.material, *input.imported));
+            *input.particle, *input.material, *input.imported),
+        input.imported->em_params.energy_loss_fluct);
 }
 
 //---------------------------------------------------------------------------//
