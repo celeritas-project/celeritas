@@ -107,7 +107,6 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(step_limiter);
     LDIO_LOAD_OPTION(brem_combined);
-    LDIO_LOAD_OPTION(disable_eloss_fluct);
     LDIO_LOAD_OPTION(track_order);
     LDIO_LOAD_OPTION(geant_options);
 
@@ -183,7 +182,6 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 
     LDIO_SAVE_OPTION(step_limiter);
     LDIO_SAVE_OPTION(brem_combined);
-    LDIO_SAVE_OPTION(disable_eloss_fluct);
 
     LDIO_SAVE_OPTION(track_order);
     if (v.physics_filename.empty() || !ends_with(v.physics_filename, ".root"))

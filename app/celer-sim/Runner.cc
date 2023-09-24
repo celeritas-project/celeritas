@@ -263,8 +263,7 @@ void Runner::build_core_params(RunnerInput const& inp,
         return std::make_shared<PhysicsParams>(std::move(input));
     }();
 
-    bool fluct = imported.em_params.energy_loss_fluct
-                 && !inp.disable_eloss_fluct;
+    bool eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
         *params.particle, *params.material, imported);
     if (inp.mag_field == RunnerInput::no_field())
@@ -275,7 +274,7 @@ void Runner::build_core_params(RunnerInput const& inp,
             *params.material,
             *params.particle,
             msc,
-            fluct);
+            eloss);
         params.action_reg->insert(along_step);
     }
     else
@@ -296,7 +295,7 @@ void Runner::build_core_params(RunnerInput const& inp,
             *params.particle,
             field_params,
             msc,
-            fluct);
+            eloss);
         CELER_ASSERT(along_step->field() != RunnerInput::no_field());
         params.action_reg->insert(along_step);
     }

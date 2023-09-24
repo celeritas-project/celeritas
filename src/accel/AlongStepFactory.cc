@@ -49,10 +49,6 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
     auto field_params = get_field_ ? get_field_() : UniformFieldParams{};
     real_type magnitude_tesla = norm(field_params.field) / units::tesla;
 
-    // Whether to add energy loss fluctuations
-    auto fluct = input.imported->em_params.energy_loss_fluct
-                 && !input.disable_eloss_fluct;
-
     if (magnitude_tesla > 0)
     {
         // Create a uniform field
@@ -65,7 +61,7 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
             field_params,
             celeritas::UrbanMscParams::from_import(
                 *input.particle, *input.material, *input.imported),
-            fluct);
+            input.imported->em_params.energy_loss_fluct);
     }
     else
     {
@@ -76,7 +72,7 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
             *input.particle,
             celeritas::UrbanMscParams::from_import(
                 *input.particle, *input.material, *input.imported),
-            fluct);
+            input.imported->em_params.energy_loss_fluct);
     }
 }
 
@@ -95,11 +91,8 @@ RZMapFieldAlongStepFactory::RZMapFieldAlongStepFactory(RZMapFieldFunction f)
 auto RZMapFieldAlongStepFactory::operator()(
     AlongStepFactoryInput const& input) const -> result_type
 {
-    // Whether to add energy loss fluctuations
-    auto fluct = input.imported->em_params.energy_loss_fluct
-                 && !input.disable_eloss_fluct;
-
     CELER_LOG(info) << "Creating along-step action with a RZMapField";
+
     return celeritas::AlongStepRZMapFieldMscAction::from_params(
         input.action_id,
         *input.material,
@@ -107,7 +100,7 @@ auto RZMapFieldAlongStepFactory::operator()(
         get_fieldmap_(),
         celeritas::UrbanMscParams::from_import(
             *input.particle, *input.material, *input.imported),
-        fluct);
+        input.imported->em_params.energy_loss_fluct);
 }
 
 //---------------------------------------------------------------------------//
