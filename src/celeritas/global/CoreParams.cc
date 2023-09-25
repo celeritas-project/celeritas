@@ -302,12 +302,10 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.output_reg->insert(
         std::make_shared<ActionRegistryOutput>(input_.action_reg));
 
-    if (auto orange_geo
-        = std::dynamic_pointer_cast<OrangeParams const>(input_.geometry))
-    {
-        input_.output_reg->insert(
-            std::make_shared<OrangeParamsOutput>(orange_geo));
-    }
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+    input_.output_reg->insert(
+        std::make_shared<OrangeParamsOutput>(input_.geometry));
+#endif
 
     CELER_LOG(status) << "Celeritas core setup complete";
 
