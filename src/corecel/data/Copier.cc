@@ -18,6 +18,7 @@ namespace celeritas
 {
 namespace
 {
+//---------------------------------------------------------------------------//
 
 #if CELER_USE_DEVICE
 inline auto to_memcpy_kind(MemSpace src, MemSpace dst)
@@ -62,13 +63,14 @@ void copy_bytes(MemSpace dstmem,
                 MemSpace srcmem,
                 void const* src,
                 std::size_t count,
-                CELER_UNUSED_UNLESS_DEVICE StreamId stream)
+                StreamId stream)
 {
     if (srcmem == MemSpace::host && dstmem == MemSpace::host)
     {
         std::memcpy(dst, src, count);
         return;
     }
+    CELER_DISCARD(stream);
     CELER_DEVICE_CALL_PREFIX(
         MemcpyAsync(dst,
                     src,

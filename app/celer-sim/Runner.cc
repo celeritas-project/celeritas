@@ -543,7 +543,7 @@ int Runner::get_num_streams(RunnerInput const& inp)
         return num_threads;
     }
 #else
-    (void)sizeof(inp);
+    CELER_DISCARD(inp);
 #endif
     return 1;
 }

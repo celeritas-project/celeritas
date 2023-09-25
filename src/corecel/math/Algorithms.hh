@@ -414,7 +414,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
 {
     if constexpr (N == 0)
     {
-        (void)sizeof(v);  // Suppress warning in older compilers
+        CELER_DISCARD(v)  // Suppress warning in older compilers
         return 1;
     }
     else if constexpr (N % 2 == 0)

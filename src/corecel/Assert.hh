@@ -257,7 +257,7 @@
         do                                                 \
         {                                                  \
             CELER_NOT_CONFIGURED("CUDA");                  \
-            (void)sizeof(celeritas_device_runtime_api_h_); \
+            CELER_DISCARD(celeritas_device_runtime_api_h_) \
         } while (0)
 #endif
 
@@ -299,7 +299,7 @@
         do                                                 \
         {                                                  \
             CELER_NOT_CONFIGURED("HIP");                   \
-            (void)sizeof(celeritas_device_runtime_api_h_); \
+            CELER_DISCARD(celeritas_device_runtime_api_h_) \
         } while (0)
 #endif
 
@@ -329,7 +329,7 @@
         do                                                 \
         {                                                  \
             CELER_NOT_CONFIGURED("CUDA or HIP");           \
-            (void)sizeof(celeritas_device_runtime_api_h_); \
+            CELER_DISCARD(celeritas_device_runtime_api_h_) \
         } while (0)
 #endif
 

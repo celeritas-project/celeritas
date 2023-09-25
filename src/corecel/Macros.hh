@@ -226,15 +226,13 @@
     CLS& operator=(CLS&&) = delete
 
 /*!
- * \def CELER_UNUSED_UNLESS_DEVICE
+ * \def CELER_DISCARD
  *
- * GCC 8 and 9 are known to print a warning for "maybe unused" variables that
- * are actually used (after preprocessor logic).
+ * The argument is an unevaluated operand which will generate no code but force
+ * the expression to be used. This is used in place of the \code
+ * [[maybe_unused]] \endcode attribute, which actually generates warnings in
+ * older versions of GCC.
  */
-#if CELER_USE_DEVICE
-#    define CELER_UNUSED_UNLESS_DEVICE
-#else
-#    define CELER_UNUSED_UNLESS_DEVICE [[maybe_unused]]
-#endif
+#define CELER_DISCARD(CODE) static_cast<void>(sizeof(CODE));
 
 //---------------------------------------------------------------------------//

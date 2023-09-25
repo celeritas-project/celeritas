@@ -45,7 +45,7 @@ std::string to_string(OutputInterface const& output)
     output.output(&json_wrap);
     return json_wrap.obj.dump();
 #else
-    (void)sizeof(output);
+    CELER_DISCARD(output);
     return "\"output unavailable\"";
 #endif
 }

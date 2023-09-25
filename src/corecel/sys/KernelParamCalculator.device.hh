@@ -53,9 +53,9 @@
 #else
 #    define CELER_LAUNCH_KERNEL_IMPL(KERNEL, GRID, BLOCK, SHARED, STREAM, ...) \
         CELER_NOT_CONFIGURED("CUDA or HIP");                                   \
-        (void)sizeof(GRID);                                                    \
-        (void)sizeof(KERNEL);                                                  \
-        (void)sizeof(__VA_ARGS__);
+        CELER_DISCARD(GRID)                                                    \
+        CELER_DISCARD(KERNEL)                                                  \
+        CELER_DISCARD(__VA_ARGS__);
 #endif
 
 namespace celeritas
