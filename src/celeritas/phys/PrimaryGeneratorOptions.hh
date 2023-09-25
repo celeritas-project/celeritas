@@ -84,6 +84,9 @@ using PrimaryGeneratorEngine = std::mt19937;
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
+// Get a distribution name
+char const* to_cstring(DistributionSelection value);
+
 // Return a distribution for sampling the energy
 std::function<real_type(PrimaryGeneratorEngine&)>
 make_energy_sampler(DistributionOptions options);

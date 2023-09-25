@@ -14,7 +14,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -22,27 +21,6 @@
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to the distribution type.
- */
-char const* to_cstring(DistributionSelection value)
-{
-    static EnumStringMapper<DistributionSelection> const to_cstring_impl{
-        "delta",
-        "isotropic",
-        "box",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 // JSON serializers
 //---------------------------------------------------------------------------//
