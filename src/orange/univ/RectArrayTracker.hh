@@ -80,7 +80,7 @@ class RectArrayTracker
     inline CELER_FUNCTION Intersection intersect(LocalState const& state,
                                                  real_type max_dist) const;
 
-    // Find the local volume, given a post-crossing state
+    // Find the local volume given a post-crossing state
     inline CELER_FUNCTION Initialization
     cross_boundary(LocalState const& state) const;
 
@@ -167,7 +167,7 @@ CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the local volume, given a post-crossing state.
+ * Find the local volume given a post-crossing state.
  */
 CELER_FUNCTION auto
 RectArrayTracker::cross_boundary(LocalState const& state) const
@@ -183,7 +183,7 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
 
     // Due to surface deduplication, crossing out of rect arrays is not
     // possible
-    CELER_EXPECT(
+    CELER_ASSERT(
         !(coords[ax_idx] == 0 && state.surface.sense() == Sense::inside)
         && !(coords[ax_idx] == record_.dims[ax_idx] - 1
              && state.surface.sense() == Sense::outside));
@@ -192,11 +192,8 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
     // NOTE: that surface sense is currently the POST crossing value
     int inc = (state.surface.sense() == Sense::outside) ? 1 : -1;
 
-    detail::OnLocalSurface new_surface(state.surface.id(),
-                                       state.surface.sense());
-
     coords[ax_idx] += inc;
-    return {LocalVolumeId(to_index(coords)), new_surface};
+    return {LocalVolumeId(to_index(coords)), state.surface};
 }
 
 //---------------------------------------------------------------------------//

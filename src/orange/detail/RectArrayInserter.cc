@@ -54,6 +54,9 @@ RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
         CELER_VALIDATE(std::is_sorted(grid.begin(), grid.end()),
                        << "grid for " << to_char(ax) << " axis in '"
                        << inp.label << "' is not monotonically increasing");
+
+        // Suppress the outer grid boundaries to avoid coincident surfaces with
+        // other universes
         grid.front() = -std::numeric_limits<real_type>::infinity();
         grid.back() = std::numeric_limits<real_type>::infinity();
 
