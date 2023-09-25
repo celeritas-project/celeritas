@@ -77,9 +77,6 @@ class CollectionBuilder
     // Append a single element
     inline ItemIdT push_back(value_type const& element);
 
-    // Erase a number of elements from the end
-    inline void erase_back(size_type count = 1);
-
     //! Number of elements in the collection
     size_type size() const { return col_.size(); }
 
@@ -168,21 +165,6 @@ auto CollectionBuilder<T, M, I>::push_back(T const& el) -> ItemIdT
     auto result = this->size_id();
     this->storage().push_back(el);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Remove a number of elements from the end of the allocation.
- *
- * This allows a push_back/insert_back to be undone.
- */
-template<class T, MemSpace M, class I>
-void CollectionBuilder<T, M, I>::erase_back(size_type count)
-{
-    CELER_EXPECT(this->storage().size() >= count);
-    static_assert(M == MemSpace::host, "Erasure works only for host memory");
-    auto& s = this->storage();
-    s.erase(s.end() - count, s.end());
 }
 
 //---------------------------------------------------------------------------//
