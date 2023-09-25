@@ -40,7 +40,10 @@ void to_json(nlohmann::json& j, DistributionSelection const& value)
 void from_json(nlohmann::json const& j, DistributionOptions& opts)
 {
     j.at("distribution").get_to(opts.distribution);
-    j.at("params").get_to(opts.params);
+    if (j.contains("params"))
+    {
+        j.at("params").get_to(opts.params);
+    }
 }
 
 void to_json(nlohmann::json& j, DistributionOptions const& opts)
