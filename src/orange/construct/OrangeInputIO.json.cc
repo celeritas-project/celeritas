@@ -236,6 +236,7 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
 
     // Read daughters universes/translations
     {
+        auto parents = j.at("parent_cells").get<std::vector<size_type>>();
         auto daughters = j.at("daughters").get<std::vector<size_type>>();
         auto translations = j.at("translations").get<std::vector<real_type>>();
 
@@ -243,10 +244,12 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
                        << "field 'daughters' is not 3x length of "
                           "'parent_cells'");
 
+        value.daughters.resize(daughters.size());
+
         for (auto i : range(daughters.size()))
         {
-            value.daughters.push_back({UniverseId{daughters[i]},
-                                       slice<3>(make_span(translations), i)});
+            value.daughters[parents[i]] = {
+                UniverseId{daughters[i]}, slice<3>(make_span(translations), i)};
         }
     }
 }

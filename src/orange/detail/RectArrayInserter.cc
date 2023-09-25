@@ -46,7 +46,7 @@ RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
 
     for (auto ax : range(Axis::size_))
     {
-        std::vector<double> const& grid = inp.grid[to_int(ax)];
+        std::vector<double> grid = inp.grid[to_int(ax)];
         CELER_VALIDATE(grid.size() >= 2,
                        << "grid for " << to_char(ax) << " axis in '"
                        << inp.label << "' is too small (size " << grid.size()
@@ -54,6 +54,8 @@ RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
         CELER_VALIDATE(std::is_sorted(grid.begin(), grid.end()),
                        << "grid for " << to_char(ax) << " axis in '"
                        << inp.label << "' is not monotonically increasing");
+        grid.front() = -std::numeric_limits<real_type>::infinity();
+        grid.back() = std::numeric_limits<real_type>::infinity();
 
         sizes[to_int(ax)] = grid.size();
         record.dims[to_int(ax)] = grid.size() - 1;

@@ -1,0 +1,54 @@
+
+[GEOMETRY]
+global "global"
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+[UNIVERSE=general A]
+interior "outer"
+
+[UNIVERSE][SHAPE=cuboid outer]
+faces 0 1 0 1 0 1
+
+[UNIVERSE][CELL Afill]
+comp 1
+shapes -outer
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+[UNIVERSE=general B]
+interior "outer"
+
+[UNIVERSE][SHAPE=cuboid outer]
+faces 0 1 0 1 0 1
+
+[UNIVERSE][CELL Bfill]
+comp 2
+shapes -outer
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+[UNIVERSE=array arr]
+nx 2
+ny 2
+nz 1
+fill  A B B A
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+[UNIVERSE=array parent]
+nx 2
+ny 2
+nz 1
+fill arr arr arr arr
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+[UNIVERSE=general global]
+interior "outer"
+
+[UNIVERSE][SHAPE=cuboid outer]
+faces -20 20 -20 20 -20 20
+
+[UNIVERSE][HOLE arrfill]
+fill parent
+
+[UNIVERSE][CELL interior]
+comp 0
+shapes +arrfill -outer
