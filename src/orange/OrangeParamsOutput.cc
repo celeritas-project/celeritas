@@ -44,22 +44,20 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     auto const& data = orange_->host_ref();
 
     // Save param scalars
-    {
+    obj["scalars"] = [&sdata = data.scalars] {
         auto scalars = json::object();
-#    define OPO_SAVE_SCALAR(NAME) scalars[#NAME] = data.scalars.NAME;
+#    define OPO_SAVE_SCALAR(NAME) scalars[#NAME] = sdata.NAME;
         OPO_SAVE_SCALAR(max_depth);
         OPO_SAVE_SCALAR(max_faces);
         OPO_SAVE_SCALAR(max_intersections);
         OPO_SAVE_SCALAR(max_logic_depth);
         OPO_SAVE_SCALAR(tol);
 #    undef OPO_SAVE_SCALAR
-        obj["scalars"] = std::move(scalars);
-    }
+        return scalars;
+    }();
 
     // Save sizes
-    {
-        auto const& data = orange_->host_ref();
-
+    obj["sizes"] = [&data] {
         auto sizes = json::object();
 #    define OPO_SAVE_SIZE(NAME) sizes[#NAME] = data.NAME.size()
         OPO_SAVE_SIZE(universe_types);
@@ -78,28 +76,22 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_SAVE_SIZE(daughters);
 #    undef OPO_SAVE_SIZE
 
-        // BIH data
-        {
+        // Save BIH sizes
+        sizes["bih"] = [&bihdata = data.bih_tree_data] {
             auto bih = json::object();
-#    define OPO_SAVE_BIH_SIZE(NAME) bih[#NAME] = data.bih_tree_data.NAME.size()
+#    define OPO_SAVE_BIH_SIZE(NAME) bih[#NAME] = bihdata.NAME.size()
             OPO_SAVE_BIH_SIZE(bboxes);
             OPO_SAVE_BIH_SIZE(local_volume_ids);
             OPO_SAVE_BIH_SIZE(inner_nodes);
             OPO_SAVE_BIH_SIZE(leaf_nodes);
 #    undef OPO_SAVE_BIH_SIZE
-            sizes["bih"] = std::move(bih);
-        }
+            return bih;
+        }();
 
-        // Universe indexer data
-        {
-            sizes["universe_indexer"] = {
-                {"surfaces", data.universe_indexer_data.surfaces.size()},
-                {"volumes", data.universe_indexer_data.surfaces.size()},
-            };
-        }
+        return sizes;
+    }();
 
-        obj["sizes"] = std::move(sizes);
-    }
+    // TODO: make universe metadata accessible from ORANGE, and write it
 
     j->obj = std::move(obj);
 #else
