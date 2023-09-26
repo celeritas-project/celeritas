@@ -3,32 +3,34 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/univ/UniverseVisitor.hh
+//! \file orange/univ/TrackerVisitor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
 
+#include "RectArrayTracker.hh"
+#include "SimpleUnitTracker.hh"
 #include "UniverseTypeTraits.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Apply a functor to a simple or rect-array universe
+ * Apply a functor to a universe tracker of unknown type.
  *
  * An instance of this class is like \c std::visit but accepting a UniverseId
  * rather than a \c std::variant .
  *
  * Example: \code
- UniverseVisitor visit_universe{params_};
- auto new_pos = visit_universe(
+ TrackerVisitor visit_tracker{params_};
+ auto new_pos = visit_tracker(
     [&pos](auto&& u) { return u.initialize(pos); },
     uid);
  \endcode
  */
-class UniverseVisitor
+class TrackerVisitor
 {
   public:
     //!@{
@@ -38,14 +40,14 @@ class UniverseVisitor
 
   public:
     // Construct from ORANGE params
-    explicit inline CELER_FUNCTION UniverseVisitor(ParamsRef const& params);
+    explicit inline CELER_FUNCTION TrackerVisitor(ParamsRef const& params);
 
     // Apply the function to the universe specified by the given ID
     template<class F>
     CELER_FUNCTION decltype(auto) operator()(F&& func, UniverseId id);
 
   private:
-    ParamsRef params_;
+    ParamsRef const& params_;
 };
 
 //---------------------------------------------------------------------------//
@@ -54,18 +56,18 @@ class UniverseVisitor
 /*!
  * Construct from ORANGE params.
  */
-CELER_FUNCTION UniverseVisitor::UniverseVisitor(ParamsRef const& params)
+CELER_FUNCTION TrackerVisitor::TrackerVisitor(ParamsRef const& params)
     : params_(params)
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply the function to the transform specified by the given ID.
+ * Apply the function to the universe specified by the given ID.
  */
 template<class F>
 CELER_FUNCTION decltype(auto)
-UniverseVisitor::operator()(F&& func, UniverseId id)
+TrackerVisitor::operator()(F&& func, UniverseId id)
 {
     CELER_EXPECT(id < params_.universe_types.size());
     size_type universe_idx = params_.universe_indices[id];

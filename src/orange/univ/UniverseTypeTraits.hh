@@ -8,13 +8,13 @@
 #pragma once
 
 #include "orange/OrangeTypes.hh"
-#include "orange/univ/RectArrayTracker.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct SimpleUnitRecord;
 class SimpleUnitTracker;
+class RectArrayTracker;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -41,7 +41,7 @@ ORANGE_UNIV_TRAITS(rect_array, RectArray);
  * Expand a macro to a switch statement over all possible universe types.
  *
  * The \c func argument should be a functor that takes a single argument which
- * is a UniverseypeTraits instance.
+ * is a UniverseTypeTraits instance.
  */
 template<class F>
 CELER_CONSTEXPR_FUNCTION decltype(auto)
