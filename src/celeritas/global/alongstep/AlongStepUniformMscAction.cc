@@ -92,27 +92,27 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
                 std::forward<decltype(execute_track)>(execute_track)));
     };
 
-    if (this->has_msc())
-    {
-        launch_impl(
-            MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
-    }
-    launch_impl(
-        PropagationApplier{UniformFieldPropagatorFactory{field_params_}});
-    if (this->has_msc())
-    {
-        launch_impl(MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}});
-    }
-    launch_impl(detail::TimeUpdater{});
-    if (this->has_fluct())
-    {
-        launch_impl(ElossApplier{FluctELoss{fluct_->ref<MemSpace::native>()}});
-    }
-    else
-    {
-        launch_impl(ElossApplier{MeanELoss{}});
-    }
-    launch_impl(TrackUpdater{});
+    launch_impl([&](CoreTrackView const& track) {
+        if (this->has_msc())
+        {
+            MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
+        }
+        PropagationApplier{UniformFieldPropagatorFactory{field_params_}}(track);
+        if (this->has_msc())
+        {
+            MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
+        }
+        TimeUpdater{}(track);
+        if (this->has_fluct())
+        {
+            ElossApplier{FluctELoss{fluct_->ref<MemSpace::native>()}}(track);
+        }
+        else
+        {
+            ElossApplier{MeanELoss{}}(track);
+        }
+        TrackUpdater{}(track);
+    });
 }
 
 //---------------------------------------------------------------------------//
