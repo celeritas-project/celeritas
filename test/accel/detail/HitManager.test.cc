@@ -50,7 +50,7 @@ class SimpleCmsTest : public ::celeritas::test::SDTestBase,
         G4Material* mat
             = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
         SimpleCmsTest::detached_lv = new G4LogicalVolume(
-            new G4Orb("unused_solid", 10.0), mat, "unused_lv");
+            new G4Orb("unused_solid", 10.0), mat, "unused");
 
         return result;
     }
