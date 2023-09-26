@@ -96,7 +96,7 @@ struct Array
  * Test equality of two arrays.
  */
 template<class T, size_type N>
-inline CELER_FUNCTION bool
+CELER_CONSTEXPR_FUNCTION bool
 operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     for (size_type i = 0; i != N; ++i)
@@ -112,7 +112,8 @@ operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
  * Test inequality of two arrays.
  */
 template<class T, size_type N>
-CFIF_ bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
+CELER_CONSTEXPR_FUNCTION bool
+operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     return !(lhs == rhs);
 }
