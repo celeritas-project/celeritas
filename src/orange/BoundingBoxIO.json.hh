@@ -41,13 +41,23 @@ inline void fix_inf(celeritas::Array<T, 3>* point)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read a quantity from a JSON file.
+ * Read a bounding box from a JSON file.
+ *
+ * A bounding box can be either \c null , indicating an infinite or unknown
+ * bounding box, or a pair of lower/upper points.
  */
 template<class T>
 inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
 {
-    CELER_VALIDATE(j.size() == 2,
-                   << " bounding box must have lower and upper extents");
+    if (j.is_null())
+    {
+        // Missing bounding box
+        bbox = BoundingBox<T>::from_infinite();
+        return;
+    }
+
+    CELER_VALIDATE(j.is_array() && j.size() == 2,
+                   << "bounding box must have lower and upper extents");
 
     auto lower = j[0].get<Array<T, 3>>();
     auto upper = j[1].get<Array<T, 3>>();
@@ -60,7 +70,7 @@ inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write an array to a JSON file.
+ * Write a bounding box to a JSON file.
  */
 template<class T>
 inline void to_json(nlohmann::json& j, BoundingBox<T> const& bbox)
