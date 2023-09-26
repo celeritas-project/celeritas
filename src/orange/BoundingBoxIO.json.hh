@@ -22,7 +22,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 //! Replace "max" with "inf" since the latter can't be represented in JSON.
 template<class T>
-inline void fix_inf(celeritas::Array<T, 3>* point)
+inline void max_to_inf(celeritas::Array<T, 3>* point)
 {
     constexpr auto max_real = std::numeric_limits<T>::max();
     constexpr auto inf = std::numeric_limits<T>::infinity();
@@ -36,6 +36,24 @@ inline void fix_inf(celeritas::Array<T, 3>* point)
         }
     }
 }
+
+//---------------------------------------------------------------------------//
+//! Replace "max" with "inf" since the latter can't be represented in JSON.
+template<class T>
+inline void inf_to_max(celeritas::Array<T, 3>* point)
+{
+    constexpr auto max_real = std::numeric_limits<T>::max();
+
+    for (auto axis : range(celeritas::Axis::size_))
+    {
+        auto ax = to_int(axis);
+        if (std::isinf((*point)[ax]))
+        {
+            (*point)[ax] = std::copysign(max_real, (*point)[ax]);
+        }
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 
@@ -62,10 +80,10 @@ inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
     auto lower = j[0].get<Array<T, 3>>();
     auto upper = j[1].get<Array<T, 3>>();
 
-    detail::fix_inf(&lower);
-    detail::fix_inf(&upper);
+    detail::max_to_inf(&lower);
+    detail::max_to_inf(&upper);
 
-    bbox = BoundingBox<T>{lower, upper};
+    bbox = BoundingBox<T>::from_unchecked(lower, upper);
 }
 
 //---------------------------------------------------------------------------//
@@ -75,7 +93,20 @@ inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
 template<class T>
 inline void to_json(nlohmann::json& j, BoundingBox<T> const& bbox)
 {
-    j = {bbox.lower(), bbox.upper()};
+    if (bbox == BoundingBox<T>::from_infinite())
+    {
+        // Special case: save fully infinite is null
+        j = nullptr;
+        return;
+    }
+
+    auto lower = bbox.lower();
+    auto upper = bbox.upper();
+
+    detail::inf_to_max(&lower);
+    detail::inf_to_max(&upper);
+
+    j = nlohmann::json::array({lower, upper});
 }
 
 //---------------------------------------------------------------------------//
