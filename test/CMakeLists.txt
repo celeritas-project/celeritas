@@ -255,6 +255,7 @@ celeritas_add_test(orange/univ/detail/SenseCalculator.test.cc)
 celeritas_add_test(orange/univ/VolumeView.test.cc)
 celeritas_add_test(orange/univ/RectArrayTracker.test.cc ${_needs_json})
 celeritas_add_device_test(orange/univ/SimpleUnitTracker)
+celeritas_add_test(orange/univ/TrackerVisitor.test.cc ${_needs_json})
 
 #-----------------------------------------------------------------------------#
 # CELERITAS TESTS

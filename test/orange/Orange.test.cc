@@ -121,12 +121,6 @@ class UniversesTest : public OrangeTest
     void SetUp() override { this->build_geometry("universes.org.json"); }
 };
 
-#define RectArrayTest TEST_IF_CELERITAS_JSON(RectArrayTest)
-class RectArrayTest : public OrangeTest
-{
-    void SetUp() override { this->build_geometry("rect_array.org.json"); }
-};
-
 #define HexArrayTest TEST_IF_CELERITAS_JSON(HexArrayTest)
 class HexArrayTest : public OrangeTest
 {
@@ -882,18 +876,6 @@ TEST_F(UniversesTest, cross_between_daughters)
 
     geo.move_to_boundary();
     EXPECT_EQ("bob.mz", this->params().id_to_label(geo.surface_id()).name);
-}
-
-TEST_F(RectArrayTest, params)
-{
-    OrangeParams const& geo = this->params();
-    EXPECT_EQ(35, geo.num_volumes());
-    EXPECT_EQ(22, geo.num_surfaces());
-    EXPECT_EQ(4, geo.max_depth());
-    EXPECT_FALSE(geo.supports_safety());
-
-    EXPECT_VEC_SOFT_EQ(Real3({-12, -4, -5}), geo.bbox().lower());
-    EXPECT_VEC_SOFT_EQ(Real3({12, 10, 5}), geo.bbox().upper());
 }
 
 TEST_F(Geant4Testem15Test, safety)
