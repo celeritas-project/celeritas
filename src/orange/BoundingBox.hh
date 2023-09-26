@@ -108,7 +108,7 @@ operator==(BoundingBox<T> const& lhs, BoundingBox<T> const& rhs)
 
 //---------------------------------------------------------------------------//
 /*!
- * Test inequality of two arrays.
+ * Test inequality of two bounding boxes.
  */
 template<class T, size_type N>
 CELER_CONSTEXPR_FUNCTION bool

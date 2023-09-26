@@ -45,6 +45,7 @@ list(APPEND SOURCES
 
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
+    BoundingBoxIO.json.cc
     construct/CsgTreeIO.json.cc
     construct/OrangeInputIO.json.cc
   )

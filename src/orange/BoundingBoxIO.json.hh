@@ -7,107 +7,20 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
-#include <limits>
 #include <nlohmann/json.hpp>
-
-#include "corecel/cont/ArrayIO.json.hh"
 
 #include "BoundingBox.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-//! Replace "max" with "inf" since the latter can't be represented in JSON.
+// Read a bounding box from a JSON file
 template<class T>
-inline void max_to_inf(celeritas::Array<T, 3>* point)
-{
-    constexpr auto max_real = std::numeric_limits<T>::max();
-    constexpr auto inf = std::numeric_limits<T>::infinity();
+void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
 
-    for (auto axis : range(celeritas::Axis::size_))
-    {
-        auto ax = to_int(axis);
-        if (std::fabs((*point)[ax]) == max_real)
-        {
-            (*point)[ax] = std::copysign(inf, (*point)[ax]);
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
-//! Replace "max" with "inf" since the latter can't be represented in JSON.
-template<class T>
-inline void inf_to_max(celeritas::Array<T, 3>* point)
-{
-    constexpr auto max_real = std::numeric_limits<T>::max();
-
-    for (auto axis : range(celeritas::Axis::size_))
-    {
-        auto ax = to_int(axis);
-        if (std::isinf((*point)[ax]))
-        {
-            (*point)[ax] = std::copysign(max_real, (*point)[ax]);
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace detail
-
-//---------------------------------------------------------------------------//
-/*!
- * Read a bounding box from a JSON file.
- *
- * A bounding box can be either \c null , indicating an infinite or unknown
- * bounding box, or a pair of lower/upper points.
- */
-template<class T>
-inline void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
-{
-    if (j.is_null())
-    {
-        // Missing bounding box
-        bbox = BoundingBox<T>::from_infinite();
-        return;
-    }
-
-    CELER_VALIDATE(j.is_array() && j.size() == 2,
-                   << "bounding box must have lower and upper extents");
-
-    auto lower = j[0].get<Array<T, 3>>();
-    auto upper = j[1].get<Array<T, 3>>();
-
-    detail::max_to_inf(&lower);
-    detail::max_to_inf(&upper);
-
-    bbox = BoundingBox<T>::from_unchecked(lower, upper);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write a bounding box to a JSON file.
- */
-template<class T>
-inline void to_json(nlohmann::json& j, BoundingBox<T> const& bbox)
-{
-    if (bbox == BoundingBox<T>::from_infinite())
-    {
-        // Special case: save fully infinite is null
-        j = nullptr;
-        return;
-    }
-
-    auto lower = bbox.lower();
-    auto upper = bbox.upper();
-
-    detail::inf_to_max(&lower);
-    detail::inf_to_max(&upper);
-
-    j = nlohmann::json::array({lower, upper});
-}
+    // Write a bounding box to a JSON file
+    template<class T>
+    void to_json(nlohmann::json& j, BoundingBox<T> const& bbox)
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
