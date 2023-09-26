@@ -580,7 +580,7 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
         EXPECT_TRUE(table_id);
         auto select_element = phys.make_element_selector(table_id, energy);
         std::vector<int> counts(this->material()->get(mid).num_elements());
-        for ([[maybe_unused]] auto i : range(1e5))
+        for (auto i = 0; i < 100000; ++i)
         {
             auto const elcomp_id = select_element(this->rng());
             ASSERT_LT(elcomp_id.get(), counts.size());

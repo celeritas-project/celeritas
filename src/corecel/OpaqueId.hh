@@ -172,9 +172,7 @@ namespace std
 template<class V, class S>
 struct hash<celeritas::OpaqueId<V, S>>
 {
-    using argument_type = celeritas::OpaqueId<V, S>;
-    using result_type = std::size_t;
-    result_type operator()(argument_type const& id) const noexcept
+    std::size_t operator()(celeritas::OpaqueId<V, S> const& id) const noexcept
     {
         return std::hash<S>()(id.unchecked_get());
     }

@@ -76,7 +76,6 @@ class CollectionBuilder
 
     // Append a single element
     inline ItemIdT push_back(value_type const& element);
-    inline ItemIdT push_back(value_type&& element);
 
     //! Number of elements in the collection
     size_type size() const { return col_.size(); }
@@ -85,17 +84,20 @@ class CollectionBuilder
     ItemIdT size_id() const { return ItemIdT{size()}; }
 
   private:
-    CollectionT& col_;
-
+    //!@{
+    //! Access storage
     using StorageT = typename CollectionT::StorageT;
     StorageT& storage() { return col_.storage(); }
     StorageT const& storage() const { return col_.storage(); }
+    //!@}
 
     //! Maximum elements in a Collection
     static constexpr std::size_t max_size()
     {
         return std::numeric_limits<size_type>::max();
     }
+
+    CollectionT& col_;
 };
 
 //---------------------------------------------------------------------------//
@@ -162,17 +164,6 @@ auto CollectionBuilder<T, M, I>::push_back(T const& el) -> ItemIdT
                   "Insertion currently works only for host memory");
     auto result = this->size_id();
     this->storage().push_back(el);
-    return result;
-}
-
-template<class T, MemSpace M, class I>
-auto CollectionBuilder<T, M, I>::push_back(T&& el) -> ItemIdT
-{
-    CELER_EXPECT(this->storage().size() + 1 <= this->max_size());
-    static_assert(M == MemSpace::host,
-                  "Insertion currently works only for host memory");
-    auto result = this->size_id();
-    this->storage().push_back(std::move(el));
     return result;
 }
 
