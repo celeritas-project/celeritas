@@ -118,7 +118,7 @@ TEST_F(BoundingBoxTest, TEST_IF_CELERITAS_JSON(io))
     };
 
     EXPECT_EQ("[[-1.0,-2.0,-3.0],[3.0,2.0,1.0]]", to_json_string(bboxes[0]));
-    EXPECT_EQ("null", to_json_string(BoundingBoxT::from_infinite()));
+    EXPECT_EQ("null", to_json_string(BoundingBoxT{}));
 
     // Test round tripping
     for (BoundingBoxT const& bb : bboxes)

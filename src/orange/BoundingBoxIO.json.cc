@@ -67,8 +67,8 @@ void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
 {
     if (j.is_null())
     {
-        // Missing bounding box
-        bbox = BoundingBox<T>::from_infinite();
+        // Special case: null bounding box
+        bbox = {};
         return;
     }
 
@@ -81,7 +81,7 @@ void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
     max_to_inf(&lower);
     max_to_inf(&upper);
 
-    bbox = BoundingBox<T>::from_unchecked(lower, upper);
+    bbox = BoundingBox<T>{lower, upper};
 }
 
 //---------------------------------------------------------------------------//
@@ -91,9 +91,9 @@ void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
 template<class T>
 void to_json(nlohmann::json& j, BoundingBox<T> const& bbox)
 {
-    if (bbox == BoundingBox<T>::from_infinite())
+    if (!bbox)
     {
-        // Special case: save fully infinite is null
+        // Special case: null bounding box
         j = nullptr;
         return;
     }
