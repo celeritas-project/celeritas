@@ -16,11 +16,11 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Read a bounding box from a JSON file
 template<class T>
-void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
+void from_json(nlohmann::json const& j, BoundingBox<T>& bbox);
 
-    // Write a bounding box to a JSON file
-    template<class T>
-    void to_json(nlohmann::json& j, BoundingBox<T> const& bbox)
+// Write a bounding box to a JSON file
+template<class T>
+void to_json(nlohmann::json& j, BoundingBox<T> const& bbox);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

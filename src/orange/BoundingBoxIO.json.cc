@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file orange/BoundingBoxIO.json.cc
 //---------------------------------------------------------------------------//
-#include "BoundingBoxIO.hh"
+#include "BoundingBoxIO.json.hh"
 
 #include <cmath>
 #include <limits>
@@ -75,10 +75,11 @@ void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
     CELER_VALIDATE(j.is_array() && j.size() == 2,
                    << "bounding box must have lower and upper extents");
 
+    // Replace large values (substituted from +-inf) with inf
     auto lower = j[0].get<Array<T, 3>>();
     auto upper = j[1].get<Array<T, 3>>();
-    detail::max_to_inf(&lower);
-    detail::max_to_inf(&upper);
+    max_to_inf(&lower);
+    max_to_inf(&upper);
 
     bbox = BoundingBox<T>::from_unchecked(lower, upper);
 }
@@ -97,10 +98,11 @@ void to_json(nlohmann::json& j, BoundingBox<T> const& bbox)
         return;
     }
 
+    // Replace unrepresentable infinities with large values
     auto lower = bbox.lower();
     auto upper = bbox.upper();
-    detail::inf_to_max(&lower);
-    detail::inf_to_max(&upper);
+    inf_to_max(&lower);
+    inf_to_max(&upper);
 
     j = nlohmann::json::array({lower, upper});
 }
