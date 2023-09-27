@@ -8,6 +8,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -38,6 +39,7 @@ class OrangeGeoTestBase : public Test
     using HostStateRef = HostRef<OrangeStateData>;
     using HostParamsRef = HostCRef<OrangeParamsData>;
     using Params = OrangeParams;
+    using SPConstParams = std::shared_ptr<OrangeParams const>;
     //!@}
 
     //!@{
@@ -60,12 +62,6 @@ class OrangeGeoTestBase : public Test
     // Convert a string to a sense vector
     static std::vector<Sense> string_to_senses(std::string const& s);
 
-    // Default constructor
-    OrangeGeoTestBase();
-
-    // Default destructor
-    ~OrangeGeoTestBase();
-
     // Load `test/orange/data/{filename}` JSON input
     void build_geometry(char const* filename);
 
@@ -84,6 +80,9 @@ class OrangeGeoTestBase : public Test
         CELER_EXPECT(params_);
         return *params_;
     }
+
+    //! Get a shared pointer to params
+    SPConstParams const& sp_params() const { return params_; }
 
     // Lazily create and get a single-serving host state
     HostStateRef const& host_state();
@@ -126,7 +125,7 @@ class OrangeGeoTestBase : public Test
     //// DATA ////
 
     // Param data
-    std::unique_ptr<Params> params_;
+    SPConstParams params_;
 
     // State data
     HostStateStore host_state_;

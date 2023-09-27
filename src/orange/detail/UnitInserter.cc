@@ -18,7 +18,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/BoundingBoxUtils.hh"
@@ -129,6 +128,16 @@ UnitInserter::UnitInserter(Data* orange_data)
     : orange_data_(orange_data)
     , build_bih_tree_{&orange_data_->bih_tree_data}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
+    , simple_units_{&orange_data_->simple_units}
+    , local_surface_ids_{&orange_data_->local_surface_ids}
+    , local_volume_ids_{&orange_data_->local_volume_ids}
+    , real_ids_{&orange_data_->real_ids}
+    , logic_ints_{&orange_data_->logic_ints}
+    , reals_{&orange_data_->reals}
+    , surface_types_{&orange_data_->surface_types}
+    , connectivity_records_{&orange_data_->connectivity_records}
+    , volume_records_{&orange_data_->volume_records}
+    , daughters_{&orange_data_->daughters}
 {
     CELER_EXPECT(orange_data);
     CELER_EXPECT(orange_data->scalars.tol);
@@ -200,8 +209,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
 
     // Save volumes
     unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::VolumeRecordId>(
-        make_builder(&orange_data_->volume_records)
-            .insert_back(vol_records.begin(), vol_records.end()));
+        volume_records_.insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree
     CELER_VALIDATE(std::all_of(bboxes.begin(),
@@ -212,18 +220,14 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
 
     // Save connectivity
     {
-        std::vector<Connectivity> conn(connectivity.size());
-        CELER_ASSERT(conn.size() == unit.surfaces.types.size());
-        auto vol_ids = make_builder(&orange_data_->local_volume_ids);
+        std::vector<ConnectivityRecord> conn(connectivity.size());
         for (auto i : range(connectivity.size()))
         {
-            Connectivity c;
-            c.neighbors = vol_ids.insert_back(connectivity[i].begin(),
-                                              connectivity[i].end());
-            conn[i] = c;
+            conn[i].neighbors = local_volume_ids_.insert_back(
+                connectivity[i].begin(), connectivity[i].end());
         }
-        unit.connectivity = make_builder(&orange_data_->connectivities)
-                                .insert_back(conn.begin(), conn.end());
+        unit.connectivity
+            = connectivity_records_.insert_back(conn.begin(), conn.end());
     }
 
     // Save unit scalars
@@ -237,7 +241,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         });
 
     CELER_ASSERT(unit);
-    return make_builder(&orange_data_->simple_units).push_back(unit);
+    return simple_units_.push_back(unit);
 }
 
 //---------------------------------------------------------------------------//
@@ -246,8 +250,6 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
  */
 SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
 {
-    using RealId = SurfacesRecord::RealId;
-
     //// Check input consistency ////
 
     CELER_VALIDATE(s.types.size() == s.sizes.size(),
@@ -279,25 +281,22 @@ SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
 
     //// Insert data ////
 
-    // Insert surface types
+    // Insert surface types all at once
     SurfacesRecord result;
-    auto types = make_builder(&orange_data_->surface_types);
-    result.types = types.insert_back(s.types.begin(), s.types.end());
+    result.types = surface_types_.insert_back(s.types.begin(), s.types.end());
 
-    // Insert surface data all at once
-    auto reals = make_builder(&orange_data_->reals);
-    auto real_range = reals.insert_back(s.data.begin(), s.data.end());
-
-    RealId next_offset = real_range.front();
-    auto offsets = make_builder(&orange_data_->real_ids);
-    OpaqueId<RealId> start_offset(offsets.size());
-    offsets.reserve(offsets.size() + s.sizes.size());
+    // Insert surface one at a time
+    real_ids_.reserve(real_ids_.size() + s.sizes.size());
+    auto start_offset = real_ids_.size_id();
+    reals_.reserve(reals_.size() + s.data.size());
+    auto* ptr = s.data.data();
     for (auto single_size : s.sizes)
     {
-        offsets.push_back(next_offset);
-        next_offset = next_offset + single_size;
+        auto surf_data = reals_.insert_back(ptr, ptr + single_size);
+        real_ids_.push_back(*surf_data.begin());
+        ptr += single_size;
     }
-    CELER_ASSERT(next_offset == *real_range.end());
+    CELER_EXPECT(ptr == s.data.data() + s.data.size());
 
     result.data_offsets = range(start_offset, start_offset + s.sizes.size());
     return result;
@@ -343,10 +342,10 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     }
 
     VolumeRecord output;
-    output.faces = make_builder(&orange_data_->local_surface_ids)
-                       .insert_back(v.faces.begin(), v.faces.end());
-    output.logic = make_builder(&orange_data_->logic_ints)
-                       .insert_back(input_logic.begin(), input_logic.end());
+    output.faces
+        = local_surface_ids_.insert_back(v.faces.begin(), v.faces.end());
+    output.logic
+        = logic_ints_.insert_back(input_logic.begin(), input_logic.end());
     output.max_intersections = static_cast<logic_int>(max_intersections);
     output.flags = v.flags;
     if (simple_safety)
@@ -380,8 +379,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
     daughter.universe_id = daughter_input.universe_id;
     daughter.transform_id = insert_transform_(daughter_input.translation);
 
-    vol_record->daughter_id
-        = make_builder(&orange_data_->daughters).push_back(daughter);
+    vol_record->daughter_id = daughters_.push_back(daughter);
     vol_record->flags &= VolumeRecord::embedded_universe;
 }
 

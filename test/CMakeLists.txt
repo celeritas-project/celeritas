@@ -192,7 +192,7 @@ celeritas_add_library(testcel_orange
   orange/OrangeGeoTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
-  PRIVATE Celeritas::testcel_harness Celeritas::orange
+  PRIVATE Celeritas::testcel_harness Celeritas::testcel_core Celeritas::orange
 )
 
 celeritas_setup_tests(SERIAL PREFIX orange

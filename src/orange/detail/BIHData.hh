@@ -45,10 +45,9 @@ struct BIHInnerNode
         size_
     };
 
-    BIHNodeId parent;
-
-    Axis axis;
-    EnumArray<Edge, BoundingPlane> bounding_planes;
+    BIHNodeId parent;  //!< Parent node ID
+    Axis axis;  //!< Axis for "left" and "right"
+    EnumArray<Edge, BoundingPlane> bounding_planes;  //!< Lower and upper bound
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -63,8 +62,7 @@ struct BIHInnerNode
  */
 struct BIHLeafNode
 {
-    BIHNodeId parent;
-
+    BIHNodeId parent;  //!< Parent node ID
     ItemRange<LocalVolumeId> vol_ids;
 
     explicit CELER_FUNCTION operator bool() const { return !vol_ids.empty(); }
@@ -73,20 +71,21 @@ struct BIHLeafNode
 //---------------------------------------------------------------------------//
 /*!
  * Bounding Interval Hierarchy tree.
+ *
+ * Infinite bounding boxes are not included in the main tree.
  */
 struct BIHTree
 {
-    // All bounding boxes managed by the BIH
+    //! All bounding boxes managed by the BIH
     ItemMap<LocalVolumeId, FastBBoxId> bboxes;
 
-    // Inner nodes, the first being the root
+    //! Inner nodes, the first being the root
     ItemRange<BIHInnerNode> inner_nodes;
 
-    // Leaf nodes
+    //! Leaf nodes
     ItemRange<BIHLeafNode> leaf_nodes;
 
-    // VolumeIds for which bboxes have infinite extents, and are therefore
-    // note included in the tree
+    //! Local volumes that have infinite bounding boxes
     ItemRange<LocalVolumeId> inf_volids;
 
     explicit CELER_FUNCTION operator bool() const

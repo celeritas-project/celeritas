@@ -442,7 +442,7 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
     FieldDriverOptions driver_options;
     for (real_type delta : {1e-14, 1e-8, 1e-2, 0.1})
     {
-        auto geo = this->make_geo_track_view({90, 90, 90}, {1, 0, 0});
+        auto geo = this->make_geo_track_view({9.5, 9.5, 9.5}, {1, 0, 0});
         EXPECT_EQ("world", this->volume_name(geo));
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());

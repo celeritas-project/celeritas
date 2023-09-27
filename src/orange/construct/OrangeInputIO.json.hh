@@ -22,5 +22,8 @@ void from_json(nlohmann::json const& j, UnitInput& value);
 void from_json(nlohmann::json const& j, Tolerance<>& value);
 void from_json(nlohmann::json const& j, OrangeInput& value);
 
+template<class T>
+void to_json(nlohmann::json& j, Tolerance<T> const& value);
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
