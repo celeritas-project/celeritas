@@ -78,6 +78,9 @@ list(APPEND SOURCES
   user/StepCollector.cc
 )
 
+# Bounding box used for output is in "orange"
+list(APPEND PUBLIC_DEPS Celeritas::orange)
+
 #-----------------------------------------------------------------------------#
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
@@ -237,9 +240,7 @@ if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
 endif()
 
-if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-  list(APPEND PUBLIC_DEPS Celeritas::orange)
-elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   # Core data has transient includes into vecgeom
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
@@ -318,7 +319,7 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
   )
 endif()
-  
+
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
@@ -326,5 +327,5 @@ celeritas_target_link_libraries(celeritas
 )
 
 #-----------------------------------------------------------------------------#
- 
- 
+
+
