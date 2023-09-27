@@ -36,7 +36,7 @@ void max_to_inf(celeritas::Array<T, 3>* point)
 }
 
 //---------------------------------------------------------------------------//
-//! Replace "inf" with "max" since the latter can't be represented in JSON.
+//! Replace "inf" with "max" since the former can't be represented in JSON.
 template<class T>
 void inf_to_max(celeritas::Array<T, 3>* point)
 {
@@ -59,8 +59,8 @@ void inf_to_max(celeritas::Array<T, 3>* point)
 /*!
  * Read a bounding box from a JSON file.
  *
- * A bounding box can be either \c null , indicating an infinite or unknown
- * bounding box, or a pair of lower/upper points.
+ * A bounding box is a pair of lower/upper points, with the exception of a
+ * "null" (enclosing no points) bounding box.
  */
 template<class T>
 void from_json(nlohmann::json const& j, BoundingBox<T>& bbox)
