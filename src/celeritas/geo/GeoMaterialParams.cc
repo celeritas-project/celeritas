@@ -38,7 +38,7 @@ using MapLabelMatId = std::unordered_map<Label, MaterialId>;
  * Construct a label -> material map from the input.
  *
  * The input is effectively an "unzipped" unordered list of (volume label,
- * material pairs).
+ * material id) pairs.
  */
 MapLabelMatId build_label_map(MaterialParams const& mat_params,
                               std::vector<Label>&& labels,
@@ -116,18 +116,25 @@ class MaterialFinder
             // No materials match the volume label
             return {};
         }
-        if (std::distance(start, stop) == 1)
+
+        std::set<MaterialId> found_mat;
+        for (auto iter = start; iter != stop; ++iter)
         {
-            return start->second.second;
+            found_mat.insert(iter->second.second);
         }
 
-        // Multiple labels match
-        CELER_LOG(warning)
-            << "Multiple materials match the volume '" << vol_label << "': "
-            << join_stream(
-                   start, stop, ", ", [](std::ostream& os, auto&& mliter) {
-                       os << mliter.second.second.unchecked_get();
-                   });
+        // Multiple labels with match with different materials
+        if (found_mat.size() > 1)
+        {
+            CELER_LOG(warning)
+                << "Multiple materials match the volume '" << vol_label
+                << "': "
+                << join_stream(
+                       start, stop, ", ", [](std::ostream& os, auto&& mliter) {
+                           os << mliter.second.first << "="
+                              << mliter.second.second.unchecked_get();
+                       });
+        }
         return start->second.second;
     }
 
