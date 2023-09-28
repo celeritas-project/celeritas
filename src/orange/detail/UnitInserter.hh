@@ -59,7 +59,7 @@ class UnitInserter
     DedupeCollectionBuilder<SurfaceType> surface_types_;
     CollectionBuilder<ConnectivityRecord> connectivity_records_;
     CollectionBuilder<VolumeRecord> volume_records_;
-    DedupeCollectionBuilder<Daughter> daughters_;
+    CollectionBuilder<Daughter> daughters_;
 
     //// HELPER METHODS ////
 
