@@ -211,7 +211,7 @@ TEST_F(SimpleCmsTest, detached_detector)
     {
         static char const* const expected_log_messages[]
             = {"Failed to find VecGeom volume corresponding to Geant4 volume "
-               "\"unused_lv\"@0x0 (ID=7)"};
+               "\"unused\"@0x0 (ID=7)"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
         static char const* const expected_log_levels[] = {"error"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
