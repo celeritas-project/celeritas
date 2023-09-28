@@ -19,6 +19,10 @@ namespace csg
 //---------------------------------------------------------------------------//
 /*!
  * Recursively construct a logic vector from a node with postfix operation.
+ *
+ * This is an implementation detail of the \c build_postfix function. The user
+ * invokes this class with a node ID (usually representing a cell), and then
+ * this class recurses into the daughters using a tree visitor.
  */
 class PostfixLogicBuilder
 {
@@ -33,19 +37,27 @@ class PostfixLogicBuilder
                   "face and surface ints");
 
   public:
-    // Construct with reference to vector to append to
+    // Construct with pointer to vector to append to
     explicit inline PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
 
-    // Visit an actual surface
+    //!@{
+    //! \name Visit a node directly
+    // Append 'true'
     inline void operator()(True const&);
+    // False is never explicitly part of the node tree
     inline void operator()(False const&);
+    // Append a surface ID
     inline void operator()(Surface const&);
+    // Aliased nodes should never be reachable explicitly
     inline void operator()(Aliased const&);
+    // Visit a negated node and append 'not'
     inline void operator()(Negated const&);
+    // Visit daughter nodes and append the conjunction.
     inline void operator()(Joined const&);
+    //!@}
 
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
@@ -56,7 +68,7 @@ class PostfixLogicBuilder
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with reference to the logic expression.
+ * Construct with pointer to the logic expression.
  */
 PostfixLogicBuilder::PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic)
     : visit_node_{tree}, logic_{logic}
@@ -70,7 +82,7 @@ PostfixLogicBuilder::PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic)
  */
 void PostfixLogicBuilder::operator()(NodeId const& n)
 {
-    return this->visit_node_(*this, n);
+    this->visit_node_(*this, n);
 }
 
 //---------------------------------------------------------------------------//
@@ -100,7 +112,7 @@ void PostfixLogicBuilder::operator()(False const&)
 void PostfixLogicBuilder::operator()(Surface const& s)
 {
     CELER_EXPECT(s.id < logic::lbegin);
-    return logic_->push_back(s.id.unchecked_get());
+    logic_->push_back(s.id.unchecked_get());
 }
 
 //---------------------------------------------------------------------------//
@@ -111,13 +123,12 @@ void PostfixLogicBuilder::operator()(Surface const& s)
  */
 void PostfixLogicBuilder::operator()(Aliased const& n)
 {
-    // CELER_ASSERT_UNREACHABLE();
-    return (*this)(n.node);
+    (*this)(n.node);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * If replacing a queued node with a boolean, ours should match.
+ * Visit a negated node and append 'not'.
  */
 void PostfixLogicBuilder::operator()(Negated const& n)
 {
@@ -127,7 +138,7 @@ void PostfixLogicBuilder::operator()(Negated const& n)
 
 //---------------------------------------------------------------------------//
 /*!
- * If replacing a queued node with a boolean, ours should match.
+ * Visit daughter nodes and append the conjunction.
  */
 void PostfixLogicBuilder::operator()(Joined const& n)
 {

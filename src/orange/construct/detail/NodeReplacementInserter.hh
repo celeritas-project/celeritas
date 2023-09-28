@@ -33,20 +33,20 @@ class NodeReplacementInserter
     //!@}
 
   public:
-    // Construct with references to the stack and the replacement value
+    // Construct with pointers to the stack and replacement
     inline NodeReplacementInserter(VecNode* stack, Node const& repl);
-
-    // If replacing a queued node with a boolean, ours should match
-    inline void operator()(True const&);
-    inline void operator()(False const&);
-
-    // Surfaces cannot be simplified further
-    void operator()(Surface const&) {}
 
     // Simplify node types that reference other nodes
     inline void operator()(Aliased const& n);
     inline void operator()(Negated const& n);
     inline void operator()(Joined const& n);
+
+    // Check that replacement matches our stored boolean
+    inline void operator()(True const&);
+    inline void operator()(False const&);
+
+    // Surfaces cannot be simplified further
+    void operator()(Surface const&) {}
 
   private:
     VecNode* stack_;
@@ -59,7 +59,7 @@ class NodeReplacementInserter
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with references to the stack and the replacement value.
+ * Construct with pointer to the stack and the replacement value.
  *
  * For now the replacement must be a boolean.
  */
@@ -85,7 +85,7 @@ NodeReplacementInserter::NodeReplacementInserter(VecNode* stack,
 
 //---------------------------------------------------------------------------//
 /*!
- * If replacing a queued node with a boolean, ours should match.
+ * Check that the replacement node matches this queued node.
  */
 void NodeReplacementInserter::operator()(True const&)
 {
@@ -94,7 +94,7 @@ void NodeReplacementInserter::operator()(True const&)
 
 //---------------------------------------------------------------------------//
 /*!
- * If replacing a queued node with a boolean, ours should match.
+ * Check that the replacement node matches this queued node.
  */
 void NodeReplacementInserter::operator()(False const&)
 {
@@ -103,6 +103,8 @@ void NodeReplacementInserter::operator()(False const&)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Push the target of an aliased node onto the stack.
+ *
  * Aliasing a node implies the alias has the same value.
  */
 void NodeReplacementInserter::operator()(Aliased const& n)
@@ -112,6 +114,8 @@ void NodeReplacementInserter::operator()(Aliased const& n)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Push a negated node onto the stack.
+ *
  * Negating a node implies its daughter has the opposite value.
  */
 void NodeReplacementInserter::operator()(Negated const& n)
