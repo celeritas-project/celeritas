@@ -206,7 +206,7 @@ celeritas_add_test(orange/BoundingBoxUtils.test.cc)
 celeritas_add_test(orange/CsgTree.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(orange/MatrixUtils.test.cc)
-celeritas_add_test(orange/Orange.test.cc)
+celeritas_add_device_test(orange/Orange)
 
 # Base detail
 celeritas_add_test(orange/detail/BIHBuilder.test.cc)
