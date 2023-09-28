@@ -15,6 +15,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 
+#include "SurfaceTestUtils.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -26,19 +27,6 @@ namespace test
 using Intersections = CCylX::Intersections;
 using VecReal = std::vector<real_type>;
 
-real_type min_intersection(Intersections const& i)
-{
-    if (i[0] == 0 && i[1] == 0)
-        return no_intersection();
-    else if (i[0] == 0)
-        return i[1];
-    else if (i[1] == 0)
-        return i[0];
-    else if (i[0] < i[1])
-        return i[0];
-    return i[1];
-}
-
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -48,10 +36,14 @@ TEST(TestCCylX, construction)
     EXPECT_EQ(2, CCylX::Intersections{}.size());
 
     CCylX c(4.0);
+    EXPECT_SOFT_EQ(ipow<2>(4), c.radius_sq());
 
     const real_type expected_data[] = {ipow<2>(4)};
 
     EXPECT_VEC_SOFT_EQ(expected_data, c.data());
+
+    auto cy = CCylY::from_radius_sq(c.radius_sq());
+    EXPECT_SOFT_EQ(c.radius_sq(), cy.radius_sq());
 }
 
 TEST(TestCCylX, sense)

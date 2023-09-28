@@ -10,8 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
-#include "orange/surf/SurfaceAction.hh"
-#include "orange/surf/Surfaces.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "../VolumeView.hh"
 #include "SurfaceFunctors.hh"
@@ -39,17 +38,17 @@ class SenseCalculator
 
   public:
     // Construct from persistent, current, and temporary data
-    inline CELER_FUNCTION SenseCalculator(Surfaces const& surfaces,
+    inline CELER_FUNCTION SenseCalculator(LocalSurfaceVisitor const& visit,
                                           Real3 const& pos,
                                           Span<Sense> storage);
 
     // Calculate senses for the given volume, possibly on a face
     inline CELER_FUNCTION result_type operator()(VolumeView const& vol,
-                                                 OnFace face = {}) const;
+                                                 OnFace face = {});
 
   private:
-    //! Compressed vector of surface definitions
-    Surfaces surfaces_;
+    //! Apply a function to a local surface
+    LocalSurfaceVisitor visit_;
 
     //! Local position
     Real3 pos_;
@@ -64,10 +63,11 @@ class SenseCalculator
 /*!
  * Construct from persistent, current, and temporary data.
  */
-CELER_FUNCTION SenseCalculator::SenseCalculator(Surfaces const& surfaces,
-                                                Real3 const& pos,
-                                                Span<Sense> storage)
-    : surfaces_(surfaces), pos_(pos), sense_storage_(storage)
+CELER_FUNCTION
+SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
+                                 Real3 const& pos,
+                                 Span<Sense> storage)
+    : visit_{visit}, pos_(pos), sense_storage_(storage)
 {
 }
 
@@ -79,8 +79,7 @@ CELER_FUNCTION SenseCalculator::SenseCalculator(Surfaces const& surfaces,
  * of the return will be set.
  */
 CELER_FUNCTION auto
-SenseCalculator::operator()(VolumeView const& vol, OnFace face) const
-    -> result_type
+SenseCalculator::operator()(VolumeView const& vol, OnFace face) -> result_type
 {
     CELER_EXPECT(vol.num_faces() <= sense_storage_.size());
     CELER_EXPECT(!face || face.id() < vol.num_faces());
@@ -90,10 +89,6 @@ SenseCalculator::operator()(VolumeView const& vol, OnFace face) const
     result.senses = sense_storage_.first(vol.num_faces());
     result.face = face;
 
-    // Build a functor to calculate the sense of a surface ID given the current
-    // state position
-    auto calc_sense = make_surface_action(surfaces_, CalcSense{pos_});
-
     // Fill the temp logic vector with values for all surfaces in the volume
     for (FaceId cur_face : range(FaceId{vol.num_faces()}))
     {
@@ -101,7 +96,7 @@ SenseCalculator::operator()(VolumeView const& vol, OnFace face) const
         if (cur_face != face.id())
         {
             // Calculate sense
-            SignedSense ss = calc_sense(vol.get_surface(cur_face));
+            SignedSense ss = visit_(CalcSense{pos_}, vol.get_surface(cur_face));
             cur_sense = to_sense(ss);
             if (!result.face && ss == SignedSense::on)
             {

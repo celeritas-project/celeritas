@@ -50,6 +50,16 @@
  * side effects are as expected when leaving a function.
  */
 /*!
+ * \def CELER_ASSUME
+ *
+ * Always-on compiler assumption. This should be used very rarely: you should
+ * make sure the resulting assembly is simplified in optimize mode from using
+ * the assumption. For example, sometimes informing the compiler of an
+ * assumption can reduce code bloat by skipping standard library exception
+ * handling code (e.g. in \c std::visit by assuming \c
+ * !var_obj.valueless_by_exception() ).
+ */
+/*!
  * \def CELER_VALIDATE
  *
  * Always-on runtime assertion macro. This can check user input and input data
@@ -108,8 +118,18 @@
  * \def CELER_NOT_IMPLEMENTED
  *
  * Assert if the code point is reached because a feature has yet to be fully
- * implemented. This placeholder is so that code paths can be "declared but not
- * defined" and implementations safely postponed in a greppable manner.
+ * implemented.
+ *
+ * This placeholder is so that code paths can be "declared but not defined" and
+ * implementations safely postponed in a greppable manner. This should \em not
+ * be used to define "unused" overrides for virtual classes. A correct use case
+ * would be:
+ * \code
+   if (z > AtomicNumber{26})
+   {
+       CELER_NOT_IMPLEMENTED("physics for heavy nuclides");
+   }
+ * \endcode
  */
 
 //! \cond
@@ -146,6 +166,14 @@
         CELER_DEBUG_THROW_(MSG, WHICH); \
         ::celeritas::unreachable();     \
     } while (0)
+#define CELER_NDEBUG_ASSUME_(COND)      \
+    do                                  \
+    {                                   \
+        if (CELER_UNLIKELY(!(COND)))    \
+        {                               \
+            ::celeritas::unreachable(); \
+        }                               \
+    } while (0)
 #define CELER_NOASSERT_(COND)   \
     do                          \
     {                           \
@@ -157,12 +185,14 @@
 #    define CELER_EXPECT(COND) CELER_DEBUG_ASSERT_(COND, precondition)
 #    define CELER_ASSERT(COND) CELER_DEBUG_ASSERT_(COND, internal)
 #    define CELER_ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
+#    define CELER_ASSUME(COND) CELER_DEBUG_ASSERT_(COND, assumption)
 #    define CELER_ASSERT_UNREACHABLE() \
         CELER_DEBUG_FAIL_("unreachable code point encountered", unreachable)
 #else
 #    define CELER_EXPECT(COND) CELER_NOASSERT_(COND)
 #    define CELER_ASSERT(COND) CELER_NOASSERT_(COND)
 #    define CELER_ENSURE(COND) CELER_NOASSERT_(COND)
+#    define CELER_ASSUME(COND) CELER_NDEBUG_ASSUME_(COND)
 #    define CELER_ASSERT_UNREACHABLE() ::celeritas::unreachable()
 #endif
 
@@ -194,7 +224,10 @@
  * RuntimeError if it fails. If CUDA is disabled, throw an unconfigured
  * assertion.
  *
- * If it fails, we call \c cudaGetLastError to clear the error code.
+ * If it fails, we call \c cudaGetLastError to clear the error code. Note that
+ * this will \em not clear the code in a few fatal error cases (kernel
+ * assertion failure, invalid memory access) and all subsequent CUDA calls will
+ * fail.
  *
  * \code
    CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
@@ -224,7 +257,7 @@
         do                                                 \
         {                                                  \
             CELER_NOT_CONFIGURED("CUDA");                  \
-            (void)sizeof(celeritas_device_runtime_api_h_); \
+            CELER_DISCARD(celeritas_device_runtime_api_h_) \
         } while (0)
 #endif
 
@@ -266,7 +299,7 @@
         do                                                 \
         {                                                  \
             CELER_NOT_CONFIGURED("HIP");                   \
-            (void)sizeof(celeritas_device_runtime_api_h_); \
+            CELER_DISCARD(celeritas_device_runtime_api_h_) \
         } while (0)
 #endif
 
@@ -296,7 +329,7 @@
         do                                                 \
         {                                                  \
             CELER_NOT_CONFIGURED("CUDA or HIP");           \
-            (void)sizeof(celeritas_device_runtime_api_h_); \
+            CELER_DISCARD(celeritas_device_runtime_api_h_) \
         } while (0)
 #endif
 
@@ -354,6 +387,7 @@ enum class DebugErrorType
     unconfigured,  //!< Internal assertion: required feature not enabled
     unimplemented,  //!< Internal assertion: not yet implemented
     postcondition,  //!< Postcondition contract violation
+    assumption,  //!< "Assume" violation
 };
 
 enum class RuntimeErrorType
@@ -488,7 +522,7 @@ class RichContextException : public std::exception
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
 //! Host+device definition for CUDA when \c assert is unavailable
 inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
-    DebugErrorType, char const* condition, char const* file, unsigned int line)
+    DebugErrorType, char const* condition, char const* file, int line)
 {
     printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
            file,
@@ -501,15 +535,15 @@ inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
 inline __host__ void device_debug_error(DebugErrorType which,
                                         char const* condition,
                                         char const* file,
-                                        unsigned int line)
+                                        int line)
 {
-    throw DebugError({which, condition, __FILE__, __LINE__});
+    throw DebugError({which, condition, file, line});
 }
 
 //! Device-only call for HIP (must always be declared; only used if
 //! NDEBUG)
 inline __attribute__((noinline)) __device__ void device_debug_error(
-    DebugErrorType, char const* condition, char const* file, unsigned int line)
+    DebugErrorType, char const* condition, char const* file, int line)
 {
     printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
            file,

@@ -10,9 +10,14 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
+
+#include "BIHBuilder.hh"
+#include "TransformInserter.hh"
 
 namespace celeritas
 {
@@ -41,8 +46,20 @@ class UnitInserter
 
   private:
     Data* orange_data_{nullptr};
+    BIHBuilder build_bih_tree_;
+    TransformInserter insert_transform_;
 
-    // TODO: additional caches for hashed data?
+    CollectionBuilder<SimpleUnitRecord> simple_units_;
+
+    DedupeCollectionBuilder<LocalSurfaceId> local_surface_ids_;
+    DedupeCollectionBuilder<LocalVolumeId> local_volume_ids_;
+    DedupeCollectionBuilder<OpaqueId<real_type>> real_ids_;
+    DedupeCollectionBuilder<logic_int> logic_ints_;
+    DedupeCollectionBuilder<real_type> reals_;
+    DedupeCollectionBuilder<SurfaceType> surface_types_;
+    CollectionBuilder<ConnectivityRecord> connectivity_records_;
+    CollectionBuilder<VolumeRecord> volume_records_;
+    DedupeCollectionBuilder<Daughter> daughters_;
 
     //// HELPER METHODS ////
 

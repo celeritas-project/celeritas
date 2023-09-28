@@ -14,34 +14,13 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to the distribution type.
- */
-char const* to_cstring(DistributionSelection value)
-{
-    static EnumStringMapper<DistributionSelection> const to_cstring_impl{
-        "delta",
-        "isotropic",
-        "box",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 // JSON serializers
 //---------------------------------------------------------------------------//
@@ -61,7 +40,10 @@ void to_json(nlohmann::json& j, DistributionSelection const& value)
 void from_json(nlohmann::json const& j, DistributionOptions& opts)
 {
     j.at("distribution").get_to(opts.distribution);
-    j.at("params").get_to(opts.params);
+    if (j.contains("params"))
+    {
+        j.at("params").get_to(opts.params);
+    }
 }
 
 void to_json(nlohmann::json& j, DistributionOptions const& opts)
@@ -76,6 +58,16 @@ void to_json(nlohmann::json& j, DistributionOptions const& opts)
  */
 void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
 {
+    if (j.contains("seed"))
+    {
+        j.at("seed").get_to(opts.seed);
+    }
+    else
+    {
+        CELER_LOG(warning) << "Primary generator options are missing 'seed': "
+                              "defaulting to "
+                           << opts.seed;
+    }
     std::vector<int> pdg;
     auto&& pdg_input = j.at("pdg");
     if (pdg_input.is_array())
@@ -142,7 +134,8 @@ void to_json(nlohmann::json& j, PrimaryGeneratorOptions const& opts)
         opts.pdg.begin(), opts.pdg.end(), pdg.begin(), [](PDGNumber p) {
             return p.unchecked_get();
         });
-    j = nlohmann::json{{"pdg", pdg},
+    j = nlohmann::json{{"seed", opts.seed},
+                       {"pdg", pdg},
                        {"num_events", opts.num_events},
                        {"primaries_per_event", opts.primaries_per_event},
                        {"energy", opts.energy},

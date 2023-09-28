@@ -8,6 +8,7 @@
 #include "UnitInserter.hh"
 
 #include <algorithm>
+#include <iostream>
 #include <set>
 #include <vector>
 
@@ -17,13 +18,11 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/construct/OrangeInput.hh"
-#include "orange/surf/SurfaceAction.hh"
-#include "orange/surf/Surfaces.hh"
-#include "orange/surf/detail/SurfaceAction.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 
 namespace celeritas
 {
@@ -96,17 +95,6 @@ T inplace_max(T* target, T val)
 }
 
 //---------------------------------------------------------------------------//
-//! Static surface action for getting the storage requirements for a surface.
-template<class T>
-struct SurfaceDataSize
-{
-    constexpr size_type operator()() const noexcept
-    {
-        return T::Storage::extent;
-    }
-};
-
-//---------------------------------------------------------------------------//
 //! Return a surface's "simple" flag
 struct SimpleSafetyGetter
 {
@@ -136,9 +124,23 @@ struct NumIntersectionGetter
 /*!
  * Construct from full parameter data.
  */
-UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
+UnitInserter::UnitInserter(Data* orange_data)
+    : orange_data_(orange_data)
+    , build_bih_tree_{&orange_data_->bih_tree_data}
+    , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
+    , simple_units_{&orange_data_->simple_units}
+    , local_surface_ids_{&orange_data_->local_surface_ids}
+    , local_volume_ids_{&orange_data_->local_volume_ids}
+    , real_ids_{&orange_data_->real_ids}
+    , logic_ints_{&orange_data_->logic_ints}
+    , reals_{&orange_data_->reals}
+    , surface_types_{&orange_data_->surface_types}
+    , connectivity_records_{&orange_data_->connectivity_records}
+    , volume_records_{&orange_data_->volume_records}
+    , daughters_{&orange_data_->daughters}
 {
     CELER_EXPECT(orange_data);
+    CELER_EXPECT(orange_data->scalars.tol);
 
     // Initialize scalars
     orange_data_->scalars.max_faces = 1;
@@ -156,13 +158,36 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     // Insert surfaces
     unit.surfaces = this->insert_surfaces(inp.surfaces);
 
+    // Bounding box bumper and converter: conservatively expand to twice the
+    // potential bump distance from a boundary so that the bbox will enclose
+    // the point even after a potential bump
+    BoundingBoxBumper<fast_real_type> calc_bumped{
+        [&tol = orange_data_->scalars.tol] {
+            Tolerance<real_type> bbox_tol;
+            bbox_tol.rel = 2 * tol.rel;
+            bbox_tol.abs = 2 * tol.abs;
+            CELER_ENSURE(bbox_tol);
+            return bbox_tol;
+        }()};
+
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
+    std::vector<FastBBox> bboxes;
     for (auto i : range(inp.volumes.size()))
     {
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
+
+        // Store the bbox or an infinite bbox placeholder
+        if (inp.volumes[i].bbox)
+        {
+            bboxes.push_back(calc_bumped(inp.volumes[i].bbox));
+        }
+        else
+        {
+            bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
+        }
 
         // Add embedded universes
         if (inp.daughter_map.find(LocalVolumeId(i)) != inp.daughter_map.end())
@@ -184,23 +209,25 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
 
     // Save volumes
     unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::VolumeRecordId>(
-        make_builder(&orange_data_->volume_records)
-            .insert_back(vol_records.begin(), vol_records.end()));
+        volume_records_.insert_back(vol_records.begin(), vol_records.end()));
+
+    // Create BIH tree
+    CELER_VALIDATE(std::all_of(bboxes.begin(),
+                               bboxes.end(),
+                               [](FastBBox const& b) { return b; }),
+                   << "not all bounding boxes have been assigned");
+    unit.bih_tree = build_bih_tree_(std::move(bboxes));
 
     // Save connectivity
     {
-        std::vector<Connectivity> conn(connectivity.size());
-        CELER_ASSERT(conn.size() == unit.surfaces.types.size());
-        auto vol_ids = make_builder(&orange_data_->local_volume_ids);
+        std::vector<ConnectivityRecord> conn(connectivity.size());
         for (auto i : range(connectivity.size()))
         {
-            Connectivity c;
-            c.neighbors = vol_ids.insert_back(connectivity[i].begin(),
-                                              connectivity[i].end());
-            conn[i] = c;
+            conn[i].neighbors = local_volume_ids_.insert_back(
+                connectivity[i].begin(), connectivity[i].end());
         }
-        unit.connectivity = make_builder(&orange_data_->connectivities)
-                                .insert_back(conn.begin(), conn.end());
+        unit.connectivity
+            = connectivity_records_.insert_back(conn.begin(), conn.end());
     }
 
     // Save unit scalars
@@ -214,7 +241,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         });
 
     CELER_ASSERT(unit);
-    return make_builder(&orange_data_->simple_units).push_back(unit);
+    return simple_units_.push_back(unit);
 }
 
 //---------------------------------------------------------------------------//
@@ -223,8 +250,6 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
  */
 SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
 {
-    using RealId = SurfacesRecord::RealId;
-
     //// Check input consistency ////
 
     CELER_VALIDATE(s.types.size() == s.sizes.size(),
@@ -232,12 +257,15 @@ SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
                    << s.types.size() << ") must match number of sizes ("
                    << s.sizes.size() << ")");
 
-    auto get_data_size = make_static_surface_action<SurfaceDataSize>();
+    auto get_data_size = [](auto surf_traits) {
+        using Surface = typename decltype(surf_traits)::type;
+        return Surface::Storage::extent;
+    };
 
     size_type accum_size = 0;
     for (auto i : range(s.types.size()))
     {
-        size_type expected_size = get_data_size(s.types[i]);
+        size_type expected_size = visit_surface_type(get_data_size, s.types[i]);
         CELER_VALIDATE(expected_size == s.sizes[i],
                        << "inconsistent surface data size (" << s.sizes[i]
                        << ") for entry " << i << ": "
@@ -253,25 +281,22 @@ SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
 
     //// Insert data ////
 
-    // Insert surface types
+    // Insert surface types all at once
     SurfacesRecord result;
-    auto types = make_builder(&orange_data_->surface_types);
-    result.types = types.insert_back(s.types.begin(), s.types.end());
+    result.types = surface_types_.insert_back(s.types.begin(), s.types.end());
 
-    // Insert surface data all at once
-    auto reals = make_builder(&orange_data_->reals);
-    auto real_range = reals.insert_back(s.data.begin(), s.data.end());
-
-    RealId next_offset = real_range.front();
-    auto offsets = make_builder(&orange_data_->real_ids);
-    OpaqueId<RealId> start_offset(offsets.size());
-    offsets.reserve(offsets.size() + s.sizes.size());
+    // Insert surface one at a time
+    real_ids_.reserve(real_ids_.size() + s.sizes.size());
+    auto start_offset = real_ids_.size_id();
+    reals_.reserve(reals_.size() + s.data.size());
+    auto* ptr = s.data.data();
     for (auto single_size : s.sizes)
     {
-        offsets.push_back(next_offset);
-        next_offset = next_offset + single_size;
+        auto surf_data = reals_.insert_back(ptr, ptr + single_size);
+        real_ids_.push_back(*surf_data.begin());
+        ptr += single_size;
     }
-    CELER_ASSERT(next_offset == *real_range.end());
+    CELER_EXPECT(ptr == s.data.data() + s.data.size());
 
     result.data_offsets = range(start_offset, start_offset + s.sizes.size());
     return result;
@@ -289,22 +314,17 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     CELER_EXPECT(v.faces.empty() || v.faces.back() < surf_record.types.size());
 
     auto params_cref = make_const_ref(*orange_data_);
-    Surfaces surfaces{params_cref, surf_record};
+    LocalSurfaceVisitor visit_surface(params_cref, surf_record);
 
     // Mark as 'simple safety' if all the surfaces are simple
     bool simple_safety = true;
-    logic_int max_intersections = 0;
-
-    auto get_simple_safety
-        = make_surface_action(surfaces, SimpleSafetyGetter{});
-    auto get_num_intersections
-        = make_surface_action(surfaces, NumIntersectionGetter{});
+    size_type max_intersections = 0;
 
     for (LocalSurfaceId sid : v.faces)
     {
-        CELER_ASSERT(sid < surfaces.num_surfaces());
-        simple_safety = simple_safety && get_simple_safety(sid);
-        max_intersections += get_num_intersections(sid);
+        simple_safety = simple_safety
+                        && visit_surface(SimpleSafetyGetter{}, sid);
+        max_intersections += visit_surface(NumIntersectionGetter{}, sid);
     }
 
     auto input_logic = make_span(v.logic);
@@ -322,11 +342,11 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     }
 
     VolumeRecord output;
-    output.faces = make_builder(&orange_data_->local_surface_ids)
-                       .insert_back(v.faces.begin(), v.faces.end());
-    output.logic = make_builder(&orange_data_->logic_ints)
-                       .insert_back(input_logic.begin(), input_logic.end());
-    output.max_intersections = max_intersections;
+    output.faces
+        = local_surface_ids_.insert_back(v.faces.begin(), v.faces.end());
+    output.logic
+        = logic_ints_.insert_back(input_logic.begin(), input_logic.end());
+    output.max_intersections = static_cast<logic_int>(max_intersections);
     output.flags = v.flags;
     if (simple_safety)
     {
@@ -357,11 +377,9 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
 {
     Daughter daughter;
     daughter.universe_id = daughter_input.universe_id;
-    daughter.translation_id = make_builder(&orange_data_->translations)
-                                  .push_back(daughter_input.translation);
+    daughter.transform_id = insert_transform_(daughter_input.translation);
 
-    vol_record->daughter_id
-        = make_builder(&orange_data_->daughters).push_back(daughter);
+    vol_record->daughter_id = daughters_.push_back(daughter);
     vol_record->flags &= VolumeRecord::embedded_universe;
 }
 

@@ -17,6 +17,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Stream.hh"
+#include "corecel/sys/Thrust.device.hh"
 
 #include "StepData.hh"
 
@@ -42,16 +43,21 @@ gather_step_kernel(DeviceRef<StepStateData> const state, size_type num_valid)
         return;
     }
 
-    TrackSlotId valid_tid{state.valid_id[tid]};
+#define DS_FAST_GET(CONT, TID) CONT.data().get()[TID.unchecked_get()]
+
+    TrackSlotId valid_tid{DS_FAST_GET(state.valid_id, tid)};
     CELER_ASSERT(valid_tid < state.size());
 
-#define DS_COPY_IF_SELECTED(FIELD)                                  \
-    do                                                              \
-    {                                                               \
-        if (!state.data.FIELD.empty())                              \
-        {                                                           \
-            state.scratch.FIELD[tid] = state.data.FIELD[valid_tid]; \
-        }                                                           \
+    // Equivalent to `CONT[tid]` but without debug checking, which causes this
+    // function to grow large enough to emit warnings
+#define DS_COPY_IF_SELECTED(FIELD)                          \
+    do                                                      \
+    {                                                       \
+        if (!state.data.FIELD.empty())                      \
+        {                                                   \
+            DS_FAST_GET(state.scratch.FIELD, tid)           \
+                = DS_FAST_GET(state.data.FIELD, valid_tid); \
+        }                                                   \
     } while (0)
 
     DS_COPY_IF_SELECTED(detector);
@@ -114,7 +120,10 @@ struct HasDetector
 
 //---------------------------------------------------------------------------//
 template<class T>
-void copy_field(std::vector<T>* dst, StateRef<T> const& src, size_type num_valid)
+void copy_field(DetectorStepOutput::vector<T>* dst,
+                StateRef<T> const& src,
+                size_type num_valid,
+                StreamId stream)
 {
     if (src.empty() || num_valid == 0)
     {
@@ -123,9 +132,8 @@ void copy_field(std::vector<T>* dst, StateRef<T> const& src, size_type num_valid
         return;
     }
     dst->resize(num_valid);
-
     // Copy all items from valid threads
-    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}};
+    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}, stream};
     copy(MemSpace::device, {src.data().get(), num_valid});
 }
 
@@ -146,7 +154,7 @@ void copy_steps<MemSpace::device>(
     // Store the thread IDs of active tracks that are in a detector
     auto start = thrust::device_pointer_cast(state.valid_id.data().get());
     auto end = thrust::copy_if(
-        thrust::device,
+        thrust_execute_on(state.stream_id),
         thrust::make_counting_iterator(size_type(0)),
         thrust::make_counting_iterator(state.size()),
         thrust::device_pointer_cast(state.data.detector.data().get()),
@@ -161,7 +169,8 @@ void copy_steps<MemSpace::device>(
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    copy_field(&(output->FIELD), state.scratch.FIELD, num_valid)
+    copy_field(          \
+        &(output->FIELD), state.scratch.FIELD, num_valid, state.stream_id)
 
     DS_ASSIGN(detector);
     DS_ASSIGN(track_id);
@@ -181,6 +190,10 @@ void copy_steps<MemSpace::device>(
     DS_ASSIGN(particle);
     DS_ASSIGN(energy_deposition);
 #undef DS_ASSIGN
+
+    // Copies must be complete before returning
+    CELER_DEVICE_CALL_PREFIX(
+        StreamSynchronize(celeritas::device().stream(state.stream_id).get()));
 
     CELER_ENSURE(output->detector.size() == num_valid);
     CELER_ENSURE(output->track_id.size() == num_valid);

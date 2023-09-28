@@ -175,7 +175,7 @@ void SimpleCalo::output(JsonPimpl* j) const
         std::vector<int> ids;
         for (VolumeId vid : volume_ids_)
         {
-            ids.push_back(vid.get());
+            ids.push_back(static_cast<int>(vid.get()));
         }
         obj["volume_ids"] = std::move(ids);
         obj["volume_labels"] = volume_labels_;
@@ -191,7 +191,7 @@ void SimpleCalo::output(JsonPimpl* j) const
 
     j->obj = std::move(obj);
 #else
-    (void)sizeof(j);
+    CELER_DISCARD(j);
 #endif
 }
 

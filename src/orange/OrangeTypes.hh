@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <type_traits>
 #include <utility>
 
 #include "corecel/Macros.hh"
@@ -24,26 +25,48 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<class T>
+class BoundingBox;
+
+//---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
+//! Real type used for acceleration
+using fast_real_type = float;
+
 //! Integer type for volume CSG tree representation
-using logic_int = unsigned short int;
+using logic_int = size_type;
+
+//! Helper class for some template dispatch functions
+template<Axis T>
+using AxisTag = std::integral_constant<Axis, T>;
+
+//// ID TYPES ////
+
+//! Identifier for a BIHNode objects
+using BIHNodeId = OpaqueId<struct BIHNode_>;
 
 //! Identifier for a daughter universe
 using DaughterId = OpaqueId<struct Daughter>;
 
 //! Identifier for a face within a volume
-using FaceId = OpaqueId<struct Face>;
+using FaceId = OpaqueId<struct Face_, logic_int>;
+
+//! Bounding box used for acceleration
+using FastBBox = BoundingBox<fast_real_type>;
+
+//! Identifier for a bounding box used for acceleration
+using FastBBoxId = OpaqueId<FastBBox>;
 
 //! Identifier for the current "level", i.e., depth of embedded universe
-using LevelId = OpaqueId<struct Level>;
+using LevelId = OpaqueId<struct Level_>;
 
 //! Local identifier for a surface within a universe
-using LocalSurfaceId = OpaqueId<struct LocalSurface>;
+using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
 
 //! Local identifier for a geometry volume within a universe
-using LocalVolumeId = OpaqueId<struct LocalVolume>;
+using LocalVolumeId = OpaqueId<struct LocalVolume_>;
 
 //! Opaque index for "simple unit" data
 using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
@@ -51,14 +74,11 @@ using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 //! Opaque index for rectilinear array data
 using RectArrayId = OpaqueId<struct RectArrayRecord>;
 
-//! Translation of a single embedded universe
-using Translation = Real3;
-
 //! Identifier for a translation of a single embedded universe
-using TranslationId = OpaqueId<Translation>;
+using TransformId = OpaqueId<struct TransformRecord>;
 
 //! Identifier for a relocatable set of volumes
-using UniverseId = OpaqueId<struct Universe>;
+using UniverseId = OpaqueId<struct Universe_>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -85,7 +105,7 @@ enum class Sense : bool
  * Enumeration for mapping surface classes to integers.
  *
  * These are ordered by number of coefficients needed for their representation:
- * 1 for `[ps].|c.o`, 3 for `c.`, 4 for `[ps]|k.`, 7 for `sq`, and 10 for `gq`.
+ * 1 for `p.|sc|c.c`, 3 for `c.`, 4 for `[ps]|k.`, 7 for `sq`, and 10 for `gq`.
  *
  * See \c orange/surf/SurfaceTypeTraits.hh for how these map to classes.
  */
@@ -98,21 +118,29 @@ enum class SurfaceType : unsigned char
     cyc,  //!< Cylinder centered on Y axis
     czc,  //!< Cylinder centered on Z axis
     sc,  //!< Sphere centered at the origin
-#if 0
     cx,  //!< Cylinder parallel to X axis
     cy,  //!< Cylinder parallel to Y axis
     cz,  //!< Cylinder parallel to Z axis
-    p,   //!< General plane
-#endif
+    p,  //!< General plane
     s,  //!< Sphere
-#if 0
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
-#endif
     gq,  //!< General quadric
     size_  //!< Sentinel value for number of surface types
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enumeration for mapping transform implementations to integers.
+ */
+enum class TransformType : unsigned char
+{
+    no_transformation,  //!< Identity transform
+    translation,  //!< Translation only
+    transformation,  //!< Translation plus rotation
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -216,8 +244,64 @@ enum OperatorToken : logic_int
 struct Daughter
 {
     UniverseId universe_id;
-    TranslationId translation_id;
+    TransformId transform_id;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Tolerance for construction and runtime bumping.
+ *
+ * The relative error is used for comparisons of magnitudes of values, and the
+ * absolute error provides a lower bound for the comparison tolerance. In most
+ * cases (see \c SoftEqual, \c BoundingBoxBumper , \c detail::BumpCalculator)
+ * the tolerance used is a maximum of the absolute error and the 1- or 2-norm
+ * of some spatial coordinate. In other cases (\c SurfaceSimplifier, \c
+ * SoftSurfaceEqual) the similarity between surfaces is determined by solving
+ * for a change in surface coefficients that results in no more than a change
+ * in \f$ \epsilon \f$ of a particle intercept. A final special case (the \c
+ * sqrt_quadratic static variable) is used to approximate the degenerate
+ * condition \f$ a\sim 0\f$ for a particle traveling nearly parallel to a
+ * quadric surface: see \c CylAligned for a discussion.
+ *
+ * The absolute error should typically be constructed from the relative error
+ * (since computers use floating point precision) and a characteristic length
+ * scale for the problem being used. For detector/reactor problems the length
+ * might be ~1 cm, for microbiology it might be ~1 um, and for astronomy might
+ * be ~1e6 m.
+ *
+ * \note For historical reasons, the absolute tolerance used by \c SoftEqual
+ * defaults to 1/100 of the relative tolerance, whereas with \c Tolerance the
+ * equivalent behavior is setting a length scale of 0.01.
+ */
+template<class T = ::celeritas::real_type>
+struct Tolerance
+{
+    using real_type = T;
+
+    real_type rel{};  //!< Relative error for differences
+    real_type abs{};  //!< Absolute error [native length]
+
+    //! Intercept tolerance for parallel-to-quadric cases
+    static CELER_CONSTEXPR_FUNCTION real_type sqrt_quadratic() { return 1e-5; }
+
+    //! True if tolerances are valid
+    CELER_CONSTEXPR_FUNCTION operator bool() const
+    {
+        return rel > 0 && rel < 1 && abs > 0;
+    }
+
+    // Construct from the default relative tolerance (sqrt(precision))
+    static Tolerance from_default(real_type length = 1);
+
+    // Construct from the default "soft equivalence" relative tolerance
+    static Tolerance from_softequal();
+
+    // Construct from a relative tolerance and a length scale
+    static Tolerance from_relative(real_type rel, real_type length = 1);
+};
+
+extern template struct Tolerance<float>;
+extern template struct Tolerance<double>;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)
@@ -234,7 +318,7 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
 /*!
  * Change the sense across a surface.
  */
-CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 {
     return static_cast<Sense>(!static_cast<bool>(orig));
 }
@@ -243,7 +327,8 @@ CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 /*!
  * Change whether a boundary crossing is reentrant or exiting.
  */
-CELER_CONSTEXPR_FUNCTION BoundaryResult flip_boundary(BoundaryResult orig)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION BoundaryResult
+flip_boundary(BoundaryResult orig)
 {
     return static_cast<BoundaryResult>(!static_cast<bool>(orig));
 }
@@ -268,7 +353,8 @@ CELER_CONSTEXPR_FUNCTION BoundaryResult flip_boundary(BoundaryResult orig)
  *
  * NaN values are treated as "outside".
  */
-CELER_CONSTEXPR_FUNCTION SignedSense real_to_sense(real_type quadric)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense
+real_to_sense(real_type quadric)
 {
     return static_cast<SignedSense>(!(quadric <= 0) - (quadric < 0));
 }
@@ -334,6 +420,12 @@ inline constexpr char to_char(Sense s)
 
 // Get a string corresponding to a surface type
 char const* to_cstring(SurfaceType);
+
+// Get a string corresponding to a surface state
+inline char const* to_cstring(SurfaceState s)
+{
+    return s == SurfaceState::off ? "off" : "on";
+}
 
 //! Get a printable character corresponding to an operator.
 namespace logic

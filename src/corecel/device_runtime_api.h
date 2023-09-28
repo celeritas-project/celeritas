@@ -24,6 +24,10 @@
 #    include <hip/hip_runtime.h>
 #endif
 
+#if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
+#    include <thrust/mr/memory_resource.h>
+#endif
+
 /*!
  * \def CELER_EU_PER_CU
  *

@@ -39,6 +39,7 @@ COPY --from=builder /etc/profile.d/celeritas_spack_env.sh /etc/profile.d/celerit
 
 # Add core files
 # TODO: gcc isn't used for centos build
+ARG DOCKERFILE_DISTRO
 RUN if [ "$DOCKERFILE_DISTRO" = "ubuntu" ] ; then \
   apt-get -yqq update \
   && apt-get -yqq install --no-install-recommends \
@@ -56,8 +57,6 @@ elif [ "$DOCKERFILE_DISTRO" = "centos" ] ; then \
   && yum update -y \
   && yum --enablerepo epel groupinstall -y "Development Tools" \
   && yum --enablerepo epel install -y \
-       gcc-c++ \
-       gcc \
        vim \
   && rm -rf /var/cache/yum \
   && yum clean all ; \

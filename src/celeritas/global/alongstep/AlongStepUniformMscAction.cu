@@ -8,6 +8,7 @@
 #include "AlongStepUniformMscAction.hh"
 
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
@@ -54,7 +55,15 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
             *this, msc_->ref<MemSpace::native>(), params, state);
     }
     detail::launch_update_time(*this, params, state);
-    detail::launch_apply_eloss(*this, params, state);
+    if (this->has_fluct())
+    {
+        detail::launch_apply_eloss(
+            *this, fluct_->ref<MemSpace::native>(), params, state);
+    }
+    else
+    {
+        detail::launch_apply_eloss(*this, params, state);
+    }
     detail::launch_update_track(*this, params, state);
 }
 

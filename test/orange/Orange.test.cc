@@ -5,12 +5,20 @@
 //---------------------------------------------------------------------------//
 //! \file orange/Orange.test.cc
 //---------------------------------------------------------------------------//
+#include <limits>
+#include <type_traits>
+
+#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeParams.hh"
+#include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTrackView.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/Types.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "celeritas/Constants.hh"
 
 #include "OrangeGeoTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 using celeritas::constants::sqrt_two;
@@ -21,21 +29,60 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
+TEST(OrangeTypes, tolerances)
+{
+    using TolT = Tolerance<>;
+    EXPECT_FALSE(TolT{});
+
+    EXPECT_SOFT_EQ(1e-10, ipow<2>(TolT::sqrt_quadratic()));
+
+    {
+        SCOPED_TRACE("Default tolerance");
+        auto const tol = TolT::from_default();
+        EXPECT_TRUE(tol);
+        EXPECT_SOFT_NEAR(
+            std::sqrt(std::numeric_limits<real_type>::epsilon()), tol.rel, 0.5);
+        EXPECT_SOFT_EQ(tol.rel, tol.abs);
+        if constexpr (std::is_same_v<real_type, double>)
+        {
+            EXPECT_SOFT_EQ(1e-8, tol.rel);
+        }
+    }
+    {
+        SCOPED_TRACE("Tolerance with other length scale");
+        auto const tol = TolT::from_default(1e-4);
+        EXPECT_SOFT_EQ(1e-8, tol.rel);
+        EXPECT_SOFT_EQ(1e-12, tol.abs);
+    }
+    {
+        SCOPED_TRACE("Tolerance with arbitrary relative");
+        auto const tol = TolT::from_relative(1e-5);
+        EXPECT_SOFT_EQ(1e-5, tol.rel);
+        EXPECT_SOFT_EQ(1e-5, tol.abs);
+    }
+    {
+        SCOPED_TRACE("Tolerance with arbitrary relative and length scale");
+        auto const tol = TolT::from_relative(1e-5, 0.1);
+        EXPECT_SOFT_EQ(1e-5, tol.rel);
+        EXPECT_SOFT_EQ(1e-6, tol.abs);
+    }
+}
+
 class OrangeTest : public OrangeGeoTestBase
 {
   protected:
     using Initializer_t = GeoTrackInitializer;
 
     //! Create a host track view
-    OrangeTrackView make_track_view()
+    OrangeTrackView make_track_view(TrackSlotId tsid = TrackSlotId{0})
     {
         if (!host_state_)
         {
-            host_state_ = HostStateStore(this->host_params(), 1);
+            host_state_ = HostStateStore(this->host_params(), 2);
         }
+        CELER_EXPECT(tsid < host_state_.size());
 
-        return OrangeTrackView(
-            this->host_params(), host_state_.ref(), TrackSlotId{0});
+        return OrangeTrackView(this->host_params(), host_state_.ref(), tsid);
     }
 
   private:
@@ -75,10 +122,10 @@ class UniversesTest : public OrangeTest
     void SetUp() override { this->build_geometry("universes.org.json"); }
 };
 
-#define RectArrayTest TEST_IF_CELERITAS_JSON(RectArrayTest)
-class RectArrayTest : public OrangeTest
+#define HexArrayTest TEST_IF_CELERITAS_JSON(HexArrayTest)
+class HexArrayTest : public OrangeTest
 {
-    void SetUp() override { this->build_geometry("rect_array.org.json"); }
+    void SetUp() override { this->build_geometry("hex_array.org.json"); }
 };
 
 #define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)
@@ -530,6 +577,7 @@ TEST_F(UniversesTest, params)
     OrangeParams const& geo = this->params();
     EXPECT_EQ(12, geo.num_volumes());
     EXPECT_EQ(25, geo.num_surfaces());
+    EXPECT_EQ(3, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
 
     EXPECT_VEC_SOFT_EQ(Real3({-2, -6, -1}), geo.bbox().lower());
@@ -556,6 +604,19 @@ TEST_F(UniversesTest, params)
     EXPECT_VEC_EQ(expected, actual);
 }
 
+TEST_F(UniversesTest, output)
+{
+    OrangeParamsOutput out(this->sp_params());
+    EXPECT_EQ("orange", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":3,"max_faces":14,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":12,"inner_nodes":6,"leaf_nodes":9,"local_volume_ids":12},"connectivity_records":25,"daughters":3,"local_surface_ids":53,"local_volume_ids":20,"logic_ints":162,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"universe_indices":3,"universe_types":3,"volume_records":12}})json",
+            to_string(out));
+    }
+}
+
 TEST_F(UniversesTest, initialize_with_multiple_universes)
 {
     auto geo = this->make_track_view();
@@ -576,13 +637,24 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
 
-    // Initialize in daughter universe using DetailedInitializer
+    // Initialize in daughter universe using "this == &other"
     geo = OrangeTrackView::DetailedInitializer{geo, {0, 1, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
     EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
+
+    {
+        // Initialize a separate track slot
+        auto other = this->make_track_view(TrackSlotId{1});
+        other = OrangeTrackView::DetailedInitializer{geo, {1, 0, 0}};
+        EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), other.pos());
+        EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
+        EXPECT_EQ("c", this->params().id_to_label(other.volume_id()).name);
+        EXPECT_FALSE(other.is_outside());
+        EXPECT_FALSE(other.is_on_boundary());
+    }
 }
 
 TEST_F(UniversesTest, move_internal_multiple_universes)
@@ -601,6 +673,22 @@ TEST_F(UniversesTest, move_internal_multiple_universes)
     geo.move_internal(0.1);
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.9, next.distance);
+}
+
+// Set direction in a daughter universe and then make sure the direction is
+// correctly returned at the top level
+TEST_F(UniversesTest, change_dir_daughter_universe)
+{
+    auto geo = this->make_track_view();
+
+    // Initialize inside daughter universe a
+    geo = Initializer_t{{1.5, -2.0, 1.0}, {1.0, 0.0, 0.0}};
+
+    // Change the direction
+    geo.set_dir({0.0, 1.0, 0.0});
+
+    // Get the direction
+    EXPECT_VEC_EQ(Real3({0.0, 1.0, 0.0}), geo.dir());
 }
 
 // Cross into daughter universe for the case where the hole cell does not share
@@ -834,6 +922,54 @@ TEST_F(Geant4Testem15Test, safety)
     next = geo.find_next_step();
     geo.move_internal(6.0);
     EXPECT_SOFT_EQ(10.0, geo.find_safety());
+}
+
+TEST_F(HexArrayTest, output)
+{
+    OrangeParamsOutput out(this->sp_params());
+    EXPECT_EQ("orange", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":3,"max_faces":9,"max_intersections":10,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":58,"inner_nodes":49,"leaf_nodes":53,"local_volume_ids":58},"connectivity_records":53,"daughters":51,"local_surface_ids":191,"local_volume_ids":348,"logic_ints":585,"real_ids":53,"reals":272,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"universe_indices":4,"universe_types":4,"volume_records":58}})json",
+            to_string(out));
+    }
+}
+
+TEST_F(HexArrayTest, track_out)
+{
+    OrangeTrackView geo = this->make_track_view();
+
+    // Initialize
+    Real3 pos
+        = {-6.9258369494022292, -4.9982766629573767, -10.8378536157757495};
+    Real3 dir = {0.6750034206933703, -0.3679917428721818, 0.6394939086732125};
+
+    geo = Initializer_t{pos, dir};
+
+    std::vector<celeritas::VolumeId> vids;
+    std::vector<celeritas::VolumeId> refids = {celeritas::VolumeId{2},
+                                               celeritas::VolumeId{55},
+                                               celeritas::VolumeId{57},
+                                               celeritas::VolumeId{2}};
+
+    std::vector<double> d2b;
+    std::vector<double> refd2b = {1.99143, 5.30607, 0.306368, 5.98808};
+
+    while (!geo.is_outside())
+    {
+        vids.push_back(geo.volume_id());
+
+        auto next = geo.find_next_step();
+        d2b.push_back(next.distance);
+
+        geo.move_to_boundary();
+        geo.cross_boundary();
+    }
+
+    EXPECT_VEC_EQ(refids, vids);
+    EXPECT_VEC_CLOSE(d2b, refd2b, 1e-5, 1e-5);
 }
 
 //---------------------------------------------------------------------------//

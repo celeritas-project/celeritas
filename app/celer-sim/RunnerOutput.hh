@@ -23,10 +23,13 @@ namespace app
  */
 struct SimulationResult
 {
+    using MapStrReal = std::unordered_map<std::string, real_type>;
+
     //// DATA ////
 
     real_type total_time{};  //!< Total simulation time
     real_type setup_time{};  //!< One-time initialization cost
+    MapStrReal action_times{};  //!< Accumulated action timing
     std::vector<TransporterResult> events;  //!< Results tallied for each event
     size_type num_streams{};  //!< Number of CPU/OpenMP threads
 };
@@ -37,12 +40,6 @@ struct SimulationResult
  */
 class RunnerOutput final : public OutputInterface
 {
-  public:
-    //!@{
-    //! \name Type aliases
-
-    //!@}
-
   public:
     // Construct from simulation result
     explicit RunnerOutput(SimulationResult result);

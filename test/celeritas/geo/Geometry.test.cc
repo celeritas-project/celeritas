@@ -171,6 +171,53 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 }
 
 //---------------------------------------------------------------------------//
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#    define CmseTest DISABLED_CmseTest
+#endif
+class CmseTest : public HeuristicGeoTestBase
+{
+  protected:
+    std::string_view geometry_basename() const override { return "cmse"sv; }
+
+    HeuristicGeoScalars build_scalars() const final
+    {
+        HeuristicGeoScalars result;
+        result.lower = {-80, -80, -4500};
+        result.upper = {80, 80, 4500};
+        result.log_min_step = std::log(1e-4);
+        result.log_max_step = std::log(1e3);
+        return result;
+    }
+
+    size_type num_steps() const final { return 1024; }
+    SpanConstStr reference_volumes() const final;
+    SpanConstReal reference_avg_path() const final;
+};
+
+auto CmseTest::reference_volumes() const -> SpanConstStr
+{
+    // clang-format off
+    static std::string const vols[] = {"CMStoZDC", "Tracker", "CALO", "MUON",
+        "BEAM", "BEAM1", "BEAM2", "BEAM3", "TrackerPixelNose", "VCAL",
+        "TotemT1", "TotemT2", "CastorF", "CastorB", "OQUA", "BSC2", "CMSE",
+        "OCMS"};
+    // clang-format on
+    return make_span(vols);
+}
+
+auto CmseTest::reference_avg_path() const -> SpanConstReal
+{
+    // clang-format off
+    static real_type const paths[] = {74.17136, 13.25306, 76.67924, 449.5464,
+        0.09551618, 0.3231404, 0.310899, 0.3844357, 0.01179415, 11.09485,
+        9.101073, 0.0004083249, 0.3033329, 0.4292332, 228.7892, 0.03947559,
+        563.0746, 2858.592};
+    // clang-format on
+    return make_span(paths);
+}
+
+//---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
 
@@ -256,6 +303,31 @@ TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
     // Results were generated with ORANGE
     real_type tol = not_orange_geo ? 0.025 : 1e-3;
     this->run_device(512, tol);
+}
+
+//---------------------------------------------------------------------------//
+// CMSE
+//---------------------------------------------------------------------------//
+
+TEST_F(CmseTest, host)
+{
+    auto const& bbox = this->geometry()->bbox();
+    real_type const geo_eps
+        = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.001 : 0;
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{-1750 - geo_eps, -1750 - geo_eps, -45000 - geo_eps}),
+        bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1750 + geo_eps, 1750 + geo_eps, 45000 + geo_eps}),
+                       bbox.upper());
+
+    real_type tol = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.005
+                                                                     : 0.35;
+    this->run_host(512, tol);
+}
+
+TEST_F(CmseTest, TEST_IF_CELER_DEVICE(device))
+{
+    this->run_device(512, 0.005);
 }
 
 //---------------------------------------------------------------------------//

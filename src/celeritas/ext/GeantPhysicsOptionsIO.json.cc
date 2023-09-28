@@ -92,6 +92,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(linear_loss_limit);
     GPO_LOAD_OPTION(lowest_electron_energy);
     GPO_LOAD_OPTION(apply_cuts);
+    GPO_LOAD_OPTION(default_cutoff);
 
     GPO_LOAD_OPTION(msc_range_factor);
     GPO_LOAD_OPTION(msc_safety_factor);
@@ -132,6 +133,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
     GPO_SAVE_OPTION(linear_loss_limit);
     GPO_SAVE_OPTION(lowest_electron_energy);
     GPO_SAVE_OPTION(apply_cuts);
+    GPO_SAVE_OPTION(default_cutoff);
 
     GPO_SAVE_OPTION(msc_range_factor);
     GPO_SAVE_OPTION(msc_safety_factor);

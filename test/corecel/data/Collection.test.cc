@@ -13,6 +13,7 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
@@ -103,11 +104,27 @@ TEST(ItemMap, basic)
     }
 }
 
+TEST(CollectionBuilder, accessors)
+{
+    Collection<int, Ownership::value, MemSpace::host> data;
+    using IdType = OpaqueId<int>;
+    CollectionBuilder builder{&data};
+    EXPECT_EQ(0, builder.size());
+    EXPECT_EQ(IdType{0}, builder.size_id());
+}
+
 TEST(CollectionBuilder, size_limits)
 {
-    using IdType = OpaqueId<struct Tiny, std::uint8_t>;
+    using IdType = OpaqueId<struct Tiny_, std::uint8_t>;
     Collection<double, Ownership::value, MemSpace::host, IdType> host_val;
-    auto build = make_builder(&host_val);
+    auto build = CollectionBuilder(&host_val);
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(build.reserve(257), DebugError);
+        EXPECT_THROW(build.resize(1000), DebugError);
+    }
+
     std::vector<double> dummy(254);
     auto irange = build.insert_back(dummy.begin(), dummy.end());
     EXPECT_EQ(0, irange.begin()->unchecked_get());
@@ -120,17 +137,65 @@ TEST(CollectionBuilder, size_limits)
     // with a push_back and not a range insertion.
     build.push_back(123);
 
-#if CELERITAS_DEBUG
-    // Inserting 256 elements when 255 is the max int *must* raise an error
-    // when debug assertions are enabled.
-    EXPECT_THROW(build.push_back(1234.5), DebugError);
-#else
-    // With bounds checking disabled, a one-off check when getting a reference
-    // should catch the size failure.
-    build.push_back(12345.6);
-    Collection<double, Ownership::const_reference, MemSpace::host, IdType> host_ref;
-    EXPECT_THROW(host_ref = host_val, RuntimeError);
-#endif
+    if (CELERITAS_DEBUG)
+    {
+        // Inserting 256 elements when 255 is the max int *must* raise an error
+        // when debug assertions are enabled.
+        EXPECT_THROW(build.push_back(1234.5), DebugError);
+    }
+    else
+    {
+        // With bounds checking disabled, a one-off check when getting a
+        // reference should catch the size failure.
+        build.push_back(12345.6);
+        Collection<double, Ownership::const_reference, MemSpace::host, IdType>
+            host_ref;
+        EXPECT_THROW(host_ref = host_val, RuntimeError);
+    }
+}
+
+TEST(DedupeCollectionBuilder, construction)
+{
+    Collection<int, Ownership::value, MemSpace::host> host_val;
+    using Id = decltype(host_val)::ItemIdT;
+
+    DedupeCollectionBuilder ints{&host_val};
+    EXPECT_EQ(0, ints.size());
+    EXPECT_EQ(Id{0}, ints.size_id());
+
+    // Reserve space
+    ints.reserve(10);
+
+    auto r = ints.insert_back({1, 2, 3});
+    EXPECT_EQ(0, r.begin()->unchecked_get());
+    EXPECT_EQ(3, r.end()->unchecked_get());
+
+    r = ints.insert_back({5, 4});
+    EXPECT_EQ(3, r.begin()->unchecked_get());
+    EXPECT_EQ(5, r.end()->unchecked_get());
+
+    // NOTE: Sub-ranges don't get deduplicated
+    r = ints.insert_back({2, 3});
+    EXPECT_EQ(5, r.begin()->unchecked_get());
+    EXPECT_EQ(7, r.end()->unchecked_get());
+
+    // Test duplicate insertion
+    r = ints.insert_back({5, 4});
+    EXPECT_EQ(3, r.begin()->unchecked_get());
+    EXPECT_EQ(5, r.end()->unchecked_get());
+    r = [&ints] {
+        // Different type but gets converted
+        std::vector<unsigned int> temp{1, 2, 3};
+        return ints.insert_back(temp.begin(), temp.end());
+    }();
+    EXPECT_EQ(0, r.begin()->unchecked_get());
+    EXPECT_EQ(3, r.end()->unchecked_get());
+
+    // Single-element pushes don't get deduplicated
+    EXPECT_EQ(7, ints.push_back(1).unchecked_get());
+
+    static int const expected[] = {1, 2, 3, 5, 4, 2, 3, 1};
+    EXPECT_VEC_EQ(expected, host_val[AllItems<int>{}]);
 }
 
 //---------------------------------------------------------------------------//

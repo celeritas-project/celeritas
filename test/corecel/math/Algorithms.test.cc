@@ -80,6 +80,24 @@ TEST(UtilityTest, exchange)
 
 //---------------------------------------------------------------------------//
 
+TEST(AlgorithmsTest, all_of)
+{
+    static bool const items[] = {true, false, true, true};
+    auto is_true = [](bool b) { return b; };
+    EXPECT_TRUE(all_of(std::begin(items), std::begin(items), is_true));
+    EXPECT_FALSE(all_of(std::begin(items), std::end(items), is_true));
+    EXPECT_TRUE(all_of(std::begin(items) + 2, std::end(items), is_true));
+}
+
+TEST(AlgorithmsTest, any_of)
+{
+    static bool const items[] = {false, true, false, false};
+    auto is_true = [](bool b) { return b; };
+    EXPECT_FALSE(any_of(std::begin(items), std::begin(items), is_true));
+    EXPECT_TRUE(any_of(std::begin(items), std::end(items), is_true));
+    EXPECT_FALSE(any_of(std::begin(items) + 2, std::end(items), is_true));
+}
+
 TEST(AlgorithmsTest, clamp)
 {
     EXPECT_EQ(123, clamp(123, 100, 200));
@@ -291,6 +309,69 @@ TEST(MathTest, ceil_div)
     EXPECT_EQ(1u, ceil_div(32u, 32u));
     EXPECT_EQ(2u, ceil_div(33u, 32u));
     EXPECT_EQ(8u, ceil_div(50u, 7u));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST(MathTest, negate)
+{
+    double const zero = 0;
+    auto negzero = -zero;
+    EXPECT_TRUE(std::signbit(negzero));
+    EXPECT_FALSE(std::signbit(negate(zero)));
+
+    constexpr auto dblinf = std::numeric_limits<double>::infinity();
+    EXPECT_DOUBLE_EQ(-2.0, negate(2.0));
+    EXPECT_DOUBLE_EQ(-dblinf, negate(dblinf));
+    EXPECT_TRUE(std::isnan(negate(std::numeric_limits<double>::quiet_NaN())));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST(MathTest, sincos)
+{
+    {
+        double s{0}, c{0};
+        sincos(0.123, &s, &c);
+        EXPECT_DOUBLE_EQ(std::sin(0.123), s);
+        EXPECT_DOUBLE_EQ(std::cos(0.123), c);
+    }
+    {
+        float s{0}, c{0};
+        sincos(0.123f, &s, &c);
+        EXPECT_FLOAT_EQ(std::sin(0.123f), s);
+        EXPECT_FLOAT_EQ(std::cos(0.123f), c);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST(MathTest, sincospi)
+{
+    EXPECT_DOUBLE_EQ(std::sin(m_pi * 0.1), sinpi(0.1));
+    EXPECT_DOUBLE_EQ(std::cos(m_pi * 0.1), cospi(0.1));
+
+    double s{0}, c{0};
+    sincospi(0.123, &s, &c);
+    EXPECT_DOUBLE_EQ(std::sin(m_pi * 0.123), s);
+    EXPECT_DOUBLE_EQ(std::cos(m_pi * 0.123), c);
+
+    // Test special cases
+    sincospi(0, &s, &c);
+    EXPECT_EQ(double(0.0), s);
+    EXPECT_EQ(double(1.0), c);
+
+    sincospi(0.5, &s, &c);
+    EXPECT_EQ(double(1.0), s);
+    EXPECT_EQ(double(0.0), c);
+
+    sincospi(1.0, &s, &c);
+    EXPECT_EQ(double(0.0), s);
+    EXPECT_EQ(double(-1.0), c);
+
+    sincospi(1.5, &s, &c);
+    EXPECT_EQ(double(-1.0), s);
+    EXPECT_EQ(double(0.0), c);
 }
 
 //---------------------------------------------------------------------------//

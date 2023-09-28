@@ -8,6 +8,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -25,7 +27,8 @@ namespace celeritas
 namespace detail
 {
 class HitManager;
-}
+class OffloadWriter;
+}  // namespace detail
 
 struct SetupOptions;
 class SharedParams;
@@ -43,6 +46,12 @@ class SharedParams;
  */
 class LocalTransporter
 {
+  public:
+    //!@{
+    //! \name Type aliases
+    using MapStrReal = std::unordered_map<std::string, real_type>;
+    //!@}
+
   public:
     // Construct in an invalid state
     LocalTransporter() = default;
@@ -66,6 +75,9 @@ class LocalTransporter
     // Clear local data and return to an invalid state
     void Finalize();
 
+    // Get accumulated action times
+    MapStrReal GetActionTime() const;
+
     // Number of buffered tracks
     size_type GetBufferSize() const { return buffer_.size(); }
 
@@ -74,6 +86,7 @@ class LocalTransporter
 
   private:
     using SPHitManger = std::shared_ptr<detail::HitManager>;
+    using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
 
     struct HMFinalizer
     {
@@ -91,6 +104,8 @@ class LocalTransporter
     size_type auto_flush_{};
     size_type max_steps_{};
 
+    // Shared across threads to write flushed particles
+    SPOffloadWriter dump_primaries_;
     // Shared pointer across threads, "finalize" called when clearing
     InitializedValue<SPHitManger, HMFinalizer> hit_manager_;
 };

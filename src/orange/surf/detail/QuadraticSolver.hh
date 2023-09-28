@@ -22,16 +22,16 @@ namespace detail
 /*!
  * Find positive, real, nonzero roots for quadratic functions.
  *
- * These are for quadratic functions \f[
+ * The quadratic equation \f[
    a x^2 + b^2 + c = 0
  * \f]
- * where a is nonzero (and not close to zero).
+ * has two solutions mathematically, but we only want solutions where x is real
+ * and positive.  Furthermore the equation is subject to catastrophic roundoff
+ * due to floating point precision (see \c Tolerance::sqrt_quadratic and the
+ * derivation in \c CylAligned ).
  *
- * This is used for all quadrics with potentially two roots (anything but
- * planes).
- *
- * Each item in the Intersections result will be a positive valid intersection
- * or the sentinel result \c no_intersection() .
+ * \return An Intersections array where each item is a positive valid
+ * intersection or the sentinel result \c no_intersection() .
  */
 class QuadraticSolver
 {
@@ -41,12 +41,13 @@ class QuadraticSolver
     using Intersections = Array<real_type, 2>;
     //!@}
 
-    //! Fuzziness for "along surface"
-    static CELER_CONSTEXPR_FUNCTION real_type min_a() { return 1e-10; }
-
     // Solve when possibly along a surface (zeroish a)
     static inline CELER_FUNCTION Intersections solve_general(
         real_type a, real_type half_b, real_type c, SurfaceState on_surface);
+
+    // Solve degenerate case when a ~ 0 but not on surface
+    static inline CELER_FUNCTION Intersections
+    solve_along_surface(real_type half_b, real_type c);
 
   public:
     // Construct with nonzero a, and b/2
@@ -62,6 +63,12 @@ class QuadraticSolver
     //// DATA ////
     real_type a_inv_;
     real_type hba_;  // (b/2)/a
+
+    //! Fuzziness for "along surface" intercept
+    static CELER_CONSTEXPR_FUNCTION real_type min_a()
+    {
+        return ipow<2>(Tolerance<>::sqrt_quadratic());
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -78,36 +85,64 @@ CELER_FUNCTION auto QuadraticSolver::solve_general(real_type a,
                                                    SurfaceState on_surface)
     -> Intersections
 {
-    if (std::fabs(a) >= min_a())
+    if (std::fabs(a) >= QuadraticSolver::min_a())
     {
         // Not along the surface
         QuadraticSolver solve(a, half_b);
         return on_surface == SurfaceState::on ? solve() : solve(c);
     }
-    else
+    else if (on_surface == SurfaceState::off)
     {
         // Travelling parallel to the quadric's surface
-        if (on_surface == SurfaceState::off)
-        {
-            QuadraticSolver solve(min_a(), half_b);
-            return solve(c);
-        }
-        else
-        {
-            // On and along surface: no intersections
-            return {no_intersection(), no_intersection()};
-        }
+        return QuadraticSolver::solve_along_surface(half_b, c);
     }
+
+    // On and along surface: no intersections
+    return {no_intersection(), no_intersection()};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with b/2.
+ * Solve degenerate case when parallel to but not on surface.
+ *
+ * This is the case when a is approximately zero.
+ *
+ * Note that as both a and b -> 0, |x| -> infinity. Thus, if b/a is
+ * sufficiently small, no positive root is returned (because this case
+ * corresponds to a ray crossing a surface at an extreme distance).
+ */
+CELER_FUNCTION auto
+QuadraticSolver::solve_along_surface(real_type half_b, real_type c)
+    -> Intersections
+{
+    Intersections result;
+    if (std::fabs(half_b) > QuadraticSolver::min_a())
+    {
+        // On and along surface: no intersections
+        result[0] = -c / (2 * half_b);
+        if (result[0] < 0)
+        {
+            result[0] = no_intersection();
+        }
+        result[1] = no_intersection();
+    }
+    else
+    {
+        result = {no_intersection(), no_intersection()};
+    }
+
+    // On and along surface: no intersections
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with non-degenerate a and  b/2.
  */
 CELER_FUNCTION QuadraticSolver::QuadraticSolver(real_type a, real_type half_b)
     : a_inv_(1 / a), hba_(half_b * a_inv_)
 {
-    CELER_EXPECT(std::fabs(a) >= min_a());
+    CELER_EXPECT(std::fabs(a) >= QuadraticSolver::min_a());
 }
 
 //---------------------------------------------------------------------------//

@@ -22,6 +22,12 @@ namespace celeritas
  * N=0 for example. Additionally it uses the native celeritas \c size_type,
  * even though this has *no* effect on generated code for values of N inside
  * the range of \c size_type.
+ *
+ * \note For supplementary functionality, include:
+ * - \c corecel/math/ArrayUtils.hh for real-number vector/matrix applications
+ * - \c corecel/math/ArrayOperators.hh for mathematical operators
+ * - \c ArrayIO.hh for streaming and string conversion
+ * - \c ArrayIO.json.hh for JSON input and output
  */
 template<class T, ::celeritas::size_type N>
 struct Array
@@ -69,7 +75,7 @@ struct Array
     //!@{
     //! \name Capacity
     CELER_CONSTEXPR_FUNCTION bool empty() const { return N == 0; }
-    CELER_CONSTEXPR_FUNCTION size_type size() const { return N; }
+    static CELER_CONSTEXPR_FUNCTION size_type size() { return N; }
     //!@}
 
     //!@{

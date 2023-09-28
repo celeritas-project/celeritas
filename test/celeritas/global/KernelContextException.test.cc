@@ -40,7 +40,7 @@ std::string get_json_str(KernelContextException const& e)
     e.output(&jp);
     return jp.obj.dump();
 #else
-    (void)sizeof(e);
+    CELER_DISCARD(e);
     return {};
 #endif
 }

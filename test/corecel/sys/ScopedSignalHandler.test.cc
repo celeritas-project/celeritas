@@ -40,6 +40,7 @@ TEST(ScopedSignalHandlerTest, single)
     }
 }
 
+#ifndef _WIN32
 TEST(ScopedSignalHandlerTest, multiple)
 {
     using FuncPtr = int (*)(int);
@@ -63,6 +64,7 @@ TEST(ScopedSignalHandlerTest, multiple)
         }
     }
 }
+#endif
 
 TEST(ScopedSignalHandlerTest, nested)
 {

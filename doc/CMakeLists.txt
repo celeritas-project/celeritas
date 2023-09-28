@@ -55,7 +55,9 @@ set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_DISTRIBUTE_GROUP_DOC YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
+set(DOXYGEN_EXTRA_PACKAGES "amsmath")
 set(DOXYGEN_PREDEFINED "__DOXYGEN__")
+set(DOXYGEN_USE_MATHJAX YES)
 
 # Verbosity/warning levels
 if(NOT DEFINED DOXYGEN_QUIET)
@@ -152,13 +154,16 @@ endfunction()
 
 # Define a configure file with version and configuration info
 set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
+set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
-set(CELERITAS_USE_SPHINXRTDTHEME ${CELERITAS_USE_SphinxRtdTheme})
 if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
   set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
-elseif("${Celeritas_VERSION_STRING}" MATCHES "-rc[.-][0-9]+$")
-  set(Celeritas_SHORT_VERSION "${Celeritas_VERSION_STRING}")
+elseif("${Celeritas_VERSION_STRING}" MATCHES
+    "^(.*-rc[.-][0-9]+)(\\.[0-9]+\\+[0-9a-f]+)$")
+  # Use release candidate, stripping off stuff since the tag
+  set(Celeritas_SHORT_VERSION "${CMAKE_MATCH_1}")
 else()
+  # Development version
   set(_patch "${PROJECT_VERSION_PATCH}")
   if(NOT Celeritas_VERSION_STRING MATCHES "-dev")
     # Before the next release
@@ -176,7 +181,7 @@ set(DOXYGEN_XML_PROGRAMLISTING NO)
 
 # Annotations break breathe parsing
 foreach(_var
-  CELER_FUNCTION CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
+  CELER_FUNCTION CELER_FORCEINLINE CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
   [[maybe_unused]] CFIF_)
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
@@ -189,6 +194,7 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"

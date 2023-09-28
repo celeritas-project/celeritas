@@ -40,7 +40,7 @@ ActionDiagnosticExecutor::operator()(CoreTrackView const& track)
 
     using BinId = ItemId<size_type>;
 
-    auto action = track.make_sim_view().step_limit().action;
+    auto action = track.make_sim_view().post_step_action();
     CELER_ASSERT(action);
     auto particle = track.make_particle_view().particle_id();
     CELER_ASSERT(particle);

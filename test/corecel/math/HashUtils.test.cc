@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/math/HashUtils.hh"
 
+#include <cstddef>
 #include <cstdint>
 
 #include "celeritas_test.hh"
@@ -19,25 +20,25 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-TEST(FastHasherTest, four_byte)
+TEST(FnvHasherTest, four_byte)
 {
     std::uint32_t result{0};
-    auto hash = make_fast_hasher(&result);
+    auto hash = FnvHasher(&result);
     EXPECT_NE(0, result);
-    hash(static_cast<Byte>(0xab));
-    hash(static_cast<Byte>(0xcd));
-    hash(static_cast<Byte>(0x19));
+    hash(static_cast<std::byte>(0xab));
+    hash(static_cast<std::byte>(0xcd));
+    hash(static_cast<std::byte>(0x19));
     EXPECT_EQ(0x111e8cf4u, result);
 }
 
-TEST(FastHasherTest, eight_byte)
+TEST(FnvHasherTest, eight_byte)
 {
     std::uint64_t result{0};
-    auto hash = make_fast_hasher(&result);
+    auto hash = FnvHasher(&result);
     EXPECT_NE(0, result);
-    hash(static_cast<Byte>(0xab));
-    hash(static_cast<Byte>(0xcd));
-    hash(static_cast<Byte>(0x19));
+    hash(static_cast<std::byte>(0xab));
+    hash(static_cast<std::byte>(0xcd));
+    hash(static_cast<std::byte>(0x19));
     EXPECT_EQ(0x679fea1a6fe6ebb4ull, result);
 }
 

@@ -210,16 +210,18 @@ verb. For example::
 
 There are many opportunities to use ``OpaqueId`` in GPU code to indicate
 indexing into particular vectors. To maintain consistency, we let an
-index into a vector of ``Foo`` have a corresponding ``OpaqueId``  type::
+index into a vector of ``Foo`` objects have a corresponding ``OpaqueId``
+type::
 
     using FooId = OpaqueId<Foo>;
 
 and ideally be defined either immediately after ``Foo`` or in a
 :file:`Types.hh` file.  Some ``OpaqueId`` types may have only a "symbolic"
-corresponding type, in which case
-a tag struct can be be defined inline::
+corresponding type, in which case a tag struct can be be defined inline, using
+an underscore suffix as a convention indicating the type does not correspond to
+an actual class::
 
-   using BarId = OpaqueId<struct Bar>;
+   using BarId = OpaqueId<struct Bar_>;
 
 .. note:: Public functions in user-facing Geant4 classes (those in ``accel``)
    should try to conform to Geant4-style naming conventions, especially because

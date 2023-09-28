@@ -10,9 +10,12 @@
 #include <memory>
 #include <G4UserRunAction.hh>
 
+#include "corecel/sys/Stopwatch.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
+
+#include "GeantDiagnostics.hh"
 
 namespace celeritas
 {
@@ -37,13 +40,16 @@ class RunAction final : public G4UserRunAction
     using SPConstOptions = std::shared_ptr<SetupOptions const>;
     using SPParams = std::shared_ptr<SharedParams>;
     using SPTransporter = std::shared_ptr<LocalTransporter>;
+    using SPDiagnostics = std::shared_ptr<GeantDiagnostics>;
     //!@}
 
   public:
     RunAction(SPConstOptions options,
               SPParams params,
               SPTransporter transport,
-              bool init_celeritas);
+              SPDiagnostics diagnostics,
+              bool init_celeritas,
+              bool init_diagnostics);
 
     void BeginOfRunAction(G4Run const* run) final;
     void EndOfRunAction(G4Run const* run) final;
@@ -52,7 +58,11 @@ class RunAction final : public G4UserRunAction
     SPConstOptions options_;
     SPParams params_;
     SPTransporter transport_;
+    SPDiagnostics diagnostics_;
     bool init_celeritas_;
+    bool init_diagnostics_;
+    bool disable_offloading_;
+    Stopwatch get_transport_time_;
 };
 
 //---------------------------------------------------------------------------//

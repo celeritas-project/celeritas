@@ -28,7 +28,7 @@ namespace celeritas
 #if CELERITAS_USE_JSON
         json->obj = value_;
 #else
-        (void)sizeof(json);
+        CELER_DISCARD(json);
 #endif
     }
  * \endcode

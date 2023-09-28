@@ -37,6 +37,9 @@ class IsotopeView
     inline CELER_FUNCTION
     IsotopeView(MaterialParamsRef const& params, IsotopeId isot_id);
 
+    // ID of this isotope
+    CELER_FORCEINLINE_FUNCTION IsotopeId isotope_id() const;
+
     // Atomic number Z
     CELER_FORCEINLINE_FUNCTION AtomicNumber atomic_number() const;
 
@@ -47,7 +50,15 @@ class IsotopeView
     CELER_FORCEINLINE_FUNCTION MevMass nuclear_mass() const;
 
   private:
-    IsotopeRecord const& def_;
+    MaterialParamsRef const& params_;
+    IsotopeId isotope_;
+
+    // HELPER FUNCTIONS
+
+    CELER_FORCEINLINE_FUNCTION IsotopeRecord const& isotope_def() const
+    {
+        return params_.isotopes[isotope_];
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -58,9 +69,18 @@ class IsotopeView
  */
 CELER_FUNCTION
 IsotopeView::IsotopeView(MaterialParamsRef const& params, IsotopeId isot_id)
-    : def_(params.isotopes[isot_id])
+    : params_{params}, isotope_{isot_id}
 {
-    CELER_EXPECT(isot_id < params.isotopes.size());
+    CELER_EXPECT(isotope_ < params.isotopes.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Isotope ID.
+ */
+CELER_FUNCTION IsotopeId IsotopeView::isotope_id() const
+{
+    return isotope_;
 }
 
 //---------------------------------------------------------------------------//
@@ -69,7 +89,7 @@ IsotopeView::IsotopeView(MaterialParamsRef const& params, IsotopeId isot_id)
  */
 CELER_FUNCTION AtomicNumber IsotopeView::atomic_number() const
 {
-    return def_.atomic_number;
+    return isotope_def().atomic_number;
 }
 
 //---------------------------------------------------------------------------//
@@ -79,17 +99,16 @@ CELER_FUNCTION AtomicNumber IsotopeView::atomic_number() const
 CELER_FUNCTION IsotopeView::AtomicMassNumber
 IsotopeView::atomic_mass_number() const
 {
-    return def_.atomic_mass_number;
+    return isotope_def().atomic_mass_number;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Nuclear mass, which is the sum of the nucleons' mass and their binding
- * energy.
+ * Nuclear mass, the sum of the nucleons' mass and their binding energy.
  */
 CELER_FUNCTION units::MevMass IsotopeView::nuclear_mass() const
 {
-    return def_.nuclear_mass;
+    return isotope_def().nuclear_mass;
 }
 
 //---------------------------------------------------------------------------//

@@ -23,6 +23,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelRegistry.hh"
@@ -35,7 +36,9 @@
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -50,6 +53,7 @@
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
+#include "detail/OffloadWriter.hh"
 
 namespace celeritas
 {
@@ -157,11 +161,48 @@ SharedParams::SharedParams(SetupOptions const& options)
     ScopedMem record_mem("SharedParams.construct");
     ScopedTimeLog scoped_time;
 
-    // Initialize device and other "global" data
-    SharedParams::initialize_device(options);
+    // Initialize CUDA (CUDA environment variables control the preferred
+    // device)
+    celeritas::activate_device();
+
+    if (celeritas::device() && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    {
+        // Heap size must be set before creating VecGeom device instance; and
+        // let's just set the stack size as well
+        if (options.cuda_stack_size > 0)
+        {
+            celeritas::set_cuda_stack_size(options.cuda_stack_size);
+        }
+        if (options.cuda_heap_size > 0)
+        {
+            celeritas::set_cuda_heap_size(options.cuda_heap_size);
+        }
+    }
 
     // Construct core data
     this->initialize_core(options);
+
+    // Set up output after params are constructed
+    this->try_output();
+
+    if (!options.offload_output_file.empty())
+    {
+        std::unique_ptr<EventWriterInterface> writer;
+        if (ends_with(options.offload_output_file, ".root"))
+        {
+            writer.reset(
+                new RootEventWriter(std::make_shared<RootFileManager>(
+                                        options.offload_output_file.c_str()),
+                                    params_->particle()));
+        }
+        else
+        {
+            writer.reset(new EventWriter(options.offload_output_file,
+                                         params_->particle()));
+        }
+        offload_writer_
+            = std::make_shared<detail::OffloadWriter>(std::move(writer));
+    }
 
     CELER_ENSURE(*this);
 }
@@ -174,11 +215,9 @@ SharedParams::SharedParams(SetupOptions const& options)
  * properties) in single-thread mode has "thread" storage in a multithreaded
  * application. It must be initialized on all threads.
  */
-void SharedParams::InitializeWorker(SetupOptions const& options)
+void SharedParams::InitializeWorker(SetupOptions const&)
 {
-    CELER_LOG_LOCAL(status) << "Initializing worker thread";
-    ScopedTimeLog scoped_time;
-    return SharedParams::initialize_device(options);
+    celeritas::activate_device_local();
 }
 
 //---------------------------------------------------------------------------//
@@ -199,37 +238,13 @@ void SharedParams::Finalize()
     CELER_LOG_LOCAL(debug) << "Resetting shared parameters";
     *this = {};
 
+    if (auto& d = celeritas::device())
+    {
+        // Reset streams before the static destructor does
+        d.create_streams(0);
+    }
+
     CELER_ENSURE(!*this);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize GPU device on each thread.
- *
- * This is thread safe and must be called from every worker thread.
- */
-void SharedParams::initialize_device(SetupOptions const& options)
-{
-    if (Device::num_devices() == 0)
-    {
-        // No GPU is enabled so no global initialization is needed
-        return;
-    }
-
-    // Initialize CUDA (you'll need to use CUDA environment variables to
-    // control the preferred device)
-    celeritas::activate_device(Device{0});
-
-    // Heap size must be set before creating VecGeom device instance; and
-    // let's just set the stack size as well
-    if (options.cuda_stack_size > 0)
-    {
-        celeritas::set_cuda_stack_size(options.cuda_stack_size);
-    }
-    if (options.cuda_heap_size > 0)
-    {
-        celeritas::set_cuda_heap_size(options.cuda_heap_size);
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -397,12 +412,11 @@ void SharedParams::initialize_core(SetupOptions const& options)
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
 
-    // Set up output after params are constructed
-    output_filename_ = options.output_file;
-    this->try_output();
-
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());
+
+    // Save output filename
+    output_filename_ = options.output_file;
 }
 
 //---------------------------------------------------------------------------//

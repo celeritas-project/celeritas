@@ -33,8 +33,8 @@ void resize(XorwowRngStateData<Ownership::value, M>* state,
 
     // Seed sequence to generate well-distributed seed numbers, including
     // stream ID to give strings different starting contributions
-    std::vector<unsigned int> host_seeds(params.seed.begin(),
-                                         params.seed.end());
+    std::vector<std::seed_seq::result_type> host_seeds(params.seed.begin(),
+                                                       params.seed.end());
     if (stream != StreamId{0})
     {
         // For backward compatibility with prior RNG seed, don't modify the

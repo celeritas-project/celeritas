@@ -40,11 +40,17 @@ class CylCentered
 {
   public:
     //@{
-    //! Type aliases
+    //! \name Type aliases
     using Intersections = Array<real_type, 2>;
-    using Storage = Span<const real_type, 1>;
+    using StorageSpan = Span<const real_type, 1>;
+    using Storage = StorageSpan;  // DEPRECATED
     //@}
 
+  private:
+    static constexpr Axis U{T == Axis::x ? Axis::y : Axis::x};
+    static constexpr Axis V{T == Axis::z ? Axis::y : Axis::z};
+
+  public:
     //// CLASS ATTRIBUTES ////
 
     // Surface type identifier
@@ -53,8 +59,18 @@ class CylCentered
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
+    //!@{
+    //! Axes
+    static CELER_CONSTEXPR_FUNCTION Axis t_axis() { return T; }
+    static CELER_CONSTEXPR_FUNCTION Axis u_axis() { return U; }
+    static CELER_CONSTEXPR_FUNCTION Axis v_axis() { return V; }
+    //!@}
+
   public:
     //// CONSTRUCTORS ////
+
+    // Construct with square of radius for simplification
+    static inline CylCentered from_radius_sq(real_type rsq);
 
     // Construct with radius
     explicit inline CELER_FUNCTION CylCentered(real_type radius);
@@ -86,9 +102,8 @@ class CylCentered
     //! Square of cylinder radius
     real_type radius_sq_;
 
-    static CELER_CONSTEXPR_FUNCTION int t_index();
-    static CELER_CONSTEXPR_FUNCTION int u_index();
-    static CELER_CONSTEXPR_FUNCTION int v_index();
+    //! Private default constructor for manual construction
+    CylCentered() = default;
 };
 
 //---------------------------------------------------------------------------//
@@ -108,9 +123,26 @@ using CCylZ = CylCentered<Axis::z>;
 template<Axis T>
 CELER_CONSTEXPR_FUNCTION SurfaceType CylCentered<T>::surface_type()
 {
-    return (T == Axis::x
-                ? SurfaceType::cxc
-                : (T == Axis::y ? SurfaceType::cyc : SurfaceType::czc));
+    return T == Axis::x   ? SurfaceType::cxc
+           : T == Axis::y ? SurfaceType::cyc
+           : T == Axis::z ? SurfaceType::czc
+                          : SurfaceType::size_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from the square of the radius.
+ *
+ * This is used for surface simplification.
+ */
+template<Axis T>
+CylCentered<T> CylCentered<T>::from_radius_sq(real_type rsq)
+{
+    CELER_EXPECT(rsq > 0);
+
+    CylCentered<T> result;
+    result.radius_sq_ = rsq;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -140,8 +172,8 @@ CELER_FUNCTION CylCentered<T>::CylCentered(Storage data) : radius_sq_(data[0])
 template<Axis T>
 CELER_FUNCTION SignedSense CylCentered<T>::calc_sense(Real3 const& pos) const
 {
-    const real_type u = pos[u_index()];
-    const real_type v = pos[v_index()];
+    const real_type u = pos[to_int(U)];
+    const real_type v = pos[to_int(V)];
 
     return real_to_sense(ipow<2>(u) + ipow<2>(v) - radius_sq_);
 }
@@ -157,33 +189,29 @@ CylCentered<T>::calc_intersections(Real3 const& pos,
                                    SurfaceState on_surface) const
     -> Intersections
 {
-    // 1 - \omega \dot e
-    const real_type a = 1 - ipow<2>(dir[t_index()]);
+    // 1 - (\omega \dot t)^2 where t is axis of cylinder
+    const real_type a = 1 - ipow<2>(dir[to_int(T)]);
 
-    if (a >= detail::QuadraticSolver::min_a())
-    {
-        const real_type u = pos[u_index()];
-        const real_type v = pos[v_index()];
-
-        // b/2 = \omega \dot (x - x_0)
-        detail::QuadraticSolver solve_quadric(
-            a, dir[u_index()] * u + dir[v_index()] * v);
-        if (on_surface == SurfaceState::off)
-        {
-            // c = (x - x_0) \dot (x - x_0) - R * R
-            return solve_quadric(ipow<2>(u) + ipow<2>(v) - radius_sq_);
-        }
-        else
-        {
-            // Solve degenerate case (c=0)
-            return solve_quadric();
-        }
-    }
-    else
+    if (a < ipow<2>(Tolerance<>::sqrt_quadratic()))
     {
         // No intersection if we're traveling along the cylinder axis
         return {no_intersection(), no_intersection()};
     }
+
+    const real_type u = pos[to_int(U)];
+    const real_type v = pos[to_int(V)];
+
+    // b/2 = \omega \dot (x - x_0)
+    detail::QuadraticSolver solve_quadric(
+        a, dir[to_int(U)] * u + dir[to_int(V)] * v);
+    if (on_surface == SurfaceState::on)
+    {
+        // Solve degenerate case (c=0)
+        return solve_quadric();
+    }
+
+    // c = (x - x_0) \dot (x - x_0) - R * R
+    return solve_quadric(ipow<2>(u) + ipow<2>(v) - radius_sq_);
 }
 
 //---------------------------------------------------------------------------//
@@ -195,32 +223,12 @@ CELER_FUNCTION Real3 CylCentered<T>::calc_normal(Real3 const& pos) const
 {
     Real3 norm{0, 0, 0};
 
-    norm[u_index()] = pos[u_index()];
-    norm[v_index()] = pos[v_index()];
+    norm[to_int(U)] = pos[to_int(U)];
+    norm[to_int(V)] = pos[to_int(V)];
 
     normalize_direction(&norm);
     return norm;
 }
-
-//---------------------------------------------------------------------------//
-//!@{
-//! Integer index values for primary and orthogonal axes.
-template<Axis T>
-CELER_CONSTEXPR_FUNCTION int CylCentered<T>::t_index()
-{
-    return static_cast<int>(T);
-}
-template<Axis T>
-CELER_CONSTEXPR_FUNCTION int CylCentered<T>::u_index()
-{
-    return static_cast<int>(T == Axis::x ? Axis::y : Axis::x);
-}
-template<Axis T>
-CELER_CONSTEXPR_FUNCTION int CylCentered<T>::v_index()
-{
-    return static_cast<int>(T == Axis::z ? Axis::y : Axis::z);
-}
-//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

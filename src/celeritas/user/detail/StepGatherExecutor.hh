@@ -120,9 +120,8 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
             SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
 
-            auto const& limit = sim.step_limit();
-            SGL_SET_IF_SELECTED(action_id, limit.action);
-            SGL_SET_IF_SELECTED(step_length, limit.step);
+            SGL_SET_IF_SELECTED(action_id, sim.post_step_action());
+            SGL_SET_IF_SELECTED(step_length, sim.step_length());
         }
     }
 

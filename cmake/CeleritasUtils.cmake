@@ -27,6 +27,10 @@ CMake configuration utility functions for Celeritas.
   packages. If given, the ``<find_package>`` package name will searched for
   instead of ``<package>``.
 
+.. command:: celeritas_set_default
+
+  Set a locally-scoped value for the given variable if it is undefined.
+
 .. command:: celeritas_check_python_module
 
    Determine whether a given Python module is available with the current
@@ -132,6 +136,8 @@ include_guard(GLOBAL)
 
 include(CheckLanguage)
 
+set(CELERITAS_DEFAULT_VARIABLES)
+
 #-----------------------------------------------------------------------------#
 
 function(celeritas_optional_language lang)
@@ -191,6 +197,16 @@ macro(celeritas_optional_package package)
   endif()
 
   option("${_var}" "${_docstring}" "${_val}")
+endmacro()
+
+#-----------------------------------------------------------------------------#
+
+macro(celeritas_set_default name value)
+  if(NOT DEFINED ${name})
+    message(VERBOSE "Celeritas: set default ${name}=${value}")
+    set(${name} "${value}")
+  endif()
+  list(APPEND CELERITAS_DEFAULT_VARIABLES ${name})
 endmacro()
 
 #-----------------------------------------------------------------------------#
@@ -342,13 +358,15 @@ function(celeritas_define_options var doc)
   set(${var} "" CACHE STRING "${doc}")
   set_property(CACHE ${var} PROPERTY STRINGS "${${var}_OPTIONS}")
 
-  if("${${var}}" STREQUAL "")
+  set(_val "${${var}}")
+  if(_val STREQUAL "")
     # Dynamic default option: set as core variable in parent scope
     list(GET ${var}_OPTIONS 0 _default)
     set(${var} "${_default}" PARENT_SCOPE)
+    set(_val "${_default}")
   else()
     # User-provided value: check against list
-    list(FIND ${var}_OPTIONS "${${var}}" _index)
+    list(FIND ${var}_OPTIONS "${_val}" _index)
     if(_index EQUAL -1)
       string(JOIN "," _optlist ${${var}_OPTIONS})
       celeritas_error_incompatible_option(
@@ -356,6 +374,11 @@ function(celeritas_define_options var doc)
         "${var}" "${_default}"
       )
     endif()
+  endif()
+  set(_last_var _LAST_${var})
+  if(NOT "${_val}" STREQUAL "${${_last_var}}")
+    message(STATUS "Set ${var}=${_val}")
+    set(${_last_var} "${_val}" CACHE INTERNAL "")
   endif()
 endfunction()
 

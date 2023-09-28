@@ -19,9 +19,8 @@ namespace celeritas
  *
  * TODO: replace epsilon_rel_max with 1/epsilon_rel_max^2
  * TODO: replace safety with step_shrink_mul (or something to indicate that
- * TODO: deletee errcon
- * it's a multiplicative factor for reducing the step, not anything with
- * geometry)
+ *       it's a multiplicative factor for reducing the step, not anything with
+ *       geometry)
  * TODO: remove errcon
  */
 struct FieldDriverOptions
@@ -53,7 +52,7 @@ struct FieldDriverOptions
     //! Scale factor for the predicted step size
     real_type safety = 0.9;
 
-    //! Largrest allowable relative increase a step size
+    //! Largest allowable relative increase a step size
     real_type max_stepping_increase = 5;
 
     //! Smallest allowable relative decrease in step size
@@ -89,6 +88,29 @@ struct FieldDriverOptions
         // clang-format on
     }
 };
+
+//! Equality operator
+constexpr bool
+operator==(FieldDriverOptions const& a, FieldDriverOptions const& b)
+{
+    // clang-format off
+    return a.minimum_step == b.minimum_step
+           && a.delta_chord == b.delta_chord
+           && a.delta_intersection == b.delta_intersection
+           && a.epsilon_step == b.epsilon_step
+           && a.epsilon_rel_max == b.epsilon_rel_max
+           && a.errcon == b.errcon
+           && a.pgrow == b.pgrow
+           && a.pshrink == b.pshrink
+           && a.safety == b.safety
+           && a.max_stepping_increase == b.max_stepping_increase
+           && a.max_stepping_decrease == b.max_stepping_decrease
+           && a.max_nsteps == b.max_nsteps
+           && a.initial_step_tol == b.initial_step_tol
+           && a.dchord_tol == b.dchord_tol
+           && a.min_chord_shrink == b.min_chord_shrink;
+    // clang-format on
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

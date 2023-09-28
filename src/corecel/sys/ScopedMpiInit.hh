@@ -41,7 +41,7 @@ class ScopedMpiInit
 
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DELETE_COPY_MOVE(ScopedMpiInit)
+    CELER_DELETE_COPY_MOVE(ScopedMpiInit);
     //!@}
 
   private:

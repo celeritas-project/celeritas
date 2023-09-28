@@ -40,21 +40,14 @@ Roles
 =====
 
 The roles of the Celeritas code base are related to the roles
-set out in the SciDAC project management plan (PMP). These roles should be
+set out in the SciDAC project management plan. These roles should be
 reflected in the different teams and/or access restrictions in GitHub.
 
-Leadership team member
-   The "leadership team" comprises the PIs and capability leads in the PMP, or
-   their designated proxies who work directly on the Celeritas code. They are
-   responsible for the long-term and big-picture project goals, and they ensure
-   that project milestones are met.
-
 Code lead
-   The code lead is the "core capability lead" described in the PMP and
-   is responsible for steering the technical implementation of the codebase to
-   meet the long-term project goals. One key responsibility of the code lead is
-   to set up milestones for releases and execute the release process described
-   below.
+   The code lead is responsible for steering the technical implementation of
+   Celeritas to meet the long-term project goals. One key responsibility of
+   the code lead is to set up milestones for releases and execute the release
+   process described below.
 
 Maintainer
    Maintainers should be familiar with most or all parts of the codebase and
@@ -66,6 +59,14 @@ Core team member
    :ref:`contributing guidelines <contributing>`. They should regularly
    contribute new code, perform code reviews, publish new results using
    Celeritas, and/or participate in Celeritas stand-up meetings and hackathons.
+
+Core advisor
+   Advisors maintain close ties to Celeritas but are not consistently
+   developing or validating it. They should be officially part of a Celeritas
+   proposal or funded work even though they may charge only a small fraction of
+   their time. Core advisors are encouraged to perform code reviews and attend
+   meetings, and they are expected to have a leadership role in long-term
+   project planning.
 
 Contributor
    Anyone can submit a pull request that conforms to the contribution
@@ -184,7 +185,9 @@ each release.
     for releases from the ``develop`` branch (since every pull request must
     pass) but should be checked manually for backports.
 3.  Update documentation with release notes from all pull requests newly
-    included in the release. Follow the format for previous releases: add a
+    included in the release. *Make sure this happens after all pull requests
+    targeted for this milestone have been merged*.
+    Follow the format for previous releases: add a
     summary of highlights, and enumerate the pull requests (with PR numbers and
     authorship attribution) separated by features and bug requests. Use the
     `helper notebook`_ in the Celeritas documents repository to automate this.
@@ -203,7 +206,7 @@ each release.
     regressions are detected. Create new pull requests for the serious errors
     using the standard :ref:`contributing <contributing>` process, and once the
     fixes are merged into develop, merge develop into the release branch.
-    Return to step 4.
+    Return to step 3.
 8.  If only minor updates are needed to fix the build or tests on a particular
     machine, include those as part of the "pre-release" pull request that
     includes new documentation.
@@ -230,6 +233,7 @@ After committing the release tag:
 3. Update the Spack recipe for Celeritas with the new version and sha256 value
    (either manually or using ``spack checksum``) and submit a pull request to
    the Spack project.
+4. Mark the GitHub release milestone as completed.
 
 The first commit that deviates from the most recent major or minor branch
 should be tagged (but not released!) with the next version number with a

@@ -32,30 +32,22 @@ class RootFileManager
     // Construct with filename
     explicit RootFileManager(char const* filename);
 
+    // Get the ROOT filename
+    char const* filename() const;
+
     // Create tree by passing a name and title
-    UPRootWritable<TTree> make_tree(char const* name, char const* title);
+    UPRootTreeWritable make_tree(char const* name, char const* title);
 
     // Manually write TFile
     void write();
 
   public:
-    UPRootWritable<TFile> tfile_;
+    UPRootFileWritable tfile_;
 };
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
 inline RootFileManager::RootFileManager(char const*)
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-inline UPRootWritable<TTree>
-RootFileManager::make_tree(char const*, char const*)
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-inline void RootFileManager::write()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

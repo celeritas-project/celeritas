@@ -46,7 +46,7 @@ class ScopedStreamRedirect
 
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DELETE_COPY_MOVE(ScopedStreamRedirect)
+    CELER_DELETE_COPY_MOVE(ScopedStreamRedirect);
     //!@}
 
     // Get redirected output, with trailing whitespaces removed

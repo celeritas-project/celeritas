@@ -9,6 +9,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "orange/Constants.hh"
 
 #include "Units.hh"
 
@@ -49,14 +50,6 @@ namespace constants
  */
 
 #define CELER_ICRT inline constexpr real_type
-
-//!@{
-//! \name Mathemetical constants (truncated)
-CELER_ICRT pi = 3.14159265358979323846;
-CELER_ICRT euler = 2.71828182845904523536;
-CELER_ICRT sqrt_two = 1.41421356237309504880;
-CELER_ICRT sqrt_three = 1.73205080756887729353;
-//!@}
 
 //!@{
 //! \name Physical constants with *exact* value as defined by SI

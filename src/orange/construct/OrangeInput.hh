@@ -16,7 +16,6 @@
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/Translator.hh"
 
 namespace celeritas
 {
@@ -59,8 +58,8 @@ struct VolumeInput
     std::vector<LocalSurfaceId> faces{};
     //! RPN region definition for this volume, using local surface index
     std::vector<logic_int> logic{};
-    //! Axis-aligned bounding box (TODO: currently unused)
-    BoundingBox bbox{};
+    //! Axis-aligned bounding box
+    BBox bbox{};
 
     //! Special flags
     logic_int flags{0};
@@ -81,7 +80,7 @@ struct VolumeInput
 struct DaughterInput
 {
     UniverseId universe_id;
-    Translation translation;
+    Real3 translation;
 };
 
 //---------------------------------------------------------------------------//
@@ -94,7 +93,7 @@ struct UnitInput
 
     SurfaceInput surfaces;
     std::vector<VolumeInput> volumes;
-    BoundingBox bbox;  //!< Outer bounding box
+    BBox bbox;  //!< Outer bounding box
     MapVolumeDaughter daughter_map;
 
     // Unit metadata
@@ -137,18 +136,11 @@ struct OrangeInput
 {
     std::vector<std::variant<UnitInput, RectArrayInput>> universes;
 
-    // TODO: Calculate automatically in Shift by traversing the parent/daughter
-    // tree
-    size_type max_level = 3;
-
-    // TODO: array of universe types and universe ID -> offset
-    // or maybe std::variant when we require C++17
+    //! Relative and absolute error for construction and transport
+    Tolerance<> tol;
 
     //! Whether the unit definition is valid
-    explicit operator bool() const
-    {
-        return !universes.empty() && max_level > 0;
-    }
+    explicit operator bool() const { return !universes.empty(); }
 };
 
 //---------------------------------------------------------------------------//

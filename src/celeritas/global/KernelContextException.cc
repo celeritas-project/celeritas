@@ -108,7 +108,7 @@ void KernelContextException::output(JsonPimpl* json) const
 #    undef KCE_INSERT_IF_VALID
     json->obj = std::move(j);
 #else
-    (void)sizeof(json);
+    CELER_DISCARD(json);
 #endif
 }
 

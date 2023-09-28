@@ -182,7 +182,7 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
     obj["_units"] = std::move(units);
     j->obj = std::move(obj);
 #else
-    (void)sizeof(j);
+    CELER_DISCARD(j);
 #endif
 }
 

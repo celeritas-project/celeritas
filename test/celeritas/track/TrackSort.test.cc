@@ -244,15 +244,15 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
     step(make_span(primaries));
 
     auto check_is_sorted = [&step] {
-        auto& step_limit = step.state_ref().sim.step_limit;
+        auto& step_limit_action = step.state_ref().sim.post_step_action;
         auto& track_slots = step.state_ref().track_slots;
         for (celeritas::size_type i = 0; i < track_slots.size() - 1; ++i)
         {
             TrackSlotId tid_current{track_slots[ThreadId{i}]},
                 tid_next{track_slots[ThreadId{i + 1}]};
             ActionId::size_type aid_current{
-                step_limit[tid_current].action.unchecked_get()},
-                aid_next{step_limit[tid_next].action.unchecked_get()};
+                step_limit_action[tid_current].unchecked_get()},
+                aid_next{step_limit_action[tid_next].unchecked_get()};
             ASSERT_LE(aid_current, aid_next)
                 << aid_current << " is larger than " << aid_next;
         }
@@ -289,16 +289,16 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
         Collection<TrackSlotId::size_type, Ownership::value, MemSpace::host, ThreadId>
             track_slots;
         track_slots = state_ref.track_slots;
-        StateCollection<StepLimit, Ownership::value, MemSpace::host> step_limit;
-        step_limit = state_ref.sim.step_limit;
+        StateCollection<ActionId, Ownership::value, MemSpace::host> step_limit;
+        step_limit = state_ref.sim.post_step_action;
 
         for (celeritas::size_type i = 0; i < track_slots.size() - 1; ++i)
         {
             TrackSlotId tid_current{track_slots[ThreadId{i}]},
                 tid_next{track_slots[ThreadId{i + 1}]};
             ActionId::size_type aid_current{
-                step_limit[tid_current].action.unchecked_get()},
-                aid_next{step_limit[tid_next].action.unchecked_get()};
+                step_limit[tid_current].unchecked_get()},
+                aid_next{step_limit[tid_next].unchecked_get()};
             ASSERT_LE(aid_current, aid_next)
                 << aid_current << " is larger than " << aid_next;
         }

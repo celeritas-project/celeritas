@@ -122,7 +122,7 @@ inline G4VPhysicalVolume const* GeantImporter::get_world_volume()
 
 inline GeantImporter::GeantImporter(G4VPhysicalVolume const*)
 {
-    (void)sizeof(world_);
+    CELER_DISCARD(world_);
     CELER_NOT_CONFIGURED("Geant4");
 }
 

@@ -56,7 +56,7 @@ void ActionRegistryOutput::output(JsonPimpl* j) const
         {"description", std::move(description)},
     };
 #else
-    (void)sizeof(j);
+    CELER_DISCARD(j);
 #endif
 }
 

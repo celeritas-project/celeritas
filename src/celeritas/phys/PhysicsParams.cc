@@ -181,7 +181,7 @@ PhysicsParams::PhysicsParams(Input inp)
  */
 auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 {
-    CELER_EXPECT(id < this->num_processes());
+    CELER_EXPECT(id < this->host_ref().process_groups.size());
     auto const& data = this->host_ref();
     return data.process_ids[data.process_groups[id].processes];
 }
@@ -277,7 +277,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
         {
             if (applic.material)
             {
-                CELER_NOT_IMPLEMENTED("Material-dependent models");
+                CELER_NOT_IMPLEMENTED("material-dependent models");
             }
             CELER_VALIDATE(applic.particle < particles.size(),
                            << "invalid particle ID "

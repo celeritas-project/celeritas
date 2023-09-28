@@ -48,7 +48,8 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
                 MaterialParams const& materials,
                 ParticleParams const& particles,
                 RZMapFieldInput const& field_input,
-                SPConstMsc const& msc);
+                SPConstMsc const& msc,
+                bool eloss_fluctuation);
 
     // Construct with next action ID and physics properties
     AlongStepRZMapFieldMscAction(ActionId id,
@@ -78,6 +79,12 @@ class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
     ActionOrder order() const final { return ActionOrder::along; }
 
     //// ACCESSORS ////
+
+    //! Whether energy flucutation is in use
+    bool has_fluct() const { return static_cast<bool>(fluct_); }
+
+    //! Whether MSC is in use
+    bool has_msc() const { return static_cast<bool>(msc_); }
 
     //! Field map data
     SPConstFieldParams const& field() const { return field_; }

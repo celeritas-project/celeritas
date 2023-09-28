@@ -67,7 +67,11 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     };
 
     // Abort cleanly for interrupt and user-defined signals
+#ifndef _WIN32
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
+#else
+    ScopedSignalHandler interrupted{SIGINT};
+#endif
     CELER_LOG(status) << "Transporting";
 
     Stopwatch get_step_time;
@@ -107,8 +111,21 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         }
     }
 
-    // Save kernel timing if running with a single stream and if either on the
+    result.num_track_slots = stepper_->state().size();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport the input primaries and all secondaries produced.
+ */
+template<MemSpace M>
+auto Transporter<M>::get_action_times() const -> MapStrReal
+{
+    // Get kernel timing if running with a single stream and if either on the
     // device with synchronization enabled or on the host
+    MapStrReal result;
+    auto const& step = *stepper_;
     auto const& action_seq = step.actions();
     if (num_streams_ == 1 && (M == MemSpace::host || action_seq.sync()))
     {
@@ -119,10 +136,9 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         for (auto i : range(action_ptrs.size()))
         {
             auto&& label = action_ptrs[i]->label();
-            result.action_times[label] = times[i];
+            result[label] = times[i];
         }
     }
-    result.num_track_slots = stepper_->state().size();
     return result;
 }
 

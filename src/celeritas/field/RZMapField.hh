@@ -36,8 +36,7 @@ class RZMapField
 
   public:
     // Construct with the shared map data
-    CELER_FUNCTION
-    explicit RZMapField(FieldParamsRef const& shared);
+    inline CELER_FUNCTION explicit RZMapField(FieldParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION

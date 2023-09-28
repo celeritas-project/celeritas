@@ -124,6 +124,14 @@ CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, U rhs)
     return lhs && (U(lhs.unchecked_get()) < rhs);
 }
 
+//! Allow less-than-equal comparison with *integer* for container comparison
+template<class V, class S, class U>
+CELER_CONSTEXPR_FUNCTION bool operator<=(OpaqueId<V, S> lhs, U rhs)
+{
+    // Cast to RHS
+    return lhs && (U(lhs.unchecked_get()) <= rhs);
+}
+
 //! Get the distance between two opaque IDs
 template<class V, class S>
 inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
@@ -164,9 +172,7 @@ namespace std
 template<class V, class S>
 struct hash<celeritas::OpaqueId<V, S>>
 {
-    using argument_type = celeritas::OpaqueId<V, S>;
-    using result_type = std::size_t;
-    result_type operator()(argument_type const& id) const noexcept
+    std::size_t operator()(celeritas::OpaqueId<V, S> const& id) const noexcept
     {
         return std::hash<S>()(id.unchecked_get());
     }

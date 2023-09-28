@@ -13,6 +13,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "orange/Types.hh"
 #include "celeritas/Types.hh"
 
 #include "detail/VecgeomNavCollection.hh"
@@ -20,11 +21,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-
-//! Identifier for a geometry volume
-using VolumeId = OpaqueId<struct Volume>;
-
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//

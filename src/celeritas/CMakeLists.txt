@@ -20,6 +20,7 @@ list(APPEND SOURCES
   em/detail/Utils.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
+  em/process/CoulombScatteringProcess.cc
   em/process/EIonizationProcess.cc
   em/process/EPlusAnnihilationProcess.cc
   em/process/GammaConversionProcess.cc
@@ -38,6 +39,7 @@ list(APPEND SOURCES
   global/KernelContextException.cc
   global/Stepper.cc
   global/detail/ActionSequence.cc
+  global/detail/PinnedAllocator.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridData.cc
   grid/ValueGridInserter.cc
@@ -59,6 +61,8 @@ list(APPEND SOURCES
   phys/ParticleParamsOutput.cc
   phys/PhysicsParams.cc
   phys/PhysicsParamsOutput.cc
+  phys/PrimaryGenerator.cc
+  phys/PrimaryGeneratorOptions.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
   random/CuHipRngData.cc
@@ -133,16 +137,13 @@ endif()
 if(CELERITAS_USE_HepMC3)
   celeritas_add_object_library(celeritas_hepmc
     io/EventReader.cc
+    io/EventWriter.cc
   )
   target_link_libraries(celeritas_hepmc
     PRIVATE Celeritas::corecel HepMC3::HepMC3
   )
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_hepmc>)
   list(APPEND PRIVATE_DEPS celeritas_hepmc)
-else()
-  list(APPEND SOURCES
-    io/EventReader.nohepmc.cc
-  )
 endif()
 
 if(CELERITAS_USE_JSON)
@@ -196,6 +197,8 @@ if(CELERITAS_USE_ROOT)
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
     user/RootStepWriter.cc
+    io/RootEventReader.cc
+    io/RootEventWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 
@@ -264,6 +267,7 @@ celeritas_polysource(em/model/MuBremsstrahlungModel)
 celeritas_polysource(em/model/RayleighModel)
 celeritas_polysource(em/model/RelativisticBremModel)
 celeritas_polysource(em/model/SeltzerBergerModel)
+celeritas_polysource(em/model/WentzelModel)
 celeritas_polysource(geo/detail/BoundaryAction)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
@@ -308,6 +312,13 @@ if(NOT CELERITAS_USE_OpenMP
     PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
   )
 endif()
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  # Inheriting via dominance is correct behavior
+  celeritas_target_compile_options(celeritas
+    PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
+  )
+endif()
+  
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
@@ -315,3 +326,5 @@ celeritas_target_link_libraries(celeritas
 )
 
 #-----------------------------------------------------------------------------#
+ 
+ 

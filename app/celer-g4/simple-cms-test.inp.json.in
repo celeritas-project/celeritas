@@ -1,0 +1,27 @@
+{
+ "geometry_file": "@PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml",
+ "event_file": "@CELERG4_EVENTS@",
+ "output_file": "simple-cms.out.json",
+ "offload_output_file": "@CELERG4_OFFLOAD_FILE@",
+ "num_track_slots": @CELERG4_MAX_NUM_TRACKS@,
+ "max_events": 1024,
+ "initializer_capacity": @CELERG4_INIT_CAPACITY@,
+ "secondary_stack_factor": 3,
+ "physics_list": "ftfp_bert",
+ "field_type": "uniform",
+ "field": [
+  0.0,
+  0.0,
+  1.0
+ ],
+ "field_options": {
+  "minimum_step": 0.000001,
+  "delta_chord": 0.025,
+  "delta_intersection": 0.00001,
+  "epsilon_step": 0.00001
+ },
+ "root_buffer_size": 128000,
+ "write_sd_hits": @CELERG4_WRITE_SD_HITS@,
+ "step_diagnostic": false,
+ "step_diagnostic_bins": 200
+}

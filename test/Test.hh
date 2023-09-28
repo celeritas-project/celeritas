@@ -48,6 +48,7 @@ class Test : public ::testing::Test
 
     // Define "inf" value for subclass testing
     static constexpr double inf = HUGE_VAL;
+    static constexpr float inff = HUGE_VALF;
 
   private:
     int filename_counter_ = 0;

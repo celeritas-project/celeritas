@@ -105,11 +105,6 @@ using ItemId = OpaqueId<T, size_type>;
  * of type T. It doesn't have any persistent connection to its associated
  * collection and thus must be used carefully.
  *
- * \todo It might also be good to have a `CollectionMap` -- mapping one
- * OpaqueId to another OpaqueId type (with just an offset value). This would be
- * used for example in physics, where \c ItemRange objects themselves are
- * supposed to be indexed into with a particular ID type.
- *
  * \code
    struct MyMaterial
    {
@@ -299,7 +294,7 @@ class Collection
     //! Direct accesors to underlying data
     CELER_FORCEINLINE_FUNCTION size_type size() const
     {
-        return this->storage().size();
+        return static_cast<size_type>(this->storage().size());
     }
     CELER_FORCEINLINE_FUNCTION bool empty() const
     {
@@ -328,6 +323,9 @@ class Collection
 
     template<class T2, MemSpace M2, class Id2>
     friend class CollectionBuilder;
+
+    template<class T2, class Id2>
+    friend class DedupeCollectionBuilder;
 
     //!@{
     // Private accessors for collection construction/access

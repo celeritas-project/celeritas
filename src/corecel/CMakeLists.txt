@@ -14,6 +14,7 @@ set(PUBLIC_DEPS)
 
 list(APPEND SOURCES
   Assert.cc
+  PinnedAllocator.cc
   data/Copier.cc
   data/DeviceAllocation.cc
   io/BuildOutput.cc
@@ -88,11 +89,25 @@ endif()
 
 celeritas_add_library(corecel ${SOURCES})
 
-# Require at least C++14
+# Require at least C++17
 target_compile_features(corecel PUBLIC cxx_std_17)
 if(CELERITAS_USE_CUDA)
   target_compile_features(corecel PUBLIC cuda_std_17)
 endif()
+if(WIN32)
+  target_compile_definitions(corecel PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX NOGDI>
+  )
+
+  # By default MSVC has __cplusplus at 199711L, this flag
+  # forces it to follow the standard
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(corecel PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor>
+    )
+  endif()
+endif()
+
 
 celeritas_target_include_directories(corecel
   PUBLIC

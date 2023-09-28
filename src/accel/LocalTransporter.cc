@@ -20,12 +20,16 @@
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/global/detail/ActionSequence.hh"
+#include "celeritas/io/EventWriter.hh"
+#include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
 #include "detail/HitManager.hh"
+#include "detail/OffloadWriter.hh"
 
 namespace celeritas
 {
@@ -37,6 +41,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams const& params)
     : auto_flush_(options.max_num_tracks)
     , max_steps_(options.max_steps)
+    , dump_primaries_{params.offload_writer()}
     , hit_manager_{params.hit_manager()}
 {
     CELER_VALIDATE(params,
@@ -45,10 +50,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                       "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
 
-    // Thread ID is -1 when running serially
-    auto thread_id = G4Threading::IsMultithreadedApplication()
-                         ? G4Threading::G4GetThreadId()
-                         : 0;
+    auto thread_id = GetThreadID();
     CELER_VALIDATE(thread_id >= 0,
                    << "Geant4 ThreadID (" << thread_id
                    << ") is invalid (perhaps LocalTransporter is being built "
@@ -147,6 +149,12 @@ void LocalTransporter::Flush()
                           << " tracks from event " << event_id_.unchecked_get()
                           << " with Celeritas";
 
+    if (dump_primaries_)
+    {
+        // Write offload particles if user requested
+        (*dump_primaries_)(buffer_);
+    }
+
     // Abort cleanly for interrupt and user-defined signals
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
 
@@ -188,6 +196,33 @@ void LocalTransporter::Finalize()
     *this = {};
 
     CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated action times.
+ */
+auto LocalTransporter::GetActionTime() const -> MapStrReal
+{
+    CELER_EXPECT(*this);
+
+    MapStrReal result;
+    auto const& action_seq = step_->actions();
+    if (action_seq.sync() || !celeritas::device())
+    {
+        // Save kernel timing if either on the device with synchronization
+        // enabled or on the host
+        auto const& action_ptrs = action_seq.actions();
+        auto const& time = action_seq.accum_time();
+
+        CELER_ASSERT(action_ptrs.size() == time.size());
+        for (auto i : range(action_ptrs.size()))
+        {
+            auto&& label = action_ptrs[i]->label();
+            result[label] = time[i];
+        }
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

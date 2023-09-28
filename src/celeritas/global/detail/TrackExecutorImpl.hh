@@ -40,7 +40,7 @@ struct IsStepActionEqual
 
     CELER_FUNCTION bool operator()(SimTrackView const& sim) const
     {
-        return sim.step_limit().action == this->action;
+        return sim.post_step_action() == this->action;
     }
 };
 

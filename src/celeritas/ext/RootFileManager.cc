@@ -37,6 +37,15 @@ RootFileManager::RootFileManager(char const* filename)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the filename of the associated ROOT file.
+ */
+char const* RootFileManager::filename() const
+{
+    return tfile_->GetName();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create tree by providing its name and title.
  *
  * It is still possible to simply create a `TTree("name", "title")` in any
@@ -46,13 +55,13 @@ RootFileManager::RootFileManager(char const* filename)
  * To expand this class to write multiple root files (one per thread), add a
  * `tid` input parameter and call `tfile_[tid].get()`.
  */
-UPRootWritable<TTree>
+UPRootTreeWritable
 RootFileManager::make_tree(char const* name, char const* title)
 {
     CELER_EXPECT(tfile_->IsOpen());
 
     int const split_level = 99;
-    UPRootWritable<TTree> uptree;
+    UPRootTreeWritable uptree;
     uptree.reset(new TTree(name, title, split_level, tfile_.get()));
     return uptree;
 }

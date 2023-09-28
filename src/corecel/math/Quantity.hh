@@ -100,13 +100,13 @@ using AccessorResultType = typename AccessorTraits<T>::result_type;
  *
  * \note The Quantity is designed to be a simple "strong type" class, not a
  * complex mathematical class. To operate on quantities, you must use
- `value_as`
+ * `value_as`
  * (to operate within the Quantity's unit system) or `native_value_from` (to
  * operate in the Celeritas native unit system), use the resulting numeric
  * values in your mathematical expressions, then return a new Quantity class
  * with the resulting value and correct type.
  */
-template<class UnitT, class ValueT = real_type>
+template<class UnitT, class ValueT = decltype(UnitT::value())>
 class Quantity
 {
   public:
@@ -122,13 +122,15 @@ class Quantity
     constexpr Quantity() = default;
 
     //! Construct with value in celeritas native units
-    explicit CELER_CONSTEXPR_FUNCTION Quantity(value_type value)
+    explicit CELER_CONSTEXPR_FUNCTION Quantity(value_type value) noexcept
         : value_(value)
     {
     }
 
     //! Construct implicitly from a unitless quantity
-    CELER_CONSTEXPR_FUNCTION Quantity(Unitless uq) : value_(uq.value_) {}
+    CELER_CONSTEXPR_FUNCTION Quantity(Unitless uq) noexcept : value_(uq.value_)
+    {
+    }
 
     //!@{
     //! Access the underlying numeric value, discarding units
@@ -149,33 +151,33 @@ class Quantity
 
 //---------------------------------------------------------------------------//
 //! \cond
-#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                              \
-    template<class U, class T, class T2>                              \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs,  \
-                                                 Quantity<U, T2> rhs) \
-    {                                                                 \
-        return lhs.value() TOKEN rhs.value();                         \
-    }                                                                 \
-    template<class U, class T>                                        \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                     \
-        Quantity<U, T> lhs, detail::UnitlessQuantity<T> rhs)          \
-    {                                                                 \
-        return lhs.value() TOKEN rhs.value_;                          \
-    }                                                                 \
-    template<class U, class T>                                        \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                     \
-        detail::UnitlessQuantity<T> lhs, Quantity<U, T> rhs)          \
-    {                                                                 \
-        return lhs.value_ TOKEN rhs.value();                          \
-    }                                                                 \
-    namespace detail                                                  \
-    {                                                                 \
-    template<class T>                                                 \
-    CELER_CONSTEXPR_FUNCTION bool                                     \
-    operator TOKEN(UnitlessQuantity<T> lhs, UnitlessQuantity<T> rhs)  \
-    {                                                                 \
-        return lhs.value_ TOKEN rhs.value_;                           \
-    }                                                                 \
+#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                                      \
+    template<class U, class T, class T2>                                      \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                             \
+        Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept                     \
+    {                                                                         \
+        return lhs.value() TOKEN rhs.value();                                 \
+    }                                                                         \
+    template<class U, class T>                                                \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                             \
+        Quantity<U, T> lhs, detail::UnitlessQuantity<T> rhs) noexcept         \
+    {                                                                         \
+        return lhs.value() TOKEN rhs.value_;                                  \
+    }                                                                         \
+    template<class U, class T>                                                \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                             \
+        detail::UnitlessQuantity<T> lhs, Quantity<U, T> rhs) noexcept         \
+    {                                                                         \
+        return lhs.value_ TOKEN rhs.value();                                  \
+    }                                                                         \
+    namespace detail                                                          \
+    {                                                                         \
+    template<class T>                                                         \
+    CELER_CONSTEXPR_FUNCTION bool                                             \
+    operator TOKEN(UnitlessQuantity<T> lhs, UnitlessQuantity<T> rhs) noexcept \
+    {                                                                         \
+        return lhs.value_ TOKEN rhs.value_;                                   \
+    }                                                                         \
     }
 
 //!@{
@@ -194,40 +196,41 @@ CELER_DEFINE_QUANTITY_CMP(>=)
 //! Math operator for Quantity
 template<class U, class T, class T2>
 CELER_CONSTEXPR_FUNCTION auto
-operator+(Quantity<U, T> lhs, Quantity<U, T2> rhs) -> decltype(auto)
+operator+(Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept -> decltype(auto)
 {
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() + rhs.value()};
 }
 
 template<class U, class T, class T2>
 CELER_CONSTEXPR_FUNCTION auto
-operator-(Quantity<U, T> lhs, Quantity<U, T2> rhs) -> decltype(auto)
+operator-(Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept -> decltype(auto)
 {
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() - rhs.value()};
 }
 
 template<class U, class T>
-CELER_CONSTEXPR_FUNCTION auto operator-(Quantity<U, T> q) -> Quantity<U, T>
+CELER_CONSTEXPR_FUNCTION auto operator-(Quantity<U, T> q) noexcept
+    -> Quantity<U, T>
 {
     return Quantity<U, T>{-q.value()};
 }
 
 template<class U, class T, class T2>
-CELER_CONSTEXPR_FUNCTION auto operator*(Quantity<U, T> lhs, T2 rhs)
+CELER_CONSTEXPR_FUNCTION auto operator*(Quantity<U, T> lhs, T2 rhs) noexcept
     -> decltype(auto)
 {
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() * rhs};
 }
 
 template<class U, class T, class T2>
-CELER_CONSTEXPR_FUNCTION auto operator*(T rhs, Quantity<U, T> lhs)
+CELER_CONSTEXPR_FUNCTION auto operator*(T rhs, Quantity<U, T> lhs) noexcept
     -> decltype(auto)
 {
     return Quantity<U, std::common_type_t<T, T2>>{rhs * lhs.value()};
 }
 
 template<class U, class T, class T2>
-CELER_CONSTEXPR_FUNCTION auto operator/(Quantity<U, T> lhs, T2 rhs)
+CELER_CONSTEXPR_FUNCTION auto operator/(Quantity<U, T> lhs, T2 rhs) noexcept
     -> decltype(auto)
 {
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() / rhs};
@@ -241,7 +244,7 @@ template<class C1, class C2>
 struct UnitDivide
 {
     //! Get the conversion factor of the resulting unit
-    static CELER_CONSTEXPR_FUNCTION auto value() -> decltype(auto)
+    static CELER_CONSTEXPR_FUNCTION auto value() noexcept -> decltype(auto)
     {
         return C1::value() / C2::value();
     }
@@ -252,7 +255,7 @@ template<class C1, class C2>
 struct UnitProduct
 {
     //! Get the conversion factor of the resulting unit
-    static CELER_CONSTEXPR_FUNCTION auto value() -> decltype(auto)
+    static CELER_CONSTEXPR_FUNCTION auto value() noexcept -> decltype(auto)
     {
         return C1::value() * C2::value();
     }
@@ -264,7 +267,8 @@ struct UnitProduct
 /*!
  * Get a zero quantity (analogous to nullptr).
  */
-CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> zero_quantity()
+CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type>
+zero_quantity() noexcept
 {
     return {0};
 }
@@ -273,7 +277,8 @@ CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> zero_quantity()
 /*!
  * Get a quantitity greater than any other numeric quantity.
  */
-CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> max_quantity()
+CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type>
+max_quantity() noexcept
 {
     return {numeric_limits<real_type>::infinity()};
 }
@@ -282,7 +287,8 @@ CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> max_quantity()
 /*!
  * Get a quantitity less than any other numeric quantity.
  */
-CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> neg_max_quantity()
+CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type>
+neg_max_quantity() noexcept
 {
     return {-numeric_limits<real_type>::infinity()};
 }
@@ -310,8 +316,8 @@ swap(Quantity<U, V>& a, Quantity<U, V>& b) noexcept
  * \endcode
  */
 template<class UnitT, class ValueT>
-CELER_CONSTEXPR_FUNCTION auto native_value_from(Quantity<UnitT, ValueT> quant)
-    -> decltype(auto)
+CELER_CONSTEXPR_FUNCTION auto
+native_value_from(Quantity<UnitT, ValueT> quant) noexcept -> decltype(auto)
 {
     return quant.value() * UnitT::value();
 }
@@ -329,7 +335,7 @@ CELER_CONSTEXPR_FUNCTION auto native_value_from(Quantity<UnitT, ValueT> quant)
  * \endcode
  */
 template<class Q>
-CELER_CONSTEXPR_FUNCTION Q native_value_to(typename Q::value_type value)
+CELER_CONSTEXPR_FUNCTION Q native_value_to(typename Q::value_type value) noexcept
 {
     return Q{value / Q::unit_type::value()};
 }
@@ -346,8 +352,8 @@ CELER_CONSTEXPR_FUNCTION Q native_value_to(typename Q::value_type value)
  * \endcode
  */
 template<class Q, class SrcUnitT, class ValueT>
-CELER_CONSTEXPR_FUNCTION auto value_as(Quantity<SrcUnitT, ValueT> quant)
-    -> ValueT
+CELER_CONSTEXPR_FUNCTION auto
+value_as(Quantity<SrcUnitT, ValueT> quant) noexcept -> ValueT
 {
     static_assert(std::is_same<Q, Quantity<SrcUnitT, ValueT>>::value,
                   "quantity units do not match");

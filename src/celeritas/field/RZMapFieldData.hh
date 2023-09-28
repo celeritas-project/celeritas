@@ -70,7 +70,7 @@ struct RZMapFieldParamsData
                 && r >= grids.data_r.front && r <= grids.data_r.back);
     }
 
-    inline CELER_FUNCTION ElementId id(int idx_z, int idx_r) const
+    inline CELER_FUNCTION ElementId id(size_type idx_z, size_type idx_r) const
     {
         CELER_EXPECT(grids.data_r);
         return ElementId(idx_z * grids.data_r.size + idx_r);

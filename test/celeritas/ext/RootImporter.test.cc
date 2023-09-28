@@ -136,7 +136,7 @@ TEST_F(RootImporterTest, materials)
 TEST_F(RootImporterTest, processes)
 {
     auto const& processes = this->imported_data().processes;
-    EXPECT_EQ(9, processes.size());
+    EXPECT_EQ(11, processes.size());
 
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
         return std::find_if(processes.begin(),

@@ -47,6 +47,8 @@ namespace app
 //---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
+ *
+ * TODO: for version 1.0, remove deprecated options.
  */
 void from_json(nlohmann::json const& j, RunnerInput& v)
 {
@@ -56,15 +58,27 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
         if (j.contains(#NAME))          \
             j.at(#NAME).get_to(v.NAME); \
     } while (0)
+#define LDIO_LOAD_DEPRECATED(OLD, NEW)                                        \
+    do                                                                        \
+    {                                                                         \
+        if (j.contains(#OLD))                                                 \
+        {                                                                     \
+            CELER_LOG(warning) << "Deprecated option '" << #OLD << "': use '" \
+                               << #NEW << "' instead";                        \
+            j.at(#OLD).get_to(v.NEW);                                         \
+        }                                                                     \
+    } while (0)
 #define LDIO_LOAD_REQUIRED(NAME) j.at(#NAME).get_to(v.NAME)
 
     LDIO_LOAD_OPTION(cuda_heap_size);
     LDIO_LOAD_OPTION(cuda_stack_size);
     LDIO_LOAD_OPTION(environ);
 
+    LDIO_LOAD_DEPRECATED(hepmc3_filename, event_filename);
+
     LDIO_LOAD_REQUIRED(geometry_filename);
     LDIO_LOAD_OPTION(physics_filename);
-    LDIO_LOAD_OPTION(hepmc3_filename);
+    LDIO_LOAD_OPTION(event_filename);
 
     LDIO_LOAD_OPTION(primary_gen_options);
 
@@ -75,11 +89,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(step_diagnostic);
     LDIO_LOAD_OPTION(step_diagnostic_maxsteps);
 
-    if (j.contains("max_num_tracks"))
-    {
-        CELER_LOG(warning) << "Deprecated option 'max_num_tracks'";
-        j.at("max_num_tracks").get_to(v.num_track_slots);
-    }
+    LDIO_LOAD_DEPRECATED(max_num_tracks, num_track_slots);
 
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_OPTION(num_track_slots);
@@ -103,13 +113,13 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 #undef LDIO_LOAD_OPTION
 #undef LDIO_LOAD_REQUIRED
 
-    CELER_VALIDATE(v.hepmc3_filename.empty() != !v.primary_gen_options,
-                   << "either a HepMC3 filename or options to generate "
+    CELER_VALIDATE(v.event_filename.empty() != !v.primary_gen_options,
+                   << "either a event filename or options to generate "
                       "primaries must be provided (but not both)");
     CELER_VALIDATE(!v.mctruth_filter || !v.mctruth_filename.empty(),
                    << "'mctruth_filter' cannot be specified without providing "
                       "'mctruth_filename'");
-    CELER_VALIDATE(v.mag_field == RunnerInput::no_field()
+    CELER_VALIDATE(v.mag_field != RunnerInput::no_field()
                        || !j.contains("field_options"),
                    << "'field_options' cannot be specified without providing "
                       "'mag_field'");
@@ -137,8 +147,8 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 
     LDIO_SAVE_REQUIRED(geometry_filename);
     LDIO_SAVE_REQUIRED(physics_filename);
-    LDIO_SAVE_OPTION(hepmc3_filename);
-    if (v.hepmc3_filename.empty())
+    LDIO_SAVE_OPTION(event_filename);
+    if (v.event_filename.empty())
     {
         LDIO_SAVE_REQUIRED(primary_gen_options);
     }

@@ -115,8 +115,10 @@ TEST(IsVecSoftEquiv, successes_double)
     // test comparison against zero
     expected.push_back(0.);
     actual.push_back(0.009);
-    EXPECT_TRUE(
+    EXPECT_FALSE(
         IsVecSoftEquiv("expected", "actual", "0.01", expected, actual, 0.01));
+    EXPECT_TRUE(IsVecSoftEquiv(
+        "expected", "actual", "0.01", "0.01", expected, actual, 0.01, 0.01));
 
     EXPECT_TRUE(IsVecSoftEquiv(
         "expected_array", "actual", "0.01", expected_array, actual, 0.01));
@@ -143,8 +145,8 @@ TEST(IsVecSoftEquiv, floats)
 
     // Compare vector vs array
     EXPECT_VEC_SOFT_EQ(actual, expected_array);
-    EXPECT_VEC_NEAR(actual, expected_array, 1.e-3);
-    EXPECT_VEC_CLOSE(actual, expected_array, 1.e-3, 1e-5);
+    EXPECT_VEC_NEAR(actual, expected_array, 1.e-3f);
+    EXPECT_VEC_CLOSE(actual, expected_array, 1.e-3f, 1e-5f);
 
     // Compare floating point tolerance is not 1e-12
     float actual_array[] = {1.000001f, 3.000001f, 5.000001f};
@@ -154,7 +156,7 @@ TEST(IsVecSoftEquiv, floats)
 
     // The floating point type should convert from double to float
     EXPECT_TRUE(IsVecSoftEquiv(
-        "expected_array", "actual", "1e-6", expected_array, actual_array, 1e-6));
+        "expected_array", "actual", "1e-6", expected_array, actual_array, 1e-6f));
 
     actual_array[0] = 1.0001f;
     EXPECT_FALSE(IsVecSoftEquiv(
@@ -182,7 +184,7 @@ TEST(IsVecSoftEquiv, mixed)
                                "1.e-12",
                                expected_flt,
                                expected_dbl,
-                               1.e-12));
+                               1.e-12f));
 
     VecFlt actual_flt = {0.126f, 1.123f, 5.f};
 
@@ -190,7 +192,7 @@ TEST(IsVecSoftEquiv, mixed)
         "expected_flt", "actual_flt", expected_flt, actual_flt));
 
     EXPECT_TRUE(IsVecSoftEquiv(
-        "expected_flt", "actual_flt", ".1", expected_flt, actual_flt, 0.1));
+        "expected_flt", "actual_flt", ".1", expected_flt, actual_flt, 0.1f));
 }
 
 // NOTE: these should fail to compile and produce relatively understandable

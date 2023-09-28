@@ -40,6 +40,7 @@
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -106,7 +107,7 @@ auto Runner::operator()(StreamId stream, EventId event) -> RunnerResult
     CELER_EXPECT(stream < this->num_streams());
     CELER_EXPECT(event < this->num_events());
 
-    auto& transport = this->build_transporter(stream);
+    auto& transport = this->get_transporter(stream);
     return (*transport)(make_span(events_[event.get()]));
 }
 
@@ -118,7 +119,7 @@ auto Runner::operator()() -> RunnerResult
 {
     CELER_EXPECT(events_.size() == 1);
 
-    auto& transport = this->build_transporter(StreamId{0});
+    auto& transport = this->get_transporter(StreamId{0});
     return (*transport)(make_span(events_.front()));
 }
 
@@ -138,6 +139,28 @@ StreamId::size_type Runner::num_streams() const
 size_type Runner::num_events() const
 {
     return events_.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated action times.
+ *
+ * Action times are only collected by the transporter when running with a
+ * single stream.
+ */
+auto Runner::get_action_times() -> MapStrReal
+{
+    auto& transport = this->get_transporter(StreamId{0});
+    if (use_device_)
+    {
+        return dynamic_cast<Transporter<MemSpace::device> const&>(*transport)
+            .get_action_times();
+    }
+    else
+    {
+        return dynamic_cast<Transporter<MemSpace::host> const&>(*transport)
+            .get_action_times();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -184,8 +207,7 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.output_reg = std::move(outreg);
 
     // Load geometry
-    params.geometry
-        = std::make_shared<GeoParams>(inp.geometry_filename.c_str());
+    params.geometry = std::make_shared<GeoParams>(inp.geometry_filename);
     if (!params.geometry->supports_safety())
     {
         CELER_LOG(warning) << "Geometry contains surfaces that are "
@@ -257,9 +279,6 @@ void Runner::build_core_params(RunnerInput const& inp,
     }
     else
     {
-        CELER_VALIDATE(!eloss,
-                       << "energy loss fluctuations are not supported "
-                          "simultaneoulsy with magnetic field");
         UniformFieldParams field_params;
         field_params.field = inp.mag_field;
         field_params.options = inp.field_options;
@@ -270,8 +289,13 @@ void Runner::build_core_params(RunnerInput const& inp,
             f *= units::tesla;
         }
 
-        auto along_step = std::make_shared<AlongStepUniformMscAction>(
-            params.action_reg->next_id(), field_params, msc);
+        auto along_step = AlongStepUniformMscAction::from_params(
+            params.action_reg->next_id(),
+            *params.material,
+            *params.particle,
+            field_params,
+            msc,
+            eloss);
         CELER_ASSERT(along_step->field() != RunnerInput::no_field());
         params.action_reg->insert(along_step);
     }
@@ -332,7 +356,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read events from a HepMC3 file or build using a primary generator.
+ * Read events from a file or build using a primary generator.
  */
 void Runner::build_events(RunnerInput const& inp)
 {
@@ -344,40 +368,37 @@ void Runner::build_events(RunnerInput const& inp)
         events_.resize(1);
     }
 
-    auto append = [&](VecPrimary& event) {
-        if (inp.merge_events)
+    auto read_events = [&](auto&& generate) {
+        auto event = generate();
+        while (!event.empty())
         {
-            events_.front().insert(
-                events_.front().end(), event.begin(), event.end());
-        }
-        else
-        {
-            events_.push_back(event);
+            if (inp.merge_events)
+            {
+                events_.front().insert(
+                    events_.front().end(), event.begin(), event.end());
+            }
+            else
+            {
+                events_.push_back(event);
+            }
+            event = generate();
         }
     };
 
     if (inp.primary_gen_options)
     {
-        std::mt19937 rng;
-        auto generate_event = PrimaryGenerator<std::mt19937>::from_options(
-            core_params_->particle(), inp.primary_gen_options);
-        auto event = generate_event(rng);
-        while (!event.empty())
-        {
-            append(event);
-            event = generate_event(rng);
-        }
+        read_events(PrimaryGenerator::from_options(core_params_->particle(),
+                                                   inp.primary_gen_options));
+    }
+    else if (ends_with(inp.event_filename, ".root"))
+    {
+        read_events(
+            RootEventReader(inp.event_filename, core_params_->particle()));
     }
     else
     {
-        EventReader read_event(inp.hepmc3_filename.c_str(),
-                               core_params_->particle());
-        auto event = read_event();
-        while (!event.empty())
-        {
-            append(event);
-            event = read_event();
-        }
+        // Assume filename is one of the HepMC3-supported extensions
+        read_events(EventReader(inp.event_filename, core_params_->particle()));
     }
 }
 
@@ -459,9 +480,9 @@ void Runner::build_diagnostics(RunnerInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build the transporter for the given stream.
+ * Get the transporter for the given stream, constructing if necessary.
  */
-auto Runner::build_transporter(StreamId stream) -> UPTransporterBase&
+auto Runner::get_transporter(StreamId stream) -> UPTransporterBase&
 {
     CELER_EXPECT(stream < this->num_streams());
 
@@ -522,7 +543,7 @@ int Runner::get_num_streams(RunnerInput const& inp)
         return num_threads;
     }
 #else
-    (void)sizeof(inp);
+    CELER_DISCARD(inp);
 #endif
     return 1;
 }

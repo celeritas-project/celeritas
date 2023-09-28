@@ -143,7 +143,7 @@ void RelativisticBremModel::build_data(HostValue* data,
                                        real_type particle_mass)
 {
     // Build element data for available elements
-    unsigned int num_elements = materials.num_elements();
+    auto num_elements = materials.num_elements();
 
     auto elem_data = make_builder(&data->elem_data);
     elem_data.reserve(num_elements);

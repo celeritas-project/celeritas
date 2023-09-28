@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -80,8 +81,14 @@ class FieldPropagator
         return FieldPropagatorOptions::max_substeps;
     }
 
+    // Intersection tolerance
+    inline CELER_FUNCTION real_type delta_intersection() const;
+
     // Distance to bump or to consider a "zero" movement
     inline CELER_FUNCTION real_type bump_distance() const;
+
+    // Smallest allowable inner loop distance to take
+    inline CELER_FUNCTION real_type minimum_substep() const;
 
   private:
     //// DATA ////
@@ -113,8 +120,7 @@ CELER_FUNCTION FieldPropagator<DriverT, GTV>::FieldPropagator(
     using MomentumUnits = OdeState::MomentumUnits;
 
     state_.pos = geo_.pos();
-    state_.mom
-        = detail::ax(value_as<MomentumUnits>(particle.momentum()), geo_.dir());
+    state_.mom = value_as<MomentumUnits>(particle.momentum()) * geo_.dir();
 }
 
 //---------------------------------------------------------------------------//
@@ -184,7 +190,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         // Do a detailed check boundary check from the start position toward
         // the substep end point. Travel to the end of the chord, plus a little
         // extra.
-        if (chord.length >= driver_.minimum_step())
+        if (chord.length >= this->minimum_substep())
         {
             // Only update the direction if the chord length is nontrivial.
             // This is usually the case but might be skipped in two cases:
@@ -198,14 +204,14 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         }
 
         Propagation linear_step;
-        linear_step.distance = chord.length + driver_.delta_intersection();
+        linear_step.distance = chord.length + this->delta_intersection();
         safety -= linear_step.distance;
         if (safety < 0 && !result.boundary)
         {
             // Calculate the nearest boundary distance, up to the possible
             // remaining step length
             safety = geo_.find_safety(remaining
-                                      + 2 * driver_.delta_intersection())
+                                      + 2 * this->delta_intersection())
                      - linear_step.distance;
         }
 
@@ -248,12 +254,12 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             // near tangent). Reduce substep size and try again.
             remaining = substep.step / 2;
         }
-        else if (update_length <= driver_.minimum_step()
+        else if (update_length <= this->minimum_substep()
                  || detail::is_intercept_close(state_.pos,
                                                chord.dir,
                                                linear_step.distance,
                                                substep.state.pos,
-                                               driver_.delta_intersection()))
+                                               this->delta_intersection()))
         {
             // We're close enough to the boundary that the next trial step
             // would be less than the driver's minimum step.
@@ -296,7 +302,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             // Revert safety trial
             safety += chord.length;
         }
-    } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
+    } while (remaining > this->minimum_substep() && remaining_substeps > 0);
 
     if (remaining_substeps == 0 && result.distance < step)
     {
@@ -343,11 +349,14 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         axpy(result.distance, dir, &state_.pos);
         geo_.move_internal(state_.pos);
     }
+    else
+    {
+        CELER_ENSURE(result.boundary == geo_.is_on_boundary());
+    }
 
     // Due to accumulation errors from multiple substeps or chord-finding
     // within the driver, the distance may be very slightly beyond the
     // requested step.
-    CELER_ENSURE(result.boundary == geo_.is_on_boundary());
     CELER_ENSURE(
         result.distance > 0
         && (result.distance <= step || soft_equal(result.distance, step)));
@@ -356,15 +365,35 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
 
 //---------------------------------------------------------------------------//
 /*!
- * Distance to bump or to consider a "zero" movement.
+ * Distance close enough to a boundary to mark as being on the boundary.
  *
- * Currently this is set to the field driver's minimum step, but it should
- * probably be related to the geometry instead.
+ * TODO: change delta intersection from property in FieldDriverOptions to
+ * another FieldPropagatorOptions
+ */
+template<class DriverT, class GTV>
+CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::delta_intersection() const
+{
+    return driver_.delta_intersection();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Distance to bump or to consider a "zero" movement.
+ */
+template<class DriverT, class GTV>
+CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::minimum_substep() const
+{
+    return driver_.minimum_step();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Distance to bump or to consider a "zero" movement.
  */
 template<class DriverT, class GTV>
 CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::bump_distance() const
 {
-    return driver_.minimum_step();
+    return this->delta_intersection() * real_type(0.1);
 }
 
 //---------------------------------------------------------------------------//

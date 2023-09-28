@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -39,9 +40,16 @@ struct Filler<T, MemSpace::host>
 template<class T>
 struct Filler<T, MemSpace::device>
 {
-    T const& value;
+  public:
+    explicit Filler(T const& value) : value_{value} {};
+    Filler(T const& value, StreamId stream)
+        : value_{value}, stream_{stream} {};
 
     void operator()(Span<T>) const;
+
+  private:
+    T const& value_;
+    StreamId stream_;
 };
 
 #if !CELER_USE_DEVICE

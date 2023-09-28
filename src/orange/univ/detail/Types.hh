@@ -26,12 +26,9 @@ namespace detail
  * bit field to compress the ID and sense at the cost of reducing the max
  * number of surfaces/faces by a factor of two.
  */
-template<class ValueT>
+template<class IdT>
 class OnTface
 {
-  public:
-    using IdT = OpaqueId<ValueT>;
-
   public:
     //! Not on a surface
     constexpr OnTface() = default;
@@ -77,25 +74,25 @@ class OnTface
 };
 
 //! Equality of an OnFace (mostly for testing)
-template<class ValueT>
+template<class IdT>
 CELER_CONSTEXPR_FUNCTION bool
-operator==(OnTface<ValueT> const& lhs, OnTface<ValueT> const& rhs) noexcept
+operator==(OnTface<IdT> const& lhs, OnTface<IdT> const& rhs) noexcept
 {
     return lhs.id() == rhs.id()
            && (!lhs || lhs.uncheckced_sense() == rhs.unchecked_sense());
 }
 
 //! Inequality for OnFace
-template<class ValueT>
+template<class IdT>
 CELER_CONSTEXPR_FUNCTION bool
-operator!=(OnTface<ValueT> const& lhs, OnTface<ValueT> const& rhs) noexcept
+operator!=(OnTface<IdT> const& lhs, OnTface<IdT> const& rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
-using OnSurface = OnTface<struct Surface>;
-using OnLocalSurface = OnTface<struct LocalSurface>;
-using OnFace = OnTface<struct Face>;
+using OnSurface = OnTface<SurfaceId>;
+using OnLocalSurface = OnTface<LocalSurfaceId>;
+using OnFace = OnTface<FaceId>;
 
 //---------------------------------------------------------------------------//
 /*!

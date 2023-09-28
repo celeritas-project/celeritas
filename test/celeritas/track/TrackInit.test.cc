@@ -300,16 +300,16 @@ TYPED_TEST(TrackInitTest, run)
 
 TYPED_TEST(TrackInitTest, primaries)
 {
-    const size_type num_sets = 4;
-    const size_type num_primaries = 16;
-    const size_type num_tracks = 16;
+    size_type num_sets = 4;
+    size_type num_primaries = 16;
+    size_type num_tracks = 16;
 
     this->build_states(num_tracks);
 
     this->init_tracks();
 
     // Kill half the tracks in each interaction and don't produce secondaries
-    auto interact = [] {
+    auto interact = [&] {
         std::vector<size_type> alloc(num_tracks, 0);
         std::vector<bool> alive(num_tracks);
         for (size_type i = 0; i < num_tracks; ++i)
@@ -360,8 +360,8 @@ TYPED_TEST(TrackInitTest, primaries)
 TYPED_TEST(TrackInitTest, extend_from_secondaries)
 {
     // Basic setup
-    const size_type num_primaries = 8;
-    const size_type num_tracks = 8;
+    size_type num_primaries = 8;
+    size_type num_tracks = 8;
 
     std::vector<bool> const alive
         = {true, false, false, true, true, false, false, true};
@@ -417,7 +417,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
         EXPECT_TRUE(std::all_of(
             std::begin(result.track_ids),
             std::end(result.track_ids),
-            [i](unsigned int id) { return id < num_tracks + (i + 1) * 4; }));
+            [&](unsigned int id) { return id < num_tracks + (i + 1) * 4; }));
 
         // Parent ids may not be deterministic, but all non-killed tracks are
         // guaranteed to be primaries at every iteration. At end of first

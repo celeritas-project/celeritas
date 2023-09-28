@@ -13,21 +13,45 @@ set(PUBLIC_DEPS Celeritas::corecel)
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
+  BoundingBoxUtils.cc
+  MatrixUtils.cc
   OrangeParams.cc
+  OrangeParamsOutput.cc
   OrangeTypes.cc
+  construct/CsgTree.cc
+  construct/CsgTypes.cc
+  construct/CsgTreeUtils.cc
   construct/SurfaceInputBuilder.cc
+  construct/detail/NodeSimplifier.cc
+  detail/BIHBuilder.cc
+  detail/BIHPartitioner.cc
   detail/RectArrayInserter.cc
   detail/UnitInserter.cc
+  surf/ConeAligned.cc
+  surf/CylAligned.cc
+  surf/GeneralQuadric.cc
+  surf/Plane.cc
+  surf/PlaneAligned.cc
+  surf/SimpleQuadric.cc
+  surf/Sphere.cc
+  surf/SoftSurfaceEqual.cc
   surf/SurfaceIO.cc
+  surf/SurfaceSimplifier.cc
+  surf/VariantSurface.cc
+  surf/detail/SurfaceClipperImpl.cc
+  surf/detail/SurfaceTranslator.cc
+  surf/detail/SurfaceTransformer.cc
+  transform/Transformation.cc
+  transform/VariantTransform.cc
 )
 
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
+    construct/CsgTreeIO.json.cc
     construct/OrangeInputIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
-
 
 #-----------------------------------------------------------------------------#
 # Create library

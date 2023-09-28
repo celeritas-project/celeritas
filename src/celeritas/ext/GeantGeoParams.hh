@@ -55,7 +55,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     bool supports_safety() const final { return true; }
 
     //! Outer bounding box of geometry
-    BoundingBox const& bbox() const final { return bbox_; }
+    BBox const& bbox() const final { return bbox_; }
 
     //// VOLUMES ////
 
@@ -84,6 +84,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(std::string const& name) const final;
 
+    // Get the Geant4 logical volume corresponding to a volume ID
+    G4LogicalVolume const* id_to_lv(VolumeId vol_id) const;
+
     //// DATA ACCESS ////
 
     //! Access geometry data on host
@@ -105,7 +108,7 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Host metadata/access
     LabelIdMultiMap<VolumeId> vol_labels_;
-    BoundingBox bbox_;
+    BBox bbox_;
 
     // Host/device storage and reference
     HostRef host_ref_;

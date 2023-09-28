@@ -9,6 +9,7 @@ import os
 import json
 import sys
 from pathlib import Path
+from sphinx import __version__ as sphinx_version
 
 # -- Project information -----------------------------------------------------
 
@@ -39,25 +40,26 @@ try:
 except (KeyError, IOError) as e:
     print("Failed to load config data:", e)
     build_dir = '.'
-    rtdtheme = True
+    furo = True
     try:
-        import sphinx_rtd_theme
+        import furo
     except ImportError:
-        rtdtheme = False
+        furo = False
 
     celer_config = {
         "version": "*unknown version*",
         "release": "*unknown release*",
         "options": {
             "breathe": False,
+            "furo": furo,
             "sphinxbib": False,
-            "rtdtheme": rtdtheme,
         }
     }
     tags.add('noconfig')
 
 version = celer_config['version']
 release = celer_config['release']
+html_title = f"Celeritas {version} documentation"
 
 # Set nobreathe, sphinxbib, etc for use in 'only' directives.
 for (opt, val) in celer_config['options'].items():
@@ -118,8 +120,8 @@ import monkeysphinx
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = 'alabaster'
-if celer_config['options']['rtdtheme']:
-    html_theme = 'sphinx_rtd_theme'
+if celer_config['options']['furo']:
+    html_theme = 'furo'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -136,6 +138,19 @@ if html_theme == 'alabaster':
         'show_relbars': True,
         'show_powered_by': False,
     }
+
+mathjax3_config = {
+    "tex": {
+        "macros": {
+            "dif": r"\;\mathrm{d}",
+        },
+    },
+    "loader": {"load": ["ui/lazy", "output/svg"]},
+}
+
+if int(sphinx_version.partition('.')[0]) < 4:
+    # See https://mathjax.github.io/MathJax-demos-web/convert-configuration/convert-configuration.html
+    mathjax_config = {"TeX": { "Macros": mathjax3_config["tex"]["macros"]}}
 
 # -- Options for LaTeX output ------------------------------------------------
 

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -25,21 +26,6 @@
 #include "orange/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
-
-namespace
-{
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a Translation object from a Span into a vector of translation data.
- */
-celeritas::Translation
-make_translation(celeritas::Span<celeritas::real_type const> const& trans)
-{
-    CELER_EXPECT(trans.size() == 3);
-    return celeritas::Translation{trans[0], trans[1], trans[2]};
-}
-}  // namespace
 
 namespace celeritas
 {
@@ -111,6 +97,20 @@ std::vector<logic_int> parse_logic(char const* c)
     return result;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Get the i'th slice of a span of data.
+ */
+template<size_type N, class T>
+decltype(auto) slice(Span<T> data, size_type i)
+{
+    CELER_ASSERT(N * (i + 1) <= data.size());
+    Array<std::remove_const_t<T>, N> result;
+    std::copy_n(data.data() + i * N, N, result.begin());
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -187,8 +187,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         j.at("surface_names").get_to(value.surfaces.labels);
     }
     {
-        auto const& bbox = j.at("bbox");
-        value.bbox = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
+        j.at("bbox").get_to(value.bbox);
     }
 
     if (j.contains("parent_cells"))
@@ -210,10 +209,8 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         UnitInput::MapVolumeDaughter daughter_map;
         for (auto i : range(parent_cells.size()))
         {
-            daughter_map[LocalVolumeId{parent_cells[i]}]
-                = {UniverseId{daughters[i]},
-                   make_translation(
-                       Span<real_type const>(translations.data() + 3 * i, 3))};
+            daughter_map[LocalVolumeId{parent_cells[i]}] = {
+                UniverseId{daughters[i]}, slice<3>(make_span(translations), i)};
         }
 
         value.daughter_map = std::move(daughter_map);
@@ -239,6 +236,7 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
 
     // Read daughters universes/translations
     {
+        auto parents = j.at("parent_cells").get<std::vector<size_type>>();
         auto daughters = j.at("daughters").get<std::vector<size_type>>();
         auto translations = j.at("translations").get<std::vector<real_type>>();
 
@@ -246,13 +244,31 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
                        << "field 'daughters' is not 3x length of "
                           "'parent_cells'");
 
+        value.daughters.resize(daughters.size());
+
         for (auto i : range(daughters.size()))
         {
-            value.daughters.push_back({UniverseId{daughters[i]},
-                                       make_translation(Span<real_type const>(
-                                           translations.data() + 3 * i, 3))});
+            value.daughters[parents[i]] = {
+                UniverseId{daughters[i]}, slice<3>(make_span(translations), i)};
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Read tolerances.
+ */
+void from_json(nlohmann::json const& j, Tolerance<>& value)
+{
+    j.at("rel").get_to(value.rel);
+    CELER_VALIDATE(value.rel > 0 && value.rel < 1,
+                   << "tolerance " << value.rel
+                   << " is out of range [must be in (0,1)]");
+
+    j.at("abs").get_to(value.abs);
+    CELER_VALIDATE(value.abs > 0,
+                   << "tolerance " << value.abs
+                   << " is out of range [must be greater than zero]");
 }
 
 //---------------------------------------------------------------------------//
@@ -267,7 +283,7 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
 
     for (auto const& uni : universes)
     {
-        auto uni_type = uni.at("_type").get<std::string>();
+        auto const& uni_type = uni.at("_type").get<std::string>();
         if (uni_type == "simple unit")
         {
             value.universes.push_back(uni.get<UnitInput>());
@@ -286,7 +302,29 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
                 false, << "unsupported universe type '" << uni_type << "'");
         }
     }
+
+    if (j.count("tol"))
+    {
+        j.at("tol").get_to(value.tol);
+    }
 }
+
+//---------------------------------------------------------------------------//
+// WRITERS
+//---------------------------------------------------------------------------//
+/*!
+ * Write tolerances.
+ */
+template<class T>
+void to_json(nlohmann::json& j, Tolerance<T> const& value)
+{
+    j = {
+        {"rel", value.rel},
+        {"abs", value.abs},
+    };
+}
+
+template void to_json(nlohmann::json&, Tolerance<real_type> const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
