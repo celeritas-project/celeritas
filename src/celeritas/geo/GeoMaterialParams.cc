@@ -173,7 +173,7 @@ build_vol_to_mat(GeoParams const& geo, MapLabelMatId const& materials)
     // Make sure at least one volume maps correctly
     VolumeId::size_type num_missing{0};
 
-    // Map volume names to materiail names
+    // Map volume names to material names
     MaterialFinder find_matid{geo, materials};
     for (auto volume_id : range(VolumeId{geo.num_volumes()}))
     {
