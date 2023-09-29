@@ -88,16 +88,16 @@ class FnvHasher
 
   public:
     // Construct with a reference to the hashed value which we initialize
-    explicit inline CELER_FUNCTION FnvHasher(value_type* hash_result);
+    explicit inline FnvHasher(value_type* hash_result);
 
     // Hash a byte of data
-    CELER_FORCEINLINE_FUNCTION void operator()(std::byte b) const;
+    CELER_FORCEINLINE void operator()(std::byte b) const;
 
     // Hash a size_t (useful for std::hash integration)
-    inline CELER_FUNCTION void operator()(std::size_t value) const;
+    inline void operator()(std::size_t value) const;
 
     // Hash a span of bytes
-    inline CELER_FUNCTION void operator()(Span<std::byte const> s) const;
+    inline void operator()(Span<std::byte const> s) const;
 
   private:
     using TraitsT = FnvHashTraits<sizeof(T)>;
@@ -111,8 +111,7 @@ class FnvHasher
  * Initialize the result on construction.
  */
 template<class T>
-CELER_FUNCTION FnvHasher<T>::FnvHasher(value_type* hash_result)
-    : hash_(hash_result)
+FnvHasher<T>::FnvHasher(value_type* hash_result) : hash_(hash_result)
 {
     CELER_EXPECT(hash_);
     *hash_ = TraitsT::initial_basis;
@@ -125,7 +124,7 @@ CELER_FUNCTION FnvHasher<T>::FnvHasher(value_type* hash_result)
  * The FNV1a algorithm is very simple.
  */
 template<class T>
-CELER_FORCEINLINE_FUNCTION void FnvHasher<T>::operator()(std::byte b) const
+CELER_FORCEINLINE void FnvHasher<T>::operator()(std::byte b) const
 {
     // XOR hash with the current byte
     *hash_ ^= std::to_integer<T>(b);
@@ -140,7 +139,7 @@ CELER_FORCEINLINE_FUNCTION void FnvHasher<T>::operator()(std::byte b) const
  * This is useful for std::hash integration.
  */
 template<class T>
-CELER_FUNCTION void FnvHasher<T>::operator()(std::size_t value) const
+void FnvHasher<T>::operator()(std::size_t value) const
 {
     for (std::size_t i = 0; i < sizeof(std::size_t); ++i)
     {
@@ -154,7 +153,7 @@ CELER_FUNCTION void FnvHasher<T>::operator()(std::size_t value) const
  * Hash a span of bytes.
  */
 template<class T>
-CELER_FUNCTION void FnvHasher<T>::operator()(Span<std::byte const> bytes) const
+void FnvHasher<T>::operator()(Span<std::byte const> bytes) const
 {
     for (auto b : bytes)
     {
