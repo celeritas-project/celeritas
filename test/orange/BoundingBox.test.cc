@@ -9,7 +9,14 @@
 
 #include <limits>
 
+#include "celeritas_config.h"
+#include "corecel/cont/ArrayIO.hh"
+
 #include "celeritas_test.hh"
+
+#if CELERITAS_USE_JSON
+#    include "orange/BoundingBoxIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -82,6 +89,45 @@ TEST_F(BoundingBoxTest, standard)
     bb.clip(Sense::inside, Axis::y, 0);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -2, 4}), bb.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 0, 6}), bb.upper());
+}
+
+TEST_F(BoundingBoxTest, TEST_IF_CELERITAS_JSON(io))
+{
+    using BoundingBoxT = BoundingBox<double>;
+    auto to_json_string = [](BoundingBoxT const& bbox) {
+#if CELERITAS_USE_JSON
+        nlohmann::json j = bbox;
+        return j.dump();
+#else
+        return std::string{};
+#endif
+    };
+    auto from_json_string = [](std::string const& s) {
+#if CELERITAS_USE_JSON
+        return nlohmann::json::parse(s).get<BoundingBoxT>();
+#else
+        return BoundingBoxT{};
+#endif
+    };
+
+    static BoundingBoxT const bboxes[] = {
+        {{-1, -2, -3}, {3, 2, 1}},
+        {{-inf, -2, -3}, {3, 2, inf}},
+        BoundingBoxT::from_infinite(),
+        BoundingBoxT{},
+    };
+
+    EXPECT_EQ("[[-1.0,-2.0,-3.0],[3.0,2.0,1.0]]", to_json_string(bboxes[0]));
+    EXPECT_EQ("null", to_json_string(BoundingBoxT{}));
+
+    // Test round tripping
+    for (BoundingBoxT const& bb : bboxes)
+    {
+        BoundingBoxT reconstructed;
+        EXPECT_NO_THROW(reconstructed = from_json_string(to_json_string(bb)));
+        EXPECT_VEC_SOFT_EQ(bb.lower(), reconstructed.lower());
+        EXPECT_VEC_SOFT_EQ(bb.upper(), reconstructed.upper());
+    }
 }
 
 //---------------------------------------------------------------------------//
