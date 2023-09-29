@@ -36,6 +36,11 @@ struct ImportData;
  * the list of `volume_names` strings is provided, it must be the same size as
  * `volume_to_mat` and indicate a mapping for the geometry's volume IDs.
  * Otherwise, the array is required to have exactly one entry per volume ID.
+ *
+ * Warnings are emitted if materials are unavailable for any volumes, *unless*
+ * the corresponding volume name is empty (corresponding perhaps to a "parallel
+ * world" or otherwise unused volume) or is enclosed with braces (used for
+ * virtual volumes such as `[EXTERIOR]` or temporary boolean/reflected volumes.
  */
 class GeoMaterialParams final
     : public ParamsDataInterface<GeoMaterialParamsData>

@@ -29,25 +29,25 @@ box_base = {
     'zmax': radius,
 }
 
-world_lvs = []
+worlds = []
 shapes = [
     {
         '_type': "box",
         'faces': [xstart, xstart + total_xwidth,
                   -radius, radius,
                   -radius, radius],
-        'name': "calorimeter_lv",
+        'name': "calorimeter",
     },
     {
         '_type': "box",
         'widths': [48, 48, 48],
-        'name': "world_lv",
+        'name': "world",
     }
 ]
 cells = [{
-    'name': "world_lv",
+    'name': "world",
     'comp': "vacuum",
-    'shapes': ['world_lv', '~calorimeter_lv']
+    'shapes': ['world', '~calorimeter']
 }]
 
 for i in range(num_layers):
@@ -59,7 +59,7 @@ for i in range(num_layers):
             ("gap", "lAr", left, mid),
             ("absorber", "Pb", mid, right)
             ]:
-        shape_name = f"{label}_lv_{i}"
+        shape_name = f"{label}_{i}"
         box = {
             'name': shape_name,
             'xmin': xmin,
@@ -68,7 +68,7 @@ for i in range(num_layers):
         box.update(box_base)
         shapes.append(box)
         cells.append({
-            'name': f"{label}_lv_{i}",
+            'name': f"{label}_{i}",
             'comp': mat,
             'shapes': [shape_name],
         })
@@ -78,7 +78,7 @@ world_univ = {
     'name': "world",
     'shape': shapes,
     'cell': cells,
-    'interior': "world_lv",
+    'interior': "world",
 }
 
 db.update({

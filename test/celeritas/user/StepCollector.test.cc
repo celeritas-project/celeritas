@@ -125,7 +125,7 @@ class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
 {
     VecString get_detector_names() const final
     {
-        return {"gap_lv_0", "gap_lv_1", "gap_lv_2"};
+        return {"gap_0", "gap_1", "gap_2"};
     }
 };
 
