@@ -1440,7 +1440,7 @@ TEST_F(CmseTest, coarse)
         // FIXME: this happens because of incorrect momentum update
         expected_num_boundary = {134, 37, 60, 40};
         expected_num_step = {10001, 179, 3236, 1303};
-        expected_num_intercept = {30419, 615, 16170, 9956};
+        expected_num_intercept = {1283, 263, 349, 3245};
         expected_num_integration = {80659, 1670, 41914, 26114};
     }
     else if (!scoped_log_.empty())
@@ -1448,7 +1448,7 @@ TEST_F(CmseTest, coarse)
         // Bumped (platform-dependent!): counts change a bit
         expected_num_boundary = {134, 101, 60, 40};
         expected_num_step = {10001, 6462, 3236, 1303};
-        expected_num_intercept = {30419, 19551, 16170, 9956};
+        expected_num_intercept = {1329, 769, 389, 3275};
         expected_num_integration = {80659, 58282, 41914, 26114};
         static char const* const expected_log_messages[]
             = {"Moved internally from boundary but safety didn't increase: "
