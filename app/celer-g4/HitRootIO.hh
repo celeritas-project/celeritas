@@ -12,10 +12,11 @@
 #include <vector>
 #include <G4ThreadLocalSingleton.hh>
 #include <G4Types.hh>
-#include <G4VHit.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+
+#include "HitData.hh"
 
 class TFile;
 class TTree;
@@ -26,16 +27,6 @@ namespace celeritas
 {
 namespace app
 {
-//---------------------------------------------------------------------------//
-/*!
- * Example of output event structure stored in ROOT.
- */
-struct HitRootEvent
-{
-    int event_id{0};
-    std::map<std::string, std::vector<G4VHit*>> hcmap;
-};
-
 //---------------------------------------------------------------------------//
 /*
  * Example of writing sensitive hits to ROOT output
@@ -65,8 +56,8 @@ class HitRootIO
 
     //// HELPER FUNCTIONS ////
 
-    // Fill and write a HitRootEvent object
-    void WriteObject(HitRootEvent* hit_event);
+    // Fill and write a HitEventData object
+    void WriteObject(HitEventData* hit_event);
 
     // Merge ROOT files from multiple threads
     void Merge();

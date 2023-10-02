@@ -70,11 +70,13 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     auto* touchable = step->GetPreStepPoint()->GetTouchable();
     CELER_ASSERT(touchable);
 
+    auto const touch_t = touchable->GetTranslation();
+
     unsigned int id = touchable->GetVolume()->GetCopyNo();
     HitData data{id,
                  edep,
                  step->GetPreStepPoint()->GetGlobalTime(),
-                 touchable->GetTranslation()};
+                 {touch_t.x(), touch_t.y(), touch_t.z()}};
 
     collection_->insert(new SensitiveHit(data));
 

@@ -83,7 +83,7 @@ HitRootIO* HitRootIO::Instance()
 
 //---------------------------------------------------------------------------//
 /*!
- * Write sensitive hits to output in the form of HitRootEvent.
+ * Write sensitive hits to output in the form of HitEventData.
  */
 void HitRootIO::WriteHits(G4Event const* event)
 {
@@ -93,33 +93,30 @@ void HitRootIO::WriteHits(G4Event const* event)
         return;
     }
 
-    // Write the collection of sensitive hits into HitRootEvent
-    HitRootEvent hit_event;
-    hit_event.event_id = event->GetEventID();
+    // Write the collection of sensitive hits into HitEventData
+    HitEventData event_hits;
+    event_hits.event_id = event->GetEventID();
     for (int i = 0; i < hce->GetNumberOfCollections(); i++)
     {
         G4VHitsCollection* hc = hce->GetHC(i);
-        std::string hcname = hc->GetName();
-        std::vector<G4VHit*> hits;
-        int number_of_hits = hc->GetSize();
-        for (int j = 0; j < number_of_hits; ++j)
+        std::vector<HitData> hits;
+        for (std::size_t j = 0; j < hc->GetSize(); ++j)
         {
-            G4VHit* hit = hc->GetHit(j);
-            SensitiveHit* sd_hit = dynamic_cast<SensitiveHit*>(hit);
-            hits.push_back(sd_hit);
+            auto* sd_hit = dynamic_cast<SensitiveHit*>(hc->GetHit(j));
+            hits.push_back(sd_hit->data());
         }
-        hit_event.hcmap.insert(std::make_pair(hcname, std::move(hits)));
+        event_hits.hits.insert(std::make_pair(hc->GetName(), std::move(hits)));
     }
 
-    // Write a HitRootEvent into output ROOT file
-    this->WriteObject(&hit_event);
+    // Write a HitEventData into output ROOT file
+    this->WriteObject(&event_hits);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill a HitRootEvent object.
+ * Fill event tree with HitEventData.
  */
-void HitRootIO::WriteObject(HitRootEvent* hit_event)
+void HitRootIO::WriteObject(HitEventData* hit_event)
 {
     if (!event_branch_)
     {

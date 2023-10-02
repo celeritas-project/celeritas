@@ -12,22 +12,12 @@
 #include <G4ThreeVector.hh>
 #include <G4VHit.hh>
 
+#include "HitData.hh"
+
 namespace celeritas
 {
 namespace app
 {
-//---------------------------------------------------------------------------//
-/*!
- * Example sensitive hit data.
- */
-struct HitData
-{
-    unsigned int id{0};  //!< detector id
-    double edep{0};  //!< energy deposition
-    double time{0};  //!< time (global coordinate)
-    G4ThreeVector pos{0, 0, 0};  //!< position (global coordinate)
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Example sensitive hit class.
@@ -38,7 +28,7 @@ class SensitiveHit final : public G4VHit
     SensitiveHit() = default;
     explicit SensitiveHit(HitData const& data);
 
-    //! Accessor the hit data
+    //! Accessor
     HitData const& data() const { return data_; }
 
     // Overload new/delete to use a custom allocator.
@@ -46,10 +36,11 @@ class SensitiveHit final : public G4VHit
     inline void operator delete(void*);
 
   private:
-    using HitAllocator = G4Allocator<SensitiveHit>;
-
+    //// DATA ////
     HitData data_;
 
+    //// HELPER FUNCTIONS ////
+    using HitAllocator = G4Allocator<SensitiveHit>;
     static HitAllocator& allocator();
 };
 

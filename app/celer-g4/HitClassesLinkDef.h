@@ -8,13 +8,8 @@
 //---------------------------------------------------------------------------//
 #ifdef __ROOTCLING__
 // clang-format off
-#pragma link C++ class G4VHit+;
-#pragma link C++ class G4ThreeVector+;
 #pragma link C++ class celeritas::app::HitData+;
-#pragma link C++ class celeritas::app::HitRootEvent+;
-#pragma link C++ class celeritas::app::SensitiveHit+;
-#pragma link C++ class std::vector<G4VHit*>+;
-#pragma link C++ class std::vector<celeritas::app::SensitiveHit*>+;
-#pragma link C++ class std::map<std::string, std::vector<G4VHit*> >+;
+#pragma link C++ class celeritas::app::HitEventData+;
+#pragma link C++ class std::vector<celeritas::app::HitData>+;
 // clang-format on
 #endif
