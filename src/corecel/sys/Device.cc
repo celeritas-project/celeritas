@@ -144,8 +144,8 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
     CELER_LOG_LOCAL(debug) << "Constructing device ID " << id;
 
     unsigned int max_threads_per_block = 0;
-    int attr{0};
 #if CELER_USE_DEVICE
+    int attr{0};
 #    if CELERITAS_USE_CUDA
     cudaDeviceProp props;
     CELER_CUDA_CALL(
