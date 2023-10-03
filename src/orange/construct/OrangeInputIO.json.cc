@@ -156,6 +156,10 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     {
         j.at("bbox").get_to(value.bbox);
     }
+    else
+    {
+        value.bbox = BBox::from_infinite();
+    }
 
     // Read scalars, including optional flags
     auto flag_iter = j.find("flags");
@@ -186,8 +190,13 @@ void from_json(nlohmann::json const& j, UnitInput& value)
 
         j.at("surface_names").get_to(value.surfaces.labels);
     }
+    if (j.contains("bbox"))
     {
         j.at("bbox").get_to(value.bbox);
+    }
+    else
+    {
+        value.bbox = BBox::from_infinite();
     }
 
     if (j.contains("parent_cells"))

@@ -53,6 +53,7 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
         }
         else
         {
+            CELER_ASSERT(bboxes_[i]);
             inf_volids.push_back(id);
         }
     }
