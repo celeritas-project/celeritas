@@ -7,8 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "CsgTreeUtils.hh"
 
+#include <algorithm>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include "corecel/cont/Range.hh"
 
