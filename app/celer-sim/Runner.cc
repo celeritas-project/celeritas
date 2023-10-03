@@ -350,6 +350,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
     transporter_input_->num_track_slots
         = ceil_div(inp.num_track_slots, core_params_->max_streams());
     transporter_input_->max_steps = inp.max_steps;
+    transporter_input_->store_track_counts = inp.write_track_counts;
     transporter_input_->sync = inp.sync;
     transporter_input_->params = core_params_;
 }

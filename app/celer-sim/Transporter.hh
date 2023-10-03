@@ -42,6 +42,7 @@ struct TransporterInput
 
     // Loop control
     size_type max_steps{};
+    bool store_track_counts{};  //!< Store track counts at each step
 
     StreamId stream_id{0};
 
@@ -123,6 +124,7 @@ class Transporter final : public TransporterBase
     std::shared_ptr<Stepper<M>> stepper_;
     size_type max_steps_;
     size_type num_streams_;
+    bool store_track_counts_;
 };
 
 //---------------------------------------------------------------------------//
