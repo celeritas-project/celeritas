@@ -144,20 +144,20 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
     CELER_LOG_LOCAL(debug) << "Constructing device ID " << id;
 
     unsigned int max_threads_per_block = 0;
+    int attr{0};
 #if CELER_USE_DEVICE
 #    if CELERITAS_USE_CUDA
     cudaDeviceProp props;
+    CELER_CUDA_CALL(
+        cudaDeviceGetAttribute(&attr, cudaDevAttrCanMapHostMemory, id));
 #    elif CELERITAS_USE_HIP
     hipDeviceProp_t props;
+    CELER_HIP_CALL(
+        hipDeviceGetAttribute(&attr, hipDeviceAttributeCanMapHostMemory, id));
 #    endif
 
-    CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
-    int attr{0};
-    CELER_DEVICE_CALL_PREFIX(DeviceGetAttribute(
-        &attr, CELER_DEVICE_PREFIX(DevAttrCanMapHostMemory), id));
     support_mapped_memory_ = attr != 0;
-    CELER_LOG_LOCAL(info) << "Can map host memory ? " << support_mapped_memory_
-                          << std::endl;
+    CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
     name_ = props.name;
     total_global_mem_ = props.totalGlobalMem;
     max_threads_per_block_ = props.maxThreadsDim[0];
