@@ -58,6 +58,7 @@ struct RunnerInput
     bool action_diagnostic{};
     bool step_diagnostic{};
     size_type step_diagnostic_maxsteps{};
+    bool write_track_counts{true};  //!< Output track counts for each step
 
     // Control
     unsigned int seed{};
