@@ -17,6 +17,8 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/PinnedAllocator.hh"
+#include "corecel/sys/Device.hh"
 
 #include "../Copier.hh"
 #include "DisabledStorage.hh"
@@ -62,6 +64,8 @@ template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::host>;
 template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::device>;
+template<class T>
+struct CollectionStorage<T, Ownership::value, MemSpace::mapped>;
 
 //---------------------------------------------------------------------------//
 //! Storage implementation for managed host data
@@ -90,6 +94,22 @@ struct CollectionStorage<T, Ownership::value, MemSpace::device>
     using type = DisabledStorage<T>;
 #else
     using type = DeviceVector<T>;
+#endif
+    type data;
+};
+
+//! Storage implementation for mapped host/device data
+template<class T>
+struct CollectionStorage<T, Ownership::value, MemSpace::mapped>
+{
+    static_assert(!std::is_same<T, bool>::value,
+                  "bool is not compatible between vector and anything else");
+#ifdef CELER_DEVICE_COMPILE
+    // Use "not implemented" but __host__ __device__ decorated functions when
+    // compiling in CUDA
+    using type = DisabledStorage<T>;
+#else
+    using type = std::vector<T, PinnedAllocator<T>>;
 #endif
     type data;
 };
@@ -126,6 +146,8 @@ template<>
 struct CollectionAssigner<Ownership::value, MemSpace::host>;
 template<>
 struct CollectionAssigner<Ownership::value, MemSpace::device>;
+template<>
+struct CollectionAssigner<Ownership::value, MemSpace::mapped>;
 
 //---------------------------------------------------------------------------//
 //! Check that sizes are acceptable when creating references from values
@@ -195,6 +217,20 @@ struct CollectionAssigner<Ownership::value, MemSpace::device>
             typename StorageValDev<T>::type(source.data.size())};
         result.data.copy_to_device({source.data.data(), source.data.size()});
         return result;
+    }
+};
+
+//---------------------------------------------------------------------------//
+//! Assignment semantics for copying to mapped memory
+template<>
+struct CollectionAssigner<Ownership::value, MemSpace::mapped>
+{
+    template<class T, Ownership W2, MemSpace M2>
+    auto operator()(CollectionStorage<T, W2, M2> const& source)
+        -> CollectionStorage<T, Ownership::value, M2>
+    {
+        CELER_EXPECT(celeritas::device().support_mapped_memory());
+        return {{source.data.data(), source.data.data() + source.data.size()}};
     }
 };
 

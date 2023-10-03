@@ -42,6 +42,7 @@ enum class MemSpace
 {
     host,
     device,
+    mapped,
 #ifdef CELER_DEVICE_SOURCE
     native = device,  // Included by a CUDA/HIP file
 #else

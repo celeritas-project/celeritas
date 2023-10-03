@@ -152,6 +152,12 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 #    endif
 
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
+    int attr{0};
+    CELER_DEVICE_CALL_PREFIX(DeviceGetAttribute(
+        &attr, CELER_DEVICE_PREFIX(DevAttrCanMapHostMemory), id));
+    support_mapped_memory_ = attr != 0;
+    CELER_LOG_LOCAL(info) << "Can map host memory ? " << support_mapped_memory_
+                          << std::endl;
     name_ = props.name;
     total_global_mem_ = props.totalGlobalMem;
     max_threads_per_block_ = props.maxThreadsDim[0];
