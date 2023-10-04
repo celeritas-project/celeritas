@@ -225,11 +225,17 @@ struct CollectionAssigner<Ownership::value, MemSpace::device>
 template<>
 struct CollectionAssigner<Ownership::value, MemSpace::mapped>
 {
+    CollectionAssigner()
+    {
+        CELER_VALIDATE(celeritas::device().support_unified_addressing(),
+                       << "Device " << celeritas::device().device_id()
+                       << " doesn't support unified addressing");
+    }
+
     template<class T, Ownership W2, MemSpace M2>
     auto operator()(CollectionStorage<T, W2, M2> const& source)
         -> CollectionStorage<T, Ownership::value, M2>
     {
-        CELER_EXPECT(celeritas::device().support_mapped_memory());
         return {{source.data.data(), source.data.data() + source.data.size()}};
     }
 };

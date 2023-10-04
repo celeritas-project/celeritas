@@ -145,18 +145,12 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 
     unsigned int max_threads_per_block = 0;
 #if CELER_USE_DEVICE
-    int attr{0};
 #    if CELERITAS_USE_CUDA
     cudaDeviceProp props;
-    CELER_CUDA_CALL(
-        cudaDeviceGetAttribute(&attr, cudaDevAttrCanMapHostMemory, id));
 #    elif CELERITAS_USE_HIP
     hipDeviceProp_t props;
-    CELER_HIP_CALL(
-        hipDeviceGetAttribute(&attr, hipDeviceAttributeCanMapHostMemory, id));
 #    endif
 
-    support_mapped_memory_ = attr != 0;
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
     name_ = props.name;
     total_global_mem_ = props.totalGlobalMem;
@@ -164,6 +158,7 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
     max_blocks_per_grid_ = props.maxGridSize[0];
     max_threads_per_cu_ = props.maxThreadsPerMultiProcessor;
     threads_per_warp_ = props.warpSize;
+    unified_addressing_ = props.unifiedAddressing != 0;
 #    if CELERITAS_USE_HIP
     if (name_.empty())
     {
