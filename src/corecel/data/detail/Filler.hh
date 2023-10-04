@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -18,21 +20,16 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<class T, MemSpace M>
-struct Filler;
 
-//! Assign on host
-template<class T>
-struct Filler<T, MemSpace::host>
+//! Assign on host or mapped / managed memory
+template<class T, MemSpace M>
+struct Filler
 {
     T const& value;
 
     void operator()(Span<T> data) const
     {
-        for (T& v : data)
-        {
-            v = value;
-        }
+        std::fill(data.begin(), data.end(), value);
     }
 };
 
