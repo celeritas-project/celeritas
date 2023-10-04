@@ -33,7 +33,7 @@ void to_json(nlohmann::json& j, Device const& d)
             {"threads_per_warp", d.threads_per_warp()},
             {"eu_per_cu", d.eu_per_cu()},
             {"default_block_size", d.default_block_size()},
-            {"support_unified_addressing", d.support_unified_addressing()},
+            {"can_map_host_memory", d.can_map_host_memory()},
         };
 
 #if CELERITAS_USE_CUDA

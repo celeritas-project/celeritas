@@ -227,7 +227,7 @@ struct CollectionAssigner<Ownership::value, MemSpace::mapped>
 {
     CollectionAssigner()
     {
-        CELER_VALIDATE(celeritas::device().support_unified_addressing(),
+        CELER_VALIDATE(celeritas::device().can_map_host_memory(),
                        << "Device " << celeritas::device().device_id()
                        << " doesn't support unified addressing");
     }

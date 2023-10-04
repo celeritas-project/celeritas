@@ -109,7 +109,7 @@ class Device
     unsigned int default_block_size() const { return default_block_size_; }
 
     //! Check that the device supports mapped pinned memory
-    bool support_unified_addressing() const { return unified_addressing_; }
+    bool can_map_host_memory() const { return can_map_host_memory_; }
 
     //! Additional potentially interesting diagnostics
     MapStrInt const& extra() const { return extra_; }
@@ -132,7 +132,7 @@ class Device
     using UPStreamStorage
         = std::unique_ptr<detail::StreamStorage, StreamStorageDeleter>;
 
-    bool unified_addressing_ = true;
+    bool can_map_host_memory_ = true;
     int id_ = -1;
     std::string name_ = "<DISABLED>";
     std::size_t total_global_mem_ = 0;
