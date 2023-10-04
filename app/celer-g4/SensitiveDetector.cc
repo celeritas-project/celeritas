@@ -59,7 +59,7 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
  */
 bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 {
-    auto edep = step->GetTotalEnergyDeposit();
+    auto const edep = step->GetTotalEnergyDeposit();
 
     if (edep == 0)
     {
@@ -69,17 +69,17 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     // Create a hit for this step
     auto* touchable = step->GetPreStepPoint()->GetTouchable();
     CELER_ASSERT(touchable);
-
     auto const touch_t = touchable->GetTranslation();
 
-    unsigned int id = touchable->GetVolume()->GetCopyNo();
-    HitData data{id,
-                 edep,
-                 step->GetPreStepPoint()->GetGlobalTime(),
-                 {touch_t.x(), touch_t.y(), touch_t.z()}};
+    HitData data;
+    data.id = touchable->GetVolume()->GetCopyNo();
+    data.edep = edep;
+    data.time = step->GetPreStepPoint()->GetGlobalTime();
+    data.pos[0] = touch_t.x();
+    data.pos[1] = touch_t.y();
+    data.pos[2] = touch_t.z();
 
     collection_->insert(new SensitiveHit(data));
-
     return true;
 }
 
