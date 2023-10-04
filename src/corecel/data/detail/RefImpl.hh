@@ -15,11 +15,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 //! Store a value/reference and dispatch function name based on MemSpace.
-template<class T, MemSpace M>
-struct RefGetter;
 
-template<class T>
-struct RefGetter<T, MemSpace::host>
+template<class T, MemSpace M>
+struct RefGetter
 {
     T obj_;
 
