@@ -220,7 +220,7 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
 void count_tracks_per_action(
     DeviceRef<CoreStateData> const& states,
     Span<ThreadId> offsets,
-    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>& out,
+    Collection<ThreadId, Ownership::value, MemSpace::mapped, ActionId>& out,
     TrackOrder order)
 {
     if (order == TrackOrder::sort_along_step_action
@@ -244,7 +244,7 @@ void count_tracks_per_action(
                             states.size(),
                             order);
 
-        Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
+        Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::mapped>{}];
         Copier<ThreadId, MemSpace::host> copy_to_host{sout, states.stream_id};
         copy_to_host(MemSpace::device, offsets);
 

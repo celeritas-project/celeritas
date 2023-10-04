@@ -126,11 +126,11 @@ class CoreState final : public CoreStateInterface
 
     // Reference to the host ActionThread collection for holding result of
     // action counting
-    ActionThreads<MemSpace::host>& action_thread_offsets();
+    inline auto& action_thread_offsets();
 
     // Const reference to the host ActionThread collection for holding result
     // of action counting
-    ActionThreads<MemSpace::host> const& action_thread_offsets() const;
+    inline auto const& action_thread_offsets() const;
 
     // Reference to the ActionThread collection matching the state memory
     // space
@@ -144,7 +144,7 @@ class CoreState final : public CoreStateInterface
     ActionThreads<M> thread_offsets_;
 
     // Only used if M == device for D2H copy of thread_offsets_
-    ActionThreads<MemSpace::host> host_thread_offsets_;
+    ActionThreads<MemSpace::mapped> host_thread_offsets_;
 
     // Primaries to be added
     Collection<Primary, Ownership::value, M> primaries_;
@@ -177,6 +177,42 @@ template<MemSpace M>
 auto CoreState<M>::primary_storage() const -> PrimaryCRef
 {
     return PrimaryCRef{primaries_};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reference to the host ActionThread collection for holding result of
+ * action counting
+ */
+template<MemSpace M>
+auto& CoreState<M>::action_thread_offsets()
+{
+    if constexpr (M == MemSpace::device)
+    {
+        return host_thread_offsets_;
+    }
+    else
+    {
+        return thread_offsets_;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Const reference to the host ActionThread collection for holding result
+ * of action counting
+ */
+template<MemSpace M>
+auto const& CoreState<M>::action_thread_offsets() const
+{
+    if constexpr (M == MemSpace::device)
+    {
+        return host_thread_offsets_;
+    }
+    else
+    {
+        return thread_offsets_;
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -158,6 +158,7 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
     max_blocks_per_grid_ = props.maxGridSize[0];
     max_threads_per_cu_ = props.maxThreadsPerMultiProcessor;
     threads_per_warp_ = props.warpSize;
+    can_map_host_memory_ = props.canMapHostMemory != 0;
 #    if CELERITAS_USE_HIP
     if (name_.empty())
     {

@@ -76,43 +76,6 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Reference to the host ActionThread collection for holding result of action
- * counting
- */
-template<MemSpace M>
-auto CoreState<M>::action_thread_offsets() -> ActionThreads<MemSpace::host>&
-{
-    if constexpr (M == MemSpace::device)
-    {
-        return host_thread_offsets_;
-    }
-    else
-    {
-        return thread_offsets_;
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Const reference to the host ActionThread collection for holding result of
- * action counting
- */
-template<MemSpace M>
-auto CoreState<M>::action_thread_offsets() const
-    -> ActionThreads<MemSpace::host> const&
-{
-    if constexpr (M == MemSpace::device)
-    {
-        return host_thread_offsets_;
-    }
-    else
-    {
-        return thread_offsets_;
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Reference to the ActionThread collection matching the state memory space
  */
 template<MemSpace M>
