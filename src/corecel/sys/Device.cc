@@ -156,12 +156,14 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
     unsigned int max_threads_per_block = 0;
 #if CELER_USE_DEVICE
 #    if CELERITAS_USE_CUDA
-    cudaDeviceProp props;
+    using DevicePropT = cudaDeviceProp;
 #    elif CELERITAS_USE_HIP
-    hipDeviceProp_t props;
+    using DevicePropT = hipDeviceProp_t;
 #    endif
 
+    DevicePropT props;
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
+
     name_ = props.name;
     total_global_mem_ = props.totalGlobalMem;
     max_threads_per_block_ = props.maxThreadsDim[0];

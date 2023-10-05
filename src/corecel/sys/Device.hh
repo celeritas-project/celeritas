@@ -45,13 +45,11 @@ class StreamStorage;
  * unit. Each compute unit can execute one or more blocks: the higher the
  * number of blocks resident, the more latency can be hidden.
  *
- * \todo The active CUDA device is a global property---so this should probably
- * be a singleton, or we could use lower-level API calls.
- *
- * \note The current multithreading/multiprocess model is intended to have one
- * GPU serving multiple CPU threads simultaneously, and one MPI process per
- * GPU. If we need to add multiple GPUs per process, then \c global_device will
- * go away in favor of a thread-independent model.
+ * \warning The current multithreading/multiprocess model is intended to have
+ * one GPU serving multiple CPU threads simultaneously, and one MPI process per
+ * GPU. The active CUDA device is a static thread-local property but  \c
+ * global_device is global. CUDA needs to be activated using \c activate_device
+ * or \c activate_device_local on every thread, using the same device ID.
  */
 class Device
 {
@@ -102,14 +100,14 @@ class Device
     //! Number of threads per warp
     unsigned int threads_per_warp() const { return threads_per_warp_; }
 
+    //! Whether the device supports mapped pinned memory
+    bool can_map_host_memory() const { return can_map_host_memory_; }
+
     //! Number of execution units per compute unit (1 for NVIDIA, 4 for AMD)
     unsigned int eu_per_cu() const { return eu_per_cu_; }
 
     //! Default number of threads per block
     unsigned int default_block_size() const { return default_block_size_; }
-
-    //! Check that the device supports mapped pinned memory
-    bool can_map_host_memory() const { return can_map_host_memory_; }
 
     //! Additional potentially interesting diagnostics
     MapStrInt const& extra() const { return extra_; }
@@ -132,7 +130,6 @@ class Device
     using UPStreamStorage
         = std::unique_ptr<detail::StreamStorage, StreamStorageDeleter>;
 
-    bool can_map_host_memory_ = true;
     int id_ = -1;
     std::string name_ = "<DISABLED>";
     std::size_t total_global_mem_ = 0;
@@ -140,6 +137,7 @@ class Device
     int max_blocks_per_grid_ = 0;
     int max_threads_per_cu_ = 0;
     unsigned int threads_per_warp_ = 0;
+    bool can_map_host_memory_ = true;
     unsigned int eu_per_cu_ = 0;
     unsigned int default_block_size_ = 256u;
     MapStrInt extra_;
