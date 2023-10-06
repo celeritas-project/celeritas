@@ -26,6 +26,7 @@
 #include "orange/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
+#include "orange/surf/SurfaceTypeTraits.hh"
 
 namespace celeritas
 {
@@ -41,6 +42,55 @@ SurfaceType to_surface_type(std::string const& s)
         = StringEnumMapper<SurfaceType>::from_cstring_func(to_cstring,
                                                            "surface type");
     return from_string(s);
+}
+
+struct SurfaceEmplacer
+{
+    std::vector<VariantSurface>* surfaces;
+
+    void operator()(SurfaceType st, Span<real_type const> data)
+    {
+        // Given the surface type, emplace a surface variant using the given
+        // data.
+        return visit_surface_type(
+            [this, data](auto st_constant) {
+                using Surface = typename decltype(st_constant)::type;
+                using Storage = typename Surface::Storage;
+
+                // Construct the variant on the back of the vector
+                surfaces->emplace_back(std::in_place_type<Surface>,
+                                       Storage{data.data(), data.size()});
+            },
+            st);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Read surface data from an ORANGE JSON file.
+ */
+std::vector<VariantSurface> read_surfaces(nlohmann::json const& j)
+{
+    // Read and convert types
+    auto const& type_labels = j.at("types").get<std::vector<std::string>>();
+    auto const& data = j.at("data").get<std::vector<real_type>>();
+    auto const& sizes = j.at("sizes").get<std::vector<size_type>>();
+
+    // Reserve space and create run-to-compile-to-runtime surface constructor
+    std::vector<VariantSurface> result;
+    result.reserve(type_labels.size());
+    SurfaceEmplacer emplace_surface{&result};
+
+    std::size_t data_idx = 0;
+    for (auto i : range(type_labels.size()))
+    {
+        CELER_ASSERT(data_idx + sizes[i] <= data.size());
+        emplace_surface(
+            to_surface_type(type_labels[i]),
+            Span<real_type const>{data.data() + data_idx, sizes[i]});
+        data_idx += sizes[i];
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -115,24 +165,6 @@ decltype(auto) slice(Span<T> data, size_type i)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read surface data from an ORANGE JSON file.
- */
-void from_json(nlohmann::json const& j, SurfaceInput& value)
-{
-    // Read and convert types
-    auto const& type_labels = j.at("types").get<std::vector<std::string>>();
-    value.types.resize(type_labels.size());
-    std::transform(type_labels.begin(),
-                   type_labels.end(),
-                   value.types.begin(),
-                   &to_surface_type);
-
-    j.at("data").get_to(value.data);
-    j.at("sizes").get_to(value.sizes);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Read cell/volume data from an ORANGE JSON file.
  */
 void from_json(nlohmann::json const& j, VolumeInput& value)
@@ -174,7 +206,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
 void from_json(nlohmann::json const& j, UnitInput& value)
 {
     using VecLabel = std::vector<Label>;
-    j.at("surfaces").get_to(value.surfaces);
+    value.surfaces = read_surfaces(j.at("surfaces"));
     j.at("cells").get_to(value.volumes);
     j.at("md").at("name").get_to(value.label);
 
@@ -188,7 +220,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
             value.volumes[i].label = std::move(labels[i]);
         }
 
-        j.at("surface_names").get_to(value.surfaces.labels);
+        j.at("surface_names").get_to(value.surface_labels);
     }
     if (j.contains("bbox"))
     {

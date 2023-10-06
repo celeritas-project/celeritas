@@ -436,7 +436,16 @@ void OrangeParams::process_metadata(OrangeInput const& input)
 
     auto GetSurfaceLabels = Overload{
         [&surface_labels](UnitInput const& u) {
-            for (auto const& s : u.surfaces.labels)
+            CELER_EXPECT(u.surface_labels.empty()
+                         || u.surface_labels.size() == u.surfaces.size());
+            if (u.surface_labels.empty())
+            {
+                // Append the correct number of empty labels
+                surface_labels.resize(surface_labels.size()
+                                      + u.surfaces.size());
+            }
+
+            for (auto const& s : u.surface_labels)
             {
                 Label surface_label = s;
                 if (surface_label.ext.empty())
