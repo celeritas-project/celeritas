@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "orange/OrangeData.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -51,7 +52,7 @@ class TransformInserter
   private:
     TransformId null_transform_;
     CollectionBuilder<TransformRecord> transforms_;
-    CollectionBuilder<real_type> reals_;
+    DedupeCollectionBuilder<real_type> reals_;
 };
 
 //---------------------------------------------------------------------------//
@@ -99,6 +100,8 @@ TransformId TransformInserter::operator()(VariantTransform const& tr)
 template<class T>
 TransformId TransformInserter::operator()(T const& tr)
 {
+    // TODO: add equality and hash for TransformRecord and replace this with
+    // just a dedupe collection builder
     if constexpr (std::is_same_v<T, NoTransformation>)
     {
         // Reuse the same null transform ID everywhere

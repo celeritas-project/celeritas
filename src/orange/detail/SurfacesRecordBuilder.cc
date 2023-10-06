@@ -42,8 +42,6 @@ auto SurfacesRecordBuilder::operator()(VecSurface const& surfaces)
     auto emplace_surface = [this](auto&& s) {
         types_.push_back(s.surface_type());
         auto data = s.data();
-        // TODO: if deduplicating, we can just give the range to an already
-        // saved block of data
         auto real_range = reals_.insert_back(data.begin(), data.end());
         real_ids_.push_back(*real_range.begin());
     };
@@ -58,6 +56,8 @@ auto SurfacesRecordBuilder::operator()(VecSurface const& surfaces)
     result_type result;
     result.surfaces.types = {begin_types, types_.size_id()};
     result.surfaces.data_offsets = {begin_real_ids, real_ids_.size_id()};
+
+    CELER_ENSURE(types_.size() == real_ids_.size());
     return result;
 }
 

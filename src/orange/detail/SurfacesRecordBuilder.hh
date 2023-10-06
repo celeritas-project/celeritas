@@ -12,6 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "orange/OrangeData.hh"
 #include "orange/surf/VariantSurface.hh"
 
@@ -55,7 +56,7 @@ class SurfacesRecordBuilder
   private:
     CollectionBuilder<SurfaceType> types_;
     CollectionBuilder<RealId> real_ids_;
-    CollectionBuilder<real_type> reals_;
+    DedupeCollectionBuilder<real_type> reals_;
 };
 
 //---------------------------------------------------------------------------//

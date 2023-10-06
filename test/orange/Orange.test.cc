@@ -932,7 +932,7 @@ TEST_F(HexArrayTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json({"scalars":{"max_depth":3,"max_faces":9,"max_intersections":10,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":58,"inner_nodes":49,"leaf_nodes":53,"local_volume_ids":58},"connectivity_records":53,"daughters":51,"local_surface_ids":191,"local_volume_ids":348,"logic_ints":585,"real_ids":53,"reals":281,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"universe_indices":4,"universe_types":4,"volume_records":58}})json",
+            R"json({"scalars":{"max_depth":3,"max_faces":9,"max_intersections":10,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":58,"inner_nodes":49,"leaf_nodes":53,"local_volume_ids":58},"connectivity_records":53,"daughters":51,"local_surface_ids":191,"local_volume_ids":348,"logic_ints":585,"real_ids":53,"reals":272,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"universe_indices":4,"universe_types":4,"volume_records":58}})json",
             to_string(out));
     }
 }
