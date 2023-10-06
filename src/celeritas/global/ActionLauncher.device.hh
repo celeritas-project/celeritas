@@ -172,4 +172,3 @@ class ActionLauncher
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
-// vim: set ft=cuda

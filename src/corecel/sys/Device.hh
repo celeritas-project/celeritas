@@ -130,16 +130,21 @@ class Device
     using UPStreamStorage
         = std::unique_ptr<detail::StreamStorage, StreamStorageDeleter>;
 
-    int id_ = -1;
-    std::string name_ = "<DISABLED>";
-    std::size_t total_global_mem_ = 0;
-    int max_threads_per_block_ = 0;
-    int max_blocks_per_grid_ = 0;
-    int max_threads_per_cu_ = 0;
-    unsigned int threads_per_warp_ = 0;
-    bool can_map_host_memory_ = true;
-    unsigned int eu_per_cu_ = 0;
-    unsigned int default_block_size_ = 256u;
+    //// DATA ////
+
+    // Required values for default constructor
+    int id_{-1};
+    std::string name_{"<DISABLED>"};
+
+    // Default values overridden in device-ID constructor
+    std::size_t total_global_mem_{};
+    int max_threads_per_block_{};
+    int max_blocks_per_grid_{};
+    int max_threads_per_cu_{};
+    unsigned int threads_per_warp_{};
+    bool can_map_host_memory_{};
+    unsigned int eu_per_cu_{};
+    unsigned int default_block_size_{};
     MapStrInt extra_;
     UPStreamStorage streams_;
 };

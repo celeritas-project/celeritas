@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
@@ -40,17 +41,17 @@ launch_kernel_impl(Range<ThreadId> const& thread_range, F& execute_thread)
 
 // Instantiated if F doesn't define a member type F::Applier
 template<class F, std::enable_if_t<!has_applier_v<F>, bool> = true>
-__global__ void
-launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
+__global__ void __launch_bounds__(CELERITAS_MAX_BLOCK_SIZE)
+    launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
 {
     launch_kernel_impl(thread_range, execute_thread);
 }
 
-// Instantiated if F::Applier has no launch bounds
+// Instantiated if F::Applier has no manual launch bounds
 template<class F,
          std::enable_if_t<kernel_no_bound<typename F::Applier>, bool> = true>
-__global__ void
-launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
+__global__ void __launch_bounds__(CELERITAS_MAX_BLOCK_SIZE)
+    launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
 {
     launch_kernel_impl(thread_range, execute_thread);
 }
@@ -90,3 +91,4 @@ __global__ void __launch_bounds__(T_, B_)
 }  // namespace
 }  // namespace detail
 }  // namespace celeritas
+// vim: set ft=cuda :
