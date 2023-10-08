@@ -57,7 +57,7 @@ struct VolumeInput
 struct DaughterInput
 {
     UniverseId universe_id;
-    Real3 translation;
+    VariantTransform transform;
 };
 
 //---------------------------------------------------------------------------//

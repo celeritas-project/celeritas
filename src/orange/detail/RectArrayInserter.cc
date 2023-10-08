@@ -82,7 +82,7 @@ RectArrayId RectArrayInserter::operator()(RectArrayInput const& inp)
     {
         Daughter d;
         d.universe_id = daughter_input.universe_id;
-        d.transform_id = insert_transform_(daughter_input.translation);
+        d.transform_id = insert_transform_(daughter_input.transform);
         daughters.push_back(d);
     }
 

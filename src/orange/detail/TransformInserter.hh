@@ -39,9 +39,6 @@ class TransformInserter
     inline TransformInserter(Items<TransformRecord>* transforms,
                              Items<real_type>* reals);
 
-    // DEPRECATED: Return a transform ID from a Real3 translation
-    inline TransformId operator()(Real3 const&);
-
     // Return a transform ID from a transform variant
     inline TransformId operator()(VariantTransform const& tr);
 
@@ -66,21 +63,6 @@ TransformInserter::TransformInserter(Items<TransformRecord>* transforms,
     : transforms_{transforms}, reals_{reals}
 {
     CELER_EXPECT(transforms && reals);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from a translation.
- *
- * \deprecated Change the ORANGE input when convenient.
- */
-TransformId TransformInserter::operator()(Real3 const& tr)
-{
-    if (CELER_UNLIKELY(tr == (Real3{0, 0, 0})))
-    {
-        return (*this)(NoTransformation{});
-    }
-    return (*this)(Translation{tr});
 }
 
 //---------------------------------------------------------------------------//

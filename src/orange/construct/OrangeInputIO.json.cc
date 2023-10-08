@@ -241,20 +241,26 @@ void from_json(nlohmann::json const& j, UnitInput& value)
                        << "fields 'parent_cells' and 'daughters' have "
                           "different lengths");
 
+        if (j.contains("transforms"))
+        {
+            CELER_NOT_IMPLEMENTED("transforms from JSON I/O");
+        }
+
         auto const& translations
             = j.at("translations").get<std::vector<real_type>>();
         CELER_VALIDATE(3 * parent_cells.size() == translations.size(),
                        << "field 'translations' is not 3x length of "
                           "'parent_cells'");
 
-        UnitInput::MapVolumeDaughter daughter_map;
         for (auto i : range(parent_cells.size()))
         {
-            daughter_map[LocalVolumeId{parent_cells[i]}] = {
-                UniverseId{daughters[i]}, slice<3>(make_span(translations), i)};
+            DaughterInput daughter;
+            daughter.universe_id = UniverseId{daughters[i]};
+            daughter.transform
+                = Translation{slice<3>(make_span(translations), i)};
+            value.daughter_map.emplace(LocalVolumeId{parent_cells[i]},
+                                       std::move(daughter));
         }
-
-        value.daughter_map = std::move(daughter_map);
     }
 }
 
@@ -277,6 +283,11 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
 
     // Read daughters universes/translations
     {
+        if (j.contains("transforms"))
+        {
+            CELER_NOT_IMPLEMENTED("transforms from JSON I/O");
+        }
+
         auto parents = j.at("parent_cells").get<std::vector<size_type>>();
         auto daughters = j.at("daughters").get<std::vector<size_type>>();
         auto translations = j.at("translations").get<std::vector<real_type>>();
@@ -289,8 +300,11 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
 
         for (auto i : range(daughters.size()))
         {
-            value.daughters[parents[i]] = {
-                UniverseId{daughters[i]}, slice<3>(make_span(translations), i)};
+            DaughterInput daughter;
+            daughter.universe_id = UniverseId{daughters[i]};
+            daughter.transform
+                = Translation{slice<3>(make_span(translations), i)};
+            value.daughters[parents[i]] = std::move(daughter);
         }
     }
 }
