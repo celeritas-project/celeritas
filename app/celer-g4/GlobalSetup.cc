@@ -186,12 +186,14 @@ void GlobalSetup::ReadInput(std::string const& filename)
 #endif
     }
 
+#if CELERITAS_USE_JSON
     // Set the filename for JSON output
     if (input_.output_file.empty())
     {
         input_.output_file = "celer-g4.out.json";
         options_->output_file = input_.output_file;
     }
+#endif
 
     // Get the number of events
     if (!input_.event_file.empty())

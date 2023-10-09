@@ -33,7 +33,7 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a ROOT output file for each worker except the master thread if MT.
+ * Create a ROOT output file for each worker thread in MT.
  */
 HitRootIO::HitRootIO()
 {
@@ -62,14 +62,12 @@ HitRootIO::HitRootIO()
 
         file_.reset(TFile::Open(file_name_.c_str(), "recreate"));
         CELER_VALIDATE(file_->IsOpen(), << "failed to open " << file_name_);
-        tree_.reset(new TTree(
-            "Events", "Hit collections", this->SplitLevel(), file_.get()));
+        tree_.reset(new TTree(this->TreeName(),
+                              this->TreeName(),
+                              this->SplitLevel(),
+                              file_.get()));
     }
 }
-
-//---------------------------------------------------------------------------//
-//! Default destructor
-HitRootIO::~HitRootIO() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -121,7 +119,7 @@ void HitRootIO::WriteObject(HitEventData* hit_event)
     if (!event_branch_)
     {
         event_branch_
-            = tree_->Branch("event.",
+            = tree_->Branch("event",
                             &hit_event,
                             GlobalSetup::Instance()->GetRootBufferSize(),
                             this->SplitLevel());
@@ -191,17 +189,17 @@ void HitRootIO::Merge()
     {
         std::string file_name = file_name_ + std::to_string(i);
         files.push_back(TFile::Open(file_name.c_str()));
-        trees.push_back((TTree*)(files[i]->Get("Events")));
+        trees.push_back((TTree*)(files[i]->Get(this->TreeName())));
         list->Add(trees[i]);
 
         if (i == nthreads - 1)
         {
-            TFile* file = TFile::Open(file_name_.c_str(), "recreate");
+            auto* file = TFile::Open(file_name_.c_str(), "recreate");
             CELER_VALIDATE(file->IsOpen(), << "failed to open " << file_name_);
 
-            TTree* tree = TTree::MergeTrees(list.get());
-            tree->SetName("Events");
-            //  Write both the TFile and TTree meta-data
+            auto* tree = TTree::MergeTrees(list.get());
+            tree->SetName(this->TreeName());
+            // Write both the TFile and TTree meta-data
             file->Write();
             file->Close();
         }

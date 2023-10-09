@@ -46,26 +46,32 @@ class HitRootIO
     void Close();
 
   private:
-    // Set up output data and file
+    // Construct by initializing TFile and TTree on each worker thread
     HitRootIO();
     HitRootIO(HitRootIO&&) = default;
+
+    // Assignment operator
     HitRootIO& operator=(HitRootIO&&) = default;
 
     // Default destructor
-    ~HitRootIO();
+    ~HitRootIO() = default;
 
     //// HELPER FUNCTIONS ////
 
     // Fill and write a HitEventData object
     void WriteObject(HitEventData* hit_event);
 
-    // Merge ROOT files from multiple threads
+    // Merge ROOT files from multiple worker threads
     void Merge();
 
-    //! The split level of ROOT TTree
+    //! ROOT TTree split level
     static constexpr short int SplitLevel() { return 99; }
 
-  private:
+    //! ROOT TTree name
+    static char const* TreeName() { return "events"; }
+
+    //// DATA ////
+
     std::string file_name_;
     std::unique_ptr<TFile> file_;
     std::unique_ptr<TTree> tree_;

@@ -25,7 +25,7 @@ namespace app
 class SensitiveHit final : public G4VHit
 {
   public:
-    SensitiveHit() = default;
+    // Construct with hit data
     explicit SensitiveHit(HitData const& data);
 
     //! Accessor
@@ -37,9 +37,11 @@ class SensitiveHit final : public G4VHit
 
   private:
     //// DATA ////
+
     HitData data_;
 
     //// HELPER FUNCTIONS ////
+
     using HitAllocator = G4Allocator<SensitiveHit>;
     static HitAllocator& allocator();
 };
