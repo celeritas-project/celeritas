@@ -160,6 +160,15 @@ decltype(auto) slice(Span<T> data, size_type i)
     return result;
 }
 
+VariantTransform make_transform(Real3 const& translation)
+{
+    if (CELER_UNLIKELY(translation == (Real3{0, 0, 0})))
+    {
+        return NoTransformation{};
+    }
+    return Translation{translation};
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -257,7 +266,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
             DaughterInput daughter;
             daughter.universe_id = UniverseId{daughters[i]};
             daughter.transform
-                = Translation{slice<3>(make_span(translations), i)};
+                = make_transform(slice<3>(make_span(translations), i));
             value.daughter_map.emplace(LocalVolumeId{parent_cells[i]},
                                        std::move(daughter));
         }
@@ -302,8 +311,19 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
         {
             DaughterInput daughter;
             daughter.universe_id = UniverseId{daughters[i]};
-            daughter.transform
-                = Translation{slice<3>(make_span(translations), i)};
+
+            // Read and convert transform
+            Translation tr{slice<3>(make_span(translations), i)};
+            if (CELER_UNLIKELY(tr.translation() == (Real3{0, 0, 0})))
+            {
+                daughter.transform = NoTransformation{};
+            }
+            else
+            {
+                daughter.transform = tr;
+            }
+
+            // Save daughter
             value.daughters[parents[i]] = std::move(daughter);
         }
     }
