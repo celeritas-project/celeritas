@@ -72,6 +72,8 @@ foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
 endforeach()
 celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
 
+celeritas_configure_file("celeritas_sys_config.h.in" "celeritas_sys_config.h" @ONLY)
+
 #----------------------------------------------------------------------------#
 # LIBRARIES
 #----------------------------------------------------------------------------#
