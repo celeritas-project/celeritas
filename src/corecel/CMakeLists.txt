@@ -69,12 +69,6 @@ if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
   )
-  find_library(ROCTX_LIBRARY roctx64 HINTS ${ROCM_PATH}/lib64)
-  if(ROCTX_LIBRARY)
-    list(APPEND PRIVATE_DEPS ${ROCTX_LIBRARY})
-  else()
-    message(STATUS "Roctx library not found. ScopedProfiling has no effect")
-  endif()
 endif()
 
 if(CELERITAS_USE_JSON)
