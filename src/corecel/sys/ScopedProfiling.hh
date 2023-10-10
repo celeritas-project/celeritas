@@ -70,7 +70,7 @@ class ScopedProfiling
 };
 
 //---------------------------------------------------------------------------//
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline ScopedProfiling::ScopedProfiling(Input) {}
 inline ScopedProfiling::ScopedProfiling(std::string const&) {}
 inline ScopedProfiling::~ScopedProfiling() {}

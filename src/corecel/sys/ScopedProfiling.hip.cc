@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/ScopedProfiling.hip.cc
+//! \brief The roctx implementation of \c ScopedProfiling
 //---------------------------------------------------------------------------//
 
 #include "ScopedProfiling.hh"
@@ -14,19 +15,8 @@
 
 #include "Environment.hh"
 
-/**
- * @file
- *
- * The roctx implementation of \c ScopedProfiling
- */
-
 namespace celeritas
 {
-namespace
-{
-
-//---------------------------------------------------------------------------//
-}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!

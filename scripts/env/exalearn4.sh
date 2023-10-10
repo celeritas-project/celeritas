@@ -13,5 +13,6 @@ elif [[ ! -d "${SPACK_ROOT}/var/spack/environments/${celeritas_spack_env_name}" 
     _fail "Expects a spack environment named ${celeritas_spack_env_name}" 2
 fi
 
-module load gcc/12.1.0 ninja-build/1.10.1 git/2.36.1 cmake/3.24.1 hip/5.1.3
+unset LD_LIBRARY_PATH
+module load gcc/12.1.0 ninja-build/1.10.1 git/2.36.1
 spack env activate ${celeritas_spack_env_name}
