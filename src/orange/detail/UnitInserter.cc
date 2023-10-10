@@ -235,7 +235,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     }
 
     // Save unit scalars
-    if (inp.volumes.back().zorder == 1)
+    if (inp.volumes.back().zorder == ZOrder::background)
     {
         unit.background = LocalVolumeId(inp.volumes.size() - 1);
     }
@@ -274,7 +274,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     }
 
     auto input_logic = make_span(v.logic);
-    if (v.zorder == 1)
+    if (v.zorder == ZOrder::background)
     {
         // Currently SCALE ORANGE writes background volumes as having "empty"
         // logic, whereas we really want them to be "nowhere" (at least

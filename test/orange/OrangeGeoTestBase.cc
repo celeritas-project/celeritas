@@ -107,6 +107,7 @@ void OrangeGeoTestBase::build_geometry(OneVolInput inp)
         vi.flags = (inp.complex_tracking ? static_cast<logic_int>(
                         VolumeInput::Flags::internal_surfaces)
                                          : 0);
+        vi.zorder = ZOrder::media;
         vi.label = "infinite";
         return vi;
     }()};
@@ -134,6 +135,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         std::vector<VolumeInput> result;
         VolumeInput vi;
         vi.faces = {LocalSurfaceId{0}};
+        vi.zorder = ZOrder::media;
 
         // Outside
         vi.logic = {0};

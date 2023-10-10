@@ -183,6 +183,7 @@ void NestedTest::build_orange()
         // Insert volume
         VolumeInput vi;
         vi.label = name;
+        vi.zorder = ZOrder::media;
         if (daughter)
         {
             vi.logic = {1, logic::lnot, 0, logic::land};
