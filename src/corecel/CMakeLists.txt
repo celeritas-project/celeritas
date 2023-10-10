@@ -69,6 +69,8 @@ if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
   )
+  find_library(ROCTX_LIBRARY roctx64 REQUIRED HINTS ${ROCM_PATH}/lib64)
+  list(APPEND PRIVATE_DEPS ${ROCTX_LIBRARY})
 endif()
 
 if(CELERITAS_USE_JSON)
