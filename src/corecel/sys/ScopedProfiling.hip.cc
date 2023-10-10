@@ -13,6 +13,8 @@
 
 #include "corecel/io/Logger.hh"
 
+#include "celeritas_sys_config.h"
+
 #include "Environment.hh"
 
 namespace celeritas
@@ -46,10 +48,14 @@ bool ScopedProfiling::enable_profiling()
  */
 ScopedProfiling::ScopedProfiling(Input input)
 {
+#ifdef CELERITAS_HAVE_ROCTX
     if (ScopedProfiling::enable_profiling())
     {
         roctxRangePush(input.name.c_str());
     }
+#else
+    CELER_DISCARD(input);
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -67,10 +73,12 @@ ScopedProfiling::ScopedProfiling(std::string const& name)
  */
 ScopedProfiling::~ScopedProfiling()
 {
+#ifdef CELERITAS_HAVE_ROCTX
     if (ScopedProfiling::enable_profiling())
     {
         roctxRangePop();
     }
+#endif
 }
 
 //---------------------------------------------------------------------------//

@@ -69,8 +69,12 @@ if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
   )
-  find_library(ROCTX_LIBRARY roctx64 REQUIRED HINTS ${ROCM_PATH}/lib64)
-  list(APPEND PRIVATE_DEPS ${ROCTX_LIBRARY})
+  find_library(ROCTX_LIBRARY roctx64 HINTS ${ROCM_PATH}/lib64)
+  if(ROCTX_LIBRARY)
+    list(APPEND PRIVATE_DEPS ${ROCTX_LIBRARY})
+  else()
+    message(STATUS "Roctx library not found. ScopedProfiling has no effect")
+  endif()
 endif()
 
 if(CELERITAS_USE_JSON)
@@ -116,6 +120,7 @@ if(WIN32)
   endif()
 endif()
 
+celeritas_configure_file("celeritas_sys_config.h.in" "celeritas_sys_config.h" @ONLY)
 
 celeritas_target_include_directories(corecel
   PUBLIC
