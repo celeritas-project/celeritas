@@ -18,12 +18,17 @@ namespace celeritas
 
 void from_json(nlohmann::json const& j, SurfaceInput& value);
 void from_json(nlohmann::json const& j, VolumeInput& value);
+
 void from_json(nlohmann::json const& j, UnitInput& value);
-void from_json(nlohmann::json const& j, Tolerance<>& value);
-void from_json(nlohmann::json const& j, OrangeInput& value);
+
+void from_json(nlohmann::json const& j, RectArrayInput& value);
 
 template<class T>
+void from_json(nlohmann::json const& j, Tolerance<T>& value);
+template<class T>
 void to_json(nlohmann::json& j, Tolerance<T> const& value);
+
+void from_json(nlohmann::json const& j, OrangeInput& value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

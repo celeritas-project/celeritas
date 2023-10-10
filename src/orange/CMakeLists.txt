@@ -50,6 +50,7 @@ if(CELERITAS_USE_JSON)
     BoundingBoxIO.json.cc
     construct/CsgTreeIO.json.cc
     construct/OrangeInputIO.json.cc
+    construct/detail/OrangeInputIOImpl.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
