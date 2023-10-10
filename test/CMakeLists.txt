@@ -208,6 +208,7 @@ celeritas_add_test(orange/CsgTree.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(orange/CsgTreeUtils.test.cc)
 celeritas_add_test(orange/MatrixUtils.test.cc)
+celeritas_add_test(orange/OrangeTypes.test.cc)
 celeritas_add_device_test(orange/Orange)
 
 # Base detail
