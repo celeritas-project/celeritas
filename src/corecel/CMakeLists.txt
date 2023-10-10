@@ -114,7 +114,6 @@ if(WIN32)
   endif()
 endif()
 
-celeritas_configure_file("celeritas_sys_config.h.in" "celeritas_sys_config.h" @ONLY)
 
 celeritas_target_include_directories(corecel
   PUBLIC
