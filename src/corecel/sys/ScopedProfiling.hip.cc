@@ -6,13 +6,11 @@
 //! \file corecel/sys/ScopedProfiling.hip.cc
 //! \brief The roctx implementation of \c ScopedProfiling
 //---------------------------------------------------------------------------//
-
 #include "ScopedProfiling.hh"
 
 #include "celeritas_sys_config.h"
 #include "corecel/io/Logger.hh"
 
-#include "Device.hh"
 #include "Environment.hh"
 
 #if CELERITAS_HAVE_ROCTX
@@ -34,12 +32,6 @@ bool ScopedProfiling::enable_profiling()
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
         {
-            if (!celeritas::device())
-            {
-                CELER_LOG(warning) << "Disabling profiling support "
-                                      "since no device is available";
-                return false;
-            }
             if (!CELERITAS_HAVE_ROCTX)
             {
                 CELER_LOG(warning) << "Disabling profiling support "

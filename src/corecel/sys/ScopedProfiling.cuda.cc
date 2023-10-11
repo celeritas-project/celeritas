@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/ScopedProfiling.cuda.cc
+//! \brief The nvtx implementation of \c ScopedProfiling
 //---------------------------------------------------------------------------//
-
 #include "ScopedProfiling.hh"
 
 #include <mutex>
@@ -15,7 +15,6 @@
 
 #include "corecel/io/Logger.hh"
 
-#include "Device.hh"
 #include "Environment.hh"
 
 namespace celeritas
@@ -114,12 +113,6 @@ bool ScopedProfiling::enable_profiling()
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
         {
-            if (!celeritas::device())
-            {
-                CELER_LOG(warning) << "Disabling profiling support "
-                                      "since no device is available";
-                return false;
-            }
             CELER_LOG(info) << "Enabling profiling support since the "
                                "'CELER_ENABLE_PROFILING' "
                                "environment variable is present and non-empty";
