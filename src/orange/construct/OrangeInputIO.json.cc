@@ -80,6 +80,19 @@ nlohmann::json variants_to_json(std::vector<T> const& values)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the bounding box or infinite if not there.
+ */
+BBox get_bbox(nlohmann::json const& j)
+{
+    if (auto iter = j.find("bbox"); iter != j.end())
+    {
+        return iter->get<BBox>();
+    }
+    return BBox::from_infinite();
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -96,22 +109,6 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     {
         CELER_ASSERT(surfid != LocalSurfaceId{}.unchecked_get());
         value.faces.emplace_back(surfid);
-    }
-
-    // Convert logic string to vector
-    if (auto iter = j.find("logic"); iter != j.end())
-    {
-        value.logic = detail::string_to_logic(iter->get<std::string>());
-    }
-
-    // Parse bbox
-    if (j.contains("bbox"))
-    {
-        j.at("bbox").get_to(value.bbox);
-    }
-    else
-    {
-        value.bbox = BBox::from_infinite();
     }
 
     // Read scalars, including optional flags
@@ -131,6 +128,20 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     else
     {
         value.zorder = ZOrder::media;
+    }
+
+    if (value.zorder == ZOrder::background)
+    {
+        // Background volumes should be "nowhere" explicitly using "inside"
+        // logic
+        value.logic = {logic::ltrue, logic::lnot};
+        value.bbox = BBox::from_infinite();
+    }
+    else
+    {
+        // Convert logic string to vector
+        value.logic = detail::string_to_logic(j.at("logic").get<std::string>());
+        value.bbox = get_bbox(j);
     }
 }
 
@@ -216,14 +227,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
     }
 
     j.at("surface_names").get_to(value.surface_labels);
-    if (j.contains("bbox"))
-    {
-        j.at("bbox").get_to(value.bbox);
-    }
-    else
-    {
-        value.bbox = BBox::from_infinite();
-    }
+    value.bbox = get_bbox(j);
 
     for (char const* key : {"parent_volumes", "parent_cells"})
     {

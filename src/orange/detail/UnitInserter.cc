@@ -276,15 +276,14 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     auto input_logic = make_span(v.logic);
     if (v.zorder == ZOrder::background)
     {
-        // Currently SCALE ORANGE writes background volumes as having "empty"
-        // logic, whereas we really want them to be "nowhere" (at least
-        // nowhere *explicitly* using the 'inside' logic). It gets away with
-        // this because it always uses BVH to initialize, and the implicit
-        // volumes get an empty bbox. To avoid special cases in Celeritas, set
-        // the logic to be explicitly "not true".
-        CELER_EXPECT(input_logic.empty());
+        // "Background" volumes should not be explicitly reachable by logic or
+        // by the BVH
         static const logic_int nowhere_logic[] = {logic::ltrue, logic::lnot};
-        input_logic = make_span(nowhere_logic);
+        CELER_EXPECT(std::equal(input_logic.begin(),
+                                input_logic.end(),
+                                std::begin(nowhere_logic),
+                                std::end(nowhere_logic)));
+        CELER_EXPECT(is_infinite(v.bbox));
     }
 
     VolumeRecord output;
