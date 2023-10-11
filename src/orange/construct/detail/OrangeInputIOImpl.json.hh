@@ -1,33 +1,34 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/OrangeInputIO.json.hh
+//! \file orange/construct/detail/OrangeInputIOImpl.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+#include <vector>
 #include <nlohmann/json.hpp>
 
-#include "../OrangeData.hh"
-#include "OrangeInput.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/surf/VariantSurface.hh"
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 
-void from_json(nlohmann::json const& j, VolumeInput& value);
+// Read a vector of surfaces
+std::vector<VariantSurface> read_surfaces(nlohmann::json const& j);
 
-void from_json(nlohmann::json const& j, UnitInput& value);
+// Build a logic definition from a C string.
+std::vector<logic_int> parse_logic(char const*);
 
-void from_json(nlohmann::json const& j, RectArrayInput& value);
-
-template<class T>
-void from_json(nlohmann::json const& j, Tolerance<T>& value);
-template<class T>
-void to_json(nlohmann::json& j, Tolerance<T> const& value);
-
-void from_json(nlohmann::json const& j, OrangeInput& value);
+// Construct a transform from a translation.
+VariantTransform make_transform(Real3 const& translation);
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

@@ -359,6 +359,11 @@ elseif(CELERITAS_USE_HIP)
   target_include_directories(celeritas_device_toolkit
     SYSTEM INTERFACE "${ROCM_PATH}/include"
   )
+  find_library(ROCTX_LIBRARY roctx64)
+  if(ROCTX_LIBRARY)
+    set(CELERITAS_HAVE_ROCTX ON)
+    target_link_libraries(celeritas_device_toolkit INTERFACE ${ROCTX_LIBRARY})
+  endif()
 endif()
 
 install(TARGETS celeritas_device_toolkit

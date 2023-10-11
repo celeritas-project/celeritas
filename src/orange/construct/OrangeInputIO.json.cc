@@ -22,131 +22,17 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/LabelIO.json.hh"
-#include "corecel/io/StringEnumMapper.hh"
 #include "orange/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/surf/SurfaceTypeTraits.hh"
 
+#include "detail/OrangeInputIOImpl.json.hh"
+
 namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Convert a surface type string to an enum for I/O.
- */
-SurfaceType to_surface_type(std::string const& s)
-{
-    static auto const from_string
-        = StringEnumMapper<SurfaceType>::from_cstring_func(to_cstring,
-                                                           "surface type");
-    return from_string(s);
-}
-
-struct SurfaceEmplacer
-{
-    std::vector<VariantSurface>* surfaces;
-
-    void operator()(SurfaceType st, Span<real_type const> data)
-    {
-        // Given the surface type, emplace a surface variant using the given
-        // data.
-        return visit_surface_type(
-            [this, data](auto st_constant) {
-                using Surface = typename decltype(st_constant)::type;
-                using Storage = typename Surface::Storage;
-
-                // Construct the variant on the back of the vector
-                surfaces->emplace_back(std::in_place_type<Surface>,
-                                       Storage{data.data(), data.size()});
-            },
-            st);
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Read surface data from an ORANGE JSON file.
- */
-std::vector<VariantSurface> read_surfaces(nlohmann::json const& j)
-{
-    // Read and convert types
-    auto const& type_labels = j.at("types").get<std::vector<std::string>>();
-    auto const& data = j.at("data").get<std::vector<real_type>>();
-    auto const& sizes = j.at("sizes").get<std::vector<size_type>>();
-
-    // Reserve space and create run-to-compile-to-runtime surface constructor
-    std::vector<VariantSurface> result;
-    result.reserve(type_labels.size());
-    SurfaceEmplacer emplace_surface{&result};
-
-    std::size_t data_idx = 0;
-    for (auto i : range(type_labels.size()))
-    {
-        CELER_ASSERT(data_idx + sizes[i] <= data.size());
-        emplace_surface(
-            to_surface_type(type_labels[i]),
-            Span<real_type const>{data.data() + data_idx, sizes[i]});
-        data_idx += sizes[i];
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build a volume from a C string.
- *
- * A valid string satisfies the regex "[0-9~!| ]+", but the result may
- * not be a valid logic expression. (The volume inserter will ensure that the
- * logic expression at least is consistent for a CSG region definition.)
- *
- * Example:
- * \code
-
-     parse_logic("4 ~ 5 & 6 &");
-
-   \endcode
- */
-std::vector<logic_int> parse_logic(char const* c)
-{
-    std::vector<logic_int> result;
-    logic_int s = 0;
-    while (char v = *c++)
-    {
-        if (v >= '0' && v <= '9')
-        {
-            // Parse a surface number. 'Push' this digit onto the surface ID by
-            // multiplying the existing ID by 10.
-            s = 10 * s + (v - '0');
-
-            char const next = *c;
-            if (next == ' ' || next == '\0')
-            {
-                // Next char is end of word or end of string
-                result.push_back(s);
-                s = 0;
-            }
-        }
-        else
-        {
-            // Parse a logic token
-            switch (v)
-            {
-                // clang-format off
-                case ' ': break;
-                case '*': result.push_back(logic::ltrue); break;
-                case '|': result.push_back(logic::lor);   break;
-                case '&': result.push_back(logic::land);  break;
-                case '~': result.push_back(logic::lnot);  break;
-                default:  CELER_ASSERT_UNREACHABLE();
-                    // clang-format on
-            }
-        }
-    }
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the i'th slice of a span of data.
@@ -158,15 +44,6 @@ decltype(auto) slice(Span<T> data, size_type i)
     Array<std::remove_const_t<T>, N> result;
     std::copy_n(data.data() + i * N, N, result.begin());
     return result;
-}
-
-VariantTransform make_transform(Real3 const& translation)
-{
-    if (CELER_UNLIKELY(translation == (Real3{0, 0, 0})))
-    {
-        return NoTransformation{};
-    }
-    return Translation{translation};
 }
 
 //---------------------------------------------------------------------------//
@@ -190,7 +67,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
 
     // Convert logic string to vector
     auto const& temp_logic = j.at("logic").get<std::string>();
-    value.logic = parse_logic(temp_logic.c_str());
+    value.logic = detail::parse_logic(temp_logic.c_str());
 
     // Parse bbox
     if (j.contains("bbox"))
@@ -215,7 +92,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
 void from_json(nlohmann::json const& j, UnitInput& value)
 {
     using VecLabel = std::vector<Label>;
-    value.surfaces = read_surfaces(j.at("surfaces"));
+    value.surfaces = detail::read_surfaces(j.at("surfaces"));
     j.at("cells").get_to(value.volumes);
     j.at("md").at("name").get_to(value.label);
 
@@ -266,7 +143,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
             DaughterInput daughter;
             daughter.universe_id = UniverseId{daughters[i]};
             daughter.transform
-                = make_transform(slice<3>(make_span(translations), i));
+                = detail::make_transform(slice<3>(make_span(translations), i));
             value.daughter_map.emplace(LocalVolumeId{parent_cells[i]},
                                        std::move(daughter));
         }

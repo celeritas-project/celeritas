@@ -65,6 +65,12 @@ if(CELERITAS_USE_CUDA)
   )
 endif()
 
+if(CELERITAS_USE_HIP)
+  list(APPEND SOURCES
+    sys/ScopedProfiling.hip.cc
+  )
+endif()
+
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     AssertIO.json.cc
