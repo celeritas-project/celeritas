@@ -207,7 +207,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
     {
         // Move labels into lower-level data structures
         std::vector<Label> labels;
-        for (char const* key : {"volume_names", "cell_names"})
+        for (char const* key : {"volume_labels", "cell_names"})
         {
             auto iter = j.find(key);
             if (iter != j.end())
@@ -226,7 +226,20 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         }
     }
 
-    j.at("surface_names").get_to(value.surface_labels);
+    for (char const* key : {"surface_labels", "surface_names"})
+    {
+        auto iter = j.find(key);
+        if (iter != j.end())
+        {
+            iter->get_to(value.surface_labels);
+            break;
+        }
+    }
+    CELER_VALIDATE(value.surface_labels.size() == value.surfaces.size()
+                       || value.surface_labels.empty(),
+                   << "incorrect size for surface labels: got "
+                   << value.surface_labels.size() << ", expected "
+                   << value.surfaces.size());
     value.bbox = get_bbox(j);
 
     for (char const* key : {"parent_volumes", "parent_cells"})
@@ -294,15 +307,15 @@ void to_json(nlohmann::json& j, UnitInput const& value)
     j["surfaces"] = detail::export_zipped_surfaces(value.surfaces);
     j["volumes"] = value.volumes;
 
-    j["surface_names"] = value.surface_labels;
+    j["surface_labels"] = value.surface_labels;
 
-    j["volume_names"] = [&value] {
-        auto volume_names = nlohmann::json::array();
+    j["volume_labels"] = [&value] {
+        auto volume_labels = nlohmann::json::array();
         for (auto const& v : value.volumes)
         {
-            volume_names.push_back(v.label);
+            volume_labels.push_back(v.label);
         }
-        return volume_names;
+        return volume_labels;
     }();
 
     if (value.bbox != BBox::from_infinite())
