@@ -83,7 +83,7 @@ std::vector<VariantSurface> read_surfaces(nlohmann::json const& j)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build a volume from a C string.
+ * Build a logic definition from a C string.
  *
  * A valid string satisfies the regex "[0-9~!| ]+", but the result may
  * not be a valid logic expression. (The volume inserter will ensure that the
@@ -96,56 +96,63 @@ std::vector<VariantSurface> read_surfaces(nlohmann::json const& j)
 
    \endcode
  */
-std::vector<logic_int> parse_logic(char const* c)
+std::vector<logic_int> string_to_logic(std::string const& s)
 {
     std::vector<logic_int> result;
-    logic_int s = 0;
-    while (char v = *c++)
+
+    logic_int surf_id{};
+    bool reading_surf{false};
+    for (char v : s)
     {
         if (v >= '0' && v <= '9')
         {
             // Parse a surface number. 'Push' this digit onto the surface ID by
             // multiplying the existing ID by 10.
-            s = 10 * s + (v - '0');
-
-            char const next = *c;
-            if (next == ' ' || next == '\0')
+            if (!reading_surf)
             {
-                // Next char is end of word or end of string
-                result.push_back(s);
-                s = 0;
+                surf_id = 0;
+                reading_surf = true;
             }
+            surf_id = 10 * surf_id + (v - '0');
+            continue;
         }
-        else
+        else if (reading_surf)
         {
-            // Parse a logic token
-            switch (v)
-            {
-                // clang-format off
-                case ' ': break;
-                case '*': result.push_back(logic::ltrue); break;
-                case '|': result.push_back(logic::lor);   break;
-                case '&': result.push_back(logic::land);  break;
-                case '~': result.push_back(logic::lnot);  break;
-                default:  CELER_ASSERT_UNREACHABLE();
-                    // clang-format on
-            }
+            // Next char is end of word or end of string
+            result.push_back(surf_id);
+            reading_surf = false;
         }
+
+        // Parse a logic token
+        switch (v)
+        {
+                // clang-format off
+            case '*': result.push_back(logic::ltrue); continue;
+            case '|': result.push_back(logic::lor);   continue;
+            case '&': result.push_back(logic::land);  continue;
+            case '~': result.push_back(logic::lnot);  continue;
+                // clang-format on
+        }
+        CELER_VALIDATE(v == ' ',
+                       << "unexpected token '" << v
+                       << "' while parsing logic string");
     }
+    if (reading_surf)
+    {
+        result.push_back(surf_id);
+    }
+
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transform from a translation.
+ * Convert a logic vector to a string.
  */
-VariantTransform make_transform(Real3 const& translation)
+std::string logic_to_string(std::vector<logic_int> const& logic)
 {
-    if (CELER_UNLIKELY(translation == (Real3{0, 0, 0})))
-    {
-        return NoTransformation{};
-    }
-    return Translation{translation};
+    return to_string(celeritas::join_stream(
+        logic.begin(), logic.end(), ' ', logic_to_stream));
 }
 
 //---------------------------------------------------------------------------//

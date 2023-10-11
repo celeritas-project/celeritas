@@ -66,8 +66,10 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     }
 
     // Convert logic string to vector
-    auto const& temp_logic = j.at("logic").get<std::string>();
-    value.logic = detail::parse_logic(temp_logic.c_str());
+    if (auto iter = j.find("logic"); iter != j.end())
+    {
+        value.logic = detail::string_to_logic(iter->get<std::string>());
+    }
 
     // Parse bbox
     if (j.contains("bbox"))

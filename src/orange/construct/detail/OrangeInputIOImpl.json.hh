@@ -24,7 +24,7 @@ namespace detail
 std::vector<VariantSurface> read_surfaces(nlohmann::json const& j);
 
 // Build a logic definition from a C string.
-std::vector<logic_int> parse_logic(char const*);
+std::vector<logic_int> string_to_logic(std::string const& s);
 
 // Construct a transform from a translation.
 VariantTransform make_transform(Real3 const& translation);
