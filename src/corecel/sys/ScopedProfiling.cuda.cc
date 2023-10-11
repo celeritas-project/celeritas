@@ -132,34 +132,19 @@ bool ScopedProfiling::enable_profiling()
 /*!
  * Activate nvtx profiling with options.
  */
-ScopedProfiling::ScopedProfiling(Input input)
+ScopedProfiling::activate_(Input const& input)
 {
-    if (ScopedProfiling::enable_profiling())
-    {
-        nvtxEventAttributes_t attributes_ = make_attributes(input);
-        nvtxDomainRangePushEx(domain_handle(), &attributes_);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Activate nvtx profiling.
- */
-ScopedProfiling::ScopedProfiling(std::string const& name)
-    : ScopedProfiling{Input{name}}
-{
+    nvtxEventAttributes_t attributes_ = make_attributes(input);
+    nvtxDomainRangePushEx(domain_handle(), &attributes_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * End the profiling range.
  */
-ScopedProfiling::~ScopedProfiling()
+ScopedProfiling::deactivate_()
 {
-    if (ScopedProfiling::enable_profiling())
-    {
-        nvtxDomainRangePop(domain_handle());
-    }
+    nvtxDomainRangePop(domain_handle());
 }
 
 //---------------------------------------------------------------------------//

@@ -54,40 +54,26 @@ bool ScopedProfiling::enable_profiling()
 
 //---------------------------------------------------------------------------//
 /*!
- * Activate nvtx profiling with options.
+ * Activate profiling.
  */
-ScopedProfiling::ScopedProfiling(Input input)
+ScopedProfiling::activate_(Input const& input)
 {
 #if CELERITAS_HAVE_ROCTX
-    if (ScopedProfiling::enable_profiling())
-    {
-        roctxRangePush(input.name.c_str());
-    }
+    roctxRangePush(input.name.c_str());
 #else
     CELER_DISCARD(input);
+    CELER_ASSERT_UNREACHABLE();
 #endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Activate nvtx profiling.
- */
-ScopedProfiling::ScopedProfiling(std::string const& name)
-    : ScopedProfiling{Input{name}}
-{
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * End the profiling range.
  */
-ScopedProfiling::~ScopedProfiling()
+ScopedProfiling::deactivate_()
 {
 #if CELERITAS_HAVE_ROCTX
-    if (ScopedProfiling::enable_profiling())
-    {
-        roctxRangePop();
-    }
+    roctxRangePop();
 #endif
 }
 
