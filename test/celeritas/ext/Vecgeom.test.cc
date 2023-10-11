@@ -138,6 +138,12 @@ class FourLevelsTest : public VecgeomTestBase
     {
         return this->load_vgdml("four-levels.gdml");
     }
+
+    SpanStringView expected_log_levels() const final
+    {
+        static std::string_view const levels[] = {"warning"};
+        return make_span(levels);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -473,7 +479,8 @@ class SolidsTest : public VecgeomTestBase
 
     SpanStringView expected_log_levels() const final
     {
-        static std::string_view const levels[] = {"warning"};
+        static std::string_view const levels[]
+            = {"warning", "warning", "warning"};
         return make_span(levels);
     }
 };
@@ -782,6 +789,12 @@ class CmseTest : public VecgeomTestBase
 {
   public:
     SPConstGeo build_geometry() final { return this->load_vgdml("cmse.gdml"); }
+
+    SpanStringView expected_log_levels() const final
+    {
+        static std::string_view const levels[] = {"warning"};
+        return make_span(levels);
+    }
 };
 
 //---------------------------------------------------------------------------//
