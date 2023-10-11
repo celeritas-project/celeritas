@@ -283,11 +283,9 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.dir() = local.dir;
         lsa.universe() = uid;
 
-        // daughter_id = tracker.daughter(tinit.volume);
         CELER_ASSERT(tinit.volume);
-        visit_tracker([&tinit, &daughter_id](
-                          auto&& t) { daughter_id = t.daughter(tinit.volume); },
-                      uid);
+        daughter_id = visit_tracker(
+            [&tinit](auto&& t) { return t.daughter(tinit.volume); }, uid);
 
         if (daughter_id)
         {
@@ -451,10 +449,10 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
     }
 
     TrackerVisitor visit_tracker{params_};
-    auto local_state = this->make_local_state(LevelId{0});
-
     auto isect = visit_tracker(
-        [&local_state](auto&& t) { return t.intersect(local_state); },
+        [local_state = this->make_local_state(LevelId{0})](auto&& t) {
+            return t.intersect(local_state);
+        },
         UniverseId{0});
 
     this->find_next_step_impl(isect);
@@ -495,11 +493,9 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
     if (!this->has_next_step())
     {
         TrackerVisitor visit_tracker{params_};
-        auto local_state = this->make_local_state(LevelId{0});
         auto isect = visit_tracker(
-            [&local_state, &max_step](auto&& t) {
-                return t.intersect(local_state, max_step);
-            },
+            [local_state = this->make_local_state(LevelId{0}), &max_step](
+                auto&& t) { return t.intersect(local_state, max_step); },
             UniverseId{0});
 
         this->find_next_step_impl(isect);
@@ -582,6 +578,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
         auto lsa = this->make_lsa(lev);
         lsa.pos() = local_pos;
 
+        // Apply "transform down" based on stored transform
         apply_transform(translate_down,
                         this->get_transform(this->get_daughter(lsa)));
     }
@@ -666,12 +663,10 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     LocalVolumeId volume_id = tinit.volume;
     auto universe_id = lsa.universe();
 
-    // auto daughter_id = tracker.daughter(volume_id);
-    DaughterId daughter_id;
     CELER_ASSERT(volume_id);
-    visit_tracker([&volume_id, &daughter_id](
-                      auto&& t) { daughter_id = t.daughter(volume_id); },
-                  lsa.universe());
+    auto daughter_id = visit_tracker(
+        [&volume_id](auto&& t) { return t.daughter(volume_id); },
+        lsa.universe());
 
     while (daughter_id)
     {
@@ -688,6 +683,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         // XXX I think the next line is redundant
         local.temp_sense = this->make_temp_sense();
 
+        // Initialize in daughter and get IDs of volume and potential daughter
         volume_id = visit_tracker(
             [&local](auto&& t) { return t.initialize(local).volume; },
             universe_id);
@@ -734,11 +730,9 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 
         TrackerVisitor visit_tracker{params_};
         auto pos = this->pos();
-        auto local_surface = ui.local_surface(this->surface_id()).surface;
         auto normal = visit_tracker(
-            [&pos, &local_surface](auto&& t) {
-                return t.normal(pos, local_surface);
-            },
+            [&pos, local_surface = ui.local_surface(this->surface_id()).surface](
+                auto&& t) { return t.normal(pos, local_surface); },
             UniverseId{0});
 
         // Normal is in *local* coordinates but newdir is in *global*: rotate
@@ -912,9 +906,8 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
         auto lsa = this->make_lsa(levelid);
 
         TrackerVisitor visit_tracker{params_};
-        auto local_state = this->make_local_state(levelid);
         auto local_isect = visit_tracker(
-            [&local_state, &isect](auto&& t) {
+            [local_state = this->make_local_state(levelid), &isect](auto&& t) {
                 return t.intersect(local_state, isect.distance);
             },
             lsa.universe());
