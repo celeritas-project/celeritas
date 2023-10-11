@@ -12,6 +12,7 @@
 #include "celeritas_sys_config.h"
 #include "corecel/io/Logger.hh"
 
+#include "Device.hh"
 #include "Environment.hh"
 
 #if CELERITAS_HAVE_ROCTX
@@ -59,7 +60,7 @@ bool ScopedProfiling::enable_profiling()
 /*!
  * Activate profiling.
  */
-ScopedProfiling::activate_(Input const& input)
+void ScopedProfiling::activate_(Input const& input)
 {
 #if CELERITAS_HAVE_ROCTX
     roctxRangePush(input.name.c_str());
@@ -73,7 +74,7 @@ ScopedProfiling::activate_(Input const& input)
 /*!
  * End the profiling range.
  */
-ScopedProfiling::deactivate_()
+void ScopedProfiling::deactivate_() noexcept
 {
 #if CELERITAS_HAVE_ROCTX
     roctxRangePop();

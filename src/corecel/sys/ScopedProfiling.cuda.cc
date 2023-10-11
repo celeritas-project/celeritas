@@ -15,6 +15,7 @@
 
 #include "corecel/io/Logger.hh"
 
+#include "Device.hh"
 #include "Environment.hh"
 
 namespace celeritas
@@ -67,9 +68,9 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
     }
 
     // We did not find the handle; try to insert it
-    auto [iter, inserted] = [] {
+    auto [iter, inserted] = [&message] {
         std::unique_lock lock(mutex);
-        message_registry().insert({message, {}});
+        return message_registry().insert({message, {}});
     }();
     if (inserted)
     {
@@ -133,7 +134,7 @@ bool ScopedProfiling::enable_profiling()
 /*!
  * Activate nvtx profiling with options.
  */
-ScopedProfiling::activate_(Input const& input)
+void ScopedProfiling::activate_(Input const& input)
 {
     nvtxEventAttributes_t attributes_ = make_attributes(input);
     nvtxDomainRangePushEx(domain_handle(), &attributes_);
@@ -143,7 +144,7 @@ ScopedProfiling::activate_(Input const& input)
 /*!
  * End the profiling range.
  */
-ScopedProfiling::deactivate_()
+void ScopedProfiling::deactivate_() noexcept
 {
     nvtxDomainRangePop(domain_handle());
 }

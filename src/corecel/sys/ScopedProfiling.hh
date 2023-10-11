@@ -81,7 +81,7 @@ class ScopedProfiling
   private:
     bool activated_;
 
-    void activate_(Input const& input) noexcept;
+    void activate_(Input const& input);
     void deactivate_() noexcept;
 };
 
@@ -104,7 +104,7 @@ ScopedProfiling::ScopedProfiling(Input const& input)
 /*!
  * Activate nvtx profiling with just a name.
  */
-ScopedProfiling::ScopedProfiling(std::string const&)
+ScopedProfiling::ScopedProfiling(std::string const& name)
     : ScopedProfiling{Input{name}}
 {
 }
