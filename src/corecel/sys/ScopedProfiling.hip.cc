@@ -41,8 +41,9 @@ bool ScopedProfiling::enable_profiling()
             }
             else
             {
-                CELER_LOG(warn) << "Roctx library not found. ScopedProfiling "
-                                   "has no effect";
+                CELER_LOG(warning)
+                    << "Roctx library not found. ScopedProfiling "
+                       "has no effect";
             }
             return true;
         }
