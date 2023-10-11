@@ -54,8 +54,8 @@ auto SurfacesRecordBuilder::operator()(VecSurface const& surfaces)
     }
 
     result_type result;
-    result.surfaces.types = {begin_types, types_.size_id()};
-    result.surfaces.data_offsets = {begin_real_ids, real_ids_.size_id()};
+    result.types = {begin_types, types_.size_id()};
+    result.data_offsets = {begin_real_ids, real_ids_.size_id()};
 
     CELER_ENSURE(types_.size() == real_ids_.size());
     return result;

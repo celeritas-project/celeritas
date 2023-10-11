@@ -24,7 +24,7 @@ namespace detail
 /*!
  * Convert a vector of surfaces into type-deleted local surface data.
  *
- * TODO: deduplicate local surfaces and global surface data.
+ * The input surfaces should already be deduplicated.
  */
 class SurfacesRecordBuilder
 {
@@ -35,14 +35,8 @@ class SurfacesRecordBuilder
     using Items = Collection<T, Ownership::value, MemSpace::host>;
     using RealId = OpaqueId<real_type>;
     using VecSurface = std::vector<VariantSurface>;
+    using result_type = SurfacesRecord;
     //!@}
-
-    struct result_type
-    {
-        SurfacesRecord surfaces;
-        // TODO: deduplicating will remap input surface indices to LSIds
-        std::vector<LocalSurfaceId> local_ids;
-    };
 
   public:
     // Construct with pointers to the underlying storage

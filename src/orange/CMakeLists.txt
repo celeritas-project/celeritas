@@ -27,6 +27,7 @@ list(APPEND SOURCES
   detail/RectArrayInserter.cc
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
+  detail/UniverseInserter.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
   surf/GeneralQuadric.cc

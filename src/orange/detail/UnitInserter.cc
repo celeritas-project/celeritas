@@ -24,6 +24,8 @@
 #include "orange/construct/OrangeInput.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
+#include "UniverseInserter.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -118,19 +120,59 @@ struct NumIntersectionGetter
 };
 
 //---------------------------------------------------------------------------//
+//! Construct surface labels, empty if needed
+std::vector<Label> make_surface_labels(UnitInput const& inp)
+{
+    CELER_EXPECT(inp.surface_labels.empty()
+                 || inp.surface_labels.size() == inp.surfaces.size());
+
+    std::vector<Label> result;
+    result.resize(inp.surfaces.size());
+
+    for (auto i : range(inp.surface_labels.size()))
+    {
+        Label surface_label = inp.surface_labels[i];
+        if (surface_label.ext.empty())
+        {
+            surface_label.ext = inp.label.name;
+        }
+        result[i] = std::move(surface_label);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+//! Construct volume labels from the input volumes
+std::vector<Label> make_volume_labels(UnitInput const& inp)
+{
+    std::vector<Label> result;
+    for (auto const& v : inp.volumes)
+    {
+        Label vl = v.label;
+        if (vl.ext.empty())
+        {
+            vl.ext = inp.label.name;
+        }
+        result.push_back(std::move(vl));
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from full parameter data.
  */
-UnitInserter::UnitInserter(Data* orange_data)
+UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     : orange_data_(orange_data)
     , build_bih_tree_{&orange_data_->bih_tree_data}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
     , build_surfaces_{&orange_data_->surface_types,
                       &orange_data_->real_ids,
                       &orange_data_->reals}
+    , insert_universe_{insert_universe}
     , simple_units_{&orange_data_->simple_units}
     , local_surface_ids_{&orange_data_->local_surface_ids}
     , local_volume_ids_{&orange_data_->local_volume_ids}
@@ -154,13 +196,16 @@ UnitInserter::UnitInserter(Data* orange_data)
 /*!
  * Create a simple unit and return its ID.
  */
-SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
+UniverseId UnitInserter::operator()(UnitInput const& inp)
 {
+    CELER_VALIDATE(inp,
+                   << "simple unit '" << inp.label
+                   << "' is not properly constructed");
+
     SimpleUnitRecord unit;
 
     // Insert surfaces
-    // TODO: when deduplicating surfaces, remap local IDs
-    unit.surfaces = this->build_surfaces_(inp.surfaces).surfaces;
+    unit.surfaces = this->build_surfaces_(inp.surfaces);
 
     // Bounding box bumper and converter: conservatively expand to twice the
     // potential bump distance from a boundary so that the bbox will enclose
@@ -245,7 +290,11 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         });
 
     CELER_ASSERT(unit);
-    return simple_units_.push_back(unit);
+    simple_units_.push_back(unit);
+    return (*insert_universe_)(UniverseType::simple,
+                               inp.label,
+                               make_surface_labels(inp),
+                               make_volume_labels(inp));
 }
 
 //---------------------------------------------------------------------------//
