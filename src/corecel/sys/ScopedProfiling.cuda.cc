@@ -17,15 +17,6 @@
 
 #include "Environment.hh"
 
-/**
- * @file
- *
- * The nvtx implementation of \c ScopedProfiling only does something when the
- * application using Celeritas is ran through a tool that supports nvtx, e.g.
- * nsight compute with the --nvtx argument. If this is not the case, API
- * calls to nvtx are disabled, doing noop.
- */
-
 namespace celeritas
 {
 namespace
@@ -57,8 +48,9 @@ nvtxDomainHandle_t domain_handle()
 
 //---------------------------------------------------------------------------//
 /*!
- * Retrieve the handle for a given message. Insert it if it doesn't already
- * exists.
+ * Retrieve the handle for a given message.
+ *
+ * Insert it if it doesn't already exist.
  */
 nvtxStringHandle_t message_handle_for(std::string const& message)
 {
@@ -73,9 +65,12 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
             return message_handle->second;
         }
     }
+
     // We did not find the handle; try to insert it
-    std::unique_lock lock(mutex);
-    auto [iter, inserted] = message_registry().insert({message, {}});
+    auto [iter, inserted] = [] {
+        std::unique_lock lock(mutex);
+        message_registry().insert({message, {}});
+    }();
     if (inserted)
     {
         iter->second
@@ -118,6 +113,12 @@ bool ScopedProfiling::enable_profiling()
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
         {
+            if (!celeritas::device())
+            {
+                CELER_LOG(warning) << "Disabling profiling support "
+                                      "since no device is available";
+                return false;
+            }
             CELER_LOG(info) << "Enabling profiling support since the "
                                "'CELER_ENABLE_PROFILING' "
                                "environment variable is present and non-empty";

@@ -9,13 +9,14 @@
 
 #include "ScopedProfiling.hh"
 
-#include <roctracer/roctx.h>
-
+#include "celeritas_sys_config.h"
 #include "corecel/io/Logger.hh"
 
-#include "celeritas_sys_config.h"
-
 #include "Environment.hh"
+
+#if CELERITAS_HAVE_ROCTX
+#    include <roctracer/roctx.h>
+#endif
 
 namespace celeritas
 {
@@ -32,19 +33,21 @@ bool ScopedProfiling::enable_profiling()
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
         {
-            if (CELERITAS_HAVE_ROCTX)
+            if (!celeritas::device())
             {
-                CELER_LOG(info)
-                    << "Enabling profiling support since the "
-                       "'CELER_ENABLE_PROFILING' "
-                       "environment variable is present and non-empty";
+                CELER_LOG(warning) << "Disabling profiling support "
+                                      "since no device is available";
+                return false;
             }
-            else
+            if (!CELERITAS_HAVE_ROCTX)
             {
-                CELER_LOG(warning)
-                    << "Roctx library not found. ScopedProfiling "
-                       "has no effect";
+                CELER_LOG(warning) << "Disabling profiling support "
+                                      "since ROC-TX is unavailable";
+                return false;
             }
+            CELER_LOG(info) << "Enabling profiling support since the "
+                               "'CELER_ENABLE_PROFILING' "
+                               "environment variable is present and non-empty";
             return true;
         }
         return false;
