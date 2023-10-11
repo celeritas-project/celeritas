@@ -32,9 +32,18 @@ bool ScopedProfiling::enable_profiling()
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
         {
-            CELER_LOG(info) << "Enabling profiling support since the "
-                               "'CELER_ENABLE_PROFILING' "
-                               "environment variable is present and non-empty";
+            if (CELERITAS_HAVE_ROCTX)
+            {
+                CELER_LOG(info)
+                    << "Enabling profiling support since the "
+                       "'CELER_ENABLE_PROFILING' "
+                       "environment variable is present and non-empty";
+            }
+            else
+            {
+                CELER_LOG(warn) << "Roctx library not found. ScopedProfiling "
+                                   "has no effect";
+            }
             return true;
         }
         return false;
