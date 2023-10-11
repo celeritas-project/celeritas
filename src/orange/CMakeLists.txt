@@ -22,6 +22,7 @@ list(APPEND SOURCES
   construct/CsgTypes.cc
   construct/CsgTreeUtils.cc
   construct/DepthCalculator.cc
+  construct/detail/LocalSurfaceInserter.cc
   construct/detail/NodeSimplifier.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc

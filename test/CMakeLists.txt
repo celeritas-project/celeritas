@@ -221,6 +221,7 @@ set(CELERITASTEST_PREFIX orange/construct)
 celeritas_add_test(orange/construct/CsgTree.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
+celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
 
 #-------------------------------------#
 # Transforms
