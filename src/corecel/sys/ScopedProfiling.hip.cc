@@ -60,14 +60,18 @@ bool ScopedProfiling::enable_profiling()
 /*!
  * Activate profiling.
  */
-void ScopedProfiling::activate_(Input const& input)
+void ScopedProfiling::activate_(Input const& input) noexcept
 {
+    int result = 0;
 #if CELERITAS_HAVE_ROCTX
-    roctxRangePush(input.name.c_str());
-#else
-    CELER_DISCARD(input);
-    CELER_ASSERT_UNREACHABLE();
+    result = roctxRangePush(input.name.c_str());
 #endif
+    if (result < 0)
+    {
+        activated_ = false;
+        CELER_LOG(warning) << "Failed to activate profiling range '"
+                           << input.name << "'";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -76,9 +80,15 @@ void ScopedProfiling::activate_(Input const& input)
  */
 void ScopedProfiling::deactivate_() noexcept
 {
+    int result = 0;
 #if CELERITAS_HAVE_ROCTX
-    roctxRangePop();
+    result = roctxRangePop();
 #endif
+    if (result < 0)
+    {
+        activated_ = false;
+        CELER_LOG(warning) << "Failed to deactivate profiling range";
+    }
 }
 
 //---------------------------------------------------------------------------//

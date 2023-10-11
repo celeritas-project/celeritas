@@ -134,10 +134,16 @@ bool ScopedProfiling::enable_profiling()
 /*!
  * Activate nvtx profiling with options.
  */
-void ScopedProfiling::activate_(Input const& input)
+void ScopedProfiling::activate_(Input const& input) noexcept
 {
     nvtxEventAttributes_t attributes_ = make_attributes(input);
-    nvtxDomainRangePushEx(domain_handle(), &attributes_);
+    int result = nvtxDomainRangePushEx(domain_handle(), &attributes_);
+    if (result < 0)
+    {
+        activated_ = false;
+        CELER_LOG(warning) << "Failed to activate profiling domain '"
+                           << input.name << "'";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -146,7 +152,11 @@ void ScopedProfiling::activate_(Input const& input)
  */
 void ScopedProfiling::deactivate_() noexcept
 {
-    nvtxDomainRangePop(domain_handle());
+    int result = nvtxDomainRangePop(domain_handle());
+    if (result < 0)
+    {
+        CELER_LOG(warning) << "Failed to deactivate profiling domain";
+    }
 }
 
 //---------------------------------------------------------------------------//
