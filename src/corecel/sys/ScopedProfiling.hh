@@ -89,7 +89,7 @@ class ScopedProfiling
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Activate nvtx profiling with options.
+ * Activate device profiling with options.
  */
 ScopedProfiling::ScopedProfiling(Input const& input)
     : activated_{ScopedProfiling::enable_profiling()}
@@ -102,7 +102,7 @@ ScopedProfiling::ScopedProfiling(Input const& input)
 
 //---------------------------------------------------------------------------//
 /*!
- * Activate nvtx profiling with just a name.
+ * Activate device profiling with just a name.
  */
 ScopedProfiling::ScopedProfiling(std::string const& name)
     : ScopedProfiling{Input{name}}
@@ -122,13 +122,13 @@ ScopedProfiling::~ScopedProfiling()
 }
 
 #if !CELER_USE_DEVICE
-inline void activate_(Input const&)
+inline void ScopedProfiling::activate_(Input const&) noexcept
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_UNREACHABLE;
 }
-inline void deactivate_()
+inline void ScopedProfiling::deactivate_() noexcept
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_UNREACHABLE;
 }
 #endif
 //---------------------------------------------------------------------------//
