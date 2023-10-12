@@ -27,10 +27,8 @@
 
 #if VECGEOM_VERSION >= 0x020000
 #    include <VecGeom/navigation/BVHNavigator.h>
-using BVHNavigator = vecgeom::BVHNavigator;
 #else
 #    include "detail/BVHNavigator.hh"
-using BVHNavigator = celeritas::detail::BVHNavigator;
 #endif
 namespace celeritas
 {
@@ -56,6 +54,11 @@ class VecgeomTrackView
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
     using StateRef = NativeRef<VecgeomStateData>;
+#if VECGEOM_VERSION >= 0x020000
+    using BVHNavigator = vecgeom::BVHNavigator;
+#else
+    using BVHNavigator = celeritas::detail::BVHNavigator;
+#endif
     //!@}
 
     //! Helper struct for initializing from an existing geometry state
@@ -388,7 +391,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
 
     // Since the reported "safety" is negative if we've moved slightly beyond
     // the boundary of a solid without crossing it, we must clamp to zero.
-    return clamp(safety, 0., max_radius);
+    return max<real_type>(0., min<real_type>(safety, max_radius));
 }
 
 //---------------------------------------------------------------------------//
