@@ -6,16 +6,16 @@
 //! \file corecel/sys/ScopedProfiling.hip.cc
 //! \brief The roctx implementation of \c ScopedProfiling
 //---------------------------------------------------------------------------//
-
 #include "ScopedProfiling.hh"
 
-#include <roctracer/roctx.h>
-
+#include "celeritas_sys_config.h"
 #include "corecel/io/Logger.hh"
 
-#include "celeritas_sys_config.h"
-
 #include "Environment.hh"
+
+#if CELERITAS_HAVE_ROCTX
+#    include <roctracer/roctx.h>
+#endif
 
 namespace celeritas
 {
@@ -32,19 +32,15 @@ bool ScopedProfiling::enable_profiling()
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
         {
-            if (CELERITAS_HAVE_ROCTX)
+            if (!CELERITAS_HAVE_ROCTX)
             {
-                CELER_LOG(info)
-                    << "Enabling profiling support since the "
-                       "'CELER_ENABLE_PROFILING' "
-                       "environment variable is present and non-empty";
+                CELER_LOG(warning) << "Disabling profiling support "
+                                      "since ROC-TX is unavailable";
+                return false;
             }
-            else
-            {
-                CELER_LOG(warning)
-                    << "Roctx library not found. ScopedProfiling "
-                       "has no effect";
-            }
+            CELER_LOG(info) << "Enabling profiling support since the "
+                               "'CELER_ENABLE_PROFILING' "
+                               "environment variable is present and non-empty";
             return true;
         }
         return false;
@@ -54,41 +50,37 @@ bool ScopedProfiling::enable_profiling()
 
 //---------------------------------------------------------------------------//
 /*!
- * Activate nvtx profiling with options.
+ * Activate profiling.
  */
-ScopedProfiling::ScopedProfiling(Input input)
+void ScopedProfiling::activate_(Input const& input) noexcept
 {
+    int result = 0;
 #if CELERITAS_HAVE_ROCTX
-    if (ScopedProfiling::enable_profiling())
-    {
-        roctxRangePush(input.name.c_str());
-    }
-#else
-    CELER_DISCARD(input);
+    result = roctxRangePush(input.name.c_str());
 #endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Activate nvtx profiling.
- */
-ScopedProfiling::ScopedProfiling(std::string const& name)
-    : ScopedProfiling{Input{name}}
-{
+    if (result < 0)
+    {
+        activated_ = false;
+        CELER_LOG(warning) << "Failed to activate profiling range '"
+                           << input.name << "'";
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * End the profiling range.
  */
-ScopedProfiling::~ScopedProfiling()
+void ScopedProfiling::deactivate_() noexcept
 {
+    int result = 0;
 #if CELERITAS_HAVE_ROCTX
-    if (ScopedProfiling::enable_profiling())
-    {
-        roctxRangePop();
-    }
+    result = roctxRangePop();
 #endif
+    if (result < 0)
+    {
+        activated_ = false;
+        CELER_LOG(warning) << "Failed to deactivate profiling range";
+    }
 }
 
 //---------------------------------------------------------------------------//
