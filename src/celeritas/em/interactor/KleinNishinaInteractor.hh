@@ -105,7 +105,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     using Energy = units::MevEnergy;
 
     // Allocate space for the single electron to be emitted
-    Secondary* electron_secondary = this->allocate_(1);
+    Secondary* electron_secondary = allocate_(1);
     if (electron_secondary == nullptr)
     {
         // Failed to allocate space for a secondary
