@@ -50,7 +50,7 @@ template<Axis T>
 bool SoftSurfaceEqual::operator()(CylCentered<T> const& a,
                                   CylCentered<T> const& b) const
 {
-    return soft_eq_sq_(a.radius_sq(), b.radius_sq());
+    return this->soft_eq_sq(a.radius_sq(), b.radius_sq());
 }
 
 //! \cond
@@ -64,7 +64,7 @@ ORANGE_INSTANTIATE_OP(CylCentered);
 bool SoftSurfaceEqual::operator()(SphereCentered const& a,
                                   SphereCentered const& b) const
 {
-    return soft_eq_sq_(a.radius_sq(), b.radius_sq());
+    return this->soft_eq_sq(a.radius_sq(), b.radius_sq());
 }
 
 //---------------------------------------------------------------------------//
@@ -75,8 +75,8 @@ template<Axis T>
 bool SoftSurfaceEqual::operator()(CylAligned<T> const& a,
                                   CylAligned<T> const& b) const
 {
-    return soft_eq_sq_(a.radius_sq(), b.radius_sq())
-           && soft_eq_distance_(a.calc_origin(), b.calc_origin());
+    return this->soft_eq_sq(a.radius_sq(), b.radius_sq())
+           && this->soft_eq_distance(a.calc_origin(), b.calc_origin());
 }
 
 //! \cond
@@ -136,8 +136,8 @@ bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
  */
 bool SoftSurfaceEqual::operator()(Sphere const& a, Sphere const& b) const
 {
-    return soft_eq_sq_(a.radius_sq(), b.radius_sq())
-           && soft_eq_distance_(a.origin(), b.origin());
+    return this->soft_eq_sq(a.radius_sq(), b.radius_sq())
+           && this->soft_eq_distance(a.origin(), b.origin());
 }
 
 //---------------------------------------------------------------------------//
@@ -148,8 +148,8 @@ template<Axis T>
 bool SoftSurfaceEqual::operator()(ConeAligned<T> const& a,
                                   ConeAligned<T> const& b) const
 {
-    return soft_eq_sq_(a.tangent_sq(), b.tangent_sq())
-           && soft_eq_distance_(a.origin(), b.origin());
+    return this->soft_eq_sq(a.tangent_sq(), b.tangent_sq())
+           && this->soft_eq_distance(a.origin(), b.origin());
 }
 
 //! \cond
@@ -163,8 +163,10 @@ ORANGE_INSTANTIATE_OP(ConeAligned);
 bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
                                   SimpleQuadric const& b) const
 {
-    return soft_eq_distance_(make_array(a.second()), make_array(b.second()))
-           && soft_eq_distance_(make_array(a.first()), make_array(b.first()))
+    return this->soft_eq_distance(make_array(a.second()),
+                                  make_array(b.second()))
+           && this->soft_eq_distance(make_array(a.first()),
+                                     make_array(b.first()))
            && soft_eq_(a.zeroth(), b.zeroth());
 }
 
@@ -175,9 +177,12 @@ bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
 bool SoftSurfaceEqual::operator()(GeneralQuadric const& a,
                                   GeneralQuadric const& b) const
 {
-    return soft_eq_distance_(make_array(a.second()), make_array(b.second()))
-           && soft_eq_distance_(make_array(a.cross()), make_array(b.cross()))
-           && soft_eq_distance_(make_array(a.first()), make_array(b.first()))
+    return this->soft_eq_distance(make_array(a.second()),
+                                  make_array(b.second()))
+           && this->soft_eq_distance(make_array(a.cross()),
+                                     make_array(b.cross()))
+           && this->soft_eq_distance(make_array(a.first()),
+                                     make_array(b.first()))
            && soft_eq_(a.zeroth(), b.zeroth());
 }
 
@@ -187,7 +192,7 @@ bool SoftSurfaceEqual::operator()(GeneralQuadric const& a,
 /*!
  * Compare the square of values for soft equality.
  */
-bool SoftSurfaceEqual::soft_eq_sq_(real_type a, real_type b) const
+bool SoftSurfaceEqual::soft_eq_sq(real_type a, real_type b) const
 {
     return soft_eq_(std::sqrt(a), std::sqrt(b));
 }
@@ -201,7 +206,7 @@ bool SoftSurfaceEqual::soft_eq_sq_(real_type a, real_type b) const
  \f]
  * which translates exactly to vector math.
  */
-bool SoftSurfaceEqual::soft_eq_distance_(Real3 const& a, Real3 const& b) const
+bool SoftSurfaceEqual::soft_eq_distance(Real3 const& a, Real3 const& b) const
 {
     // This is soft equal formula but using vector distance.
     real_type rel = soft_eq_.rel() * std::fmax(norm(a), norm(b));
