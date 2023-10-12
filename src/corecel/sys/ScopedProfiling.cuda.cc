@@ -127,7 +127,7 @@ bool ScopedProfiling::enable_profiling()
 /*!
  * Activate nvtx profiling with options.
  */
-void ScopedProfiling::activate_impl(Input const& input) noexcept
+void ScopedProfiling::activate(Input const& input) noexcept
 {
     nvtxEventAttributes_t attributes_ = make_attributes(input);
     int result = nvtxDomainRangePushEx(domain_handle(), &attributes_);
@@ -143,7 +143,7 @@ void ScopedProfiling::activate_impl(Input const& input) noexcept
 /*!
  * End the profiling range.
  */
-void ScopedProfiling::deactivate_impl() noexcept
+void ScopedProfiling::deactivate() noexcept
 {
     int result = nvtxDomainRangePop(domain_handle());
     if (result < 0)

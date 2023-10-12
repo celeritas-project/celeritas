@@ -81,8 +81,8 @@ class ScopedProfiling
   private:
     bool activated_;
 
-    void activate_impl(Input const& input) noexcept;
-    void deactivate_impl() noexcept;
+    void activate(Input const& input) noexcept;
+    void deactivate() noexcept;
 };
 
 //---------------------------------------------------------------------------//
@@ -96,7 +96,7 @@ ScopedProfiling::ScopedProfiling(Input const& input)
 {
     if (activated_)
     {
-        this->activate_impl(input);
+        this->activate(input);
     }
 }
 
@@ -117,16 +117,16 @@ ScopedProfiling::~ScopedProfiling()
 {
     if (activated_)
     {
-        this->deactivate_impl();
+        this->deactivate();
     }
 }
 
 #if !CELER_USE_DEVICE
-inline void ScopedProfiling::activate_impl(Input const&) noexcept
+inline void ScopedProfiling::activate(Input const&) noexcept
 {
     CELER_UNREACHABLE;
 }
-inline void ScopedProfiling::deactivate_impl() noexcept
+inline void ScopedProfiling::deactivate() noexcept
 {
     CELER_UNREACHABLE;
 }

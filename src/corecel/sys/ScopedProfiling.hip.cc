@@ -52,7 +52,7 @@ bool ScopedProfiling::enable_profiling()
 /*!
  * Activate profiling.
  */
-void ScopedProfiling::activate_impl(Input const& input) noexcept
+void ScopedProfiling::activate(Input const& input) noexcept
 {
     int result = 0;
 #if CELERITAS_HAVE_ROCTX
@@ -70,7 +70,7 @@ void ScopedProfiling::activate_impl(Input const& input) noexcept
 /*!
  * End the profiling range.
  */
-void ScopedProfiling::deactivate_impl() noexcept
+void ScopedProfiling::deactivate() noexcept
 {
     int result = 0;
 #if CELERITAS_HAVE_ROCTX
