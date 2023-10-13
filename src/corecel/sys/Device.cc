@@ -28,6 +28,16 @@
 #include "Stream.hh"
 #include "detail/StreamStorage.hh"
 
+#if CELERITAS_USE_CUDA
+#    define CELER_DEVICE_SUPPORTS_MEMPOOL 1
+#elif CELERITAS_USE_HIP       \
+    && (HIP_VERSION_MAJOR > 5 \
+        || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2))
+#    define CELER_DEVICE_SUPPORTS_MEMPOOL 1
+#else
+#    define CELER_DEVICE_SUPPORTS_MEMPOOL 0
+#endif
+
 namespace celeritas
 {
 namespace
@@ -194,7 +204,9 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 
     // Save for possible block size initialization
     max_threads_per_block = props.maxThreadsPerBlock;
+#endif
 
+#if CELER_DEVICE_SUPPORTS_MEMPOOL
     auto threshold = std::numeric_limits<uint64_t>::max();
     if (std::string var = celeritas::getenv("CELER_MEMPOOL_RELEASE_THRESHOLD");
         !var.empty())
