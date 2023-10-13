@@ -8,8 +8,8 @@ export RFE_811452_DISABLE=1
 export LD_LIBRARY_PATH=/opt/cray/pe/pmi/6.1.8/lib:$LD_LIBRARY_PATH:/opt/cray/pe/gcc-libs:/opt/cray/libfabric/1.15.2.0/lib64
 export LIBRARY_PATH=/opt/rocm-5.1.0/lib:/opt/rocm-5.1.0/lib64:$LIBRARY_PATH
 
-# TODO: Avoid linking multiple different libsci (one with openmp, one without)
-# module unload cray-libsci
+# Avoid linking multiple different libsci (one with openmp, one without)
+module unload cray-libsci
 
 # Set up compilers
 test -n "${CRAYPE_DIR}"
