@@ -165,7 +165,7 @@ template<class Engine>
 CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 {
     // Allocate space for the electron/positron pair
-    Secondary* secondaries = this->allocate_(2);
+    Secondary* secondaries = allocate_(2);
     if (secondaries == nullptr)
     {
         // Failed to allocate space for secondaries
