@@ -211,16 +211,9 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     vecgeom::VPlacedVolume const* worldvol = params_.world_volume;
     bool const contains_point = true;
 
-    // Note that LocateGlobalPoint sets `vgstate_`. If `vgstate_` is outside
-    // (including possibly on the outside volume edge), the volume pointer it
-    // returns would be null at this point.
-#if VECGEOM_VERSION >= 0x020000
+    // LocatePointIn sets `vgstate_`
     BVHNavigator::LocatePointIn(
         worldvol, detail::to_vector(pos_), vgstate_, contains_point);
-#else
-    BVHNavigator::LocatePointIn(
-        worldvol, detail::to_vector(pos_), vgstate_, contains_point);
-#endif
     return *this;
 }
 

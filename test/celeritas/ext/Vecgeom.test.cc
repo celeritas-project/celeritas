@@ -139,13 +139,18 @@ class FourLevelsTest : public VecgeomTestBase
         return this->load_vgdml("four-levels.gdml");
     }
 
-#if VECGEOM_VERSION >= 0x020000
     SpanStringView expected_log_levels() const final
     {
-        static std::string_view const levels[] = {"warning"};
-        return make_span(levels);
+        if (VECGEOM_VERSION >= 0x020000)
+        {
+            static std::string_view const levels[] = {"warning"};
+            return make_span(levels);
+        }
+        else
+        {
+            return {};
+        }
     }
-#endif
 };
 
 //---------------------------------------------------------------------------//
@@ -481,13 +486,17 @@ class SolidsTest : public VecgeomTestBase
 
     SpanStringView expected_log_levels() const final
     {
-#if VECGEOM_VERSION >= 0x020000
-        static std::string_view const levels[]
-            = {"warning", "warning", "warning"};
-#else
-        static std::string_view const levels[] = {"warning"};
-#endif
-        return make_span(levels);
+        if (VECGEOM_VERSION >= 0x020000)
+        {
+            static std::string_view const levels[]
+                = {"warning", "warning", "warning"};
+            return make_span(levels);
+        }
+        else
+        {
+            static std::string_view const levels[] = {"warning"};
+            return make_span(levels);
+        }
     }
 };
 
@@ -796,13 +805,18 @@ class CmseTest : public VecgeomTestBase
   public:
     SPConstGeo build_geometry() final { return this->load_vgdml("cmse.gdml"); }
 
-#if VECGEOM_VERSION >= 0x020000
     SpanStringView expected_log_levels() const final
     {
-        static std::string_view const levels[] = {"warning"};
-        return make_span(levels);
+        if (VECGEOM_VERSION >= 0x020000)
+        {
+            static std::string_view const levels[] = {"warning"};
+            return make_span(levels);
+        }
+        else
+        {
+            return {};
+        }
     }
-#endif
 };
 
 //---------------------------------------------------------------------------//
