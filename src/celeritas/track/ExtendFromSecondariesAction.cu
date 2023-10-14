@@ -9,6 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -29,6 +30,7 @@ namespace celeritas
 void ExtendFromSecondariesAction::begin_run(CoreParams const&,
                                             CoreStateDevice& core_state)
 {
+    ScopedProfiling profile_this{this->label()};
     Stream& s = device().stream(core_state.stream_id());
     void* p = s.malloc_async(core_state.size() * sizeof(size_type));
     s.free_async(p);
@@ -43,6 +45,7 @@ void ExtendFromSecondariesAction::begin_run(CoreParams const&,
 void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
                                                CoreStateDevice& core_state) const
 {
+    ScopedProfiling profile_this{"locate-alive"};
     using Executor = detail::LocateAliveExecutor;
     static ActionLauncher<Executor> launch(*this);
     launch(core_state,
@@ -56,6 +59,7 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
 void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateDevice& core_state) const
 {
+    ScopedProfiling profile_this{"process-secondaries"};
     using Executor = detail::ProcessSecondariesExecutor;
     static ActionLauncher<Executor> launch(*this);
     launch(core_state,

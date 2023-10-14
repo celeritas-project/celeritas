@@ -37,6 +37,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
@@ -136,6 +137,7 @@ void run(int argc, char** argv)
     run_manager->SetUserInitialization(new ActionInitialization());
 
     // Initialize run and process events
+    ScopedProfiling profile_this{"celer-g4"};
     CELER_LOG(status) << "Initializing run manager";
     run_manager->Initialize();
 

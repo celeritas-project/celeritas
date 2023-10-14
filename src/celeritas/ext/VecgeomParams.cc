@@ -20,6 +20,7 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/ext/detail/VecgeomCompatibility.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
@@ -53,6 +54,7 @@ VecgeomParams::VecgeomParams(std::string const& filename)
 
     ScopedMem record_mem("VecgeomParams.construct");
     {
+        ScopedProfiling profile_this{"load-vecgeom"};
         ScopedMem record_mem("VecgeomParams.load_geant_geometry");
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
         vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
@@ -77,6 +79,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 
     {
         // Convert the geometry to VecGeom
+        ScopedProfiling profile_this{"load-vecgeom"};
         g4vg::Converter::Options opts;
         opts.compare_volumes
             = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
@@ -190,6 +193,7 @@ void VecgeomParams::build_tracking()
 {
     CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
     CELER_LOG(status) << "Initializing tracking information";
+    ScopedProfiling profile_this{"initialize-vecgeom"};
     ScopedMem record_mem("VecgeomParams.build_tracking");
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
