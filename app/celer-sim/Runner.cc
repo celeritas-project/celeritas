@@ -22,6 +22,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/UrbanMscParams.hh"
@@ -186,6 +187,7 @@ void Runner::build_core_params(RunnerInput const& inp,
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
     ScopedMem record_mem("Runner.build_core_params");
+    ScopedProfiling profile_this{"construct-params"};
     CoreParams::Input params;
     ImportData const imported = [&inp] {
         if (ends_with(inp.physics_filename, ".root"))
