@@ -9,6 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -18,6 +19,21 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Warm up asynchronous allocation.
+ *
+ * This just calls MallocAsync before the first step, since it's used by
+ * \c detail::remove_if_alive under the hood.
+ */
+void ExtendFromSecondariesAction::begin_run(CoreParams const&,
+                                            CoreStateDevice& core_state)
+{
+    Stream& s = device().stream(core_state.stream_id());
+    void* p = s.malloc_async(core_state.size() * sizeof(size_type));
+    s.free_async(p);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Launch a kernel to locate alive particles.
