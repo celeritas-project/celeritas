@@ -57,9 +57,14 @@ struct KernelAttributes
  * This can only be called from CUDA/HIP code. It assumes that the block size
  * is constant across the execution of the program and that the kernel is only
  * called by the device that's active at this time.
+ *
+ * The special value of zero threads per block causes the kernel attributes to
+ * default to the *compile-time maximum* number of threads per block as
+ * specified by launch bounds.
  */
 template<class F>
-KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
+KernelAttributes
+make_kernel_attributes(F* func, unsigned int threads_per_block = 0)
 {
     KernelAttributes result;
     result.threads_per_block = threads_per_block;
@@ -73,6 +78,10 @@ KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
         result.const_mem = attr.constSizeBytes;
         result.local_mem = attr.localSizeBytes;
         result.max_threads_per_block = attr.maxThreadsPerBlock;
+    }
+    if (result.threads_per_block == 0)
+    {
+        result.threads_per_block = result.max_threads_per_block;
     }
 
     // Get maximum number of active blocks per SM

@@ -48,8 +48,7 @@ void phys_cuda_test(PTestInput const& input)
 {
     CELER_ASSERT(input.inits.size() == input.states.size());
 
-    CELER_LAUNCH_KERNEL(
-        phys_test, device().default_block_size(), input.states.size(), 0, input);
+    CELER_LAUNCH_KERNEL(phys_test, input.states.size(), 0, input);
 }
 
 //---------------------------------------------------------------------------//

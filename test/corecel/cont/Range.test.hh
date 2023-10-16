@@ -25,7 +25,6 @@ struct RangeTestInput
     std::vector<int> x;
     std::vector<int> y;
     unsigned int num_threads;
-    unsigned int threads_per_block;
 };
 
 //! Output data

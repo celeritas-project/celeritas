@@ -193,7 +193,7 @@ __global__ void cleanup_kernel(DeviceCRef<ParamsData> const params,
 // KERNEL INTERFACES
 //---------------------------------------------------------------------------//
 #define CDE_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, ...) \
-    CELER_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, 0, __VA_ARGS__)
+    CELER_LAUNCH_KERNEL(NAME, THREADS, 0, __VA_ARGS__)
 
 /*!
  * Initialize particle states.

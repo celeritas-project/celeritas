@@ -24,11 +24,11 @@ namespace test
 {
 using StackAllocatorMock = StackAllocator<MockSecondary>;
 
+namespace
+{
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
-namespace
-{
 __global__ void sa_test_kernel(SATestInput const input, SATestOutput* output)
 {
     auto thread_idx = KernelParamCalculator::thread_id().get();
@@ -84,6 +84,7 @@ __global__ void sa_clear_kernel(SATestInput const input)
         allocate.clear();
     }
 }
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -95,21 +96,13 @@ SATestOutput sa_test(SATestInput const& input)
     // Construct and initialize output data
     thrust::device_vector<SATestOutput> out(1);
 
-    CELER_LAUNCH_KERNEL(sa_test,
-                        device().default_block_size(),
-                        input.num_threads,
-                        0,
-                        input,
-                        raw_pointer_cast(out.data()));
+    CELER_LAUNCH_KERNEL(
+        sa_test, input.num_threads, 0, input, raw_pointer_cast(out.data()));
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Access secondaries after the first kernel completed
-    CELER_LAUNCH_KERNEL(sa_post_test,
-                        device().default_block_size(),
-                        input.num_threads,
-                        0,
-                        input,
-                        raw_pointer_cast(out.data()));
+    CELER_LAUNCH_KERNEL(
+        sa_post_test, input.num_threads, 0, input, raw_pointer_cast(out.data()));
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy data back to host
@@ -121,7 +114,7 @@ SATestOutput sa_test(SATestInput const& input)
 //! Clear secondaries, only a single thread needed
 void sa_clear(SATestInput const& input)
 {
-    CELER_LAUNCH_KERNEL(sa_clear, device().threads_per_warp(), 1, 0, input);
+    CELER_LAUNCH_KERNEL(sa_clear, 1, 0, input);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 

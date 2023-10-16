@@ -78,7 +78,6 @@ VGGTestOutput vgg_test(VGGTestInput const& input)
 
     // Run kernel
     CELER_LAUNCH_KERNEL(vgg_test,
-                        celeritas::device().default_block_size(),
                         init.size(),
                         0,
                         input.params,

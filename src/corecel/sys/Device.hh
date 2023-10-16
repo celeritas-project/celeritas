@@ -106,9 +106,6 @@ class Device
     //! Number of execution units per compute unit (1 for NVIDIA, 4 for AMD)
     unsigned int eu_per_cu() const { return eu_per_cu_; }
 
-    //! Default number of threads per block
-    unsigned int default_block_size() const { return default_block_size_; }
-
     //! Additional potentially interesting diagnostics
     MapStrInt const& extra() const { return extra_; }
 
@@ -144,7 +141,6 @@ class Device
     unsigned int threads_per_warp_{};
     bool can_map_host_memory_{};
     unsigned int eu_per_cu_{};
-    unsigned int default_block_size_{};
     MapStrInt extra_;
     UPStreamStorage streams_;
 };
