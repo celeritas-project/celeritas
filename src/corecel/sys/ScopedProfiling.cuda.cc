@@ -21,21 +21,6 @@ namespace celeritas
 {
 namespace
 {
-
-//---------------------------------------------------------------------------//
-/*!
- * Global registry for strings used by NVTX.
- *
- * This is implemented as a free function instead of a class static member in
- * ScopedProfiling to hide the NVTX dependency from users of the
- * interface.
- */
-std::unordered_map<std::string, nvtxStringHandle_t>& message_registry()
-{
-    static std::unordered_map<std::string, nvtxStringHandle_t> registry;
-    return registry;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Library-wide handle to the domain name.
@@ -54,7 +39,7 @@ nvtxDomainHandle_t domain_handle()
  */
 nvtxStringHandle_t message_handle_for(std::string const& message)
 {
-    auto& registry = message_registry();
+    static std::unordered_map<std::string, nvtxStringHandle_t> registry;
     static std::shared_mutex mutex;
 
     {
@@ -74,7 +59,7 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
     }();
     if (inserted)
     {
-        // Register the
+        // Register the domain
         iter->second
             = nvtxDomainRegisterStringA(domain_handle(), message.c_str());
     }
