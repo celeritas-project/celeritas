@@ -28,7 +28,7 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
                                                CoreStateDevice& core_state) const
 {
     using Executor = detail::LocateAliveExecutor;
-    static ActionLauncher<Executor> launch(*this);
+    static ActionLauncher<Executor> launch(*this, "locate-alive");
     launch(core_state,
            Executor{core_params.ptr<MemSpace::native>(), core_state.ptr()});
 }
@@ -41,7 +41,7 @@ void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateDevice& core_state) const
 {
     using Executor = detail::ProcessSecondariesExecutor;
-    static ActionLauncher<Executor> launch(*this);
+    static ActionLauncher<Executor> launch(*this, "process-secondaries");
     launch(core_state,
            Executor{core_params.ptr<MemSpace::native>(),
                     core_state.ptr(),
