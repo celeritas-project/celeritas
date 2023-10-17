@@ -99,6 +99,19 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Run a single step with no active states to "warm up".
+ *
+ * This is to reduce the uncertainty in timing for problems, especially on AMD
+ * hardware.
+ */
+void Runner::warm_up()
+{
+    auto& transport = this->get_transporter(StreamId{0});
+    transport();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Run on a single stream/thread, returning the transport result.
  *
  * This will partition the input primaries among all the streams.

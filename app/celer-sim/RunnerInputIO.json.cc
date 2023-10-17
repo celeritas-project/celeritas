@@ -102,6 +102,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(sync);
     LDIO_LOAD_OPTION(merge_events);
     LDIO_LOAD_OPTION(default_stream);
+    LDIO_LOAD_OPTION(warm_up);
 
     LDIO_LOAD_OPTION(mag_field);
     LDIO_LOAD_OPTION(field_options);
@@ -177,6 +178,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_REQUIRED(sync);
     LDIO_SAVE_REQUIRED(merge_events);
     LDIO_SAVE_REQUIRED(default_stream);
+    LDIO_SAVE_REQUIRED(warm_up);
 
     LDIO_SAVE_OPTION(mag_field);
     if (v.mag_field != RunnerInput::no_field())

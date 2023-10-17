@@ -55,6 +55,9 @@ class Runner
     // Construct on all threads from a JSON input and shared output manager
     Runner(RunnerInput const& inp, SPOutputRegistry output);
 
+    // Warm up by running a single step with no active tracks
+    void warm_up();
+
     // Run on a single stream/thread, returning the transport result
     RunnerResult operator()(StreamId, EventId);
 

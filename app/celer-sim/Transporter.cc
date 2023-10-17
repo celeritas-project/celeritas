@@ -15,6 +15,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
@@ -52,6 +53,22 @@ Transporter<M>::Transporter(TransporterInput inp)
     step_input.stream_id = inp.stream_id;
     step_input.sync = inp.sync;
     stepper_ = std::make_shared<Stepper<M>>(std::move(step_input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Run a single step with no active states to "warm up".
+ *
+ * This is to reduce the uncertainty in timing for problems, especially on AMD
+ * hardware.
+ */
+template<MemSpace M>
+void Transporter<M>::operator()()
+{
+    CELER_LOG(status) << "Warming up";
+    ScopedTimeLog scoped_time;
+    StepperResult step_counts = (*stepper_)();
+    CELER_ENSURE(step_counts.alive == 0);
 }
 
 //---------------------------------------------------------------------------//
