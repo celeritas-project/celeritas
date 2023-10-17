@@ -47,7 +47,7 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
 {
     ScopedProfiling profile_this{"locate-alive"};
     using Executor = detail::LocateAliveExecutor;
-    static ActionLauncher<Executor> launch(*this);
+    static ActionLauncher<Executor> launch(*this, "locate-alive");
     launch(core_state,
            Executor{core_params.ptr<MemSpace::native>(), core_state.ptr()});
 }
@@ -61,7 +61,7 @@ void ExtendFromSecondariesAction::process_secondaries(
 {
     ScopedProfiling profile_this{"process-secondaries"};
     using Executor = detail::ProcessSecondariesExecutor;
-    static ActionLauncher<Executor> launch(*this);
+    static ActionLauncher<Executor> launch(*this, "process-secondaries");
     launch(core_state,
            Executor{core_params.ptr<MemSpace::native>(),
                     core_state.ptr(),

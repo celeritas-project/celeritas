@@ -237,7 +237,6 @@ tell what variables are in use or may be useful.
  ======================= ========= ==========================================
  Variable                Component Brief description
  ======================= ========= ==========================================
- CELER_BLOCK_SIZE        corecel   Change the default block size for kernels
  CELER_COLOR             corecel   Enable/disable ANSI color logging
  CELER_DEBUG_DEVICE      corecel   Increase device error checking and output
  CELER_DISABLE_DEVICE    corecel   Disable CUDA/HIP support

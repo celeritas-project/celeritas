@@ -153,15 +153,16 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 
     CELER_LOG_LOCAL(debug) << "Constructing device ID " << id;
 
-    unsigned int max_threads_per_block = 0;
 #if CELER_USE_DEVICE
 #    if CELERITAS_USE_CUDA
-    cudaDeviceProp props;
+    using DevicePropT = cudaDeviceProp;
 #    elif CELERITAS_USE_HIP
-    hipDeviceProp_t props;
+    using DevicePropT = hipDeviceProp_t;
 #    endif
 
+    DevicePropT props;
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
+
     name_ = props.name;
     total_global_mem_ = props.totalGlobalMem;
     max_threads_per_block_ = props.maxThreadsDim[0];
@@ -203,7 +204,7 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 #    endif
 
     // Save for possible block size initialization
-    max_threads_per_block = props.maxThreadsPerBlock;
+    max_threads_per_block_ = props.maxThreadsPerBlock;
 #endif
 
 #if CELER_DEVICE_SUPPORTS_MEMPOOL
@@ -221,22 +222,6 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 
     // See device_runtime_api.h
     eu_per_cu_ = CELER_EU_PER_CU;
-
-    // Set default block size from environment
-    std::string const& bsize_str = celeritas::getenv("CELER_BLOCK_SIZE");
-    if (!bsize_str.empty())
-    {
-        default_block_size_ = std::stoi(bsize_str);
-        CELER_VALIDATE(default_block_size_ >= threads_per_warp_
-                           && default_block_size_ <= max_threads_per_block,
-                       << "Invalid block size: number of threads must be in ["
-                       << threads_per_warp_ << ", " << max_threads_per_block
-                       << "]");
-        CELER_VALIDATE(default_block_size_ % threads_per_warp_ == 0,
-                       << "Invalid block size: number of threads must be "
-                          "evenly divisible by "
-                       << threads_per_warp_);
-    }
 
     CELER_ENSURE(*this);
     CELER_ENSURE(!name_.empty());

@@ -415,7 +415,6 @@ TEST(TEST_IF_CELER_DEVICE(DeviceRangeTest), grid_stride)
         input.y[i] = i;
     }
     input.num_threads = device().threads_per_warp();
-    input.threads_per_block = 256;
 
     // Calculate saxpy using CPU
     std::vector<int> z_cpu(N, 0.0);

@@ -52,7 +52,6 @@ void simple_calo_accum(DeviceRef<StepStateData> const& step,
 {
     CELER_EXPECT(step && calo);
     CELER_LAUNCH_KERNEL(simple_calo_accum,
-                        celeritas::device().default_block_size(),
                         step.size(),
                         celeritas::device().stream(step.stream_id).get(),
                         step,

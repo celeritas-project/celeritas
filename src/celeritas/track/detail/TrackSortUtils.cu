@@ -81,7 +81,6 @@ void sort_impl(TrackSlots const& track_slots,
     DeviceVector<ActionId::size_type> reordered_actions(track_slots.size(),
                                                         stream_id);
     CELER_LAUNCH_KERNEL(reorder_actions,
-                        celeritas::device().default_block_size(),
                         track_slots.size(),
                         celeritas::device().stream(stream_id).get(),
                         track_slots.data(),
@@ -236,7 +235,6 @@ void count_tracks_per_action(
         CELER_DEVICE_CHECK_ERROR();
         auto* stream = celeritas::device().stream(states.stream_id).get();
         CELER_LAUNCH_KERNEL(tracks_per_action,
-                            celeritas::device().default_block_size(),
                             states.size(),
                             stream,
                             states,

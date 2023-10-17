@@ -112,6 +112,14 @@ celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
 celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  set(CELERITAS_MAX_BLOCK_SIZE 256
+    CACHE STRING "Threads-per-block launch bound for Celeritas action kernels"
+  )
+else()
+  set(CELERITAS_MAX_BLOCK_SIZE 0)
+endif()
+
 #----------------------------------------------------------------------------#
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#
