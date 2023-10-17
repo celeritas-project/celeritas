@@ -16,7 +16,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -83,13 +82,11 @@ template<MemSpace M>
 void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 {
     // Execute beginning-of-run action
-    CELER_LOG_LOCAL(status) << "Initializing additional state data";
-    ScopedProfiling profile_this{"begin-run"};
     ScopedMem record_mem("ActionSequence.begin_run");
-    ScopedTimeLog scoped_time;
 
     for (auto const& sp_action : begin_run_)
     {
+        ScopedProfiling profile_this{sp_action->label()};
         sp_action->begin_run(params, state);
     }
 }
@@ -107,7 +104,6 @@ void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
-    ScopedProfiling profile_this{"step"};
     if (M == MemSpace::host || options_.sync)
     {
         // Execute all actions and record the time elapsed
