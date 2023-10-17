@@ -21,28 +21,13 @@ namespace celeritas
 {
 namespace
 {
-
-//---------------------------------------------------------------------------//
-/*!
- * Global registry for strings used by NVTX.
- *
- * This is implemented as a free function instead of a class static member in
- * ScopedProfiling to hide the NVTX dependency from users of the
- * interface.
- */
-std::unordered_map<std::string, nvtxStringHandle_t>& message_registry()
-{
-    static std::unordered_map<std::string, nvtxStringHandle_t> registry;
-    return registry;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Library-wide handle to the domain name.
  */
 nvtxDomainHandle_t domain_handle()
 {
-    static nvtxDomainHandle_t domain = nvtxDomainCreateA("celeritas");
+    static nvtxDomainHandle_t const domain = nvtxDomainCreateA("celeritas");
     return domain;
 }
 
@@ -54,13 +39,14 @@ nvtxDomainHandle_t domain_handle()
  */
 nvtxStringHandle_t message_handle_for(std::string const& message)
 {
+    static std::unordered_map<std::string, nvtxStringHandle_t> registry;
     static std::shared_mutex mutex;
 
     {
         std::shared_lock lock(mutex);
 
-        if (auto message_handle = message_registry().find(message);
-            message_handle != message_registry().end())
+        if (auto message_handle = registry.find(message);
+            message_handle != registry.end())
         {
             return message_handle->second;
         }
@@ -69,10 +55,11 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
     // We did not find the handle; try to insert it
     auto [iter, inserted] = [&message] {
         std::unique_lock lock(mutex);
-        return message_registry().insert({message, {}});
+        return registry.insert({message, {}});
     }();
     if (inserted)
     {
+        // Register the domain
         iter->second
             = nvtxDomainRegisterStringA(domain_handle(), message.c_str());
     }
@@ -85,11 +72,15 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
  */
 nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
 {
-    nvtxEventAttributes_t attributes;
+    nvtxEventAttributes_t attributes = {};  // Initialize all attributes to
+                                            // zero
     attributes.version = NVTX_VERSION;
     attributes.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
-    attributes.colorType = NVTX_COLOR_ARGB;
-    attributes.color = input.color;
+    if (input.color)
+    {
+        attributes.colorType = NVTX_COLOR_ARGB;
+        attributes.color = input.color;
+    }
     attributes.messageType = NVTX_MESSAGE_TYPE_REGISTERED;
     attributes.message.registered = message_handle_for(input.name);
     attributes.payloadType = NVTX_PAYLOAD_TYPE_INT32;
@@ -126,16 +117,41 @@ bool ScopedProfiling::enable_profiling()
 //---------------------------------------------------------------------------//
 /*!
  * Activate nvtx profiling with options.
+ *
+ * The call to NVTX is checked for validity (it should return a nonnegative
+ * number) except that we ignore -1 because that seems to be returned even when
+ * the call produces correct ranges in the profiling output.
  */
 void ScopedProfiling::activate(Input const& input) noexcept
 {
-    nvtxEventAttributes_t attributes_ = make_attributes(input);
-    int result = nvtxDomainRangePushEx(domain_handle(), &attributes_);
-    if (result < 0)
+    nvtxEventAttributes_t attributes = make_attributes(input);
+    int depth = nvtxDomainRangePushEx(domain_handle(), &attributes);
+    if (depth < -1)
     {
         activated_ = false;
-        CELER_LOG(warning) << "Failed to activate profiling domain '"
-                           << input.name << "'";
+
+        // Warn about failures, but only twice
+        constexpr int max_warnings{2};
+        static int num_warnings{0};
+        if (num_warnings < max_warnings)
+        {
+            ++num_warnings;
+
+            CELER_LOG(warning)
+                << "Failed to activate profiling domain '" << input.name
+                << "' (error code " << depth << ")";
+            if (num_warnings == 1)
+            {
+                CELER_LOG(info) << "Perhaps you're not running through `nsys` "
+                                   "or using the `celeritas` domain?";
+            }
+
+            if (num_warnings == max_warnings)
+            {
+                CELER_LOG(info) << "Suppressing future scoped profiling "
+                                   "warnings";
+            }
+        }
     }
 }
 
@@ -146,9 +162,11 @@ void ScopedProfiling::activate(Input const& input) noexcept
 void ScopedProfiling::deactivate() noexcept
 {
     int result = nvtxDomainRangePop(domain_handle());
-    if (result < 0)
+    if (result < -1)
     {
-        CELER_LOG(warning) << "Failed to deactivate profiling domain";
+        CELER_LOG(warning)
+            << "Failed to deactivate profiling domain (error code " << result
+            << ")";
     }
 }
 

@@ -68,32 +68,40 @@ namespace celeritas
 
    \endverbatim
  */
-class ExtendFromSecondariesAction final : public ExplicitActionInterface
+class ExtendFromSecondariesAction final : public ExplicitActionInterface,
+                                          public BeginRunActionInterface
 {
   public:
     //! Construct with explicit Id
     explicit ExtendFromSecondariesAction(ActionId id) : id_(id) {}
 
-    // Execute the action with host data
-    void execute(CoreParams const& params, CoreStateHost& state) const final;
-
-    // Execute the action with device data
-    void execute(CoreParams const& params, CoreStateDevice& state) const final;
-
+    //!@{
+    //! \name Action interface
     //! ID of the action
     ActionId action_id() const final { return id_; }
-
     //! Short name for the action
     std::string label() const final { return "extend-from-secondaries"; }
-
-    //! Description of the action for user interaction
-    std::string description() const final
-    {
-        return "create track initializers from secondaries";
-    }
-
+    // Description of the action for user interaction
+    std::string description() const final;
     //! Dependency ordering of the action
     ActionOrder order() const final { return ActionOrder::end; }
+    //!@}
+
+    //!@{
+    //! \name ExplicitAction interface
+    // Launch kernel with host data
+    void execute(CoreParams const&, CoreStateHost&) const final;
+    // Launch kernel with device data
+    void execute(CoreParams const&, CoreStateDevice&) const final;
+    //!@}
+
+    //!@{
+    //! \name BeginRunAction interface
+    // No action necessary for host data
+    void begin_run(CoreParams const&, CoreStateHost&) final {}
+    // Warm up asynchronous allocation at beginning of run
+    void begin_run(CoreParams const&, CoreStateDevice&) final;
+    //!@}
 
   private:
     ActionId id_;

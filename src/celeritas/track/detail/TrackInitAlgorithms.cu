@@ -15,6 +15,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
 
@@ -34,6 +35,7 @@ size_type remove_if_alive(
         vacancies,
     StreamId stream_id)
 {
+    ScopedProfiling profile_this{"remove-if-alive"};
     auto start = device_pointer_cast(vacancies.data());
     auto end = thrust::remove_if(thrust_execute_on(stream_id),
                                  start,
@@ -60,6 +62,7 @@ size_type exclusive_scan_counts(
         counts,
     StreamId stream_id)
 {
+    ScopedProfiling profile_this{"exclusive-scan-conts"};
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
     auto stop = thrust::exclusive_scan(thrust_execute_on(stream_id),

@@ -29,6 +29,7 @@
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "GeantGeoUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
@@ -102,6 +103,7 @@ void GeantSetup::disable_signal_handler()
 GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
+    ScopedProfiling profile_this{"initialize-geant"};
     ScopedMem record_setup_mem("GeantSetup.construct");
 
     {
