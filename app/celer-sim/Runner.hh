@@ -98,7 +98,7 @@ class Runner
     void build_transporter_input(RunnerInput const&);
     void build_events(RunnerInput const&);
     int get_num_streams(RunnerInput const&);
-    UPTransporterBase& get_transporter(StreamId);
+    TransporterBase& get_transporter(StreamId);
 };
 
 //---------------------------------------------------------------------------//
