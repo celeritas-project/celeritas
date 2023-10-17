@@ -113,7 +113,7 @@ template<class Engine>
 CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
 {
     // Allocate space for gamma
-    Secondary* secondaries = this->allocate_(1);
+    Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)
     {
         // Failed to allocate space for a secondary

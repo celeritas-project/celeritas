@@ -71,8 +71,8 @@ RZMapMagneticField::RZMapMagneticField(SPConstFieldParams params)
 void RZMapMagneticField::GetFieldValue(double const pos[3], double* field) const
 {
     // Calculate the magnetic field value in the native Celeritas unit system
-    Real3 result = this->calc_field_(Real3{pos[0], pos[1], pos[2]}
-                                     * this->to_celer_cm());
+    Real3 result
+        = calc_field_(Real3{pos[0], pos[1], pos[2]} * this->to_celer_cm());
     for (auto i = 0; i < 3; ++i)
     {
         // Return values of the field vector in CLHEP::tesla for Geant4

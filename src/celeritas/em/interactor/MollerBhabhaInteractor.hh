@@ -125,7 +125,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     }
 
     // Allocate memory for the produced electron
-    Secondary* electron_secondary = this->allocate_(1);
+    Secondary* electron_secondary = allocate_(1);
 
     if (electron_secondary == nullptr)
     {

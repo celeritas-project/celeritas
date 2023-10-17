@@ -73,8 +73,8 @@ class SoftSurfaceEqual
   private:
     SoftEqual<real_type> soft_eq_;
 
-    bool soft_eq_sq_(real_type a, real_type b) const;
-    bool soft_eq_distance_(Real3 const& a, Real3 const& b) const;
+    bool soft_eq_sq(real_type a, real_type b) const;
+    bool soft_eq_distance(Real3 const& a, Real3 const& b) const;
 };
 
 //---------------------------------------------------------------------------//

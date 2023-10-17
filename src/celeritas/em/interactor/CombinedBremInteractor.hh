@@ -137,7 +137,7 @@ CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
     }
 
     // Allocate space for the brems photon
-    Secondary* secondaries = this->allocate_(1);
+    Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)
     {
         // Failed to allocate space for the secondary
