@@ -12,17 +12,22 @@
 #include <nlohmann/json.hpp>
 
 #include "orange/OrangeTypes.hh"
+#include "orange/surf/VariantSurface.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// Convert a surface type string to an enum for I/O.
-SurfaceType to_surface_type(std::string const& s);
+
+// Read a vector of surfaces
+std::vector<VariantSurface> read_surfaces(nlohmann::json const& j);
 
 // Build a logic definition from a C string.
 std::vector<logic_int> parse_logic(char const*);
+
+// Construct a transform from a translation.
+VariantTransform make_transform(Real3 const& translation);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -16,33 +16,10 @@
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/surf/VariantSurface.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Compressed input for all surface definitions in a unit.
- *
- * Including the sizes of each surface is redundant but safer.
- */
-struct SurfaceInput
-{
-    std::vector<SurfaceType> types;  //!< Surface type enums
-    std::vector<real_type> data;  //!< Compressed surface data
-    std::vector<size_type> sizes;  //!< Size of each surface's data
-    std::vector<Label> labels;  //!< Surface labels
-
-    //! Number of surfaces
-    size_type size() const { return types.size(); }
-
-    //! Whether the surface inputs are valid
-    explicit operator bool() const
-    {
-        return types.size() == sizes.size() && labels.size() == types.size()
-               && data.size() >= types.size();
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Input definition for a single volume.
@@ -80,7 +57,7 @@ struct VolumeInput
 struct DaughterInput
 {
     UniverseId universe_id;
-    Real3 translation;
+    VariantTransform transform;
 };
 
 //---------------------------------------------------------------------------//
@@ -91,12 +68,13 @@ struct UnitInput
 {
     using MapVolumeDaughter = std::unordered_map<LocalVolumeId, DaughterInput>;
 
-    SurfaceInput surfaces;
+    std::vector<VariantSurface> surfaces;
     std::vector<VolumeInput> volumes;
     BBox bbox;  //!< Outer bounding box
     MapVolumeDaughter daughter_map;
 
     // Unit metadata
+    std::vector<Label> surface_labels;
     Label label;
 
     //! Whether the unit definition is valid
@@ -129,12 +107,16 @@ struct RectArrayInput
 };
 
 //---------------------------------------------------------------------------//
+//! Possible types of universe inputs
+using VariantUniverseInput = std::variant<UnitInput, RectArrayInput>;
+
+//---------------------------------------------------------------------------//
 /*!
  * Construction definition for a full ORANGE geometry.
  */
 struct OrangeInput
 {
-    std::vector<std::variant<UnitInput, RectArrayInput>> universes;
+    std::vector<VariantUniverseInput> universes;
 
     //! Relative and absolute error for construction and transport
     Tolerance<> tol;

@@ -30,6 +30,59 @@ SurfaceType to_surface_type(std::string const& s)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create in-place a new variant surface in a vector.
+ */
+struct SurfaceEmplacer
+{
+    std::vector<VariantSurface>* surfaces;
+
+    void operator()(SurfaceType st, Span<real_type const> data)
+    {
+        // Given the surface type, emplace a surface variant using the given
+        // data.
+        return visit_surface_type(
+            [this, data](auto st_constant) {
+                using Surface = typename decltype(st_constant)::type;
+                using Storage = typename Surface::Storage;
+
+                // Construct the variant on the back of the vector
+                surfaces->emplace_back(std::in_place_type<Surface>,
+                                       Storage{data.data(), data.size()});
+            },
+            st);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Read surface data from an ORANGE JSON file.
+ */
+std::vector<VariantSurface> read_surfaces(nlohmann::json const& j)
+{
+    // Read and convert types
+    auto const& type_labels = j.at("types").get<std::vector<std::string>>();
+    auto const& data = j.at("data").get<std::vector<real_type>>();
+    auto const& sizes = j.at("sizes").get<std::vector<size_type>>();
+
+    // Reserve space and create run-to-compile-to-runtime surface constructor
+    std::vector<VariantSurface> result;
+    result.reserve(type_labels.size());
+    SurfaceEmplacer emplace_surface{&result};
+
+    std::size_t data_idx = 0;
+    for (auto i : range(type_labels.size()))
+    {
+        CELER_ASSERT(data_idx + sizes[i] <= data.size());
+        emplace_surface(
+            to_surface_type(type_labels[i]),
+            Span<real_type const>{data.data() + data_idx, sizes[i]});
+        data_idx += sizes[i];
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Build a volume from a C string.
  *
  * A valid string satisfies the regex "[0-9~!| ]+", but the result may
@@ -80,6 +133,19 @@ std::vector<logic_int> parse_logic(char const* c)
         }
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a transform from a translation.
+ */
+VariantTransform make_transform(Real3 const& translation)
+{
+    if (CELER_UNLIKELY(translation == (Real3{0, 0, 0})))
+    {
+        return NoTransformation{};
+    }
+    return Translation{translation};
 }
 
 //---------------------------------------------------------------------------//

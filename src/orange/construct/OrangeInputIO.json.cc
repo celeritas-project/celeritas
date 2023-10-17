@@ -25,6 +25,7 @@
 #include "orange/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
+#include "orange/surf/SurfaceTypeTraits.hh"
 
 #include "detail/OrangeInputIOImpl.json.hh"
 
@@ -47,24 +48,6 @@ decltype(auto) slice(Span<T> data, size_type i)
 
 //---------------------------------------------------------------------------//
 }  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Read surface data from an ORANGE JSON file.
- */
-void from_json(nlohmann::json const& j, SurfaceInput& value)
-{
-    // Read and convert types
-    auto const& type_labels = j.at("types").get<std::vector<std::string>>();
-    value.types.resize(type_labels.size());
-    std::transform(type_labels.begin(),
-                   type_labels.end(),
-                   value.types.begin(),
-                   &detail::to_surface_type);
-
-    j.at("data").get_to(value.data);
-    j.at("sizes").get_to(value.sizes);
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -109,7 +92,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
 void from_json(nlohmann::json const& j, UnitInput& value)
 {
     using VecLabel = std::vector<Label>;
-    j.at("surfaces").get_to(value.surfaces);
+    value.surfaces = detail::read_surfaces(j.at("surfaces"));
     j.at("cells").get_to(value.volumes);
     j.at("md").at("name").get_to(value.label);
 
@@ -123,7 +106,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
             value.volumes[i].label = std::move(labels[i]);
         }
 
-        j.at("surface_names").get_to(value.surfaces.labels);
+        j.at("surface_names").get_to(value.surface_labels);
     }
     if (j.contains("bbox"))
     {
@@ -144,20 +127,26 @@ void from_json(nlohmann::json const& j, UnitInput& value)
                        << "fields 'parent_cells' and 'daughters' have "
                           "different lengths");
 
+        if (j.contains("transforms"))
+        {
+            CELER_NOT_IMPLEMENTED("transforms from JSON I/O");
+        }
+
         auto const& translations
             = j.at("translations").get<std::vector<real_type>>();
         CELER_VALIDATE(3 * parent_cells.size() == translations.size(),
                        << "field 'translations' is not 3x length of "
                           "'parent_cells'");
 
-        UnitInput::MapVolumeDaughter daughter_map;
         for (auto i : range(parent_cells.size()))
         {
-            daughter_map[LocalVolumeId{parent_cells[i]}] = {
-                UniverseId{daughters[i]}, slice<3>(make_span(translations), i)};
+            DaughterInput daughter;
+            daughter.universe_id = UniverseId{daughters[i]};
+            daughter.transform
+                = detail::make_transform(slice<3>(make_span(translations), i));
+            value.daughter_map.emplace(LocalVolumeId{parent_cells[i]},
+                                       std::move(daughter));
         }
-
-        value.daughter_map = std::move(daughter_map);
     }
 }
 
@@ -180,6 +169,11 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
 
     // Read daughters universes/translations
     {
+        if (j.contains("transforms"))
+        {
+            CELER_NOT_IMPLEMENTED("transforms from JSON I/O");
+        }
+
         auto parents = j.at("parent_cells").get<std::vector<size_type>>();
         auto daughters = j.at("daughters").get<std::vector<size_type>>();
         auto translations = j.at("translations").get<std::vector<real_type>>();
@@ -192,8 +186,13 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
 
         for (auto i : range(daughters.size()))
         {
-            value.daughters[parents[i]] = {
-                UniverseId{daughters[i]}, slice<3>(make_span(translations), i)};
+            DaughterInput daughter;
+            daughter.universe_id = UniverseId{daughters[i]};
+            daughter.transform
+                = detail::make_transform(slice<3>(make_span(translations), i));
+
+            // Save daughter
+            value.daughters[parents[i]] = std::move(daughter);
         }
     }
 }

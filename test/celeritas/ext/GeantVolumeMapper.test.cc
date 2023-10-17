@@ -37,7 +37,6 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/construct/OrangeInput.hh"
-#include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/surf/Sphere.hh"
 
 class G4VSolid;
@@ -173,12 +172,12 @@ void NestedTest::build_orange()
     double radius{static_cast<double>(names_.size()) + 1};
     ui.bbox = {{-radius, -radius, -radius}, {radius, radius, radius}};
 
-    SurfaceInputBuilder insert_surface(&ui.surfaces);
     LocalSurfaceId daughter;
     for (std::string const& name : names_)
     {
         // Insert surfaces
-        auto parent = insert_surface(Sphere({0, 0, 0}, radius), Label("name"));
+        LocalSurfaceId parent{static_cast<size_type>(ui.surfaces.size())};
+        ui.surfaces.push_back(Sphere({0, 0, 0}, radius));
         radius -= 1.0;
 
         // Insert volume

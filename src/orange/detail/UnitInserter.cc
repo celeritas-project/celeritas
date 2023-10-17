@@ -128,6 +128,9 @@ UnitInserter::UnitInserter(Data* orange_data)
     : orange_data_(orange_data)
     , build_bih_tree_{&orange_data_->bih_tree_data}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
+    , build_surfaces_{&orange_data_->surface_types,
+                      &orange_data_->real_ids,
+                      &orange_data_->reals}
     , simple_units_{&orange_data_->simple_units}
     , local_surface_ids_{&orange_data_->local_surface_ids}
     , local_volume_ids_{&orange_data_->local_volume_ids}
@@ -156,7 +159,8 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     SimpleUnitRecord unit;
 
     // Insert surfaces
-    unit.surfaces = this->insert_surfaces(inp.surfaces);
+    // TODO: when deduplicating surfaces, remap local IDs
+    unit.surfaces = this->build_surfaces_(inp.surfaces).surfaces;
 
     // Bounding box bumper and converter: conservatively expand to twice the
     // potential bump distance from a boundary so that the bbox will enclose
@@ -246,64 +250,6 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Insert all surfaces at once.
- */
-SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
-{
-    //// Check input consistency ////
-
-    CELER_VALIDATE(s.types.size() == s.sizes.size(),
-                   << "inconsistent surfaces input: number of types ("
-                   << s.types.size() << ") must match number of sizes ("
-                   << s.sizes.size() << ")");
-
-    auto get_data_size = [](auto surf_traits) {
-        using Surface = typename decltype(surf_traits)::type;
-        return Surface::Storage::extent;
-    };
-
-    size_type accum_size = 0;
-    for (auto i : range(s.types.size()))
-    {
-        size_type expected_size = visit_surface_type(get_data_size, s.types[i]);
-        CELER_VALIDATE(expected_size == s.sizes[i],
-                       << "inconsistent surface data size (" << s.sizes[i]
-                       << ") for entry " << i << ": "
-                       << "surface type " << to_cstring(s.types[i])
-                       << " should have " << expected_size);
-        accum_size += expected_size;
-    }
-
-    CELER_VALIDATE(accum_size == s.data.size(),
-                   << "incorrect surface data size (" << s.data.size()
-                   << "): should match accumulated sizes (" << accum_size
-                   << ")");
-
-    //// Insert data ////
-
-    // Insert surface types all at once
-    SurfacesRecord result;
-    result.types = surface_types_.insert_back(s.types.begin(), s.types.end());
-
-    // Insert surface one at a time
-    real_ids_.reserve(real_ids_.size() + s.sizes.size());
-    auto start_offset = real_ids_.size_id();
-    reals_.reserve(reals_.size() + s.data.size());
-    auto* ptr = s.data.data();
-    for (auto single_size : s.sizes)
-    {
-        auto surf_data = reals_.insert_back(ptr, ptr + single_size);
-        real_ids_.push_back(*surf_data.begin());
-        ptr += single_size;
-    }
-    CELER_EXPECT(ptr == s.data.data() + s.data.size());
-
-    result.data_offsets = range(start_offset, start_offset + s.sizes.size());
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Insert data from a single volume.
  */
 VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
@@ -377,7 +323,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
 {
     Daughter daughter;
     daughter.universe_id = daughter_input.universe_id;
-    daughter.transform_id = insert_transform_(daughter_input.translation);
+    daughter.transform_id = insert_transform_(daughter_input.transform);
 
     vol_record->daughter_id = daughters_.push_back(daughter);
     vol_record->flags &= VolumeRecord::embedded_universe;
