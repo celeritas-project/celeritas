@@ -27,6 +27,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 struct PreStepExecutor
 {
+    inline static constexpr int max_block_size{224};
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 };

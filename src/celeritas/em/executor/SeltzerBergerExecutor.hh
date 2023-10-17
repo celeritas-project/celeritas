@@ -23,6 +23,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct SeltzerBergerExecutor
 {
+    inline static constexpr int max_block_size{224};
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 

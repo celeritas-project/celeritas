@@ -17,6 +17,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct KleinNishinaExecutor
 {
+    inline static constexpr int max_block_size{192};
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 

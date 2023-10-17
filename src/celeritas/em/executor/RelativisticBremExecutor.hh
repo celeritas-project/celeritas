@@ -18,6 +18,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct RelativisticBremExecutor
 {
+    inline static constexpr int max_block_size{320};
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
