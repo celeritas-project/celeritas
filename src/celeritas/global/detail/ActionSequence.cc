@@ -104,7 +104,7 @@ void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
-    if (M == MemSpace::host || options_.sync)
+    if ((M == MemSpace::host || options_.sync) && !state.warming_up())
     {
         // Execute all actions and record the time elapsed
         for (auto i : range(actions_.size()))
