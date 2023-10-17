@@ -9,6 +9,7 @@
 
 #include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
 #include "CoreParams.hh"
@@ -29,6 +30,8 @@ CoreState<M>::CoreState(CoreParams const& params,
                    << " is out of range: max streams is "
                    << params.max_streams());
     CELER_VALIDATE(num_track_slots > 0, << "number of track slots is not set");
+
+    ScopedProfiling profile_this{"construct-state"};
 
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);

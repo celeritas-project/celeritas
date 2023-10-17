@@ -77,7 +77,8 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
     CELER_EXPECT(is);
 
-    ScopedMem record_mem("demo_loop.run");
+    ScopedProfiling profile_this{"celer-sim"};
+    ScopedMem record_mem("celer-sim.run");
 
     // Read input options and save a copy for output
     auto run_input = std::make_shared<RunnerInput>();
@@ -105,19 +106,16 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     }
     result.num_streams = num_streams;
 
+    // Start profiling *after* initialization (e.g. VecGeom) is complete
     Stopwatch get_transport_time;
     if (run_input->merge_events)
     {
-        ScopedProfiling profile_this{"celer-sim"};
-
         // Run all events simultaneously on a single stream
         result.events.front() = run_stream();
     }
     else
     {
         MultiExceptionHandler capture_exception;
-        ScopedProfiling profile_this{"celer-sim"};
-
 #ifdef _OPENMP
         // Set the maximum number of nested parallel regions
         // TODO: Enable nested OpenMP parallel regions for multithreaded CPU

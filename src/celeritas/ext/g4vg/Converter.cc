@@ -22,6 +22,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantGeoUtils.hh"
 
@@ -97,6 +98,7 @@ auto Converter::operator()(arg_type g4world) -> result_type
     CELER_EXPECT(g4world->GetTranslation() == G4ThreeVector(0, 0, 0));
 
     CELER_LOG(status) << "Converting Geant4 geometry";
+    ScopedProfiling profile_this{"import-geant-geo"};
     ScopedMem record_mem("Converter.convert");
     ScopedTimeLog scoped_time;
 
