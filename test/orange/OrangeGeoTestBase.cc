@@ -144,7 +144,8 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         // Inside
         vi.logic = {0, logic::lnot};
         vi.label = "inside";
-        vi.bbox = inp.bbox result.push_back(vi);
+        vi.bbox = input.bbox;
+        result.push_back(vi);
         return result;
     }();
 
