@@ -188,17 +188,8 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
         {
             DaughterInput daughter;
             daughter.universe_id = UniverseId{daughters[i]};
-
-            // Read and convert transform
-            Translation tr{slice<3>(make_span(translations), i)};
-            if (CELER_UNLIKELY(tr.translation() == (Real3{0, 0, 0})))
-            {
-                daughter.transform = NoTransformation{};
-            }
-            else
-            {
-                daughter.transform = tr;
-            }
+            daughter.transform
+                = detail::make_transform(slice<3>(make_span(translations), i));
 
             // Save daughter
             value.daughters[parents[i]] = std::move(daughter);

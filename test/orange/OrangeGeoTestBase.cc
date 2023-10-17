@@ -130,7 +130,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
 
     input.surfaces = {Sphere({0, 0, 0}, inp.radius)};
     input.surface_labels = {Label("sphere")};
-    input.volumes = [] {
+    input.volumes = [&input] {
         std::vector<VolumeInput> result;
         VolumeInput vi;
         vi.faces = {LocalSurfaceId{0}};
@@ -144,8 +144,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         // Inside
         vi.logic = {0, logic::lnot};
         vi.label = "inside";
-        vi.bbox = BBox::from_infinite();
-        result.push_back(vi);
+        vi.bbox = inp.bbox result.push_back(vi);
         return result;
     }();
 
