@@ -163,7 +163,7 @@ The ``celer-g4`` app defines several additional configuration commands under
  rootBufferSize     Buffer size of output root file [bytes]
  writeSDHits        Write a ROOT output file with hits from the SDs
  stepDiagnostic     Collect the distribution of steps per Geant4 track
- stepDiagnosticBins Collect the distribution of steps per Geant4 track
+ stepDiagnosticBins Number of bins for the Geant4 step diagnostic
  fieldType          Select the field type [rzmap|uniform]
  fieldFile          Filename of the rz-map loaded by RZMapFieldInput
  magFieldZ          Set Z-axis magnetic field strength (T)

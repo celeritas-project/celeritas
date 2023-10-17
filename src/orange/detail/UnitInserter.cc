@@ -277,7 +277,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     if (v.zorder == ZOrder::background)
     {
         // "Background" volumes should not be explicitly reachable by logic or
-        // by the BVH
+        // BIH
         static const logic_int nowhere_logic[] = {logic::ltrue, logic::lnot};
         CELER_EXPECT(std::equal(input_logic.begin(),
                                 input_logic.end(),

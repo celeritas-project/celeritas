@@ -135,7 +135,7 @@ char to_char(ZOrder zo)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a printable character corresponding to a z ordering.
+ * Convert a printable character to a z ordering.
  */
 ZOrder to_zorder(char c)
 {

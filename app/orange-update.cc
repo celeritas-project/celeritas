@@ -58,11 +58,7 @@ std::string run(std::istream* is)
 
 //---------------------------------------------------------------------------//
 /*!
- * This application exports particles, processes, models, XS physics
- * tables, material, and volume information constructed by the physics list and
- * loaded by the GDML geometry.
- *
- * The data is stored into a ROOT file as an \c ImportData struct.
+ * Execute and run.
  */
 int main(int argc, char* argv[])
 {
