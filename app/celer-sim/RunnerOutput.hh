@@ -29,6 +29,7 @@ struct SimulationResult
 
     real_type total_time{};  //!< Total simulation time
     real_type setup_time{};  //!< One-time initialization cost
+    real_type warmup_time{};  //!< One-time warmup cost
     MapStrReal action_times{};  //!< Accumulated action timing
     std::vector<TransporterResult> events;  //!< Results tallied for each event
     size_type num_streams{};  //!< Number of CPU/OpenMP threads

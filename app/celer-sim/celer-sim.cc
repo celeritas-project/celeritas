@@ -108,7 +108,9 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 
     if (run_input->warm_up)
     {
+        get_setup_time = {};
         run_stream.warm_up();
+        result.warmup_time = get_setup_time();
     }
 
     // Start profiling *after* initialization and warmup are complete
