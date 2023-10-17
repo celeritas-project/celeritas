@@ -373,18 +373,18 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
     CELER_EXPECT(!this->is_on_boundary());
     CELER_EXPECT(max_radius > 0);
 
-    real_type safety = BVHNavigator::ComputeSafety(
-        detail::to_vector(this->pos()),
-        vgstate_
 #if VECGEOM_VERSION < 0x020000
-        ,
-        max_radius
+    real_type safety = BVHNavigator::ComputeSafety(
+        detail::to_vector(this->pos()), vgstate_, max_radius);
+#else
+    real_type safety = BVHNavigator::ComputeSafety(
+        detail::to_vector(this->pos()), vgstate_);
+    safety = min<real_type>(safety, max_radius);
 #endif
-    );
 
     // Since the reported "safety" is negative if we've moved slightly beyond
     // the boundary of a solid without crossing it, we must clamp to zero.
-    return max<real_type>(0., min<real_type>(safety, max_radius));
+    return max<real_type>(0., safety);
 }
 
 //---------------------------------------------------------------------------//
