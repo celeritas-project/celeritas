@@ -29,7 +29,6 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
 {
     CELER_EXPECT(pparams_);
     CELER_EXPECT(xsparams_);
-    CELER_EXPECT(launch_params_.threads_per_block > 0);
 
     // Set up KN interactor data;
     namespace pdg = pdg;
