@@ -31,6 +31,7 @@ class RZMapMagneticFieldTest : public ::celeritas::test::Test
 TEST_F(RZMapMagneticFieldTest, uniform_z)
 {
     std::shared_ptr<RZMapFieldParams> params = [] {
+        // NOTE: RZ field map input is in tesla
         RZMapFieldInput inp;
         inp.num_grid_z = 2;
         inp.num_grid_r = 2;
@@ -38,7 +39,7 @@ TEST_F(RZMapMagneticFieldTest, uniform_z)
         inp.min_r = 0;
         inp.max_z = 10.0 * units::centimeter;
         inp.max_r = 7.0 * units::centimeter;
-        inp.field_z.assign(4, 1.0);
+        inp.field_z.assign(4, 1.0 * units::tesla);
         inp.field_r.assign(4, 0.0);
         return std::make_shared<RZMapFieldParams>(std::move(inp));
     }();
