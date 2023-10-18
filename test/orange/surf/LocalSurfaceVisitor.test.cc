@@ -83,6 +83,7 @@ class SurfaceActionTest : public OrangeGeoTestBase
             }
             v.logic.insert(v.logic.end(), {logic::ltrue, logic::lor});
             v.bbox = {{-1, -1, -1}, {1, 1, 1}};
+            v.zorder = ZOrder::media;
             return v;
         }()};
 

@@ -102,6 +102,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(sync);
     LDIO_LOAD_OPTION(merge_events);
     LDIO_LOAD_OPTION(default_stream);
+    LDIO_LOAD_OPTION(warm_up);
 
     LDIO_LOAD_OPTION(mag_field);
     LDIO_LOAD_OPTION(field_options);
@@ -134,12 +135,14 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 {
     j = nlohmann::json::object();
     RunnerInput const default_args;
+    //! Save if not unspecified or if applicable
 #define LDIO_SAVE_OPTION(NAME)           \
     do                                   \
     {                                    \
         if (v.NAME != default_args.NAME) \
             j[#NAME] = v.NAME;           \
     } while (0)
+    //! Always save
 #define LDIO_SAVE_REQUIRED(NAME) j[#NAME] = v.NAME
 
     LDIO_SAVE_OPTION(cuda_heap_size);
@@ -165,16 +168,17 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_OPTION(step_diagnostic_maxsteps);
     LDIO_SAVE_OPTION(write_track_counts);
 
-    LDIO_SAVE_OPTION(seed);
-    LDIO_SAVE_OPTION(num_track_slots);
+    LDIO_SAVE_REQUIRED(seed);
+    LDIO_SAVE_REQUIRED(num_track_slots);
     LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE_REQUIRED(initializer_capacity);
     LDIO_SAVE_REQUIRED(max_events);
     LDIO_SAVE_REQUIRED(secondary_stack_factor);
     LDIO_SAVE_REQUIRED(use_device);
-    LDIO_SAVE_OPTION(sync);
-    LDIO_SAVE_OPTION(merge_events);
-    LDIO_SAVE_OPTION(default_stream);
+    LDIO_SAVE_REQUIRED(sync);
+    LDIO_SAVE_REQUIRED(merge_events);
+    LDIO_SAVE_REQUIRED(default_stream);
+    LDIO_SAVE_REQUIRED(warm_up);
 
     LDIO_SAVE_OPTION(mag_field);
     if (v.mag_field != RunnerInput::no_field())
@@ -183,9 +187,9 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     }
 
     LDIO_SAVE_OPTION(step_limiter);
-    LDIO_SAVE_OPTION(brem_combined);
+    LDIO_SAVE_REQUIRED(brem_combined);
 
-    LDIO_SAVE_OPTION(track_order);
+    LDIO_SAVE_REQUIRED(track_order);
     if (v.physics_filename.empty() || !ends_with(v.physics_filename, ".root"))
     {
         LDIO_SAVE_REQUIRED(geant_options);

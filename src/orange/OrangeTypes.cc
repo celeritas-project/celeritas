@@ -108,6 +108,58 @@ char const* to_cstring(SurfaceType value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a printable character corresponding to a z ordering.
+ */
+char to_char(ZOrder zo)
+{
+    switch (zo)
+    {
+        case ZOrder::invalid:
+            return '!';
+        case ZOrder::background:
+            return 'B';
+        case ZOrder::media:
+            return 'M';
+        case ZOrder::array:
+            return 'A';
+        case ZOrder::hole:
+            return 'H';
+        case ZOrder::implicit_exterior:
+            return 'x';
+        case ZOrder::exterior:
+            return 'X';
+    };
+    return '?';
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a printable character to a z ordering.
+ */
+ZOrder to_zorder(char c)
+{
+    switch (c)
+    {
+        case '!':
+            return ZOrder::invalid;
+        case 'B':
+            return ZOrder::background;
+        case 'M':
+            return ZOrder::media;
+        case 'A':
+            return ZOrder::array;
+        case 'H':
+            return ZOrder::hole;
+        case 'x':
+            return ZOrder::implicit_exterior;
+        case 'X':
+            return ZOrder::exterior;
+    };
+    return ZOrder::invalid;
+}
+
+//---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 

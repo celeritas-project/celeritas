@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/sys/Environment.hh"
@@ -71,6 +73,7 @@ struct RunnerInput
     bool sync{};
     bool merge_events{false};  //!< Run all events at once on a single stream
     bool default_stream{false};  //!< Launch all kernels on the default stream
+    bool warm_up{CELER_USE_DEVICE};  //!< Run a nullop step first
 
     // Magnetic field vector [* 1/Tesla] and associated field options
     Real3 mag_field{no_field()};

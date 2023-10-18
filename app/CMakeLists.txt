@@ -34,6 +34,17 @@ endif()
 # Geant4/ROOT data interface
 #-----------------------------------------------------------------------------#
 
+# Orange JSON updater script
+celeritas_add_executable(orange-update orange-update.cc)
+celeritas_target_link_libraries(orange-update
+  Celeritas::orange
+)
+if(CELERITAS_USE_JSON)
+  celeritas_target_link_libraries(orange-update
+    nlohmann_json::nlohmann_json
+  )
+endif()
+
 # Exporter
 celeritas_add_executable(celer-export-geant celer-export-geant.cc)
 celeritas_target_link_libraries(celer-export-geant

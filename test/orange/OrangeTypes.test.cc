@@ -18,8 +18,6 @@ namespace test
 
 class OrangeTypesTest : public ::celeritas::test::Test
 {
-  protected:
-    void SetUp() override {}
 };
 
 TEST_F(OrangeTypesTest, tolerances)
@@ -58,6 +56,21 @@ TEST_F(OrangeTypesTest, tolerances)
         auto const tol = TolT::from_relative(1e-5, 0.1);
         EXPECT_SOFT_EQ(1e-5, tol.rel);
         EXPECT_SOFT_EQ(1e-6, tol.abs);
+    }
+}
+
+TEST_F(OrangeTypesTest, zorder)
+{
+    // Test round-tripping of zorder
+    for (auto zo : {ZOrder::invalid,
+                    ZOrder::background,
+                    ZOrder::media,
+                    ZOrder::array,
+                    ZOrder::hole,
+                    ZOrder::implicit_exterior,
+                    ZOrder::exterior})
+    {
+        EXPECT_EQ(zo, to_zorder(to_char(zo)));
     }
 }
 

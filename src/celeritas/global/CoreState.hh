@@ -85,6 +85,12 @@ class CoreState final : public CoreStateInterface
     //! Number of track slots
     size_type size() const final { return states_.size(); }
 
+    //! Whether the state is being transported with no active particles
+    bool warming_up() const
+    {
+        return counters_.num_active == 0 && counters_.num_primaries == 0;
+    }
+
     //! Get a reference to the mutable state data
     Ref& ref() { return states_.ref(); }
 
