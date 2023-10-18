@@ -13,6 +13,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/math/ArrayOperators.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/ext/Convert.geant.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
@@ -61,11 +62,13 @@ RZMapMagneticField::RZMapMagneticField(SPConstFieldParams params)
 void RZMapMagneticField::GetFieldValue(double const pos[3], double* field) const
 {
     // Calculate the magnetic field value in the native Celeritas unit system
-    Real3 result = calc_field_(convert_from_geant(pos, CLHEP::cm));
+    Real3 result
+        = calc_field_(convert_from_geant(pos, CLHEP::cm) * units::centimeter);
     for (auto i = 0; i < 3; ++i)
     {
         // Return values of the field vector in CLHEP::tesla for Geant4
-        field[i] = convert_to_geant(result[i], CLHEP::tesla);
+        auto ft = native_value_to<units::FieldTesla>(result[i]);
+        field[i] = convert_to_geant(ft.value(), CLHEP::tesla);
     }
 }
 
