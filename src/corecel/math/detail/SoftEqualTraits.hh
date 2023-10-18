@@ -52,7 +52,7 @@ struct SoftEqualTraits<float>
 {
     using value_type = float;
     static CELER_CONSTEXPR_FUNCTION value_type rel_prec() { return 1.0e-6f; }
-    static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-8f; }
+    static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-6f; }
 };
 
 //---------------------------------------------------------------------------//

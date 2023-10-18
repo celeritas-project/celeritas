@@ -182,7 +182,7 @@ TEST_F(BoundingBoxUtilsTest, bumped)
         SCOPED_TRACE("default precision");
         BoundingBoxBumper<float, double> calc_bumped{};
         auto bumped = calc_bumped(ref);
-        static float const expected_lower[] = {-inff, -1e-14f, -100.0f};
+        static float const expected_lower[] = {-inff, -1e-14f, -100.0001f};
         static float const expected_upper[] = {1e-14f, 0.1122335f, inff};
         EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
         EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
