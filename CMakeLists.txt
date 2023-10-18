@@ -282,9 +282,19 @@ if(CELERITAS_USE_ROOT)
   find_package(ROOT 6.24 REQUIRED)
 endif()
 
-if(CELERITAS_USE_SWIG AND NOT SWIG_FOUND)
-  # Note: 4.1 is required for C++17 parsing
-  find_package(SWIG 4.1 REQUIRED)
+if(CELERITAS_USE_SWIG)
+  if(NOT SWIG_FOUND)
+    # Note: 4.1 is required for C++17 parsing
+    find_package(SWIG 4.1 REQUIRED)
+  endif()
+
+  if(CELERITAS_REAL_TYPE STREQUAL "float")
+    celeritas_error_incompatible_option(
+      "Single-precision runtime is not compatible with SWIG"
+      CELERITAS_USE_SWIG
+      OFF
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_VecGeom)
