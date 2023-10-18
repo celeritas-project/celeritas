@@ -358,7 +358,7 @@ TEST(CylZTest, calc_intersections_degenerate)
 
         // Heading away
         distances = cyl.calc_intersections(
-            {2.0 - eps, 0, 0}, {1, 0, 0}, SurfaceState::off);
+            {2 - eps, 0, 0}, {1, 0, 0}, SurfaceState::off);
         EXPECT_SOFT_NEAR(eps, distances[1], eps);
         EXPECT_EQ(no_intersection(), distances[0]);
 
@@ -372,12 +372,12 @@ TEST(CylZTest, calc_intersections_degenerate)
         CylZ cyl{{1.23, 2.34, 0}, 3.45};
 
         auto distances = cyl.calc_intersections(
-            {4.68 - eps, 2.34, 1.23}, {-1, 0, 0}, SurfaceState::off);
+            {real_type{4.68} - eps, 2.34, 1.23}, {-1, 0, 0}, SurfaceState::off);
         EXPECT_SOFT_EQ(6.9 - eps, distances[1]);
         EXPECT_EQ(no_intersection(), distances[0]);
 
         distances = cyl.calc_intersections(
-            {4.68 - eps, 2.34, 1.23}, {1, 0, 0}, SurfaceState::off);
+            {real_type{4.68} - eps, 2.34, 1.23}, {1, 0, 0}, SurfaceState::off);
         EXPECT_SOFT_NEAR(eps, distances[1], eps);
         EXPECT_EQ(no_intersection(), distances[0]);
     }
@@ -388,17 +388,18 @@ TEST(CylZTest, calc_intersections_degenerate)
 TEST(CylZTest, degenerate_boundary)
 {
     Real3 const origin{1.1, 2.2, 3.3};
-    for (auto radius : {0.9, 1.0})
+    for (real_type radius : {0.9, 1.0})
     {
         CylZ const cyl{origin, radius};
-        for (auto xdir : {-1.0, 1.0})
+        for (real_type xdir : {-1.0, 1.0})
         {
             SCOPED_TRACE(xdir < 0 ? "leftward" : "rightward");
-            for (auto eps : {-1e-8, 0.0, 1e-8})
+            for (real_type eps : {-1e-8, 0.0, 1e-8})
             {
                 SCOPED_TRACE(eps < 0 ? "neg" : eps > 0 ? "pos" : "zero");
 
-                const real_type tol = std::max(1.e-14, 2 * std::fabs(eps));
+                real_type const tol
+                    = std::max<real_type>(1.e-14, 2 * std::fabs(eps));
 
                 // Distance across the cylinder
                 const real_type diameter = 2 * radius;

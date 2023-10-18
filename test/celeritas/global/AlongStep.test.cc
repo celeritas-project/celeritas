@@ -341,7 +341,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             inp.energy = MevEnergy{0.01};
 
             real_type step = range_limit * (1 - 1e-5);
-            inp.position = {0.0 - step};
+            inp.position = {0 - step};
             inp.direction = {1, 0, 0};
             inp.phys_mfp = 100;
 

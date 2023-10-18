@@ -248,7 +248,8 @@ TEST_F(FieldDriverTest, pathological_chord)
 
     OdeState state;
     state.pos = {radius, 0, 0};
-    state.mom = this->calc_momentum(e, {0, std::sqrt(1 - ipow<2>(0.2)), 0.2});
+    state.mom = this->calc_momentum(
+        e, {0, std::sqrt(1 - ipow<2>(real_type{0.2})), 0.2});
 
     DiagnosticStepper stepper{ZHelixStepper{MagFieldEquation{
         UniformZField{field_strength}, units::ElementaryCharge{-1}}}};
@@ -293,7 +294,7 @@ TEST_F(FieldDriverTest, step_counts)
     // 10 TeV.
     for (int loge : range(-7, 7).step(2))
     {
-        MevEnergy e{std::pow(10.0, loge)};
+        MevEnergy e{std::pow(real_type{10}, static_cast<real_type>(loge))};
         real_type radius = this->calc_curvature(e, field_strength);
         radii.push_back(radius);
 

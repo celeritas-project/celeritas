@@ -57,7 +57,7 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
     CELER_EXPECT(range.material);
     CELER_EXPECT(range.particle);
 
-    using VecReal = std::vector<real_type>;
+    using VecDbl = std::vector<double>;
 
     MaterialView mat(data_.materials->host_ref(), range.material);
     real_type numdens = mat.number_density();
@@ -65,7 +65,7 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
     StepLimitBuilders builders;
     if (!data_.xs.empty())
     {
-        VecReal xs_grid;
+        VecDbl xs_grid;
         for (auto xs : data_.xs)
             xs_grid.push_back(native_value_from(xs) * numdens);
         builders[ValueGridType::macro_xs]
@@ -79,13 +79,13 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
             = std::make_unique<ValueGridLogBuilder>(
                 range.lower.value(),
                 range.upper.value(),
-                VecReal{eloss_rate, eloss_rate});
+                VecDbl{eloss_rate, eloss_rate});
 
         builders[ValueGridType::range] = std::make_unique<ValueGridLogBuilder>(
             range.lower.value(),
             range.upper.value(),
-            VecReal{range.lower.value() / eloss_rate,
-                    range.upper.value() / eloss_rate});
+            VecDbl{range.lower.value() / eloss_rate,
+                   range.upper.value() / eloss_rate});
     }
 
     return builders;

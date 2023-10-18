@@ -277,7 +277,7 @@ TEST_F(UrbanMscTest, step_conversion)
         MscStepToGeo calc_geom_path(
             msc_params_->host_ref(), helper, energy, lambda, range);
 
-        LogInterp calc_pstep({0, 0.9 * params.limit_min_fix()},
+        LogInterp calc_pstep({0, real_type{0.9} * params.limit_min_fix()},
                              {static_cast<real_type>(pstep_points), range});
         for (auto ppt : celeritas::range(pstep_points + 1))
         {
@@ -301,7 +301,7 @@ TEST_F(UrbanMscTest, step_conversion)
             MscStepFromGeo geo_to_true(
                 msc_params_->host_ref().params, msc_step, range, lambda);
             LogInterp calc_gstep(
-                {0, 0.9 * params.limit_min_fix()},
+                {0, real_type{0.9} * params.limit_min_fix()},
                 {static_cast<real_type>(gstep_points), gp.step});
             for (auto gpt : celeritas::range(gstep_points + 1))
             {

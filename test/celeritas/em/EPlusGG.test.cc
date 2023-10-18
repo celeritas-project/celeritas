@@ -181,7 +181,7 @@ TEST_F(EPlusGGInteractorTest, stress_test)
     int const num_samples = 8192;
     std::vector<double> avg_engine_samples;
 
-    for (double inc_e : {0.0, 0.01, 1.0, 10.0, 1000.0})
+    for (real_type inc_e : {0.0, 0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::positron(), MevEnergy{inc_e});
@@ -246,7 +246,7 @@ TEST_F(EPlusGGInteractorTest, macro_xs)
     {
         double e = std::exp(loge);
         energy.push_back(e);
-        macro_xs.push_back(calc_macro_xs(MevEnergy{e}));
+        macro_xs.push_back(calc_macro_xs(MevEnergy(e)));
         loge += delta;
     }
     double const expected_macro_xs[]

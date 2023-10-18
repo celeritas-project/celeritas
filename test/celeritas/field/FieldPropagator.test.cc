@@ -251,9 +251,11 @@ TEST_F(TwoBoxesTest, electron_interior)
         result = propagate(1e-10);
         EXPECT_DOUBLE_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
+        EXPECT_VEC_NEAR(Real3({3.8085385881855, -2.381487075086e-07, 0}),
+                        geo.pos(),
+                        real_type{1e-7});
         EXPECT_VEC_NEAR(
-            Real3({3.8085385881855, -2.381487075086e-07, 0}), geo.pos(), 1e-7);
-        EXPECT_VEC_NEAR(Real3({6.25302065531623e-08, 1, 0}), geo.dir(), 1e-7);
+            Real3({6.25302065531623e-08, 1, 0}), geo.dir(), real_type{1e-7});
         EXPECT_EQ(1, stepper.count());
     }
 }
@@ -504,7 +506,7 @@ TEST_F(TwoBoxesTest, electron_small_step)
         EXPECT_SOFT_EQ(result.distance, delta);
         EXPECT_FALSE(result.boundary);
         EXPECT_FALSE(geo.is_on_boundary());
-        EXPECT_VEC_NEAR(Real3({5 - 1.0e-5, 0, 0}), geo.pos(), 1e-7);
+        EXPECT_VEC_NEAR(Real3({5 - 1.0e-5, 0, 0}), geo.pos(), real_type{1e-7});
     }
     {
         SCOPED_TRACE("Small step *almost* to boundary");
@@ -582,32 +584,32 @@ TEST_F(TwoBoxesTest, electron_tangent)
     {
         SCOPED_TRACE("Nearly quarter turn close to boundary");
 
+        constexpr real_type quarter = 0.49 * pi;
         auto geo = this->make_geo_track_view({1, 4, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, geo);
-        auto result = propagate(0.49 * pi);
+        auto result = propagate(quarter);
 
         EXPECT_FALSE(result.boundary);
-        EXPECT_SOFT_EQ(0.49 * pi, result.distance);
-        EXPECT_LT(
-            distance(Real3({std::cos(0.49 * pi), 4 + std::sin(0.49 * pi), 0}),
-                     geo.pos()),
-            2e-6);
+        EXPECT_SOFT_EQ(quarter, result.distance);
+        EXPECT_LT(distance(Real3({std::cos(quarter), 4 + std::sin(quarter), 0}),
+                           geo.pos()),
+                  real_type{2e-6});
     }
     {
         SCOPED_TRACE("Short step tangent to boundary");
 
+        constexpr real_type quarter = 0.51 * pi;
         auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, geo);
-        auto result = propagate(0.02 * pi);
+        auto result = propagate(real_type{0.02 * pi});
 
         EXPECT_FALSE(result.boundary);
-        EXPECT_SOFT_EQ(0.02 * pi, result.distance);
-        EXPECT_LT(
-            distance(Real3({std::cos(0.51 * pi), 4 + std::sin(0.51 * pi), 0}),
-                     geo.pos()),
-            2e-6);
+        EXPECT_SOFT_EQ(real_type{0.02 * pi}, result.distance);
+        EXPECT_LT(distance(Real3({std::cos(quarter), 4 + std::sin(quarter), 0}),
+                           geo.pos()),
+                  real_type{2e-6});
     }
 }
 
@@ -983,7 +985,8 @@ TEST_F(TwoBoxesTest, electron_tangent_cross_smallradius)
     std::vector<int> substeps;
     std::vector<std::string> volumes;
 
-    for (real_type dtheta : {pi / 4, pi / 7, 1e-3, 1e-6, 1e-9})
+    for (real_type dtheta :
+         {pi / 4, pi / 7, real_type{1e-3}, real_type{1e-6}, real_type{1e-9}})
     {
         SCOPED_TRACE(dtheta);
         {
@@ -1039,7 +1042,7 @@ TEST_F(TwoBoxesTest, electron_tangent_cross_smallradius)
                                                 1e-08,
                                                 9.9981633254417e-12,
                                                 1e-11};
-    EXPECT_VEC_NEAR(expected_distances, distances, 1e-5);
+    EXPECT_VEC_NEAR(expected_distances, distances, real_type{1e-5});
 
     static int const expected_substeps[] = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
 
@@ -1389,8 +1392,8 @@ TEST_F(CmseTest, coarse)
 
     for (real_type radius : {5, 10, 20, 50})
     {
-        auto geo = this->make_geo_track_view({2 * radius + 0.01, 0, -300},
-                                             {0, 1, 1});
+        auto geo = this->make_geo_track_view(
+            {2 * radius + real_type{0.01}, 0, -300}, {0, 1, 1});
         field = UniformZField(unit_radius_field_strength / radius);
         EXPECT_SOFT_EQ(radius,
                        this->calc_field_curvature(particle, geo, field));

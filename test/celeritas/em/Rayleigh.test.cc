@@ -104,7 +104,7 @@ TEST_F(RayleighInteractorTest, basic)
     std::vector<unsigned long int> rng_counts;
 
     // Sample scattering angle and count rng used for each incident energy
-    for (double inc_e : {1e-5, 1e-4, 0.001, 0.01, 0.1, 1., 10., 100., 1000.})
+    for (real_type inc_e : {1e-5, 1e-4, 0.001, 0.01, 0.1, 1., 10., 100., 1000.})
     {
         RandomEngine& rng_engine = this->rng();
 
@@ -154,7 +154,7 @@ TEST_F(RayleighInteractorTest, stress_test)
     std::vector<real_type> average_rng_counts;
 
     // Sample scattering angle and count rng used for each incident energy
-    for (double inc_e : {1e-5, 1e-4, 0.001, 0.01, 0.1, 1., 10., 100., 1000.})
+    for (real_type inc_e : {1e-5, 1e-4, 0.001, 0.01, 0.1, 1., 10., 100., 1000.})
     {
         // Set the incident particle energy
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});

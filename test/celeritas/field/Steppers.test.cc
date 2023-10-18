@@ -81,7 +81,7 @@ class SteppersTest : public Test
         {
             // Initial state and the epected state after revolutions
             OdeState y;
-            y.pos = {param.radius, 0.0, i * 1.0e-6};
+            y.pos = {param.radius, 0.0, i * real_type{1e-6}};
             y.mom = {0.0, param.momentum_y, param.momentum_z};
 
             OdeState expected_y = y;
@@ -91,7 +91,8 @@ class SteppersTest : public Test
             for (int nr : range(param.revolutions))
             {
                 // Travel hstep for num_steps times in the field
-                expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
+                expected_y.pos[2] = param.delta_z * (nr + 1)
+                                    + i * real_type{1e-6};
                 for ([[maybe_unused]] int j : range(param.nsteps))
                 {
                     FieldStepperResult result = stepper(hstep, y);
@@ -117,7 +118,8 @@ class SteppersTest : public Test
         {
             real_type error = std::sqrt(output.error[i]);
             EXPECT_SOFT_NEAR(output.pos_x[i], param.radius, error);
-            EXPECT_SOFT_NEAR(output.pos_z[i], zstep + i * 1.0e-6, error);
+            EXPECT_SOFT_NEAR(
+                output.pos_z[i], zstep + i * real_type{1e-6}, error);
             EXPECT_SOFT_NEAR(output.mom_y[i], param.momentum_y, error);
             EXPECT_SOFT_NEAR(output.mom_z[i], param.momentum_z, error);
             EXPECT_LT(output.error[i], param.epsilon);

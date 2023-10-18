@@ -48,8 +48,8 @@ TEST_F(UniformRealDistributionTest, bin)
 {
     int num_samples = 10000;
 
-    double min = 0.0;
-    double max = 5.0;
+    real_type min = 0.0;
+    real_type max = 5.0;
     UniformRealDistribution<> sample_uniform{min, max};
 
     std::vector<int> counters(5);

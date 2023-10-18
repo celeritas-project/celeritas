@@ -29,7 +29,7 @@ TEST(TsaiUrbanDistributionTest, bin)
     std::mt19937 rng;
 
     // Loop over various electron energies(converted to MevEnergy)
-    for (double inc_e : {0.1, 1.0, 10.0, 50.0, 100.0})
+    for (real_type inc_e : {0.1, 1.0, 10.0, 50.0, 100.0})
     {
         TsaiUrbanDistribution sample_angle(MevEnergy{inc_e}, electron_mass);
         double angle = sample_angle(rng);

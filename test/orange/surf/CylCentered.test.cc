@@ -295,7 +295,7 @@ TEST(TestCCylZ, calc_intersections_on_surface)
 
         // Heading away, slightly outside
         distances = cyl.calc_intersections(
-            Real3{1.0 - eps, 0, 0}, Real3{1, 0, 0}, SurfaceState::on);
+            Real3{1 - eps, 0, 0}, Real3{1, 0, 0}, SurfaceState::on);
         EXPECT_EQ(no_intersection(), distances[0]);
         EXPECT_EQ(no_intersection(), distances[1]);
 
@@ -322,7 +322,7 @@ TEST(TestCCylZ, multi_tangent_intersect)
     {
         for (real_type v : {-1.0, 1.0})
         {
-            Real3 pos{x, -10.0001 * v, 0};
+            Real3 pos{x, real_type{-10.0001} * v, 0};
             Real3 dir{0, v, 0};
 
             real_type d;
@@ -351,19 +351,20 @@ TEST(TestCCylZ, multi_tangent_intersect)
         }
     }
 
+    constexpr real_type tol{1e-5};
     // clang-format off
     const real_type expected_all_first_distances[] = {9.99869, 9.99869, 0.0001,
         0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 9.99869,
         9.99869};
-    EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, 1e-5);
+    EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, tol);
 
     const real_type expected_all_y[] = {0.00141421, -0.00141421, 10, -10, 10,
         -10, 10, -10, 10, -10, 0.00141421, -0.00141421};
-    EXPECT_VEC_NEAR(expected_all_y, all_y, 1e-5);
+    EXPECT_VEC_NEAR(expected_all_y, all_y, tol);
 
     const real_type expected_all_distances[] = {0.00282843, 0.00282843, 20,
         20, 20, 20, 20, 20, 20, 20, 0.00282843, 0.00282843};
-    EXPECT_VEC_NEAR(expected_all_distances, all_distances, 1e-5);
+    EXPECT_VEC_NEAR(expected_all_distances, all_distances, tol);
     // clang-format on
 }
 
@@ -432,7 +433,8 @@ TEST(TestCCylZ, multi_along_intersect)
         inf, inf, inf, inf, inf, inf, inf, inf, inf};
     // clang-format on
 
-    EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, 1e-5);
+    EXPECT_VEC_NEAR(
+        expected_all_first_distances, all_first_distances, real_type{1e-5});
 }
 
 //---------------------------------------------------------------------------//
@@ -470,7 +472,7 @@ void DegenerateBoundaryTest::run(real_type xdir) const
 {
     CCylZ cyl(radius);
     CCylZ::Intersections distances = {-1, -1};
-    const real_type tol = std::max(1.e-14, 2 * std::fabs(eps));
+    real_type const tol = std::max<real_type>(1.e-14, 2 * std::fabs(eps));
 
     // Distance across the cylinder
     const real_type diameter = 2 * radius;

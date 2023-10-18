@@ -110,7 +110,7 @@ TEST(ConeAlignedTest, intersection_along_surface)
 
     {
         // Move to calculated endpoint
-        axpy(distances[0] - 1e-10, dir, &pos);
+        axpy(distances[0] - real_type(1e-10), dir, &pos);
         // Calculate inward direction (near cone, normal is outward dir)
         auto tempdir = cone.calc_normal(pos);
         for (auto& d : tempdir)

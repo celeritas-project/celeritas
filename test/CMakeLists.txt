@@ -364,7 +364,7 @@ if(CELERITAS_USE_VecGeom)
       ${_vecgeom_geant_tests}
   )
 endif()
-if(CELERITAS_USE_Geant4)
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   celeritas_add_test(celeritas/ext/GeantGeo.test.cc
     LINK_LIBRARIES ${Geant4_LIBRARIES}
   )
@@ -601,7 +601,9 @@ if(CELERITAS_USE_Geant4)
     ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc
     ENVIRONMENT "${_geant4_test_env}")
-  celeritas_add_test(accel/detail/TouchableUpdater.test.cc)
+  if(CELERITAS_REAL_TYPE STREQUAL "double")
+    celeritas_add_test(accel/detail/TouchableUpdater.test.cc)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

@@ -88,7 +88,7 @@ using AllGeoTestingTypes = ::testing::Types<
 #if CELERITAS_USE_VECGEOM
     VecgeomParams,
 #endif
-#if CELERITAS_USE_GEANT4
+#if CELERITAS_USE_GEANT4 && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
     GeantGeoParams,
 #endif
     OrangeParams>;
