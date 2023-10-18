@@ -38,10 +38,7 @@ class RZMapMagneticField : public G4MagneticField
     inline void GetFieldValue(double const point[3], double* field) const;
 
     //// COMMON PROPERTIES ////
-    static constexpr double from_celer_tesla()
-    {
-        return CLHEP::tesla / celeritas::units::tesla;
-    }
+    static constexpr double from_celer_tesla() { return CLHEP::tesla; }
     static constexpr real_type to_celer_cm()
     {
         return celeritas::units::centimeter / CLHEP::cm;
