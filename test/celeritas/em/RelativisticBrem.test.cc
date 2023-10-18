@@ -134,8 +134,8 @@ TEST_F(RelativisticBremTest, dxsec)
                              ElementComponentId{0});
 
     // Calculate cross section values at ten photon energy (MevEnergy) points
-    std::vector<double> dxsec_value_lpm;
-    std::vector<double> dxsec_value;
+    std::vector<real_type> dxsec_value_lpm;
+    std::vector<real_type> dxsec_value;
 
     for (real_type energy : all_energy)
     {
@@ -147,27 +147,27 @@ TEST_F(RelativisticBremTest, dxsec)
     }
 
     // Note: these are "gold" differential cross sections by the photon energy.
-    double const expected_dxsec_lpm[] = {3.15917865133079,
-                                         2.24073793752395,
-                                         1.7690465485807,
-                                         1.9393060296929,
-                                         2.31528198148389,
-                                         2.89563604143589,
-                                         3.27222667999604,
-                                         3.5085408186385,
-                                         3.48017265373814,
-                                         3.41228707554124};
+    real_type const expected_dxsec_lpm[] = {3.15917865133079,
+                                            2.24073793752395,
+                                            1.7690465485807,
+                                            1.9393060296929,
+                                            2.31528198148389,
+                                            2.89563604143589,
+                                            3.27222667999604,
+                                            3.5085408186385,
+                                            3.48017265373814,
+                                            3.41228707554124};
 
-    double const expected_dxsec[] = {3.55000253342095,
-                                     3.54986051043622,
-                                     3.54943449138746,
-                                     3.54872462599092,
-                                     3.54730551901548,
-                                     3.54305318862896,
-                                     3.53598260644102,
-                                     3.52190382370326,
-                                     3.48016652710843,
-                                     3.41226786120072};
+    real_type const expected_dxsec[] = {3.55000253342095,
+                                        3.54986051043622,
+                                        3.54943449138746,
+                                        3.54872462599092,
+                                        3.54730551901548,
+                                        3.54305318862896,
+                                        3.53598260644102,
+                                        3.52190382370326,
+                                        3.48016652710843,
+                                        3.41226786120072};
 
     EXPECT_VEC_SOFT_EQ(expected_dxsec_lpm, dxsec_value_lpm);
     EXPECT_VEC_SOFT_EQ(expected_dxsec, dxsec_value);
@@ -196,8 +196,8 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
     RandomEngine& rng_engine = this->rng();
 
     // Produce four samples from the original incident angle/energy
-    std::vector<double> angle;
-    std::vector<double> energy;
+    std::vector<real_type> angle;
+    std::vector<real_type> energy;
 
     for (int i : range(num_samples))
     {
@@ -215,17 +215,17 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
     }
 
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
-    EXPECT_DOUBLE_EQ(double(rng_engine.count()) / num_samples, 12);
+    EXPECT_REAL_EQ(real_type(rng_engine.count()) / num_samples, 12);
 
     // Note: these are "gold" values based on the host RNG.
 
-    double const expected_energy[] = {
+    real_type const expected_energy[] = {
         9.7121539090503, 16.1109589071687, 7.48863745059463, 8338.70226190511};
 
-    double const expected_angle[] = {0.999999999858782,
-                                     0.999999999999921,
-                                     0.999999976998416,
-                                     0.999999998137601};
+    real_type const expected_angle[] = {0.999999999858782,
+                                        0.999999999999921,
+                                        0.999999976998416,
+                                        0.999999998137601};
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
@@ -261,8 +261,8 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
     RandomEngine& rng_engine = this->rng();
 
     // Produce four samples from the original incident angle/energy
-    std::vector<double> angle;
-    std::vector<double> energy;
+    std::vector<real_type> angle;
+    std::vector<real_type> energy;
 
     for (int i : range(num_samples))
     {
@@ -283,13 +283,13 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
 
     // Note: these are "gold" values based on the host RNG.
 
-    double const expected_energy[] = {
+    real_type const expected_energy[] = {
         18872.4157243063, 43.6117832245235, 4030.31152398788, 217.621447606391};
 
-    double const expected_angle[] = {0.999999971800136,
-                                     0.999999999587026,
-                                     0.999999999683752,
-                                     0.999999999474844};
+    real_type const expected_angle[] = {0.999999971800136,
+                                        0.999999999587026,
+                                        0.999999999683752,
+                                        0.999999999474844};
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);

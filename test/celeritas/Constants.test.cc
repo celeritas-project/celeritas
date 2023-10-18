@@ -29,10 +29,10 @@ namespace test
 
 TEST(ConstantsTest, mathematical)
 {
-    EXPECT_DOUBLE_EQ(euler, std::exp(1.0));
-    EXPECT_DOUBLE_EQ(pi, std::acos(-1.0));
-    EXPECT_DOUBLE_EQ(sqrt_two, std::sqrt(2.0));
-    EXPECT_DOUBLE_EQ(sqrt_three, std::sqrt(3.0));
+    EXPECT_REAL_EQ(euler, std::exp(1.0));
+    EXPECT_REAL_EQ(pi, std::acos(-1.0));
+    EXPECT_REAL_EQ(sqrt_two, std::sqrt(2.0));
+    EXPECT_REAL_EQ(sqrt_three, std::sqrt(3.0));
 }
 
 //! Test that no precision is lost for cm<->m and other integer factors.
@@ -103,10 +103,10 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(UnitsTest, equivalence)
 {
-    EXPECT_DOUBLE_EQ(ampere * ampere * second * second * second * second
-                         / (kilogram * meter * meter),
-                     farad);
-    EXPECT_DOUBLE_EQ(kilogram * meter * meter / (second * second), joule);
+    EXPECT_REAL_EQ(ampere * ampere * second * second * second * second
+                       / (kilogram * meter * meter),
+                   farad);
+    EXPECT_REAL_EQ(kilogram * meter * meter / (second * second), joule);
 
     constexpr real_type erg = gram * centimeter * centimeter
                               / (second * second);
@@ -114,7 +114,7 @@ TEST(UnitsTest, equivalence)
     EXPECT_EQ(real_type(1), erg);
     EXPECT_EQ(1e7 * erg, joule);
 
-    EXPECT_DOUBLE_EQ(1e4, tesla);
+    EXPECT_REAL_EQ(1e4, tesla);
 }
 
 //---------------------------------------------------------------------------//

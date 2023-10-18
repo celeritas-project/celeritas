@@ -36,10 +36,10 @@ TEST_F(UniformGridTest, accessors)
 
     UniformGrid grid(input);
     EXPECT_EQ(3, grid.size());
-    EXPECT_DOUBLE_EQ(1.0, grid.front());
-    EXPECT_DOUBLE_EQ(1.0 + 1.5 * 2, grid.back());
-    EXPECT_DOUBLE_EQ(1.0, grid[0]);
-    EXPECT_DOUBLE_EQ(1.0 + 1.5 * 2, grid[2]);
+    EXPECT_REAL_EQ(1.0, grid.front());
+    EXPECT_REAL_EQ(1.0 + 1.5 * 2, grid.back());
+    EXPECT_REAL_EQ(1.0, grid[0]);
+    EXPECT_REAL_EQ(1.0 + 1.5 * 2, grid[2]);
 }
 
 TEST_F(UniformGridTest, find)
@@ -67,8 +67,8 @@ TEST_F(UniformGridTest, from_bounds)
 
     UniformGrid grid(input);
     EXPECT_EQ(7, grid.size());
-    EXPECT_DOUBLE_EQ(-1.0, grid.front());
-    EXPECT_DOUBLE_EQ(5.0, grid.back());
+    EXPECT_REAL_EQ(-1.0, grid.front());
+    EXPECT_REAL_EQ(5.0, grid.back());
     EXPECT_EQ(1, grid.find(0.0));
 }
 
@@ -81,7 +81,7 @@ TEST_F(UniformGridTest, from_logbounds)
     UniformGrid grid(input);
     EXPECT_EQ(6, grid.size());
     EXPECT_EQ(log_emin, grid.front());
-    EXPECT_DOUBLE_EQ(log_emax, grid.back());
+    EXPECT_REAL_EQ(log_emax, grid.back());
     EXPECT_EQ(0, grid.find(log_emin));
 
     double const log10 = std::log(10);

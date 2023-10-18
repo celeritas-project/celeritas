@@ -253,8 +253,8 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
 
         gamma.interaction_mfp(1.234);
         celer.interaction_mfp(2.345);
-        EXPECT_DOUBLE_EQ(1.234, gamma_cref.interaction_mfp());
-        EXPECT_DOUBLE_EQ(2.345, celer.interaction_mfp());
+        EXPECT_REAL_EQ(1.234, gamma_cref.interaction_mfp());
+        EXPECT_REAL_EQ(2.345, celer.interaction_mfp());
     }
 
     // Model/action ID conversion
@@ -311,9 +311,9 @@ TEST_F(PhysicsTrackViewHostTest, step_view)
         gamma.per_process_xs(ParticleProcessId{0}) = 1.2;
         gamma.per_process_xs(ParticleProcessId{1}) = 10.0;
         celer.per_process_xs(ParticleProcessId{0}) = 100.0;
-        EXPECT_DOUBLE_EQ(1.2, gamma_cref.per_process_xs(ParticleProcessId{0}));
-        EXPECT_DOUBLE_EQ(10.0, gamma_cref.per_process_xs(ParticleProcessId{1}));
-        EXPECT_DOUBLE_EQ(100.0, celer.per_process_xs(ParticleProcessId{0}));
+        EXPECT_REAL_EQ(1.2, gamma_cref.per_process_xs(ParticleProcessId{0}));
+        EXPECT_REAL_EQ(10.0, gamma_cref.per_process_xs(ParticleProcessId{1}));
+        EXPECT_REAL_EQ(100.0, celer.per_process_xs(ParticleProcessId{0}));
     }
 
     // Energy deposition
@@ -321,12 +321,12 @@ TEST_F(PhysicsTrackViewHostTest, step_view)
         using Energy = PhysicsTrackView::Energy;
         gamma.reset_energy_deposition();
         gamma.deposit_energy(Energy(2.5));
-        EXPECT_DOUBLE_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
+        EXPECT_REAL_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
         // Allow zero-energy deposition
         EXPECT_NO_THROW(gamma.deposit_energy(zero_quantity()));
-        EXPECT_DOUBLE_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
+        EXPECT_REAL_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
         gamma.reset_energy_deposition();
-        EXPECT_DOUBLE_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));
+        EXPECT_REAL_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));
     }
 
     // Secondaries

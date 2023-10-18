@@ -249,7 +249,7 @@ TEST_F(TwoBoxesTest, electron_interior)
     {
         stepper.reset_count();
         result = propagate(1e-10);
-        EXPECT_DOUBLE_EQ(1e-10, result.distance);
+        EXPECT_REAL_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_NEAR(Real3({3.8085385881855, -2.381487075086e-07, 0}),
                         geo.pos(),
@@ -456,7 +456,7 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
                 stepper, driver_options, particle, geo);
             auto result = propagate(delta);
 
-            EXPECT_DOUBLE_EQ(delta, result.distance);
+            EXPECT_REAL_EQ(delta, result.distance);
             EXPECT_EQ(1, stepper.count());
         }
 
@@ -566,7 +566,7 @@ TEST_F(TwoBoxesTest, electron_small_step)
             field, driver_options, particle, geo);
         auto result = propagate(delta);
 
-        EXPECT_DOUBLE_EQ(delta, result.distance);
+        EXPECT_REAL_EQ(delta, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_FALSE(geo.is_on_boundary());
         EXPECT_LT(distance(Real3({5 + delta, 0, 0}), geo.pos()), 1e-12);
@@ -1136,7 +1136,7 @@ TEST_F(LayersTest, revolutions_through_layers)
             if (result.boundary)
             {
                 int j = icross++ % num_boundary;
-                EXPECT_DOUBLE_EQ(expected_y[j], geo.pos()[1]);
+                EXPECT_REAL_EQ(expected_y[j], geo.pos()[1]);
                 geo.cross_boundary();
             }
         }
@@ -1179,9 +1179,9 @@ TEST_F(LayersTest, revolutions_through_cms_field)
         {
             auto result = propagate(step);
             total_length += result.distance;
-            EXPECT_DOUBLE_EQ(step, result.distance);
+            EXPECT_REAL_EQ(step, result.distance);
             ASSERT_FALSE(result.boundary);
-            EXPECT_DOUBLE_EQ(step, result.distance);
+            EXPECT_REAL_EQ(step, result.distance);
         }
     }
     EXPECT_SOFT_NEAR(2 * pi * radius * num_revs, total_length, 1e-5);
