@@ -108,14 +108,14 @@ CELER_FUNCTION auto GammaDistribution<RealType>::operator()(Generator& rng)
             v = 1 + c_ * z;
         } while (v <= 0);
         v = ipow<3>(v);
-        u = generate_canonical(rng);
+        u = generate_canonical<real_type>(rng);
     } while (u > 1 - real_type(0.0331) * ipow<4>(z)
              && std::log(u) > real_type(0.5) * ipow<2>(z)
                                   + d_ * (1 - v + std::log(v)));
 
     result_type result = d_ * v * beta_;
     if (alpha_ != alpha_p_)
-        result *= fastpow(generate_canonical(rng), 1 / alpha_);
+        result *= fastpow(generate_canonical<real_type>(rng), 1 / alpha_);
     return result;
 }
 

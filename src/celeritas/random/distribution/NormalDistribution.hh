@@ -88,8 +88,8 @@ CELER_FUNCTION auto NormalDistribution<RealType>::operator()(Generator& rng)
         return spare_ * stddev_ + mean_;
     }
 
-    real_type theta = 2 * constants::pi * generate_canonical(rng);
-    real_type r = std::sqrt(-2 * std::log(generate_canonical(rng)));
+    real_type theta = 2 * constants::pi * generate_canonical<real_type>(rng);
+    real_type r = std::sqrt(-2 * std::log(generate_canonical<real_type>(rng)));
     spare_ = r * std::cos(theta);
     has_spare_ = true;
     return r * std::sin(theta) * stddev_ + mean_;

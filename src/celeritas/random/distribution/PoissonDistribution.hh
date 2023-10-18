@@ -102,7 +102,7 @@ CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
         do
         {
             ++k;
-            p *= generate_canonical(rng);
+            p *= generate_canonical<real_type>(rng);
         } while (p > 1);
         return static_cast<result_type>(k - 1);
     }
