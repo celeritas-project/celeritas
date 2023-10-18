@@ -17,7 +17,6 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
@@ -81,9 +80,6 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
 template<MemSpace M>
 void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 {
-    // Execute beginning-of-run action
-    ScopedMem record_mem("ActionSequence.begin_run");
-
     for (auto const& sp_action : begin_run_)
     {
         ScopedProfiling profile_this{sp_action->label()};
