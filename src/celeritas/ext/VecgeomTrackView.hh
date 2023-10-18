@@ -384,7 +384,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
 
     // Since the reported "safety" is negative if we've moved slightly beyond
     // the boundary of a solid without crossing it, we must clamp to zero.
-    return max<real_type>(0., safety);
+    return max<real_type>(safety, 0);
 }
 
 //---------------------------------------------------------------------------//
