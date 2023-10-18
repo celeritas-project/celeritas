@@ -48,13 +48,13 @@ TEST_F(RZMapMagneticFieldTest, uniform_z)
     G4ThreeVector g4point;
     G4ThreeVector g4field_value{0, 0, 0};
 
-    // Calculate inside the grid
+    // Calculate inside the grid, comparing result *IN TESLA*
     g4point = convert_to_geant(Real3{5, 1, 2}, CLHEP::cm);
     g4mag_field.GetFieldValue(&g4point[0], &g4field_value[0]);
-    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 1 * units::tesla}),
+    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 1}),
                        convert_from_geant(g4field_value, CLHEP::tesla));
 
-    // Calculate outside the grid
+    // Calculate outside the grid, comparing result *IN TESLA*
     g4point = convert_to_geant(Real3{12, 0, 0}, CLHEP::cm);
     g4mag_field.GetFieldValue(&g4point[0], &g4field_value[0]);
     EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}),
