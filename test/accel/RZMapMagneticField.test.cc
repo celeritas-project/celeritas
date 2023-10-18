@@ -31,7 +31,7 @@ class RZMapMagneticFieldTest : public ::celeritas::test::Test
 TEST_F(RZMapMagneticFieldTest, uniform_z)
 {
     std::shared_ptr<RZMapFieldParams> params = [] {
-        // NOTE: RZ field map input is in tesla
+        // NOTE: RZ field map input is in native units
         RZMapFieldInput inp;
         inp.num_grid_z = 2;
         inp.num_grid_r = 2;

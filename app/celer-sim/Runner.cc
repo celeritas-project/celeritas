@@ -299,9 +299,9 @@ void Runner::build_core_params(RunnerInput const& inp,
         field_params.options = inp.field_options;
 
         // Interpret input in units of Tesla
-        for (real_type& f : field_params.field)
+        for (real_type& v : field_params.field)
         {
-            f *= units::tesla;
+            v = native_value_from(units::FieldTesla{v});
         }
 
         auto along_step = AlongStepUniformMscAction::from_params(
