@@ -329,8 +329,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
         input.action_registry = params.action_reg.get();
 
         input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
-        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy{
-            imported->em_params.lowest_electron_energy};
+        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy(
+            imported->em_params.lowest_electron_energy);
         input.options.secondary_stack_factor = options.secondary_stack_factor;
 
         return std::make_shared<PhysicsParams>(std::move(input));

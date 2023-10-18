@@ -191,7 +191,7 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
  * not truncated in the destination type, the "std::nextafter" function
  * advances to the next floating point representable number.
  */
-template<class T, class U = real_type>
+template<class T, class U = T>
 class BoundingBoxBumper
 {
   public:

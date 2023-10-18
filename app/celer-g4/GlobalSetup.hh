@@ -84,7 +84,7 @@ class GlobalSetup
     void SetIgnoreProcesses(SetupOptions::VecString ignored);
 
     //! Set the field to this value (T) along the z axis
-    void SetMagFieldZTesla(double f) { input_.field = Real3{0, 0, f}; }
+    void SetMagFieldZTesla(real_type f) { input_.field = Real3{0, 0, f}; }
 
     // Read input from macro or JSON
     void ReadInput(std::string const& filename);

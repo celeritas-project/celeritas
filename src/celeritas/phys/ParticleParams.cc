@@ -44,8 +44,8 @@ ParticleParams::from_import(ImportData const& data)
         CELER_ASSERT(defs[i].pdg_code);
 
         // Convert data
-        defs[i].mass = units::MevMass{particle.mass};
-        defs[i].charge = units::ElementaryCharge{particle.charge};
+        defs[i].mass = units::MevMass(particle.mass);
+        defs[i].charge = units::ElementaryCharge(particle.charge);
         defs[i].decay_constant = (particle.is_stable
                                       ? ParticleRecord::stable_decay_constant()
                                       : 1. / particle.lifetime);

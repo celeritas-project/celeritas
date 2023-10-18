@@ -125,7 +125,7 @@ void AtomicRelaxationParams::append_element(ImportAtomicRelaxation const& inp,
         // Check that for a given subshell vacancy EADL transition
         // probabilities are normalized so that the sum over all radiative and
         // non-radiative transitions is 1
-        real_type norm = 0.;
+        real_type norm = 0;
         for (auto const& transition : shell.fluor)
         {
             norm += transition.probability;
@@ -137,7 +137,7 @@ void AtomicRelaxationParams::append_element(ImportAtomicRelaxation const& inp,
             designators.insert(transition.initial_shell);
             designators.insert(transition.auger_shell);
         }
-        CELER_ASSERT(soft_equal(1., norm));
+        CELER_ASSERT(soft_equal(real_type(1), norm));
     }
 
     // Create a mapping of subshell designator to index in the shells array (it
@@ -179,7 +179,7 @@ void AtomicRelaxationParams::append_element(ImportAtomicRelaxation const& inp,
                 = des_to_id[import_transitions[j].auger_shell];
             transitions[j].probability = import_transitions[j].probability;
             transitions[j].energy
-                = units::MevEnergy{import_transitions[j].energy};
+                = units::MevEnergy(import_transitions[j].energy);
         }
         shells[i].transitions
             = make_builder(&data->transitions)
