@@ -55,7 +55,7 @@ class GlobalSetup
     int GetStepDiagnosticBins() const { return input_.step_diagnostic_bins; }
     std::string const& GetFieldType() const { return input_.field_type; }
     std::string const& GetFieldFile() const { return input_.field_file; }
-    Real3 GetMagFieldZTesla() const { return input_.field; }
+    Real3 GetMagFieldTesla() const { return input_.field; }
     FieldDriverOptions const& GetFieldOptions() const
     {
         return input_.field_options;

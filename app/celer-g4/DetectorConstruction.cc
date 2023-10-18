@@ -133,7 +133,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     }
     else if (field_type == "uniform")
     {
-        auto field = GlobalSetup::Instance()->GetMagFieldZTesla();
+        auto field = GlobalSetup::Instance()->GetMagFieldTesla();
         if (norm(field) > 0)
         {
             CELER_LOG_LOCAL(info)
