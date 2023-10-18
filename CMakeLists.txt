@@ -120,6 +120,17 @@ else()
   set(CELERITAS_MAX_BLOCK_SIZE 0)
 endif()
 
+if(CELERITAS_CORE_GEO STREQUAL ORANGE)
+  set(_allow_single_prec TRUE)
+else()
+  set(_allow_single_prec FALSE)
+endif()
+
+celeritas_setup_option(CELERITAS_REAL_TYPE double)
+celeritas_setup_option(CELERITAS_REAL_TYPE float _allow_single_prec)
+celeritas_define_options(CELERITAS_REAL_TYPE
+  "Global runtime precision for real numbers")
+
 #----------------------------------------------------------------------------#
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#

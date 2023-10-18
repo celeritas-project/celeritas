@@ -359,11 +359,15 @@ function(celeritas_define_options var doc)
   set_property(CACHE ${var} PROPERTY STRINGS "${${var}_OPTIONS}")
 
   set(_val "${${var}}")
+  set(_last_var _LAST_${var})
   if(_val STREQUAL "")
     # Dynamic default option: set as core variable in parent scope
     list(GET ${var}_OPTIONS 0 _default)
     set(${var} "${_default}" PARENT_SCOPE)
     set(_val "${_default}")
+    if(NOT "${_val}" STREQUAL "${${_last_var}}")
+      message(STATUS "Set ${var}=${_val}")
+    endif()
   else()
     # User-provided value: check against list
     list(FIND ${var}_OPTIONS "${_val}" _index)
@@ -375,11 +379,7 @@ function(celeritas_define_options var doc)
       )
     endif()
   endif()
-  set(_last_var _LAST_${var})
-  if(NOT "${_val}" STREQUAL "${${_last_var}}")
-    message(STATUS "Set ${var}=${_val}")
-    set(${_last_var} "${_val}" CACHE INTERNAL "")
-  endif()
+  set(${_last_var} "${_val}" CACHE INTERNAL "")
 endfunction()
 
 #-----------------------------------------------------------------------------#
