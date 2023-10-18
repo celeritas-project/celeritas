@@ -99,6 +99,19 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Run a single step with no active states to "warm up".
+ *
+ * This is to reduce the uncertainty in timing for problems, especially on AMD
+ * hardware.
+ */
+void Runner::warm_up()
+{
+    auto& transport = this->get_transporter(StreamId{0});
+    transport();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Run on a single stream/thread, returning the transport result.
  *
  * This will partition the input primaries among all the streams.
@@ -109,7 +122,7 @@ auto Runner::operator()(StreamId stream, EventId event) -> RunnerResult
     CELER_EXPECT(event < this->num_events());
 
     auto& transport = this->get_transporter(stream);
-    return (*transport)(make_span(events_[event.get()]));
+    return transport(make_span(events_[event.get()]));
 }
 
 //---------------------------------------------------------------------------//
@@ -121,7 +134,7 @@ auto Runner::operator()() -> RunnerResult
     CELER_EXPECT(events_.size() == 1);
 
     auto& transport = this->get_transporter(StreamId{0});
-    return (*transport)(make_span(events_.front()));
+    return transport(make_span(events_.front()));
 }
 
 //---------------------------------------------------------------------------//
@@ -154,12 +167,12 @@ auto Runner::get_action_times() -> MapStrReal
     auto& transport = this->get_transporter(StreamId{0});
     if (use_device_)
     {
-        return dynamic_cast<Transporter<MemSpace::device> const&>(*transport)
+        return dynamic_cast<Transporter<MemSpace::device> const&>(transport)
             .get_action_times();
     }
     else
     {
-        return dynamic_cast<Transporter<MemSpace::host> const&>(*transport)
+        return dynamic_cast<Transporter<MemSpace::host> const&>(transport)
             .get_action_times();
     }
 }
@@ -485,7 +498,7 @@ void Runner::build_diagnostics(RunnerInput const& inp)
 /*!
  * Get the transporter for the given stream, constructing if necessary.
  */
-auto Runner::get_transporter(StreamId stream) -> UPTransporterBase&
+auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 {
     CELER_EXPECT(stream < this->num_streams());
 
@@ -513,7 +526,7 @@ auto Runner::get_transporter(StreamId stream) -> UPTransporterBase&
         }();
     }
     CELER_ENSURE(result);
-    return result;
+    return *result;
 }
 
 //---------------------------------------------------------------------------//

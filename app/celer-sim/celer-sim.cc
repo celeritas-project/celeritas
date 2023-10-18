@@ -106,7 +106,14 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     }
     result.num_streams = num_streams;
 
-    // Start profiling *after* initialization (e.g. VecGeom) is complete
+    if (run_input->warm_up)
+    {
+        get_setup_time = {};
+        run_stream.warm_up();
+        result.warmup_time = get_setup_time();
+    }
+
+    // Start profiling *after* initialization and warmup are complete
     Stopwatch get_transport_time;
     if (run_input->merge_events)
     {

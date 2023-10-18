@@ -364,6 +364,28 @@ Additional system backtracing is specified in line 5; line 6 writes (and
 overwrites) to a particular output file; the final line invokes the
 application.
 
+Timelines can also be generated on AMD hardware using the ROCProfiler_
+applications. Here's an example that writes out timeline information:
+
+.. sourcecode:: console
+   :linenos:
+
+   $ CELER_ENABLE_PROFILING=1 \
+   > rocprof \
+   > --roctx-trace \
+   > --hip-trace \
+   > celer-sim inp.json
+
+.. _ROCProfiler: https://rocm.docs.amd.com/projects/rocprofiler/en/latest/rocprofv1.html#roctx-trace
+
+It will output a :file:`results.json` file that contains profiling data for
+both the Celeritas annotations (line 3) and HIP function calls (line 4) in
+a "trace event format" which can be viewed in the Perfetto_ data visualization
+tool.
+
+.. _Perfetto: https://ui.perfetto.dev/
+
+
 Kernel profiling
 ----------------
 

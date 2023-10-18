@@ -27,7 +27,10 @@ void ExtendFromPrimariesAction::process_primaries(
     detail::ProcessPrimariesExecutor execute_thread{
         state.ptr(), primaries, state.counters()};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
-    launch_kernel(primaries.size(), state.stream_id(), execute_thread);
+    if (!primaries.empty())
+    {
+        launch_kernel(primaries.size(), state.stream_id(), execute_thread);
+    }
 }
 
 //---------------------------------------------------------------------------//
