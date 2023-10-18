@@ -13,21 +13,30 @@
 
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/VariantSurface.hh"
+#include "orange/transform/VariantTransform.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
+// Read a transform from a JSON object
+VariantTransform import_transform(nlohmann::json const& src);
 
-// Read a vector of surfaces
-std::vector<VariantSurface> read_surfaces(nlohmann::json const& j);
+// Write a transform to arrays suitable for JSON export.
+nlohmann::json export_transform(VariantTransform const& t);
+
+// Read surface data from a JSON object
+std::vector<VariantSurface> import_zipped_surfaces(nlohmann::json const& j);
+
+// Write surface data to a JSON object
+nlohmann::json export_zipped_surfaces(std::vector<VariantSurface> const& s);
 
 // Build a logic definition from a C string.
-std::vector<logic_int> parse_logic(char const*);
+std::vector<logic_int> string_to_logic(std::string const& s);
 
-// Construct a transform from a translation.
-VariantTransform make_transform(Real3 const& translation);
+// Convert a logic vector to a string
+std::string logic_to_string(std::vector<logic_int> const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -17,6 +17,7 @@
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/VariantSurface.hh"
+#include "orange/transform/VariantTransform.hh"
 
 namespace celeritas
 {
@@ -40,13 +41,14 @@ struct VolumeInput
 
     //! Special flags
     logic_int flags{0};
-    //! Masking priority (2 for regular, 1 for background)
-    int zorder{};
+    //! Masking priority
+    ZOrder zorder{};
 
     //! Whether the volume definition is valid
     explicit operator bool() const
     {
-        return !logic.empty() || (flags & Flags::implicit_vol);
+        return (!logic.empty() || (flags & Flags::implicit_vol))
+               && zorder != ZOrder::invalid;
     }
 };
 

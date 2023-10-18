@@ -110,7 +110,7 @@ operator==(BoundingBox<T> const& lhs, BoundingBox<T> const& rhs)
 /*!
  * Test inequality of two bounding boxes.
  */
-template<class T, size_type N>
+template<class T>
 CELER_CONSTEXPR_FUNCTION bool
 operator!=(BoundingBox<T> const& lhs, BoundingBox<T> const& rhs)
 {

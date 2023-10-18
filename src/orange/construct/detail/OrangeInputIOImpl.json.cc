@@ -9,12 +9,15 @@
 
 #include <vector>
 
+#include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/StringEnumMapper.hh"
-#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {
 namespace detail
+{
+namespace
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -55,9 +58,77 @@ struct SurfaceEmplacer
 
 //---------------------------------------------------------------------------//
 /*!
+ * Convert a logic token to a string.
+ */
+void logic_to_stream(std::ostream& os, logic_int val)
+{
+    if (logic::is_operator_token(val))
+    {
+        os << to_char(static_cast<logic::OperatorToken>(val));
+    }
+    else
+    {
+        // Just a face ID
+        os << val;
+    }
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Read a transform from a JSON object
+ */
+VariantTransform import_transform(nlohmann::json const& src)
+{
+    std::vector<real_type> data;
+    src.get_to(data);
+    if (data.size() == 0)
+    {
+        return NoTransformation{};
+    }
+    else if (data.size() == 3)
+    {
+        return Translation{Translation::StorageSpan{make_span(data)}};
+    }
+    else if (data.size() == 12)
+    {
+        return Transformation{Transformation::StorageSpan{make_span(data)}};
+    }
+    else
+    {
+        CELER_VALIDATE(false,
+                       << "invalid number of elements in transform: "
+                       << data.size());
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write a transform to arrays suitable for JSON export.
+ */
+nlohmann::json export_transform(VariantTransform const& t)
+{
+    // Append the transform data as a single array. Rely on the size to
+    // unpack it.
+    return std::visit(
+        [](auto&& tr) -> nlohmann::json {
+            auto result = nlohmann::json::array();
+            for (auto v : tr.data())
+            {
+                result.push_back(v);
+            }
+            return result;
+        },
+        t);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Read surface data from an ORANGE JSON file.
  */
-std::vector<VariantSurface> read_surfaces(nlohmann::json const& j)
+std::vector<VariantSurface> import_zipped_surfaces(nlohmann::json const& j)
 {
     // Read and convert types
     auto const& type_labels = j.at("types").get<std::vector<std::string>>();
@@ -83,7 +154,36 @@ std::vector<VariantSurface> read_surfaces(nlohmann::json const& j)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build a volume from a C string.
+ * Write surface data to a JSON object.
+ */
+nlohmann::json export_zipped_surfaces(std::vector<VariantSurface> const& all_s)
+{
+    std::vector<std::string> surface_types;
+    std::vector<real_type> surface_data;
+    std::vector<size_type> surface_sizes;
+
+    for (auto const& var_s : all_s)
+    {
+        std::visit(
+            [&](auto&& s) {
+                auto d = s.data();
+                surface_types.push_back(to_cstring(s.surface_type()));
+                surface_data.insert(surface_data.end(), d.begin(), d.end());
+                surface_sizes.push_back(d.size());
+            },
+            var_s);
+    }
+
+    return nlohmann::json::object({
+        {"types", std::move(surface_types)},
+        {"data", std::move(surface_data)},
+        {"sizes", std::move(surface_sizes)},
+    });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a logic definition from a C string.
  *
  * A valid string satisfies the regex "[0-9~!| ]+", but the result may
  * not be a valid logic expression. (The volume inserter will ensure that the
@@ -96,56 +196,63 @@ std::vector<VariantSurface> read_surfaces(nlohmann::json const& j)
 
    \endcode
  */
-std::vector<logic_int> parse_logic(char const* c)
+std::vector<logic_int> string_to_logic(std::string const& s)
 {
     std::vector<logic_int> result;
-    logic_int s = 0;
-    while (char v = *c++)
+
+    logic_int surf_id{};
+    bool reading_surf{false};
+    for (char v : s)
     {
         if (v >= '0' && v <= '9')
         {
             // Parse a surface number. 'Push' this digit onto the surface ID by
             // multiplying the existing ID by 10.
-            s = 10 * s + (v - '0');
-
-            char const next = *c;
-            if (next == ' ' || next == '\0')
+            if (!reading_surf)
             {
-                // Next char is end of word or end of string
-                result.push_back(s);
-                s = 0;
+                surf_id = 0;
+                reading_surf = true;
             }
+            surf_id = 10 * surf_id + (v - '0');
+            continue;
         }
-        else
+        else if (reading_surf)
         {
-            // Parse a logic token
-            switch (v)
-            {
-                // clang-format off
-                case ' ': break;
-                case '*': result.push_back(logic::ltrue); break;
-                case '|': result.push_back(logic::lor);   break;
-                case '&': result.push_back(logic::land);  break;
-                case '~': result.push_back(logic::lnot);  break;
-                default:  CELER_ASSERT_UNREACHABLE();
-                    // clang-format on
-            }
+            // Next char is end of word or end of string
+            result.push_back(surf_id);
+            reading_surf = false;
         }
+
+        // Parse a logic token
+        switch (v)
+        {
+                // clang-format off
+            case '*': result.push_back(logic::ltrue); continue;
+            case '|': result.push_back(logic::lor);   continue;
+            case '&': result.push_back(logic::land);  continue;
+            case '~': result.push_back(logic::lnot);  continue;
+                // clang-format on
+        }
+        CELER_VALIDATE(v == ' ',
+                       << "unexpected token '" << v
+                       << "' while parsing logic string");
     }
+    if (reading_surf)
+    {
+        result.push_back(surf_id);
+    }
+
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a transform from a translation.
+ * Convert a logic vector to a string.
  */
-VariantTransform make_transform(Real3 const& translation)
+std::string logic_to_string(std::vector<logic_int> const& logic)
 {
-    if (CELER_UNLIKELY(translation == (Real3{0, 0, 0})))
-    {
-        return NoTransformation{};
-    }
-    return Translation{translation};
+    return to_string(celeritas::join_stream(
+        logic.begin(), logic.end(), ' ', logic_to_stream));
 }
 
 //---------------------------------------------------------------------------//

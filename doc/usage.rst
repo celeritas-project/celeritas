@@ -131,14 +131,20 @@ Integrated Geant4 application (celer-g4)
 The ``celer-g4`` app is a Geant4 application that offloads EM tracks to
 Celeritas. It takes as input a GDML file with the detector description and
 sensitive detectors marked via an ``auxiliary`` annotation. The input particles
-must be specified with a HepMC3-compatible file.
+must be specified with a HepMC3-compatible file or with a JSON-specified
+"particle gun."
 
 Usage::
 
-  celer-g4 {commands}.mac
+  celer-g4 {input}.json
+           {commands}.mac
+           --interactive
 
 Input
 -----
+
+.. note:: The macro file usage is in the process of being replaced by JSON
+   input for improved automation.
 
 The input is a Geant4 macro file for executing the program. Celeritas defines
 several macros in the ``/celer`` and (if CUDA is available) ``/celer/cuda/``
@@ -149,15 +155,19 @@ The ``celer-g4`` app defines several additional configuration commands under
 
 .. table:: Geant4 UI commands defined by ``celer-g4``.
 
- ============== ===============================================
- Command        Description
- ============== ===============================================
- geometryFile   Filename of the GDML detector geometry
- eventFile      Filename of the event input read by HepMC3
- rootBufferSize Buffer size of output root file [bytes]
- writeSDHits    Write a ROOT output file with hits from the SDs
- magFieldZ      Set Z-axis magnetic field strength (T)
- ============== ===============================================
+ ================== ==================================================
+ Command            Description
+ ================== ==================================================
+ geometryFile       Filename of the GDML detector geometry
+ eventFile          Filename of the event input read by HepMC3
+ rootBufferSize     Buffer size of output root file [bytes]
+ writeSDHits        Write a ROOT output file with hits from the SDs
+ stepDiagnostic     Collect the distribution of steps per Geant4 track
+ stepDiagnosticBins Number of bins for the Geant4 step diagnostic
+ fieldType          Select the field type [rzmap|uniform]
+ fieldFile          Filename of the rz-map loaded by RZMapFieldInput
+ magFieldZ          Set Z-axis magnetic field strength (T)
+ ================== ==================================================
 
 In addition to these input parameters, :ref:`environment` can be specified to
 change the program behavior.
@@ -220,6 +230,23 @@ Usage::
 
 output
   A ROOT file containing exported :ref:`api_importdata`.
+
+
+orange-update
+-------------
+
+Read an ORANGE JSON input file and write it out again. This is used for
+updating from an older version of the input to a newer version.
+
+----
+
+Usage::
+
+   orange-update {input}.org.json {output}.org.json
+
+Either of the filenames can be replaced by ``-`` to read from stdin or write to
+stdout.
+
 
 .. _environment:
 
