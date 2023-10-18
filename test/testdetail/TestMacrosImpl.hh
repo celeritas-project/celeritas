@@ -39,9 +39,8 @@ trunc_string(unsigned int digits, char const* str, char const* trunc);
 template<class T1, class T2>
 constexpr bool can_soft_equiv()
 {
-    return (std::is_floating_point<T1>::value
-            || std::is_floating_point<T2>::value)
-           && std::is_convertible<T1, T2>::value;
+    return (std::is_floating_point_v<T1>
+            || std::is_floating_point_v<T2>)&&std::is_convertible_v<T1, T2>;
 }
 
 //---------------------------------------------------------------------------//
@@ -49,9 +48,12 @@ constexpr bool can_soft_equiv()
  * Get a "least common denominator" for soft comparisons.
  */
 template<class T1, class T2>
-struct SoftPrecisionType
+struct SoftPrecisionType;
+
+template<class T>
+struct SoftPrecisionType<T, T>
 {
-    using type = std::common_type_t<T1, T2>;
+    using type = T;
 };
 
 // When comparing doubles to floats, use the floating point epsilon for
@@ -66,6 +68,13 @@ template<>
 struct SoftPrecisionType<float, double>
 {
     using type = float;
+};
+
+// Allow reference type to be an int (i.e. user writes 0 or 1 instead of 0.)
+template<class T>
+struct SoftPrecisionType<int, T>
+{
+    using type = T;
 };
 
 //---------------------------------------------------------------------------//
@@ -113,41 +122,50 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
 template<class Value_E, class Value_A>
 ::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
                                        char const* actual_expr,
-                                       Value_E expected,
-                                       Value_A actual)
+                                       Value_E&& expected,
+                                       Value_A&& actual)
 {
-    static_assert(can_soft_equiv<Value_E, Value_A>(),
+    using VE = std::remove_cv_t<std::remove_reference_t<Value_E>>;
+    using VA = std::remove_cv_t<std::remove_reference_t<Value_A>>;
+
+    static_assert(can_soft_equiv<VE, VA>(),
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using ValueT = typename SoftPrecisionType<Value_E, Value_A>::type;
+    using ValueT = typename SoftPrecisionType<VE, VA>::type;
     using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     return IsSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp());
+        expected, expected_expr, actual, actual_expr, BinaryOp{});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Predicate for relative error soft equivalence.
  */
-template<class Value_E, class Value_A>
+template<class Value_E, class Value_A, class Value_R>
 ::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
                                        char const* actual_expr,
                                        char const*,
-                                       Value_E expected,
-                                       Value_A actual,
-                                       double rel)
+                                       Value_E&& expected,
+                                       Value_A&& actual,
+                                       Value_R rel)
 {
-    static_assert(can_soft_equiv<Value_E, Value_A>(),
+    using VE = std::remove_cv_t<std::remove_reference_t<Value_E>>;
+    using VA = std::remove_cv_t<std::remove_reference_t<Value_A>>;
+
+    static_assert(can_soft_equiv<VE, VA>(),
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using ValueT = typename SoftPrecisionType<Value_E, Value_A>::type;
+    using ValueT = typename SoftPrecisionType<VE, VA>::type;
     using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
-    return IsSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp(rel));
+    return IsSoftEquivImpl(expected,
+                           expected_expr,
+                           actual,
+                           actual_expr,
+                           BinaryOp{static_cast<ValueT>(rel)});
 }
 
 //---------------------------------------------------------------------------//
