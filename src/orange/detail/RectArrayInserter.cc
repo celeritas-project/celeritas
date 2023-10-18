@@ -44,6 +44,7 @@ std::vector<Label> make_volume_labels(RectArrayInput const& inp)
         }
     }
 
+    CELER_ENSURE(result.size() == inp.daughters.size());
     return result;
 }
 
@@ -140,7 +141,7 @@ UniverseId RectArrayInserter::operator()(RectArrayInput const& inp)
     rect_arrays_.push_back(record);
 
     // Construct universe
-    return (*insert_universe_)(UniverseType::simple,
+    return (*insert_universe_)(UniverseType::rect_array,
                                inp.label,
                                std::move(surface_labels),
                                make_volume_labels(inp));
