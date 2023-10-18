@@ -8,6 +8,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <vector>
 
 #include "corecel/cont/VariantUtils.hh"
 
@@ -42,7 +43,7 @@ class DepthCalculator
 
   private:
     ContainerVisitor<VecVarUniv const&> visit_univ_;
-    size_type num_univ_;
+    std::size_t num_univ_;
     std::unordered_map<UniverseId, size_type> depths_;
 
     // Check cache or calculate
