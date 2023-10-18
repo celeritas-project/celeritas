@@ -9,6 +9,8 @@
 
 #include <gtest/gtest.h>
 
+#include "celeritas_config.h"
+
 #include "testdetail/TestMacrosImpl.hh"
 
 //---------------------------------------------------------------------------//
@@ -18,6 +20,13 @@
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \
     EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsVecEq, expected, actual)
+
+//! Single-ULP floating point equality macro
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+#    define EXPECT_REAL_EQ(expected, actual) EXPECT_DOUBLE_EQ(expected, actual)
+#elif CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+#    define EXPECT_REAL_EQ(expected, actual) EXPECT_FLOAT_EQ(expected, actual)
+#endif
 
 //! Soft equivalence macro
 #define EXPECT_SOFT_EQ(expected, actual) \
