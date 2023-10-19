@@ -55,6 +55,8 @@ enum class RelaxationSelection
  */
 struct GeantPhysicsOptions
 {
+    using MevEnergy = Quantity<units::Mev, double>;
+
     //!@{
     //! \name Gamma physics
     //! Enable discrete Coulomb
@@ -100,13 +102,13 @@ struct GeantPhysicsOptions
     //!@{
     //! \name Cutoff options
     //! Lowest energy of any EM physics process
-    units::MevEnergy min_energy{0.1 * 1e-3};  // 0.1 keV
+    MevEnergy min_energy{0.1 * 1e-3};  // 0.1 keV
     //! Highest energy of any EM physics process
-    units::MevEnergy max_energy{100 * 1e6};  // 100 TeV
+    MevEnergy max_energy{100 * 1e6};  // 100 TeV
     //! See \c PhysicsParamsOptions::linear_loss_limit
     double linear_loss_limit{0.01};
     //! Tracking cutoff kinetic energy for e-/e+
-    units::MevEnergy lowest_electron_energy{0.001};  // 1 keV
+    MevEnergy lowest_electron_energy{0.001};  // 1 keV
     //! Kill secondaries below the production cut
     bool apply_cuts{false};
     //! Set the default production cut for all particle types [cm]
