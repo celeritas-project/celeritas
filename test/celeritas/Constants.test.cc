@@ -15,7 +15,8 @@
 #include "celeritas_test.hh"
 
 #if CELERITAS_USE_GEANT4
-#    include "CLHEP/Units/PhysicalConstants.h"
+#    include <CLHEP/Units/PhysicalConstants.h>
+#    include <CLHEP/Units/SystemOfUnits.h>
 #endif
 
 namespace celeritas
