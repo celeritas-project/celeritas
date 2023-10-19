@@ -67,7 +67,7 @@ struct RunInput
     // Field setup options
     std::string field_type{"uniform"};
     std::string field_file;
-    Real3 field{no_field()};
+    Real3 field{no_field()};  //!< Field vector [T]
     FieldDriverOptions field_options;
 
     // Sensitive detector hit collection

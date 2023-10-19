@@ -21,6 +21,7 @@
 #include <G4VPhysicalVolume.hh>
 
 #include "corecel/io/Logger.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/field/UniformFieldData.hh"
@@ -133,11 +134,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     }
     else if (field_type == "uniform")
     {
-        auto field = GlobalSetup::Instance()->GetMagFieldZTesla();
+        auto field = GlobalSetup::Instance()->GetMagFieldTesla();
         if (norm(field) > 0)
         {
             CELER_LOG_LOCAL(info)
-                << "Using a uniform field (0, 0, " << field[2] << ") in tesla";
+                << "Using a uniform field (0, 0, " << field[2] << ") [tesla]";
             mag_field_ = std::make_shared<G4UniformMagField>(
                 convert_to_geant(field, CLHEP::tesla));
         }
@@ -145,7 +146,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         // Convert field units from tesla to native celeritas units
         for (real_type& v : field)
         {
-            v *= units::tesla;
+            v = native_value_from(units::FieldTesla{v});
         }
 
         UniformFieldParams input;

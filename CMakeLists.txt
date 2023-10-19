@@ -353,9 +353,7 @@ add_library(celeritas_device_toolkit INTERFACE)
 add_library(Celeritas::DeviceToolkit ALIAS celeritas_device_toolkit)
 
 if(CELERITAS_USE_CUDA)
-  target_include_directories(celeritas_device_toolkit
-    SYSTEM INTERFACE $<$<COMPILE_LANGUAGE:C,CXX>:${CUDAToolkit_INCLUDE_DIRS}>
-  )
+  target_link_libraries(celeritas_device_toolkit INTERFACE CUDA::toolkit)
 elseif(CELERITAS_USE_HIP)
   if(CMAKE_HIP_COMPILER_ROCM_ROOT)
     # Undocumented CMake variable
