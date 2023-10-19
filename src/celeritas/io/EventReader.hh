@@ -36,6 +36,8 @@ struct Primary;
  * Each \c operator() call returns a vector of primaries from a single event
  * until all events have been read. Supported formats are Asciiv3, IO_GenEvent,
  * HEPEVT, and LHEF.
+ *
+ * \todo Define ImportPrimary with double precision.
  */
 class EventReader : public EventReaderInterface
 {
