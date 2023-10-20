@@ -120,14 +120,14 @@ else()
   set(CELERITAS_MAX_BLOCK_SIZE 0)
 endif()
 
-if(CELERITAS_CORE_GEO STREQUAL ORANGE)
-  set(_allow_single_prec TRUE)
-else()
+if(CELERITAS_CORE_GEO STREQUAL Geant4)
   set(_allow_single_prec FALSE)
+else()
+  set(_allow_single_prec TRUE)
 endif()
 
 celeritas_setup_option(CELERITAS_REAL_TYPE double)
-celeritas_setup_option(CELERITAS_REAL_TYPE float _allow_single_prec)
+celeritas_setup_option(CELERITAS_REAL_TYPE float)
 celeritas_define_options(CELERITAS_REAL_TYPE
   "Global runtime precision for real numbers")
 
@@ -307,6 +307,20 @@ if(CELERITAS_USE_VecGeom)
       "VecGeom installation at ${VECGEOM_INSTALL_DIR} is not CUDA-enabled"
       CELERITAS_USE_CUDA
       "${VecGeom_CUDA_FOUND}"
+    )
+  endif()
+  if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
+    celeritas_error_incompatible_option(
+      "VecGeom installation at ${VECGEOM_INSTALL_DIR} uses double precision"
+      CELERITAS_REAL_TYPE
+      "double"
+    )
+  endif()
+  if(CELERITAS_REAL_TYPE STREQUAL "double" AND VecGeom_single_precision_FOUND)
+    celeritas_error_incompatible_option(
+      "VecGeom installation at ${VECGEOM_INSTALL_DIR} uses single precision"
+      CELERITAS_REAL_TYPE
+      "float"
     )
   endif()
   if(NOT VecGeom_GDML_FOUND)
