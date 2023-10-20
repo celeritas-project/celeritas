@@ -30,7 +30,6 @@ namespace celeritas
     BernoulliDistribution also_snake_eyes(1.0 / 36.0);
    \endcode
  */
-template<class RealType = ::celeritas::real_type>
 class BernoulliDistribution
 {
   public:
@@ -59,22 +58,12 @@ class BernoulliDistribution
 };
 
 //---------------------------------------------------------------------------//
-// DEDUCTION GUIDES
-//---------------------------------------------------------------------------//
-template<class T>
-CELER_FUNCTION BernoulliDistribution(T&&) -> BernoulliDistribution<T>;
-// template<class T>
-// CELER_FUNCTION BernoulliDistribution(T&&, T&&) -> BernoulliDistribution<T>;
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct with the probability of returning true.
  */
-template<class RealType>
-CELER_FUNCTION
-BernoulliDistribution<RealType>::BernoulliDistribution(real_type p_true)
+CELER_FUNCTION BernoulliDistribution::BernoulliDistribution(real_type p_true)
     : p_true_(p_true)
 {
     CELER_EXPECT(p_true >= 0 && p_true <= 1);
@@ -84,10 +73,9 @@ BernoulliDistribution<RealType>::BernoulliDistribution(real_type p_true)
 /*!
  * Construct with the UNnormalized probability of returning true or false
  */
-template<class RealType>
 CELER_FUNCTION
-BernoulliDistribution<RealType>::BernoulliDistribution(real_type scaled_true,
-                                                       real_type scaled_false)
+BernoulliDistribution::BernoulliDistribution(real_type scaled_true,
+                                             real_type scaled_false)
     : p_true_(scaled_true / (scaled_true + scaled_false))
 {
     CELER_EXPECT(scaled_true > 0 || scaled_false > 0);
@@ -98,9 +86,8 @@ BernoulliDistribution<RealType>::BernoulliDistribution(real_type scaled_true,
 /*!
  * Construct with the probability of returning true.
  */
-template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto BernoulliDistribution<RealType>::operator()(Generator& rng)
+CELER_FUNCTION auto BernoulliDistribution::operator()(Generator& rng)
     -> result_type
 {
     return generate_canonical<real_type>(rng) < p_true_;
