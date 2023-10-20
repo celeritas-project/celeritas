@@ -63,11 +63,11 @@ class GammaDistribution
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
   private:
-    const real_type alpha_;
-    const real_type beta_;
-    const real_type alpha_p_;
-    const real_type d_;
-    const real_type c_;
+    real_type const alpha_;
+    real_type const beta_;
+    real_type const alpha_p_;
+    real_type const d_;
+    real_type const c_;
     NormalDistribution<real_type> sample_normal_;
 };
 
