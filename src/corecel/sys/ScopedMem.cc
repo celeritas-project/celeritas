@@ -138,11 +138,11 @@ ScopedMem::~ScopedMem()
 
         if (celeritas::device())
         {
+            std::size_t stop_usage = -1;
             try
             {
-                auto stop_usage = get_gpu_mem();
+                stop_usage = get_gpu_mem();
                 entry.gpu_usage = native_value_to<KibiBytes>(stop_usage);
-                CELER_ASSERT(stop_usage >= gpu_start_used_);
                 entry.gpu_delta
                     = native_value_to<KibiBytes>(stop_usage - gpu_start_used_);
             }
@@ -150,7 +150,9 @@ ScopedMem::~ScopedMem()
             {
                 std::cerr << "An error occurred while calculating GPU memory "
                              "usage for '"
-                          << entry.label << ": " << e.what() << std::endl;
+                          << entry.label << " (start = " << gpu_start_used_
+                          << ", stop = " << stop_usage << "): " << e.what()
+                          << std::endl;
             }
         }
 
