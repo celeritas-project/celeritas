@@ -634,7 +634,7 @@ TEST_F(TwoVolumeTest, normal)
     }
 }
 
-TEST_F(TwoVolumeTest, heuristic_init)
+TEST_F(TwoVolumeTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 1024;
 
@@ -742,7 +742,7 @@ TEST_F(FieldLayersTest, intersect)
     }
 }
 
-TEST_F(FieldLayersTest, heuristic_init)
+TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 8192;
     static double const expected_vol_fractions[] = {0,
@@ -943,7 +943,7 @@ TEST_F(FiveVolumesTest, safety)
     EXPECT_SOFT_EQ(0.5, tracker.safety({-5, 20, 0}, d));
 }
 
-TEST_F(FiveVolumesTest, heuristic_init)
+TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 10000;
 

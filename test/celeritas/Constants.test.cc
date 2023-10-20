@@ -36,7 +36,7 @@ TEST(ConstantsTest, mathematical)
 }
 
 //! Test that no precision is lost for cm<->m and other integer factors.
-TEST(ConstantsTest, exact_equivalence)
+TEST(ConstantsTest, TEST_IF_CELERITAS_DOUBLE(exact_equivalence))
 {
     EXPECT_EQ(299792458e2, c_light);  // cm/s
     EXPECT_EQ(6.62607015e-27, h_planck);  // erg

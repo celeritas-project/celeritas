@@ -241,7 +241,7 @@ TEST_F(MockAlongStepTest, basic)
     }
 }
 
-TEST_F(MockAlongStepFieldTest, basic)
+TEST_F(MockAlongStepFieldTest, TEST_IF_CELERITAS_DOUBLE(basic))
 {
     size_type num_tracks = 10;
     Input inp;
@@ -524,7 +524,8 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
     }
 }
 
-TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
+// Test nearly tangent value nearly on the boundary
+TEST_F(SimpleCmsRZFieldAlongStepTest, TEST_IF_CELERITAS_DOUBLE(msc_rzfield))
 {
     size_type num_tracks = 128;
     Input inp;

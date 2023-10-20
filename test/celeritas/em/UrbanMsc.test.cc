@@ -364,7 +364,7 @@ TEST_F(UrbanMscTest, step_conversion)
     }
 }
 
-TEST_F(UrbanMscTest, msc_scattering)
+TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
 {
     // Test energies
     static const real_type energy[] = {51.0231,

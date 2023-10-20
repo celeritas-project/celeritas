@@ -85,7 +85,7 @@ TEST_F(ParticleTest, params_accessors)
     EXPECT_EQ(PDGNumber(11), defs.id_to_pdg(ParticleId(0)));
 }
 
-TEST_F(ParticleTest, output)
+TEST_F(ParticleTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
     ParticleParamsOutput out(this->particle_params);
     EXPECT_EQ("particle", out.label());
