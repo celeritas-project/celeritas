@@ -53,10 +53,21 @@
       "description": "Build without any dependencies but JSON/Googletest",
       "inherits": "base",
       "cacheVariables": {
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "float",
+      "description": "Build with single-precision arithmetic",
+      "inherits": "base",
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
@@ -95,6 +106,7 @@
     {"name": "asan", "configurePreset": "asan", "inherits": "base"},
     {"name": "debug", "configurePreset": "debug", "inherits": "base"},
     {"name": "minitest", "configurePreset": "minitest", "inherits": "base"},
+    {"name": "float", "configurePreset": "float", "inherits": "base"},
     {"name": "geant4", "configurePreset": "geant4", "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base",
      "targets": ["all", "install"]}
@@ -118,6 +130,7 @@
     {"name": "asan", "configurePreset": "asan", "inherits": "base"},
     {"name": "debug", "configurePreset": "debug", "inherits": "base"},
     {"name": "minitest", "configurePreset": "minitest", "inherits": "base"},
+    {"name": "float", "configurePreset": "float"},
     {"name": "geant4", "configurePreset": "geant4", "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
   ]
