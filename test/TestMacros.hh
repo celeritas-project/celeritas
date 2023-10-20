@@ -68,6 +68,13 @@
 #    define TEST_IF_CELER_DEVICE(name) DISABLED_##name
 #endif
 
+//! Construct a test name that is disabled unless using double-precision real
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+#    define TEST_IF_CELERITAS_DOUBLE(name) name
+#else
+#    define TEST_IF_CELERITAS_DOUBLE(name) DISABLED_##name
+#endif
+
 //! Construct a test name that is disabled when Geant4 is disabled
 #if CELERITAS_USE_GEANT4
 #    define TEST_IF_CELERITAS_GEANT(name) name

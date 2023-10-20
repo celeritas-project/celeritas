@@ -13,6 +13,7 @@
 
 #include "celeritas_test_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/sys/Environment.hh"
 
 namespace celeritas
@@ -140,7 +141,7 @@ bool Test::strict_testing()
 // Provide a definition for the "inf" value. (This is needed by C++ < 17 so
 // that the adddress off the static value can be taken.)
 constexpr double Test::inf;
-
+constexpr real_type Test::coarse_eps;
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
