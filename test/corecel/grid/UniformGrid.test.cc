@@ -72,10 +72,10 @@ TEST_F(UniformGridTest, from_bounds)
     EXPECT_EQ(1, grid.find(0.0));
 }
 
-TEST_F(UniformGridTest, from_logbounds)
+TEST_F(UniformGridTest, TEST_IF_CELERITAS_DOUBLE(from_logbounds))
 {
-    double const log_emin = std::log(1.0);
-    double const log_emax = std::log(1e5);
+    real_type const log_emin = std::log(real_type{1.0});
+    real_type const log_emax = std::log(real_type{1e5});
     input = UniformGridData::from_bounds(log_emin, log_emax, 6);
 
     UniformGrid grid(input);
@@ -84,9 +84,10 @@ TEST_F(UniformGridTest, from_logbounds)
     EXPECT_REAL_EQ(log_emax, grid.back());
     EXPECT_EQ(0, grid.find(log_emin));
 
-    double const log10 = std::log(10);
+    real_type const ten{10};
+    real_type const log10 = std::log(ten);
     EXPECT_EQ(0, grid.find(std::nextafter(log10, 0.)));
-    EXPECT_EQ(1, grid.find(std::log(10)));
+    EXPECT_EQ(1, grid.find(std::log(ten)));
     EXPECT_EQ(1, grid.find(std::nextafter(log10, 1e100)));
     EXPECT_EQ(4, grid.find(std::nextafter(log_emax, 0.)));
 #if CELERITAS_DEBUG

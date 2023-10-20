@@ -130,7 +130,7 @@ TEST_F(ElementSelectorTest, single)
     ElementSelector select_el(material, mock_micro_xs, make_span(storage));
 
     // Construction should have precalculated cross sections
-    double const expected_elemental_micro_xs[] = {3};
+    real_type const expected_elemental_micro_xs[] = {3};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
                        select_el.elemental_micro_xs());
     EXPECT_SOFT_EQ(3.0, select_el.material_micro_xs());
@@ -150,7 +150,7 @@ TEST_F(ElementSelectorTest, everything_even)
     ElementSelector select_el(material, mock_micro_xs, make_span(storage));
 
     // Test cross sections
-    double const expected_elemental_micro_xs[] = {1, 2, 3, 4};
+    real_type const expected_elemental_micro_xs[] = {1, 2, 3, 4};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
                        select_el.elemental_micro_xs());
     EXPECT_SOFT_EQ(2.5, select_el.material_micro_xs());
@@ -191,7 +191,7 @@ TEST_F(ElementSelectorTest, everything_weighted)
     ElementSelector select_el(material, mock_micro_xs, make_span(storage));
 
     // Test cross sections
-    double const expected_elemental_micro_xs[] = {1, 2, 3, 4};
+    real_type const expected_elemental_micro_xs[] = {1, 2, 3, 4};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
                        select_el.elemental_micro_xs());
     EXPECT_SOFT_EQ(1.92, select_el.material_micro_xs());
@@ -239,7 +239,7 @@ TEST_F(ElementSelectorTest, fancy_xs)
         material, CalcFancyMicroXs{host_mats, energy}, make_span(storage));
 
     // Test cross sections
-    double const expected_elemental_micro_xs[] = {
+    real_type const expected_elemental_micro_xs[] = {
         0.008130081300813, 0.01808113894772, 0.01911654217659, 0.0305389085709};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
                        select_el.elemental_micro_xs());

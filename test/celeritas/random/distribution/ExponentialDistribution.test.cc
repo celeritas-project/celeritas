@@ -23,7 +23,7 @@ TEST(ExponentialDistributionTest, all)
 {
     int num_samples = 10000;
     double lambda = 0.25;
-    ExponentialDistribution<> sample(lambda);
+    ExponentialDistribution<double> sample(lambda);
     test::DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> counters(5);

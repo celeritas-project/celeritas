@@ -155,8 +155,12 @@ TEST_F(FieldDriverTest, types)
             FieldDriver<DormandPrinceStepper<MagFieldEquation<UniformZField>>>,
             decltype(driver)>::value));
     // Size: field vector, q / c, reference to options
-    EXPECT_EQ(3 * sizeof(real_type) + sizeof(FieldDriverOptions*),
-              sizeof(driver));
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(3 * sizeof(real_type) + sizeof(FieldDriverOptions*),
+                  sizeof(driver));
+    }
 }
 
 // Field strength changes quickly with z, so different chord steps require
@@ -229,7 +233,7 @@ TEST_F(FieldDriverTest, horrible_field)
                                      0.14017717257531165,
                                      0.04668993728754612}),
                               state.pos),
-                     1e-5)
+                     coarse_eps * 10)
         << state.pos;
 }
 
@@ -329,9 +333,12 @@ TEST_F(FieldDriverTest, step_counts)
         97.132215683182};
     // clang-format on
 
-    EXPECT_VEC_SOFT_EQ(expected_radii, radii);
-    EXPECT_VEC_EQ(expected_counts, counts);
-    EXPECT_VEC_SOFT_EQ(expected_lengths, lengths);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_SOFT_EQ(expected_radii, radii);
+        EXPECT_VEC_EQ(expected_counts, counts);
+        EXPECT_VEC_SOFT_EQ(expected_lengths, lengths);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -396,7 +403,7 @@ TEST_F(RevolutionFieldDriverTest, accurate_advance)
 
     // Try the stepper by hstep for (num_revolutions * num_steps) times
     real_type total_curved_length{0};
-    real_type eps = 1.0e-4;
+    real_type eps = std::sqrt(this->coarse_eps);
 
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {

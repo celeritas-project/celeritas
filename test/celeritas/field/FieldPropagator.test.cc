@@ -218,7 +218,8 @@ TEST_F(TwoBoxesTest, electron_interior)
             EXPECT_FALSE(result.boundary)
                 << "At " << geo.pos() << " along " << geo.dir();
         }
-        EXPECT_SOFT_NEAR(0, distance(Real3({0, radius, 0}), geo.pos()), 1e-8);
+        EXPECT_SOFT_NEAR(
+            0, distance(Real3({0, radius, 0}), geo.pos()), coarse_eps);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({-1, 0, 0}), geo.dir()));
     }
 
@@ -228,7 +229,7 @@ TEST_F(TwoBoxesTest, electron_interior)
         stepper.reset_count();
         result = propagate(0.5 * pi * radius);
         EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
-        EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), 1e-6);
+        EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), coarse_eps);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
         EXPECT_EQ(21, stepper.count());
     }
@@ -253,9 +254,9 @@ TEST_F(TwoBoxesTest, electron_interior)
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_NEAR(Real3({3.8085385881855, -2.381487075086e-07, 0}),
                         geo.pos(),
-                        real_type{1e-7});
+                        coarse_eps);
         EXPECT_VEC_NEAR(
-            Real3({6.25302065531623e-08, 1, 0}), geo.dir(), real_type{1e-7});
+            Real3({6.25302065531623e-08, 1, 0}), geo.dir(), coarse_eps);
         EXPECT_EQ(1, stepper.count());
     }
 }
@@ -506,7 +507,7 @@ TEST_F(TwoBoxesTest, electron_small_step)
         EXPECT_SOFT_EQ(result.distance, delta);
         EXPECT_FALSE(result.boundary);
         EXPECT_FALSE(geo.is_on_boundary());
-        EXPECT_VEC_NEAR(Real3({5 - 1.0e-5, 0, 0}), geo.pos(), real_type{1e-7});
+        EXPECT_VEC_NEAR(Real3({5 - 1.0e-5, 0, 0}), geo.pos(), coarse_eps);
     }
     {
         SCOPED_TRACE("Small step *almost* to boundary");
@@ -875,7 +876,7 @@ TEST_F(TwoBoxesTest, electron_step_endpoint)
         EXPECT_SOFT_EQ(first_step - dr, result.distance);
         EXPECT_LT(distance(Real3{-4.9512441890768795, -0.092139178167222446, 0},
                            geo.pos()),
-                  1e-8)
+                  coarse_eps)
             << geo.pos();
     }
     {
@@ -946,7 +947,8 @@ TEST_F(TwoBoxesTest, electron_step_endpoint)
         EXPECT_EQ(1, stepper.count());
         EXPECT_SOFT_EQ(0.40277704609562048, result.distance);
         EXPECT_LE(result.distance, first_step);
-        EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()), 1e-6)
+        EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()),
+                  coarse_eps)
             << geo.pos();
     }
     {
@@ -1042,7 +1044,7 @@ TEST_F(TwoBoxesTest, electron_tangent_cross_smallradius)
                                                 1e-08,
                                                 9.9981633254417e-12,
                                                 1e-11};
-    EXPECT_VEC_NEAR(expected_distances, distances, real_type{1e-5});
+    EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps);
 
     static int const expected_substeps[] = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
 
@@ -1142,9 +1144,9 @@ TEST_F(LayersTest, revolutions_through_layers)
         }
     }
 
-    EXPECT_SOFT_NEAR(-0.13150565, geo.pos()[0], 1e-6);
-    EXPECT_SOFT_NEAR(-0.03453068, geo.dir()[1], 1e-6);
-    EXPECT_SOFT_NEAR(221.48171708, total_length, 1e-6);
+    EXPECT_SOFT_NEAR(-0.13150565, geo.pos()[0], coarse_eps);
+    EXPECT_SOFT_NEAR(-0.03453068, geo.dir()[1], coarse_eps);
+    EXPECT_SOFT_NEAR(221.48171708, total_length, coarse_eps);
     EXPECT_EQ(148, icross);
 }
 
@@ -1339,7 +1341,7 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         else
         {
             // Repeated substep bisection failed; particle is bumped
-            EXPECT_SOFT_NEAR(1e-6, result.distance, 1e-8);
+            EXPECT_SOFT_NEAR(1e-6, result.distance, coarse_eps);
             // Minor floating point differences could make this 98 or so
             EXPECT_SOFT_NEAR(real_type(95), real_type(stepper.count()), 0.05);
             EXPECT_FALSE(result.boundary);  // FIXME: should have reentered

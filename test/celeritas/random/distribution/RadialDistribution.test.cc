@@ -37,9 +37,12 @@ TEST(RadialDistributionTest, bin)
         counters[int(r)] += 1;
     }
 
-    int const expected_counters[] = {80, 559, 1608, 2860, 4893};
-    EXPECT_VEC_EQ(expected_counters, counters);
-    EXPECT_EQ(2 * num_samples, rng.count());
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        int const expected_counters[] = {80, 559, 1608, 2860, 4893};
+        EXPECT_VEC_EQ(expected_counters, counters);
+    }
+    EXPECT_EQ(num_samples * (sizeof(real_type) / 4), rng.count());
 }
 
 //---------------------------------------------------------------------------//

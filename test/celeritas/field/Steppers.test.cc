@@ -75,14 +75,14 @@ class SteppersTest : public Test
         auto stepper = make_mag_field_stepper<StepperT>(
             field, units::ElementaryCharge{-1});
         // Test parameters and the sub-step size
-        real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
+        real_type hstep = 2 * constants::pi * param.radius / param.nsteps;
 
         for (unsigned int i : range(param.nstates))
         {
             // Initial state and the epected state after revolutions
             OdeState y;
-            y.pos = {param.radius, 0.0, i * real_type{1e-6}};
-            y.mom = {0.0, param.momentum_y, param.momentum_z};
+            y.pos = {param.radius, 0, i * real_type{1e-6}};
+            y.mom = {0, param.momentum_y, param.momentum_z};
 
             OdeState expected_y = y;
 

@@ -95,7 +95,7 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
 
     pos = {real_type{3.5} + eps, 1, 0};
     EXPECT_SOFT_EQ(2.25 + eps, calc_distance(px_));
-    EXPECT_SOFT_NEAR(0.0 + eps, calc_distance(s_), 1e-11);
+    EXPECT_SOFT_NEAR(0.0 + eps, calc_distance(s_), coarse_eps);
 
     pos = {real_type{3.5}, 1, 0};
     EXPECT_SOFT_EQ(2.25, calc_distance(px_));

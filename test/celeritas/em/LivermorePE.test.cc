@@ -108,7 +108,7 @@ class LivermorePETest : public InteractorHostTestBase
             auto const& electron = interaction.secondaries.front();
             EXPECT_TRUE(electron);
             EXPECT_EQ(model_->host_ref().ids.electron, electron.particle_id);
-            EXPECT_GT(this->particle_track().energy().value(),
+            EXPECT_GE(this->particle_track().energy().value(),
                       electron.energy.value());
             EXPECT_LT(0, electron.energy.value());
             EXPECT_SOFT_EQ(1.0, norm(electron.direction));

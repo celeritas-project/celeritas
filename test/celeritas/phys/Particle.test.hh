@@ -30,7 +30,7 @@ struct PTVTestInput
 //! Output results
 struct PTVTestOutput
 {
-    std::vector<double> props;
+    std::vector<real_type> props;
 
     static CELER_CONSTEXPR_FUNCTION int props_per_thread() { return 8; }
 };

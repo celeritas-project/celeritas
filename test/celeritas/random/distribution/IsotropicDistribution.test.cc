@@ -24,7 +24,7 @@ TEST(IsotropicDistributionTest, bin)
 {
     int num_samples = 10000;
 
-    IsotropicDistribution<> sample_isotropic;
+    IsotropicDistribution<double> sample_isotropic;
     test::DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> octant_tally(8, 0);

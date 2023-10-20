@@ -264,11 +264,9 @@ TEST_F(UrbanMscTest, step_conversion)
 
     UrbanMscParameters const& params = msc_params_->host_ref().params;
 
-    auto test_one = [&](char const* material,
-                        PDGNumber ptype,
-                        MevEnergy energy) {
+    auto test_one = [&](char const* mat, PDGNumber ptype, MevEnergy energy) {
         auto par = this->make_par_view(ptype, energy);
-        auto phys = this->make_phys_view(par, material);
+        auto phys = this->make_phys_view(par, mat);
         SCOPED_TRACE((PrintableParticle{par, *this->particle()}));
         UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
 
@@ -281,8 +279,8 @@ TEST_F(UrbanMscTest, step_conversion)
                              {static_cast<real_type>(pstep_points), range});
         for (auto ppt : celeritas::range(pstep_points + 1))
         {
-            // Calculate given a physics step between "tiny" and the maximum
-            // range
+            // Calculate given a physics step between "tiny" and the
+            // maximum range
             real_type pstep = calc_pstep(ppt);
             if (ppt == pstep_points)
                 pstep = range;
@@ -305,8 +303,8 @@ TEST_F(UrbanMscTest, step_conversion)
                 {static_cast<real_type>(gstep_points), gp.step});
             for (auto gpt : celeritas::range(gstep_points + 1))
             {
-                // Calculate between a nearby hypothetical geometric boundary
-                // and "no boundary" (i.e. pstep limited)
+                // Calculate between a nearby hypothetical geometric
+                // boundary and "no boundary" (i.e. pstep limited)
                 real_type gstep = celeritas::min(calc_gstep(gpt), pstep);
                 SCOPED_TRACE((LabeledValue{"gstep", gstep}));
                 real_type true_step;
@@ -335,7 +333,11 @@ TEST_F(UrbanMscTest, step_conversion)
                  pstep=0.0027792890018717618
                  e- at 0.102364 MeV
                  */
-                real_type tol = (1 - gp.alpha * pstep < 1e-8 ? 1e-3 : 1e-10);
+                real_type tol = 1 - gp.alpha * pstep < 1e-8 ? 1e-3 : 1e-10;
+                if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+                {
+                    tol = std::sqrt(tol);
+                }
                 EXPECT_SOFT_NEAR(pstep, true_step, tol);
             }
         }

@@ -213,7 +213,7 @@ TEST_F(SurfaceActionTest, string)
     EXPECT_VEC_EQ(expected_strings, strings);
 }
 
-TEST_F(SurfaceActionTest, host_distances)
+TEST_F(SurfaceActionTest, TEST_IF_CELERITAS_DOUBLE(host_distances))
 {
     auto const& host_ref = this->host_params();
 
@@ -251,7 +251,7 @@ TEST_F(SurfaceActionTest, host_distances)
     EXPECT_VEC_SOFT_EQ(expected_distance, state_ref.distance[test_threads]);
 }
 
-TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
+TEST_F(SurfaceActionTest, TEST_IF_CELERITAS_DOUBLE(device_distances))
 {
     OrangeMiniStateData<Ownership::value, MemSpace::device> device_states;
     {
