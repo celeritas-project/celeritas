@@ -9,6 +9,7 @@
 
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
+#include <VecGeom/base/Version.h>
 #include <VecGeom/navigation/GlobalLocator.h>
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
@@ -22,9 +23,13 @@
 #include "orange/Types.hh"
 
 #include "VecgeomData.hh"
-#include "detail/BVHNavigator.hh"
 #include "detail/VecgeomCompatibility.hh"
 
+#if VECGEOM_VERSION >= 0x020000
+#    include <VecGeom/navigation/BVHNavigator.h>
+#else
+#    include "detail/BVHNavigator.hh"
+#endif
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -49,6 +54,11 @@ class VecgeomTrackView
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
     using StateRef = NativeRef<VecgeomStateData>;
+#if VECGEOM_VERSION >= 0x020000
+    using BVHNavigator = vecgeom::BVHNavigator;
+#else
+    using BVHNavigator = celeritas::detail::BVHNavigator;
+#endif
     //!@}
 
     //! Helper struct for initializing from an existing geometry state
@@ -201,12 +211,9 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     vecgeom::VPlacedVolume const* worldvol = params_.world_volume;
     bool const contains_point = true;
 
-    // Note that LocateGlobalPoint sets `vgstate_`. If `vgstate_` is outside
-    // (including possibly on the outside volume edge), the volume pointer it
-    // returns would be null at this point.
-    detail::BVHNavigator::LocatePointIn(
+    // LocatePointIn sets `vgstate_`
+    BVHNavigator::LocatePointIn(
         worldvol, detail::to_vector(pos_), vgstate_, contains_point);
-
     return *this;
 }
 
@@ -316,12 +323,12 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(max_step > 0);
 
     // Use BVH navigator to find internal distance
-    next_step_ = detail::BVHNavigator::ComputeStepAndNextVolume(
-        detail::to_vector(pos_),
-        detail::to_vector(dir_),
-        max_step,
-        vgstate_,
-        vgnext_);
+    next_step_ = BVHNavigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
+                                                        detail::to_vector(dir_),
+                                                        max_step,
+                                                        vgstate_,
+                                                        vgnext_);
+
     next_step_ = max(next_step_, this->extra_push());
     if (!this->is_next_boundary())
     {
@@ -365,8 +372,15 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(!this->is_on_boundary());
     CELER_EXPECT(max_radius > 0);
-    real_type safety = detail::BVHNavigator::ComputeSafety(
+
+#if VECGEOM_VERSION < 0x020000
+    real_type safety = BVHNavigator::ComputeSafety(
         detail::to_vector(this->pos()), vgstate_, max_radius);
+#else
+    real_type safety = BVHNavigator::ComputeSafety(
+        detail::to_vector(this->pos()), vgstate_);
+    safety = min<real_type>(safety, max_radius);
+#endif
 
     // Since the reported "safety" is negative if we've moved slightly beyond
     // the boundary of a solid without crossing it, we must clamp to zero.
@@ -406,7 +420,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     {
         // BVH requires an lvalue temp_pos
         auto temp_pos = detail::to_vector(this->pos_);
-        detail::BVHNavigator::RelocateToNextVolume(
+        BVHNavigator::RelocateToNextVolume(
             temp_pos, detail::to_vector(this->dir_), vgnext_);
     }
 
