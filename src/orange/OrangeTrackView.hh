@@ -274,7 +274,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         auto tinit = visit_tracker(
             [&local](auto&& t) { return t.initialize(local); }, uid);
 
-        // TODO: error correction/graceful failure if initialiation failed
+        // TODO: error correction/graceful failure if initialization failed
         CELER_ASSERT(tinit.volume && !tinit.surface);
 
         auto lsa = this->make_lsa(LevelId{level});

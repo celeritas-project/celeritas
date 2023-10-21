@@ -116,9 +116,13 @@ TEST_F(OneVolumeTest, params)
 {
     OrangeParams const& geo = this->params();
 
+    EXPECT_EQ(1, geo.num_universes());
     EXPECT_EQ(1, geo.num_volumes());
     EXPECT_EQ(0, geo.num_surfaces());
     EXPECT_TRUE(geo.supports_safety());
+
+    EXPECT_EQ("one volume", geo.id_to_label(UniverseId{0}).name);
+    EXPECT_EQ(UniverseId{0}, geo.find_universe("one volume"));
 
     EXPECT_EQ("infinite", geo.id_to_label(VolumeId{0}).name);
     EXPECT_EQ(VolumeId{0}, geo.find_volume("infinite"));
