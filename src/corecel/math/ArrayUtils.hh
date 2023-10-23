@@ -88,7 +88,7 @@ CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y)
     CELER_EXPECT(y);
     for (size_type i = 0; i != N; ++i)
     {
-        (*y)[i] += a * x[i];
+        (*y)[i] = std::fma(a, x[i], (*y)[i]);
     }
 }
 
@@ -102,7 +102,7 @@ CELER_FUNCTION T dot_product(Array<T, N> const& x, Array<T, N> const& y)
     T result{};
     for (size_type i = 0; i != N; ++i)
     {
-        result += x[i] * y[i];
+        result = std::fma(x[i], y[i], result);
     }
     return result;
 }

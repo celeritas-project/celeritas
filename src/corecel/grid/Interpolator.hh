@@ -131,7 +131,7 @@ CELER_FUNCTION auto Interpolator<XI, YI, T>::operator()(real_type x) const
 {
     CELER_EXPECT(XTraits_t::valid_domain(x));
     real_type result = YTraits_t::transform_inv(
-        intercept_ + slope_ * (XTraits_t::add_transformed(offset_, x)));
+        std::fma(slope_, XTraits_t::add_transformed(offset_, x), intercept_));
 
     CELER_ENSURE(!std::isnan(result));
     return result;
