@@ -30,10 +30,8 @@ class LDGIterator
     //! \name Type aliases
     using difference_type = std::ptrdiff_t;
     using value_type = T;
-    using pointer = std::add_pointer_t<T>;
-    using const_pointer = std::add_pointer_t<T const>;
-    using reference = std::add_lvalue_reference_t<T>;
-    using const_reference = std::add_lvalue_reference_t<T const>;
+    using pointer = std::add_pointer_t<T const>;
+    using reference = std::add_lvalue_reference_t<T const>;
     using iterator_catgeory = std::random_access_iterator_tag;
     using self = LDGIterator<T>;
     //!@}
@@ -44,14 +42,14 @@ class LDGIterator
     constexpr LDGIterator() noexcept = default;
     constexpr LDGIterator(self const&) noexcept = default;
     CELER_CONSTEXPR_FUNCTION LDGIterator(std::nullptr_t) noexcept {}
-    CELER_CONSTEXPR_FUNCTION explicit LDGIterator(const_pointer ptr) noexcept
+    CELER_CONSTEXPR_FUNCTION explicit LDGIterator(pointer ptr) noexcept
         : ptr_{ptr}
     {
     }
     //!@}
 
     // Iterator requirements
-    CELER_CONSTEXPR_FUNCTION const_reference operator*() const noexcept
+    CELER_CONSTEXPR_FUNCTION reference operator*() const noexcept
     {
 #if CELER_DEVICE_COMPILE
         return __ldg(ptr_);
@@ -90,7 +88,7 @@ class LDGIterator
     {
         return lhs.ptr_ == rhs.ptr_;
     }
-    CELER_CONSTEXPR_FUNCTION const_pointer operator->() const noexcept
+    CELER_CONSTEXPR_FUNCTION pointer operator->() const noexcept
     {
         return ptr_;
     }
@@ -134,7 +132,7 @@ class LDGIterator
     {
         return it.ptr_ - ptr_;
     }
-    CELER_CONSTEXPR_FUNCTION const_reference
+    CELER_CONSTEXPR_FUNCTION reference
     operator[](const difference_type n) const noexcept
     {
 #if CELER_DEVICE_COMPILE
@@ -150,7 +148,7 @@ class LDGIterator
     }
 
     // Conversion operators
-    CELER_CONSTEXPR_FUNCTION explicit operator const_pointer() const noexcept
+    CELER_CONSTEXPR_FUNCTION explicit operator pointer() const noexcept
     {
         return ptr_;
     }
@@ -160,7 +158,7 @@ class LDGIterator
     }
 
   private:
-    const_pointer ptr_;
+    pointer ptr_;
 };
 
 //---------------------------------------------------------------------------//
