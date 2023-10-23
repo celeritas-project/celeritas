@@ -11,6 +11,7 @@
 #include <iterator>
 #include <type_traits>
 
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 
@@ -18,7 +19,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- *
+ * Iterator for read-only device data. Use __ldg intrinsic to load data in
+ * read-only cache.
  */
 template<class T>
 class LDGIterator
@@ -29,7 +31,9 @@ class LDGIterator
     using difference_type = std::ptrdiff_t;
     using value_type = T;
     using pointer = std::add_pointer_t<T>;
-    using reference = std::add_const_t<std::add_lvalue_reference_t<T>>;
+    using const_pointer = std::add_pointer_t<T const>;
+    using reference = std::add_lvalue_reference_t<T>;
+    using const_reference = std::add_lvalue_reference_t<T const>;
     using iterator_catgeory = std::random_access_iterator_tag;
     using self = LDGIterator<T>;
     //!@}
@@ -38,26 +42,29 @@ class LDGIterator
     //!@{
     //! Construct a pointer
     constexpr LDGIterator() noexcept = default;
-    constexpr LDGIterator(LDGIterator<T> const&) noexcept = default;
+    constexpr LDGIterator(self const&) noexcept = default;
     CELER_CONSTEXPR_FUNCTION LDGIterator(std::nullptr_t) noexcept {}
-    CELER_CONSTEXPR_FUNCTION explicit LDGIterator(pointer ptr) noexcept
+    CELER_CONSTEXPR_FUNCTION explicit LDGIterator(const_pointer ptr) noexcept
         : ptr_{ptr}
     {
     }
     //!@}
 
     // Iterator requirements
-    CELER_CONSTEXPR_FUNCTION reference operator*() const
+    CELER_CONSTEXPR_FUNCTION const_reference operator*() const noexcept
     {
-        // TODO: __ldg
+#if CELER_DEVICE_COMPILE
+        return __ldg(ptr_);
+#else
         return *ptr_;
+#endif
     }
-    CELER_CONSTEXPR_FUNCTION self& operator++()
+    CELER_CONSTEXPR_FUNCTION self& operator++() noexcept
     {
         ++ptr_;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION self& operator=(self const& it)
+    CELER_CONSTEXPR_FUNCTION self& operator=(self const& it) noexcept
     {
         if (this == &it)
         {
@@ -72,7 +79,7 @@ class LDGIterator
     }
 
     // ForwardIterator requirements
-    CELER_CONSTEXPR_FUNCTION self operator++(int)
+    CELER_CONSTEXPR_FUNCTION self operator++(int) noexcept
     {
         self tmp{ptr_};
         ++ptr_;
@@ -83,15 +90,18 @@ class LDGIterator
     {
         return lhs.ptr_ == rhs.ptr_;
     }
-    CELER_CONSTEXPR_FUNCTION pointer operator->() { return **this; }
+    CELER_CONSTEXPR_FUNCTION const_pointer operator->() const noexcept
+    {
+        return ptr_;
+    }
 
     // BidirectionalIterator requirements
-    CELER_CONSTEXPR_FUNCTION self& operator--()
+    CELER_CONSTEXPR_FUNCTION self& operator--() noexcept
     {
         --ptr_;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION self operator--(int)
+    CELER_CONSTEXPR_FUNCTION self operator--(int) noexcept
     {
         self tmp{ptr_};
         --ptr_;
@@ -99,34 +109,39 @@ class LDGIterator
     }
 
     // RandomAccessIterator requirements
-    CELER_CONSTEXPR_FUNCTION self& operator+=(const difference_type n)
+    CELER_CONSTEXPR_FUNCTION self& operator+=(const difference_type n) noexcept
     {
         ptr_ += n;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION self operator+(const difference_type n) const
+    CELER_CONSTEXPR_FUNCTION self operator+(const difference_type n) const noexcept
     {
         self tmp{ptr_};
         return tmp += n;
     }
-    CELER_CONSTEXPR_FUNCTION self& operator-=(const difference_type n)
+    CELER_CONSTEXPR_FUNCTION self& operator-=(const difference_type n) noexcept
     {
         ptr_ -= n;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION self operator-(const difference_type n) const
+    CELER_CONSTEXPR_FUNCTION self operator-(const difference_type n) const noexcept
     {
         self tmp{ptr_};
         return tmp -= n;
     }
-    CELER_CONSTEXPR_FUNCTION difference_type operator-(self const& it) const
+    CELER_CONSTEXPR_FUNCTION difference_type
+    operator-(self const& it) const noexcept
     {
         return it.ptr_ - ptr_;
     }
-    CELER_CONSTEXPR_FUNCTION reference operator[](const difference_type n) const
+    CELER_CONSTEXPR_FUNCTION const_reference
+    operator[](const difference_type n) const noexcept
     {
-        // TODO: __ldg
-        return *(ptr_ + n);
+#if CELER_DEVICE_COMPILE
+        return __ldg(ptr_ + n);
+#else
+        return ptr_[n];
+#endif
     }
     CELER_CONSTEXPR_FUNCTION friend bool
     operator<(self const& lhs, self const& rhs)
@@ -134,9 +149,23 @@ class LDGIterator
         return lhs.ptr_ < rhs.ptr_;
     }
 
+    // Conversion operators
+    CELER_CONSTEXPR_FUNCTION explicit operator const_pointer() const noexcept
+    {
+        return ptr_;
+    }
+    CELER_CONSTEXPR_FUNCTION explicit operator bool() const noexcept
+    {
+        return ptr_ != nullptr;
+    }
+
   private:
-    const pointer ptr_;
+    const_pointer ptr_;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
 
 // RandomAccessIterator requirements
 template<class T>
@@ -157,6 +186,14 @@ operator>=(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
 {
     return !(lhs < rhs);
 }
+template<class T>
+CELER_CONSTEXPR_FUNCTION LDGIterator<T>
+operator+(const typename LDGIterator<T>::difference_type n,
+          LDGIterator<T> const& it)
+{
+    return it + n;
+}
+
 // ForwardIterator requirements
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
@@ -165,7 +202,7 @@ operator!=(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
     return !(lhs == rhs);
 }
 
-//! Swap two pointers
+// Iterator requirements
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
 swap(LDGIterator<T>& lhs, LDGIterator<T>& rhs) noexcept
@@ -173,8 +210,11 @@ swap(LDGIterator<T>& lhs, LDGIterator<T>& rhs) noexcept
     return lhs.swap(rhs);
 }
 
+// Helper
+
 template<class T>
-inline LDGIterator<T> make_ldgiterator(T* ptr) noexcept
+inline LDGIterator<T>
+make_ldgiterator(typename LDGIterator<T>::pointer ptr) noexcept
 {
     return LDGIterator<T>{ptr};
 }
