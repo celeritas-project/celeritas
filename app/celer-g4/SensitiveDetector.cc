@@ -17,6 +17,8 @@
 
 #include "corecel/Assert.hh"
 
+#include "HitRootIO.hh"
+
 namespace celeritas
 {
 namespace app
@@ -25,7 +27,8 @@ namespace app
 SensitiveDetector::SensitiveDetector(std::string name)
     : G4VSensitiveDetector(name), hcid_{-1}, collection_{nullptr}
 {
-    this->collectionName.insert(name + "_HC");
+    this->collectionName.insert(name);
+    HitRootIO::Instance()->AddSensitiveDetector(name);
 }
 
 //---------------------------------------------------------------------------//
@@ -66,25 +69,55 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     {
         return false;
     }
-
-    // Insert hit from this step
-    auto* pre_step = step->GetPreStepPoint();  // Post-step might be undefined
+    auto* pre_step = step->GetPreStepPoint();
     CELER_ASSERT(pre_step);
+    auto* post_step = step->GetPostStepPoint();  // Can be undefined
     auto* touchable = step->GetPreStepPoint()->GetTouchable();
     CELER_ASSERT(touchable);
 
-    HitData data;
-    data.id = touchable->GetVolume()->GetCopyNo();
-    data.edep = edep;
-    data.time = step->GetPreStepPoint()->GetGlobalTime();  // [ns]
+    // Insert hit
+    {
+        HitData hit;
+        hit.id = touchable->GetVolume()->GetCopyNo();
+        hit.edep = edep;
+        hit.time = step->GetPreStepPoint()->GetGlobalTime();  // [ns]
 
-    auto const& pos = pre_step->GetPosition();
-    data.pos[0] = pos.x();  // [mm]
-    data.pos[1] = pos.y();  // [mm]
-    data.pos[2] = pos.z();  // [mm]
+        collection_->insert(new SensitiveHit(hit));
+    }
 
-    collection_->insert(new SensitiveHit(data));
+    // Insert pre- and post-step data
+    {
+        StepData step_data;
+        step_data.energy_loss = edep;  // [MeV]
+        step_data.length = step->GetStepLength();  // [mm]
+
+        // Pre- and post-step data
+        this->store_step(*pre_step, StepData::pre, step_data);
+        if (post_step)
+        {
+            // Add process id
+            this->store_step(*post_step, StepData::post, step_data);
+        }
+    }
     return true;
+}
+
+//---------------------------------------------------------------------------//
+void SensitiveDetector::store_step(G4StepPoint& step_point,
+                                   StepData::StepType step_type,
+                                   StepData& step)
+{
+    auto const phys_vol = step_point.GetPhysicalVolume();
+    CELER_ASSERT(phys_vol);
+    auto const log_vol = phys_vol->GetLogicalVolume();
+    CELER_ASSERT(log_vol);
+    auto const& pos = step_point.GetPosition();
+
+    step.detector_id[step_type] = log_vol->GetInstanceID();
+    step.energy[step_type] = step_point.GetKineticEnergy();  // [MeV]
+    step.pos[step_type][0] = pos.x();  // [mm]
+    step.pos[step_type][1] = pos.y();  // [mm]
+    step.pos[step_type][2] = pos.z();  // [mm]
 }
 
 //---------------------------------------------------------------------------//

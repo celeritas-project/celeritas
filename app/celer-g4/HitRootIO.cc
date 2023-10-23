@@ -104,8 +104,7 @@ void HitRootIO::WriteHits(G4Event const* event)
             hits.push_back(sd_hit->data());
         }
         auto iter = detector_name_id_map_.find(hc->GetName());
-        CELER_ASSERT(iter == detector_name_id_map_.end());
-
+        CELER_ASSERT(iter != detector_name_id_map_.end());
         event_hits.hits.insert(std::make_pair(iter->second, std::move(hits)));
     }
 
@@ -252,7 +251,6 @@ void HitRootIO::StoreSdMap(TFile* file)
         id = iter.second;
         tree->Fill();
     }
-    tree->Write();
 }
 
 //---------------------------------------------------------------------------//

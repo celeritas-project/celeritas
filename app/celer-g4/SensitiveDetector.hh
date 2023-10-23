@@ -39,8 +39,16 @@ class SensitiveDetector final : public G4VSensitiveDetector
     bool ProcessHits(G4Step*, G4TouchableHistory*) final;
 
   private:
+    //// DATA ////
+
     int hcid_;
     SensitiveHitsCollection* collection_;
+
+    //// HELPER FUNCTIONS ////
+
+    void store_step(G4StepPoint& step_point,
+                    StepData::StepType step_type,
+                    StepData& step)
 };
 
 //---------------------------------------------------------------------------//

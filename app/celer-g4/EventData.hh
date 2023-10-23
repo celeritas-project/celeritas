@@ -32,34 +32,30 @@ struct HitData
     unsigned int id{0};  //!< Detector ID
     double edep{0};  //!< Energy deposition
     double time{0};  //!< Time (global coordinate)
-    std::array<double, 3> pos{0, 0, 0};  //!< Position (global coordinate)
 };
 
-#if 0
 //---------------------------------------------------------------------------//
 /*!
  * Particle step data.
  */
 struct StepData
 {
-    enum class StepType
+    enum StepType
     {
         pre,
         post,
         size_
     };
 
-    StepType step_type{StepType::size_};
-    ImportProcessClass action_id{ImportProcessClass::size_};
-    unsigned int detector_id;  //!< Defined in SD Manager
-    double kinetic_energy{0};  //!< [MeV]
+    // ImportProcessClass action_id{ImportProcessClass::size_};
+    unsigned int detector_id[2]{0};  //!< Defined in SD Manager
+    double energy[2]{0};  //!< [MeV]
     double energy_loss{0};  //!< [MeV]
     double length{0};  //!< [cm]
-    std::array<double, 3> direction{0, 0, 0};  //!< Unit vector
-    std::array<double, 3> position{0, 0, 0};  //!< [cm]
-    double global_time{0};  //!< [s]
+    std::array<double, 3> dir[2]{{0, 0, 0}};  //!< Unit vector
+    std::array<double, 3> pos[2]{{0, 0, 0}};  //!< [cm]
+    double global_time[2]{0};  //!< [s]
 };
-#endif
 
 //---------------------------------------------------------------------------//
 /*!
