@@ -32,7 +32,7 @@ class LDGIterator
     using value_type = T;
     using pointer = std::add_pointer_t<T const>;
     using reference = std::add_lvalue_reference_t<T const>;
-    using iterator_catgeory = std::random_access_iterator_tag;
+    using iterator_category = std::random_access_iterator_tag;
     using self = LDGIterator<T>;
     //!@}
 
@@ -60,15 +60,6 @@ class LDGIterator
     CELER_CONSTEXPR_FUNCTION self& operator++() noexcept
     {
         ++ptr_;
-        return *this;
-    }
-    CELER_CONSTEXPR_FUNCTION self& operator=(self const& it) noexcept
-    {
-        if (this == &it)
-        {
-            return *this;
-        }
-        ptr_ = it.ptr_;
         return *this;
     }
     CELER_CONSTEXPR_FUNCTION void swap(self& it) noexcept
@@ -209,10 +200,8 @@ swap(LDGIterator<T>& lhs, LDGIterator<T>& rhs) noexcept
 }
 
 // Helper
-
 template<class T>
-inline LDGIterator<T>
-make_ldgiterator(typename LDGIterator<T>::pointer ptr) noexcept
+inline LDGIterator<T> make_ldgiterator(T const* ptr) noexcept
 {
     return LDGIterator<T>{ptr};
 }
