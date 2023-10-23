@@ -26,26 +26,26 @@ class LocalTransporter;
 class FastSimulationOffload final : public G4VFastSimulationModel
 {
   public:
-    //! Construct with name, shared (across threads) params, and thread-local
-    //! transporter
-    explicit FastSimulationOffload(G4String const& name,
-                                   SharedParams const* params,
-                                   LocalTransporter* local);
+    // Construct with name, shared (across threads) params, and thread-local
+    // transporter
+    FastSimulationOffload(G4String const& name,
+                          SharedParams const* params,
+                          LocalTransporter* local);
 
-    //! Construct with name, region, shared (across threads) params, and
-    //! thread-local transporter
+    // Construct with name, region, shared (across threads) params, and
+    // thread-local transporter
     FastSimulationOffload(G4String const& name,
                           G4Envelope* region,
                           SharedParams const* params,
                           LocalTransporter* local);
 
-    //! Return true if model is applicable to the `G4ParticleDefinition`
+    // Return true if model is applicable to the `G4ParticleDefinition`
     G4bool IsApplicable(G4ParticleDefinition const& particle) override;
 
-    //! Return true if model is applicable to dynamic state of `G4FastTrack`
+    // Return true if model is applicable to dynamic state of `G4FastTrack`
     G4bool ModelTrigger(G4FastTrack const& track) override;
 
-    //! Apply model
+    // Apply model
     void DoIt(G4FastTrack const& track, G4FastStep& step) override;
 
 #if G4VERSION_NUMBER > 1110
