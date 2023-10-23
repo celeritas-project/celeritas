@@ -12,7 +12,7 @@
 #include <G4ThreeVector.hh>
 #include <G4VHit.hh>
 
-#include "HitData.hh"
+#include "EventData.hh"
 
 namespace celeritas
 {

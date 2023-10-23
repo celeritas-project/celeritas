@@ -29,6 +29,7 @@
 #include "accel/SetupOptions.hh"
 
 #include "GlobalSetup.hh"
+#include "HitRootIO.hh"
 #include "SensitiveDetector.hh"
 
 namespace celeritas
@@ -208,6 +209,7 @@ void DetectorConstruction::ConstructSDandField()
 
         // Create one detector for all the volumes
         auto detector = std::make_unique<SensitiveDetector>(iter->first);
+        HitRootIO::Instance()->AddSensitiveDetector(iter->first);
 
         // Attach sensitive detectors
         for (; iter != stop; ++iter)

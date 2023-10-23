@@ -3,12 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/HitData.hh
+//! \file celer-g4/EventData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <array>
 #include <map>
+
+// #include "celeritas/io/ImportProcess.hh"
 
 namespace celeritas
 {
@@ -23,25 +25,54 @@ using DetectorIdMap = std::map<unsigned int, std::string>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Example sensitive hit data.
+ * Sensitive hit data.
  */
 struct HitData
 {
-    unsigned int id{0};  //!< Detector id
+    unsigned int id{0};  //!< Detector ID
     double edep{0};  //!< Energy deposition
     double time{0};  //!< Time (global coordinate)
     std::array<double, 3> pos{0, 0, 0};  //!< Position (global coordinate)
 };
 
+#if 0
 //---------------------------------------------------------------------------//
 /*!
- * Example hit collection of an event.
+ * Particle step data.
  */
-struct HitEventData
+struct StepData
 {
+    enum class StepType
+    {
+        pre,
+        post,
+        size_
+    };
+
+    StepType step_type{StepType::size_};
+    ImportProcessClass action_id{ImportProcessClass::size_};
+    unsigned int detector_id;  //!< Defined in SD Manager
+    double kinetic_energy{0};  //!< [MeV]
+    double energy_loss{0};  //!< [MeV]
+    double length{0};  //!< [cm]
+    std::array<double, 3> direction{0, 0, 0};  //!< Unit vector
+    std::array<double, 3> position{0, 0, 0};  //!< [cm]
+    double global_time{0};  //!< [s]
+};
+#endif
+
+//---------------------------------------------------------------------------//
+/*!
+ * Hit collection of an event.
+ */
+struct EventData
+{
+    using TrackId = int;
+    using DetectorId = int;
+
     int event_id{0};
-    std::map<std::string, std::vector<HitData>> hits;
-    // TODO: replace name by id
+    // std::vector<StepData> steps;
+    std::map<DetectorId, std::vector<HitData>> hits;
 };
 
 //---------------------------------------------------------------------------//

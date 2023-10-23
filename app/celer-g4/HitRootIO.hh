@@ -16,7 +16,7 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
-#include "HitData.hh"
+#include "EventData.hh"
 
 class TFile;
 class TTree;
@@ -42,6 +42,9 @@ class HitRootIO
     // Write sensitive hits of a G4Event to ROOT output file
     void WriteHits(G4Event const* event);
 
+    // Add detector name to map of sensitive detectors
+    void AddSensitiveDetector(std::string name);
+
     // Close or merge output files
     void Close();
 
@@ -59,10 +62,13 @@ class HitRootIO
     //// HELPER FUNCTIONS ////
 
     // Fill and write a HitEventData object
-    void WriteObject(HitEventData* hit_event);
+    void WriteObject(EventData* hit_event);
 
     // Merge ROOT files from multiple worker threads
     void Merge();
+
+    // Store a new TTree mapping detector ID and name
+    void StoreSdMap(TFile* file);
 
     //! ROOT TTree split level
     static constexpr short int SplitLevel() { return 99; }
@@ -76,6 +82,9 @@ class HitRootIO
     std::unique_ptr<TFile> file_;
     std::unique_ptr<TTree> tree_;
     TBranch* event_branch_{nullptr};
+
+    int detector_id_{-1};
+    std::map<std::string, int> detector_name_id_map_;
 };
 
 #if !CELERITAS_USE_ROOT

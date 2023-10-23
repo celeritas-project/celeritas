@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Geant4)
-  set(MAIN_SOURCES celer-g4.cc)
+  set(MAIN_SOURCE celer-g4.cc)
   set(SOURCES
     ActionInitialization.cc
     DetectorConstruction.cc
@@ -31,7 +31,7 @@ if(CELERITAS_USE_Geant4)
     )
   endif()
 else()
-  set(SOURCES
+  set(MAIN_SOURCE
     celer-g4.nogeant.cc
   )
   set(LIBRARIES)
@@ -77,16 +77,16 @@ if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
   )
   install(FILES
     # "${_lib_prefix}.rootmap"
-    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libceler-g4_rdict.pcm"
+    "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}/libceler-g4_rdict.pcm"
     COMPONENT runtime
     DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   )
   list(APPEND LIBRARIES celer-g4-io)
 else()
-   list(APPEND MAIN_SOURCES ${SOURCES})
+   list(APPEND MAIN_SOURCE ${SOURCES})
 endif()
 
-celeritas_add_executable(celer-g4 ${MAIN_SOURCES})
+celeritas_add_executable(celer-g4 ${MAIN_SOURCE})
 celeritas_target_link_libraries(celer-g4
   ${LIBRARIES}
 )

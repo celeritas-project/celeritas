@@ -71,7 +71,7 @@ HitRootIO::HitRootIO()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the static thread local singleton instance>
+ * Return the static thread local singleton instance.
  */
 HitRootIO* HitRootIO::Instance()
 {
@@ -92,7 +92,7 @@ void HitRootIO::WriteHits(G4Event const* event)
     }
 
     // Write the collection of sensitive hits into HitEventData
-    HitEventData event_hits;
+    EventData event_hits;
     event_hits.event_id = event->GetEventID();
     for (int i = 0; i < hce->GetNumberOfCollections(); i++)
     {
@@ -103,7 +103,10 @@ void HitRootIO::WriteHits(G4Event const* event)
             auto* sd_hit = dynamic_cast<SensitiveHit*>(hc->GetHit(j));
             hits.push_back(sd_hit->data());
         }
-        event_hits.hits.insert(std::make_pair(hc->GetName(), std::move(hits)));
+        auto iter = detector_name_id_map_.find(hc->GetName());
+        CELER_ASSERT(iter == detector_name_id_map_.end());
+
+        event_hits.hits.insert(std::make_pair(iter->second, std::move(hits)));
     }
 
     // Write a HitEventData into output ROOT file
@@ -114,7 +117,7 @@ void HitRootIO::WriteHits(G4Event const* event)
 /*!
  * Fill event tree with HitEventData.
  */
-void HitRootIO::WriteObject(HitEventData* hit_event)
+void HitRootIO::WriteObject(EventData* hit_event)
 {
     if (!event_branch_)
     {
@@ -131,6 +134,22 @@ void HitRootIO::WriteObject(HitEventData* hit_event)
 
     tree_->Fill();
     event_branch_->ResetAddress();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Map sensitive detectors to contiguous IDs.
+ */
+void HitRootIO::AddSensitiveDetector(std::string name)
+{
+    auto iter = detector_name_id_map_.find(name);
+
+    if (iter == detector_name_id_map_.end())
+    {
+        detector_name_id_map_.insert({name, ++detector_id_});
+        CELER_LOG_LOCAL(info)
+            << "inserted " << name << " -> " << detector_id_ << " to map";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -162,6 +181,7 @@ void HitRootIO::Close()
             file_->Write("", TObject::kOverwrite);
         }
     }
+
     event_branch_ = nullptr;
     tree_.reset();
     file_.reset();
@@ -200,12 +220,39 @@ void HitRootIO::Merge()
             auto* tree = TTree::MergeTrees(list.get());
             tree->SetName(this->TreeName());
             // Write both the TFile and TTree meta-data
+            this->StoreSdMap(file);
             file->Write();
             file->Close();
         }
         // Delete the merged file
         std::remove(file_name.c_str());
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store TTree with sensitive detector names and their IDs (used by
+ * EventData).
+ */
+void HitRootIO::StoreSdMap(TFile* file)
+{
+    CELER_EXPECT(file && file->IsOpen());
+
+    auto tree = new TTree(
+        "sensitive_detectors", "sensitive_detectors", this->SplitLevel(), file);
+
+    std::string name;
+    unsigned int id;
+    tree->Branch("name", &name);
+    tree->Branch("id", &id);
+
+    for (auto const& iter : detector_name_id_map_)
+    {
+        name = iter.first;
+        id = iter.second;
+        tree->Fill();
+    }
+    tree->Write();
 }
 
 //---------------------------------------------------------------------------//
