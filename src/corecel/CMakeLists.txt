@@ -105,11 +105,12 @@ if(WIN32)
     $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX NOGDI>
   )
 
-  # By default MSVC has __cplusplus at 199711L, this flag
-  # forces it to follow the standard
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # __cplusplus: use standard-compliant C++ version macro
+    # preprocessor: use standard-compliant preprocessor
+    # EHsc: enable standard C++ exception handling
     target_compile_options(corecel PUBLIC
-      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor>
+      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
     )
   endif()
 endif()
