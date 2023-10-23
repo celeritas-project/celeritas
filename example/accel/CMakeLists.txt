@@ -18,10 +18,16 @@ endif()
 
 find_package(Geant4 REQUIRED)
 
-add_executable(accel accel.cc)
-
 include(CeleritasLibrary)
-celeritas_target_link_libraries(accel
+
+add_executable(simple-offload simple-offload.cc)
+celeritas_target_link_libraries(simple-offload
+  Celeritas::accel
+  ${Geant4_LIBRARIES}
+)
+
+add_executable(fastsim-offload fastsim-offload.cc)
+celeritas_target_link_libraries(fastsim-offload
   Celeritas::accel
   ${Geant4_LIBRARIES}
 )
