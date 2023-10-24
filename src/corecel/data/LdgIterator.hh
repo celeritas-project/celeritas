@@ -112,10 +112,6 @@ class LDGIterator
     {
         ::celeritas::trivial_swap(ptr_, it.ptr_);
     }
-    CELER_CONSTEXPR_FUNCTION bool operator==(LDGIterator const& it)
-    {
-        return ptr_ == it.ptr_;
-    }
     CELER_CONSTEXPR_FUNCTION LDGIterator operator++(int) noexcept
     {
         LDGIterator tmp{ptr_};
@@ -143,12 +139,6 @@ class LDGIterator
         ptr_ += n;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION LDGIterator
-    operator+(const difference_type n) const noexcept
-    {
-        LDGIterator tmp{ptr_};
-        return tmp += n;
-    }
     CELER_CONSTEXPR_FUNCTION LDGIterator&
     operator-=(const difference_type n) noexcept
     {
@@ -170,11 +160,6 @@ class LDGIterator
     operator[](const difference_type n) const noexcept
     {
         return LDGLoadPolicy::read(ptr_ + n);
-    }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator<(LDGIterator const& lhs, LDGIterator const& rhs)
-    {
-        return lhs.ptr_ < rhs.ptr_;
     }
     //!@}
 
@@ -203,6 +188,26 @@ class LDGIterator
 //! RandomAccessIterator requirements
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
+operator==(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
+{
+    using pointer = typename LDGIterator<T>::pointer;
+    return static_cast<pointer>(lhs) == static_cast<pointer>(rhs);
+}
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool
+operator!=(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
+{
+    return !(lhs == rhs);
+}
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool
+operator<(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
+{
+    using pointer = typename LDGIterator<T>::pointer;
+    return static_cast<pointer>(lhs) < static_cast<pointer>(rhs);
+}
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool
 operator>(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
 {
     return rhs < lhs;
@@ -221,16 +226,18 @@ operator>=(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION LDGIterator<T>
+operator+(LDGIterator<T> const& it,
+          const typename LDGIterator<T>::difference_type n) noexcept
+{
+    LDGIterator tmp{it};
+    return tmp += n;
+}
+template<class T>
+CELER_CONSTEXPR_FUNCTION LDGIterator<T>
 operator+(const typename LDGIterator<T>::difference_type n,
           LDGIterator<T> const& it)
 {
     return it + n;
-}
-template<class T>
-CELER_CONSTEXPR_FUNCTION bool
-operator!=(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
-{
-    return !(lhs == rhs);
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
