@@ -16,6 +16,7 @@
 #include <G4VTouchable.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 
 #include "HitRootIO.hh"
 
@@ -60,64 +61,68 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
 /*!
  * Add hits to the current hit collection.
  */
-bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
+bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
 {
-    CELER_ASSERT(step);
-    auto const edep = step->GetTotalEnergyDeposit();  // [MeV]
+    CELER_ASSERT(g4step);
+    auto const edep = g4step->GetTotalEnergyDeposit();  // [MeV]
 
     if (edep == 0)
     {
         return false;
     }
-    auto* pre_step = step->GetPreStepPoint();
+    auto* pre_step = g4step->GetPreStepPoint();
     CELER_ASSERT(pre_step);
-    auto* post_step = step->GetPostStepPoint();  // Can be undefined
-    auto* touchable = step->GetPreStepPoint()->GetTouchable();
+    auto* post_step = g4step->GetPostStepPoint();  // Can be undefined
+    auto* touchable = g4step->GetPreStepPoint()->GetTouchable();
     CELER_ASSERT(touchable);
 
     // Insert hit
+    HitData hit;
     {
-        HitData hit;
         hit.id = touchable->GetVolume()->GetCopyNo();
         hit.edep = edep;
-        hit.time = step->GetPreStepPoint()->GetGlobalTime();  // [ns]
-
-        collection_->insert(new SensitiveHit(hit));
+        hit.time = g4step->GetPreStepPoint()->GetGlobalTime();  // [ns]
     }
 
     // Insert pre- and post-step data
+    StepData step;
     {
-        StepData step_data;
-        step_data.energy_loss = edep;  // [MeV]
-        step_data.length = step->GetStepLength();  // [mm]
+        step.energy_loss = edep;  // [MeV]
+        step.length = g4step->GetStepLength();  // [mm]
 
         // Pre- and post-step data
-        this->store_step(*pre_step, StepData::pre, step_data);
+        this->store_step_point(*pre_step, StepData::pre, step);
         if (post_step)
         {
-            // Add process id
-            this->store_step(*post_step, StepData::post, step_data);
+            // Why there's never a defined post-step?
+            this->store_step_point(*post_step, StepData::post, step);
         }
     }
+    collection_->insert(new SensitiveHit(hit, step));
     return true;
 }
 
 //---------------------------------------------------------------------------//
-void SensitiveDetector::store_step(G4StepPoint& step_point,
-                                   StepData::StepType step_type,
-                                   StepData& step)
+void SensitiveDetector::store_step_point(G4StepPoint& step_point,
+                                         StepData::StepType step_type,
+                                         StepData& step)
 {
     auto const phys_vol = step_point.GetPhysicalVolume();
     CELER_ASSERT(phys_vol);
     auto const log_vol = phys_vol->GetLogicalVolume();
     CELER_ASSERT(log_vol);
-    auto const& pos = step_point.GetPosition();
 
     step.detector_id[step_type] = log_vol->GetInstanceID();
     step.energy[step_type] = step_point.GetKineticEnergy();  // [MeV]
+    step.time[step_type] = step_point.GetGlobalTime();  // [ns]
+    auto const& pos = step_point.GetPosition();
     step.pos[step_type][0] = pos.x();  // [mm]
     step.pos[step_type][1] = pos.y();  // [mm]
     step.pos[step_type][2] = pos.z();  // [mm]
+    auto const& dir = step_point.GetMomentumDirection();
+    step.dir[step_type][0] = dir.x();
+    step.dir[step_type][1] = dir.y();
+    step.dir[step_type][2] = dir.z();
 }
 
 //---------------------------------------------------------------------------//

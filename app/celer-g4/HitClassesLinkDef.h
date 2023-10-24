@@ -10,8 +10,8 @@
 
 // clang-format off
 #pragma link C++ class celeritas::app::HitData+;
+#pragma link C++ class celeritas::app::StepData+;
 #pragma link C++ class celeritas::app::EventData+;
-#pragma link C++ class std::vector<celeritas::app::HitData>+;
 // clang-format on
 
 #endif

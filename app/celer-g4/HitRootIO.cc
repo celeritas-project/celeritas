@@ -96,16 +96,20 @@ void HitRootIO::WriteHits(G4Event const* event)
     event_hits.event_id = event->GetEventID();
     for (int i = 0; i < hce->GetNumberOfCollections(); i++)
     {
-        G4VHitsCollection* hc = hce->GetHC(i);
+        std::vector<StepData> steps;
         std::vector<HitData> hits;
+
+        G4VHitsCollection* hc = hce->GetHC(i);
         for (std::size_t j = 0; j < hc->GetSize(); ++j)
         {
             auto* sd_hit = dynamic_cast<SensitiveHit*>(hc->GetHit(j));
-            hits.push_back(sd_hit->data());
+            auto const& result = sd_hit->data();
+            steps.push_back(result.step);
+            hits.push_back(result.hit);
         }
         auto iter = detector_name_id_map_.find(hc->GetName());
         CELER_ASSERT(iter != detector_name_id_map_.end());
-        event_hits.hits.insert(std::make_pair(iter->second, std::move(hits)));
+        event_hits.hits.insert({iter->second, std::move(hits)});
     }
 
     // Write a HitEventData into output ROOT file
@@ -146,8 +150,6 @@ void HitRootIO::AddSensitiveDetector(std::string name)
     if (iter == detector_name_id_map_.end())
     {
         detector_name_id_map_.insert({name, ++detector_id_});
-        CELER_LOG_LOCAL(info)
-            << "inserted " << name << " -> " << detector_id_ << " to map";
     }
 }
 
@@ -218,8 +220,11 @@ void HitRootIO::Merge()
 
             auto* tree = TTree::MergeTrees(list.get());
             tree->SetName(this->TreeName());
-            // Write both the TFile and TTree meta-data
+
+            // Store sensitive detector map branch
             this->StoreSdMap(file);
+
+            // Write both the TFile and TTree meta-data
             file->Write();
             file->Close();
         }

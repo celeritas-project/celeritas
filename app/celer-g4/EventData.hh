@@ -54,7 +54,7 @@ struct StepData
     double length{0};  //!< [cm]
     std::array<double, 3> dir[2]{{0, 0, 0}};  //!< Unit vector
     std::array<double, 3> pos[2]{{0, 0, 0}};  //!< [cm]
-    double global_time[2]{0};  //!< [s]
+    double time[2]{0};  //!< [s]
 };
 
 //---------------------------------------------------------------------------//
@@ -63,11 +63,10 @@ struct StepData
  */
 struct EventData
 {
-    using TrackId = int;
     using DetectorId = int;
 
     int event_id{0};
-    // std::vector<StepData> steps;
+    std::vector<StepData> steps;
     std::map<DetectorId, std::vector<HitData>> hits;
 };
 

@@ -25,11 +25,17 @@ namespace app
 class SensitiveHit final : public G4VHit
 {
   public:
-    // Construct with hit data
-    explicit SensitiveHit(HitData const& data);
+    struct Result
+    {
+        HitData hit;
+        StepData step;
+    };
+
+    // Construct with hit and step data
+    explicit SensitiveHit(HitData const& hit, StepData const& step);
 
     //! Accessor
-    HitData const& data() const { return data_; }
+    Result const& data() const { return data_; }
 
     // Overload new/delete to use a custom allocator.
     inline void* operator new(std::size_t);
@@ -38,7 +44,7 @@ class SensitiveHit final : public G4VHit
   private:
     //// DATA ////
 
-    HitData data_;
+    Result data_;
 
     //// HELPER FUNCTIONS ////
 

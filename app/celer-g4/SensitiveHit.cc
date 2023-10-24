@@ -34,9 +34,12 @@ auto SensitiveHit::allocator() -> HitAllocator&
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with hit data.
+ * Construct with hit and step data.
  */
-SensitiveHit::SensitiveHit(HitData const& data) : G4VHit(), data_{data} {}
+SensitiveHit::SensitiveHit(HitData const& hit, StepData const& step)
+    : G4VHit(), data_{hit, step}
+{
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace app
