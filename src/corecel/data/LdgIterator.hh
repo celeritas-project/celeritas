@@ -70,7 +70,7 @@ struct LDGLoad<T, std::enable_if_t<is_opaqueid_v<T>>>
  * read-only cache.
  */
 template<class T>
-class LDGIterator
+class LdgIterator
 {
     //!@{
     //! \name Type aliases
@@ -88,10 +88,10 @@ class LDGIterator
   public:
     //!@{
     //! Construct a pointer
-    constexpr LDGIterator() noexcept = default;
-    constexpr LDGIterator(LDGIterator const&) noexcept = default;
-    CELER_CONSTEXPR_FUNCTION LDGIterator(std::nullptr_t) noexcept {}
-    CELER_CONSTEXPR_FUNCTION explicit LDGIterator(pointer ptr) noexcept
+    constexpr LdgIterator() noexcept = default;
+    constexpr LdgIterator(LdgIterator const&) noexcept = default;
+    CELER_CONSTEXPR_FUNCTION LdgIterator(std::nullptr_t) noexcept {}
+    CELER_CONSTEXPR_FUNCTION explicit LdgIterator(pointer ptr) noexcept
         : ptr_{ptr}
     {
     }
@@ -103,18 +103,18 @@ class LDGIterator
     {
         return LDGLoadPolicy::read(ptr_);
     }
-    CELER_CONSTEXPR_FUNCTION LDGIterator& operator++() noexcept
+    CELER_CONSTEXPR_FUNCTION LdgIterator& operator++() noexcept
     {
         ++ptr_;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION void swap(LDGIterator& it) noexcept
+    CELER_CONSTEXPR_FUNCTION void swap(LdgIterator& it) noexcept
     {
         ::celeritas::trivial_swap(ptr_, it.ptr_);
     }
-    CELER_CONSTEXPR_FUNCTION LDGIterator operator++(int) noexcept
+    CELER_CONSTEXPR_FUNCTION LdgIterator operator++(int) noexcept
     {
-        LDGIterator tmp{ptr_};
+        LdgIterator tmp{ptr_};
         ++ptr_;
         return tmp;
     }
@@ -122,37 +122,37 @@ class LDGIterator
     {
         return ptr_;
     }
-    CELER_CONSTEXPR_FUNCTION LDGIterator& operator--() noexcept
+    CELER_CONSTEXPR_FUNCTION LdgIterator& operator--() noexcept
     {
         --ptr_;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION LDGIterator operator--(int) noexcept
+    CELER_CONSTEXPR_FUNCTION LdgIterator operator--(int) noexcept
     {
-        LDGIterator tmp{ptr_};
+        LdgIterator tmp{ptr_};
         --ptr_;
         return tmp;
     }
-    CELER_CONSTEXPR_FUNCTION LDGIterator&
+    CELER_CONSTEXPR_FUNCTION LdgIterator&
     operator+=(const difference_type n) noexcept
     {
         ptr_ += n;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION LDGIterator&
+    CELER_CONSTEXPR_FUNCTION LdgIterator&
     operator-=(const difference_type n) noexcept
     {
         ptr_ -= n;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION LDGIterator
+    CELER_CONSTEXPR_FUNCTION LdgIterator
     operator-(const difference_type n) const noexcept
     {
-        LDGIterator tmp{ptr_};
+        LdgIterator tmp{ptr_};
         return tmp -= n;
     }
     CELER_CONSTEXPR_FUNCTION difference_type
-    operator-(LDGIterator const& it) const noexcept
+    operator-(LdgIterator const& it) const noexcept
     {
         return it.ptr_ - ptr_;
     }
@@ -188,60 +188,60 @@ class LDGIterator
 //! RandomAccessIterator requirements
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
-operator==(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
+operator==(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs)
 {
-    using pointer = typename LDGIterator<T>::pointer;
+    using pointer = typename LdgIterator<T>::pointer;
     return static_cast<pointer>(lhs) == static_cast<pointer>(rhs);
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
-operator!=(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
+operator!=(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs)
 {
     return !(lhs == rhs);
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
-operator<(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
+operator<(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs)
 {
-    using pointer = typename LDGIterator<T>::pointer;
+    using pointer = typename LdgIterator<T>::pointer;
     return static_cast<pointer>(lhs) < static_cast<pointer>(rhs);
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
-operator>(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
+operator>(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs)
 {
     return rhs < lhs;
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
-operator<=(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
+operator<=(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs)
 {
     return !(lhs > rhs);
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
-operator>=(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
+operator>=(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs)
 {
     return !(lhs < rhs);
 }
 template<class T>
-CELER_CONSTEXPR_FUNCTION LDGIterator<T>
-operator+(LDGIterator<T> const& it,
-          const typename LDGIterator<T>::difference_type n) noexcept
+CELER_CONSTEXPR_FUNCTION LdgIterator<T>
+operator+(LdgIterator<T> const& it,
+          const typename LdgIterator<T>::difference_type n) noexcept
 {
-    LDGIterator tmp{it};
+    LdgIterator tmp{it};
     return tmp += n;
 }
 template<class T>
-CELER_CONSTEXPR_FUNCTION LDGIterator<T>
-operator+(const typename LDGIterator<T>::difference_type n,
-          LDGIterator<T> const& it)
+CELER_CONSTEXPR_FUNCTION LdgIterator<T>
+operator+(const typename LdgIterator<T>::difference_type n,
+          LdgIterator<T> const& it)
 {
     return it + n;
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
-swap(LDGIterator<T>& lhs, LDGIterator<T>& rhs) noexcept
+swap(LdgIterator<T>& lhs, LdgIterator<T>& rhs) noexcept
 {
     return lhs.swap(rhs);
 }
@@ -250,9 +250,9 @@ swap(LDGIterator<T>& lhs, LDGIterator<T>& rhs) noexcept
 //!@{
 //! Helper
 template<class T>
-inline LDGIterator<T> make_ldgiterator(T const* ptr) noexcept
+inline LdgIterator<T> make_LdgIterator(T const* ptr) noexcept
 {
-    return LDGIterator<T>{ptr};
+    return LdgIterator<T>{ptr};
 }
 //!@}
 
