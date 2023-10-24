@@ -299,7 +299,7 @@ endif()
 
 if(CELERITAS_USE_VecGeom)
   if(NOT VecGeom_FOUND)
-    find_package(VecGeom 1.1.17 REQUIRED)
+    find_package(VecGeom 1.2.4 REQUIRED)
   endif()
 
   if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
