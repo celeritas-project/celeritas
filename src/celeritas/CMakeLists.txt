@@ -189,6 +189,7 @@ if(CELERITAS_USE_ROOT)
     "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsVector.hh"
     "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportProcess.hh"
     "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportVolume.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/EventData.hh"
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"

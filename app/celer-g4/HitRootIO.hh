@@ -15,8 +15,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-
-#include "EventData.hh"
+#include "celeritas/io/EventData.hh"
 
 class TFile;
 class TTree;

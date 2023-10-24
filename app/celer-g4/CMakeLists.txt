@@ -5,8 +5,8 @@
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Geant4)
-  set(MAIN_SOURCE celer-g4.cc)
   set(SOURCES
+    celer-g4.cc
     ActionInitialization.cc
     DetectorConstruction.cc
     EventAction.cc
@@ -31,62 +31,21 @@ if(CELERITAS_USE_Geant4)
     )
   endif()
 else()
-  set(MAIN_SOURCE
+  set(SOURCES
     celer-g4.nogeant.cc
   )
   set(LIBRARIES)
 endif()
 
 if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
-  function(celeritas_local_root_generate_dictionary name)
-    # No need for the rootmap file for an executable.
-    set(CMAKE_ROOTTEST_NOROOTMAP TRUE)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_LIBRARY_OUTPUT_DIRECTORY})
-    include_directories(
-      # root_generate_dictionary cannot handle the '$<INSTALL_INTERFACE:include>'
-      # part of the Celeritas::corecel target's include, so we cannot use it in
-      # the 'DEPENDENCIES' property.
-      "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
-      "${PROJECT_SOURCE_DIR}/src"
-      # The include directory are attached to the Geant4 target through
-      # INTERFACE_INCLUDE_DIRECTORIES which is not looked at by
-      # root_generate_dictionary.
-      ${Geant4_INCLUDE_DIRS}
-      ${CLHEP_INCLUDE_DIRS}
-    )
-    root_generate_dictionary(${name}
-      ${CMAKE_CURRENT_SOURCE_DIR}/HitRootIO.hh
-      ${CMAKE_CURRENT_SOURCE_DIR}/SensitiveHit.hh
-      NOINSTALL
-      MODULE celer-g4
-      # TODO Uncomment this line and remove the include_directories when
-      # the minimal required ROOT version is v6.28/02 or later.
-      # DEPENDENCIES ${Geant4_LIBRARIES} Celeritas::accel Celeritas::corecel
-      LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/HitClassesLinkDef.h"
-    )
-  endfunction(celeritas_local_root_generate_dictionary)
-  celeritas_local_root_generate_dictionary(HitClassesRootInterfaces)
-  set(IO_SOURCES
-    "${CMAKE_CURRENT_BINARY_DIR}/HitClassesRootInterfaces.cxx"
+  list(APPEND SOURCES
+  "${PROJECT_BINARY_DIR}/src/celeritas/CeleritasRootInterface.cxx"
     HitRootIO.cc
   )
-  list(APPEND LIBRARIES ROOT::Tree)
-  celeritas_add_library(celer-g4-io ${IO_SOURCES} ${SOURCES})
-  celeritas_target_link_libraries(celer-g4-io
-     ${LIBRARIES}
-  )
-  install(FILES
-    # "${_lib_prefix}.rootmap"
-    "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}/libceler-g4_rdict.pcm"
-    COMPONENT runtime
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  )
-  list(APPEND LIBRARIES celer-g4-io)
-else()
-   list(APPEND MAIN_SOURCE ${SOURCES})
+  list(APPEND LIBRARIES ROOT::Tree Celeritas::celeritas)
 endif()
 
-celeritas_add_executable(celer-g4 ${MAIN_SOURCE})
+celeritas_add_executable(celer-g4 ${SOURCES})
 celeritas_target_link_libraries(celer-g4
   ${LIBRARIES}
 )

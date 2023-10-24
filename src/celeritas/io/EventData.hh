@@ -3,40 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/EventData.hh
+//! \file celeritas/io/EventData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <array>
 #include <map>
 
-// #include "celeritas/io/ImportProcess.hh"
+#include "ImportProcess.hh"
 
 namespace celeritas
 {
-namespace app
-{
 //---------------------------------------------------------------------------//
 /*!
- * Map detector id and name separately to be stored on the host. Use only
- * detector ID to map hits on both host and device.
- */
-using DetectorIdMap = std::map<unsigned int, std::string>;
-
-//---------------------------------------------------------------------------//
-/*!
- * Sensitive hit data.
- */
-struct HitData
-{
-    unsigned int id{0};  //!< Detector ID
-    double edep{0};  //!< Energy deposition
-    double time{0};  //!< Time (global coordinate)
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Particle step data.
+ * Particle pre- and post-step data.
  */
 struct StepData
 {
@@ -47,7 +27,7 @@ struct StepData
         size_
     };
 
-    // ImportProcessClass action_id{ImportProcessClass::size_};
+    ImportProcessClass action_id{ImportProcessClass::size_};
     unsigned int detector_id[2]{0};  //!< Defined in SD Manager
     double energy[2]{0};  //!< [MeV]
     double energy_loss{0};  //!< [MeV]
@@ -59,7 +39,21 @@ struct StepData
 
 //---------------------------------------------------------------------------//
 /*!
- * Hit collection of an event.
+ * Basic sensitive hit data.
+ */
+struct HitData
+{
+    unsigned int id{0};  //!< Detector ID
+    double edep{0};  //!< Energy deposition
+    double time{0};  //!< Time (global coordinate)
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Event data to be used within a Geant4/Celeritas offloading application.
+ *
+ * DetectorId is a contiguous Id available globally and mapped to its
+ * respective volume name.
  */
 struct EventData
 {
@@ -71,5 +65,4 @@ struct EventData
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas
