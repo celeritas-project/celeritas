@@ -29,8 +29,9 @@ build_local
 ./minimal
 
 if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
-  # The 'accel' example requires 
+  # The 'accel' example requires Geant4 and VecGeom
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
-  ./accel
+  ./simple-offload
+  ./fastsim-offload
 fi
