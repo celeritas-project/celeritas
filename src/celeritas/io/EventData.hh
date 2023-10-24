@@ -9,8 +9,7 @@
 
 #include <array>
 #include <map>
-
-#include "ImportProcess.hh"
+#include <vector>
 
 namespace celeritas
 {
@@ -27,7 +26,7 @@ struct StepData
         size_
     };
 
-    ImportProcessClass action_id{ImportProcessClass::size_};
+    // TODO: add process/action id
     unsigned int detector_id[2]{0};  //!< Defined in SD Manager
     double energy[2]{0};  //!< [MeV]
     double energy_loss{0};  //!< [MeV]

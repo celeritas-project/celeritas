@@ -39,10 +39,9 @@ endif()
 
 if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
   list(APPEND SOURCES
-  "${PROJECT_BINARY_DIR}/src/celeritas/CeleritasRootInterface.cxx"
     HitRootIO.cc
   )
-  list(APPEND LIBRARIES ROOT::Tree Celeritas::celeritas)
+  list(APPEND LIBRARIES ROOT::Tree)
 endif()
 
 celeritas_add_executable(celer-g4 ${SOURCES})

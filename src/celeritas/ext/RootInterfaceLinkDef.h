@@ -38,9 +38,9 @@
 #pragma link C++ class celeritas::ImportData+;
 
 // Event data used by Geant4/Celeritas offloading applications
-#pragma link C++ class celeritas::app::HitData+;
-#pragma link C++ class celeritas::app::StepData+;
-#pragma link C++ class celeritas::app::EventData+;
+#pragma link C++ class celeritas::HitData+;
+#pragma link C++ class celeritas::StepData+;
+#pragma link C++ class celeritas::EventData+;
 // clang-format on
 
 #endif

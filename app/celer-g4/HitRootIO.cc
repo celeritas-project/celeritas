@@ -96,7 +96,6 @@ void HitRootIO::WriteHits(G4Event const* event)
     event_hits.event_id = event->GetEventID();
     for (int i = 0; i < hce->GetNumberOfCollections(); i++)
     {
-        std::vector<StepData> steps;
         std::vector<HitData> hits;
 
         G4VHitsCollection* hc = hce->GetHC(i);
@@ -104,7 +103,7 @@ void HitRootIO::WriteHits(G4Event const* event)
         {
             auto* sd_hit = dynamic_cast<SensitiveHit*>(hc->GetHit(j));
             auto const& result = sd_hit->data();
-            steps.push_back(result.step);
+            event_hits.steps.push_back(result.step);
             hits.push_back(result.hit);
         }
         auto iter = detector_name_id_map_.find(hc->GetName());
