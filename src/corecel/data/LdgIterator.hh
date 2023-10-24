@@ -21,12 +21,15 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 
+/*!
+ * Reads a value T using __ldg builtin and return a copy of it
+ */
 template<class T, typename = void>
 struct LDGLoad
 {
     using value_type = T;
     using pointer = std::add_pointer_t<value_type const>;
-    using reference = std::add_lvalue_reference_t<value_type const>;
+    using reference = value_type;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
@@ -38,15 +41,16 @@ struct LDGLoad
     }
 };
 
+/*!
+ * Specialization when T == OpaqueId.
+ * Wraps the underlying index in a OpaqueId when returning it.
+ */
 template<class T>
-struct LDGLoad<
-    T,
-    std::enable_if_t<
-        std::is_same_v<OpaqueId<typename T::value_type, typename T::size_type>, T>>>
+struct LDGLoad<T, std::enable_if_t<is_opaqueid_v<T>>>
 {
     using value_type = T;
     using pointer = std::add_pointer_t<typename T::size_type const>;
-    using reference = value_type const;
+    using reference = value_type;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
@@ -94,7 +98,7 @@ class LDGIterator
     //!@}
 
     //!@{
-    //! \name InputIterator requirements
+    //! \name RandomAccessIterator requirements
     CELER_CONSTEXPR_FUNCTION reference operator*() const noexcept
     {
         return LDGLoadPolicy::read(ptr_);
@@ -108,28 +112,20 @@ class LDGIterator
     {
         ::celeritas::trivial_swap(ptr_, it.ptr_);
     }
-    //!@}
-
-    //!@{
-    //! \name ForwardIterator requirements
+    CELER_CONSTEXPR_FUNCTION bool operator==(LDGIterator const& it)
+    {
+        return ptr_ == it.ptr_;
+    }
     CELER_CONSTEXPR_FUNCTION LDGIterator operator++(int) noexcept
     {
         LDGIterator tmp{ptr_};
         ++ptr_;
         return tmp;
     }
-    CELER_CONSTEXPR_FUNCTION bool operator==(LDGIterator const& it)
-    {
-        return ptr_ == it.ptr_;
-    }
     CELER_CONSTEXPR_FUNCTION pointer operator->() const noexcept
     {
         return ptr_;
     }
-    //!@}
-
-    //!@{
-    //! \name BidirectionalIterator requirements
     CELER_CONSTEXPR_FUNCTION LDGIterator& operator--() noexcept
     {
         --ptr_;
@@ -141,10 +137,6 @@ class LDGIterator
         --ptr_;
         return tmp;
     }
-    //!@}
-
-    //!@{
-    //! \name RandomAccessIterator requirements
     CELER_CONSTEXPR_FUNCTION LDGIterator&
     operator+=(const difference_type n) noexcept
     {
@@ -207,7 +199,8 @@ class LDGIterator
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-// RandomAccessIterator requirements
+//!@{
+//! RandomAccessIterator requirements
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
 operator>(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
@@ -233,29 +226,28 @@ operator+(const typename LDGIterator<T>::difference_type n,
 {
     return it + n;
 }
-
-// ForwardIterator requirements
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
 operator!=(LDGIterator<T> const& lhs, LDGIterator<T> const& rhs)
 {
     return !(lhs == rhs);
 }
-
-// InputIterator requirements
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
 swap(LDGIterator<T>& lhs, LDGIterator<T>& rhs) noexcept
 {
     return lhs.swap(rhs);
 }
+//!@}
 
-// Helper
+//!@{
+//! Helper
 template<class T>
 inline LDGIterator<T> make_ldgiterator(T const* ptr) noexcept
 {
     return LDGIterator<T>{ptr};
 }
+//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

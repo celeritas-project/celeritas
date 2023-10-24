@@ -94,6 +94,27 @@ class OpaqueId
 };
 
 //---------------------------------------------------------------------------//
+// TRAITS
+//---------------------------------------------------------------------------//
+
+//! Detect if type T is OpaqueId
+template<class T, typename = void>
+struct is_opaqueid : std::false_type
+{
+};
+template<class T>
+struct is_opaqueid<
+    T,
+    std::enable_if_t<
+        std::is_same_v<T, OpaqueId<typename T::value_type, typename T::size_type>>>>
+    : std::true_type
+{
+};
+
+template<class T>
+inline constexpr bool is_opaqueid_v = is_opaqueid<T>::value;
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 #define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                             \
