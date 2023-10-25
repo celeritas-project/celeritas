@@ -495,7 +495,11 @@ template<class T>
 
 //---------------------------------------------------------------------------//
 /*!
- * Math constants (POSIX derivative);
+ * Double-precision math constant (POSIX derivative).
+ *
+ * These should be used in *host* or *type-dependent* circumstances because, if
+ * using \c CELERITAS_REAL_TYPE=float, this could have more accuracy than
+ * \c celeritas::constants::pi .
  */
 inline constexpr double m_pi = detail::m_pi;
 

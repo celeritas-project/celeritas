@@ -207,10 +207,11 @@ UniverseId UnitInserter::operator()(UnitInput const& inp)
     // Insert surfaces
     unit.surfaces = this->build_surfaces_(inp.surfaces);
 
-    // Bounding box bumper and converter: conservatively expand to twice the
-    // potential bump distance from a boundary so that the bbox will enclose
-    // the point even after a potential bump
-    BoundingBoxBumper<fast_real_type> calc_bumped{
+    // Bounding box bumper and converter *to* fast real type *from* regular
+    // real type: conservatively expand to twice the potential bump distance
+    // from a boundary so that the bbox will enclose the point even after a
+    // potential bump
+    BoundingBoxBumper<fast_real_type, real_type> calc_bumped{
         [&tol = orange_data_->scalars.tol] {
             Tolerance<real_type> bbox_tol;
             bbox_tol.rel = 2 * tol.rel;

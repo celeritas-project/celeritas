@@ -88,7 +88,7 @@ CELER_FUNCTION auto NormalDistribution<RealType>::operator()(Generator& rng)
         return std::fma(spare_, stddev_, mean_);
     }
 
-    constexpr auto twopi = static_cast<real_type>(2 * m_pi);
+    constexpr auto twopi = static_cast<RealType>(2 * m_pi);
     real_type theta = twopi * generate_canonical<RealType>(rng);
     real_type r = std::sqrt(-2 * std::log(generate_canonical<RealType>(rng)));
     spare_ = r * std::cos(theta);

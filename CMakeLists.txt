@@ -120,6 +120,17 @@ else()
   set(CELERITAS_MAX_BLOCK_SIZE 0)
 endif()
 
+if(CELERITAS_CORE_GEO STREQUAL Geant4)
+  set(_allow_single_prec FALSE)
+else()
+  set(_allow_single_prec TRUE)
+endif()
+
+celeritas_setup_option(CELERITAS_REAL_TYPE double)
+celeritas_setup_option(CELERITAS_REAL_TYPE float)
+celeritas_define_options(CELERITAS_REAL_TYPE
+  "Global runtime precision for real numbers")
+
 #----------------------------------------------------------------------------#
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#
@@ -271,9 +282,18 @@ if(CELERITAS_USE_ROOT)
   find_package(ROOT 6.24 REQUIRED)
 endif()
 
-if(CELERITAS_USE_SWIG AND NOT SWIG_FOUND)
-  # Note: 4.1 is required for C++17 parsing
-  find_package(SWIG 4.1 REQUIRED)
+if(CELERITAS_USE_SWIG)
+  if(CELERITAS_REAL_TYPE STREQUAL "float")
+    celeritas_error_incompatible_option(
+      "Single-precision runtime is not compatible with SWIG"
+      CELERITAS_USE_SWIG
+      OFF
+    )
+  endif()
+  if(NOT SWIG_FOUND)
+    # Note: 4.1 is required for C++17 parsing
+    find_package(SWIG 4.1 REQUIRED)
+  endif()
 endif()
 
 if(CELERITAS_USE_VecGeom)
@@ -288,20 +308,22 @@ if(CELERITAS_USE_VecGeom)
       "${VecGeom_CUDA_FOUND}"
     )
   endif()
+  if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
+    celeritas_error_incompatible_option(
+      "VecGeom installation at ${VECGEOM_INSTALL_DIR} uses double precision"
+      CELERITAS_REAL_TYPE
+      "double"
+    )
+  endif()
+  if(CELERITAS_REAL_TYPE STREQUAL "double" AND VecGeom_single_precision_FOUND)
+    celeritas_error_incompatible_option(
+      "VecGeom installation at ${VECGEOM_INSTALL_DIR} uses single precision"
+      CELERITAS_REAL_TYPE
+      "float"
+    )
+  endif()
   if(NOT VecGeom_GDML_FOUND)
     message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
-  endif()
-endif()
-
-if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
-  # TODO: download and build GTest as a subproject if not available
-  find_package(GTest)
-  if(NOT GTest_FOUND)
-    celeritas_error_incompatible_option(
-      "Googletest (GTest) is required for testing but was not found"
-      CELERITAS_BUILD_TESTS
-      OFF
-    )
   endif()
 endif()
 
@@ -317,8 +339,15 @@ if(CELERITAS_BUILD_DOCS)
   if(NOT Doxygen_FOUND)
     find_package(Doxygen)
   endif()
+  if(NOT Doxygen_FOUND)
+    celeritas_error_incompatible_option(
+      "Doxygen is required for building documentation but was not found"
+      CELERITAS_BUILD_DOCS
+      OFF
+    )
+  endif()
 
-  if(Python_FOUND)
+  if(CELERITAS_USE_Python)
     celeritas_check_python_module(CELERITAS_USE_Sphinx sphinx)
   endif()
   set(Sphinx_FOUND ${CELERITAS_USE_Sphinx})
@@ -330,10 +359,17 @@ if(CELERITAS_BUILD_DOCS)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
   endif()
-  if(NOT Doxygen_FOUND)
+endif()
+
+if(CELERITAS_BUILD_TESTS)
+  # TODO: download and build GTest as a subproject if not available
+  if(NOT GTest_FOUND)
+    find_package(GTest)
+  endif()
+  if(NOT GTest_FOUND)
     celeritas_error_incompatible_option(
-      "Doxygen is required for building documentation but was not found"
-      CELERITAS_BUILD_DOCS
+      "Googletest (GTest) is required for testing but was not found"
+      CELERITAS_BUILD_TESTS
       OFF
     )
   endif()

@@ -19,6 +19,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Square root of the soft equivalence tolerance for Celeritas.
+ *
+ * This tolerance is needed for operations where the accuracy is limited by the
+ * square root of machine precision.
+ *
+ * \todo Move orange tolerance and related operations into corecel/math
+ * alongside this, revisit ArrayUtils soft comparisons.
+ */
+CELER_CONSTEXPR_FUNCTION real_type sqrt_tol()
+{
+    return detail::SoftEqualTraits<real_type>::sqrt_prec();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Functor for noninfinite floating point equality.
  *
  * This function-like class considers an \em absolute tolerance for values near
@@ -139,11 +154,11 @@ class SoftZero
 // TEMPLATE DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_FUNCTION SoftEqual(T)->SoftEqual<T>;
+CELER_FUNCTION SoftEqual(T) -> SoftEqual<T>;
 template<class T>
-CELER_FUNCTION SoftEqual(T, T)->SoftEqual<T>;
+CELER_FUNCTION SoftEqual(T, T) -> SoftEqual<T>;
 template<class F>
-CELER_FUNCTION EqualOr(F&&)->EqualOr<F>;
+CELER_FUNCTION EqualOr(F&&) -> EqualOr<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

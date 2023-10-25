@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "RootEventWriter.hh"
 
+#include <algorithm>
 #include <set>
 #include <TFile.h>
 #include <TTree.h>
@@ -29,9 +30,10 @@ namespace
 std::array<double, 3> real3_to_array(Real3 const& src)
 {
     std::array<double, 3> dst;
-    std::memcpy(&dst, &src, sizeof(src));
+    std::copy(src.begin(), src.end(), dst.begin());
     return dst;
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 

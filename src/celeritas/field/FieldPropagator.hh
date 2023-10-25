@@ -237,7 +237,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
                                                chord.dir,
                                                linear_step.distance,
                                                substep.state.pos,
-                                               this->delta_intersection()))
+                                               this->delta_intersection())
+                 || chord.length == 0)
         {
             // We're close enough to the boundary that the next trial step
             // would be less than the driver's minimum step.
@@ -253,7 +254,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             // than or exactly on the boundary, or if the crossing
             // doesn't put us past the end of the step
             result.boundary = (linear_step.distance <= chord.length
-                               || result.distance + update_length <= step);
+                               || result.distance + update_length <= step
+                               || chord.length == 0);
 
             if (!result.boundary)
             {
