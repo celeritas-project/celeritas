@@ -283,17 +283,16 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_SWIG)
-  if(NOT SWIG_FOUND)
-    # Note: 4.1 is required for C++17 parsing
-    find_package(SWIG 4.1 REQUIRED)
-  endif()
-
   if(CELERITAS_REAL_TYPE STREQUAL "float")
     celeritas_error_incompatible_option(
       "Single-precision runtime is not compatible with SWIG"
       CELERITAS_USE_SWIG
       OFF
     )
+  endif()
+  if(NOT SWIG_FOUND)
+    # Note: 4.1 is required for C++17 parsing
+    find_package(SWIG 4.1 REQUIRED)
   endif()
 endif()
 
@@ -328,18 +327,6 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
-if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
-  # TODO: download and build GTest as a subproject if not available
-  find_package(GTest)
-  if(NOT GTest_FOUND)
-    celeritas_error_incompatible_option(
-      "Googletest (GTest) is required for testing but was not found"
-      CELERITAS_BUILD_TESTS
-      OFF
-    )
-  endif()
-endif()
-
 if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
   celeritas_error_incompatible_option(
     "JSON support is required for demos but was not found"
@@ -352,8 +339,15 @@ if(CELERITAS_BUILD_DOCS)
   if(NOT Doxygen_FOUND)
     find_package(Doxygen)
   endif()
+  if(NOT Doxygen_FOUND)
+    celeritas_error_incompatible_option(
+      "Doxygen is required for building documentation but was not found"
+      CELERITAS_BUILD_DOCS
+      OFF
+    )
+  endif()
 
-  if(Python_FOUND)
+  if(CELERITAS_USE_Python)
     celeritas_check_python_module(CELERITAS_USE_Sphinx sphinx)
   endif()
   set(Sphinx_FOUND ${CELERITAS_USE_Sphinx})
@@ -365,10 +359,17 @@ if(CELERITAS_BUILD_DOCS)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
   endif()
-  if(NOT Doxygen_FOUND)
+endif()
+
+if(CELERITAS_BUILD_TESTS)
+  # TODO: download and build GTest as a subproject if not available
+  if(NOT GTest_FOUND)
+    find_package(GTest)
+  endif()
+  if(NOT GTest_FOUND)
     celeritas_error_incompatible_option(
-      "Doxygen is required for building documentation but was not found"
-      CELERITAS_BUILD_DOCS
+      "Googletest (GTest) is required for testing but was not found"
+      CELERITAS_BUILD_TESTS
       OFF
     )
   endif()
