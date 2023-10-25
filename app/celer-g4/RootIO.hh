@@ -60,7 +60,7 @@ class RootIO
 
     //// HELPER FUNCTIONS ////
 
-    // Fill and write a HitEventData object
+    // Fill and write an EventData object
     void WriteObject(EventData* hit_event);
 
     // Merge ROOT files from multiple worker threads

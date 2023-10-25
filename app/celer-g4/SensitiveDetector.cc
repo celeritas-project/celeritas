@@ -16,7 +16,6 @@
 #include <G4VTouchable.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 
 #include "RootIO.hh"
 

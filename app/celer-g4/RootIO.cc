@@ -81,7 +81,8 @@ RootIO* RootIO::Instance()
 
 //---------------------------------------------------------------------------//
 /*!
- * Write sensitive hits to output in the form of HitEventData.
+ * Write sensitive hits to output in the form of EventData.
+ * See celeritas/io/EventData.hh
  */
 void RootIO::Write(G4Event const* event)
 {
@@ -91,9 +92,9 @@ void RootIO::Write(G4Event const* event)
         return;
     }
 
-    // Write the collection of sensitive hits into HitEventData
-    EventData event_hits;
-    event_hits.event_id = event->GetEventID();
+    // Write steps and collection of hits
+    EventData event_data;
+    event_data.event_id = event->GetEventID();
     for (int i = 0; i < hce->GetNumberOfCollections(); i++)
     {
         std::vector<HitData> hits;
@@ -103,35 +104,34 @@ void RootIO::Write(G4Event const* event)
         {
             auto* sd_hit = dynamic_cast<SensitiveHit*>(hc->GetHit(j));
             auto const& result = sd_hit->data();
-            event_hits.steps.push_back(result.step);
+            event_data.steps.push_back(result.step);
             hits.push_back(result.hit);
         }
         auto iter = detector_name_id_map_.find(hc->GetName());
         CELER_ASSERT(iter != detector_name_id_map_.end());
-        event_hits.hits.insert({iter->second, std::move(hits)});
+        event_data.hits.insert({iter->second, std::move(hits)});
     }
 
-    // Write a HitEventData into output ROOT file
-    this->WriteObject(&event_hits);
+    this->WriteObject(&event_data);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill event tree with HitEventData.
+ * Fill event tree with event data.
  */
-void RootIO::WriteObject(EventData* hit_event)
+void RootIO::WriteObject(EventData* event_data)
 {
     if (!event_branch_)
     {
         event_branch_
             = tree_->Branch("event",
-                            &hit_event,
+                            &event_data,
                             GlobalSetup::Instance()->GetRootBufferSize(),
                             this->SplitLevel());
     }
     else
     {
-        event_branch_->SetAddress(&hit_event);
+        event_branch_->SetAddress(&event_data);
     }
 
     tree_->Fill();
@@ -153,7 +153,7 @@ void RootIO::AddSensitiveDetector(std::string name)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write, and Close or Merge output.
+ * Write and Close or Merge output.
  */
 void RootIO::Close()
 {
