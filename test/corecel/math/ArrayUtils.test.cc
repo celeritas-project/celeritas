@@ -156,7 +156,7 @@ TEST(ArrayUtilsTest, rotate)
         EXPECT_VEC_NEAR(
             (Real3{-0.952973648767149, 0.0195839636531213, -0.302419730049247}),
             result,
-            2e-11);
+            20 * SoftEqual<real_type>{}.rel());
     }
 
     // Switch scattered z direction
