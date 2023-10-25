@@ -485,7 +485,7 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
 }
 
 // Electron takes small steps up to and from a boundary
-TEST_F(TwoBoxesTest, electron_small_step)
+TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -830,7 +830,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
 }
 
 // Endpoint of a step is very close to the boundary.
-TEST_F(TwoBoxesTest, electron_step_endpoint)
+TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
@@ -974,7 +974,8 @@ TEST_F(TwoBoxesTest, electron_step_endpoint)
 }
 
 // Electron barely crosses boundary
-TEST_F(TwoBoxesTest, electron_tangent_cross_smallradius)
+TEST_F(TwoBoxesTest,
+       TEST_IF_CELERITAS_DOUBLE(electron_tangent_cross_smallradius))
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
 
@@ -1064,7 +1065,7 @@ TEST_F(TwoBoxesTest, electron_tangent_cross_smallradius)
 
 // Heuristic test: plotting points with finer propagation distance show a track
 // with decreasing radius
-TEST_F(TwoBoxesTest, nonuniform_field)
+TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(nonuniform_field))
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     ReluZField field{unit_radius_field_strength};
@@ -1191,7 +1192,7 @@ TEST_F(LayersTest, revolutions_through_cms_field)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SimpleCmsTest, electron_stuck)
+TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 {
     auto particle = this->make_particle_view(pdg::electron(),
                                              MevEnergy{4.25402379798713e-01});
@@ -1240,7 +1241,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
     }
 }
 
-TEST_F(SimpleCmsTest, vecgeom_failure)
+TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 {
     UniformZField field(1 * units::tesla);
     FieldDriverOptions driver_options;
