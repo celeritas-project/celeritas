@@ -29,7 +29,10 @@ SensitiveDetector::SensitiveDetector(std::string name)
     : G4VSensitiveDetector(name), hcid_{-1}, collection_{nullptr}
 {
     this->collectionName.insert(name);
+
+#if CELERITAS_USE_ROOT
     RootIO::Instance()->AddSensitiveDetector(name);
+#endif
 }
 
 //---------------------------------------------------------------------------//
