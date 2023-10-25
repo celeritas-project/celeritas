@@ -31,6 +31,7 @@ list(APPEND SOURCES
   detail/UniverseInserter.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
+  surf/FaceNamer.cc
   surf/GeneralQuadric.cc
   surf/Plane.cc
   surf/PlaneAligned.cc

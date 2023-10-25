@@ -232,24 +232,26 @@ celeritas_add_test(orange/transform/VariantTransform.test.cc)
 #-------------------------------------#
 # Surfaces
 set(CELERITASTEST_PREFIX orange/surf)
-celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surf/ConeAligned.test.cc)
 celeritas_add_test(orange/surf/CylAligned.test.cc)
 celeritas_add_test(orange/surf/CylCentered.test.cc)
 celeritas_add_test(orange/surf/GeneralQuadric.test.cc)
 celeritas_add_test(orange/surf/Plane.test.cc)
 celeritas_add_test(orange/surf/PlaneAligned.test.cc)
-celeritas_add_test(orange/surf/RecursiveSimplifier.test.cc)
 celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
+
+celeritas_add_test(orange/surf/FaceNamer.test.cc)
+celeritas_add_test(orange/surf/RecursiveSimplifier.test.cc)
 celeritas_add_test(orange/surf/SoftSurfaceEqual.test.cc)
 celeritas_add_test(orange/surf/SurfaceClipper.test.cc)
 celeritas_add_test(orange/surf/SurfaceSimplifier.test.cc)
-celeritas_add_test(orange/surf/VariantSurface.test.cc)
+celeritas_add_device_test(orange/surf/LocalSurfaceVisitor)
+
+celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTransformer.test.cc)
-celeritas_add_device_test(orange/surf/LocalSurfaceVisitor)
 
 #-------------------------------------#
 # Universe details
