@@ -9,7 +9,6 @@
 
 #include <cstddef>
 #include <iterator>
-#include <type_traits>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"

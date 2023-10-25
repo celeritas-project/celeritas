@@ -6,6 +6,13 @@
 //! \file corecel/data/detail/LdgIteratorImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
+
+#include <type_traits>
+
+#include "corecel/Macros.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
+
 namespace celeritas
 {
 namespace detail
