@@ -82,10 +82,13 @@ class RootIO
     std::unique_ptr<TTree> tree_;
     TBranch* event_branch_{nullptr};
 
+    // Map sensitive detectors to contiguous IDs
+    // Used by celeritas/io/EventData.hh
     int detector_id_{-1};
     std::map<std::string, int> detector_name_id_map_;
 };
 
+//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
 inline RootIO* RootIO::Instance()
 {

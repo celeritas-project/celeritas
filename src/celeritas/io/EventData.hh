@@ -15,18 +15,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Particle pre- and post-step data.
+ * Particle step data. Arrays are for pre- and post-steps.
  *
- * Volume ID is contiguous and mapped at runtime. Same ID used by
- * \c EventData .
+ * TODO: Map and add a unified process/action id
  */
 struct StepData
 {
-    // TODO: add process/action id enum
-    int volume[2]{0};  //!< Volume ID is defined at runtime
-    double energy[2]{0};  //!< Kinetic energy
+    int volume{0};  //!< Logical volume ID
     double energy_loss{0};  //!< Same as energy deposition in hit data
     double length{0};  //!< Step length
+
+    // Pre- and post-step information
+    double energy[2]{0};  //!< Kinetic energy
     std::array<double, 3> dir[2]{{0, 0, 0}};  //!< Unit vector
     std::array<double, 3> pos[2]{{0, 0, 0}};  //!< [cm]
     double time[2]{0};  //!< Global coordinate time
@@ -52,11 +52,11 @@ struct HitData
  */
 struct EventData
 {
-    using VolumeId = int;
+    using SensDetId = int;
 
     int event_id{0};
     std::vector<StepData> steps;
-    std::map<VolumeId, std::vector<HitData>> hits;
+    std::map<SensDetId, std::vector<HitData>> hits;
 };
 
 //---------------------------------------------------------------------------//

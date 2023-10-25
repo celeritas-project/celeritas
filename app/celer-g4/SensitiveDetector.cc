@@ -86,12 +86,19 @@ bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
     {
         auto* pre_step = g4step->GetPreStepPoint();
         CELER_ASSERT(pre_step);
-        auto* post_step = g4step->GetPostStepPoint();  // Can be undefined
+        auto const* phys_vol = pre_step->GetPhysicalVolume();
+        CELER_ASSERT(phys_vol);
+        auto const* log_vol = phys_vol->GetLogicalVolume();
+        CELER_ASSERT(log_vol);
+
+        step.volume = log_vol->GetInstanceID();
         step.energy_loss = edep;  // [MeV]
         step.length = g4step->GetStepLength();  // [mm]
 
         // Pre- and post-step data
         this->store_step_point(*pre_step, StepPoint::pre, step);
+
+        auto* post_step = g4step->GetPostStepPoint();  // Can be undefined
         if (post_step)
         {
             this->store_step_point(*post_step, StepPoint::post, step);
@@ -113,7 +120,6 @@ void SensitiveDetector::store_step_point(G4StepPoint& step_point,
     CELER_ASSERT(log_vol);
     auto const p = static_cast<std::size_t>(point);
 
-    step.volume[p] = log_vol->GetInstanceID();
     step.energy[p] = step_point.GetKineticEnergy();  // [MeV]
     step.time[p] = step_point.GetGlobalTime();  // [ns]
     auto const& pos = step_point.GetPosition();

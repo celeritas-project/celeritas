@@ -145,7 +145,6 @@ void RootIO::WriteObject(EventData* hit_event)
 void RootIO::AddSensitiveDetector(std::string name)
 {
     auto iter = detector_name_id_map_.find(name);
-
     if (iter == detector_name_id_map_.end())
     {
         detector_name_id_map_.insert({name, ++detector_id_});
