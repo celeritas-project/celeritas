@@ -150,6 +150,30 @@ operator!=(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs) noexcept
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION bool
+operator==(LdgIterator<T> const& it, std::nullptr_t) noexcept
+{
+    return !static_cast<bool>(it);
+}
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool
+operator!=(LdgIterator<T> const& it, std::nullptr_t) noexcept
+{
+    return static_cast<bool>(it);
+}
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool
+operator==(std::nullptr_t, LdgIterator<T> const& it) noexcept
+{
+    return !static_cast<bool>(it);
+}
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool
+operator!=(std::nullptr_t, LdgIterator<T> const& it) noexcept
+{
+    return static_cast<bool>(it);
+}
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool
 operator<(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs) noexcept
 {
     using pointer = typename LdgIterator<T>::pointer;

@@ -43,6 +43,8 @@ TEST_F(LdgIteratorTest, arithmetic_t)
     using ptr_type = typename decltype(ldg_start)::pointer;
     EXPECT_TRUE((std::is_same_v<ptr_type, int const*>));
     EXPECT_TRUE(ldg_start);
+    EXPECT_NE(ldg_start, nullptr);
+    EXPECT_NE(nullptr, ldg_start);
     EXPECT_EQ(std::accumulate(start, end, 0),
               std::accumulate(ldg_start, ldg_end, 0));
     EXPECT_EQ(static_cast<ptr_type>(ldg_start), some_data.data());
@@ -62,11 +64,14 @@ TEST_F(LdgIteratorTest, arithmetic_t)
     ldg_start.swap(ldg_end);
     EXPECT_EQ(ldg_start, ldg_start_copy);
     EXPECT_EQ(ldg_end, ldg_start + n);
+    EXPECT_EQ(ldg_end, n + ldg_start);
     EXPECT_EQ(ldg_end - n, ldg_start);
     EXPECT_EQ(ldg_end - ldg_start, n);
     ldg_end = ldg_start;
     EXPECT_EQ(ldg_end, ldg_start);
     auto ldg_nullptr = LdgIterator<int const>{nullptr};
+    EXPECT_EQ(ldg_nullptr, nullptr);
+    EXPECT_EQ(nullptr, ldg_nullptr);
     EXPECT_FALSE(ldg_nullptr);
 }
 
@@ -83,13 +88,15 @@ TEST_F(LdgIteratorTest, opaqueid_t)
     using ptr_type = typename decltype(ldg_start)::pointer;
     EXPECT_TRUE((std::is_same_v<ptr_type, TestId const*>));
     EXPECT_TRUE(ldg_start);
+    EXPECT_NE(ldg_start, nullptr);
+    EXPECT_NE(nullptr, ldg_start);
     EXPECT_EQ(static_cast<ptr_type>(ldg_start), some_data.data());
     EXPECT_EQ(ldg_start->unchecked_get(), 1);
     EXPECT_EQ(*ldg_start++, TestId{1});
     EXPECT_EQ(*ldg_start--, TestId{2});
     EXPECT_EQ(*++ldg_start, TestId{2});
     EXPECT_EQ(*--ldg_start, TestId{1});
-    EXPECT_EQ(ldg_start[n - 1], TestId{some_data.back()});
+    EXPECT_EQ(ldg_start[n - 1], some_data.back());
     EXPECT_GT(ldg_end, ldg_start);
     auto ldg_start_copy = ldg_start;
     EXPECT_EQ(ldg_start, ldg_start_copy);
@@ -101,11 +108,14 @@ TEST_F(LdgIteratorTest, opaqueid_t)
     ldg_start.swap(ldg_end);
     EXPECT_EQ(ldg_start, ldg_start_copy);
     EXPECT_EQ(ldg_end, ldg_start + n);
+    EXPECT_EQ(ldg_end, n + ldg_start);
     EXPECT_EQ(ldg_end - n, ldg_start);
     EXPECT_EQ(ldg_end - ldg_start, n);
     ldg_end = ldg_start;
     EXPECT_EQ(ldg_end, ldg_start);
     auto ldg_nullptr = LdgIterator<int const>{nullptr};
+    EXPECT_EQ(ldg_nullptr, nullptr);
+    EXPECT_EQ(nullptr, ldg_nullptr);
     EXPECT_FALSE(ldg_nullptr);
 }
 
