@@ -40,7 +40,8 @@ TEST_F(LdgIteratorTest, integral_t)
     auto ldg_end = make_LdgIterator(some_data.data() + n);
     using ptr_type = typename decltype(ldg_start)::pointer;
     EXPECT_TRUE(ldg_start);
-    EXPECT_EQ(std::reduce(start, end), std::reduce(ldg_start, ldg_end));
+    EXPECT_EQ(std::accumulate(start, end, 0),
+              std::accumulate(ldg_start, ldg_end, 0));
     EXPECT_EQ(static_cast<ptr_type>(ldg_start), some_data.data());
     EXPECT_EQ(*ldg_start++, 1);
     EXPECT_EQ(*ldg_start--, 2);
