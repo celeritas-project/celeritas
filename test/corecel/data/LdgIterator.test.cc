@@ -29,7 +29,7 @@ class LdgIteratorTest : public ::celeritas::test::Test
     void SetUp() override {}
 };
 
-TEST_F(LdgIteratorTest, integral_t)
+TEST_F(LdgIteratorTest, arithmetic_t)
 {
     using VecInt = std::vector<int>;
     VecInt some_data = {1, 2, 3, 4};
@@ -38,6 +38,8 @@ TEST_F(LdgIteratorTest, integral_t)
     auto end = some_data.end();
     auto ldg_start = make_ldg_iterator(some_data.data());
     auto ldg_end = make_ldg_iterator(some_data.data() + n);
+    LdgIterator ctad_itr{some_data.data()};
+    EXPECT_TRUE((std::is_same_v<decltype(ctad_itr), decltype(ldg_start)>));
     using ptr_type = typename decltype(ldg_start)::pointer;
     EXPECT_TRUE((std::is_same_v<ptr_type, int const*>));
     EXPECT_TRUE(ldg_start);
@@ -53,6 +55,7 @@ TEST_F(LdgIteratorTest, integral_t)
     auto ldg_start_copy = ldg_start;
     EXPECT_EQ(ldg_start, ldg_start_copy);
     ldg_start += n;
+    EXPECT_NE(ldg_start, ldg_start_copy);
     EXPECT_EQ(ldg_start, ldg_end);
     ldg_end -= n;
     EXPECT_EQ(ldg_end, ldg_start_copy);
@@ -61,6 +64,8 @@ TEST_F(LdgIteratorTest, integral_t)
     EXPECT_EQ(ldg_end, ldg_start + n);
     EXPECT_EQ(ldg_end - n, ldg_start);
     EXPECT_EQ(ldg_end - ldg_start, n);
+    ldg_end = ldg_start;
+    EXPECT_EQ(ldg_end, ldg_start);
     auto ldg_nullptr = LdgIterator<int>{nullptr};
     EXPECT_FALSE(ldg_nullptr);
 }
@@ -86,6 +91,7 @@ TEST_F(LdgIteratorTest, opaqueid_t)
     auto ldg_start_copy = ldg_start;
     EXPECT_EQ(ldg_start, ldg_start_copy);
     ldg_start += n;
+    EXPECT_NE(ldg_start, ldg_start_copy);
     EXPECT_EQ(ldg_start, ldg_end);
     ldg_end -= n;
     EXPECT_EQ(ldg_end, ldg_start_copy);
@@ -94,6 +100,8 @@ TEST_F(LdgIteratorTest, opaqueid_t)
     EXPECT_EQ(ldg_end, ldg_start + n);
     EXPECT_EQ(ldg_end - n, ldg_start);
     EXPECT_EQ(ldg_end - ldg_start, n);
+    ldg_end = ldg_start;
+    EXPECT_EQ(ldg_end, ldg_start);
     auto ldg_nullptr = LdgIterator<int>{nullptr};
     EXPECT_FALSE(ldg_nullptr);
 }
