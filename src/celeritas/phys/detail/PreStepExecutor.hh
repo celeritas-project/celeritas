@@ -27,11 +27,6 @@ namespace detail
 //---------------------------------------------------------------------------//
 struct PreStepExecutor
 {
-#if __CUDA_ARCH__ >= 700 && __CUDA_ARCH__ < 900
-    inline static constexpr int max_block_size{224};
-#elif CELERITAS_USE_CUDA
-    inline static constexpr int max_block_size{CELERITAS_MAX_BLOCK_SIZE};
-#endif
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 };
