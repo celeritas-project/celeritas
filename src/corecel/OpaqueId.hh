@@ -98,7 +98,7 @@ class OpaqueId
     {
         return static_cast<size_type>(-1);
     }
-    friend detail::LdgLoader<OpaqueId<value_type, size_type> const>
+    friend detail::LdgLoader<OpaqueId<value_type, size_type> const>;
 };
 
 //---------------------------------------------------------------------------//
