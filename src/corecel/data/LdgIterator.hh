@@ -214,7 +214,7 @@ swap(LdgIterator<T>& lhs, LdgIterator<T>& rhs) noexcept
 template<class T>
 inline LdgIterator<T> make_ldg_iterator(T const* ptr) noexcept
 {
-    return LdgIterator<T>{ptr};
+    return LdgIterator{ptr};
 }
 //!@}
 

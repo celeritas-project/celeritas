@@ -17,6 +17,12 @@
 
 namespace celeritas
 {
+namespace detail
+{
+template<class>
+struct LdgLoader;
+}  // namespace detail
+
 //---------------------------------------------------------------------------//
 /*!
  * Type-safe index for accessing an array.
@@ -30,7 +36,8 @@ namespace celeritas
 template<class ValueT, class SizeT = ::celeritas::size_type>
 class OpaqueId
 {
-    static_assert(static_cast<SizeT>(-1) > 0, "SizeT must be unsigned.");
+    static_assert(std::is_unsigned_v<SizeT> && !std::is_same_v<SizeT, bool>,
+                  "SizeT must be unsigned.");
 
   public:
     //!@{
@@ -91,6 +98,7 @@ class OpaqueId
     {
         return static_cast<size_type>(-1);
     }
+    friend detail::LdgLoader<OpaqueId<value_type, size_type>>;
 };
 
 //---------------------------------------------------------------------------//

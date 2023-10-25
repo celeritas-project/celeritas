@@ -46,16 +46,17 @@ struct LdgLoader
 template<class I, class T>
 struct LdgLoader<OpaqueId<I, T>>
 {
+    static_assert(std::is_arithmetic_v<T>);
     using value_type = OpaqueId<I, T>;
-    using pointer = std::add_pointer_t<T const>;
+    using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
 #if CELER_DEVICE_COMPILE
-        return value_type{__ldg(p)};
+        return value_type{__ldg(&p->value_)};
 #else
-        return value_type{*p};
+        return value_type{p->value_};
 #endif
     }
 };

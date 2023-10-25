@@ -73,13 +73,15 @@ TEST_F(LdgIteratorTest, arithmetic_t)
 TEST_F(LdgIteratorTest, opaqueid_t)
 {
     using TestId = OpaqueId<struct LdgIteratorOpaqueIdTest_>;
-    using VecId = std::vector<typename TestId::size_type>;
-    VecId some_data = {1, 2, 3, 4};
+    using VecId = std::vector<TestId>;
+    VecId some_data = {TestId{1}, TestId{2}, TestId{3}, TestId{4}};
     auto n = some_data.size();
-    auto ldg_start = LdgIterator<TestId>(some_data.data());
-    auto ldg_end = LdgIterator<TestId>(some_data.data() + n);
+    auto ldg_start = make_ldg_iterator(some_data.data());
+    auto ldg_end = make_ldg_iterator(some_data.data() + n);
+    LdgIterator ctad_itr{some_data.data()};
+    EXPECT_TRUE((std::is_same_v<decltype(ctad_itr), decltype(ldg_start)>));
     using ptr_type = typename decltype(ldg_start)::pointer;
-    EXPECT_TRUE((std::is_same_v<ptr_type, typename TestId::size_type const*>));
+    EXPECT_TRUE((std::is_same_v<ptr_type, TestId const*>));
     EXPECT_TRUE(ldg_start);
     EXPECT_EQ(static_cast<ptr_type>(ldg_start), some_data.data());
     EXPECT_EQ(*ldg_start++, TestId{1});
