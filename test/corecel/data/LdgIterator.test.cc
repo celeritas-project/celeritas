@@ -36,9 +36,10 @@ TEST_F(LdgIteratorTest, integral_t)
     auto n = some_data.size();
     auto start = some_data.begin();
     auto end = some_data.end();
-    auto ldg_start = make_LdgIterator(some_data.data());
-    auto ldg_end = make_LdgIterator(some_data.data() + n);
+    auto ldg_start = make_ldg_iterator(some_data.data());
+    auto ldg_end = make_ldg_iterator(some_data.data() + n);
     using ptr_type = typename decltype(ldg_start)::pointer;
+    EXPECT_TRUE((std::is_same_v<ptr_type, int const*>));
     EXPECT_TRUE(ldg_start);
     EXPECT_EQ(std::accumulate(start, end, 0),
               std::accumulate(ldg_start, ldg_end, 0));
@@ -48,16 +49,16 @@ TEST_F(LdgIteratorTest, integral_t)
     EXPECT_EQ(*++ldg_start, 2);
     EXPECT_EQ(*--ldg_start, 1);
     EXPECT_EQ(ldg_start[n - 1], some_data.back());
-    EXPECT_TRUE(ldg_end > ldg_start);
+    EXPECT_GT(ldg_end, ldg_start);
     auto ldg_start_copy = ldg_start;
-    EXPECT_TRUE(ldg_start == ldg_start_copy);
+    EXPECT_EQ(ldg_start, ldg_start_copy);
     ldg_start += n;
-    EXPECT_TRUE(ldg_start == ldg_end);
+    EXPECT_EQ(ldg_start, ldg_end);
     ldg_end -= n;
-    EXPECT_TRUE(ldg_end == ldg_start_copy);
+    EXPECT_EQ(ldg_end, ldg_start_copy);
     ldg_start.swap(ldg_end);
-    EXPECT_TRUE(ldg_start == ldg_start_copy);
-    EXPECT_TRUE(ldg_end == ldg_start + n);
+    EXPECT_EQ(ldg_start, ldg_start_copy);
+    EXPECT_EQ(ldg_end, ldg_start + n);
     EXPECT_EQ(ldg_end - n, ldg_start);
     EXPECT_EQ(ldg_end - ldg_start, n);
     auto ldg_nullptr = LdgIterator<int>{nullptr};
@@ -66,13 +67,14 @@ TEST_F(LdgIteratorTest, integral_t)
 
 TEST_F(LdgIteratorTest, opaqueid_t)
 {
-    using TestId = OpaqueId<struct Test>;
+    using TestId = OpaqueId<struct LdgIteratorOpaqueIdTest_>;
     using VecId = std::vector<typename TestId::size_type>;
     VecId some_data = {1, 2, 3, 4};
     auto n = some_data.size();
     auto ldg_start = LdgIterator<TestId>(some_data.data());
     auto ldg_end = LdgIterator<TestId>(some_data.data() + n);
     using ptr_type = typename decltype(ldg_start)::pointer;
+    EXPECT_TRUE((std::is_same_v<ptr_type, typename TestId::size_type const*>));
     EXPECT_TRUE(ldg_start);
     EXPECT_EQ(static_cast<ptr_type>(ldg_start), some_data.data());
     EXPECT_EQ(*ldg_start++, TestId{1});
@@ -80,16 +82,16 @@ TEST_F(LdgIteratorTest, opaqueid_t)
     EXPECT_EQ(*++ldg_start, TestId{2});
     EXPECT_EQ(*--ldg_start, TestId{1});
     EXPECT_EQ(ldg_start[n - 1], TestId{some_data.back()});
-    EXPECT_TRUE(ldg_end > ldg_start);
+    EXPECT_GT(ldg_end, ldg_start);
     auto ldg_start_copy = ldg_start;
-    EXPECT_TRUE(ldg_start == ldg_start_copy);
+    EXPECT_EQ(ldg_start, ldg_start_copy);
     ldg_start += n;
-    EXPECT_TRUE(ldg_start == ldg_end);
+    EXPECT_EQ(ldg_start, ldg_end);
     ldg_end -= n;
-    EXPECT_TRUE(ldg_end == ldg_start_copy);
+    EXPECT_EQ(ldg_end, ldg_start_copy);
     ldg_start.swap(ldg_end);
-    EXPECT_TRUE(ldg_start == ldg_start_copy);
-    EXPECT_TRUE(ldg_end == ldg_start + n);
+    EXPECT_EQ(ldg_start, ldg_start_copy);
+    EXPECT_EQ(ldg_end, ldg_start + n);
     EXPECT_EQ(ldg_end - n, ldg_start);
     EXPECT_EQ(ldg_end - ldg_start, n);
     auto ldg_nullptr = LdgIterator<int>{nullptr};

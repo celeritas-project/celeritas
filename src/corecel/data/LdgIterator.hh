@@ -19,22 +19,24 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Iterator for read-only device data. Use __ldg intrinsic to load data in
- * read-only cache.
+ * Iterator for read-only device data in global memory.
+ *
+ * This wraps pointer accesses with the \c __ldg intrinsic to load
+ * read-only data using texture cache.
  */
 template<class T>
 class LdgIterator
 {
-    //!@{
-    //! \name Type aliases
   private:
-    using LDGLoadPolicy = detail::LdgLoader<T>;
+    using LoadPolicyT = detail::LdgLoader<T>;
 
   public:
+    //!@{
+    //! \name Type aliases
     using difference_type = std::ptrdiff_t;
-    using value_type = typename LDGLoadPolicy::value_type;
-    using pointer = typename LDGLoadPolicy::pointer;
-    using reference = typename LDGLoadPolicy::reference;
+    using value_type = typename LoadPolicyT::value_type;
+    using pointer = typename LoadPolicyT::pointer;
+    using reference = typename LoadPolicyT::reference;
     using iterator_category = std::random_access_iterator_tag;
     //!@}
 
@@ -54,7 +56,7 @@ class LdgIterator
     //! \name RandomAccessIterator requirements
     CELER_CONSTEXPR_FUNCTION reference operator*() const noexcept
     {
-        return LDGLoadPolicy::read(ptr_);
+        return LoadPolicyT::read(ptr_);
     }
     CELER_CONSTEXPR_FUNCTION LdgIterator& operator++() noexcept
     {
@@ -86,26 +88,22 @@ class LdgIterator
         --ptr_;
         return tmp;
     }
-    CELER_CONSTEXPR_FUNCTION LdgIterator&
-    operator+=(const difference_type n) noexcept
+    CELER_CONSTEXPR_FUNCTION LdgIterator& operator+=(difference_type n) noexcept
     {
         ptr_ += n;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION LdgIterator&
-    operator-=(const difference_type n) noexcept
+    CELER_CONSTEXPR_FUNCTION LdgIterator& operator-=(difference_type n) noexcept
     {
         ptr_ -= n;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION reference
-    operator[](const difference_type n) const noexcept
+    CELER_CONSTEXPR_FUNCTION reference operator[](difference_type n) const noexcept
     {
-        return LDGLoadPolicy::read(ptr_ + n);
+        return LoadPolicyT::read(ptr_ + n);
     }
     //!@}
 
-    // Conversion operators
     //!@{
     //! \name Conversion operators
     CELER_CONSTEXPR_FUNCTION explicit operator pointer() const noexcept
@@ -208,7 +206,7 @@ swap(LdgIterator<T>& lhs, LdgIterator<T>& rhs) noexcept
 //!@{
 //! Helper
 template<class T>
-inline LdgIterator<T> make_LdgIterator(T const* ptr) noexcept
+inline LdgIterator<T> make_ldg_iterator(T const* ptr) noexcept
 {
     return LdgIterator<T>{ptr};
 }

@@ -18,14 +18,13 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-
 /*!
  * Reads a value T using __ldg builtin and return a copy of it
  */
 template<class T>
 struct LdgLoader
 {
-    static_assert(std::is_integral_v<T>);
+    static_assert(std::is_arithmetic_v<T>);
     using value_type = T;
     using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;
