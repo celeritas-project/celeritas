@@ -42,25 +42,5 @@ typename S::Intersections calc_intersections(S const& surf,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Find the minimum intersection if "zero" means "infinite".
- */
-template<size_type N>
-real_type min_intersection(Array<real_type, N> const& i)
-{
-    auto iter = std::min_element(
-        i.begin(), i.end(), [](real_type left, real_type right) {
-            if (left == right)
-                return false;
-            if (left == 0)
-                return false;
-            if (right == 0)
-                return true;
-            return (left < right);
-        });
-    return *iter;
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

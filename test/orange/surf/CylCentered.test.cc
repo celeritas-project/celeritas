@@ -332,16 +332,14 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_tangent_intersect))
             real_type d;
 
             // Transport to inside of cylinder
-            d = min_intersection(
-                cyl.calc_intersections(pos, dir, SurfaceState::off));
+            d = calc_intersections(cyl, pos, dir, SurfaceState::off)[0];
             ASSERT_NE(no_intersection(), d);
             all_first_distances.push_back(d);
             pos[Y] += d * dir[Y];
             all_y.push_back(pos[Y]);
 
             // Transport to other side of cylinder
-            d = min_intersection(
-                cyl.calc_intersections(pos, dir, SurfaceState::on));
+            d = calc_intersections(cyl, pos, dir, SurfaceState::on)[0];
             all_distances.push_back(d);
             if (d == no_intersection())
                 continue;
@@ -349,8 +347,7 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_tangent_intersect))
             pos[Y] += d * dir[Y];
 
             // We're done
-            d = min_intersection(
-                cyl.calc_intersections(pos, dir, SurfaceState::on));
+            d = calc_intersections(cyl, pos, dir, SurfaceState::on)[0];
             EXPECT_EQ(no_intersection(), d);
         }
     }
@@ -395,8 +392,8 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
                 normalize_direction(&dir);
 
                 // Transport to inside of cylinder
-                real_type d = min_intersection(
-                    cyl.calc_intersections(pos, dir, SurfaceState::off));
+                real_type d
+                    = calc_intersections(cyl, pos, dir, SurfaceState::off)[0];
                 all_first_distances.push_back(d);
                 if (d == no_intersection())
                     continue;
