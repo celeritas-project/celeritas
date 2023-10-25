@@ -32,8 +32,6 @@ enum class PhysicsListSelection
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
- *
- * \todo Unify names with celer-sim and SetupOptions.
  */
 struct RunInput
 {
@@ -41,6 +39,10 @@ struct RunInput
 
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
     static constexpr size_type unspecified{static_cast<size_type>(-1)};
+
+    // Global environment
+    size_type cuda_stack_size{};
+    size_type cuda_heap_size{};
 
     // Problem definition
     std::string geometry_file;  //!< Path to GDML file
@@ -55,8 +57,6 @@ struct RunInput
     size_type max_steps{unspecified};
     size_type initializer_capacity{};
     real_type secondary_stack_factor{};
-    size_type cuda_stack_size{};
-    size_type cuda_heap_size{};
     bool sync{false};
     bool default_stream{false};  //!< Launch all kernels on the default stream
 
@@ -67,7 +67,7 @@ struct RunInput
     // Field setup options
     std::string field_type{"uniform"};
     std::string field_file;
-    Real3 field{no_field()};
+    Real3 field{no_field()};  //!< Field vector [T]
     FieldDriverOptions field_options;
 
     // Sensitive detector hit collection

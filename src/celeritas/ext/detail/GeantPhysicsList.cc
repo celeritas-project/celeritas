@@ -61,9 +61,9 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
 
     em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     em_parameters.SetLossFluctuations(options.eloss_fluctuation);
-    em_parameters.SetMinEnergy(value_as<units::MevEnergy>(options.min_energy)
+    em_parameters.SetMinEnergy(value_as<Options::MevEnergy>(options.min_energy)
                                * CLHEP::MeV);
-    em_parameters.SetMaxEnergy(value_as<units::MevEnergy>(options.max_energy)
+    em_parameters.SetMaxEnergy(value_as<Options::MevEnergy>(options.max_energy)
                                * CLHEP::MeV);
     em_parameters.SetLPM(options.lpm);
     em_parameters.SetFluo(options.relaxation != RelaxationSelection::none);
@@ -78,7 +78,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetMscLambdaLimit(options.msc_lambda_limit * CLHEP::cm);
 #endif
     em_parameters.SetLowestElectronEnergy(
-        value_as<units::MevEnergy>(options.lowest_electron_energy)
+        value_as<Options::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);
     if (options_.msc == MscModelSelection::urban_extended)
     {

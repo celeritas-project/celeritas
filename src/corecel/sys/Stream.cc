@@ -15,8 +15,51 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 
+#if CELERITAS_USE_CUDA
+#    define CELER_STREAM_SUPPORTS_ASYNC 1
+#elif CELERITAS_USE_HIP       \
+    && (HIP_VERSION_MAJOR > 5 \
+        || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2))
+#    define CELER_STREAM_SUPPORTS_ASYNC 1
+#else
+#    define CELER_STREAM_SUPPORTS_ASYNC 0
+#endif
+
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Malloc asynchronously for CUDA and newer HIP versions
+void* malloc_async_impl(std::size_t bytes, Stream::StreamT s)
+{
+    void* ptr{};
+#if CELER_STREAM_SUPPORTS_ASYNC
+    CELER_DEVICE_CALL_PREFIX(MallocAsync(&ptr, bytes, s));
+#else
+    CELER_DISCARD(bytes);
+    CELER_DISCARD(s);
+    CELER_DEVICE_CALL_PREFIX(Malloc(&ptr, bytes));
+#endif
+    return ptr;
+}
+
+//---------------------------------------------------------------------------//
+//! Free asynchronously for CUDA and newer HIP versions
+void free_async_impl(void* ptr, Stream::StreamT s)
+{
+#if CELER_STREAM_SUPPORTS_ASYNC
+    CELER_DEVICE_CALL_PREFIX(FreeAsync(ptr, s));
+#else
+    CELER_DISCARD(ptr);
+    CELER_DISCARD(s);
+    CELER_DEVICE_CALL_PREFIX(Free(ptr));
+#endif
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Allocate device memory.
@@ -25,10 +68,7 @@ template<class Pointer>
 auto AsyncMemoryResource<Pointer>::do_allocate(std::size_t bytes, std::size_t)
     -> pointer
 {
-    CELER_DISCARD(bytes);
-    void* ret;
-    CELER_DEVICE_CALL_PREFIX(MallocAsync(&ret, bytes, stream_));
-    return static_cast<pointer>(ret);
+    return static_cast<pointer>(malloc_async_impl(bytes, stream_));
 }
 
 //---------------------------------------------------------------------------//
@@ -40,10 +80,9 @@ void AsyncMemoryResource<Pointer>::do_deallocate(pointer p,
                                                  std::size_t,
                                                  std::size_t)
 {
-    CELER_DISCARD(p);
     try
     {
-        CELER_DEVICE_CALL_PREFIX(FreeAsync(p, stream_));
+        return free_async_impl(p, stream_);
     }
     catch (RuntimeError const& e)
     {
@@ -121,6 +160,26 @@ Stream& Stream::operator=(Stream&& other) noexcept
     Stream temp(std::move(other));
     this->swap(temp);
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Allocate memory asynchronously on this stream if possible.
+ *
+ * HIP 5.1 and lower does not support async allocation.
+ */
+void* Stream::malloc_async(std::size_t bytes) const
+{
+    return malloc_async_impl(bytes, this->get());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Free memory asynchronously on this stream if possible.
+ */
+void Stream::free_async(void* ptr) const
+{
+    return free_async_impl(ptr, this->get());
 }
 
 //---------------------------------------------------------------------------//

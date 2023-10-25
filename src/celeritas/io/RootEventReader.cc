@@ -111,7 +111,9 @@ Real3 RootEventReader::from_array_leaf(char const* leaf_name)
     auto const leaf = ttree_->GetLeaf(leaf_name);
     CELER_ASSERT(leaf);
     CELER_ASSERT(leaf->GetLen() == 3);
-    return {leaf->GetValue(0), leaf->GetValue(1), leaf->GetValue(2)};
+    return {static_cast<real_type>(leaf->GetValue(0)),
+            static_cast<real_type>(leaf->GetValue(1)),
+            static_cast<real_type>(leaf->GetValue(2))};
 }
 
 //---------------------------------------------------------------------------//

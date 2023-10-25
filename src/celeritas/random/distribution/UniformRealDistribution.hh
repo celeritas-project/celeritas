@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -95,7 +97,7 @@ template<class Generator>
 CELER_FUNCTION auto
 UniformRealDistribution<RealType>::operator()(Generator& rng) -> result_type
 {
-    return delta_ * generate_canonical<RealType>(rng) + a_;
+    return std::fma(delta_, generate_canonical<RealType>(rng), a_);
 }
 
 //---------------------------------------------------------------------------//

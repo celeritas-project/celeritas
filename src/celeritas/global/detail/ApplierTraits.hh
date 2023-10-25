@@ -46,7 +46,7 @@ template<typename T>
 inline constexpr bool has_min_warps_per_eu_v = HasMinWarpsPerEU<T>::value;
 
 //---------------------------------------------------------------------------//
-//! Checks if type T declared an`Applier` member type
+//! Checks if type T declared an `Applier` member type
 template<typename T, typename = void>
 struct HasApplier : std::false_type
 {

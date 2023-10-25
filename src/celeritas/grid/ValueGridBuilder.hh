@@ -66,36 +66,33 @@ class ValueGridXsBuilder final : public ValueGridBuilder
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstReal = Span<real_type const>;
-    using VecReal = std::vector<real_type>;
+    using SpanConstDbl = Span<double const>;
+    using VecDbl = std::vector<double>;
     //!@}
 
   public:
     // Construct from imported data
     static std::unique_ptr<ValueGridXsBuilder>
-    from_geant(SpanConstReal lambda_energy,
-               SpanConstReal lambda,
-               SpanConstReal lambda_prim_energy,
-               SpanConstReal lambda_prim);
+    from_geant(SpanConstDbl lambda_energy,
+               SpanConstDbl lambda,
+               SpanConstDbl lambda_prim_energy,
+               SpanConstDbl lambda_prim);
 
     // Construct from just scaled cross sections
     static std::unique_ptr<ValueGridXsBuilder>
-    from_scaled(SpanConstReal lambda_prim_energy, SpanConstReal lambda_prim);
+    from_scaled(SpanConstDbl lambda_prim_energy, SpanConstDbl lambda_prim);
 
     // Construct
-    ValueGridXsBuilder(real_type emin,
-                       real_type eprime,
-                       real_type emax,
-                       VecReal xs);
+    ValueGridXsBuilder(double emin, double eprime, double emax, VecDbl xs);
 
     // Construct in the given store
     ValueGridId build(ValueGridInserter) const final;
 
   private:
-    real_type log_emin_;
-    real_type log_eprime_;
-    real_type log_emax_;
-    VecReal xs_;
+    double log_emin_;
+    double log_eprime_;
+    double log_emax_;
+    VecDbl xs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -109,32 +106,32 @@ class ValueGridLogBuilder : public ValueGridBuilder
   public:
     //!@{
     //! \name Type aliases
-    using VecReal = std::vector<real_type>;
-    using SpanConstReal = Span<real_type const>;
+    using VecDbl = std::vector<double>;
+    using SpanConstDbl = Span<double const>;
     using Id = ItemId<XsGridData>;
     using UPLogBuilder = std::unique_ptr<ValueGridLogBuilder>;
     //!@}
 
   public:
     // Construct from full grids
-    static UPLogBuilder from_geant(SpanConstReal energy, SpanConstReal value);
+    static UPLogBuilder from_geant(SpanConstDbl energy, SpanConstDbl value);
 
     // Construct from range
-    static UPLogBuilder from_range(SpanConstReal energy, SpanConstReal range);
+    static UPLogBuilder from_range(SpanConstDbl energy, SpanConstDbl range);
 
     // Construct
-    ValueGridLogBuilder(real_type emin, real_type emax, VecReal value);
+    ValueGridLogBuilder(double emin, double emax, VecDbl value);
 
     // Construct in the given store
     ValueGridId build(ValueGridInserter) const final;
 
     // Access values
-    SpanConstReal value() const;
+    SpanConstDbl value() const;
 
   private:
-    real_type log_emin_;
-    real_type log_emax_;
-    VecReal value_;
+    double log_emin_;
+    double log_emax_;
+    VecDbl value_;
 };
 
 //---------------------------------------------------------------------------//
@@ -146,26 +143,26 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
   public:
     //!@{
     //! \name Type aliases
-    using VecReal = std::vector<real_type>;
+    using VecDbl = std::vector<double>;
     using Id = ItemId<XsGridData>;
     //!@}
 
   public:
     // Construct
-    ValueGridGenericBuilder(VecReal grid,
-                            VecReal value,
+    ValueGridGenericBuilder(VecDbl grid,
+                            VecDbl value,
                             Interp grid_interp,
                             Interp value_interp);
 
     // Construct with linear interpolation
-    ValueGridGenericBuilder(VecReal grid, VecReal value);
+    ValueGridGenericBuilder(VecDbl grid, VecDbl value);
 
     // Construct in the given store
     ValueGridId build(ValueGridInserter) const final;
 
   private:
-    VecReal grid_;
-    VecReal value_;
+    VecDbl grid_;
+    VecDbl value_;
     Interp grid_interp_;
     Interp value_interp_;
 };

@@ -89,6 +89,7 @@ void launch_update_time(ExplicitActionInterface const& action,
                         CoreParams const& params,
                         CoreState<MemSpace::device>& state)
 {
+    ScopedProfiling profile_this{"update-time"};
     auto execute_thread
         = make_along_step_track_executor(params.ptr<MemSpace::native>(),
                                          state.ptr(),
@@ -106,6 +107,7 @@ void launch_apply_eloss(ExplicitActionInterface const& action,
                         CoreParams const& params,
                         CoreState<MemSpace::device>& state)
 {
+    ScopedProfiling profile_this{"apply-eloss-fluct"};
     auto execute_thread = make_along_step_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
@@ -122,6 +124,7 @@ void launch_apply_eloss(ExplicitActionInterface const& action,
                         CoreParams const& params,
                         CoreState<MemSpace::device>& state)
 {
+    ScopedProfiling profile_this{"apply-eloss"};
     auto execute_thread = make_along_step_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),

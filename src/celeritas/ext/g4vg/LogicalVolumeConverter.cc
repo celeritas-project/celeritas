@@ -79,7 +79,7 @@ auto LogicalVolumeConverter::construct_base(arg_type g4lv) -> result_type
     vecgeom::VUnplacedVolume const* shape = nullptr;
     try
     {
-        shape = this->convert_solid_(*g4lv.GetSolid());
+        shape = convert_solid_(*g4lv.GetSolid());
     }
     catch (celeritas::RuntimeError const& e)
     {

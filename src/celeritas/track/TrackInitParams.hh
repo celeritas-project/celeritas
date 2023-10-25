@@ -25,9 +25,9 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     //! Track initializer construction arguments
     struct Input
     {
-        size_type capacity;  //!< Max number of initializers
-        size_type max_events;  //!< Max number of events that can be run
-        TrackOrder track_order;  //!< How to sort tracks on gpu
+        size_type capacity{};  //!< Max number of initializers
+        size_type max_events{};  //!< Max number of events that can be run
+        TrackOrder track_order{TrackOrder::unsorted};  //!< How to sort tracks
     };
 
   public:

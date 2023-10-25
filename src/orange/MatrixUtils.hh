@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Turn.hh"
@@ -121,7 +123,7 @@ CELER_FUNCTION Array<T, N> gemv(T alpha,
         result[i] = beta * y[i];
         for (size_type j = 0; j != N; ++j)
         {
-            result[i] += alpha * (a[i][j] * x[j]);
+            result[i] = std::fma(alpha, a[i][j] * x[j], result[i]);
         }
     }
     return result;
@@ -157,7 +159,7 @@ CELER_FUNCTION Array<T, N> gemv(matrix::TransposePolicy,
     {
         for (size_type i = 0; i != N; ++i)
         {
-            result[i] += alpha * (a[j][i] * x[j]);
+            result[i] = std::fma(alpha, a[j][i] * x[j], result[i]);
         }
     }
     return result;

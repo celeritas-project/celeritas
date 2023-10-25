@@ -28,7 +28,10 @@ void InitializeTracksAction::execute_impl(CoreParams const& params,
                                               num_new_tracks,
                                               state.counters()};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
-    launch_kernel(num_new_tracks, state.stream_id(), execute_thread);
+    if (num_new_tracks > 0)
+    {
+        launch_kernel(num_new_tracks, state.stream_id(), execute_thread);
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -45,9 +45,8 @@ DeviceAllocation::DeviceAllocation(size_type bytes, StreamId stream)
     : size_{bytes}, stream_{stream}, data_{nullptr, {stream}}
 {
     CELER_EXPECT(celeritas::device());
-    void* ptr = nullptr;
-    CELER_DEVICE_CALL_PREFIX(
-        MallocAsync(&ptr, bytes, celeritas::device().stream(stream_).get()));
+    void* ptr = celeritas::device().stream(stream_).malloc_async(bytes);
+    CELER_ASSERT(ptr);
     data_.reset(static_cast<Byte*>(ptr));
 }
 
@@ -112,8 +111,7 @@ void DeviceAllocation::DeviceFreeDeleter::operator()(
     {
         if (stream_)
         {
-            CELER_DEVICE_CALL_PREFIX(
-                FreeAsync(ptr, celeritas::device().stream(stream_).get()));
+            celeritas::device().stream(stream_).free_async(ptr);
         }
         else
         {

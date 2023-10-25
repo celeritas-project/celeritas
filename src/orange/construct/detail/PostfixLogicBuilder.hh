@@ -82,7 +82,7 @@ PostfixLogicBuilder::PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic)
  */
 void PostfixLogicBuilder::operator()(NodeId const& n)
 {
-    this->visit_node_(*this, n);
+    visit_node_(*this, n);
 }
 
 //---------------------------------------------------------------------------//

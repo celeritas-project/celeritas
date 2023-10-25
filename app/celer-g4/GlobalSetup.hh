@@ -55,7 +55,7 @@ class GlobalSetup
     int GetStepDiagnosticBins() const { return input_.step_diagnostic_bins; }
     std::string const& GetFieldType() const { return input_.field_type; }
     std::string const& GetFieldFile() const { return input_.field_file; }
-    Real3 GetMagFieldZTesla() const { return input_.field; }
+    Real3 GetMagFieldTesla() const { return input_.field; }
     FieldDriverOptions const& GetFieldOptions() const
     {
         return input_.field_options;
@@ -84,7 +84,7 @@ class GlobalSetup
     void SetIgnoreProcesses(SetupOptions::VecString ignored);
 
     //! Set the field to this value (T) along the z axis
-    void SetMagFieldZTesla(double f) { input_.field = Real3{0, 0, f}; }
+    void SetMagFieldZTesla(real_type f) { input_.field = Real3{0, 0, f}; }
 
     // Read input from macro or JSON
     void ReadInput(std::string const& filename);

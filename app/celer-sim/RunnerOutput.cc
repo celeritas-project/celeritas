@@ -72,6 +72,7 @@ void RunnerOutput::output(JsonPimpl* j) const
         {"actions", result_.action_times},
         {"total", result_.total_time},
         {"setup", result_.setup_time},
+        {"warmup", result_.warmup_time},
     };
     obj["num_streams"] = result_.num_streams;
 

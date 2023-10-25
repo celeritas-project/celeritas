@@ -83,7 +83,6 @@ MTestOutput m_test(MTestInput const& input)
     thrust::device_vector<real_type> tot_z(input.size());
 
     CELER_LAUNCH_KERNEL(m_test,
-                        device().default_block_size(),
                         init.size(),
                         0,
                         init.size(),

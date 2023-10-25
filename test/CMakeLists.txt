@@ -208,6 +208,7 @@ celeritas_add_test(orange/CsgTree.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(orange/CsgTreeUtils.test.cc)
 celeritas_add_test(orange/MatrixUtils.test.cc)
+celeritas_add_test(orange/OrangeTypes.test.cc)
 celeritas_add_device_test(orange/Orange)
 
 # Base detail
@@ -595,6 +596,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(accel/ExceptionConverter.test.cc)
   celeritas_add_test(accel/HepMC3PrimaryGenerator.test.cc
     ENVIRONMENT "${_geant4_test_env}")
+  celeritas_add_test(accel/RZMapMagneticField.test.cc)
   celeritas_add_test(accel/detail/HitManager.test.cc
     ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc

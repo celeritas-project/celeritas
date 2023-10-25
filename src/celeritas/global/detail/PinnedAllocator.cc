@@ -18,6 +18,7 @@ namespace celeritas
 template struct PinnedAllocator<Real3>;
 template struct PinnedAllocator<DetectorStepPointOutput::Energy>;
 template struct PinnedAllocator<DetectorId>;
+template struct PinnedAllocator<ThreadId>;
 template struct PinnedAllocator<TrackId>;
 template struct PinnedAllocator<EventId>;
 template struct PinnedAllocator<ParticleId>;

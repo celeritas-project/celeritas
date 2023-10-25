@@ -29,21 +29,52 @@ constexpr inline T convert_from_geant(T const& val, T units)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Convert a value from Geant4 with CLHEP units.
+ */
+constexpr inline double convert_from_geant(double val, double units)
+{
+    return val / units;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert a 3-vector from Geant4/CLHEP to Celeritas native units.
  */
 inline Real3 convert_from_geant(G4ThreeVector const& vec, double units)
 {
-    return {vec[0] / units, vec[1] / units, vec[2] / units};
+    return {static_cast<real_type>(vec[0] / units),
+            static_cast<real_type>(vec[1] / units),
+            static_cast<real_type>(vec[2] / units)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a C array from Geant4/CLHEP to Celeritas native units.
+ */
+inline Real3 convert_from_geant(double const vec[3], double units)
+{
+    return {static_cast<real_type>(vec[0] / units),
+            static_cast<real_type>(vec[1] / units),
+            static_cast<real_type>(vec[2] / units)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a native Celeritas quantity to a Geant4 value with CLHEP units.
+ */
+template<class T>
+constexpr inline T convert_to_geant(T const& val, T units)
+{
+    return val * units;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert a native Celeritas quantity to a Geant4 value.
  */
-template<class T>
-constexpr inline T convert_to_geant(T const& val, T units)
+constexpr inline double convert_to_geant(real_type val, double units)
 {
-    return val * units;
+    return double{val} * units;
 }
 
 //---------------------------------------------------------------------------//

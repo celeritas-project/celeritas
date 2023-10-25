@@ -37,11 +37,11 @@ void write_to_root(RunnerInput const& cargs, RootFileManager* root_manager)
 
 #if CELERITAS_USE_JSON
     std::string str_input(nlohmann::json(cargs).dump());
-    std::string str_phys(nlohmann::json(cargs.geant_options).dump());
+    std::string str_phys(nlohmann::json(cargs.physics_options).dump());
 
     auto tree_input = root_manager->make_tree("input", "input");
     tree_input->Branch("input", &str_input);
-    tree_input->Branch("geant_options", &str_phys);
+    tree_input->Branch("physics_options", &str_phys);
     tree_input->Fill();  // Writing happens at destruction
 #else
     CELER_NOT_CONFIGURED("nlohmann_json");

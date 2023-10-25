@@ -20,7 +20,6 @@
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/construct/OrangeInput.hh"
-#include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/surf/VariantSurface.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
@@ -51,29 +50,26 @@ class SurfaceActionTest : public OrangeGeoTestBase
     {
         UnitInput unit;
         unit.label = "dummy";
-
-        {
-            // Build surfaces
-            SurfaceInputBuilder insert(&unit.surfaces);
-            insert(PlaneX(1), "px");
-            insert(PlaneY(2), "py");
-            insert(PlaneZ(3), "pz");
-            insert(CCylX(5), "mycylx");
-            insert(CCylY(6), "mycyly");
-            insert(CCylZ(7), "mycylz");
-            insert(SphereCentered(1.0), "csph");
-            insert(CylX({1, 2, 3}, 0.5), "acylx");
-            insert(CylY({1, 2, 3}, 0.6), "acyly");
-            insert(CylZ({1, 2, 3}, 0.7), "acylz");
-            insert(Sphere({1, 2, 3}, 1.5), "mysph");
-            insert(ConeX({1, 2, 3}, 0.2), "aconex");
-            insert(ConeY({1, 2, 3}, 0.4), "aconey");
-            insert(ConeZ({1, 2, 3}, 0.6), "aconez");
-            insert(SimpleQuadric({0, 1, 2}, {6, 7, 8}, 9), "sq");
-            insert(GeneralQuadric({0, 1, 2}, {3, 4, 5}, {6, 7, 8}, 9), "gq");
-            EXPECT_EQ(16, unit.surfaces.size());
-        }
-        {
+        unit.bbox = {{-3, -2, -1}, {6, 8, 10}};
+        unit.surfaces = {
+            PlaneX(1),
+            PlaneY(2),
+            PlaneZ(3),
+            CCylX(5),
+            CCylY(6),
+            CCylZ(7),
+            SphereCentered(1.0),
+            CylX({1, 2, 3}, 0.5),
+            CylY({1, 2, 3}, 0.6),
+            CylZ({1, 2, 3}, 0.7),
+            Sphere({1, 2, 3}, 1.5),
+            ConeX({1, 2, 3}, 0.2),
+            ConeY({1, 2, 3}, 0.4),
+            ConeZ({1, 2, 3}, 0.6),
+            SimpleQuadric({0, 1, 2}, {6, 7, 8}, 9),
+            GeneralQuadric({0, 1, 2}, {3, 4, 5}, {6, 7, 8}, 9),
+        };
+        unit.volumes = {[&unit] {
             // Create a volume
             VolumeInput v;
             for (logic_int i : range(unit.surfaces.size()))
@@ -87,11 +83,9 @@ class SurfaceActionTest : public OrangeGeoTestBase
             }
             v.logic.insert(v.logic.end(), {logic::ltrue, logic::lor});
             v.bbox = {{-1, -1, -1}, {1, 1, 1}};
-            unit.volumes = {std::move(v)};
-        }
-        {
-            unit.bbox = {{-3, -2, -1}, {6, 8, 10}};
-        }
+            v.zorder = ZOrder::media;
+            return v;
+        }()};
 
         // Construct a single dummy volume
         this->build_geometry(std::move(unit));

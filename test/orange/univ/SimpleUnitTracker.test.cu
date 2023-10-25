@@ -38,12 +38,7 @@ __global__ void initialize_kernel(ParamsRef<MemSpace::device> const params,
 void test_initialize(ParamsRef<MemSpace::device> const& params,
                      StateRef<MemSpace::device> const& state)
 {
-    CELER_LAUNCH_KERNEL(initialize,
-                        device().default_block_size(),
-                        state.size(),
-                        0,
-                        params,
-                        state);
+    CELER_LAUNCH_KERNEL(initialize, state.size(), 0, params, state);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 

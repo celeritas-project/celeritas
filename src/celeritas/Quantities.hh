@@ -95,6 +95,13 @@ struct Millibarn
     }
 };
 
+//! Unit for field
+struct Tesla
+{
+    //! Conversion factor from the unit to CGS
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::tesla; }
+};
+
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Derivative units
@@ -120,6 +127,7 @@ using MevMomentum = Quantity<UnitDivide<Mev, CLight>>;
 using MevMomentumSq = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
 using LightSpeed = Quantity<CLight>;
 using AmuMass = Quantity<Amu>;
+using FieldTesla = Quantity<Tesla>;
 //!@}
 
 //---------------------------------------------------------------------------//

@@ -28,6 +28,7 @@
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -158,6 +159,7 @@ SharedParams::SharedParams(SetupOptions const& options)
     CELER_EXPECT(!*this);
 
     CELER_LOG_LOCAL(status) << "Initializing Celeritas shared data";
+    ScopedProfiling profile_this{"construct-params"};
     ScopedMem record_mem("SharedParams.construct");
     ScopedTimeLog scoped_time;
 
@@ -327,8 +329,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
         input.action_registry = params.action_reg.get();
 
         input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
-        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy{
-            imported->em_params.lowest_electron_energy};
+        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy(
+            imported->em_params.lowest_electron_energy);
         input.options.secondary_stack_factor = options.secondary_stack_factor;
 
         return std::make_shared<PhysicsParams>(std::move(input));

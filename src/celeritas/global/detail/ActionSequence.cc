@@ -82,6 +82,7 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 {
     for (auto const& sp_action : begin_run_)
     {
+        ScopedProfiling profile_this{sp_action->label()};
         sp_action->begin_run(params, state);
     }
 }
@@ -99,8 +100,7 @@ void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
-    ScopedProfiling profile_this{"step"};
-    if (M == MemSpace::host || options_.sync)
+    if ((M == MemSpace::host || options_.sync) && !state.warming_up())
     {
         // Execute all actions and record the time elapsed
         for (auto i : range(actions_.size()))

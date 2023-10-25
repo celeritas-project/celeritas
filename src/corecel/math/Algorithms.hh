@@ -425,6 +425,11 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
     {
         return v * ipow<(N - 1) / 2>(v) * ipow<(N - 1) / 2>(v);
     }
+#if (__CUDACC_VER_MAJOR__ < 11) \
+    || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
+    // "error: missing return statement at end of non-void function"
+    return T{};
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -490,7 +495,11 @@ template<class T>
 
 //---------------------------------------------------------------------------//
 /*!
- * Math constants (POSIX derivative);
+ * Double-precision math constant (POSIX derivative).
+ *
+ * These should be used in *host* or *type-dependent* circumstances because, if
+ * using \c CELERITAS_REAL_TYPE=float, this could have more accuracy than
+ * \c celeritas::constants::pi .
  */
 inline constexpr double m_pi = detail::m_pi;
 

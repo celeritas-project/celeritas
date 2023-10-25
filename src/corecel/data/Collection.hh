@@ -210,6 +210,19 @@ struct AllItems
  * we always want to build host code in C++ files for development ease and to
  * allow testing when CUDA is disabled.)
  *
+ * A \c MemSpace::Mapped collection will be accessible on the host and the
+ * device. Unified addressing must be supported by the current device or an
+ * exception will be thrown when using the collection. Mapped pinned memory
+ * (i.e. zero-copy memory) is allocated, pages will always reside on host
+ * memory and each access from device code will require a slow memory transfer.
+ * Allocating pinned memory is slow and reduce the memory available to the
+ * system: only allocate the smallest amount needed with the longest possible
+ * lifetime. Frequently accessing data from device code will result in low
+ * performance. Usecase for this MemSapce are: as a src / dst memory space for
+ * asynchronous operations, on integrated GPU architecture, or a single
+ * coalesced read or write from device code.
+ * https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#zero-copy
+ *
  * \todo It would be easy to specialize the traits for the const_reference
  * ownership so that for device primitive data types (int, double) we access
  * via __ldg -- speeding up everywhere in the code without any invasive

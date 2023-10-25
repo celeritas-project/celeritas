@@ -364,7 +364,7 @@ function(celeritas_rdc_add_library target)
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
     EXPORT_PROPERTIES "CELERITAS_CUDA_LIBRARY_TYPE;CELERITAS_CUDA_FINAL_LIBRARY;CELERITAS_CUDA_MIDDLE_LIBRARY;CELERITAS_CUDA_STATIC_LIBRARY"
   )
-  target_link_libraries(${target}_final PUBLIC ${target})
+  target_link_libraries(${target}_final PUBLIC ${target} PRIVATE CUDA::toolkit)
   target_link_options(${target}_final
     PRIVATE $<DEVICE_LINK:$<TARGET_FILE:${target}${_staticsuf}>>
   )

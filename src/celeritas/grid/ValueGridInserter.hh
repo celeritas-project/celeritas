@@ -46,8 +46,8 @@ class ValueGridInserter
         = Collection<real_type, Ownership::value, MemSpace::host>;
     using XsGridCollection
         = Collection<XsGridData, Ownership::value, MemSpace::host>;
-    using SpanConstReal = Span<real_type const>;
-    using InterpolatedGrid = std::pair<SpanConstReal, Interp>;
+    using SpanConstDbl = Span<double const>;
+    using InterpolatedGrid = std::pair<SpanConstDbl, Interp>;
     using XsIndex = ItemId<XsGridData>;
     using GenericIndex = ItemId<GenericGridData>;
     //!@}
@@ -59,10 +59,10 @@ class ValueGridInserter
     // Add a grid of xs-like data
     XsIndex operator()(UniformGridData const& log_grid,
                        size_type prime_index,
-                       SpanConstReal values);
+                       SpanConstDbl values);
 
     // Add a grid of uniform log-grid data
-    XsIndex operator()(UniformGridData const& log_grid, SpanConstReal values);
+    XsIndex operator()(UniformGridData const& log_grid, SpanConstDbl values);
 
     // Add a grid of generic data
     GenericIndex operator()(InterpolatedGrid grid, InterpolatedGrid values);

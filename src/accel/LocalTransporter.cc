@@ -105,8 +105,8 @@ void LocalTransporter::Push(G4Track const& g4track)
 
     track.particle_id = particles_->find(
         PDGNumber{g4track.GetDefinition()->GetPDGEncoding()});
-    track.energy = units::MevEnergy{
-        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV)};
+    track.energy = units::MevEnergy(
+        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '"

@@ -39,8 +39,7 @@ __global__ void sa_test_kernel(SATestInput input)
 //! Run on device and return results
 void sa_test(SATestInput input)
 {
-    CELER_LAUNCH_KERNEL(
-        sa_test, device().default_block_size(), input.states.size(), 0, input);
+    CELER_LAUNCH_KERNEL(sa_test, input.states.size(), 0, input);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 

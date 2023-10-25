@@ -52,12 +52,7 @@ void rng_state_init(DeviceRef<CuHipRngStateData> const& rng,
                     DeviceCRef<CuHipRngInitData> const& seeds)
 {
     CELER_EXPECT(rng.size() == seeds.size());
-    CELER_LAUNCH_KERNEL(rng_state_init,
-                        celeritas::device().default_block_size(),
-                        seeds.size(),
-                        0,
-                        rng,
-                        seeds);
+    CELER_LAUNCH_KERNEL(rng_state_init, seeds.size(), 0, rng, seeds);
 }
 
 //---------------------------------------------------------------------------//

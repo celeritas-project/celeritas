@@ -21,12 +21,14 @@ list(APPEND SOURCES
   construct/CsgTree.cc
   construct/CsgTypes.cc
   construct/CsgTreeUtils.cc
-  construct/SurfaceInputBuilder.cc
+  construct/DepthCalculator.cc
   construct/detail/NodeSimplifier.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
   detail/RectArrayInserter.cc
+  detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
+  detail/UniverseInserter.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
   surf/GeneralQuadric.cc
@@ -50,6 +52,7 @@ if(CELERITAS_USE_JSON)
     BoundingBoxIO.json.cc
     construct/CsgTreeIO.json.cc
     construct/OrangeInputIO.json.cc
+    construct/detail/OrangeInputIOImpl.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()

@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -37,6 +38,7 @@ Stepper<M>::Stepper(Input input)
     }();
 
     // Execute beginning-of-run action
+    ScopedProfiling profile_this{"begin-run"};
     actions_->begin_run(*params_, state_);
 }
 
@@ -55,6 +57,7 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
+    ScopedProfiling profile_this{"step"};
     actions_->execute(*params_, state_);
 
     // Get the number of track initializers and active tracks

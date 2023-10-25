@@ -30,7 +30,7 @@ ValueGridInserter::ValueGridInserter(RealCollection* real_data,
  */
 auto ValueGridInserter::operator()(UniformGridData const& log_grid,
                                    size_type prime_index,
-                                   SpanConstReal values) -> XsIndex
+                                   SpanConstDbl values) -> XsIndex
 {
     CELER_EXPECT(log_grid);
     CELER_EXPECT(log_grid.size == values.size());
@@ -49,7 +49,7 @@ auto ValueGridInserter::operator()(UniformGridData const& log_grid,
  * Add a grid of log-spaced data without 1/E scaling.
  */
 auto ValueGridInserter::operator()(UniformGridData const& log_grid,
-                                   SpanConstReal values) -> XsIndex
+                                   SpanConstDbl values) -> XsIndex
 {
     return (*this)(log_grid, XsGridData::no_scaling(), values);
 }
