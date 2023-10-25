@@ -84,6 +84,7 @@ TEST_F(LdgIteratorTest, opaqueid_t)
     EXPECT_TRUE((std::is_same_v<ptr_type, TestId const*>));
     EXPECT_TRUE(ldg_start);
     EXPECT_EQ(static_cast<ptr_type>(ldg_start), some_data.data());
+    EXPECT_EQ(ldg_start->unchecked_get(), 1);
     EXPECT_EQ(*ldg_start++, TestId{1});
     EXPECT_EQ(*ldg_start--, TestId{2});
     EXPECT_EQ(*++ldg_start, TestId{2});
