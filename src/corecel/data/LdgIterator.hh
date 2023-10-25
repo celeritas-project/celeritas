@@ -120,7 +120,7 @@ class LdgIterator
     //!@}
 
   private:
-    pointer ptr_;
+    pointer ptr_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
