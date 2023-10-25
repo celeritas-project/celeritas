@@ -11,7 +11,6 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/data/LdgIterator.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "ObserverPtr.hh"

@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <iterator>
+#include <type_traits>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -27,6 +28,8 @@ namespace celeritas
 template<class T>
 class LdgIterator
 {
+    static_assert(std::is_const_v<T>, "LdgIterator requires const data");
+
   private:
     using LoadPolicyT = detail::LdgLoader<T>;
 
@@ -124,7 +127,7 @@ class LdgIterator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-LdgIterator(T*) -> LdgIterator<std::remove_const_t<T>>;
+LdgIterator(T*) -> LdgIterator<std::add_const_t<T>>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -212,7 +215,7 @@ swap(LdgIterator<T>& lhs, LdgIterator<T>& rhs) noexcept
 //!@{
 //! Helper
 template<class T>
-inline LdgIterator<T> make_ldg_iterator(T const* ptr) noexcept
+inline LdgIterator<T> make_ldg_iterator(T* ptr) noexcept
 {
     return LdgIterator{ptr};
 }

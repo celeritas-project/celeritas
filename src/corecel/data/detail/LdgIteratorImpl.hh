@@ -24,7 +24,8 @@ namespace detail
 template<class T>
 struct LdgLoader
 {
-    static_assert(std::is_arithmetic_v<T>);
+    static_assert(std::is_arithmetic_v<T> && std::is_const_v<T>,
+                  "Only const arithmetic types are supported by __ldg");
     using value_type = T;
     using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;
@@ -44,9 +45,11 @@ struct LdgLoader
  * Wraps the underlying index in a OpaqueId when returning it.
  */
 template<class I, class T>
-struct LdgLoader<OpaqueId<I, T>>
+struct LdgLoader<OpaqueId<I, T> const>
 {
-    static_assert(std::is_arithmetic_v<T>);
+    static_assert(std::is_arithmetic_v<T>,
+                  "OpaqueId needs to be indexed with a type supported by "
+                  "__ldg");
     using value_type = OpaqueId<I, T>;
     using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;

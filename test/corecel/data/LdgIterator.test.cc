@@ -32,7 +32,7 @@ class LdgIteratorTest : public ::celeritas::test::Test
 TEST_F(LdgIteratorTest, arithmetic_t)
 {
     using VecInt = std::vector<int>;
-    VecInt some_data = {1, 2, 3, 4};
+    VecInt const some_data = {1, 2, 3, 4};
     auto n = some_data.size();
     auto start = some_data.begin();
     auto end = some_data.end();
@@ -66,7 +66,7 @@ TEST_F(LdgIteratorTest, arithmetic_t)
     EXPECT_EQ(ldg_end - ldg_start, n);
     ldg_end = ldg_start;
     EXPECT_EQ(ldg_end, ldg_start);
-    auto ldg_nullptr = LdgIterator<int>{nullptr};
+    auto ldg_nullptr = LdgIterator<int const>{nullptr};
     EXPECT_FALSE(ldg_nullptr);
 }
 
@@ -74,7 +74,7 @@ TEST_F(LdgIteratorTest, opaqueid_t)
 {
     using TestId = OpaqueId<struct LdgIteratorOpaqueIdTest_>;
     using VecId = std::vector<TestId>;
-    VecId some_data = {TestId{1}, TestId{2}, TestId{3}, TestId{4}};
+    VecId const some_data = {TestId{1}, TestId{2}, TestId{3}, TestId{4}};
     auto n = some_data.size();
     auto ldg_start = make_ldg_iterator(some_data.data());
     auto ldg_end = make_ldg_iterator(some_data.data() + n);
@@ -104,7 +104,7 @@ TEST_F(LdgIteratorTest, opaqueid_t)
     EXPECT_EQ(ldg_end - ldg_start, n);
     ldg_end = ldg_start;
     EXPECT_EQ(ldg_end, ldg_start);
-    auto ldg_nullptr = LdgIterator<int>{nullptr};
+    auto ldg_nullptr = LdgIterator<int const>{nullptr};
     EXPECT_FALSE(ldg_nullptr);
 }
 
