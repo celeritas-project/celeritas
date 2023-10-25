@@ -39,7 +39,7 @@ endif()
 
 if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
   list(APPEND SOURCES
-    HitRootIO.cc
+    RootIO.cc
   )
   list(APPEND LIBRARIES ROOT::Tree)
 endif()

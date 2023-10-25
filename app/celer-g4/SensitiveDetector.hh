@@ -10,6 +10,8 @@
 #include <G4THitsCollection.hh>
 #include <G4VSensitiveDetector.hh>
 
+#include "celeritas/Types.hh"
+
 #include "SensitiveHit.hh"
 
 class G4Step;
@@ -47,9 +49,8 @@ class SensitiveDetector final : public G4VSensitiveDetector
     //// HELPER FUNCTIONS ////
 
     // Store step point (pre- and post-step)
-    void store_step_point(G4StepPoint& step_point,
-                          StepData::StepType step_type,
-                          StepData& step);
+    void
+    store_step_point(G4StepPoint& step_point, StepPoint point, StepData& step);
 };
 
 //---------------------------------------------------------------------------//

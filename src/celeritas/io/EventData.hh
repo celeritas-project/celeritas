@@ -16,24 +16,20 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Particle pre- and post-step data.
+ *
+ * Volume ID is contiguous and mapped at runtime. Same ID used by
+ * \c EventData .
  */
 struct StepData
 {
-    enum StepType
-    {
-        pre,
-        post,
-        size_
-    };
-
-    // TODO: add process/action id
-    unsigned int detector_id[2]{0};  //!< Defined in SD Manager
-    double energy[2]{0};  //!< [MeV]
-    double energy_loss{0};  //!< [MeV]
-    double length{0};  //!< [cm]
+    // TODO: add process/action id enum
+    int volume[2]{0};  //!< Volume ID is defined at runtime
+    double energy[2]{0};  //!< Kinetic energy
+    double energy_loss{0};  //!< Same as energy deposition in hit data
+    double length{0};  //!< Step length
     std::array<double, 3> dir[2]{{0, 0, 0}};  //!< Unit vector
     std::array<double, 3> pos[2]{{0, 0, 0}};  //!< [cm]
-    double time[2]{0};  //!< [s]
+    double time[2]{0};  //!< Global coordinate time
 };
 
 //---------------------------------------------------------------------------//
@@ -42,25 +38,25 @@ struct StepData
  */
 struct HitData
 {
-    unsigned int id{0};  //!< Detector ID
+    unsigned int id{0};  //!< Volume's copy number
     double edep{0};  //!< Energy deposition
-    double time{0};  //!< Time (global coordinate)
+    double time{0};  //!< Global coordinate time
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Event data to be used within a Geant4/Celeritas offloading application.
  *
- * DetectorId is a contiguous Id available globally and mapped to its
+ * VolumeId is a contiguous Id available globally and mapped to its
  * respective volume name.
  */
 struct EventData
 {
-    using DetectorId = int;
+    using VolumeId = int;
 
     int event_id{0};
     std::vector<StepData> steps;
-    std::map<DetectorId, std::vector<HitData>> hits;
+    std::map<VolumeId, std::vector<HitData>> hits;
 };
 
 //---------------------------------------------------------------------------//
