@@ -11,7 +11,7 @@ if [ -z "${CELER_INSTALL_DIR}" ]; then
 fi
 export CMAKE_PREFIX_PATH=${CELER_INSTALL_DIR}:${CMAKE_PREFIX_PATH}
 
-test -n "${CMAKE_PRESET}"
+test -n "${CMAKE_PRESET}" || (echo "CMAKE_PRESET is undefined"; exit 1)
 
 build_local() {
   git clean -fxd .
@@ -32,6 +32,5 @@ if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
   # The 'accel' example requires Geant4 and VecGeom
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
-  ./simple-offload
-  ./fastsim-offload
+  ctest -V --no-tests=error
 fi

@@ -11,11 +11,11 @@ These small examples demonstrate how to offload tracks to Celeritas in a serial
 or multithreaded environment using:
 
 #. A concrete G4UserTrackingAction user action class
-#. A concrete G4VFastSimulationModel 
+#. A concrete G4VFastSimulationModel
 
-The :ref:`accel` library is the only part of Celeritas that needs to be understood. 
-The key components are global SetupOptions and SharedParams, coupled to thread-local 
-SimpleOffload and LocalTransporter. The SimpleOffload provides all of the core 
+The :ref:`accel` library is the only part of Celeritas that needs to be understood.
+The key components are global SetupOptions and SharedParams, coupled to thread-local
+SimpleOffload and LocalTransporter. The SimpleOffload provides all of the core
 methods needed to integrate into a Geant4 application's UserActions or other user classes.
 
 .. _example_cmake:
@@ -26,6 +26,7 @@ CMake infrastructure
 .. literalinclude:: ../../example/accel/CMakeLists.txt
    :language: cmake
    :start-at: project(
+   :end-before: END EXAMPLE CODE
 
 Main Executables
 ----------------
