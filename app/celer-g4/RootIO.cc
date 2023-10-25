@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/HitRootIO.cc
+//! \file celer-g4/RootIO.cc
 //---------------------------------------------------------------------------//
-#include "HitRootIO.hh"
+#include "RootIO.hh"
 
 #include <cstdio>
 #include <regex>
@@ -35,7 +35,7 @@ namespace app
 /*!
  * Create a ROOT output file for each worker thread in MT.
  */
-HitRootIO::HitRootIO()
+RootIO::RootIO()
 {
     ROOT::EnableThreadSafety();
 
@@ -73,9 +73,9 @@ HitRootIO::HitRootIO()
 /*!
  * Return the static thread local singleton instance.
  */
-HitRootIO* HitRootIO::Instance()
+RootIO* RootIO::Instance()
 {
-    static G4ThreadLocal HitRootIO instance;
+    static G4ThreadLocal RootIO instance;
     return &instance;
 }
 
@@ -83,7 +83,7 @@ HitRootIO* HitRootIO::Instance()
 /*!
  * Write sensitive hits to output in the form of HitEventData.
  */
-void HitRootIO::WriteHits(G4Event const* event)
+void RootIO::Write(G4Event const* event)
 {
     G4HCofThisEvent* hce = event->GetHCofThisEvent();
     if (hce == nullptr)
@@ -119,7 +119,7 @@ void HitRootIO::WriteHits(G4Event const* event)
 /*!
  * Fill event tree with HitEventData.
  */
-void HitRootIO::WriteObject(EventData* hit_event)
+void RootIO::WriteObject(EventData* hit_event)
 {
     if (!event_branch_)
     {
@@ -142,7 +142,7 @@ void HitRootIO::WriteObject(EventData* hit_event)
 /*!
  * Map sensitive detectors to contiguous IDs.
  */
-void HitRootIO::AddSensitiveDetector(std::string name)
+void RootIO::AddSensitiveDetector(std::string name)
 {
     auto iter = detector_name_id_map_.find(name);
 
@@ -156,7 +156,7 @@ void HitRootIO::AddSensitiveDetector(std::string name)
 /*!
  * Write, and Close or Merge output.
  */
-void HitRootIO::Close()
+void RootIO::Close()
 {
     CELER_EXPECT((file_ && file_->IsOpen())
                  || (G4Threading::IsMultithreadedApplication()
@@ -195,7 +195,7 @@ void HitRootIO::Close()
  * tutorials/multicore/mt103_fillNtupleFromMultipleThreads.C which stores
  * TBuffer data in memory and writes 32MB compressed output concurrently.
  */
-void HitRootIO::Merge()
+void RootIO::Merge()
 {
     auto const nthreads = get_num_threads(*G4RunManager::GetRunManager());
     std::vector<TFile*> files;
@@ -237,7 +237,7 @@ void HitRootIO::Merge()
  * Store TTree with sensitive detector names and their IDs (used by
  * EventData).
  */
-void HitRootIO::StoreSdMap(TFile* file)
+void RootIO::StoreSdMap(TFile* file)
 {
     CELER_EXPECT(file && file->IsOpen());
 

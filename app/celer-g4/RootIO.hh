@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/HitRootIO.hh
+//! \file celer-g4/RootIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -28,18 +28,18 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*
- * Example of writing sensitive hits to ROOT output
+ * Example of writing data to ROOT output.
  */
-class HitRootIO
+class RootIO
 {
-    friend class G4ThreadLocalSingleton<HitRootIO>;
+    friend class G4ThreadLocalSingleton<RootIO>;
 
   public:
     // Return non-owning pointer to a singleton
-    static HitRootIO* Instance();
+    static RootIO* Instance();
 
     // Write sensitive hits of a G4Event to ROOT output file
-    void WriteHits(G4Event const* event);
+    void Write(G4Event const* event);
 
     // Add detector name to map of sensitive detectors
     void AddSensitiveDetector(std::string name);
@@ -49,14 +49,14 @@ class HitRootIO
 
   private:
     // Construct by initializing TFile and TTree on each worker thread
-    HitRootIO();
-    HitRootIO(HitRootIO&&) = default;
+    RootIO();
+    RootIO(RootIO&&) = default;
 
     // Assignment operator
-    HitRootIO& operator=(HitRootIO&&) = default;
+    RootIO& operator=(RootIO&&) = default;
 
     // Default destructor
-    ~HitRootIO() = default;
+    ~RootIO() = default;
 
     //// HELPER FUNCTIONS ////
 
@@ -87,17 +87,17 @@ class HitRootIO
 };
 
 #if !CELERITAS_USE_ROOT
-inline HitRootIO* HitRootIO::Instance()
+inline RootIO* RootIO::Instance()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void HitRootIO::WriteHits(G4Event const*)
+inline void RootIO::Write(G4Event const*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void HitRootIO::Close()
+inline void RootIO::Close()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
