@@ -30,19 +30,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Template matching to determine if T is an OpaqueId
-template<class T>
-struct IsOpaqueId
-{
-    static constexpr bool value = false;
-};
-template<class V, class S>
-struct IsOpaqueId<OpaqueId<V, S>>
-{
-    static constexpr bool value = true;
-};
-
-//---------------------------------------------------------------------------//
 template<class T, Ownership W, typename = void>
 struct CollectionTraits
 {
@@ -67,7 +54,7 @@ template<class T>
 struct CollectionTraits<
     T,
     Ownership::const_reference,
-    std::enable_if_t<!std::is_arithmetic_v<T> && !IsOpaqueId<T>::value>>
+    std::enable_if_t<!std::is_arithmetic_v<T> && !is_opaque_id_v<T>>>
 {
     using type = T const;
     using const_type = T const;
@@ -75,20 +62,13 @@ struct CollectionTraits<
     using const_reference_type = const_type&;
 };
 template<class T>
-struct CollectionTraits<T,
-                        Ownership::const_reference,
-                        std::enable_if_t<std::is_arithmetic_v<T>>>
+struct CollectionTraits<
+    T,
+    Ownership::const_reference,
+    std::enable_if_t<std::is_arithmetic_v<T> || is_opaque_id_v<T>>>
 {
     using type = T const;
     using const_type = T const;
-    using reference_type = type;
-    using const_reference_type = const_type;
-};
-template<class I, class T>
-struct CollectionTraits<OpaqueId<I, T>, Ownership::const_reference, void>
-{
-    using type = OpaqueId<I, T> const;
-    using const_type = OpaqueId<I, T> const;
     using reference_type = type;
     using const_reference_type = const_type;
 };

@@ -93,14 +93,8 @@ class Span
 
     //!@{
     //! \name Iterators
-    CELER_CONSTEXPR_FUNCTION iterator begin() const
-    {
-        return iterator{s_.data};
-    }
-    CELER_CONSTEXPR_FUNCTION iterator end() const
-    {
-        return iterator{s_.data + s_.size};
-    }
+    CELER_CONSTEXPR_FUNCTION iterator begin() const { return s_.data; }
+    CELER_CONSTEXPR_FUNCTION iterator end() const { return s_.data + s_.size; }
     //!@}
 
     //!@{
