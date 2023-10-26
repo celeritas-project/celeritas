@@ -63,6 +63,12 @@ struct LdgLoader<OpaqueId<I, T> const>
 #endif
     }
 };
+
+// True if T is supported by a LdgLoader specialization
+template<class T>
+inline constexpr bool is_ldg_supported_v
+    = std::is_const_v<T> && (std::is_arithmetic_v<T> || is_opaque_id_v<T>);
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

@@ -180,6 +180,10 @@ template<class V, class S>
 struct IsOpaqueId<OpaqueId<V, S>> : std::true_type
 {
 };
+template<class V, class S>
+struct IsOpaqueId<OpaqueId<V, S> const> : std::true_type
+{
+};
 template<class T>
 inline constexpr bool is_opaque_id_v = IsOpaqueId<T>::value;
 //---------------------------------------------------------------------------//

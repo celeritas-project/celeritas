@@ -28,7 +28,8 @@ namespace celeritas
 template<class T>
 class LdgIterator
 {
-    static_assert(std::is_const_v<T>, "LdgIterator requires const data");
+    static_assert(detail::is_ldg_supported_v<T>,
+                  "LdgIterator requires const arithmetic or OpaqueId type");
 
   private:
     using LoadPolicyT = detail::LdgLoader<T>;
@@ -243,6 +244,18 @@ inline LdgIterator<T> make_ldg_iterator(T* ptr) noexcept
 {
     return LdgIterator{ptr};
 }
+
+/*!
+ * Wrapper struct that containers can use to specialize on types supported by
+ * LdgIterator.
+ */
+template<class T>
+struct LdgValue
+{
+    using value_type = T;
+    static_assert(detail::is_ldg_supported_v<T>,
+                  "const arithmetic or OpaqueId type required");
+};
 //!@}
 
 //---------------------------------------------------------------------------//
