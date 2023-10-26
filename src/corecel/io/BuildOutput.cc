@@ -13,6 +13,7 @@
 #include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "celeritas_version.h"
+#include "corecel/Macros.hh"
 
 #include "JsonPimpl.hh"
 #if CELERITAS_USE_JSON
