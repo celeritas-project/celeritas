@@ -631,6 +631,8 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(accel/detail/HitProcessor.test.cc
     ENVIRONMENT "${_geant4_test_env}")
   if(CELERITAS_REAL_TYPE STREQUAL "double")
+    # This test requires Geant4 *geometry* which is incompatible
+    # with single-precision
     celeritas_add_test(accel/detail/TouchableUpdater.test.cc)
   endif()
 endif()
