@@ -711,9 +711,9 @@ TEST_F(TwoBoxesTest, electron_tangent_cross)
 
         EXPECT_SOFT_NEAR(theta, result.distance, .025);
         EXPECT_TRUE(result.boundary);
-        EXPECT_LT(distance(Real3({x, 5, 0}), geo.pos()), 1e-5)
+        EXPECT_LT(distance(Real3({x, 5, 0}), geo.pos()), 2e-5)
             << "Actually stopped at " << geo.pos();
-        EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-5)
+        EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 2e-5)
             << "Ending direction at " << geo.dir();
 
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)

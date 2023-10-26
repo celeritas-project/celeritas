@@ -90,8 +90,14 @@ TEST(GeneralQuadricTest, all)
         EXPECT_SOFT_EQ(1e-16, distances[0]);
         EXPECT_SOFT_EQ(6.0, distances[1]);
     }
+    else if (distances[1] == no_intersection())
+    {
+        // x86 hardware
+        EXPECT_SOFT_EQ(6.0f, distances[0]);
+    }
     else
     {
+        // Apple Silicon
         EXPECT_SOFT_EQ(1e-7f, distances[0]);
         EXPECT_SOFT_EQ(6.0f, distances[1]);
     }
