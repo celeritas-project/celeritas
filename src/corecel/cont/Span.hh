@@ -45,10 +45,10 @@ class Span
     using size_type = std::size_t;
     using pointer = T*;
     using const_pointer = T const*;
-    using reference = T&;
-    using const_reference = T const&;
-    using iterator = pointer;
-    using const_iterator = const_pointer;
+    using reference = typename detail::SpanTrait<T>::reference;
+    using const_reference = typename detail::SpanTrait<T>::const_reference;
+    using iterator = typename detail::SpanTrait<T>::iterator;
+    using const_iterator = typename detail::SpanTrait<T>::const_iterator;
     //!@}
 
     //! Size (may be dynamic)
@@ -93,8 +93,14 @@ class Span
 
     //!@{
     //! \name Iterators
-    CELER_CONSTEXPR_FUNCTION iterator begin() const { return s_.data; }
-    CELER_CONSTEXPR_FUNCTION iterator end() const { return s_.data + s_.size; }
+    CELER_CONSTEXPR_FUNCTION iterator begin() const
+    {
+        return iterator{s_.data};
+    }
+    CELER_CONSTEXPR_FUNCTION iterator end() const
+    {
+        return iterator{s_.data + s_.size};
+    }
     //!@}
 
     //!@{
@@ -108,7 +114,10 @@ class Span
     {
         return s_.data[s_.size - 1];
     }
-    CELER_CONSTEXPR_FUNCTION pointer data() const { return s_.data; }
+    CELER_CONSTEXPR_FUNCTION pointer data() const
+    {
+        return static_cast<pointer>(s_.data);
+    }
     //!@}
 
     //!@{
