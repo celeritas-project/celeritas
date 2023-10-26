@@ -20,24 +20,30 @@ namespace celeritas
 namespace detail
 {
 template<class T, typename = void>
-struct SpanTrait
+struct SpanTraits
 {
-    using iterator = std::add_pointer_t<T>;
-    using const_iterator = std::add_pointer_t<T const>;
+    using pointer = std::add_pointer_t<T>;
+    using const_pointer = std::add_pointer_t<T const>;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
     using reference = std::add_lvalue_reference_t<T>;
     using const_reference = std::add_lvalue_reference_t<T const>;
 };
 template<class T>
-struct SpanTrait<T const, std::enable_if_t<std::is_arithmetic_v<T>>>
+struct SpanTraits<T const, std::enable_if_t<std::is_arithmetic_v<T>>>
 {
+    using pointer = std::add_pointer_t<T const>;
+    using const_pointer = pointer;
     using iterator = LdgIterator<T const>;
     using const_iterator = iterator;
     using reference = T;
     using const_reference = T;
 };
 template<class I, class T>
-struct SpanTrait<OpaqueId<I, T> const, void>
+struct SpanTraits<OpaqueId<I, T> const, void>
 {
+    using pointer = std::add_pointer_t<OpaqueId<I, T> const>;
+    using const_pointer = pointer;
     using iterator = LdgIterator<OpaqueId<I, T> const>;
     using const_iterator = iterator;
     using reference = OpaqueId<I, T> const;
@@ -74,7 +80,7 @@ struct SpanImpl
 {
     //// DATA ////
 
-    typename SpanTrait<T>::iterator data = nullptr;
+    typename SpanTraits<T>::iterator data = nullptr;
     static constexpr std::size_t size = Extent;
 
     //// METHODS ////
@@ -106,7 +112,7 @@ struct SpanImpl<T, 0>
 {
     //// DATA ////
 
-    typename SpanTrait<T>::iterator data = nullptr;
+    typename SpanTraits<T>::iterator data = nullptr;
     static constexpr std::size_t size = 0;
 
     //// CONSTRUCTORS ////
@@ -130,7 +136,7 @@ struct SpanImpl<T, dynamic_extent>
 {
     //// DATA ////
 
-    typename SpanTrait<T>::iterator data = nullptr;
+    typename SpanTraits<T>::iterator data = nullptr;
     std::size_t size = 0;
 
     //// METHODS ////

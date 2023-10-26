@@ -249,8 +249,10 @@ class Collection
     using SpanConstT = Span<const_value_type>;
     using pointer = ObserverPtr<value_type, M>;
     using const_pointer = ObserverPtr<const_value_type, M>;
-    using reference_type = value_type&;
-    using const_reference_type = const_value_type&;
+    using reference_type =
+        typename detail::CollectionTraits<T, W>::reference_type;
+    using const_reference_type =
+        typename detail::CollectionTraits<T, W>::const_reference_type;
     using size_type = typename I::size_type;
     using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;

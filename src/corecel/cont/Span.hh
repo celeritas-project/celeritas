@@ -43,12 +43,12 @@ class Span
     using element_type = T;
     using value_type = std::remove_cv_t<T>;
     using size_type = std::size_t;
-    using pointer = T*;
-    using const_pointer = T const*;
-    using reference = typename detail::SpanTrait<T>::reference;
-    using const_reference = typename detail::SpanTrait<T>::const_reference;
-    using iterator = typename detail::SpanTrait<T>::iterator;
-    using const_iterator = typename detail::SpanTrait<T>::const_iterator;
+    using pointer = typename detail::SpanTraits<T>::pointer;
+    using const_pointer = typename detail::SpanTraits<T>::const_pointer;
+    using reference = typename detail::SpanTraits<T>::reference;
+    using const_reference = typename detail::SpanTraits<T>::const_reference;
+    using iterator = typename detail::SpanTraits<T>::iterator;
+    using const_iterator = typename detail::SpanTraits<T>::const_iterator;
     //!@}
 
     //! Size (may be dynamic)

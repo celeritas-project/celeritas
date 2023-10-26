@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #ifndef CELER_DEVICE_COMPILE
 #    include <vector>
 
@@ -28,27 +30,67 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<class T, Ownership W>
+//! Template matching to determine if T is an OpaqueId
+template<class T>
+struct IsOpaqueId
+{
+    static constexpr bool value = false;
+};
+template<class V, class S>
+struct IsOpaqueId<OpaqueId<V, S>>
+{
+    static constexpr bool value = true;
+};
+
+//---------------------------------------------------------------------------//
+template<class T, Ownership W, typename = void>
 struct CollectionTraits
 {
     using type = T;
     using const_type = T const;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
-struct CollectionTraits<T, Ownership::reference>
+struct CollectionTraits<T, Ownership::reference, void>
 {
     using type = T;
     using const_type = T;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
-struct CollectionTraits<T, Ownership::const_reference>
+struct CollectionTraits<
+    T,
+    Ownership::const_reference,
+    std::enable_if_t<!std::is_arithmetic_v<T> && !IsOpaqueId<T>::value>>
 {
     using type = T const;
     using const_type = T const;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
+};
+template<class T>
+struct CollectionTraits<T,
+                        Ownership::const_reference,
+                        std::enable_if_t<std::is_arithmetic_v<T>>>
+{
+    using type = T const;
+    using const_type = T const;
+    using reference_type = type;
+    using const_reference_type = const_type;
+};
+template<class I, class T>
+struct CollectionTraits<OpaqueId<I, T>, Ownership::const_reference, void>
+{
+    using type = OpaqueId<I, T> const;
+    using const_type = OpaqueId<I, T> const;
+    using reference_type = type;
+    using const_reference_type = const_type;
 };
 
 //---------------------------------------------------------------------------//
@@ -238,19 +280,6 @@ struct CollectionAssigner<Ownership::value, MemSpace::mapped>
     {
         return {{source.data.data(), source.data.data() + source.data.size()}};
     }
-};
-
-//---------------------------------------------------------------------------//
-//! Template matching to determine if T is an OpaqueId
-template<class T>
-struct IsOpaqueId
-{
-    static constexpr bool value = false;
-};
-template<class V, class S>
-struct IsOpaqueId<OpaqueId<V, S>>
-{
-    static constexpr bool value = true;
 };
 
 //---------------------------------------------------------------------------//
