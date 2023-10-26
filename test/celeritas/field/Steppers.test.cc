@@ -6,8 +6,6 @@
 //! \file celeritas/field/Steppers.test.cc
 //---------------------------------------------------------------------------//
 
-#include "Steppers.test.hh"
-
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -25,11 +23,21 @@
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
+#include "celeritas/field/MakeMagFieldPropagator.hh"
 
 namespace celeritas
 {
 namespace test
 {
+struct StepperTestOutput
+{
+    std::vector<real_type> pos_x;
+    std::vector<real_type> pos_z;
+    std::vector<real_type> mom_y;
+    std::vector<real_type> mom_z;
+    std::vector<real_type> error;
+};
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
