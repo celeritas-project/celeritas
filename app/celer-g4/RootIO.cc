@@ -86,30 +86,32 @@ RootIO* RootIO::Instance()
  */
 void RootIO::Write(G4Event const* event)
 {
-    G4HCofThisEvent* hce = event->GetHCofThisEvent();
-    if (hce == nullptr)
+    auto const hit_cols = event->GetHCofThisEvent();
+    if (!hit_cols)
     {
         return;
     }
 
-    // Write steps and collection of hits
+    // Populate EventData using the collections of sensitive hits
     EventData event_data;
-    event_data.event_id = event->GetEventID();
-    for (int i = 0; i < hce->GetNumberOfCollections(); i++)
-    {
-        std::vector<HitData> hits;
+    event_data.steps.resize(detector_name_id_map_.size());
 
-        G4VHitsCollection* hc = hce->GetHC(i);
+    event_data.event_id = event->GetEventID();
+    for (int i = 0; i < hit_cols->GetNumberOfCollections(); i++)
+    {
+        auto const hc = hit_cols->GetHC(i);
+        std::vector<EventStepData> steps;
+        steps.resize(hc->GetSize());
+
         for (std::size_t j = 0; j < hc->GetSize(); ++j)
         {
             auto* sd_hit = dynamic_cast<SensitiveHit*>(hc->GetHit(j));
-            auto const& result = sd_hit->data();
-            event_data.steps.push_back(result.step);
-            hits.push_back(result.hit);
+            steps[j] = sd_hit->data();
         }
-        auto iter = detector_name_id_map_.find(hc->GetName());
+
+        auto const iter = detector_name_id_map_.find(hc->GetName());
         CELER_ASSERT(iter != detector_name_id_map_.end());
-        event_data.hits.insert({iter->second, std::move(hits)});
+        event_data.steps[iter->second] = std::move(steps);
     }
 
     this->WriteObject(&event_data);
@@ -149,6 +151,13 @@ void RootIO::AddSensitiveDetector(std::string name)
     {
         detector_name_id_map_.insert({name, ++detector_id_});
     }
+
+    // if (auto iter
+    //     = detector_name_id_map_.insert({std::move(name), detector_id_});
+    //     iter == detector_name_id_map_.end())
+    // {
+    //     ++detector_id_;
+    // }
 }
 
 //---------------------------------------------------------------------------//

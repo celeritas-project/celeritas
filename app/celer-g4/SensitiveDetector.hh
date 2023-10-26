@@ -49,8 +49,9 @@ class SensitiveDetector final : public G4VSensitiveDetector
     //// HELPER FUNCTIONS ////
 
     // Store step point (pre- and post-step)
-    void
-    store_step_point(G4StepPoint& step_point, StepPoint point, StepData& step);
+    void store_step_point(G4StepPoint& step_point,
+                          StepPoint point,
+                          EventStepData& step);
 };
 
 //---------------------------------------------------------------------------//

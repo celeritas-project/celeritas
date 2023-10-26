@@ -19,44 +19,44 @@ namespace celeritas
  *
  * TODO: Map and add a unified process/action id
  */
-struct StepData
+struct EventStepData
 {
     int volume{0};  //!< Logical volume ID
-    double energy_loss{0};  //!< Same as energy deposition in hit data
-    double length{0};  //!< Step length
+    int pdg{0};
+    int parent_id{0};
+    int track_id{0};
+    double energy_loss{0};  //!< Same as energy deposition [MeV]
+    double length{0};  //!< Step length [cm]
 
     // Pre- and post-step information
-    double energy[2]{0};  //!< Kinetic energy
+    double energy[2]{0};  //!< Kinetic energy [MeV]
     std::array<double, 3> dir[2]{{0, 0, 0}};  //!< Unit vector
     std::array<double, 3> pos[2]{{0, 0, 0}};  //!< [cm]
-    double time[2]{0};  //!< Global coordinate time
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Basic sensitive hit data.
- */
-struct HitData
-{
-    unsigned int id{0};  //!< Volume's copy number
-    double edep{0};  //!< Energy deposition
-    double time{0};  //!< Global coordinate time
+    double time[2]{0};  //!< Global coordinate time [s]
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Event data to be used within a Geant4/Celeritas offloading application.
  *
- * VolumeId is a contiguous Id available globally and mapped to its
- * respective volume name.
+ * The steps are designed to be assigned to each sensitive volume, so that a
+ * vector of steps of a given volume can be retrieved by doing
+ *
+ * \code
+ * auto const& sd_steps = event_data.steps[sensdet_id];
+ * for (auto const& step : sd_steps)
+ * {
+ *     // Access step from a given sensitive detector in this event.
+ * }
+ * \endcode
+ *
+ * Therefore, sensitive detector IDs must be contiguously assigned and mapped
+ * to their sensitive detector name at startup.
  */
 struct EventData
 {
-    using SensDetId = int;
-
     int event_id{0};
-    std::vector<StepData> steps;
-    std::map<SensDetId, std::vector<HitData>> hits;
+    std::vector<std::vector<EventStepData>> steps;
 };
 
 //---------------------------------------------------------------------------//

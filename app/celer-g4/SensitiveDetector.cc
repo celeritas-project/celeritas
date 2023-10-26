@@ -8,6 +8,7 @@
 #include "SensitiveDetector.hh"
 
 #include <memory>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4HCofThisEvent.hh>
 #include <G4SDManager.hh>
 #include <G4Step.hh>
@@ -17,21 +18,41 @@
 
 #include "corecel/Assert.hh"
 
+#include "GlobalSetup.hh"
 #include "RootIO.hh"
 
 namespace celeritas
 {
 namespace app
 {
+
+namespace
+{
 //---------------------------------------------------------------------------//
+/*!
+ * Helper function for returning an std::array from a G4ThreeVector.
+ */
+std::array<double, 3>
+make_array(G4ThreeVector const& vec, double const unit = 1)
+{
+    return {vec.x() / unit, vec.y() / unit, vec.z() / unit};
+}
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with sensitive detector name.
+ */
 SensitiveDetector::SensitiveDetector(std::string name)
     : G4VSensitiveDetector(name), hcid_{-1}, collection_{nullptr}
 {
     this->collectionName.insert(name);
 
-#if CELERITAS_USE_ROOT
-    RootIO::Instance()->AddSensitiveDetector(name);
-#endif
+    if (GlobalSetup::Instance()->GetWriteSDHits())
+    {
+        RootIO::Instance()->AddSensitiveDetector(name);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -73,18 +94,8 @@ bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
         return false;
     }
 
-    // Insert hit
-    HitData hit;
-    {
-        auto* touchable = g4step->GetPreStepPoint()->GetTouchable();
-        CELER_ASSERT(touchable);
-        hit.id = touchable->GetVolume()->GetCopyNo();
-        hit.edep = edep;
-        hit.time = g4step->GetPreStepPoint()->GetGlobalTime();  // [ns]
-    }
-
     // Insert pre- and post-step data
-    StepData step;
+    EventStepData step;
     {
         auto* pre_step = g4step->GetPreStepPoint();
         CELER_ASSERT(pre_step);
@@ -92,29 +103,32 @@ bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
         CELER_ASSERT(phys_vol);
         auto const* log_vol = phys_vol->GetLogicalVolume();
         CELER_ASSERT(log_vol);
+        auto const* g4track = g4step->GetTrack();
+        CELER_ASSERT(g4track);
 
         step.volume = log_vol->GetInstanceID();
-        step.energy_loss = edep;  // [MeV]
-        step.length = g4step->GetStepLength();  // [mm]
+        step.pdg = g4track->GetParticleDefinition()->GetPDGEncoding();
+        step.parent_id = g4track->GetParentID();
+        step.track_id = g4track->GetTrackID();
+        step.energy_loss = edep / CLHEP::MeV;
+        step.length = g4step->GetStepLength() / CLHEP::cm;
 
         // Pre- and post-step data
         this->store_step_point(*pre_step, StepPoint::pre, step);
-
-        auto* post_step = g4step->GetPostStepPoint();  // Can be undefined
-        if (post_step)
+        if (auto* post_step = g4step->GetPostStepPoint())
         {
             this->store_step_point(*post_step, StepPoint::post, step);
         }
     }
 
-    collection_->insert(new SensitiveHit(hit, step));
+    collection_->insert(new SensitiveHit(step));
     return true;
 }
 
 //---------------------------------------------------------------------------//
 void SensitiveDetector::store_step_point(G4StepPoint& step_point,
                                          StepPoint point,
-                                         StepData& step)
+                                         EventStepData& step)
 {
     auto const* phys_vol = step_point.GetPhysicalVolume();
     CELER_ASSERT(phys_vol);
@@ -122,16 +136,10 @@ void SensitiveDetector::store_step_point(G4StepPoint& step_point,
     CELER_ASSERT(log_vol);
     auto const p = static_cast<std::size_t>(point);
 
-    step.energy[p] = step_point.GetKineticEnergy();  // [MeV]
-    step.time[p] = step_point.GetGlobalTime();  // [ns]
-    auto const& pos = step_point.GetPosition();
-    step.pos[p][0] = pos.x();  // [mm]
-    step.pos[p][1] = pos.y();  // [mm]
-    step.pos[p][2] = pos.z();  // [mm]
-    auto const& dir = step_point.GetMomentumDirection();  // Unit vector
-    step.dir[p][0] = dir.x();
-    step.dir[p][1] = dir.y();
-    step.dir[p][2] = dir.z();
+    step.energy[p] = step_point.GetKineticEnergy() / CLHEP::MeV;
+    step.time[p] = step_point.GetGlobalTime() / CLHEP::s;
+    step.pos[p] = make_array(step_point.GetPosition(), CLHEP::cm);
+    step.dir[p] = make_array(step_point.GetMomentumDirection());
 }
 
 //---------------------------------------------------------------------------//
