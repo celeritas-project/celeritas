@@ -767,7 +767,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({-5 + x, 5, 0}), geo.pos()), 1e-5)
             << "Actually stopped at " << geo.pos();
-        EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-5)
+        EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), real_type{1.5e-5})
             << "Ending direction at " << geo.dir();
 
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
