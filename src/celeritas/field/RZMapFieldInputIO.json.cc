@@ -62,12 +62,13 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
     }
     if (convert_from_tesla)
     {
+        using FieldTesla = Quantity<units::Tesla, double>;
         // Convert units from JSON tesla to input native
         for (auto* f : {&inp.field_z, &inp.field_r})
         {
-            for (real_type& v : *f)
+            for (double& v : *f)
             {
-                v = native_value_from(units::FieldTesla{v});
+                v = native_value_from(FieldTesla(v));
             }
         }
     }

@@ -35,7 +35,7 @@ void copy_if_selected(const T1& src, T2& dst)
 /*!
  * Copy StepPointStateData values to TStepPoint arrays.
  */
-void copy_if_selected(Real3 const& src, std::array<double, 3>& dst)
+void copy_if_selected(Real3 const& src, std::array<real_type, 3>& dst)
 {
     std::memcpy(&dst, &src, sizeof(src));
 }

@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 
@@ -72,7 +74,13 @@ class ZHelixStepper
 
     //// COMMON PROPERTIES ////
 
-    static CELER_CONSTEXPR_FUNCTION real_type tolerance() { return 1e-10; }
+    static CELER_CONSTEXPR_FUNCTION real_type tolerance()
+    {
+        if constexpr (std::is_same_v<real_type, double>)
+            return 1e-10;
+        else if constexpr (std::is_same_v<real_type, float>)
+            return 1e-5f;
+    }
 };
 
 //---------------------------------------------------------------------------//

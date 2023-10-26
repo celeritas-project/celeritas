@@ -42,7 +42,9 @@ constexpr inline double convert_from_geant(double val, double units)
  */
 inline Real3 convert_from_geant(G4ThreeVector const& vec, double units)
 {
-    return {vec[0] / units, vec[1] / units, vec[2] / units};
+    return {static_cast<real_type>(vec[0] / units),
+            static_cast<real_type>(vec[1] / units),
+            static_cast<real_type>(vec[2] / units)};
 }
 
 //---------------------------------------------------------------------------//

@@ -617,7 +617,7 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {
     CELER_ASSERT(range >= 0);
     const real_type rho = params_.scalars.min_range;
-    if (range < rho * real_type(1.000001))
+    if (range < rho * (1 + celeritas::sqrt_tol()))
     {
         // Small range returns the step. The fudge factor avoids floating point
         // error in the interpolation below while preserving the near-linear

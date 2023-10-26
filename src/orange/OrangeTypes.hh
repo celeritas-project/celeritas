@@ -300,7 +300,13 @@ struct Tolerance
     real_type abs{};  //!< Absolute error [native length]
 
     //! Intercept tolerance for parallel-to-quadric cases
-    static CELER_CONSTEXPR_FUNCTION real_type sqrt_quadratic() { return 1e-5; }
+    static CELER_CONSTEXPR_FUNCTION real_type sqrt_quadratic()
+    {
+        if constexpr (std::is_same_v<real_type, double>)
+            return 1e-5;
+        else if constexpr (std::is_same_v<real_type, float>)
+            return 5e-2f;
+    }
 
     //! True if tolerances are valid
     CELER_CONSTEXPR_FUNCTION operator bool() const

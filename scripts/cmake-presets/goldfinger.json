@@ -43,6 +43,17 @@
       "cacheVariables": {
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "ON"},
         "CMAKE_SWIG_CXX_FLAGS": "-Wno-unused-parameter;-Wno-deprecated-declarations",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"}
+      }
+    },
+    {
+      "name": "float",
+      "displayName": "Single-precision arithmetic",
+      "inherits": [".base", "default"],
+      "cacheVariables": {
+        "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_REAL_TYPE": "float",
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"}
       }
     },

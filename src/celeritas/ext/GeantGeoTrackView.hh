@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <type_traits>
 #include <G4LogicalVolume.hh>
 #include <G4Navigator.hh>
@@ -182,8 +183,8 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
     // Initialize position/direction
-    pos_ = init.pos;
-    dir_ = init.dir;
+    std::copy(init.pos.begin(), init.pos.end(), pos_.begin());
+    std::copy(init.dir.begin(), init.dir.end(), dir_.begin());
     next_step_ = 0;
     safety_radius_ = -1;  // Assume *not* on a boundary
 
@@ -318,7 +319,8 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     if (result.distance <= max_step)
     {
         result.boundary = true;
-        result.distance = celeritas::max(result.distance, this->extra_push());
+        result.distance
+            = celeritas::max<real_type>(result.distance, this->extra_push());
         CELER_ENSURE(result.distance > 0);
     }
     else
@@ -343,7 +345,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
 /*!
  * Find the safety at the current position.
  */
-real_type GeantGeoTrackView::find_safety()
+auto GeantGeoTrackView::find_safety() -> real_type
 {
     return this->find_safety(numeric_limits<real_type>::infinity());
 }
@@ -355,7 +357,7 @@ real_type GeantGeoTrackView::find_safety()
  * \warning This can change the boundary state if the track was moved to or
  * initialized a point on the boundary.
  */
-real_type GeantGeoTrackView::find_safety(real_type max_step)
+auto GeantGeoTrackView::find_safety(real_type max_step) -> real_type
 {
     CELER_EXPECT(max_step > 0);
     if (!this->is_on_boundary() && (safety_radius_ < max_step))

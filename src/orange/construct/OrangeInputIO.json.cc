@@ -353,7 +353,7 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
     for (auto ax : range(Axis::size_))
     {
         value.grid[to_int(ax)]
-            = j.at(std::string(1, to_char(ax))).get<std::vector<real_type>>();
+            = j.at(std::string(1, to_char(ax))).get<std::vector<double>>();
         CELER_VALIDATE(value.grid[to_int(ax)].size() >= 2,
                        << "axis " << to_char(ax)
                        << " does must have at least two grid points");

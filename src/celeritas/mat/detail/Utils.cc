@@ -135,7 +135,7 @@ units::MevEnergy get_mean_excitation_energy(AtomicNumber atomic_number)
 
     int idx = atomic_number.unchecked_get() - 1;
     CELER_ASSERT(idx * sizeof(double) < sizeof(mean_excitation_energy));
-    return units::MevEnergy{1e-6 * mean_excitation_energy[idx]};
+    return units::MevEnergy(1e-6 * mean_excitation_energy[idx]);
 }
 
 //---------------------------------------------------------------------------//

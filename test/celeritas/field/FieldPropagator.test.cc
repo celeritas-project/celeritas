@@ -440,19 +440,45 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{2});
     UniformZField field(1 * units::tesla);
     FieldDriverOptions driver_options;
-    for (real_type delta : {1e-14, 1e-8, 1e-2, 0.1})
-    {
-        auto geo = this->make_geo_track_view({9.5, 9.5, 9.5}, {1, 0, 0});
-        EXPECT_EQ("world", this->volume_name(geo));
-        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
-            field, particle.charge());
-        auto propagate
-            = make_field_propagator(stepper, driver_options, particle, geo);
-        auto result = propagate(delta);
 
-        EXPECT_DOUBLE_EQ(delta, result.distance);
-        EXPECT_EQ(1, stepper.count());
+    std::vector<real_type> intersect_distance;
+    for (real_type delta : {1e-20, 1e-14, 1e-8, 1e-2, 0.1})
+    {
+        {
+            SCOPED_TRACE("Far from boundary");
+            auto geo = this->make_geo_track_view({9.5, 9.5, 9.5}, {1, 0, 0});
+            EXPECT_EQ("world", this->volume_name(geo));
+            auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+                field, particle.charge());
+            auto propagate = make_field_propagator(
+                stepper, driver_options, particle, geo);
+            auto result = propagate(delta);
+
+            EXPECT_DOUBLE_EQ(delta, result.distance);
+            EXPECT_EQ(1, stepper.count());
+        }
+
+        {
+            SCOPED_TRACE("Bump distance intersects boundary");
+            real_type const bump_distance
+                = (driver_options.delta_intersection * real_type{0.1});
+            real_type const eps = bump_distance * real_type{0.99};
+            auto geo = this->make_geo_track_view({real_type{5.0} + eps, 0, 0},
+                                                 {-1, 0, 0});
+            EXPECT_EQ("world", this->volume_name(geo));
+            auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+                field, particle.charge());
+            auto propagate = make_field_propagator(
+                stepper, driver_options, particle, geo);
+            auto result = propagate(delta);
+
+            intersect_distance.push_back(result.distance);
+            EXPECT_EQ(1, stepper.count());
+        }
     }
+    static real_type const expected_intersect_distance[]
+        = {1e-20, 1e-14, 1e-08, 9.9002453648129e-07, 9.924578491937e-07};
+    EXPECT_VEC_SOFT_EQ(expected_intersect_distance, intersect_distance);
 }
 
 // Electron takes small steps up to and from a boundary

@@ -105,9 +105,16 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
     bool tracks_can_loop;
     Propagation p;
     {
+#if CELERITAS_DEBUG
+        Real3 const orig_pos = track.make_geo_view().pos();
+#endif
         auto propagate = make_propagator(track);
         p = propagate(sim.step_length());
         tracks_can_loop = propagate.tracks_can_loop();
+        CELER_ASSERT(p.distance > 0);
+#if CELERITAS_DEBUG
+        CELER_ASSERT(track.make_geo_view().pos() != orig_pos);
+#endif
     }
 
     if (tracks_can_loop)

@@ -115,21 +115,24 @@ auto EventReader::operator()() -> result_type
         // Get the position of the vertex
         auto pos = par->production_vertex()->position();
         HepMC3::Units::convert(pos, evt.length_unit(), HepMC3::Units::CM);
-        primary.position = {pos.x() * units::centimeter,
-                            pos.y() * units::centimeter,
-                            pos.z() * units::centimeter};
+        auto to_cm = [](double v) {
+            return static_cast<real_type>(v) * units::centimeter;
+        };
+        primary.position = {to_cm(pos.x()), to_cm(pos.y()), to_cm(pos.z())};
 
         // Get the lab-frame time [s]
-        primary.time = pos.t() * units::centimeter / constants::c_light;
+        primary.time = to_cm(pos.t()) / constants::c_light;
 
         // Get the direction of the primary
         auto mom = par->momentum();
         HepMC3::Units::convert(mom, evt.momentum_unit(), HepMC3::Units::MEV);
-        primary.direction = {mom.px(), mom.py(), mom.pz()};
+        primary.direction = {static_cast<real_type>(mom.px()),
+                             static_cast<real_type>(mom.py()),
+                             static_cast<real_type>(mom.pz())};
         normalize_direction(&primary.direction);
 
         // Get the energy of the primary
-        primary.energy = units::MevEnergy{mom.e()};
+        primary.energy = units::MevEnergy{static_cast<real_type>(mom.e())};
 
         result.push_back(primary);
     }
