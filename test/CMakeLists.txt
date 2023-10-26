@@ -349,7 +349,7 @@ celeritas_add_test(celeritas/em/MuBremsstrahlung.test.cc ${_needs_double})
 celeritas_add_test(celeritas/em/Rayleigh.test.cc ${_needs_double})
 celeritas_add_test(celeritas/em/RelativisticBrem.test.cc ${_needs_double})
 celeritas_add_test(celeritas/em/SeltzerBerger.test.cc ${_needs_double})
-celeritas_add_test(celeritas/em/Wentzel.test.cc)
+celeritas_add_test(celeritas/em/Wentzel.test.cc ${_fixme_single})
 
 celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})

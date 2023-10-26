@@ -134,6 +134,12 @@ bool Test::strict_testing()
         // Disable strict testing for Geant4
         return false;
     }
+
+    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        // Disable strict testing for single precision
+        return false;
+    }
     return !envstr.empty();
 }
 

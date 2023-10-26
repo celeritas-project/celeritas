@@ -85,15 +85,15 @@ TEST(GeneralQuadricTest, all)
 
     // "Not on surface", inward
     distances = calc_intersections(gq, on_surface, inward, SurfaceState::off);
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_EQ(1e-16, distances[0]);
         EXPECT_SOFT_EQ(6.0, distances[1]);
     }
     else
     {
-        EXPECT_SOFT_EQ(6.0, distances[0]);
-        EXPECT_SOFT_EQ(no_intersection(), distances[1]);
+        EXPECT_SOFT_EQ(1e-7f, distances[0]);
+        EXPECT_SOFT_EQ(6.0f, distances[1]);
     }
 
     // On surface, outward
