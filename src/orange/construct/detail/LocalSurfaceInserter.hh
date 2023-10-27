@@ -90,8 +90,8 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
     auto iter = std::find_if(all_surf.begin(), all_surf.end(), is_soft_equal);
     if (iter == all_surf.end())
     {
-        // Surfaces is completely unique
-        LocalSurfaceId result{all_surf.size()};
+        // Surface is completely unique
+        LocalSurfaceId result(all_surf.size());
         all_surf.emplace_back(std::in_place_type<S>, source);
         return result;
     }
@@ -109,7 +109,7 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
 
     // Surface is a little bit different, so we still need to insert it
     // to chain duplicates
-    LocalSurfaceId source_id{all_surf.size()};
+    LocalSurfaceId source_id(all_surf.size());
     all_surf.emplace_back(std::in_place_type<S>, source);
 
     // Store the equivalency relationship and potentially chain equivalent
