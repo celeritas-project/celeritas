@@ -220,19 +220,21 @@ TEST_F(SurfaceActionTest, host_distances)
     // Create states and sample uniform box, isotropic direction
     HostVal<OrangeMiniStateData> states;
     resize(&states, host_ref, 1024);
-    HostRef<OrangeMiniStateData> state_ref;
-    state_ref = states;
-    this->fill_uniform_box(state_ref.pos[AllItems<Real3>{}]);
-    this->fill_isotropic(state_ref.dir[AllItems<Real3>{}]);
+    this->fill_uniform_box(states.pos[AllItems<Real3>{}]);
+    this->fill_isotropic(states.dir[AllItems<Real3>{}]);
 
-    CalcSenseDistanceExecutor<> calc_thread{host_ref, state_ref};
+    CalcSenseDistanceExecutor<> calc_thread{host_ref, make_ref(states)};
     for (auto tid : range(TrackSlotId{states.size()}))
     {
         calc_thread(tid);
     }
 
-    auto test_threads = range(TrackSlotId{10});
+    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        GTEST_SKIP() << "Test results are based on double-precision RNG";
+    }
 
+    auto test_threads = range(TrackSlotId{10});
     double const expected_distance[] = {
         inf,
         inf,
@@ -247,14 +249,13 @@ TEST_F(SurfaceActionTest, host_distances)
     };
 
     EXPECT_EQ("{- - + + - - + + + +}",
-              senses_to_string(state_ref.sense[test_threads]));
-    EXPECT_VEC_SOFT_EQ(expected_distance, state_ref.distance[test_threads]);
+              senses_to_string(states.sense[test_threads]));
+    EXPECT_VEC_SOFT_EQ(expected_distance, states.distance[test_threads]);
 }
 
 TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
 {
-    OrangeMiniStateData<Ownership::value, MemSpace::device> device_states;
-    {
+    auto device_states = [this] {
         // Initialize on host
         HostVal<OrangeMiniStateData> host_states;
         resize(&host_states, this->host_params(), 1024);
@@ -262,8 +263,10 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
         this->fill_isotropic(host_states.dir[AllItems<Real3>{}]);
 
         // Copy starting position/direction to device
+        OrangeMiniStateData<Ownership::value, MemSpace::device> device_states;
         device_states = host_states;
-    }
+        return device_states;
+    }();
 
     // Launch kernel
     SATestInput input;
@@ -271,19 +274,24 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
     input.states = device_states;
     sa_test(input);
 
-    {
-        // Copy result back to host
+    // Copy result back to host
+    auto host_states = [&device_states] {
         HostVal<OrangeMiniStateData> host_states;
         host_states = device_states;
-        auto test_threads = range(TrackSlotId{10});
+        return host_states;
+    }();
 
-        double const expected_distance[] = {
-            inf, inf, inf, inf, 8.623486582635, 8.115429697208, inf, inf, inf, inf};
-        EXPECT_EQ("{- - + + - - + + + +}",
-                  senses_to_string(host_states.sense[test_threads]));
-        EXPECT_VEC_SOFT_EQ(expected_distance,
-                           host_states.distance[test_threads]);
+    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        GTEST_SKIP() << "Test results are based on double-precision RNG";
     }
+
+    auto test_threads = range(TrackSlotId{10});
+    double const expected_distance[] = {
+        inf, inf, inf, inf, 8.623486582635, 8.115429697208, inf, inf, inf, inf};
+    EXPECT_EQ("{- - + + - - + + + +}",
+              senses_to_string(host_states.sense[test_threads]));
+    EXPECT_VEC_SOFT_EQ(expected_distance, host_states.distance[test_threads]);
 }
 
 //---------------------------------------------------------------------------//

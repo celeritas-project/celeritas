@@ -146,7 +146,7 @@ TEST_F(RZMapFieldTest, all)
                                                0.016614892251046,
                                                0.016614892251046,
                                                3.757196366787};
-    EXPECT_VEC_NEAR(expected_field, actual, 1e-7);
+    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -169,7 +169,7 @@ void NestedTest::build_orange()
     UnitInput ui;
     ui.label = "global";
 
-    double radius{static_cast<double>(names_.size()) + 1};
+    auto radius = static_cast<real_type>(names_.size() + 1);
     ui.bbox = {{-radius, -radius, -radius}, {radius, radius, radius}};
 
     LocalSurfaceId daughter;

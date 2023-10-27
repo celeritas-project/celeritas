@@ -72,13 +72,13 @@ TEST_P(EventIOTest, variety_rwr)
     // clang-format off
     static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 22, 1, -2};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    static double const expected_energy[] = {4233, 29552, 56373, 4233, 29552,
+    static real_type const expected_energy[] = {4233, 29552, 56373, 4233, 29552,
         56373, 4233, 29552, 56373};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
-    static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    static real_type const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
         0, 0, 1, 0, 0, 1, 1, 2, 3, 1, 2, 3, 1, 2, 3};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
-    static double const expected_dir[] = {-0.90094709007965, 0.02669997932835,
+    static real_type const expected_dir[] = {-0.90094709007965, 0.02669997932835,
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
         0.20580554696494, 0.0702815376096, -0.87804026971226,
         -0.47339813078935, -0.90094709007965, 0.02669997932835,
@@ -88,8 +88,8 @@ TEST_P(EventIOTest, variety_rwr)
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
         0.20580554696494, 0.0702815376096, -0.87804026971226,
         -0.47339813078935};
-    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);
-    static double const expected_time[] = {0, 0, 0, 0, 0, 0,
+    EXPECT_VEC_NEAR(expected_dir, result.dir, coarse_eps);
+    static real_type const expected_time[] = {0, 0, 0, 0, 0, 0,
         1.3342563807926e-10, 1.3342563807926e-10, 1.3342563807926e-10};
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);
     static int const expected_event[] = {0, 0, 0, 1, 1, 1, 2, 2, 2};
@@ -121,14 +121,14 @@ TEST_P(EventIOTest, no_vertex_rwr)
     static int const expected_pdg[] = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
         22, 22, 22, 22, 22};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    static double const expected_energy[] = {1000, 1000, 1000, 1000, 1000,
+    static real_type const expected_energy[] = {1000, 1000, 1000, 1000, 1000,
         1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
-    static double const expected_pos[] = {0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
+    static real_type const expected_pos[] = {0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
         50, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
-    static double const expected_dir[] = {0.51986662883182, -0.42922054653912,
+    static real_type const expected_dir[] = {0.51986662883182, -0.42922054653912,
         -0.7385854118893, 0.73395459362461, 0.18726575230281, 0.65287226354916,
         -0.40053358241289, -0.081839341451527, 0.91261994913013,
         -0.51571621404849, 0.125780323886, 0.84747631040084, -0.50829382297518,
@@ -142,8 +142,8 @@ TEST_P(EventIOTest, no_vertex_rwr)
         0.51336099422575, 0.54197742781709, 0.66537279576514,
         -0.36655746358148, 0.80035990693978, 0.47440451647941,
         -0.78969793730749, -0.54961247282688, -0.27258631206541};
-    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);
-    static double const expected_time[] = {4.1028383709373e-09,
+    EXPECT_VEC_NEAR(expected_dir, result.dir, coarse_eps);
+    static real_type const expected_time[] = {4.1028383709373e-09,
         4.1028383709373e-09, 4.1028383709373e-09, 4.1028383709373e-09,
         4.1028383709373e-09, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);

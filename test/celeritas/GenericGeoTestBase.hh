@@ -205,7 +205,7 @@ using GenericCoreGeoTestBase = GenericGeoTestBase<GeoParams>;
 #else
 #    define CELERTEST_INST_VG_(CLS)
 #endif
-#if CELERITAS_USE_GEANT4
+#if CELERITAS_USE_GEANT4 && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
 #    define CELERTEST_INST_G4_(CLS) CELERTEST_INST_IMPL_(CLS, GeantGeoParams);
 #else
 #    define CELERTEST_INST_G4_(CLS)

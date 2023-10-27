@@ -96,7 +96,7 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
     }
 
     // Take minimum of step and half the MFP
-    step = min(step, 0.5 * phys.interaction_mfp());
+    step = min(step, real_type{0.5} * phys.interaction_mfp());
     return step;
 }
 

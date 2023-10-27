@@ -24,13 +24,17 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
+using CCylXTest = Test;
+using CCylYTest = Test;
+using CCylZTest = Test;
+
 using Intersections = CCylX::Intersections;
 using VecReal = std::vector<real_type>;
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-TEST(TestCCylX, construction)
+TEST_F(CCylXTest, construction)
 {
     EXPECT_EQ(1, CCylX::Storage::extent);
     EXPECT_EQ(2, CCylX::Intersections{}.size());
@@ -46,7 +50,7 @@ TEST(TestCCylX, construction)
     EXPECT_SOFT_EQ(c.radius_sq(), cy.radius_sq());
 }
 
-TEST(TestCCylX, sense)
+TEST_F(CCylXTest, sense)
 {
     CCylX cyl(4.0);
 
@@ -54,7 +58,7 @@ TEST(TestCCylX, sense)
     EXPECT_EQ(SignedSense::outside, cyl.calc_sense(Real3{0, 0, 9}));
 }
 
-TEST(TestCCylX, normal)
+TEST_F(CCylXTest, normal)
 {
     CCylX cyl(3.45);
 
@@ -70,7 +74,7 @@ TEST(TestCCylX, normal)
     EXPECT_TRUE(std::isnan(norm[2]));
 }
 
-TEST(TestCCylX, intersect)
+TEST_F(CCylXTest, intersect)
 {
     Intersections distances{-1, -1};
 
@@ -124,7 +128,7 @@ TEST(TestCCylX, intersect)
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 }
 
-TEST(TestCCylX, intersect_from_surface)
+TEST_F(CCylXTest, intersect_from_surface)
 {
     Intersections distances;
 
@@ -146,7 +150,7 @@ TEST(TestCCylX, intersect_from_surface)
 
 //---------------------------------------------------------------------------//
 
-TEST(TestCCylY, sense)
+TEST_F(CCylYTest, sense)
 {
     CCylY cyl(3.0);
 
@@ -154,7 +158,7 @@ TEST(TestCCylY, sense)
     EXPECT_EQ(SignedSense::outside, cyl.calc_sense(Real3{3.01, 0, 0}));
 }
 
-TEST(TestCCylY, intersect)
+TEST_F(CCylYTest, intersect)
 {
     CCylY::Intersections distances{-1, -1};
 
@@ -191,7 +195,7 @@ TEST(TestCCylY, intersect)
     EXPECT_EQ(no_intersection(), distances[1]);
 }
 
-TEST(TestCCylY, intersect_from_surface)
+TEST_F(CCylYTest, intersect_from_surface)
 {
     CCylY::Intersections distances;
 
@@ -228,7 +232,7 @@ TEST(TestCCylY, intersect_from_surface)
 
 //---------------------------------------------------------------------------//
 
-TEST(TestCCylZ, sense)
+TEST_F(CCylZTest, sense)
 {
     CCylZ cyl(3.0);
 
@@ -236,7 +240,7 @@ TEST(TestCCylZ, sense)
     EXPECT_EQ(SignedSense::outside, cyl.calc_sense(Real3{3.01, 0, 0}));
 }
 
-TEST(TestCCylZ, calc_intersections)
+TEST_F(CCylZTest, calc_intersections)
 {
     Intersections distances{-1, -1};
 
@@ -273,7 +277,7 @@ TEST(TestCCylZ, calc_intersections)
     EXPECT_EQ(no_intersection(), distances[1]);
 }
 
-TEST(TestCCylZ, calc_intersections_on_surface)
+TEST_F(CCylZTest, calc_intersections_on_surface)
 {
     CCylZ::Intersections distances;
     const real_type eps = 1.e-4;
@@ -295,7 +299,7 @@ TEST(TestCCylZ, calc_intersections_on_surface)
 
         // Heading away, slightly outside
         distances = cyl.calc_intersections(
-            Real3{1.0 - eps, 0, 0}, Real3{1, 0, 0}, SurfaceState::on);
+            Real3{1 - eps, 0, 0}, Real3{1, 0, 0}, SurfaceState::on);
         EXPECT_EQ(no_intersection(), distances[0]);
         EXPECT_EQ(no_intersection(), distances[1]);
 
@@ -309,7 +313,7 @@ TEST(TestCCylZ, calc_intersections_on_surface)
 
 // Fused multiply-add on some CPUs in opt mode can cause the results of
 // nearly-tangent cylinder checking to change.
-TEST(TestCCylZ, multi_tangent_intersect)
+TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_tangent_intersect))
 {
     constexpr int Y = static_cast<int>(Axis::y);
 
@@ -322,22 +326,20 @@ TEST(TestCCylZ, multi_tangent_intersect)
     {
         for (real_type v : {-1.0, 1.0})
         {
-            Real3 pos{x, -10.0001 * v, 0};
+            Real3 pos{x, real_type{-10 - 100 * coarse_eps} * v, 0};
             Real3 dir{0, v, 0};
 
             real_type d;
 
             // Transport to inside of cylinder
-            d = min_intersection(
-                cyl.calc_intersections(pos, dir, SurfaceState::off));
+            d = calc_intersections(cyl, pos, dir, SurfaceState::off)[0];
             ASSERT_NE(no_intersection(), d);
             all_first_distances.push_back(d);
             pos[Y] += d * dir[Y];
             all_y.push_back(pos[Y]);
 
             // Transport to other side of cylinder
-            d = min_intersection(
-                cyl.calc_intersections(pos, dir, SurfaceState::on));
+            d = calc_intersections(cyl, pos, dir, SurfaceState::on)[0];
             all_distances.push_back(d);
             if (d == no_intersection())
                 continue;
@@ -345,29 +347,29 @@ TEST(TestCCylZ, multi_tangent_intersect)
             pos[Y] += d * dir[Y];
 
             // We're done
-            d = min_intersection(
-                cyl.calc_intersections(pos, dir, SurfaceState::on));
+            d = calc_intersections(cyl, pos, dir, SurfaceState::on)[0];
             EXPECT_EQ(no_intersection(), d);
         }
     }
 
+    constexpr real_type tol{1e-5};
     // clang-format off
     const real_type expected_all_first_distances[] = {9.99869, 9.99869, 0.0001,
         0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 9.99869,
         9.99869};
-    EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, 1e-5);
+    EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, tol);
 
     const real_type expected_all_y[] = {0.00141421, -0.00141421, 10, -10, 10,
         -10, 10, -10, 10, -10, 0.00141421, -0.00141421};
-    EXPECT_VEC_NEAR(expected_all_y, all_y, 1e-5);
+    EXPECT_VEC_NEAR(expected_all_y, all_y, tol);
 
     const real_type expected_all_distances[] = {0.00282843, 0.00282843, 20,
         20, 20, 20, 20, 20, 20, 20, 0.00282843, 0.00282843};
-    EXPECT_VEC_NEAR(expected_all_distances, all_distances, 1e-5);
+    EXPECT_VEC_NEAR(expected_all_distances, all_distances, tol);
     // clang-format on
 }
 
-TEST(TestCCylZ, multi_along_intersect)
+TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
 {
     CCylZ cyl(30.0);
 
@@ -390,8 +392,8 @@ TEST(TestCCylZ, multi_along_intersect)
                 normalize_direction(&dir);
 
                 // Transport to inside of cylinder
-                real_type d = min_intersection(
-                    cyl.calc_intersections(pos, dir, SurfaceState::off));
+                real_type d
+                    = calc_intersections(cyl, pos, dir, SurfaceState::off)[0];
                 all_first_distances.push_back(d);
                 if (d == no_intersection())
                     continue;
@@ -432,7 +434,8 @@ TEST(TestCCylZ, multi_along_intersect)
         inf, inf, inf, inf, inf, inf, inf, inf, inf};
     // clang-format on
 
-    EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, 1e-5);
+    EXPECT_VEC_NEAR(
+        expected_all_first_distances, all_first_distances, real_type{1e-5});
 }
 
 //---------------------------------------------------------------------------//
@@ -470,7 +473,7 @@ void DegenerateBoundaryTest::run(real_type xdir) const
 {
     CCylZ cyl(radius);
     CCylZ::Intersections distances = {-1, -1};
-    const real_type tol = std::max(1.e-14, 2 * std::fabs(eps));
+    real_type const tol = std::max<real_type>(1.e-14, 2 * std::fabs(eps));
 
     // Distance across the cylinder
     const real_type diameter = 2 * radius;

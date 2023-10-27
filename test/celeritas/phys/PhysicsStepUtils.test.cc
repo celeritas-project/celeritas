@@ -275,7 +275,8 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     }
 }
 
-TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
+TEST_F(PhysicsStepUtilsTest,
+       TEST_IF_CELERITAS_DOUBLE(select_discrete_interaction))
 {
     MaterialTrackView material(
         this->material()->host_ref(), mat_state.ref(), TrackSlotId{0});

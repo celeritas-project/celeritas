@@ -155,7 +155,7 @@ TEST_F(TouchableUpdaterTest, just_outside_nowarn)
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
-    for (auto& xdir : {1.0, -1.0})
+    for (real_type xdir : {1.0, -1.0})
     {
         EXPECT_TRUE(update({30 - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
         EXPECT_TRUE(update({125 + 2 * eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
@@ -173,7 +173,7 @@ TEST_F(TouchableUpdaterTest, just_outside_warn)
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
-    for (auto& xdir : {1.0, -1.0})
+    for (real_type xdir : {1.0, -1.0})
     {
         EXPECT_TRUE(update({30 - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
         EXPECT_TRUE(update({125 + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
@@ -217,7 +217,7 @@ TEST_F(TouchableUpdaterTest, too_far)
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
-    for (auto& xdir : {1.0, -1.0})
+    for (real_type xdir : {1.0, -1.0})
     {
         EXPECT_FALSE(update({30 - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
         EXPECT_FALSE(update({125 + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));

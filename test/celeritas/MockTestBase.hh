@@ -55,8 +55,8 @@ class MockTestBase : virtual public GlobalGeoTestBase
 
   public:
     Applicability make_applicability(char const* name,
-                                     double lo_energy,
-                                     double hi_energy) const;
+                                     real_type lo_energy,
+                                     real_type hi_energy) const;
 
     ModelCallback make_model_callback() const;
 

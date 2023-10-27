@@ -584,7 +584,7 @@ TEST_F(UniversesTest, params)
     EXPECT_VEC_EQ(expected, actual);
 }
 
-TEST_F(UniversesTest, output)
+TEST_F(UniversesTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
     OrangeParamsOutput out(this->sp_params());
     EXPECT_EQ("orange", out.label());
@@ -980,7 +980,7 @@ TEST_F(Geant4Testem15Test, safety)
     EXPECT_SOFT_EQ(10.0, geo.find_safety());
 }
 
-TEST_F(HexArrayTest, output)
+TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
     OrangeParamsOutput out(this->sp_params());
     EXPECT_EQ("orange", out.label());

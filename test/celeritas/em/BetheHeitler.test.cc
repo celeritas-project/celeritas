@@ -155,7 +155,7 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
     std::vector<double> avg_engine_samples;
 
     // Loop over a set of incident gamma energies
-    for (double inc_e : {1.5, 5.0, 10.0, 50.0, 100.0, 1e6})
+    for (real_type inc_e : {1.5, 5.0, 10.0, 50.0, 100.0, 1e6})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
@@ -218,7 +218,7 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
     auto const material = this->material_track().make_material_view();
     auto const element = material.make_element_view(ElementComponentId{0});
 
-    auto bin_epsilon = [&](double inc_energy) -> std::vector<int> {
+    auto bin_epsilon = [&](real_type inc_energy) -> std::vector<int> {
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_energy});
         this->resize_secondaries(2 * num_samples);
 

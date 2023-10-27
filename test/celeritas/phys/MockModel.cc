@@ -42,7 +42,7 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
         builders.resize(mat.num_elements());
         for (auto elcomp_idx : celeritas::range(mat.num_elements()))
         {
-            std::vector<real_type> xs_grid;
+            std::vector<double> xs_grid;
             for (auto xs : data_.xs)
             {
                 xs_grid.push_back(native_value_from(xs));
