@@ -28,7 +28,7 @@ struct LdgLoader
                   "Only const arithmetic types are supported by __ldg");
     using value_type = T;
     using pointer = std::add_pointer_t<value_type>;
-    using reference = value_type;
+    using reference = std::remove_const_t<value_type>;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
@@ -50,8 +50,8 @@ struct LdgLoader<OpaqueId<I, T> const>
     static_assert(std::is_arithmetic_v<T>,
                   "OpaqueId needs to be indexed with a type supported by "
                   "__ldg");
-    using value_type = OpaqueId<I, T> const;
-    using pointer = std::add_pointer_t<value_type>;
+    using value_type = OpaqueId<I, T>;
+    using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)

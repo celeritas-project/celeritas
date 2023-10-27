@@ -247,7 +247,9 @@ inline LdgIterator<T> make_ldg_iterator(T* ptr) noexcept
 
 /*!
  * Wrapper struct that containers can use to specialize on types supported by
- * LdgIterator.
+ * LdgIterator, i.e. Span<LdgValue<T>> specialization can internally use
+ * LdgIterator. Specializations should refer to LdgValue<T>::value_type to
+ * force the template instantiation of LdgValue and type-check T
  */
 template<class T>
 struct LdgValue

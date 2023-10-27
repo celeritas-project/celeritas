@@ -37,18 +37,20 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
 template<class T, std::size_t Extent = dynamic_extent>
 class Span
 {
+    using SpanTraitsT = detail::SpanTraits<T>;
+
   public:
     //!@{
     //! \name Type aliases
-    using element_type = T;
-    using value_type = std::remove_cv_t<T>;
+    using element_type = typename SpanTraitsT::element_type;
+    using value_type = std::remove_cv_t<element_type>;
     using size_type = std::size_t;
-    using pointer = typename detail::SpanTraits<T>::pointer;
-    using const_pointer = typename detail::SpanTraits<T>::const_pointer;
-    using reference = typename detail::SpanTraits<T>::reference;
-    using const_reference = typename detail::SpanTraits<T>::const_reference;
-    using iterator = typename detail::SpanTraits<T>::iterator;
-    using const_iterator = typename detail::SpanTraits<T>::const_iterator;
+    using pointer = typename SpanTraitsT::pointer;
+    using const_pointer = typename SpanTraitsT::const_pointer;
+    using reference = typename SpanTraitsT::reference;
+    using const_reference = typename SpanTraitsT::const_reference;
+    using iterator = typename SpanTraitsT::iterator;
+    using const_iterator = typename SpanTraitsT::const_iterator;
     //!@}
 
     //! Size (may be dynamic)
@@ -72,7 +74,7 @@ class Span
 
     //! Construct from a C array
     template<std::size_t N>
-    CELER_CONSTEXPR_FUNCTION Span(T (&arr)[N]) : s_(arr, N)
+    CELER_CONSTEXPR_FUNCTION Span(element_type (&arr)[N]) : s_(arr, N)
     {
     }
 
@@ -120,7 +122,7 @@ class Span
     CELER_CONSTEXPR_FUNCTION size_type size() const { return s_.size; }
     CELER_CONSTEXPR_FUNCTION size_type size_bytes() const
     {
-        return sizeof(T) * s_.size;
+        return sizeof(element_type) * s_.size;
     }
     //!@}
 
@@ -130,13 +132,13 @@ class Span
     CELER_FUNCTION Span<T, Count> first() const
     {
         CELER_EXPECT(Count == 0 || Count <= this->size());
-        return {s_.data, Count};
+        return {this->data(), Count};
     }
     CELER_FUNCTION
     Span<T, dynamic_extent> first(std::size_t count) const
     {
         CELER_EXPECT(count <= this->size());
-        return {s_.data, count};
+        return {this->data(), count};
     }
 
     template<std::size_t Offset, std::size_t Count = dynamic_extent>
@@ -145,7 +147,7 @@ class Span
     {
         CELER_EXPECT((Count == dynamic_extent) || (Offset == 0 && Count == 0)
                      || (Offset + Count <= this->size()));
-        return {s_.data + Offset,
+        return {this->data() + Offset,
                 detail::subspan_size(this->size(), Offset, Count)};
     }
     CELER_FUNCTION
@@ -153,7 +155,7 @@ class Span
     subspan(std::size_t offset, std::size_t count = dynamic_extent) const
     {
         CELER_EXPECT(offset + count <= this->size());
-        return {s_.data + offset,
+        return {this->data() + offset,
                 detail::subspan_size(this->size(), offset, count)};
     }
 

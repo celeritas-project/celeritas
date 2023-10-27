@@ -19,9 +19,10 @@ namespace celeritas
 {
 namespace detail
 {
-template<class T, typename = void>
+template<class T>
 struct SpanTraits
 {
+    using element_type = T;
     using pointer = std::add_pointer_t<T>;
     using const_pointer = std::add_pointer_t<T const>;
     using iterator = pointer;
@@ -30,24 +31,15 @@ struct SpanTraits
     using const_reference = std::add_lvalue_reference_t<T const>;
 };
 template<class T>
-struct SpanTraits<T const, std::enable_if_t<std::is_arithmetic_v<T>>>
+struct SpanTraits<LdgValue<T>>
 {
+    using element_type = typename LdgValue<T>::value_type;
     using pointer = std::add_pointer_t<T const>;
     using const_pointer = pointer;
     using iterator = LdgIterator<T const>;
     using const_iterator = iterator;
-    using reference = T;
-    using const_reference = T;
-};
-template<class I, class T>
-struct SpanTraits<OpaqueId<I, T> const, void>
-{
-    using pointer = std::add_pointer_t<OpaqueId<I, T> const>;
-    using const_pointer = pointer;
-    using iterator = LdgIterator<OpaqueId<I, T> const>;
-    using const_iterator = iterator;
-    using reference = OpaqueId<I, T> const;
-    using const_reference = OpaqueId<I, T> const;
+    using reference = std::remove_const_t<T>;
+    using const_reference = std::remove_const_t<T>;
 };
 //---------------------------------------------------------------------------//
 //! Sentinel value for span of dynamic type
