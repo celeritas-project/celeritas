@@ -140,7 +140,7 @@ TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)
         0.51336099422575, 0.54197742781709, 0.66537279576514,
         -0.36655746358148, 0.80035990693978, 0.47440451647941,
         -0.78969793730749, -0.54961247282688, -0.27258631206541};
-    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);
+    EXPECT_VEC_NEAR(expected_dir, result.dir, coarse_eps);
     // clang-format on
 }
 
@@ -176,7 +176,7 @@ TEST_F(HepMC3PrimaryGeneratorTest, multiple_vertex)
         -0.43310674432625, -0.082735048064663, 0.97508922087171,
         0.20580554696494, 0.0702815376096, -0.87804026971226,
         -0.47339813078935};
-    EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);
+    EXPECT_VEC_NEAR(expected_dir, result.dir, coarse_eps);
     // clang-format on
 }
 

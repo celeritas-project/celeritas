@@ -161,9 +161,8 @@ TEST_F(SurfaceSimplifierTest, plane)
         Plane{{1 / sqrt_two, 1 / sqrt_two, 0.0}, 2 * sqrt_two},
         Sense::outside);
 
-    this->check_simplifies_to(
-        Plane{{sqrt_three / 2, 0.5, 0.0}, 1e-15},
-        Plane{{sqrt_three / 2, 0.5, 0.0}, 0 });
+    this->check_simplifies_to(Plane{{sqrt_three / 2, 0.5, 0.0}, 1e-15},
+                              Plane{{sqrt_three / 2, 0.5, 0.0}, 0});
 
     // Check vector/displacement normalization
     Real3 n{1, 0, 1e-4};
@@ -208,7 +207,11 @@ TEST_F(SurfaceSimplifierTest, simple_quadric)
         SCOPED_TRACE("cylinder");
         this->check_round_trip<SimpleQuadric>(CylX{{4, 5, -1}, 4.0});
         this->check_round_trip<SimpleQuadric>(CylY{{4, 5, -1}, 1.0});
-        this->check_round_trip<SimpleQuadric>(CylZ{{4, 5, -1}, 0.1});
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            this->check_round_trip<SimpleQuadric>(CylZ{{4, 5, -1}, 0.1});
+        }
     }
 
     {

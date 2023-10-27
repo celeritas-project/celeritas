@@ -10,6 +10,7 @@
 #include "corecel/cont/ArrayIO.hh"
 #include "celeritas/Constants.hh"
 
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -18,7 +19,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-using Real3 = Array<double, 3>;
+using Real3 = Array<real_type, 3>;
+using Dbl3 = Array<double, 3>;
 
 enum
 {
@@ -71,7 +73,7 @@ TEST(ArrayUtilsTest, distance)
 
 TEST(ArrayUtilsTest, normalize_direction)
 {
-    Real3 direction{1, 2, 3};
+    Dbl3 direction{1, 2, 3};
     double norm = 1 / std::sqrt(1 + 4 + 9);
     normalize_direction(&direction);
 
@@ -83,8 +85,9 @@ TEST(ArrayUtilsTest, is_soft_unit_vector)
 {
     Real3 dir{1, 2, 3};
     normalize_direction(&dir);
+    EXPECT_SOFT_EQ(1, dot_product(dir, dir));
     EXPECT_TRUE(is_soft_unit_vector(dir));
-    constexpr real_type eps = SoftEqual{}.rel();
+    constexpr real_type eps = SoftEqual<real_type>{}.rel();
     dir[0] += eps;
     EXPECT_TRUE(is_soft_unit_vector(dir));
     dir[1] += eps;
@@ -97,16 +100,16 @@ TEST(ArrayUtilsTest, is_soft_unit_vector)
 
 TEST(ArrayUtilsTest, rotate)
 {
-    Real3 vec = {-1.1, 2.3, 0.9};
+    Dbl3 vec = {-1.1, 2.3, 0.9};
     normalize_direction(&vec);
 
     // transform through some directions
     double costheta = std::cos(2.0 / 3.0);
     double sintheta = std::sqrt(1.0 - costheta * costheta);
-    double phi = 2 * constants::pi / 3.0;
+    double phi = 2 * m_pi / 3.0;
 
     double a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
-    Real3 expected
+    Dbl3 expected
         = {vec[X] * costheta + vec[Z] * vec[X] * sintheta * cos(phi) * a
                - vec[Y] * sintheta * sin(phi) * a,
            vec[Y] * costheta + vec[Z] * vec[Y] * sintheta * cos(phi) * a
@@ -135,7 +138,7 @@ TEST(ArrayUtilsTest, rotate)
     {
         vec = {-eps, 2 * eps, 1 - eps * eps};
         normalize_direction(&vec);
-        Real3 result = rotate(scatter, vec);
+        Dbl3 result = rotate(scatter, vec);
         EXPECT_SOFT_EQ(1.0, dot_product(result, result))
             << "for eps=" << eps << " => vec=" << vec;
     }
@@ -153,7 +156,7 @@ TEST(ArrayUtilsTest, rotate)
         EXPECT_VEC_NEAR(
             (Real3{-0.952973648767149, 0.0195839636531213, -0.302419730049247}),
             result,
-            2e-11);
+            20 * SoftEqual<real_type>{}.rel());
     }
 
     // Switch scattered z direction

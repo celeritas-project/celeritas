@@ -94,6 +94,17 @@ set(_geo_libs
   Celeritas::orange ${VecGeom_LIBRARIES} ${Geant4_LIBRARIES}
 )
 
+if(CELERITAS_REAL_TYPE STREQUAL "double")
+  set(_needs_double)
+  set(_fixme_single)
+else()
+  # Test relies on "gold" data; don't bother updating
+  set(_needs_double DISABLE)
+  # Test has legitimate errors and we should fix if we support
+  # single-precision in the long term
+  set(_fixme_single DISABLE)
+endif()
+
 #-----------------------------------------------------------------------------#
 # GOOGLETEST EXTENSION TESTS
 #-----------------------------------------------------------------------------#
@@ -325,21 +336,24 @@ celeritas_add_test(celeritas/Constants.test.cc
 #-------------------------------------#
 # EM
 set(CELERITASTEST_PREFIX celeritas/em)
-celeritas_add_test(celeritas/em/BetheHeitler.test.cc)
-celeritas_add_test(celeritas/em/CombinedBrem.test.cc)
-celeritas_add_test(celeritas/em/EPlusGG.test.cc)
-celeritas_add_test(celeritas/em/Fluctuation.test.cc)
-celeritas_add_test(celeritas/em/KleinNishina.test.cc)
-celeritas_add_test(celeritas/em/LivermorePE.test.cc)
-celeritas_add_test(celeritas/em/MollerBhabha.test.cc)
-celeritas_add_test(celeritas/em/MuBremsstrahlung.test.cc)
-celeritas_add_test(celeritas/em/Rayleigh.test.cc)
-celeritas_add_test(celeritas/em/RelativisticBrem.test.cc)
-celeritas_add_test(celeritas/em/SeltzerBerger.test.cc)
-celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc)
+celeritas_add_test(celeritas/em/Fluctuation.test.cc ${_fixme_single})
+celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc ${_needs_double})
+
+# Models
+celeritas_add_test(celeritas/em/BetheHeitler.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/CombinedBrem.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/EPlusGG.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/KleinNishina.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/LivermorePE.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/MollerBhabha.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/MuBremsstrahlung.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/Rayleigh.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/RelativisticBrem.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/SeltzerBerger.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/Wentzel.test.cc ${_fixme_single})
+
 celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
-celeritas_add_test(celeritas/em/Wentzel.test.cc)
 
 #-------------------------------------#
 # External
@@ -365,7 +379,7 @@ if(CELERITAS_USE_VecGeom)
       ${_vecgeom_geant_tests}
   )
 endif()
-if(CELERITAS_USE_Geant4)
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   celeritas_add_test(celeritas/ext/GeantGeo.test.cc
     LINK_LIBRARIES ${Geant4_LIBRARIES}
   )
@@ -404,7 +418,7 @@ celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
 # Geo
 set(CELERITASTEST_PREFIX celeritas/geo)
 
-set(_geo_args GPU ${_needs_geo}
+set(_geo_args GPU ${_needs_geo} ${_needs_double}
   SOURCES celeritas/geo/HeuristicGeoTestBase.cc)
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
@@ -425,7 +439,7 @@ celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
 set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 
-if(CELERITAS_USE_Geant4)
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_along_step_filter
     FILTER
       "-Em3*:SimpleCms*"
@@ -448,7 +462,22 @@ if(CELERITAS_USE_Geant4)
       "TestEm15FieldMsc.*"
       "OneSteelSphere.*"
   )
-else()
+elseif(CELERITAS_USE_Geant4)
+set(_along_step_filter
+    FILTER
+      "-Em3*:SimpleCms*"
+      "Em3AlongStepTest.nofluct_nomsc"
+      "Em3AlongStepTest.fluct_nomsc"
+  )
+  set(_stepper_filter
+    FILTER
+      "-TestEm*:OneSteelSphere*"
+      "TestEm3Compton.*"
+      "TestEm3Msc.*"
+      "TestEm3MscNofluct.*"
+      "TestEm15FieldMsc.*"
+    )
+  else()
   set(_along_step_filter)
   set(_stepper_filter)
 endif()
@@ -571,11 +600,11 @@ endif()
 
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
 celeritas_add_test(celeritas/user/Diagnostic.test.cc
-  GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fails_g4geo}
+  GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fails_g4geo} ${_needs_double}
   ${_diagnostic_filter}
 )
 celeritas_add_test(celeritas/user/StepCollector.test.cc
-  GPU NT 1 ${_optional_geant4_env} ${_needs_geo}
+  GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fixme_single}
 )
 
 #-----------------------------------------------------------------------------#
@@ -602,7 +631,11 @@ if(CELERITAS_USE_Geant4)
     ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc
     ENVIRONMENT "${_geant4_test_env}")
-  celeritas_add_test(accel/detail/TouchableUpdater.test.cc)
+  if(CELERITAS_REAL_TYPE STREQUAL "double")
+    # This test requires Geant4 *geometry* which is incompatible
+    # with single-precision
+    celeritas_add_test(accel/detail/TouchableUpdater.test.cc)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -634,4 +667,3 @@ celeritas_add_rootupdate_target(update-four-slabs four-steel-slabs)
 celeritas_add_rootupdate_target(update-simple-cms simple-cms)
 
 #-----------------------------------------------------------------------------#
-

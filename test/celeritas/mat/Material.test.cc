@@ -267,7 +267,7 @@ TEST_F(MaterialTest, isotope_view)
 {
     std::vector<int> atomic_numbers;
     std::vector<int> atomic_mass_numbers;
-    std::vector<double> nuclear_masses;
+    std::vector<real_type> nuclear_masses;
     for (auto i : range(params->num_isotopes()))
     {
         auto iso_view = params->get(IsotopeId{i});
@@ -279,7 +279,7 @@ TEST_F(MaterialTest, isotope_view)
     static int const expected_atomic_numbers[] = {1, 1, 13, 13, 11, 53, 53, 53};
     static int const expected_atomic_mass_numbers[]
         = {1, 2, 27, 28, 23, 125, 126, 127};
-    static double const expected_nuclear_masses[] = {
+    static real_type const expected_nuclear_masses[] = {
         938.272, 1875.61, 25126.5, 26058.3, 21409.2, 116321, 117253, 118184};
 
     EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
@@ -287,7 +287,7 @@ TEST_F(MaterialTest, isotope_view)
     EXPECT_VEC_SOFT_EQ(expected_nuclear_masses, nuclear_masses);
 }
 
-TEST_F(MaterialTest, output)
+TEST_F(MaterialTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
     MaterialParamsOutput out(params);
     EXPECT_EQ("material", out.label());
@@ -397,10 +397,10 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     result = m_test(input);
 #endif
 
-    double const expected_temperatures[] = {293, 0, 100, 110};
-    double const expected_rad_len[]
+    static real_type const expected_temperatures[] = {293, 0, 100, 110};
+    static real_type const expected_rad_len[]
         = {3.5393292693170424, inf, 350729.99844063615, 351367.47504673258};
-    double const expected_tot_z[]
+    static real_type const expected_tot_z[]
         = {9.4365282069664e+23, 0, 1.07394843590447e+20, 1.072e20};
 
     EXPECT_VEC_SOFT_EQ(expected_temperatures, result.temperatures);

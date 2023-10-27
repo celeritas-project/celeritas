@@ -10,6 +10,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "orange/surf/SimpleQuadric.hh"
 
+#include "SurfaceTestUtils.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -30,16 +31,16 @@ TEST(GeneralQuadricTest, construction)
                                     -1 * ipow<2>(2.5) * ipow<2>(0.3)}};
 
     auto distances
-        = gq.calc_intersections({-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
+        = calc_intersections(gq, {-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(1.5, distances[0]);
     EXPECT_SOFT_EQ(1.5 + 2.0, distances[1]);
     distances
-        = gq.calc_intersections({0, 2.5, 0}, {0, -1, 0}, SurfaceState::on);
+        = calc_intersections(gq, {0, 2.5, 0}, {0, -1, 0}, SurfaceState::on);
     EXPECT_SOFT_EQ(5.0, distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
-    distances = gq.calc_intersections({0, 0, 0}, {0, 0, 1}, SurfaceState::off);
-    EXPECT_SOFT_EQ(0.3, distances[1]);
-    EXPECT_SOFT_EQ(no_intersection(), distances[0]);
+    distances = calc_intersections(gq, {0, 0, 0}, {0, 0, 1}, SurfaceState::off);
+    EXPECT_SOFT_EQ(0.3, distances[0]);
+    EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 }
 
 //---------------------------------------------------------------------------//
@@ -78,28 +79,42 @@ TEST(GeneralQuadricTest, all)
     Intersections distances;
 
     // On surface, inward
-    distances = gq.calc_intersections(on_surface, inward, SurfaceState::on);
+    distances = calc_intersections(gq, on_surface, inward, SurfaceState::on);
     EXPECT_SOFT_EQ(6.0, distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
     // "Not on surface", inward
-    distances = gq.calc_intersections(on_surface, inward, SurfaceState::off);
-    EXPECT_SOFT_EQ(1e-16, distances[0]);
-    EXPECT_SOFT_EQ(6.0, distances[1]);
+    distances = calc_intersections(gq, on_surface, inward, SurfaceState::off);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_SOFT_EQ(1e-16, distances[0]);
+        EXPECT_SOFT_EQ(6.0, distances[1]);
+    }
+    else if (distances[1] == no_intersection())
+    {
+        // x86 hardware
+        EXPECT_SOFT_EQ(6.0f, distances[0]);
+    }
+    else
+    {
+        // Apple Silicon
+        EXPECT_SOFT_EQ(1e-7f, distances[0]);
+        EXPECT_SOFT_EQ(6.0f, distances[1]);
+    }
 
     // On surface, outward
-    distances = gq.calc_intersections(on_surface, outward, SurfaceState::on);
+    distances = calc_intersections(gq, on_surface, outward, SurfaceState::on);
     EXPECT_SOFT_EQ(no_intersection(), distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
     // In center
-    distances = gq.calc_intersections(center, outward, SurfaceState::off);
-    EXPECT_SOFT_EQ(3.0, distances[1]);
-    EXPECT_SOFT_EQ(no_intersection(), distances[0]);
+    distances = calc_intersections(gq, center, outward, SurfaceState::off);
+    EXPECT_SOFT_EQ(3.0, distances[0]);
+    EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
     // Outside, hitting both
     const Real3 pos{-2.464101615137754, 0, 3};
-    distances = gq.calc_intersections(pos, outward, SurfaceState::off);
+    distances = calc_intersections(gq, pos, outward, SurfaceState::off);
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(7.0, distances[1]);
 }

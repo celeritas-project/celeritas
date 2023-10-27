@@ -30,7 +30,7 @@ void CalculatorTestBase::build(real_type emin, real_type emax, size_type count)
 
     // Interpolate xs grid: linear in bin, log in energy
     Interpolator<Interp::linear, Interp::log, real_type> calc_xs(
-        {0.0, emin}, {count - 1.0, emax});
+        {real_type{0}, emin}, {count - real_type{1}, emax});
     for (auto i : range(temp_xs.size()))
     {
         temp_xs[i] = calc_xs(static_cast<real_type>(i));
