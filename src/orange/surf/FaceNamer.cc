@@ -5,10 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file orange/surf/FaceNamer.cc
 //---------------------------------------------------------------------------//
-#include "celeritas_config.h"
-#undef CELERITAS_DEBUG
-#define CELERITAS_DEBUG 0
-
 #include "corecel/Assert.hh"
 
 #include "FaceNamer.hh"

@@ -23,8 +23,19 @@ namespace detail
 /*!
  * Merge local surfaces as they're being built.
  *
- * This will *always* insert the surface, but *sometimes* will return the ID of
- * a previously inserted surface.
+ * This will \em sometimes will return the ID of a previously inserted surface,
+ * and \em sometimes will push the surface onto the vector of existing ones.
+ *
+ * There are three cases to consider:
+ * - The new surface is entirely unique: we insert and return the new ID.
+ * - The surface is soft equivalent but not exactly like an existing surface:
+ *   we insert but return an existing ID.
+ * - The surface is exactly the same: we do \em not insert, and return existing
+ *   id.
+ *
+ * The second case adds the surface so that multiple nearby surfaces can be
+ * \em chained together, even if the tolerance between the furthest apart is
+ * greater than the soft equivalence tolerance.
  */
 class LocalSurfaceInserter
 {
@@ -58,12 +69,6 @@ class LocalSurfaceInserter
 //---------------------------------------------------------------------------//
 /*!
  * Construct a surface with deduplication.
- *
- * There are three cases to consider:
- * - The new surface is entirely unique (insert, return new ID)
- * - The surface is soft equivalent but not exactly like an existing surface
- *   (insert, return existing ID)
- * - The surface is exactly the same (don't insert, return existing id)
  */
 template<class S>
 LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
