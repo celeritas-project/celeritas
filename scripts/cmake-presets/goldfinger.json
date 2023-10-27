@@ -43,7 +43,7 @@
       "cacheVariables": {
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "ON"},
         "CMAKE_SWIG_CXX_FLAGS": "-Wno-unused-parameter;-Wno-deprecated-declarations",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"}
       }
     },

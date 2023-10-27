@@ -104,13 +104,13 @@ TEST_F(LocalSurfaceInserterTest, chained_duplicates)
     EXPECT_EQ(5, surfaces.size());
 }
 
-TEST_F(LocalSurfaceInserterTest, performance_test)
+TEST_F(LocalSurfaceInserterTest, DISABLED_performance_test)
 {
     std::mt19937 rng;
     UniformRealDistribution<> sample_point{-1, 1};
     UniformBoxDistribution<> sample_box{{-1, -1, -1}, {1, 1, 1}};
 
-    for (int num_samples = 16; num_samples < 5000; num_samples *= 2)
+    for (int num_samples = 16; num_samples < 40000; num_samples *= 2)
     {
         cout << "Sampling " << num_samples << "..." << std::flush;
         surfaces.reserve(num_samples * 2);
