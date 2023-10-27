@@ -20,6 +20,13 @@ constexpr char to_pm(Sense s)
     return s == Sense::inside ? 'p' : 'm';
 }
 
+#define ORANGE_INSTANTIATE_OP(IN)                                        \
+    template std::string FaceNamer::Impl::operator()(IN<Axis::x> const&) \
+        const;                                                           \
+    template std::string FaceNamer::Impl::operator()(IN<Axis::y> const&) \
+        const;                                                           \
+    template std::string FaceNamer::Impl::operator()(IN<Axis::z> const&) const
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -42,6 +49,10 @@ std::string FaceNamer::Impl::operator()(PlaneAligned<T> const&) const
     return {to_pm(sense_), to_char(T)};
 }
 
+//! \cond
+ORANGE_INSTANTIATE_OP(PlaneAligned);
+//! \endcond
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct a name for a axis-aligned cylinder.
@@ -51,6 +62,10 @@ std::string FaceNamer::Impl::operator()(CylCentered<T> const&) const
 {
     return {'c', to_char(T)};
 }
+
+//! \cond
+ORANGE_INSTANTIATE_OP(CylCentered);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -70,6 +85,10 @@ std::string FaceNamer::Impl::operator()(CylAligned<T> const&) const
 {
     return {'c', to_char(T)};
 }
+
+//! \cond
+ORANGE_INSTANTIATE_OP(CylAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -98,6 +117,10 @@ std::string FaceNamer::Impl::operator()(ConeAligned<T> const&) const
 {
     return {'k', to_char(T)};
 }
+
+//! \cond
+ORANGE_INSTANTIATE_OP(ConeAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
