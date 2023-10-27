@@ -205,9 +205,6 @@ celeritas_setup_tests(SERIAL PREFIX orange
 celeritas_add_test(orange/BoundingBox.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(orange/BoundingBoxUtils.test.cc)
-celeritas_add_test(orange/CsgTree.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
-celeritas_add_test(orange/CsgTreeUtils.test.cc)
 celeritas_add_test(orange/MatrixUtils.test.cc)
 celeritas_add_test(orange/OrangeTypes.test.cc)
 celeritas_add_device_test(orange/Orange)
@@ -217,6 +214,13 @@ celeritas_add_test(orange/detail/BIHBuilder.test.cc)
 celeritas_add_test(orange/detail/BIHTraverser.test.cc)
 celeritas_add_test(orange/detail/BIHUtils.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
+
+#-----------------------------------------------------------------------------#
+# Construct
+set(CELERITASTEST_PREFIX orange/construct)
+celeritas_add_test(orange/construct/CsgTree.test.cc
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
 
 #-------------------------------------#
 # Transforms
