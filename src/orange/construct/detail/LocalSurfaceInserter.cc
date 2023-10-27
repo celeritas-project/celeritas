@@ -30,7 +30,7 @@ LocalSurfaceInserter::LocalSurfaceInserter(VecSurface* v,
 LocalSurfaceId
 LocalSurfaceInserter::merge_impl(LocalSurfaceId source, LocalSurfaceId target)
 {
-    CELER_EXPECT(source <= surfaces_->size());
+    CELER_EXPECT(source < surfaces_->size());
     CELER_EXPECT(target < source);
 
     if (auto iter = merged_.find(target); iter != merged_.end())

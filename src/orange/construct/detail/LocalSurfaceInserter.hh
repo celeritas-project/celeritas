@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <unordered_map>
 #include <vector>
 
@@ -67,44 +68,48 @@ class LocalSurfaceInserter
 template<class S>
 LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
 {
-    // Default result: new ID, add the surface
-    LocalSurfaceId result(surfaces_->size());
-    bool do_insert{true};
+    VecSurface& all_surf = *surfaces_;
 
     // Test for soft equality against all existing surfaces
-    // TODO: accelerate by mapping surfaces into a hash and comparing all
-    // neighboring hash cells
-    for (auto i : range(result))
-    {
-        VariantSurface const& vtarget = (*surfaces_)[i.unchecked_get()];
+    auto is_soft_equal = [this, &source](VariantSurface const& vtarget) {
         if (S const* target = std::get_if<S>(&vtarget))
         {
-            if (soft_surface_equal_(source, *target))
-            {
-                if (exact_surface_equal_(source, *target))
-                {
-                    // Surfaces are *exactly* equal:
-                    result = i;
-                    do_insert = false;
-                }
-                else
-                {
-                    // Surfaces are *nearly* equal
-                    result = this->merge_impl(result, i);
-                }
-                break;
-            }
+            return soft_surface_equal_(source, *target);
         }
-    }
+        return false;
+    };
 
-    if (do_insert)
+    // TODO: instead of linear search (making overall unit insertion
+    // quadratic!) accelerate by mapping surfaces into a hash and comparing all
+    // neighboring hash cells
+    auto iter = std::find_if(all_surf.begin(), all_surf.end(), is_soft_equal);
+    if (iter == all_surf.end())
     {
-        // Copy the new surface to the vector
-        surfaces_->emplace_back(std::in_place_type<S>, source);
+        // Surfaces is completely unique
+        LocalSurfaceId result{all_surf.size()};
+        all_surf.emplace_back(std::in_place_type<S>, source);
+        return result;
     }
 
-    CELER_ENSURE(result < surfaces_->size());
-    return result;
+    // Surface is soft equivalent to an existing surface at this index
+    LocalSurfaceId target_id{static_cast<size_type>(iter - all_surf.begin())};
+
+    CELER_ASSUME(std::holds_alternative<S>(*iter));
+    if (exact_surface_equal_(source, std::get<S>(*iter)))
+    {
+        // Surfaces are *exactly* equal: don't insert
+        CELER_ENSURE(target_id < all_surf.size());
+        return target_id;
+    }
+
+    // Surface is a little bit different, so we still need to insert it
+    // to chain duplicates
+    LocalSurfaceId source_id{all_surf.size()};
+    all_surf.emplace_back(std::in_place_type<S>, source);
+
+    // Store the equivalency relationship and potentially chain equivalent
+    // surfaces
+    return this->merge_impl(source_id, target_id);
 }
 
 //---------------------------------------------------------------------------//
