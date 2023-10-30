@@ -265,7 +265,7 @@ TEST(SpanTest, ldg_span)
         Span<LdgInt> ldg_span(mutable_span);
         Span<LdgInt> local_span(local_data);
         EXPECT_TRUE(
-            (std::is_same_v<typename Span<LdgInt>::element_type, int const>));
+            (std::is_same_v<typename Span<LdgInt>::element_type, int>));
         EXPECT_TRUE((std::is_same_v<decltype(local_span.data()), int const*>));
         EXPECT_TRUE((std::is_same_v<decltype(local_span.front()), int>));
         EXPECT_TRUE((std::is_same_v<decltype(local_span.back()), int>));
@@ -301,7 +301,7 @@ TEST(SpanTest, ldg_span)
         Span<LdgId> ldg_span(mutable_span);
         Span<LdgId> local_span(local_data);
         EXPECT_TRUE((std::is_same_v<typename Span<LdgId>::element_type,
-                                    SpanTestLdgOpaqueId const>));
+                                    SpanTestLdgOpaqueId>));
         EXPECT_TRUE((std::is_same_v<decltype(local_span.data()),
                                     SpanTestLdgOpaqueId const*>));
         EXPECT_TRUE((
