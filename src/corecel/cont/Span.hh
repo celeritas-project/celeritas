@@ -252,7 +252,7 @@ make_array(Span<T, N> const& s)
 //---------------------------------------------------------------------------//
 //! Construct an array from a fixed-size span, removing LdgValue marker
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION Array<T, N> make_array(Span<LdgValue<T>, N> const& s)
+CELER_CONSTEXPR_FUNCTION Array<T, N> make_array(LdgSpan<T, N> const& s)
 {
     return make_array<typename LdgValue<T>::value_type, N>(s);
 }
