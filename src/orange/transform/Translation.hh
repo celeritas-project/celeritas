@@ -26,7 +26,7 @@ class Translation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<const real_type, 3>;
+    using StorageSpan = LdgSpan<const real_type, 3>;
     //@}
 
     //! Transform type identifier

@@ -48,7 +48,7 @@ class Transformation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<const real_type, 12>;
+    using StorageSpan = LdgSpan<const real_type, 12>;
     using Mat3 = SquareMatrixReal3;
     //@}
 

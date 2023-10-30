@@ -142,7 +142,7 @@ CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
     CELER_ASSERT(offset + size <= params_.reals.size());
 
     real_type const* data = this->get_ptr(params_.reals, offset);
-    return T{Span<real_type const, size>{data, size}};
+    return T{LdgSpan<real_type const, size>{data, size}};
 }
 
 //---------------------------------------------------------------------------//
