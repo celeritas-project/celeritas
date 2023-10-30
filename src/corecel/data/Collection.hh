@@ -245,8 +245,8 @@ class Collection
     //!@{
     //! \name Type aliases
     using value_type = typename detail::CollectionTraits<T, W>::type;
-    using SpanT = Span<value_type>;
-    using SpanConstT = Span<const_value_type>;
+    using SpanT = typename detail::CollectionTraits<T, W>::SpanT;
+    using SpanConstT = typename detail::CollectionTraits<T, W>::SpanConstT;
     using pointer = ObserverPtr<value_type, M>;
     using const_pointer = ObserverPtr<const_value_type, M>;
     using reference_type =

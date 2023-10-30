@@ -19,7 +19,9 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/LdgIterator.hh"
 #include "corecel/data/PinnedAllocator.hh"
+#include "corecel/data/detail/LdgIteratorImpl.hh"
 #include "corecel/sys/Device.hh"
 
 #include "../Copier.hh"
@@ -37,6 +39,8 @@ struct CollectionTraits
     using const_type = T const;
     using reference_type = type&;
     using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
 };
 
 //---------------------------------------------------------------------------//
@@ -47,30 +51,34 @@ struct CollectionTraits<T, Ownership::reference, void>
     using const_type = T;
     using reference_type = type&;
     using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
-struct CollectionTraits<
-    T,
-    Ownership::const_reference,
-    std::enable_if_t<!std::is_arithmetic_v<T> && !is_opaque_id_v<T>>>
+struct CollectionTraits<T,
+                        Ownership::const_reference,
+                        std::enable_if_t<!is_ldg_supported_v<std::add_const_t<T>>>>
 {
     using type = T const;
     using const_type = T const;
     using reference_type = type&;
     using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
 };
 template<class T>
-struct CollectionTraits<
-    T,
-    Ownership::const_reference,
-    std::enable_if_t<std::is_arithmetic_v<T> || is_opaque_id_v<T>>>
+struct CollectionTraits<T,
+                        Ownership::const_reference,
+                        std::enable_if_t<is_ldg_supported_v<std::add_const_t<T>>>>
 {
     using type = T const;
     using const_type = T const;
     using reference_type = type;
     using const_reference_type = const_type;
+    using SpanT = Span<LdgValue<const_type>>;
+    using SpanConstT = Span<LdgValue<const_type>>;
 };
 
 //---------------------------------------------------------------------------//
