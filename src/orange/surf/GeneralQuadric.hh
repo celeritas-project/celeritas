@@ -41,9 +41,9 @@ class GeneralQuadric
     //@{
     //! Type aliases
     using Intersections = Array<real_type, 2>;
-    using StorageSpan = LdgSpan<const real_type, 10>;
+    using StorageSpan = Span<const real_type, 10>;
     using Storage = StorageSpan;  // DEPRECATED
-    using SpanConstReal3 = LdgSpan<const real_type, 3>;
+    using SpanConstReal3 = Span<const real_type, 3>;
     //@}
 
     //// CLASS ATTRIBUTES ////

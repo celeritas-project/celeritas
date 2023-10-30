@@ -10,8 +10,6 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "corecel/data/LdgIterator.hh"
-
 #include "Array.hh"
 #include "detail/SpanImpl.hh"
 
@@ -189,6 +187,10 @@ class Span
 template<class T, std::size_t N>
 constexpr std::size_t Span<T, N>::extent;
 
+// forward declare
+template<class>
+struct LdgValue;
+
 //! Alias for a Span iterating over values read using __ldg
 template<class T, std::size_t Extent = dynamic_extent>
 using LdgSpan = Span<LdgValue<T>, Extent>;
@@ -247,15 +249,6 @@ make_array(Span<T, N> const& s)
         result[i] = s[i];
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-//! Construct an array from a fixed-size span, removing LdgValue marker
-template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION Array<std::remove_cv_t<T>, N>
-make_array(Span<LdgValue<T>, N> const& s)
-{
-    return make_array<typename LdgValue<T>::value_type, N>(s);
 }
 
 //---------------------------------------------------------------------------//
