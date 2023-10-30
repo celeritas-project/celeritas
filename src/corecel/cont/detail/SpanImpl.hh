@@ -19,6 +19,9 @@ namespace celeritas
 {
 namespace detail
 {
+/*!
+ * Default type aliases for Span.
+ */
 template<class T>
 struct SpanTraits
 {
@@ -30,6 +33,13 @@ struct SpanTraits
     using reference = std::add_lvalue_reference_t<element_type>;
     using const_reference = std::add_lvalue_reference_t<element_type const>;
 };
+
+/*!
+ * Type aliases when data is read using __ldg. \c LdgValue checks that T is a
+ * valid type (const arithmetic or OpaqueId). Since \c LdgIterator returns a
+ * copy of the data read, we can't return a reference to the original data, we
+ * need to return a copy as well.
+ */
 template<class T>
 struct SpanTraits<LdgValue<T>>
 {
