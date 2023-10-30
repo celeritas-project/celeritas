@@ -127,8 +127,9 @@ TEST_F(BIHTraverserTest, grid)
     {
         for (auto j : range(4))
         {
+            constexpr real_type half{0.5};
             EXPECT_EQ(LocalVolumeId{index++},
-                      traverser({0.5 + i, 0.5 + j, 30}, valid_volid_));
+                      traverser({half + i, half + j, 30}, valid_volid_));
         }
     }
 }

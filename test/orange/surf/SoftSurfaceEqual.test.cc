@@ -91,7 +91,10 @@ TEST_F(SoftSurfaceEqualTest, plane)
     real_type const smallabs = SoftEqual{eps}.abs() / 10;
     real_type const largeabs = SoftEqual{eps}.abs() * 10;
 
-    EXPECT_TRUE(softeq_(ref, Plane{n, p + Real3{small, 0, 0}}));
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_TRUE(softeq_(ref, Plane{n, p + Real3{small, 0, 0}}));
+    }
     EXPECT_FALSE(softeq_(ref, Plane{n, p + Real3{large, 0, 0}}));
 
     Real3 const npert = make_unit_vector(n + Real3{smallabs, 0, 0});

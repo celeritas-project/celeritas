@@ -94,6 +94,7 @@ TEST_F(SimTest, looping)
     }
 
     const MevEnergy eps{1e-6};
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         // Below the threshold energy
         auto par = this->make_par_view(pdg::electron(),

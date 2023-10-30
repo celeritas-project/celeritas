@@ -323,7 +323,7 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     {
         ParticleParams const& pp = *this->particle_params();
         SCOPED_TRACE(pp.id_to_label(pp.find(particle)));
-        for (double inc_e : {5e-3, 1.0, 10.0, 100.0, 1000.0})
+        for (real_type inc_e : {5e-3, 1.0, 10.0, 100.0, 1000.0})
         {
             RandomEngine& rng_engine = this->rng();
             RandomEngine::size_type num_particles_sampled = 0;

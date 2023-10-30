@@ -25,8 +25,6 @@ TEST_F(OrangeTypesTest, tolerances)
     using TolT = Tolerance<>;
     EXPECT_FALSE(TolT{});
 
-    EXPECT_SOFT_EQ(1e-10, ipow<2>(TolT::sqrt_quadratic()));
-
     {
         SCOPED_TRACE("Default tolerance");
         auto const tol = TolT::from_default();
@@ -41,9 +39,10 @@ TEST_F(OrangeTypesTest, tolerances)
     }
     {
         SCOPED_TRACE("Tolerance with other length scale");
-        auto const tol = TolT::from_default(1e-4);
+        auto const tol = Tolerance<double>::from_default(1e-4);
         EXPECT_SOFT_EQ(1e-8, tol.rel);
         EXPECT_SOFT_EQ(1e-12, tol.abs);
+        EXPECT_SOFT_EQ(1e-10, ipow<2>(Tolerance<double>::sqrt_quadratic()));
     }
     {
         SCOPED_TRACE("Tolerance with arbitrary relative");

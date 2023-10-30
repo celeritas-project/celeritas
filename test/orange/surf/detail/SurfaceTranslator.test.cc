@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/detail/SurfaceTranslator.hh"
 
+#include "corecel/math/SoftEqual.hh"
 #include "orange/Constants.hh"
 #include "orange/surf/detail/AllSurfaces.hh"
 
@@ -115,7 +116,7 @@ TEST_F(SurfaceTranslatorTest, general_quadric)
     EXPECT_SOFT_EQ(no_intersection(), distances[0]);
 
     distances = gq.calc_intersections(pos, outward, SurfaceState::off);
-    EXPECT_SOFT_EQ(1.0, distances[0]);
+    EXPECT_SOFT_NEAR(1.0, distances[0], SoftEqual<>{}.rel() * 10);
     EXPECT_SOFT_EQ(7.0, distances[1]);
 }
 

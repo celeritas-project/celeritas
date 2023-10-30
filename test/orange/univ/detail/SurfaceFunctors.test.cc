@@ -77,27 +77,27 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
     CalcSafetyDistance calc_distance{pos};
 
     real_type eps = 1e-4;
-    pos = {1.25 + eps, 1, 0};
+    pos = {real_type{1.25} + eps, 1, 0};
     EXPECT_SOFT_EQ(eps, calc_distance(px_));
     EXPECT_SOFT_EQ(0.25 + eps, calc_distance(s_));
 
-    pos = {1.25, 1, 0};
+    pos = {real_type{1.25}, 1, 0};
     EXPECT_SOFT_EQ(0, calc_distance(px_));
     EXPECT_SOFT_EQ(0.25, calc_distance(s_));
 
-    pos = {1.25 - eps, 1, 0};
+    pos = {real_type{1.25} - eps, 1, 0};
     EXPECT_SOFT_EQ(eps, calc_distance(px_));
     EXPECT_SOFT_EQ(0.25 - eps, calc_distance(s_));
 
-    pos = {1.0 - eps, 1, 0};
+    pos = {real_type{1} - eps, 1, 0};
     EXPECT_SOFT_EQ(0.25 + eps, calc_distance(px_));
     EXPECT_SOFT_EQ(eps, calc_distance(s_));
 
-    pos = {3.5 + eps, 1, 0};
+    pos = {real_type{3.5} + eps, 1, 0};
     EXPECT_SOFT_EQ(2.25 + eps, calc_distance(px_));
-    EXPECT_SOFT_NEAR(0.0 + eps, calc_distance(s_), 1e-11);
+    EXPECT_SOFT_NEAR(0.0 + eps, calc_distance(s_), coarse_eps);
 
-    pos = {3.5, 1, 0};
+    pos = {real_type{3.5}, 1, 0};
     EXPECT_SOFT_EQ(2.25, calc_distance(px_));
     EXPECT_SOFT_EQ(0.0, calc_distance(s_));
 }

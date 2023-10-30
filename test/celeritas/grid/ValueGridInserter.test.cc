@@ -37,7 +37,7 @@ TEST_F(ValueGridInserterTest, all)
     ValueGridInserter insert(&real_storage, &grid_storage);
 
     {
-        const real_type values[] = {10, 20, 3};
+        double const values[] = {10, 20, 3};
 
         auto idx = insert(
             UniformGridData::from_bounds(0.0, 1.0, 3), 1, make_span(values));
@@ -49,7 +49,7 @@ TEST_F(ValueGridInserterTest, all)
         EXPECT_VEC_SOFT_EQ(values, real_storage[inserted.value]);
     }
     {
-        const real_type values[] = {1, 2, 4, 6, 8};
+        double const values[] = {1, 2, 4, 6, 8};
 
         auto idx = insert(UniformGridData::from_bounds(0.0, 10.0, 5),
                           make_span(values));

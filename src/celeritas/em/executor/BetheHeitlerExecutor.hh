@@ -40,7 +40,6 @@ BetheHeitlerExecutor::operator()(CoreTrackView const& track)
     auto material_track = track.make_material_view();
     auto material = material_track.make_material_view();
     auto particle = track.make_particle_view();
-
     auto elcomp_id = track.make_physics_step_view().element();
     CELER_ASSERT(elcomp_id);
     auto element = material.make_element_view(elcomp_id);

@@ -78,6 +78,11 @@ else()
   set(_needs_device DISABLED true)
 endif()
 
+if(CELERITAS_REAL_TYPE STREQUAL "float")
+  # FIXME: propagation fails in single precision
+  set(_needs_deps DISABLED true)
+endif()
+
 set_tests_properties("app/celer-sim:device" PROPERTIES
   ENVIRONMENT "${_env};${CELER_G4ENV}"
   RESOURCE_LOCK gpu

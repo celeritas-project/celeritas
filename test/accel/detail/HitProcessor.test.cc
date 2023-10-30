@@ -194,42 +194,42 @@ TEST_F(SimpleCmsTest, no_touchable)
 
     {
         auto& result = this->get_hits("si_tracker");
-        static double const expected_energy_deposition[] = {0.1, 0.4};
+        static real_type const expected_energy_deposition[] = {0.1, 0.4};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
-        static double const expected_pre_energy[] = {0, 0};
+        static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
-        static double const expected_pre_pos[] = {100, 0, 0, 100, 0, 0};
+        static real_type const expected_pre_pos[] = {100, 0, 0, 100, 0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
-        static double const expected_post_time[] = {1, 1};
+        static real_type const expected_post_time[] = {1, 1};
         EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
     }
     {
         auto& result = this->get_hits("em_calorimeter");
-        static double const expected_energy_deposition[] = {0.2, 0.5};
+        static real_type const expected_energy_deposition[] = {0.2, 0.5};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static char const* const expected_particle[] = {"e-", "e-"};
         EXPECT_VEC_EQ(expected_particle, result.particle);
-        static double const expected_pre_energy[] = {0, 0};
+        static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
-        static double const expected_pre_pos[] = {0, 150, 10, 0, 150, 10};
+        static real_type const expected_pre_pos[] = {0, 150, 10, 0, 150, 10};
         EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
-        static double const expected_post_time[] = {0.2, 0.2};
+        static real_type const expected_post_time[] = {0.2, 0.2};
         EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
     }
     {
         auto& result = this->get_hits("had_calorimeter");
-        static double const expected_energy_deposition[] = {0.3, 0.6};
+        static real_type const expected_energy_deposition[] = {0.3, 0.6};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static char const* const expected_particle[] = {"gamma", "gamma"};
         EXPECT_VEC_EQ(expected_particle, result.particle);
-        static double const expected_pre_energy[] = {0, 0};
+        static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
-        static double const expected_pre_pos[] = {0, 200, -20, 0, 200, -20};
+        static real_type const expected_pre_pos[] = {0, 200, -20, 0, 200, -20};
         EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
-        static double const expected_post_time[] = {30, 30};
+        static real_type const expected_post_time[] = {30, 30};
         EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
     }
 }
