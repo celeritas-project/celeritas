@@ -238,21 +238,20 @@ class Collection
     static_assert(std::is_trivially_destructible<T>::value || CELERITAS_USE_HIP,
                   "Collection element is not trivially destructible");
 
-    using const_value_type =
-        typename detail::CollectionTraits<T, W>::const_type;
+    using CollectionTraitsT = detail::CollectionTraits<T, W>;
+    using const_value_type = typename CollectionTraitsT::const_type;
 
   public:
     //!@{
     //! \name Type aliases
-    using value_type = typename detail::CollectionTraits<T, W>::type;
-    using SpanT = typename detail::CollectionTraits<T, W>::SpanT;
-    using SpanConstT = typename detail::CollectionTraits<T, W>::SpanConstT;
+    using value_type = typename CollectionTraitsT::type;
+    using SpanT = typename CollectionTraitsT::SpanT;
+    using SpanConstT = typename CollectionTraitsT::SpanConstT;
     using pointer = ObserverPtr<value_type, M>;
     using const_pointer = ObserverPtr<const_value_type, M>;
-    using reference_type =
-        typename detail::CollectionTraits<T, W>::reference_type;
+    using reference_type = typename CollectionTraitsT::reference_type;
     using const_reference_type =
-        typename detail::CollectionTraits<T, W>::const_reference_type;
+        typename CollectionTraitsT::const_reference_type;
     using size_type = typename I::size_type;
     using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;
