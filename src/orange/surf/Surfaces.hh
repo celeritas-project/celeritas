@@ -98,8 +98,8 @@ CELER_FUNCTION T Surfaces::make_surface(LocalSurfaceId sid) const
     auto stop_offset = start_offset.unchecked_get()
                        + static_cast<size_type>(T::Storage::extent);
     CELER_ASSERT(stop_offset <= params_.reals.size());
-    return T{Span<real_type const>{data + start_offset.unchecked_get(),
-                                   data + stop_offset}};
+    return T{LdgSpan<real_type const>{data + start_offset.unchecked_get(),
+                                      data + stop_offset}};
 }
 
 //---------------------------------------------------------------------------//

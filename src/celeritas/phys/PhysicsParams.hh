@@ -120,7 +120,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     using SPConstRelaxation = std::shared_ptr<AtomicRelaxationParams const>;
 
     using VecProcess = std::vector<SPConstProcess>;
-    using SpanConstProcessId = Span<ProcessId const>;
+    using SpanConstProcessId = LdgSpan<ProcessId const>;
     using ActionIdRange = Range<ActionId>;
     using Options = PhysicsParamsOptions;
     //!@}

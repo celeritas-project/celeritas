@@ -66,7 +66,7 @@ class ValueGridXsBuilder final : public ValueGridBuilder
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstDbl = Span<double const>;
+    using SpanConstDbl = LdgSpan<double const>;
     using VecDbl = std::vector<double>;
     //!@}
 
@@ -107,7 +107,7 @@ class ValueGridLogBuilder : public ValueGridBuilder
     //!@{
     //! \name Type aliases
     using VecDbl = std::vector<double>;
-    using SpanConstDbl = Span<double const>;
+    using SpanConstDbl = LdgSpan<double const>;
     using Id = ItemId<XsGridData>;
     using UPLogBuilder = std::unique_ptr<ValueGridLogBuilder>;
     //!@}

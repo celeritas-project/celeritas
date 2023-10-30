@@ -26,7 +26,7 @@ class LogicEvaluator
   public:
     //@{
     //! \name Type aliases
-    using SpanConstLogic = Span<logic_int const>;
+    using SpanConstLogic = LdgSpan<logic_int const>;
     using SpanConstSense = Span<Sense const>;
     //@}
 

@@ -62,7 +62,7 @@ class NonuniformGrid
 
   private:
     // TODO: change backend for effiency if needeed
-    Span<value_type const> data_;
+    typename Values::SpanConstT data_;
 };
 
 //---------------------------------------------------------------------------//
