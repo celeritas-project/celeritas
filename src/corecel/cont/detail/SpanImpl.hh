@@ -23,23 +23,23 @@ template<class T>
 struct SpanTraits
 {
     using element_type = T;
-    using pointer = std::add_pointer_t<T>;
-    using const_pointer = std::add_pointer_t<T const>;
+    using pointer = std::add_pointer_t<element_type>;
+    using const_pointer = std::add_pointer_t<element_type const>;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using reference = std::add_lvalue_reference_t<T>;
-    using const_reference = std::add_lvalue_reference_t<T const>;
+    using reference = std::add_lvalue_reference_t<element_type>;
+    using const_reference = std::add_lvalue_reference_t<element_type const>;
 };
 template<class T>
 struct SpanTraits<LdgValue<T>>
 {
-    using element_type = typename LdgValue<T>::value_type;
-    using pointer = std::add_pointer_t<T const>;
+    using element_type = std::remove_const_t<typename LdgValue<T>::value_type>;
+    using pointer = std::add_pointer_t<element_type const>;
     using const_pointer = pointer;
-    using iterator = LdgIterator<T const>;
+    using iterator = LdgIterator<element_type const>;
     using const_iterator = iterator;
-    using reference = std::remove_const_t<T>;
-    using const_reference = std::remove_const_t<T>;
+    using reference = element_type;
+    using const_reference = element_type;
 };
 //---------------------------------------------------------------------------//
 //! Sentinel value for span of dynamic type
@@ -70,9 +70,12 @@ subspan_size(std::size_t size, std::size_t offset, std::size_t count)
 template<class T, std::size_t Extent>
 struct SpanImpl
 {
+    using iterator = typename SpanTraits<T>::iterator;
+    using pointer = typename SpanTraits<T>::pointer;
+
     //// DATA ////
 
-    typename SpanTraits<T>::iterator data = nullptr;
+    iterator data = nullptr;
     static constexpr std::size_t size = Extent;
 
     //// METHODS ////
@@ -89,8 +92,7 @@ struct SpanImpl
 
     //! Construct from data and size
     CELER_FORCEINLINE_FUNCTION
-    SpanImpl(typename SpanTraits<T>::pointer d, std::size_t s)
-        : data(d)
+    SpanImpl(pointer d, std::size_t s) : data(d)
     {
         CELER_EXPECT(d != nullptr);
         CELER_EXPECT(s == Extent);
@@ -104,9 +106,12 @@ struct SpanImpl
 template<class T>
 struct SpanImpl<T, 0>
 {
+    using iterator = typename SpanTraits<T>::iterator;
+    using pointer = typename SpanTraits<T>::pointer;
+
     //// DATA ////
 
-    typename SpanTraits<T>::iterator data = nullptr;
+    iterator data = nullptr;
     static constexpr std::size_t size = 0;
 
     //// CONSTRUCTORS ////
@@ -116,11 +121,7 @@ struct SpanImpl<T, 0>
 
     //! Construct from data (any) and size (must be zero)
     CELER_FORCEINLINE_FUNCTION
-    SpanImpl(typename SpanTraits<T>::pointer d, std::size_t s)
-        : data(d)
-    {
-        CELER_EXPECT(s == 0);
-    }
+    SpanImpl(pointer d, std::size_t s) : data(d) { CELER_EXPECT(s == 0); }
 };
 
 //---------------------------------------------------------------------------//
@@ -130,9 +131,12 @@ struct SpanImpl<T, 0>
 template<class T>
 struct SpanImpl<T, dynamic_extent>
 {
+    using iterator = typename SpanTraits<T>::iterator;
+    using pointer = typename SpanTraits<T>::pointer;
+
     //// DATA ////
 
-    typename SpanTraits<T>::iterator data = nullptr;
+    iterator data = nullptr;
     std::size_t size = 0;
 
     //// METHODS ////
@@ -142,8 +146,7 @@ struct SpanImpl<T, dynamic_extent>
 
     //! Construct from data and size
     CELER_FORCEINLINE_FUNCTION
-    SpanImpl(typename SpanTraits<T>::pointer d, std::size_t s)
-        : data(d), size(s)
+    SpanImpl(pointer d, std::size_t s) : data(d), size(s)
     {
         CELER_EXPECT(d != nullptr || size == 0);
     }

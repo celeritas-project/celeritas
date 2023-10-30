@@ -26,9 +26,9 @@ struct LdgLoader
 {
     static_assert(std::is_arithmetic_v<T> && std::is_const_v<T>,
                   "Only const arithmetic types are supported by __ldg");
-    using value_type = T;
-    using pointer = std::add_pointer_t<value_type>;
-    using reference = std::remove_const_t<value_type>;
+    using value_type = std::remove_const_t<T>;
+    using pointer = std::add_pointer_t<value_type const>;
+    using reference = value_type;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
