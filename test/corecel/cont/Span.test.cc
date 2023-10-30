@@ -255,79 +255,77 @@ TEST(SpanTest, io_manip)
         EXPECT_EQ("{123   ,456  ,789  }", os.str());
     }
 }
-TEST(SpanTest, ldg_span)
+TEST(LdgSpanTest, pod)
 {
-    {
-        using LdgInt = LdgValue<int const>;
-        int local_data[] = {123, 456, 789};
-        Span<int> mutable_span(local_data);
-        EXPECT_TRUE((std::is_same_v<decltype(mutable_span[0]), int&>));
-        Span<LdgInt> ldg_span(mutable_span);
-        Span<LdgInt> local_span(local_data);
-        EXPECT_TRUE(
-            (std::is_same_v<typename Span<LdgInt>::element_type, int>));
-        EXPECT_TRUE((std::is_same_v<decltype(local_span.data()), int const*>));
-        EXPECT_TRUE((std::is_same_v<decltype(local_span.front()), int>));
-        EXPECT_TRUE((std::is_same_v<decltype(local_span.back()), int>));
-        EXPECT_TRUE((std::is_same_v<decltype(local_span[0]), int>));
-        EXPECT_TRUE((std::is_same_v<decltype(local_span.begin()),
-                                    LdgIterator<int const>>));
-        EXPECT_TRUE((
-            std::is_same_v<decltype(local_span.end()), LdgIterator<int const>>));
+    using LdgInt = LdgValue<int const>;
+    int local_data[] = {123, 456, 789};
+    Span<int> mutable_span(local_data);
+    EXPECT_TRUE((std::is_same_v<decltype(mutable_span[0]), int&>));
+    Span<LdgInt> ldg_span(mutable_span);
+    Span<LdgInt> local_span(local_data);
+    EXPECT_TRUE(
+        (std::is_same_v<typename Span<LdgInt>::element_type, int const>));
+    EXPECT_TRUE((std::is_same_v<decltype(local_span.data()), int const*>));
+    EXPECT_TRUE((std::is_same_v<decltype(local_span.front()), int>));
+    EXPECT_TRUE((std::is_same_v<decltype(local_span.back()), int>));
+    EXPECT_TRUE((std::is_same_v<decltype(local_span[0]), int>));
+    EXPECT_TRUE((
+        std::is_same_v<decltype(local_span.begin()), LdgIterator<int const>>));
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(local_span.end()), LdgIterator<int const>>));
 
-        EXPECT_EQ(local_span.first(2).back(), 456);
-        EXPECT_TRUE((
-            std::is_same_v<decltype(local_span), decltype(local_span.first(2))>));
-        EXPECT_EQ(local_span.subspan(1, 1)[1], 789);
+    EXPECT_EQ(local_span.first(2).back(), 456);
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(local_span), decltype(local_span.first(2))>));
+    EXPECT_EQ(local_span.subspan(1, 1)[1], 789);
 
-        auto begin = local_span.begin();
-        EXPECT_EQ(*begin++, 123);
-        EXPECT_EQ(*begin++, 456);
-        EXPECT_EQ(*begin++, 789);
-        EXPECT_EQ(begin, local_span.end());
-        EXPECT_EQ(local_span[2], 789);
-        EXPECT_EQ(local_span.end()[-3], 123);
-    }
+    auto begin = local_span.begin();
+    EXPECT_EQ(*begin++, 123);
+    EXPECT_EQ(*begin++, 456);
+    EXPECT_EQ(*begin++, 789);
+    EXPECT_EQ(begin, local_span.end());
+    EXPECT_EQ(local_span[2], 789);
+    EXPECT_EQ(local_span.end()[-3], 123);
+}
 
-    {
-        using SpanTestLdgOpaqueId = OpaqueId<struct SpanTestLdgOpaqueId_>;
-        using LdgId = LdgValue<SpanTestLdgOpaqueId const>;
-        SpanTestLdgOpaqueId local_data[] = {SpanTestLdgOpaqueId{123},
-                                            SpanTestLdgOpaqueId{456},
-                                            SpanTestLdgOpaqueId{789}};
-        Span<SpanTestLdgOpaqueId> mutable_span(local_data);
-        EXPECT_TRUE(
-            (std::is_same_v<decltype(mutable_span[0]), SpanTestLdgOpaqueId&>));
-        Span<LdgId> ldg_span(mutable_span);
-        Span<LdgId> local_span(local_data);
-        EXPECT_TRUE((std::is_same_v<typename Span<LdgId>::element_type,
-                                    SpanTestLdgOpaqueId>));
-        EXPECT_TRUE((std::is_same_v<decltype(local_span.data()),
-                                    SpanTestLdgOpaqueId const*>));
-        EXPECT_TRUE((
-            std::is_same_v<decltype(local_span.front()), SpanTestLdgOpaqueId>));
-        EXPECT_TRUE((
-            std::is_same_v<decltype(local_span.back()), SpanTestLdgOpaqueId>));
-        EXPECT_TRUE(
-            (std::is_same_v<decltype(local_span[0]), SpanTestLdgOpaqueId>));
-        EXPECT_TRUE((std::is_same_v<decltype(local_span.begin()),
-                                    LdgIterator<SpanTestLdgOpaqueId const>>));
-        EXPECT_TRUE((std::is_same_v<decltype(local_span.end()),
-                                    LdgIterator<SpanTestLdgOpaqueId const>>));
+TEST(LdgSpanTest, opaque_id)
+{
+    using SpanTestLdgOpaqueId = OpaqueId<struct SpanTestLdgOpaqueId_>;
+    using LdgId = LdgValue<SpanTestLdgOpaqueId const>;
+    SpanTestLdgOpaqueId local_data[] = {SpanTestLdgOpaqueId{123},
+                                        SpanTestLdgOpaqueId{456},
+                                        SpanTestLdgOpaqueId{789}};
+    Span<SpanTestLdgOpaqueId> mutable_span(local_data);
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(mutable_span[0]), SpanTestLdgOpaqueId&>));
+    Span<LdgId> ldg_span(mutable_span);
+    Span<LdgId> local_span(local_data);
+    EXPECT_TRUE((std::is_same_v<typename Span<LdgId>::element_type,
+                                SpanTestLdgOpaqueId const>));
+    EXPECT_TRUE((
+        std::is_same_v<decltype(local_span.data()), SpanTestLdgOpaqueId const*>));
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(local_span.front()), SpanTestLdgOpaqueId>));
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(local_span.back()), SpanTestLdgOpaqueId>));
+    EXPECT_TRUE((std::is_same_v<decltype(local_span[0]), SpanTestLdgOpaqueId>));
+    EXPECT_TRUE((std::is_same_v<decltype(local_span.begin()),
+                                LdgIterator<SpanTestLdgOpaqueId const>>));
+    EXPECT_TRUE((std::is_same_v<decltype(local_span.end()),
+                                LdgIterator<SpanTestLdgOpaqueId const>>));
 
-        EXPECT_EQ(local_span.first(2).back(), SpanTestLdgOpaqueId{456});
-        EXPECT_TRUE((
-            std::is_same_v<decltype(local_span), decltype(local_span.first(2))>));
-        EXPECT_EQ(local_span.subspan(1, 1)[1], SpanTestLdgOpaqueId{789});
+    EXPECT_EQ(local_span.first(2).back(), SpanTestLdgOpaqueId{456});
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(local_span), decltype(local_span.first(2))>));
+    EXPECT_EQ(local_span.subspan(1, 1)[1], SpanTestLdgOpaqueId{789});
 
-        auto begin = local_span.begin();
-        EXPECT_EQ(*begin++, SpanTestLdgOpaqueId{123});
-        EXPECT_EQ(*begin++, SpanTestLdgOpaqueId{456});
-        EXPECT_EQ(*begin++, SpanTestLdgOpaqueId{789});
-        EXPECT_EQ(begin, local_span.end());
-        EXPECT_EQ(local_span[2], SpanTestLdgOpaqueId{789});
-        EXPECT_EQ(local_span.end()[-3], SpanTestLdgOpaqueId{123});
-    }
+    auto begin = local_span.begin();
+    EXPECT_EQ(*begin++, SpanTestLdgOpaqueId{123});
+    EXPECT_EQ(*begin++, SpanTestLdgOpaqueId{456});
+    EXPECT_EQ(*begin++, SpanTestLdgOpaqueId{789});
+    EXPECT_EQ(begin, local_span.end());
+    EXPECT_EQ(local_span[2], SpanTestLdgOpaqueId{789});
+    EXPECT_EQ(local_span.end()[-3], SpanTestLdgOpaqueId{123});
 }
 
 //---------------------------------------------------------------------------//

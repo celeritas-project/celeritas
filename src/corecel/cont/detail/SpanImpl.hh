@@ -43,13 +43,14 @@ struct SpanTraits
 template<class T>
 struct SpanTraits<LdgValue<T>>
 {
-    using element_type = std::remove_const_t<typename LdgValue<T>::value_type>;
+    // element_type is always const
+    using element_type = typename LdgValue<T>::value_type;
     using pointer = std::add_pointer_t<element_type const>;
     using const_pointer = pointer;
     using iterator = LdgIterator<element_type const>;
     using const_iterator = iterator;
-    using reference = element_type;
-    using const_reference = element_type;
+    using reference = std::remove_const_t<element_type>;
+    using const_reference = std::remove_const_t<element_type>;
 };
 //---------------------------------------------------------------------------//
 //! Sentinel value for span of dynamic type
@@ -80,6 +81,8 @@ subspan_size(std::size_t size, std::size_t offset, std::size_t count)
 template<class T, std::size_t Extent>
 struct SpanImpl
 {
+    //// TYPES ////
+
     using iterator = typename SpanTraits<T>::iterator;
     using pointer = typename SpanTraits<T>::pointer;
 
@@ -116,6 +119,8 @@ struct SpanImpl
 template<class T>
 struct SpanImpl<T, 0>
 {
+    //// TYPES ////
+
     using iterator = typename SpanTraits<T>::iterator;
     using pointer = typename SpanTraits<T>::pointer;
 
@@ -141,6 +146,8 @@ struct SpanImpl<T, 0>
 template<class T>
 struct SpanImpl<T, dynamic_extent>
 {
+    //// TYPES ////
+
     using iterator = typename SpanTraits<T>::iterator;
     using pointer = typename SpanTraits<T>::pointer;
 
