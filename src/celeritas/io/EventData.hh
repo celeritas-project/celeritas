@@ -15,24 +15,39 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Example of a calorimeter hit.
+ */
+struct EventHitData
+{
+    int volume{0};  //!< Logical volume ID
+    int copy_num{0};  //!< Physical volume copy number
+    double energy_dep{0};  //!< Energy deposition [MeV]
+    double time{0};  //!< Pre-step global time [s]
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Pre- and post-step point information.
+ */
+struct EventStepPointData
+{
+    double energy{0};  //!< Kinetic energy [MeV]
+    std::array<double, 3> dir{0, 0, 0};  //!< Unit vector
+    std::array<double, 3> pos{0, 0, 0};  //!< [cm]
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Particle step data. Arrays are for pre- and post-steps.
  *
- * TODO: Map and add a unified process/action id
+ * TODO: Map and add a unified process/action id; Add PDG, add track and parent
+ * IDs.
  */
 struct EventStepData
 {
-    int volume{0};  //!< Logical volume ID
-    int pdg{0};
-    int parent_id{0};
-    int track_id{0};
-    double energy_loss{0};  //!< Same as energy deposition [MeV]
+    EventHitData hit;
     double length{0};  //!< Step length [cm]
-
-    // Pre- and post-step information
-    double energy[2]{0};  //!< Kinetic energy [MeV]
-    std::array<double, 3> dir[2]{{0, 0, 0}};  //!< Unit vector
-    std::array<double, 3> pos[2]{{0, 0, 0}};  //!< [cm]
-    double time[2]{0};  //!< Global coordinate time [s]
+    std::array<EventStepPointData, 2> step_points;  //!< Pre- and post-steps
 };
 
 //---------------------------------------------------------------------------//
@@ -46,7 +61,7 @@ struct EventStepData
  * auto const& sd_steps = event_data.steps[sensdet_id];
  * for (auto const& step : sd_steps)
  * {
- *     // Access step from a given sensitive detector in this event.
+ *     // Access step information from a given detector in this event.
  * }
  * \endcode
  *

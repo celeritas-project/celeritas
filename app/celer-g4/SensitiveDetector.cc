@@ -94,30 +94,33 @@ bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
         return false;
     }
 
-    // Insert pre- and post-step data
+    auto* pre_step = g4step->GetPreStepPoint();
+    CELER_ASSERT(pre_step);
+    auto const* phys_vol = pre_step->GetPhysicalVolume();
+    CELER_ASSERT(phys_vol);
+    auto const* log_vol = phys_vol->GetLogicalVolume();
+    CELER_ASSERT(log_vol);
+
+    // Insert step data
     EventStepData step;
     {
-        auto* pre_step = g4step->GetPreStepPoint();
-        CELER_ASSERT(pre_step);
-        auto const* phys_vol = pre_step->GetPhysicalVolume();
-        CELER_ASSERT(phys_vol);
-        auto const* log_vol = phys_vol->GetLogicalVolume();
-        CELER_ASSERT(log_vol);
-        auto const* g4track = g4step->GetTrack();
-        CELER_ASSERT(g4track);
-
-        step.volume = log_vol->GetInstanceID();
-        step.pdg = g4track->GetParticleDefinition()->GetPDGEncoding();
-        step.parent_id = g4track->GetParentID();
-        step.track_id = g4track->GetTrackID();
-        step.energy_loss = edep / CLHEP::MeV;
+        EventHitData hit;
+        {
+            hit.volume = log_vol->GetInstanceID();
+            hit.copy_num = phys_vol->GetCopyNo();
+            hit.energy_dep = edep / CLHEP::MeV;
+            hit.time = pre_step->GetGlobalTime() / CLHEP::s;
+        }
+        step.hit = std::move(hit);
         step.length = g4step->GetStepLength() / CLHEP::cm;
 
         // Pre- and post-step data
-        this->store_step_point(*pre_step, StepPoint::pre, step);
+        step.step_points[static_cast<int>(StepPoint::pre)]
+            = this->make_step_point(*pre_step);
         if (auto* post_step = g4step->GetPostStepPoint())
         {
-            this->store_step_point(*post_step, StepPoint::post, step);
+            step.step_points[static_cast<int>(StepPoint::post)]
+                = this->make_step_point(*post_step);
         }
     }
 
@@ -126,20 +129,21 @@ bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
 }
 
 //---------------------------------------------------------------------------//
-void SensitiveDetector::store_step_point(G4StepPoint& step_point,
-                                         StepPoint point,
-                                         EventStepData& step)
+/*!
+ * Assign pre- and post-step information.
+ */
+EventStepPointData SensitiveDetector::make_step_point(G4StepPoint& g4step_point)
 {
-    auto const* phys_vol = step_point.GetPhysicalVolume();
+    auto const* phys_vol = g4step_point.GetPhysicalVolume();
     CELER_ASSERT(phys_vol);
     auto const* log_vol = phys_vol->GetLogicalVolume();
     CELER_ASSERT(log_vol);
-    auto const p = static_cast<std::size_t>(point);
 
-    step.energy[p] = step_point.GetKineticEnergy() / CLHEP::MeV;
-    step.time[p] = step_point.GetGlobalTime() / CLHEP::s;
-    step.pos[p] = make_array(step_point.GetPosition(), CLHEP::cm);
-    step.dir[p] = make_array(step_point.GetMomentumDirection());
+    EventStepPointData step_point;
+    step_point.energy = g4step_point.GetKineticEnergy() / CLHEP::MeV;
+    step_point.pos = make_array(g4step_point.GetPosition(), CLHEP::cm);
+    step_point.dir = make_array(g4step_point.GetMomentumDirection());
+    return step_point;
 }
 
 //---------------------------------------------------------------------------//

@@ -120,6 +120,10 @@ void RootIO::Write(G4Event const* event)
 //---------------------------------------------------------------------------//
 /*!
  * Fill event tree with event data.
+ *
+ * \note
+ * `tree_->Fill()` will import the data from *all* existing TBranches. So this
+ * code expects to have only one TBranch in this TTree.
  */
 void RootIO::WriteObject(EventData* event_data)
 {
@@ -146,18 +150,10 @@ void RootIO::WriteObject(EventData* event_data)
  */
 void RootIO::AddSensitiveDetector(std::string name)
 {
-    auto iter = detector_name_id_map_.find(name);
-    if (iter == detector_name_id_map_.end())
-    {
-        detector_name_id_map_.insert({name, ++detector_id_});
-    }
-
-    // if (auto iter
-    //     = detector_name_id_map_.insert({std::move(name), detector_id_});
-    //     iter == detector_name_id_map_.end())
-    // {
-    //     ++detector_id_;
-    // }
+    auto&& [iter, inserted]
+        = detector_name_id_map_.insert({std::move(name), ++detector_id_});
+    CELER_ASSERT(inserted);
+    CELER_DISCARD(iter);
 }
 
 //---------------------------------------------------------------------------//
@@ -250,7 +246,7 @@ void RootIO::StoreSdMap(TFile* file)
     CELER_EXPECT(file && file->IsOpen());
 
     auto tree = new TTree(
-        "sensitive_detectors", "sensitive_detectors", this->SplitLevel(), file);
+        "sensitive_detectors", "name_to_id", this->SplitLevel(), file);
 
     std::string name;
     unsigned int id;
