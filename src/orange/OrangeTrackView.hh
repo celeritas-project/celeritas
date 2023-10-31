@@ -129,11 +129,6 @@ class OrangeTrackView
     StateRef const& states_;
     TrackSlotId track_slot_;
 
-    // Temporary next-step data
-    real_type next_step_{0};
-    detail::OnSurface next_surface_{};
-    LevelId next_surface_level_{};
-
     //// PRIVATE STATE MUTATORS ////
 
     // The current level
@@ -172,7 +167,7 @@ class OrangeTrackView
     inline CELER_FUNCTION real_type const& next_step() const;
 
     // The next surface to be encounted
-    inline CELER_FUNCTION detail::OnSurface const& next_surface() const;
+    inline CELER_FUNCTION detail::OnSurface next_surface() const;
 
     // The level of the next surface to be encounted
     inline CELER_FUNCTION LevelId const& next_surface_level() const;
@@ -798,7 +793,7 @@ CELER_FORCEINLINE_FUNCTION void OrangeTrackView::boundary(BoundaryResult br)
  */
 CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_step(real_type dist)
 {
-    next_step_ = dist;
+    states_.next_step[track_slot_] = dist;
 }
 
 /*!
@@ -807,7 +802,8 @@ CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_step(real_type dist)
 CELER_FORCEINLINE_FUNCTION void
 OrangeTrackView::next_surface(detail::OnSurface const& s)
 {
-    next_surface_ = s;
+    states_.next_surface[track_slot_] = s.id();
+    states_.next_sense[track_slot_] = s.unchecked_sense();
 }
 
 /*!
@@ -815,7 +811,7 @@ OrangeTrackView::next_surface(detail::OnSurface const& s)
  */
 CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_surface_level(LevelId lev)
 {
-    next_surface_level_ = lev;
+    states_.next_level[track_slot_] = lev;
 }
 
 //---------------------------------------------------------------------------//
@@ -867,16 +863,16 @@ OrangeTrackView::boundary() const
  */
 CELER_FORCEINLINE_FUNCTION real_type const& OrangeTrackView::next_step() const
 {
-    return next_step_;
+    return states_.next_step[track_slot_];
 }
 
 /*!
  * The next surface to be encountered.
  */
-CELER_FORCEINLINE_FUNCTION detail::OnSurface const&
+CELER_FORCEINLINE_FUNCTION detail::OnSurface
 OrangeTrackView::next_surface() const
 {
-    return next_surface_;
+    return {states_.next_surface[track_slot_], states_.next_sense[track_slot_]};
 }
 
 /*!
@@ -885,7 +881,7 @@ OrangeTrackView::next_surface() const
 CELER_FORCEINLINE_FUNCTION LevelId const&
 OrangeTrackView::next_surface_level() const
 {
-    return next_surface_level_;
+    return states_.next_level[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

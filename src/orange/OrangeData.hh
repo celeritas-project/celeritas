@@ -418,6 +418,12 @@ struct OrangeStateData
     StateItems<Sense> sense;
     StateItems<BoundaryResult> boundary;
 
+    // "Local" state, needed for Shift {num_tracks}
+    StateItems<real_type> next_step;
+    StateItems<SurfaceId> next_surface;
+    StateItems<Sense> next_sense;
+    StateItems<LevelId> next_level;
+
     // State with dimensions {num_tracks, max_depth}
     Items<Real3> pos;
     Items<Real3> dir;
@@ -444,6 +450,10 @@ struct OrangeStateData
             && surf.size() == this->size()
             && sense.size() == this->size()
             && boundary.size() == this->size()
+            && next_step.size() == this->size()
+            && next_surface.size() == this->size()
+            && next_sense.size() == this->size()
+            && next_level.size() == this->size()
             && pos.size() == max_depth * this->size()
             && dir.size() == max_depth  * this->size()
             && vol.size() == max_depth  * this->size()
@@ -470,6 +480,11 @@ struct OrangeStateData
         surf = other.surf;
         sense = other.sense;
         boundary = other.boundary;
+
+        next_step = other.next_step;
+        next_surface = other.next_surface;
+        next_sense = other.next_sense;
+        next_level = other.next_level;
 
         pos = other.pos;
         dir = other.dir;
@@ -506,6 +521,11 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
     resize(&data->boundary, num_tracks);
+
+    resize(&data->next_step, num_tracks);
+    resize(&data->next_surface, num_tracks);
+    resize(&data->next_sense, num_tracks);
+    resize(&data->next_level, num_tracks);
 
     size_type level_states = params.scalars.max_depth * num_tracks;
     resize(&data->pos, level_states);
