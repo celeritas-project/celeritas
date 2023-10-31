@@ -97,19 +97,19 @@ void RootIO::Write(G4Event const* event)
     event_data.steps.resize(detector_name_id_map_.size());
 
     event_data.event_id = event->GetEventID();
-    for (int i = 0; i < hit_cols->GetNumberOfCollections(); i++)
+    for (auto i : celeritas::range(hit_cols->GetNumberOfCollections()))
     {
-        auto const hc = hit_cols->GetHC(i);
+        auto const* hc_id = hit_cols->GetHC(i);
         std::vector<EventStepData> steps;
-        steps.resize(hc->GetSize());
+        steps.resize(hc_id->GetSize());
 
-        for (std::size_t j = 0; j < hc->GetSize(); ++j)
+        for (auto j : celeritas::range(hc_id->GetSize()))
         {
-            auto* sd_hit = dynamic_cast<SensitiveHit*>(hc->GetHit(j));
-            steps[j] = sd_hit->data();
+            auto* hit_id = dynamic_cast<SensitiveHit*>(hc_id->GetHit(j));
+            steps[j] = hit_id->data();
         }
 
-        auto const iter = detector_name_id_map_.find(hc->GetName());
+        auto const iter = detector_name_id_map_.find(hc_id->GetName());
         CELER_ASSERT(iter != detector_name_id_map_.end());
         event_data.steps[iter->second] = std::move(steps);
     }

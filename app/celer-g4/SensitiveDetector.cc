@@ -17,6 +17,7 @@
 #include <G4VTouchable.hh>
 
 #include "corecel/Assert.hh"
+#include "celeritas/ext/Convert.geant.hh"
 
 #include "GlobalSetup.hh"
 #include "RootIO.hh"
@@ -104,15 +105,15 @@ bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
     // Insert step data
     EventStepData step;
     {
-        EventHitData hit;
-        {
+        step.hit = [&] {
+            EventHitData hit;
             hit.volume = log_vol->GetInstanceID();
             hit.copy_num = phys_vol->GetCopyNo();
-            hit.energy_dep = edep / CLHEP::MeV;
-            hit.time = pre_step->GetGlobalTime() / CLHEP::s;
-        }
-        step.hit = std::move(hit);
-        step.length = g4step->GetStepLength() / CLHEP::cm;
+            hit.energy_dep = convert_from_geant(edep, CLHEP::MeV);
+            hit.time = convert_from_geant(pre_step->GetGlobalTime(), CLHEP::s);
+            return hit;
+        }();
+        step.length = convert_from_geant(g4step->GetStepLength(), CLHEP::cm);
 
         // Pre- and post-step data
         step.step_points[static_cast<int>(StepPoint::pre)]
@@ -140,7 +141,8 @@ EventStepPointData SensitiveDetector::make_step_point(G4StepPoint& g4step_point)
     CELER_ASSERT(log_vol);
 
     EventStepPointData step_point;
-    step_point.energy = g4step_point.GetKineticEnergy() / CLHEP::MeV;
+    step_point.energy
+        = convert_from_geant(g4step_point.GetKineticEnergy(), CLHEP::cm);
     step_point.pos = make_array(g4step_point.GetPosition(), CLHEP::cm);
     step_point.dir = make_array(g4step_point.GetMomentumDirection());
     return step_point;
