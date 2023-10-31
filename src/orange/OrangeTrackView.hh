@@ -1031,7 +1031,7 @@ OrangeTrackView::make_local_state(LevelId level) const
  */
 CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::has_next_step() const
 {
-    return next_step_ != 0;
+    return this->next_step() != 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -1043,7 +1043,7 @@ CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::has_next_step() const
  */
 CELER_FORCEINLINE_FUNCTION void OrangeTrackView::clear_next_step()
 {
-    next_step_ = 0;
+    this->next_step(0);
 }
 
 //---------------------------------------------------------------------------//
