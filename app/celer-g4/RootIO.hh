@@ -100,6 +100,11 @@ inline void RootIO::Write(G4Event const*)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
+inline void RootIO::AddSensitiveDetector(std::string)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
 inline void RootIO::Close()
 {
     CELER_NOT_CONFIGURED("ROOT");
