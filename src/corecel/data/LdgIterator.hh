@@ -29,7 +29,8 @@ template<class T>
 class LdgIterator
 {
     static_assert(detail::is_ldg_supported_v<T>,
-                  "LdgIterator requires const arithmetic or OpaqueId type");
+                  "LdgIterator requires const arithmetic, OpaqueId or "
+                  "celeritas::Byte type");
 
   private:
     using LoadPolicyT = detail::LdgLoader<T>;
@@ -256,7 +257,8 @@ struct LdgValue
 {
     using value_type = T;
     static_assert(detail::is_ldg_supported_v<T>,
-                  "const arithmetic or OpaqueId type required");
+                  "const arithmetic, OpaqueId or celeritas::Byte type "
+                  "required");
 };
 //!@}
 

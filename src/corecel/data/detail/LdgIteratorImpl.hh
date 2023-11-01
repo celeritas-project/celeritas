@@ -64,10 +64,31 @@ struct LdgLoader<OpaqueId<I, T> const>
     }
 };
 
+template<>
+struct LdgLoader<Byte const>
+{
+    static_assert(sizeof(Byte) == sizeof(unsigned char),
+                  "sizeof(Byte) must be equal to unsigned char");
+    using value_type = Byte;
+    using pointer = std::add_pointer_t<value_type const>;
+    using reference = value_type;
+
+    CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
+    {
+#if CELER_DEVICE_COMPILE
+        return value_type{__ldg(reinterpret_cast<unsigned char const*>(p))};
+#else
+        return *p;
+#endif
+    }
+};
+
 // True if T is supported by a LdgLoader specialization
 template<class T>
 inline constexpr bool is_ldg_supported_v
-    = std::is_const_v<T> && (std::is_arithmetic_v<T> || is_opaque_id_v<T>);
+    = std::is_const_v<T>
+      && (std::is_arithmetic_v<T> || is_opaque_id_v<T>
+          || std::is_same_v<Byte, std::remove_cv_t<T>>);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

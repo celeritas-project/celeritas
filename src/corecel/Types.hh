@@ -37,10 +37,7 @@ using ull_int = unsigned long long int;
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
-// TODO: replace with std::byte
-enum class Byte : unsigned char
-{
-};
+using Byte = std::byte;
 
 //---------------------------------------------------------------------------//
 //! Memory location of data
