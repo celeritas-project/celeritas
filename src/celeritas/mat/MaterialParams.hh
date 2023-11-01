@@ -42,9 +42,9 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstMaterialId = LdgSpan<MaterialId const>;
-    using SpanConstElementId = LdgSpan<ElementId const>;
-    using SpanConstIsotopeId = LdgSpan<IsotopeId const>;
+    using SpanConstMaterialId = Span<MaterialId const>;
+    using SpanConstElementId = Span<ElementId const>;
+    using SpanConstIsotopeId = Span<IsotopeId const>;
     //!@}
 
     //! Define an element's isotope input data
