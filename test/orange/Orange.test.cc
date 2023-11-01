@@ -127,14 +127,12 @@ class ShiftTrackerTest : public OrangeTest
     void move_to_point(real_type distance)
     {
         auto track = this->make_track_view();
-        track.find_next_step();
         track.move_internal(distance);
     }
 
     void move_across_surface(BoundaryState& boundary_state, unsigned int& cell)
     {
         auto track = this->make_track_view();
-        track.find_next_step();
         track.move_to_boundary();
         track.cross_boundary();
 
