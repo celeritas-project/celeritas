@@ -66,7 +66,7 @@ class ValueGridXsBuilder final : public ValueGridBuilder
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstDbl = LdgSpan<double const>;
+    using SpanConstDbl = Span<double const>;
     using VecDbl = std::vector<double>;
     //!@}
 
