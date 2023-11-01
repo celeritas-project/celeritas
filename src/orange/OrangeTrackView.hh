@@ -292,12 +292,15 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
     } while (daughter_id);
 
+    // Save fiound level
     this->level(LevelId{level});
-    this->surface({}, {});
+
+    // Set default boundary condition
     this->boundary(BoundaryResult::exiting);
 
-    this->next_step(0);
-    this->next_surface_level(LevelId{});
+    // Clear surface information
+    this->surface({}, {});
+    this->clear_next_step();
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -314,11 +317,14 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
     if (this != &init.other)
     {
-        // Copy init track's position but update the direction
+        // Copy init track's position and logical state
         this->level(states_.level[init.other.track_slot_]);
         this->surface(init.other.surface_level(),
                       {init.other.surf(), init.other.sense()});
         this->boundary(init.other.boundary());
+
+        // Clear the next step information since we're changing direction
+        this->clear_next_step();
 
         for (auto lev : range(LevelId{this->level() + 1}))
         {
@@ -326,9 +332,6 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
             auto lsa = this->make_lsa(lev);
             lsa = init.other.make_lsa(lev);
         }
-
-        this->next_step(init.other.next_step());
-        this->next_surface_level(init.other.next_surface_level());
     }
 
     // Transform direction from global to local
