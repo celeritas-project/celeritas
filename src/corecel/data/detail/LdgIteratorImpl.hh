@@ -21,7 +21,7 @@ namespace detail
 /*!
  * Reads a value T using __ldg builtin and return a copy of it
  */
-template<class T>
+template<class T, typename = void>
 struct LdgLoader
 {
     static_assert(std::is_arithmetic_v<T> && std::is_const_v<T>,
@@ -45,7 +45,7 @@ struct LdgLoader
  * Wraps the underlying index in a OpaqueId when returning it.
  */
 template<class I, class T>
-struct LdgLoader<OpaqueId<I, T> const>
+struct LdgLoader<OpaqueId<I, T> const, void>
 {
     static_assert(std::is_arithmetic_v<T>,
                   "OpaqueId needs to be indexed with a type supported by "
@@ -64,19 +64,18 @@ struct LdgLoader<OpaqueId<I, T> const>
     }
 };
 
-template<>
-struct LdgLoader<Byte const>
+template<class T>
+struct LdgLoader<T const, std::enable_if_t<std::is_enum_v<T>>>
 {
-    static_assert(sizeof(Byte) == sizeof(unsigned char),
-                  "sizeof(Byte) must be equal to unsigned char");
-    using value_type = Byte;
+    using value_type = T;
     using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;
+    using uderlying_type = std::underlying_type_t<T>;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
 #if CELER_DEVICE_COMPILE
-        return value_type{__ldg(reinterpret_cast<unsigned char const*>(p))};
+        return value_type{__ldg(reinterpret_cast<uderlying_type const*>(p))};
 #else
         return *p;
 #endif
@@ -87,8 +86,7 @@ struct LdgLoader<Byte const>
 template<class T>
 inline constexpr bool is_ldg_supported_v
     = std::is_const_v<T>
-      && (std::is_arithmetic_v<T> || is_opaque_id_v<T>
-          || std::is_same_v<Byte, std::remove_cv_t<T>>);
+      && (std::is_arithmetic_v<T> || is_opaque_id_v<T> || std::is_enum_v<T>);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

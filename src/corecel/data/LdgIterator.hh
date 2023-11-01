@@ -30,7 +30,7 @@ class LdgIterator
 {
     static_assert(detail::is_ldg_supported_v<T>,
                   "LdgIterator requires const arithmetic, OpaqueId or "
-                  "celeritas::Byte type");
+                  "enum type");
 
   private:
     using LoadPolicyT = detail::LdgLoader<T>;
@@ -257,7 +257,7 @@ struct LdgValue
 {
     using value_type = T;
     static_assert(detail::is_ldg_supported_v<T>,
-                  "const arithmetic, OpaqueId or celeritas::Byte type "
+                  "const arithmetic, OpaqueId or enum type "
                   "required");
 };
 //!@}

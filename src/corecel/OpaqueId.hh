@@ -19,7 +19,7 @@ namespace celeritas
 {
 namespace detail
 {
-template<class>
+template<class, class>
 struct LdgLoader;
 }  // namespace detail
 
@@ -98,7 +98,7 @@ class OpaqueId
     {
         return static_cast<size_type>(-1);
     }
-    friend detail::LdgLoader<OpaqueId<value_type, size_type> const>;
+    friend detail::LdgLoader<OpaqueId<value_type, size_type> const, void>;
 };
 
 //---------------------------------------------------------------------------//
