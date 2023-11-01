@@ -54,6 +54,9 @@ class SimTrackView
     // Whether the looping track should be abandoned
     inline CELER_FUNCTION bool is_looping(ParticleId, Energy);
 
+    // Store the number of field substeps
+    inline CELER_FUNCTION void num_substeps(size_type);
+
     // Set whether the track is alive
     inline CELER_FUNCTION void status(TrackStatus);
 
@@ -82,6 +85,9 @@ class SimTrackView
 
     // Number of steps taken by the track since it was flagged as looping
     CELER_FORCEINLINE_FUNCTION size_type num_looping_steps() const;
+
+    // Number of field substeps in this step
+    CELER_FORCEINLINE_FUNCTION size_type num_substeps() const;
 
     // Time elapsed in the lab frame since the start of the event [s]
     CELER_FORCEINLINE_FUNCTION real_type time() const;
@@ -145,6 +151,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.event_ids[track_slot_] = other.event_id;
     states_.num_steps[track_slot_] = 0;
     states_.num_looping_steps[track_slot_] = 0;
+    states_.num_field_substeps[track_slot_] = 0;
     states_.time[track_slot_] = other.time;
     states_.status[track_slot_] = other.status;
     states_.step_length[track_slot_] = {};
@@ -204,6 +211,15 @@ CELER_FUNCTION bool SimTrackView::is_looping(ParticleId pid, Energy energy)
         return this->num_looping_steps() >= looping.max_steps;
     }
     return false;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store the number of field substeps.
+ */
+CELER_FUNCTION void SimTrackView::num_substeps(size_type num_substeps)
+{
+    states_.num_field_substeps[track_slot_] = num_substeps;
 }
 
 //---------------------------------------------------------------------------//
@@ -351,6 +367,15 @@ CELER_FUNCTION size_type SimTrackView::num_steps() const
 CELER_FUNCTION size_type SimTrackView::num_looping_steps() const
 {
     return states_.num_looping_steps[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of field substeps in this step.
+ */
+CELER_FUNCTION size_type SimTrackView::num_substeps() const
+{
+    return states_.num_field_substeps[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

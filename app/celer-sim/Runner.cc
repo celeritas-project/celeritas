@@ -32,6 +32,7 @@
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/field/FieldPropagator.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
@@ -55,6 +56,7 @@
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
+#include "celeritas/user/FieldDiagnostic.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/StepCollector.hh"
@@ -489,6 +491,19 @@ void Runner::build_diagnostics(RunnerInput const& inp)
         core_params_->action_reg()->insert(step_diagnostic);
         // Add to output interface
         core_params_->output_reg()->insert(step_diagnostic);
+    }
+
+    if (inp.field_diagnostic)
+    {
+        auto field_diagnostic = std::make_shared<FieldDiagnostic>(
+            core_params_->action_reg()->next_id(),
+            FieldPropagatorOptions::max_substeps,
+            core_params_->max_streams());
+
+        // Add to action registry
+        core_params_->action_reg()->insert(field_diagnostic);
+        // Add to output interface
+        core_params_->output_reg()->insert(field_diagnostic);
     }
 }
 

@@ -180,6 +180,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
         // Advance up to (but probably less than) the remaining step length
         DriverResult substep = driver_.advance(remaining, state_);
         CELER_ASSERT(substep.step > 0 && substep.step <= remaining);
+        ++result.num_substeps;
 
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);

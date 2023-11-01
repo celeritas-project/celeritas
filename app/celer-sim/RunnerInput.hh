@@ -58,6 +58,7 @@ struct RunnerInput
     SimpleRootFilterInput mctruth_filter;
     std::vector<Label> simple_calo;
     bool action_diagnostic{};
+    bool field_diagnostic{};
     bool step_diagnostic{};
     int step_diagnostic_bins{1000};
     bool write_track_counts{true};  //!< Output track counts for each step

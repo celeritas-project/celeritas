@@ -97,6 +97,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(mctruth_filter);
     LDIO_LOAD_OPTION(simple_calo);
     LDIO_LOAD_OPTION(action_diagnostic);
+    LDIO_LOAD_OPTION(field_diagnostic);
     LDIO_LOAD_OPTION(step_diagnostic);
     LDIO_LOAD_OPTION(step_diagnostic_bins);
     LDIO_LOAD_OPTION(write_track_counts);
@@ -179,6 +180,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     }
     LDIO_SAVE_OPTION(simple_calo);
     LDIO_SAVE_OPTION(action_diagnostic);
+    LDIO_SAVE_OPTION(field_diagnostic);
     LDIO_SAVE_OPTION(step_diagnostic);
     LDIO_SAVE_OPTION(step_diagnostic_bins);
     LDIO_SAVE_OPTION(write_track_counts);
