@@ -38,6 +38,10 @@
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "g4vg/Converter.hh"
 
+#ifdef VECGEOM_USE_SURF
+#    include <VecGeom/surfaces/BrepHelper.h>
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -59,6 +63,19 @@ VecgeomParams::VecgeomParams(std::string const& filename)
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
         vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
     }
+
+    // Use VecGeom's surface model if available
+#ifdef VECGEOM_USE_SURF
+    CELER_LOG(info) << "L70 filename: <" << filename
+                    << "> and world=" << (void*)&(host_ref_);
+    if (filename.find("testem3"))
+    {
+        CELER_LOG(debug) << "...creating surfaces...";
+        ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
+        CELER_ASSERT(vgbrep::BrepHelper<double>::Instance().Convert());
+        vgbrep::BrepHelper<double>::Instance().PrintSurfData();
+    }
+#endif
 
     this->build_tracking();
     this->build_data();
@@ -91,6 +108,18 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
         auto& vg_manager = vecgeom::GeoManager::Instance();
         vg_manager.RegisterPlacedVolume(result.world);
         vg_manager.SetWorldAndClose(result.world);
+
+        // Use VecGeom's surface model if available
+#ifdef VECGEOM_USE_SURF
+        auto label = result.world->GetLabel();
+        CELER_LOG(debug) << "L113 top name: <" << label << ">";
+        if (label.find("testem3"))
+        {
+            ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
+            CELER_ASSERT(vgbrep::BrepHelper<double>::Instance().Convert());
+        }
+        vgbrep::BrepHelper<double>::Instance().PrintSurfData();
+#endif
 
         // NOTE: setting and closing changes the world
         // CELER_ASSERT(result.world == vg_manager.GetWorld());
