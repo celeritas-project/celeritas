@@ -227,8 +227,6 @@ OrangeTrackView::OrangeTrackView(ParamsRef const& params,
     CELER_EXPECT(params_);
     CELER_EXPECT(states_);
     CELER_EXPECT(track_slot_ < states.size());
-
-    this->next_step(0);
 }
 
 //---------------------------------------------------------------------------//
@@ -328,6 +326,9 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
             auto lsa = this->make_lsa(lev);
             lsa = init.other.make_lsa(lev);
         }
+
+        this->next_step(init.other.next_step());
+        this->next_surface_level(init.other.next_surface_level());
     }
 
     // Transform direction from global to local
