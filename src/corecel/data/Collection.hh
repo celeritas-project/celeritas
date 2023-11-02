@@ -132,8 +132,8 @@ using ItemRange = Range<OpaqueId<T, Size>>;
 template<class T1, class T2>
 class ItemMap
 {
-    static_assert(detail::IsOpaqueId<T1>::value, "T1 is not OpaqueID");
-    static_assert(detail::IsOpaqueId<T2>::value, "T2 is not OpaqueID");
+    static_assert(detail::is_opaque_id_v<T1>, "T1 is not OpaqueID");
+    static_assert(detail::is_opaque_id_v<T2>, "T2 is not OpaqueID");
 
   public:
     //!@{
@@ -238,19 +238,20 @@ class Collection
     static_assert(std::is_trivially_destructible<T>::value || CELERITAS_USE_HIP,
                   "Collection element is not trivially destructible");
 
-    using const_value_type =
-        typename detail::CollectionTraits<T, W>::const_type;
+    using CollectionTraitsT = detail::CollectionTraits<T, W>;
+    using const_value_type = typename CollectionTraitsT::const_type;
 
   public:
     //!@{
     //! \name Type aliases
-    using value_type = typename detail::CollectionTraits<T, W>::type;
-    using SpanT = Span<value_type>;
-    using SpanConstT = Span<const_value_type>;
+    using value_type = typename CollectionTraitsT::type;
+    using SpanT = typename CollectionTraitsT::SpanT;
+    using SpanConstT = typename CollectionTraitsT::SpanConstT;
     using pointer = ObserverPtr<value_type, M>;
     using const_pointer = ObserverPtr<const_value_type, M>;
-    using reference_type = value_type&;
-    using const_reference_type = const_value_type&;
+    using reference_type = typename CollectionTraitsT::reference_type;
+    using const_reference_type =
+        typename CollectionTraitsT::const_reference_type;
     using size_type = typename I::size_type;
     using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;

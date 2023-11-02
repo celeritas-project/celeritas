@@ -28,7 +28,9 @@ namespace celeritas
 template<class T>
 class LdgIterator
 {
-    static_assert(std::is_const_v<T>, "LdgIterator requires const data");
+    static_assert(detail::is_ldg_supported_v<T>,
+                  "LdgIterator requires const arithmetic, OpaqueId or "
+                  "enum type");
 
   private:
     using LoadPolicyT = detail::LdgLoader<T>;
@@ -243,6 +245,21 @@ inline LdgIterator<T> make_ldg_iterator(T* ptr) noexcept
 {
     return LdgIterator{ptr};
 }
+
+/*!
+ * Wrapper struct that containers can use to specialize on types supported by
+ * LdgIterator, i.e. Span<LdgValue<T>> specialization can internally use
+ * LdgIterator. Specializations should refer to LdgValue<T>::value_type to
+ * force the template instantiation of LdgValue and type-check T
+ */
+template<class T>
+struct LdgValue
+{
+    using value_type = T;
+    static_assert(detail::is_ldg_supported_v<T>,
+                  "const arithmetic, OpaqueId or enum type "
+                  "required");
+};
 //!@}
 
 //---------------------------------------------------------------------------//
