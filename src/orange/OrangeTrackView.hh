@@ -447,12 +447,11 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
         return {0, true};
     }
 
-    TrackerVisitor visit_tracker{params_};
-    auto isect = visit_tracker(
-        [local_state = this->make_local_state(LevelId{0})](auto&& t) {
-            return t.intersect(local_state);
-        },
-        UniverseId{0});
+    // Find intersection at the top level: always the first simple unit
+    auto isect = [this] {
+        SimpleUnitTracker t{params_, SimpleUnitId{0}};
+        return t.intersect(this->make_local_state(LevelId{0}));
+    }();
 
     this->find_next_step_impl(isect);
 
@@ -491,12 +490,12 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
     if (!this->has_next_step())
     {
+        // Find intersection at the top level: always the first simple unit
         TrackerVisitor visit_tracker{params_};
-        auto isect = visit_tracker(
-            [local_state = this->make_local_state(LevelId{0}), &max_step](
-                auto&& t) { return t.intersect(local_state, max_step); },
-            UniverseId{0});
-
+        auto isect = [this, &max_step] {
+            SimpleUnitTracker t{params_, SimpleUnitId{0}};
+            return t.intersect(this->make_local_state(LevelId{0}), max_step);
+        }();
         this->find_next_step_impl(isect);
     }
 
@@ -892,13 +891,15 @@ OrangeTrackView::next_surface_level() const
 /*!
  * Iterate over levels 1 to N to find the next step.
  *
- * Caller is responsible for finding the canidate next step on level 0, and
+ * Caller is responsible for finding the candidate next step on level 0, and
  * passing the resultant Intersection object as an argument
  */
 CELER_FUNCTION void
 OrangeTrackView::find_next_step_impl(detail::Intersection isect)
 {
-    // The LevelId corresponding to the level with with minium
+    TrackerVisitor visit_tracker{params_};
+
+    // The LevelId corresponding to the level with with minimum
     // distance to intersection
     LevelId min_level{0};
 
@@ -908,7 +909,6 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     {
         auto lsa = this->make_lsa(levelid);
 
-        TrackerVisitor visit_tracker{params_};
         auto local_isect = visit_tracker(
             [local_state = this->make_local_state(levelid), &isect](auto&& t) {
                 return t.intersect(local_state, isect.distance);
@@ -1016,7 +1016,7 @@ OrangeTrackView::make_local_state(LevelId level) const
     local.volume = lsa.vol();
     if (level == this->surface_level())
     {
-        local.surface = {states_.surf[track_slot_], states_.sense[track_slot_]};
+        local.surface = {this->surf(), this->sense()};
     }
     else
     {
