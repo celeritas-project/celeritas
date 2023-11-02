@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -30,6 +31,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantGeoParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootExporter.hh"
@@ -251,6 +253,28 @@ void SharedParams::Finalize()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Lazily created Geant geometry parameters.
+ */
+auto SharedParams::geant_geo_params() const -> SPConstGeantGeoParams const&
+{
+    if (!geant_geo_)
+    {
+        // Initial lock-free check failed; now lock and create if needed
+        static std::mutex update_mutex;
+        std::lock_guard scoped_lock{update_mutex};
+        if (!geant_geo_)
+        {
+            auto geo_params = std::make_shared<GeantGeoParams>(
+                GeantImporter::get_world_volume());
+            const_cast<SharedParams*>(this)->geant_geo_ = std::move(geo_params);
+            CELER_ENSURE(geant_geo_);
+        }
+    }
+    return geant_geo_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from setup options.
  *
  * This is not thread-safe and should only be called from a single CPU thread
@@ -303,6 +327,11 @@ void SharedParams::initialize_core(SetupOptions const& options)
                 GeantImporter::get_world_volume());
         }
     }();
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT
+    // Save the Geant4 geometry since we've already made it
+    geant_geo_ = params.geometry;
+#endif
 
     // Load materials
     params.material = MaterialParams::from_import(*imported);

@@ -26,6 +26,7 @@ class CoreParams;
 struct Primary;
 struct SetupOptions;
 class StepCollector;
+class GeantGeoParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -87,6 +88,7 @@ class SharedParams
 
     using SPHitManager = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+    using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
 
     //! Hit manager, to be used only by LocalTransporter
     SPHitManager const& hit_manager() const { return hit_manager_; }
@@ -94,6 +96,8 @@ class SharedParams
     //! Optional offload writer, only for use by LocalTransporter
     SPOffloadWriter const& offload_writer() const { return offload_writer_; }
 
+    // Geant geometry wrapper, lazily created
+    SPConstGeantGeoParams const& geant_geo_params() const;
     //!@}
 
   private:
@@ -105,6 +109,7 @@ class SharedParams
     VecG4ParticleDef particles_;
     std::string output_filename_;
     SPOffloadWriter offload_writer_;
+    SPConstGeantGeoParams geant_geo_;
 
     //// HELPER FUNCTIONS ////
 
