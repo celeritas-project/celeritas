@@ -680,8 +680,6 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         apply_transform(transform_down_local, daughter.transform_id);
         local.volume = {};
         local.surface = {};
-        // XXX I think the next line is redundant
-        local.temp_sense = this->make_temp_sense();
 
         // Initialize in daughter and get IDs of volume and potential daughter
         volume_id = visit_tracker(
