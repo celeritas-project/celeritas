@@ -39,6 +39,9 @@ struct StepStorage;
  * detectors" (mapping volume IDs to detector IDs and ignoring unmapped
  * volumes) and supporting unfiltered output for "MC truth" . Right now only
  * one or the other can be used, not both.
+ *
+ * \todo Add a "begin run" interface to set up the stream store, rather than
+ * passing in number of streams at construction time.
  */
 class StepCollector
 {
