@@ -40,6 +40,9 @@
 
 #ifdef VECGEOM_USE_SURF
 #    include <VecGeom/surfaces/BrepHelper.h>
+//#if CELERITAS_USE_CUDA
+#    include <VecGeom/surfaces/cuda/BrepCudaManager.h>
+//#endif
 #endif
 
 namespace celeritas
@@ -66,14 +69,12 @@ VecgeomParams::VecgeomParams(std::string const& filename)
 
     // Use VecGeom's surface model if available
 #ifdef VECGEOM_USE_SURF
-    CELER_LOG(info) << "L70 filename: <" << filename
-                    << "> and world=" << (void*)&(host_ref_);
-    if (filename.find("testem3"))
     {
         CELER_LOG(debug) << "...creating surfaces...";
-        ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
-        CELER_ASSERT(vgbrep::BrepHelper<double>::Instance().Convert());
-        vgbrep::BrepHelper<double>::Instance().PrintSurfData();
+        vgbrep::BrepHelper<real_type>::Instance().SetVerbosity(2);
+        ScopedTimeAndRedirect time_and_output_("SurfaceModelLoad");
+        CELER_ASSERT(vgbrep::BrepHelper<real_type>::Instance().Convert());
+        vgbrep::BrepHelper<real_type>::Instance().PrintSurfData();
     }
 #endif
 
@@ -111,14 +112,13 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 
         // Use VecGeom's surface model if available
 #ifdef VECGEOM_USE_SURF
-        auto label = result.world->GetLabel();
-        CELER_LOG(debug) << "L113 top name: <" << label << ">";
-        if (label.find("testem3"))
         {
-            ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
-            CELER_ASSERT(vgbrep::BrepHelper<double>::Instance().Convert());
+            auto label = result.world->GetLabel();
+            // ScopedTimeAndRedirect
+            // time_and_output_("g4vg_to_vgbrep::Convert");
+            CELER_ASSERT(vgbrep::BrepHelper<real_type>::Instance().Convert());
         }
-        vgbrep::BrepHelper<double>::Instance().PrintSurfData();
+        vgbrep::BrepHelper<real_type>::Instance().PrintSurfData();
 #endif
 
         // NOTE: setting and closing changes the world
@@ -145,6 +145,11 @@ VecgeomParams::~VecgeomParams()
         CELER_LOG(debug) << "Clearing VecGeom GPU data";
         vecgeom::CudaManager::Instance().Clear();
     }
+#endif
+
+#ifdef VECGEOM_USE_SURF
+    CELER_LOG(debug) << "Clearing SurfModel CPU data";
+    vgbrep::BrepHelper<real_type>::Instance().ClearData();
 #endif
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
     vecgeom::GeoManager::Instance().Clear();
@@ -324,6 +329,20 @@ void VecgeomParams::build_tracking()
             CELER_VALIDATE(world_top_devptr != nullptr,
                            << "VecGeom failed to copy geometry to GPU");
         }
+
+#    ifdef VECGEOM_USE_SURF
+        {
+            CELER_LOG(debug) << "Transfering surface data to GPU";
+            // using SurfData = vgbrep::SurfData<vecgeom::Precision>;
+            auto const& brepHelper = vgbrep::BrepHelper<real_type>::Instance();
+            auto const& surfData = brepHelper.GetSurfData();
+#        ifdef __CUDACC__
+            CELER_LOG(debug) << "Can't get this part in...";
+            using CudaSurfManager = vgbrep::BrepCudaManager<vecgeom::Precision>;
+            CudaSurfManager::Instance().TransferSurfData(surfData);
+#        endif
+        }
+#    endif
 
         CELER_LOG(debug) << "Initializing BVH on GPU";
         {
