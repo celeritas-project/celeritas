@@ -466,7 +466,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 
     Propagation result;
     result.distance = this->next_step();
-    result.boundary = static_cast<bool>(this->next_surf());
+    result.boundary = this->has_next_surface();
     return result;
 }
 
@@ -486,27 +486,14 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
         // On a boundary, headed back in: next step is zero
         return {0, true};
     }
-    else if (this->next_step() > max_step)
-    {
-        // Cached next step is beyond the given step
-        return {max_step, false};
-    }
-    else if (!this->has_next_surface() && this->next_step() < max_step)
-    {
-        // Reset a previously found truncated distance
-        this->clear_next();
-    }
 
-    if (!this->has_next_step())
-    {
-        // Find intersection at the top level: always the first simple unit
-        TrackerVisitor visit_tracker{params_};
-        auto isect = [this, &max_step] {
-            SimpleUnitTracker t{params_, SimpleUnitId{0}};
-            return t.intersect(this->make_local_state(LevelId{0}), max_step);
-        }();
-        this->find_next_step_impl(isect);
-    }
+    // Find intersection at the top level: always the first simple unit
+    auto isect = [this, &max_step] {
+        SimpleUnitTracker t{params_, SimpleUnitId{0}};
+        return t.intersect(this->make_local_state(LevelId{0}), max_step);
+    }();
+
+    this->find_next_step_impl(isect);
 
     Propagation result;
     result.distance = this->next_step();
