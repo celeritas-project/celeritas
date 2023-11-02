@@ -26,21 +26,6 @@ namespace celeritas
 {
 namespace app
 {
-
-namespace
-{
-//---------------------------------------------------------------------------//
-/*!
- * Helper function for returning an std::array from a G4ThreeVector.
- */
-std::array<double, 3>
-make_array(G4ThreeVector const& vec, double const unit = 1)
-{
-    return {vec.x() / unit, vec.y() / unit, vec.z() / unit};
-}
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with sensitive detector name.
