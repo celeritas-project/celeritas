@@ -406,29 +406,37 @@ struct OrangeStateData
 
     //// DATA ////
 
-    // Dimensions {num_tracks}
+    // Note: this is duplicated from the associated OrangeParamsData .
+    // It defines the stride into the preceding pseudo-2D Collections (pos,
+    // dir, ..., etc.)
+    size_type max_depth{0};
+
+    // State with dimensions {num_tracks}
     StateItems<LevelId> level;
     StateItems<LevelId> surface_level;
     StateItems<LocalSurfaceId> surf;
     StateItems<Sense> sense;
     StateItems<BoundaryResult> boundary;
 
-    // Dimensions {num_tracks, max_depth}
+    // "Local" state, needed for Shift {num_tracks}
+    StateItems<real_type> next_step;
+    StateItems<SurfaceId> next_surface;
+    StateItems<Sense> next_sense;
+    StateItems<LevelId> next_level;
+
+    // State with dimensions {num_tracks, max_depth}
     Items<Real3> pos;
     Items<Real3> dir;
     Items<LocalVolumeId> vol;
     Items<UniverseId> universe;
 
-    // Note: this is duplicated from the associated OrangeParamsData .
-    // It defines the stride into the preceding pseudo-2D Collections (pos,
-    // dir, ..., etc.)
-    size_type max_depth{0};
+    // Scratch space with dimensions {track}{max_faces}
+    Items<Sense> temp_sense;
 
-    // Scratch space
-    Items<Sense> temp_sense;  // [track][max_faces]
-    Items<FaceId> temp_face;  // [track][max_intersections]
-    Items<real_type> temp_distance;  // [track][max_intersections]
-    Items<size_type> temp_isect;  // [track][max_intersections]
+    // Scratch space with dimensions {track}{max_intersections}
+    Items<FaceId> temp_face;
+    Items<real_type> temp_distance;
+    Items<size_type> temp_isect;
 
     //// METHODS ////
 
@@ -436,16 +444,20 @@ struct OrangeStateData
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return !level.empty()
-            && surface_level.size() == level.size()
-            && surf.size() == level.size()
-            && sense.size() == level.size()
-            && boundary.size() == level.size()
-            && !pos.empty()
-            && dir.size() == pos.size()
-            && vol.size() == pos.size()
-            && universe.size() == pos.size()
-            && max_depth > 0
+        return max_depth > 0
+            && !level.empty()
+            && surface_level.size() == this->size()
+            && surf.size() == this->size()
+            && sense.size() == this->size()
+            && boundary.size() == this->size()
+            && next_step.size() == this->size()
+            && next_surface.size() == this->size()
+            && next_sense.size() == this->size()
+            && next_level.size() == this->size()
+            && pos.size() == max_depth * this->size()
+            && dir.size() == max_depth  * this->size()
+            && vol.size() == max_depth  * this->size()
+            && universe.size() == max_depth  * this->size()
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -461,18 +473,26 @@ struct OrangeStateData
     OrangeStateData& operator=(OrangeStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
+        max_depth = other.max_depth;
+
         level = other.level;
         surface_level = other.surface_level;
         surf = other.surf;
         sense = other.sense;
         boundary = other.boundary;
+
+        next_step = other.next_step;
+        next_surface = other.next_surface;
+        next_sense = other.next_sense;
+        next_level = other.next_level;
+
         pos = other.pos;
         dir = other.dir;
         vol = other.vol;
         universe = other.universe;
-        max_depth = other.max_depth;
 
         temp_sense = other.temp_sense;
+
         temp_face = other.temp_face;
         temp_distance = other.temp_distance;
         temp_isect = other.temp_isect;
@@ -494,19 +514,24 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     CELER_EXPECT(data);
     CELER_EXPECT(num_tracks > 0);
 
+    data->max_depth = params.scalars.max_depth;
+
     resize(&data->level, num_tracks);
     resize(&data->surface_level, num_tracks);
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
     resize(&data->boundary, num_tracks);
 
-    data->max_depth = params.scalars.max_depth;
-    auto const size = data->max_depth * num_tracks;
+    resize(&data->next_step, num_tracks);
+    resize(&data->next_surface, num_tracks);
+    resize(&data->next_sense, num_tracks);
+    resize(&data->next_level, num_tracks);
 
-    resize(&data->pos, size);
-    resize(&data->dir, size);
-    resize(&data->vol, size);
-    resize(&data->universe, size);
+    size_type level_states = params.scalars.max_depth * num_tracks;
+    resize(&data->pos, level_states);
+    resize(&data->dir, level_states);
+    resize(&data->vol, level_states);
+    resize(&data->universe, level_states);
 
     size_type face_states = params.scalars.max_faces * num_tracks;
     resize(&data->temp_sense, face_states);

@@ -60,7 +60,7 @@ class ElementSelector
     //!@{
     //! \name Type aliases
     using SpanReal = Span<real_type>;
-    using SpanConstReal = Span<real_type const>;
+    using SpanConstReal = LdgSpan<real_type const>;
     //!@}
 
   public:

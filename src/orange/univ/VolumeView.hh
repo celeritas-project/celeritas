@@ -57,10 +57,10 @@ class VolumeView
     inline CELER_FUNCTION FaceId find_face(LocalSurfaceId id) const;
 
     // Get all surface IDs for the volume
-    CELER_FORCEINLINE_FUNCTION Span<LocalSurfaceId const> faces() const;
+    CELER_FORCEINLINE_FUNCTION LdgSpan<LocalSurfaceId const> faces() const;
 
     // Get logic definition
-    CELER_FORCEINLINE_FUNCTION Span<logic_int const> logic() const;
+    CELER_FORCEINLINE_FUNCTION LdgSpan<logic_int const> logic() const;
 
     // Get the number of total intersections
     CELER_FORCEINLINE_FUNCTION logic_int max_intersections() const;
@@ -154,7 +154,7 @@ CELER_FUNCTION FaceId VolumeView::find_face(LocalSurfaceId surface) const
 /*!
  * Get all the surface IDs corresponding to the faces of this volume.
  */
-CELER_FUNCTION Span<LocalSurfaceId const> VolumeView::faces() const
+CELER_FUNCTION LdgSpan<LocalSurfaceId const> VolumeView::faces() const
 {
     return params_.local_surface_ids[def_.faces];
 }
@@ -163,7 +163,7 @@ CELER_FUNCTION Span<LocalSurfaceId const> VolumeView::faces() const
 /*!
  * Get logic definition.
  */
-CELER_FUNCTION Span<logic_int const> VolumeView::logic() const
+CELER_FUNCTION LdgSpan<logic_int const> VolumeView::logic() const
 {
     return params_.logic_ints[def_.logic];
 }
