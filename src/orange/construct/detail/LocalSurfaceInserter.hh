@@ -54,12 +54,18 @@ class LocalSurfaceInserter
     inline LocalSurfaceId operator()(S const& surface);
 
   private:
+    //// TYPES ////
+
     using MapSurfId = std::unordered_map<LocalSurfaceId, LocalSurfaceId>;
+
+    //// DATA ////
 
     VecSurface* surfaces_;
     SoftSurfaceEqual soft_surface_equal_;
     ExactSurfaceEqual exact_surface_equal_;
     MapSurfId merged_;
+
+    //// METHODS ////
 
     LocalSurfaceId merge_impl(LocalSurfaceId source, LocalSurfaceId target);
 };

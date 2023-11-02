@@ -55,7 +55,7 @@ ORANGE_INSTANTIATE_OP(PlaneAligned);
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a name for a axis-aligned cylinder.
+ * Construct a name for an along-axis cylinder.
  */
 template<Axis T>
 std::string FaceNamer::Impl::operator()(CylCentered<T> const&) const
@@ -69,7 +69,7 @@ ORANGE_INSTANTIATE_OP(CylCentered);
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a name for a sphere.
+ * Construct a name for a centered sphere.
  */
 std::string FaceNamer::Impl::operator()(SphereCentered const&) const
 {
@@ -78,7 +78,7 @@ std::string FaceNamer::Impl::operator()(SphereCentered const&) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a name for a axis-aligned cylinder.
+ * Construct a name for an axis-aligned cylinder.
  */
 template<Axis T>
 std::string FaceNamer::Impl::operator()(CylAligned<T> const&) const
