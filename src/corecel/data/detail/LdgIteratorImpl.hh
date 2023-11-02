@@ -75,12 +75,10 @@ struct LdgLoader<T const, std::enable_if_t<std::is_enum_v<T>>>
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
 #if CELER_DEVICE_COMPILE
-        // in place of c++20 bitcast:
-        // https://en.cppreference.com/w/cpp/numeric/bit_cast and work around
-        // aliasing rule of reinterpret_cast
-        underlying_type dst;
-        return value_type{__ldg(static_cast<underlying_type*>(
-            memcpy(&dst, p, sizeof(underlying_type))))};
+        // Technically breaks aliasing rule but it's not an issue:
+        // the compiler doesn't derive any optimization and the pointer doesn't
+        // escape the function
+        return value_type{__ldg(reinterpret_cast<underlying_type const*>(p))};
 #else
         return *p;
 #endif
