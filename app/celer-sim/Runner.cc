@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "corecel/cont/Span.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/StringUtils.hh"
@@ -497,6 +498,9 @@ void Runner::build_diagnostics(RunnerInput const& inp)
     {
         auto field_diagnostic = std::make_shared<FieldDiagnostic>(
             core_params_->action_reg()->next_id(),
+            UniformGridData::from_bounds(std::log(inp.field_diagnostic_emin),
+                                         std::log(inp.field_diagnostic_emax),
+                                         inp.field_diagnostic_bins + 1),
             FieldPropagatorOptions::max_substeps,
             core_params_->max_streams());
 

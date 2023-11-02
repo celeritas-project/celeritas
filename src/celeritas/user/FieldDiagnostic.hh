@@ -11,11 +11,12 @@
 #include <vector>
 
 #include "corecel/data/StreamStore.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
-#include "ParticleTallyData.hh"
+#include "FieldDiagnosticData.hh"
 
 namespace celeritas
 {
@@ -35,6 +36,7 @@ class FieldDiagnostic final : public ExplicitActionInterface,
   public:
     //! Construct with number of bins
     FieldDiagnostic(ActionId id,
+                    UniformGridData energy,
                     size_type num_substep_bins,
                     size_type num_streams);
 
@@ -75,7 +77,8 @@ class FieldDiagnostic final : public ExplicitActionInterface,
     void clear();
 
   private:
-    using StoreT = StreamStore<ParticleTallyParamsData, ParticleTallyStateData>;
+    using StoreT
+        = StreamStore<FieldDiagnosticParamsData, FieldDiagnosticStateData>;
 
     ActionId id_;
     size_type num_streams_;

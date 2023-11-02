@@ -9,11 +9,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/grid/UniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Atomics.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
-#include "../ParticleTallyData.hh"
+#include "../FieldDiagnosticData.hh"
 
 namespace celeritas
 {
@@ -25,8 +26,8 @@ struct FieldDiagnosticExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<ParticleTallyParamsData> const params;
-    NativeRef<ParticleTallyStateData> const state;
+    NativeCRef<FieldDiagnosticParamsData> const params;
+    NativeRef<FieldDiagnosticStateData> const state;
 };
 
 //---------------------------------------------------------------------------//
@@ -41,15 +42,31 @@ FieldDiagnosticExecutor::operator()(CoreTrackView const& track)
 
     using BinId = ItemId<size_type>;
 
-    if (track.make_particle_view().particle_view().charge() == zero_quantity())
+    auto particle = track.make_particle_view();
+    if (particle.particle_view().charge() == zero_quantity())
     {
         return;
     }
 
+    UniformGrid grid(params.energy);
+    auto log_energy = std::log(particle.energy().value());
+    if (log_energy < grid.front() || log_energy >= grid.back())
+    {
+        return;
+    }
+
+    auto get = [this](size_type i, size_type j) -> size_type& {
+        size_type index = i * params.num_substep_bins + j;
+        CELER_ENSURE(index < state.counts.size());
+        return state.counts[BinId(index)];
+    };
+
+    size_type num_substeps = celeritas::min(
+        track.make_sim_view().num_substeps(), params.num_substep_bins - 1);
+
     // Tally the number of field substeps
-    size_type num_iter = celeritas::min(track.make_sim_view().num_substeps(),
-                                        params.num_bins - 1);
-    atomic_add(&state.counts[BinId(num_iter)], size_type{1});
+    auto& bin = get(grid.find(log_energy), num_substeps);
+    atomic_add(&bin, size_type{1});
 }
 
 //---------------------------------------------------------------------------//

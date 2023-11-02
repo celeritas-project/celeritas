@@ -59,6 +59,9 @@ struct RunnerInput
     std::vector<Label> simple_calo;
     bool action_diagnostic{};
     bool field_diagnostic{};
+    int field_diagnostic_bins{1000};  //!< Number of energy bins
+    real_type field_diagnostic_emin{1e-6};  //!< Energy grid lower bound
+    real_type field_diagnostic_emax{1e6};  //!< Energy grid upper bound
     bool step_diagnostic{};
     int step_diagnostic_bins{1000};
     bool write_track_counts{true};  //!< Output track counts for each step
@@ -102,6 +105,7 @@ struct RunnerInput
                && initializer_capacity > 0 && max_events > 0
                && secondary_stack_factor > 0
                && (step_diagnostic_bins > 0 || !step_diagnostic)
+               && (field_diagnostic_bins > 0 || !field_diagnostic)
                && (field == no_field() || field_options);
     }
 };

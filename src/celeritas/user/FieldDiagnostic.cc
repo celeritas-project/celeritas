@@ -9,6 +9,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
@@ -19,7 +20,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/user/ParticleTallyData.hh"
+#include "celeritas/user/FieldDiagnosticData.hh"
 
 #include "detail/FieldDiagnosticExecutor.hh"
 
@@ -36,22 +37,21 @@ namespace celeritas
  * Construct with the number of bins.
  */
 FieldDiagnostic::FieldDiagnostic(ActionId id,
-                                 size_type max_substep_bins,
+                                 UniformGridData energy,
+                                 size_type num_substep_bins,
                                  size_type num_streams)
     : id_(id), num_streams_(num_streams)
 {
     CELER_EXPECT(id_);
-    CELER_EXPECT(max_substep_bins > 0);
+    CELER_EXPECT(energy);
+    CELER_EXPECT(num_substep_bins > 0);
     CELER_EXPECT(num_streams_ > 0);
 
-    HostVal<ParticleTallyParamsData> host_params;
+    HostVal<FieldDiagnosticParamsData> host_params;
 
     // Add two extra bins (for underflow and overflow)
-    host_params.num_bins = max_substep_bins + 2;
-
-    // Reuse \c ParticleTallyData even though data for all particle types is
-    // binned together
-    host_params.num_particles = 1;
+    host_params.energy = energy;
+    host_params.num_substep_bins = num_substep_bins + 2;
 
     store_ = {std::move(host_params), num_streams_};
 
@@ -107,7 +107,20 @@ void FieldDiagnostic::output(JsonPimpl* j) const
 
     auto obj = json::object();
 
-    obj["num_iter"] = this->calc_num_iter();
+    UniformGridData const& grid = store_.params<MemSpace::host>().energy;
+    std::vector<real_type> energy(grid.size);
+    energy.front() = std::exp(grid.front);
+    energy.back() = std::exp(grid.back);
+    real_type curr = grid.front;
+    for (size_type i = 1; i < energy.size() - 1; ++i)
+    {
+        curr += grid.delta;
+        energy[i] = std::exp(curr);
+    }
+
+    obj["energy"] = std::move(energy);
+    obj["substeps"] = this->calc_num_iter();
+    obj["_index"] = {"energy", "num_substeps"};
 
     j->obj = std::move(obj);
 #else
@@ -134,7 +147,8 @@ auto FieldDiagnostic::calc_num_iter() const -> VecCount
  */
 size_type FieldDiagnostic::state_size() const
 {
-    return store_.params<MemSpace::host>().num_bins;
+    auto const& params = store_.params<MemSpace::host>();
+    return (params.energy.size - 1) * params.num_substep_bins;
 }
 
 //---------------------------------------------------------------------------//
