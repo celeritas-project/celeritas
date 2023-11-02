@@ -88,7 +88,7 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
 bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
 {
     CELER_ASSERT(g4step);
-    auto const edep = g4step->GetTotalEnergyDeposit();  // [MeV]
+    auto const edep = g4step->GetTotalEnergyDeposit();
 
     if (edep == 0)
     {
@@ -102,50 +102,15 @@ bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
     auto const* log_vol = phys_vol->GetLogicalVolume();
     CELER_ASSERT(log_vol);
 
-    // Insert step data
-    EventStepData step;
-    {
-        step.hit = [&] {
-            EventHitData hit;
-            hit.volume = log_vol->GetInstanceID();
-            hit.copy_num = phys_vol->GetCopyNo();
-            hit.energy_dep = convert_from_geant(edep, CLHEP::MeV);
-            hit.time = convert_from_geant(pre_step->GetGlobalTime(), CLHEP::s);
-            return hit;
-        }();
-        step.length = convert_from_geant(g4step->GetStepLength(), CLHEP::cm);
+    // Insert hit (use pre-step time since post-steps can be undefined)
+    EventHitData hit;
+    hit.volume = log_vol->GetInstanceID();
+    hit.copy_num = phys_vol->GetCopyNo();
+    hit.energy_dep = convert_from_geant(edep, CLHEP::MeV);
+    hit.time = convert_from_geant(pre_step->GetGlobalTime(), CLHEP::s);
 
-        // Pre- and post-step data
-        step.step_points[static_cast<int>(StepPoint::pre)]
-            = this->make_step_point(*pre_step);
-        if (auto* post_step = g4step->GetPostStepPoint())
-        {
-            step.step_points[static_cast<int>(StepPoint::post)]
-                = this->make_step_point(*post_step);
-        }
-    }
-
-    collection_->insert(new SensitiveHit(step));
+    collection_->insert(new SensitiveHit(hit));
     return true;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Assign pre- and post-step information.
- */
-EventStepPointData SensitiveDetector::make_step_point(G4StepPoint& g4step_point)
-{
-    auto const* phys_vol = g4step_point.GetPhysicalVolume();
-    CELER_ASSERT(phys_vol);
-    auto const* log_vol = phys_vol->GetLogicalVolume();
-    CELER_ASSERT(log_vol);
-
-    EventStepPointData step_point;
-    step_point.energy
-        = convert_from_geant(g4step_point.GetKineticEnergy(), CLHEP::cm);
-    step_point.pos = make_array(g4step_point.GetPosition(), CLHEP::cm);
-    step_point.dir = make_array(g4step_point.GetMomentumDirection());
-    return step_point;
 }
 
 //---------------------------------------------------------------------------//

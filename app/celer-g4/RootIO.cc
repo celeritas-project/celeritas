@@ -62,10 +62,8 @@ RootIO::RootIO()
 
         file_.reset(TFile::Open(file_name_.c_str(), "recreate"));
         CELER_VALIDATE(file_->IsOpen(), << "failed to open " << file_name_);
-        tree_.reset(new TTree(this->TreeName(),
-                              this->TreeName(),
-                              this->SplitLevel(),
-                              file_.get()));
+        tree_.reset(new TTree(
+            this->TreeName(), "event_hits", this->SplitLevel(), file_.get()));
     }
 }
 
@@ -94,24 +92,24 @@ void RootIO::Write(G4Event const* event)
 
     // Populate EventData using the collections of sensitive hits
     EventData event_data;
-    event_data.steps.resize(detector_name_id_map_.size());
+    event_data.hits.resize(detector_name_id_map_.size());
 
     event_data.event_id = event->GetEventID();
     for (auto i : celeritas::range(hit_cols->GetNumberOfCollections()))
     {
         auto const* hc_id = hit_cols->GetHC(i);
-        std::vector<EventStepData> steps;
-        steps.resize(hc_id->GetSize());
+        std::vector<EventHitData> hits;
+        hits.resize(hc_id->GetSize());
 
         for (auto j : celeritas::range(hc_id->GetSize()))
         {
             auto* hit_id = dynamic_cast<SensitiveHit*>(hc_id->GetHit(j));
-            steps[j] = hit_id->data();
+            hits[j] = hit_id->data();
         }
 
         auto const iter = detector_name_id_map_.find(hc_id->GetName());
         CELER_ASSERT(iter != detector_name_id_map_.end());
-        event_data.steps[iter->second] = std::move(steps);
+        event_data.hits[iter->second] = std::move(hits);
     }
 
     this->WriteObject(&event_data);

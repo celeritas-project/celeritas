@@ -34,10 +34,10 @@ auto SensitiveHit::allocator() -> HitAllocator&
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with hit and step data.
+ * Construct with hit data.
  */
-SensitiveHit::SensitiveHit(EventStepData const& step)
-    : G4VHit(), data_{std::move(step)}
+SensitiveHit::SensitiveHit(EventHitData const& hit)
+    : G4VHit(), data_{std::move(hit)}
 {
 }
 

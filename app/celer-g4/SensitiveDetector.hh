@@ -41,15 +41,8 @@ class SensitiveDetector final : public G4VSensitiveDetector
     bool ProcessHits(G4Step*, G4TouchableHistory*) final;
 
   private:
-    //// DATA ////
-
     int hcid_;
     SensitiveHitsCollection* collection_;
-
-    //// HELPER FUNCTIONS ////
-
-    // Create event step point for pre- and post-steps
-    EventStepPointData make_step_point(G4StepPoint& step_point);
 };
 
 //---------------------------------------------------------------------------//

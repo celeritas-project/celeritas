@@ -27,41 +27,16 @@ struct EventHitData
 
 //---------------------------------------------------------------------------//
 /*!
- * Pre- and post-step point information.
- */
-struct EventStepPointData
-{
-    double energy{0};  //!< Kinetic energy [MeV]
-    std::array<double, 3> dir{0, 0, 0};  //!< Unit vector
-    std::array<double, 3> pos{0, 0, 0};  //!< [cm]
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Particle step data. Arrays are for pre- and post-steps.
- *
- * TODO: Map and add a unified process/action id; Add PDG, add track and parent
- * IDs.
- */
-struct EventStepData
-{
-    EventHitData hit;
-    double length{0};  //!< Step length [cm]
-    std::array<EventStepPointData, 2> step_points;  //!< Pre- and post-steps
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Event data to be used within a Geant4/Celeritas offloading application.
  *
- * The steps are designed to be assigned to each sensitive volume, so that a
- * vector of steps of a given volume can be retrieved by doing
+ * The hits are designed to be assigned to each sensitive volume, so that a
+ * vector of hits of a given volume can be retrieved by doing
  *
  * \code
- * auto const& sd_steps = event_data.steps[sensdet_id];
- * for (auto const& step : sd_steps)
+ * auto const& sd_hits = event_data.hits[sensdet_id];
+ * for (auto const& hit : sd_hits)
  * {
- *     // Access step information from a given detector in this event.
+ *     // Access hit information from this given detector in this event.
  * }
  * \endcode
  *
@@ -71,7 +46,7 @@ struct EventStepData
 struct EventData
 {
     int event_id{0};
-    std::vector<std::vector<EventStepData>> steps;
+    std::vector<std::vector<EventHitData>> hits;
 };
 
 //---------------------------------------------------------------------------//
