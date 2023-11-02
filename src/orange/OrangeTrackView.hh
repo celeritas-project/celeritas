@@ -199,6 +199,9 @@ class OrangeTrackView
     inline CELER_FUNCTION void
     surface(LevelId level, detail::OnLocalSurface surf);
 
+    // Clear the surface on the current level
+    inline CELER_FUNCTION void clear_surface();
+
     // Make a LevelStateAccessor for the current thread and level
     inline CELER_FUNCTION LevelStateAccessor make_lsa() const;
 
@@ -302,7 +305,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     this->boundary(BoundaryResult::exiting);
 
     // Clear surface information
-    this->surface({}, {});
+    this->clear_surface();
     this->clear_next();
 
     CELER_ENSURE(!this->has_next_step());
@@ -396,7 +399,7 @@ CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
  */
 CELER_FUNCTION SurfaceId OrangeTrackView::surface_id() const
 {
-    if (this->surface_level())
+    if (this->is_on_boundary())
     {
         auto lsa = this->make_lsa(this->surface_level());
         detail::UniverseIndexer ui{params_.universe_indexer_data};
@@ -438,7 +441,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
  */
 CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::is_on_boundary() const
 {
-    return static_cast<bool>(this->surf());
+    return static_cast<bool>(this->surface_level());
 }
 
 //---------------------------------------------------------------------------//
@@ -556,8 +559,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
         axpy(dist, lsa.dir(), &lsa.pos());
     }
     this->next_step(this->next_step() - dist);
-
-    this->surface({}, {});
+    this->clear_surface();
 }
 
 //---------------------------------------------------------------------------//
@@ -589,7 +591,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
     lsa.pos() = local_pos;
 
     // Clear surface state and next-step info
-    this->surface({}, {});
+    this->clear_surface();
     this->clear_next();
 }
 
@@ -1056,6 +1058,16 @@ OrangeTrackView::surface(LevelId level, detail::OnLocalSurface surf)
     states_.surface_level[track_slot_] = level;
     states_.surf[track_slot_] = surf.id();
     states_.sense[track_slot_] = surf.unchecked_sense();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear the surface on the current level.
+ */
+CELER_FUNCTION void OrangeTrackView::clear_surface()
+{
+    states_.surface_level[track_slot_] = {};
+    CELER_ENSURE(!this->is_on_boundary());
 }
 
 //---------------------------------------------------------------------------//
