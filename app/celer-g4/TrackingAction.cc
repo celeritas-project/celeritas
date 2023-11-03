@@ -19,7 +19,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/sys/Environment.hh"
 #include "accel/ExceptionConverter.hh"
 
 namespace celeritas
@@ -33,10 +32,7 @@ namespace app
 TrackingAction::TrackingAction(SPConstParams params,
                                SPTransporter transport,
                                SPDiagnostics diagnostics)
-    : params_(params)
-    , transport_(transport)
-    , diagnostics_(diagnostics)
-    , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
+    : params_(params), transport_(transport), diagnostics_(diagnostics)
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(transport_);
@@ -53,7 +49,7 @@ TrackingAction::TrackingAction(SPConstParams params,
  */
 void TrackingAction::PreUserTrackingAction(G4Track const* track)
 {
-    if (disable_offloading_)
+    if (SharedParams::CeleritasDisabled())
         return;
 
     CELER_EXPECT(track);

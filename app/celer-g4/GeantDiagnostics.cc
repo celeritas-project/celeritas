@@ -8,7 +8,6 @@
 #include "GeantDiagnostics.hh"
 
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -29,20 +28,19 @@ namespace app
  * diagnostics. If Celeritas offloading is enabled, diagnostics will be added
  * to the output registry in the \c SharedParams.
  */
-GeantDiagnostics::GeantDiagnostics(SPConstParams params)
+GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(*params || !celeritas::getenv("CELER_DISABLE").empty());
+    CELER_EXPECT(params || SharedParams::CeleritasDisabled());
 
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
 
-    SPOutputRegistry output_reg = *params ? params->Params()->output_reg()
-                                          : std::make_shared<OutputRegistry>();
+    SPOutputRegistry output_reg = params ? params.Params()->output_reg()
+                                         : std::make_shared<OutputRegistry>();
 
     size_type num_threads = [&params] {
-        if (*params)
+        if (params)
         {
-            return params->Params()->max_streams();
+            return params.Params()->max_streams();
         }
         auto* run_man = G4RunManager::GetRunManager();
         CELER_ASSERT(run_man);
@@ -61,7 +59,7 @@ GeantDiagnostics::GeantDiagnostics(SPConstParams params)
         output_reg->insert(step_diagnostic_);
     }
 
-    if (!*params)
+    if (!params)
     {
         output_reg_ = std::move(output_reg);
     }

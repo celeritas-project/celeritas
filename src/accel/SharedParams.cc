@@ -146,6 +146,20 @@ build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
 //---------------------------------------------------------------------------//
 }  // namespace
 
+bool SharedParams::CeleritasDisabled()
+{
+    static bool const result = [] {
+        if (celeritas::getenv("CELER_DISABLE").empty())
+            return false;
+
+        CELER_LOG(info)
+            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
+               "environment variable is present and non-empty";
+        return true;
+    }();
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up Celeritas using Geant4 data.

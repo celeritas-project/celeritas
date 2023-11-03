@@ -17,7 +17,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
 
@@ -44,7 +43,6 @@ RunAction::RunAction(SPConstOptions options,
     , diagnostics_{std::move(diagnostics)}
     , init_celeritas_{init_celeritas}
     , init_diagnostics_{init_diagnostics}
-    , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
 {
     CELER_EXPECT(options_);
     CELER_EXPECT(params_);
@@ -61,7 +59,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 
     ExceptionConverter call_g4exception{"celer0001"};
 
-    if (!disable_offloading_)
+    if (!SharedParams::CeleritasDisabled())
     {
         if (init_celeritas_)
         {
@@ -87,7 +85,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 
     if (init_diagnostics_)
     {
-        CELER_TRY_HANDLE(diagnostics_->Initialize(params_), call_g4exception);
+        CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 
         diagnostics_->Timer()->RecordSetupTime(
@@ -110,7 +108,7 @@ void RunAction::EndOfRunAction(G4Run const*)
         CELER_TRY_HANDLE(RootIO::Instance()->Close(), call_g4exception);
     }
 
-    if (transport_ && !disable_offloading_)
+    if (transport_ && !SharedParams::CeleritasDisabled())
     {
         diagnostics_->Timer()->RecordActionTime(transport_->GetActionTime());
     }
@@ -120,7 +118,7 @@ void RunAction::EndOfRunAction(G4Run const*)
         CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
     }
 
-    if (!disable_offloading_)
+    if (!SharedParams::CeleritasDisabled())
     {
         CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
 

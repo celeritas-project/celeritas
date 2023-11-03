@@ -61,7 +61,6 @@ class RunAction final : public G4UserRunAction
     SPDiagnostics diagnostics_;
     bool init_celeritas_;
     bool init_diagnostics_;
-    bool disable_offloading_;
     Stopwatch get_transport_time_;
 };
 
