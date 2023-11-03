@@ -144,6 +144,16 @@ build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Shared static mutex for once-only updated parameters.
+ */
+std::mutex& updating_mutex()
+{
+    static std::mutex result;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 bool SharedParams::CeleritasDisabled()
@@ -267,15 +277,62 @@ void SharedParams::Finalize()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Lazily created output registry.
+ */
+int SharedParams::num_streams() const
+{
+    if (CELER_UNLIKELY(!num_streams_))
+    {
+        // Initial lock-free check failed; now lock and create if needed
+        std::lock_guard scoped_lock{updating_mutex()};
+        if (!num_streams_)
+        {
+            // Default to setting the maximum number of streams based on Geant4
+            // multithreading.
+            auto* run_man = G4RunManager::GetRunManager();
+            CELER_VALIDATE(run_man,
+                           << "G4RunManager was not created before "
+                              "getting stream count from SharedParams");
+            const_cast<SharedParams*>(this)->num_streams_
+                = celeritas::get_num_threads(*run_man);
+        }
+    }
+
+    CELER_ENSURE(num_streams_ > 0);
+    return num_streams_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Lazily created output registry.
+ */
+auto SharedParams::output_reg() const -> SPOutputRegistry const&
+{
+    if (CELER_UNLIKELY(!output_reg_))
+    {
+        // Initial lock-free check failed; now lock and create if needed
+        std::lock_guard scoped_lock{updating_mutex()};
+        if (!output_reg_)
+        {
+            auto output_reg = std::make_shared<OutputRegistry>();
+            const_cast<SharedParams*>(this)->output_reg_
+                = std::move(output_reg);
+            CELER_ENSURE(output_reg_);
+        }
+    }
+    return output_reg_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Lazily created Geant geometry parameters.
  */
 auto SharedParams::geant_geo_params() const -> SPConstGeantGeoParams const&
 {
-    if (!geant_geo_)
+    if (CELER_UNLIKELY(!geant_geo_))
     {
         // Initial lock-free check failed; now lock and create if needed
-        static std::mutex update_mutex;
-        std::lock_guard scoped_lock{update_mutex};
+        std::lock_guard scoped_lock{updating_mutex()};
         if (!geant_geo_)
         {
             auto geo_params = std::make_shared<GeantGeoParams>(
@@ -324,8 +381,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
     CoreParams::Input params;
 
     // Create registries
+    if (!output_reg_)
+    {
+        output_reg_ = std::make_shared<OutputRegistry>();
+    }
+
     params.action_reg = std::make_shared<ActionRegistry>();
-    params.output_reg = std::make_shared<OutputRegistry>();
+    params.output_reg = output_reg_;
 
     // Load geometry
     params.geometry = [&options] {
@@ -334,6 +396,13 @@ void SharedParams::initialize_core(SetupOptions const& options)
             // Read directly from GDML input
             return std::make_shared<GeoParams>(options.geometry_file);
         }
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT
+        else if (geant_geo_)
+        {
+            // Lazily created geo was requested first
+            return geant_geo_;
+        }
+#endif
         else
         {
             // Import from Geant4
@@ -401,20 +470,16 @@ void SharedParams::initialize_core(SetupOptions const& options)
                        << "nonpositive number of streams (" << num_streams
                        << ") returned by SetupOptions.get_num_streams");
         params.max_streams = num_streams;
+        // Save number of streams... no other thread should be updating this
+        // simultaneously but we just make sure of it
+        std::lock_guard scoped_lock{updating_mutex()};
+        num_streams_ = num_streams;
     }
     else
     {
         // Default to setting the maximum number of streams based on Geant4
         // multithreading.
-        // Hit processors *must* be allocated on the thread they're used
-        // because of geant4 thread-local SDs. There must be one per thread.
-        params.max_streams = [] {
-            auto* run_man = G4RunManager::GetRunManager();
-            CELER_VALIDATE(run_man,
-                           << "G4RunManager was not created before "
-                              "initializing SharedParams");
-            return celeritas::get_num_threads(*run_man);
-        }();
+        params.max_streams = this->num_streams();
     }
 
     // Allocate device streams, or use the default stream if there is only one.

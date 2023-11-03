@@ -9,7 +9,6 @@
 
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/global/CoreParams.hh"
 
 #include "G4RunManager.hh"
@@ -34,18 +33,9 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
 
-    SPOutputRegistry output_reg = params ? params.Params()->output_reg()
-                                         : std::make_shared<OutputRegistry>();
-
-    size_type num_threads = [&params] {
-        if (params)
-        {
-            return params.Params()->max_streams();
-        }
-        auto* run_man = G4RunManager::GetRunManager();
-        CELER_ASSERT(run_man);
-        return size_type(get_num_threads(*run_man));
-    }();
+    // Get (lazily creating)
+    SPOutputRegistry output_reg = params.output_reg();
+    size_type num_threads = params.num_streams();
 
     // Create the timer output and add to output registry
     timer_output_ = std::make_shared<TimerOutput>(num_threads);
@@ -61,6 +51,7 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 
     if (!params)
     {
+        // Write output on finalization
         output_reg_ = std::move(output_reg);
     }
 
