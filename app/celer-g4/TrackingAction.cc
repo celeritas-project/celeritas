@@ -10,10 +10,6 @@
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
-#include <G4Electron.hh>
-#include <G4Gamma.hh>
-#include <G4ParticleDefinition.hh>
-#include <G4Positron.hh>
 #include <G4Track.hh>
 #include <G4TrackStatus.hh>
 
@@ -56,12 +52,8 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
     CELER_EXPECT(*params_);
     CELER_EXPECT(*transport_);
 
-    static G4ParticleDefinition const* const allowed_particles[] = {
-        G4Gamma::Gamma(),
-        G4Electron::Electron(),
-        G4Positron::Positron(),
-    };
 
+    auto const& allowed_particles = params_->OffloadParticles();
     if (std::find(std::begin(allowed_particles),
                   std::end(allowed_particles),
                   track->GetDefinition())
