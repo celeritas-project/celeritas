@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/HitRootIO.cc
+//! \file celer-g4/RootIO.cc
 //---------------------------------------------------------------------------//
-#include "HitRootIO.hh"
+#include "RootIO.hh"
 
 #include <cstdio>
 #include <regex>
@@ -33,9 +33,9 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a ROOT output file for each worker except the master thread if MT.
+ * Create a ROOT output file for each worker thread in MT.
  */
-HitRootIO::HitRootIO()
+RootIO::RootIO()
 {
     ROOT::EnableThreadSafety();
 
@@ -63,75 +63,79 @@ HitRootIO::HitRootIO()
         file_.reset(TFile::Open(file_name_.c_str(), "recreate"));
         CELER_VALIDATE(file_->IsOpen(), << "failed to open " << file_name_);
         tree_.reset(new TTree(
-            "Events", "Hit collections", this->SplitLevel(), file_.get()));
+            this->TreeName(), "event_hits", this->SplitLevel(), file_.get()));
     }
 }
 
 //---------------------------------------------------------------------------//
-//! Default destructor
-HitRootIO::~HitRootIO() = default;
-
-//---------------------------------------------------------------------------//
 /*!
- * Return the static thread local singleton instance>
+ * Return the static thread local singleton instance.
  */
-HitRootIO* HitRootIO::Instance()
+RootIO* RootIO::Instance()
 {
-    static G4ThreadLocal HitRootIO instance;
+    static G4ThreadLocal RootIO instance;
     return &instance;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Write sensitive hits to output in the form of HitRootEvent.
+ * Write sensitive hits to output in the form of EventData.
+ * See celeritas/io/EventData.hh
  */
-void HitRootIO::WriteHits(G4Event const* event)
+void RootIO::Write(G4Event const* event)
 {
-    G4HCofThisEvent* hce = event->GetHCofThisEvent();
-    if (hce == nullptr)
+    auto const hit_cols = event->GetHCofThisEvent();
+    if (!hit_cols)
     {
         return;
     }
 
-    // Write the collection of sensitive hits into HitRootEvent
-    HitRootEvent hit_event;
-    hit_event.event_id = event->GetEventID();
-    for (int i = 0; i < hce->GetNumberOfCollections(); i++)
+    // Populate EventData using the collections of sensitive hits
+    EventData event_data;
+    event_data.hits.resize(detector_name_id_map_.size());
+
+    event_data.event_id = event->GetEventID();
+    for (auto i : celeritas::range(hit_cols->GetNumberOfCollections()))
     {
-        G4VHitsCollection* hc = hce->GetHC(i);
-        std::string hcname = hc->GetName();
-        std::vector<G4VHit*> hits;
-        int number_of_hits = hc->GetSize();
-        for (int j = 0; j < number_of_hits; ++j)
+        auto const* hc_id = hit_cols->GetHC(i);
+        std::vector<EventHitData> hits;
+        hits.resize(hc_id->GetSize());
+
+        for (auto j : celeritas::range(hc_id->GetSize()))
         {
-            G4VHit* hit = hc->GetHit(j);
-            SensitiveHit* sd_hit = dynamic_cast<SensitiveHit*>(hit);
-            hits.push_back(sd_hit);
+            auto* hit_id = dynamic_cast<SensitiveHit*>(hc_id->GetHit(j));
+            hits[j] = hit_id->data();
         }
-        hit_event.hcmap.insert(std::make_pair(hcname, std::move(hits)));
+
+        auto const iter = detector_name_id_map_.find(hc_id->GetName());
+        CELER_ASSERT(iter != detector_name_id_map_.end());
+        event_data.hits[iter->second] = std::move(hits);
     }
 
-    // Write a HitRootEvent into output ROOT file
-    this->WriteObject(&hit_event);
+    this->WriteObject(&event_data);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill a HitRootEvent object.
+ * Fill event tree with event data.
+ *
+ * \note
+ * `tree_->Fill()` will import the data from *all* existing TBranches. So this
+ * code expects to have only one TBranch in this TTree.
  */
-void HitRootIO::WriteObject(HitRootEvent* hit_event)
+void RootIO::WriteObject(EventData* event_data)
 {
     if (!event_branch_)
     {
         event_branch_
-            = tree_->Branch("event.",
-                            &hit_event,
+            = tree_->Branch("event",
+                            &event_data,
                             GlobalSetup::Instance()->GetRootBufferSize(),
                             this->SplitLevel());
     }
     else
     {
-        event_branch_->SetAddress(&hit_event);
+        event_branch_->SetAddress(&event_data);
     }
 
     tree_->Fill();
@@ -140,9 +144,21 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write, and Close or Merge output.
+ * Map sensitive detectors to contiguous IDs.
  */
-void HitRootIO::Close()
+void RootIO::AddSensitiveDetector(std::string name)
+{
+    auto&& [iter, inserted]
+        = detector_name_id_map_.insert({std::move(name), ++detector_id_});
+    CELER_ASSERT(inserted);
+    CELER_DISCARD(iter);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write and Close or Merge output.
+ */
+void RootIO::Close()
 {
     CELER_EXPECT((file_ && file_->IsOpen())
                  || (G4Threading::IsMultithreadedApplication()
@@ -167,6 +183,7 @@ void HitRootIO::Close()
             file_->Write("", TObject::kOverwrite);
         }
     }
+
     event_branch_ = nullptr;
     tree_.reset();
     file_.reset();
@@ -180,7 +197,7 @@ void HitRootIO::Close()
  * tutorials/multicore/mt103_fillNtupleFromMultipleThreads.C which stores
  * TBuffer data in memory and writes 32MB compressed output concurrently.
  */
-void HitRootIO::Merge()
+void RootIO::Merge()
 {
     auto const nthreads = get_num_threads(*G4RunManager::GetRunManager());
     std::vector<TFile*> files;
@@ -194,22 +211,51 @@ void HitRootIO::Merge()
     {
         std::string file_name = file_name_ + std::to_string(i);
         files.push_back(TFile::Open(file_name.c_str()));
-        trees.push_back((TTree*)(files[i]->Get("Events")));
+        trees.push_back((TTree*)(files[i]->Get(this->TreeName())));
         list->Add(trees[i]);
 
         if (i == nthreads - 1)
         {
-            TFile* file = TFile::Open(file_name_.c_str(), "recreate");
+            auto* file = TFile::Open(file_name_.c_str(), "recreate");
             CELER_VALIDATE(file->IsOpen(), << "failed to open " << file_name_);
 
-            TTree* tree = TTree::MergeTrees(list.get());
-            tree->SetName("Events");
-            //  Write both the TFile and TTree meta-data
+            auto* tree = TTree::MergeTrees(list.get());
+            tree->SetName(this->TreeName());
+
+            // Store sensitive detector map branch
+            this->StoreSdMap(file);
+
+            // Write both the TFile and TTree meta-data
             file->Write();
             file->Close();
         }
         // Delete the merged file
         std::remove(file_name.c_str());
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store TTree with sensitive detector names and their IDs (used by
+ * EventData).
+ */
+void RootIO::StoreSdMap(TFile* file)
+{
+    CELER_EXPECT(file && file->IsOpen());
+
+    auto tree = new TTree(
+        "sensitive_detectors", "name_to_id", this->SplitLevel(), file);
+
+    std::string name;
+    unsigned int id;
+    tree->Branch("name", &name);
+    tree->Branch("id", &id);
+
+    for (auto const& iter : detector_name_id_map_)
+    {
+        name = iter.first;
+        id = iter.second;
+        tree->Fill();
     }
 }
 

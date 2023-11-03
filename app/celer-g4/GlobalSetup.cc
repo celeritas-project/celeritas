@@ -187,7 +187,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
     }
 
     // Set the filename for JSON output
-    if (input_.output_file.empty())
+    if (CELERITAS_USE_JSON && input_.output_file.empty())
     {
         input_.output_file = "celer-g4.out.json";
         options_->output_file = input_.output_file;

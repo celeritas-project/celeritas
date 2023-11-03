@@ -22,7 +22,7 @@
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
-#include "HitRootIO.hh"
+#include "RootIO.hh"
 
 namespace celeritas
 {
@@ -107,7 +107,7 @@ void RunAction::EndOfRunAction(G4Run const*)
     if (GlobalSetup::Instance()->GetWriteSDHits())
     {
         // Close ROOT output of sensitive hits
-        CELER_TRY_HANDLE(HitRootIO::Instance()->Close(), call_g4exception);
+        CELER_TRY_HANDLE(RootIO::Instance()->Close(), call_g4exception);
     }
 
     if (transport_ && !disable_offloading_)

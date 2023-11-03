@@ -107,6 +107,7 @@ class LdgIterator
     {
         return LoadPolicyT::read(ptr_ + n);
     }
+    LdgIterator& operator=(LdgIterator const&) = default;
     //!@}
 
     //!@{

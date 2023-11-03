@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/HitRootIO.hh
+//! \file celer-g4/RootIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,10 +12,10 @@
 #include <vector>
 #include <G4ThreadLocalSingleton.hh>
 #include <G4Types.hh>
-#include <G4VHit.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "celeritas/io/EventData.hh"
 
 class TFile;
 class TTree;
@@ -27,72 +27,85 @@ namespace celeritas
 namespace app
 {
 //---------------------------------------------------------------------------//
-/*!
- * Example of output event structure stored in ROOT.
- */
-struct HitRootEvent
-{
-    int event_id{0};
-    std::map<std::string, std::vector<G4VHit*>> hcmap;
-};
-
-//---------------------------------------------------------------------------//
 /*
- * Example of writing sensitive hits to ROOT output
+ * Example of writing data to ROOT output.
  */
-class HitRootIO
+class RootIO
 {
-    friend class G4ThreadLocalSingleton<HitRootIO>;
+    friend class G4ThreadLocalSingleton<RootIO>;
 
   public:
     // Return non-owning pointer to a singleton
-    static HitRootIO* Instance();
+    static RootIO* Instance();
 
     // Write sensitive hits of a G4Event to ROOT output file
-    void WriteHits(G4Event const* event);
+    void Write(G4Event const* event);
+
+    // Add detector name to map of sensitive detectors
+    void AddSensitiveDetector(std::string name);
 
     // Close or merge output files
     void Close();
 
   private:
-    // Set up output data and file
-    HitRootIO();
-    HitRootIO(HitRootIO&&) = default;
-    HitRootIO& operator=(HitRootIO&&) = default;
+    // Construct by initializing TFile and TTree on each worker thread
+    RootIO();
+    RootIO(RootIO&&) = default;
+
+    // Assignment operator
+    RootIO& operator=(RootIO&&) = default;
 
     // Default destructor
-    ~HitRootIO();
+    ~RootIO() = default;
 
     //// HELPER FUNCTIONS ////
 
-    // Fill and write a HitRootEvent object
-    void WriteObject(HitRootEvent* hit_event);
+    // Fill and write an EventData object
+    void WriteObject(EventData* hit_event);
 
-    // Merge ROOT files from multiple threads
+    // Merge ROOT files from multiple worker threads
     void Merge();
 
-    //! The split level of ROOT TTree
+    // Store a new TTree mapping detector ID and name
+    void StoreSdMap(TFile* file);
+
+    //! ROOT TTree split level
     static constexpr short int SplitLevel() { return 99; }
 
-  private:
+    //! ROOT TTree name
+    static char const* TreeName() { return "events"; }
+
+    //// DATA ////
+
     std::string file_name_;
     std::unique_ptr<TFile> file_;
     std::unique_ptr<TTree> tree_;
     TBranch* event_branch_{nullptr};
+
+    // Map sensitive detectors to contiguous IDs
+    // Used by celeritas/io/EventData.hh
+    int detector_id_{-1};
+    std::map<std::string, int> detector_name_id_map_;
 };
 
+//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline HitRootIO* HitRootIO::Instance()
+inline RootIO* RootIO::Instance()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void HitRootIO::WriteHits(G4Event const*)
+inline void RootIO::Write(G4Event const*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void HitRootIO::Close()
+inline void RootIO::AddSensitiveDetector(std::string)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+inline void RootIO::Close()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

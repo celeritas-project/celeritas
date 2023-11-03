@@ -15,7 +15,7 @@
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
-#include "HitRootIO.hh"
+#include "RootIO.hh"
 
 namespace celeritas
 {
@@ -75,7 +75,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
     if (GlobalSetup::Instance()->GetWriteSDHits())
     {
         // Write sensitive hits
-        HitRootIO::Instance()->WriteHits(event);
+        RootIO::Instance()->Write(event);
     }
 
     // Record the time for this event

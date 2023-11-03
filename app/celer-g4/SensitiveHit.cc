@@ -34,9 +34,12 @@ auto SensitiveHit::allocator() -> HitAllocator&
 
 //---------------------------------------------------------------------------//
 /*!
- * Constructor.
+ * Construct with hit data.
  */
-SensitiveHit::SensitiveHit(HitData const& data) : G4VHit(), data_{data} {}
+SensitiveHit::SensitiveHit(EventHitData const& hit)
+    : G4VHit(), data_{std::move(hit)}
+{
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace app
