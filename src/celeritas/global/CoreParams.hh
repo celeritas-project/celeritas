@@ -25,6 +25,7 @@ namespace celeritas
 class ActionRegistry;
 class AtomicRelaxationParams;
 class CutoffParams;
+class DiagnosticParams;
 class FluctuationParams;
 class GeoMaterialParams;
 class MaterialParams;
@@ -52,6 +53,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
+    using SPConstDiagnostic = std::shared_ptr<DiagnosticParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
 
@@ -72,6 +74,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstRng rng;
         SPConstSim sim;
         SPConstTrackInit init;
+        SPConstDiagnostic diagnostic;
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
@@ -83,8 +86,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && rng && sim && init && action_reg && output_reg
-                   && max_streams;
+                   && physics && rng && sim && init && diagnostic && action_reg
+                   && output_reg && max_streams;
         }
     };
 
@@ -106,6 +109,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstRng const& rng() const { return input_.rng; }
     SPConstSim const& sim() const { return input_.sim; }
     SPConstTrackInit const& init() const { return input_.init; }
+    SPConstDiagnostic const& diagnostic() const { return input_.diagnostic; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
     //!@}

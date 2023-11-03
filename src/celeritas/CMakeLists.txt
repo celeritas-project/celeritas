@@ -74,6 +74,7 @@ list(APPEND SOURCES
   user/FieldDiagnosticData.cc
   user/ParticleTallyData.cc
   user/DetectorSteps.cc
+  user/DiagnosticParams.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc

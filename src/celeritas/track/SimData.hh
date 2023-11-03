@@ -134,8 +134,6 @@ struct SimStateData
     Items<ActionId> post_step_action;
     Items<ActionId> along_step_action;
 
-    Items<size_type> num_field_substeps;  //!< Number of field substeps
-
     //// METHODS ////
 
     //! Check whether the interface is assigned
@@ -144,8 +142,7 @@ struct SimStateData
         return !track_ids.empty() && !parent_ids.empty() && !event_ids.empty()
                && !num_steps.empty() && !num_looping_steps.empty()
                && !time.empty() && !status.empty() && !step_length.empty()
-               && !post_step_action.empty() && !along_step_action.empty()
-               && !num_field_substeps.empty();
+               && !post_step_action.empty() && !along_step_action.empty();
     }
 
     //! State size
@@ -169,7 +166,6 @@ struct SimStateData
         step_length = other.step_length;
         post_step_action = other.post_step_action;
         along_step_action = other.along_step_action;
-        num_field_substeps = other.num_field_substeps;
         return *this;
     }
 };
@@ -202,9 +198,6 @@ void resize(SimStateData<Ownership::value, M>* data, size_type size)
     resize(&data->step_length, size);
     resize(&data->post_step_action, size);
     resize(&data->along_step_action, size);
-
-    resize(&data->num_field_substeps, size);
-    fill(size_type{0}, &data->num_field_substeps);
 
     CELER_ENSURE(*data);
 }

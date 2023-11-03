@@ -42,14 +42,14 @@ FieldDiagnosticExecutor::operator()(CoreTrackView const& track)
 
     using BinId = ItemId<size_type>;
 
-    auto particle = track.make_particle_view();
-    if (particle.particle_view().charge() == zero_quantity())
+    if (track.make_particle_view().particle_view().charge() == zero_quantity())
     {
         return;
     }
 
     UniformGrid grid(params.energy);
-    auto log_energy = std::log(particle.energy().value());
+    auto diagnostic = track.make_diagnostic_view();
+    auto log_energy = std::log(diagnostic.pre_step_energy().value());
     if (log_energy < grid.front() || log_energy >= grid.back())
     {
         return;
@@ -61,8 +61,8 @@ FieldDiagnosticExecutor::operator()(CoreTrackView const& track)
         return state.counts[BinId(index)];
     };
 
-    size_type num_substeps = celeritas::min(
-        track.make_sim_view().num_substeps(), params.num_substep_bins - 1);
+    size_type num_substeps = celeritas::min(diagnostic.num_field_substeps(),
+                                            params.num_substep_bins - 1);
 
     // Tally the number of field substeps
     auto& bin = get(grid.find(log_energy), num_substeps);

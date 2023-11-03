@@ -39,6 +39,7 @@ void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->rng, params.rng, stream_id, size);
     resize(&state->sim, size);
     resize(&state->init, params.init, size);
+    resize(&state->diagnostic, params.diagnostic, size);
     resize(&state->track_slots, size);
     state->stream_id = stream_id;
 

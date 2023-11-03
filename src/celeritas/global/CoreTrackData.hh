@@ -19,6 +19,7 @@
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
+#include "celeritas/user/DiagnosticData.hh"
 
 #include "CoreTrackDataFwd.hh"
 
@@ -65,6 +66,7 @@ struct CoreParamsData
     RngParamsData<W, M> rng;
     SimParamsData<W, M> sim;
     TrackInitParamsData<W, M> init;
+    DiagnosticParamsData<W, M> diagnostic;
 
     CoreScalars scalars;
 
@@ -72,7 +74,7 @@ struct CoreParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && geo_mats && materials && particles && cutoffs
-               && physics && sim && init && scalars;
+               && physics && sim && init && diagnostic && scalars;
     }
 
     //! Assign from another set of data
@@ -89,6 +91,7 @@ struct CoreParamsData
         rng = other.rng;
         sim = other.sim;
         init = other.init;
+        diagnostic = other.diagnostic;
         scalars = other.scalars;
         return *this;
     }
@@ -116,6 +119,7 @@ struct CoreStateData
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;
     TrackInitStateData<W, M> init;
+    DiagnosticStateData<W, M> diagnostic;
     ThreadItems<TrackSlotId::size_type> track_slots;
 
     //! Unique identifier for "thread-local" data.
@@ -128,7 +132,7 @@ struct CoreStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && materials && particles && physics && rng && sim
-               && init && stream_id;
+               && init && diagnostic && stream_id;
     }
 
     //! Assign from another set of data
@@ -144,6 +148,7 @@ struct CoreStateData
         sim = other.sim;
         init = other.init;
         track_slots = other.track_slots;
+        diagnostic = other.diagnostic;
         stream_id = other.stream_id;
         return *this;
     }

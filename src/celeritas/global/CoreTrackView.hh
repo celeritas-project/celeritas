@@ -17,6 +17,7 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/RngEngine.hh"
 #include "celeritas/track/SimTrackView.hh"
+#include "celeritas/user/DiagnosticTrackView.hh"
 
 #include "CoreTrackData.hh"
 
@@ -67,6 +68,9 @@ class CoreTrackView
 
     // Return a view to temporary physics data
     inline CELER_FUNCTION PhysicsStepView make_physics_step_view() const;
+
+    // Return a view to user diagnostic data
+    inline CELER_FUNCTION DiagnosticTrackView make_diagnostic_view() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine make_rng_engine() const;
@@ -205,6 +209,17 @@ CELER_FUNCTION auto CoreTrackView::make_physics_step_view() const
 {
     return PhysicsStepView{
         params_.physics, states_.physics, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a diagnostic view.
+ */
+CELER_FUNCTION auto CoreTrackView::make_diagnostic_view() const
+    -> DiagnosticTrackView
+{
+    return DiagnosticTrackView{
+        params_.diagnostic, states_.diagnostic, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

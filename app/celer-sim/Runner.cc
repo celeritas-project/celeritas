@@ -57,6 +57,7 @@
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
+#include "celeritas/user/DiagnosticParams.hh"
 #include "celeritas/user/FieldDiagnostic.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
@@ -347,6 +348,13 @@ void Runner::build_core_params(RunnerInput const& inp,
         input.max_events = inp.max_events;
         input.track_order = inp.track_order;
         return std::make_shared<TrackInitParams>(std::move(input));
+    }();
+
+    // Construct diagnostic params
+    params.diagnostic = [&inp] {
+        DiagnosticParams::Input input;
+        input.field_diagnostic = inp.field_diagnostic;
+        return std::make_shared<DiagnosticParams>(input);
     }();
 
     core_params_ = std::make_shared<CoreParams>(std::move(params));

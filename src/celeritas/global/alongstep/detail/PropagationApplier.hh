@@ -111,7 +111,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
         auto propagate = make_propagator(track);
         p = propagate(sim.step_length());
         tracks_can_loop = propagate.tracks_can_loop();
-        sim.num_substeps(p.num_substeps);
+        track.make_diagnostic_view().num_field_substeps(p.num_substeps);
         CELER_ASSERT(p.distance > 0);
 #if CELERITAS_DEBUG
         CELER_ASSERT(track.make_geo_view().pos() != orig_pos);

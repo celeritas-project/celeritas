@@ -49,6 +49,7 @@
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/user/DiagnosticParams.hh"
 #include "celeritas/user/StepCollector.hh"
 
 #include "AlongStepFactory.hh"
@@ -350,6 +351,10 @@ void SharedParams::initialize_core(SetupOptions const& options)
         input.track_order = options.track_order;
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
+
+    // Construct diagnostic params
+    params.diagnostic
+        = std::make_shared<DiagnosticParams>(DiagnosticParams::Input{});
 
     if (options.get_num_streams)
     {

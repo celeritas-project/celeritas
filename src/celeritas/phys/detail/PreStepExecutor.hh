@@ -83,6 +83,7 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
     auto mat = track.make_material_view();
     auto particle = track.make_particle_view();
     sim.reset_step_limit(calc_physics_step_limit(mat, particle, phys, step));
+    track.make_diagnostic_view().pre_step_energy(particle.energy());
 
     // Initialize along-step action based on particle charge:
     // This should eventually be dependent on region, energy, etc.

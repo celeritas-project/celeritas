@@ -43,6 +43,7 @@
 #include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/SortTracksAction.hh"
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
+#include "celeritas/user/DiagnosticParams.hh"
 
 #include "ActionInterface.hh"
 #include "ActionRegistry.hh"  // IWYU pragma: keep
@@ -82,6 +83,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.rng = get_ref<M>(*p.rng);
     ref.sim = get_ref<M>(*p.sim);
     ref.init = get_ref<M>(*p.init);
+    ref.diagnostic = get_ref<M>(*p.diagnostic);
 
     CELER_ENSURE(ref);
     return ref;
@@ -227,6 +229,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(init);
+    CP_VALIDATE_INPUT(diagnostic);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(output_reg);
     CP_VALIDATE_INPUT(max_streams);
