@@ -419,10 +419,10 @@ struct OrangeStateData
     StateItems<BoundaryResult> boundary;
 
     // "Local" state, needed for Shift {num_tracks}
-    StateItems<real_type> next_step;
-    StateItems<SurfaceId> next_surface;
-    StateItems<Sense> next_sense;
     StateItems<LevelId> next_level;
+    StateItems<real_type> next_step;
+    StateItems<LocalSurfaceId> next_surf;
+    StateItems<Sense> next_sense;
 
     // State with dimensions {num_tracks, max_depth}
     Items<Real3> pos;
@@ -450,10 +450,10 @@ struct OrangeStateData
             && surf.size() == this->size()
             && sense.size() == this->size()
             && boundary.size() == this->size()
-            && next_step.size() == this->size()
-            && next_surface.size() == this->size()
-            && next_sense.size() == this->size()
             && next_level.size() == this->size()
+            && next_step.size() == this->size()
+            && next_surf.size() == this->size()
+            && next_sense.size() == this->size()
             && pos.size() == max_depth * this->size()
             && dir.size() == max_depth  * this->size()
             && vol.size() == max_depth  * this->size()
@@ -481,10 +481,10 @@ struct OrangeStateData
         sense = other.sense;
         boundary = other.boundary;
 
-        next_step = other.next_step;
-        next_surface = other.next_surface;
-        next_sense = other.next_sense;
         next_level = other.next_level;
+        next_step = other.next_step;
+        next_surf = other.next_surf;
+        next_sense = other.next_sense;
 
         pos = other.pos;
         dir = other.dir;
@@ -522,10 +522,10 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->sense, num_tracks);
     resize(&data->boundary, num_tracks);
 
-    resize(&data->next_step, num_tracks);
-    resize(&data->next_surface, num_tracks);
-    resize(&data->next_sense, num_tracks);
     resize(&data->next_level, num_tracks);
+    resize(&data->next_step, num_tracks);
+    resize(&data->next_surf, num_tracks);
+    resize(&data->next_sense, num_tracks);
 
     size_type level_states = params.scalars.max_depth * num_tracks;
     resize(&data->pos, level_states);
