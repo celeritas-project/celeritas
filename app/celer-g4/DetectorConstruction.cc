@@ -28,6 +28,7 @@
 #include "accel/AlongStepFactory.hh"
 #include "accel/RZMapMagneticField.hh"
 #include "accel/SetupOptions.hh"
+#include "accel/SharedParams.hh"
 
 #include "GlobalSetup.hh"
 #include "SensitiveDetector.hh"
@@ -42,7 +43,8 @@ namespace app
  *
  * This should be done only during the main/serial thread.
  */
-DetectorConstruction::DetectorConstruction()
+DetectorConstruction::DetectorConstruction(SPParams params)
+    : params_{std::move(params)}
 {
     auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
 

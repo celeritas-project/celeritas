@@ -32,7 +32,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     //!@}
 
   public:
-    ActionInitialization();
+    ActionInitialization(SPParams params);
     void BuildForMaster() const final;
     void Build() const final;
 

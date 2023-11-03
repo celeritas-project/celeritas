@@ -24,12 +24,13 @@ namespace app
 //---------------------------------------------------------------------------//
 /*!
  * Construct global data to be shared across Celeritas workers.
+ *
+ * The parameters will be distributed to worker threads and all the actions.
  */
-ActionInitialization::ActionInitialization()
-    : init_celeritas_{true}, init_diagnostics_{true}
+ActionInitialization::ActionInitialization(SPParams params)
+    : params_{std::move(params)}, init_celeritas_{true}, init_diagnostics_{true}
 {
-    // Create params to be shared across worker threads
-    params_ = std::make_shared<SharedParams>();
+    CELER_EXPECT(params_);
     // Create Geant4 diagnostics to be shared across worker threads
     diagnostics_ = std::make_shared<GeantDiagnostics>();
 }

@@ -18,6 +18,7 @@ class G4MagneticField;
 namespace celeritas
 {
 class RZMapFieldParams;
+class SharedParams;
 
 namespace app
 {
@@ -28,13 +29,21 @@ namespace app
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SPParams = std::shared_ptr<SharedParams>;
+    //!@}
+
+  public:
     // Set up global celeritas SD options during construction
-    DetectorConstruction();
+    DetectorConstruction(SPParams params);
 
     G4VPhysicalVolume* Construct() final;
     void ConstructSDandField() final;
 
   private:
+    SPParams params_;
+
     std::unique_ptr<G4VPhysicalVolume> world_;
     std::multimap<std::string, G4LogicalVolume*> detectors_;
 
