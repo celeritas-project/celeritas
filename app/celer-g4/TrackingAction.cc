@@ -45,13 +45,13 @@ TrackingAction::TrackingAction(SPConstParams params,
  */
 void TrackingAction::PreUserTrackingAction(G4Track const* track)
 {
-    if (SharedParams::CeleritasDisabled())
-        return;
-
     CELER_EXPECT(track);
-    CELER_EXPECT(*params_);
-    CELER_EXPECT(*transport_);
+    CELER_EXPECT(static_cast<bool>(params_)
+                 == SharedParams::CeleritasDisabled());
+    CELER_EXPECT(static_cast<bool>(params_) == static_cast<bool>(transport_));
 
+    if (!params_)
+        return;
 
     auto const& allowed_particles = params_->OffloadParticles();
     if (std::find(std::begin(allowed_particles),
