@@ -330,9 +330,6 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
                       {init.other.surf(), init.other.sense()});
         this->boundary(init.other.boundary());
 
-        // Clear the next step information since we're changing direction
-        this->clear_next();
-
         for (auto lev : range(LevelId{this->level() + 1}))
         {
             // Copy all data accessed via LSA
@@ -340,6 +337,10 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
             lsa = init.other.make_lsa(lev);
         }
     }
+
+    // Clear the next step information since we're changing direction or
+    // initializing a new state
+    this->clear_next();
 
     // Transform direction from global to local
     Real3 localdir = init.dir;
