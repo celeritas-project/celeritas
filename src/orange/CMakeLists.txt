@@ -22,6 +22,7 @@ list(APPEND SOURCES
   construct/CsgTypes.cc
   construct/CsgTreeUtils.cc
   construct/DepthCalculator.cc
+  construct/detail/LocalSurfaceInserter.cc
   construct/detail/NodeSimplifier.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
@@ -31,6 +32,7 @@ list(APPEND SOURCES
   detail/UniverseInserter.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
+  surf/FaceNamer.cc
   surf/GeneralQuadric.cc
   surf/Plane.cc
   surf/PlaneAligned.cc

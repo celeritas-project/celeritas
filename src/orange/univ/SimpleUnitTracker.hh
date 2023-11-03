@@ -646,7 +646,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a Surfaces object from the params for this unit.
+ * Create a surface visitor from the params for this unit.
  */
 CELER_FORCEINLINE_FUNCTION LocalSurfaceVisitor
 SimpleUnitTracker::make_surface_visitor() const

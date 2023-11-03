@@ -54,7 +54,7 @@ struct VolumeInput
 
 //---------------------------------------------------------------------------//
 /*!
- * Input definition a daughter universe embedded in a parent cell
+ * Input definition a daughter universe embedded in a parent cell.
  */
 struct DaughterInput
 {
@@ -65,6 +65,8 @@ struct DaughterInput
 //---------------------------------------------------------------------------//
 /*!
  * Input definition for a unit.
+ *
+ * \todo Add a CsgTree object and \c vector<NodeId> volumes;
  */
 struct UnitInput
 {

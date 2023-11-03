@@ -25,8 +25,8 @@ class RecursiveSimplifierImpl
 {
   public:
     //! Construct with reference to function and values to be used
-    RecursiveSimplifierImpl(F& func, Sense sense, real_type tol)
-        : func_{func}, sense_{sense}, simplify_{&sense_, tol}
+    RecursiveSimplifierImpl(F& func, Sense sense, real_type abs_tol)
+        : func_{func}, sense_{sense}, simplify_{&sense_, abs_tol}
     {
     }
 
