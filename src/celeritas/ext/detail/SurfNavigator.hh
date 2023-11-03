@@ -1,15 +1,17 @@
 // SPDX-FileCopyrightText: 2023 CERN
 // SPDX-License-Identifier: Apache-2.0
-
-/**
- * @file SurfNavigator.h
- * @brief Navigation methods using the surface model.
+//---------------------------------------------------------------------------//
+/*!
+ * \file SurfNavigator.hh
+ * \brief Navigation methods using the surface model.
+ *
+ * Original source:
+ * https://github.com/apt-sim/AdePT/blob/e03b856523164fb13f9f030d52297db96c8a2c8d/base/inc/AdePT/SurfNavigator.h
  */
+//---------------------------------------------------------------------------//
+#pragma once
 
-#ifndef RT_SURF_NAVIGATOR_H_
-#define RT_SURF_NAVIGATOR_H_
-
-#include <CopCore/Global.h>
+#include <VecGeom/base/Config.h>
 #include <VecGeom/base/Global.h>
 #include <VecGeom/base/Vector3D.h>
 #include <VecGeom/navigation/NavStateIndex.h>
@@ -18,10 +20,13 @@
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
+#include "corecel/Macros.hh"
 
-inline namespace COPCORE_IMPL
+namespace celeritas
 {
-
+namespace detail
+{
+//---------------------------------------------------------------------------//
 class SurfNavigator
 {
   public:
@@ -33,18 +38,17 @@ class SurfNavigator
     static constexpr Precision kBoundaryPush = 10 * vecgeom::kTolerance;
 
     // Locates the point in the geometry volume tree
-    __host__ __device__ static VPlacedVolumePtr_t
+    CELER_FUNCTION static VPlacedVolumePtr_t
     LocatePointIn(VPlacedVolumePtr_t vol,
                   Vector3D const& point,
                   vecgeom::NavStateIndex& path,
-                  bool top,
-                  VPlacedVolumePtr_t exclude = nullptr)
+                  bool top)
     {
         return vgbrep::protonav::LocatePointIn(vol, point, path, top);
     }
 
     // Computes the isotropic safety from the globalpoint.
-    __host__ __device__ static Precision
+    CELER_FUNCTION static Precision
     ComputeSafety(Vector3D const& globalpoint,
                   vecgeom::NavStateIndex const& state)
     {
@@ -60,13 +64,13 @@ class SurfNavigator
     //
     // The surface model does automatic relocation, so this function does it as
     // well.
-    __host__ __device__ static Precision
+    CELER_FUNCTION static Precision
     ComputeStepAndNextVolume(Vector3D const& globalpoint,
                              Vector3D const& globaldir,
                              Precision step_limit,
                              vecgeom::NavStateIndex const& in_state,
                              vecgeom::NavStateIndex& out_state,
-                             Precision push = 0)
+                             [[maybe_unused]] Precision push = 0)
     {
         if (step_limit <= 0)
         {
@@ -85,7 +89,7 @@ class SurfNavigator
     // volume) into globaldir, taking step_limit into account. If a volume is
     // hit, the function calls out_state.SetBoundaryState(true) and relocates
     // the state to the next volume.
-    __host__ __device__ static Precision
+    CELER_FUNCTION static Precision
     ComputeStepAndPropagatedState(Vector3D const& globalpoint,
                                   Vector3D const& globaldir,
                                   Precision step_limit,
@@ -100,7 +104,7 @@ class SurfNavigator
     // Relocate a state that was returned from ComputeStepAndNextVolume: the
     // surface model does this computation within ComputeStepAndNextVolume, so
     // the relocation does nothing
-    __host__ __device__ static void
+    CELER_FUNCTION static void
     RelocateToNextVolume(Vector3D const& /*globalpoint*/,
                          Vector3D const& /*globaldir*/,
                          vecgeom::NavStateIndex& /*state*/)
@@ -108,5 +112,6 @@ class SurfNavigator
     }
 };
 
-}  // End namespace COPCORE_IMPL
-#endif  // RT_SURF_NAVIGATOR_H_
+//---------------------------------------------------------------------------//
+}  // namespace detail
+}  // End namespace celeritas

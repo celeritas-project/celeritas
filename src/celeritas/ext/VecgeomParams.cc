@@ -40,13 +40,16 @@
 
 #ifdef VECGEOM_USE_SURF
 #    include <VecGeom/surfaces/BrepHelper.h>
-//#if CELERITAS_USE_CUDA
-#    include <VecGeom/surfaces/cuda/BrepCudaManager.h>
-//#endif
 #endif
 
 namespace celeritas
 {
+
+// Defined in VecgeomParams.cu
+using SurfData = vgbrep::SurfData<vecgeom::Precision>;
+void send_surface_data_to_GPU(SurfData const& surfData);
+void cleanup();
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a GDML input.
@@ -144,6 +147,9 @@ VecgeomParams::~VecgeomParams()
     {
         CELER_LOG(debug) << "Clearing VecGeom GPU data";
         vecgeom::CudaManager::Instance().Clear();
+#    ifdef VECGEOM_USE_SURF
+        cleanup();
+#    endif
     }
 #endif
 
@@ -333,14 +339,10 @@ void VecgeomParams::build_tracking()
 #    ifdef VECGEOM_USE_SURF
         {
             CELER_LOG(debug) << "Transfering surface data to GPU";
-            // using SurfData = vgbrep::SurfData<vecgeom::Precision>;
             auto const& brepHelper = vgbrep::BrepHelper<real_type>::Instance();
             auto const& surfData = brepHelper.GetSurfData();
-#        ifdef __CUDACC__
-            CELER_LOG(debug) << "Can't get this part in...";
-            using CudaSurfManager = vgbrep::BrepCudaManager<vecgeom::Precision>;
-            CudaSurfManager::Instance().TransferSurfData(surfData);
-#        endif
+            send_surface_data_to_GPU(surfData);
+            CELER_DEVICE_CHECK_ERROR();
         }
 #    endif
 

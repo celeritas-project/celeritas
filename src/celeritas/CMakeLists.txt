@@ -92,6 +92,7 @@ endif()
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     track/detail/Filler.cu
+    ext/VecgeomParams.cu
     global/alongstep/detail/AlongStepKernels.cu
   )
 endif()
