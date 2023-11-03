@@ -17,7 +17,6 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
-#include "accel/AlongStepFactory.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
