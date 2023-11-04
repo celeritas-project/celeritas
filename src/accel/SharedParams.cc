@@ -183,6 +183,10 @@ bool SharedParams::CeleritasDisabled()
 SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
+    CELER_VALIDATE(!CeleritasDisabled(),
+                   << "Celeritas shared params cannot be initialized when "
+                      "Celeritas offloading is disabled via "
+                      "\"CELER_DISABLE\"");
 
     CELER_LOG_LOCAL(status) << "Initializing Celeritas shared data";
     ScopedProfiling profile_this{"construct-params"};
@@ -245,6 +249,11 @@ SharedParams::SharedParams(SetupOptions const& options)
  */
 void SharedParams::InitializeWorker(SetupOptions const&)
 {
+    CELER_VALIDATE(!CeleritasDisabled(),
+                   << "Celeritas shared params cannot be initialized when "
+                      "Celeritas offloading is disabled via "
+                      "\"CELER_DISABLE\"");
+
     celeritas::activate_device_local();
 }
 
