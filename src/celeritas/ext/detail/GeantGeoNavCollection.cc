@@ -40,7 +40,7 @@ void GeantGeoNavCollection<Ownership::value, MemSpace::host>::resize(
     size_type size, G4VPhysicalVolume* world, StreamId sid)
 {
     CELER_EXPECT(world);
-    CELER_EXPECT(sid.get() == static_cast<size_type>(get_thread_id()));
+    CELER_EXPECT(sid.get() == static_cast<size_type>(get_geant_thread_id()));
 
     // Add navigation states to collection
     this->touch_handles.resize(size);

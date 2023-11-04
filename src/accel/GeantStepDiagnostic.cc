@@ -76,7 +76,7 @@ void GeantStepDiagnostic::Update(G4Track const* track)
         return;
     }
 
-    auto thread_id = static_cast<size_type>(get_thread_id());
+    auto thread_id = static_cast<size_type>(get_geant_thread_id());
     CELER_ASSERT(thread_id < thread_store_.size());
 
     // Get the vector of counts for this particle

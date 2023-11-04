@@ -35,7 +35,7 @@ PGPrimaryGeneratorAction::PGPrimaryGeneratorAction()
     CELER_ASSERT(options);
 
     // Seed with an independent value for each thread
-    rng_.seed(options.seed + get_thread_id());
+    rng_.seed(options.seed + get_geant_thread_id());
 
     num_events_ = options.num_events;
     primaries_per_event_ = options.primaries_per_event;

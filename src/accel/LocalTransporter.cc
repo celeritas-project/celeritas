@@ -51,7 +51,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                       "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
 
-    auto thread_id = get_thread_id();
+    auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
                    << "Geant4 ThreadID (" << thread_id
                    << ") is invalid (perhaps LocalTransporter is being built "

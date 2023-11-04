@@ -303,7 +303,7 @@ int SharedParams::num_streams() const
                            << "G4RunManager was not created before "
                               "getting stream count from SharedParams");
             const_cast<SharedParams*>(this)->num_streams_
-                = celeritas::get_num_threads(*run_man);
+                = celeritas::get_geant_num_threads(*run_man);
         }
     }
 

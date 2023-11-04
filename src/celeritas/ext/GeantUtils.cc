@@ -27,7 +27,7 @@ namespace celeritas
  * need to explicitly dynamic cast to G4MTRunManager to get the number of
  * threads.
  */
-int get_num_threads(G4RunManager const& runman)
+int get_geant_num_threads(G4RunManager const& runman)
 {
     // Default is 1 if not multithreaded
     int result{1};
@@ -47,7 +47,7 @@ int get_num_threads(G4RunManager const& runman)
 /*!
  * Get the Geant4 thread ID.
  */
-int get_thread_id()
+int get_geant_thread_id()
 {
     // Thread ID is -1 when running serially
     if (G4Threading::IsMultithreadedApplication())
