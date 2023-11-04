@@ -20,6 +20,7 @@
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/ext/GeantUtils.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -50,7 +51,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                       "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
 
-    auto thread_id = GetThreadID();
+    auto thread_id = get_thread_id();
     CELER_VALIDATE(thread_id >= 0,
                    << "Geant4 ThreadID (" << thread_id
                    << ") is invalid (perhaps LocalTransporter is being built "

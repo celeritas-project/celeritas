@@ -10,19 +10,15 @@
 #include <memory>
 #include <utility>
 #include <G4ParticleTable.hh>
+#include <G4RunManager.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VUserDetectorConstruction.hh>
 #include <G4Version.hh>
-
 #if G4VERSION_NUMBER >= 1070
 #    include <G4Backtrace.hh>
-#else
-#    include <G4MTRunManager.hh>
 #endif
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
-#else
-#    include <G4RunManager.hh>
 #endif
 
 #include "corecel/io/Logger.hh"
@@ -60,28 +56,6 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
 //---------------------------------------------------------------------------//
 }  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the number of threads in a version-portable way.
- *
- * G4RunManager::GetNumberOfThreads isn't virtual before Geant4 v10.7.0 so we
- * need to explicitly dynamic cast to G4MTRunManager to get the number of
- * threads.
- */
-int get_num_threads(G4RunManager const& runman)
-{
-#if G4VERSION_NUMBER >= 1070
-    return runman.GetNumberOfThreads();
-#else
-    if (auto const* runman_mt = dynamic_cast<G4MTRunManager const*>(&runman))
-    {
-        return runman_mt->GetNumberOfThreads();
-    }
-    // Not multithreaded
-    return 1;
-#endif
-}
 
 //---------------------------------------------------------------------------//
 /*!

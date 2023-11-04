@@ -13,6 +13,7 @@
 
 #include "corecel/Macros.hh"
 #include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/ext/GeantUtils.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 #include "GlobalSetup.hh"
@@ -33,12 +34,8 @@ PGPrimaryGeneratorAction::PGPrimaryGeneratorAction()
     auto options = GlobalSetup::Instance()->GetPrimaryGeneratorOptions();
     CELER_ASSERT(options);
 
-    auto seed = options.seed;
-    if (G4Threading::IsMultithreadedApplication())
-    {
-        seed += G4Threading::G4GetThreadId();
-    }
-    rng_.seed(seed);
+    // Seed with an independent value for each thread
+    rng_.seed(options.seed + get_thread_id());
 
     num_events_ = options.num_events;
     primaries_per_event_ = options.primaries_per_event;
