@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantDiagnostics.hh"
 
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -29,7 +30,8 @@ namespace app
  */
 GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 {
-    CELER_EXPECT(params || SharedParams::CeleritasDisabled());
+    CELER_EXPECT(static_cast<bool>(params)
+                 == !SharedParams::CeleritasDisabled());
 
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
 
@@ -47,6 +49,12 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
         step_diagnostic_ = std::make_shared<GeantStepDiagnostic>(
             GlobalSetup::Instance()->GetStepDiagnosticBins(), num_threads);
         output_reg->insert(step_diagnostic_);
+    }
+
+    if (!params)
+    {
+        // Celeritas core params didn't add system metadata: do it ourselves
+        output_reg->insert(std::make_shared<BuildOutput>());
     }
 
     CELER_ENSURE(*this);
