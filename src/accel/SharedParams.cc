@@ -562,6 +562,13 @@ void SharedParams::try_output() const
         CELER_LOG(debug) << "Setting default Celeritas output filename";
     }
 
+    if (filename.empty())
+    {
+        CELER_LOG(debug) << "Skipping output: SetupOptions::output_file is "
+                            "empty";
+        return;
+    }
+
     if (CELERITAS_USE_JSON)
     {
         CELER_LOG(info) << "Writing Geant4 diagnostic output to \"" << filename
