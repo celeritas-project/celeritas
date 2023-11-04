@@ -127,12 +127,12 @@ void RunAction::EndOfRunAction(G4Run const*)
             // some geant4 thread-local allocators)
             CELER_TRY_HANDLE(transport_->Finalize(), call_g4exception);
         }
+    }
 
-        if (init_shared_)
-        {
-            // Clear shared data and write
-            CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
-        }
+    if (init_shared_)
+    {
+        // Clear shared data (if any) and write output (if any)
+        CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }
 }
 

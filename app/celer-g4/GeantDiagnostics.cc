@@ -49,55 +49,23 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
         output_reg->insert(step_diagnostic_);
     }
 
-    if (!params)
-    {
-        // Write output on finalization
-        output_reg_ = std::move(output_reg);
-    }
-
     CELER_ENSURE(*this);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Write out diagnostics if Celeritas offloading is disabled.
+ * Clear diagnostics at the end of the run.
  *
  * This must be executed exactly *once* across all threads and at the end of
  * the run.
  */
 void GeantDiagnostics::Finalize()
 {
-    CELER_EXPECT(*this);
+    // Reset all data
+    CELER_LOG_LOCAL(debug) << "Resetting diagnostics";
+    *this = {};
 
-    // Output written by \c SharedParams
-    if (!output_reg_)
-        return;
-
-    auto filename = GlobalSetup::Instance()->GetSetupOptions()->output_file;
-    if (filename.empty() && !CELERITAS_USE_JSON)
-    {
-        filename = "celeritas.json";
-        CELER_LOG(warning)
-            << "No diagnostic output filename specified: using '" << filename
-            << '"';
-    }
-
-    if (!CELERITAS_USE_JSON)
-    {
-        CELER_LOG(info) << "Writing Geant4 diagnostic output to \"" << filename
-                        << '"';
-
-        std::ofstream outf(filename);
-        CELER_VALIDATE(
-            outf, << "failed to open output file at \"" << filename << '"');
-        output_reg_->output(&outf);
-    }
-    else
-    {
-        CELER_LOG(warning) << "JSON support is not enabled, so no output will "
-                              "be written to \""
-                           << filename << '"';
-    }
+    CELER_ENSURE(!*this);
 }
 
 //---------------------------------------------------------------------------//

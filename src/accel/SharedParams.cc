@@ -252,13 +252,11 @@ void SharedParams::InitializeWorker(SetupOptions const&)
 /*!
  * Clear shared data after writing out diagnostics.
  *
- * This must be executed exactly *once* across all threads and at the end of
+ * This should be executed exactly *once* across all threads and at the end of
  * the run.
  */
 void SharedParams::Finalize()
 {
-    CELER_EXPECT(*this);
-
     // Output at end of run
     this->try_output();
 
@@ -525,7 +523,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
     // Translate supported particles
     particles_ = build_g4_particles(params_->particle(), params_->physics());
 
-    // Save output filename
+    // Save output filename (possibly empty if disabling output)
     output_filename_ = options.output_file;
 }
 
@@ -538,25 +536,37 @@ void SharedParams::initialize_core(SetupOptions const& options)
  */
 void SharedParams::try_output() const
 {
-    CELER_EXPECT(params_);
-    if (output_filename_.empty())
+    if (!output_reg_)
     {
+        // No output registry exists (either independently of setting up
+        // Celeritas or when calling Initialize)
         return;
     }
 
-#if CELERITAS_USE_JSON
-    CELER_LOG(info) << "Writing Celeritas output to \"" << output_filename_
-                    << '"';
+    std::string filename = output_filename_;
+    if (CELERITAS_USE_JSON && !params_ && filename.empty())
+    {
+        // Setup was not called but JSON is available: make a default filename
+        filename = "celeritas.json";
+        CELER_LOG(debug) << "Setting default Celeritas output filename";
+    }
 
-    std::ofstream outf(output_filename_);
-    CELER_VALIDATE(
-        outf, << "failed to open output file at \"" << output_filename_ << '"');
-    params_->output_reg()->output(&outf);
-#else
-    CELER_LOG(warning)
-        << "JSON support is not enabled, so no output will be written to \""
-        << output_filename_ << '"';
-#endif
+    if (CELERITAS_USE_JSON)
+    {
+        CELER_LOG(info) << "Writing Geant4 diagnostic output to \"" << filename
+                        << '"';
+
+        std::ofstream outf(filename);
+        CELER_VALIDATE(
+            outf, << "failed to open output file at \"" << filename << '"');
+        output_reg_->output(&outf);
+    }
+    else
+    {
+        CELER_LOG(warning) << "JSON support is not enabled, so no output will "
+                              "be written to \""
+                           << filename << '"';
+    }
 }
 
 //---------------------------------------------------------------------------//
