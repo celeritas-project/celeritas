@@ -39,8 +39,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   private:
     SPParams params_;
     SPDiagnostics diagnostics_;
-    mutable bool init_celeritas_;
-    mutable bool init_diagnostics_;
+    mutable bool init_shared_;
 };
 
 //---------------------------------------------------------------------------//

@@ -28,7 +28,7 @@ namespace app
  * The parameters will be distributed to worker threads and all the actions.
  */
 ActionInitialization::ActionInitialization(SPParams params)
-    : params_{std::move(params)}, init_celeritas_{true}, init_diagnostics_{true}
+    : params_{std::move(params)}, init_shared_{true}
 {
     CELER_EXPECT(params_);
     // Create Geant4 diagnostics to be shared across worker threads
@@ -53,12 +53,10 @@ void ActionInitialization::BuildForMaster() const
                       params_,
                       nullptr,
                       diagnostics_,
-                      init_celeritas_,
-                      init_diagnostics_});
+                      init_shared_});
 
     // Subsequent worker threads must not set up celeritas or diagnostics
-    init_celeritas_ = false;
-    init_diagnostics_ = false;
+    init_shared_ = false;
 }
 
 //---------------------------------------------------------------------------//
@@ -82,15 +80,14 @@ void ActionInitialization::Build() const
     // Create thread-local transporter to share between actions
     auto transport = std::make_shared<LocalTransporter>();
 
-    // Run action sets up Celeritas (init_celeritas_ will be true iff
+    // Run action sets up Celeritas (init_shared_ will be true if and only if
     // using a serial run manager)
     this->SetUserAction(
         new RunAction{GlobalSetup::Instance()->GetSetupOptions(),
                       params_,
                       transport,
                       diagnostics_,
-                      init_celeritas_,
-                      init_diagnostics_});
+                      init_shared_});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
     this->SetUserAction(new EventAction{params_, transport, diagnostics_});
