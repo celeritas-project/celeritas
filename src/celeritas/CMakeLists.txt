@@ -92,7 +92,6 @@ endif()
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     track/detail/Filler.cu
-    ext/VecgeomParams.cu
     global/alongstep/detail/AlongStepKernels.cu
   )
 endif()
@@ -234,6 +233,12 @@ if(CELERITAS_USE_VecGeom)
     ext/detail/VecgeomNavCollection.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  if(VecGeom_CUDA_FOUND AND VecGeom_SURF_FOUND)
+    # Special routines needed for surface
+    list(APPEND SOURCES
+      ext/VecgeomParams.surface.cu
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
