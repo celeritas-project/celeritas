@@ -146,13 +146,6 @@ void run(int argc, char** argv)
     CELER_LOG(status) << "Initializing run manager";
     run_manager->Initialize();
 
-    if (!celeritas::getenv("CELER_DISABLE").empty())
-    {
-        CELER_LOG(info)
-            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
-    }
-
     auto num_events = GlobalSetup::Instance()->GetNumEvents();
     CELER_LOG(status) << "Transporting " << num_events << " events";
     run_manager->BeamOn(num_events);
