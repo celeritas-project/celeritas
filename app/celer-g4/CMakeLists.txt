@@ -91,10 +91,7 @@ configure_file(
   "simple-cms-test.inp.json.in"
   "simple-cms-test.inp.json" @ONLY
 )
-add_test(NAME "app/celer-g4"
-  COMMAND "$<TARGET_FILE:celer-g4>"
-  "simple-cms-test.inp.json"
-)
+
 set(_env
   ${CELER_G4ENV}
   "CELER_LOG_LOCAL=debug"
@@ -110,25 +107,60 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  set(_props RESOURCE_LOCK gpu)
-  set(_labels app gpu)
+  set(_needs_device)
 else()
-  set(_props)
-  set(_labels app)
-endif()
-if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4
-    OR CELERITAS_CORE_GEO STREQUAL "Geant4")
-  list(APPEND _props DISABLED true)
+  set(_needs_device DISABLED true)
 endif()
 
+set(_props)
+if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
+  set(_props DISABLED true)
+endif()
+if(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  # FIXME: geant4 navigator doesn't work at scale
+  set(_props DISABLED true)
+endif()
 if(CELERITAS_REAL_TYPE STREQUAL "float")
   # FIXME: propagation fails in single precision
-  list(APPEND _props DISABLED true)
+  set(_props DISABLED true)
 endif()
 
-set_tests_properties("app/celer-g4" PROPERTIES
+### CELERITAS OFFLOADING WITH GPU ###
+add_test(NAME "app/celer-g4:gpu"
+  COMMAND "$<TARGET_FILE:celer-g4>" "simple-cms-test.inp.json"
+)
+set_tests_properties("app/celer-g4:gpu" PROPERTIES
   ENVIRONMENT "${_env}"
-  LABELS "${_labels}"
+  RESOURCE_LOCK gpu
+  LABELS "app;nomemcheck;gpu"
+  ${_props}
+  ${_needs_device}
+)
+
+### CELERITAS OFFLOADING WITH CPU ###
+list(APPEND _env
+  "CELER_DISABLE_DEVICE=1"
+)
+add_test(NAME "app/celer-g4:cpu"
+  COMMAND "$<TARGET_FILE:celer-g4>" "simple-cms-test.inp.json"
+)
+set_tests_properties("app/celer-g4:cpu" PROPERTIES
+  ENVIRONMENT "${_env}"
+  RESOURCE_LOCK gpu
+  LABELS "app;nomemcheck"
+  ${_props}
+)
+
+### NO CELERITAS OFFLOADING ###
+list(APPEND _env
+  "CELER_DISABLE=1"
+)
+add_test(NAME "app/celer-g4:none"
+  COMMAND "$<TARGET_FILE:celer-g4>" "simple-cms-test.inp.json"
+)
+set_tests_properties("app/celer-g4:none" PROPERTIES
+  ENVIRONMENT "${_env}"
+  LABELS "app;nomemcheck"
   ${_props}
 )
 
