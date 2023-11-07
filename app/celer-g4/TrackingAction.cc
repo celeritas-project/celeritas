@@ -48,7 +48,7 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
     CELER_EXPECT(track);
     CELER_EXPECT(static_cast<bool>(*params_)
                  == !SharedParams::CeleritasDisabled());
-    CELER_EXPECT(static_cast<bool>(*params_) == static_cast<bool>(transport_));
+    CELER_EXPECT(static_cast<bool>(*params_) == static_cast<bool>(*transport_));
 
     if (SharedParams::CeleritasDisabled())
         return;
