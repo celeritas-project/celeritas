@@ -36,6 +36,9 @@ struct KernelAttributes
     int num_regs{0};  //!< Number of 32-bit registers per thread
     std::size_t const_mem{0};  //!< Amount of constant memory (per thread) [b]
     std::size_t local_mem{0};  //!< Amount of local memory (per thread) [b]
+    std::size_t shared_mem{0};  //!< Amount of shared memory (per block) [b]
+    int shared_mem_carveout{0};  //!< % of L1/shared mem attributed to shared
+                                 //!< mem
 
     unsigned int max_threads_per_block{0};  //!< Max allowed threads per block
     unsigned int max_blocks_per_cu{0};  //!< Occupancy (compute unit)
@@ -76,6 +79,8 @@ make_kernel_attributes(F* func, unsigned int threads_per_block = 0)
         result.num_regs = attr.numRegs;
         result.const_mem = attr.constSizeBytes;
         result.local_mem = attr.localSizeBytes;
+        result.shared_mem = attr.sharedSizeBytes;
+        result.shared_mem_carveout = attr.preferredShmemCarveout;
         result.max_threads_per_block = attr.maxThreadsPerBlock;
     }
 

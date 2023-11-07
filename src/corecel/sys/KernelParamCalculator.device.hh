@@ -69,7 +69,8 @@ struct KernelProfiling;
  *
  * We assume that all our kernel launches use 1-D thread indexing to make
  * things easy. The \c dim_type alias should be the same size as the type of a
- * single \c dim3 member (x/y/z).
+ * single \c dim3 member (x/y/z). If the kernel doesn't use shared memory,
+ * set the shared mem carveout to maximize L1 cache.
  *
  * Constructing the param calculator registers kernel attributes with \c
  * kernel_registry as an implementation detail in the .cc file that hides
@@ -128,6 +129,8 @@ class KernelParamCalculator
 
     void register_kernel(std::string_view name, KernelAttributes&& attributes);
     void log_launch(size_type min_num_threads) const;
+    template<class F>
+    void set_carveout(F* kernel_func_ptr) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -154,6 +157,7 @@ template<class F>
 KernelParamCalculator::KernelParamCalculator(std::string_view name,
                                              F* kernel_func_ptr)
 {
+    this->set_carveout(kernel_func_ptr);
     auto attrs = make_kernel_attributes(kernel_func_ptr);
     CELER_ASSERT(attrs.threads_per_block > 0);
     block_size_ = attrs.threads_per_block;
@@ -176,7 +180,7 @@ KernelParamCalculator::KernelParamCalculator(std::string_view name,
     CELER_EXPECT(threads_per_block > 0
                  && threads_per_block % celeritas::device().threads_per_warp()
                         == 0);
-
+    this->set_carveout(kernel_func_ptr);
     auto attrs = make_kernel_attributes(kernel_func_ptr, threads_per_block);
     CELER_VALIDATE(threads_per_block <= attrs.max_threads_per_block,
                    << "requested GPU threads per block " << threads_per_block
@@ -212,6 +216,27 @@ auto KernelParamCalculator::operator()(size_type min_num_threads) const
     CELER_ENSURE(result.blocks_per_grid.x * result.threads_per_block.x
                  >= min_num_threads);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Maximize L1 cache size if the kernel doesn't use static shared mem.
+ */
+template<class F>
+void KernelParamCalculator::set_carveout(F* kernel_func_ptr) const
+{
+#ifdef CELER_DEVICE_SOURCE
+    CELER_DEVICE_PREFIX(FuncAttributes) attr;
+    CELER_DEVICE_CALL_PREFIX(FuncGetAttributes(
+        &attr, reinterpret_cast<void const*>(kernel_func_ptr)));
+    if (!attr.sharedSizeBytes)
+    {
+        CELER_DEVICE_CALL_PREFIX(FuncSetAttribute(
+            kernel_func_ptr,
+            CELER_DEVICE_PREFIX(FuncAttributePreferredSharedMemoryCarveout),
+            CELER_DEVICE_PREFIX(SharedmemCarveoutMaxL1)));
+    }
+#endif
 }
 
 //---------------------------------------------------------------------------//

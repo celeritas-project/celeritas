@@ -100,12 +100,14 @@ std::ostream& operator<<(std::ostream& os, KernelMetadata const& md)
 {
     // clang-format off
     os << "{\n"
-        "  name: \""            << md.name              << "\",\n"
-        "  num_regs: "          << md.attributes.num_regs          << ",\n"
-        "  const_mem: "         << md.attributes.const_mem         << ",\n"
-        "  local_mem: "         << md.attributes.local_mem         << ",\n"
-        "  threads_per_block: " << md.attributes.threads_per_block << ",\n"
-        "  occupancy: "         << md.attributes.occupancy;
+        "  name: \""              << md.name              << "\",\n"
+        "  num_regs: "            << md.attributes.num_regs          << ",\n"
+        "  const_mem: "           << md.attributes.const_mem         << ",\n"
+        "  local_mem: "           << md.attributes.local_mem         << ",\n"
+        "  shared_mem: "          << md.attributes.shared_mem        << ",\n"
+        "  threads_per_block: "   << md.attributes.threads_per_block << ",\n"
+        "  occupancy: "           << md.attributes.occupancy         << ",\n"
+        "  shared_mem_carveout: " << md.attributes.shared_mem_carveout;
     if (KernelRegistry::profiling())
     {
         os << ",\n"

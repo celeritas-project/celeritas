@@ -29,12 +29,14 @@ void to_json(nlohmann::json& j, KernelAttributes const& attrs)
         {"num_regs", attrs.num_regs},
         {"const_mem", attrs.const_mem},
         {"local_mem", attrs.local_mem},
+        {"shared_mem", attrs.shared_mem},
         {"max_threads_per_block", attrs.max_threads_per_block},
         {"max_blocks_per_cu", attrs.max_blocks_per_cu},
         {"max_warps_per_eu", attrs.max_warps_per_eu},
         {"occupancy", attrs.occupancy},
         {"heap_size", attrs.heap_size},
         {"print_buffer_size", attrs.print_buffer_size},
+        {"shared_mem_carveout", attrs.shared_mem_carveout},
     };
     if constexpr (CELERITAS_USE_CUDA)
     {
