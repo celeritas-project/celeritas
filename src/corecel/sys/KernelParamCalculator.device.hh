@@ -237,6 +237,7 @@ void KernelParamCalculator::set_carveout(F* kernel_func_ptr,
     }
 #else
     CELER_DISCARD(kernel_func_ptr);
+    CELER_DISCARD(attrs);
     CELER_ASSERT_UNREACHABLE();
 #endif
 }
