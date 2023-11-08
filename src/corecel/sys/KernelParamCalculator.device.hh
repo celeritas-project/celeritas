@@ -130,7 +130,7 @@ class KernelParamCalculator
     void register_kernel(std::string_view name, KernelAttributes&& attributes);
     void log_launch(size_type min_num_threads) const;
     template<class F>
-    void set_carveout(F* kernel_func_ptr) const;
+    void set_carveout(F* kernel_func_ptr, KernelAttributes& attrs) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -157,8 +157,8 @@ template<class F>
 KernelParamCalculator::KernelParamCalculator(std::string_view name,
                                              F* kernel_func_ptr)
 {
-    this->set_carveout(kernel_func_ptr);
     auto attrs = make_kernel_attributes(kernel_func_ptr);
+    this->set_carveout(kernel_func_ptr, attrs);
     CELER_ASSERT(attrs.threads_per_block > 0);
     block_size_ = attrs.threads_per_block;
     this->register_kernel(name, std::move(attrs));
@@ -180,8 +180,8 @@ KernelParamCalculator::KernelParamCalculator(std::string_view name,
     CELER_EXPECT(threads_per_block > 0
                  && threads_per_block % celeritas::device().threads_per_warp()
                         == 0);
-    this->set_carveout(kernel_func_ptr);
     auto attrs = make_kernel_attributes(kernel_func_ptr, threads_per_block);
+    this->set_carveout(kernel_func_ptr, attrs);
     CELER_VALIDATE(threads_per_block <= attrs.max_threads_per_block,
                    << "requested GPU threads per block " << threads_per_block
                    << " exceeds kernel maximum "
@@ -223,18 +223,17 @@ auto KernelParamCalculator::operator()(size_type min_num_threads) const
  * Maximize L1 cache size if the kernel doesn't use static shared mem.
  */
 template<class F>
-void KernelParamCalculator::set_carveout(F* kernel_func_ptr) const
+void KernelParamCalculator::set_carveout(F* kernel_func_ptr,
+                                         KernelAttributes& attrs) const
 {
 #ifdef CELER_DEVICE_SOURCE
-    CELER_DEVICE_PREFIX(FuncAttributes) attr;
-    CELER_DEVICE_CALL_PREFIX(FuncGetAttributes(
-        &attr, reinterpret_cast<void const*>(kernel_func_ptr)));
-    if (!attr.sharedSizeBytes)
+    if (!attrs.shared_mem)
     {
         CELER_DEVICE_CALL_PREFIX(FuncSetAttribute(
             kernel_func_ptr,
             CELER_DEVICE_PREFIX(FuncAttributePreferredSharedMemoryCarveout),
-            CELER_DEVICE_PREFIX(SharedmemCarveoutMaxL1)));
+            0));
+        attrs.shared_mem_carveout = 0;
     }
 #else
     CELER_DISCARD(kernel_func_ptr);
