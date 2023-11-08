@@ -8,6 +8,7 @@
 #include "RunInputIO.json.hh"
 
 #include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
@@ -28,6 +29,20 @@ void from_json(nlohmann::json const& j, PhysicsListSelection& value)
 }
 
 void to_json(nlohmann::json& j, PhysicsListSelection const& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
+//---------------------------------------------------------------------------//
+void from_json(nlohmann::json const& j, SensitiveDetectorType& value)
+{
+    static auto const from_string
+        = StringEnumMapper<SensitiveDetectorType>::from_cstring_func(
+            to_cstring, "sensitive detector type");
+    value = from_string(j.get<std::string>());
+}
+
+void to_json(nlohmann::json& j, SensitiveDetectorType const& value)
 {
     j = std::string{to_cstring(value)};
 }
@@ -67,15 +82,33 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_OPTION(field);
     RI_LOAD_OPTION(field_options);
 
-    RI_LOAD_OPTION(enable_sd);
+    if (auto iter = j.find("enable_sd"); iter != j.end())
+    {
+        CELER_LOG(warning) << "Deprecated option 'enable_sd': refactor as "
+                              "'sd_type'";
+        if (iter->get<bool>())
+        {
+            v.sd_type = SensitiveDetectorType::event_hit;
+        }
+        else
+        {
+            v.sd_type = SensitiveDetectorType::none;
+        }
+    }
+    RI_LOAD_OPTION(sd_type);
 
     RI_LOAD_OPTION(output_file);
     RI_LOAD_OPTION(physics_output_file);
     RI_LOAD_OPTION(offload_output_file);
     RI_LOAD_OPTION(macro_file);
-    RI_LOAD_OPTION(root_buffer_size);
-    RI_LOAD_OPTION(write_sd_hits);
-    RI_LOAD_OPTION(strip_gdml_pointers);
+
+    if (auto iter = j.find("write_sd_hits"); iter != j.end())
+    {
+        CELER_LOG(warning) << "Deprecated option 'write_sd_hits': refactor as "
+                              "'disable_root_sd'";
+        v.disable_root_sd = !iter->get<bool>();
+    }
+    RI_LOAD_OPTION(disable_root_sd);
 
     RI_LOAD_OPTION(step_diagnostic);
     RI_LOAD_OPTION(step_diagnostic_bins);
@@ -141,15 +174,13 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE_OPTION(field);
     RI_SAVE_OPTION(field_options);
 
-    RI_SAVE_OPTION(enable_sd);
+    RI_SAVE_OPTION(sd_type);
 
     RI_SAVE_OPTION(output_file);
     RI_SAVE_OPTION(physics_output_file);
     RI_SAVE_OPTION(offload_output_file);
     RI_SAVE_OPTION(macro_file);
-    RI_SAVE_OPTION(root_buffer_size);
-    RI_SAVE_OPTION(write_sd_hits);
-    RI_SAVE_OPTION(strip_gdml_pointers);
+    RI_SAVE_OPTION(disable_root_sd);
 
     RI_SAVE_OPTION(step_diagnostic);
     RI_SAVE_OPTION(step_diagnostic_bins);

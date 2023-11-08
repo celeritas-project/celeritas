@@ -35,7 +35,8 @@ SensitiveDetector::SensitiveDetector(std::string name)
 {
     this->collectionName.insert(name);
 
-    if (GlobalSetup::Instance()->GetWriteSDHits())
+    auto& setup_input = GlobalSetup::Instance()->input();
+    if (!setup_input.disable_root_sd)
     {
         RootIO::Instance()->AddSensitiveDetector(name);
     }

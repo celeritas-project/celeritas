@@ -87,10 +87,9 @@ inp = {
      "delta_intersection": 0.001,
      "epsilon_step": 0.01
     },
-    "root_buffer_size": 128000,
-    "write_sd_hits": use_root,
-    "step_diagnostic": False,
-    "step_diagnostic_bins": 200
+    "disable_root_sd": not use_root,
+    "step_diagnostic": ext == "none",
+    "step_diagnostic_bins": 10
 }
 
 with open(inp_file, "w") as f:

@@ -43,10 +43,6 @@ class GlobalSetup
     {
         return input_.primary_options;
     }
-    int GetRootBufferSize() const { return input_.root_buffer_size; }
-    bool GetWriteSDHits() const { return input_.write_sd_hits; }
-    bool StripGDMLPointers() const { return input_.strip_gdml_pointers; }
-    PhysicsListSelection GetPhysicsList() const { return input_.physics_list; }
     GeantPhysicsOptions const& GetPhysicsOptions() const
     {
         return input_.physics_options;

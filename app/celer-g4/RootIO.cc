@@ -119,19 +119,18 @@ void RootIO::Write(G4Event const* event)
 /*!
  * Fill event tree with event data.
  *
- * \note
- * `tree_->Fill()` will import the data from *all* existing TBranches. So this
- * code expects to have only one TBranch in this TTree.
+ * \note `tree_->Fill()` will import the data from *all* existing TBranches. So
+ * this code expects to have only one TBranch in this TTree.
  */
 void RootIO::WriteObject(EventData* event_data)
 {
     if (!event_branch_)
     {
-        event_branch_
-            = tree_->Branch("event",
-                            &event_data,
-                            GlobalSetup::Instance()->GetRootBufferSize(),
-                            this->SplitLevel());
+        // TODO: expose as environment variable if needed
+        int const root_buffer_size{128000};
+
+        event_branch_ = tree_->Branch(
+            "event", &event_data, root_buffer_size, this->SplitLevel());
     }
     else
     {

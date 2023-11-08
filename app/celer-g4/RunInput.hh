@@ -30,6 +30,16 @@ enum class PhysicsListSelection
 };
 
 //---------------------------------------------------------------------------//
+//! Sensitive detector functionality
+enum class SensitiveDetectorType
+{
+    none,
+    simple_calo,
+    event_hit,
+    size_,
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
  */
@@ -70,17 +80,16 @@ struct RunInput
     Real3 field{no_field()};  //!< Field vector [T]
     FieldDriverOptions field_options;
 
-    // Sensitive detector hit collection
-    bool enable_sd{true};
+    // SD setup options
+    SensitiveDetectorType sd_type{SensitiveDetectorType::none};
 
     // IO
     std::string output_file;  //!< Save JSON diagnostics
     std::string physics_output_file;  //!< Save physics data
     std::string offload_output_file;  //!< Save offloaded tracks to HepMC3/ROOT
     std::string macro_file;  //!< Load additional Geant4 commands
-    int root_buffer_size{128000};
-    bool write_sd_hits{false};
-    bool strip_gdml_pointers{true};
+
+    bool disable_root_sd{false};  //!< Suppress ROOT output of SDs
 
     // Geant4 diagnostics
     bool step_diagnostic{false};
@@ -105,6 +114,7 @@ struct RunInput
 //---------------------------------------------------------------------------//
 
 char const* to_cstring(PhysicsListSelection value);
+char const* to_cstring(SensitiveDetectorType value);
 
 //---------------------------------------------------------------------------//
 }  // namespace app

@@ -27,5 +27,19 @@ char const* to_cstring(PhysicsListSelection value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the physics list selection.
+ */
+char const* to_cstring(SensitiveDetectorType value)
+{
+    static EnumStringMapper<SensitiveDetectorType> const to_cstring_impl{
+        "none",
+        "simple_calo",
+        "event_hit",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace app
 }  // namespace celeritas
