@@ -36,7 +36,7 @@ class GlobalSetup
     static GlobalSetup* Instance();
 
     //!@{
-    //! \name Demo setup options
+    //! \name Demo setup options (DEPRECATED: use direct interface to input)
     std::string const& GetGeometryFile() const { return input_.geometry_file; }
     std::string const& GetEventFile() const { return input_.event_file; }
     PrimaryGeneratorOptions const& GetPrimaryGeneratorOptions() const
@@ -91,6 +91,11 @@ class GlobalSetup
 
     // Get the time for setup
     real_type GetSetupTime() { return get_setup_time_(); }
+
+    //// NEW INTERFACE ////
+
+    //! Get user input options
+    RunInput const& input() const { return input_; }
 
   private:
     // Private constructor since we're a singleton

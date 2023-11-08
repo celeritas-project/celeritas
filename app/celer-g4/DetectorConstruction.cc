@@ -47,7 +47,7 @@ namespace app
 DetectorConstruction::DetectorConstruction(SPParams params)
     : params_{std::move(params)}
 {
-    auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
+    auto& sd = GlobalSetup::Instance()->GetSDSetupOptions();
 
     // Only call back for nonzero energy depositions: this is currently a
     // global option for all detectors, so if any SDs extract data from tracks
@@ -105,7 +105,7 @@ auto DetectorConstruction::construct_geo() const -> GeoData
     constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(filename, validate_gdml_schema);
 
-    auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
+    auto& sd = GlobalSetup::Instance()->GetSDSetupOptions();
 
     MapDetectors detectors;
     if (sd.enabled)
