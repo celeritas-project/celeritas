@@ -18,6 +18,7 @@
 #include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
+#include <G4UImanager.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -286,7 +287,7 @@ void SharedParams::Finalize()
 
 //---------------------------------------------------------------------------//
 /*!
- * Lazily created output registry.
+ * Lazily obtained number of streams.
  */
 int SharedParams::num_streams() const
 {
@@ -554,7 +555,8 @@ void SharedParams::try_output() const
         return;
     }
 
-    std::string filename = output_filename_;
+    G4UImanager* ui = G4UImanager::GetUIpointer();
+    std::string filename = ui->GetCurrentValues("/celer/outputFile");
     if (CELERITAS_USE_JSON && !params_ && filename.empty())
     {
         // Setup was not called but JSON is available: make a default filename
