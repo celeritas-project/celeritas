@@ -230,7 +230,7 @@ void KernelParamCalculator::set_carveout(F* kernel_func_ptr,
     if (!attrs.shared_mem)
     {
         CELER_DEVICE_CALL_PREFIX(FuncSetAttribute(
-            kernel_func_ptr,
+            reinterpret_cast<void const*>(kernel_func_ptr),
             CELER_DEVICE_PREFIX(FuncAttributePreferredSharedMemoryCarveout),
             0));
         attrs.shared_mem_carveout = 0;
