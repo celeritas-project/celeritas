@@ -44,10 +44,10 @@ class GeantDiagnostics
     GeantDiagnostics() = default;
 
     // Construct from shared Celeritas params on the master thread
-    explicit GeantDiagnostics(SPConstParams params);
+    explicit GeantDiagnostics(SharedParams const& params);
 
     // Initialize diagnostics on the master thread
-    inline void Initialize(SPConstParams params);
+    inline void Initialize(SharedParams const& params);
 
     // Write (shared) diagnostic output
     void Finalize();
@@ -73,7 +73,7 @@ class GeantDiagnostics
 /*!
  * Initialize diagnostics on the master thread.
  */
-void GeantDiagnostics::Initialize(SPConstParams params)
+void GeantDiagnostics::Initialize(SharedParams const& params)
 {
     *this = GeantDiagnostics(params);
 }

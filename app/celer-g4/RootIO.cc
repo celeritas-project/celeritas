@@ -20,7 +20,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/GeantUtils.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptions.hh"
 
@@ -199,7 +199,7 @@ void RootIO::Close()
  */
 void RootIO::Merge()
 {
-    auto const nthreads = get_num_threads(*G4RunManager::GetRunManager());
+    auto const nthreads = get_geant_num_threads(*G4RunManager::GetRunManager());
     std::vector<TFile*> files;
     std::vector<TTree*> trees;
     std::unique_ptr<TList> list(new TList);

@@ -117,6 +117,7 @@ if(CELERITAS_USE_Geant4)
     ext/GeantGeoUtils.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
+    ext/GeantUtils.cc
     ext/GeantVolumeMapper.cc
     ext/ScopedGeantExceptionHandler.cc
     ext/ScopedGeantLogger.cc

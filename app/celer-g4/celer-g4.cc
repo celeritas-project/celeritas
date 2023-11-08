@@ -18,6 +18,7 @@
 #include <G4Version.hh>
 
 #include "accel/HepMC3PrimaryGenerator.hh"
+#include "accel/SharedParams.hh"
 
 #include "GlobalSetup.hh"
 
@@ -110,8 +111,12 @@ void run(int argc, char** argv)
     }
     GlobalSetup::Instance()->SetIgnoreProcesses(ignore_processes);
 
+    // Create params, which need to be shared with detectors as well as
+    // initialization
+    auto params = std::make_shared<SharedParams>();
+
     // Construct geometry, SD factory, physics, actions
-    run_manager->SetUserInitialization(new DetectorConstruction{});
+    run_manager->SetUserInitialization(new DetectorConstruction{params});
     switch (GlobalSetup::Instance()->GetPhysicsList())
     {
         case PhysicsListSelection::ftfp_bert: {
@@ -134,19 +139,12 @@ void run(int argc, char** argv)
         default:
             CELER_ASSERT_UNREACHABLE();
     }
-    run_manager->SetUserInitialization(new ActionInitialization());
+    run_manager->SetUserInitialization(new ActionInitialization(params));
 
     // Initialize run and process events
     ScopedProfiling profile_this{"celer-g4"};
     CELER_LOG(status) << "Initializing run manager";
     run_manager->Initialize();
-
-    if (!celeritas::getenv("CELER_DISABLE").empty())
-    {
-        CELER_LOG(info)
-            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
-    }
 
     auto num_events = GlobalSetup::Instance()->GetNumEvents();
     CELER_LOG(status) << "Transporting " << num_events << " events";

@@ -20,6 +20,7 @@
 #include <G4UniformMagField.hh>
 #include <G4VPhysicalVolume.hh>
 
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -28,6 +29,7 @@
 #include "accel/AlongStepFactory.hh"
 #include "accel/RZMapMagneticField.hh"
 #include "accel/SetupOptions.hh"
+#include "accel/SharedParams.hh"
 
 #include "GlobalSetup.hh"
 #include "SensitiveDetector.hh"
@@ -42,7 +44,8 @@ namespace app
  *
  * This should be done only during the main/serial thread.
  */
-DetectorConstruction::DetectorConstruction()
+DetectorConstruction::DetectorConstruction(SPParams params)
+    : params_{std::move(params)}
 {
     auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
 
@@ -63,6 +66,23 @@ DetectorConstruction::DetectorConstruction()
  * Load geometry and sensitive detector volumes.
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()
+{
+    auto geo = this->construct_geo();
+    CELER_ASSERT(geo.world);
+    detectors_ = std::move(geo.detectors);
+
+    auto field = this->construct_field();
+    CELER_ASSERT(field.along_step);
+    GlobalSetup::Instance()->SetAlongStepFactory(std::move(field.along_step));
+    mag_field_ = std::move(field.g4field);
+    return geo.world.release();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct shared geometry information.
+ */
+auto DetectorConstruction::construct_geo() const -> GeoData
 {
     CELER_LOG_LOCAL(status) << "Loading detector geometry";
 
@@ -86,6 +106,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     gdml_parser.Read(filename, validate_gdml_schema);
 
     auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
+
+    MapDetectors detectors;
     if (sd.enabled)
     {
         // Find sensitive detectors
@@ -95,12 +117,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             {
                 if (aux.type == "SensDet")
                 {
-                    detectors_.insert({aux.value, lv_vecaux.first});
+                    detectors.insert({aux.value, lv_vecaux.first});
                 }
             }
         }
 
-        if (detectors_.empty())
+        if (detectors.empty())
         {
             CELER_LOG(warning) << "No sensitive detectors were found in the "
                                   "GDML file";
@@ -108,7 +130,21 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         }
     }
 
-    // Setup options for the magnetic field
+    // Claim ownership of world volume and pass it to the caller
+    return {std::move(detectors),
+            UPPhysicalVolume{gdml_parser.GetWorldVolume()}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct shared magnetic field information.
+ *
+ * This creates the shared Celeritas object and saves some field information
+ * for later.
+ */
+auto DetectorConstruction::construct_field() const -> FieldData
+{
+    // Set up Celeritas magnetic field and save for Geant4
     auto field_type = GlobalSetup::Instance()->GetFieldType();
     if (field_type == "rzmap")
     {
@@ -123,48 +159,57 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         CELER_LOG_LOCAL(info) << "Using RZMapField with " << map_filename;
 
         // Create celeritas::RZMapFieldParams from input
-        RZMapFieldInput rz_map;
-        std::ifstream(map_filename) >> rz_map;
-        rz_map.driver_options = GlobalSetup::Instance()->GetFieldOptions();
-        field_params_ = std::make_shared<RZMapFieldParams>(rz_map);
-        mag_field_ = std::make_shared<RZMapMagneticField>(field_params_);
+        auto rz_map = [&map_filename] {
+            RZMapFieldInput rz_map;
+            std::ifstream inp(map_filename);
+            CELER_VALIDATE(inp,
+                           << "failed to open field map file at '"
+                           << map_filename << "'");
+            inp >> rz_map;
+            return rz_map;
+        }();
 
-        GlobalSetup::Instance()->SetAlongStepFactory(
-            RZMapFieldAlongStepFactory([=] { return rz_map; }));
+        // Replace driver options with user options
+        rz_map.driver_options = GlobalSetup::Instance()->GetFieldOptions();
+        auto field_params = std::make_shared<RZMapFieldParams>(rz_map);
+
+        // Return celeritas and geant4 fields
+        return {RZMapFieldAlongStepFactory([rz_map] { return rz_map; }),
+                std::make_shared<RZMapMagneticField>(std::move(field_params))};
     }
     else if (field_type == "uniform")
     {
-        auto field = GlobalSetup::Instance()->GetMagFieldTesla();
-        if (norm(field) > 0)
+        SPMagneticField g4field;
+        auto field_val = GlobalSetup::Instance()->GetMagFieldTesla();
+        if (norm(field_val) > 0)
         {
             CELER_LOG_LOCAL(info)
-                << "Using a uniform field (0, 0, " << field[2] << ") [tesla]";
-            mag_field_ = std::make_shared<G4UniformMagField>(
-                convert_to_geant(field, CLHEP::tesla));
+                << "Using a uniform field " << field_val << " [tesla]";
+            g4field = std::make_shared<G4UniformMagField>(
+                convert_to_geant(field_val, CLHEP::tesla));
         }
 
         // Convert field units from tesla to native celeritas units
-        for (real_type& v : field)
+        for (real_type& v : field_val)
         {
             v = native_value_from(units::FieldTesla{v});
         }
 
         UniformFieldParams input;
-        input.field = field;
+        input.field = field_val;
         input.options = GlobalSetup::Instance()->GetFieldOptions();
-        GlobalSetup::Instance()->SetAlongStepFactory(
-            UniformAlongStepFactory([=] { return input; }));
-    }
-    else
-    {
-        CELER_VALIDATE(false, << "invalid field type '" << field_type << "'");
+
+        return {UniformAlongStepFactory([input] { return input; }),
+                std::move(g4field)};
     }
 
-    // Claim ownership of world volume and pass it to the caller
-    return gdml_parser.GetWorldVolume();
+    CELER_VALIDATE(false, << "invalid field type '" << field_type << "'");
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct thread-local sensitive detectors and field.
+ */
 void DetectorConstruction::ConstructSDandField()
 {
     if (mag_field_)

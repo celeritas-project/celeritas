@@ -32,15 +32,14 @@ class ActionInitialization final : public G4VUserActionInitialization
     //!@}
 
   public:
-    ActionInitialization();
+    explicit ActionInitialization(SPParams params);
     void BuildForMaster() const final;
     void Build() const final;
 
   private:
     SPParams params_;
     SPDiagnostics diagnostics_;
-    mutable bool init_celeritas_;
-    mutable bool init_diagnostics_;
+    mutable bool init_shared_;
 };
 
 //---------------------------------------------------------------------------//

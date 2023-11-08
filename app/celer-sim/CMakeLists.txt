@@ -55,10 +55,6 @@ if(CELERITAS_USE_ROOT)
   set(_geant_exporter_env
     "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
 endif()
-add_test(NAME "app/celer-sim:device"
-  COMMAND "${CELER_PYTHON}"
-  "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
-)
 set(_env
   "CELERITAS_DEMO_EXE=$<TARGET_FILE:celer-sim>"
   "${_geant_exporter_env}"
@@ -83,6 +79,10 @@ if(CELERITAS_REAL_TYPE STREQUAL "float")
   set(_needs_deps DISABLED true)
 endif()
 
+add_test(NAME "app/celer-sim:device"
+  COMMAND "${CELER_PYTHON}"
+  "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
+)
 set_tests_properties("app/celer-sim:device" PROPERTIES
   ENVIRONMENT "${_env};${CELER_G4ENV}"
   RESOURCE_LOCK gpu
@@ -90,6 +90,7 @@ set_tests_properties("app/celer-sim:device" PROPERTIES
   LABELS "app;nomemcheck;gpu"
   ${_needs_deps}
   ${_needs_device}
+  ${CELER_NEEDS_PYTHON}
 )
 
 # Enable ROOT output for the celer-sim-cpu test when ROOT is available

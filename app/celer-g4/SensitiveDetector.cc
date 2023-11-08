@@ -59,7 +59,7 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
         CELER_ASSERT(hcid_ >= 0);
     }
 
-    // Save a pointer to the collection we just made before tranferring
+    // Save a pointer to the collection we just made before transferring
     // ownership to the HC manager for the event.
     collection_ = collection.get();
     hce->AddHitsCollection(hcid_, collection.release());

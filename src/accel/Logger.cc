@@ -24,7 +24,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/MpiCommunicator.hh"
-#include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/GeantUtils.hh"
 
 namespace celeritas
 {
@@ -121,7 +121,7 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
  */
 Logger MakeMTLogger(G4RunManager const& runman)
 {
-    Logger log(MpiCommunicator{}, MtLogger{get_num_threads(runman)});
+    Logger log(MpiCommunicator{}, MtLogger{get_geant_num_threads(runman)});
 
     log.level(log_level_from_env("CELER_LOG_LOCAL"));
     return log;

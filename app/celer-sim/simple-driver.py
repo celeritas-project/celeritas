@@ -8,7 +8,6 @@
 import json
 import re
 import subprocess
-from distutils.util import strtobool
 from os import environ, path
 from sys import exit, argv, stderr
 
@@ -17,6 +16,14 @@ try:
 except ValueError:
     print("usage: {} inp.gdml inp.hepmc3 mctruth.root (use '' for no ROOT output)".format(argv[0]))
     exit(1)
+
+def strtobool(text):
+    text = text.lower()
+    if text in {"true", "on", "yes", "1"}:
+        return True
+    if text in {"false", "off", "no", "0"}:
+        return False
+    raise ValueError(text)
 
 # We reuse the "disable device" environment variable, which prevents the GPU
 # from being initialized at runtime.

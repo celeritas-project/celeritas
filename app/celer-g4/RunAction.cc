@@ -17,7 +17,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
 
@@ -36,15 +35,12 @@ RunAction::RunAction(SPConstOptions options,
                      SPParams params,
                      SPTransporter transport,
                      SPDiagnostics diagnostics,
-                     bool init_celeritas,
-                     bool init_diagnostics)
+                     bool init_shared)
     : options_{std::move(options)}
     , params_{std::move(params)}
     , transport_{std::move(transport)}
     , diagnostics_{std::move(diagnostics)}
-    , init_celeritas_{init_celeritas}
-    , init_diagnostics_{init_diagnostics}
-    , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
+    , init_shared_{init_shared}
 {
     CELER_EXPECT(options_);
     CELER_EXPECT(params_);
@@ -61,9 +57,9 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 
     ExceptionConverter call_g4exception{"celer0001"};
 
-    if (!disable_offloading_)
+    if (!SharedParams::CeleritasDisabled())
     {
-        if (init_celeritas_)
+        if (init_shared_)
         {
             // This worker (or master thread) is responsible for initializing
             // celeritas: initialize shared data and setup GPU on all threads
@@ -85,9 +81,9 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         }
     }
 
-    if (init_diagnostics_)
+    if (init_shared_)
     {
-        CELER_TRY_HANDLE(diagnostics_->Initialize(params_), call_g4exception);
+        CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 
         diagnostics_->Timer()->RecordSetupTime(
@@ -110,17 +106,17 @@ void RunAction::EndOfRunAction(G4Run const*)
         CELER_TRY_HANDLE(RootIO::Instance()->Close(), call_g4exception);
     }
 
-    if (transport_ && !disable_offloading_)
+    if (transport_ && !SharedParams::CeleritasDisabled())
     {
         diagnostics_->Timer()->RecordActionTime(transport_->GetActionTime());
     }
-    if (init_diagnostics_)
+    if (init_shared_)
     {
         diagnostics_->Timer()->RecordTotalTime(get_transport_time_());
         CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
     }
 
-    if (!disable_offloading_)
+    if (!SharedParams::CeleritasDisabled())
     {
         CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
 
@@ -131,12 +127,12 @@ void RunAction::EndOfRunAction(G4Run const*)
             // some geant4 thread-local allocators)
             CELER_TRY_HANDLE(transport_->Finalize(), call_g4exception);
         }
+    }
 
-        if (init_celeritas_)
-        {
-            // Clear shared data and write
-            CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
-        }
+    if (init_shared_)
+    {
+        // Clear shared data (if any) and write output (if any)
+        CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }
 }
 

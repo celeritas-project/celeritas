@@ -49,7 +49,6 @@ class EventAction final : public G4UserEventAction
     SPConstParams params_;
     SPTransporter transport_;
     SPDiagnostics diagnostics_;
-    bool disable_offloading_;
     Stopwatch get_event_time_;
 };
 

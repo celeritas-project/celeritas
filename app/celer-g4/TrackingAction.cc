@@ -10,16 +10,11 @@
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
-#include <G4Electron.hh>
-#include <G4Gamma.hh>
-#include <G4ParticleDefinition.hh>
-#include <G4Positron.hh>
 #include <G4Track.hh>
 #include <G4TrackStatus.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/sys/Environment.hh"
 #include "accel/ExceptionConverter.hh"
 
 namespace celeritas
@@ -33,10 +28,7 @@ namespace app
 TrackingAction::TrackingAction(SPConstParams params,
                                SPTransporter transport,
                                SPDiagnostics diagnostics)
-    : params_(params)
-    , transport_(transport)
-    , diagnostics_(diagnostics)
-    , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
+    : params_(params), transport_(transport), diagnostics_(diagnostics)
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(transport_);
@@ -53,19 +45,15 @@ TrackingAction::TrackingAction(SPConstParams params,
  */
 void TrackingAction::PreUserTrackingAction(G4Track const* track)
 {
-    if (disable_offloading_)
+    CELER_EXPECT(track);
+    CELER_EXPECT(static_cast<bool>(*params_)
+                 == !SharedParams::CeleritasDisabled());
+    CELER_EXPECT(static_cast<bool>(*params_) == static_cast<bool>(*transport_));
+
+    if (SharedParams::CeleritasDisabled())
         return;
 
-    CELER_EXPECT(track);
-    CELER_EXPECT(*params_);
-    CELER_EXPECT(*transport_);
-
-    static G4ParticleDefinition const* const allowed_particles[] = {
-        G4Gamma::Gamma(),
-        G4Electron::Electron(),
-        G4Positron::Positron(),
-    };
-
+    auto const& allowed_particles = params_->OffloadParticles();
     if (std::find(std::begin(allowed_particles),
                   std::end(allowed_particles),
                   track->GetDefinition())
