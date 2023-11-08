@@ -90,6 +90,7 @@ set_tests_properties("app/celer-sim:device" PROPERTIES
   LABELS "app;nomemcheck;gpu"
   ${_needs_deps}
   ${_needs_device}
+  ${CELER_NEEDS_PYTHON}
 )
 
 # Enable ROOT output for the celer-sim-cpu test when ROOT is available

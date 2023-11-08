@@ -57,45 +57,25 @@ if(NOT CELERITAS_BUILD_TESTS)
   return()
 endif()
 
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CELERG4_MAX_NUM_TRACKS 524288)
-    set(CELERG4_INIT_CAPACITY 4194304)
-  else()
-    # Use smaller number of tracks when running on CPU
-    set(CELERG4_MAX_NUM_TRACKS 2048)
-    set(CELERG4_INIT_CAPACITY 65536)
-  endif()
-else()
-  # Use smaller number of tracks when running on CPU
-  set(CELERG4_MAX_NUM_TRACKS 1024)
-  set(CELERG4_INIT_CAPACITY 32768)
-endif()
-
+set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/test-harness.py")
+set(_exe "$<TARGET_FILE:celer-g4>")
+set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
 if(NOT CELERITAS_DEBUG)
-  set(CELERG4_EVENTS
+  set(_events
     "${CELER_APP_DATA_DIR}/ttbarsplit-12evt-1108prim.hepmc3")
 else()
   # Use fewer events for debug
-  set(CELERG4_EVENTS
+  set(_events
     "${CELER_APP_DATA_DIR}/ttbarbits-12evt-118prim.hepmc3")
 endif()
-if(CELERITAS_USE_ROOT)
-  set(CELERG4_WRITE_SD_HITS "true")
-  set(CELERG4_OFFLOAD_FILE "simple-cms.offloaded.root")
-else()
-  set(CELERG4_WRITE_SD_HITS "false")
-  set(CELERG4_OFFLOAD_FILE "simple-cms.offloaded.hepmc3")
-endif()
-configure_file(
-  "simple-cms-test.inp.json.in"
-  "simple-cms-test.inp.json" @ONLY
-)
 
 set(_env
   ${CELER_G4ENV}
   "CELER_LOG_LOCAL=debug"
   "CELER_DISABLE_PARALLEL=1"
+  "CELER_DEBUG=${CELERITAS_DEBUG}"
+  "CELER_USE_ROOT=${CELERITAS_USE_ROOT}"
+  "CELER_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
 )
 if(Geant4_multithreaded_FOUND)
   list(APPEND _env
@@ -106,13 +86,8 @@ if(CELERITAS_USE_OpenMP)
   list(APPEND _env "OMP_NUM_THREADS=1")
 endif()
 
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  set(_needs_device)
-else()
-  set(_needs_device DISABLED true)
-endif()
-
-set(_props)
+set(_required_files "${_driver}" "${_exe}" "${_model}" "${_events}")
+set(_props ${CELER_NEEDS_PYTHON})
 if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
   set(_props DISABLED true)
 endif()
@@ -125,43 +100,39 @@ if(CELERITAS_REAL_TYPE STREQUAL "float")
   set(_props DISABLED true)
 endif()
 
-### CELERITAS OFFLOADING WITH GPU ###
-add_test(NAME "app/celer-g4:gpu"
-  COMMAND "$<TARGET_FILE:celer-g4>" "simple-cms-test.inp.json"
-)
-set_tests_properties("app/celer-g4:gpu" PROPERTIES
-  ENVIRONMENT "${_env}"
-  RESOURCE_LOCK gpu
-  LABELS "app;nomemcheck;gpu"
-  ${_props}
-  ${_needs_device}
-)
+#-----------------------------------------------------------------------------#
+function(celer_app_test ext)
+  set(_labels app nomemcheck)
+  set(_extra_props)
+  set(_extra_env "CELER_TEST_EXT=${ext}")
+  if(ext STREQUAL "gpu")
+    list(APPEND _labels "gpu")
+    set(_extra_props RESOURCE_LOCK gpu)
+    if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
+      list(APPEND _extra_props DISABLED true)
+    endif()
+  elseif(ext STREQUAL "cpu")
+    list(APPEND _extra_env "CELER_DISABLE_DEVICE=1")
+  else()
+    list(APPEND _extra_env "CELER_DISABLE=1")
+  endif()
 
-### CELERITAS OFFLOADING WITH CPU ###
-list(APPEND _env
-  "CELER_DISABLE_DEVICE=1"
-)
-add_test(NAME "app/celer-g4:cpu"
-  COMMAND "$<TARGET_FILE:celer-g4>" "simple-cms-test.inp.json"
-)
-set_tests_properties("app/celer-g4:cpu" PROPERTIES
-  ENVIRONMENT "${_env}"
-  RESOURCE_LOCK gpu
-  LABELS "app;nomemcheck"
-  ${_props}
-)
+  add_test(NAME "app/celer-g4:${ext}"
+    COMMAND "${CELER_PYTHON}" "${_driver}" "${_exe}" "${_model}" "${_events}"
+  )
 
-### NO CELERITAS OFFLOADING ###
-list(APPEND _env
-  "CELER_DISABLE=1"
-)
-add_test(NAME "app/celer-g4:none"
-  COMMAND "$<TARGET_FILE:celer-g4>" "simple-cms-test.inp.json"
-)
-set_tests_properties("app/celer-g4:none" PROPERTIES
-  ENVIRONMENT "${_env}"
-  LABELS "app;nomemcheck"
-  ${_props}
-)
+  set_tests_properties("app/celer-g4:${ext}" PROPERTIES
+    ENVIRONMENT "${_env};${_extra_env}"
+    REQUIRED_FILES "${_required_files}"
+    LABELS "${_labels}"
+    ${_props} ${_extra_props}
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+celer_app_test("gpu")
+celer_app_test("cpu")
+celer_app_test("none")
 
 #-----------------------------------------------------------------------------#
