@@ -33,6 +33,9 @@ class VecgeomParams final : public GeoParamsInterface,
                             public ParamsDataInterface<VecgeomParamsData>
 {
   public:
+    // Whether surface tracking is being used
+    static bool use_surface_tracking();
+
     // Construct from a GDML filename
     explicit VecgeomParams(std::string const& gdml_filename);
 
@@ -100,13 +103,19 @@ class VecgeomParams final : public GeoParamsInterface,
     DeviceRef device_ref_;
 
     //// HELPER FUNCTIONS ////
+    bool setup_cuda_mem_limits();
 
     // Construct VecGeom tracking data and copy to GPU
     void build_tracking();
+    void build_surface_tracking();
+    void build_volume_tracking();
     // Construct host/device Celeritas data
     void build_data();
     // Construct labels and other host-only metadata
     void build_metadata();
+
+    // Call CUDA-only VecGeom subroutines
+    void build_surface_tracking_device();
 };
 
 //---------------------------------------------------------------------------//
