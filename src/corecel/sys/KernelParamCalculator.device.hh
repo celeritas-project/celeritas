@@ -236,6 +236,9 @@ void KernelParamCalculator::set_carveout(F* kernel_func_ptr) const
             CELER_DEVICE_PREFIX(FuncAttributePreferredSharedMemoryCarveout),
             CELER_DEVICE_PREFIX(SharedmemCarveoutMaxL1)));
     }
+#else
+    CELER_DISCARD(kernel_func_ptr);
+    CELER_ASSERT_UNREACHABLE();
 #endif
 }
 
