@@ -555,13 +555,21 @@ void SharedParams::try_output() const
         return;
     }
 
-    G4UImanager* ui = G4UImanager::GetUIpointer();
-    std::string filename = ui->GetCurrentValues("/celer/outputFile");
+    std::string filename = output_filename_;
     if (CELERITAS_USE_JSON && !params_ && filename.empty())
     {
         // Setup was not called but JSON is available: make a default filename
-        filename = "celeritas.json";
-        CELER_LOG(debug) << "Setting default Celeritas output filename";
+        G4UImanager* ui = G4UImanager::GetUIpointer();
+        filename = ui->GetCurrentValues("/celer/outputFile");
+        if (!filename.empty())
+        {
+            CELER_LOG(debug) << "Set Celeritas output filename from G4UI";
+        }
+        else
+        {
+            filename = "celeritas.json";
+            CELER_LOG(debug) << "Set default Celeritas output filename";
+        }
     }
 
     if (filename.empty())
