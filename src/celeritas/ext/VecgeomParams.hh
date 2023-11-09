@@ -115,7 +115,8 @@ class VecgeomParams final : public GeoParamsInterface,
     void build_metadata();
 
     // Call CUDA-only VecGeom subroutines
-    void build_surface_tracking_device();
+    // template <typename T>
+    // void build_surface_tracking_device(T const& data);
 };
 
 //---------------------------------------------------------------------------//
