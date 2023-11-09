@@ -44,11 +44,12 @@
 
 namespace celeritas
 {
-
 // Defined in VecgeomParams.cu
+#ifdef VECGEOM_USE_SURF
 using SurfData = vgbrep::SurfData<vecgeom::Precision>;
 void build_surface_tracking_device(SurfData const& surfData);
 void cleanup_surface_data_gpu();
+#endif
 
 namespace
 {
@@ -356,7 +357,6 @@ void VecgeomParams::build_surface_tracking()
             auto const& brepHelper = vgbrep::BrepHelper<real_type>::Instance();
             auto const& surfData = brepHelper.GetSurfData();
             build_surface_tracking_device(surfData);
-            // this->build_surface_tracking_device(surfData);
             CELER_DEVICE_CHECK_ERROR();
         }
     }
@@ -459,20 +459,6 @@ void VecgeomParams::build_metadata()
         return BBox{detail::to_array(lower), detail::to_array(upper)};
     }();
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * CUDA-only function for building surface tracking.
- */
-/*
-#if !CELERITAS_USE_CUDA || !defined(VECGEOM_USE_SURF)
-template <typename T>
-void VecgeomParams::build_surface_tracking_device(T const& data)
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-#endif
-*/
 
 //---------------------------------------------------------------------------//
 /*!
