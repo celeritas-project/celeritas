@@ -109,10 +109,14 @@ class VecgeomParams final : public GeoParamsInterface,
     void build_tracking();
     void build_surface_tracking();
     void build_volume_tracking();
+
     // Construct host/device Celeritas data
     void build_data();
     // Construct labels and other host-only metadata
     void build_metadata();
+
+    // Free up surface data on device
+    void teardown_surface_tracking_device();
 };
 
 //---------------------------------------------------------------------------//

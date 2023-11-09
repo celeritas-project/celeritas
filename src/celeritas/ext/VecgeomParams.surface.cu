@@ -5,7 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/detail/VecgeomParams.surface.cu
 //---------------------------------------------------------------------------//
+#include "VecgeomParams.hh"
+
 #include "corecel/Assert.hh"
+
 #include "VecGeom/surfaces/cuda/BrepCudaManager.h"
 
 namespace celeritas
@@ -21,7 +24,7 @@ void build_surface_tracking_device(SurfData const& surfData)
 }
 
 //---------------------------------------------------------------------------//
-void cleanup_surface_data_gpu()
+void VecgeomParams::teardown_surface_tracking_device()
 {
     BrepCudaManager::Instance().Cleanup();
 }

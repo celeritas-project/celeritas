@@ -44,11 +44,10 @@
 
 namespace celeritas
 {
-// Defined in VecgeomParams.cu
 #ifdef VECGEOM_USE_SURF
+// Static function defined in VecgeomParams.cu, cannot be a member function
 using SurfData = vgbrep::SurfData<vecgeom::Precision>;
 void build_surface_tracking_device(SurfData const& surfData);
-void cleanup_surface_data_gpu();
 #endif
 
 namespace
@@ -162,7 +161,7 @@ VecgeomParams::~VecgeomParams()
         CELER_LOG(debug) << "Clearing VecGeom GPU data";
 #    ifdef VECGEOM_USE_SURF
         // clear surface data first
-        cleanup_surface_data_gpu();
+        teardown_surface_tracking_device();
 #    endif
         vecgeom::CudaManager::Instance().Clear();
     }
