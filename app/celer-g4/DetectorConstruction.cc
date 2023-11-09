@@ -32,6 +32,7 @@
 #include "accel/SharedParams.hh"
 
 #include "GlobalSetup.hh"
+#include "RootIO.hh"
 #include "SensitiveDetector.hh"
 
 namespace celeritas
@@ -47,7 +48,7 @@ namespace app
 DetectorConstruction::DetectorConstruction(SPParams params)
     : params_{std::move(params)}
 {
-    auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
+    auto& sd = GlobalSetup::Instance()->GetSDSetupOptions();
 
     // Only call back for nonzero energy depositions: this is currently a
     // global option for all detectors, so if any SDs extract data from tracks
@@ -88,11 +89,6 @@ auto DetectorConstruction::construct_geo() const -> GeoData
 
     G4GDMLParser gdml_parser;
     gdml_parser.SetStripFlag(true);
-    if (!GlobalSetup::Instance()->StripGDMLPointers())
-    {
-        // DEPRECATED: remove in 1.0?
-        CELER_LOG(warning) << "Ignoring deprecated 'stripGDMLPointers false'";
-    }
 
     std::string const& filename = GlobalSetup::Instance()->GetGeometryFile();
     if (filename.empty())
@@ -105,7 +101,7 @@ auto DetectorConstruction::construct_geo() const -> GeoData
     constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(filename, validate_gdml_schema);
 
-    auto& sd = celeritas::app::GlobalSetup::Instance()->GetSDSetupOptions();
+    auto& sd = GlobalSetup::Instance()->GetSDSetupOptions();
 
     MapDetectors detectors;
     if (sd.enabled)
@@ -241,22 +237,12 @@ void DetectorConstruction::ConstructSDandField()
     CELER_LOG_LOCAL(status) << "Loading sensitive detectors";
 
     G4SDManager* sd_manager = G4SDManager::GetSDMpointer();
-
-    auto iter = detectors_.begin();
-    while (iter != detectors_.end())
-    {
-        // Find the end of the current range of keys
-        auto stop = iter;
-        do
-        {
-            ++stop;
-        } while (stop != detectors_.end() && iter->first == stop->first);
-
+    this->foreach_detector([sd_manager](auto start, auto stop) {
         // Create one detector for all the volumes
-        auto detector = std::make_unique<SensitiveDetector>(iter->first);
+        auto detector = std::make_unique<SensitiveDetector>(start->first);
 
         // Attach sensitive detectors
-        for (; iter != stop; ++iter)
+        for (auto iter = start; iter != stop; ++iter)
         {
             CELER_LOG_LOCAL(debug)
                 << "Attaching '" << iter->first << "'@" << detector.get()
@@ -267,6 +253,33 @@ void DetectorConstruction::ConstructSDandField()
 
         // Hand SD to the manager
         sd_manager->AddNewDetector(detector.release());
+
+        // Add to ROOT output
+        if (RootIO::use_root())
+        {
+            RootIO::Instance()->AddSensitiveDetector(start->first);
+        }
+    });
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a function to the range of volumes for each detector.
+ */
+template<class F>
+void DetectorConstruction::foreach_detector(F&& apply_to_range) const
+{
+    auto start = detectors_.begin();
+    while (start != detectors_.end())
+    {
+        // Find the end of the current range of keys
+        auto stop = start;
+        do
+        {
+            ++stop;
+        } while (stop != detectors_.end() && start->first == stop->first);
+
+        apply_to_range(start, stop);
+        start = stop;
     }
 }
 

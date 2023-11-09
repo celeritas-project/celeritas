@@ -20,7 +20,6 @@
 #include "celeritas/ext/Convert.geant.hh"
 
 #include "GlobalSetup.hh"
-#include "RootIO.hh"
 
 namespace celeritas
 {
@@ -34,11 +33,6 @@ SensitiveDetector::SensitiveDetector(std::string name)
     : G4VSensitiveDetector(name), hcid_{-1}, collection_{nullptr}
 {
     this->collectionName.insert(name);
-
-    if (GlobalSetup::Instance()->GetWriteSDHits())
-    {
-        RootIO::Instance()->AddSensitiveDetector(name);
-    }
 }
 
 //---------------------------------------------------------------------------//
