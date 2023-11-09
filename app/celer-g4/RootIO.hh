@@ -35,6 +35,14 @@ class RootIO
     friend class G4ThreadLocalSingleton<RootIO>;
 
   public:
+#if CELERITAS_USE_ROOT
+    // Whether ROOT output is enabled
+    static bool use_root();
+#else
+    // ROOT is never enabled if ROOT isn't available
+    constexpr static bool use_root() { return false; }
+#endif
+
     // Return non-owning pointer to a singleton
     static RootIO* Instance();
 
