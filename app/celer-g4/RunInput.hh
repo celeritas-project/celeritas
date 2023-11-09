@@ -32,9 +32,8 @@ enum class PhysicsListSelection
 //! Sensitive detector capability
 enum class SensitiveDetectorType
 {
-    none, //!< No SDs
-    simple_calo, //!< Integrated energy deposition over all events
-    event_hit, //!< Record basic hit data
+    none,  //!< No SDs
+    event_hit,  //!< Record basic hit data
     size_,
 };
 

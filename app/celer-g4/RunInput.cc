@@ -35,7 +35,6 @@ char const* to_cstring(SensitiveDetectorType value)
 {
     static EnumStringMapper<SensitiveDetectorType> const to_cstring_impl{
         "none",
-        "simple_calo",
         "event_hit",
     };
     return to_cstring_impl(value);
