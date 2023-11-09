@@ -51,7 +51,7 @@ RunInput::operator bool() const
            && (field == no_field() || field_options)
            && ((num_track_slots > 0 && max_events > 0 && max_steps > 0
                 && initializer_capacity > 0 && secondary_stack_factor > 0)
-               || !SharedParams::CeleritasDisabled())
+               || SharedParams::CeleritasDisabled())
            && (step_diagnostic_bins > 0 || !step_diagnostic);
 }
 
