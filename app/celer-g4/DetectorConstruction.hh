@@ -20,6 +20,7 @@ class G4MagneticField;
 namespace celeritas
 {
 class SharedParams;
+class GeantSimpleCalo;
 
 namespace app
 {
@@ -49,6 +50,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
     using MapDetectors = std::multimap<std::string, G4LogicalVolume*>;
     using AlongStepFactory = SetupOptions::AlongStepFactory;
     using SPMagneticField = std::shared_ptr<G4MagneticField>;
+    using SPSimpleCalo = std::shared_ptr<GeantSimpleCalo>;
 
     struct GeoData
     {
@@ -67,6 +69,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
 
     MapDetectors detectors_;
     SPMagneticField mag_field_;
+    std::vector<SPSimpleCalo> simple_calos_;
 
     //// METHODS ////
 
