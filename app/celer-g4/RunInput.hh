@@ -11,7 +11,6 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
@@ -95,18 +94,8 @@ struct RunInput
     bool step_diagnostic{false};
     int step_diagnostic_bins{1000};
 
-    //! Whether the run arguments are valid
-    explicit operator bool() const
-    {
-        return !geometry_file.empty()
-               && (primary_options || !event_file.empty())
-               && physics_list < PhysicsListSelection::size_
-               && (field == no_field() || field_options)
-               && ((num_track_slots > 0 && max_events > 0 && max_steps > 0
-                    && initializer_capacity > 0 && secondary_stack_factor > 0)
-                   || !celeritas::getenv("CELER_DISABLE").empty())
-               && (step_diagnostic_bins > 0 || !step_diagnostic);
-    }
+    // Whether the run arguments are valid
+    explicit operator bool() const;
 };
 
 //---------------------------------------------------------------------------//
