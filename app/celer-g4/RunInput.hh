@@ -29,12 +29,12 @@ enum class PhysicsListSelection
 };
 
 //---------------------------------------------------------------------------//
-//! Sensitive detector functionality
+//! Sensitive detector capability
 enum class SensitiveDetectorType
 {
-    none,
-    simple_calo,
-    event_hit,
+    none, //!< No SDs
+    simple_calo, //!< Integrated energy deposition over all events
+    event_hit, //!< Record basic hit data
     size_,
 };
 
@@ -80,15 +80,13 @@ struct RunInput
     FieldDriverOptions field_options;
 
     // SD setup options
-    SensitiveDetectorType sd_type{SensitiveDetectorType::none};
+    SensitiveDetectorType sd_type{SensitiveDetectorType::event_hit};
 
     // IO
     std::string output_file;  //!< Save JSON diagnostics
     std::string physics_output_file;  //!< Save physics data
     std::string offload_output_file;  //!< Save offloaded tracks to HepMC3/ROOT
     std::string macro_file;  //!< Load additional Geant4 commands
-
-    bool disable_root_sd{false};  //!< Suppress ROOT output of SDs
 
     // Geant4 diagnostics
     bool step_diagnostic{false};

@@ -70,8 +70,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
         CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
     }
 
-    auto& setup_input = GlobalSetup::Instance()->input();
-    if (!setup_input.disable_root_sd)
+    if (RootIO::use_root())
     {
         // Write sensitive hits
         RootIO::Instance()->Write(event);

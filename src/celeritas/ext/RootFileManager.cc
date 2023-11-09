@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
 
 // This "public API" function is defined in CeleritasRootInterface.cxx to

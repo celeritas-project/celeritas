@@ -87,7 +87,6 @@ inp = {
      "delta_intersection": 0.001,
      "epsilon_step": 0.01
     },
-    "disable_root_sd": not use_root,
     "step_diagnostic": ext == "none",
     "step_diagnostic_bins": 10
 }

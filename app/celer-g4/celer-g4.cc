@@ -172,6 +172,7 @@ int main(int argc, char* argv[])
                   << "  G4FORCENUMBEROFTHREADS: set CPU worker thread count\n"
                   << "  CELER_DISABLE: nonempty disables offloading\n"
                   << "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
+                  << "  CELER_DISABLE_ROOT: nonempty disables ROOT I/O\n"
                   << "  CELER_LOG: global logging level\n"
                   << "  CELER_LOG_LOCAL: thread-local logging level\n"
                   << std::endl;

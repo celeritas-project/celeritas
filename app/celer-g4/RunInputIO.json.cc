@@ -10,6 +10,7 @@
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
@@ -104,11 +105,13 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     if (auto iter = j.find("write_sd_hits"); iter != j.end())
     {
-        CELER_LOG(warning) << "Deprecated option 'write_sd_hits': refactor as "
-                              "'disable_root_sd'";
-        v.disable_root_sd = !iter->get<bool>();
+        CELER_LOG(warning) << "Deprecated option 'write_sd_hits': disable "
+                              "output using CELER_DISABLE_ROOT";
+        if (!iter->get<bool>())
+        {
+            celeritas::environment().insert({"CELER_DISABLE_ROOT", "1"});
+        }
     }
-    RI_LOAD_OPTION(disable_root_sd);
 
     RI_LOAD_OPTION(step_diagnostic);
     RI_LOAD_OPTION(step_diagnostic_bins);
@@ -180,7 +183,6 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE_OPTION(physics_output_file);
     RI_SAVE_OPTION(offload_output_file);
     RI_SAVE_OPTION(macro_file);
-    RI_SAVE_OPTION(disable_root_sd);
 
     RI_SAVE_OPTION(step_diagnostic);
     RI_SAVE_OPTION(step_diagnostic_bins);

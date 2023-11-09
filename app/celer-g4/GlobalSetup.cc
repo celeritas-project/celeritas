@@ -21,6 +21,7 @@
 #include "accel/SetupOptionsMessenger.hh"
 
 #include "HepMC3PrimaryGeneratorAction.hh"
+#include "RootIO.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -173,17 +174,11 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->output_file = input_.output_file;
     }
 
-    // Disable ROOT SD IO if needed
-    if (input_.sd_type != SensitiveDetectorType::event_hit)
+    if (input_.sd_type == SensitiveDetectorType::event_hit
+        && !RootIO::use_root())
     {
-        input_.disable_root_sd = true;
-    }
-
-    if (!CELERITAS_USE_ROOT && !input_.disable_root_sd)
-    {
-        CELER_LOG(warning) << "Disabling ROOT output even if SD collects hit "
-                              "data because ROOT is not configured";
-        input_.disable_root_sd = true;
+        CELER_LOG(warning) << "Collecting SD hit data that will not be "
+                              "written because ROOT is disabled";
     }
 
     // Get the number of events

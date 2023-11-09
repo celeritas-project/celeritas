@@ -39,7 +39,7 @@ namespace app
  * This is true unless the \c CELER_DISABLE_ROOT environment variable is
  * set to a non-empty value.
  */
-static bool RootIO::use_root()
+bool RootIO::use_root()
 {
     return RootFileManager::use_root();
 }
