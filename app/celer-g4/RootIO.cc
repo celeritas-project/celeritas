@@ -215,7 +215,7 @@ void RootIO::Close()
  */
 void RootIO::Merge()
 {
-    auto const nthreads = get_geant_num_threads(*G4RunManager::GetRunManager());
+    auto const nthreads = celeritas::get_geant_num_threads();
     std::vector<TFile*> files;
     std::vector<TTree*> trees;
     std::unique_ptr<TList> list(new TList);

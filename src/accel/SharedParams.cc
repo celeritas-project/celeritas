@@ -298,13 +298,9 @@ int SharedParams::num_streams() const
         if (!num_streams_)
         {
             // Default to setting the maximum number of streams based on Geant4
-            // multithreading.
-            auto* run_man = G4RunManager::GetRunManager();
-            CELER_VALIDATE(run_man,
-                           << "G4RunManager was not created before "
-                              "getting stream count from SharedParams");
+            // run manager.
             const_cast<SharedParams*>(this)->num_streams_
-                = celeritas::get_geant_num_threads(*run_man);
+                = celeritas::get_geant_num_threads();
         }
     }
 

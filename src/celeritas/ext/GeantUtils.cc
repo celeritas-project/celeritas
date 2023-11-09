@@ -45,6 +45,19 @@ int get_geant_num_threads(G4RunManager const& runman)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the number of threads from the global run manager.
+ */
+int get_geant_num_threads()
+{
+    auto* run_man = G4RunManager::GetRunManager();
+    CELER_VALIDATE(run_man,
+                   << "cannot query global thread count before G4RunManager "
+                      "is created");
+    return get_geant_num_threads(*run_man);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the Geant4 thread ID.
  */
 int get_geant_thread_id()

@@ -19,6 +19,10 @@ namespace celeritas
 int get_geant_num_threads(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
+// Get the number of threads using the global G4 run manager
+int get_geant_num_threads();
+
+//---------------------------------------------------------------------------//
 // Get the current thread ID (zero if serial)
 int get_geant_thread_id();
 
@@ -27,6 +31,11 @@ int get_geant_thread_id();
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
 inline int get_geant_num_threads(G4RunManager const&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline int get_geant_num_threads()
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
