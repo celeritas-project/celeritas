@@ -43,6 +43,12 @@ struct ParticleRecord
     }
 };
 
+enum class particle_partner : bool
+{
+    particle = false,
+    antiparticle = true
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Access particle definitions on the device.
@@ -59,18 +65,28 @@ struct ParticleParamsData
     //// TYPES ////
 
     template<class T>
-    using Items = celeritas::Collection<T, W, M>;
+    using Items = celeritas::Collection<T, W, M, ParticleId>;
 
     //// DATA ////
 
-    Items<ParticleRecord> particles;
+    Items<units::MevMass> mass;
+    Items<units::ElementaryCharge> charge;
+    Items<real_type> decay_constant;
+    Items<particle_partner> is_antiparticle;
 
     //// METHODS ////
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !particles.empty();
+        return !mass.empty() && !charge.empty() && !decay_constant.empty()
+               && !is_antiparticle.empty();
+    }
+
+    //! Params size
+    CELER_FUNCTION typename Items<real_type>::size_type size() const
+    {
+        return decay_constant.size();
     }
 
     //! Assign from another set of data
@@ -78,7 +94,10 @@ struct ParticleParamsData
     ParticleParamsData& operator=(ParticleParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        particles = other.particles;
+        mass = other.mass;
+        charge = other.charge;
+        decay_constant = other.decay_constant;
+        is_antiparticle = other.is_antiparticle;
         return *this;
     }
 };
@@ -98,11 +117,6 @@ struct ParticleParamsData
  * immutable: collisions and other interactions should return changes to the
  * particle state.
  */
-struct ParticleTrackState
-{
-    ParticleId particle_id;  //!< Type of particle (electron, gamma, ...)
-    real_type energy;  //!< Kinetic energy [MeV]
-};
 
 struct ParticleTrackInitializer
 {
@@ -132,22 +146,31 @@ struct ParticleStateData
 
     //// DATA ////
 
-    Items<ParticleTrackState> state;
+    Items<ParticleId> particle_id;  //!< Type of particle (electron, gamma,
+                                    //!< ...)
+    Items<real_type> particle_energy;  //!< Kinetic energy [MeV]
 
     //// METHODS ////
 
     //! Whether the interface is assigned
-    explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !particle_id.empty() && !particle_energy.empty();
+    }
 
     //! State size
-    CELER_FUNCTION TrackSlotId::size_type size() const { return state.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const
+    {
+        return particle_id.size();
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     ParticleStateData& operator=(ParticleStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        state = other.state;
+        particle_id = other.particle_id;
+        particle_energy = other.particle_energy;
         return *this;
     }
 };
@@ -162,7 +185,8 @@ inline void resize(ParticleStateData<Ownership::value, M>* data,
                    size_type size)
 {
     CELER_EXPECT(size > 0);
-    resize(&data->state, size);
+    resize(&data->particle_id, size);
+    resize(&data->particle_energy, size);
 }
 
 //---------------------------------------------------------------------------//

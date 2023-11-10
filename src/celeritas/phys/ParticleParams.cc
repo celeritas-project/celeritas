@@ -82,8 +82,14 @@ ParticleParams::ParticleParams(Input const& input)
 
     // Build elements and materials on host.
     HostVal<ParticleParamsData> host_data;
-    auto particles = make_builder(&host_data.particles);
-    particles.reserve(input.size());
+    auto mass = make_builder(&host_data.mass);
+    auto charge = make_builder(&host_data.charge);
+    auto decay_constant = make_builder(&host_data.decay_constant);
+    auto is_antiparticle = make_builder(&host_data.is_antiparticle);
+    mass.reserve(input.size());
+    charge.reserve(input.size());
+    decay_constant.reserve(input.size());
+    is_antiparticle.reserve(input.size());
 
     for (auto const& particle : input)
     {
@@ -105,12 +111,12 @@ ParticleParams::ParticleParams(Input const& input)
         md_.push_back({particle.name, particle.pdg_code});
 
         // Save the definitions on the host
-        ParticleRecord host_def;
-        host_def.mass = particle.mass;
-        host_def.charge = particle.charge;
-        host_def.decay_constant = particle.decay_constant;
-        host_def.is_antiparticle = particle.pdg_code.get() < 0;
-        particles.push_back(std::move(host_def));
+        mass.push_back(particle.mass);
+        charge.push_back(particle.charge);
+        decay_constant.push_back(particle.decay_constant);
+        is_antiparticle.push_back(particle.pdg_code.get() < 0
+                                      ? particle_partner::antiparticle
+                                      : particle_partner::particle);
     }
 
     // Move to mirrored data, copying to device
@@ -119,7 +125,7 @@ ParticleParams::ParticleParams(Input const& input)
     CELER_ENSURE(md_.size() == input.size());
     CELER_ENSURE(name_to_id_.size() == input.size());
     CELER_ENSURE(pdg_to_id_.size() == input.size());
-    CELER_ENSURE(this->host_ref().particles.size() == input.size());
+    CELER_ENSURE(this->host_ref().size() == input.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -128,7 +134,7 @@ ParticleParams::ParticleParams(Input const& input)
  */
 ParticleView ParticleParams::get(ParticleId id) const
 {
-    CELER_EXPECT(id < this->host_ref().particles.size());
+    CELER_EXPECT(id < this->host_ref().size());
     return ParticleView(this->host_ref(), id);
 }
 
