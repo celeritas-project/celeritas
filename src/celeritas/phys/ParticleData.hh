@@ -21,7 +21,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 //! Work around vector<bool>
-enum class particle_partner : bool
+enum class MatterType : bool
 {
     particle = false,
     antiparticle = true
@@ -55,8 +55,8 @@ struct ParticleParamsData
     Items<units::MevMass> mass;  //!< Rest mass [MeV / c^2]
     Items<units::ElementaryCharge> charge;  //!< Charge in units of [e]
     Items<real_type> decay_constant;  //!< Decay constant [1/s]
-    Items<particle_partner> is_antiparticle;  //!< Antiparticle (negative PDG
-                                              //!< number)
+    Items<MatterType> is_antiparticle;  //!< Antiparticle (negative PDG
+                                        //!< number)
 
     //// METHODS ////
 

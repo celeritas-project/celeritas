@@ -114,8 +114,8 @@ ParticleParams::ParticleParams(Input const& input)
         charge.push_back(particle.charge);
         decay_constant.push_back(particle.decay_constant);
         is_antiparticle.push_back(particle.pdg_code.get() < 0
-                                      ? particle_partner::antiparticle
-                                      : particle_partner::particle);
+                                      ? MatterType::antiparticle
+                                      : MatterType::particle);
     }
 
     // Move to mirrored data, copying to device
