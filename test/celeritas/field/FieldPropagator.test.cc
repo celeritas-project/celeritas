@@ -90,19 +90,21 @@ auto FieldPropagatorTestBase::build_particle() const -> SPConstParticle
 {
     // Create particle defs
     using namespace units;
-    constexpr auto stable = ParticleRecord::stable_decay_constant();
-    ParticleParams::Input defs
-        = {{"electron",
-            pdg::electron(),
-            MevMass{0.5109989461},
-            ElementaryCharge{-1},
-            stable},
-           {"positron",
-            pdg::positron(),
-            MevMass{0.5109989461},
-            ElementaryCharge{1},
-            stable},
-           {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
+    ParticleParams::Input defs = {{"electron",
+                                   pdg::electron(),
+                                   MevMass{0.5109989461},
+                                   ElementaryCharge{-1},
+                                   stable_decay_constant},
+                                  {"positron",
+                                   pdg::positron(),
+                                   MevMass{0.5109989461},
+                                   ElementaryCharge{1},
+                                   stable_decay_constant},
+                                  {"gamma",
+                                   pdg::gamma(),
+                                   zero_quantity(),
+                                   zero_quantity(),
+                                   stable_decay_constant}};
     return std::make_shared<ParticleParams>(std::move(defs));
 }
 

@@ -66,24 +66,24 @@ class CutoffParamsTest : public Test
         // Set up ParticleParams
         ParticleParams::Input p_input;
         constexpr auto zero = zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         p_input.push_back({"electron",
                            pdg::electron(),
                            MevMass{0.5109989461},
                            ElementaryCharge{-1},
-                           stable});
-        p_input.push_back({"gamma", pdg::gamma(), zero, zero, stable});
+                           stable_decay_constant});
+        p_input.push_back(
+            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant});
         p_input.push_back({"positron",
                            pdg::positron(),
                            MevMass{0.5109989461},
                            ElementaryCharge{1},
-                           stable});
+                           stable_decay_constant});
         p_input.push_back({"proton",
                            pdg::proton(),
                            MevMass{938.27208816},
                            ElementaryCharge{1},
-                           stable});
+                           stable_decay_constant});
         particles = std::make_shared<ParticleParams>(std::move(p_input));
     }
 

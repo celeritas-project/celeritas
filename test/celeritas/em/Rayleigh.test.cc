@@ -35,11 +35,10 @@ class RayleighInteractorTest : public InteractorHostTestBase
     {
         using namespace units;
         constexpr auto zero = zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Set up shared particle data for RayleighModel
         Base::set_particle_params(
-            {{"gamma", pdg::gamma(), zero, zero, stable}});
+            {{"gamma", pdg::gamma(), zero, zero, stable_decay_constant}});
         auto const& particles = *this->particle_params();
         model_ref_.ids.gamma = particles.find(pdg::gamma());
 

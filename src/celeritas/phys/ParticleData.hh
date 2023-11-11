@@ -19,42 +19,25 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
-/*!
- * Fundamental (static) properties of a particle type.
- *
- * These should only be fundamental physical properties. Setting particles is
- * done through the ParticleParams. Physical state of a particle
- * (kinetic energy, ...) is part of a ParticleState.
- *
- * Particle definitions are accessed via the ParticleParams: using PDGs
- * to look up particle IDs, etc.
- */
-struct ParticleRecord
-{
-    units::MevMass mass;  //!< Rest mass [MeV / c^2]
-    units::ElementaryCharge charge;  //!< Charge in units of [e]
-    real_type decay_constant;  //!< Decay constant [1/s]
-    bool is_antiparticle;  //!< Antiparticle (negative PDG number)
 
-    //! Value of decay_constant for a stable particle
-    static CELER_CONSTEXPR_FUNCTION real_type stable_decay_constant()
-    {
-        return 0;
-    }
-};
-
+//! Work around vector<bool>
 enum class particle_partner : bool
 {
     particle = false,
     antiparticle = true
 };
 
+//! Value of decay_constant for a stable particle
+constexpr real_type stable_decay_constant = 0;
+
 //---------------------------------------------------------------------------//
 /*!
  * Access particle definitions on the device.
  *
- * This view is created from \c ParticleParams. The size of the \c defs data
- * member is the number of particle types (accessed by \c ParticleId).
+ * Fundamental (static) properties of a particle type. Physical state of a
+ * particle (kinetic energy, ...) is part of a ParticleState. This view is
+ * created from \c ParticleParams. The size of the \c defs data member is the
+ * number of particle types (accessed by \c ParticleId).
  *
  * \sa ParticleParams (owns the pointed-to data)
  * \sa ParticleTrackView (uses the pointed-to data in a kernel)
@@ -69,10 +52,11 @@ struct ParticleParamsData
 
     //// DATA ////
 
-    Items<units::MevMass> mass;
-    Items<units::ElementaryCharge> charge;
-    Items<real_type> decay_constant;
-    Items<particle_partner> is_antiparticle;
+    Items<units::MevMass> mass;  //!< Rest mass [MeV / c^2]
+    Items<units::ElementaryCharge> charge;  //!< Charge in units of [e]
+    Items<real_type> decay_constant;  //!< Decay constant [1/s]
+    Items<particle_partner> is_antiparticle;  //!< Antiparticle (negative PDG
+                                              //!< number)
 
     //// METHODS ////
 

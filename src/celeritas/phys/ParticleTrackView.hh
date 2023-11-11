@@ -250,7 +250,7 @@ CELER_FUNCTION bool ParticleTrackView::is_antiparticle() const
  */
 CELER_FUNCTION bool ParticleTrackView::is_stable() const
 {
-    return this->decay_constant() == ParticleRecord::stable_decay_constant();
+    return this->decay_constant() == stable_decay_constant;
 }
 
 //---------------------------------------------------------------------------//

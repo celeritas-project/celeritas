@@ -40,7 +40,6 @@ class ParticleTest : public Test
         using namespace units;
 
         constexpr auto zero = zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create particle defs, initialize on device
         ParticleParams::Input defs;
@@ -48,8 +47,9 @@ class ParticleTest : public Test
                         pdg::electron(),
                         MevMass{0.5109989461},
                         ElementaryCharge{-1},
-                        stable});
-        defs.push_back({"gamma", pdg::gamma(), zero, zero, stable});
+                        stable_decay_constant});
+        defs.push_back(
+            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant});
         defs.push_back({"neutron",
                         PDGNumber{2112},
                         MevMass{939.565413},
@@ -59,7 +59,7 @@ class ParticleTest : public Test
                         pdg::positron(),
                         MevMass{0.5109989461},
                         ElementaryCharge{1},
-                        stable});
+                        stable_decay_constant});
 
         particle_params = std::make_shared<ParticleParams>(std::move(defs));
     }

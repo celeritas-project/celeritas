@@ -29,18 +29,33 @@ InteractorHostTestBase::InteractorHostTestBase()
     using namespace constants;
     using namespace units;
     constexpr auto zero = zero_quantity();
-    auto stable = ParticleRecord::stable_decay_constant();
 
     constexpr MevMass emass{0.5109989461};
     constexpr MevMass mumass{105.6583745};
 
     // Default particle params
     ParticleParams::Input par_inp = {
-        {"electron", pdg::electron(), emass, ElementaryCharge{-1}, stable},
-        {"positron", pdg::positron(), emass, ElementaryCharge{1}, stable},
-        {"gamma", pdg::gamma(), zero, zero, stable},
-        {"mu_minus", pdg::mu_minus(), mumass, ElementaryCharge{-1}, stable},
-        {"mu_plus", pdg::mu_plus(), mumass, ElementaryCharge{1}, stable},
+        {"electron",
+         pdg::electron(),
+         emass,
+         ElementaryCharge{-1},
+         stable_decay_constant},
+        {"positron",
+         pdg::positron(),
+         emass,
+         ElementaryCharge{1},
+         stable_decay_constant},
+        {"gamma", pdg::gamma(), zero, zero, stable_decay_constant},
+        {"mu_minus",
+         pdg::mu_minus(),
+         mumass,
+         ElementaryCharge{-1},
+         stable_decay_constant},
+        {"mu_plus",
+         pdg::mu_plus(),
+         mumass,
+         ElementaryCharge{1},
+         stable_decay_constant},
     };
     this->set_particle_params(std::move(par_inp));
 
