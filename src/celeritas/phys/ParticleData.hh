@@ -55,8 +55,8 @@ struct ParticleParamsData
     Items<units::MevMass> mass;  //!< Rest mass [MeV / c^2]
     Items<units::ElementaryCharge> charge;  //!< Charge in units of [e]
     Items<real_type> decay_constant;  //!< Decay constant [1/s]
-    Items<MatterType> is_antiparticle;  //!< Antiparticle (negative PDG
-                                        //!< number)
+    Items<MatterType> matter;  //!< Antiparticle (negative PDG
+                               //!< number)
 
     //// METHODS ////
 
@@ -64,7 +64,7 @@ struct ParticleParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return !mass.empty() && !charge.empty() && !decay_constant.empty()
-               && !is_antiparticle.empty();
+               && !matter.empty();
     }
 
     //! Params size
@@ -81,7 +81,7 @@ struct ParticleParamsData
         mass = other.mass;
         charge = other.charge;
         decay_constant = other.decay_constant;
-        is_antiparticle = other.is_antiparticle;
+        matter = other.matter;
         return *this;
     }
 };

@@ -105,7 +105,7 @@ CELER_FUNCTION real_type ParticleView::decay_constant() const
  */
 CELER_FUNCTION bool ParticleView::is_antiparticle() const
 {
-    return params_.is_antiparticle[particle_] == MatterType::antiparticle;
+    return params_.matter[particle_] == MatterType::antiparticle;
 }
 
 //---------------------------------------------------------------------------//

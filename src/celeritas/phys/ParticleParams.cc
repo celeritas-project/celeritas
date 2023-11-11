@@ -84,11 +84,11 @@ ParticleParams::ParticleParams(Input const& input)
     auto mass = make_builder(&host_data.mass);
     auto charge = make_builder(&host_data.charge);
     auto decay_constant = make_builder(&host_data.decay_constant);
-    auto is_antiparticle = make_builder(&host_data.is_antiparticle);
+    auto matter = make_builder(&host_data.matter);
     mass.reserve(input.size());
     charge.reserve(input.size());
     decay_constant.reserve(input.size());
-    is_antiparticle.reserve(input.size());
+    matter.reserve(input.size());
 
     for (auto const& particle : input)
     {
@@ -113,9 +113,8 @@ ParticleParams::ParticleParams(Input const& input)
         mass.push_back(particle.mass);
         charge.push_back(particle.charge);
         decay_constant.push_back(particle.decay_constant);
-        is_antiparticle.push_back(particle.pdg_code.get() < 0
-                                      ? MatterType::antiparticle
-                                      : MatterType::particle);
+        matter.push_back(particle.pdg_code.get() < 0 ? MatterType::antiparticle
+                                                     : MatterType::particle);
     }
 
     // Move to mirrored data, copying to device
