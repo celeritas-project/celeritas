@@ -20,11 +20,10 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 
-//! Work around vector<bool>
-enum class MatterType : bool
+enum class MatterType : char
 {
-    particle = false,
-    antiparticle = true
+    particle,
+    antiparticle
 };
 
 //! Value of decay_constant for a stable particle
