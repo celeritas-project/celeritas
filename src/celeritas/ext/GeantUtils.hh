@@ -15,6 +15,10 @@ class G4RunManager;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// Clear Geant4's signal handlers that get installed when linking 11+
+void disable_geant_signal_handler();
+
+//---------------------------------------------------------------------------//
 // Get the number of threads in a version-portable way
 int get_geant_num_threads(G4RunManager const&);
 
