@@ -10,7 +10,6 @@
 #include <G4Event.hh>
 
 #include "corecel/Macros.hh"
-#include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
 
 #include "GlobalSetup.hh"
@@ -54,9 +53,7 @@ int HepMC3PrimaryGeneratorAction::NumEvents()
  */
 void HepMC3PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    ExceptionConverter call_g4exception{"celer0000"};
-    CELER_TRY_HANDLE(shared_reader().GeneratePrimaryVertex(event),
-                     call_g4exception);
+    shared_reader().GeneratePrimaryVertex(event);
 }
 
 //---------------------------------------------------------------------------//

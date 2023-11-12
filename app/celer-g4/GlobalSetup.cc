@@ -17,7 +17,6 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
-#include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
 #include "HepMC3PrimaryGeneratorAction.hh"
@@ -185,9 +184,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
     if (!input_.event_file.empty())
     {
         // Load the input file
-        CELER_TRY_HANDLE(
-            num_events_ = HepMC3PrimaryGeneratorAction::NumEvents(),
-            ExceptionConverter{"celer-g4000"});
+        num_events_ = HepMC3PrimaryGeneratorAction::NumEvents();
     }
     else
     {
