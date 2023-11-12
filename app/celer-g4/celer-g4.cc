@@ -45,6 +45,7 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantUtils.hh"
@@ -172,12 +173,14 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     {
         ScopedMem record_mem("run.initialize");
         ScopedTimeLog scoped_time;
+        ScopedProfiling profile_this{"celer-g4-setup"};
         CELER_LOG(status) << "Initializing run manager";
         run_manager->Initialize();
     }
     {
         ScopedMem record_mem("run.beamon");
         ScopedTimeLog scoped_time;
+        ScopedProfiling profile_this{"celer-g4-run"};
         auto num_events = setup.GetNumEvents();
         CELER_LOG(status) << "Transporting " << num_events << " events";
         run_manager->BeamOn(num_events);
