@@ -22,11 +22,16 @@ namespace app
 void LocalLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
 {
     int local_thread = G4Threading::G4GetThreadId();
+    std::clog << color_code('W') << '[';
     if (local_thread >= 0)
     {
-        std::clog << color_code('W') << '[' << local_thread + 1 << '/'
-                  << num_threads_ << "] " << color_code(' ');
+        std::clog << local_thread + 1;
     }
+    else
+    {
+        std::clog << 'M';
+    }
+    std::clog << '/' << num_threads_ << "] " << color_code(' ');
 
     if (lev == LogLevel::debug || lev >= LogLevel::warning)
     {
