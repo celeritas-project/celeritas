@@ -18,6 +18,7 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "celeritas_config.h"
+#include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
