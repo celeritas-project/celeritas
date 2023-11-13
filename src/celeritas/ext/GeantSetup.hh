@@ -91,8 +91,6 @@ G4VPhysicalVolume const* GeantSetup::world() const
 }
 
 #if !CELERITAS_USE_GEANT4
-inline void GeantSetup::disable_signal_handler() {}
-
 inline GeantSetup::GeantSetup(std::string const&, Options)
 {
     CELER_NOT_CONFIGURED("Geant4");

@@ -34,6 +34,8 @@ int get_geant_thread_id();
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
+inline void disable_geant_signal_handler() {}
+
 inline int get_geant_num_threads(G4RunManager const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
