@@ -38,11 +38,6 @@ class GlobalSetup
     //!@{
     //! \name Demo setup options (DEPRECATED: use direct interface to input)
     std::string const& GetGeometryFile() const { return input_.geometry_file; }
-    std::string const& GetEventFile() const { return input_.event_file; }
-    PrimaryGeneratorOptions const& GetPrimaryGeneratorOptions() const
-    {
-        return input_.primary_options;
-    }
     GeantPhysicsOptions const& GetPhysicsOptions() const
     {
         return input_.physics_options;
@@ -57,9 +52,6 @@ class GlobalSetup
         return input_.field_options;
     }
     //!@}
-
-    //! Get the number of events
-    int GetNumEvents() { return num_events_; }
 
     //! Get a mutable reference to the setup options for DetectorConstruction
     SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
@@ -102,7 +94,6 @@ class GlobalSetup
     std::shared_ptr<SetupOptions> options_;
     RunInput input_;
     Stopwatch get_setup_time_;
-    int num_events_{0};
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };

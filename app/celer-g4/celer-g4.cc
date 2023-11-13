@@ -18,7 +18,6 @@
 #include <G4UIExecutive.hh>
 #include <G4Version.hh>
 
-#include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/SharedParams.hh"
 
 #include "GlobalSetup.hh"
@@ -78,6 +77,9 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     // (G4MTRunManager constructor uses the RNG)
     CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);
 
+    // Construct global setup singleton and make options available to UI
+    auto& setup = *GlobalSetup::Instance();
+
     auto run_manager = [] {
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
@@ -116,9 +118,6 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
 
     CELER_LOG(info) << "Run manager type: "
                     << TypeDemangler<G4RunManager>{}(*run_manager);
-
-    // Construct singleton, making options available to UI
-    auto& setup = *GlobalSetup::Instance();
 
     // Read user input
     std::string_view filename{argv[1]};
@@ -167,7 +166,11 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
         default:
             CELER_ASSERT_UNREACHABLE();
     }
-    run_manager->SetUserInitialization(new ActionInitialization(params));
+
+    // Create action initializer
+    auto act_init = std::make_unique<ActionInitialization>(params);
+    int num_events = act_init->num_events();
+    run_manager->SetUserInitialization(act_init.release());
 
     // Initialize run and process events
     {
@@ -181,7 +184,6 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
         ScopedMem record_mem("run.beamon");
         ScopedTimeLog scoped_time;
         ScopedProfiling profile_this{"celer-g4-run"};
-        auto num_events = setup.GetNumEvents();
         CELER_LOG(status) << "Transporting " << num_events << " events";
         run_manager->BeamOn(num_events);
     }

@@ -127,7 +127,6 @@ void GlobalSetup::ReadInput(std::string const& filename)
         std::ifstream infile(filename);
         CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
         nlohmann::json::parse(infile).get_to(input_);
-        CELER_ASSERT(input_);
 
         // Input options
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
@@ -178,17 +177,6 @@ void GlobalSetup::ReadInput(std::string const& filename)
     {
         CELER_LOG(warning) << "Collecting SD hit data that will not be "
                               "written because ROOT is disabled";
-    }
-
-    // Get the number of events
-    if (!input_.event_file.empty())
-    {
-        // Load the input file
-        num_events_ = HepMC3PrimaryGeneratorAction::NumEvents();
-    }
-    else
-    {
-        num_events_ = input_.primary_options.num_events;
     }
 
     // Start the timer for setup time
