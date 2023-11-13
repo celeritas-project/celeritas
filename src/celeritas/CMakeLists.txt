@@ -27,6 +27,7 @@ list(APPEND SOURCES
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
+  field/FieldDriverOptions.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
   geo/GeoParamsOutput.cc
