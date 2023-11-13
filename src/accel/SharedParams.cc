@@ -267,7 +267,8 @@ void SharedParams::InitializeWorker(SetupOptions const&)
  */
 void SharedParams::Finalize()
 {
-    std::lock_guard scoped_lock{updating_mutex()};
+    static std::mutex finalize_mutex;
+    std::lock_guard scoped_lock{finalize_mutex};
 
     // Output at end of run
     this->try_output();
