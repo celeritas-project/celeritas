@@ -35,6 +35,7 @@ class CutoffParamsTest : public Test
 
     void SetUp() override
     {
+        using namespace constants;
         using namespace units;
 
         // Set up MaterialParams

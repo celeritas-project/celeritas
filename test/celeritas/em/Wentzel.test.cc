@@ -29,6 +29,7 @@ class CoulombScatteringTest : public InteractorHostTestBase
   protected:
     void SetUp() override
     {
+        using namespace constants;
         // Need to include protons
         constexpr units::MevMass emass{0.5109989461};
         ParticleParams::Input par_inp

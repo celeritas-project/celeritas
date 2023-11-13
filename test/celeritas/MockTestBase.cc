@@ -102,8 +102,8 @@ auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
 //---------------------------------------------------------------------------//
 auto MockTestBase::build_particle() -> SPConstParticle
 {
+    using namespace constants;
     using namespace units;
-
     constexpr auto zero = zero_quantity();
 
     ParticleParams::Input inp;

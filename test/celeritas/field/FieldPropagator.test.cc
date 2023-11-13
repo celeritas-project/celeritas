@@ -89,6 +89,7 @@ class FieldPropagatorTestBase : public GenericCoreGeoTestBase,
 auto FieldPropagatorTestBase::build_particle() const -> SPConstParticle
 {
     // Create particle defs
+    using namespace constants;
     using namespace units;
     ParticleParams::Input defs = {{"electron",
                                    pdg::electron(),

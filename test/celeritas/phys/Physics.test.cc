@@ -745,6 +745,7 @@ auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 {
+    using namespace constants;
     using namespace units;
 
     constexpr auto zero = zero_quantity();

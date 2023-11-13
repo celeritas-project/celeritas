@@ -33,6 +33,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
   protected:
     void SetUp() override
     {
+        using namespace constants;
         using namespace units;
         constexpr auto zero = zero_quantity();
 

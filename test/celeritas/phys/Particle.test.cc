@@ -37,6 +37,7 @@ class ParticleTest : public Test
 
     void SetUp() override
     {
+        using namespace constants;
         using namespace units;
 
         constexpr auto zero = zero_quantity();

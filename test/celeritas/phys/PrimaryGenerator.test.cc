@@ -34,6 +34,7 @@ class PrimaryGeneratorTest : public Test
   protected:
     void SetUp() override
     {
+        using namespace constants;
         constexpr auto zero = zero_quantity();
 
         // Create particle defs

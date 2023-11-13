@@ -60,6 +60,7 @@ void EventIOTestBase::ReadAllResult::print_expected() const
 //---------------------------------------------------------------------------//
 void EventIOTestBase::SetUp()
 {
+    using namespace constants;
     using units::ElementaryCharge;
     using units::MevMass;
     using units::second;

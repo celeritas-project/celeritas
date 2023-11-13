@@ -41,6 +41,7 @@ namespace
 std::shared_ptr<ParticleParams> load_params()
 {
     using namespace celeritas::units;
+    using namespace constants;
     constexpr auto zero = zero_quantity();
 
     return std::make_shared<ParticleParams>(ParticleParams::Input{

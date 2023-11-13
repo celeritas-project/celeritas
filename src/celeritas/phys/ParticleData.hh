@@ -26,9 +26,6 @@ enum class MatterType : char
     antiparticle
 };
 
-//! Value of decay_constant for a stable particle
-constexpr real_type stable_decay_constant = 0;
-
 //---------------------------------------------------------------------------//
 /*!
  * Access particle definitions on the device.
