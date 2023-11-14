@@ -314,6 +314,7 @@ void VecgeomParams::build_volume_tracking()
 
     if (celeritas::device())
     {
+#if CELERITAS_USE_CUDA
         CELER_LOG(debug) << "Initializing BVH on GPU";
         {
             ScopedTimeAndRedirect time_and_output_(
@@ -321,6 +322,7 @@ void VecgeomParams::build_volume_tracking()
             vecgeom::cxx::BVHManager::DeviceInit();
             CELER_DEVICE_CHECK_ERROR();
         }
+#endif
     }
 }
 
