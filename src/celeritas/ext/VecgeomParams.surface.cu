@@ -17,7 +17,7 @@ using BrepCudaManager = vgbrep::BrepCudaManager<vecgeom::Precision>;
 using SurfData = vgbrep::SurfData<vecgeom::Precision>;
 
 //---------------------------------------------------------------------------//
-void build_surface_tracking_device(SurfData const& surfData)
+void setup_surface_tracking_device(SurfData const& surfData)
 {
     BrepCudaManager::Instance().TransferSurfData(surfData);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
