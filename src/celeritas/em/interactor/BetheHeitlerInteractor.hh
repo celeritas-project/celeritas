@@ -150,7 +150,7 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
                           Energy{inc_energy_})
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
-    CELER_EXPECT(inc_energy_ > 2 * value_as<Mass>(shared_.electron_mass));
+    CELER_EXPECT(inc_energy_ >= 2 * value_as<Mass>(shared_.electron_mass));
 
     epsilon0_ = value_as<Mass>(shared_.electron_mass) / inc_energy_;
 }

@@ -57,10 +57,12 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId id,
  */
 auto BetheHeitlerModel::applicability() const -> SetApplicability
 {
+    using Energy = units::MevEnergy;
+
     Applicability photon_applic;
     photon_applic.particle = data_.ids.gamma;
-    photon_applic.lower = zero_quantity();
-    photon_applic.upper = units::MevEnergy{1e8};
+    photon_applic.lower = Energy{2 * this->host_ref().electron_mass.value()};
+    photon_applic.upper = Energy{1e8};
 
     return {photon_applic};
 }

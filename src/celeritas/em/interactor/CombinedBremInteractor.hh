@@ -119,7 +119,8 @@ CombinedBremInteractor::CombinedBremInteractor(
 {
     CELER_EXPECT(is_electron_
                  || particle.particle_id() == shared.rb_data.ids.positron);
-    CELER_EXPECT(gamma_cutoff_.value() > 0);
+    CELER_EXPECT(gamma_cutoff_ > zero_quantity());
+    CELER_EXPECT(inc_energy_ > gamma_cutoff_);
 }
 
 //---------------------------------------------------------------------------//
@@ -129,13 +130,6 @@ CombinedBremInteractor::CombinedBremInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
 {
-    // TODO: reject this interaction before executing the kernel by using
-    // correct material-dependent lower bounds for the interaction
-    if (gamma_cutoff_ > inc_energy_)
-    {
-        return Interaction::from_unchanged(inc_energy_, inc_direction_);
-    }
-
     // Allocate space for the brems photon
     Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)
