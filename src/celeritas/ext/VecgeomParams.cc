@@ -160,13 +160,14 @@ VecgeomParams::~VecgeomParams()
     if (device_ref_)
     {
         CELER_LOG(debug) << "Clearing VecGeom GPU data";
-#    ifdef VECGEOM_USE_SURF
+#ifdef VECGEOM_USE_SURF
         if (this->use_surface_tracking())
         {
             // clear surface data first
+            CELER_LOG(debug) << "Clearing SurfModel GPU data";
             teardown_surface_tracking_device();
         }
-#    endif
+#endif
         vecgeom::CudaManager::Instance().Clear();
     }
 #endif
@@ -174,9 +175,9 @@ VecgeomParams::~VecgeomParams()
     if (this->use_surface_tracking())
     {
         CELER_LOG(debug) << "Clearing SurfModel CPU data";
-#ifdef VECGEOM_USE_SURF
+//#ifdef VECGEOM_USE_SURF
         vgbrep::BrepHelper<real_type>::Instance().ClearData();
-#endif
+//#endif
     }
 
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
@@ -354,6 +355,7 @@ void VecgeomParams::build_surface_tracking()
 
     if (celeritas::device())
     {
+#if CELERITAS_USE_CUDA
         CELER_LOG(debug) << "Transferring surface data to GPU";
         {
             ScopedTimeAndRedirect time_and_output_(
@@ -364,6 +366,7 @@ void VecgeomParams::build_surface_tracking()
             setup_surface_tracking_device(surfData);
             CELER_DEVICE_CHECK_ERROR();
         }
+#endif
     }
 #else
     vecgeom_verbosity();
