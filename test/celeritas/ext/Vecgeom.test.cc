@@ -215,11 +215,11 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_CUDA(device))
     // Run kernel
     auto output = vgg_test(input);
 
-    static int const expected_output.ids[] = {
+    static int const expected_ids[] = {
         1, 2, 3, 4,  5,  1, 2, 3, 4, 5,  3, 4, 5, 6,  -2, 3, 4, 5, 6,  -2,
         4, 5, 6, -2, -3, 3, 4, 5, 6, -2, 4, 5, 6, -2, -3, 4, 5, 6, -2, -3,
     };
-    static double const expected_output.distances[] = {
+    static double const expected_distances[] = {
         20,
         95,
         50,
