@@ -40,6 +40,28 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Get the verbosity setting for vecgeom.
+ */
+int vecgeom_verbosity()
+{
+    static bool const result = [] {
+        std::string var = celeritas::getenv("VECGEOM_VERBOSE");
+        if (var.empty())
+        {
+            return 0;
+        }
+        return std::stoi(var);
+    }();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a GDML input.
@@ -219,14 +241,7 @@ void VecgeomParams::build_tracking()
 
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
 
-        cuda_manager.set_verbose([] {
-            std::string var = celeritas::getenv("VECGEOM_VERBOSE");
-            if (var.empty())
-            {
-                return 0;
-            }
-            return std::stoi(var);
-        }());
+        cuda_manager.set_verbose(vecgeom_verbosity());
 
         for (auto i : range(orig_limits.size()))
         {
@@ -305,6 +320,7 @@ void VecgeomParams::build_tracking()
         }
 #else
         CELER_NOT_CONFIGURED("CUDA");
+        vecgeom_verbosity();
 #endif
     }
 }
