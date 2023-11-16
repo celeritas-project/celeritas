@@ -44,10 +44,7 @@ class MultiExceptionHandler
   public:
     // Default all construct/copy/move
     MultiExceptionHandler() = default;
-    MultiExceptionHandler(MultiExceptionHandler&&) = default;
-    MultiExceptionHandler& operator=(MultiExceptionHandler&&) = default;
-    MultiExceptionHandler(MultiExceptionHandler const&) = default;
-    MultiExceptionHandler& operator=(MultiExceptionHandler const&) = default;
+    CELER_DEFAULT_COPY_MOVE(MultiExceptionHandler);
 
     // Terminate if destroyed without handling exceptions
     ~MultiExceptionHandler();
