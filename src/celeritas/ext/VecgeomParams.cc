@@ -64,6 +64,19 @@ int vecgeom_verbosity()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether surface tracking is being used.
+ */
+bool VecgeomParams::use_surface_tracking()
+{
+#ifdef VECGEOM_USE_SURF
+    return true;
+#else
+    return false;
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from a GDML input.
  */
 VecgeomParams::VecgeomParams(std::string const& filename)
@@ -139,6 +152,7 @@ VecgeomParams::~VecgeomParams()
         vecgeom::CudaManager::Instance().Clear();
     }
 #endif
+
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
     vecgeom::GeoManager::Instance().Clear();
 }
@@ -217,6 +231,32 @@ void VecgeomParams::build_tracking()
     CELER_LOG(status) << "Initializing tracking information";
     ScopedProfiling profile_this{"initialize-vecgeom"};
     ScopedMem record_mem("VecgeomParams.build_tracking");
+    if (VecgeomParams::use_surface_tracking())
+    {
+        this->build_surface_tracking();
+    }
+    else
+    {
+        this->build_volume_tracking();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * After loading solids, set up VecGeom surface data and copy to GPU.
+ */
+void VecgeomParams::build_surface_tracking()
+{
+    CELER_NOT_CONFIGURED("surface tracking");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * After loading solids, set up VecGeom tracking data and copy to GPU.
+ */
+void VecgeomParams::build_volume_tracking()
+{
+    CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
