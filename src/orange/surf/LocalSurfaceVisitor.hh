@@ -137,7 +137,7 @@ CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());
 
-    return T{params_.reals[{offset, ItemIdT{size}}]};
+    return T{params_.reals[{offset, offset + size}]};
 }
 
 //---------------------------------------------------------------------------//
