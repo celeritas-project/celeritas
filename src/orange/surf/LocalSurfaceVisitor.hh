@@ -77,9 +77,8 @@ class LocalSurfaceVisitor
 
     // Get a pointer to the item at the given item index.
     template<class T>
-    static inline CELER_FUNCTION auto
-    get_ptr(Items<T> const& items, ItemId<T> item)
-        -> decltype(items[AllItems<T>{}]);
+    static inline CELER_FUNCTION typename Items<T>::SpanConstT
+    get_span(Items<T> const& items, ItemId<T> item);
 };
 
 //---------------------------------------------------------------------------//
@@ -142,7 +141,7 @@ CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());
 
-    auto data = this->get_ptr(params_.reals, offset);
+    auto data = this->get_span(params_.reals, offset);
     return T{data};
 }
 
@@ -159,8 +158,9 @@ CELER_FUNCTION T LocalSurfaceVisitor::get_item(Items<T> const& items,
     CELER_EXPECT(*range.end() <= items.size());
     CELER_EXPECT(item < range.size());
 
-    auto ptr = LocalSurfaceVisitor::get_ptr(items, *range.begin());
-    return ptr[item.unchecked_get()];
+    auto data = LocalSurfaceVisitor::get_span(items, *range.begin());
+    CELER_ASSERT(item < data.size());
+    return data[item.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -169,8 +169,8 @@ CELER_FUNCTION T LocalSurfaceVisitor::get_item(Items<T> const& items,
  */
 template<class T>
 CELER_FUNCTION auto
-LocalSurfaceVisitor::get_ptr(Items<T> const& items, ItemId<T> item)
-    -> decltype(items[AllItems<T>{}])
+LocalSurfaceVisitor::get_span(Items<T> const& items, ItemId<T> item) ->
+    typename Items<T>::SpanConstT
 {
     CELER_EXPECT(item < items.size());
 
