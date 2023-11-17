@@ -77,8 +77,9 @@ class LocalSurfaceVisitor
 
     // Get a pointer to the item at the given item index.
     template<class T>
-    static inline CELER_FUNCTION T const*
-    get_ptr(Items<T> const& items, ItemId<T> item);
+    static inline CELER_FUNCTION auto
+    get_ptr(Items<T> const& items, ItemId<T> item)
+        -> decltype(items[AllItems<T>{}]);
 };
 
 //---------------------------------------------------------------------------//
@@ -141,8 +142,8 @@ CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());
 
-    real_type const* data = this->get_ptr(params_.reals, offset);
-    return T{Span<real_type const, size>{data, size}};
+    auto data = this->get_ptr(params_.reals, offset);
+    return T{data};
 }
 
 //---------------------------------------------------------------------------//
@@ -158,8 +159,8 @@ CELER_FUNCTION T LocalSurfaceVisitor::get_item(Items<T> const& items,
     CELER_EXPECT(*range.end() <= items.size());
     CELER_EXPECT(item < range.size());
 
-    T const* ptr = LocalSurfaceVisitor::get_ptr(items, *range.begin());
-    return *(ptr + item.unchecked_get());
+    auto ptr = LocalSurfaceVisitor::get_ptr(items, *range.begin());
+    return ptr[item.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -167,13 +168,14 @@ CELER_FUNCTION T LocalSurfaceVisitor::get_item(Items<T> const& items,
  * Get a pointer to the item at the given item index.
  */
 template<class T>
-CELER_FUNCTION T const*
+CELER_FUNCTION auto
 LocalSurfaceVisitor::get_ptr(Items<T> const& items, ItemId<T> item)
+    -> decltype(items[AllItems<T>{}])
 {
     CELER_EXPECT(item < items.size());
 
-    T const* ptr = items[AllItems<T>{}].data();
-    return ptr + item.unchecked_get();
+    return items[AllItems<T>{}].subspan(item.unchecked_get(),
+                                        items.size() - item.unchecked_get());
 }
 
 //---------------------------------------------------------------------------//
