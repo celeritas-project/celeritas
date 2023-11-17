@@ -74,11 +74,6 @@ class LocalSurfaceVisitor
     static inline CELER_FUNCTION T get_item(Items<T> const& items,
                                             ItemRange<T> const& range,
                                             ItemId<U> item);
-
-    // Get a pointer to the item at the given item index.
-    template<class T>
-    static inline CELER_FUNCTION typename Items<T>::SpanConstT
-    get_span(Items<T> const& items, ItemId<T> item);
 };
 
 //---------------------------------------------------------------------------//
@@ -136,13 +131,13 @@ LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
 template<class T>
 CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
 {
-    OpaqueId<real_type> offset
+    using ItemIdT = typename decltype(params_.reals)::ItemIdT;
+    ItemIdT offset
         = this->get_item(params_.real_ids, surfaces_.data_offsets, id);
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());
 
-    auto data = this->get_span(params_.reals, offset);
-    return T{data};
+    return T{params_.reals[{offset, ItemIdT{size}}]};
 }
 
 //---------------------------------------------------------------------------//
@@ -157,25 +152,7 @@ CELER_FUNCTION T LocalSurfaceVisitor::get_item(Items<T> const& items,
 {
     CELER_EXPECT(*range.end() <= items.size());
     CELER_EXPECT(item < range.size());
-
-    auto data = LocalSurfaceVisitor::get_span(items, *range.begin());
-    CELER_ASSERT(item < data.size());
-    return data[item.unchecked_get()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a pointer to the item at the given item index.
- */
-template<class T>
-CELER_FUNCTION auto
-LocalSurfaceVisitor::get_span(Items<T> const& items, ItemId<T> item) ->
-    typename Items<T>::SpanConstT
-{
-    CELER_EXPECT(item < items.size());
-
-    return items[AllItems<T>{}].subspan(item.unchecked_get(),
-                                        items.size() - item.unchecked_get());
+    return items[range][item.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
