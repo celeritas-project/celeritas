@@ -31,7 +31,7 @@ jobs:
         image: ['ubuntu-cuda', 'centos-rocm']
         buildtype: ['debug', 'ndebug']
         geometry: ['orange', 'vecgeom']
-        special: null
+        special: ''
       exclude:
         - image: 'centos-rocm'
           vecgeom: true
@@ -54,7 +54,7 @@ jobs:
       CCACHE_MAXSIZE: "10G"
       CELER_TEST_STRICT: 1
       CMAKE_PRESET: >-
-        ${{buildtype}}-${{geometry}}${{special != null && "-" || ""}}${{special}}
+        ${{buildtype}}-${{geometry}}${{special && "-" || ""}}${{special}}
     container: >-
       hub.docker.com/celeritas/${{
             matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-03-13'
