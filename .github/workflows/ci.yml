@@ -1,0 +1,82 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - develop
+      - backports/**
+  pull_request:
+    branches:
+      - develop
+      - backports/**
+
+concurrency:
+  group: ${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  # TODO: skip all tests if only `scripts` has changed (dorny/paths-filter)
+  style:
+    uses: ./.github/workflows/style.yml
+  ci:
+    strategy:
+      matrix:
+        image: ['ubuntu-cuda', 'centos-rocm']
+        buildtype: ['debug', 'ndebug']
+        geometry: ['orange', 'vecgeom']
+        special: null
+      exclude:
+        - image: 'centos-rocm'
+          vecgeom: true
+      include:
+        - image: 'centos-rocm'
+          buildtype: 'asan'
+        - image: 'centos-rocm'
+          buildtype: 'debug'
+          geometry: 'orange'
+          special: 'minimal'
+        - image: 'centos-rocm'
+          buildtype: 'debug'
+          special: 'float'
+        - image: 'centos-rocm'
+          buildtype: 'reldeb'
+          geometry: 'geant4'
+    env:
+      ASAN_OPTIONS: "detect_leaks=0"
+      CCACHE_DIR: "${{github.workspace}}/.ccache"
+      CCACHE_MAXSIZE: "10G"
+      CELER_TEST_STRICT: 1
+      CMAKE_PRESET: >-
+        ${{buildtype}}-${{geometry}}${{special != null && "-" || ""}}${{special}}
+    container: >-
+      hub.docker.com/celeritas/${{
+            matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-03-13'
+        || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
+        || null
+      }}
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v3
+      - name: Configure Celeritas
+        run: |
+          ln -fs scripts/cmake-presets/ci-${{image}}.json CMakeUserPresets.json
+          cmake --preset=${CMAKE_PRESET}
+      - name: Build Celeritas
+        run: |
+          cmake --build --preset=${CMAKE_PRESET}
+      - name: Test Celeritas
+        run: |
+          ctest --timeout 180 --output-on-failure \
+            --test-output-size-passed=65536 --test-output-size-failed=1048576
+      - name: Install Celeritas
+        run: |
+          cmake --install .
+          for exe in orange-update celer-export-geant celer-dump-data \
+            celer-sim celer-g4; do
+            test -x "../install/bin/${exe}"
+          done
+          "../install/bin/celer-sim" --version
+      - name: Build examples
+        run: |
+          ./scripts/ci/test-examples.sh
+# vim: set nowrap tw=100:
