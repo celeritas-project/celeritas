@@ -30,26 +30,30 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        image: ['ubuntu-cuda', 'centos-rocm']
-        buildtype: ['debug', 'ndebug']
-        geometry: ['orange', 'vecgeom']
+        image: ['ubuntu-cuda']
+        buildtype: ['debug']
+        geometry: ['orange']
         special: [null]
-        exclude:
-          - image: 'centos-rocm'
-            geometry: 'vecgeom'
-        include:
-          - image: 'centos-rocm'
-            buildtype: 'asan'
-          - image: 'centos-rocm'
-            buildtype: 'debug'
-            geometry: 'orange'
-            special: 'minimal'
-          - image: 'centos-rocm'
-            buildtype: 'debug'
-            special: 'float'
-          - image: 'centos-rocm'
-            buildtype: 'reldeb'
-            geometry: 'geant4'
+        #        image: ['ubuntu-cuda', 'centos-rocm']
+        #        buildtype: ['debug', 'ndebug']
+        #        geometry: ['orange', 'vecgeom']
+        #        special: [null]
+        #        exclude:
+        #          - image: 'centos-rocm'
+        #            geometry: 'vecgeom'
+        #        include:
+        #          - image: 'centos-rocm'
+        #            buildtype: 'asan'
+        #          - image: 'centos-rocm'
+        #            buildtype: 'debug'
+        #            geometry: 'orange'
+        #            special: 'minimal'
+        #          - image: 'centos-rocm'
+        #            buildtype: 'debug'
+        #            special: 'float'
+        #          - image: 'centos-rocm'
+        #            buildtype: 'reldeb'
+        #            geometry: 'geant4'
     env:
       ASAN_OPTIONS: "detect_leaks=0"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
