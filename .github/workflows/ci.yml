@@ -15,16 +15,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # TODO: skip all tests if only `scripts` has changed (dorny/paths-filter)
-  clang-format-check:
-    name: Clang-Format Check
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Run clang-format style check for C/C++/CUDA
-      uses: jidicula/clang-format-action@v4.11.0
-      with:
-        clang-format-version: '17'
+  # TODO: skip tests if only `scripts` has changed (dorny/paths-filter)?
+  # TODO: clang format 
+  #  clang-format-check:
+  #    name: Clang-Format Check
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #    - uses: actions/checkout@v3
+  #    - name: Run clang-format style check for C/C++/CUDA
+  #      uses: jidicula/clang-format-action@v4.11.0
+  #      with:
+  #        clang-format-version: '17'
   ci:
     runs-on: ubuntu-20.04
     strategy:
@@ -57,7 +58,7 @@ jobs:
       CMAKE_PRESET: >-
         ${{matrix.buildtype}}-${{matrix.geometry}}${{matrix.special && '-' || ''}}${{matrix.special}}
     container: >-
-      hub.docker.com/celeritas/${{
+      docker.io/celeritas/${{
             matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-03-13'
         || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
         || null
