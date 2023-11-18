@@ -27,12 +27,12 @@ jobs:
   #      with:
   #        clang-format-version: '17'
   ci:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         image: ['ubuntu-cuda']
-        buildtype: ['debug']
         geometry: ['orange']
+        buildtype: ['debug']
         special: [null]
         #        image: ['ubuntu-cuda', 'centos-rocm']
         #        buildtype: ['debug', 'ndebug']
@@ -61,15 +61,31 @@ jobs:
       CELER_TEST_STRICT: 1
       CMAKE_PRESET: >-
         ${{matrix.buildtype}}-${{matrix.geometry}}${{matrix.special && '-' || ''}}${{matrix.special}}
-    container: >-
-      docker.io/celeritas/${{
-            matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-03-13'
-        || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
-        || null
-      }}
+    container:
+      image: >-
+        docker.io/celeritas/${{
+             matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-03-13'
+          || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
+          || null
+        }}
+      # TODO: don't use a 'root' user
+      # See https://github.com/actions/checkout/issues/956
+      options: --user root
     steps:
+      # TODO: use ccache
+      #      - name: Cache ccache
+      #        uses: actions/cache@v2
+      #        with:
+      #          path: ${{ env.CCACHE_DIR }}
+      #          key: ccache-${{ matrix.distro }}-${{github.run_id}}
+      #          restore-keys: ccache-${{ matrix.distro }}
+      #      - name: Zero ccache stats
+      #        run: |
+      #          ccache -z
       - name: Check out Celeritas
         uses: actions/checkout@v3
+        with:
+          fetch-tags: true
       - name: Configure Celeritas
         run: |
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
