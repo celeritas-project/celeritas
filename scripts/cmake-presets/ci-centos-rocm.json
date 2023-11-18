@@ -33,7 +33,7 @@
       }
     },
     {
-      "name": "asan",
+      "name": "asan-orange",
       "description": "Build with address sanitizer flags",
       "inherits": ["base", ".reldeb"],
       "cacheVariables": {
@@ -42,12 +42,12 @@
       }
     },
     {
-      "name": "debug",
+      "name": "debug-orange",
       "description": "Build debug with HIP/ROCM for AMD",
       "inherits": [".debug", "base"]
     },
     {
-      "name": "minitest",
+      "name": "debug-orange-minimal",
       "description": "Build without any dependencies but JSON/Googletest",
       "inherits": [".debug", "base"]
       "cacheVariables": {
@@ -61,7 +61,7 @@
       }
     },
     {
-      "name": "float",
+      "name": "debug-orange-float",
       "description": "Build with single-precision arithmetic",
       "inherits": [".debug", "base"]
       "cacheVariables": {
@@ -74,12 +74,12 @@
       }
     },
     {
-      "name": "ndebug",
+      "name": "ndebug-orange",
       "description": "Build with HIP/ROCM for AMD",
       "inherits": [".ndebug", "base"]
     },
     {
-      "name": "geant4",
+      "name": "reldeb-geant4",
       "description": "Build with geant4 as the core geometry",
       "inherits": [".reldeb", "base"]
       "cacheVariables": {

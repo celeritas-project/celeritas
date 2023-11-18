@@ -49,13 +49,8 @@
       }
     },
     {
-      "name": "debug",
-      "description": "Build debug",
-      "inherits": [".debug", "base"]
-    },
-    {
-      "name": "full-novg",
-      "description": "Build with debug, everything but VecGeom",
+      "name": "debug-orange",
+      "description": "Build with debug ORANGE and MPI",
       "inherits": [".mpi", ".debug", "base"],
       "cacheVariables": {
         "CELERITAS_TEST_VERBOSE": {"type": "BOOL", "value": "ON"}, 
@@ -63,27 +58,26 @@
       }
     },
     {
-      "name": "full-novg-ndebug",
+      "name": "ndebug-orange",
       "description": "Build everything but VecGeom in release mode",
-      "inherits": [".ndebug", "full-novg"]
+      "inherits": [".ndebug", "debug-orange"]
     },
     {
-      "name": "vecgeom-reldeb",
-      "description": "Build with RelWithDebInfo, assertions, and VecGeom",
-      "inherits": [".reldeb", ".vecgeom", "base"]
-    },
-    {
-      "name": "vecgeom-tests",
+      "name": "debug-vecgeom",
       "description": "Build tests in debug with vecgeom",
       "inherits": [".vecgeom", "base"],
       "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
-      "name": "vecgeom-demos",
-      "description": "Build demonstration with vecgeom",
+      "name": "reldeb-vecgeom",
+      "description": "Build with RelWithDebInfo, assertions, and VecGeom",
+      "inherits": [".reldeb", ".vecgeom", "base"]
+    },
+    {
+      "name": "ndebug-vecgeom",
+      "description": "Build release with vecgeom demos",
       "inherits": [".ndebug", ".vecgeom", "base"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"}
@@ -98,11 +92,11 @@
       "verbose": true,
       "jobs": 16
     },
-    {"name": "full-novg"       , "configurePreset": "full-novg"       , "inherits": "base"},
-    {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base", "targets": ["all", "install"]},
-    {"name": "vecgeom-reldeb"  , "configurePreset": "vecgeom-reldeb"  , "inherits": "base", "targets": ["all", "install"]},
-    {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base", "jobs": 8},
-    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8, "targets": ["app/all", "install"]}
+    {"name": "debug-orange"       , "configurePreset": "debug-orange"       , "inherits": "base"},
+    {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base", "targets": ["all", "install"]},
+    {"name": "reldeb-vecgeom"  , "configurePreset": "reldeb-vecgeom"  , "inherits": "base", "targets": ["all", "install"]},
+    {"name": "debug-vecgeom"   , "configurePreset": "debug-vecgeom"   , "inherits": "base", "jobs": 8},
+    {"name": "ndebug-vecgeom"   , "configurePreset": "ndebug-vecgeom"   , "inherits": "base", "jobs": 8, "targets": ["app/all", "install"]}
   ],
   "testPresets": [
     {
@@ -120,11 +114,11 @@
         "outputOnFailure": true
       }
     },
-    {"name": "full-novg"       , "configurePreset": "full-novg"       , "inherits": "base"},
-    {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base"},
-    {"name": "vecgeom-reldeb"  , "configurePreset": "vecgeom-reldeb"  , "inherits": "base"},
-    {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base"},
-    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base",
+    {"name": "debug-orange"       , "configurePreset": "debug-orange"       , "inherits": "base"},
+    {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base"},
+    {"name": "reldeb-vecgeom"  , "configurePreset": "reldeb-vecgeom"  , "inherits": "base"},
+    {"name": "debug-vecgeom"   , "configurePreset": "debug-vecgeom"   , "inherits": "base"},
+    {"name": "ndebug-vecgeom"   , "configurePreset": "ndebug-vecgeom"   , "inherits": "base",
       "filter": {
         "include": {"label": "app"}
       }

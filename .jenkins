@@ -9,7 +9,7 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-        stage('clang-minitest') {
+        stage('clang-minimal') {
           agent {
             docker {
               image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
@@ -17,7 +17,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm minitest'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm debug-orange-minimal'
           }
           post {
             always {
@@ -64,7 +64,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm ndebug'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm ndebug-orange'
           }
           post {
             always {
@@ -80,7 +80,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda full-novg'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda debug-orange'
           }
           post {
             always {
@@ -96,7 +96,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda full-novg-ndebug'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda ndebug-orange'
           }
           post {
             always {
@@ -112,7 +112,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-reldeb'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda reldeb-vecgeom'
           }
           post {
             always {
@@ -128,7 +128,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-demos'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda ndebug-vecgeom'
           }
           post {
             always {
@@ -144,7 +144,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-tests'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda debug-vecgeom'
           }
           post {
             always {
@@ -160,7 +160,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm geant4'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm reldeb-geant4'
           }
           post {
             always {
