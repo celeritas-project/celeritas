@@ -168,6 +168,8 @@ celeritas_set_default(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
 celeritas_set_default(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY FALSE)
 
 ### Build flags ###
+# Default to building CTest tree if using Celeritas tests
+celeritas_set_default(BUILD_TESTING ${CELERITAS_BUILD_TESTS})
 # Default to debug or released based on value of CELERITAS_DEBUG
 if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   if(CELERITAS_DEBUG)
@@ -227,6 +229,11 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 #----------------------------------------------------------------------------#
 # DEPENDENCIES
 #----------------------------------------------------------------------------#
+
+if(BUILD_TESTING)
+  # Build the test tree for unit and/or app tests
+  include(CTest)
+endif()
 
 if(CELERITAS_USE_CUDA)
   # Use host compiler by default to ensure ABI consistency
@@ -429,7 +436,6 @@ endif()
 #----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_TESTS)
-  include(CTest)
   add_subdirectory(test)
 endif()
 

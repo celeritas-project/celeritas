@@ -53,7 +53,7 @@ celeritas_target_link_libraries(celer-g4
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT CELERITAS_BUILD_TESTS)
+if(NOT BUILD_TESTING)
   return()
 endif()
 

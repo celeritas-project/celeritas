@@ -30,24 +30,9 @@ cmake --build --preset=${CMAKE_PRESET}
 # Require regression-like tests to be enabled and pass
 export CELER_TEST_STRICT=1
 
-# Set up test arguments
-CTEST_TOOL=Test
-CTEST_ARGS=""
-case ${CMAKE_PRESET} in
-  vecgeom-demos )
-    CTEST_ARGS="-L app"
-    ;;
-  valgrind )
-    CTEST_TOOL="MemCheck"
-    CTEST_ARGS="-LE nomemcheck"
-    ;;
-  * )
-    ;;
-esac
-
 # Run tests
 cd build
-ctest -T ${CTEST_TOOL} ${CTEST_ARGS}\
+ctest \
   -j16 --timeout 180 \
   --no-compress-output --output-on-failure \
   --test-output-size-passed=65536 --test-output-size-failed=1048576 \

@@ -31,7 +31,7 @@ celeritas_target_link_libraries(demo-rasterizer ${_rasterizer_libs})
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT CELERITAS_BUILD_TESTS)
+if(NOT BUILD_TESTING)
   return()
 endif()
 

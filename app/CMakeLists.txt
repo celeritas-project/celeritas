@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_TESTS)
+if(BUILD_TESTING)
   # Set environment variables from Geant4-exported configuration
   set(CELER_G4ENV)
   foreach(_ds IN LISTS Geant4_DATASETS)
@@ -77,7 +77,7 @@ endif()
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT CELERITAS_BUILD_TESTS)
+if(NOT BUILD_TESTING)
   return()
 endif()
 set(_geant_test_inp "${CELER_APP_DATA_DIR}/four-steel-slabs.gdml")

@@ -42,7 +42,7 @@ celeritas_target_link_libraries(celer-sim ${LIBRARIES})
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT CELERITAS_BUILD_TESTS)
+if(NOT BUILD_TESTING)
   return()
 endif()
 
