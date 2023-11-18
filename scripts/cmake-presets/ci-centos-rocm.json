@@ -9,7 +9,6 @@
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
@@ -36,22 +35,21 @@
     {
       "name": "asan",
       "description": "Build with address sanitizer flags",
-      "inherits": ["base"],
+      "inherits": ["base", ".reldeb"],
       "cacheVariables": {
         "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
       }
     },
     {
       "name": "debug",
       "description": "Build debug with HIP/ROCM for AMD",
-      "inherits": "base"
+      "inherits": [".debug", "base"]
     },
     {
       "name": "minitest",
       "description": "Build without any dependencies but JSON/Googletest",
-      "inherits": "base",
+      "inherits": [".debug", "base"]
       "cacheVariables": {
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
@@ -65,7 +63,7 @@
     {
       "name": "float",
       "description": "Build with single-precision arithmetic",
-      "inherits": "base",
+      "inherits": [".debug", "base"]
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float",
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
@@ -78,15 +76,12 @@
     {
       "name": "ndebug",
       "description": "Build with HIP/ROCM for AMD",
-      "inherits": [".ndebug", "base"],
-      "cacheVariables": {
-        "BUILD_SHARED_LIBS": {"type": "BOOL", "value": "OFF"}
-      }
+      "inherits": [".ndebug", "base"]
     },
     {
       "name": "geant4",
       "description": "Build with geant4 as the core geometry",
-      "inherits": ["base"],
+      "inherits": [".reldeb", "base"]
       "cacheVariables": {
         "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},

@@ -27,7 +27,7 @@
     {
       "name": "base",
       "displayName": "Omnia default options (rocm, debug)",
-      "inherits": [".base"]
+      "inherits": [".debug", ".base"]
     },
     {
       "name": "ndebug",

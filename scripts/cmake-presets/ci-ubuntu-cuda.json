@@ -49,9 +49,14 @@
       }
     },
     {
+      "name": "debug",
+      "description": "Build debug",
+      "inherits": [".debug", "base"]
+    },
+    {
       "name": "full-novg",
       "description": "Build with debug, everything but VecGeom",
-      "inherits": [".mpi", "base"],
+      "inherits": [".mpi", ".debug", "base"],
       "cacheVariables": {
         "CELERITAS_TEST_VERBOSE": {"type": "BOOL", "value": "ON"}, 
         "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"}
