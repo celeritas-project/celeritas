@@ -147,12 +147,12 @@ CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
  */
 template<class T, class U>
 CELER_FUNCTION T LocalSurfaceVisitor::get_item(Items<T> const& items,
-                                               ItemRange<T> const& range,
+                                               ItemRange<T> const& offsets,
                                                ItemId<U> item)
 {
-    CELER_EXPECT(*range.end() <= items.size());
-    CELER_EXPECT(item < range.size());
-    return items[range][item.unchecked_get()];
+    CELER_EXPECT(*offsets.end() <= items.size());
+    CELER_EXPECT(item < offsets.size());
+    return items[offsets][item.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
