@@ -35,7 +35,7 @@ jobs:
         special: [null]
         exclude:
           - image: 'centos-rocm'
-            vecgeom: true
+            geometry: 'vecgeom'
         include:
           - image: 'centos-rocm'
             buildtype: 'asan'
