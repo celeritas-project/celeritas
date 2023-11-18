@@ -62,9 +62,6 @@ jobs:
       CMAKE_PRESET: >-
         ${{matrix.buildtype}}-${{matrix.geometry}}${{matrix.special && '-' || ''}}${{matrix.special}}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: entrypoint-shell
     container:
       image: >-
         docker.io/celeritas/${{
@@ -92,22 +89,21 @@ jobs:
           fetch-tags: true
       - name: Configure Celeritas
         run: |
-          echo $0
-          env
-          pwd
-          whoami
-          exit 1
+          source /etc/profile
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
-          #cmake --preset=${CMAKE_PRESET}
+          cmake --preset=${CMAKE_PRESET}
       - name: Build Celeritas
         run: |
+          source /etc/profile
           cmake --build --preset=${CMAKE_PRESET}
       - name: Test Celeritas
         run: |
+          source /etc/profile
           ctest --timeout 180 --output-on-failure \
             --test-output-size-passed=65536 --test-output-size-failed=1048576
       - name: Install Celeritas
         run: |
+          source /etc/profile
           cmake --install .
           for exe in orange-update celer-export-geant celer-dump-data \
             celer-sim celer-g4; do
@@ -116,5 +112,6 @@ jobs:
           "../install/bin/celer-sim" --version
       - name: Build examples
         run: |
+          source /etc/profile
           ./scripts/ci/test-examples.sh
 # vim: set nowrap tw=100:
