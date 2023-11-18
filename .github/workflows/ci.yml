@@ -18,7 +18,7 @@ jobs:
   # TODO: skip tests if only `scripts` has changed (dorny/paths-filter)?
   # TODO: clang format 
   #  clang-format-check:
-  #    name: Clang-Format Check
+  #    name: Check formatting
   #    runs-on: ubuntu-latest
   #    steps:
   #    - uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
   #      with:
   #        clang-format-version: '17'
   ci:
-    runs-on: ubuntu-latest
+    name: Check execution
     strategy:
       matrix:
         image: ['ubuntu-cuda']
@@ -61,6 +61,10 @@ jobs:
       CELER_TEST_STRICT: 1
       CMAKE_PRESET: >-
         ${{matrix.buildtype}}-${{matrix.geometry}}${{matrix.special && '-' || ''}}${{matrix.special}}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: entrypoint-shell
     container:
       image: >-
         docker.io/celeritas/${{
@@ -91,10 +95,10 @@ jobs:
           echo $0
           env
           pwd
-          ls -alF
           whoami
+          exit 1
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
-          cmake --preset=${CMAKE_PRESET}
+          #cmake --preset=${CMAKE_PRESET}
       - name: Build Celeritas
         run: |
           cmake --build --preset=${CMAKE_PRESET}
