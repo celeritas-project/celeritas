@@ -26,35 +26,36 @@ jobs:
       with:
         clang-format-version: '17'
   ci:
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         image: ['ubuntu-cuda', 'centos-rocm']
         buildtype: ['debug', 'ndebug']
         geometry: ['orange', 'vecgeom']
-        special: ''
-      exclude:
-        - image: 'centos-rocm'
-          vecgeom: true
-      include:
-        - image: 'centos-rocm'
-          buildtype: 'asan'
-        - image: 'centos-rocm'
-          buildtype: 'debug'
-          geometry: 'orange'
-          special: 'minimal'
-        - image: 'centos-rocm'
-          buildtype: 'debug'
-          special: 'float'
-        - image: 'centos-rocm'
-          buildtype: 'reldeb'
-          geometry: 'geant4'
+        special: [null]
+        exclude:
+          - image: 'centos-rocm'
+            vecgeom: true
+        include:
+          - image: 'centos-rocm'
+            buildtype: 'asan'
+          - image: 'centos-rocm'
+            buildtype: 'debug'
+            geometry: 'orange'
+            special: 'minimal'
+          - image: 'centos-rocm'
+            buildtype: 'debug'
+            special: 'float'
+          - image: 'centos-rocm'
+            buildtype: 'reldeb'
+            geometry: 'geant4'
     env:
       ASAN_OPTIONS: "detect_leaks=0"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "10G"
       CELER_TEST_STRICT: 1
       CMAKE_PRESET: >-
-        ${{buildtype}}-${{geometry}}${{special && "-" || ""}}${{special}}
+        ${{matrix.buildtype}}-${{matrix.geometry}}${{matrix.special && '-' || ''}}${{matrix.special}}
     container: >-
       hub.docker.com/celeritas/${{
             matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-03-13'
@@ -66,7 +67,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Configure Celeritas
         run: |
-          ln -fs scripts/cmake-presets/ci-${{image}}.json CMakeUserPresets.json
+          ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
       - name: Build Celeritas
         run: |
