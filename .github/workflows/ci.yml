@@ -9,6 +9,8 @@ on:
     branches:
       - develop
       - backports/**
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: ${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}

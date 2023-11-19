@@ -60,9 +60,9 @@
     {
       "name": "ndebug-orange",
       "description": "Build with release ORANGE",
-      "inherits": [".ndebug", "base"]
+      "inherits": [".ndebug", "base"],
       "cacheVariables": {
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -70,7 +70,7 @@
       "description": "Build tests in debug with vecgeom",
       "inherits": [".vecgeom", "base"],
       "cacheVariables": {
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
