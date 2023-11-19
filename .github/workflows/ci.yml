@@ -34,8 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #image: ['ubuntu-cuda', 'centos-rocm']
-        image: ['ubuntu-cuda']
+        image: ['ubuntu-cuda', 'centos-rocm']
         buildtype: ['debug', 'ndebug']
         geometry: ['orange', 'vecgeom']
         special: [null]
@@ -47,14 +46,14 @@ jobs:
             buildtype: 'debug'
             geometry: 'orange'
             special: 'minimal'
-          #- image: 'centos-rocm'
-          #  buildtype: 'asan'
-          #- image: 'centos-rocm'
-          #  buildtype: 'debug'
-          #  special: 'float'
-          #- image: 'centos-rocm'
-          #  buildtype: 'reldeb'
-          #  geometry: 'geant4'
+          - image: 'centos-rocm'
+            buildtype: 'asan'
+          - image: 'centos-rocm'
+            buildtype: 'debug'
+            special: 'float'
+          - image: 'centos-rocm'
+            buildtype: 'reldeb'
+            geometry: 'geant4'
     env:
       ASAN_OPTIONS: "detect_leaks=0"
         #      CCACHE_DIR: "${{github.workspace}}/.ccache"
@@ -124,6 +123,8 @@ jobs:
           ./install/bin/celer-sim --version
       - name: Build examples
         run: |
+          # dubious ownership???
+          git config --global --add safe.directory /__w/celeritas/celeritas
           ./scripts/ci/test-examples.sh
           #      - name: Show ccache stats
           #        run: |
