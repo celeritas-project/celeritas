@@ -21,7 +21,8 @@ jobs:
   #    name: Check formatting
   #    runs-on: ubuntu-latest
   #    steps:
-  #    - uses: actions/checkout@v3
+  #    - name: Check out repository
+  #      uses: actions/checkout@v4
   #    - name: Run clang-format style check for C/C++/CUDA
   #      uses: jidicula/clang-format-action@v4.11.0
   #      with:
@@ -67,7 +68,7 @@ jobs:
     container:
       image: >-
         docker.io/celeritas/${{
-             matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-03-13'
+             matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-08-02'
           || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
           || null
         }}
@@ -95,7 +96,7 @@ jobs:
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
       # NOTE: checkout must occur *after* setting up environment for git tags to work
       - name: Check out Celeritas
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-tags: true
       - name: Configure Celeritas

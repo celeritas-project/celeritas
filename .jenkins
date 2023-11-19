@@ -75,7 +75,7 @@ pipeline {
         stage('full-novg') {
           agent {
             docker {
-              image 'celeritas/ci-jammy-cuda11:2023-03-13'
+              image 'celeritas/ci-jammy-cuda11:2023-08-02'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
             }
           }
@@ -91,7 +91,7 @@ pipeline {
         stage('full-novg-ndebug') {
           agent {
             docker {
-              image 'celeritas/ci-jammy-cuda11:2023-03-13'
+              image 'celeritas/ci-jammy-cuda11:2023-08-02'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
             }
           }
