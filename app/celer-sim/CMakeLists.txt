@@ -111,7 +111,7 @@ set(_env
 )
 if(CELERITAS_USE_OpenMP AND CELERITAS_USE_ROOT)
   # TODO: ROOT writer is not currently thread safe
-  set(CELER_OMP_ENV "OMP_NUM_THREADS=4")
+  set(CELER_OMP_ENV "OMP_NUM_THREADS=1")
   set(CELER_PROCESSORS)
 endif()
 set_tests_properties("app/celer-sim:cpu" PROPERTIES
