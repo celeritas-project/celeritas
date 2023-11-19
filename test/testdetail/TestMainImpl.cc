@@ -79,13 +79,13 @@ class DeviceSkipper final : public ::testing::EmptyTestEventListener
     void OnTestStart(::testing::TestInfo const& test_info) override
     {
         constexpr auto npos = std::string_view::npos;
-        if (std::string_view{test_info.test_case_name()}.find("Device") != npos)
+        for (char const* s : {test_info.test_case_name(), test_info.name()})
         {
-            GTEST_SKIP() << "Skipping device test case";
-        }
-        if (std::string_view{test_info.name()}.find("device") != npos)
-        {
-            GTEST_SKIP() << "Skipping device test";
+            std::string_view sview{s};
+            if (sview.find("Device") != npos || sview.find("device") != npos)
+            {
+                GTEST_SKIP() << "Skipping device test";
+            }
         }
     }
 };
