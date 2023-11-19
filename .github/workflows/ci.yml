@@ -22,7 +22,7 @@ jobs:
   #    runs-on: ubuntu-latest
   #    steps:
   #    - name: Check out repository
-  #      uses: actions/checkout@v4
+  #      uses: actions/checkout@v3
   #    - name: Run clang-format style check for C/C++/CUDA
   #      uses: jidicula/clang-format-action@v4.11.0
   #      with:
@@ -92,8 +92,9 @@ jobs:
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
       # NOTE: checkout must occur *after* setting up environment for git tags to work
+      # NOTE: checkout v4 fails: https://github.com/actions/checkout/issues/1487
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-tags: true
       - name: Configure Celeritas
