@@ -54,10 +54,7 @@
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -67,10 +64,7 @@
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float",
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {

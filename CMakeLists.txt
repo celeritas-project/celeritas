@@ -285,6 +285,13 @@ if(CELERITAS_USE_Python)
 endif()
 
 if(CELERITAS_USE_ROOT)
+  if(NOT BUILD_SHARED_LIBS)
+    celeritas_error_incompatible_option(
+      "ROOT PCM fails at runtime without shared libraries"
+      BUILD_SHARED_LIBS
+      ON
+    )
+  endif()
   # Older ROOT versions are missing CMake macros
   find_package(ROOT 6.24 REQUIRED)
 endif()

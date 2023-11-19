@@ -59,8 +59,11 @@
     },
     {
       "name": "ndebug-orange",
-      "description": "Build everything but VecGeom in release mode",
-      "inherits": [".ndebug", "debug-orange"]
+      "description": "Build with release ORANGE",
+      "inherits": [".ndebug", "base"]
+      "cacheVariables": {
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"}
+      }
     },
     {
       "name": "debug-vecgeom",
@@ -80,9 +83,10 @@
       "description": "Build release with vecgeom for testing *only* demos",
       "inherits": [".ndebug", ".vecgeom", "base"],
       "cacheVariables": {
+        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
+        "BUILD_TESTING":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "BUILD_TESTING":  {"type": "BOOL", "value": "ON"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
     }
   ],
