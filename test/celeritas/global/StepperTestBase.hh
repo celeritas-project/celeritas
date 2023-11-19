@@ -55,6 +55,9 @@ class StepperTestBase : virtual public GlobalTestBase
         void print_expected() const;
     };
 
+    // Whether the build uses the default real type and RNG
+    static bool is_default_build();
+
     struct RunResult
     {
         using StepCount = std::pair<size_type, size_type>;

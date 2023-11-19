@@ -299,18 +299,13 @@ TEST_F(SimpleComptonTest, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (this->is_default_build())
     {
         EXPECT_EQ(919, result.num_step_iters());
         EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());
-    }
-    else
-    {
-        EXPECT_EQ(743, result.num_step_iters());
-        EXPECT_SOFT_EQ(61.9375, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(RunResult::StepCount({1, 6}), result.calc_queue_hwm());
     }
     EXPECT_EQ(3, result.calc_emptying_step());
-    EXPECT_EQ(RunResult::StepCount({1, 6}), result.calc_queue_hwm());
 }
 
 TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(device))
@@ -320,13 +315,13 @@ TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(device))
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (this->is_default_build())
     {
         EXPECT_EQ(919, result.num_step_iters());
         EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(RunResult::StepCount({1, 6}), result.calc_queue_hwm());
     }
     EXPECT_EQ(3, result.calc_emptying_step());
-    EXPECT_EQ(RunResult::StepCount({1, 6}), result.calc_queue_hwm());
 }
 
 //---------------------------------------------------------------------------//
@@ -461,12 +456,15 @@ TEST_F(TestEm3NoMsc, host_multi)
     // Add some more primaries
     primaries = this->make_primaries(num_primaries);
     counts = step(make_span(primaries));
-    EXPECT_EQ(24, counts.active);
-    EXPECT_EQ(24, counts.alive);
+    if (this->is_default_build())
+    {
+        EXPECT_EQ(24, counts.active);
+        EXPECT_EQ(24, counts.alive);
+    }
 
     // Transport existing tracks
     counts = step();
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (this->is_default_build())
     {
         EXPECT_EQ(44, counts.active);
         EXPECT_EQ(44, counts.alive);
@@ -570,7 +568,6 @@ TEST_F(TestEm3Msc, host)
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
-    EXPECT_SOFT_NEAR(45.125, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build())
     {
@@ -633,7 +630,6 @@ TEST_F(TestEm3MscNofluct, host)
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
-    EXPECT_SOFT_NEAR(58, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build())
     {
@@ -739,7 +735,6 @@ TEST_F(TestEm15FieldMsc, host)
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
-    EXPECT_SOFT_NEAR(35, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build())
     {
