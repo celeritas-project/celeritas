@@ -87,10 +87,11 @@ jobs:
       #          ccache -z
       - name: Set up environment
         run: |
-          cat /etc/profile
+          cat /etc/profile.d/celeritas_spack_env.sh
           . /etc/profile
           echo "/opt/view/bin" >> $GITHUB_PATH
           env
+          echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
       # NOTE: checkout must occur *after* setting up environment for git tags to work
       - name: Check out Celeritas

@@ -28,6 +28,21 @@ if(BUILD_TESTING)
     set(CELER_PROCESSORS)
   endif()
   set(CELER_APP_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
+
+  # Disable device tests if no CUDA/HIP or if environment is set
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    if("$ENV{CELER_DISABLE_DEVICE}")
+      message(WARNING
+        "Disabling GPU testing because CELER_DISABLE_DEVICE is set"
+      )
+      set(CELER_DISABLE_DEVICE TRUE)
+    else()
+      set(CELER_DISABLE_DEVICE FALSE)
+    endif()
+  else()
+    # No device support
+    set(CELER_DISABLE_DEVICE TRUE)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

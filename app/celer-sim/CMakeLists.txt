@@ -68,10 +68,10 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_HepMC3 AND CELERITAS_USE_Python
 else()
   set(_needs_deps DISABLED true)
 endif()
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  set(_needs_device)
-else()
+if(CELER_DISABLE_DEVICE)
   set(_needs_device DISABLED true)
+else()
+  set(_needs_device)
 endif()
 
 if(CELERITAS_REAL_TYPE STREQUAL "float")
@@ -79,11 +79,11 @@ if(CELERITAS_REAL_TYPE STREQUAL "float")
   set(_needs_deps DISABLED true)
 endif()
 
-add_test(NAME "app/celer-sim:device"
+add_test(NAME "app/celer-sim:gpu"
   COMMAND "${CELER_PYTHON}"
   "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
 )
-set_tests_properties("app/celer-sim:device" PROPERTIES
+set_tests_properties("app/celer-sim:gpu" PROPERTIES
   ENVIRONMENT "${_env};${CELER_G4ENV}"
   RESOURCE_LOCK gpu
   REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
@@ -97,7 +97,7 @@ set_tests_properties("app/celer-sim:device" PROPERTIES
 if(CELERITAS_USE_ROOT)
   set(_mctruth_out "${CMAKE_CURRENT_BINARY_DIR}/mctruth_output.root")
 endif()
-add_test(NAME "app/celer-sim:host"
+add_test(NAME "app/celer-sim:cpu"
   COMMAND "${CELER_PYTHON}"
   "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
 )
@@ -114,7 +114,7 @@ if(CELERITAS_USE_OpenMP AND CELERITAS_USE_ROOT)
   set(CELER_OMP_ENV "OMP_NUM_THREADS=4")
   set(CELER_PROCESSORS)
 endif()
-set_tests_properties("app/celer-sim:host" PROPERTIES
+set_tests_properties("app/celer-sim:cpu" PROPERTIES
   ENVIRONMENT "${_env};${CELER_G4ENV};${CELER_OMP_ENV}"
   REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
   LABELS "app;nomemcheck"
