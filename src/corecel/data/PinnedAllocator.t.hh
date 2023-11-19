@@ -16,8 +16,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-
-#include "sys/Device.hh"
+#include "corecel/sys/Device.hh"
 
 namespace celeritas
 {
@@ -35,7 +34,7 @@ T* PinnedAllocator<T>::allocate(std::size_t n)
     if (n > std::numeric_limits<std::size_t>::max() / sizeof(T))
         throw std::bad_array_new_length();
 
-    T* p{nullptr};
+    void* p{nullptr};
     if (Device::num_devices() > 0)
     {
         // CUDA and HIP currently have a different API to allocate pinned host
