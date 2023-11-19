@@ -371,7 +371,7 @@ endif()
 if(CELERITAS_BUILD_TESTS)
   # TODO: download and build GTest as a subproject if not available
   if(NOT GTest_FOUND)
-    find_package(GTest)
+    find_package(GTest 1.10)
   endif()
   if(NOT GTest_FOUND)
     celeritas_error_incompatible_option(
