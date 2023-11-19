@@ -109,17 +109,13 @@ set(_env
   "CELER_DISABLE_PARALLEL=1"
   "CELER_CORE_GEO=${CELERITAS_CORE_GEO}"
 )
-if(CELERITAS_USE_OpenMP)
-  # TODO: update when OpenMP nested parallelism is enabled
-  if(CELERITAS_USE_ROOT)
-    # TODO: ROOT writer is not currently thread safe
-    list(APPEND _env "OMP_NUM_THREADS=1")
-  else()
-    list(APPEND _env "OMP_NUM_THREADS=4")
-  endif()
+if(CELERITAS_USE_OpenMP AND CELERITAS_USE_ROOT)
+  # TODO: ROOT writer is not currently thread safe
+  set(CELER_OMP_ENV "OMP_NUM_THREADS=4")
+  set(CELER_PROCESSORS)
 endif()
 set_tests_properties("app/celer-sim:host" PROPERTIES
-  ENVIRONMENT "${_env};${CELER_G4ENV}"
+  ENVIRONMENT "${_env};${CELER_G4ENV};${CELER_OMP_ENV}"
   REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
   LABELS "app;nomemcheck"
   ${CELER_PROCESSORS}
