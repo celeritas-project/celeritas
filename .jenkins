@@ -32,7 +32,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm asan'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm asan-orange'
           }
           post {
             always {
@@ -47,7 +47,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm float'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm debug-orange-float'
           }
           post {
             always {

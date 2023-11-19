@@ -49,7 +49,7 @@
     {
       "name": "debug-orange-minimal",
       "description": "Build without any dependencies but JSON/Googletest",
-      "inherits": [".debug", "base"]
+      "inherits": [".debug", "base"],
       "cacheVariables": {
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
@@ -63,7 +63,7 @@
     {
       "name": "debug-orange-float",
       "description": "Build with single-precision arithmetic",
-      "inherits": [".debug", "base"]
+      "inherits": [".debug", "base"],
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float",
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
@@ -81,7 +81,7 @@
     {
       "name": "reldeb-geant4",
       "description": "Build with geant4 as the core geometry",
-      "inherits": [".reldeb", "base"]
+      "inherits": [".reldeb", "base"],
       "cacheVariables": {
         "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
