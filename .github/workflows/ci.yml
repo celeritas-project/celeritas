@@ -27,7 +27,7 @@ jobs:
   #      with:
   #        clang-format-version: '17'
   ci:
-    name: Check execution
+    name: CI
     strategy:
       matrix:
         image: ['ubuntu-cuda']
@@ -74,7 +74,7 @@ jobs:
       # See https://github.com/actions/checkout/issues/956
       options: --user root
     steps:
-      # TODO: use ccache
+      # TODO: use ccache?
       #      - name: Cache ccache
       #        uses: actions/cache@v2
       #        with:
@@ -88,29 +88,39 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-tags: true
+      - name: Set up environment
+        run: |
+          cat /etc/profile
+          . /etc/profile
+          echo "/opt/view/bin" >> $GITHUB_PATH
+          echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
+          ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
       - name: Configure Celeritas
         run: |
-          cat /etc/profile >> ${GITHUB_ENV}
-          . /etc/profile
-          ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
       - name: Build Celeritas
         run: |
           cmake --build --preset=${CMAKE_PRESET}
       - name: Test Celeritas
+        working-directory: build
         run: |
-          cd build
           ctest --timeout 180 --output-on-failure \
             --test-output-size-passed=65536 --test-output-size-failed=1048576
       - name: Install Celeritas
         run: |
+          . /etc/profile
           cmake --install build
+      - name: Check installation
+        run: |
           for exe in orange-update celer-export-geant celer-dump-data \
             celer-sim celer-g4; do
             test -x "install/bin/${exe}"
           done
-          "install/bin/celer-sim" --version
+          ./install/bin/celer-sim --version
       - name: Build examples
         run: |
           ./scripts/ci/test-examples.sh
+          #      - name: Show ccache stats
+          #        run: |
+          #          ccache -s
 # vim: set nowrap tw=100:
