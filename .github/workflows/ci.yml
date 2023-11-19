@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         image: ['ubuntu-cuda']
-        geometry: ['orange']
+        geometry: ['orange', 'vecgeom']
         buildtype: ['debug']
         special: [null]
         #        image: ['ubuntu-cuda', 'centos-rocm']
@@ -59,6 +59,7 @@ jobs:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "10G"
       CELER_TEST_STRICT: 1
+      CELER_DISABLE_DEVICE: 1 # IMPORTANT
       CMAKE_PRESET: >-
         ${{matrix.buildtype}}-${{matrix.geometry}}${{matrix.special && '-' || ''}}${{matrix.special}}
     runs-on: ubuntu-latest
@@ -89,29 +90,27 @@ jobs:
           fetch-tags: true
       - name: Configure Celeritas
         run: |
+          cat /etc/profile >> ${GITHUB_ENV}
           . /etc/profile
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
       - name: Build Celeritas
         run: |
-          . /etc/profile
           cmake --build --preset=${CMAKE_PRESET}
       - name: Test Celeritas
         run: |
-          . /etc/profile
+          cd build
           ctest --timeout 180 --output-on-failure \
             --test-output-size-passed=65536 --test-output-size-failed=1048576
       - name: Install Celeritas
         run: |
-          . /etc/profile
-          cmake --install .
+          cmake --install build
           for exe in orange-update celer-export-geant celer-dump-data \
             celer-sim celer-g4; do
-            test -x "../install/bin/${exe}"
+            test -x "install/bin/${exe}"
           done
-          "../install/bin/celer-sim" --version
+          "install/bin/celer-sim" --version
       - name: Build examples
         run: |
-          . /etc/profile
           ./scripts/ci/test-examples.sh
 # vim: set nowrap tw=100:
