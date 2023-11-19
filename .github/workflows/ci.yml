@@ -26,9 +26,10 @@ jobs:
   #      uses: jidicula/clang-format-action@v4.11.0
   #      with:
   #        clang-format-version: '17'
-  ci:
+  build:
     name: CI
     strategy:
+      fail-fast: false
       matrix:
         image: ['ubuntu-cuda']
         geometry: ['orange', 'vecgeom']
@@ -56,8 +57,8 @@ jobs:
         #            geometry: 'geant4'
     env:
       ASAN_OPTIONS: "detect_leaks=0"
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "10G"
+        #      CCACHE_DIR: "${{github.workspace}}/.ccache"
+        #      CCACHE_MAXSIZE: "10G"
       CELER_TEST_STRICT: 1
       CELER_DISABLE_DEVICE: 1 # IMPORTANT
       CMAKE_PRESET: >-
@@ -84,19 +85,21 @@ jobs:
       #      - name: Zero ccache stats
       #        run: |
       #          ccache -z
-      - name: Check out Celeritas
-        uses: actions/checkout@v3
-        with:
-          fetch-tags: true
       - name: Set up environment
         run: |
           cat /etc/profile
           . /etc/profile
           echo "/opt/view/bin" >> $GITHUB_PATH
+          env
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
-          ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
+      # NOTE: checkout must occur *after* setting up environment for git tags to work
+      - name: Check out Celeritas
+        uses: actions/checkout@v3
+        with:
+          fetch-tags: true
       - name: Configure Celeritas
         run: |
+          ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
       - name: Build Celeritas
         run: |
