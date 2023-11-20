@@ -19,14 +19,15 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-TEST(DeviceAllocationTest, always)
+// NOTE: don't have 'device' in the name here
+TEST(ConstructionTest, should_work_always)
 {
     DeviceAllocation alloc;
     EXPECT_EQ(0, alloc.size());
     EXPECT_TRUE(alloc.empty());
 }
 
-TEST(DeviceAllocationTest, nocuda)
+TEST(ConstructionTest, nocuda)
 {
 #if !CELER_USE_DEVICE
     // Can't allocate

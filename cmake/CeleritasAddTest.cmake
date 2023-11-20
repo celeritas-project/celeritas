@@ -159,13 +159,16 @@ include_guard()
 
 #-----------------------------------------------------------------------------#
 
+set(_procs 1)
 if(CELERITAS_USE_MPI)
-  set(CELERITASTEST_NP_DEFAULT "1;2;4" CACHE INTERNAL
-    "Default number of processes to use in CeleritasAddTest")
-else()
-  set(CELERITASTEST_NP_DEFAULT "1" CACHE INTERNAL
-    "Default number of processes to use in CeleritasAddTest")
+  list(APPEND _procs 2)
+  if(MPIEXEC_MAX_NUMPROCS GREATER 2)
+    list(APPEND _procs ${MPIEXEC_MAX_NUMPROCS})
+  endif()
 endif()
+set(CELERITASTEST_NP_DEFAULT "${_procs}" CACHE INTERNAL
+  "Default number of processes to use in CeleritasAddTest")
+set(_procs)
 
 if(NOT CELERITAS_USE_MPI)
   # Construct test name with MPI enabled, or empty if not applicable
@@ -333,7 +336,7 @@ function(celeritas_add_test SOURCE_FILE)
     list(APPEND PARSE_ENVIRONMENT "PYTHONPATH=${CELERITASTEST_PYTHONPATH}")
   endif()
 
-  if(CELERITAS_DEBUG)
+  if(CELERITAS_TEST_VERBOSE)
     list(APPEND PARSE_ENVIRONMENT
       "CELER_LOG=debug"
       "CELER_LOG_LOCAL=diagnostic"

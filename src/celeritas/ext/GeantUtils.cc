@@ -58,6 +58,9 @@ int get_geant_num_threads(G4RunManager const& runman)
         result = runman_mt->GetNumberOfThreads();
     }
 #endif
+    // TODO: even if run manager exists, it might not be initialized, so the
+    // result might be nonpositive. See debug-vecgeom 'minimal' example
+    // failure.
     CELER_ENSURE(result > 0);
     return result;
 }
