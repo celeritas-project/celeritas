@@ -17,7 +17,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm debug-orange-minimal'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm debug-orange'
           }
           post {
             always {

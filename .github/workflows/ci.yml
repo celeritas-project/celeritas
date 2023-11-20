@@ -43,13 +43,11 @@ jobs:
             geometry: 'vecgeom'
         include:
           - image: 'centos-rocm'
+            buildtype: 'asan'
+            geometry: 'orange'
+          - image: 'centos-rocm'
             buildtype: 'debug'
             geometry: 'orange'
-            special: 'minimal'
-          - image: 'centos-rocm'
-            buildtype: 'asan'
-          - image: 'centos-rocm'
-            buildtype: 'debug'
             special: 'float'
           - image: 'centos-rocm'
             buildtype: 'reldeb'
@@ -94,12 +92,16 @@ jobs:
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
       # NOTE: checkout must occur *after* setting up environment for git tags to work
       # NOTE: checkout v4 fails: https://github.com/actions/checkout/issues/1487
+      # TODO: shallow copy + git describe with cmake git version?
       - name: Check out Celeritas
         uses: actions/checkout@v3
         with:
+          depth: 0
           fetch-tags: true
       - name: Configure Celeritas
         run: |
+          git config --global --add safe.directory ${PWD}
+          git tag --list
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
       - name: Build Celeritas
@@ -124,7 +126,6 @@ jobs:
       - name: Build examples
         run: |
           # dubious ownership???
-          git config --global --add safe.directory /__w/celeritas/celeritas
           ./scripts/ci/test-examples.sh
           #      - name: Show ccache stats
           #        run: |
