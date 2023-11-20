@@ -30,22 +30,30 @@ jobs:
         geometry: ['orange', 'vecgeom']
         special: [null]
         exclude:
-          - image: 'centos-rocm'
+          - image: 'centos-rocm' # VecGeom isn't compatible with HIP
             geometry: 'vecgeom'
+          - image: 'centos-rocm' # Debug builds don't work with HIP
+            buildtype: 'debug'
         include:
-          - image: 'centos-rocm'
-            buildtype: 'asan'
-            geometry: 'orange'
+          - image: 'ubuntu-cuda'
+            buildtype: 'reldeb'
+            geometry: 'vecgeom'
           - image: 'centos-rocm'
             buildtype: 'debug'
+            geometry: 'orange'
+            special: 'minimal'
+          - image: 'centos-rocm'
+            buildtype: 'reldeb'
+            geometry: 'orange'
+            special: 'asan'
+          - image: 'centos-rocm'
+            buildtype: 'reldeb'
             geometry: 'orange'
             special: 'float'
           - image: 'centos-rocm'
             buildtype: 'reldeb'
             geometry: 'geant4'
-          - image: 'ubuntu-cuda'
-            buildtype: 'reldeb'
-            geometry: 'vecgeom'
+            special: 'nohip'
     env:
       ASAN_OPTIONS: "detect_leaks=0"
         #      CCACHE_DIR: "${{github.workspace}}/.ccache"
@@ -107,7 +115,7 @@ jobs:
         # TODO: rocm+ndebug fails to propagate HIP library link
         # TODO: logger gets initialized in SimpleOffload::Build before run manager
         if: >-
-          ${{ matrix.buildtype != 'asan'
+          ${{ matrix.special != 'asan'
            && !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
            && !(matrix.geometry == 'vecgeom' && matrix.buildtype != 'ndebug')
           }}
