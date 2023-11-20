@@ -30,14 +30,12 @@ jobs:
         geometry: ['orange', 'vecgeom']
         special: [null, 'float']
         exclude:
-          - image: 'centos-rocm' # VecGeom isn't compatible with HIP
+          - image: 'centos-rocm' # VecGeom not installed on HIP
             geometry: 'vecgeom'
+          - image: 'ubuntu-cuda' # Presets not implemented on CentOS
+            special: 'float'
           - image: 'centos-rocm' # Debug builds don't work with HIP
             buildtype: 'debug'
-          - geometry: 'vecgeom' # VecGeom isn't installed with single-prec
-            special: 'float'
-          - geometry: 'geant4' # VecGeom isn't installed with single-prec
-            special: 'float'
         include:
           - image: 'ubuntu-cuda'
             buildtype: 'reldeb'
@@ -86,17 +84,19 @@ jobs:
           fetch-depth: 255
           fetch-tags: true
       - name: Configure Celeritas
+        id:
         run: |
           git config --global --add safe.directory ${PWD}
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
       - name: Build Celeritas
+        working-directory: build
         run: |
-          cmake --build --preset=${CMAKE_PRESET}
+          ninja
       - name: Test Celeritas
         working-directory: build
         run: |
-          ctest --timeout 180 --output-on-failure \
+          ctest --parallel 2 --timeout 180 --output-on-failure \
             --test-output-size-passed=65536 --test-output-size-failed=1048576
       - name: Install Celeritas
         working-directory: build

@@ -64,7 +64,7 @@
     {
       "name": "ndebug-orange-float",
       "description": "Build with single-precision arithmetic and HIP/ROCm",
-      "inherits": [".reldeb", "base"],
+      "inherits": [".ndebug", "base"],
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float"
       }
