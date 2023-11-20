@@ -71,7 +71,7 @@ class CylAligned
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
-    using StorageSpan = Span<const real_type, 3>;
+    using StorageSpan = LdgSpan<const real_type, 3>;
     using Storage = StorageSpan;  // DEPRECATED
     //@}
 
