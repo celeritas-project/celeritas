@@ -237,11 +237,10 @@ CELER_FUNCTION Span<const typename T::value_type> make_span(T const& cont)
 
 //---------------------------------------------------------------------------//
 //! Construct an array from a fixed-size span
-template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION Array<std::remove_cv_t<T>, N>
-make_array(Span<T, N> const& s)
+template<class T, std::size_t N, class T2 = std::remove_cv_t<T>>
+CELER_CONSTEXPR_FUNCTION Array<T2, N> make_array(Span<T, N> const& s)
 {
-    Array<std::remove_cv_t<T>, N> result{};
+    Array<T2, N> result{};
     for (std::size_t i = 0; i < N; ++i)
     {
         result[i] = s[i];
@@ -251,10 +250,17 @@ make_array(Span<T, N> const& s)
 
 //---------------------------------------------------------------------------//
 //! Construct an array from a fixed-size span, removing LdgValue marker
-template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION Array<T, N> make_array(LdgSpan<T, N> const& s)
+template<class T,
+         std::size_t N,
+         class T2 = std::remove_cv_t<typename LdgValue<T>::value_type>>
+CELER_CONSTEXPR_FUNCTION Array<T2, N> make_array(LdgSpan<T, N> const& s)
 {
-    return make_array<typename LdgValue<T>::value_type, N>(s);
+    Array<T2, N> result{};
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        result[i] = s[i];
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

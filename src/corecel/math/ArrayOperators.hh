@@ -16,6 +16,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/cont/Array.hh"
 
 namespace celeritas
@@ -53,9 +55,9 @@ namespace celeritas
         return (result TOKEN## = y);                                       \
     }                                                                      \
                                                                            \
-    template<class T, size_type N>                                         \
+    template<class T, size_type N, class T2 = std::remove_cv_t<T>>         \
     inline CELER_FUNCTION Array<T, N> operator TOKEN(Array<T, N> const& x, \
-                                                     T const& y)           \
+                                                     T2 const& y)          \
     {                                                                      \
         Array<T, N> result{x};                                             \
         return (result TOKEN## = y);                                       \
@@ -80,8 +82,8 @@ CELER_DEFINE_ARRAY_ARITHM(/)
 //!@}
 
 //! Left-multiply by scalar
-template<class T, size_type N>
-inline CELER_FUNCTION Array<T, N> operator*(T const& y, Array<T, N> const& x)
+template<class T, size_type N, class T2 = std::remove_cv_t<T>>
+inline CELER_FUNCTION Array<T, N> operator*(T2 const& y, Array<T, N> const& x)
 {
     return x * y;
 }
