@@ -84,11 +84,8 @@ jobs:
       #          ccache -z
       - name: Set up environment
         run: |
-          cat /etc/profile.d/celeritas_spack_env.sh
           . /etc/profile
           echo "/opt/view/bin" >> $GITHUB_PATH
-          env
-          echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
       # NOTE: checkout must occur *after* setting up environment for git tags to work
       # NOTE: checkout v4 fails: https://github.com/actions/checkout/issues/1487
@@ -123,6 +120,13 @@ jobs:
           done
           ./install/bin/celer-sim --version
       - name: Build examples
+        if: >-
+          ${{ ${{matrix.special}} != 'asan'  # needs -fsanitize=address
+           && !(${{matrix.image}} == 'centos-rocm'
+             && ${{matrix.buildtype}} == 'ndebug') # missing HIP b/c static
+           && !(${{matrix.buildtype}} == 'debug'
+             && ${{matrix.geometr}} == 'vecgeom') # initializing logger before run manager
+          }}
         run: |
           if [ "${{matrix.geometry}}" = "vecgeom" ]; then
             # TODO: vecgeom is loosey goosey about symbols whereas Ubuntu is strict

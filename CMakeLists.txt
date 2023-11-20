@@ -420,6 +420,8 @@ elseif(CELERITAS_USE_HIP)
     set(CELERITAS_HAVE_ROCTX ON)
     target_link_libraries(celeritas_device_toolkit INTERFACE ${ROCTX_LIBRARY})
   endif()
+  # TODO: downstream libs don't link against correct HIP dependencies when using
+  # static libraries
 endif()
 
 install(TARGETS celeritas_device_toolkit
