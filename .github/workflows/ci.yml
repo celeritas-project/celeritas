@@ -99,16 +99,17 @@ jobs:
           ctest --timeout 180 --output-on-failure \
             --test-output-size-passed=65536 --test-output-size-failed=1048576
       - name: Install Celeritas
+        working-directory: build
         run: |
-          . /etc/profile
-          cmake --install build
+          cmake --install .
       - name: Check installation
+        working-directory: install
         run: |
           for exe in orange-update celer-export-geant celer-dump-data \
             celer-sim celer-g4; do
-            test -x "install/bin/${exe}"
+            test -x "bin/${exe}"
           done
-          ./install/bin/celer-sim --version
+          ./bin/celer-sim --version
       - name: Build examples
         # TODO: asan needs -fsanitize=address
         # TODO: rocm+ndebug fails to propagate HIP library link
