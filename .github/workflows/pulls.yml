@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - develop
+      - backports/**
+  pull_request:
+    branches:
+      - develop
+      - backports/**
+    paths-ignore:
+      - '**.rst'
+      - '**.md'
+      - 'scripts/dev'
+  merge_group:
+    types: [checks_requested]
+
+concurrency:
+  group: ${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  build-gpu:
+    name: GPU-enabled builds
+    uses: ./.github/workflows/build-gpu.yml
+
+  # Specifying a dependent job allows us to select a single "requires" check
+  all:
+    needs: [ build-gpu ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Success
+      run: "true"
+
+# vim: set nowrap tw=100:
