@@ -45,22 +45,9 @@ void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
         std::clog << color_code(' ') << ": ";
     }
 
-    // clang-format off
-    char c = ' ';
-    switch (lev)
-    {
-        case LogLevel::debug:      c = 'x'; break;
-        case LogLevel::diagnostic: c = 'x'; break;
-        case LogLevel::status:     c = 'b'; break;
-        case LogLevel::info:       c = 'g'; break;
-        case LogLevel::warning:    c = 'y'; break;
-        case LogLevel::error:      c = 'r'; break;
-        case LogLevel::critical:   c = 'R'; break;
-        case LogLevel::size_: CELER_ASSERT_UNREACHABLE();
-    };
     // clang-format on
-    std::clog << color_code(c) << to_cstring(lev) << ": " << color_code(' ')
-              << msg << std::endl;
+    std::clog << to_color_code(lev) << to_cstring(lev) << ": "
+              << color_code(' ') << msg << std::endl;
 }
 
 //---------------------------------------------------------------------------//
