@@ -267,7 +267,8 @@ void SharedParams::InitializeWorker(SetupOptions const&)
  */
 void SharedParams::Finalize()
 {
-    std::lock_guard scoped_lock{updating_mutex()};
+    static std::mutex finalize_mutex;
+    std::lock_guard scoped_lock{finalize_mutex};
 
     // Output at end of run
     this->try_output();
@@ -297,14 +298,12 @@ int SharedParams::num_streams() const
         std::lock_guard scoped_lock{updating_mutex()};
         if (!num_streams_)
         {
+            CELER_LOG_LOCAL(debug) << "Setting number of streams";
+
             // Default to setting the maximum number of streams based on Geant4
-            // multithreading.
-            auto* run_man = G4RunManager::GetRunManager();
-            CELER_VALIDATE(run_man,
-                           << "G4RunManager was not created before "
-                              "getting stream count from SharedParams");
+            // run manager.
             const_cast<SharedParams*>(this)->num_streams_
-                = celeritas::get_geant_num_threads(*run_man);
+                = celeritas::get_geant_num_threads();
         }
     }
 
@@ -324,6 +323,8 @@ auto SharedParams::output_reg() const -> SPOutputRegistry const&
         std::lock_guard scoped_lock{updating_mutex()};
         if (!output_reg_)
         {
+            CELER_LOG_LOCAL(debug) << "Constructing output registry";
+
             auto output_reg = std::make_shared<OutputRegistry>();
             const_cast<SharedParams*>(this)->output_reg_
                 = std::move(output_reg);
@@ -345,6 +346,8 @@ auto SharedParams::geant_geo_params() const -> SPConstGeantGeoParams const&
         std::lock_guard scoped_lock{updating_mutex()};
         if (!geant_geo_)
         {
+            CELER_LOG_LOCAL(debug) << "Constructing GeantGeoParams wrapper";
+
             auto geo_params = std::make_shared<GeantGeoParams>(
                 GeantImporter::get_world_volume());
             const_cast<SharedParams*>(this)->geant_geo_ = std::move(geo_params);

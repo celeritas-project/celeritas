@@ -91,13 +91,8 @@ auto DetectorConstruction::construct_geo() const -> GeoData
     gdml_parser.SetStripFlag(true);
 
     std::string const& filename = GlobalSetup::Instance()->GetGeometryFile();
-    if (filename.empty())
-    {
-        G4Exception("DetectorConstruction::Construct()",
-                    "",
-                    FatalException,
-                    "No GDML file was specified with /celerg4/geometryFile");
-    }
+    CELER_VALIDATE(!filename.empty(),
+                   << "no GDML input file was specified (geometry_file)");
     constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(filename, validate_gdml_schema);
 

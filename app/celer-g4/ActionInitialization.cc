@@ -8,6 +8,7 @@
 #include "ActionInitialization.hh"
 
 #include "corecel/io/Logger.hh"
+#include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/LocalTransporter.hh"
 
 #include "EventAction.hh"
@@ -31,8 +32,26 @@ ActionInitialization::ActionInitialization(SPParams params)
     : params_{std::move(params)}, init_shared_{true}
 {
     CELER_EXPECT(params_);
+
     // Create Geant4 diagnostics to be shared across worker threads
     diagnostics_ = std::make_shared<GeantDiagnostics>();
+
+    auto const& inp = GlobalSetup::Instance()->input();
+    CELER_VALIDATE(inp.primary_options || !inp.event_file.empty(),
+                   << "no event input file nor primary options were "
+                      "specified");
+
+    if (!inp.event_file.empty())
+    {
+        hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(inp.event_file);
+        num_events_ = hepmc_gen_->NumEvents();
+    }
+    else
+    {
+        num_events_ = inp.primary_options.num_events;
+    }
+
+    CELER_ENSURE(num_events_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -68,13 +87,14 @@ void ActionInitialization::Build() const
     CELER_LOG_LOCAL(status) << "Constructing user actions on worker threads";
 
     // Primary generator emits source particles
-    if (!GlobalSetup::Instance()->GetEventFile().empty())
+    if (hepmc_gen_)
     {
-        this->SetUserAction(new HepMC3PrimaryGeneratorAction());
+        this->SetUserAction(new HepMC3PrimaryGeneratorAction(hepmc_gen_));
     }
     else
     {
-        this->SetUserAction(new PGPrimaryGeneratorAction());
+        this->SetUserAction(new PGPrimaryGeneratorAction(
+            GlobalSetup::Instance()->input().primary_options));
     }
 
     // Create thread-local transporter to share between actions
