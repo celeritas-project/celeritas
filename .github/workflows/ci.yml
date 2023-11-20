@@ -124,6 +124,10 @@ jobs:
           ./install/bin/celer-sim --version
       - name: Build examples
         run: |
+          if [ "${{matrix.geometry}}" = "vecgeom" ]; then
+            # TODO: vecgeom is loosey goosey about symbols whereas Ubuntu is strict
+            export LDFLAGS=-Wl,--no-as-needed
+          fi
           ./scripts/ci/test-examples.sh
           #      - name: Show ccache stats
           #        run: |

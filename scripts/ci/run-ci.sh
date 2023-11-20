@@ -49,12 +49,5 @@ test -x "${CELER_SOURCE_DIR}/install/bin/celer-g4"
 # Test examples against installed celeritas
 export CMAKE_PRESET
 export CELER_SOURCE_DIR
-if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
-  export LDFLAGS=-Wl,--no-as-needed # for Ubuntu with vecgeom?
-  exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
-elif [ "${CMAKE_PRESET}" = "full-novg-ndebug" ] \
-  || [ "${CMAKE_PRESET}" = "hip-ndebug" ]  ; then
-  exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
-fi
-
+exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
 
