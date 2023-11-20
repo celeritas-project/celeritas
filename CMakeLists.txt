@@ -243,6 +243,14 @@ if(CELERITAS_USE_CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
+  # NOTE: known broken up to 5.6; unknown after
+  if(CELERITAS_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
+    celeritas_error_incompatible_option(
+      "HIP cannot build debug code (unhandled SGPR spill to memory)"
+      CELERITAS_DEBUG
+      OFF
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)

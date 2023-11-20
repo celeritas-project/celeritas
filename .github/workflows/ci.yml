@@ -28,12 +28,16 @@ jobs:
         image: ['ubuntu-cuda', 'centos-rocm']
         buildtype: ['debug', 'ndebug']
         geometry: ['orange', 'vecgeom']
-        special: [null]
+        special: [null, 'float']
         exclude:
           - image: 'centos-rocm' # VecGeom isn't compatible with HIP
             geometry: 'vecgeom'
           - image: 'centos-rocm' # Debug builds don't work with HIP
             buildtype: 'debug'
+          - geometry: 'vecgeom' # VecGeom isn't installed with single-prec
+            special: 'float'
+          - geometry: 'geant4' # VecGeom isn't installed with single-prec
+            special: 'float'
         include:
           - image: 'ubuntu-cuda'
             buildtype: 'reldeb'
@@ -48,12 +52,7 @@ jobs:
             special: 'asan'
           - image: 'centos-rocm'
             buildtype: 'reldeb'
-            geometry: 'orange'
-            special: 'float'
-          - image: 'centos-rocm'
-            buildtype: 'reldeb'
             geometry: 'geant4'
-            special: 'nohip'
     env:
       ASAN_OPTIONS: "detect_leaks=0"
         #      CCACHE_DIR: "${{github.workspace}}/.ccache"

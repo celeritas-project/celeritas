@@ -53,8 +53,17 @@
       }
     },
     {
-      "name": "reldeb-orange-float",
-      "description": "Build with single-precision arithmetic",
+      "name": "debug-orange-float",
+      "description": "Build with single-precision arithmetic (no HIP)",
+      "inherits": [".reldeb", "base"],
+      "cacheVariables": {
+        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_REAL_TYPE": "float"
+      }
+    },
+    {
+      "name": "ndebug-orange-float",
+      "description": "Build with single-precision arithmetic and HIP/ROCm",
       "inherits": [".reldeb", "base"],
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float"
@@ -62,12 +71,12 @@
     },
     {
       "name": "ndebug-orange",
-      "description": "Build with HIP/ROCM for AMD",
+      "description": "Build with HIP/ROCm for AMD",
       "inherits": [".ndebug", "base"]
     },
     {
-      "name": "reldeb-geant4-nohip",
-      "description": "Build with geant4 as the core geometry",
+      "name": "reldeb-geant4",
+      "description": "Build with geant4 as the core geometry (no HIP)",
       "inherits": [".reldeb", "base"],
       "cacheVariables": {
         "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
@@ -87,8 +96,9 @@
     },
     {"name": "reldeb-orange-asan", "configurePreset": "reldeb-orange-asan", "inherits": "base"},
     {"name": "debug-orange-minimal", "configurePreset": "debug-orange-minimal", "inherits": "base"},
-    {"name": "reldeb-orange-float", "configurePreset": "reldeb-orange-float", "inherits": "base"},
-    {"name": "reldeb-geant4-nohip", "configurePreset": "reldeb-geant4-nohip", "inherits": "base"},
+    {"name": "debug-orange-float", "configurePreset": "debug-orange-float", "inherits": "base"},
+    {"name": "ndebug-orange-float", "configurePreset": "ndebug-orange-float", "inherits": "base"},
+    {"name": "reldeb-geant4", "configurePreset": "reldeb-geant4", "inherits": "base"},
     {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base",
      "targets": ["all", "install"]}
   ],
@@ -110,8 +120,9 @@
     },
     {"name": "reldeb-orange-asan", "configurePreset": "reldeb-orange-asan", "inherits": "base"},
     {"name": "debug-orange-minimal", "configurePreset": "debug-orange-minimal", "inherits": "base"},
-    {"name": "reldeb-orange-float", "configurePreset": "reldeb-orange-float", "inherits": "base"},
-    {"name": "reldeb-geant4-nohip", "configurePreset": "reldeb-geant4-nohip", "inherits": "base"},
+    {"name": "debug-orange-float", "configurePreset": "debug-orange-float", "inherits": "base"},
+    {"name": "ndebug-orange-float", "configurePreset": "ndebug-orange-float", "inherits": "base"},
+    {"name": "reldeb-geant4", "configurePreset": "reldeb-geant4", "inherits": "base"},
     {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base"}
   ]
 }
