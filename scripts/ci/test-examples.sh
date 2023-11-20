@@ -28,8 +28,8 @@ cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
 
-if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
-  # The 'accel' example requires Geant4 and VecGeom
+# Only run on configurations with '-vecgeom'
+if [ "${CMAKE_PRESET#*"-vecgeom"}" != "${CMAKE_PRESET}" ]; then
   cd "${CELER_SOURCE_DIR}/example/accel"
   build_local
   ctest -V --no-tests=error

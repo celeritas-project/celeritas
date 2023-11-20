@@ -99,12 +99,11 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           fetch-tags: true
       - name: Configure Celeritas
         run: |
           git config --global --add safe.directory ${PWD}
-          git tag --list
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
       - name: Build Celeritas
@@ -128,7 +127,6 @@ jobs:
           ./install/bin/celer-sim --version
       - name: Build examples
         run: |
-          # dubious ownership???
           ./scripts/ci/test-examples.sh
           #      - name: Show ccache stats
           #        run: |
