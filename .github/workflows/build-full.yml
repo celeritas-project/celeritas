@@ -1,4 +1,4 @@
-name: full-build
+name: build-full
 on:
   workflow_dispatch:
   workflow_call:

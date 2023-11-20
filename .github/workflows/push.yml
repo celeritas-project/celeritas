@@ -1,0 +1,18 @@
+name: push
+
+on:
+  push:
+    branches:
+      - develop
+      - backports/**
+
+concurrency:
+  group: ${{github.ref}}-${{github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-full.yml
+  # TODO: build and push documentation
+
+# vim: set nowrap tw=100:
