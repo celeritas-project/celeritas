@@ -125,9 +125,10 @@ jobs:
            && !(matrix.geometry == 'vecgeom' && matrix.buildtype != 'ndebug')
           }}
         run: |
+          . /etc/profile
           if [ "${{matrix.geometry}}" = "vecgeom" ]; then
             # TODO: vecgeom is loosey goosey about symbols whereas Ubuntu is strict
-            export LDFLAGS=-Wl,--no-as-needed
+            export LDFLAGS=-Wl,--no-as-needed ${LDFLAGS}
           fi
           ./scripts/ci/test-examples.sh
 
