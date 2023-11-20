@@ -84,7 +84,6 @@ jobs:
           fetch-depth: 255
           fetch-tags: true
       - name: Configure Celeritas
-        id:
         run: |
           git config --global --add safe.directory ${PWD}
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
