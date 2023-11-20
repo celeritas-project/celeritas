@@ -25,32 +25,38 @@ jobs:
     name: CI
     strategy:
       matrix:
-        image: ['ubuntu-cuda', 'centos-rocm']
-        buildtype: ['debug', 'ndebug']
+        special: [null]
         geometry: ['orange', 'vecgeom']
-        special: [null, 'float']
+        buildtype: ['debug', 'ndebug']
+        image: ['ubuntu-cuda', 'centos-rocm']
         exclude:
-          - image: 'centos-rocm' # VecGeom not installed on HIP
-            geometry: 'vecgeom'
-          - image: 'ubuntu-cuda' # Presets not implemented on CentOS
-            special: 'float'
-          - image: 'centos-rocm' # Debug builds don't work with HIP
-            buildtype: 'debug'
+          - geometry: 'vecgeom'
+            image: 'centos-rocm' # VecGeom not installed on HIP
+          - buildtype: 'debug'
+            image: 'centos-rocm' # Debug builds don't work with HIP
         include:
-          - image: 'ubuntu-cuda'
+          - special: 'asan'
+            geometry: 'orange'
             buildtype: 'reldeb'
-            geometry: 'vecgeom'
-          - image: 'centos-rocm'
+            image: 'centos-rocm'
+          - special: 'minimal'
+            geometry: 'orange'
             buildtype: 'debug'
+            image: 'centos-rocm'
+          - special: 'float'
             geometry: 'orange'
-            special: 'minimal'
-          - image: 'centos-rocm'
-            buildtype: 'reldeb'
+            buildtype: 'debug'
+            image: 'centos-rocm'
+          - special: 'float'
             geometry: 'orange'
-            special: 'asan'
-          - image: 'centos-rocm'
+            buildtype: 'ndebug'
+            image: 'centos-rocm'
+          - geometry: 'geant4'
             buildtype: 'reldeb'
-            geometry: 'geant4'
+            image: 'centos-rocm'
+          - geometry: 'vecgeom'
+            buildtype: 'reldeb'
+            image: 'ubuntu-cuda'
     env:
       ASAN_OPTIONS: "detect_leaks=0"
         #      CCACHE_DIR: "${{github.workspace}}/.ccache"
