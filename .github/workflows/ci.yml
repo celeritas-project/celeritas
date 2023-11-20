@@ -128,7 +128,7 @@ jobs:
         if: >-
           ${{ matrix.buildtype != 'asan'
            && !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
-           && !(matrix.buildtype == 'debug' && matrix.geometry == 'vecgeom')
+           && !(matrix.geometry == 'vecgeom' && matrix.buildtype != 'ndebug')
           }}
         run: |
           if [ "${{matrix.geometry}}" = "vecgeom" ]; then
