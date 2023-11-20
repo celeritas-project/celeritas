@@ -33,13 +33,13 @@
     {
       "name": "base",
       "displayName": "Exalearn4 default options (GCC, debug)",
-      "inherits": [".base"],
+      "inherits": [".debug", ".base"],
       "binaryDir": "${sourceDir}/build"
     },
     {
       "name": "mini",
       "displayName": "Exalearn4 default options (GCC, debug)",
-      "inherits": [".base"],
+      "inherits": [".debug", ".base"],
       "binaryDir": "${sourceDir}/build-minimal",
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "OFF"},
@@ -60,10 +60,7 @@
     {
       "name": "ndebug",
       "displayName": "Exalearn4 release mode",
-      "inherits": [".ndebug", ".base"],
-      "cacheVariables": {
-        "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "OFF"}
-      }
+      "inherits": [".ndebug", ".base"]
     },
     {
       "name": "ndebug-serial",
@@ -71,8 +68,7 @@
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"},
-        "BUILD_SHARED_LIBS": {"type": "BOOL",   "value": "OFF"}
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
       }
     }
   ],

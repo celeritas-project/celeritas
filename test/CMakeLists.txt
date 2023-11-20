@@ -16,7 +16,6 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 celeritas_add_library(testcel_harness
   Test.cc
   testdetail/NonMasterResultPrinter.cc
-  testdetail/ParallelHandler.cc
   testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
 )

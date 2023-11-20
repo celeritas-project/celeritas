@@ -53,7 +53,7 @@ celeritas_target_link_libraries(celer-g4
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT CELERITAS_BUILD_TESTS)
+if(NOT BUILD_TESTING)
   return()
 endif()
 
@@ -108,7 +108,7 @@ function(celer_app_test ext)
   if(ext STREQUAL "gpu")
     list(APPEND _labels "gpu")
     set(_extra_props RESOURCE_LOCK gpu)
-    if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
+    if(CELER_DISABLE_DEVICE)
       list(APPEND _extra_props DISABLED true)
     endif()
   elseif(ext STREQUAL "cpu")

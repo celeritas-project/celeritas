@@ -33,7 +33,7 @@
     {
       "name": "base",
       "displayName": "Frontier default options (GCC, debug)",
-      "inherits": [".base"],
+      "inherits": [".debug", ".base"],
       "binaryDir": "${sourceDir}/build"
     },
     {
