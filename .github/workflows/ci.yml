@@ -17,18 +17,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # TODO: skip tests if only `scripts` has changed (dorny/paths-filter)?
-  # TODO: clang format 
-  #  clang-format-check:
-  #    name: Check formatting
-  #    runs-on: ubuntu-latest
-  #    steps:
-  #    - name: Check out repository
-  #      uses: actions/checkout@v3
-  #    - name: Run clang-format style check for C/C++/CUDA
-  #      uses: jidicula/clang-format-action@v4.11.0
-  #      with:
-  #        clang-format-version: '17'
   build:
     name: CI
     strategy:
@@ -70,20 +58,9 @@ jobs:
           || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
           || null
         }}
-      # TODO: don't use a 'root' user
       # See https://github.com/actions/checkout/issues/956
       options: --user root
     steps:
-      # TODO: use ccache?
-      #      - name: Cache ccache
-      #        uses: actions/cache@v2
-      #        with:
-      #          path: ${{ env.CCACHE_DIR }}
-      #          key: ccache-${{ matrix.distro }}-${{github.run_id}}
-      #          restore-keys: ccache-${{ matrix.distro }}
-      #      - name: Zero ccache stats
-      #        run: |
-      #          ccache -z
       - name: Set up environment
         run: |
           . /etc/profile
@@ -136,7 +113,5 @@ jobs:
             export LDFLAGS=-Wl,--no-as-needed
           fi
           ./scripts/ci/test-examples.sh
-          #      - name: Show ccache stats
-          #        run: |
-          #          ccache -s
+
 # vim: set nowrap tw=100:
