@@ -80,7 +80,7 @@
     {
       "name": ".ndebug",
       "hidden": true,
-      "description": "Disable debug mode",
+      "description": "Build with optimizations and without debug assertions",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":{"type": "BOOL",   "value": "OFF"},
         "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "OFF"},
