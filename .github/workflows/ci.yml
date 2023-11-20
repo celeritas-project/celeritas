@@ -51,6 +51,7 @@ jobs:
         #      CCACHE_DIR: "${{github.workspace}}/.ccache"
         #      CCACHE_MAXSIZE: "10G"
       CELER_TEST_STRICT: 1
+      CELER_DISABLE_DEVICE: 1 # IMPORTANT
       CMAKE_PRESET: >-
         ${{matrix.buildtype}}-${{matrix.geometry}}${{matrix.special && '-' || ''}}${{matrix.special}}
     runs-on: ubuntu-latest
