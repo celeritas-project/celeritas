@@ -15,6 +15,8 @@
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 
+#include "RootFileManager.hh"
+
 namespace celeritas
 {
 namespace
@@ -27,7 +29,7 @@ bool g_has_root_errored_{false};
  * Actual ROOT Error Handler function for Celeritas
  */
 void RootErrorHandler(Int_t rootlevel,
-                      Bool_t abort_bool,
+                      Bool_t must_abort,
                       char const* location,
                       char const* msg)
 {
@@ -45,7 +47,7 @@ void RootErrorHandler(Int_t rootlevel,
         level = LogLevel::error;
         g_has_root_errored_ = true;
         if (std::strcmp(location, "TCling::LoadPCM") == 0)
-            abort_bool = true;
+            must_abort = true;
     }
     if (rootlevel >= kBreak)
         level = LogLevel::critical;
@@ -54,7 +56,7 @@ void RootErrorHandler(Int_t rootlevel,
     if (rootlevel >= kFatal)
         level = LogLevel::critical;
 
-    if (abort_bool)
+    if (must_abort)
     {
         throw RuntimeError::from_root_error(location, msg);
     }
@@ -64,9 +66,12 @@ void RootErrorHandler(Int_t rootlevel,
         auto log_msg = ::celeritas::world_logger()({"ROOT", 0}, level);
         if (location)
         {
-            log_msg << color_code('x') << location << color_code(' ') << ": ";
+            log_msg << color_code('x') << location << color_code(' ');
         }
-        log_msg << msg;
+        if (msg && msg[0] != '\0')
+        {
+            log_msg << ": " << msg;
+        }
     }
 }
 //---------------------------------------------------------------------------//
@@ -86,10 +91,13 @@ void ScopedRootErrorHandler::disable_signal_handler()
  * Install the Celeritas ROOT error handler.
  */
 ScopedRootErrorHandler::ScopedRootErrorHandler()
-    : previous_(SetErrorHandler(RootErrorHandler))
-    , prev_errored_{g_has_root_errored_}
 {
-    ScopedRootErrorHandler::disable_signal_handler();
+    if (RootFileManager::use_root())
+    {
+        previous_ = SetErrorHandler(RootErrorHandler);
+        prev_errored_ = g_has_root_errored_;
+        ScopedRootErrorHandler::disable_signal_handler();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -113,8 +121,11 @@ void ScopedRootErrorHandler::throw_if_errors() const
  */
 ScopedRootErrorHandler::~ScopedRootErrorHandler()
 {
-    SetErrorHandler(previous_);
-    g_has_root_errored_ = prev_errored_;
+    if (RootFileManager::use_root())
+    {
+        SetErrorHandler(previous_);
+        g_has_root_errored_ = prev_errored_;
+    }
 }
 
 //---------------------------------------------------------------------------//

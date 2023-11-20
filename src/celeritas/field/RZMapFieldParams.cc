@@ -52,6 +52,9 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
         << "invalid field length (field_r size=" << inp.field_r.size()
         << "): should be " << inp.field_z.size());
 
+    // Throw a runtime error if any driver options are invalid
+    validate_input(inp.driver_options);
+
     auto host_data = [&inp] {
         HostVal<RZMapFieldParamsData> host;
 

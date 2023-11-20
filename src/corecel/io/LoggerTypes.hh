@@ -34,6 +34,10 @@ enum class LogLevel
 char const* to_cstring(LogLevel);
 
 //---------------------------------------------------------------------------//
+// Get an ANSI color code appropriate to each log level
+char const* to_color_code(LogLevel);
+
+//---------------------------------------------------------------------------//
 //! Stand-in for a more complex class for the "provenance" of data
 struct Provenance
 {

@@ -16,8 +16,6 @@
 #include "celeritas/ext/GeantUtils.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
-#include "GlobalSetup.hh"
-
 namespace celeritas
 {
 namespace app
@@ -26,13 +24,13 @@ namespace app
 /*!
  * Construct primary action.
  */
-PGPrimaryGeneratorAction::PGPrimaryGeneratorAction()
+PGPrimaryGeneratorAction::PGPrimaryGeneratorAction(
+    PrimaryGeneratorOptions const& options)
 {
+    CELER_EXPECT(options);
+
     // Generate one particle at each call to \c GeneratePrimaryVertex()
     gun_.SetNumberOfParticles(1);
-
-    auto options = GlobalSetup::Instance()->GetPrimaryGeneratorOptions();
-    CELER_ASSERT(options);
 
     // Seed with an independent value for each thread
     rng_.seed(options.seed + get_geant_thread_id());

@@ -39,6 +39,7 @@ namespace constants
  * r_electron           | classic_electr_radius   | Classical electron radius
  * kcd_luminous         | [none]                  | Lumens per Watt
  * lambdabar_electron   | electron_Compton_length | Reduced Compton wavelength
+ * stable_decay_constant| [none]                  | Decay for a stable particle
  *
  * Some experimental physical constants are derived from the other physical
  * constants, but for consistency and clarity they are presented numerically
@@ -81,6 +82,10 @@ CELER_ICRT eh_hartree = 4.3597447222071e-18 / units::meter;
 CELER_ICRT lambdabar_electron = 3.8615926796e-13 * units::meter;
 //!@}
 
+//!@{
+//! \name Other constants
+CELER_ICRT stable_decay_constant = 0;
+//!@}
 #undef CELER_ICRT
 
 //---------------------------------------------------------------------------//

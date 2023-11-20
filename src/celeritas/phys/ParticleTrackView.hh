@@ -134,10 +134,10 @@ ParticleTrackView::ParticleTrackView(ParticleParamsRef const& params,
 CELER_FUNCTION ParticleTrackView&
 ParticleTrackView::operator=(Initializer_t const& other)
 {
-    CELER_EXPECT(other.particle_id < params_.particles.size());
+    CELER_EXPECT(other.particle_id < params_.size());
     CELER_EXPECT(other.energy >= zero_quantity());
-    states_.state[track_slot_].particle_id = other.particle_id;
-    states_.state[track_slot_].energy = other.energy.value();
+    states_.particle_id[track_slot_] = other.particle_id;
+    states_.particle_energy[track_slot_] = other.energy.value();
     return *this;
 }
 
@@ -153,7 +153,7 @@ void ParticleTrackView::energy(Energy quantity)
 {
     CELER_EXPECT(this->particle_id());
     CELER_EXPECT(quantity >= zero_quantity());
-    states_.state[track_slot_].energy = quantity.value();
+    states_.particle_energy[track_slot_] = quantity.value();
 }
 
 //---------------------------------------------------------------------------//
@@ -165,7 +165,7 @@ CELER_FUNCTION void ParticleTrackView::subtract_energy(Energy eloss)
     CELER_EXPECT(eloss >= zero_quantity());
     CELER_EXPECT(eloss <= this->energy());
     // TODO: save a read/write by only saving if eloss is positive?
-    states_.state[track_slot_].energy -= eloss.value();
+    states_.particle_energy[track_slot_] -= eloss.value();
 }
 
 //---------------------------------------------------------------------------//
@@ -176,7 +176,7 @@ CELER_FUNCTION void ParticleTrackView::subtract_energy(Energy eloss)
  */
 CELER_FUNCTION ParticleId ParticleTrackView::particle_id() const
 {
-    return states_.state[track_slot_].particle_id;
+    return states_.particle_id[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -185,7 +185,7 @@ CELER_FUNCTION ParticleId ParticleTrackView::particle_id() const
  */
 CELER_FUNCTION auto ParticleTrackView::energy() const -> Energy
 {
-    return Energy{states_.state[track_slot_].energy};
+    return Energy{states_.particle_energy[track_slot_]};
 }
 
 //---------------------------------------------------------------------------//
@@ -205,7 +205,7 @@ CELER_FUNCTION bool ParticleTrackView::is_stopped() const
  */
 CELER_FUNCTION ParticleView ParticleTrackView::particle_view() const
 {
-    return ParticleView(params_, states_.state[track_slot_].particle_id);
+    return ParticleView(params_, states_.particle_id[track_slot_]);
 }
 
 //---------------------------------------------------------------------------//
@@ -250,7 +250,7 @@ CELER_FUNCTION bool ParticleTrackView::is_antiparticle() const
  */
 CELER_FUNCTION bool ParticleTrackView::is_stable() const
 {
-    return this->decay_constant() == ParticleRecord::stable_decay_constant();
+    return this->decay_constant() == constants::stable_decay_constant;
 }
 
 //---------------------------------------------------------------------------//

@@ -274,6 +274,15 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
             = {1209, 1073, 911, 912, 844, 881, 903, 992, 1066, 1209};
         EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
     }
+
+    // Interaction threshold energy
+    {
+        std::vector<int> eps_dist
+            = bin_epsilon(2 * data_.electron_mass.value());
+        static int const expected_eps_dist[]
+            = {0, 0, 0, 0, 0, 10000, 0, 0, 0, 0};
+        EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -4,7 +4,7 @@
   "configurePresets": [
     {
       "name": "base",
-      "inherits": ["default"],
+      "inherits": ["default", ".debug"],
       "displayName": "esseivaj default options",
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",

@@ -62,8 +62,6 @@ class EnergyLossDistributionTest : public Test
         using namespace constants;
         using namespace units;
 
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
-
         // Set up shared material data
         MaterialParams::Input mat_inp;
         mat_inp.elements = {{AtomicNumber{18}, AmuMass{39.948}, {}, "Ar"}};
@@ -81,12 +79,12 @@ class EnergyLossDistributionTest : public Test
                                        pdg::electron(),
                                        MevMass{0.5109989461},
                                        ElementaryCharge{-1},
-                                       stable},
+                                       stable_decay_constant},
                                       {"mu_minus",
                                        pdg::mu_minus(),
                                        MevMass{105.6583745},
                                        ElementaryCharge{-1},
-                                       stable}};
+                                       stable_decay_constant}};
         particles = std::make_shared<ParticleParams>(std::move(par_inp));
 
         // Construct shared cutoff params

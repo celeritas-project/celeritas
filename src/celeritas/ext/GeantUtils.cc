@@ -14,11 +14,30 @@
 #if G4VERSION_NUMBER < 1070
 #    include <G4MTRunManager.hh>
 #endif
+#if G4VERSION_NUMBER >= 1070
+#    include <G4Backtrace.hh>
+#endif
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Clear Geant4's signal handlers that get installed on startup/activation.
+ *
+ * This should be called before instantiating a run manager.
+ */
+void disable_geant_signal_handler()
+{
+#if G4VERSION_NUMBER >= 1070
+    CELER_LOG(debug) << "Disabling Geant4 signal handlers";
+    // Disable geant4 signal interception
+    G4Backtrace::DefaultSignals() = {};
+#endif
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the number of threads in a version-portable way.
@@ -39,8 +58,24 @@ int get_geant_num_threads(G4RunManager const& runman)
         result = runman_mt->GetNumberOfThreads();
     }
 #endif
+    // TODO: even if run manager exists, it might not be initialized, so the
+    // result might be nonpositive. See debug-vecgeom 'minimal' example
+    // failure.
     CELER_ENSURE(result > 0);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the number of threads from the global run manager.
+ */
+int get_geant_num_threads()
+{
+    auto* run_man = G4RunManager::GetRunManager();
+    CELER_VALIDATE(run_man,
+                   << "cannot query global thread count before G4RunManager "
+                      "is created");
+    return get_geant_num_threads(*run_man);
 }
 
 //---------------------------------------------------------------------------//

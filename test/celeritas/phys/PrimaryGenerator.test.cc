@@ -34,16 +34,17 @@ class PrimaryGeneratorTest : public Test
   protected:
     void SetUp() override
     {
+        using namespace constants;
         constexpr auto zero = zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create particle defs
-        ParticleParams::Input defs{{"gamma", pdg::gamma(), zero, zero, stable},
-                                   {"electron",
-                                    pdg::electron(),
-                                    units::MevMass{0.5109989461},
-                                    units::ElementaryCharge{-1},
-                                    stable}};
+        ParticleParams::Input defs{
+            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant},
+            {"electron",
+             pdg::electron(),
+             units::MevMass{0.5109989461},
+             units::ElementaryCharge{-1},
+             stable_decay_constant}};
         particles_ = std::make_shared<ParticleParams>(std::move(defs));
     }
 

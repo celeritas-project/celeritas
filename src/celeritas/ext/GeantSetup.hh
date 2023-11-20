@@ -41,9 +41,6 @@ class GeantSetup
     //!@}
 
   public:
-    // Clear Geant4's signal handlers that get installed when linking 11+
-    static void disable_signal_handler();
-
     // Construct from a GDML file and physics options
     GeantSetup(std::string const& gdml_filename, Options options);
 
@@ -94,8 +91,6 @@ G4VPhysicalVolume const* GeantSetup::world() const
 }
 
 #if !CELERITAS_USE_GEANT4
-inline void GeantSetup::disable_signal_handler() {}
-
 inline GeantSetup::GeantSetup(std::string const&, Options)
 {
     CELER_NOT_CONFIGURED("Geant4");
