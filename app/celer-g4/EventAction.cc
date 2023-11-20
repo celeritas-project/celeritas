@@ -11,7 +11,6 @@
 #include <G4Event.hh>
 
 #include "corecel/Macros.hh"
-#include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
 #include "RootIO.hh"
@@ -50,9 +49,7 @@ void EventAction::BeginOfEventAction(G4Event const* event)
         return;
 
     // Set event ID in local transporter
-    ExceptionConverter call_g4exception{"celer0002"};
-    CELER_TRY_HANDLE(transport_->SetEventId(event->GetEventID()),
-                     call_g4exception);
+    transport_->SetEventId(event->GetEventID());
 }
 
 //---------------------------------------------------------------------------//
@@ -66,8 +63,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
     if (!SharedParams::CeleritasDisabled())
     {
         // Transport any tracks left in the buffer
-        ExceptionConverter call_g4exception{"celer0004", params_.get()};
-        CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+        transport_->Flush();
     }
 
     if (RootIO::use_root())

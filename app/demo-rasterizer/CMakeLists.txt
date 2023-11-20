@@ -31,7 +31,7 @@ celeritas_target_link_libraries(demo-rasterizer ${_rasterizer_libs})
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT CELERITAS_BUILD_TESTS)
+if(NOT BUILD_TESTING)
   return()
 endif()
 
@@ -50,8 +50,9 @@ set_tests_properties("app/demo-rasterizer" PROPERTIES
   REQUIRED_FILES "${_driver};${_gdml_inp}"
   LABELS "app;nomemcheck;gpu"
 )
-if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE" OR CELER_DISABLE_DEVICE)
   # two-boxes.org.json isn't set up in the test directory
+  # or device is unavailable
   set_tests_properties("app/demo-rasterizer" PROPERTIES
     DISABLED true
   )

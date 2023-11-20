@@ -18,6 +18,11 @@ namespace celeritas
 {
 namespace detail
 {
+
+// Forward declaration
+template<class, class>
+struct LdgLoader;
+
 //---------------------------------------------------------------------------//
 //! Helper tag for special unitless values
 enum class QConstant
@@ -174,6 +179,8 @@ class Quantity
 
   private:
     value_type value_{};
+
+    friend detail::LdgLoader<Quantity<unit_type, value_type> const, void>;
 };
 
 //---------------------------------------------------------------------------//
@@ -400,5 +407,24 @@ inline char const* accessor_unit_label()
     return detail::AccessorResultType<T>::unit_type::label();
 }
 
+namespace detail
+{
+//! Template matching to determine if T is a Quantity
+template<class T>
+struct IsQuantity : std::false_type
+{
+};
+template<class V, class S>
+struct IsQuantity<Quantity<V, S>> : std::true_type
+{
+};
+template<class V, class S>
+struct IsQuantity<Quantity<V, S> const> : std::true_type
+{
+};
+template<class T>
+inline constexpr bool is_quantity_v = IsQuantity<T>::value;
+
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

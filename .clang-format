@@ -107,7 +107,7 @@ IncludeCategories:
     Priority:        5
     SortPriority:    9
 IncludeIsMainRegex: '(\.[^.]+)?$'
-IncludeIsMainSourceRegex: '\.cu$' # Allow CU files as main
+IncludeIsMainSourceRegex: '(\.cu|\.t\.hh)$' # Allow CU/template files as main
 IndentCaseLabels: true
 IndentPPDirectives: AfterHash
 IndentWidth:     4

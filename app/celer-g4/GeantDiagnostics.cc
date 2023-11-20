@@ -9,11 +9,19 @@
 
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/MemRegistry.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 
 #include "G4RunManager.hh"
 #include "GlobalSetup.hh"
+
+#if CELERITAS_USE_JSON
+#    include "corecel/io/OutputInterfaceAdapter.hh"
+#    include "corecel/sys/EnvironmentIO.json.hh"
+#    include "corecel/sys/MemRegistryIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -54,6 +62,17 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
     if (!params)
     {
         // Celeritas core params didn't add system metadata: do it ourselves
+#if CELERITAS_USE_JSON
+        // Save system diagnostic information
+        output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
+            OutputInterface::Category::system,
+            "memory",
+            celeritas::mem_registry()));
+        output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
+            OutputInterface::Category::system,
+            "environ",
+            celeritas::environment()));
+#endif
         output_reg->insert(std::make_shared<BuildOutput>());
     }
 

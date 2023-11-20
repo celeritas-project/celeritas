@@ -78,12 +78,6 @@ Device& global_device()
 //---------------------------------------------------------------------------//
 // MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-
-void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p) noexcept
-{
-    delete p;
-}
-
 /*!
  * Get the number of available devices.
  *
@@ -265,6 +259,17 @@ Stream& Device::stream(StreamId id) const
     CELER_EXPECT(streams_);
 
     return streams_->get(id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * External deleter for stream storage.
+ *
+ * This is for the PIMPL idiom with unique pointers.
+ */
+void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p) noexcept
+{
+    delete p;
 }
 
 //---------------------------------------------------------------------------//

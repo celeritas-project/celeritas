@@ -86,7 +86,7 @@ struct CollectionTraits<T,
 template<class T, Ownership W, MemSpace M>
 struct CollectionStorage
 {
-    using type = Span<typename CollectionTraits<T, W>::type>;
+    using type = typename CollectionTraits<T, W>::SpanT;
     type data;
 };
 
