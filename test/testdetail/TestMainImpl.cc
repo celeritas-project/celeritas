@@ -8,9 +8,11 @@
 #include "testdetail/TestMainImpl.hh"
 
 #include <stdexcept>
+#include <string_view>
 
 #include "celeritas_config.h"
 #include "celeritas_version.h"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
@@ -21,7 +23,6 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 
 #include "NonMasterResultPrinter.hh"
-#include "ParallelHandler.hh"
 
 using std::cout;
 using std::endl;
@@ -30,6 +31,68 @@ namespace celeritas
 {
 namespace testdetail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Add barriers at test ends.
+ */
+class ParallelListener final : public ::testing::EmptyTestEventListener
+{
+  public:
+    //! Construct with communicator
+    explicit ParallelListener(MpiCommunicator const& comm) : comm_(comm) {}
+
+    //! Write parallel testing info at startup
+    void OnTestProgramStart(::testing::UnitTest const&) override
+    {
+        if (comm_.rank() == 0)
+        {
+            std::cout << color_code('x') << "Testing "
+                      << "on " << comm_.size() << " process"
+                      << (comm_.size() > 1 ? "es" : "") << color_code(' ')
+                      << std::endl;
+        }
+    }
+
+    //! Barrier at beginning
+    void OnTestStart(::testing::TestInfo const&) override { barrier(comm_); }
+
+    //! Flush and barrier at end
+    void OnTestEnd(::testing::TestInfo const&) override
+    {
+        std::cout << std::flush;
+        barrier(comm_);
+    }
+
+  private:
+    MpiCommunicator const& comm_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add barriers at test ends.
+ */
+class DeviceSkipper final : public ::testing::EmptyTestEventListener
+{
+  public:
+    void OnTestStart(::testing::TestInfo const& test_info) override
+    {
+        constexpr auto npos = std::string_view::npos;
+        for (char const* s : {test_info.test_case_name(), test_info.name()})
+        {
+            std::string_view sview{s};
+            if (sview.find("Device") != npos || sview.find("device") != npos)
+            {
+                GTEST_SKIP() << "Skipping device test";
+            }
+        }
+    }
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 int test_main(int argc, char** argv)
 {
@@ -54,7 +117,7 @@ int test_main(int argc, char** argv)
     if (comm.rank() == 0)
     {
         cout << color_code('x') << "Celeritas version " << celeritas_version
-             << endl;
+             << color_code(' ') << endl;
     }
 
     // Initialize google test
@@ -74,8 +137,19 @@ int test_main(int argc, char** argv)
         listeners.Append(new NonMasterResultPrinter(comm.rank()));
     }
 
-    // Adds a listener to the end.  Google Test takes the ownership.
-    listeners.Append(new ParallelHandler(comm));
+    if (CELER_USE_DEVICE && !celeritas::device())
+    {
+        cout << color_code('y') << "Disabling tests with 'device' in the name"
+             << color_code(' ') << endl;
+        // Skip test parts if "device" in name and device isn't available
+        listeners.Append(new DeviceSkipper());
+    }
+
+    if (CELERITAS_USE_MPI && comm)
+    {
+        // Add MPI barriers at test end: Google Test takes ownership of pointer
+        listeners.Append(new ParallelListener(comm));
+    }
 
     // Run everything
     int failed = RUN_ALL_TESTS();
