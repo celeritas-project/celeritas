@@ -9,6 +9,10 @@ on:
     branches:
       - develop
       - backports/**
+    paths-ignore:
+      - '**.rst'
+      - '**.md'
+      - 'scripts/dev'
   merge_group:
     types: [checks_requested]
 
@@ -68,7 +72,7 @@ jobs:
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
       # NOTE: checkout must occur *after* setting up environment for git tags to work
       # NOTE: checkout v4 fails: https://github.com/actions/checkout/issues/1487
-      # TODO: shallow copy + git describe with cmake git version?
+      # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
         uses: actions/checkout@v3
         with:
