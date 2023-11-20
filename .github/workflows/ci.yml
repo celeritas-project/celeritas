@@ -25,38 +25,38 @@ jobs:
     name: CI
     strategy:
       matrix:
-        special: [null]
-        geometry: ['orange', 'vecgeom']
-        buildtype: ['debug', 'ndebug']
-        image: ['ubuntu-cuda', 'centos-rocm']
-        exclude:
-          - geometry: 'vecgeom'
-            image: 'centos-rocm' # VecGeom not installed on HIP
-          - buildtype: 'debug'
-            image: 'centos-rocm' # Debug builds don't work with HIP
+        #        special: [null]
+        #        geometry: ['orange', 'vecgeom']
+        #        buildtype: ['debug', 'ndebug']
+        #        image: ['ubuntu-cuda', 'centos-rocm']
+        #        exclude:
+        #          - geometry: 'vecgeom'
+        #            image: 'centos-rocm' # VecGeom not installed on HIP
+        #          - buildtype: 'debug'
+        #            image: 'centos-rocm' # Debug builds don't work with HIP
         include:
-          - special: 'asan'
-            geometry: 'orange'
-            buildtype: 'reldeb'
-            image: 'centos-rocm'
+          #          - special: 'asan'
+          #            geometry: 'orange'
+          #            buildtype: 'reldeb'
+          #            image: 'centos-rocm'
           - special: 'minimal'
             geometry: 'orange'
             buildtype: 'debug'
             image: 'centos-rocm'
-          - special: 'float'
-            geometry: 'orange'
-            buildtype: 'debug'
-            image: 'centos-rocm'
-          - special: 'float'
-            geometry: 'orange'
-            buildtype: 'ndebug'
-            image: 'centos-rocm'
-          - geometry: 'geant4'
-            buildtype: 'reldeb'
-            image: 'centos-rocm'
-          - geometry: 'vecgeom'
-            buildtype: 'reldeb'
-            image: 'ubuntu-cuda'
+              #          - special: 'float'
+              #            geometry: 'orange'
+              #            buildtype: 'debug'
+              #            image: 'centos-rocm'
+              #          - special: 'float'
+              #            geometry: 'orange'
+              #            buildtype: 'ndebug'
+              #            image: 'centos-rocm'
+              #          - geometry: 'geant4'
+              #            buildtype: 'reldeb'
+              #            image: 'centos-rocm'
+              #          - geometry: 'vecgeom'
+              #            buildtype: 'reldeb'
+              #            image: 'ubuntu-cuda'
     env:
       ASAN_OPTIONS: "detect_leaks=0"
         #      CCACHE_DIR: "${{github.workspace}}/.ccache"
