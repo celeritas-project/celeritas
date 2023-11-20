@@ -29,25 +29,25 @@ class CoulombScatteringTest : public InteractorHostTestBase
   protected:
     void SetUp() override
     {
+        using namespace constants;
         // Need to include protons
         constexpr units::MevMass emass{0.5109989461};
-        auto stable = ParticleRecord::stable_decay_constant();
         ParticleParams::Input par_inp
             = {{"electron",
                 pdg::electron(),
                 emass,
                 celeritas::units::ElementaryCharge{-1},
-                stable},
+                stable_decay_constant},
                {"positron",
                 pdg::positron(),
                 emass,
                 celeritas::units::ElementaryCharge{1},
-                stable},
+                stable_decay_constant},
                {"proton",
                 pdg::proton(),
                 units::MevMass{938.28},
                 celeritas::units::ElementaryCharge{1},
-                stable}};
+                stable_decay_constant}};
         this->set_particle_params(std::move(par_inp));
 
         // Set up shared material data

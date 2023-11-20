@@ -60,7 +60,7 @@ CELER_FUNCTION
 ParticleView::ParticleView(ParticleParamsRef const& params, ParticleId id)
     : params_(params), particle_(id)
 {
-    CELER_EXPECT(particle_ < params_.particles.size());
+    CELER_EXPECT(particle_ < params_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -78,7 +78,7 @@ CELER_FUNCTION ParticleId ParticleView::particle_id() const
  */
 CELER_FUNCTION units::MevMass ParticleView::mass() const
 {
-    return params_.particles[particle_].mass;
+    return params_.mass[particle_];
 }
 
 //---------------------------------------------------------------------------//
@@ -87,7 +87,7 @@ CELER_FUNCTION units::MevMass ParticleView::mass() const
  */
 CELER_FUNCTION units::ElementaryCharge ParticleView::charge() const
 {
-    return params_.particles[particle_].charge;
+    return params_.charge[particle_];
 }
 
 //---------------------------------------------------------------------------//
@@ -96,7 +96,7 @@ CELER_FUNCTION units::ElementaryCharge ParticleView::charge() const
  */
 CELER_FUNCTION real_type ParticleView::decay_constant() const
 {
-    return params_.particles[particle_].decay_constant;
+    return params_.decay_constant[particle_];
 }
 
 //---------------------------------------------------------------------------//
@@ -105,7 +105,7 @@ CELER_FUNCTION real_type ParticleView::decay_constant() const
  */
 CELER_FUNCTION bool ParticleView::is_antiparticle() const
 {
-    return params_.particles[particle_].is_antiparticle;
+    return params_.matter[particle_] == MatterType::antiparticle;
 }
 
 //---------------------------------------------------------------------------//
