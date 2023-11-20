@@ -1,7 +1,4 @@
-name: build-gpu
-# TODO: this currently includes non-GPU builds as well
-# and won't actually run on device
-
+name: full-build
 on:
   workflow_dispatch:
   workflow_call:
@@ -11,8 +8,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  containers:
-    name: GPU-enabled builds
+  # TODO: this currently includes non-GPU builds as well
+  # and won't actually run on device
+  gpu:
+    name: gpu
     strategy:
       matrix:
         special: [null]

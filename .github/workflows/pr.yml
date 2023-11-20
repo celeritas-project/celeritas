@@ -1,4 +1,4 @@
-name: ci
+name: pr
 
 on:
   push:
@@ -21,13 +21,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-gpu:
-    name: GPU-enabled builds
-    uses: ./.github/workflows/build-gpu.yml
+  build:
+    uses: ./.github/workflows/build-full.yml
 
   # Specifying a dependent job allows us to select a single "requires" check
   all:
-    needs: [ build-gpu ]
+    needs: [ build ]
     runs-on: ubuntu-latest
     steps:
     - name: Success
