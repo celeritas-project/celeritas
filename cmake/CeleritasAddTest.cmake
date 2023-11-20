@@ -336,7 +336,7 @@ function(celeritas_add_test SOURCE_FILE)
     list(APPEND PARSE_ENVIRONMENT "PYTHONPATH=${CELERITASTEST_PYTHONPATH}")
   endif()
 
-  if(CELERITAS_DEBUG)
+  if(CELERITAS_TEST_VERBOSE)
     list(APPEND PARSE_ENVIRONMENT
       "CELER_LOG=debug"
       "CELER_LOG_LOCAL=diagnostic"
