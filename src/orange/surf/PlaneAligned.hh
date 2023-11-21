@@ -25,7 +25,7 @@ class PlaneAligned
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 1>;
-    using StorageSpan = LdgSpan<const real_type, 1>;
+    using StorageSpan = Span<const real_type, 1>;
     using Storage = StorageSpan;  // DEPRECATED
     //@}
 
