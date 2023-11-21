@@ -1,4 +1,5 @@
 name: pr
+run-name: "#${{github.event.pull_request.number}} (@${{github.actor}}): ${{github.ref_name}}"
 
 on:
   pull_request:
@@ -13,7 +14,7 @@ on:
     types: [checks_requested]
 
 concurrency:
-  group: ${{github.ref}}-${{github.event.pull_request.number}}-${{github.workflow}}
+  group: pr-${{github.ref}}-${{github.event.pull_request.number}}-${{github.workflow}}
   cancel-in-progress: true
 
 jobs:
