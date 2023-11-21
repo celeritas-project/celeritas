@@ -10,7 +10,6 @@
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Version.h>
-#include <VecGeom/navigation/GlobalLocator.h>
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/volumes/LogicalVolume.h>
@@ -25,15 +24,14 @@
 #include "VecgeomData.hh"
 #include "detail/VecgeomCompatibility.hh"
 
-#if VECGEOM_VERSION >= 0x020000
-#    ifdef VECGEOM_USE_SURF
-#        include "detail/SurfNavigator.hh"
-#    else
-#        include <VecGeom/navigation/BVHNavigator.h>
-#    endif
-#else
+#if VECGEOM_VERSION < 0x020000
 #    include "detail/BVHNavigator.hh"
+#elif defined(VECGEOM_USE_SURF)
+#    include "detail/SurfNavigator.hh"
+#else
+#    include <VecGeom/navigation/BVHNavigator.h>
 #endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -58,14 +56,12 @@ class VecgeomTrackView
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
     using StateRef = NativeRef<VecgeomStateData>;
-#if VECGEOM_VERSION >= 0x020000
-#    ifdef VECGEOM_USE_SURF
-    using Navigator = celeritas::detail::SurfNavigator;
-#    else
-    using Navigator = vecgeom::BVHNavigator;
-#    endif
-#else
+#if VECGEOM_VERSION < 0x020000
     using Navigator = celeritas::detail::BVHNavigator;
+#elif defined(VECGEOM_USE_SURF)
+    using Navigator = celeritas::detail::SurfNavigator;
+#else
+    using Navigator = vecgeom::BVHNavigator;
 #endif
     //!@}
 
