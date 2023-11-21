@@ -3,6 +3,7 @@ run-name: >-
   Pending merge
   to ${{github.event.merge_group.base_ref}}
   by @${{github.event.sender.login}}
+  commit ${{github.event.sha}}
 
 on:
   merge_group:
