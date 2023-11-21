@@ -6,7 +6,6 @@ on:
     branches:
       - develop
       - backports/**
-      - fix-push-ci
 
 concurrency:
   group: push-${{github.ref}}-${{github.run_number}}-${{github.workflow}}
