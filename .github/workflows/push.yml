@@ -1,4 +1,5 @@
 name: push
+# TODO: improve run name using commit title (`message` includes details as well)
 # run-name: >-
 #   ${{github.ref_name}}:
 #   ${{github.event.head_commit.message}}

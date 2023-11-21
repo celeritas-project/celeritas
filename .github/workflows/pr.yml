@@ -25,7 +25,7 @@ jobs:
 
   # Specifying a dependent job allows us to select a single "requires" check
   all:
-    needs: [ build ]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
     - name: Success
