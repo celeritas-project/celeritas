@@ -87,17 +87,16 @@ TEST_F(SoftSurfaceEqualTest, plane)
     Real3 const n = make_unit_vector(Real3{1, 1, 0});
     Plane const ref{n, p};
 
-    // Absolute length scales are used for comparing normals
-    real_type const smallabs = SoftEqual{eps}.abs() / 10;
-    real_type const largeabs = SoftEqual{eps}.abs() * 10;
-
-    EXPECT_TRUE(softeq_(ref, Plane{n, p + Real3{small, 0, 0}}));
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_TRUE(softeq_(ref, Plane{n, p + Real3{small, 0, 0}}));
+    }
     EXPECT_FALSE(softeq_(ref, Plane{n, p + Real3{large, 0, 0}}));
 
-    Real3 const npert = make_unit_vector(n + Real3{smallabs, 0, 0});
+    Real3 const npert = make_unit_vector(n + Real3{small, 0, 0});
     EXPECT_TRUE(softeq_(ref, Plane{npert, p}));
 
-    Real3 const ndiff = make_unit_vector(n + Real3{0, largeabs, 0});
+    Real3 const ndiff = make_unit_vector(n + Real3{0, large, 0});
     EXPECT_FALSE(softeq_(ref, Plane{ndiff, p}));
     EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{-1, 1, 0}), p}));
     EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{1, -1, 0}), p}));

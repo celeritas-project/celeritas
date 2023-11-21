@@ -128,6 +128,8 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
     CELER_EXPECT(gamma_cutoff_ > zero_quantity());
+    CELER_EXPECT(inc_energy_ > gamma_cutoff_
+                 && inc_energy_ < detail::seltzer_berger_limit());
 }
 
 //---------------------------------------------------------------------------//
@@ -139,18 +141,8 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
 {
-    // Check if secondary can be produced. If not, this interaction cannot
-    // happen and the incident particle must undergo an energy loss process
-    // instead.
-    // TODO: reject this interaction before executing the kernel by using
-    // correct material-dependent lower bounds for the interaction
-    if (gamma_cutoff_ > inc_energy_)
-    {
-        return Interaction::from_unchanged(inc_energy_, inc_direction_);
-    }
-
     // Allocate space for the brems photon
-    Secondary* secondaries = this->allocate_(1);
+    Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)
     {
         // Failed to allocate space for the secondary

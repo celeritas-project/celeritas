@@ -12,6 +12,8 @@
 #include <string_view>
 #include <gtest/gtest.h>
 
+#include "celeritas_config.h"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -49,6 +51,14 @@ class Test : public ::testing::Test
     // Define "inf" value for subclass testing
     static constexpr double inf = HUGE_VAL;
     static constexpr float inff = HUGE_VALF;
+
+    // Define coarse epsilon (sqrt typical precision)
+
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+    static constexpr double coarse_eps = 1e-6;
+#elif CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+    static constexpr float coarse_eps = 1e-3f;
+#endif
 
   private:
     int filename_counter_ = 0;

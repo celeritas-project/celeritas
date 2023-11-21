@@ -113,7 +113,7 @@ RelativisticBremInteractor::RelativisticBremInteractor(
                  || particle.particle_id() == shared_.ids.positron);
 
     // Valid energy region of the relativistic e-/e+ Bremsstrahlung model
-    CELER_EXPECT(inc_energy_ > detail::seltzer_berger_limit());
+    CELER_EXPECT(inc_energy_ >= detail::seltzer_berger_limit());
 }
 
 //---------------------------------------------------------------------------//
@@ -124,7 +124,7 @@ template<class Engine>
 CELER_FUNCTION Interaction RelativisticBremInteractor::operator()(Engine& rng)
 {
     // Allocate space for the brems photon
-    Secondary* secondaries = this->allocate_(1);
+    Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)
     {
         // Failed to allocate space for the secondary

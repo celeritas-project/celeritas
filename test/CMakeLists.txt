@@ -16,7 +16,6 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 celeritas_add_library(testcel_harness
   Test.cc
   testdetail/NonMasterResultPrinter.cc
-  testdetail/ParallelHandler.cc
   testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
 )
@@ -94,6 +93,17 @@ set(_geo_libs
   Celeritas::orange ${VecGeom_LIBRARIES} ${Geant4_LIBRARIES}
 )
 
+if(CELERITAS_REAL_TYPE STREQUAL "double")
+  set(_needs_double)
+  set(_fixme_single)
+else()
+  # Test relies on "gold" data; don't bother updating
+  set(_needs_double DISABLE)
+  # Test has legitimate errors and we should fix if we support
+  # single-precision in the long term
+  set(_fixme_single DISABLE)
+endif()
+
 #-----------------------------------------------------------------------------#
 # GOOGLETEST EXTENSION TESTS
 #-----------------------------------------------------------------------------#
@@ -135,6 +145,7 @@ celeritas_add_test(corecel/data/Copier.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
 celeritas_add_device_test(corecel/data/ObserverPtr)
+celeritas_add_test(corecel/data/LdgIterator.test.cc)
 celeritas_add_test(corecel/data/HyperslabIndexer.test.cc)
 celeritas_add_device_test(corecel/data/StackAllocator)
 
@@ -201,19 +212,26 @@ celeritas_setup_tests(SERIAL PREFIX orange
 
 #-----------------------------------------------------------------------------#
 # Base
-celeritas_add_test(orange/BoundingBox.test.cc)
-celeritas_add_test(orange/BoundingBoxUtils.test.cc)
-celeritas_add_test(orange/CsgTree.test.cc
+celeritas_add_test(orange/BoundingBox.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
-celeritas_add_test(orange/CsgTreeUtils.test.cc)
+celeritas_add_test(orange/BoundingBoxUtils.test.cc)
 celeritas_add_test(orange/MatrixUtils.test.cc)
-celeritas_add_test(orange/Orange.test.cc)
+celeritas_add_test(orange/OrangeTypes.test.cc)
+celeritas_add_device_test(orange/Orange)
 
 # Base detail
 celeritas_add_test(orange/detail/BIHBuilder.test.cc)
 celeritas_add_test(orange/detail/BIHTraverser.test.cc)
 celeritas_add_test(orange/detail/BIHUtils.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
+
+#-----------------------------------------------------------------------------#
+# Construct
+set(CELERITASTEST_PREFIX orange/construct)
+celeritas_add_test(orange/construct/CsgTree.test.cc
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
+celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
 
 #-------------------------------------#
 # Transforms
@@ -225,24 +243,26 @@ celeritas_add_test(orange/transform/VariantTransform.test.cc)
 #-------------------------------------#
 # Surfaces
 set(CELERITASTEST_PREFIX orange/surf)
-celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surf/ConeAligned.test.cc)
 celeritas_add_test(orange/surf/CylAligned.test.cc)
 celeritas_add_test(orange/surf/CylCentered.test.cc)
 celeritas_add_test(orange/surf/GeneralQuadric.test.cc)
 celeritas_add_test(orange/surf/Plane.test.cc)
 celeritas_add_test(orange/surf/PlaneAligned.test.cc)
-celeritas_add_test(orange/surf/RecursiveSimplifier.test.cc)
 celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
+
+celeritas_add_test(orange/surf/FaceNamer.test.cc)
+celeritas_add_test(orange/surf/RecursiveSimplifier.test.cc)
 celeritas_add_test(orange/surf/SoftSurfaceEqual.test.cc)
 celeritas_add_test(orange/surf/SurfaceClipper.test.cc)
 celeritas_add_test(orange/surf/SurfaceSimplifier.test.cc)
-celeritas_add_test(orange/surf/VariantSurface.test.cc)
+celeritas_add_device_test(orange/surf/LocalSurfaceVisitor)
+
+celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTransformer.test.cc)
-celeritas_add_device_test(orange/surf/LocalSurfaceVisitor)
 
 #-------------------------------------#
 # Universe details
@@ -322,21 +342,24 @@ celeritas_add_test(celeritas/Constants.test.cc
 #-------------------------------------#
 # EM
 set(CELERITASTEST_PREFIX celeritas/em)
-celeritas_add_test(celeritas/em/BetheHeitler.test.cc)
-celeritas_add_test(celeritas/em/CombinedBrem.test.cc)
-celeritas_add_test(celeritas/em/EPlusGG.test.cc)
-celeritas_add_test(celeritas/em/Fluctuation.test.cc)
-celeritas_add_test(celeritas/em/KleinNishina.test.cc)
-celeritas_add_test(celeritas/em/LivermorePE.test.cc)
-celeritas_add_test(celeritas/em/MollerBhabha.test.cc)
-celeritas_add_test(celeritas/em/MuBremsstrahlung.test.cc)
-celeritas_add_test(celeritas/em/Rayleigh.test.cc)
-celeritas_add_test(celeritas/em/RelativisticBrem.test.cc)
-celeritas_add_test(celeritas/em/SeltzerBerger.test.cc)
-celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc)
+celeritas_add_test(celeritas/em/Fluctuation.test.cc ${_fixme_single})
+celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc ${_needs_double})
+
+# Models
+celeritas_add_test(celeritas/em/BetheHeitler.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/CombinedBrem.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/EPlusGG.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/KleinNishina.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/LivermorePE.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/MollerBhabha.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/MuBremsstrahlung.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/Rayleigh.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/RelativisticBrem.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/SeltzerBerger.test.cc ${_needs_double})
+celeritas_add_test(celeritas/em/Wentzel.test.cc ${_fixme_single})
+
 celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
-celeritas_add_test(celeritas/em/Wentzel.test.cc)
 
 #-------------------------------------#
 # External
@@ -345,24 +368,30 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 if(CELERITAS_USE_VecGeom)
   # Vecgeom uses global counters that interfere with copying data to GPU and
   # change the internal numbering.
+  set(_vecgeom_tests
+    "SimpleCmsTest.*"
+  )
+  if(NOT VecGeom_SURF_FOUND)
+    # TODO: vecgeom surface doesn't support some of these shapes
+    list(APPEND _vecgeom_tests
+      "FourLevelsTest.*"
+      "SolidsTest.*"
+      "CmseTest.*"
+    )
+  endif()
   if(CELERITAS_USE_Geant4)
-    set(_vecgeom_geant_tests
+    list(APPEND _vecgeom_tests
       "FourLevelsGeantTest.*"
       "SolidsGeantTest.*"
     )
-  else()
-    set(_vecgeom_geant_tests)
   endif()
   celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom
     FILTER
-      "FourLevelsTest.*"
-      "SolidsTest.*"
-      "CmseTest.*"
-      ${_vecgeom_geant_tests}
+      ${_vecgeom_tests}
   )
 endif()
-if(CELERITAS_USE_Geant4)
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   celeritas_add_test(celeritas/ext/GeantGeo.test.cc
     LINK_LIBRARIES ${Geant4_LIBRARIES}
   )
@@ -401,7 +430,7 @@ celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
 # Geo
 set(CELERITASTEST_PREFIX celeritas/geo)
 
-set(_geo_args GPU ${_needs_geo}
+set(_geo_args GPU ${_needs_geo} ${_needs_double}
   SOURCES celeritas/geo/HeuristicGeoTestBase.cc)
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
@@ -422,7 +451,7 @@ celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
 set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 
-if(CELERITAS_USE_Geant4)
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_along_step_filter
     FILTER
       "-Em3*:SimpleCms*"
@@ -445,7 +474,22 @@ if(CELERITAS_USE_Geant4)
       "TestEm15FieldMsc.*"
       "OneSteelSphere.*"
   )
-else()
+elseif(CELERITAS_USE_Geant4)
+set(_along_step_filter
+    FILTER
+      "-Em3*:SimpleCms*"
+      "Em3AlongStepTest.nofluct_nomsc"
+      "Em3AlongStepTest.fluct_nomsc"
+  )
+  set(_stepper_filter
+    FILTER
+      "-TestEm*:OneSteelSphere*"
+      "TestEm3Compton.*"
+      "TestEm3Msc.*"
+      "TestEm3MscNofluct.*"
+      "TestEm15FieldMsc.*"
+    )
+  else()
   set(_along_step_filter)
   set(_stepper_filter)
 endif()
@@ -568,11 +612,11 @@ endif()
 
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
 celeritas_add_test(celeritas/user/Diagnostic.test.cc
-  GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fails_g4geo}
+  GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fails_g4geo} ${_needs_double}
   ${_diagnostic_filter}
 )
 celeritas_add_test(celeritas/user/StepCollector.test.cc
-  GPU NT 1 ${_optional_geant4_env} ${_needs_geo}
+  GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fixme_single}
 )
 
 #-----------------------------------------------------------------------------#
@@ -594,11 +638,16 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(accel/ExceptionConverter.test.cc)
   celeritas_add_test(accel/HepMC3PrimaryGenerator.test.cc
     ENVIRONMENT "${_geant4_test_env}")
+  celeritas_add_test(accel/RZMapMagneticField.test.cc)
   celeritas_add_test(accel/detail/HitManager.test.cc
     ENVIRONMENT "${_geant4_test_env}")
   celeritas_add_test(accel/detail/HitProcessor.test.cc
     ENVIRONMENT "${_geant4_test_env}")
-  celeritas_add_test(accel/detail/TouchableUpdater.test.cc)
+  if(CELERITAS_REAL_TYPE STREQUAL "double")
+    # This test requires Geant4 *geometry* which is incompatible
+    # with single-precision
+    celeritas_add_test(accel/detail/TouchableUpdater.test.cc)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -630,4 +679,3 @@ celeritas_add_rootupdate_target(update-four-slabs four-steel-slabs)
 celeritas_add_rootupdate_target(update-simple-cms simple-cms)
 
 #-----------------------------------------------------------------------------#
-

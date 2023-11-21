@@ -88,7 +88,7 @@ CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y)
     CELER_EXPECT(y);
     for (size_type i = 0; i != N; ++i)
     {
-        (*y)[i] += a * x[i];
+        (*y)[i] = std::fma(a, x[i], (*y)[i]);
     }
 }
 
@@ -102,7 +102,7 @@ CELER_FUNCTION T dot_product(Array<T, N> const& x, Array<T, N> const& y)
     T result{};
     for (size_type i = 0; i != N; ++i)
     {
-        result += x[i] * y[i];
+        result = std::fma(x[i], y[i], result);
     }
     return result;
 }
@@ -294,14 +294,14 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
  * The magnitude squared is
  * \f[
   m^2 = (v + \epsilon e) \cdot (v + \epsilon e)
-   = |v|^2 + 2 \epsilon v \cdot e +  \epsilon^2 e \cdot e
+   = v \cdot v + 2 \epsilon v \cdot e +  \epsilon^2 e \cdot e
    = 1 + 2 \epsilon v \cdot e + \epsilon^2
  \f]
  *
- * Since \f[ v \cdot e  <= |v||e| = 1 \f] by the triangle inequality,
+ * Since \f[ |v \cdot e|  <= |v||e| = 1 \f] by the triangle inequality,
  * then the magnitude squared of a perturbed unit vector is bounded
  * \f[
-  m^2 = 1 \pm (2 \epsilon + \epsilon^2)
+  m^2 = 1 \pm 2 \epsilon + \epsilon^2
   \f]
  *
  * Instead of calculating the square of the tolerance we loosely bound with

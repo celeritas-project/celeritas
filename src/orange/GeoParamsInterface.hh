@@ -26,7 +26,7 @@ class GeoParamsInterface
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstVolumeId = Span<VolumeId const>;
+    using SpanConstVolumeId = LdgSpan<VolumeId const>;
     //!@}
 
   public:

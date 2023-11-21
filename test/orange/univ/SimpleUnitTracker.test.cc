@@ -16,6 +16,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeParams.hh"
@@ -410,7 +411,6 @@ TEST_F(OneVolumeTest, safety)
 TEST_F(OneVolumeTest, heuristic_init)
 {
     size_type num_tracks = 1024;
-
     static double const expected_vol_fractions[] = {1.0};
 
     {
@@ -420,7 +420,8 @@ TEST_F(OneVolumeTest, heuristic_init)
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
-    if (CELER_USE_DEVICE)
+
+    if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
@@ -634,7 +635,7 @@ TEST_F(TwoVolumeTest, normal)
     }
 }
 
-TEST_F(TwoVolumeTest, heuristic_init)
+TEST_F(TwoVolumeTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 1024;
 
@@ -647,7 +648,7 @@ TEST_F(TwoVolumeTest, heuristic_init)
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
-    if (CELER_USE_DEVICE)
+    if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
@@ -693,16 +694,24 @@ TEST_F(FieldLayersTest, cross_boundary)
         SCOPED_TRACE(eps);
         {
             // From background to volume
-            auto init = tracker.cross_boundary(this->make_state_crossing(
-                {0, -1.5 + eps, 0}, {0, -1, 0}, "world.bg", "layerbox1.py", '+'));
+            auto init = tracker.cross_boundary(
+                this->make_state_crossing({0, real_type{-1.5} + eps, 0},
+                                          {0, -1, 0},
+                                          "world.bg",
+                                          "layerbox1.py",
+                                          '+'));
             EXPECT_EQ("layer1", this->id_to_label(init.volume));
             EXPECT_EQ("layerbox1.py", this->id_to_label(init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
         }
         {
             // From volume to background
-            auto init = tracker.cross_boundary(this->make_state_crossing(
-                {0, -2.5 - eps, 0}, {0, -1, 0}, "layer1", "layerbox1.my", '+'));
+            auto init = tracker.cross_boundary(
+                this->make_state_crossing({0, real_type{-2.5} - eps, 0},
+                                          {0, -1, 0},
+                                          "layer1",
+                                          "layerbox1.my",
+                                          '+'));
             EXPECT_EQ("world.bg", this->id_to_label(init.volume));
             EXPECT_EQ("layerbox1.my", this->id_to_label(init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
@@ -734,7 +743,7 @@ TEST_F(FieldLayersTest, intersect)
     }
 }
 
-TEST_F(FieldLayersTest, heuristic_init)
+TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 8192;
     static double const expected_vol_fractions[] = {0,
@@ -752,7 +761,7 @@ TEST_F(FieldLayersTest, heuristic_init)
         EXPECT_SOFT_EQ(0, result.failed);
     }
 
-    if (CELER_USE_DEVICE)
+    if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
@@ -935,7 +944,7 @@ TEST_F(FiveVolumesTest, safety)
     EXPECT_SOFT_EQ(0.5, tracker.safety({-5, 20, 0}, d));
 }
 
-TEST_F(FiveVolumesTest, heuristic_init)
+TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 10000;
 
@@ -948,7 +957,7 @@ TEST_F(FiveVolumesTest, heuristic_init)
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
-    if (CELER_USE_DEVICE)
+    if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);

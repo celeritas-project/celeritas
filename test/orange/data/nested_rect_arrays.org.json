@@ -1,0 +1,660 @@
+{
+"_format": "SCALE ORANGE",
+"_version": 0,
+"materials": {
+"cell_to_mat": [
+-1,
+-1,
+0,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+2,
+-1,
+1
+],
+"names": [
+"0",
+"1",
+"2"
+]
+},
+"universes": [
+{
+"_type": "simple unit",
+"bbox": [
+[
+-20.0,
+-20.0,
+-20.0
+],
+[
+20.0,
+20.0,
+20.0
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"arrfill",
+"interior"
+],
+"cells": [
+{
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & ~",
+"num_intersections": 6,
+"zorder": 2
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+4.0,
+4.0,
+1.0
+]
+],
+"faces": [
+6,
+7,
+8,
+9,
+10,
+11
+],
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ &",
+"num_intersections": 6,
+"zorder": 2
+},
+{
+"bbox": [
+[
+-20.0,
+-20.0,
+-20.0
+],
+[
+20.0,
+20.0,
+20.0
+]
+],
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5,
+6,
+7,
+8,
+9,
+10,
+11
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 6 7 ~ & 8 & 9 ~ & 10 & 11 ~ & ~ &",
+"num_intersections": 12,
+"zorder": 2
+}
+],
+"daughters": [
+1
+],
+"md": {
+"name": "global",
+"provenance": "nested_rect_arrays.org.omn:43"
+},
+"parent_cells": [
+1
+],
+"surface_names": [
+"outer.mx",
+"outer.px",
+"outer.my",
+"outer.py",
+"outer.mz",
+"outer.pz",
+"arrfill.mx",
+"arrfill.px",
+"arrfill.my",
+"arrfill.py",
+"arrfill.mz",
+"arrfill.pz"
+],
+"surfaces": {
+"data": [
+-20.0,
+20.0,
+-20.0,
+20.0,
+-20.0,
+20.0,
+0.0,
+4.0,
+0.0,
+4.0,
+0.0,
+1.0
+],
+"sizes": [
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1
+],
+"types": [
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz",
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz"
+]
+},
+"translations": [
+0.0,
+0.0,
+0.0
+]
+},
+{
+"_type": "simple unit",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+4.0,
+4.0,
+1.0
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"parent+"
+],
+"cells": [
+{
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"num_intersections": 0,
+"zorder": 65534
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+4.0,
+4.0,
+1.0
+]
+],
+"faces": [],
+"logic": "*",
+"num_intersections": 0,
+"zorder": 3
+}
+],
+"daughters": [
+2
+],
+"md": {
+"name": "parent",
+"provenance": "nested_rect_arrays.org.omn:36"
+},
+"parent_cells": [
+1
+],
+"surface_names": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"translations": [
+0.0,
+0.0,
+0.0
+]
+},
+{
+"_type": "rectangular array",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+4.0,
+4.0,
+1.0
+]
+],
+"cell_names": [
+"{0,0,0}",
+"{0,1,0}",
+"{1,0,0}",
+"{1,1,0}"
+],
+"daughters": [
+3,
+3,
+3,
+3
+],
+"md": {
+"description": "Embedded unplaced array",
+"name": "parent+",
+"provenance": "nested_rect_arrays.org.omn:36"
+},
+"parent_cells": [
+0,
+2,
+1,
+3
+],
+"surface_names": [
+"-x",
+"+x",
+"-y",
+"+y",
+"-z",
+"+z"
+],
+"translations": [
+0.0,
+0.0,
+0.0,
+2.0,
+0.0,
+0.0,
+0.0,
+2.0,
+0.0,
+2.0,
+2.0,
+0.0
+],
+"x": [
+0.0,
+2.0,
+4.0
+],
+"y": [
+0.0,
+2.0,
+4.0
+],
+"z": [
+0.0,
+1.0
+]
+},
+{
+"_type": "simple unit",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+2.0,
+2.0,
+1.0
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"arr+"
+],
+"cells": [
+{
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"num_intersections": 0,
+"zorder": 65534
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+2.0,
+2.0,
+1.0
+]
+],
+"faces": [],
+"logic": "*",
+"num_intersections": 0,
+"zorder": 3
+}
+],
+"daughters": [
+4
+],
+"md": {
+"name": "arr",
+"provenance": "nested_rect_arrays.org.omn:29"
+},
+"parent_cells": [
+1
+],
+"surface_names": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"translations": [
+0.0,
+0.0,
+0.0
+]
+},
+{
+"_type": "rectangular array",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+2.0,
+2.0,
+1.0
+]
+],
+"cell_names": [
+"{0,0,0}",
+"{0,1,0}",
+"{1,0,0}",
+"{1,1,0}"
+],
+"daughters": [
+5,
+6,
+6,
+5
+],
+"md": {
+"description": "Embedded unplaced array",
+"name": "arr+",
+"provenance": "nested_rect_arrays.org.omn:29"
+},
+"parent_cells": [
+0,
+2,
+1,
+3
+],
+"surface_names": [
+"-x",
+"+x",
+"-y",
+"+y",
+"-z",
+"+z"
+],
+"translations": [
+0.0,
+0.0,
+0.0,
+1.0,
+0.0,
+0.0,
+0.0,
+1.0,
+0.0,
+1.0,
+1.0,
+0.0
+],
+"x": [
+0.0,
+1.0,
+2.0
+],
+"y": [
+0.0,
+1.0,
+2.0
+],
+"z": [
+0.0,
+1.0
+]
+},
+{
+"_type": "simple unit",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+1.0,
+1.0,
+1.0
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"Bfill"
+],
+"cells": [
+{
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"num_intersections": 0,
+"zorder": 65534
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+1.0,
+1.0,
+1.0
+]
+],
+"faces": [],
+"logic": "*",
+"num_intersections": 0,
+"zorder": 2
+}
+],
+"daughters": [],
+"md": {
+"name": "B",
+"provenance": "nested_rect_arrays.org.omn:17"
+},
+"parent_cells": [],
+"surface_names": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"translations": []
+},
+{
+"_type": "simple unit",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+1.0,
+1.0,
+1.0
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"Afill"
+],
+"cells": [
+{
+"bbox": [
+[
+-1.7976931348623157e+308,
+-1.7976931348623157e+308,
+-1.7976931348623157e+308
+],
+[
+1.7976931348623157e+308,
+1.7976931348623157e+308,
+1.7976931348623157e+308
+]
+],
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"num_intersections": 0,
+"zorder": 65534
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+1.0,
+1.0,
+1.0
+]
+],
+"faces": [],
+"logic": "*",
+"num_intersections": 0,
+"zorder": 2
+}
+],
+"daughters": [],
+"md": {
+"name": "A",
+"provenance": "nested_rect_arrays.org.omn:6"
+},
+"parent_cells": [],
+"surface_names": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"translations": []
+}
+]
+}

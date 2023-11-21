@@ -108,7 +108,7 @@ class LivermorePETest : public InteractorHostTestBase
             auto const& electron = interaction.secondaries.front();
             EXPECT_TRUE(electron);
             EXPECT_EQ(model_->host_ref().ids.electron, electron.particle_id);
-            EXPECT_GT(this->particle_track().energy().value(),
+            EXPECT_GE(this->particle_track().energy().value(),
                       electron.energy.value());
             EXPECT_LT(0, electron.energy.value());
             EXPECT_SOFT_EQ(1.0, norm(electron.direction));
@@ -160,9 +160,9 @@ TEST_F(LivermorePETest, basic)
                                    this->direction(),
                                    this->secondary_allocator());
 
-    std::vector<double> energy_electron;
-    std::vector<double> costheta_electron;
-    std::vector<double> energy_deposition;
+    std::vector<real_type> energy_electron;
+    std::vector<real_type> costheta_electron;
+    std::vector<real_type> energy_deposition;
 
     // Produce four samples from the original incident energy/dir
     for (int i : range(4))
@@ -183,11 +183,11 @@ TEST_F(LivermorePETest, basic)
     EXPECT_EQ(4, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    double const expected_energy_electron[]
+    real_type const expected_energy_electron[]
         = {0.00062884, 0.00062884, 0.00070136, 0.00069835};
-    double const expected_costheta_electron[] = {
+    real_type const expected_costheta_electron[] = {
         0.1217302869581, 0.8769397871407, -0.1414717733267, -0.2414106440617};
-    double const expected_energy_deposition[]
+    real_type const expected_energy_deposition[]
         = {0.00037116, 0.00037116, 0.00029864, 0.00030165};
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);
     EXPECT_VEC_SOFT_EQ(expected_costheta_electron, costheta_electron);
@@ -204,10 +204,10 @@ TEST_F(LivermorePETest, basic)
 TEST_F(LivermorePETest, stress_test)
 {
     int const num_samples = 8192;
-    std::vector<double> avg_engine_samples;
-    std::vector<double> avg_num_secondaries;
-    std::vector<double> avg_cosine;
-    std::vector<double> avg_energy;
+    std::vector<real_type> avg_engine_samples;
+    std::vector<real_type> avg_num_secondaries;
+    std::vector<real_type> avg_cosine;
+    std::vector<real_type> avg_energy;
 
     // Sampled element
     ElementId el_id{0};
@@ -220,7 +220,7 @@ TEST_F(LivermorePETest, stress_test)
         relax_params_ref_, relax_states_ref_, el_id, TrackSlotId{0});
     EXPECT_FALSE(relaxation);
 
-    for (double inc_e : {0.0001, 0.01, 1.0, 10.0, 1000.0})
+    for (real_type inc_e : {0.0001, 0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
@@ -228,8 +228,8 @@ TEST_F(LivermorePETest, stress_test)
         RandomEngine& rng_engine = this->rng();
         RandomEngine::size_type num_particles_sampled = 0;
         RandomEngine::size_type num_secondaries = 0;
-        double tot_cosine = 0;
-        double tot_energy = 0;
+        real_type tot_cosine = 0;
+        real_type tot_energy = 0;
 
         // Loop over several incident directions
         for (Real3 const& inc_dir :
@@ -264,34 +264,34 @@ TEST_F(LivermorePETest, stress_test)
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
-        avg_engine_samples.push_back(double(rng_engine.count())
-                                     / double(num_particles_sampled));
-        avg_num_secondaries.push_back(double(num_secondaries)
-                                      / double(num_particles_sampled));
-        avg_cosine.push_back(tot_cosine / double(num_secondaries));
-        avg_energy.push_back(tot_energy / double(num_secondaries));
+        avg_engine_samples.push_back(real_type(rng_engine.count())
+                                     / real_type(num_particles_sampled));
+        avg_num_secondaries.push_back(real_type(num_secondaries)
+                                      / real_type(num_particles_sampled));
+        avg_cosine.push_back(tot_cosine / real_type(num_secondaries));
+        avg_energy.push_back(tot_energy / real_type(num_secondaries));
     }
 
     // Gold values
-    double const expected_avg_engine_samples[]
+    real_type const expected_avg_engine_samples[]
         = {15.99755859375, 16.09204101562, 13.79919433594, 8.590209960938, 2};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 
-    double const expected_avg_num_secondaries[] = {1, 1, 1, 1, 1};
+    real_type const expected_avg_num_secondaries[] = {1, 1, 1, 1, 1};
     EXPECT_VEC_SOFT_EQ(expected_avg_num_secondaries, avg_num_secondaries);
 
-    double const expected_avg_cosine[] = {0.0181237765392,
-                                          0.1848443587223,
-                                          1.030717821907,
-                                          1.169482513617,
-                                          1.183012701892};
+    real_type const expected_avg_cosine[] = {0.0181237765392,
+                                             0.1848443587223,
+                                             1.030717821907,
+                                             1.169482513617,
+                                             1.183012701892};
     EXPECT_VEC_SOFT_EQ(expected_avg_cosine, expected_avg_cosine);
 
-    double const expected_avg_energy[] = {7.287875885011e-05,
-                                          0.006708485731503,
-                                          0.9967066970311,
-                                          9.996704339284,
-                                          999.9967069717};
+    real_type const expected_avg_energy[] = {7.287875885011e-05,
+                                             0.006708485731503,
+                                             0.9967066970311,
+                                             9.996704339284,
+                                             999.9967069717};
     EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
 }
 
@@ -339,10 +339,10 @@ TEST_F(LivermorePETest, distributions_all)
 
     int nbins = 10;
     int num_secondaries = 0;
-    std::map<double, int> energy_to_count;
-    std::vector<double> energy;
+    std::map<real_type, int> energy_to_count;
+    std::vector<real_type> energy;
     std::vector<int> count;
-    std::vector<double> costheta_dist(nbins);
+    std::vector<real_type> costheta_dist(nbins);
 
     // Loop over many particles
     for (int i = 0; i < num_samples; ++i)
@@ -353,7 +353,7 @@ TEST_F(LivermorePETest, distributions_all)
         num_secondaries += out.secondaries.size();
 
         // Bin directional change of the photoelectron
-        double costheta
+        real_type costheta
             = dot_product(inc_direction, out.secondaries.front().direction);
         int ct_bin = (1 + costheta) / 2 * nbins;  // Remap from [-1,1] to [0,1]
         if (ct_bin >= 0 && ct_bin < nbins)
@@ -375,9 +375,9 @@ TEST_F(LivermorePETest, distributions_all)
         energy.push_back(it.first);
         count.push_back(it.second);
     }
-    double const expected_costheta_dist[]
+    real_type const expected_costheta_dist[]
         = {23, 61, 83, 129, 135, 150, 173, 134, 85, 27};
-    double const expected_energy[] = {
+    real_type const expected_energy[] = {
         2.901e-05,  3.202e-05,  4.576e-05,  4.604e-05,  4.877e-05,  4.905e-05,
         6.529e-05,  6.83e-05,   0.00021764, 0.00022065, 0.00023439, 0.00023467,
         0.0002374,  0.00023768, 0.00025114, 0.00025142, 0.0002517,  0.00025392,
@@ -434,8 +434,8 @@ TEST_F(LivermorePETest, distributions_radiative)
                                    this->secondary_allocator());
 
     int num_secondaries = 0;
-    std::map<double, int> energy_to_count;
-    std::vector<double> energy;
+    std::map<real_type, int> energy_to_count;
+    std::vector<real_type> energy;
     std::vector<int> count;
 
     // Loop over many particles
@@ -460,7 +460,7 @@ TEST_F(LivermorePETest, distributions_radiative)
         energy.push_back(it.first);
         count.push_back(it.second);
     }
-    double const expected_energy[] = {
+    real_type const expected_energy[] = {
         6.951e-05,
         0.00025814,
         0.00026115,
@@ -486,23 +486,23 @@ TEST_F(LivermorePETest, macro_xs)
     LivermorePEMacroXsCalculator calc_macro_xs(model_->host_ref(), material);
 
     int num_vals = 20;
-    double loge_min = std::log(1.e-4);
-    double loge_max = std::log(1.e6);
-    double delta = (loge_max - loge_min) / (num_vals - 1);
-    double loge = loge_min;
+    real_type loge_min = std::log(1.e-4);
+    real_type loge_max = std::log(1.e6);
+    real_type delta = (loge_max - loge_min) / (num_vals - 1);
+    real_type loge = loge_min;
 
-    std::vector<double> energy;
-    std::vector<double> macro_xs;
+    std::vector<real_type> energy;
+    std::vector<real_type> macro_xs;
 
     // Loop over energies
     for (int i = 0; i < num_vals; ++i)
     {
-        double e = std::exp(loge);
+        real_type e = std::exp(loge);
         energy.push_back(e);
         macro_xs.push_back(calc_macro_xs(MevEnergy{e}));
         loge += delta;
     }
-    double const expected_macro_xs[]
+    real_type const expected_macro_xs[]
         = {9.235615290944,     17.56658325086,     1.161217594282,
            0.4108511065363,    0.01515608909912,   0.0004000659204694,
            9.083754758322e-06, 2.449452106704e-07, 1.800625084911e-08,
@@ -584,7 +584,7 @@ TEST_F(LivermorePEUtilsTest, one_per_previous)
         {
             transitions.push_back({SubshellId{j + 1},
                                    SubshellId{j + 1},
-                                   1. / (num_shells - i),
+                                   real_type{1} / (num_shells - i),
                                    MevEnergy{1}});
         }
         shells[i].transitions

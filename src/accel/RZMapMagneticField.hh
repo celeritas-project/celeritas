@@ -13,6 +13,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/math/ArrayOperators.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/ext/Convert.geant.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 
@@ -37,16 +39,6 @@ class RZMapMagneticField : public G4MagneticField
     // Calculate values of the magnetic field vector
     inline void GetFieldValue(double const point[3], double* field) const;
 
-    //// COMMON PROPERTIES ////
-    static constexpr double from_celer_tesla()
-    {
-        return CLHEP::tesla / celeritas::units::tesla;
-    }
-    static constexpr real_type to_celer_cm()
-    {
-        return celeritas::units::centimeter / CLHEP::cm;
-    }
-
   private:
     SPConstFieldParams params_;
     RZMapField calc_field_;
@@ -65,18 +57,18 @@ RZMapMagneticField::RZMapMagneticField(SPConstFieldParams params)
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate values of the magnetic field vector at the given position
- * using the volume-based celetias::RZMapField.
+ * Calculate the magnetic field vector at the given position.
  */
 void RZMapMagneticField::GetFieldValue(double const pos[3], double* field) const
 {
     // Calculate the magnetic field value in the native Celeritas unit system
-    Real3 result = this->calc_field_(Real3{pos[0], pos[1], pos[2]}
-                                     * this->to_celer_cm());
+    Real3 result
+        = calc_field_(convert_from_geant(pos, CLHEP::cm) * units::centimeter);
     for (auto i = 0; i < 3; ++i)
     {
         // Return values of the field vector in CLHEP::tesla for Geant4
-        field[i] = result[i] * this->from_celer_tesla();
+        auto ft = native_value_to<units::FieldTesla>(result[i]);
+        field[i] = convert_to_geant(ft.value(), CLHEP::tesla);
     }
 }
 

@@ -9,6 +9,7 @@
 
 #include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
 #include "CoreParams.hh"
@@ -29,6 +30,8 @@ CoreState<M>::CoreState(CoreParams const& params,
                    << " is out of range: max streams is "
                    << params.max_streams());
     CELER_VALIDATE(num_track_slots > 0, << "number of track slots is not set");
+
+    ScopedProfiling profile_this{"construct-state"};
 
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
@@ -72,43 +75,6 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
 
     Copier<Primary, M> copy_to_temp{primaries_[this->primary_range()]};
     copy_to_temp(MemSpace::host, host_primaries);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reference to the host ActionThread collection for holding result of action
- * counting
- */
-template<MemSpace M>
-auto CoreState<M>::action_thread_offsets() -> ActionThreads<MemSpace::host>&
-{
-    if constexpr (M == MemSpace::device)
-    {
-        return host_thread_offsets_;
-    }
-    else
-    {
-        return thread_offsets_;
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Const reference to the host ActionThread collection for holding result of
- * action counting
- */
-template<MemSpace M>
-auto CoreState<M>::action_thread_offsets() const
-    -> ActionThreads<MemSpace::host> const&
-{
-    if constexpr (M == MemSpace::device)
-    {
-        return host_thread_offsets_;
-    }
-    else
-    {
-        return thread_offsets_;
-    }
 }
 
 //---------------------------------------------------------------------------//

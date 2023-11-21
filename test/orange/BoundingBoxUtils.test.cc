@@ -182,7 +182,7 @@ TEST_F(BoundingBoxUtilsTest, bumped)
         SCOPED_TRACE("default precision");
         BoundingBoxBumper<float, double> calc_bumped{};
         auto bumped = calc_bumped(ref);
-        static float const expected_lower[] = {-inff, -1e-14f, -100.0f};
+        static float const expected_lower[] = {-inff, -1e-14f, -100.0001f};
         static float const expected_upper[] = {1e-14f, 0.1122335f, inff};
         EXPECT_VEC_SOFT_EQ(expected_lower, bumped.lower());
         EXPECT_VEC_SOFT_EQ(expected_upper, bumped.upper());
@@ -218,7 +218,8 @@ TEST_F(BoundingBoxUtilsTest, bumped)
     }
     {
         SCOPED_TRACE("float orange");
-        BBox const ref{{-2, -6, -1}, {8, 4, 2}};
+        BoundingBox<double> const ref{{-2, -6, -1}, {8, 4, 2}};
+        static_assert(std::is_same_v<decltype(ref)::real_type, double>);
         BoundingBoxBumper<float, double> calc_bumped{
             Tolerance<double>::from_relative(2e-8)};
         auto bumped = calc_bumped(ref);

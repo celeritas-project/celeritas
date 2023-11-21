@@ -29,25 +29,25 @@ class CoulombScatteringTest : public InteractorHostTestBase
   protected:
     void SetUp() override
     {
+        using namespace constants;
         // Need to include protons
         constexpr units::MevMass emass{0.5109989461};
-        auto stable = ParticleRecord::stable_decay_constant();
         ParticleParams::Input par_inp
             = {{"electron",
                 pdg::electron(),
                 emass,
                 celeritas::units::ElementaryCharge{-1},
-                stable},
+                stable_decay_constant},
                {"positron",
                 pdg::positron(),
                 emass,
                 celeritas::units::ElementaryCharge{1},
-                stable},
+                stable_decay_constant},
                {"proton",
                 pdg::proton(),
                 units::MevMass{938.28},
                 celeritas::units::ElementaryCharge{1},
-                stable}};
+                stable_decay_constant}};
         this->set_particle_params(std::move(par_inp));
 
         // Set up shared material data
@@ -150,25 +150,25 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
 
     const std::vector<real_type> energies = {50, 100, 200, 1000, 13000};
 
-    static double const expected_screen_z[] = {2.1181757502465e-08,
-                                               5.3641196710457e-09,
-                                               1.3498490873627e-09,
-                                               5.4280909096648e-11,
-                                               3.2158426877075e-13};
+    static real_type const expected_screen_z[] = {2.1181757502465e-08,
+                                                  5.3641196710457e-09,
+                                                  1.3498490873627e-09,
+                                                  5.4280909096648e-11,
+                                                  3.2158426877075e-13};
 
-    static double const expected_cos_t_max[] = {0.99989885103277,
-                                                0.99997458240728,
-                                                0.99999362912075,
-                                                0.99999974463379,
-                                                0.99999999848823};
+    static real_type const expected_cos_t_max[] = {0.99989885103277,
+                                                   0.99997458240728,
+                                                   0.99999362912075,
+                                                   0.99999974463379,
+                                                   0.99999999848823};
 
-    static double const expected_xsecs[] = {0.033319844069031,
-                                            0.033319738720425,
-                                            0.033319684608429,
-                                            0.033319640583261,
-                                            0.03331963032739};
+    static real_type const expected_xsecs[] = {0.033319844069031,
+                                               0.033319738720425,
+                                               0.033319684608429,
+                                               0.033319640583261,
+                                               0.03331963032739};
 
-    std::vector<double> xsecs, cos_t_maxs, screen_zs;
+    std::vector<real_type> xsecs, cos_t_maxs, screen_zs;
     for (real_type energy : energies)
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
@@ -193,21 +193,21 @@ TEST_F(CoulombScatteringTest, mott_xs)
     WentzelElementData const& element_data = data.elem_data[ElementId(0)];
     MottRatioCalculator xsec(element_data, sqrt(particle_track().beta_sq()));
 
-    static double const cos_ts[]
+    static real_type const cos_ts[]
         = {1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
-    static double const expected_xsecs[] = {0.99997507022045,
-                                            1.090740570075,
-                                            0.98638178782896,
-                                            0.83702240402998,
-                                            0.71099171311683,
-                                            0.64712379625713,
-                                            0.30071752615308,
-                                            0.22722448378001,
-                                            0.07702815350459,
-                                            0.00051427465924958};
+    static real_type const expected_xsecs[] = {0.99997507022045,
+                                               1.090740570075,
+                                               0.98638178782896,
+                                               0.83702240402998,
+                                               0.71099171311683,
+                                               0.64712379625713,
+                                               0.30071752615308,
+                                               0.22722448378001,
+                                               0.07702815350459,
+                                               0.00051427465924958};
 
-    std::vector<double> xsecs;
-    for (double cos_t : cos_ts)
+    std::vector<real_type> xsecs;
+    for (real_type cos_t : cos_ts)
     {
         xsecs.push_back(xsec(cos_t));
     }
@@ -219,26 +219,26 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 {
     int const num_samples = 10;
 
-    static double const expected_angle[] = {1,
-                                            0.99999999776622,
-                                            0.99999999990987,
-                                            0.99999999931707,
-                                            0.99999999847986,
-                                            0.9999999952274,
-                                            0.99999999905465,
-                                            0.99999999375773,
-                                            1,
-                                            0.99999999916491};
-    static double const expected_energy[] = {200,
-                                             199.99999999847,
-                                             199.99999999994,
-                                             199.99999999953,
-                                             199.99999999896,
-                                             199.99999999673,
-                                             199.99999999935,
-                                             199.99999999572,
-                                             200,
-                                             199.99999999943};
+    static real_type const expected_angle[] = {1,
+                                               0.99999999776622,
+                                               0.99999999990987,
+                                               0.99999999931707,
+                                               0.99999999847986,
+                                               0.9999999952274,
+                                               0.99999999905465,
+                                               0.99999999375773,
+                                               1,
+                                               0.99999999916491};
+    static real_type const expected_energy[] = {200,
+                                                199.99999999847,
+                                                199.99999999994,
+                                                199.99999999953,
+                                                199.99999999896,
+                                                199.99999999673,
+                                                199.99999999935,
+                                                199.99999999572,
+                                                200,
+                                                199.99999999943};
 
     const IsotopeView isotope = this->material_track()
                                     .make_material_view()
@@ -254,8 +254,8 @@ TEST_F(CoulombScatteringTest, simple_scattering)
                                cutoffs);
     RandomEngine& rng_engine = this->rng();
 
-    std::vector<double> angle;
-    std::vector<double> energy;
+    std::vector<real_type> angle;
+    std::vector<real_type> energy;
 
     for ([[maybe_unused]] int i : range(num_samples))
     {
@@ -277,11 +277,11 @@ TEST_F(CoulombScatteringTest, distribution)
 
     const std::vector<real_type> energies = {50, 100, 200, 1000, 13000};
 
-    static double const expected_avg_angles[] = {0.99999962180819,
-                                                 0.99999973999034,
-                                                 0.9999999728531,
-                                                 0.99999999909264,
-                                                 0.99999999999393};
+    static real_type const expected_avg_angles[] = {0.99999962180819,
+                                                    0.99999973999034,
+                                                    0.9999999728531,
+                                                    0.99999999909264,
+                                                    0.99999999999393};
 
     for (size_t i : range(energies.size()))
     {
@@ -305,7 +305,7 @@ TEST_F(CoulombScatteringTest, distribution)
 
         RandomEngine& rng_engine = this->rng();
 
-        double avg_angle = 0;
+        real_type avg_angle = 0;
 
         int const num_samples = 4096;
         for ([[maybe_unused]] int i : range(num_samples))

@@ -132,13 +132,12 @@ class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
         return std::make_shared<TrackInitParams>(input);
     }
 
-    template<MemSpace M>
-    void check_action_count(ActionThreads<MemSpace::host> const& items,
-                            Stepper<M> const& step)
+    template<MemSpace M, MemSpace M2>
+    void
+    check_action_count(ActionThreads<M2> const& items, Stepper<M> const& step)
     {
         auto total_threads = 0;
-        Span<ThreadId const> items_span
-            = items[ActionThreadsItems<MemSpace::host>{}];
+        Span<ThreadId const> items_span = items[ActionThreadsItems<M2>{}];
         auto pos = std::find(items_span.begin(), items_span.end(), ThreadId{});
         ASSERT_EQ(pos, items_span.end());
         for (size_type i = 0; i < items.size() - 1; ++i)
@@ -379,7 +378,7 @@ TEST_F(TestActionCountEm3Stepper, TEST_IF_CELER_DEVICE(device_count_actions))
     // can't access the collection in CoreState, so test do the counting in a
     // temporary instead
     ActionThreads<MemSpace::device> buffer_d;
-    ActionThreads<MemSpace::host> buffer_h;
+    ActionThreads<MemSpace::mapped> buffer_h;
     resize(&buffer_d, num_actions + 1);
     resize(&buffer_h, num_actions + 1);
 

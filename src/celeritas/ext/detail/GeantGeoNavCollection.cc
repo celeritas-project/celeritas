@@ -8,12 +8,12 @@
 #include "GeantGeoNavCollection.hh"
 
 #include <G4Navigator.hh>
-#include <G4Threading.hh>
 #include <G4TouchableHandle.hh>
 #include <G4TouchableHistory.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "celeritas/ext/GeantUtils.hh"
 
 namespace celeritas
 {
@@ -40,9 +40,7 @@ void GeantGeoNavCollection<Ownership::value, MemSpace::host>::resize(
     size_type size, G4VPhysicalVolume* world, StreamId sid)
 {
     CELER_EXPECT(world);
-    CELER_EXPECT(
-        !G4Threading::IsMultithreadedApplication()
-        || sid.get() == static_cast<size_type>(G4Threading::G4GetThreadId()));
+    CELER_EXPECT(sid.get() == static_cast<size_type>(get_geant_thread_id()));
 
     // Add navigation states to collection
     this->touch_handles.resize(size);

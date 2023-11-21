@@ -21,7 +21,7 @@ namespace test
 
 TEST(SoftEqual, default_precisions)
 {
-    using Comp = SoftEqual<>;
+    using Comp = SoftEqual<double>;
 
     // Check that defaults can be accessed as constexpr
     constexpr auto rel = Comp().rel();
@@ -76,14 +76,18 @@ TYPED_TEST(FloatingTest, soft_equal)
     EXPECT_TRUE(comp(1e6, 1e6 * (1 + comp.rel() / 2)));
     EXPECT_FALSE(comp(1e6, 1e6 * (1 + comp.rel() * 2)));
     // Smaller scale
-    EXPECT_TRUE(comp(1e-6, 1e-6 * (1 + comp.rel() / 2)));
-    EXPECT_FALSE(comp(1e-6, 1e-7));
+    EXPECT_TRUE(comp(1e-5, 1e-5 * (1 + comp.rel() / 2)));
+    EXPECT_FALSE(comp(1e-5, 1e-6));
 
-    EXPECT_FALSE(comp(0, comp.rel() / 2));
-    EXPECT_FALSE(comp(comp.abs() / 2, comp.rel() / 2));
-    EXPECT_FALSE(comp(0, comp.rel()));
-    EXPECT_FALSE(comp(comp.abs(), comp.rel() / 2));
-    EXPECT_FALSE(comp(comp.abs(), comp.rel()));
+    if (std::is_same_v<double, value_type>)
+    {
+        // Double precision uses different relative/absolute tolerances
+        EXPECT_FALSE(comp(0, comp.rel() / 2));
+        EXPECT_FALSE(comp(comp.abs() / 2, comp.rel() / 2));
+        EXPECT_FALSE(comp(0, comp.rel()));
+        EXPECT_FALSE(comp(comp.abs(), comp.rel() / 2));
+        EXPECT_FALSE(comp(comp.abs(), comp.rel()));
+    }
 
     // Test signed zeros
     EXPECT_FALSE(comp(-0, 1));

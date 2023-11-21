@@ -18,13 +18,44 @@ namespace celeritas
 {
 namespace detail
 {
+
+// Forward declaration
+template<class, class>
+struct LdgLoader;
+
 //---------------------------------------------------------------------------//
-//! Implementation class for creating a nonnumeric value comparable to
-//! Quantity.
+//! Helper tag for special unitless values
+enum class QConstant
+{
+    neg_max = -1,
+    zero = 0,
+    max = 1
+};
+
+//! Convert unitless values into a particular type
 template<class T>
+CELER_CONSTEXPR_FUNCTION T get_constant(QConstant qc)
+{
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        // Return +/- infinity
+        return qc == QConstant::neg_max ? -numeric_limits<T>::infinity()
+               : qc == QConstant::max   ? numeric_limits<T>::infinity()
+                                        : 0;
+    }
+    else
+    {
+        // Return lowest and highest values
+        return qc == QConstant::neg_max ? numeric_limits<T>::lowest()
+               : qc == QConstant::max   ? numeric_limits<T>::max()
+                                        : 0;
+    }
+}
+
+//! Tag class for creating a nonnumeric value comparable to Quantity.
+template<QConstant QC>
 struct UnitlessQuantity
 {
-    T value_;  //!< Special nonnumeric value
 };
 
 //! Helper class for getting attributes about a member function
@@ -114,7 +145,6 @@ class Quantity
     //! \name Type aliases
     using value_type = ValueT;
     using unit_type = UnitT;
-    using Unitless = detail::UnitlessQuantity<ValueT>;
     //!@}
 
   public:
@@ -128,7 +158,9 @@ class Quantity
     }
 
     //! Construct implicitly from a unitless quantity
-    CELER_CONSTEXPR_FUNCTION Quantity(Unitless uq) noexcept : value_(uq.value_)
+    template<detail::QConstant QC>
+    CELER_CONSTEXPR_FUNCTION Quantity(detail::UnitlessQuantity<QC>) noexcept
+        : value_(detail::get_constant<ValueT>(QC))
     {
     }
 
@@ -147,37 +179,40 @@ class Quantity
 
   private:
     value_type value_{};
+
+    friend detail::LdgLoader<Quantity<unit_type, value_type> const, void>;
 };
 
 //---------------------------------------------------------------------------//
 //! \cond
-#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                                      \
-    template<class U, class T, class T2>                                      \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                             \
-        Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept                     \
-    {                                                                         \
-        return lhs.value() TOKEN rhs.value();                                 \
-    }                                                                         \
-    template<class U, class T>                                                \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                             \
-        Quantity<U, T> lhs, detail::UnitlessQuantity<T> rhs) noexcept         \
-    {                                                                         \
-        return lhs.value() TOKEN rhs.value_;                                  \
-    }                                                                         \
-    template<class U, class T>                                                \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                             \
-        detail::UnitlessQuantity<T> lhs, Quantity<U, T> rhs) noexcept         \
-    {                                                                         \
-        return lhs.value_ TOKEN rhs.value();                                  \
-    }                                                                         \
-    namespace detail                                                          \
-    {                                                                         \
-    template<class T>                                                         \
-    CELER_CONSTEXPR_FUNCTION bool                                             \
-    operator TOKEN(UnitlessQuantity<T> lhs, UnitlessQuantity<T> rhs) noexcept \
-    {                                                                         \
-        return lhs.value_ TOKEN rhs.value_;                                   \
-    }                                                                         \
+#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                           \
+    template<class U, class T, class T2>                           \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                  \
+        Quantity<U, T> lhs, Quantity<U, T2> rhs) noexcept          \
+    {                                                              \
+        return lhs.value() TOKEN rhs.value();                      \
+    }                                                              \
+    template<class U, class T, detail::QConstant QC>               \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                  \
+        Quantity<U, T> lhs, detail::UnitlessQuantity<QC>) noexcept \
+    {                                                              \
+        return lhs.value() TOKEN detail::get_constant<T>(QC);      \
+    }                                                              \
+    template<class U, class T, detail::QConstant QC>               \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                  \
+        detail::UnitlessQuantity<QC>, Quantity<U, T> rhs) noexcept \
+    {                                                              \
+        return detail::get_constant<T>(QC) TOKEN rhs.value();      \
+    }                                                              \
+    namespace detail                                               \
+    {                                                              \
+    template<detail::QConstant C1, detail::QConstant C2>           \
+    CELER_CONSTEXPR_FUNCTION bool                                  \
+    operator TOKEN(detail::UnitlessQuantity<C1>,                   \
+                   detail::UnitlessQuantity<C2>) noexcept          \
+    {                                                              \
+        return static_cast<int>(C1) TOKEN static_cast<int>(C2);    \
+    }                                                              \
     }
 
 //!@{
@@ -267,30 +302,27 @@ struct UnitProduct
 /*!
  * Get a zero quantity (analogous to nullptr).
  */
-CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type>
-zero_quantity() noexcept
+CELER_CONSTEXPR_FUNCTION auto zero_quantity() noexcept
 {
-    return {0};
+    return detail::UnitlessQuantity<detail::QConstant::zero>{};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get a quantitity greater than any other numeric quantity.
  */
-CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type>
-max_quantity() noexcept
+CELER_CONSTEXPR_FUNCTION auto max_quantity() noexcept
 {
-    return {numeric_limits<real_type>::infinity()};
+    return detail::UnitlessQuantity<detail::QConstant::max>{};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get a quantitity less than any other numeric quantity.
  */
-CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type>
-neg_max_quantity() noexcept
+CELER_CONSTEXPR_FUNCTION auto neg_max_quantity() noexcept
 {
-    return {-numeric_limits<real_type>::infinity()};
+    return detail::UnitlessQuantity<detail::QConstant::neg_max>{};
 }
 
 //---------------------------------------------------------------------------//
@@ -375,5 +407,24 @@ inline char const* accessor_unit_label()
     return detail::AccessorResultType<T>::unit_type::label();
 }
 
+namespace detail
+{
+//! Template matching to determine if T is a Quantity
+template<class T>
+struct IsQuantity : std::false_type
+{
+};
+template<class V, class S>
+struct IsQuantity<Quantity<V, S>> : std::true_type
+{
+};
+template<class V, class S>
+struct IsQuantity<Quantity<V, S> const> : std::true_type
+{
+};
+template<class T>
+inline constexpr bool is_quantity_v = IsQuantity<T>::value;
+
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

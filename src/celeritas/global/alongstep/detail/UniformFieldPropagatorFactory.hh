@@ -25,7 +25,6 @@ struct UniformFieldPropagatorFactory
 {
 #if CELER_USE_DEVICE
     inline static constexpr int max_block_size = 256;
-    inline static constexpr int min_warps_per_eu = 8;
 #endif
 
     CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const

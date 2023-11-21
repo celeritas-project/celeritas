@@ -28,6 +28,16 @@
 #include "Stream.hh"
 #include "detail/StreamStorage.hh"
 
+#if CELERITAS_USE_CUDA
+#    define CELER_DEVICE_SUPPORTS_MEMPOOL 1
+#elif CELERITAS_USE_HIP       \
+    && (HIP_VERSION_MAJOR > 5 \
+        || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2))
+#    define CELER_DEVICE_SUPPORTS_MEMPOOL 1
+#else
+#    define CELER_DEVICE_SUPPORTS_MEMPOOL 0
+#endif
+
 namespace celeritas
 {
 namespace
@@ -68,12 +78,6 @@ Device& global_device()
 //---------------------------------------------------------------------------//
 // MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-
-void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p) noexcept
-{
-    delete p;
-}
-
 /*!
  * Get the number of available devices.
  *
@@ -143,21 +147,23 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 
     CELER_LOG_LOCAL(debug) << "Constructing device ID " << id;
 
-    unsigned int max_threads_per_block = 0;
 #if CELER_USE_DEVICE
 #    if CELERITAS_USE_CUDA
-    cudaDeviceProp props;
+    using DevicePropT = cudaDeviceProp;
 #    elif CELERITAS_USE_HIP
-    hipDeviceProp_t props;
+    using DevicePropT = hipDeviceProp_t;
 #    endif
 
+    DevicePropT props;
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
+
     name_ = props.name;
     total_global_mem_ = props.totalGlobalMem;
     max_threads_per_block_ = props.maxThreadsDim[0];
     max_blocks_per_grid_ = props.maxGridSize[0];
     max_threads_per_cu_ = props.maxThreadsPerMultiProcessor;
     threads_per_warp_ = props.warpSize;
+    can_map_host_memory_ = props.canMapHostMemory != 0;
 #    if CELERITAS_USE_HIP
     if (name_.empty())
     {
@@ -192,8 +198,10 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 #    endif
 
     // Save for possible block size initialization
-    max_threads_per_block = props.maxThreadsPerBlock;
+    max_threads_per_block_ = props.maxThreadsPerBlock;
+#endif
 
+#if CELER_DEVICE_SUPPORTS_MEMPOOL
     auto threshold = std::numeric_limits<uint64_t>::max();
     if (std::string var = celeritas::getenv("CELER_MEMPOOL_RELEASE_THRESHOLD");
         !var.empty())
@@ -208,22 +216,6 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
 
     // See device_runtime_api.h
     eu_per_cu_ = CELER_EU_PER_CU;
-
-    // Set default block size from environment
-    std::string const& bsize_str = celeritas::getenv("CELER_BLOCK_SIZE");
-    if (!bsize_str.empty())
-    {
-        default_block_size_ = std::stoi(bsize_str);
-        CELER_VALIDATE(default_block_size_ >= threads_per_warp_
-                           && default_block_size_ <= max_threads_per_block,
-                       << "Invalid block size: number of threads must be in ["
-                       << threads_per_warp_ << ", " << max_threads_per_block
-                       << "]");
-        CELER_VALIDATE(default_block_size_ % threads_per_warp_ == 0,
-                       << "Invalid block size: number of threads must be "
-                          "evenly divisible by "
-                       << threads_per_warp_);
-    }
 
     CELER_ENSURE(*this);
     CELER_ENSURE(!name_.empty());
@@ -267,6 +259,17 @@ Stream& Device::stream(StreamId id) const
     CELER_EXPECT(streams_);
 
     return streams_->get(id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * External deleter for stream storage.
+ *
+ * This is for the PIMPL idiom with unique pointers.
+ */
+void Device::StreamStorageDeleter::operator()(detail::StreamStorage* p) noexcept
+{
+    delete p;
 }
 
 //---------------------------------------------------------------------------//

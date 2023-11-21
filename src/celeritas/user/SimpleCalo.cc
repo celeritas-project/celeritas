@@ -16,7 +16,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "orange/GeoParamsInterface.hh"  // IWYU pragma: keep
 
 #include "detail/SimpleCaloImpl.hh"
 
@@ -32,7 +32,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-VolumeId find_volume_fuzzy(GeoParams const& geo, Label const& label)
+VolumeId find_volume_fuzzy(GeoParamsInterface const& geo, Label const& label)
 {
     if (auto id = geo.find_volume(label))
     {
@@ -76,11 +76,13 @@ VolumeId find_volume_fuzzy(GeoParams const& geo, Label const& label)
 /*!
  * Construct with sensitive regions.
  */
-SimpleCalo::SimpleCalo(VecLabel labels,
-                       GeoParams const& geo,
+SimpleCalo::SimpleCalo(std::string output_label,
+                       VecLabel labels,
+                       GeoParamsInterface const& geo,
                        size_type num_streams)
-    : volume_labels_{std::move(labels)}
+    : output_label_{std::move(output_label)}, volume_labels_{std::move(labels)}
 {
+    CELER_EXPECT(!output_label_.empty());
     CELER_EXPECT(!volume_labels_.empty());
     CELER_EXPECT(num_streams > 0);
 

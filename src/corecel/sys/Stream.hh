@@ -68,7 +68,9 @@ class AsyncMemoryResource final : public MockMemoryResource<Pointer>
 /*!
  * CUDA or HIP stream.
  *
- * This creates/destroys a stream on construction/destruction.
+ * This creates/destroys a stream on construction/destruction and provides
+ * accessors to low-level stream-related functionality. This class will
+ * typically be accessed only by low-level device implementations.
  */
 class Stream
 {
@@ -105,6 +107,12 @@ class Stream
 
     // Access the thrust resource allocator associated with the stream
     ResourceT& memory_resource() { return memory_resource_; }
+
+    // Allocate memory asynchronously on this stream if possible
+    void* malloc_async(std::size_t bytes) const;
+
+    // Free memory asynchronously on this stream if possible
+    void free_async(void* ptr) const;
 
   private:
     StreamT stream_{nullptr};

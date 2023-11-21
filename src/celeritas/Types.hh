@@ -45,7 +45,7 @@ using MaterialId = OpaqueId<struct MaterialRecord>;
 using ModelId = OpaqueId<class Model>;
 
 //! Opaque index to ParticleRecord in a vector: represents a particle type
-using ParticleId = OpaqueId<struct ParticleRecord>;
+using ParticleId = OpaqueId<struct Particle_>;
 
 //! Opaque index of physics process
 using ProcessId = OpaqueId<class Process>;

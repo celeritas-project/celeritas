@@ -49,7 +49,6 @@ class TrackingAction final : public G4UserTrackingAction
     SPConstParams params_;
     SPTransporter transport_;
     SPDiagnostics diagnostics_;
-    bool disable_offloading_;
 };
 
 //---------------------------------------------------------------------------//

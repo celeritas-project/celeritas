@@ -27,6 +27,7 @@ list(APPEND SOURCES
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
+  field/FieldDriverOptions.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
   geo/GeoParamsOutput.cc
@@ -78,6 +79,9 @@ list(APPEND SOURCES
   user/StepCollector.cc
 )
 
+# Bounding box used for output is in "orange"
+list(APPEND PUBLIC_DEPS Celeritas::orange)
+
 #-----------------------------------------------------------------------------#
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
@@ -114,6 +118,7 @@ if(CELERITAS_USE_Geant4)
     ext/GeantGeoUtils.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
+    ext/GeantUtils.cc
     ext/GeantVolumeMapper.cc
     ext/ScopedGeantExceptionHandler.cc
     ext/ScopedGeantLogger.cc
@@ -186,6 +191,7 @@ if(CELERITAS_USE_ROOT)
     "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsVector.hh"
     "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportProcess.hh"
     "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportVolume.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/EventData.hh"
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
@@ -228,6 +234,12 @@ if(CELERITAS_USE_VecGeom)
     ext/detail/VecgeomNavCollection.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  if(VecGeom_CUDA_FOUND AND VecGeom_SURF_FOUND)
+    # Special routines needed for surface
+    list(APPEND SOURCES
+      ext/VecgeomParams.surface.cu
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
@@ -237,9 +249,7 @@ if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
 endif()
 
-if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-  list(APPEND PUBLIC_DEPS Celeritas::orange)
-elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   # Core data has transient includes into vecgeom
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
@@ -318,7 +328,7 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
   )
 endif()
-  
+
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
@@ -326,5 +336,5 @@ celeritas_target_link_libraries(celeritas
 )
 
 #-----------------------------------------------------------------------------#
- 
- 
+
+

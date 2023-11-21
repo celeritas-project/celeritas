@@ -14,6 +14,7 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 
 list(APPEND SOURCES
   AlongStepFactory.cc
+  FastSimulationOffload.cc
   GeantStepDiagnostic.cc
   Logger.cc
   LocalTransporter.cc

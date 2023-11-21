@@ -102,7 +102,7 @@ class TrackInitTestBase : public SimpleTestBase
         {
             Primary p;
             p.particle_id = ParticleId{0};
-            p.energy = units::MevEnergy{1. + i};
+            p.energy = units::MevEnergy(1 + i);
             p.position = {0, 0, 0};
             p.direction = {0, 0, 1};
             p.time = 0;

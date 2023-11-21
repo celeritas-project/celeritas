@@ -61,7 +61,14 @@ endif()
 if(CELERITAS_USE_CUDA)
   # we currently depend on CUDA install including the nvtx header
   list(APPEND SOURCES
+    sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
+  )
+endif()
+
+if(CELERITAS_USE_HIP)
+  list(APPEND SOURCES
+    sys/ScopedProfiling.hip.cc
   )
 endif()
 
@@ -99,11 +106,12 @@ if(WIN32)
     $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX NOGDI>
   )
 
-  # By default MSVC has __cplusplus at 199711L, this flag
-  # forces it to follow the standard
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # __cplusplus: use standard-compliant C++ version macro
+    # preprocessor: use standard-compliant preprocessor
+    # EHsc: enable standard C++ exception handling
     target_compile_options(corecel PUBLIC
-      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor>
+      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
     )
   endif()
 endif()

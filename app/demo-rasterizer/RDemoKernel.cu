@@ -120,13 +120,7 @@ void trace(GeoParamsCRefDevice const& geo_params,
 {
     CELER_EXPECT(image);
 
-    CELER_LAUNCH_KERNEL(trace,
-                        device().default_block_size(),
-                        image.dims[0],
-                        0,
-                        geo_params,
-                        geo_state,
-                        image);
+    CELER_LAUNCH_KERNEL(trace, image.dims[0], 0, geo_params, geo_state, image);
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }

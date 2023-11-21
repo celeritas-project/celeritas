@@ -13,6 +13,7 @@ if(CELERITAS_USE_Geant4)
     GeantDiagnostics.cc
     GlobalSetup.cc
     HepMC3PrimaryGeneratorAction.cc
+    LocalLogger.cc
     PGPrimaryGeneratorAction.cc
     RunAction.cc
     RunInput.cc
@@ -38,37 +39,8 @@ else()
 endif()
 
 if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
-  function(celeritas_local_root_generate_dictionary name)
-    # No need for the rootmap file for an executable.
-    set(CMAKE_ROOTTEST_NOROOTMAP TRUE)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_RUNTIME_OUTPUT_DIRECTORY})
-    include_directories(
-      # root_generate_dictionary cannot handle the '$<INSTALL_INTERFACE:include>'
-      # part of the Celeritas::corecel target's include, so we cannot use it in
-      # the 'DEPENDENCIES' property.
-      "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
-      "${PROJECT_SOURCE_DIR}/src"
-      # The include directory are attached to the Geant4 target through
-      # INTERFACE_INCLUDE_DIRECTORIES which is not looked at by
-      # root_generate_dictionary.
-      ${Geant4_INCLUDE_DIRS}
-      ${CLHEP_INCLUDE_DIRS}
-    )
-    root_generate_dictionary(${name}
-      ${CMAKE_CURRENT_SOURCE_DIR}/HitRootIO.hh
-      ${CMAKE_CURRENT_SOURCE_DIR}/SensitiveHit.hh
-      NOINSTALL
-      MODULE celer-g4
-      # TODO Uncomment this line and remove the include_directories when
-      # the minimal required ROOT version is v6.28/02 or later.
-      # DEPENDENCIES ${Geant4_LIBRARIES} Celeritas::accel Celeritas::corecel
-      LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/HitClassesLinkDef.h"
-    )
-  endfunction(celeritas_local_root_generate_dictionary)
-  celeritas_local_root_generate_dictionary(HitClassesRootInterfaces)
   list(APPEND SOURCES
-    "${CMAKE_CURRENT_BINARY_DIR}/HitClassesRootInterfaces.cxx"
-    HitRootIO.cc
+    RootIO.cc
   )
   list(APPEND LIBRARIES ROOT::Tree)
 endif()
@@ -82,52 +54,29 @@ celeritas_target_link_libraries(celer-g4
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT CELERITAS_BUILD_TESTS)
+if(NOT BUILD_TESTING)
   return()
 endif()
 
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CELERG4_MAX_NUM_TRACKS 524288)
-    set(CELERG4_INIT_CAPACITY 4194304)
-  else()
-    # Use smaller number of tracks when running on CPU
-    set(CELERG4_MAX_NUM_TRACKS 2048)
-    set(CELERG4_INIT_CAPACITY 65536)
-  endif()
-else()
-  # Use smaller number of tracks when running on CPU
-  set(CELERG4_MAX_NUM_TRACKS 1024)
-  set(CELERG4_INIT_CAPACITY 32768)
-endif()
-
+set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/test-harness.py")
+set(_exe "$<TARGET_FILE:celer-g4>")
+set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
 if(NOT CELERITAS_DEBUG)
-  set(CELERG4_EVENTS
+  set(_events
     "${CELER_APP_DATA_DIR}/ttbarsplit-12evt-1108prim.hepmc3")
 else()
   # Use fewer events for debug
-  set(CELERG4_EVENTS
+  set(_events
     "${CELER_APP_DATA_DIR}/ttbarbits-12evt-118prim.hepmc3")
 endif()
-if(CELERITAS_USE_ROOT)
-  set(CELERG4_WRITE_SD_HITS "true")
-  set(CELERG4_OFFLOAD_FILE "simple-cms.offloaded.root")
-else()
-  set(CELERG4_WRITE_SD_HITS "false")
-  set(CELERG4_OFFLOAD_FILE "simple-cms.offloaded.hepmc3")
-endif()
-configure_file(
-  "simple-cms-test.inp.json.in"
-  "simple-cms-test.inp.json" @ONLY
-)
-add_test(NAME "app/celer-g4"
-  COMMAND "$<TARGET_FILE:celer-g4>"
-  "simple-cms-test.inp.json"
-)
+
 set(_env
   ${CELER_G4ENV}
   "CELER_LOG_LOCAL=debug"
   "CELER_DISABLE_PARALLEL=1"
+  "CELER_DEBUG=${CELERITAS_DEBUG}"
+  "CELER_USE_ROOT=${CELERITAS_USE_ROOT}"
+  "CELER_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
 )
 if(Geant4_multithreaded_FOUND)
   list(APPEND _env
@@ -138,22 +87,53 @@ if(CELERITAS_USE_OpenMP)
   list(APPEND _env "OMP_NUM_THREADS=1")
 endif()
 
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  set(_props RESOURCE_LOCK gpu)
-  set(_labels app gpu)
-else()
-  set(_props)
-  set(_labels app)
+set(_required_files "${_driver}" "${_exe}" "${_model}" "${_events}")
+set(_props ${CELER_NEEDS_PYTHON})
+if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
+  set(_props DISABLED true)
 endif()
-if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4
-    OR CELERITAS_CORE_GEO STREQUAL "Geant4")
-  list(APPEND _props DISABLED true)
+if(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  # FIXME: geant4 navigator doesn't work at scale
+  set(_props DISABLED true)
+endif()
+if(CELERITAS_REAL_TYPE STREQUAL "float")
+  # FIXME: propagation fails in single precision
+  set(_props DISABLED true)
 endif()
 
-set_tests_properties("app/celer-g4" PROPERTIES
-  ENVIRONMENT "${_env}"
-  LABELS "${_labels}"
-  ${_props}
-)
+#-----------------------------------------------------------------------------#
+function(celer_app_test ext)
+  set(_labels app nomemcheck)
+  set(_extra_props)
+  set(_extra_env "CELER_TEST_EXT=${ext}")
+  if(ext STREQUAL "gpu")
+    list(APPEND _labels "gpu")
+    set(_extra_props RESOURCE_LOCK gpu)
+    if(CELER_DISABLE_DEVICE)
+      list(APPEND _extra_props DISABLED true)
+    endif()
+  elseif(ext STREQUAL "cpu")
+    list(APPEND _extra_env "CELER_DISABLE_DEVICE=1")
+  else()
+    list(APPEND _extra_env "CELER_DISABLE=1")
+  endif()
+
+  add_test(NAME "app/celer-g4:${ext}"
+    COMMAND "${CELER_PYTHON}" "${_driver}" "${_exe}" "${_model}" "${_events}"
+  )
+
+  set_tests_properties("app/celer-g4:${ext}" PROPERTIES
+    ENVIRONMENT "${_env};${_extra_env}"
+    REQUIRED_FILES "${_required_files}"
+    LABELS "${_labels}"
+    ${_props} ${_extra_props}
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+celer_app_test("gpu")
+celer_app_test("cpu")
+celer_app_test("none")
 
 #-----------------------------------------------------------------------------#

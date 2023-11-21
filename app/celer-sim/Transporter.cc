@@ -15,8 +15,10 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
@@ -37,17 +39,36 @@ TransporterBase::~TransporterBase() = default;
  */
 template<MemSpace M>
 Transporter<M>::Transporter(TransporterInput inp)
-    : max_steps_(inp.max_steps), num_streams_(inp.params->max_streams())
+    : max_steps_(inp.max_steps)
+    , num_streams_(inp.params->max_streams())
+    , store_track_counts_(inp.store_track_counts)
 {
     CELER_EXPECT(inp);
 
     // Create stepper
+    CELER_LOG_LOCAL(status) << "Creating states";
     StepperInput step_input;
     step_input.params = inp.params;
     step_input.num_track_slots = inp.num_track_slots;
     step_input.stream_id = inp.stream_id;
     step_input.sync = inp.sync;
     stepper_ = std::make_shared<Stepper<M>>(std::move(step_input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Run a single step with no active states to "warm up".
+ *
+ * This is to reduce the uncertainty in timing for problems, especially on AMD
+ * hardware.
+ */
+template<MemSpace M>
+void Transporter<M>::operator()()
+{
+    CELER_LOG(status) << "Warming up";
+    ScopedTimeLog scoped_time;
+    StepperResult step_counts = (*stepper_)();
+    CELER_ENSURE(step_counts.alive == 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -72,7 +93,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 #else
     ScopedSignalHandler interrupted{SIGINT};
 #endif
-    CELER_LOG(status) << "Transporting";
+    CELER_LOG_LOCAL(status)
+        << "Transporting " << primaries.size() << " primaries";
 
     Stopwatch get_step_time;
     size_type remaining_steps = max_steps_;
@@ -80,7 +102,10 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     auto& step = *stepper_;
     // Copy primaries to device and transport the first step
     auto track_counts = step(primaries);
-    append_track_counts(track_counts);
+    if (store_track_counts_)
+    {
+        append_track_counts(track_counts);
+    }
     if (num_streams_ == 1)
     {
         result.step_times.push_back(get_step_time());
@@ -90,21 +115,25 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     {
         if (CELER_UNLIKELY(--remaining_steps == 0))
         {
-            CELER_LOG(error) << "Exceeded step count of " << max_steps_
-                             << ": aborting transport loop";
+            CELER_LOG_LOCAL(error) << "Exceeded step count of " << max_steps_
+                                   << ": aborting transport loop";
             break;
         }
         if (CELER_UNLIKELY(interrupted()))
         {
-            CELER_LOG(error) << "Caught interrupt signal: aborting transport "
-                                "loop";
+            CELER_LOG_LOCAL(error)
+                << "Caught interrupt signal: aborting transport "
+                   "loop";
             interrupted = {};
             break;
         }
 
         get_step_time = {};
         track_counts = step();
-        append_track_counts(track_counts);
+        if (store_track_counts_)
+        {
+            append_track_counts(track_counts);
+        }
         if (num_streams_ == 1)
         {
             result.step_times.push_back(get_step_time());

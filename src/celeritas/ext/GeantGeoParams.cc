@@ -30,6 +30,7 @@
 #include "Convert.geant.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
 #include "GeantGeoUtils.hh"
+#include "GeantUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
 #include "detail/GeantVolumeVisitor.hh"
@@ -47,10 +48,7 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
 {
     ScopedMem record_mem("GeantGeoParams.construct");
 
-#if G4VERSION_NUMBER >= 1070
-    // Disable geant4 signal interception
-    G4Backtrace::DefaultSignals() = {};
-#endif
+    disable_geant_signal_handler();
 
     if (!ends_with(filename, ".gdml"))
     {
@@ -267,12 +265,14 @@ void GeantGeoParams::build_metadata()
 
         G4VisExtent const& extent = solid->GetExtent();
 
-        return BBox({convert_from_geant(extent.GetXmin(), CLHEP::cm),
-                     convert_from_geant(extent.GetYmin(), CLHEP::cm),
-                     convert_from_geant(extent.GetZmin(), CLHEP::cm)},
-                    {convert_from_geant(extent.GetXmax(), CLHEP::cm),
-                     convert_from_geant(extent.GetYmax(), CLHEP::cm),
-                     convert_from_geant(extent.GetZmax(), CLHEP::cm)});
+        return BBox({convert_from_geant(G4ThreeVector(extent.GetXmin(),
+                                                      extent.GetYmin(),
+                                                      extent.GetZmin()),
+                                        CLHEP::cm),
+                     convert_from_geant(G4ThreeVector(extent.GetXmax(),
+                                                      extent.GetYmax(),
+                                                      extent.GetZmax()),
+                                        CLHEP::cm)});
     }();
 }
 

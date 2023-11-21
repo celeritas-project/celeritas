@@ -62,8 +62,6 @@ class EnergyLossDistributionTest : public Test
         using namespace constants;
         using namespace units;
 
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
-
         // Set up shared material data
         MaterialParams::Input mat_inp;
         mat_inp.elements = {{AtomicNumber{18}, AmuMass{39.948}, {}, "Ar"}};
@@ -81,12 +79,12 @@ class EnergyLossDistributionTest : public Test
                                        pdg::electron(),
                                        MevMass{0.5109989461},
                                        ElementaryCharge{-1},
-                                       stable},
+                                       stable_decay_constant},
                                       {"mu_minus",
                                        pdg::mu_minus(),
                                        MevMass{105.6583745},
                                        ElementaryCharge{-1},
-                                       stable}};
+                                       stable_decay_constant}};
         particles = std::make_shared<ParticleParams>(std::move(par_inp));
 
         // Construct shared cutoff params
@@ -152,7 +150,7 @@ TEST_F(EnergyLossDistributionTest, none)
     MevEnergy mean_loss{2e-6};
 
     // Tiny step, little energy loss
-    double step = 1e-6;
+    real_type step = 1e-6;
     EnergyLossHelper helper(
         fluct->host_ref(), cutoff, material, particle, mean_loss, step);
     EXPECT_EQ(EnergyLossFluctuationModel::none, helper.model());
@@ -174,16 +172,16 @@ TEST_F(EnergyLossDistributionTest, gaussian)
     MevEnergy mean_loss{0.1};
 
     int num_samples = 5000;
-    std::vector<double> mean;
-    std::vector<double> counts(20);
-    double upper = 7.0;
-    double lower = 0.0;
-    double width = (upper - lower) / counts.size();
+    std::vector<real_type> mean;
+    std::vector<real_type> counts(20);
+    real_type upper = 7.0;
+    real_type lower = 0.0;
+    real_type width = (upper - lower) / counts.size();
 
     // Larger step samples from gamma distribution, smaller step from Gaussian
     {
-        double sum = 0;
-        double step = 5e-2;
+        real_type sum = 0;
+        real_type step = 5e-2;
         EnergyLossHelper helper(
             fluct->host_ref(), cutoff, material, particle, mean_loss, step);
         EXPECT_EQ(EnergyLossFluctuationModel::gamma, helper.model());
@@ -197,7 +195,9 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         for ([[maybe_unused]] int i : range(num_samples))
         {
             auto loss = sample_loss(rng).value();
-            auto bin = size_type((loss - lower) / width);
+            EXPECT_GE(loss, 0);
+            EXPECT_LT(loss, upper);
+            auto bin = static_cast<size_type>((loss - lower) / width);
             CELER_ASSERT(bin < counts.size());
             counts[bin]++;
             sum += loss;
@@ -205,8 +205,8 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         EXPECT_SOFT_EQ(0.096429312200727382, sum / num_samples);
     }
     {
-        double sum = 0;
-        double step = 5e-4;
+        real_type sum = 0;
+        real_type step = 5e-4;
         EnergyLossHelper helper(
             fluct->host_ref(), cutoff, material, particle, mean_loss, step);
         EXPECT_SOFT_EQ(0.00019160444039613,
@@ -228,7 +228,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         EXPECT_SOFT_EQ(0.10031120242856037, sum / num_samples);
     }
 
-    static double const expected_counts[] = {
+    static real_type const expected_counts[] = {
         9636, 166, 85, 31, 27, 18, 13, 6, 6, 4, 2, 2, 0, 3, 0, 0, 1, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_counts, counts);
     EXPECT_EQ(41006, rng.count());
@@ -244,14 +244,14 @@ TEST_F(EnergyLossDistributionTest, urban)
     material = {MaterialId{0}};
     CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
     MevEnergy mean_loss{0.01};
-    double step = 0.01;
+    real_type step = 0.01;
 
     int num_samples = 10000;
-    std::vector<double> counts(20);
-    double upper = 0.03;
-    double lower = 0.0;
-    double width = (upper - lower) / counts.size();
-    double sum = 0;
+    std::vector<real_type> counts(20);
+    real_type upper = 0.03;
+    real_type lower = 0.0;
+    real_type width = (upper - lower) / counts.size();
+    real_type sum = 0;
 
     EnergyLossHelper helper(
         fluct->host_ref(), cutoff, material, particle, mean_loss, step);
@@ -271,12 +271,15 @@ TEST_F(EnergyLossDistributionTest, urban)
         sum += loss;
     }
 
-    static double const expected_counts[]
-        = {0,   0,   12, 223, 1174, 2359, 2661, 1867, 898, 369,
-           189, 107, 60, 48,  20,   9,    2,    2,    0,   0};
-    EXPECT_VEC_SOFT_EQ(expected_counts, counts);
-    EXPECT_SOFT_EQ(0.0099918954960280353, sum / num_samples);
-    EXPECT_EQ(551188, rng.count());
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static real_type const expected_counts[]
+            = {0,   0,   12, 223, 1174, 2359, 2661, 1867, 898, 369,
+               189, 107, 60, 48,  20,   9,    2,    2,    0,   0};
+        EXPECT_VEC_SOFT_EQ(expected_counts, counts);
+        EXPECT_SOFT_EQ(0.0099918954960280353, sum / num_samples);
+        EXPECT_EQ(551188, rng.count());
+    }
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

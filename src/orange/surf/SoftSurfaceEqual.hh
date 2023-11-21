@@ -37,14 +37,17 @@ struct ExactSurfaceEqual
 class SoftSurfaceEqual
 {
   public:
-    //! Construct with tolerances
-    SoftSurfaceEqual(real_type rel, real_type abs) : soft_eq_{rel, abs} {}
+    // Construct with tolerance
+    inline SoftSurfaceEqual(Tolerance<> const& tol);
 
     //! Construct with relative tolerance only
-    explicit SoftSurfaceEqual(real_type rel) : soft_eq_{rel} {}
+    explicit SoftSurfaceEqual(real_type rel)
+        : SoftSurfaceEqual{Tolerance<>::from_relative(rel)}
+    {
+    }
 
     //! Construct with default tolerance
-    SoftSurfaceEqual() : soft_eq_{1e-10} {}
+    SoftSurfaceEqual() : SoftSurfaceEqual{Tolerance<>::from_default()} {}
 
     //// SURFACE FUNCTIONS ////
 
@@ -71,14 +74,24 @@ class SoftSurfaceEqual
     bool operator()(GeneralQuadric const&, GeneralQuadric const&) const;
 
   private:
-    SoftEqual<real_type> soft_eq_;
+    SoftEqual<> soft_eq_;
 
-    bool soft_eq_sq_(real_type a, real_type b) const;
-    bool soft_eq_distance_(Real3 const& a, Real3 const& b) const;
+    bool soft_eq_sq(real_type a, real_type b) const;
+    bool soft_eq_distance(Real3 const& a, Real3 const& b) const;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with tolerance.
+ */
+SoftSurfaceEqual::SoftSurfaceEqual(Tolerance<> const& tol)
+    : soft_eq_{tol.rel, tol.abs}
+{
+    CELER_EXPECT(tol);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Compare exact equality for two surfaces.

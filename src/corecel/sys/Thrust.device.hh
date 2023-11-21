@@ -57,11 +57,16 @@ inline auto& thrust_execution_policy()
     {
         return thrust_native::par;
     }
+#if (__CUDACC_VER_MAJOR__ < 11) \
+    || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
+    CELER_ASSERT_UNREACHABLE();
+#endif
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Returns an execution space for the given stream.
+ *
  * The template parameter defines whether the algorithm should be executed
  * synchronously or asynchrounously.
  */
@@ -80,6 +85,10 @@ inline auto thrust_execute_on(StreamId stream_id)
         return thrust_execution_policy<T>()(Alloc(&stream.memory_resource()))
             .on(stream.get());
     }
+#if (__CUDACC_VER_MAJOR__ < 11) \
+    || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
+    CELER_ASSERT_UNREACHABLE();
+#endif
 }
 
 //---------------------------------------------------------------------------//

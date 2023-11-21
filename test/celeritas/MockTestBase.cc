@@ -27,8 +27,9 @@ namespace test
 // PUBLIC MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 auto MockTestBase::make_applicability(char const* name,
-                                      double lo_energy,
-                                      double hi_energy) const -> Applicability
+                                      real_type lo_energy,
+                                      real_type hi_energy) const
+    -> Applicability
 {
     CELER_EXPECT(name);
     CELER_EXPECT(lo_energy <= hi_energy);
@@ -101,27 +102,32 @@ auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
 //---------------------------------------------------------------------------//
 auto MockTestBase::build_particle() -> SPConstParticle
 {
+    using namespace constants;
     using namespace units;
-
     constexpr auto zero = zero_quantity();
-    constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     ParticleParams::Input inp;
-    inp.push_back({"gamma", pdg::gamma(), zero, zero, stable});
-    inp.push_back(
-        {"celeriton", PDGNumber{1337}, MevMass{1}, ElementaryCharge{1}, stable});
+    inp.push_back({"gamma", pdg::gamma(), zero, zero, stable_decay_constant});
+    inp.push_back({"celeriton",
+                   PDGNumber{1337},
+                   MevMass{1},
+                   ElementaryCharge{1},
+                   stable_decay_constant});
     inp.push_back({"anti-celeriton",
                    PDGNumber{-1337},
                    MevMass{1},
                    ElementaryCharge{-1},
-                   stable});
+                   stable_decay_constant});
     inp.push_back({"electron",
                    pdg::electron(),
                    MevMass{0.5109989461},
                    ElementaryCharge{-1},
-                   stable});
-    inp.push_back(
-        {"celerino", PDGNumber{81}, MevMass{0}, ElementaryCharge{0}, stable});
+                   stable_decay_constant});
+    inp.push_back({"celerino",
+                   PDGNumber{81},
+                   MevMass{0},
+                   ElementaryCharge{0},
+                   stable_decay_constant});
     return std::make_shared<ParticleParams>(std::move(inp));
 }
 
@@ -240,6 +246,7 @@ auto MockTestBase::build_init() -> SPConstTrackInit
     TrackInitParams::Input input;
     input.capacity = 4096;
     input.max_events = 4096;
+    input.track_order = TrackOrder::unsorted;
     return std::make_shared<TrackInitParams>(input);
 }
 

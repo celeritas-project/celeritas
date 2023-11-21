@@ -20,6 +20,7 @@
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/ext/GeantUtils.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -50,7 +51,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                       "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
 
-    auto thread_id = GetThreadID();
+    auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
                    << "Geant4 ThreadID (" << thread_id
                    << ") is invalid (perhaps LocalTransporter is being built "
@@ -105,8 +106,8 @@ void LocalTransporter::Push(G4Track const& g4track)
 
     track.particle_id = particles_->find(
         PDGNumber{g4track.GetDefinition()->GetPDGEncoding()});
-    track.energy = units::MevEnergy{
-        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV)};
+    track.energy = units::MevEnergy(
+        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '"

@@ -55,6 +55,8 @@ enum class RelaxationSelection
  */
 struct GeantPhysicsOptions
 {
+    using MevEnergy = Quantity<units::Mev, double>;
+
     //!@{
     //! \name Gamma physics
     //! Enable discrete Coulomb
@@ -100,27 +102,27 @@ struct GeantPhysicsOptions
     //!@{
     //! \name Cutoff options
     //! Lowest energy of any EM physics process
-    units::MevEnergy min_energy{0.1 * 1e-3};  // 0.1 keV
+    MevEnergy min_energy{0.1 * 1e-3};  // 0.1 keV
     //! Highest energy of any EM physics process
-    units::MevEnergy max_energy{100 * 1e6};  // 100 TeV
+    MevEnergy max_energy{100 * 1e6};  // 100 TeV
     //! See \c PhysicsParamsOptions::linear_loss_limit
-    real_type linear_loss_limit{0.01};
+    double linear_loss_limit{0.01};
     //! Tracking cutoff kinetic energy for e-/e+
-    units::MevEnergy lowest_electron_energy{0.001};  // 1 keV
+    MevEnergy lowest_electron_energy{0.001};  // 1 keV
     //! Kill secondaries below the production cut
     bool apply_cuts{false};
     //! Set the default production cut for all particle types [cm]
-    real_type default_cutoff{0.1};
+    double default_cutoff{0.1};
     //!@}
 
     //!@{
     //! \name Multiple scattering configuration
     //! E-/e+ range factor for MSC models
-    real_type msc_range_factor{0.04};
+    double msc_range_factor{0.04};
     //! Safety factor for MSC models
-    real_type msc_safety_factor{0.6};
+    double msc_safety_factor{0.6};
     //! Lambda limit for MSC models [cm]
-    real_type msc_lambda_limit{0.1};  // 1 mm
+    double msc_lambda_limit{0.1};  // 1 mm
     //!@}
 
     //! Print detailed Geant4 output

@@ -94,6 +94,30 @@ class BoundingBox
 using BBox = BoundingBox<>;
 
 //---------------------------------------------------------------------------//
+// INLINE FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Test equality of two bounding boxes.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool
+operator==(BoundingBox<T> const& lhs, BoundingBox<T> const& rhs)
+{
+    return lhs.lower() == rhs.lower() && lhs.upper() == rhs.upper();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test inequality of two bounding boxes.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION bool
+operator!=(BoundingBox<T> const& lhs, BoundingBox<T> const& rhs)
+{
+    return !(lhs == rhs);
+}
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!

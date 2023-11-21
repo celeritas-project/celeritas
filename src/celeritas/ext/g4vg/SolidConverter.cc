@@ -235,9 +235,9 @@ auto SolidConverter::box(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Box const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedBox>(
-        this->convert_scale_(solid.GetXHalfLength()),
-        this->convert_scale_(solid.GetYHalfLength()),
-        this->convert_scale_(solid.GetZHalfLength()));
+        convert_scale_(solid.GetXHalfLength()),
+        convert_scale_(solid.GetYHalfLength()),
+        convert_scale_(solid.GetZHalfLength()));
 }
 
 //---------------------------------------------------------------------------//
@@ -246,11 +246,11 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Cons const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedCone>(
-        this->convert_scale_(solid.GetInnerRadiusMinusZ()),
-        this->convert_scale_(solid.GetOuterRadiusMinusZ()),
-        this->convert_scale_(solid.GetInnerRadiusPlusZ()),
-        this->convert_scale_(solid.GetOuterRadiusPlusZ()),
-        this->convert_scale_(solid.GetZHalfLength()),
+        convert_scale_(solid.GetInnerRadiusMinusZ()),
+        convert_scale_(solid.GetOuterRadiusMinusZ()),
+        convert_scale_(solid.GetInnerRadiusPlusZ()),
+        convert_scale_(solid.GetOuterRadiusPlusZ()),
+        convert_scale_(solid.GetZHalfLength()),
         solid.GetStartPhiAngle(),
         solid.GetDeltaPhiAngle());
 }
@@ -263,9 +263,9 @@ auto SolidConverter::cuttubs(arg_type solid_base) -> result_type
     G4ThreeVector lowNorm = solid.GetLowNorm();
     G4ThreeVector hiNorm = solid.GetHighNorm();
     return GeoManager::MakeInstance<UnplacedCutTube>(
-        this->convert_scale_(solid.GetInnerRadius()),
-        this->convert_scale_(solid.GetOuterRadius()),
-        this->convert_scale_(solid.GetZHalfLength()),
+        convert_scale_(solid.GetInnerRadius()),
+        convert_scale_(solid.GetOuterRadius()),
+        convert_scale_(solid.GetZHalfLength()),
         solid.GetStartPhiAngle(),
         solid.GetDeltaPhiAngle(),
         Vector3D<Precision>(lowNorm[0], lowNorm[1], lowNorm[2]),
@@ -283,11 +283,11 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
 #    define SC_G4ACCESS(NEW, OLD) OLD
 #endif
     return GeoManager::MakeInstance<UnplacedEllipsoid>(
-        this->convert_scale_(solid.SC_G4ACCESS(GetDx(), GetSemiAxisMax(0))),
-        this->convert_scale_(solid.SC_G4ACCESS(GetDy(), GetSemiAxisMax(1))),
-        this->convert_scale_(solid.SC_G4ACCESS(GetDz(), GetSemiAxisMax(2))),
-        this->convert_scale_(solid.GetZBottomCut()),
-        this->convert_scale_(solid.GetZTopCut()));
+        convert_scale_(solid.SC_G4ACCESS(GetDx(), GetSemiAxisMax(0))),
+        convert_scale_(solid.SC_G4ACCESS(GetDy(), GetSemiAxisMax(1))),
+        convert_scale_(solid.SC_G4ACCESS(GetDz(), GetSemiAxisMax(2))),
+        convert_scale_(solid.GetZBottomCut()),
+        convert_scale_(solid.GetZTopCut()));
 #undef SC_G4ACCESS
 }
 
@@ -299,8 +299,8 @@ auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
     return GeoManager::MakeInstance<UnplacedEllipticalCone>(
         solid.GetSemiAxisX(),
         solid.GetSemiAxisY(),
-        this->convert_scale_(solid.GetZMax()),
-        this->convert_scale_(solid.GetZTopCut()));
+        convert_scale_(solid.GetZMax()),
+        convert_scale_(solid.GetZTopCut()));
 }
 
 //---------------------------------------------------------------------------//
@@ -309,9 +309,9 @@ auto SolidConverter::ellipticaltube(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4EllipticalTube const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedEllipticalTube>(
-        this->convert_scale_(solid.GetDx()),
-        this->convert_scale_(solid.GetDy()),
-        this->convert_scale_(solid.GetDz()));
+        convert_scale_(solid.GetDx()),
+        convert_scale_(solid.GetDy()),
+        convert_scale_(solid.GetDz()));
 }
 
 //---------------------------------------------------------------------------//
@@ -325,7 +325,7 @@ auto SolidConverter::extrudedsolid(arg_type solid_base) -> result_type
     std::vector<double> y(x.size());
     for (auto i : range(x.size()))
     {
-        std::tie(x[i], y[i]) = this->convert_scale_(solid.GetVertex(i));
+        std::tie(x[i], y[i]) = convert_scale_(solid.GetVertex(i));
     }
 
     // Convert Z sections
@@ -345,7 +345,7 @@ auto SolidConverter::extrudedsolid(arg_type solid_base) -> result_type
         CELER_VALIDATE(zsec.fOffset.x() == 0.0 && zsec.fOffset.y() == 0.0,
                        << "unsupported z section translation ("
                        << zsec.fOffset.x() << "," << zsec.fOffset.y() << ")");
-        z[i] = this->convert_scale_(zsec.fZ);
+        z[i] = convert_scale_(zsec.fZ);
     }
 
     return GeoManager::MakeInstance<UnplacedSExtruVolume>(
@@ -363,8 +363,8 @@ auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
     for (auto i : range(zs.size()))
     {
         G4PolyconeSideRZ const& rzCorner = solid.GetCorner(i);
-        zs[i] = this->convert_scale_(rzCorner.z);
-        rs[i] = this->convert_scale_(rzCorner.r);
+        zs[i] = convert_scale_(rzCorner.z);
+        rs[i] = convert_scale_(rzCorner.r);
     }
 
     return GeoManager::MakeInstance<UnplacedGenericPolycone>(
@@ -385,11 +385,11 @@ auto SolidConverter::generictrap(arg_type solid_base) -> result_type
     std::vector<double> vy(vx.size());
     for (auto i : range(vx.size()))
     {
-        std::tie(vx[i], vy[i]) = this->convert_scale_(solid.GetVertex(i));
+        std::tie(vx[i], vy[i]) = convert_scale_(solid.GetVertex(i));
     }
 
     return GeoManager::MakeInstance<UnplacedGenTrap>(
-        vx.data(), vy.data(), this->convert_scale_(solid.GetZHalfLength()));
+        vx.data(), vy.data(), convert_scale_(solid.GetZHalfLength()));
 }
 
 //---------------------------------------------------------------------------//
@@ -398,11 +398,11 @@ auto SolidConverter::hype(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Hype const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedHype>(
-        this->convert_scale_(solid.GetInnerRadius()),
-        this->convert_scale_(solid.GetOuterRadius()),
+        convert_scale_(solid.GetInnerRadius()),
+        convert_scale_(solid.GetOuterRadius()),
         solid.GetInnerStereo(),
         solid.GetOuterStereo(),
-        this->convert_scale_(solid.GetZHalfLength()));
+        convert_scale_(solid.GetZHalfLength()));
 }
 
 //---------------------------------------------------------------------------//
@@ -420,7 +420,7 @@ auto SolidConverter::orb(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Orb const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedOrb>(
-        this->convert_scale_(solid.GetRadius()));
+        convert_scale_(solid.GetRadius()));
 }
 
 //---------------------------------------------------------------------------//
@@ -437,9 +437,9 @@ auto SolidConverter::para(arg_type solid_base) -> result_type
     auto const [theta, phi] = calculate_theta_phi(solid.GetSymAxis());
 #endif
     return GeoManager::MakeInstance<UnplacedParallelepiped>(
-        this->convert_scale_(solid.GetXHalfLength()),
-        this->convert_scale_(solid.GetYHalfLength()),
-        this->convert_scale_(solid.GetZHalfLength()),
+        convert_scale_(solid.GetXHalfLength()),
+        convert_scale_(solid.GetYHalfLength()),
+        convert_scale_(solid.GetZHalfLength()),
         std::atan(solid.GetTanAlpha()),
         theta,
         phi);
@@ -451,9 +451,9 @@ auto SolidConverter::paraboloid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Paraboloid const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedParaboloid>(
-        this->convert_scale_(solid.GetRadiusMinusZ()),
-        this->convert_scale_(solid.GetRadiusPlusZ()),
-        this->convert_scale_(solid.GetZHalfLength()));
+        convert_scale_(solid.GetRadiusMinusZ()),
+        convert_scale_(solid.GetRadiusPlusZ()),
+        convert_scale_(solid.GetZHalfLength()));
 }
 
 //---------------------------------------------------------------------------//
@@ -468,9 +468,9 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
     std::vector<double> rmaxs(zvals.size());
     for (auto i : range(zvals.size()))
     {
-        zvals[i] = this->convert_scale_(params.Z_values[i]);
-        rmins[i] = this->convert_scale_(params.Rmin[i]);
-        rmaxs[i] = this->convert_scale_(params.Rmax[i]);
+        zvals[i] = convert_scale_(params.Z_values[i]);
+        rmins[i] = convert_scale_(params.Rmin[i]);
+        rmaxs[i] = convert_scale_(params.Rmax[i]);
     }
     return GeoManager::MakeInstance<UnplacedPolycone>(params.Start_angle,
                                                       params.Opening_angle,
@@ -495,9 +495,9 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     std::vector<double> rmaxs(zs.size());
     for (auto i : range(zs.size()))
     {
-        zs[i] = this->convert_scale_(params.Z_values[i]);
-        rmins[i] = this->convert_scale_(params.Rmin[i] * radius_factor);
-        rmaxs[i] = this->convert_scale_(params.Rmax[i] * radius_factor);
+        zs[i] = convert_scale_(params.Z_values[i]);
+        rmins[i] = convert_scale_(params.Rmin[i] * radius_factor);
+        rmaxs[i] = convert_scale_(params.Rmax[i] * radius_factor);
     }
 
     auto phistart = std::fmod(params.Start_angle, 2 * constants::pi);
@@ -527,8 +527,8 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Sphere const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedSphere>(
-        this->convert_scale_(solid.GetInnerRadius()),
-        this->convert_scale_(solid.GetOuterRadius()),
+        convert_scale_(solid.GetInnerRadius()),
+        convert_scale_(solid.GetOuterRadius()),
         solid.GetStartPhiAngle(),
         solid.GetDeltaPhiAngle(),
         solid.GetStartThetaAngle(),
@@ -561,9 +561,9 @@ auto SolidConverter::tessellatedsolid(arg_type solid_base) -> result_type
         for (auto iv : range(num_vtx))
         {
             auto vxg4 = facet.GetVertex(iv);
-            vtx[iv].Set(this->convert_scale_(vxg4.x()),
-                        this->convert_scale_(vxg4.y()),
-                        this->convert_scale_(vxg4.z()));
+            vtx[iv].Set(convert_scale_(vxg4.x()),
+                        convert_scale_(vxg4.y()),
+                        convert_scale_(vxg4.z()));
         }
 
         if (num_vtx == 3)
@@ -593,11 +593,10 @@ auto SolidConverter::tet(arg_type solid_base) -> result_type
     CELER_ASSERT(g4points.size() == 4);
     std::copy(g4points.begin(), g4points.end(), points.begin());
 #endif
-    return GeoManager::MakeInstance<UnplacedTet>(
-        this->convert_scale_(points[0]),
-        this->convert_scale_(points[1]),
-        this->convert_scale_(points[2]),
-        this->convert_scale_(points[3]));
+    return GeoManager::MakeInstance<UnplacedTet>(convert_scale_(points[0]),
+                                                 convert_scale_(points[1]),
+                                                 convert_scale_(points[2]),
+                                                 convert_scale_(points[3]));
 }
 
 //---------------------------------------------------------------------------//
@@ -606,9 +605,9 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedTorus2>(
-        this->convert_scale_(solid.GetRmin()),
-        this->convert_scale_(solid.GetRmax()),
-        this->convert_scale_(solid.GetRtor()),
+        convert_scale_(solid.GetRmin()),
+        convert_scale_(solid.GetRmax()),
+        convert_scale_(solid.GetRtor()),
         solid.GetSPhi(),
         solid.GetDPhi());
 }
@@ -632,16 +631,16 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
 #endif
 
     return GeoManager::MakeInstance<UnplacedTrapezoid>(
-        this->convert_scale_(solid.GetZHalfLength()),
+        convert_scale_(solid.GetZHalfLength()),
         theta,
         phi,
-        this->convert_scale_(solid.GetYHalfLength1()),
-        this->convert_scale_(solid.GetXHalfLength1()),
-        this->convert_scale_(solid.GetXHalfLength2()),
+        convert_scale_(solid.GetYHalfLength1()),
+        convert_scale_(solid.GetXHalfLength1()),
+        convert_scale_(solid.GetXHalfLength2()),
         alpha_1,
-        this->convert_scale_(solid.GetYHalfLength2()),
-        this->convert_scale_(solid.GetXHalfLength3()),
-        this->convert_scale_(solid.GetXHalfLength4()),
+        convert_scale_(solid.GetYHalfLength2()),
+        convert_scale_(solid.GetXHalfLength3()),
+        convert_scale_(solid.GetXHalfLength4()),
         alpha_2);
 }
 
@@ -651,11 +650,11 @@ auto SolidConverter::trd(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trd const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedTrd>(
-        this->convert_scale_(solid.GetXHalfLength1()),
-        this->convert_scale_(solid.GetXHalfLength2()),
-        this->convert_scale_(solid.GetYHalfLength1()),
-        this->convert_scale_(solid.GetYHalfLength2()),
-        this->convert_scale_(solid.GetZHalfLength()));
+        convert_scale_(solid.GetXHalfLength1()),
+        convert_scale_(solid.GetXHalfLength2()),
+        convert_scale_(solid.GetYHalfLength1()),
+        convert_scale_(solid.GetYHalfLength2()),
+        convert_scale_(solid.GetZHalfLength()));
 }
 
 //---------------------------------------------------------------------------//
@@ -664,9 +663,9 @@ auto SolidConverter::tubs(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Tubs const&>(solid_base);
     return GeoManager::MakeInstance<UnplacedTube>(
-        this->convert_scale_(solid.GetInnerRadius()),
-        this->convert_scale_(solid.GetOuterRadius()),
-        this->convert_scale_(solid.GetZHalfLength()),
+        convert_scale_(solid.GetInnerRadius()),
+        convert_scale_(solid.GetOuterRadius()),
+        convert_scale_(solid.GetZHalfLength()),
         solid.GetStartPhiAngle(),
         solid.GetDeltaPhiAngle());
 }
@@ -754,7 +753,7 @@ void SolidConverter::compare_volumes(G4VSolid const& g4,
 double SolidConverter::calc_capacity(G4VSolid const& g4) const
 {
     return const_cast<G4VSolid&>(g4).GetCubicVolume()
-           * ipow<3>(this->convert_scale_(1.0));
+           * ipow<3>(convert_scale_(1.0));
 }
 
 //---------------------------------------------------------------------------//

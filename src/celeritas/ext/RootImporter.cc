@@ -18,12 +18,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 
-// This "public API" function is defined in CeleritasRootInterface.cxx to
-// initialize ROOT. It's not necessary for shared libraries (due to static
-// initialization shenanigans) but is needed for static libs. The name is a
-// function of the name passed to the MODULE argument of
-// the cmake root_generate_dictionary command.
-void TriggerDictionaryInitialization_libceleritas();
+#include "RootFileManager.hh"
 
 namespace celeritas
 {
@@ -33,9 +28,11 @@ namespace celeritas
  */
 RootImporter::RootImporter(char const* filename)
 {
-    TriggerDictionaryInitialization_libceleritas();
-
     CELER_LOG(info) << "Opening ROOT file at " << filename;
+    CELER_VALIDATE(RootFileManager::use_root(),
+                   << "cannot interface with ROOT (disabled by user "
+                      "environment)");
+
     ScopedMem record_mem("RootImporter.open");
     ScopedTimeLog scoped_time;
     root_input_.reset(TFile::Open(filename, "read"));

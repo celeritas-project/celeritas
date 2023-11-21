@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "orange/OrangeData.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -38,9 +39,6 @@ class TransformInserter
     inline TransformInserter(Items<TransformRecord>* transforms,
                              Items<real_type>* reals);
 
-    // DEPRECATED: Return a transform ID from a Real3 translation
-    inline TransformId operator()(Real3 const&);
-
     // Return a transform ID from a transform variant
     inline TransformId operator()(VariantTransform const& tr);
 
@@ -51,7 +49,7 @@ class TransformInserter
   private:
     TransformId null_transform_;
     CollectionBuilder<TransformRecord> transforms_;
-    CollectionBuilder<real_type> reals_;
+    DedupeCollectionBuilder<real_type> reals_;
 };
 
 //---------------------------------------------------------------------------//
@@ -65,21 +63,6 @@ TransformInserter::TransformInserter(Items<TransformRecord>* transforms,
     : transforms_{transforms}, reals_{reals}
 {
     CELER_EXPECT(transforms && reals);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from a translation.
- *
- * \deprecated Change the ORANGE input when convenient.
- */
-TransformId TransformInserter::operator()(Real3 const& tr)
-{
-    if (CELER_UNLIKELY(tr == (Real3{0, 0, 0})))
-    {
-        return (*this)(NoTransformation{});
-    }
-    return (*this)(Translation{tr});
 }
 
 //---------------------------------------------------------------------------//
@@ -99,6 +82,8 @@ TransformId TransformInserter::operator()(VariantTransform const& tr)
 template<class T>
 TransformId TransformInserter::operator()(T const& tr)
 {
+    // TODO: add equality and hash for TransformRecord and replace this with
+    // just a dedupe collection builder
     if constexpr (std::is_same_v<T, NoTransformation>)
     {
         // Reuse the same null transform ID everywhere

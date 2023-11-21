@@ -71,7 +71,7 @@ void count_tracks_per_action(
 void count_tracks_per_action(
     DeviceRef<CoreStateData> const&,
     Span<ThreadId>,
-    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    Collection<ThreadId, Ownership::value, MemSpace::mapped, ActionId>&,
     TrackOrder);
 
 void backfill_action_count(Span<ThreadId>, size_type);
@@ -136,7 +136,7 @@ inline void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder)
 inline void count_tracks_per_action(
     DeviceRef<CoreStateData> const&,
     Span<ThreadId>,
-    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
+    Collection<ThreadId, Ownership::value, MemSpace::mapped, ActionId>&,
     TrackOrder)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");

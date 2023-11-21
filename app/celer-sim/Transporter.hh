@@ -42,6 +42,7 @@ struct TransporterInput
 
     // Loop control
     size_type max_steps{};
+    bool store_track_counts{};  //!< Store track counts at each step
 
     StreamId stream_id{0};
 
@@ -92,6 +93,9 @@ class TransporterBase
   public:
     virtual ~TransporterBase() = 0;
 
+    // Run a single step with no active states to "warm up"
+    virtual void operator()() = 0;
+
     // Transport the input primaries and all secondaries produced
     virtual TransporterResult operator()(SpanConstPrimary primaries) = 0;
 };
@@ -113,6 +117,9 @@ class Transporter final : public TransporterBase
     // Construct from parameters
     explicit Transporter(TransporterInput inp);
 
+    // Run a single step with no active states to "warm up"
+    void operator()() final;
+
     // Transport the input primaries and all secondaries produced
     TransporterResult operator()(SpanConstPrimary primaries) final;
 
@@ -123,6 +130,7 @@ class Transporter final : public TransporterBase
     std::shared_ptr<Stepper<M>> stepper_;
     size_type max_steps_;
     size_type num_streams_;
+    bool store_track_counts_;
 };
 
 //---------------------------------------------------------------------------//

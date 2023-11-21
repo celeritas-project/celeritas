@@ -104,6 +104,8 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
+    CELER_EXPECT(inc_energy_
+                 > (inc_particle_is_electron_ ? 2 : 1) * electron_cutoff_);
 }
 
 //---------------------------------------------------------------------------//
@@ -116,16 +118,8 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
-    if (inc_energy_ <= (inc_particle_is_electron_ ? 2 : 1) * electron_cutoff_)
-    {
-        // The secondary should not be emitted. This interaction cannot
-        // happen and the incident particle must undergo an energy loss
-        // process.
-        return Interaction::from_unchanged(Energy{inc_energy_}, inc_direction_);
-    }
-
     // Allocate memory for the produced electron
-    Secondary* electron_secondary = this->allocate_(1);
+    Secondary* electron_secondary = allocate_(1);
 
     if (electron_secondary == nullptr)
     {

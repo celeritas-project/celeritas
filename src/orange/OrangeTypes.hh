@@ -236,6 +236,24 @@ enum OperatorToken : logic_int
 }  // namespace logic
 
 //---------------------------------------------------------------------------//
+/*!
+ * Masking priority.
+ *
+ * This is currently not implemented in GPU ORANGE except for the special
+ * "background" cell and "exterior".
+ */
+enum class ZOrder : size_type
+{
+    invalid = 0,  //!< Invalid region
+    background,  //!< Implicit fill
+    media,  //!< Material-filled region or array
+    array,  //!< Lattice array of nested arrangement
+    hole,  //!< Another universe masking this one
+    implicit_exterior = size_type(-2),  //!< Exterior in lower universe
+    exterior = size_type(-1),  //!< The global problem boundary
+};
+
+//---------------------------------------------------------------------------//
 // STRUCTS
 //---------------------------------------------------------------------------//
 /*!
@@ -282,7 +300,13 @@ struct Tolerance
     real_type abs{};  //!< Absolute error [native length]
 
     //! Intercept tolerance for parallel-to-quadric cases
-    static CELER_CONSTEXPR_FUNCTION real_type sqrt_quadratic() { return 1e-5; }
+    static CELER_CONSTEXPR_FUNCTION real_type sqrt_quadratic()
+    {
+        if constexpr (std::is_same_v<real_type, double>)
+            return 1e-5;
+        else if constexpr (std::is_same_v<real_type, float>)
+            return 5e-2f;
+    }
 
     //! True if tolerances are valid
     CELER_CONSTEXPR_FUNCTION operator bool() const
@@ -435,6 +459,12 @@ inline constexpr char to_char(OperatorToken tok)
     return is_operator_token(tok) ? "*|&~"[tok - lbegin] : '\a';
 }
 }  // namespace logic
+
+// Get a printable character corresponding to a z ordering
+char to_char(ZOrder z);
+
+// Convert a printable character to a z ordering
+ZOrder to_zorder(char c);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

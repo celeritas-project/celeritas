@@ -12,6 +12,9 @@
 #include <string>
 #include <vector>
 
+#include "corecel/cont/Range.hh"
+#include "celeritas/Quantities.hh"
+
 #include "FieldDriverOptionsIO.json.hh"
 #include "RZMapFieldInput.hh"
 
@@ -36,6 +39,39 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
     {
         RZFI_LOAD(driver_options);
     }
+
+    // Convert from tesla if explicitly specified *OR* if no _units given
+    bool convert_from_tesla{true};
+    if (auto iter = j.find("_units"); iter != j.end())
+    {
+        auto units = iter->get<std::string>();
+        if (units == "tesla" || units == "T")
+        {
+            convert_from_tesla = true;
+        }
+        else if (units == "native" || units == "gauss")
+        {
+            convert_from_tesla = false;
+        }
+        else
+        {
+            CELER_VALIDATE(false,
+                           << "unrecognized value '" << units
+                           << "' for \"_units\" field");
+        }
+    }
+    if (convert_from_tesla)
+    {
+        using FieldTesla = Quantity<units::Tesla, double>;
+        // Convert units from JSON tesla to input native
+        for (auto* f : {&inp.field_z, &inp.field_r})
+        {
+            for (double& v : *f)
+            {
+                v = native_value_from(FieldTesla(v));
+            }
+        }
+    }
 #undef RZFI_LOAD
 }
 
@@ -47,6 +83,7 @@ void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
 {
 #define RZFI_KEY_VALUE(NAME) {#NAME, inp.NAME}
     j = {
+        {"_units", "gauss"},
         RZFI_KEY_VALUE(num_grid_z),
         RZFI_KEY_VALUE(num_grid_r),
         RZFI_KEY_VALUE(min_z),

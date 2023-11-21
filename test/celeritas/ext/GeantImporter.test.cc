@@ -43,6 +43,12 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
     return result;
 }
 
+std::string sub_pointer_string(std::string const& s)
+{
+    static const std::regex r("0x[0-9a-f]{2,}");
+    return std::regex_replace(s, r, "0x0");
+}
+
 auto const geant4_version = Version::from_string(celeritas_geant4_version);
 }  // namespace
 
@@ -1098,11 +1104,11 @@ TEST_F(TestEm3, volume_names)
     std::vector<std::string> names;
     for (auto const& volume : volumes)
     {
-        names.push_back(volume.name);
+        names.push_back(sub_pointer_string(volume.name));
     }
 
     // clang-format off
-    static std::string const expected_names[] = {"gap_lv_0", "absorber_lv_0", "gap_lv_1", "absorber_lv_1", "gap_lv_2", "absorber_lv_2", "gap_lv_3", "absorber_lv_3", "gap_lv_4", "absorber_lv_4", "gap_lv_5", "absorber_lv_5", "gap_lv_6", "absorber_lv_6", "gap_lv_7", "absorber_lv_7", "gap_lv_8", "absorber_lv_8", "gap_lv_9", "absorber_lv_9", "gap_lv_10", "absorber_lv_10", "gap_lv_11", "absorber_lv_11", "gap_lv_12", "absorber_lv_12", "gap_lv_13", "absorber_lv_13", "gap_lv_14", "absorber_lv_14", "gap_lv_15", "absorber_lv_15", "gap_lv_16", "absorber_lv_16", "gap_lv_17", "absorber_lv_17", "gap_lv_18", "absorber_lv_18", "gap_lv_19", "absorber_lv_19", "gap_lv_20", "absorber_lv_20", "gap_lv_21", "absorber_lv_21", "gap_lv_22", "absorber_lv_22", "gap_lv_23", "absorber_lv_23", "gap_lv_24", "absorber_lv_24", "gap_lv_25", "absorber_lv_25", "gap_lv_26", "absorber_lv_26", "gap_lv_27", "absorber_lv_27", "gap_lv_28", "absorber_lv_28", "gap_lv_29", "absorber_lv_29", "gap_lv_30", "absorber_lv_30", "gap_lv_31", "absorber_lv_31", "gap_lv_32", "absorber_lv_32", "gap_lv_33", "absorber_lv_33", "gap_lv_34", "absorber_lv_34", "gap_lv_35", "absorber_lv_35", "gap_lv_36", "absorber_lv_36", "gap_lv_37", "absorber_lv_37", "gap_lv_38", "absorber_lv_38", "gap_lv_39", "absorber_lv_39", "gap_lv_40", "absorber_lv_40", "gap_lv_41", "absorber_lv_41", "gap_lv_42", "absorber_lv_42", "gap_lv_43", "absorber_lv_43", "gap_lv_44", "absorber_lv_44", "gap_lv_45", "absorber_lv_45", "gap_lv_46", "absorber_lv_46", "gap_lv_47", "absorber_lv_47", "gap_lv_48", "absorber_lv_48", "gap_lv_49", "absorber_lv_49", "world_lv"};
+    static std::string const expected_names[] = {"gap_00x0", "absorber_00x0", "gap_10x0", "absorber_10x0", "gap_20x0", "absorber_20x0", "gap_30x0", "absorber_30x0", "gap_40x0", "absorber_40x0", "gap_50x0", "absorber_50x0", "gap_60x0", "absorber_60x0", "gap_70x0", "absorber_70x0", "gap_80x0", "absorber_80x0", "gap_90x0", "absorber_90x0", "gap_100x0", "absorber_100x0", "gap_110x0", "absorber_110x0", "gap_120x0", "absorber_120x0", "gap_130x0", "absorber_130x0", "gap_140x0", "absorber_140x0", "gap_150x0", "absorber_150x0", "gap_160x0", "absorber_160x0", "gap_170x0", "absorber_170x0", "gap_180x0", "absorber_180x0", "gap_190x0", "absorber_190x0", "gap_200x0", "absorber_200x0", "gap_210x0", "absorber_210x0", "gap_220x0", "absorber_220x0", "gap_230x0", "absorber_230x0", "gap_240x0", "absorber_240x0", "gap_250x0", "absorber_250x0", "gap_260x0", "absorber_260x0", "gap_270x0", "absorber_270x0", "gap_280x0", "absorber_280x0", "gap_290x0", "absorber_290x0", "gap_300x0", "absorber_300x0", "gap_310x0", "absorber_310x0", "gap_320x0", "absorber_320x0", "gap_330x0", "absorber_330x0", "gap_340x0", "absorber_340x0", "gap_350x0", "absorber_350x0", "gap_360x0", "absorber_360x0", "gap_370x0", "absorber_370x0", "gap_380x0", "absorber_380x0", "gap_390x0", "absorber_390x0", "gap_400x0", "absorber_400x0", "gap_410x0", "absorber_410x0", "gap_420x0", "absorber_420x0", "gap_430x0", "absorber_430x0", "gap_440x0", "absorber_440x0", "gap_450x0", "absorber_450x0", "gap_460x0", "absorber_460x0", "gap_470x0", "absorber_470x0", "gap_480x0", "absorber_480x0", "gap_490x0", "absorber_490x0", "world0x0"};
     // clang-format on
     EXPECT_VEC_EQ(expected_names, names);
 }
@@ -1117,7 +1123,8 @@ TEST_F(TestEm3, unique_volumes)
     auto const& volumes = this->imported_data().volumes;
 
     EXPECT_EQ(101, volumes.size());
-    EXPECT_TRUE(starts_with(volumes.front().name, "gap_lv_00x"));
+    EXPECT_EQ("gap_00x0x0",
+              sub_pointer_string(sub_pointer_string(volumes.front().name)));
 }
 
 //---------------------------------------------------------------------------//

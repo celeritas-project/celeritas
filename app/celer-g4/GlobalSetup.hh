@@ -36,17 +36,8 @@ class GlobalSetup
     static GlobalSetup* Instance();
 
     //!@{
-    //! \name Demo setup options
+    //! \name Demo setup options (DEPRECATED: use direct interface to input)
     std::string const& GetGeometryFile() const { return input_.geometry_file; }
-    std::string const& GetEventFile() const { return input_.event_file; }
-    PrimaryGeneratorOptions const& GetPrimaryGeneratorOptions() const
-    {
-        return input_.primary_options;
-    }
-    int GetRootBufferSize() const { return input_.root_buffer_size; }
-    bool GetWriteSDHits() const { return input_.write_sd_hits; }
-    bool StripGDMLPointers() const { return input_.strip_gdml_pointers; }
-    PhysicsListSelection GetPhysicsList() const { return input_.physics_list; }
     GeantPhysicsOptions const& GetPhysicsOptions() const
     {
         return input_.physics_options;
@@ -55,15 +46,12 @@ class GlobalSetup
     int GetStepDiagnosticBins() const { return input_.step_diagnostic_bins; }
     std::string const& GetFieldType() const { return input_.field_type; }
     std::string const& GetFieldFile() const { return input_.field_file; }
-    Real3 GetMagFieldZTesla() const { return input_.field; }
+    Real3 GetMagFieldTesla() const { return input_.field; }
     FieldDriverOptions const& GetFieldOptions() const
     {
         return input_.field_options;
     }
     //!@}
-
-    //! Get the number of events
-    int GetNumEvents() { return num_events_; }
 
     //! Get a mutable reference to the setup options for DetectorConstruction
     SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
@@ -84,13 +72,18 @@ class GlobalSetup
     void SetIgnoreProcesses(SetupOptions::VecString ignored);
 
     //! Set the field to this value (T) along the z axis
-    void SetMagFieldZTesla(double f) { input_.field = Real3{0, 0, f}; }
+    void SetMagFieldZTesla(real_type f) { input_.field = Real3{0, 0, f}; }
 
     // Read input from macro or JSON
     void ReadInput(std::string const& filename);
 
     // Get the time for setup
     real_type GetSetupTime() { return get_setup_time_(); }
+
+    //// NEW INTERFACE ////
+
+    //! Get user input options
+    RunInput const& input() const { return input_; }
 
   private:
     // Private constructor since we're a singleton
@@ -101,7 +94,6 @@ class GlobalSetup
     std::shared_ptr<SetupOptions> options_;
     RunInput input_;
     Stopwatch get_setup_time_;
-    int num_events_{0};
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };

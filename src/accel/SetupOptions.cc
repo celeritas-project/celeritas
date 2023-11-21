@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "SetupOptions.hh"
 
-#include <G4Threading.hh>
-
 #include "celeritas/ext/GeantGeoUtils.hh"
 
 #include "ExceptionConverter.hh"
@@ -27,20 +25,6 @@ FindVolumes(std::unordered_set<std::string> names)
     CELER_TRY_HANDLE(result = find_geant_volumes(std::move(names)),
                      call_g4exception);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the thread ID.
- */
-int GetThreadID()
-{
-    // Thread ID is -1 when running serially
-    if (G4Threading::IsMultithreadedApplication())
-    {
-        return G4Threading::G4GetThreadId();
-    }
-    return 0;
 }
 
 //---------------------------------------------------------------------------//

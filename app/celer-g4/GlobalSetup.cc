@@ -17,11 +17,10 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
-#include "accel/AlongStepFactory.hh"
-#include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
 #include "HepMC3PrimaryGeneratorAction.hh"
+#include "RootIO.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -66,25 +65,6 @@ GlobalSetup::GlobalSetup()
     {
         auto& cmd = messenger_->DeclareProperty("eventFile", input_.event_file);
         cmd.SetGuidance("Filename of the event input read by HepMC3");
-    }
-    {
-        auto& cmd = messenger_->DeclareProperty("rootBufferSize",
-                                                input_.root_buffer_size);
-        cmd.SetGuidance("Buffer size of output root file [bytes]");
-        cmd.SetDefaultValue(std::to_string(input_.root_buffer_size));
-    }
-    {
-        auto& cmd
-            = messenger_->DeclareProperty("writeSDHits", input_.write_sd_hits);
-        cmd.SetGuidance("Write a ROOT output file with hits from the SDs");
-        cmd.SetDefaultValue("false");
-    }
-    {
-        auto& cmd = messenger_->DeclareProperty("stripGDMLPointers",
-                                                input_.strip_gdml_pointers);
-        cmd.SetGuidance(
-            "Remove pointer suffix from input logical volume names");
-        cmd.SetDefaultValue("true");
     }
     {
         auto& cmd = messenger_->DeclareProperty("stepDiagnostic",
@@ -147,7 +127,6 @@ void GlobalSetup::ReadInput(std::string const& filename)
         std::ifstream infile(filename);
         CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
         nlohmann::json::parse(infile).get_to(input_);
-        CELER_ASSERT(input_);
 
         // Input options
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
@@ -168,7 +147,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->max_steps = input_.max_steps;
         options_->initializer_capacity = input_.initializer_capacity;
         options_->secondary_stack_factor = input_.secondary_stack_factor;
-        options_->sd.enabled = input_.enable_sd;
+        options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
         options_->cuda_stack_size = input_.cuda_stack_size;
         options_->cuda_heap_size = input_.cuda_heap_size;
         options_->sync = input_.sync;
@@ -187,23 +166,17 @@ void GlobalSetup::ReadInput(std::string const& filename)
     }
 
     // Set the filename for JSON output
-    if (input_.output_file.empty())
+    if (CELERITAS_USE_JSON && input_.output_file.empty())
     {
         input_.output_file = "celer-g4.out.json";
         options_->output_file = input_.output_file;
     }
 
-    // Get the number of events
-    if (!input_.event_file.empty())
+    if (input_.sd_type == SensitiveDetectorType::event_hit
+        && !RootIO::use_root())
     {
-        // Load the input file
-        CELER_TRY_HANDLE(
-            num_events_ = HepMC3PrimaryGeneratorAction::NumEvents(),
-            ExceptionConverter{"celer-g4000"});
-    }
-    else
-    {
-        num_events_ = input_.primary_options.num_events;
+        CELER_LOG(warning) << "Collecting SD hit data that will not be "
+                              "written because ROOT is disabled";
     }
 
     // Start the timer for setup time

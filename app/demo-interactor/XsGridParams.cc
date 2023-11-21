@@ -69,7 +69,7 @@ XsGridParams::XsGridParams(Input const& input)
         = UniformGridData::from_bounds(std::log(input.energy.front()),
                                        std::log(input.energy.back()),
                                        input.energy.size());
-    CELER_ASSERT(is_same_log_grid(host_xs.log_energy, input.energy, 1e-6));
+    CELER_ASSERT(is_same_log_grid(host_xs.log_energy, input.energy, 1e-3));
     host_xs.prime_index = std::find(input.energy.begin(),
                                     input.energy.end(),
                                     input.prime_energy)

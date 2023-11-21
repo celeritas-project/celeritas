@@ -34,16 +34,17 @@ class PrimaryGeneratorTest : public Test
   protected:
     void SetUp() override
     {
+        using namespace constants;
         constexpr auto zero = zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create particle defs
-        ParticleParams::Input defs{{"gamma", pdg::gamma(), zero, zero, stable},
-                                   {"electron",
-                                    pdg::electron(),
-                                    units::MevMass{0.5109989461},
-                                    units::ElementaryCharge{-1},
-                                    stable}};
+        ParticleParams::Input defs{
+            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant},
+            {"electron",
+             pdg::electron(),
+             units::MevMass{0.5109989461},
+             units::ElementaryCharge{-1},
+             stable_decay_constant}};
         particles_ = std::make_shared<ParticleParams>(std::move(defs));
     }
 
@@ -77,7 +78,7 @@ TEST_F(PrimaryGeneratorTest, basic)
         for (auto const& p : primaries)
         {
             EXPECT_EQ(MevEnergy{10}, p.energy);
-            EXPECT_DOUBLE_EQ(0.0, p.time);
+            EXPECT_REAL_EQ(0.0, p.time);
             EXPECT_VEC_SOFT_EQ(Real3({1, 2, 3}), p.position);
             EXPECT_TRUE(is_soft_unit_vector(p.direction));
             particle_id.push_back(p.particle_id.unchecked_get());
@@ -120,7 +121,7 @@ TEST_F(PrimaryGeneratorTest, options)
         EXPECT_EQ(TrackId{i}, p.track_id);
         EXPECT_EQ(EventId{0}, p.event_id);
         EXPECT_EQ(MevEnergy{1}, p.energy);
-        EXPECT_DOUBLE_EQ(0.0, p.time);
+        EXPECT_REAL_EQ(0.0, p.time);
         for (auto x : p.position)
         {
             EXPECT_TRUE(x >= -3 && x <= 3);

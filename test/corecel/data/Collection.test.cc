@@ -8,8 +8,10 @@
 #include "corecel/data/Collection.hh"
 
 #include <cstdint>
+#include <random>
 #include <type_traits>
 
+#include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
@@ -198,6 +200,56 @@ TEST(DedupeCollectionBuilder, construction)
     EXPECT_VEC_EQ(expected, host_val[AllItems<int>{}]);
 }
 
+TEST(DedupeCollectionBuilder, double_stress)
+{
+    using CollectionT = Collection<double, Ownership::value, MemSpace::host>;
+    using RangeT = CollectionT::ItemRangeT;
+
+    CollectionT host_val;
+    constexpr size_type chunks_per_test = 8000;
+    constexpr size_type items_per_chunk = 8;
+
+    DedupeCollectionBuilder dbls{&host_val};
+    std::vector<RangeT> all_inserted;
+    Array<double, items_per_chunk> buffer;
+
+    all_inserted.reserve(chunks_per_test);
+    dbls.reserve(chunks_per_test * items_per_chunk);
+
+    std::mt19937 rng;
+    std::uniform_real_distribution<double> sample_urd{-1.0, 1.0};
+    auto sample_uniform = [&rng, &sample_urd] { return sample_urd(rng); };
+
+    // Insert a bunch of independent chunks
+    for (auto i : range(chunks_per_test))
+    {
+        // Fill buffer
+        std::generate(buffer.begin(), buffer.end(), sample_uniform);
+
+        auto inserted = dbls.insert_back(buffer.begin(), buffer.end());
+        EXPECT_EQ(i * items_per_chunk, inserted.begin()->unchecked_get());
+        all_inserted.push_back(inserted);
+    }
+
+    ASSERT_EQ(chunks_per_test * items_per_chunk, host_val.size());
+    ASSERT_EQ(chunks_per_test, all_inserted.size());
+
+    // Reorder inserted ranges
+    std::shuffle(all_inserted.begin(), all_inserted.end(), rng);
+
+    // Loop over all previously inserted data and re-insert
+    for (auto r : all_inserted)
+    {
+        // Get a span to the previously inserted range
+        auto s = host_val[r];
+
+        // Re-insert using dedupe: should result in same range
+        auto new_r = dbls.insert_back(s.begin(), s.end());
+        EXPECT_EQ(r.begin()->unchecked_get(), new_r.begin()->unchecked_get());
+        EXPECT_EQ(r.end()->unchecked_get(), new_r.end()->unchecked_get());
+    }
+}
+
 //---------------------------------------------------------------------------//
 // SIMPLE TESTS
 //---------------------------------------------------------------------------//
@@ -248,11 +300,20 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(321, host_ref[IntId{3}]);
 
     Ref<host> const& host_ref_cref = host_ref;
+    EXPECT_TRUE((std::is_same_v<decltype(host_ref_cref[IntId{0}]), int&>));
+    EXPECT_TRUE((std::is_same_v<decltype(host_ref_cref[irange]), Span<int>>));
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(host_ref_cref[AllInts<host>{}]), Span<int>>));
     EXPECT_EQ(123, host_ref_cref[IntId{0}]);
     EXPECT_EQ(321, host_ref_cref[irange].back());
     EXPECT_EQ(321, host_ref_cref[AllInts<host>{}].back());
 
     CRef<host> host_cref{host_val};
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]), int>));
+    EXPECT_TRUE((
+        std::is_same_v<decltype(host_cref[irange]), Span<LdgValue<int const>>>));
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[AllInts<host>{}]),
+                                Span<LdgValue<int const>>>));
     EXPECT_EQ(4, host_ref.size());
     EXPECT_EQ(123, host_cref[IntId{0}]);
     EXPECT_EQ(123, host_cref[irange].front());

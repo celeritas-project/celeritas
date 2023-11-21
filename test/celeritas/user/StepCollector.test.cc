@@ -10,6 +10,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
@@ -125,7 +126,7 @@ class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
 {
     VecString get_detector_names() const final
     {
-        return {"gap_lv_0", "gap_lv_1", "gap_lv_2"};
+        return {"gap_0", "gap_1", "gap_2"};
     }
 };
 

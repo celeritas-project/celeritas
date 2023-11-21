@@ -43,13 +43,7 @@ void copy_test(ObserverPtr<int const, MemSpace::device> in_data,
                ObserverPtr<int, MemSpace::device> out_data,
                size_type size)
 {
-    CELER_LAUNCH_KERNEL(copy_test,
-                        device().default_block_size(),
-                        size,
-                        0,
-                        in_data,
-                        out_data,
-                        size);
+    CELER_LAUNCH_KERNEL(copy_test, size, 0, in_data, out_data, size);
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }

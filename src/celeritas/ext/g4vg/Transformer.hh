@@ -71,9 +71,7 @@ Transformer::Transformer(Scaler const& convert_scale)
  */
 auto Transformer::operator()(G4ThreeVector const& t) const -> result_type
 {
-    return {this->convert_scale_(t[0]),
-            this->convert_scale_(t[1]),
-            this->convert_scale_(t[2])};
+    return {convert_scale_(t[0]), convert_scale_(t[1]), convert_scale_(t[2])};
 }
 
 //---------------------------------------------------------------------------//
@@ -83,9 +81,9 @@ auto Transformer::operator()(G4ThreeVector const& t) const -> result_type
 auto Transformer::operator()(G4ThreeVector const& t,
                              G4RotationMatrix const& rot) const -> result_type
 {
-    return {this->convert_scale_(t[0]),
-            this->convert_scale_(t[1]),
-            this->convert_scale_(t[2]),
+    return {convert_scale_(t[0]),
+            convert_scale_(t[1]),
+            convert_scale_(t[2]),
             rot.xx(),
             rot.yx(),
             rot.zx(),

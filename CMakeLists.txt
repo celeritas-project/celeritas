@@ -112,6 +112,25 @@ celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
 celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  set(CELERITAS_MAX_BLOCK_SIZE 256
+    CACHE STRING "Threads-per-block launch bound for Celeritas action kernels"
+  )
+else()
+  set(CELERITAS_MAX_BLOCK_SIZE 0)
+endif()
+
+if(CELERITAS_CORE_GEO STREQUAL Geant4)
+  set(_allow_single_prec FALSE)
+else()
+  set(_allow_single_prec TRUE)
+endif()
+
+celeritas_setup_option(CELERITAS_REAL_TYPE double)
+celeritas_setup_option(CELERITAS_REAL_TYPE float)
+celeritas_define_options(CELERITAS_REAL_TYPE
+  "Global runtime precision for real numbers")
+
 #----------------------------------------------------------------------------#
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#
@@ -149,6 +168,8 @@ celeritas_set_default(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
 celeritas_set_default(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY FALSE)
 
 ### Build flags ###
+# Default to building CTest tree if using Celeritas tests
+celeritas_set_default(BUILD_TESTING ${CELERITAS_BUILD_TESTS})
 # Default to debug or released based on value of CELERITAS_DEBUG
 if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   if(CELERITAS_DEBUG)
@@ -209,6 +230,11 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 # DEPENDENCIES
 #----------------------------------------------------------------------------#
 
+if(BUILD_TESTING)
+  # Build the test tree for unit and/or app tests
+  include(CTest)
+endif()
+
 if(CELERITAS_USE_CUDA)
   # Use host compiler by default to ensure ABI consistency
   set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING
@@ -217,6 +243,14 @@ if(CELERITAS_USE_CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
+  # NOTE: known broken up to 5.6; unknown after
+  if(CELERITAS_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
+    celeritas_error_incompatible_option(
+      "HIP cannot build debug code (unhandled SGPR spill to memory)"
+      CELERITAS_DEBUG
+      OFF
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
@@ -259,18 +293,34 @@ if(CELERITAS_USE_Python)
 endif()
 
 if(CELERITAS_USE_ROOT)
+  if(NOT BUILD_SHARED_LIBS)
+    celeritas_error_incompatible_option(
+      "ROOT PCM fails at runtime without shared libraries"
+      BUILD_SHARED_LIBS
+      ON
+    )
+  endif()
   # Older ROOT versions are missing CMake macros
   find_package(ROOT 6.24 REQUIRED)
 endif()
 
-if(CELERITAS_USE_SWIG AND NOT SWIG_FOUND)
-  # Note: 4.1 is required for C++17 parsing
-  find_package(SWIG 4.1 REQUIRED)
+if(CELERITAS_USE_SWIG)
+  if(CELERITAS_REAL_TYPE STREQUAL "float")
+    celeritas_error_incompatible_option(
+      "Single-precision runtime is not compatible with SWIG"
+      CELERITAS_USE_SWIG
+      OFF
+    )
+  endif()
+  if(NOT SWIG_FOUND)
+    # Note: 4.1 is required for C++17 parsing
+    find_package(SWIG 4.1 REQUIRED)
+  endif()
 endif()
 
 if(CELERITAS_USE_VecGeom)
   if(NOT VecGeom_FOUND)
-    find_package(VecGeom 1.1.17 REQUIRED)
+    find_package(VecGeom 1.2.4 REQUIRED)
   endif()
 
   if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
@@ -280,20 +330,22 @@ if(CELERITAS_USE_VecGeom)
       "${VecGeom_CUDA_FOUND}"
     )
   endif()
+  if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
+    celeritas_error_incompatible_option(
+      "VecGeom installation at ${VECGEOM_INSTALL_DIR} uses double precision"
+      CELERITAS_REAL_TYPE
+      "double"
+    )
+  endif()
+  if(CELERITAS_REAL_TYPE STREQUAL "double" AND VecGeom_single_precision_FOUND)
+    celeritas_error_incompatible_option(
+      "VecGeom installation at ${VECGEOM_INSTALL_DIR} uses single precision"
+      CELERITAS_REAL_TYPE
+      "float"
+    )
+  endif()
   if(NOT VecGeom_GDML_FOUND)
     message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
-  endif()
-endif()
-
-if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
-  # TODO: download and build GTest as a subproject if not available
-  find_package(GTest)
-  if(NOT GTest_FOUND)
-    celeritas_error_incompatible_option(
-      "Googletest (GTest) is required for testing but was not found"
-      CELERITAS_BUILD_TESTS
-      OFF
-    )
   endif()
 endif()
 
@@ -309,8 +361,15 @@ if(CELERITAS_BUILD_DOCS)
   if(NOT Doxygen_FOUND)
     find_package(Doxygen)
   endif()
+  if(NOT Doxygen_FOUND)
+    celeritas_error_incompatible_option(
+      "Doxygen is required for building documentation but was not found"
+      CELERITAS_BUILD_DOCS
+      OFF
+    )
+  endif()
 
-  if(Python_FOUND)
+  if(CELERITAS_USE_Python)
     celeritas_check_python_module(CELERITAS_USE_Sphinx sphinx)
   endif()
   set(Sphinx_FOUND ${CELERITAS_USE_Sphinx})
@@ -322,10 +381,17 @@ if(CELERITAS_BUILD_DOCS)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
   endif()
-  if(NOT Doxygen_FOUND)
+endif()
+
+if(CELERITAS_BUILD_TESTS)
+  # TODO: download and build GTest as a subproject if not available
+  if(NOT GTest_FOUND)
+    find_package(GTest 1.10)
+  endif()
+  if(NOT GTest_FOUND)
     celeritas_error_incompatible_option(
-      "Doxygen is required for building documentation but was not found"
-      CELERITAS_BUILD_DOCS
+      "Googletest (GTest) is required for testing but was not found"
+      CELERITAS_BUILD_TESTS
       OFF
     )
   endif()
@@ -345,9 +411,7 @@ add_library(celeritas_device_toolkit INTERFACE)
 add_library(Celeritas::DeviceToolkit ALIAS celeritas_device_toolkit)
 
 if(CELERITAS_USE_CUDA)
-  target_include_directories(celeritas_device_toolkit
-    SYSTEM INTERFACE $<$<COMPILE_LANGUAGE:C,CXX>:${CUDAToolkit_INCLUDE_DIRS}>
-  )
+  target_link_libraries(celeritas_device_toolkit INTERFACE CUDA::toolkit)
 elseif(CELERITAS_USE_HIP)
   if(CMAKE_HIP_COMPILER_ROCM_ROOT)
     # Undocumented CMake variable
@@ -359,6 +423,13 @@ elseif(CELERITAS_USE_HIP)
   target_include_directories(celeritas_device_toolkit
     SYSTEM INTERFACE "${ROCM_PATH}/include"
   )
+  find_library(ROCTX_LIBRARY roctx64)
+  if(ROCTX_LIBRARY)
+    set(CELERITAS_HAVE_ROCTX ON)
+    target_link_libraries(celeritas_device_toolkit INTERFACE ${ROCTX_LIBRARY})
+  endif()
+  # TODO: downstream libs don't link against correct HIP dependencies when using
+  # static libraries
 endif()
 
 install(TARGETS celeritas_device_toolkit
@@ -382,7 +453,6 @@ endif()
 #----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_TESTS)
-  include(CTest)
   add_subdirectory(test)
 endif()
 

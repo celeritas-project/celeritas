@@ -10,6 +10,8 @@
 #include <utility>
 #include <variant>
 
+#include "orange/OrangeTypes.hh"
+
 #include "SurfaceSimplifier.hh"
 #include "VariantSurface.hh"
 #include "detail/AllSurfaces.hh"
@@ -20,6 +22,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Recursively simplify, then call the given function on the final surface.
+ *
+ * The tolerance for this class should be "absolute" tolerance, i.e., the
+ * relative tolerance for an O(1) sized object.
  *
  * Example:
  * \code
@@ -42,6 +47,12 @@ class RecursiveSimplifier
   public:
     // Construct with tolerance and function to apply
     inline RecursiveSimplifier(F&& func, real_type tol);
+
+    //! Construct with tolerance and function to apply
+    RecursiveSimplifier(F&& func, Tolerance<> tol)
+        : RecursiveSimplifier(std::forward<F>(func), tol.abs)
+    {
+    }
 
     // Apply to a surface with a known type
     template<class S>

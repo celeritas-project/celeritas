@@ -65,6 +65,7 @@ class SetupOptionsMessenger : public G4UImessenger
 
   protected:
     void SetNewValue(G4UIcommand* command, G4String newValue) override;
+    G4String GetCurrentValue(G4UIcommand* command) override;
 
   private:
     std::vector<std::unique_ptr<G4UIdirectory>> directories_;

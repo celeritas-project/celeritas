@@ -30,7 +30,6 @@
 
 namespace celeritas
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Profile and launch Celeritas kernels from inside an action.
@@ -68,31 +67,6 @@ class ActionLauncher
                   "Launched action must be a trivially copyable function "
                   "object");
 
-    // Alias F to avoid hard error as SFINAE only works in the immediate
-    // context
-    template<class F_ = F, std::enable_if_t<!detail::has_applier_v<F_>, bool> = true>
-    explicit ActionLauncher(std::string_view name)
-        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
-    {
-    }
-
-    template<class F_ = F,
-             std::enable_if_t<detail::kernel_no_bound<typename F_::Applier>, bool>
-             = true>
-    explicit ActionLauncher(std::string_view name)
-        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
-    {
-    }
-
-    template<class F_ = F,
-             class A_ = typename F_::Applier,
-             std::enable_if_t<detail::has_max_block_size_v<A_>, bool> = true>
-    explicit ActionLauncher(std::string_view name)
-        : calc_launch_params_{
-            name, &detail::launch_action_impl<F_>, A_::max_block_size}
-    {
-    }
-
   public:
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
@@ -113,8 +87,8 @@ class ActionLauncher
     {
         if (!threads.empty())
         {
-            CELER_DEVICE_PREFIX(Stream_t)
-            stream = celeritas::device().stream(stream_id).get();
+            using StreamT = CELER_DEVICE_PREFIX(Stream_t);
+            StreamT stream = celeritas::device().stream(stream_id).get();
             auto config = calc_launch_params_(threads.size());
             detail::launch_action_impl<F>
                 <<<config.blocks_per_grid, config.threads_per_block, 0, stream>>>(
@@ -140,10 +114,8 @@ class ActionLauncher
         (*this)(range(ThreadId{num_threads}), stream_id, call_thread);
     }
 
-    //! Launch a Kernel with reduced grid size if tracks are sorted using the
-    //! expected track order strategy.
-    //! TODO: Always use an ActionLauncher instance with the action passed as
-    //! constructor argument
+    //! Launch with reduced grid size for when tracks are sorted
+    // TODO: Reuse ActionLauncher order/ID from constructor argument
     void operator()(CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
                     ExplicitActionInterface const& action,
@@ -166,8 +138,37 @@ class ActionLauncher
 
   private:
     KernelParamCalculator calc_launch_params_;
+
+    //// PRIVATE CONSTRUCTORS ////
+    // (Note: aliasing F is necessary for SFINAE to work)
+
+    //! Construct when no "Applier" member function is defined
+    template<class F_ = F, std::enable_if_t<!detail::has_applier_v<F_>, bool> = true>
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
+    {
+    }
+
+    //! Construct when an "Applier" member function doesn't define launch
+    //! bounds
+    template<class F_ = F,
+             std::enable_if_t<detail::kernel_no_bound<typename F_::Applier>, bool>
+             = true>
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
+    {
+    }
+
+    //! Construct when an "Applier" member function defines max block size
+    template<class F_ = F,
+             class A_ = typename F_::Applier,
+             std::enable_if_t<detail::has_max_block_size_v<A_>, bool> = true>
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{
+            name, &detail::launch_action_impl<F_>}
+    {
+    }
 };
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
-// vim: set ft=cuda

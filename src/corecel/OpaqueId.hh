@@ -17,6 +17,12 @@
 
 namespace celeritas
 {
+namespace detail
+{
+template<class, class>
+struct LdgLoader;
+}  // namespace detail
+
 //---------------------------------------------------------------------------//
 /*!
  * Type-safe index for accessing an array.
@@ -30,7 +36,8 @@ namespace celeritas
 template<class ValueT, class SizeT = ::celeritas::size_type>
 class OpaqueId
 {
-    static_assert(static_cast<SizeT>(-1) > 0, "SizeT must be unsigned.");
+    static_assert(std::is_unsigned_v<SizeT> && !std::is_same_v<SizeT, bool>,
+                  "SizeT must be unsigned.");
 
   public:
     //!@{
@@ -91,6 +98,7 @@ class OpaqueId
     {
         return static_cast<size_type>(-1);
     }
+    friend detail::LdgLoader<OpaqueId<value_type, size_type> const, void>;
 };
 
 //---------------------------------------------------------------------------//
@@ -161,7 +169,25 @@ operator-(OpaqueId<V, S> id, std::make_signed_t<S> offset)
     return OpaqueId<V, S>{id.unchecked_get() - static_cast<S>(offset)};
 }
 
+namespace detail
+{
+//! Template matching to determine if T is an OpaqueId
+template<class T>
+struct IsOpaqueId : std::false_type
+{
+};
+template<class V, class S>
+struct IsOpaqueId<OpaqueId<V, S>> : std::true_type
+{
+};
+template<class V, class S>
+struct IsOpaqueId<OpaqueId<V, S> const> : std::true_type
+{
+};
+template<class T>
+inline constexpr bool is_opaque_id_v = IsOpaqueId<T>::value;
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
 
 //---------------------------------------------------------------------------//

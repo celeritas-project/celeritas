@@ -8,6 +8,7 @@
 #include "RunInput.hh"
 
 #include "corecel/io/EnumStringMapper.hh"
+#include "accel/SharedParams.hh"
 
 namespace celeritas
 {
@@ -24,6 +25,34 @@ char const* to_cstring(PhysicsListSelection value)
         "geant_physics_list",
     };
     return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the physics list selection.
+ */
+char const* to_cstring(SensitiveDetectorType value)
+{
+    static EnumStringMapper<SensitiveDetectorType> const to_cstring_impl{
+        "none",
+        "event_hit",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the run arguments are valid.
+ */
+RunInput::operator bool() const
+{
+    return !geometry_file.empty() && (primary_options || !event_file.empty())
+           && physics_list < PhysicsListSelection::size_
+           && (field == no_field() || field_options)
+           && ((num_track_slots > 0 && max_events > 0 && max_steps > 0
+                && initializer_capacity > 0 && secondary_stack_factor > 0)
+               || SharedParams::CeleritasDisabled())
+           && (step_diagnostic_bins > 0 || !step_diagnostic);
 }
 
 //---------------------------------------------------------------------------//

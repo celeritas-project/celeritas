@@ -13,11 +13,12 @@
 #include <string>
 #include <vector>
 #include <CLHEP/Random/Random.h>
+#include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4UIExecutive.hh>
 #include <G4Version.hh>
 
-#include "accel/HepMC3PrimaryGenerator.hh"
+#include "accel/SharedParams.hh"
 
 #include "GlobalSetup.hh"
 
@@ -34,19 +35,28 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedMpiInit.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/ext/GeantUtils.hh"
+#include "celeritas/ext/ScopedGeantExceptionHandler.hh"
+#include "celeritas/ext/ScopedGeantLogger.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
-#include "accel/ExceptionConverter.hh"
-#include "accel/Logger.hh"
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "GlobalSetup.hh"
+#include "LocalLogger.hh"
 
 using namespace std::literals::string_view_literals;
 
@@ -57,34 +67,57 @@ namespace app
 namespace
 {
 //---------------------------------------------------------------------------//
-void run(int argc, char** argv)
+void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
 {
-    ScopedRootErrorHandler scoped_root_error;
+    // Disable external error handlers
+    ScopedRootErrorHandler scoped_root_errors;
+    disable_geant_signal_handler();
 
     // Set the random seed *before* the run manager is instantiated
     // (G4MTRunManager constructor uses the RNG)
     CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);
 
-    std::unique_ptr<G4RunManager> run_manager;
+    // Construct global setup singleton and make options available to UI
+    auto& setup = *GlobalSetup::Instance();
+
+    auto run_manager = [] {
+        // Run manager writes output that cannot be redirected with
+        // GeantLoggerAdapter: capture all output from this section
+        ScopedTimeAndRedirect scoped_time{"G4RunManager"};
+        ScopedGeantExceptionHandler scoped_exceptions;
+
+        // Access the particle table before creating the run manager, so that
+        // missing environment variables like G4ENSDFSTATEDATA get caught
+        // cleanly rather than segfaulting
+        G4ParticleTable::GetParticleTable();
+
 #if G4VERSION_NUMBER >= 1100
 #    ifdef G4MULTITHREADED
-    auto default_rmt = G4RunManagerType::MT;
+        auto default_rmt = G4RunManagerType::MT;
 #    else
-    auto default_rmt = G4RunManagerType::Serial;
+        auto default_rmt = G4RunManagerType::Serial;
 #    endif
-    run_manager.reset(G4RunManagerFactory::CreateRunManager(default_rmt));
+        return std::unique_ptr<G4RunManager>(
+            G4RunManagerFactory::CreateRunManager(default_rmt));
 #elif defined(G4MULTITHREADED)
-    run_manager = std::make_unique<G4MTRunManager>();
+        return std::make_unique<G4MTRunManager>();
 #else
-    run_manager = std::make_unique<G4RunManager>();
+        return std::make_unique<G4RunManager>();
 #endif
+    }();
     CELER_ASSERT(run_manager);
-    self_logger() = MakeMTLogger(*run_manager);
+
+    ScopedGeantLogger scoped_logger;
+    ScopedGeantExceptionHandler scoped_exceptions;
+
+    self_logger() = [&params] {
+        Logger log(MpiCommunicator{}, LocalLogger{params->num_streams()});
+        log.level(log_level_from_env("CELER_LOG_LOCAL"));
+        return log;
+    }();
+
     CELER_LOG(info) << "Run manager type: "
                     << TypeDemangler<G4RunManager>{}(*run_manager);
-
-    // Construct singleton, also making it available to UI
-    GlobalSetup::Instance();
 
     // Read user input
     std::string_view filename{argv[1]};
@@ -96,7 +129,7 @@ void run(int argc, char** argv)
     }
     else
     {
-        GlobalSetup::Instance()->ReadInput(std::string(filename));
+        setup.ReadInput(std::string(filename));
     }
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
@@ -107,11 +140,11 @@ void run(int argc, char** argv)
                               "Geant4@11.1: disabling Rayleigh scattering";
         ignore_processes.push_back("Rayl");
     }
-    GlobalSetup::Instance()->SetIgnoreProcesses(ignore_processes);
+    setup.SetIgnoreProcesses(ignore_processes);
 
     // Construct geometry, SD factory, physics, actions
-    run_manager->SetUserInitialization(new DetectorConstruction{});
-    switch (GlobalSetup::Instance()->GetPhysicsList())
+    run_manager->SetUserInitialization(new DetectorConstruction{params});
+    switch (setup.input().physics_list)
     {
         case PhysicsListSelection::ftfp_bert: {
             run_manager->SetUserInitialization(
@@ -119,7 +152,7 @@ void run(int argc, char** argv)
             break;
         }
         case PhysicsListSelection::geant_physics_list: {
-            auto opts = GlobalSetup::Instance()->GetPhysicsOptions();
+            auto opts = setup.GetPhysicsOptions();
             if (std::find(
                     ignore_processes.begin(), ignore_processes.end(), "Rayl")
                 != ignore_processes.end())
@@ -133,22 +166,29 @@ void run(int argc, char** argv)
         default:
             CELER_ASSERT_UNREACHABLE();
     }
-    run_manager->SetUserInitialization(new ActionInitialization());
+
+    // Create action initializer
+    auto act_init = std::make_unique<ActionInitialization>(params);
+    int num_events = act_init->num_events();
+    run_manager->SetUserInitialization(act_init.release());
 
     // Initialize run and process events
-    CELER_LOG(status) << "Initializing run manager";
-    run_manager->Initialize();
-
-    if (!celeritas::getenv("CELER_DISABLE").empty())
     {
-        CELER_LOG(info)
-            << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
+        ScopedMem record_mem("run.initialize");
+        ScopedTimeLog scoped_time;
+        ScopedProfiling profile_this{"celer-g4-setup"};
+        CELER_LOG(status) << "Initializing run manager";
+        run_manager->Initialize();
+    }
+    {
+        ScopedMem record_mem("run.beamon");
+        ScopedTimeLog scoped_time;
+        ScopedProfiling profile_this{"celer-g4-run"};
+        CELER_LOG(status) << "Transporting " << num_events << " events";
+        run_manager->BeamOn(num_events);
     }
 
-    auto num_events = GlobalSetup::Instance()->GetNumEvents();
-    CELER_LOG(status) << "Transporting " << num_events << " events";
-    run_manager->BeamOn(num_events);
+    CELER_LOG(debug) << "Destroying run manager";
 }
 
 //---------------------------------------------------------------------------//
@@ -172,14 +212,47 @@ int main(int argc, char* argv[])
                   << "  G4FORCENUMBEROFTHREADS: set CPU worker thread count\n"
                   << "  CELER_DISABLE: nonempty disables offloading\n"
                   << "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
+                  << "  CELER_DISABLE_ROOT: nonempty disables ROOT I/O\n"
                   << "  CELER_LOG: global logging level\n"
                   << "  CELER_LOG_LOCAL: thread-local logging level\n"
                   << std::endl;
         return EXIT_FAILURE;
     }
 
-    // Run with threads and macro filename
-    celeritas::app::run(argc, argv);
+    using celeritas::MpiCommunicator;
+    using celeritas::ScopedMpiInit;
+
+    ScopedMpiInit scoped_mpi(&argc, &argv);
+    MpiCommunicator comm = [] {
+        if (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled)
+            return MpiCommunicator{};
+
+        return MpiCommunicator::comm_world();
+    }();
+
+    if (comm.size() > 1)
+    {
+        CELER_LOG(critical) << "This app cannot run with MPI parallelism.";
+        return EXIT_FAILURE;
+    }
+
+    // Create params, which need to be shared with detectors as well as
+    // initialization, and can be written for output
+    auto params = std::make_shared<celeritas::SharedParams>();
+
+    try
+    {
+        celeritas::app::run(argc, argv, params);
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(critical) << "While running " << argv[1] << ": " << e.what();
+        params->output_reg()->insert(
+            std::make_shared<celeritas::ExceptionOutput>(
+                std::current_exception()));
+        params->Finalize();
+        return EXIT_FAILURE;
+    }
 
     CELER_LOG(status) << "Run completed successfully; exiting";
     return EXIT_SUCCESS;

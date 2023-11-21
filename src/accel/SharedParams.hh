@@ -26,10 +26,16 @@ class CoreParams;
 struct Primary;
 struct SetupOptions;
 class StepCollector;
+class GeantGeoParams;
+class OutputRegistry;
 
 //---------------------------------------------------------------------------//
 /*!
  * Shared (one instance for all threads) Celeritas problem data.
+ *
+ * The \c CeleritasDisabled accessor queries the \c CELER_DISABLE environment
+ * variable as a global option for disabling Celeritas offloading. This is
+ * implemented by \c SimpleOffload
  *
  * This should be instantiated on the master thread during problem setup,
  * preferably as a shared pointer. The shared pointer should be
@@ -39,6 +45,9 @@ class StepCollector;
  * structures (geometry, physics). \c InitializeWorker must subsequently be
  * invoked on all worker threads to set up thread-local data (specifically,
  * CUDA device initialization).
+ *
+ * Some low-level objects, such as the output diagnostics and Geant4 geometry
+ * wrapper, can be created independently of Celeritas being enabled.
  */
 class SharedParams
 {
@@ -52,6 +61,9 @@ class SharedParams
   public:
     //!@{
     //! \name Construction
+
+    // True if Celeritas is globally disabled using the CELER_DISABLE env
+    static bool CeleritasDisabled();
 
     // Construct in an uninitialized state
     SharedParams() = default;
@@ -75,10 +87,10 @@ class SharedParams
     // Access constructed Celeritas data
     inline SPConstParams Params() const;
 
-    //! Get a vector of particles supported by Celeritas offloading
+    // Get a vector of particles supported by Celeritas offloading
     inline VecG4ParticleDef const& OffloadParticles() const;
 
-    //! Whether this instance is initialized
+    //! Whether Celeritas core params have been created
     explicit operator bool() const { return static_cast<bool>(params_); }
 
     //!@}
@@ -87,24 +99,40 @@ class SharedParams
 
     using SPHitManager = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
+    using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
 
-    //! Hit manager, to be used only by LocalTransporter
-    SPHitManager const& hit_manager() const { return hit_manager_; }
+    // Hit manager, to be used only by LocalTransporter
+    inline SPHitManager const& hit_manager() const;
 
-    //! Optional offload writer, only for use by LocalTransporter
-    SPOffloadWriter const& offload_writer() const { return offload_writer_; }
+    // Optional offload writer, only for use by LocalTransporter
+    inline SPOffloadWriter const& offload_writer() const;
 
+    // Number of streams, lazily obtained from run manager
+    int num_streams() const;
+
+    // Output registry, lazily created
+    SPOutputRegistry const& output_reg() const;
+
+    // Geant geometry wrapper, lazily created
+    SPConstGeantGeoParams const& geant_geo_params() const;
     //!@}
 
   private:
     //// DATA ////
 
+    // Created during initialization
     std::shared_ptr<CoreParams> params_;
     SPHitManager hit_manager_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
     SPOffloadWriter offload_writer_;
+
+    // Lazily created
+    int num_streams_{0};
+    SPOutputRegistry output_reg_;
+    SPConstGeantGeoParams geant_geo_;
 
     //// HELPER FUNCTIONS ////
 
@@ -143,6 +171,26 @@ auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
 {
     CELER_EXPECT(*this);
     return particles_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Hit manager, to be used only by LocalTransporter.
+ */
+auto SharedParams::hit_manager() const -> SPHitManager const&
+{
+    CELER_EXPECT(*this);
+    return hit_manager_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Optional offload writer, only for use by LocalTransporter.
+ */
+auto SharedParams::offload_writer() const -> SPOffloadWriter const&
+{
+    CELER_EXPECT(*this);
+    return offload_writer_;
 }
 
 //---------------------------------------------------------------------------//

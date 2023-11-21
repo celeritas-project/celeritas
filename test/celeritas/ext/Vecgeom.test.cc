@@ -128,6 +128,146 @@ class VecgeomGeantTestBase : public VecgeomTestBase
 G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
 
 //---------------------------------------------------------------------------//
+// SIMPLE CMS TEST
+//---------------------------------------------------------------------------//
+
+class SimpleCmsTest : public VecgeomTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_vgdml("simple-cms.gdml");
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SimpleCmsTest, accessors)
+{
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ(7, geom.num_volumes());
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SimpleCmsTest, track)
+{
+    auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
+    EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+
+    auto next = geo.find_next_step(100);
+    EXPECT_SOFT_EQ(100, next.distance);
+    EXPECT_FALSE(next.boundary);
+    geo.move_internal(20);
+    EXPECT_SOFT_EQ(30, geo.find_safety());
+
+    geo.set_dir({1, 0, 0});
+    next = geo.find_next_step(50);
+    EXPECT_SOFT_EQ(30, next.distance);
+    EXPECT_TRUE(next.boundary);
+
+    geo.move_to_boundary();
+    EXPECT_FALSE(geo.is_outside());
+    geo.cross_boundary();
+    EXPECT_EQ("si_tracker", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), geo.pos());
+
+    // Scatter to tangent
+    geo.set_dir({0, 1, 0});
+    next = geo.find_next_step(1000);
+    EXPECT_SOFT_EQ(121.34661099511597, next.distance);
+    EXPECT_TRUE(next.boundary);
+    geo.move_internal(10);
+    EXPECT_SOFT_EQ(1.6227766016837926, geo.find_safety());
+
+    // Move to boundary and scatter back inside
+    next = geo.find_next_step(1000);
+    EXPECT_SOFT_EQ(111.34661099511597, next.distance);
+    EXPECT_TRUE(next.boundary);
+    geo.move_to_boundary();
+    geo.set_dir({-1, 0, 0});
+    next = geo.find_next_step(1000);
+    EXPECT_SOFT_EQ(60., next.distance);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_CUDA(device))
+{
+    using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
+
+    // Set up test input
+    VGGTestInput input;
+    input.init = {{{10, 0, 0}, {1, 0, 0}},
+                  {{29.99, 0, 0}, {1, 0, 0}},
+                  {{150, 0, 0}, {0, 1, 0}},
+                  {{174, 0, 0}, {0, 1, 0}},
+                  {{0, -250, 100}, {-1, 0, 0}},
+                  {{250, -250, 100}, {-1, 0, 0}},
+                  {{250, 0, 100}, {0, -1, 0}},
+                  {{-250, 0, 100}, {0, -1, 0}}};
+    StateStore device_states(this->geometry()->host_ref(), input.init.size());
+    input.max_segments = 5;
+    input.params = this->geometry()->device_ref();
+    input.state = device_states.ref();
+
+    // Run kernel
+    auto output = vgg_test(input);
+
+    static int const expected_ids[] = {
+        1, 2, 3, 4,  5,  1, 2, 3, 4, 5,  3, 4, 5, 6,  -2, 3, 4, 5, 6,  -2,
+        4, 5, 6, -2, -3, 3, 4, 5, 6, -2, 4, 5, 6, -2, -3, 4, 5, 6, -2, -3,
+    };
+    static double const expected_distances[] = {
+        20,
+        95,
+        50,
+        100,
+        100,
+        0.010,
+        95,
+        50,
+        100,
+        100,
+        90.1387818866,
+        140.34982954572,
+        113.20456568937,
+        340.04653943718,
+        316.26028344113,
+        18.681541692269,
+        194.27150477573,
+        119.23515320201,
+        345.84129821338,
+        321.97050211661,
+        114.5643923739,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        -3,
+        135.4356076261,
+        229.12878474779,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        114.5643923739,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        -3,
+        114.5643923739,
+        164.94410481358,
+        374.32634434363,
+        346.1651584689,
+        -3,
+    };
+
+    // Check results
+    EXPECT_VEC_EQ(expected_ids, output.ids);
+    EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
+}
+
+//---------------------------------------------------------------------------//
 // FOUR-LEVELS TEST
 //---------------------------------------------------------------------------//
 
@@ -137,6 +277,19 @@ class FourLevelsTest : public VecgeomTestBase
     SPConstGeo build_geometry() final
     {
         return this->load_vgdml("four-levels.gdml");
+    }
+
+    SpanStringView expected_log_levels() const final
+    {
+        if (VECGEOM_VERSION >= 0x020000)
+        {
+            static std::string_view const levels[] = {"warning"};
+            return make_span(levels);
+        }
+        else
+        {
+            return {};
+        }
     }
 };
 
@@ -473,8 +626,17 @@ class SolidsTest : public VecgeomTestBase
 
     SpanStringView expected_log_levels() const final
     {
-        static std::string_view const levels[] = {"warning"};
-        return make_span(levels);
+        if (VECGEOM_VERSION >= 0x020000)
+        {
+            static std::string_view const levels[]
+                = {"warning", "warning", "warning"};
+            return make_span(levels);
+        }
+        else
+        {
+            static std::string_view const levels[] = {"warning"};
+            return make_span(levels);
+        }
     }
 };
 
@@ -782,6 +944,19 @@ class CmseTest : public VecgeomTestBase
 {
   public:
     SPConstGeo build_geometry() final { return this->load_vgdml("cmse.gdml"); }
+
+    SpanStringView expected_log_levels() const final
+    {
+        if (VECGEOM_VERSION >= 0x020000)
+        {
+            static std::string_view const levels[] = {"warning"};
+            return make_span(levels);
+        }
+        else
+        {
+            return {};
+        }
+    }
 };
 
 //---------------------------------------------------------------------------//

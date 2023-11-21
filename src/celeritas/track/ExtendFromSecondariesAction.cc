@@ -21,6 +21,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Get a long description of the action.
+ */
+std::string ExtendFromSecondariesAction::description() const
+{
+    return "create track initializers from secondaries";
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Execute the action with host data.
  */
 void ExtendFromSecondariesAction::execute(CoreParams const& params,
@@ -97,15 +106,6 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
 }
 
 //---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-void ExtendFromSecondariesAction::locate_alive(CoreParams const&,
-                                               CoreStateDevice&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
-
-//---------------------------------------------------------------------------//
 /*!
  * Launch a (host) kernel to create track initializers from secondary
  * particles.
@@ -121,12 +121,26 @@ void ExtendFromSecondariesAction::process_secondaries(
 }
 
 //---------------------------------------------------------------------------//
+// DEVICE-DISABLED IMPLEMENTATION
+//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
+void ExtendFromSecondariesAction::begin_run(CoreParams const&, CoreStateDevice&)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+void ExtendFromSecondariesAction::locate_alive(CoreParams const&,
+                                               CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
 void ExtendFromSecondariesAction::process_secondaries(CoreParams const&,
                                                       CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
+
 #endif
 
 //---------------------------------------------------------------------------//

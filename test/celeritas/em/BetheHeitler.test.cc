@@ -155,7 +155,7 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
     std::vector<double> avg_engine_samples;
 
     // Loop over a set of incident gamma energies
-    for (double inc_e : {1.5, 5.0, 10.0, 50.0, 100.0, 1e6})
+    for (real_type inc_e : {1.5, 5.0, 10.0, 50.0, 100.0, 1e6})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
@@ -218,7 +218,7 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
     auto const material = this->material_track().make_material_view();
     auto const element = material.make_element_view(ElementComponentId{0});
 
-    auto bin_epsilon = [&](double inc_energy) -> std::vector<int> {
+    auto bin_epsilon = [&](real_type inc_energy) -> std::vector<int> {
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_energy});
         this->resize_secondaries(2 * num_samples);
 
@@ -272,6 +272,15 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
         std::vector<int> eps_dist = bin_epsilon(1e6);
         static int const expected_eps_dist[]
             = {1209, 1073, 911, 912, 844, 881, 903, 992, 1066, 1209};
+        EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
+    }
+
+    // Interaction threshold energy
+    {
+        std::vector<int> eps_dist
+            = bin_epsilon(2 * data_.electron_mass.value());
+        static int const expected_eps_dist[]
+            = {0, 0, 0, 0, 0, 10000, 0, 0, 0, 0};
         EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
     }
 }
