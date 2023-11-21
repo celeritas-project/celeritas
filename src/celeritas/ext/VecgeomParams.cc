@@ -175,9 +175,9 @@ VecgeomParams::~VecgeomParams()
     if (this->use_surface_tracking())
     {
         CELER_LOG(debug) << "Clearing SurfModel CPU data";
-//#ifdef VECGEOM_USE_SURF
+#ifdef VECGEOM_USE_SURF
         vgbrep::BrepHelper<real_type>::Instance().ClearData();
-//#endif
+#endif
     }
 
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
@@ -263,12 +263,71 @@ void VecgeomParams::build_tracking()
     if (celeritas::device())
     {
 #if CELERITAS_USE_CUDA
-        CELER_ASSERT(setup_cuda_mem_limits());
+        cudaLimit const cuda_attrs[]
+            = {cudaLimitStackSize, cudaLimitMallocHeapSize};
+        char const* const cuda_attr_labels[] = {"stack size", "heap size"};
+        Array<std::size_t, std::size(cuda_attrs)> orig_limits;
+        for (auto i : range(orig_limits.size()))
+        {
+            CELER_CUDA_CALL(cudaDeviceGetLimit(&orig_limits[i], cuda_attrs[i]));
+        }
+
+        auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
+
+        cuda_manager.set_verbose(vecgeom_verbosity());
+
+        for (auto i : range(orig_limits.size()))
+        {
+            std::size_t temp;
+            CELER_CUDA_CALL(cudaDeviceGetLimit(&temp, cuda_attrs[i]));
+            if (temp != orig_limits[i])
+            {
+                CELER_LOG(debug)
+                    << "VecGeom changed the " << cuda_attr_labels[i]
+                    << " from " << orig_limits[i] << " to " << temp
+                    << "; restoring to our values";
+                CELER_CUDA_CALL(
+                    cudaDeviceSetLimit(cuda_attrs[i], orig_limits[i]));
+            }
+        }
+
+        // Ensure that kernels, for which the compiler is not able to determine
+        // the total stack usage, have enough stack reserved.
+        // See https://github.com/celeritas-project/celeritas/issues/614 for
+        // a more detailed discussion.
+        // Experimentally, this seems to be needed only in the following cases
+        // (a stricter condition could have been
+        //   if use_vecgeom && (compiled without -O2 || CELERITAS_DEBUG)
+        //      || (CELERITAS_DEBUG && compiled with -g)
+        // with the 2nd part being useful only if vulnerable kernels start
+        // appearing in the build; for this second part we ought to move (or
+        // more exactly copy) to `celeritas::activate_device` as the latest
+        // cudaDeviceSetLimit 'wins'.
+        if (std::string var = celeritas::getenv("CUDA_STACK_SIZE");
+            !var.empty())
+        {
+            int stack_size = std::stoi(var);
+            CELER_VALIDATE(stack_size > 0,
+                           << "invalid CUDA_STACK_SIZE=" << stack_size
+                           << " (must be positive)");
+            set_cuda_stack_size(stack_size);
+        }
+        else if constexpr (CELERITAS_DEBUG)
+        {
+            set_cuda_stack_size(16384);
+        }
+        if (std::string var = celeritas::getenv("CUDA_HEAP_SIZE"); !var.empty())
+        {
+            int heap_size = std::stoi(var);
+            CELER_VALIDATE(heap_size > 0,
+                           << "invalid CUDA_HEAP_SIZE=" << heap_size
+                           << " (must be positive)");
+            set_cuda_heap_size(heap_size);
+        }
 
         // NOTE: this must actually be escaped with preprocessing because the
         // VecGeom interfaces change depending on the build options.
 
-        auto& cuda_manager = vecgeom::CudaManager::Instance();
         CELER_LOG(debug) << "Converting to CUDA geometry";
         {
             ScopedTimeAndRedirect time_and_output_(
@@ -466,75 +525,6 @@ void VecgeomParams::build_metadata()
 
         return BBox{detail::to_array(lower), detail::to_array(upper)};
     }();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Function for setting and/or checking size limits for CUDA stack and heap.
- */
-bool VecgeomParams::setup_cuda_mem_limits()
-{
-#if CELERITAS_USE_CUDA
-    cudaLimit const cuda_attrs[]
-        = {cudaLimitStackSize, cudaLimitMallocHeapSize};
-    char const* const cuda_attr_labels[] = {"stack size", "heap size"};
-    Array<std::size_t, std::size(cuda_attrs)> orig_limits;
-    for (auto i : range(orig_limits.size()))
-    {
-        CELER_CUDA_CALL(cudaDeviceGetLimit(&orig_limits[i], cuda_attrs[i]));
-    }
-
-    auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
-
-    cuda_manager.set_verbose(vecgeom_verbosity());
-
-    for (auto i : range(orig_limits.size()))
-    {
-        std::size_t temp;
-        CELER_CUDA_CALL(cudaDeviceGetLimit(&temp, cuda_attrs[i]));
-        if (temp != orig_limits[i])
-        {
-            CELER_LOG(debug) << "VecGeom changed the " << cuda_attr_labels[i]
-                             << " from " << orig_limits[i] << " to " << temp
-                             << "; restoring to our values";
-            CELER_CUDA_CALL(cudaDeviceSetLimit(cuda_attrs[i], orig_limits[i]));
-        }
-    }
-
-    // Ensure that kernels, for which the compiler is not able to determine
-    // the total stack usage, have enough stack reserved.
-    // See https://github.com/celeritas-project/celeritas/issues/614 for
-    // a more detailed discussion.
-    // Experimentally, this seems to be needed only in the following cases
-    // (a stricter condition could have been
-    //   if use_vecgeom && (compiled without -O2 || CELERITAS_DEBUG)
-    //      || (CELERITAS_DEBUG && compiled with -g)
-    // with the 2nd part being useful only if vulnerable kernels start
-    // appearing in the build; for this second part we ought to move (or
-    // more exactly copy) to `celeritas::activate_device` as the latest
-    // cudaDeviceSetLimit 'wins'.
-    if (std::string var = celeritas::getenv("CUDA_STACK_SIZE"); !var.empty())
-    {
-        int stack_size = std::stoi(var);
-        CELER_VALIDATE(stack_size > 0,
-                       << "invalid CUDA_STACK_SIZE=" << stack_size
-                       << " (must be positive)");
-        set_cuda_stack_size(stack_size);
-    }
-    else if constexpr (CELERITAS_DEBUG)
-    {
-        set_cuda_stack_size(16384);
-    }
-    if (std::string var = celeritas::getenv("CUDA_HEAP_SIZE"); !var.empty())
-    {
-        int heap_size = std::stoi(var);
-        CELER_VALIDATE(heap_size > 0,
-                       << "invalid CUDA_HEAP_SIZE=" << heap_size
-                       << " (must be positive)");
-        set_cuda_heap_size(heap_size);
-    }
-#endif
-    return true;
 }
 
 #if !CELERITAS_USE_CUDA || !defined(VECGEOM_USE_SURF)

@@ -28,5 +28,6 @@ void VecgeomParams::teardown_surface_tracking_device()
 {
     BrepCudaManager::Instance().Cleanup();
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

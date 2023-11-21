@@ -103,7 +103,6 @@ class VecgeomParams final : public GeoParamsInterface,
     DeviceRef device_ref_;
 
     //// HELPER FUNCTIONS ////
-    bool setup_cuda_mem_limits();
 
     // Construct VecGeom tracking data and copy to GPU
     void build_tracking();
