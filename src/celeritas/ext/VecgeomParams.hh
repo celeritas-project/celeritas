@@ -113,9 +113,6 @@ class VecgeomParams final : public GeoParamsInterface,
     void build_data();
     // Construct labels and other host-only metadata
     void build_metadata();
-
-    // Free up surface data on device
-    void teardown_surface_tracking_device();
 };
 
 //---------------------------------------------------------------------------//

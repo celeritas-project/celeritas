@@ -7,26 +7,23 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 
-#include "corecel/Assert.hh"
+#include <VecGeom/surfaces/cuda/BrepCudaManager.h>
 
-#include "VecGeom/surfaces/cuda/BrepCudaManager.h"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
-using BrepCudaManager = vgbrep::BrepCudaManager<vecgeom::Precision>;
-using SurfData = vgbrep::SurfData<vecgeom::Precision>;
-
 //---------------------------------------------------------------------------//
-void setup_surface_tracking_device(SurfData const& surfData)
+void setup_surface_tracking_device(VGSurfData const& surf_data)
 {
-    BrepCudaManager::Instance().TransferSurfData(surfData);
+    VGBrepCudaManager::Instance().TransferSurfData(surf_data);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//
-void VecgeomParams::teardown_surface_tracking_device()
+void teardown_surface_tracking_device()
 {
-    BrepCudaManager::Instance().Cleanup();
+    VGBrepCudaManager::Instance().Cleanup();
 }
 
 //---------------------------------------------------------------------------//

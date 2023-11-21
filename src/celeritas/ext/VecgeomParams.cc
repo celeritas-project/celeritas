@@ -27,6 +27,9 @@
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
 #endif
+#ifdef VECGEOM_USE_SURF
+#    include <VecGeom/surfaces/BrepHelper.h>
+#endif
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
@@ -40,17 +43,11 @@
 #include "g4vg/Converter.hh"
 
 #ifdef VECGEOM_USE_SURF
-#    include <VecGeom/surfaces/BrepHelper.h>
+#    include "VecgeomParams.surface.hh"
 #endif
 
 namespace celeritas
 {
-#ifdef VECGEOM_USE_SURF
-// Static function defined in VecgeomParams.cu, cannot be a member function
-using SurfData = vgbrep::SurfData<vecgeom::Precision>;
-void setup_surface_tracking_device(SurfData const& surfData);
-#endif
-
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -420,9 +417,7 @@ void VecgeomParams::build_surface_tracking()
             ScopedTimeAndRedirect time_and_output_(
                 "BrepCudaManager::TransferSurfData");
 
-            auto const& brepHelper = vgbrep::BrepHelper<real_type>::Instance();
-            auto const& surfData = brepHelper.GetSurfData();
-            setup_surface_tracking_device(surfData);
+            setup_surface_tracking_device(brep_helper.GetSurfData());
             CELER_DEVICE_CHECK_ERROR();
         }
 #endif
@@ -526,26 +521,6 @@ void VecgeomParams::build_metadata()
         return BBox{detail::to_array(lower), detail::to_array(upper)};
     }();
 }
-
-#if !CELERITAS_USE_CUDA || !defined(VECGEOM_USE_SURF)
-//---------------------------------------------------------------------------//
-/*!
- * CUDA-only function for constructing surface tracking data.
- */
-void setup_surface_tracking_device()
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * CUDA-only function for destroying surface tracking data.
- */
-void VecgeomParams::teardown_surface_tracking_device()
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
