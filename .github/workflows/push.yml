@@ -10,14 +10,19 @@ on:
     branches:
       - develop
       - backports/**
+      - fix-push-ci
 
 concurrency:
   group: push-${{github.ref}}-${{github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
 jobs:
-  build:
-    uses: ./.github/workflows/build-full.yml
-  # TODO: build and push documentation
+  all:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Print event
+      run: echo "${{toJSON(github.event)}}"
+    - name: Fail
+      run: "false"
 
 # vim: set nowrap tw=100:

@@ -20,15 +20,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    uses: ./.github/workflows/build-full.yml
-
-  # Specifying a dependent job allows us to select a single "requires" check
   all:
-    needs: [build]
     runs-on: ubuntu-latest
     steps:
-    - name: Success
-      run: "true"
+    - name: Print event
+      run: echo "${{toJSON(github.event)}}"
+    - name: Fail
+      run: "false"
 
 # vim: set nowrap tw=100:
