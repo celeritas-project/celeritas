@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #ifndef CELER_DEVICE_COMPILE
 #    include <vector>
 
@@ -17,7 +19,9 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/LdgIterator.hh"
 #include "corecel/data/PinnedAllocator.hh"
+#include "corecel/data/detail/LdgIteratorImpl.hh"
 #include "corecel/sys/Device.hh"
 
 #include "../Copier.hh"
@@ -28,27 +32,53 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<class T, Ownership W>
+template<class T, Ownership W, typename = void>
 struct CollectionTraits
 {
     using type = T;
     using const_type = T const;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
-struct CollectionTraits<T, Ownership::reference>
+struct CollectionTraits<T, Ownership::reference, void>
 {
     using type = T;
     using const_type = T;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
-struct CollectionTraits<T, Ownership::const_reference>
+struct CollectionTraits<T,
+                        Ownership::const_reference,
+                        std::enable_if_t<!is_ldg_supported_v<std::add_const_t<T>>>>
 {
     using type = T const;
     using const_type = T const;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
+};
+template<class T>
+struct CollectionTraits<T,
+                        Ownership::const_reference,
+                        std::enable_if_t<is_ldg_supported_v<std::add_const_t<T>>>>
+{
+    using type = T const;
+    using const_type = T const;
+    using reference_type = type;
+    using const_reference_type = const_type;
+    using SpanT = Span<LdgValue<const_type>>;
+    using SpanConstT = Span<LdgValue<const_type>>;
 };
 
 //---------------------------------------------------------------------------//
@@ -56,7 +86,7 @@ struct CollectionTraits<T, Ownership::const_reference>
 template<class T, Ownership W, MemSpace M>
 struct CollectionStorage
 {
-    using type = Span<typename CollectionTraits<T, W>::type>;
+    using type = typename CollectionTraits<T, W>::SpanT;
     type data;
 };
 
@@ -238,19 +268,6 @@ struct CollectionAssigner<Ownership::value, MemSpace::mapped>
     {
         return {{source.data.data(), source.data.data() + source.data.size()}};
     }
-};
-
-//---------------------------------------------------------------------------//
-//! Template matching to determine if T is an OpaqueId
-template<class T>
-struct IsOpaqueId
-{
-    static constexpr bool value = false;
-};
-template<class V, class S>
-struct IsOpaqueId<OpaqueId<V, S>>
-{
-    static constexpr bool value = true;
 };
 
 //---------------------------------------------------------------------------//

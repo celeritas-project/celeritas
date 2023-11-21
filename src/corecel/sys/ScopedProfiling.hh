@@ -59,10 +59,10 @@ class ScopedProfiling
   public:
 #if CELER_USE_DEVICE
     // Whether profiling is enabled
-    static bool enable_profiling();
+    static bool use_profiling();
 #else
     // Profiling is never enabled if CUDA isn't available
-    constexpr static bool enable_profiling() { return false; }
+    constexpr static bool use_profiling() { return false; }
 #endif
 
     // Activate profiling with options
@@ -92,7 +92,7 @@ class ScopedProfiling
  * Activate device profiling with options.
  */
 ScopedProfiling::ScopedProfiling(Input const& input)
-    : activated_{ScopedProfiling::enable_profiling()}
+    : activated_{ScopedProfiling::use_profiling()}
 {
     if (activated_)
     {

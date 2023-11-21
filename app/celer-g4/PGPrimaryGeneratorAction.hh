@@ -44,7 +44,7 @@ class PGPrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 
   public:
     // Construct primary action
-    PGPrimaryGeneratorAction();
+    explicit PGPrimaryGeneratorAction(PrimaryGeneratorOptions const& opts);
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;

@@ -329,7 +329,8 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.max_streams = this->get_num_streams(inp);
     CELER_VALIDATE(inp.mctruth_file.empty() || params.max_streams == 1,
                    << "MC truth output is only supported with a single "
-                      "stream.");
+                      "stream ("
+                   << params.max_streams << " streams requested)");
 
     // Construct track initialization params
     params.init = [&inp, &params] {

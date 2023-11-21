@@ -7,14 +7,21 @@
 //---------------------------------------------------------------------------//
 #include "GeantDiagnostics.hh"
 
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/MemRegistry.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/global/CoreParams.hh"
 
 #include "G4RunManager.hh"
 #include "GlobalSetup.hh"
+
+#if CELERITAS_USE_JSON
+#    include "corecel/io/OutputInterfaceAdapter.hh"
+#    include "corecel/sys/EnvironmentIO.json.hh"
+#    include "corecel/sys/MemRegistryIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -29,25 +36,16 @@ namespace app
  * diagnostics. If Celeritas offloading is enabled, diagnostics will be added
  * to the output registry in the \c SharedParams.
  */
-GeantDiagnostics::GeantDiagnostics(SPConstParams params)
+GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(*params || !celeritas::getenv("CELER_DISABLE").empty());
+    CELER_EXPECT(static_cast<bool>(params)
+                 == !SharedParams::CeleritasDisabled());
 
     CELER_LOG_LOCAL(status) << "Initializing Geant4 diagnostics";
 
-    SPOutputRegistry output_reg = *params ? params->Params()->output_reg()
-                                          : std::make_shared<OutputRegistry>();
-
-    size_type num_threads = [&params] {
-        if (*params)
-        {
-            return params->Params()->max_streams();
-        }
-        auto* run_man = G4RunManager::GetRunManager();
-        CELER_ASSERT(run_man);
-        return size_type(get_num_threads(*run_man));
-    }();
+    // Get (lazily creating)
+    SPOutputRegistry output_reg = params.output_reg();
+    size_type num_threads = params.num_streams();
 
     // Create the timer output and add to output registry
     timer_output_ = std::make_shared<TimerOutput>(num_threads);
@@ -61,9 +59,21 @@ GeantDiagnostics::GeantDiagnostics(SPConstParams params)
         output_reg->insert(step_diagnostic_);
     }
 
-    if (!*params)
+    if (!params)
     {
-        output_reg_ = std::move(output_reg);
+        // Celeritas core params didn't add system metadata: do it ourselves
+#if CELERITAS_USE_JSON
+        // Save system diagnostic information
+        output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
+            OutputInterface::Category::system,
+            "memory",
+            celeritas::mem_registry()));
+        output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
+            OutputInterface::Category::system,
+            "environ",
+            celeritas::environment()));
+#endif
+        output_reg->insert(std::make_shared<BuildOutput>());
     }
 
     CELER_ENSURE(*this);
@@ -71,33 +81,18 @@ GeantDiagnostics::GeantDiagnostics(SPConstParams params)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write out diagnostics if Celeritas has not been initialized.
+ * Clear diagnostics at the end of the run.
  *
  * This must be executed exactly *once* across all threads and at the end of
  * the run.
  */
 void GeantDiagnostics::Finalize()
 {
-    CELER_EXPECT(*this);
+    // Reset all data
+    CELER_LOG_LOCAL(debug) << "Resetting diagnostics";
+    *this = {};
 
-    // Output written by \c SharedParams
-    if (!output_reg_)
-        return;
-
-    auto filename = GlobalSetup::Instance()->GetSetupOptions()->output_file;
-#if CELERITAS_USE_JSON
-    CELER_LOG(info) << "Writing Geant4 diagnostic output to \"" << filename
-                    << '"';
-
-    std::ofstream outf(filename);
-    CELER_VALIDATE(outf,
-                   << "failed to open output file at \"" << filename << '"');
-    output_reg_->output(&outf);
-#else
-    CELER_LOG(warning)
-        << "JSON support is not enabled, so no output will be written to \""
-        << filename << '"';
-#endif
+    CELER_ENSURE(!*this);
 }
 
 //---------------------------------------------------------------------------//

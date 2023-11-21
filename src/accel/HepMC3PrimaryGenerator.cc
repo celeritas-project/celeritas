@@ -246,8 +246,8 @@ auto HepMC3PrimaryGenerator::read_event(size_type event_id) -> SPHepEvt
         if (static_cast<size_type>(read_evt_id) != expected_id)
         {
             CELER_LOG(warning)
-                << "HepMC3 event IDs are not consecutive from zero: ID "
-                << read_evt_id << " is not expected ID " << expected_id;
+                << "HepMC3 event IDs are not consecutive from zero: read ID "
+                << read_evt_id << " but expected ID " << expected_id;
         }
     }
 

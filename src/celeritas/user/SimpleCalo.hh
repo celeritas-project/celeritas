@@ -9,12 +9,13 @@
 
 #include <vector>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/StreamStore.hh"
+#include "corecel/io/Label.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/StepInterface.hh"
 
 #include "SimpleCaloData.hh"
@@ -22,11 +23,14 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-struct Label;
+class GeoParamsInterface;
 
 //---------------------------------------------------------------------------//
 /*!
  * Accumulate energy deposition in volumes.
+ *
+ * \todo Add a "begin run" interface to set up the stream store, rather than
+ * passing in number of streams at construction time.
  */
 class SimpleCalo final : public StepInterface, public OutputInterface
 {
@@ -42,8 +46,19 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     //!@}
 
   public:
-    // Construct with sensitive regions
-    SimpleCalo(VecLabel labels, GeoParams const& geo, size_type max_streams);
+    // Construct with all requirements
+    SimpleCalo(std::string output_label,
+               VecLabel labels,
+               GeoParamsInterface const& geo,
+               size_type max_streams);
+
+    //! Construct with default label
+    SimpleCalo(VecLabel labels,
+               GeoParamsInterface const& geo,
+               size_type max_streams)
+        : SimpleCalo{"simple_calo", std::move(labels), geo, max_streams}
+    {
+    }
 
     //!@{
     //! \name Step interface
@@ -62,7 +77,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     // Category of data to write
     Category category() const final { return Category::result; }
     // Key for the entry inside the category.
-    std::string label() const final { return "simple_calo"; }
+    std::string label() const final { return output_label_; }
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;
     //!@}
@@ -87,6 +102,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
   private:
     using StoreT = StreamStore<SimpleCaloParamsData, SimpleCaloStateData>;
 
+    std::string output_label_;
     VecLabel volume_labels_;
     std::vector<VolumeId> volume_ids_;
     StoreT store_;

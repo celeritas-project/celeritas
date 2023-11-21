@@ -16,7 +16,6 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 celeritas_add_library(testcel_harness
   Test.cc
   testdetail/NonMasterResultPrinter.cc
-  testdetail/ParallelHandler.cc
   testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
 )
@@ -216,9 +215,6 @@ celeritas_setup_tests(SERIAL PREFIX orange
 celeritas_add_test(orange/BoundingBox.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
 celeritas_add_test(orange/BoundingBoxUtils.test.cc)
-celeritas_add_test(orange/CsgTree.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
-celeritas_add_test(orange/CsgTreeUtils.test.cc)
 celeritas_add_test(orange/MatrixUtils.test.cc)
 celeritas_add_test(orange/OrangeTypes.test.cc)
 celeritas_add_device_test(orange/Orange)
@@ -228,6 +224,14 @@ celeritas_add_test(orange/detail/BIHBuilder.test.cc)
 celeritas_add_test(orange/detail/BIHTraverser.test.cc)
 celeritas_add_test(orange/detail/BIHUtils.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
+
+#-----------------------------------------------------------------------------#
+# Construct
+set(CELERITASTEST_PREFIX orange/construct)
+celeritas_add_test(orange/construct/CsgTree.test.cc
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
+celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
 
 #-------------------------------------#
 # Transforms
@@ -239,24 +243,26 @@ celeritas_add_test(orange/transform/VariantTransform.test.cc)
 #-------------------------------------#
 # Surfaces
 set(CELERITASTEST_PREFIX orange/surf)
-celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surf/ConeAligned.test.cc)
 celeritas_add_test(orange/surf/CylAligned.test.cc)
 celeritas_add_test(orange/surf/CylCentered.test.cc)
 celeritas_add_test(orange/surf/GeneralQuadric.test.cc)
 celeritas_add_test(orange/surf/Plane.test.cc)
 celeritas_add_test(orange/surf/PlaneAligned.test.cc)
-celeritas_add_test(orange/surf/RecursiveSimplifier.test.cc)
 celeritas_add_test(orange/surf/SimpleQuadric.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
+
+celeritas_add_test(orange/surf/FaceNamer.test.cc)
+celeritas_add_test(orange/surf/RecursiveSimplifier.test.cc)
 celeritas_add_test(orange/surf/SoftSurfaceEqual.test.cc)
 celeritas_add_test(orange/surf/SurfaceClipper.test.cc)
 celeritas_add_test(orange/surf/SurfaceSimplifier.test.cc)
-celeritas_add_test(orange/surf/VariantSurface.test.cc)
+celeritas_add_device_test(orange/surf/LocalSurfaceVisitor)
+
+celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTransformer.test.cc)
-celeritas_add_device_test(orange/surf/LocalSurfaceVisitor)
 
 #-------------------------------------#
 # Universe details
@@ -362,21 +368,27 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 if(CELERITAS_USE_VecGeom)
   # Vecgeom uses global counters that interfere with copying data to GPU and
   # change the internal numbering.
+  set(_vecgeom_tests
+    "SimpleCmsTest.*"
+  )
+  if(NOT VecGeom_SURF_FOUND)
+    # TODO: vecgeom surface doesn't support some of these shapes
+    list(APPEND _vecgeom_tests
+      "FourLevelsTest.*"
+      "SolidsTest.*"
+      "CmseTest.*"
+    )
+  endif()
   if(CELERITAS_USE_Geant4)
-    set(_vecgeom_geant_tests
+    list(APPEND _vecgeom_tests
       "FourLevelsGeantTest.*"
       "SolidsGeantTest.*"
     )
-  else()
-    set(_vecgeom_geant_tests)
   endif()
   celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom
     FILTER
-      "FourLevelsTest.*"
-      "SolidsTest.*"
-      "CmseTest.*"
-      ${_vecgeom_geant_tests}
+      ${_vecgeom_tests}
   )
 endif()
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")

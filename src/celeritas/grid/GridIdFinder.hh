@@ -41,8 +41,8 @@ class GridIdFinder
     using argument_type = KeyQuantity;
     using result_type = ValueId;
 
-    using SpanConstGrid = Span<const typename KeyQuantity::value_type>;
-    using SpanConstValue = Span<result_type const>;
+    using SpanConstGrid = LdgSpan<typename KeyQuantity::value_type const>;
+    using SpanConstValue = LdgSpan<result_type const>;
     //!@}
 
   public:

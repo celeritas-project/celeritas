@@ -41,9 +41,6 @@ class GeantSetup
     //!@}
 
   public:
-    // Clear Geant4's signal handlers that get installed when linking 11+
-    static void disable_signal_handler();
-
     // Construct from a GDML file and physics options
     GeantSetup(std::string const& gdml_filename, Options options);
 
@@ -80,9 +77,6 @@ class GeantSetup
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-// Get the number of threads in a version-portable way
-int get_num_threads(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -97,8 +91,6 @@ G4VPhysicalVolume const* GeantSetup::world() const
 }
 
 #if !CELERITAS_USE_GEANT4
-inline void GeantSetup::disable_signal_handler() {}
-
 inline GeantSetup::GeantSetup(std::string const&, Options)
 {
     CELER_NOT_CONFIGURED("Geant4");
@@ -107,11 +99,6 @@ inline GeantSetup::GeantSetup(std::string const&, Options)
 inline GeantSetup::~GeantSetup() = default;
 
 inline void GeantSetup::RMDeleter::operator()(G4RunManager*) const
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-
-inline int get_num_threads(G4RunManager const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

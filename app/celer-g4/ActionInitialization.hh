@@ -16,6 +16,7 @@
 
 namespace celeritas
 {
+class HepMC3PrimaryGenerator;
 namespace app
 {
 //---------------------------------------------------------------------------//
@@ -32,15 +33,19 @@ class ActionInitialization final : public G4VUserActionInitialization
     //!@}
 
   public:
-    ActionInitialization();
+    explicit ActionInitialization(SPParams params);
     void BuildForMaster() const final;
     void Build() const final;
+
+    //! Get the number of events to be transported
+    int num_events() const { return num_events_; }
 
   private:
     SPParams params_;
     SPDiagnostics diagnostics_;
-    mutable bool init_celeritas_;
-    mutable bool init_diagnostics_;
+    std::shared_ptr<HepMC3PrimaryGenerator> hepmc_gen_;
+    int num_events_{0};
+    mutable bool init_shared_;
 };
 
 //---------------------------------------------------------------------------//
