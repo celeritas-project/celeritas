@@ -365,6 +365,8 @@ void VecgeomParams::build_volume_tracking()
             set_cuda_heap_size(heap_size);
         }
 
+        auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
+        cuda_manager.set_verbose(vecgeom_verbosity());
         {
             CELER_LOG(debug) << "Converting to CUDA geometry";
             ScopedTimeAndRedirect time_and_output_(
