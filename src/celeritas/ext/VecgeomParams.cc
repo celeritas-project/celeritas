@@ -4,8 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/VecgeomParams.cc
-// NOTE: lots of code has to be escaped because VecGeom interfaces change
-// depending on the build options.
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 
@@ -71,13 +69,11 @@ namespace
 
 #ifdef VECGEOM_USE_SURF
 #    define VG_SURF_CALL(CODE) CODE
-#    define VG_SURF_CALL_ELSE(CODE, OTHERWISE) CODE
 #else
 #    define VG_SURF_CALL(CODE) \
         do                     \
         {                      \
         } while (0)
-#    define VG_SURF_CALL_ELSE(CODE, OTHERWISE) OTHERWISE
 #endif
 
 #if defined(VECGEOM_ENABLE_CUDA) && defined(VECGEOM_USE_SURF)
@@ -321,8 +317,9 @@ void VecgeomParams::build_surface_tracking()
     {
         CELER_LOG(debug) << "Creating surfaces";
         ScopedTimeAndRedirect time_and_output_("BrepHelper::Convert");
-        bool success = VG_SURF_CALL_ELSE(brep_helper.Convert(), false);
-        CELER_VALIDATE(success, << "failed to convert VecGeom to surfaces");
+        VG_SURF_CALL(CELER_VALIDATE(brep_helper.Convert(),
+                                    << "failed to convert VecGeom to "
+                                       "surfaces"));
         if (vecgeom_verbosity() > 1)
         {
             VG_SURF_CALL(brep_helper.PrintSurfData());
