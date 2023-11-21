@@ -157,8 +157,7 @@ VecgeomParams::~VecgeomParams()
     if (device_ref_)
     {
         CELER_LOG(debug) << "Clearing VecGeom GPU data";
-#ifdef VECGEOM_USE_SURF
-        if (this->use_surface_tracking())
+#    ifdef VECGEOM_USE_SURF
         {
             // clear surface data first
             CELER_LOG(debug) << "Clearing SurfModel GPU data";
@@ -169,13 +168,12 @@ VecgeomParams::~VecgeomParams()
     }
 #endif
 
-    if (this->use_surface_tracking())
+#ifdef VECGEOM_USE_SURF
     {
         CELER_LOG(debug) << "Clearing SurfModel CPU data";
-#ifdef VECGEOM_USE_SURF
         vgbrep::BrepHelper<real_type>::Instance().ClearData();
-#endif
     }
+#endif
 
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
     vecgeom::GeoManager::Instance().Clear();
@@ -256,7 +254,73 @@ void VecgeomParams::build_tracking()
     ScopedProfiling profile_this{"initialize-vecgeom"};
     ScopedMem record_mem("VecgeomParams.build_tracking");
 
-    // common tracking setup
+    if (VecgeomParams::use_surface_tracking())
+    {
+        this->build_surface_tracking();
+    }
+    else
+    {
+        this->build_volume_tracking();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * After loading solids, set up VecGeom surface data and copy to GPU.
+ */
+void VecgeomParams::build_surface_tracking()
+{
+#ifdef VECGEOM_USE_SURF
+    static_assert(std::is_same_v<real_type, vecgeom::Precision>,
+                  "Celeritas and VecGeom real types do not match");
+    auto& brep_helper = vgbrep::BrepHelper<real_type>::Instance();
+
+    CELER_LOG(debug) << "Creating surfaces";
+    brep_helper.SetVerbosity(vecgeom_verbosity());
+    {
+        ScopedTimeAndRedirect time_and_output_("BrepHelper::Convert");
+        bool success = brep_helper.Convert();
+        CELER_VALIDATE(success, << "failed to convert VecGeom to surfaces");
+        if (vecgeom_verbosity() > 1)
+        {
+            brep_helper.PrintSurfData();
+        }
+    }
+
+    if (celeritas::device())
+    {
+#    if CELERITAS_USE_CUDA
+        CELER_LOG(debug) << "Transferring surface data to GPU";
+        {
+            ScopedTimeAndRedirect time_and_output_(
+                "BrepCudaManager::TransferSurfData");
+
+            setup_surface_tracking_device(brep_helper.GetSurfData());
+            CELER_DEVICE_CHECK_ERROR();
+        }
+#    endif
+    }
+#else
+    vecgeom_verbosity();
+    CELER_NOT_CONFIGURED("surface tracking");
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * After loading solids, set up VecGeom tracking data and copy to GPU.
+ */
+void VecgeomParams::build_volume_tracking()
+{
+    CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
+    {
+        ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
+        vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
+    }
+
+    // Init the bounding volume hierarchy structure
+    vecgeom::cxx::BVHManager::Init();
+
     if (celeritas::device())
     {
 #if CELERITAS_USE_CUDA
@@ -329,6 +393,7 @@ void VecgeomParams::build_tracking()
         {
             ScopedTimeAndRedirect time_and_output_(
                 "vecgeom::CudaManager.LoadGeometry");
+
             cuda_manager.LoadGeometry();
             CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         }
@@ -342,39 +407,7 @@ void VecgeomParams::build_tracking()
             CELER_VALIDATE(world_top_devptr != nullptr,
                            << "VecGeom failed to copy geometry to GPU");
         }
-#else
-        CELER_NOT_CONFIGURED("CUDA");
-#endif
-    }
 
-    if (VecgeomParams::use_surface_tracking())
-    {
-        this->build_surface_tracking();
-    }
-    else
-    {
-        this->build_volume_tracking();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * After loading solids, set up VecGeom tracking data and copy to GPU.
- */
-void VecgeomParams::build_volume_tracking()
-{
-    CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
-    {
-        ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
-        vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
-    }
-
-    // Init the bounding volume hierarchy structure
-    vecgeom::cxx::BVHManager::Init();
-
-    if (celeritas::device())
-    {
-#if CELERITAS_USE_CUDA
         CELER_LOG(debug) << "Initializing BVH on GPU";
         {
             ScopedTimeAndRedirect time_and_output_(
@@ -382,50 +415,10 @@ void VecgeomParams::build_volume_tracking()
             vecgeom::cxx::BVHManager::DeviceInit();
             CELER_DEVICE_CHECK_ERROR();
         }
-#endif
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * After loading solids, set up VecGeom surface data and copy to GPU.
- */
-void VecgeomParams::build_surface_tracking()
-{
-#ifdef VECGEOM_USE_SURF
-    static_assert(std::is_same_v<real_type, vecgeom::Precision>,
-                  "Celeritas and VecGeom real types do not match");
-    auto& brep_helper = vgbrep::BrepHelper<real_type>::Instance();
-
-    CELER_LOG(debug) << "Creating surfaces";
-    brep_helper.SetVerbosity(vecgeom_verbosity());
-    {
-        ScopedTimeAndRedirect time_and_output_("BrepHelper::Convert");
-        bool success = brep_helper.Convert();
-        CELER_VALIDATE(success, << "failed to convert VecGeom to surfaces");
-        if (vecgeom_verbosity() > 1)
-        {
-            brep_helper.PrintSurfData();
-        }
-    }
-
-    if (celeritas::device())
-    {
-#if CELERITAS_USE_CUDA
-        CELER_LOG(debug) << "Transferring surface data to GPU";
-        {
-            ScopedTimeAndRedirect time_and_output_(
-                "BrepCudaManager::TransferSurfData");
-
-            setup_surface_tracking_device(brep_helper.GetSurfData());
-            CELER_DEVICE_CHECK_ERROR();
-        }
-#endif
-    }
 #else
-    vecgeom_verbosity();
-    CELER_NOT_CONFIGURED("surface tracking");
+        CELER_NOT_CONFIGURED("CUDA");
 #endif
+    }
 }
 
 //---------------------------------------------------------------------------//
