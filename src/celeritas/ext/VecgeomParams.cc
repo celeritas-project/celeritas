@@ -20,6 +20,7 @@
 #include "celeritas_config.h"
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedLimitSaver.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -27,6 +28,9 @@
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
+#endif
+#ifdef VECGEOM_USE_SURF
+#    include <VecGeom/surfaces/BrepHelper.h>
 #endif
 
 #include "corecel/cont/Range.hh"
@@ -40,17 +44,53 @@
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "g4vg/Converter.hh"
 
+#ifdef VECGEOM_USE_SURF
+#    include "VecgeomParams.surface.hh"
+#endif
+
+static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
+              "Celeritas and VecGeom real types do not match");
+
 namespace celeritas
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+// MACROS
+// VecGeom interfaces change based on whether CUDA and Surface capabilities
+// are available. Use macros to hide the calls.
+//---------------------------------------------------------------------------//
+
+#ifdef VECGEOM_ENABLE_CUDA
+#    define VG_CUDA_CALL(CODE) CODE
+#else
+#    define VG_CUDA_CALL(CODE) CELER_UNREACHABLE
+#endif
+
+#ifdef VECGEOM_USE_SURF
+#    define VG_SURF_CALL(CODE) CODE
+#else
+#    define VG_SURF_CALL(CODE) \
+        do                     \
+        {                      \
+        } while (0)
+#endif
+
+#if defined(VECGEOM_ENABLE_CUDA) && defined(VECGEOM_USE_SURF)
+#    define VG_CUDASURF_CALL(CODE) CODE
+#else
+#    define VG_CUDASURF_CALL(CODE) CELER_UNREACHABLE
+#endif
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
  * Get the verbosity setting for vecgeom.
  */
 int vecgeom_verbosity()
 {
-    static bool const result = [] {
+    static int const result = [] {
         std::string var = celeritas::getenv("VECGEOM_VERBOSE");
         if (var.empty())
         {
@@ -122,6 +162,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
             = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
         g4vg::Converter convert{opts};
         auto result = convert(world);
+        CELER_ASSERT(result.world != nullptr);
         g4log_volid_map_ = std::move(result.volumes);
 
         // Set as world volume
@@ -130,7 +171,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
         vg_manager.SetWorldAndClose(result.world);
 
         // NOTE: setting and closing changes the world
-        // CELER_ASSERT(result.world == vg_manager.GetWorld());
+        CELER_ASSERT(vg_manager.GetWorld() != nullptr);
     }
 
     this->build_tracking();
@@ -147,13 +188,25 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
  */
 VecgeomParams::~VecgeomParams()
 {
-#if CELERITAS_USE_CUDA
     if (device_ref_)
     {
-        CELER_LOG(debug) << "Clearing VecGeom GPU data";
-        vecgeom::CudaManager::Instance().Clear();
+        if (VecgeomParams::use_surface_tracking())
+        {
+            CELER_LOG(debug) << "Clearing VecGeom surface GPU data";
+            VG_CUDASURF_CALL(teardown_surface_tracking_device());
+        }
+        else
+        {
+            CELER_LOG(debug) << "Clearing VecGeom GPU data";
+            VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
+        }
     }
-#endif
+
+    if (VecgeomParams::use_surface_tracking())
+    {
+        CELER_LOG(debug) << "Clearing SurfModel CPU data";
+        VG_SURF_CALL(vgbrep::BrepHelper<real_type>::Instance().ClearData());
+    }
 
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
     vecgeom::GeoManager::Instance().Clear();
@@ -233,11 +286,20 @@ void VecgeomParams::build_tracking()
     CELER_LOG(status) << "Initializing tracking information";
     ScopedProfiling profile_this{"initialize-vecgeom"};
     ScopedMem record_mem("VecgeomParams.build_tracking");
+
     if (VecgeomParams::use_surface_tracking())
     {
         this->build_surface_tracking();
     }
     else
+    {
+        this->build_volume_tracking();
+    }
+
+    // TODO: we stil lneed to make volume tracking information when using CUDA,
+    // because we need a GPU world device pointer. We could probably just make
+    // a single world physical/logical volume that have the correct IDs.
+    if (CELERITAS_USE_CUDA && VecgeomParams::use_surface_tracking())
     {
         this->build_volume_tracking();
     }
@@ -249,7 +311,31 @@ void VecgeomParams::build_tracking()
  */
 void VecgeomParams::build_surface_tracking()
 {
-    CELER_NOT_CONFIGURED("surface tracking");
+    VG_SURF_CALL(auto& brep_helper = vgbrep::BrepHelper<real_type>::Instance());
+    VG_SURF_CALL(brep_helper.SetVerbosity(vecgeom_verbosity()));
+
+    {
+        CELER_LOG(debug) << "Creating surfaces";
+        ScopedTimeAndRedirect time_and_output_("BrepHelper::Convert");
+        VG_SURF_CALL(CELER_VALIDATE(brep_helper.Convert(),
+                                    << "failed to convert VecGeom to "
+                                       "surfaces"));
+        if (vecgeom_verbosity() > 1)
+        {
+            VG_SURF_CALL(brep_helper.PrintSurfData());
+        }
+    }
+
+    if (celeritas::device())
+    {
+        CELER_LOG(debug) << "Transferring surface data to GPU";
+        ScopedTimeAndRedirect time_and_output_(
+            "BrepCudaManager::TransferSurfData");
+
+        VG_CUDASURF_CALL(
+            setup_surface_tracking_device(brep_helper.GetSurfData()));
+        CELER_DEVICE_CHECK_ERROR();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -266,6 +352,7 @@ void VecgeomParams::build_surface_tracking()
 void VecgeomParams::build_volume_tracking()
 {
     CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
+
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
@@ -276,14 +363,11 @@ void VecgeomParams::build_volume_tracking()
 
     if (celeritas::device())
     {
-        // NOTE: this must actually be escaped with preprocessing because the
-        // VecGeom interfaces change depending on the build options.
-#if CELERITAS_USE_CUDA
         {
             // NOTE: this *MUST* be the first time the CUDA manager is called,
             // otherwise we can't restore limits.
             ScopedLimitSaver save_cuda_limits;
-            vecgeom::cxx::CudaManager::Instance();
+            VG_CUDA_CALL(vecgeom::cxx::CudaManager::Instance());
         }
 
         // Set custom stack and heap size now that it's been initialized
@@ -311,6 +395,7 @@ void VecgeomParams::build_volume_tracking()
             set_cuda_heap_size(heap_size);
         }
 
+#if CELERITAS_USE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         cuda_manager.set_verbose(vecgeom_verbosity());
         {
@@ -339,7 +424,6 @@ void VecgeomParams::build_volume_tracking()
         }
 #else
         CELER_NOT_CONFIGURED("CUDA");
-        vecgeom_verbosity();
 #endif
     }
 }
@@ -361,9 +445,9 @@ void VecgeomParams::build_data()
 #if CELERITAS_USE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         device_ref_.world_volume = cuda_manager.world_gpu();
-        CELER_ASSERT(device_ref_.world_volume);
 #endif
         device_ref_.max_depth = host_ref_.max_depth;
+        CELER_ENSURE(device_ref_.world_volume);
     }
     CELER_ENSURE(host_ref_);
     CELER_ENSURE(!celeritas::device() || device_ref_);
