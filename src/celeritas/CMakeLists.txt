@@ -234,6 +234,12 @@ if(CELERITAS_USE_VecGeom)
     ext/detail/VecgeomNavCollection.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  if(VecGeom_CUDA_FOUND AND VecGeom_SURF_FOUND)
+    # Special routines needed for surface
+    list(APPEND SOURCES
+      ext/VecgeomParams.surface.cu
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)

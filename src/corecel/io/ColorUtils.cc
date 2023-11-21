@@ -24,7 +24,7 @@ namespace celeritas
  */
 bool use_color()
 {
-    const static bool result = [] {
+    static bool const result = [] {
         [[maybe_unused]] FILE* stream = stderr;
         std::string color_str = celeritas::getenv("CELER_COLOR");
         if (color_str.empty())

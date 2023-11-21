@@ -1,0 +1,26 @@
+name: merge_group
+run-name: >-
+  Pending merge
+  to ${{github.event.merge_group.base_ref}}
+  by @${{github.event.sender.login}}
+
+on:
+  merge_group:
+    types: [checks_requested]
+
+concurrency:
+  group: mg-${{github.ref}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  # TODO: use a more limited build for merge group? (or for PR?)
+  build:
+    uses: ./.github/workflows/build-full.yml
+  all:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Success
+      run: "true"
+
+# vim: set nowrap tw=100:

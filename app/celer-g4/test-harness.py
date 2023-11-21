@@ -78,10 +78,10 @@ inp = {
     "field_type": "uniform",
     "field": [ 0.0, 0.0, 1.0 ],
     "field_options": {
-     "minimum_step": 0.0001,
+     "minimum_step": 0.000001,
      "delta_chord": 0.025,
-     "delta_intersection": 0.001,
-     "epsilon_step": 0.01,
+     "delta_intersection": 0.00001,
+     "epsilon_step": 0.00001
     },
     "sd_type": "event_hit" if use_root else "simple_calo",
     "step_diagnostic": ext == "none",
