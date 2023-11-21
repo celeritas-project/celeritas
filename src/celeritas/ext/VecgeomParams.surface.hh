@@ -12,11 +12,8 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-using VGBrepCudaManager = vgbrep::BrepCudaManager<vecgeom::Precision>;
-using VGSurfData = vgbrep::SurfData<vecgeom::Precision>;
-
 // Set up surface tracking
-void setup_surface_tracking_device(VGSurfData const& surf_data);
+void setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&);
 
 // Tear down surface tracking
 void teardown_surface_tracking_device();
