@@ -4,6 +4,8 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/VecgeomParams.cc
+// NOTE: lots of code has to be escaped because VecGeom interfaces change
+// depending on the build options.
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 
@@ -160,11 +162,10 @@ VecgeomParams::~VecgeomParams()
         CELER_LOG(debug) << "Clearing VecGeom GPU data";
 #    ifdef VECGEOM_USE_SURF
         {
-            // clear surface data first
             CELER_LOG(debug) << "Clearing SurfModel GPU data";
             teardown_surface_tracking_device();
         }
-#endif
+#    endif
         vecgeom::CudaManager::Instance().Clear();
     }
 #endif
