@@ -30,24 +30,9 @@ cmake --build --preset=${CMAKE_PRESET}
 # Require regression-like tests to be enabled and pass
 export CELER_TEST_STRICT=1
 
-# Set up test arguments
-CTEST_TOOL=Test
-CTEST_ARGS=""
-case ${CMAKE_PRESET} in
-  vecgeom-demos )
-    CTEST_ARGS="-L app"
-    ;;
-  valgrind )
-    CTEST_TOOL="MemCheck"
-    CTEST_ARGS="-LE nomemcheck"
-    ;;
-  * )
-    ;;
-esac
-
 # Run tests
 cd build
-ctest -T ${CTEST_TOOL} ${CTEST_ARGS}\
+ctest \
   -j16 --timeout 180 \
   --no-compress-output --output-on-failure \
   --test-output-size-passed=65536 --test-output-size-failed=1048576 \
@@ -64,12 +49,5 @@ test -x "${CELER_SOURCE_DIR}/install/bin/celer-g4"
 # Test examples against installed celeritas
 export CMAKE_PRESET
 export CELER_SOURCE_DIR
-if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
-  export LDFLAGS=-Wl,--no-as-needed # for Ubuntu with vecgeom?
-  exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
-elif [ "${CMAKE_PRESET}" = "full-novg-ndebug" ] \
-  || [ "${CMAKE_PRESET}" = "hip-ndebug" ]  ; then
-  exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
-fi
-
+exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
 

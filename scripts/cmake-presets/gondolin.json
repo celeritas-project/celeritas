@@ -34,7 +34,7 @@
     {
       "name": "iwyu",
       "displayName": "Include what you use",
-      "inherits": [".base", "minimal"],
+      "inherits": [".base", ".debug", "minimal"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL",   "value": "OFF"},
@@ -45,7 +45,7 @@
     {
       "name": "base",
       "displayName": "Gondolin default options",
-      "inherits": [".base", "default"],
+      "inherits": [".base", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CELERITAS_USE_MPI":     {"type": "BOOL",   "value": "OFF"},

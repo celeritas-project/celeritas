@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_TESTS)
+if(BUILD_TESTING)
   # Set environment variables from Geant4-exported configuration
   set(CELER_G4ENV)
   foreach(_ds IN LISTS Geant4_DATASETS)
@@ -28,6 +28,21 @@ if(CELERITAS_BUILD_TESTS)
     set(CELER_PROCESSORS)
   endif()
   set(CELER_APP_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
+
+  # Disable device tests if no CUDA/HIP or if environment is set
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    if("$ENV{CELER_DISABLE_DEVICE}")
+      message(WARNING
+        "Disabling GPU testing because CELER_DISABLE_DEVICE is set"
+      )
+      set(CELER_DISABLE_DEVICE TRUE)
+    else()
+      set(CELER_DISABLE_DEVICE FALSE)
+    endif()
+  else()
+    # No device support
+    set(CELER_DISABLE_DEVICE TRUE)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -77,7 +92,7 @@ endif()
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT CELERITAS_BUILD_TESTS)
+if(NOT BUILD_TESTING)
   return()
 endif()
 set(_geant_test_inp "${CELER_APP_DATA_DIR}/four-steel-slabs.gdml")

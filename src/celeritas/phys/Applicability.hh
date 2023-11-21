@@ -23,10 +23,9 @@ namespace celeritas
  * Range where a model and/or process is valid.
  *
  * This class is used during setup for specifying the ranges of applicability
- * for a physics model or process. The interval is *open* on the lower energy
- * range and *closed* on the upper energy. So a threshold reaction should have
- * the lower energy set to the threshold. Models valid to zero energy but have
- * special "at rest" models should set upper to zero.
+ * for a physics model or process. The interval is *closed* on the lower energy
+ * range and *open* on the upper energy. So a threshold reaction should have
+ * the lower energy set to the threshold.
  *
  * An unset value for "material" means it applies to all materials; however,
  * the particle ID should always be set.
@@ -40,17 +39,6 @@ struct Applicability
     ParticleId particle{};
     Energy lower = zero_quantity();
     Energy upper = max_quantity();
-
-    //! Range for a particle at rest
-    static inline Applicability at_rest(ParticleId id)
-    {
-        CELER_EXPECT(id);
-        Applicability result;
-        result.particle = id;
-        result.lower = neg_max_quantity();
-        result.upper = zero_quantity();
-        return result;
-    }
 
     //! Whether applicability is in a valid state
     inline explicit operator bool() const

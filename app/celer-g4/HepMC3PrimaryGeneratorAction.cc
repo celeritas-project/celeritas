@@ -10,7 +10,6 @@
 #include <G4Event.hh>
 
 #include "corecel/Macros.hh"
-#include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
 
 #include "GlobalSetup.hh"
@@ -19,33 +18,14 @@ namespace celeritas
 {
 namespace app
 {
-namespace
-{
 //---------------------------------------------------------------------------//
 /*!
- * Global HepMC3 file reader shared across threads.
- *
- * The first time this is called, the reader will be initialized from the
- * GlobalSetup event file argument.
+ * Construct from a shared generator.
  */
-HepMC3PrimaryGenerator& shared_reader()
+HepMC3PrimaryGeneratorAction::HepMC3PrimaryGeneratorAction(SPGenerator gen)
+    : generator_{std::move(gen)}
 {
-    static HepMC3PrimaryGenerator reader{
-        GlobalSetup::Instance()->GetEventFile()};
-    return reader;
-}
-//---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the total number of events available in the HepMC3 file.
- *
- * This will load the HepMC3 file if not already active.
- */
-int HepMC3PrimaryGeneratorAction::NumEvents()
-{
-    return shared_reader().NumEvents();
+    CELER_EXPECT(generator_);
 }
 
 //---------------------------------------------------------------------------//
@@ -54,9 +34,7 @@ int HepMC3PrimaryGeneratorAction::NumEvents()
  */
 void HepMC3PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    ExceptionConverter call_g4exception{"celer0000"};
-    CELER_TRY_HANDLE(shared_reader().GeneratePrimaryVertex(event),
-                     call_g4exception);
+    generator_->GeneratePrimaryVertex(event);
 }
 
 //---------------------------------------------------------------------------//

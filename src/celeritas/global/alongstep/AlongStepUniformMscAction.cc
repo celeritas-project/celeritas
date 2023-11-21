@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
@@ -65,6 +66,16 @@ AlongStepUniformMscAction::AlongStepUniformMscAction(
     , field_params_(field_params)
 {
     CELER_EXPECT(id_);
+
+    if (norm(field_params_.field) == 0)
+    {
+        CELER_LOG(warning) << "along-step uniform field has zero field "
+                              "strength";
+    }
+    else
+    {
+        validate_input(field_params_.options);
+    }
 }
 
 //---------------------------------------------------------------------------//
