@@ -43,6 +43,7 @@ template<>
 struct SoftEqualTraits<double>
 {
     using value_type = double;
+    static CELER_CONSTEXPR_FUNCTION value_type sqrt_prec() { return 1.0e-6; }
     static CELER_CONSTEXPR_FUNCTION value_type rel_prec() { return 1.0e-12; }
     static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-14; }
 };
@@ -51,8 +52,9 @@ template<>
 struct SoftEqualTraits<float>
 {
     using value_type = float;
+    static CELER_CONSTEXPR_FUNCTION value_type sqrt_prec() { return 1.0e-3f; }
     static CELER_CONSTEXPR_FUNCTION value_type rel_prec() { return 1.0e-6f; }
-    static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-8f; }
+    static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-6f; }
 };
 
 //---------------------------------------------------------------------------//

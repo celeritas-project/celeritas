@@ -94,9 +94,9 @@ TEST_F(EPlusGGInteractorTest, basic)
     RandomEngine& rng_engine = this->rng();
 
     // Produce four samples from the original incident angle/energy
-    std::vector<double> angle;
-    std::vector<double> energy1;
-    std::vector<double> energy2;
+    std::vector<real_type> angle;
+    std::vector<real_type> energy1;
+    std::vector<real_type> energy2;
 
     for (int i : range(num_samples))
     {
@@ -117,18 +117,18 @@ TEST_F(EPlusGGInteractorTest, basic)
     EXPECT_EQ(2 * num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    double const expected_energy1[] = {0.432998201097281,
-                                       0.595079388679535,
-                                       0.527077606856619,
-                                       0.266407915356902};
+    real_type const expected_energy1[] = {0.432998201097281,
+                                          0.595079388679535,
+                                          0.527077606856619,
+                                          0.266407915356902};
 
-    double const expected_energy2[] = {
+    real_type const expected_energy2[] = {
         10.5889996911027, 10.4269185035205, 10.4949202853434, 10.7555899768431};
 
-    double const expected_angle[] = {-0.18912233467373,
-                                     0.148337256571676,
-                                     0.0320262042116524,
-                                     -0.963881322481829};
+    real_type const expected_angle[] = {-0.18912233467373,
+                                        0.148337256571676,
+                                        0.0320262042116524,
+                                        -0.963881322481829};
 
     EXPECT_VEC_SOFT_EQ(expected_energy1, energy1);
     EXPECT_VEC_SOFT_EQ(expected_energy2, energy2);
@@ -179,9 +179,9 @@ TEST_F(EPlusGGInteractorTest, at_rest)
 TEST_F(EPlusGGInteractorTest, stress_test)
 {
     int const num_samples = 8192;
-    std::vector<double> avg_engine_samples;
+    std::vector<real_type> avg_engine_samples;
 
-    for (double inc_e : {0.0, 0.01, 1.0, 10.0, 1000.0})
+    for (real_type inc_e : {0.0, 0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::positron(), MevEnergy{inc_e});
@@ -214,13 +214,13 @@ TEST_F(EPlusGGInteractorTest, stress_test)
                       this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
-        avg_engine_samples.push_back(double(rng_engine.count())
-                                     / double(num_particles_sampled));
+        avg_engine_samples.push_back(real_type(rng_engine.count())
+                                     / real_type(num_particles_sampled));
     }
 
     // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to RNG
-    double const expected_avg_engine_samples[]
+    real_type const expected_avg_engine_samples[]
         = {4, 9.8341064453125, 7.19775390625, 6.960205078125, 6.5401611328125};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
@@ -233,23 +233,23 @@ TEST_F(EPlusGGInteractorTest, macro_xs)
     EPlusGGMacroXsCalculator calc_macro_xs(data_, material);
 
     int num_vals = 20;
-    double loge_min = std::log(1.e-4);
-    double loge_max = std::log(1.e6);
-    double delta = (loge_max - loge_min) / (num_vals - 1);
-    double loge = loge_min;
+    real_type loge_min = std::log(1.e-4);
+    real_type loge_max = std::log(1.e6);
+    real_type delta = (loge_max - loge_min) / (num_vals - 1);
+    real_type loge = loge_min;
 
-    std::vector<double> energy;
-    std::vector<double> macro_xs;
+    std::vector<real_type> energy;
+    std::vector<real_type> macro_xs;
 
     // Loop over energies
     for (int i = 0; i < num_vals; ++i)
     {
-        double e = std::exp(loge);
+        real_type e = std::exp(loge);
         energy.push_back(e);
-        macro_xs.push_back(calc_macro_xs(MevEnergy{e}));
+        macro_xs.push_back(calc_macro_xs(MevEnergy(e)));
         loge += delta;
     }
-    double const expected_macro_xs[]
+    real_type const expected_macro_xs[]
         = {0.001443034416941,  0.0007875334997718, 0.0004301446502063,
            0.0002355766377589, 0.0001301463511539, 7.376415204169e-05,
            4.419813786948e-05, 2.746581269388e-05, 1.508499252627e-05,

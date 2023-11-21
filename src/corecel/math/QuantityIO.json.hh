@@ -45,7 +45,7 @@ void from_json(nlohmann::json const& j, Quantity<UnitT, ValueT>& q)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write an array to a JSON file.
+ * Write a quantity to a JSON file.
  */
 template<class UnitT, class ValueT>
 void to_json(nlohmann::json& j, Quantity<UnitT, ValueT> const& q)

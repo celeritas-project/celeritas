@@ -7,7 +7,7 @@
       "displayName": "stognini default options",
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
-      "inherits": ["default"],
+      "inherits": [".debug", "default"],
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},

@@ -23,8 +23,11 @@ namespace detail
 template<class T, class Enable = void>
 struct RangeTypeTraits
 {
+    static_assert(std::is_integral_v<T>,
+                  "Only integer types can be used in a range");
     using value_type = T;
     using counter_type = T;
+    using difference_type = std::make_signed_t<counter_type>;
 
     template<class U>
     using common_type = typename std::common_type<T, U>::type;
@@ -40,13 +43,13 @@ struct RangeTypeTraits
         return c;
     }
     static CELER_CONSTEXPR_FUNCTION value_type increment(value_type v,
-                                                         counter_type i)
+                                                         difference_type i)
     {
         v += i;
         return v;
     }
     static CELER_CONSTEXPR_FUNCTION value_type decrement(value_type v,
-                                                         counter_type i)
+                                                         difference_type i)
     {
         v -= i;
         return v;
@@ -74,6 +77,7 @@ struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
 {
     using value_type = T;
     using counter_type = typename std::underlying_type<T>::type;
+    using difference_type = std::make_signed_t<counter_type>;
     template<class U>
     using common_type = value_type;
 
@@ -91,16 +95,16 @@ struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
         return static_cast<value_type>(c);
     }
     static CELER_CONSTEXPR_FUNCTION value_type increment(value_type v,
-                                                         counter_type i)
+                                                         difference_type i)
     {
-        counter_type temp = to_counter(v);
+        auto temp = to_counter(v);
         temp += i;
         return to_value(temp);
     }
     static CELER_CONSTEXPR_FUNCTION value_type decrement(value_type v,
-                                                         counter_type i)
+                                                         difference_type i)
     {
-        counter_type temp = to_counter(v);
+        auto temp = to_counter(v);
         temp -= i;
         return to_value(temp);
     }
@@ -112,6 +116,7 @@ struct RangeTypeTraits<OpaqueId<I, T>, void>
 {
     using value_type = OpaqueId<I, T>;
     using counter_type = T;
+    using difference_type = std::make_signed_t<counter_type>;
     template<class U>
     using common_type = value_type;
 
@@ -124,19 +129,19 @@ struct RangeTypeTraits<OpaqueId<I, T>, void>
     {
         return v.unchecked_get();
     }
-    static CELER_CONSTEXPR_FUNCTION value_type to_value(counter_type c)
+    static CELER_CONSTEXPR_FUNCTION value_type to_value(difference_type c)
     {
-        return value_type{c};
+        return static_cast<value_type>(c);
     }
     static CELER_CONSTEXPR_FUNCTION value_type increment(value_type v,
-                                                         counter_type i)
+                                                         difference_type i)
     {
         counter_type temp = to_counter(v);
         temp += i;
         return to_value(temp);
     }
     static CELER_CONSTEXPR_FUNCTION value_type decrement(value_type v,
-                                                         counter_type i)
+                                                         difference_type i)
     {
         counter_type temp = to_counter(v);
         temp -= i;
@@ -155,7 +160,7 @@ class range_iter
     using value_type = T;
     using counter_type = typename TraitsT::counter_type;
     using iterator_category = std::input_iterator_tag;
-    using difference_type = value_type;
+    using difference_type = typename TraitsT::difference_type;
     using pointer = void;
     using reference = value_type;
     //!@}
@@ -197,7 +202,7 @@ class range_iter
         return copy;
     }
 
-    CELER_CONSTEXPR_FUNCTION range_iter operator+(counter_type inc) const
+    CELER_CONSTEXPR_FUNCTION range_iter operator+(difference_type inc) const
     {
         return {TraitsT::increment(value_, inc)};
     }
@@ -215,7 +220,7 @@ class range_iter
         return copy;
     }
 
-    CELER_CONSTEXPR_FUNCTION range_iter operator-(counter_type inc) const
+    CELER_CONSTEXPR_FUNCTION range_iter operator-(difference_type inc) const
     {
         return {TraitsT::decrement(value_, inc)};
     }
@@ -268,6 +273,7 @@ class step_range_iter : public range_iter<T>
   public:
     using TraitsT = typename Base::TraitsT;
     using counter_type = typename TraitsT::counter_type;
+    using difference_type = typename TraitsT::difference_type;
 
     CELER_CONSTEXPR_FUNCTION step_range_iter(T value, counter_type step)
         : Base(value), step_(step)
@@ -287,7 +293,7 @@ class step_range_iter : public range_iter<T>
         return copy;
     }
 
-    CELER_CONSTEXPR_FUNCTION step_range_iter operator+(counter_type inc)
+    CELER_CONSTEXPR_FUNCTION step_range_iter operator+(difference_type inc)
     {
         return {TraitsT::increment(value_, inc * step_)};
     }

@@ -10,10 +10,9 @@
 #include <iostream>
 
 #include "corecel/cont/Span.hh"
+#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/StepCollector.hh"
-
-using std::cout;
 
 namespace celeritas
 {
@@ -50,6 +49,8 @@ void CaloTestBase::SetUp()
 //! Print the expected result
 void CaloTestBase::RunResult::print_expected() const
 {
+    using std::cout;
+
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "static const double expected_edep[] = "
          << repr(this->edep)
@@ -67,8 +68,9 @@ auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
 {
     this->run_impl<M>(num_tracks, num_steps);
 
+    auto edep = calo_->calc_total_energy_deposition();
     RunResult result;
-    result.edep = calo_->calc_total_energy_deposition();
+    result.edep.assign(edep.begin(), edep.end());
     calo_->clear();
 
     return result;

@@ -14,6 +14,7 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 
 list(APPEND SOURCES
   AlongStepFactory.cc
+  FastSimulationOffload.cc
   GeantStepDiagnostic.cc
   Logger.cc
   LocalTransporter.cc
@@ -24,6 +25,7 @@ list(APPEND SOURCES
   detail/HitManager.cc
   detail/HitProcessor.cc
   detail/SensDetInserter.cc
+  detail/TouchableUpdater.cc
 )
 
 celeritas_polysource(ExceptionConverter)

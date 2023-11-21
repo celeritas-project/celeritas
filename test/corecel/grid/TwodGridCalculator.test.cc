@@ -113,8 +113,8 @@ TEST_F(TwodGridCalculatorTest, whole_grid)
     // Outer extrema
     const real_type eps = 1e-6;
     EXPECT_SOFT_EQ(calc_expected(-1, 0), interpolate({-1, 0}));
-    EXPECT_SOFT_EQ(calc_expected(3 - eps, 3.5 - eps),
-                   interpolate({3 - eps, 3.5 - eps}));
+    EXPECT_SOFT_EQ(calc_expected(3 - eps, real_type(3.5) - eps),
+                   interpolate({3 - eps, real_type(3.5) - eps}));
 
     // Interior points
     for (real_type x : {-1.0, -0.5, -0.9, 2.25})

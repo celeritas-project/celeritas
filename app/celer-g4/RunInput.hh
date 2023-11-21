@@ -11,9 +11,9 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
@@ -29,10 +29,17 @@ enum class PhysicsListSelection
 };
 
 //---------------------------------------------------------------------------//
+//! Sensitive detector capability
+enum class SensitiveDetectorType
+{
+    none,  //!< No SDs
+    event_hit,  //!< Record basic hit data
+    size_,
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
- *
- * \todo Unify names with celer-sim and SetupOptions.
  */
 struct RunInput
 {
@@ -41,9 +48,16 @@ struct RunInput
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
     static constexpr size_type unspecified{static_cast<size_type>(-1)};
 
+    // Global environment
+    size_type cuda_stack_size{};
+    size_type cuda_heap_size{};
+
     // Problem definition
     std::string geometry_file;  //!< Path to GDML file
     std::string event_file;  //!< Path to HepMC3 event record file
+
+    // Setup options for generating primaries from a distribution
+    PrimaryGeneratorOptions primary_options;
 
     // Control
     size_type num_track_slots{};
@@ -51,8 +65,6 @@ struct RunInput
     size_type max_steps{unspecified};
     size_type initializer_capacity{};
     real_type secondary_stack_factor{};
-    size_type cuda_stack_size{};
-    size_type cuda_heap_size{};
     bool sync{false};
     bool default_stream{false};  //!< Launch all kernels on the default stream
 
@@ -63,33 +75,24 @@ struct RunInput
     // Field setup options
     std::string field_type{"uniform"};
     std::string field_file;
-    Real3 field{no_field()};
+    Real3 field{no_field()};  //!< Field vector [T]
     FieldDriverOptions field_options;
+
+    // SD setup options
+    SensitiveDetectorType sd_type{SensitiveDetectorType::event_hit};
 
     // IO
     std::string output_file;  //!< Save JSON diagnostics
     std::string physics_output_file;  //!< Save physics data
     std::string offload_output_file;  //!< Save offloaded tracks to HepMC3/ROOT
     std::string macro_file;  //!< Load additional Geant4 commands
-    int root_buffer_size{128000};
-    bool write_sd_hits{false};
-    bool strip_gdml_pointers{true};
 
     // Geant4 diagnostics
     bool step_diagnostic{false};
     int step_diagnostic_bins{1000};
 
-    //! Whether the run arguments are valid
-    explicit operator bool() const
-    {
-        return !geometry_file.empty() && !event_file.empty()
-               && physics_list < PhysicsListSelection::size_
-               && (field == no_field() || field_options)
-               && ((num_track_slots > 0 && max_events > 0 && max_steps > 0
-                    && initializer_capacity > 0 && secondary_stack_factor > 0)
-                   || !celeritas::getenv("CELER_DISABLE").empty())
-               && (step_diagnostic_bins > 0 || !step_diagnostic);
-    }
+    // Whether the run arguments are valid
+    explicit operator bool() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -97,6 +100,7 @@ struct RunInput
 //---------------------------------------------------------------------------//
 
 char const* to_cstring(PhysicsListSelection value);
+char const* to_cstring(SensitiveDetectorType value);
 
 //---------------------------------------------------------------------------//
 }  // namespace app

@@ -40,7 +40,7 @@ size_type count_num_valid(DetectorRef const& detector)
 
 //---------------------------------------------------------------------------//
 template<class T>
-void assign_field(std::vector<T>* dst,
+void assign_field(DetectorStepOutput::vector<T>* dst,
                   StateRef<T> const& src,
                   DetectorRef const& detector,
                   size_type size)

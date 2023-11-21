@@ -51,7 +51,7 @@ class MockAlongStepFieldTest : public MockAlongStepTest
 
         auto& action_reg = *this->action_reg();
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, nullptr);
+            action_reg.next_id(), field_params, nullptr, nullptr);
         action_reg.insert(result);
         return result;
     }
@@ -100,7 +100,7 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
         CELER_ASSERT(msc);
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), field_params, msc);
+            action_reg.next_id(), field_params, nullptr, msc);
         action_reg.insert(result);
         return result;
     }
@@ -142,7 +142,8 @@ class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
                                                         *this->material(),
                                                         *this->particle(),
                                                         field_map,
-                                                        msc);
+                                                        msc,
+                                                        fluct_);
         action_reg.insert(result);
         return result;
     }
@@ -240,7 +241,7 @@ TEST_F(MockAlongStepTest, basic)
     }
 }
 
-TEST_F(MockAlongStepFieldTest, basic)
+TEST_F(MockAlongStepFieldTest, TEST_IF_CELERITAS_DOUBLE(basic))
 {
     size_type num_tracks = 10;
     Input inp;
@@ -340,7 +341,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             inp.energy = MevEnergy{0.01};
 
             real_type step = range_limit * (1 - 1e-5);
-            inp.position = {0.0 - step};
+            inp.position = {0 - step};
             inp.direction = {1, 0, 0};
             inp.phys_mfp = 100;
 
@@ -493,7 +494,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         EXPECT_EQ(0, result.eloss);
         EXPECT_EQ(0, result.mfp);
         EXPECT_EQ("geo-propagation-limit", result.action);
-        EXPECT_DOUBLE_EQ(1, result.alive);
+        EXPECT_REAL_EQ(1, result.alive);
     }
 }
 
@@ -519,11 +520,12 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
         EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
         EXPECT_EQ("eloss-range", result.action);
-        EXPECT_DOUBLE_EQ(0, result.alive);
+        EXPECT_REAL_EQ(0, result.alive);
     }
 }
 
-TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
+// Test nearly tangent value nearly on the boundary
+TEST_F(SimpleCmsRZFieldAlongStepTest, TEST_IF_CELERITAS_DOUBLE(msc_rzfield))
 {
     size_type num_tracks = 128;
     Input inp;

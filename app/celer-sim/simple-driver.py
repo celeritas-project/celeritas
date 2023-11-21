@@ -8,7 +8,6 @@
 import json
 import re
 import subprocess
-from distutils.util import strtobool
 from os import environ, path
 from sys import exit, argv, stderr
 
@@ -17,6 +16,14 @@ try:
 except ValueError:
     print("usage: {} inp.gdml inp.hepmc3 mctruth.root (use '' for no ROOT output)".format(argv[0]))
     exit(1)
+
+def strtobool(text):
+    text = text.lower()
+    if text in {"true", "on", "yes", "1"}:
+        return True
+    if text in {"false", "off", "no", "0"}:
+        return False
+    raise ValueError(text)
 
 # We reuse the "disable device" environment variable, which prevents the GPU
 # from being initialized at runtime.
@@ -27,7 +34,7 @@ geant_exp_exe = environ.get('CELER_EXPORT_GEANT_EXE', './celer-export-geant')
 run_name = (path.splitext(path.basename(geometry_filename))[0]
             + ('-gpu' if use_device else '-cpu'))
 
-geant_options = {
+physics_options = {
     'coulomb_scattering': False,
     'compton_scattering': True,
     'photoelectric': True,
@@ -47,7 +54,7 @@ if geant_exp_exe:
     print("Running", geant_exp_exe, file=stderr)
     result_ge = subprocess.run(
         [geant_exp_exe, geometry_filename, "-", physics_filename],
-        input=json.dumps(geant_options).encode()
+        input=json.dumps(physics_options).encode()
     )
 
     if result_ge.returncode:
@@ -67,7 +74,7 @@ if not rootout_filename:
 
 num_tracks = 128*32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
-max_steps = 512 if geant_options['msc'] else 128
+max_steps = 512 if physics_options['msc'] else 128
 
 if not use_device:
     # Way more steps are needed since we're not tracking in parallel, but
@@ -76,10 +83,10 @@ if not use_device:
 
 inp = {
     'use_device': use_device,
-    'geometry_filename': geometry_filename,
-    'physics_filename': physics_filename,
-    'event_filename': event_filename,
-    'mctruth_filename': rootout_filename,
+    'geometry_file': geometry_filename,
+    'physics_file': physics_filename,
+    'event_file': event_filename,
+    'mctruth_file': rootout_filename,
     'seed': 12345,
     'num_track_slots': num_tracks,
     'max_steps': max_steps,
@@ -88,13 +95,13 @@ inp = {
     'secondary_stack_factor': 3,
     'action_diagnostic': True,
     'step_diagnostic': True,
-    'step_diagnostic_maxsteps': 200,
+    'step_diagnostic_bins': 200,
     'simple_calo': simple_calo,
     'sync': True,
     'merge_events': False,
     'default_stream': False,
     'brem_combined': True,
-    'geant_options': geant_options,
+    'physics_options': physics_options,
 }
 
 with open(f'{run_name}.inp.json', 'w') as f:

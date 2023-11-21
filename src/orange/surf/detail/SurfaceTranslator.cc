@@ -11,15 +11,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/MatrixUtils.hh"
 
-#include "../ConeAligned.hh"
-#include "../CylAligned.hh"
-#include "../CylCentered.hh"
-#include "../GeneralQuadric.hh"
-#include "../Plane.hh"
-#include "../PlaneAligned.hh"
-#include "../SimpleQuadric.hh"
-#include "../Sphere.hh"
-#include "../SphereCentered.hh"
+#include "AllSurfaces.hh"
 
 namespace celeritas
 {

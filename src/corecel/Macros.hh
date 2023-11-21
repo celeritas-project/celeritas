@@ -225,4 +225,14 @@
     CLS(CLS&&) = delete;                 \
     CLS& operator=(CLS&&) = delete
 
+/*!
+ * \def CELER_DISCARD
+ *
+ * The argument is an unevaluated operand which will generate no code but force
+ * the expression to be used. This is used in place of the \code
+ * [[maybe_unused]] \endcode attribute, which actually generates warnings in
+ * older versions of GCC.
+ */
+#define CELER_DISCARD(CODE) static_cast<void>(sizeof(CODE));
+
 //---------------------------------------------------------------------------//

@@ -5,7 +5,7 @@
     {
       "name": ".base",
       "generator": "Ninja",
-      "inherits": [".spack-base"],
+      "inherits": [".spack-base", ".debug"],
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
         "CELERITAS_USE_CUDA":    {"type": "BOOL",   "value": "OFF"},
@@ -17,7 +17,7 @@
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
         "CMAKE_BUILD_TYPE":      {"type": "STRING", "value": "Debug"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
-        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "13"},
+        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "14"},
         "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL",   "value": "OFF"},
         "CMAKE_FIND_FRAMEWORK": {"type": "STRING", "value": "LAST"},
@@ -38,18 +38,29 @@
     {
       "name": "base",
       "displayName": "Goldfinger default options",
-      "inherits": [".base", "default"],
+      "inherits": [".base", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "ON"},
         "CMAKE_SWIG_CXX_FLAGS": "-Wno-unused-parameter;-Wno-deprecated-declarations",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"}
+      }
+    },
+    {
+      "name": "float",
+      "displayName": "Single-precision arithmetic",
+      "inherits": [".base", ".debug", "default"],
+      "cacheVariables": {
+        "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_REAL_TYPE": "float",
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"}
       }
     },
     {
       "name": "vecgeom",
       "displayName": "With vecgeom",
-      "inherits": [".base", "default"],
+      "inherits": [".base", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
       }
@@ -57,7 +68,7 @@
     {
       "name": "geant",
       "displayName": "Using Geant4 navigation",
-      "inherits": [".base", "default"],
+      "inherits": [".base", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Python": {"type": "BOOL", "value": "ON"},

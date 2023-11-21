@@ -22,8 +22,14 @@ using size_type = unsigned int;
 using size_type = std::size_t;
 #endif
 
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
 //! Numerical type for real numbers
 using real_type = double;
+#elif CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+using real_type = float;
+#else
+using real_type = void;
+#endif
 
 //! Equivalent to std::size_t but compatible with CUDA atomics
 using ull_int = unsigned long long int;
@@ -31,10 +37,7 @@ using ull_int = unsigned long long int;
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
-//! Non-convertible type for raw data modeled after std::byte (C++17)
-enum class Byte : unsigned char
-{
-};
+using Byte = std::byte;
 
 //---------------------------------------------------------------------------//
 //! Memory location of data
@@ -42,6 +45,7 @@ enum class MemSpace
 {
     host,
     device,
+    mapped,
 #ifdef CELER_DEVICE_SOURCE
     native = device,  // Included by a CUDA/HIP file
 #else

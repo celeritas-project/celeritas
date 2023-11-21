@@ -104,7 +104,7 @@ CELER_FUNCTION auto
 EnergyLossGammaDistribution::build_gamma(real_type mean, real_type var)
     -> GammaDist
 {
-    real_type k = ipow<2>(mean / std::sqrt(var));
+    real_type k = ipow<2>(mean) / var;
     return GammaDist{k, mean / k};
 }
 

@@ -50,8 +50,9 @@ CutoffParams::from_import(ImportData const& data,
             if (iter != material.pdg_cutoffs.end())
             {
                 // Found assigned cutoff values
-                mat_cutoffs.push_back({units::MevEnergy{iter->second.energy},
-                                       iter->second.range});
+                mat_cutoffs.push_back(
+                    {units::MevEnergy(iter->second.energy),
+                     static_cast<real_type>(iter->second.range)});
             }
             else
             {

@@ -42,6 +42,7 @@ struct TransporterInput
 
     // Loop control
     size_type max_steps{};
+    bool store_track_counts{};  //!< Store track counts at each step
 
     StreamId stream_id{0};
 
@@ -58,14 +59,12 @@ struct TransporterInput
  */
 struct TransporterResult
 {
-    using MapStrReal = std::unordered_map<std::string, real_type>;
     using VecReal = std::vector<real_type>;
     using VecCount = std::vector<size_type>;
 
     VecCount initializers;  //!< Num starting track initializers
     VecCount active;  //!< Num tracks active at beginning of step
     VecCount alive;  //!< Num living tracks at end of step
-    MapStrReal action_times{};  //!< Accumulated action timing
     VecReal step_times;  //!< Real time per step
     size_type num_track_slots{};  //!< Number of total track slots
 };
@@ -89,11 +88,13 @@ class TransporterBase
     //!@{
     //! \name Type aliases
     using SpanConstPrimary = Span<Primary const>;
-
     //!@}
 
   public:
     virtual ~TransporterBase() = 0;
+
+    // Run a single step with no active states to "warm up"
+    virtual void operator()() = 0;
 
     // Transport the input primaries and all secondaries produced
     virtual TransporterResult operator()(SpanConstPrimary primaries) = 0;
@@ -107,16 +108,29 @@ template<MemSpace M>
 class Transporter final : public TransporterBase
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using MapStrReal = std::unordered_map<std::string, real_type>;
+    //!@}
+
+  public:
     // Construct from parameters
     explicit Transporter(TransporterInput inp);
 
+    // Run a single step with no active states to "warm up"
+    void operator()() final;
+
     // Transport the input primaries and all secondaries produced
     TransporterResult operator()(SpanConstPrimary primaries) final;
+
+    // Get the accumulated action times
+    MapStrReal get_action_times() const;
 
   private:
     std::shared_ptr<Stepper<M>> stepper_;
     size_type max_steps_;
     size_type num_streams_;
+    bool store_track_counts_;
 };
 
 //---------------------------------------------------------------------------//

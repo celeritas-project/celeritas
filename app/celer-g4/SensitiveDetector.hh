@@ -10,6 +10,8 @@
 #include <G4THitsCollection.hh>
 #include <G4VSensitiveDetector.hh>
 
+#include "celeritas/Types.hh"
+
 #include "SensitiveHit.hh"
 
 class G4Step;

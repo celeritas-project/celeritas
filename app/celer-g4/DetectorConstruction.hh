@@ -12,12 +12,14 @@
 #include <string>
 #include <G4VUserDetectorConstruction.hh>
 
+#include "accel/SetupOptions.hh"
+
 class G4LogicalVolume;
 class G4MagneticField;
 
 namespace celeritas
 {
-class RZMapFieldParams;
+class SharedParams;
 
 namespace app
 {
@@ -28,19 +30,51 @@ namespace app
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SPParams = std::shared_ptr<SharedParams>;
+    //!@}
+
+  public:
     // Set up global celeritas SD options during construction
-    DetectorConstruction();
+    explicit DetectorConstruction(SPParams params);
 
     G4VPhysicalVolume* Construct() final;
     void ConstructSDandField() final;
 
   private:
-    std::unique_ptr<G4VPhysicalVolume> world_;
-    std::multimap<std::string, G4LogicalVolume*> detectors_;
+    //// TYPES ////
 
-    // Mangetic field
-    std::shared_ptr<RZMapFieldParams> field_params_;
-    std::shared_ptr<G4MagneticField> mag_field_;
+    using UPPhysicalVolume = std::unique_ptr<G4VPhysicalVolume>;
+    using MapDetectors = std::multimap<std::string, G4LogicalVolume*>;
+    using AlongStepFactory = SetupOptions::AlongStepFactory;
+    using SPMagneticField = std::shared_ptr<G4MagneticField>;
+
+    struct GeoData
+    {
+        MapDetectors detectors;
+        UPPhysicalVolume world;
+    };
+    struct FieldData
+    {
+        AlongStepFactory along_step;
+        SPMagneticField g4field;
+    };
+
+    //// DATA ////
+
+    SPParams params_;
+
+    MapDetectors detectors_;
+    SPMagneticField mag_field_;
+
+    //// METHODS ////
+
+    GeoData construct_geo() const;
+    FieldData construct_field() const;
+
+    template<class F>
+    void foreach_detector(F&&) const;
 };
 
 //---------------------------------------------------------------------------//

@@ -150,7 +150,7 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
     int const num_samples = 8192;
     std::vector<double> avg_engine_samples;
 
-    for (double inc_e : {0.01, 1.0, 10.0, 1000.0})
+    for (real_type inc_e : {0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
@@ -199,7 +199,7 @@ TEST_F(KleinNishinaInteractorTest, distributions)
     RandomEngine& rng_engine = this->rng();
 
     int const num_samples = 10000;
-    double const inc_energy = 1;
+    real_type const inc_energy = 1;
     Real3 inc_direction = {0, 0, 1};
     this->set_inc_particle(pdg::gamma(), MevEnergy{inc_energy});
     this->set_inc_direction(inc_direction);

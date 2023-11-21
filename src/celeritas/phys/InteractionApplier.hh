@@ -13,6 +13,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/global/detail/ApplierTraits.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -32,7 +33,7 @@ namespace celeritas
  * The function F must take a \c CoreTrackView and return a \c Interaction
  */
 template<class F>
-struct InteractionApplier
+struct InteractionApplierBaseImpl
 {
     //// DATA ////
 
@@ -41,6 +42,47 @@ struct InteractionApplier
     //// METHODS ////
 
     CELER_FUNCTION void operator()(celeritas::CoreTrackView const&);
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ *
+ * This class is partially specialized with a second template argument to
+ * extract any launch bounds from the functor class. TODO: we could probably inherit
+ * from a helper class to pull in those constants (if available).
+ */
+template<class F, typename = void>
+struct InteractionApplier : public InteractionApplierBaseImpl<F>
+{
+    CELER_FUNCTION InteractionApplier(F&& f)
+        : InteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
+    {
+    }
+};
+
+template<class F>
+struct InteractionApplier<F, std::enable_if_t<detail::kernel_max_blocks_min_warps<F>>>
+    : public InteractionApplierBaseImpl<F>
+{
+    static constexpr int max_block_size = F::max_block_size;
+    static constexpr int min_warps_per_eu = F::min_warps_per_eu;
+
+    CELER_FUNCTION InteractionApplier(F&& f)
+        : InteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
+    {
+    }
+};
+
+template<class F>
+struct InteractionApplier<F, std::enable_if_t<detail::kernel_max_blocks<F>>>
+    : public InteractionApplierBaseImpl<F>
+{
+    static constexpr int max_block_size = F::max_block_size;
+
+    CELER_FUNCTION InteractionApplier(F&& f)
+        : InteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
+    {
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -60,7 +102,7 @@ CELER_FUNCTION InteractionApplier(F&&)->InteractionApplier<F>;
  */
 template<class F>
 CELER_FUNCTION void
-InteractionApplier<F>::operator()(celeritas::CoreTrackView const& track)
+InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
 {
     Interaction result = this->sample_interaction(track);
 

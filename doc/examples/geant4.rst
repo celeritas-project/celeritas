@@ -7,12 +7,16 @@
 Minimal Geant4 integration
 ==========================
 
-This small example demonstrates how to offload tracks to Celeritas in a serial
-or multithreaded environment. The :ref:`accel` library is the only part of
-Celeritas that needs to be understood for it to work. The key components are
-global SetupOptions and SharedParams, coupled to thread-local SimpleOffload and
-LocalTransporter. The SimpleOffload provides all the methods needed to
-integrate into Geant4 application's UserActions.
+These small examples demonstrate how to offload tracks to Celeritas in a serial
+or multithreaded environment using:
+
+#. A concrete G4UserTrackingAction user action class
+#. A concrete G4VFastSimulationModel
+
+The :ref:`accel` library is the only part of Celeritas that needs to be understood.
+The key components are global SetupOptions and SharedParams, coupled to thread-local
+SimpleOffload and LocalTransporter. The SimpleOffload provides all of the core
+methods needed to integrate into a Geant4 application's UserActions or other user classes.
 
 .. _example_cmake:
 
@@ -22,15 +26,23 @@ CMake infrastructure
 .. literalinclude:: ../../example/accel/CMakeLists.txt
    :language: cmake
    :start-at: project(
+   :end-before: END EXAMPLE CODE
 
-Main executable
----------------
-
-This single executable is a less robust (and minimally documented) version of
-the :ref:`celer-g4` app. Its use of global variables rather than shared
+Main Executables
+----------------
+The executables are less robust (and minimally documented) versions of
+the :ref:`celer-g4` app. The use of global variables rather than shared
 pointers is easier to implement but may be more problematic with experiment
 frameworks or other apps that use a task-based runner.
 
-.. literalinclude:: ../../example/accel/accel.cc
+Offload using a concrete G4UserTrackingAction
+---------------------------------------------
+
+.. literalinclude:: ../../example/accel/simple-offload.cc
    :start-at: #include
 
+Offload using a concrete G4VFastSimulationModel
+-----------------------------------------------
+
+.. literalinclude:: ../../example/accel/fastsim-offload.cc
+   :start-at: #include

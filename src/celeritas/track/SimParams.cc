@@ -51,7 +51,7 @@ SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
         looping.max_steps = iter->second.threshold_trials
                             * max_subthreshold_steps;
         looping.threshold_energy
-            = LoopingThreshold::Energy{iter->second.important_energy};
+            = LoopingThreshold::Energy(iter->second.important_energy);
         input.looping.insert({pdg, looping});
     }
     return std::make_shared<SimParams>(input);

@@ -33,7 +33,7 @@ using ActionId = OpaqueId<class ActionInterface>;
 using ElementId = OpaqueId<struct ElementRecord>;
 
 //! Counter for the initiating event for a track
-using EventId = OpaqueId<struct Event>;
+using EventId = OpaqueId<struct Event_>;
 
 //! Opaque index to IsotopeRecord in a vector
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
@@ -45,20 +45,20 @@ using MaterialId = OpaqueId<struct MaterialRecord>;
 using ModelId = OpaqueId<class Model>;
 
 //! Opaque index to ParticleRecord in a vector: represents a particle type
-using ParticleId = OpaqueId<struct ParticleRecord>;
+using ParticleId = OpaqueId<struct Particle_>;
 
 //! Opaque index of physics process
 using ProcessId = OpaqueId<class Process>;
 
 //! Unique ID (for an event) of a track among all primaries and secondaries
-using TrackId = OpaqueId<struct Track>;
+using TrackId = OpaqueId<struct Track_>;
 
 //---------------------------------------------------------------------------//
 // (detailed type aliases)
 //---------------------------------------------------------------------------//
 
 //! Opaque index for mapping volume-specific "sensitive detector" objects
-using DetectorId = OpaqueId<struct Detector>;
+using DetectorId = OpaqueId<struct Detector_>;
 
 //! Opaque index to one elemental component datum in a particular material
 using ElementComponentId = OpaqueId<struct MatElementComponent>;
@@ -73,7 +73,7 @@ using ParticleProcessId = OpaqueId<ProcessId>;
 using ParticleModelId = OpaqueId<ModelId>;
 
 //! Opaque index of electron subshell
-using SubshellId = OpaqueId<struct Subshell>;
+using SubshellId = OpaqueId<struct Subshell_>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS

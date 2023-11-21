@@ -43,8 +43,6 @@ void RunnerOutput::output(JsonPimpl* j) const
 #if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
-    using MapStrReal = std::unordered_map<std::string, real_type>;
-
     auto obj = json::object();
 
     auto active = json::array();
@@ -52,7 +50,6 @@ void RunnerOutput::output(JsonPimpl* j) const
     auto initializers = json::array();
     auto num_track_slots = json::array();
     auto step_times = json::array();
-    MapStrReal action_times;
 
     for (auto const& event : result_.events)
     {
@@ -64,10 +61,6 @@ void RunnerOutput::output(JsonPimpl* j) const
         {
             step_times.push_back(event.step_times);
         }
-        for (auto& [key, val] : event.action_times)
-        {
-            action_times[key] += val;
-        }
     }
     obj["_index"] = {"event", "step"};
     obj["active"] = std::move(active);
@@ -76,15 +69,16 @@ void RunnerOutput::output(JsonPimpl* j) const
     obj["num_track_slots"] = std::move(num_track_slots);
     obj["time"] = {
         {"steps", std::move(step_times)},
-        {"actions", std::move(action_times)},
+        {"actions", result_.action_times},
         {"total", result_.total_time},
         {"setup", result_.setup_time},
+        {"warmup", result_.warmup_time},
     };
     obj["num_streams"] = result_.num_streams;
 
     j->obj = std::move(obj);
 #else
-    (void)sizeof(j);
+    CELER_DISCARD(j);
 #endif
 }
 

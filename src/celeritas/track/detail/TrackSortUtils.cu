@@ -25,6 +25,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Stream.hh"
+#include "corecel/sys/Thrust.device.hh"
 
 namespace celeritas
 {
@@ -50,11 +51,10 @@ template<class F>
 void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 {
     auto start = device_pointer_cast(track_slots.data());
-    thrust::partition(
-        thrust::device.on(celeritas::device().stream(stream_id).get()),
-        start,
-        start + track_slots.size(),
-        std::forward<F>(func));
+    thrust::partition(thrust_execute_on(stream_id),
+                      start,
+                      start + track_slots.size(),
+                      std::forward<F>(func));
     CELER_DEVICE_CHECK_ERROR();
 }
 
@@ -78,21 +78,19 @@ void sort_impl(TrackSlots const& track_slots,
                ObserverPtr<ActionId const> actions,
                StreamId stream_id)
 {
-    DeviceVector<ActionId::size_type> reordered_actions(track_slots.size());
+    DeviceVector<ActionId::size_type> reordered_actions(track_slots.size(),
+                                                        stream_id);
     CELER_LAUNCH_KERNEL(reorder_actions,
-                        celeritas::device().default_block_size(),
                         track_slots.size(),
                         celeritas::device().stream(stream_id).get(),
                         track_slots.data(),
                         actions,
                         make_observer(reordered_actions.data()),
                         track_slots.size());
-    auto start = reordered_actions.data();
-    thrust::sort_by_key(
-        thrust::device.on(celeritas::device().stream(stream_id).get()),
-        start,
-        start + reordered_actions.size(),
-        device_pointer_cast(track_slots.data()));
+    thrust::sort_by_key(thrust_execute_on(stream_id),
+                        reordered_actions.data(),
+                        reordered_actions.data() + reordered_actions.size(),
+                        device_pointer_cast(track_slots.data()));
     CELER_DEVICE_CHECK_ERROR();
 }
 
@@ -157,9 +155,11 @@ __global__ void tracks_per_action_kernel(DeviceRef<CoreStateData> const states,
  * TODO: move to global/detail
  */
 template<>
-void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots)
+void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots,
+                                        StreamId stream_id)
 {
     thrust::sequence(
+        thrust_execute_on(stream_id),
         thrust::device_pointer_cast(track_slots.data()),
         thrust::device_pointer_cast(track_slots.data() + track_slots.size()),
         0);
@@ -174,13 +174,14 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots
  */
 template<>
 void shuffle_track_slots<MemSpace::device>(
-    Span<TrackSlotId::size_type> track_slots)
+    Span<TrackSlotId::size_type> track_slots, StreamId stream_id)
 {
     using result_type = thrust::default_random_engine::result_type;
     thrust::default_random_engine g{
         static_cast<result_type>(track_slots.size())};
     auto start = thrust::device_pointer_cast(track_slots.data());
-    thrust::shuffle(thrust::device, start, start + track_slots.size(), g);
+    thrust::shuffle(
+        thrust_execute_on(stream_id), start, start + track_slots.size(), g);
     CELER_DEVICE_CHECK_ERROR();
 }
 
@@ -218,7 +219,7 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
 void count_tracks_per_action(
     DeviceRef<CoreStateData> const& states,
     Span<ThreadId> offsets,
-    Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>& out,
+    Collection<ThreadId, Ownership::value, MemSpace::mapped, ActionId>& out,
     TrackOrder order)
 {
     if (order == TrackOrder::sort_along_step_action
@@ -227,19 +228,26 @@ void count_tracks_per_action(
         // dispatch in the kernel since CELER_LAUNCH_KERNEL doesn't work
         // with templated kernels
         auto start = device_pointer_cast(make_observer(offsets.data()));
-        thrust::fill(start, start + offsets.size(), ThreadId{});
+        thrust::fill(thrust_execute_on(states.stream_id),
+                     start,
+                     start + offsets.size(),
+                     ThreadId{});
         CELER_DEVICE_CHECK_ERROR();
+        auto* stream = celeritas::device().stream(states.stream_id).get();
         CELER_LAUNCH_KERNEL(tracks_per_action,
-                            celeritas::device().default_block_size(),
                             states.size(),
-                            celeritas::device().stream(states.stream_id).get(),
+                            stream,
                             states,
                             offsets,
                             states.size(),
                             order);
-        Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::host>{}];
-        Copier<ThreadId, MemSpace::host> copy_to_host{sout};
+
+        Span<ThreadId> sout = out[AllItems<ThreadId, MemSpace::mapped>{}];
+        Copier<ThreadId, MemSpace::host> copy_to_host{sout, states.stream_id};
         copy_to_host(MemSpace::device, offsets);
+
+        // Copies must be complete before backfilling
+        CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
         backfill_action_count(sout, states.size());
     }
 }

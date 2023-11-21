@@ -22,7 +22,7 @@ struct VariantTransformDispatcher
     VariantSurface const& right;
 
     //! Apply an identity transform (no change)
-    VariantSurface operator()(std::monostate) const { return right; }
+    VariantSurface operator()(NoTransformation const&) const { return right; }
 
     //! Apply a translation
     VariantSurface operator()(Translation const& left) const

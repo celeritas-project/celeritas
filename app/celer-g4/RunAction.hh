@@ -10,6 +10,7 @@
 #include <memory>
 #include <G4UserRunAction.hh>
 
+#include "corecel/sys/Stopwatch.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
@@ -47,8 +48,7 @@ class RunAction final : public G4UserRunAction
               SPParams params,
               SPTransporter transport,
               SPDiagnostics diagnostics,
-              bool init_celeritas,
-              bool init_diagnostics);
+              bool init_shared);
 
     void BeginOfRunAction(G4Run const* run) final;
     void EndOfRunAction(G4Run const* run) final;
@@ -58,9 +58,8 @@ class RunAction final : public G4UserRunAction
     SPParams params_;
     SPTransporter transport_;
     SPDiagnostics diagnostics_;
-    bool init_celeritas_;
-    bool init_diagnostics_;
-    bool disable_offloading_;
+    bool init_shared_;
+    Stopwatch get_transport_time_;
 };
 
 //---------------------------------------------------------------------------//

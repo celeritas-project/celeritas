@@ -14,10 +14,13 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
-#include "accel/AlongStepFactory.hh"
 #include "accel/SetupOptionsMessenger.hh"
+
+#include "HepMC3PrimaryGeneratorAction.hh"
+#include "RootIO.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -64,25 +67,6 @@ GlobalSetup::GlobalSetup()
         cmd.SetGuidance("Filename of the event input read by HepMC3");
     }
     {
-        auto& cmd = messenger_->DeclareProperty("rootBufferSize",
-                                                input_.root_buffer_size);
-        cmd.SetGuidance("Buffer size of output root file [bytes]");
-        cmd.SetDefaultValue(std::to_string(input_.root_buffer_size));
-    }
-    {
-        auto& cmd
-            = messenger_->DeclareProperty("writeSDHits", input_.write_sd_hits);
-        cmd.SetGuidance("Write a ROOT output file with hits from the SDs");
-        cmd.SetDefaultValue("false");
-    }
-    {
-        auto& cmd = messenger_->DeclareProperty("stripGDMLPointers",
-                                                input_.strip_gdml_pointers);
-        cmd.SetGuidance(
-            "Remove pointer suffix from input logical volume names");
-        cmd.SetDefaultValue("true");
-    }
-    {
         auto& cmd = messenger_->DeclareProperty("stepDiagnostic",
                                                 input_.step_diagnostic);
         cmd.SetGuidance("Collect the distribution of steps per Geant4 track");
@@ -122,52 +106,81 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read input from JSON.
+ * Read input from macro or JSON.
  */
 void GlobalSetup::ReadInput(std::string const& filename)
 {
-#if CELERITAS_USE_JSON
-    using std::to_string;
-
-    std::ifstream infile(filename);
-    CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
-    nlohmann::json::parse(infile).get_to(input_);
-    CELER_ASSERT(input_);
-
-    // Input options
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    if (ends_with(filename, ".mac"))
     {
-        // To allow ORANGE to work for testing purposes, pass the GDML
-        // input filename to Celeritas
-        options_->geometry_file = input_.geometry_file;
-    }
-
-    // Output options
-    options_->output_file = input_.output_file;
-    options_->physics_output_file = input_.physics_output_file;
-    options_->offload_output_file = input_.offload_output_file;
-
-    // Apply Celeritas \c SetupOptions commands
-    options_->max_num_tracks = input_.num_track_slots;
-    options_->max_num_events = input_.max_events;
-    options_->max_steps = input_.max_steps;
-    options_->initializer_capacity = input_.initializer_capacity;
-    options_->secondary_stack_factor = input_.secondary_stack_factor;
-    options_->cuda_stack_size = input_.cuda_stack_size;
-    options_->cuda_heap_size = input_.cuda_heap_size;
-    options_->sync = input_.sync;
-    options_->default_stream = input_.default_stream;
-
-    // Execute macro for Geant4 commands (e.g. to set verbosity)
-    if (!input_.macro_file.empty())
-    {
+        CELER_LOG(status) << "Executing macro commands from '" << filename
+                          << "'";
         G4UImanager* ui = G4UImanager::GetUIpointer();
         CELER_ASSERT(ui);
-        ui->ApplyCommand("/control/execute " + input_.macro_file);
+        ui->ApplyCommand(std::string("/control/execute ") + filename);
     }
+    else
+    {
+#if CELERITAS_USE_JSON
+        using std::to_string;
+
+        CELER_LOG(status) << "Reading JSON input from '" << filename << "'";
+        std::ifstream infile(filename);
+        CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
+        nlohmann::json::parse(infile).get_to(input_);
+
+        // Input options
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            // To allow ORANGE to work for testing purposes, pass the GDML
+            // input filename to Celeritas
+            options_->geometry_file = input_.geometry_file;
+        }
+
+        // Output options
+        options_->output_file = input_.output_file;
+        options_->physics_output_file = input_.physics_output_file;
+        options_->offload_output_file = input_.offload_output_file;
+
+        // Apply Celeritas \c SetupOptions commands
+        options_->max_num_tracks = input_.num_track_slots;
+        options_->max_num_events = input_.max_events;
+        options_->max_steps = input_.max_steps;
+        options_->initializer_capacity = input_.initializer_capacity;
+        options_->secondary_stack_factor = input_.secondary_stack_factor;
+        options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
+        options_->cuda_stack_size = input_.cuda_stack_size;
+        options_->cuda_heap_size = input_.cuda_heap_size;
+        options_->sync = input_.sync;
+        options_->default_stream = input_.default_stream;
+
+        // Execute macro for Geant4 commands (e.g. to set verbosity)
+        if (!input_.macro_file.empty())
+        {
+            G4UImanager* ui = G4UImanager::GetUIpointer();
+            CELER_ASSERT(ui);
+            ui->ApplyCommand("/control/execute " + input_.macro_file);
+        }
 #else
-    CELER_NOT_CONFIGURED("nlohmann_json");
+        CELER_NOT_CONFIGURED("nlohmann_json");
 #endif
+    }
+
+    // Set the filename for JSON output
+    if (CELERITAS_USE_JSON && input_.output_file.empty())
+    {
+        input_.output_file = "celer-g4.out.json";
+        options_->output_file = input_.output_file;
+    }
+
+    if (input_.sd_type == SensitiveDetectorType::event_hit
+        && !RootIO::use_root())
+    {
+        CELER_LOG(warning) << "Collecting SD hit data that will not be "
+                              "written because ROOT is disabled";
+    }
+
+    // Start the timer for setup time
+    get_setup_time_ = {};
 }
 
 //---------------------------------------------------------------------------//

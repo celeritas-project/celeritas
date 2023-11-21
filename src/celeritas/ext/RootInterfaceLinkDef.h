@@ -9,6 +9,7 @@
 #ifdef __ROOTCLING__
 
 // clang-format off
+// Import data
 #pragma link C++ class celeritas::ImportParticle+;
 #pragma link C++ class celeritas::ImportProcess+;
 #pragma link C++ class celeritas::ImportModelMaterial+;
@@ -35,6 +36,10 @@
 #pragma link C++ class celeritas::ImportData::ImportLivermorePEMap+;
 #pragma link C++ class celeritas::ImportData::ImportAtomicRelaxationMap+;
 #pragma link C++ class celeritas::ImportData+;
+
+// Event data used by Geant4/Celeritas offloading applications
+#pragma link C++ class celeritas::EventHitData+;
+#pragma link C++ class celeritas::EventData+;
 // clang-format on
 
 #endif

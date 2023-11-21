@@ -56,6 +56,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
@@ -519,7 +520,7 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                 }
             }
 #else
-            (void)sizeof(gg_process);
+            CELER_DISCARD(gg_process);
             CELER_NOT_IMPLEMENTED("GammaGeneralProcess for Geant4 < 10.6");
 #endif
         }
@@ -734,6 +735,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             || selected.processes == DataSelection::none,
         << "materials and particles must be enabled if requesting processes");
     ScopedMem record_mem("GeantImporter.load");
+    ScopedProfiling profile_this{"import-geant"};
     ImportData imported;
 
     {

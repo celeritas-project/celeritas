@@ -75,10 +75,8 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         auto element = materials.get(el_id);
-        this->append_table(element,
-                           load_sb_table(element.atomic_number()),
-                           &host_data.differential_xs,
-                           host_data.electron_mass);
+        this->append_table(load_sb_table(element.atomic_number()),
+                           &host_data.differential_xs);
     }
     CELER_ASSERT(host_data.differential_xs.elements.size()
                  == materials.num_elements());
@@ -159,10 +157,8 @@ ActionId SeltzerBergerModel::action_id() const
  * and y = scaled exiting energy (E_gamma / E_inc)
  * and values are the cross sections.
  */
-void SeltzerBergerModel::append_table(ElementView const& element,
-                                      ImportSBTable const& imported,
-                                      HostXsTables* tables,
-                                      Mass electron_mass) const
+void SeltzerBergerModel::append_table(ImportSBTable const& imported,
+                                      HostXsTables* tables) const
 {
     auto reals = make_builder(&tables->reals);
 
@@ -199,32 +195,6 @@ void SeltzerBergerModel::append_table(ElementView const& element,
         CELER_ASSERT(max_el < num_y);
         // Save it!
         argmax[i] = max_el;
-
-        if constexpr (CELERITAS_DEBUG)
-        {
-            using Energy = units::MevEnergy;
-
-            // Check that the maximum scaled positron cross section is always
-            // at the first reduced photon energy grid point
-            real_type inc_energy = std::exp(imported.x[i]);
-            SBPositronXsCorrector scale_xs(electron_mass,
-                                           element,
-                                           Energy{imported.y[0] * inc_energy},
-                                           Energy{inc_energy});
-
-            // When the reduced photon energy is 1 the scaling factor is 0
-            size_type num_scaled = num_y - 1;
-            CELER_ASSERT(imported.y[num_scaled] == 1);
-
-            std::vector<real_type> scaled_xs(iter, iter + num_scaled);
-            for (size_type j : range(num_scaled))
-            {
-                scaled_xs[j] *= scale_xs(Energy{imported.y[j] * inc_energy});
-            }
-            CELER_ASSERT(std::max_element(scaled_xs.begin(), scaled_xs.end())
-                             - scaled_xs.begin()
-                         == 0);
-        }
     }
     table.argmax
         = make_builder(&tables->sizes).insert_back(argmax.begin(), argmax.end());

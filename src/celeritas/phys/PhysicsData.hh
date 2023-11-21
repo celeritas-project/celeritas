@@ -473,7 +473,9 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state,
     resize(&state->per_process_xs,
            size * params.scalars.max_particle_processes);
     resize(&state->relaxation, params.hardwired.relaxation_data, size);
-    resize(&state->secondaries, size * params.scalars.secondary_stack_factor);
+    resize(
+        &state->secondaries,
+        static_cast<size_type>(size * params.scalars.secondary_stack_factor));
 }
 
 //---------------------------------------------------------------------------//

@@ -14,6 +14,7 @@ set(PUBLIC_DEPS)
 
 list(APPEND SOURCES
   Assert.cc
+  PinnedAllocator.cc
   data/Copier.cc
   data/DeviceAllocation.cc
   io/BuildOutput.cc
@@ -60,7 +61,14 @@ endif()
 if(CELERITAS_USE_CUDA)
   # we currently depend on CUDA install including the nvtx header
   list(APPEND SOURCES
+    sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
+  )
+endif()
+
+if(CELERITAS_USE_HIP)
+  list(APPEND SOURCES
+    sys/ScopedProfiling.hip.cc
   )
 endif()
 
@@ -88,11 +96,26 @@ endif()
 
 celeritas_add_library(corecel ${SOURCES})
 
-# Require at least C++14
+# Require at least C++17
 target_compile_features(corecel PUBLIC cxx_std_17)
 if(CELERITAS_USE_CUDA)
   target_compile_features(corecel PUBLIC cuda_std_17)
 endif()
+if(WIN32)
+  target_compile_definitions(corecel PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX NOGDI>
+  )
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # __cplusplus: use standard-compliant C++ version macro
+    # preprocessor: use standard-compliant preprocessor
+    # EHsc: enable standard C++ exception handling
+    target_compile_options(corecel PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
+    )
+  endif()
+endif()
+
 
 celeritas_target_include_directories(corecel
   PUBLIC

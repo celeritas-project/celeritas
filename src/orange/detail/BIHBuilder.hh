@@ -48,9 +48,6 @@ class BIHBuilder
     //!@}
 
   public:
-    //! Default constructor
-    BIHBuilder() = default;
-
     // Construct from a Storage object
     explicit BIHBuilder(Storage* storage);
 

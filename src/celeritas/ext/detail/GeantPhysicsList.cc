@@ -24,6 +24,7 @@
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>
 #include <G4Positron.hh>
+#include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
 #include <G4Proton.hh>
 #include <G4RayleighScattering.hh>
@@ -60,9 +61,9 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
 
     em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     em_parameters.SetLossFluctuations(options.eloss_fluctuation);
-    em_parameters.SetMinEnergy(value_as<units::MevEnergy>(options.min_energy)
+    em_parameters.SetMinEnergy(value_as<Options::MevEnergy>(options.min_energy)
                                * CLHEP::MeV);
-    em_parameters.SetMaxEnergy(value_as<units::MevEnergy>(options.max_energy)
+    em_parameters.SetMaxEnergy(value_as<Options::MevEnergy>(options.max_energy)
                                * CLHEP::MeV);
     em_parameters.SetLPM(options.lpm);
     em_parameters.SetFluo(options.relaxation != RelaxationSelection::none);
@@ -77,7 +78,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetMscLambdaLimit(options.msc_lambda_limit * CLHEP::cm);
 #endif
     em_parameters.SetLowestElectronEnergy(
-        value_as<units::MevEnergy>(options.lowest_electron_energy)
+        value_as<Options::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);
     if (options_.msc == MscModelSelection::urban_extended)
     {
@@ -85,6 +86,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
         em_parameters.SetMscEnergyLimit(100 * CLHEP::TeV);
     }
     em_parameters.SetApplyCuts(options.apply_cuts);
+    this->SetDefaultCutValue(options.default_cutoff * CLHEP::cm);
 
     int verb = options_.verbose ? 1 : 0;
     this->SetVerboseLevel(verb);
@@ -269,6 +271,28 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
     {
         physics_list->RegisterProcess(
             new GeantBremsstrahlungProcess(options_.brems), p);
+
+        if (!options_.ionization)
+        {
+            // If ionization is turned off, activate the along-step "do it" for
+            // bremsstrahlung *after* the process has been registered and set
+            // the order to be the same as the default post-step order. See \c
+            // G4PhysicsListHelper and the ordering parameter table for more
+            // information on which "do its" are activated for each process and
+            // the default process ordering.
+            auto* process_manager = p->GetProcessManager();
+            CELER_ASSERT(process_manager);
+            auto* bremsstrahlung = dynamic_cast<GeantBremsstrahlungProcess*>(
+                process_manager->GetProcess("eBrem"));
+            CELER_ASSERT(bremsstrahlung);
+            auto order = process_manager->GetProcessOrdering(
+                bremsstrahlung, G4ProcessVectorDoItIndex::idxPostStep);
+            process_manager->SetProcessOrdering(
+                bremsstrahlung, G4ProcessVectorDoItIndex::idxAlongStep, order);
+
+            // Let this process be a candidate for range limiting the step
+            bremsstrahlung->SetIonisation(true);
+        }
 
         auto msg = CELER_LOG(debug);
         msg << "Loaded Bremsstrahlung with ";

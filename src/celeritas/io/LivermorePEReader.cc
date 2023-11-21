@@ -73,8 +73,8 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         result.xs_hi.vector_type = ImportPhysicsVectorType::free;
 
         // Read tabulated energies and cross sections
-        real_type energy_min = 0.;
-        real_type energy_max = 0.;
+        double energy_min = 0.;
+        double energy_max = 0.;
         size_type size = 0;
         infile >> energy_min >> energy_max >> size >> size;
         result.xs_hi.x.resize(size);
@@ -101,8 +101,8 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         if (!(infile.peek() == std::ifstream::traits_type::eof()))
         {
             // Read tabulated energies and cross sections
-            real_type energy_min = 0.;
-            real_type energy_max = 0.;
+            double energy_min = 0.;
+            double energy_max = 0.;
             size_type size = 0;
             infile >> energy_min >> energy_max >> size >> size;
             result.xs_lo.x.resize(size);
@@ -161,7 +161,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         for (auto& shell : result.shells)
         {
             CELER_ASSERT(infile);
-            real_type binding_energy;
+            double binding_energy;
             infile >> binding_energy;
             CELER_ASSERT(binding_energy == shell.binding_energy);
             shell.param_hi.resize(num_param);
@@ -183,8 +183,8 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
         for (auto& shell : result.shells)
         {
-            real_type min_energy = 0.;
-            real_type max_energy = 0.;
+            double min_energy = 0.;
+            double max_energy = 0.;
             size_type size = 0;
             size_type shell_id = 0;
             infile >> min_energy >> max_energy >> size >> shell_id;

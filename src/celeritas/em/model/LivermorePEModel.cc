@@ -168,8 +168,8 @@ void LivermorePEModel::append_element(ImportLivermorePE const& inp,
     el.xs_hi.value_interp = Interp::linear;  // TODO: spline
 
     // Add energy thresholds for using low and high xs parameterization
-    el.thresh_lo = MevEnergy{inp.thresh_lo};
-    el.thresh_hi = MevEnergy{inp.thresh_hi};
+    el.thresh_lo = MevEnergy(inp.thresh_lo);
+    el.thresh_hi = MevEnergy(inp.thresh_hi);
 
     // Allocate subshell data
     std::vector<LivermoreSubshell> shells(inp.shells.size());
@@ -178,7 +178,7 @@ void LivermorePEModel::append_element(ImportLivermorePE const& inp,
     for (auto i : range(inp.shells.size()))
     {
         // Ionization energy
-        shells[i].binding_energy = MevEnergy{inp.shells[i].binding_energy};
+        shells[i].binding_energy = MevEnergy(inp.shells[i].binding_energy);
 
         // Tabulated subshell cross section
         shells[i].xs.grid = reals.insert_back(inp.shells[i].energy.begin(),

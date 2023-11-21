@@ -1,0 +1,97 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": ".base",
+      "hidden": true,
+      "inherits": ["full"],
+      "binaryDir": "${sourceDir}/build-${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_TEST_RESOURCE_LOCK": {"type": "BOOL", "value": "ON"},
+        "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx90a"},
+        "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics",
+        "CMAKE_EXE_LINKER_FLAGS": "-Wno-unused-command-line-argument",
+        "CMAKE_HIP_FLAGS_DEBUG": "-g -ggdb -O",
+        "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=znver3 -mtune=znver3",
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "base",
+      "displayName": "Frontier default options (GCC, debug)",
+      "inherits": [".debug", ".base"],
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "mini",
+      "displayName": "Frontier default options (GCC, debug)",
+      "inherits": [".base"],
+      "binaryDir": "${sourceDir}/build-minimal",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx90a"},
+        "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=znver3 -mtune=znver3",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "ndebug",
+      "displayName": "Frontier release mode",
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "OFF"}
+      }
+    },
+    {
+      "name": "ndebug-serial",
+      "displayName": "Frontier release mode (no openmp)",
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"},
+        "BUILD_SHARED_LIBS": {"type": "BOOL",   "value": "OFF"}
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "jobs": 8,
+      "nativeToolOptions": ["-k0"]
+    },
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+    },
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+  ]
+}

@@ -8,14 +8,19 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
+
+#include "TransformInserter.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+class UniverseInserter;
 //---------------------------------------------------------------------------//
 /*!
  * Convert a RectArrayInput a RectArrayRecord.
@@ -29,14 +34,20 @@ class RectArrayInserter
     //!@}
 
   public:
-    // Construct from full parameter data
-    RectArrayInserter(Data* orange_data);
+    // Construct with universe inserter and parameter data
+    RectArrayInserter(UniverseInserter* insert_universe, Data* orange_data);
 
     // Create a simple unit and return its ID
-    RectArrayId operator()(RectArrayInput const& inp);
+    UniverseId operator()(RectArrayInput const& inp);
 
   private:
     Data* orange_data_{nullptr};
+    TransformInserter insert_transform_;
+    UniverseInserter* insert_universe_;
+
+    CollectionBuilder<RectArrayRecord> rect_arrays_;
+    DedupeCollectionBuilder<real_type> reals_;
+    CollectionBuilder<Daughter> daughters_;
 };
 
 //---------------------------------------------------------------------------//

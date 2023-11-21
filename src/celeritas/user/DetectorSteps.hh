@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/data/PinnedAllocator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
@@ -31,10 +32,13 @@ struct DetectorStepPointOutput
 {
     using Energy = units::MevEnergy;
 
-    std::vector<real_type> time;
-    std::vector<Real3> pos;
-    std::vector<Real3> dir;
-    std::vector<Energy> energy;
+    template<class T>
+    using vector = std::vector<T, PinnedAllocator<T>>;
+
+    vector<real_type> time;
+    vector<Real3> pos;
+    vector<Real3> dir;
+    vector<Energy> energy;
 };
 
 //---------------------------------------------------------------------------//
@@ -56,17 +60,20 @@ struct DetectorStepOutput
     // Pre- and post-step data
     EnumArray<StepPoint, DetectorStepPointOutput> points;
 
+    template<class T>
+    using vector = std::vector<T, PinnedAllocator<T>>;
+
     // Detector ID and track ID are always set
-    std::vector<DetectorId> detector;
-    std::vector<TrackId> track_id;
+    vector<DetectorId> detector;
+    vector<TrackId> track_id;
 
     // Additional optional data
-    std::vector<EventId> event_id;
-    std::vector<TrackId> parent_id;
-    std::vector<size_type> track_step_count;
-    std::vector<real_type> step_length;
-    std::vector<ParticleId> particle;
-    std::vector<Energy> energy_deposition;
+    vector<EventId> event_id;
+    vector<TrackId> parent_id;
+    vector<size_type> track_step_count;
+    vector<real_type> step_length;
+    vector<ParticleId> particle;
+    vector<Energy> energy_deposition;
 
     //! Number of elements in the detector output.
     size_type size() const { return detector.size(); }

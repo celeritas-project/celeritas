@@ -24,7 +24,8 @@ namespace celeritas
  *
  * The magnetic field is discretized at nodes on an R-Z grid, and each point
  * the field vector is approximated by a 2-D vector in R-Z. The input units of
- * this filed are in tesla.
+ * this field are in *NATIVE UNITS* (gauss). An optional \c _units field in the
+ * input can specify whether the input is in tesla or native units.
  *
  * The field values are all indexed with R having stride 1: [Z][R]
  */
@@ -36,8 +37,8 @@ struct RZMapFieldInput
     double min_r{};  //!< Lower r coordinate [cm]
     double max_z{};  //!< Last z coordinate [cm]
     double max_r{};  //!< Last r coordinate [cm]
-    std::vector<double> field_z;  //!< Flattened Z field component [tesla]
-    std::vector<double> field_r;  //!< Flattened R field component [tesla]
+    std::vector<double> field_z;  //!< Flattened Z field component [gauss]
+    std::vector<double> field_r;  //!< Flattened R field component [gauss]
 
     FieldDriverOptions driver_options;
 

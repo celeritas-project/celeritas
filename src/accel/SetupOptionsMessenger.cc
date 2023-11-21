@@ -89,6 +89,7 @@ class CelerCommand : public G4UIcommand
     using G4UIcommand::G4UIcommand;
 
     virtual void apply(G4String const& newValue) const = 0;
+    virtual G4String get() const = 0;
 };
 
 template<class T>
@@ -124,6 +125,8 @@ class CelerParamCommand final : public CelerCommand
         // TODO: validation for non-matching types, i.e. int to unsigned
         *this->dest_ = static_cast<T>(converted);
     }
+
+    G4String get() const final { return CmdTraits::to_string(*this->dest_); }
 
   private:
     T* dest_;
@@ -224,6 +227,14 @@ void SetupOptionsMessenger::SetNewValue(G4UIcommand* cmd, G4String val)
     CELER_EXPECT(celer_cmd);
 
     celer_cmd->apply(val);
+}
+
+//---------------------------------------------------------------------------//
+//! Get the value of the given command
+G4String SetupOptionsMessenger::GetCurrentValue(G4UIcommand* cmd)
+{
+    auto* celer_cmd = dynamic_cast<CelerCommand*>(cmd);
+    return celer_cmd->get();
 }
 
 //---------------------------------------------------------------------------//

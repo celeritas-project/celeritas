@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -44,8 +45,8 @@ class Runner
   public:
     //!@{
     //! \name Type aliases
-
     using Input = RunnerInput;
+    using MapStrReal = std::unordered_map<std::string, real_type>;
     using RunnerResult = TransporterResult;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     //!@}
@@ -53,6 +54,9 @@ class Runner
   public:
     // Construct on all threads from a JSON input and shared output manager
     Runner(RunnerInput const& inp, SPOutputRegistry output);
+
+    // Warm up by running a single step with no active tracks
+    void warm_up();
 
     // Run on a single stream/thread, returning the transport result
     RunnerResult operator()(StreamId, EventId);
@@ -65,6 +69,9 @@ class Runner
 
     // Total number of events
     size_type num_events() const;
+
+    // Get the accumulated action times
+    MapStrReal get_action_times();
 
   private:
     //// TYPES ////
@@ -94,7 +101,7 @@ class Runner
     void build_transporter_input(RunnerInput const&);
     void build_events(RunnerInput const&);
     int get_num_streams(RunnerInput const&);
-    UPTransporterBase& build_transporter(StreamId);
+    TransporterBase& get_transporter(StreamId);
 };
 
 //---------------------------------------------------------------------------//

@@ -4,1288 +4,884 @@
   <define/>
 
   <materials>
-    <isotope N="204" Z="82" name="Pb204">
+    <isotope N="204" Z="82" name="Pb2040x600002a411c0">
       <atom unit="g/mole" value="203.973"/>
     </isotope>
-    <isotope N="206" Z="82" name="Pb206">
+    <isotope N="206" Z="82" name="Pb2060x600002a41180">
       <atom unit="g/mole" value="205.974"/>
     </isotope>
-    <isotope N="207" Z="82" name="Pb207">
+    <isotope N="207" Z="82" name="Pb2070x600002a41240">
       <atom unit="g/mole" value="206.976"/>
     </isotope>
-    <isotope N="208" Z="82" name="Pb208">
+    <isotope N="208" Z="82" name="Pb2080x600002a41280">
       <atom unit="g/mole" value="207.977"/>
     </isotope>
-    <element name="Pb">
-      <fraction n="0.014" ref="Pb204"/>
-      <fraction n="0.241" ref="Pb206"/>
-      <fraction n="0.221" ref="Pb207"/>
-      <fraction n="0.524" ref="Pb208"/>
+    <element name="Pb0x6000008f0d10">
+      <fraction n="0.014" ref="Pb2040x600002a411c0"/>
+      <fraction n="0.241" ref="Pb2060x600002a41180"/>
+      <fraction n="0.221" ref="Pb2070x600002a41240"/>
+      <fraction n="0.524" ref="Pb2080x600002a41280"/>
     </element>
-    <material name="Pb" state="solid">
+    <material name="Pb0x11ce28ad0" state="solid">
       <T unit="K" value="293.15"/>
       <MEE unit="eV" value="823"/>
       <D unit="g/cm3" value="11.35"/>
-      <fraction n="1" ref="Pb"/>
+      <fraction n="1" ref="Pb0x6000008f0d10"/>
     </material>
-    <isotope N="36" Z="18" name="Ar36">
+    <isotope N="36" Z="18" name="Ar360x600002a41040">
       <atom unit="g/mole" value="35.9675"/>
     </isotope>
-    <isotope N="38" Z="18" name="Ar38">
+    <isotope N="38" Z="18" name="Ar380x600002a41080">
       <atom unit="g/mole" value="37.9627"/>
     </isotope>
-    <isotope N="40" Z="18" name="Ar40">
+    <isotope N="40" Z="18" name="Ar400x600002a410c0">
       <atom unit="g/mole" value="39.9624"/>
     </isotope>
-    <element name="Ar">
-      <fraction n="0.003365" ref="Ar36"/>
-      <fraction n="0.000632" ref="Ar38"/>
-      <fraction n="0.996003" ref="Ar40"/>
+    <element name="Ar0x6000008f0c60">
+      <fraction n="0.003365" ref="Ar360x600002a41040"/>
+      <fraction n="0.000632" ref="Ar380x600002a41080"/>
+      <fraction n="0.996003" ref="Ar400x600002a410c0"/>
     </element>
-    <material name="lAr" state="liquid">
+    <material name="lAr0x11ce289c0" state="liquid">
       <T unit="K" value="293.15"/>
       <MEE unit="eV" value="188"/>
       <D unit="g/cm3" value="1.396"/>
-      <fraction n="1" ref="Ar"/>
+      <fraction n="1" ref="Ar0x6000008f0c60"/>
     </material>
-    <isotope N="1" Z="1" name="H1">
+    <isotope N="1" Z="1" name="H10x600002a40fc0">
       <atom unit="g/mole" value="1.00782503081372"/>
     </isotope>
-    <isotope N="2" Z="1" name="H2">
+    <isotope N="2" Z="1" name="H20x600002a41000">
       <atom unit="g/mole" value="2.01410199966617"/>
     </isotope>
-    <element name="H">
-      <fraction n="0.999885" ref="H1"/>
-      <fraction n="0.000115" ref="H2"/>
+    <element name="H0x6000008f0bb0">
+      <fraction n="0.999885" ref="H10x600002a40fc0"/>
+      <fraction n="0.000115" ref="H20x600002a41000"/>
     </element>
-    <material name="vacuum" state="gas">
+    <material name="vacuum0x11ce288b0" state="gas">
       <T unit="K" value="2.73"/>
       <P unit="pascal" value="3e-18"/>
       <MEE unit="eV" value="21.8"/>
       <D unit="g/cm3" value="1e-25"/>
-      <fraction n="1" ref="H"/>
+      <fraction n="1" ref="H0x6000008f0bb0"/>
     </material>
   </materials>
 
   <solids>
-    <box lunit="mm" name="gap_shape" x="2.3" y="400" z="400"/>
-    <box lunit="mm" name="absorber_shape" x="5.7" y="400" z="400"/>
-    <box lunit="mm" name="world_shape" x="480" y="480" z="480"/>
+    <box lunit="mm" name="gap_shape0x6000014f1030" x="2.3" y="400" z="400"/>
+    <box lunit="mm" name="absorber_shape0x6000014f10a0" x="5.7" y="400" z="400"/>
+    <box lunit="mm" name="world_shape0x6000014f0fc0" x="480" y="480" z="480"/>
   </solids>
 
   <structure>
-    <volume name="gap_lv_0">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_0">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_1">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_1">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_2">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_2">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_3">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_3">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_4">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_4">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_5">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_5">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_6">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_6">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_7">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_7">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_8">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_8">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_9">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_9">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_10">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_10">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_11">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_11">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_12">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_12">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_13">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_13">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_14">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_14">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_15">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_15">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_16">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_16">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_17">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_17">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_18">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_18">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_19">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_19">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_20">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_20">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_21">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_21">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_22">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_22">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_23">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_23">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_24">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_24">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_25">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_25">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_26">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_26">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_27">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_27">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_28">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_28">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_29">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_29">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_30">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_30">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_31">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_31">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_32">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_32">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_33">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_33">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_34">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_34">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_35">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_35">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_36">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_36">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_37">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_37">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_38">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_38">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_39">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_39">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_40">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_40">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_41">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_41">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_42">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_42">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_43">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_43">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_44">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_44">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_45">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_45">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_46">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_46">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_47">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_47">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_48">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_48">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="gap_lv_49">
-      <materialref ref="Pb"/>
-      <solidref ref="gap_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="absorber_lv_49">
-      <materialref ref="lAr"/>
-      <solidref ref="absorber_shape"/>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00619986"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.349521"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.337972"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
-    </volume>
-    <volume name="world_lv">
-      <materialref ref="vacuum"/>
-      <solidref ref="world_shape"/>
-      <physvol name="gap_lv_0">
-        <volumeref ref="gap_lv_0"/>
-        <position name="gap_lv_0_pos" unit="mm" x="-198.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_0">
-        <volumeref ref="absorber_lv_0"/>
-        <position name="absorber_lv_0_pos" unit="mm" x="-194.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_1">
-        <volumeref ref="gap_lv_1"/>
-        <position name="gap_lv_1_pos" unit="mm" x="-190.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_1">
-        <volumeref ref="absorber_lv_1"/>
-        <position name="absorber_lv_1_pos" unit="mm" x="-186.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_2">
-        <volumeref ref="gap_lv_2"/>
-        <position name="gap_lv_2_pos" unit="mm" x="-182.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_2">
-        <volumeref ref="absorber_lv_2"/>
-        <position name="absorber_lv_2_pos" unit="mm" x="-178.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_3">
-        <volumeref ref="gap_lv_3"/>
-        <position name="gap_lv_3_pos" unit="mm" x="-174.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_3">
-        <volumeref ref="absorber_lv_3"/>
-        <position name="absorber_lv_3_pos" unit="mm" x="-170.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_4">
-        <volumeref ref="gap_lv_4"/>
-        <position name="gap_lv_4_pos" unit="mm" x="-166.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_4">
-        <volumeref ref="absorber_lv_4"/>
-        <position name="absorber_lv_4_pos" unit="mm" x="-162.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_5">
-        <volumeref ref="gap_lv_5"/>
-        <position name="gap_lv_5_pos" unit="mm" x="-158.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_5">
-        <volumeref ref="absorber_lv_5"/>
-        <position name="absorber_lv_5_pos" unit="mm" x="-154.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_6">
-        <volumeref ref="gap_lv_6"/>
-        <position name="gap_lv_6_pos" unit="mm" x="-150.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_6">
-        <volumeref ref="absorber_lv_6"/>
-        <position name="absorber_lv_6_pos" unit="mm" x="-146.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_7">
-        <volumeref ref="gap_lv_7"/>
-        <position name="gap_lv_7_pos" unit="mm" x="-142.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_7">
-        <volumeref ref="absorber_lv_7"/>
-        <position name="absorber_lv_7_pos" unit="mm" x="-138.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_8">
-        <volumeref ref="gap_lv_8"/>
-        <position name="gap_lv_8_pos" unit="mm" x="-134.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_8">
-        <volumeref ref="absorber_lv_8"/>
-        <position name="absorber_lv_8_pos" unit="mm" x="-130.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_9">
-        <volumeref ref="gap_lv_9"/>
-        <position name="gap_lv_9_pos" unit="mm" x="-126.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_9">
-        <volumeref ref="absorber_lv_9"/>
-        <position name="absorber_lv_9_pos" unit="mm" x="-122.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_10">
-        <volumeref ref="gap_lv_10"/>
-        <position name="gap_lv_10_pos" unit="mm" x="-118.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_10">
-        <volumeref ref="absorber_lv_10"/>
-        <position name="absorber_lv_10_pos" unit="mm" x="-114.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_11">
-        <volumeref ref="gap_lv_11"/>
-        <position name="gap_lv_11_pos" unit="mm" x="-110.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_11">
-        <volumeref ref="absorber_lv_11"/>
-        <position name="absorber_lv_11_pos" unit="mm" x="-106.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_12">
-        <volumeref ref="gap_lv_12"/>
-        <position name="gap_lv_12_pos" unit="mm" x="-102.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_12">
-        <volumeref ref="absorber_lv_12"/>
-        <position name="absorber_lv_12_pos" unit="mm" x="-98.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_13">
-        <volumeref ref="gap_lv_13"/>
-        <position name="gap_lv_13_pos" unit="mm" x="-94.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_13">
-        <volumeref ref="absorber_lv_13"/>
-        <position name="absorber_lv_13_pos" unit="mm" x="-90.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_14">
-        <volumeref ref="gap_lv_14"/>
-        <position name="gap_lv_14_pos" unit="mm" x="-86.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_14">
-        <volumeref ref="absorber_lv_14"/>
-        <position name="absorber_lv_14_pos" unit="mm" x="-82.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_15">
-        <volumeref ref="gap_lv_15"/>
-        <position name="gap_lv_15_pos" unit="mm" x="-78.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_15">
-        <volumeref ref="absorber_lv_15"/>
-        <position name="absorber_lv_15_pos" unit="mm" x="-74.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_16">
-        <volumeref ref="gap_lv_16"/>
-        <position name="gap_lv_16_pos" unit="mm" x="-70.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_16">
-        <volumeref ref="absorber_lv_16"/>
-        <position name="absorber_lv_16_pos" unit="mm" x="-66.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_17">
-        <volumeref ref="gap_lv_17"/>
-        <position name="gap_lv_17_pos" unit="mm" x="-62.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_17">
-        <volumeref ref="absorber_lv_17"/>
-        <position name="absorber_lv_17_pos" unit="mm" x="-58.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_18">
-        <volumeref ref="gap_lv_18"/>
-        <position name="gap_lv_18_pos" unit="mm" x="-54.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_18">
-        <volumeref ref="absorber_lv_18"/>
-        <position name="absorber_lv_18_pos" unit="mm" x="-50.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_19">
-        <volumeref ref="gap_lv_19"/>
-        <position name="gap_lv_19_pos" unit="mm" x="-46.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_19">
-        <volumeref ref="absorber_lv_19"/>
-        <position name="absorber_lv_19_pos" unit="mm" x="-42.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_20">
-        <volumeref ref="gap_lv_20"/>
-        <position name="gap_lv_20_pos" unit="mm" x="-38.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_20">
-        <volumeref ref="absorber_lv_20"/>
-        <position name="absorber_lv_20_pos" unit="mm" x="-34.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_21">
-        <volumeref ref="gap_lv_21"/>
-        <position name="gap_lv_21_pos" unit="mm" x="-30.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_21">
-        <volumeref ref="absorber_lv_21"/>
-        <position name="absorber_lv_21_pos" unit="mm" x="-26.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_22">
-        <volumeref ref="gap_lv_22"/>
-        <position name="gap_lv_22_pos" unit="mm" x="-22.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_22">
-        <volumeref ref="absorber_lv_22"/>
-        <position name="absorber_lv_22_pos" unit="mm" x="-18.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_23">
-        <volumeref ref="gap_lv_23"/>
-        <position name="gap_lv_23_pos" unit="mm" x="-14.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_23">
-        <volumeref ref="absorber_lv_23"/>
-        <position name="absorber_lv_23_pos" unit="mm" x="-10.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_24">
-        <volumeref ref="gap_lv_24"/>
-        <position name="gap_lv_24_pos" unit="mm" x="-6.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_24">
-        <volumeref ref="absorber_lv_24"/>
-        <position name="absorber_lv_24_pos" unit="mm" x="-2.85" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_25">
-        <volumeref ref="gap_lv_25"/>
-        <position name="gap_lv_25_pos" unit="mm" x="1.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_25">
-        <volumeref ref="absorber_lv_25"/>
-        <position name="absorber_lv_25_pos" unit="mm" x="5.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_26">
-        <volumeref ref="gap_lv_26"/>
-        <position name="gap_lv_26_pos" unit="mm" x="9.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_26">
-        <volumeref ref="absorber_lv_26"/>
-        <position name="absorber_lv_26_pos" unit="mm" x="13.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_27">
-        <volumeref ref="gap_lv_27"/>
-        <position name="gap_lv_27_pos" unit="mm" x="17.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_27">
-        <volumeref ref="absorber_lv_27"/>
-        <position name="absorber_lv_27_pos" unit="mm" x="21.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_28">
-        <volumeref ref="gap_lv_28"/>
-        <position name="gap_lv_28_pos" unit="mm" x="25.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_28">
-        <volumeref ref="absorber_lv_28"/>
-        <position name="absorber_lv_28_pos" unit="mm" x="29.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_29">
-        <volumeref ref="gap_lv_29"/>
-        <position name="gap_lv_29_pos" unit="mm" x="33.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_29">
-        <volumeref ref="absorber_lv_29"/>
-        <position name="absorber_lv_29_pos" unit="mm" x="37.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_30">
-        <volumeref ref="gap_lv_30"/>
-        <position name="gap_lv_30_pos" unit="mm" x="41.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_30">
-        <volumeref ref="absorber_lv_30"/>
-        <position name="absorber_lv_30_pos" unit="mm" x="45.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_31">
-        <volumeref ref="gap_lv_31"/>
-        <position name="gap_lv_31_pos" unit="mm" x="49.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_31">
-        <volumeref ref="absorber_lv_31"/>
-        <position name="absorber_lv_31_pos" unit="mm" x="53.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_32">
-        <volumeref ref="gap_lv_32"/>
-        <position name="gap_lv_32_pos" unit="mm" x="57.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_32">
-        <volumeref ref="absorber_lv_32"/>
-        <position name="absorber_lv_32_pos" unit="mm" x="61.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_33">
-        <volumeref ref="gap_lv_33"/>
-        <position name="gap_lv_33_pos" unit="mm" x="65.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_33">
-        <volumeref ref="absorber_lv_33"/>
-        <position name="absorber_lv_33_pos" unit="mm" x="69.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_34">
-        <volumeref ref="gap_lv_34"/>
-        <position name="gap_lv_34_pos" unit="mm" x="73.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_34">
-        <volumeref ref="absorber_lv_34"/>
-        <position name="absorber_lv_34_pos" unit="mm" x="77.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_35">
-        <volumeref ref="gap_lv_35"/>
-        <position name="gap_lv_35_pos" unit="mm" x="81.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_35">
-        <volumeref ref="absorber_lv_35"/>
-        <position name="absorber_lv_35_pos" unit="mm" x="85.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_36">
-        <volumeref ref="gap_lv_36"/>
-        <position name="gap_lv_36_pos" unit="mm" x="89.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_36">
-        <volumeref ref="absorber_lv_36"/>
-        <position name="absorber_lv_36_pos" unit="mm" x="93.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_37">
-        <volumeref ref="gap_lv_37"/>
-        <position name="gap_lv_37_pos" unit="mm" x="97.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_37">
-        <volumeref ref="absorber_lv_37"/>
-        <position name="absorber_lv_37_pos" unit="mm" x="101.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_38">
-        <volumeref ref="gap_lv_38"/>
-        <position name="gap_lv_38_pos" unit="mm" x="105.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_38">
-        <volumeref ref="absorber_lv_38"/>
-        <position name="absorber_lv_38_pos" unit="mm" x="109.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_39">
-        <volumeref ref="gap_lv_39"/>
-        <position name="gap_lv_39_pos" unit="mm" x="113.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_39">
-        <volumeref ref="absorber_lv_39"/>
-        <position name="absorber_lv_39_pos" unit="mm" x="117.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_40">
-        <volumeref ref="gap_lv_40"/>
-        <position name="gap_lv_40_pos" unit="mm" x="121.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_40">
-        <volumeref ref="absorber_lv_40"/>
-        <position name="absorber_lv_40_pos" unit="mm" x="125.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_41">
-        <volumeref ref="gap_lv_41"/>
-        <position name="gap_lv_41_pos" unit="mm" x="129.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_41">
-        <volumeref ref="absorber_lv_41"/>
-        <position name="absorber_lv_41_pos" unit="mm" x="133.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_42">
-        <volumeref ref="gap_lv_42"/>
-        <position name="gap_lv_42_pos" unit="mm" x="137.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_42">
-        <volumeref ref="absorber_lv_42"/>
-        <position name="absorber_lv_42_pos" unit="mm" x="141.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_43">
-        <volumeref ref="gap_lv_43"/>
-        <position name="gap_lv_43_pos" unit="mm" x="145.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_43">
-        <volumeref ref="absorber_lv_43"/>
-        <position name="absorber_lv_43_pos" unit="mm" x="149.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_44">
-        <volumeref ref="gap_lv_44"/>
-        <position name="gap_lv_44_pos" unit="mm" x="153.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_44">
-        <volumeref ref="absorber_lv_44"/>
-        <position name="absorber_lv_44_pos" unit="mm" x="157.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_45">
-        <volumeref ref="gap_lv_45"/>
-        <position name="gap_lv_45_pos" unit="mm" x="161.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_45">
-        <volumeref ref="absorber_lv_45"/>
-        <position name="absorber_lv_45_pos" unit="mm" x="165.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_46">
-        <volumeref ref="gap_lv_46"/>
-        <position name="gap_lv_46_pos" unit="mm" x="169.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_46">
-        <volumeref ref="absorber_lv_46"/>
-        <position name="absorber_lv_46_pos" unit="mm" x="173.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_47">
-        <volumeref ref="gap_lv_47"/>
-        <position name="gap_lv_47_pos" unit="mm" x="177.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_47">
-        <volumeref ref="absorber_lv_47"/>
-        <position name="absorber_lv_47_pos" unit="mm" x="181.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_48">
-        <volumeref ref="gap_lv_48"/>
-        <position name="gap_lv_48_pos" unit="mm" x="185.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_48">
-        <volumeref ref="absorber_lv_48"/>
-        <position name="absorber_lv_48_pos" unit="mm" x="189.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="gap_lv_49">
-        <volumeref ref="gap_lv_49"/>
-        <position name="gap_lv_49_pos" unit="mm" x="193.15" y="0" z="0"/>
-      </physvol>
-      <physvol name="absorber_lv_49">
-        <volumeref ref="absorber_lv_49"/>
-        <position name="absorber_lv_49_pos" unit="mm" x="197.15" y="0" z="0"/>
-      </physvol>
-      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00099"/>
-      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.00099"/>
-      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.00099"/>
-      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.1"/>
+    <volume name="gap_00x600000ef0dc0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_00x600000ef0e60">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_10x600000ef0f00">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_10x600000ef0fa0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_20x600000ef1040">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_20x600000ef10e0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_30x600000ef1180">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_30x600000ef1220">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_40x600000ef12c0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_40x600000ef1360">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_50x600000ef1400">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_50x600000ef14a0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_60x600000ef1540">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_60x600000ef15e0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_70x600000ef1680">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_70x600000ef1720">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_80x600000ef17c0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_80x600000ef1860">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_90x600000ef1900">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_90x600000ef19a0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_100x600000ef1a40">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_100x600000ef1ae0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_110x600000ef1b80">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_110x600000ef1c20">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_120x600000ef1cc0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_120x600000ef1d60">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_130x600000ef1e00">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_130x600000ef1ea0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_140x600000ef1f40">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_140x600000ef1fe0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_150x600000ef2080">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_150x600000ef2120">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_160x600000ef21c0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_160x600000ef2260">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_170x600000ef2300">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_170x600000ef23a0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_180x600000ef2440">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_180x600000ef24e0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_190x600000ef2580">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_190x600000ef2620">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_200x600000ef26c0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_200x600000ef2760">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_210x600000ef2800">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_210x600000ef28a0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_220x600000ef2940">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_220x600000ef29e0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_230x600000ef2a80">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_230x600000ef2b20">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_240x600000ef2bc0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_240x600000ef2c60">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_250x600000ef2d00">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_250x600000ef2da0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_260x600000ef2e40">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_260x600000ef2ee0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_270x600000ef2f80">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_270x600000ef3020">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_280x600000ef30c0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_280x600000ef3160">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_290x600000ef3200">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_290x600000ef32a0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_300x600000ef3340">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_300x600000ef33e0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_310x600000ef3480">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_310x600000ef3520">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_320x600000ef35c0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_320x600000ef3660">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_330x600000ef3700">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_330x600000ef37a0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_340x600000ef3840">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_340x600000ef38e0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_350x600000ef3980">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_350x600000ef3a20">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_360x600000ef3ac0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_360x600000ef3b60">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_370x600000ef3c00">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_370x600000ef3ca0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_380x600000ef3d40">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_380x600000ef3de0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_390x600000ef3e80">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_390x600000ef3f20">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_400x600000ef8000">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_400x600000ef80a0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_410x600000ef8140">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_410x600000ef81e0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_420x600000ef8280">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_420x600000ef8320">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_430x600000ef83c0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_430x600000ef8460">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_440x600000ef8500">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_440x600000ef85a0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_450x600000ef8640">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_450x600000ef86e0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_460x600000ef8780">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_460x600000ef8820">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_470x600000ef88c0">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_470x600000ef8960">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_480x600000ef8a00">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_480x600000ef8aa0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="gap_490x600000ef8b40">
+      <materialref ref="Pb0x11ce28ad0"/>
+      <solidref ref="gap_shape0x6000014f1030"/>
+    </volume>
+    <volume name="absorber_490x600000ef8be0">
+      <materialref ref="lAr0x11ce289c0"/>
+      <solidref ref="absorber_shape0x6000014f10a0"/>
+    </volume>
+    <volume name="world0x600000ef0d20">
+      <materialref ref="vacuum0x11ce288b0"/>
+      <solidref ref="world_shape0x6000014f0fc0"/>
+      <physvol name="gap_00x600001cfb340">
+        <volumeref ref="gap_00x600000ef0dc0"/>
+        <position name="gap_00x600001cfb340_pos" unit="mm" x="-198.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_00x600001cfb3e0">
+        <volumeref ref="absorber_00x600000ef0e60"/>
+        <position name="absorber_00x600001cfb3e0_pos" unit="mm" x="-194.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_10x600001cfb520">
+        <volumeref ref="gap_10x600000ef0f00"/>
+        <position name="gap_10x600001cfb520_pos" unit="mm" x="-190.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_10x600001cfb5c0">
+        <volumeref ref="absorber_10x600000ef0fa0"/>
+        <position name="absorber_10x600001cfb5c0_pos" unit="mm" x="-186.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_20x600001cfb700">
+        <volumeref ref="gap_20x600000ef1040"/>
+        <position name="gap_20x600001cfb700_pos" unit="mm" x="-182.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_20x600001cfb7a0">
+        <volumeref ref="absorber_20x600000ef10e0"/>
+        <position name="absorber_20x600001cfb7a0_pos" unit="mm" x="-178.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_30x600001cfb8e0">
+        <volumeref ref="gap_30x600000ef1180"/>
+        <position name="gap_30x600001cfb8e0_pos" unit="mm" x="-174.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_30x600001cfb980">
+        <volumeref ref="absorber_30x600000ef1220"/>
+        <position name="absorber_30x600001cfb980_pos" unit="mm" x="-170.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_40x600001cfbac0">
+        <volumeref ref="gap_40x600000ef12c0"/>
+        <position name="gap_40x600001cfbac0_pos" unit="mm" x="-166.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_40x600001cfbb60">
+        <volumeref ref="absorber_40x600000ef1360"/>
+        <position name="absorber_40x600001cfbb60_pos" unit="mm" x="-162.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_50x600001cfbca0">
+        <volumeref ref="gap_50x600000ef1400"/>
+        <position name="gap_50x600001cfbca0_pos" unit="mm" x="-158.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_50x600001cfbd40">
+        <volumeref ref="absorber_50x600000ef14a0"/>
+        <position name="absorber_50x600001cfbd40_pos" unit="mm" x="-154.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_60x600001cfbe80">
+        <volumeref ref="gap_60x600000ef1540"/>
+        <position name="gap_60x600001cfbe80_pos" unit="mm" x="-150.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_60x600001cfbf20">
+        <volumeref ref="absorber_60x600000ef15e0"/>
+        <position name="absorber_60x600001cfbf20_pos" unit="mm" x="-146.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_70x600001cfc0a0">
+        <volumeref ref="gap_70x600000ef1680"/>
+        <position name="gap_70x600001cfc0a0_pos" unit="mm" x="-142.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_70x600001cfc140">
+        <volumeref ref="absorber_70x600000ef1720"/>
+        <position name="absorber_70x600001cfc140_pos" unit="mm" x="-138.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_80x600001cfc280">
+        <volumeref ref="gap_80x600000ef17c0"/>
+        <position name="gap_80x600001cfc280_pos" unit="mm" x="-134.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_80x600001cfc320">
+        <volumeref ref="absorber_80x600000ef1860"/>
+        <position name="absorber_80x600001cfc320_pos" unit="mm" x="-130.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_90x600001cfc460">
+        <volumeref ref="gap_90x600000ef1900"/>
+        <position name="gap_90x600001cfc460_pos" unit="mm" x="-126.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_90x600001cfc500">
+        <volumeref ref="absorber_90x600000ef19a0"/>
+        <position name="absorber_90x600001cfc500_pos" unit="mm" x="-122.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_100x600001cfc640">
+        <volumeref ref="gap_100x600000ef1a40"/>
+        <position name="gap_100x600001cfc640_pos" unit="mm" x="-118.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_100x600001cfc6e0">
+        <volumeref ref="absorber_100x600000ef1ae0"/>
+        <position name="absorber_100x600001cfc6e0_pos" unit="mm" x="-114.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_110x600001cfc820">
+        <volumeref ref="gap_110x600000ef1b80"/>
+        <position name="gap_110x600001cfc820_pos" unit="mm" x="-110.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_110x600001cfc8c0">
+        <volumeref ref="absorber_110x600000ef1c20"/>
+        <position name="absorber_110x600001cfc8c0_pos" unit="mm" x="-106.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_120x600001cfca00">
+        <volumeref ref="gap_120x600000ef1cc0"/>
+        <position name="gap_120x600001cfca00_pos" unit="mm" x="-102.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_120x600001cfcaa0">
+        <volumeref ref="absorber_120x600000ef1d60"/>
+        <position name="absorber_120x600001cfcaa0_pos" unit="mm" x="-98.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_130x600001cfcbe0">
+        <volumeref ref="gap_130x600000ef1e00"/>
+        <position name="gap_130x600001cfcbe0_pos" unit="mm" x="-94.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_130x600001cfcc80">
+        <volumeref ref="absorber_130x600000ef1ea0"/>
+        <position name="absorber_130x600001cfcc80_pos" unit="mm" x="-90.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_140x600001cfcdc0">
+        <volumeref ref="gap_140x600000ef1f40"/>
+        <position name="gap_140x600001cfcdc0_pos" unit="mm" x="-86.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_140x600001cfce60">
+        <volumeref ref="absorber_140x600000ef1fe0"/>
+        <position name="absorber_140x600001cfce60_pos" unit="mm" x="-82.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_150x600001cfcfa0">
+        <volumeref ref="gap_150x600000ef2080"/>
+        <position name="gap_150x600001cfcfa0_pos" unit="mm" x="-78.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_150x600001cfd040">
+        <volumeref ref="absorber_150x600000ef2120"/>
+        <position name="absorber_150x600001cfd040_pos" unit="mm" x="-74.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_160x600001cfd180">
+        <volumeref ref="gap_160x600000ef21c0"/>
+        <position name="gap_160x600001cfd180_pos" unit="mm" x="-70.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_160x600001cfd220">
+        <volumeref ref="absorber_160x600000ef2260"/>
+        <position name="absorber_160x600001cfd220_pos" unit="mm" x="-66.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_170x600001cfd360">
+        <volumeref ref="gap_170x600000ef2300"/>
+        <position name="gap_170x600001cfd360_pos" unit="mm" x="-62.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_170x600001cfd400">
+        <volumeref ref="absorber_170x600000ef23a0"/>
+        <position name="absorber_170x600001cfd400_pos" unit="mm" x="-58.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_180x600001cfd540">
+        <volumeref ref="gap_180x600000ef2440"/>
+        <position name="gap_180x600001cfd540_pos" unit="mm" x="-54.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_180x600001cfd5e0">
+        <volumeref ref="absorber_180x600000ef24e0"/>
+        <position name="absorber_180x600001cfd5e0_pos" unit="mm" x="-50.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_190x600001cfd720">
+        <volumeref ref="gap_190x600000ef2580"/>
+        <position name="gap_190x600001cfd720_pos" unit="mm" x="-46.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_190x600001cfd7c0">
+        <volumeref ref="absorber_190x600000ef2620"/>
+        <position name="absorber_190x600001cfd7c0_pos" unit="mm" x="-42.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_200x600001cfd900">
+        <volumeref ref="gap_200x600000ef26c0"/>
+        <position name="gap_200x600001cfd900_pos" unit="mm" x="-38.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_200x600001cfd9a0">
+        <volumeref ref="absorber_200x600000ef2760"/>
+        <position name="absorber_200x600001cfd9a0_pos" unit="mm" x="-34.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_210x600001cfdae0">
+        <volumeref ref="gap_210x600000ef2800"/>
+        <position name="gap_210x600001cfdae0_pos" unit="mm" x="-30.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_210x600001cfdb80">
+        <volumeref ref="absorber_210x600000ef28a0"/>
+        <position name="absorber_210x600001cfdb80_pos" unit="mm" x="-26.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_220x600001cfdcc0">
+        <volumeref ref="gap_220x600000ef2940"/>
+        <position name="gap_220x600001cfdcc0_pos" unit="mm" x="-22.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_220x600001cfdd60">
+        <volumeref ref="absorber_220x600000ef29e0"/>
+        <position name="absorber_220x600001cfdd60_pos" unit="mm" x="-18.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_230x600001cfdea0">
+        <volumeref ref="gap_230x600000ef2a80"/>
+        <position name="gap_230x600001cfdea0_pos" unit="mm" x="-14.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_230x600001cfdf40">
+        <volumeref ref="absorber_230x600000ef2b20"/>
+        <position name="absorber_230x600001cfdf40_pos" unit="mm" x="-10.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_240x600001cfe080">
+        <volumeref ref="gap_240x600000ef2bc0"/>
+        <position name="gap_240x600001cfe080_pos" unit="mm" x="-6.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_240x600001cfe120">
+        <volumeref ref="absorber_240x600000ef2c60"/>
+        <position name="absorber_240x600001cfe120_pos" unit="mm" x="-2.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_250x600001cfe260">
+        <volumeref ref="gap_250x600000ef2d00"/>
+        <position name="gap_250x600001cfe260_pos" unit="mm" x="1.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_250x600001cfe300">
+        <volumeref ref="absorber_250x600000ef2da0"/>
+        <position name="absorber_250x600001cfe300_pos" unit="mm" x="5.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_260x600001cfe440">
+        <volumeref ref="gap_260x600000ef2e40"/>
+        <position name="gap_260x600001cfe440_pos" unit="mm" x="9.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_260x600001cfe4e0">
+        <volumeref ref="absorber_260x600000ef2ee0"/>
+        <position name="absorber_260x600001cfe4e0_pos" unit="mm" x="13.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_270x600001cfe620">
+        <volumeref ref="gap_270x600000ef2f80"/>
+        <position name="gap_270x600001cfe620_pos" unit="mm" x="17.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_270x600001cfe6c0">
+        <volumeref ref="absorber_270x600000ef3020"/>
+        <position name="absorber_270x600001cfe6c0_pos" unit="mm" x="21.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_280x600001cfe800">
+        <volumeref ref="gap_280x600000ef30c0"/>
+        <position name="gap_280x600001cfe800_pos" unit="mm" x="25.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_280x600001cfe8a0">
+        <volumeref ref="absorber_280x600000ef3160"/>
+        <position name="absorber_280x600001cfe8a0_pos" unit="mm" x="29.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_290x600001cfe9e0">
+        <volumeref ref="gap_290x600000ef3200"/>
+        <position name="gap_290x600001cfe9e0_pos" unit="mm" x="33.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_290x600001cfea80">
+        <volumeref ref="absorber_290x600000ef32a0"/>
+        <position name="absorber_290x600001cfea80_pos" unit="mm" x="37.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_300x600001cfebc0">
+        <volumeref ref="gap_300x600000ef3340"/>
+        <position name="gap_300x600001cfebc0_pos" unit="mm" x="41.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_300x600001cfec60">
+        <volumeref ref="absorber_300x600000ef33e0"/>
+        <position name="absorber_300x600001cfec60_pos" unit="mm" x="45.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_310x600001cfeda0">
+        <volumeref ref="gap_310x600000ef3480"/>
+        <position name="gap_310x600001cfeda0_pos" unit="mm" x="49.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_310x600001cfee40">
+        <volumeref ref="absorber_310x600000ef3520"/>
+        <position name="absorber_310x600001cfee40_pos" unit="mm" x="53.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_320x600001cfef80">
+        <volumeref ref="gap_320x600000ef35c0"/>
+        <position name="gap_320x600001cfef80_pos" unit="mm" x="57.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_320x600001cff020">
+        <volumeref ref="absorber_320x600000ef3660"/>
+        <position name="absorber_320x600001cff020_pos" unit="mm" x="61.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_330x600001cff160">
+        <volumeref ref="gap_330x600000ef3700"/>
+        <position name="gap_330x600001cff160_pos" unit="mm" x="65.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_330x600001cff200">
+        <volumeref ref="absorber_330x600000ef37a0"/>
+        <position name="absorber_330x600001cff200_pos" unit="mm" x="69.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_340x600001cff340">
+        <volumeref ref="gap_340x600000ef3840"/>
+        <position name="gap_340x600001cff340_pos" unit="mm" x="73.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_340x600001cff3e0">
+        <volumeref ref="absorber_340x600000ef38e0"/>
+        <position name="absorber_340x600001cff3e0_pos" unit="mm" x="77.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_350x600001cff520">
+        <volumeref ref="gap_350x600000ef3980"/>
+        <position name="gap_350x600001cff520_pos" unit="mm" x="81.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_350x600001cff5c0">
+        <volumeref ref="absorber_350x600000ef3a20"/>
+        <position name="absorber_350x600001cff5c0_pos" unit="mm" x="85.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_360x600001cff700">
+        <volumeref ref="gap_360x600000ef3ac0"/>
+        <position name="gap_360x600001cff700_pos" unit="mm" x="89.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_360x600001cff7a0">
+        <volumeref ref="absorber_360x600000ef3b60"/>
+        <position name="absorber_360x600001cff7a0_pos" unit="mm" x="93.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_370x600001cff8e0">
+        <volumeref ref="gap_370x600000ef3c00"/>
+        <position name="gap_370x600001cff8e0_pos" unit="mm" x="97.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_370x600001cff980">
+        <volumeref ref="absorber_370x600000ef3ca0"/>
+        <position name="absorber_370x600001cff980_pos" unit="mm" x="101.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_380x600001cffac0">
+        <volumeref ref="gap_380x600000ef3d40"/>
+        <position name="gap_380x600001cffac0_pos" unit="mm" x="105.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_380x600001cffb60">
+        <volumeref ref="absorber_380x600000ef3de0"/>
+        <position name="absorber_380x600001cffb60_pos" unit="mm" x="109.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_390x600001cffca0">
+        <volumeref ref="gap_390x600000ef3e80"/>
+        <position name="gap_390x600001cffca0_pos" unit="mm" x="113.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_390x600001cffd40">
+        <volumeref ref="absorber_390x600000ef3f20"/>
+        <position name="absorber_390x600001cffd40_pos" unit="mm" x="117.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_400x600001cffe80">
+        <volumeref ref="gap_400x600000ef8000"/>
+        <position name="gap_400x600001cffe80_pos" unit="mm" x="121.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_400x600001cfff20">
+        <volumeref ref="absorber_400x600000ef80a0"/>
+        <position name="absorber_400x600001cfff20_pos" unit="mm" x="125.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_410x600001ce00a0">
+        <volumeref ref="gap_410x600000ef8140"/>
+        <position name="gap_410x600001ce00a0_pos" unit="mm" x="129.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_410x600001ce0140">
+        <volumeref ref="absorber_410x600000ef81e0"/>
+        <position name="absorber_410x600001ce0140_pos" unit="mm" x="133.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_420x600001ce0280">
+        <volumeref ref="gap_420x600000ef8280"/>
+        <position name="gap_420x600001ce0280_pos" unit="mm" x="137.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_420x600001ce0320">
+        <volumeref ref="absorber_420x600000ef8320"/>
+        <position name="absorber_420x600001ce0320_pos" unit="mm" x="141.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_430x600001ce0460">
+        <volumeref ref="gap_430x600000ef83c0"/>
+        <position name="gap_430x600001ce0460_pos" unit="mm" x="145.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_430x600001ce0500">
+        <volumeref ref="absorber_430x600000ef8460"/>
+        <position name="absorber_430x600001ce0500_pos" unit="mm" x="149.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_440x600001ce0640">
+        <volumeref ref="gap_440x600000ef8500"/>
+        <position name="gap_440x600001ce0640_pos" unit="mm" x="153.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_440x600001ce06e0">
+        <volumeref ref="absorber_440x600000ef85a0"/>
+        <position name="absorber_440x600001ce06e0_pos" unit="mm" x="157.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_450x600001ce0820">
+        <volumeref ref="gap_450x600000ef8640"/>
+        <position name="gap_450x600001ce0820_pos" unit="mm" x="161.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_450x600001ce08c0">
+        <volumeref ref="absorber_450x600000ef86e0"/>
+        <position name="absorber_450x600001ce08c0_pos" unit="mm" x="165.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_460x600001ce0a00">
+        <volumeref ref="gap_460x600000ef8780"/>
+        <position name="gap_460x600001ce0a00_pos" unit="mm" x="169.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_460x600001ce0aa0">
+        <volumeref ref="absorber_460x600000ef8820"/>
+        <position name="absorber_460x600001ce0aa0_pos" unit="mm" x="173.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_470x600001ce0be0">
+        <volumeref ref="gap_470x600000ef88c0"/>
+        <position name="gap_470x600001ce0be0_pos" unit="mm" x="177.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_470x600001ce0c80">
+        <volumeref ref="absorber_470x600000ef8960"/>
+        <position name="absorber_470x600001ce0c80_pos" unit="mm" x="181.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_480x600001ce0dc0">
+        <volumeref ref="gap_480x600000ef8a00"/>
+        <position name="gap_480x600001ce0dc0_pos" unit="mm" x="185.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_480x600001ce0e60">
+        <volumeref ref="absorber_480x600000ef8aa0"/>
+        <position name="absorber_480x600001ce0e60_pos" unit="mm" x="189.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="gap_490x600001ce0fa0">
+        <volumeref ref="gap_490x600000ef8b40"/>
+        <position name="gap_490x600001ce0fa0_pos" unit="mm" x="193.15" y="0" z="0"/>
+      </physvol>
+      <physvol name="absorber_490x600001ce1040">
+        <volumeref ref="absorber_490x600000ef8be0"/>
+        <position name="absorber_490x600001ce1040_pos" unit="mm" x="197.15" y="0" z="0"/>
+      </physvol>
     </volume>
   </structure>
 
   <setup name="Default" version="1.0">
-    <world ref="world_lv"/>
+    <world ref="world0x600000ef0d20"/>
   </setup>
 
 </gdml>

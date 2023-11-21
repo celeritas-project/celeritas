@@ -13,6 +13,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -21,16 +22,16 @@ namespace detail
 /*!
  * Find positive, real, nonzero roots for quadratic functions.
  *
- * These are for quadratic functions \f[
+ * The quadratic equation \f[
    a x^2 + b^2 + c = 0
  * \f]
- * where a is nonzero (and not close to zero).
+ * has two solutions mathematically, but we only want solutions where x is real
+ * and positive.  Furthermore the equation is subject to catastrophic roundoff
+ * due to floating point precision (see \c Tolerance::sqrt_quadratic and the
+ * derivation in \c CylAligned ).
  *
- * This is used for all quadrics with potentially two roots (anything but
- * planes).
- *
- * Each item in the Intersections result will be a positive valid intersection
- * or the sentinel result \c no_intersection() .
+ * \return An Intersections array where each item is a positive valid
+ * intersection or the sentinel result \c no_intersection() .
  */
 class QuadraticSolver
 {
@@ -39,9 +40,6 @@ class QuadraticSolver
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     //!@}
-
-    //! Fuzziness for "along surface"
-    static CELER_CONSTEXPR_FUNCTION real_type min_a() { return 1e-10; }
 
     // Solve when possibly along a surface (zeroish a)
     static inline CELER_FUNCTION Intersections solve_general(
@@ -65,6 +63,12 @@ class QuadraticSolver
     //// DATA ////
     real_type a_inv_;
     real_type hba_;  // (b/2)/a
+
+    //! Fuzziness for "along surface" intercept
+    static CELER_CONSTEXPR_FUNCTION real_type min_a()
+    {
+        return ipow<2>(Tolerance<>::sqrt_quadratic());
+    }
 };
 
 //---------------------------------------------------------------------------//

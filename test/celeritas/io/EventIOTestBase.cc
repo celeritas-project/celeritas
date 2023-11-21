@@ -30,19 +30,19 @@ void EventIOTestBase::ReadAllResult::print_expected() const
          << repr(this->pdg)
          << ";\n"
             "EXPECT_VEC_EQ(expected_pdg, result.pdg);\n"
-            "static double const expected_energy[] = "
+            "static real_type const expected_energy[] = "
          << repr(this->energy)
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);\n"
-            "static double const expected_pos[] = "
+            "static real_type const expected_pos[] = "
          << repr(this->pos)
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);\n"
-            "static double const expected_dir[] = "
+            "static real_type const expected_dir[] = "
          << repr(this->dir)
          << ";\n"
             "EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);\n"
-            "static double const expected_time[] = "
+            "static real_type const expected_time[] = "
          << repr(this->time)
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_time, result.time);\n"
@@ -60,12 +60,12 @@ void EventIOTestBase::ReadAllResult::print_expected() const
 //---------------------------------------------------------------------------//
 void EventIOTestBase::SetUp()
 {
+    using namespace constants;
     using units::ElementaryCharge;
     using units::MevMass;
     using units::second;
 
     auto zero = zero_quantity();
-    constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     // Create shared standard model particle data
     particles_ = std::make_shared<ParticleParams>(ParticleParams::Input{
@@ -73,19 +73,23 @@ void EventIOTestBase::SetUp()
          pdg::proton(),
          MevMass{938.27208816},
          ElementaryCharge{1},
-         stable},
-        {"d_quark", PDGNumber(1), MevMass{4.7}, ElementaryCharge{-1.0 / 3}, stable},
+         stable_decay_constant},
+        {"d_quark",
+         PDGNumber(1),
+         MevMass{4.7},
+         ElementaryCharge{-1.0 / 3},
+         stable_decay_constant},
         {"anti_u_quark",
          PDGNumber(-2),
          MevMass{2.2},
          ElementaryCharge{-2.0 / 3},
-         stable},
+         stable_decay_constant},
         {"w_minus",
          PDGNumber(-24),
          MevMass{8.0379e4},
          zero,
          1.0 / (3.157e-25 * second)},
-        {"gamma", pdg::gamma(), zero, zero, stable},
+        {"gamma", pdg::gamma(), zero, zero, stable_decay_constant},
     });
 }
 
@@ -185,13 +189,13 @@ void EventIOTestBase::read_check_test_event(Reader& read_event) const
     // clang-format off
     static int const expected_pdg[] = {22, 2212, 22, 2212, 22, 2212, 22, 2212,
         2212, 22};
-    static double const expected_energy[] = {1.23, 2.34, 1.23, 2.34, 1.23,
+    static real_type const expected_energy[] = {1.23, 2.34, 1.23, 2.34, 1.23,
         2.34, 1.23, 2.34, 3.45, 1.23};
-    static double const expected_pos[] = {2, 4, 5, -3, -4, 5, 2, 4, 5, 2, 4, 5,
+    static real_type const expected_pos[] = {2, 4, 5, -3, -4, 5, 2, 4, 5, 2, 4, 5,
         2, 4, 5, -3, -4, 5, 2, 4, 5, 2, 4, 5, 2, 4, 5, 2, 4, 5};
-    static double const expected_dir[] = {1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
+    static real_type const expected_dir[] = {1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
         1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0};
-    static double const expected_time[] = {5.67e-09, 5.78e-09, 5.67e-09,
+    static real_type const expected_time[] = {5.67e-09, 5.78e-09, 5.67e-09,
         5.67e-09, 5.67e-09, 5.78e-09, 5.67e-09, 5.67e-09, 5.67e-09, 5.67e-09};
     static int const expected_event[] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 2};
     static int const expected_track[] = {0, 1, 2, 3, 0, 1, 2, 3, 4, 0};
@@ -201,7 +205,7 @@ void EventIOTestBase::read_check_test_event(Reader& read_event) const
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
     EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
-    EXPECT_VEC_NEAR(expected_time, result.time, 1e-6);
+    EXPECT_VEC_NEAR(expected_time, result.time, real_type(1e-6));
     EXPECT_VEC_EQ(expected_event, result.event);
     EXPECT_VEC_EQ(expected_track, result.track);
 }

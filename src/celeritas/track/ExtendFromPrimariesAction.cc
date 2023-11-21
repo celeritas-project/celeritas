@@ -46,7 +46,7 @@ void ExtendFromPrimariesAction::execute_impl(CoreParams const& params,
                                              CoreState<M>& state) const
 {
     auto primary_range = state.primary_range();
-    if (primary_range.empty())
+    if (primary_range.empty() && !state.warming_up())
         return;
 
     auto primaries = state.primary_storage()[primary_range];

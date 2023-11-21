@@ -8,6 +8,7 @@
 #include "SensitiveDetector.hh"
 
 #include <memory>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4HCofThisEvent.hh>
 #include <G4SDManager.hh>
 #include <G4Step.hh>
@@ -16,16 +17,22 @@
 #include <G4VTouchable.hh>
 
 #include "corecel/Assert.hh"
+#include "celeritas/ext/Convert.geant.hh"
+
+#include "GlobalSetup.hh"
 
 namespace celeritas
 {
 namespace app
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct with sensitive detector name.
+ */
 SensitiveDetector::SensitiveDetector(std::string name)
     : G4VSensitiveDetector(name), hcid_{-1}, collection_{nullptr}
 {
-    this->collectionName.insert(name + "_HC");
+    this->collectionName.insert(name);
 }
 
 //---------------------------------------------------------------------------//
@@ -46,7 +53,7 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
         CELER_ASSERT(hcid_ >= 0);
     }
 
-    // Save a pointer to the collection we just made before tranferring
+    // Save a pointer to the collection we just made before transferring
     // ownership to the HC manager for the event.
     collection_ = collection.get();
     hce->AddHitsCollection(hcid_, collection.release());
@@ -57,27 +64,31 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
 /*!
  * Add hits to the current hit collection.
  */
-bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
+bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
 {
-    auto edep = step->GetTotalEnergyDeposit();
+    CELER_ASSERT(g4step);
+    auto const edep = g4step->GetTotalEnergyDeposit();
 
     if (edep == 0)
     {
         return false;
     }
 
-    // Create a hit for this step
-    auto* touchable = step->GetPreStepPoint()->GetTouchable();
-    CELER_ASSERT(touchable);
+    auto* pre_step = g4step->GetPreStepPoint();
+    CELER_ASSERT(pre_step);
+    auto const* phys_vol = pre_step->GetPhysicalVolume();
+    CELER_ASSERT(phys_vol);
+    auto const* log_vol = phys_vol->GetLogicalVolume();
+    CELER_ASSERT(log_vol);
 
-    unsigned int id = touchable->GetVolume()->GetCopyNo();
-    HitData data{id,
-                 edep,
-                 step->GetPreStepPoint()->GetGlobalTime(),
-                 touchable->GetTranslation()};
+    // Insert hit (use pre-step time since post-steps can be undefined)
+    EventHitData hit;
+    hit.volume = log_vol->GetInstanceID();
+    hit.copy_num = phys_vol->GetCopyNo();
+    hit.energy_dep = convert_from_geant(edep, CLHEP::MeV);
+    hit.time = convert_from_geant(pre_step->GetGlobalTime(), CLHEP::s);
 
-    collection_->insert(new SensitiveHit(data));
-
+    collection_->insert(new SensitiveHit(hit));
     return true;
 }
 

@@ -22,6 +22,7 @@ TrackInitParams::TrackInitParams(Input const& inp)
 {
     CELER_EXPECT(inp.capacity > 0);
     CELER_EXPECT(inp.max_events > 0);
+    CELER_EXPECT(inp.track_order < TrackOrder::size_);
 
     HostVal<TrackInitParamsData> host_data;
     host_data.capacity = inp.capacity;

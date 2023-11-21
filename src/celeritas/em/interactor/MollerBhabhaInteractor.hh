@@ -32,7 +32,8 @@ namespace celeritas
 /*!
  * Perform Moller (e-e-) and Bhabha (e+e-) scattering.
  *
- * This is a model for both Moller and Bhabha scattering processes.
+ * This interaction, part of the ionization process, is when an incident
+ * electron or positron ejects an electron from the surrounding matter.
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4MollerBhabhaModel class, as documented in section 10.1.4 of the Geant4
@@ -103,6 +104,8 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
+    CELER_EXPECT(inc_energy_
+                 > (inc_particle_is_electron_ ? 2 : 1) * electron_cutoff_);
 }
 
 //---------------------------------------------------------------------------//
@@ -115,16 +118,8 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
-    if (inc_energy_ <= (inc_particle_is_electron_ ? 2 : 1) * electron_cutoff_)
-    {
-        // The secondary should not be emitted. This interaction cannot
-        // happen and the incident particle must undergo an energy loss
-        // process.
-        return Interaction::from_unchanged(Energy{inc_energy_}, inc_direction_);
-    }
-
     // Allocate memory for the produced electron
-    Secondary* electron_secondary = this->allocate_(1);
+    Secondary* electron_secondary = allocate_(1);
 
     if (electron_secondary == nullptr)
     {
@@ -156,6 +151,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     CELER_ASSERT(secondary_energy >= electron_cutoff_);
 
     // Same equation as in ParticleTrackView::momentum_sq()
+    // TODO: use local data ParticleTrackView
     const real_type secondary_momentum = std::sqrt(
         secondary_energy
         * (secondary_energy + 2 * value_as<Mass>(shared_.electron_mass)));

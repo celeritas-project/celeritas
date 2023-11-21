@@ -63,7 +63,7 @@ std::string_view trim(std::string_view input)
     {
         --stop;
     }
-    return {start, static_cast<std::size_t>(stop - start)};
+    return {&(*start), static_cast<std::size_t>(stop - start)};
 }
 
 //---------------------------------------------------------------------------//

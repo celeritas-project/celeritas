@@ -13,6 +13,7 @@
 
 #include "celeritas_test_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/sys/Environment.hh"
 
 namespace celeritas
@@ -31,10 +32,13 @@ Test::test_data_path(std::string_view subdir, std::string_view filename)
     std::ostringstream os;
     os << celeritas_source_dir << "/test/" << subdir << "/data/" << filename;
 
-    std::string result = os.str();
-    CELER_VALIDATE(std::ifstream(result).good(),
-                   << "Failed to open test data file at " << result);
-    return result;
+    std::string path = os.str();
+    if (!filename.empty())
+    {
+        CELER_VALIDATE(std::ifstream(path).good(),
+                       << "Failed to open test data file at '" << path << "'");
+    }
+    return path;
 }
 
 //---------------------------------------------------------------------------//
@@ -130,6 +134,12 @@ bool Test::strict_testing()
         // Disable strict testing for Geant4
         return false;
     }
+
+    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        // Disable strict testing for single precision
+        return false;
+    }
     return !envstr.empty();
 }
 
@@ -137,7 +147,7 @@ bool Test::strict_testing()
 // Provide a definition for the "inf" value. (This is needed by C++ < 17 so
 // that the adddress off the static value can be taken.)
 constexpr double Test::inf;
-
+constexpr real_type Test::coarse_eps;
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

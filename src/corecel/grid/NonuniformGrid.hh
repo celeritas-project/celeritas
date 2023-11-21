@@ -32,6 +32,7 @@ class NonuniformGrid
     using value_type = T;
     using Values
         = Collection<value_type, Ownership::const_reference, MemSpace::native>;
+    using SpanConstT = typename Values::SpanConstT;
     //!@}
 
   public:
@@ -61,8 +62,7 @@ class NonuniformGrid
     inline CELER_FUNCTION size_type find(value_type value) const;
 
   private:
-    // TODO: change backend for effiency if needeed
-    Span<value_type const> data_;
+    SpanConstT data_;
 };
 
 //---------------------------------------------------------------------------//

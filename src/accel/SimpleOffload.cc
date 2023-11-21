@@ -46,12 +46,9 @@ SimpleOffload::SimpleOffload(SetupOptions const* setup,
             celeritas::self_logger() = celeritas::MakeMTLogger(*run_man);
         }
     }
-    if (!celeritas::getenv("CELER_DISABLE").empty())
+    if (SharedParams::CeleritasDisabled())
     {
-        using LL = celeritas::LogLevel;
-        celeritas::self_logger()(CELER_CODE_PROVENANCE,
-                                 G4Threading::IsMasterThread() ? LL::info
-                                                               : LL::debug)
+        CELER_LOG_LOCAL(debug)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
                "environment variable is present and non-empty";
         *this = {};

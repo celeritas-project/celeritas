@@ -35,7 +35,7 @@
     {
       "name": "base",
       "displayName": "Summit default options (GCC, debug)",
-      "inherits": [".base"],
+      "inherits": [".debug", ".base"],
       "binaryDir": "${sourceDir}/build"
     },
     {
@@ -50,6 +50,16 @@
       "name": "reldeb",
       "displayName": "Summit release mode",
       "inherits": [".reldeb", ".base"]
+    },
+    {
+      "name": "ndebug-single",
+      "displayName": "Summit with no vecgeom and single precision",
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_REAL_TYPE": "float",
+        "CMAKE_CXX_FLAGS": "-Wall -Wno-psabi -Wno-narrowing -Wextra -pedantic",
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
     },
     {
       "name": "ndebug-novg",

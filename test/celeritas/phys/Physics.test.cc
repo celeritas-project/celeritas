@@ -126,14 +126,17 @@ TEST_F(PhysicsParamsTest, output)
     PhysicsParamsOutput out(this->physics());
     EXPECT_EQ("physics", out.label());
 
-    if (CELERITAS_USE_JSON)
+    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(
-            R"json({"models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":231,"value_grid_ids":89,"value_grids":89,"value_tables":35}})json",
-            to_string(out))
-            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
-            << ")json\"\n/******/";
+        GTEST_SKIP() << "Test results are based on double-precision data";
     }
+    if (!CELERITAS_USE_JSON)
+    {
+        GTEST_SKIP() << "JSON required to test output";
+    }
+    EXPECT_JSON_EQ(
+        R"json({"models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":231,"value_grid_ids":89,"value_grids":89,"value_tables":35}})json",
+        to_string(out));
 }
 
 //---------------------------------------------------------------------------//
@@ -255,8 +258,8 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
 
         gamma.interaction_mfp(1.234);
         celer.interaction_mfp(2.345);
-        EXPECT_DOUBLE_EQ(1.234, gamma_cref.interaction_mfp());
-        EXPECT_DOUBLE_EQ(2.345, celer.interaction_mfp());
+        EXPECT_REAL_EQ(1.234, gamma_cref.interaction_mfp());
+        EXPECT_REAL_EQ(2.345, celer.interaction_mfp());
     }
 
     // Model/action ID conversion
@@ -280,7 +283,7 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
                         real_type(1 + 100 * eps) * rho,
                         real_type(1.00000001) * rho,
                         real_type(1.000001) * rho,
-                        1.5 * rho,
+                        real_type{1.5} * rho,
                         10 * rho,
                         100 * rho})
     {
@@ -288,6 +291,11 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
         EXPECT_GT(s, real_type(0));
         EXPECT_LE(s, r) << "s - r == " << s - r;
         step.push_back(s);
+    }
+
+    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        GTEST_SKIP() << "Test results are based on double-precision data";
     }
     static double const expected_step[] = {0.01,
                                            0.099999999999978,
@@ -313,9 +321,9 @@ TEST_F(PhysicsTrackViewHostTest, step_view)
         gamma.per_process_xs(ParticleProcessId{0}) = 1.2;
         gamma.per_process_xs(ParticleProcessId{1}) = 10.0;
         celer.per_process_xs(ParticleProcessId{0}) = 100.0;
-        EXPECT_DOUBLE_EQ(1.2, gamma_cref.per_process_xs(ParticleProcessId{0}));
-        EXPECT_DOUBLE_EQ(10.0, gamma_cref.per_process_xs(ParticleProcessId{1}));
-        EXPECT_DOUBLE_EQ(100.0, celer.per_process_xs(ParticleProcessId{0}));
+        EXPECT_REAL_EQ(1.2, gamma_cref.per_process_xs(ParticleProcessId{0}));
+        EXPECT_REAL_EQ(10.0, gamma_cref.per_process_xs(ParticleProcessId{1}));
+        EXPECT_REAL_EQ(100.0, celer.per_process_xs(ParticleProcessId{0}));
     }
 
     // Energy deposition
@@ -323,12 +331,12 @@ TEST_F(PhysicsTrackViewHostTest, step_view)
         using Energy = PhysicsTrackView::Energy;
         gamma.reset_energy_deposition();
         gamma.deposit_energy(Energy(2.5));
-        EXPECT_DOUBLE_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
+        EXPECT_REAL_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
         // Allow zero-energy deposition
         EXPECT_NO_THROW(gamma.deposit_energy(zero_quantity()));
-        EXPECT_DOUBLE_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
+        EXPECT_REAL_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
         gamma.reset_energy_deposition();
-        EXPECT_DOUBLE_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));
+        EXPECT_REAL_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));
     }
 
     // Secondaries
@@ -580,14 +588,17 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
         EXPECT_TRUE(table_id);
         auto select_element = phys.make_element_selector(table_id, energy);
         std::vector<int> counts(this->material()->get(mid).num_elements());
-        for ([[maybe_unused]] auto i : range(1e5))
+        for (auto i = 0; i < 100000; ++i)
         {
             auto const elcomp_id = select_element(this->rng());
             ASSERT_LT(elcomp_id.get(), counts.size());
             ++counts[elcomp_id.get()];
         }
-        static int const expected_counts[] = {10210, 30025, 59765};
-        EXPECT_VEC_EQ(expected_counts, counts);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static int const expected_counts[] = {10210, 30025, 59765};
+            EXPECT_VEC_EQ(expected_counts, counts);
+        }
     }
 
     // Material composed of a single element
@@ -734,18 +745,18 @@ auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 {
+    using namespace constants;
     using namespace units;
 
     constexpr auto zero = zero_quantity();
-    constexpr auto stable = ParticleRecord::stable_decay_constant();
 
-    return std::make_shared<ParticleParams>(
-        ParticleParams::Input{{"positron",
-                               pdg::positron(),
-                               MevMass{0.5109989461},
-                               ElementaryCharge{1},
-                               stable},
-                              {"gamma", pdg::gamma(), zero, zero, stable}});
+    return std::make_shared<ParticleParams>(ParticleParams::Input{
+        {"positron",
+         pdg::positron(),
+         MevMass{0.5109989461},
+         ElementaryCharge{1},
+         stable_decay_constant},
+        {"gamma", pdg::gamma(), zero, zero, stable_decay_constant}});
 }
 
 //---------------------------------------------------------------------------//

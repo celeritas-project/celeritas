@@ -198,8 +198,9 @@ Symbol names
 
 Functions should be verbs; classes should be names. As in standard Python
 (PEP-8-compliant) code, classes should use ``CapWordsStyle`` and variables use
-``snake_case_style``. Private data should have trailing underscores, and public
-member data in structs should not have trailing underscores.
+``snake_case_style``. A symbol should have a trailing underscore *always and
+only* if it is private member data: neither public member data nor private
+member functions should have them.
 
 Functors (classes whose instances act like a function) should be an *agent
 noun*: the noun form of an action verb. Instances of a functor should be a
@@ -210,16 +211,18 @@ verb. For example::
 
 There are many opportunities to use ``OpaqueId`` in GPU code to indicate
 indexing into particular vectors. To maintain consistency, we let an
-index into a vector of ``Foo`` have a corresponding ``OpaqueId``  type::
+index into a vector of ``Foo`` objects have a corresponding ``OpaqueId``
+type::
 
     using FooId = OpaqueId<Foo>;
 
 and ideally be defined either immediately after ``Foo`` or in a
 :file:`Types.hh` file.  Some ``OpaqueId`` types may have only a "symbolic"
-corresponding type, in which case
-a tag struct can be be defined inline::
+corresponding type, in which case a tag struct can be be defined inline, using
+an underscore suffix as a convention indicating the type does not correspond to
+an actual class::
 
-   using BarId = OpaqueId<struct Bar>;
+   using BarId = OpaqueId<struct Bar_>;
 
 .. note:: Public functions in user-facing Geant4 classes (those in ``accel``)
    should try to conform to Geant4-style naming conventions, especially because
@@ -366,8 +369,8 @@ Odds and ends
 Although ``struct`` and ``class`` are interchangeable for class definitions
 (modifying only the default visibility as public or private), use ``struct``
 for data-oriented classes that don't declare constructors and have only
-public data; and ``class`` for classes designed to encapsulate functionality
-and/or data.
+public data; and use ``class`` for classes designed to encapsulate
+functionality and/or data.
 
 With template parameters, ``typename T`` and ``class T`` are also
 interchangeable, but use ``template <class T>`` to be consistent internally and
@@ -375,6 +378,9 @@ with the standard library. (It's also possible to have ``template <typename``
 where ``typename`` *doesn't* mean a class: namely,
 ``template <typename U::value_type Value>``.)
 
+Use ``this->`` when calling member functions inside a class to convey that the
+``this`` pointer is implicitly being passed to the function and to make it
+easier to differentiate from a free function in the current scope.
 
 Data management in Celeritas
 ============================

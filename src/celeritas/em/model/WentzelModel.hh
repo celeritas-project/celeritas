@@ -20,10 +20,11 @@ namespace celeritas
 {
 class MaterialParams;
 class ParticleParams;
+class IsotopeView;
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up and launch the Wentzel model interaction.
+ * Set up and launch the Wentzel Coulomb scattering model interaction.
  */
 class WentzelModel final : public Model
 {
@@ -51,26 +52,26 @@ class WentzelModel final : public Model
     };
 
   public:
-    //! Construct from model ID and other necessary data
+    // Construct from model ID and other necessary data
     WentzelModel(ActionId id,
                  ParticleParams const& particles,
                  MaterialParams const& materials,
                  Options const& options,
                  SPConstImported data);
 
-    //! Particle types and energy ranges that this model applies to
+    // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
-    //! Get the microscopic cross sections for the given particle and material
+    // Get the microscopic cross sections for the given particle and material
     MicroXsBuilders micro_xs(Applicability) const final;
 
-    //! Apply the interaction kernel on host
+    // Apply the interaction kernel on host
     void execute(CoreParams const&, CoreStateHost&) const final;
 
-    //! Apply the interaction kernel on device
+    // Apply the interaction kernel on device
     void execute(CoreParams const&, CoreStateDevice&) const final;
 
-    //! ID of the model
+    // ID of the model
     ActionId action_id() const final;
 
     //! Short name for the interaction kernel
@@ -92,13 +93,16 @@ class WentzelModel final : public Model
     CollectionMirror<WentzelData> data_;
     ImportedModelAdapter imported_;
 
-    //! Construct per element data (loads Mott coefficients)
+    // Construct per element data (loads Mott coefficients)
     void build_data(HostVal<WentzelData>& host_data,
                     MaterialParams const& materials);
 
-    //! Retrieve matrix of interpolated Mott coefficients
+    // Retrieve matrix of interpolated Mott coefficients
     static WentzelElementData::MottCoeffMatrix
     get_mott_coeff_matrix(AtomicNumber z);
+
+    // Calculate the nuclear form prefactor
+    static real_type calc_nuclear_form_prefactor(IsotopeView const& iso);
 };
 
 //---------------------------------------------------------------------------//

@@ -83,7 +83,8 @@ void count_tracks_per_action_impl(Span<ThreadId> offsets,
  * Initialize default threads to track_slots mapping, track_slots[i] = i
  */
 template<>
-void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots)
+void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots,
+                                      StreamId)
 {
     std::iota(track_slots.data(), track_slots.data() + track_slots.size(), 0);
 }
@@ -92,9 +93,10 @@ void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots)
  * Shuffle track slots
  */
 template<>
-void shuffle_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots)
+void shuffle_track_slots<MemSpace::host>(
+    Span<TrackSlotId::size_type> track_slots, StreamId)
 {
-    unsigned int seed = track_slots.size();
+    auto seed = static_cast<unsigned int>(track_slots.size());
     std::mt19937 g{seed};
     std::shuffle(track_slots.begin(), track_slots.end(), g);
 }

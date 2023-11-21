@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
@@ -19,6 +20,7 @@
 namespace celeritas
 {
 class UrbanMscParams;
+class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
@@ -32,13 +34,24 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
   public:
     //!@{
     //! \name Type aliases
+    using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
     using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
     //!@}
 
   public:
+    // Construct the along-step action from input parameters
+    static std::shared_ptr<AlongStepUniformMscAction>
+    from_params(ActionId id,
+                MaterialParams const& materials,
+                ParticleParams const& particles,
+                UniformFieldParams const& field_params,
+                SPConstMsc msc,
+                bool eloss_fluctuation);
+
     // Construct with next action ID, optional MSC, magnetic field
     AlongStepUniformMscAction(ActionId id,
                               UniformFieldParams const& field_params,
+                              SPConstFluctuations fluct,
                               SPConstMsc msc);
 
     // Default destructor
@@ -67,6 +80,9 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
 
     //// ACCESSORS ////
 
+    //! Whether energy flucutation is in use
+    bool has_fluct() const { return static_cast<bool>(fluct_); }
+
     //! Whether MSC is in use
     bool has_msc() const { return static_cast<bool>(msc_); }
 
@@ -75,6 +91,7 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
 
   private:
     ActionId id_;
+    SPConstFluctuations fluct_;
     SPConstMsc msc_;
     UniformFieldParams field_params_;
 };

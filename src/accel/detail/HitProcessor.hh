@@ -104,10 +104,6 @@ class HitProcessor
     StepPointSelection post_step_selection_;
 
     void update_track(ParticleId id) const;
-    bool update_touchable(Real3 const& pos,
-                          Real3 const& dir,
-                          G4LogicalVolume const* lv,
-                          G4VTouchable* touchable) const;
 };
 
 //---------------------------------------------------------------------------//

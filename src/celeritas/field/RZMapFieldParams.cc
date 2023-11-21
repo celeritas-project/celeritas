@@ -52,6 +52,9 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
         << "invalid field length (field_r size=" << inp.field_r.size()
         << "): should be " << inp.field_z.size());
 
+    // Throw a runtime error if any driver options are invalid
+    validate_input(inp.driver_options);
+
     auto host_data = [&inp] {
         HostVal<RZMapFieldParamsData> host;
 
@@ -64,10 +67,10 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
         fieldmap.reserve(inp.field_z.size());
         for (auto i : range(inp.field_z.size()))
         {
-            // Save field vector, converting from Tesla to native units
+            // Save field vector
             FieldMapElement el;
-            el.value_z = inp.field_z[i] * units::tesla;
-            el.value_r = inp.field_r[i] * units::tesla;
+            el.value_z = inp.field_z[i];
+            el.value_r = inp.field_r[i];
             fieldmap.push_back(el);
         }
 

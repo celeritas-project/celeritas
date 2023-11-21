@@ -8,11 +8,13 @@
 #include "ActionInitialization.hh"
 
 #include "corecel/io/Logger.hh"
+#include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/LocalTransporter.hh"
 
 #include "EventAction.hh"
 #include "GlobalSetup.hh"
-#include "PrimaryGeneratorAction.hh"
+#include "HepMC3PrimaryGeneratorAction.hh"
+#include "PGPrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "TrackingAction.hh"
 
@@ -23,14 +25,33 @@ namespace app
 //---------------------------------------------------------------------------//
 /*!
  * Construct global data to be shared across Celeritas workers.
+ *
+ * The parameters will be distributed to worker threads and all the actions.
  */
-ActionInitialization::ActionInitialization()
-    : init_celeritas_{true}, init_diagnostics_{true}
+ActionInitialization::ActionInitialization(SPParams params)
+    : params_{std::move(params)}, init_shared_{true}
 {
-    // Create params to be shared across worker threads
-    params_ = std::make_shared<SharedParams>();
+    CELER_EXPECT(params_);
+
     // Create Geant4 diagnostics to be shared across worker threads
     diagnostics_ = std::make_shared<GeantDiagnostics>();
+
+    auto const& inp = GlobalSetup::Instance()->input();
+    CELER_VALIDATE(inp.primary_options || !inp.event_file.empty(),
+                   << "no event input file nor primary options were "
+                      "specified");
+
+    if (!inp.event_file.empty())
+    {
+        hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(inp.event_file);
+        num_events_ = hepmc_gen_->NumEvents();
+    }
+    else
+    {
+        num_events_ = inp.primary_options.num_events;
+    }
+
+    CELER_ENSURE(num_events_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -51,12 +72,10 @@ void ActionInitialization::BuildForMaster() const
                       params_,
                       nullptr,
                       diagnostics_,
-                      init_celeritas_,
-                      init_diagnostics_});
+                      init_shared_});
 
     // Subsequent worker threads must not set up celeritas or diagnostics
-    init_celeritas_ = false;
-    init_diagnostics_ = false;
+    init_shared_ = false;
 }
 
 //---------------------------------------------------------------------------//
@@ -68,23 +87,30 @@ void ActionInitialization::Build() const
     CELER_LOG_LOCAL(status) << "Constructing user actions on worker threads";
 
     // Primary generator emits source particles
-    this->SetUserAction(new PrimaryGeneratorAction());
+    if (hepmc_gen_)
+    {
+        this->SetUserAction(new HepMC3PrimaryGeneratorAction(hepmc_gen_));
+    }
+    else
+    {
+        this->SetUserAction(new PGPrimaryGeneratorAction(
+            GlobalSetup::Instance()->input().primary_options));
+    }
 
     // Create thread-local transporter to share between actions
     auto transport = std::make_shared<LocalTransporter>();
 
-    // Run action sets up Celeritas (init_celeritas_ will be true iff
+    // Run action sets up Celeritas (init_shared_ will be true if and only if
     // using a serial run manager)
     this->SetUserAction(
         new RunAction{GlobalSetup::Instance()->GetSetupOptions(),
                       params_,
                       transport,
                       diagnostics_,
-                      init_celeritas_,
-                      init_diagnostics_});
+                      init_shared_});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
-    this->SetUserAction(new EventAction{params_, transport});
+    this->SetUserAction(new EventAction{params_, transport, diagnostics_});
     // Tracking action offloads tracks to device and kills them
     this->SetUserAction(new TrackingAction{params_, transport, diagnostics_});
 }

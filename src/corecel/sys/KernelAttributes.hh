@@ -57,12 +57,16 @@ struct KernelAttributes
  * This can only be called from CUDA/HIP code. It assumes that the block size
  * is constant across the execution of the program and that the kernel is only
  * called by the device that's active at this time.
+ *
+ * The special value of zero threads per block causes the kernel attributes to
+ * default to the *compile-time maximum* number of threads per block as
+ * specified by launch bounds.
  */
 template<class F>
-KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
+KernelAttributes
+make_kernel_attributes(F* func, unsigned int threads_per_block = 0)
 {
     KernelAttributes result;
-    result.threads_per_block = threads_per_block;
 #ifdef CELER_DEVICE_SOURCE
     // Get function attributes
     {
@@ -75,11 +79,17 @@ KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
         result.max_threads_per_block = attr.maxThreadsPerBlock;
     }
 
+    if (threads_per_block == 0)
+    {
+        // Use the maximum number of threads instead of having smaller blocks
+        threads_per_block = result.max_threads_per_block;
+    }
+
     // Get maximum number of active blocks per SM
     std::size_t dynamic_smem_size = 0;
     int num_blocks = 0;
     CELER_DEVICE_CALL_PREFIX(OccupancyMaxActiveBlocksPerMultiprocessor(
-        &num_blocks, func, result.threads_per_block, dynamic_smem_size));
+        &num_blocks, func, threads_per_block, dynamic_smem_size));
     result.max_blocks_per_cu = num_blocks;
 
     // Calculate occupancy statistics used for launch bounds
@@ -88,9 +98,8 @@ KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
 
     result.max_warps_per_eu = (threads_per_block * num_blocks)
                               / (d.eu_per_cu() * d.threads_per_warp());
-    result.occupancy
-        = static_cast<double>(num_blocks * result.threads_per_block)
-          / static_cast<double>(d.max_threads_per_cu());
+    result.occupancy = static_cast<double>(num_blocks * threads_per_block)
+                       / static_cast<double>(d.max_threads_per_cu());
 
     // Get size limits
     if constexpr (CELERITAS_USE_CUDA)
@@ -104,11 +113,11 @@ KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
     }
     CELER_DEVICE_CALL_PREFIX(DeviceGetLimit(
         &result.heap_size, CELER_DEVICE_PREFIX(LimitMallocHeapSize)));
-
 #else
-    (void)sizeof(func);
+    CELER_DISCARD(func);
     CELER_ASSERT_UNREACHABLE();
 #endif
+    result.threads_per_block = threads_per_block;
     return result;
 }
 

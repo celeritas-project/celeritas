@@ -29,7 +29,7 @@
     {
       "name": "base",
       "displayName": "Wildstyle default options (GCC, debug, no omp)",
-      "inherits": [".base"],
+      "inherits": [".debug", ".base"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
@@ -39,7 +39,7 @@
     {
       "name": "geant4",
       "displayName": "Geant4 core geometry (no CUDA)",
-      "inherits": [".base"],
+      "inherits": [".debug", ".base"],
       "cacheVariables": {
         "CELERITAS_CORE_GEO": "Geant4",
         "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"}
@@ -48,16 +48,26 @@
     {
       "name": "serial",
       "displayName": "Debug, OpenMP is disabled",
-      "inherits": [".base"],
+      "inherits": [".debug", ".base"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
+      "name": "single",
+      "displayName": "Single precision with ORANGE",
+      "inherits": [".debug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_REAL_TYPE": "float",
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations -fdiagnostics-color=always -Wno-narrowing",
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": "vecgeom",
       "displayName": "Debug with VecGeom",
-      "inherits": [".base"],
+      "inherits": [".debug", ".base"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
@@ -71,6 +81,11 @@
       "name": "ndebug",
       "displayName": "Everything but vecgeom in release mode",
       "inherits": [".ndebug", ".base"]
+    },
+    {
+      "name": "reldeb-single",
+      "displayName": "Single precision in release mode with debug symbols and assertions",
+      "inherits": [".reldeb", "single"]
     },
     {
       "name": "reldeb-vecgeom",

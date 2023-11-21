@@ -56,18 +56,19 @@ auto SimpleTestBase::build_geomaterial() -> SPConstGeoMaterial
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_particle() -> SPConstParticle
 {
+    using namespace constants;
     using namespace ::celeritas::units;
     ParticleParams::Input defs;
     defs.push_back({"gamma",
                     pdg::gamma(),
                     zero_quantity(),
                     zero_quantity(),
-                    ParticleRecord::stable_decay_constant()});
+                    stable_decay_constant});
     defs.push_back({"electron",
                     pdg::electron(),
                     MevMass{0.5},
                     ElementaryCharge{-1},
-                    ParticleRecord::stable_decay_constant()});
+                    stable_decay_constant});
     return std::make_shared<ParticleParams>(std::move(defs));
 }
 
@@ -168,6 +169,7 @@ auto SimpleTestBase::build_init() -> SPConstTrackInit
     TrackInitParams::Input input;
     input.capacity = 4096;
     input.max_events = 4096;
+    input.track_order = TrackOrder::unsorted;
     return std::make_shared<TrackInitParams>(input);
 }
 

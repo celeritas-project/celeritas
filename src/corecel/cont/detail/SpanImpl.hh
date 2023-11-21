@@ -8,14 +8,50 @@
 #pragma once
 
 #include <cstddef>
+#include <type_traits>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/data/LdgIterator.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+/*!
+ * Default type aliases for Span.
+ */
+template<class T>
+struct SpanTraits
+{
+    using element_type = T;
+    using pointer = std::add_pointer_t<element_type>;
+    using const_pointer = std::add_pointer_t<element_type const>;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+    using reference = std::add_lvalue_reference_t<element_type>;
+    using const_reference = std::add_lvalue_reference_t<element_type const>;
+};
+
+/*!
+ * Type aliases when data is read using __ldg. \c LdgValue checks that T is a
+ * valid type (const arithmetic or OpaqueId). Since \c LdgIterator returns a
+ * copy of the data read, we can't return a reference to the original data, we
+ * need to return a copy as well.
+ */
+template<class T>
+struct SpanTraits<LdgValue<T>>
+{
+    // element_type is always const
+    using element_type = typename LdgValue<T>::value_type;
+    using pointer = std::add_pointer_t<element_type const>;
+    using const_pointer = pointer;
+    using iterator = LdgIterator<element_type const>;
+    using const_iterator = iterator;
+    using reference = std::remove_const_t<element_type>;
+    using const_reference = std::remove_const_t<element_type>;
+};
 //---------------------------------------------------------------------------//
 //! Sentinel value for span of dynamic type
 constexpr std::size_t dynamic_extent = std::size_t(-1);
@@ -45,9 +81,14 @@ subspan_size(std::size_t size, std::size_t offset, std::size_t count)
 template<class T, std::size_t Extent>
 struct SpanImpl
 {
+    //// TYPES ////
+
+    using iterator = typename SpanTraits<T>::iterator;
+    using pointer = typename SpanTraits<T>::pointer;
+
     //// DATA ////
 
-    T* data = nullptr;
+    iterator data = nullptr;
     static constexpr std::size_t size = Extent;
 
     //// METHODS ////
@@ -63,7 +104,8 @@ struct SpanImpl
     }
 
     //! Construct from data and size
-    CELER_FORCEINLINE_FUNCTION SpanImpl(T* d, std::size_t s) : data(d)
+    CELER_FORCEINLINE_FUNCTION
+    SpanImpl(pointer d, std::size_t s) : data(d)
     {
         CELER_EXPECT(d != nullptr);
         CELER_EXPECT(s == Extent);
@@ -77,9 +119,14 @@ struct SpanImpl
 template<class T>
 struct SpanImpl<T, 0>
 {
+    //// TYPES ////
+
+    using iterator = typename SpanTraits<T>::iterator;
+    using pointer = typename SpanTraits<T>::pointer;
+
     //// DATA ////
 
-    T* data = nullptr;
+    iterator data = nullptr;
     static constexpr std::size_t size = 0;
 
     //// CONSTRUCTORS ////
@@ -88,10 +135,8 @@ struct SpanImpl<T, 0>
     constexpr SpanImpl() = default;
 
     //! Construct from data (any) and size (must be zero)
-    CELER_FORCEINLINE_FUNCTION SpanImpl(T* d, std::size_t s) : data(d)
-    {
-        CELER_EXPECT(s == 0);
-    }
+    CELER_FORCEINLINE_FUNCTION
+    SpanImpl(pointer d, std::size_t s) : data(d) { CELER_EXPECT(s == 0); }
 };
 
 //---------------------------------------------------------------------------//
@@ -101,9 +146,14 @@ struct SpanImpl<T, 0>
 template<class T>
 struct SpanImpl<T, dynamic_extent>
 {
+    //// TYPES ////
+
+    using iterator = typename SpanTraits<T>::iterator;
+    using pointer = typename SpanTraits<T>::pointer;
+
     //// DATA ////
 
-    T* data = nullptr;
+    iterator data = nullptr;
     std::size_t size = 0;
 
     //// METHODS ////
@@ -112,7 +162,8 @@ struct SpanImpl<T, dynamic_extent>
     constexpr SpanImpl() = default;
 
     //! Construct from data and size
-    CELER_FORCEINLINE_FUNCTION SpanImpl(T* d, std::size_t s) : data(d), size(s)
+    CELER_FORCEINLINE_FUNCTION
+    SpanImpl(pointer d, std::size_t s) : data(d), size(s)
     {
         CELER_EXPECT(d != nullptr || size == 0);
     }

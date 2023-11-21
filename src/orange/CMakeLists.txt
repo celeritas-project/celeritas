@@ -16,18 +16,29 @@ list(APPEND SOURCES
   BoundingBoxUtils.cc
   MatrixUtils.cc
   OrangeParams.cc
+  OrangeParamsOutput.cc
   OrangeTypes.cc
-  construct/SurfaceInputBuilder.cc
+  construct/CsgTree.cc
+  construct/CsgTypes.cc
+  construct/CsgTreeUtils.cc
+  construct/DepthCalculator.cc
+  construct/detail/LocalSurfaceInserter.cc
+  construct/detail/NodeSimplifier.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
   detail/RectArrayInserter.cc
+  detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
+  detail/UniverseInserter.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
+  surf/FaceNamer.cc
   surf/GeneralQuadric.cc
   surf/Plane.cc
+  surf/PlaneAligned.cc
   surf/SimpleQuadric.cc
   surf/Sphere.cc
+  surf/SoftSurfaceEqual.cc
   surf/SurfaceIO.cc
   surf/SurfaceSimplifier.cc
   surf/VariantSurface.cc
@@ -40,7 +51,10 @@ list(APPEND SOURCES
 
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
+    BoundingBoxIO.json.cc
+    construct/CsgTreeIO.json.cc
     construct/OrangeInputIO.json.cc
+    construct/detail/OrangeInputIOImpl.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()

@@ -24,7 +24,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/MpiCommunicator.hh"
-#include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/GeantUtils.hh"
 
 namespace celeritas
 {
@@ -84,24 +84,10 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
         cerr << color_code('W') << '[' << local_thread + 1 << '/'
              << num_threads_ << "] " << color_code(' ');
     }
-
-    // clang-format off
-    char c = ' ';
-    switch (lev)
-    {
-        case LogLevel::debug:      c = 'x'; break;
-        case LogLevel::diagnostic: c = 'x'; break;
-        case LogLevel::status:     c = 'b'; break;
-        case LogLevel::info:       c = 'g'; break;
-        case LogLevel::warning:    c = 'y'; break;
-        case LogLevel::error:      c = 'r'; break;
-        case LogLevel::critical:   c = 'R'; break;
-        case LogLevel::size_: CELER_ASSERT_UNREACHABLE();
-    };
-    // clang-format on
-    cerr << color_code(c) << to_cstring(lev) << ": " << color_code(' ') << msg
-         << std::endl;
+    cerr << to_color_code(lev) << to_cstring(lev) << ": " << color_code(' ')
+         << msg << std::endl;
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -121,7 +107,7 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
  */
 Logger MakeMTLogger(G4RunManager const& runman)
 {
-    Logger log(MpiCommunicator{}, MtLogger{get_num_threads(runman)});
+    Logger log(MpiCommunicator{}, MtLogger{get_geant_num_threads(runman)});
 
     log.level(log_level_from_env("CELER_LOG_LOCAL"));
     return log;

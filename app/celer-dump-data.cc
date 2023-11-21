@@ -621,7 +621,7 @@ void print_atomic_relaxation_data(
 
 //---------------------------------------------------------------------------//
 /*!
- * Dump the contents of a ROOT file writen by celer-export-geant.
+ * Execute and run.
  */
 int main(int argc, char* argv[])
 {

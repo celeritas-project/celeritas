@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include <string_view>
 
+#include <G4LogicalVolume.hh>
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
@@ -81,6 +83,10 @@ TEST_F(FourLevelsTest, accessors)
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
     EXPECT_EQ("World", geom.id_to_label(VolumeId{3}).name);
     EXPECT_EQ(Label("World", "0xdeadbeef"), geom.id_to_label(VolumeId{3}));
+
+    auto const* lv = geom.id_to_lv(VolumeId{2});
+    ASSERT_TRUE(lv);
+    EXPECT_EQ("Envelope", lv->GetName());
 }
 
 //---------------------------------------------------------------------------//
@@ -214,6 +220,7 @@ TEST_F(FourLevelsTest, reentrant_boundary)
 
 TEST_F(FourLevelsTest, tracking)
 {
+    constexpr real_type safety_tol{1e-10};
     {
         SCOPED_TRACE("Rightward");
         auto result = this->track({-10, -10, -10}, {1, 0, 0});
@@ -234,7 +241,8 @@ TEST_F(FourLevelsTest, tracking)
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[]
             = {2.5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, 1e-10);
+        EXPECT_VEC_NEAR(
+            expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("From just inside outside edge");
@@ -259,7 +267,8 @@ TEST_F(FourLevelsTest, tracking)
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[]
             = {3.4995, 0.5, 0.5, 5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, 1e-10);
+        EXPECT_VEC_NEAR(
+            expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("Leaving world");
@@ -271,7 +280,8 @@ TEST_F(FourLevelsTest, tracking)
         static real_type const expected_distances[] = {5, 1, 2, 6};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {2.5, 0.5, 1, 3};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, 1e-10);
+        EXPECT_VEC_NEAR(
+            expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("Upward");
@@ -283,7 +293,8 @@ TEST_F(FourLevelsTest, tracking)
         static real_type const expected_distances[] = {5, 1, 3, 5};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {2.5, 0.5, 1.5, 2.5};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, 1e-10);
+        EXPECT_VEC_NEAR(
+            expected_hw_safety, result.halfway_safeties, safety_tol);
     }
 }
 

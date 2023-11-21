@@ -29,18 +29,33 @@ InteractorHostTestBase::InteractorHostTestBase()
     using namespace constants;
     using namespace units;
     constexpr auto zero = zero_quantity();
-    auto stable = ParticleRecord::stable_decay_constant();
 
     constexpr MevMass emass{0.5109989461};
     constexpr MevMass mumass{105.6583745};
 
     // Default particle params
     ParticleParams::Input par_inp = {
-        {"electron", pdg::electron(), emass, ElementaryCharge{-1}, stable},
-        {"positron", pdg::positron(), emass, ElementaryCharge{1}, stable},
-        {"gamma", pdg::gamma(), zero, zero, stable},
-        {"mu_minus", pdg::mu_minus(), mumass, ElementaryCharge{-1}, stable},
-        {"mu_plus", pdg::mu_plus(), mumass, ElementaryCharge{1}, stable},
+        {"electron",
+         pdg::electron(),
+         emass,
+         ElementaryCharge{-1},
+         stable_decay_constant},
+        {"positron",
+         pdg::positron(),
+         emass,
+         ElementaryCharge{1},
+         stable_decay_constant},
+        {"gamma", pdg::gamma(), zero, zero, stable_decay_constant},
+        {"mu_minus",
+         pdg::mu_minus(),
+         mumass,
+         ElementaryCharge{-1},
+         stable_decay_constant},
+        {"mu_plus",
+         pdg::mu_plus(),
+         mumass,
+         ElementaryCharge{1},
+         stable_decay_constant},
     };
     this->set_particle_params(std::move(par_inp));
 
@@ -332,14 +347,22 @@ void InteractorHostTestBase::check_momentum_conservation(
 
     // Compare against incident particle
     {
-        Real3 delta_momentum = exit_momentum;
-        axpy(-parent_track.momentum().value(), inc_direction_, &delta_momentum);
-        EXPECT_SOFT_NEAR(0.0,
-                         dot_product(delta_momentum, delta_momentum),
-                         parent_track.momentum().value() * 1e-12)
-            << "Incident: " << inc_direction_
-            << " with p = " << parent_track.momentum().value()
-            << "* MeV/c; exiting p = " << exit_momentum;
+        constexpr real_type default_tol = SoftEqual{}.rel();
+        real_type parent_momentum_mag = parent_track.momentum().value();
+        auto exit_momentum_mag = norm(exit_momentum);
+
+        // Roundoff for lower energy particles can affect momentum calculation
+        // see RelativisticBremTest.basic_with_lpm
+        // see MollerBhabhaInteractorTest.stress_test
+        EXPECT_SOFT_NEAR(
+            parent_momentum_mag, exit_momentum_mag, default_tol * 10000);
+
+        normalize_direction(&exit_momentum);
+        EXPECT_SOFT_NEAR(real_type(1),
+                         dot_product(inc_direction_, exit_momentum),
+                         3 * default_tol)
+            << "Incident direction: " << inc_direction_
+            << "; exiting momentum direction: " << exit_momentum;
     }
 }
 

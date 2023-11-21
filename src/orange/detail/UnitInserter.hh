@@ -7,19 +7,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
 #include "corecel/Types.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
 
 #include "BIHBuilder.hh"
+#include "SurfacesRecordBuilder.hh"
+#include "TransformInserter.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+class UniverseInserter;
 //---------------------------------------------------------------------------//
 /*!
  * Convert a unit input to params data.
@@ -36,20 +39,32 @@ class UnitInserter
 
   public:
     // Construct from full parameter data
-    UnitInserter(Data* orange_data);
+    UnitInserter(UniverseInserter* insert_universe, Data* orange_data);
 
     // Create a simple unit and store in in OrangeParamsData
-    SimpleUnitId operator()(UnitInput const& inp);
+    UniverseId operator()(UnitInput const& inp);
 
   private:
     Data* orange_data_{nullptr};
-    detail::BIHBuilder bih_builder_;
+    BIHBuilder build_bih_tree_;
+    TransformInserter insert_transform_;
+    SurfacesRecordBuilder build_surfaces_;
+    UniverseInserter* insert_universe_;
 
-    // TODO: additional caches for hashed data?
+    CollectionBuilder<SimpleUnitRecord> simple_units_;
+
+    DedupeCollectionBuilder<LocalSurfaceId> local_surface_ids_;
+    DedupeCollectionBuilder<LocalVolumeId> local_volume_ids_;
+    DedupeCollectionBuilder<OpaqueId<real_type>> real_ids_;
+    DedupeCollectionBuilder<logic_int> logic_ints_;
+    DedupeCollectionBuilder<real_type> reals_;
+    DedupeCollectionBuilder<SurfaceType> surface_types_;
+    CollectionBuilder<ConnectivityRecord> connectivity_records_;
+    CollectionBuilder<VolumeRecord> volume_records_;
+    CollectionBuilder<Daughter> daughters_;
 
     //// HELPER METHODS ////
 
-    SurfacesRecord insert_surfaces(SurfaceInput const& s);
     VolumeRecord
     insert_volume(SurfacesRecord const& unit, VolumeInput const& v);
 

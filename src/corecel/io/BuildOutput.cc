@@ -13,6 +13,7 @@
 #include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "celeritas_version.h"
+#include "corecel/Macros.hh"
 
 #include "JsonPimpl.hh"
 #if CELERITAS_USE_JSON
@@ -47,8 +48,9 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_SAVE_CFG(CELERITAS_DEBUG);
 #    undef CO_SAVE_CFG
         cfg["CELERITAS_BUILD_TYPE"] = celeritas_build_type;
-        cfg["CELERITAS_CORE_GEO"] = celeritas_core_geo;
         cfg["CELERITAS_HOSTNAME"] = celeritas_hostname;
+        cfg["CELERITAS_REAL_TYPE"] = celeritas_real_type;
+        cfg["CELERITAS_CORE_GEO"] = celeritas_core_geo;
         cfg["CELERITAS_CORE_RNG"] = celeritas_core_rng;
         if constexpr (CELERITAS_USE_GEANT4)
         {
@@ -65,7 +67,7 @@ void BuildOutput::output(JsonPimpl* j) const
 
     j->obj = std::move(obj);
 #else
-    (void)sizeof(j);
+    CELER_DISCARD(j);
 #endif
 }
 

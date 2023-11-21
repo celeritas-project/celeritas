@@ -7,31 +7,29 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<class T, MemSpace M>
-struct Filler;
 
-//! Assign on host
-template<class T>
-struct Filler<T, MemSpace::host>
+//! Assign on host or mapped / managed memory
+template<class T, MemSpace M>
+struct Filler
 {
     T const& value;
 
     void operator()(Span<T> data) const
     {
-        for (T& v : data)
-        {
-            v = value;
-        }
+        std::fill(data.begin(), data.end(), value);
     }
 };
 
@@ -39,9 +37,16 @@ struct Filler<T, MemSpace::host>
 template<class T>
 struct Filler<T, MemSpace::device>
 {
-    T const& value;
+  public:
+    explicit Filler(T const& value) : value_{value} {};
+    Filler(T const& value, StreamId stream)
+        : value_{value}, stream_{stream} {};
 
     void operator()(Span<T>) const;
+
+  private:
+    T const& value_;
+    StreamId stream_;
 };
 
 #if !CELER_USE_DEVICE

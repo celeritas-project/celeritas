@@ -22,6 +22,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/UrbanMscParams.hh"
@@ -98,6 +99,19 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Run a single step with no active states to "warm up".
+ *
+ * This is to reduce the uncertainty in timing for problems, especially on AMD
+ * hardware.
+ */
+void Runner::warm_up()
+{
+    auto& transport = this->get_transporter(StreamId{0});
+    transport();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Run on a single stream/thread, returning the transport result.
  *
  * This will partition the input primaries among all the streams.
@@ -107,8 +121,8 @@ auto Runner::operator()(StreamId stream, EventId event) -> RunnerResult
     CELER_EXPECT(stream < this->num_streams());
     CELER_EXPECT(event < this->num_events());
 
-    auto& transport = this->build_transporter(stream);
-    return (*transport)(make_span(events_[event.get()]));
+    auto& transport = this->get_transporter(stream);
+    return transport(make_span(events_[event.get()]));
 }
 
 //---------------------------------------------------------------------------//
@@ -119,8 +133,8 @@ auto Runner::operator()() -> RunnerResult
 {
     CELER_EXPECT(events_.size() == 1);
 
-    auto& transport = this->build_transporter(StreamId{0});
-    return (*transport)(make_span(events_.front()));
+    auto& transport = this->get_transporter(StreamId{0});
+    return transport(make_span(events_.front()));
 }
 
 //---------------------------------------------------------------------------//
@@ -139,6 +153,28 @@ StreamId::size_type Runner::num_streams() const
 size_type Runner::num_events() const
 {
     return events_.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated action times.
+ *
+ * Action times are only collected by the transporter when running with a
+ * single stream.
+ */
+auto Runner::get_action_times() -> MapStrReal
+{
+    auto& transport = this->get_transporter(StreamId{0});
+    if (use_device_)
+    {
+        return dynamic_cast<Transporter<MemSpace::device> const&>(transport)
+            .get_action_times();
+    }
+    else
+    {
+        return dynamic_cast<Transporter<MemSpace::host> const&>(transport)
+            .get_action_times();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -164,20 +200,21 @@ void Runner::build_core_params(RunnerInput const& inp,
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
     ScopedMem record_mem("Runner.build_core_params");
+    ScopedProfiling profile_this{"construct-params"};
     CoreParams::Input params;
     ImportData const imported = [&inp] {
-        if (ends_with(inp.physics_filename, ".root"))
+        if (ends_with(inp.physics_file, ".root"))
         {
             // Load from ROOT file
-            return RootImporter(inp.physics_filename)();
+            return RootImporter(inp.physics_file)();
         }
-        std::string filename = inp.physics_filename;
+        std::string filename = inp.physics_file;
         if (filename.empty())
         {
-            filename = inp.geometry_filename;
+            filename = inp.geometry_file;
         }
         // Load imported data directly from Geant4
-        return GeantImporter(GeantSetup(filename, inp.geant_options))();
+        return GeantImporter(GeantSetup(filename, inp.physics_options))();
     }();
 
     // Create action manager
@@ -185,7 +222,7 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.output_reg = std::move(outreg);
 
     // Load geometry
-    params.geometry = std::make_shared<GeoParams>(inp.geometry_filename);
+    params.geometry = std::make_shared<GeoParams>(inp.geometry_file);
     if (!params.geometry->supports_safety())
     {
         CELER_LOG(warning) << "Geometry contains surfaces that are "
@@ -218,14 +255,14 @@ void Runner::build_core_params(RunnerInput const& inp,
         input.options.fixed_step_limiter = inp.step_limiter;
         input.options.secondary_stack_factor = inp.secondary_stack_factor;
         input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
-        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy{
-            imported.em_params.lowest_electron_energy};
+        input.options.lowest_electron_energy = PhysicsParamsOptions::Energy(
+            imported.em_params.lowest_electron_energy);
 
         input.processes = [&params, &inp, &imported] {
             std::vector<std::shared_ptr<Process const>> result;
             ProcessBuilder::Options opts;
             opts.brem_combined = inp.brem_combined;
-            opts.brems_selection = inp.geant_options.brems;
+            opts.brems_selection = inp.physics_options.brems;
 
             ProcessBuilder build_process(
                 imported, params.particle, params.material, opts);
@@ -244,7 +281,7 @@ void Runner::build_core_params(RunnerInput const& inp,
     bool eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
         *params.particle, *params.material, imported);
-    if (inp.mag_field == RunnerInput::no_field())
+    if (inp.field == RunnerInput::no_field())
     {
         // Create along-step action
         auto along_step = AlongStepGeneralLinearAction::from_params(
@@ -257,21 +294,23 @@ void Runner::build_core_params(RunnerInput const& inp,
     }
     else
     {
-        CELER_VALIDATE(!eloss,
-                       << "energy loss fluctuations are not supported "
-                          "simultaneoulsy with magnetic field");
         UniformFieldParams field_params;
-        field_params.field = inp.mag_field;
+        field_params.field = inp.field;
         field_params.options = inp.field_options;
 
         // Interpret input in units of Tesla
-        for (real_type& f : field_params.field)
+        for (real_type& v : field_params.field)
         {
-            f *= units::tesla;
+            v = native_value_from(units::FieldTesla{v});
         }
 
-        auto along_step = std::make_shared<AlongStepUniformMscAction>(
-            params.action_reg->next_id(), field_params, msc);
+        auto along_step = AlongStepUniformMscAction::from_params(
+            params.action_reg->next_id(),
+            *params.material,
+            *params.particle,
+            field_params,
+            msc,
+            eloss);
         CELER_ASSERT(along_step->field() != RunnerInput::no_field());
         params.action_reg->insert(along_step);
     }
@@ -284,9 +323,10 @@ void Runner::build_core_params(RunnerInput const& inp,
 
     // Store the number of simultaneous threads/tasks per process
     params.max_streams = this->get_num_streams(inp);
-    CELER_VALIDATE(inp.mctruth_filename.empty() || params.max_streams == 1,
+    CELER_VALIDATE(inp.mctruth_file.empty() || params.max_streams == 1,
                    << "MC truth output is only supported with a single "
-                      "stream.");
+                      "stream ("
+                   << params.max_streams << " streams requested)");
 
     // Construct track initialization params
     params.init = [&inp, &params] {
@@ -295,12 +335,11 @@ void Runner::build_core_params(RunnerInput const& inp,
                        << inp.initializer_capacity);
         CELER_VALIDATE(inp.max_events > 0,
                        << "nonpositive max_events=" << inp.max_events);
-        CELER_VALIDATE(
-            !inp.primary_gen_options
-                || inp.max_events >= inp.primary_gen_options.num_events,
-            << "max_events=" << inp.max_events
-            << " cannot be less than num_events="
-            << inp.primary_gen_options.num_events);
+        CELER_VALIDATE(!inp.primary_options
+                           || inp.max_events >= inp.primary_options.num_events,
+                       << "max_events=" << inp.max_events
+                       << " cannot be less than num_events="
+                       << inp.primary_options.num_events);
         TrackInitParams::Input input;
         input.capacity = ceil_div(inp.initializer_capacity, params.max_streams);
         input.max_events = inp.max_events;
@@ -326,6 +365,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
     transporter_input_->num_track_slots
         = ceil_div(inp.num_track_slots, core_params_->max_streams());
     transporter_input_->max_steps = inp.max_steps;
+    transporter_input_->store_track_counts = inp.write_track_counts;
     transporter_input_->sync = inp.sync;
     transporter_input_->params = core_params_;
 }
@@ -361,20 +401,19 @@ void Runner::build_events(RunnerInput const& inp)
         }
     };
 
-    if (inp.primary_gen_options)
+    if (inp.primary_options)
     {
         read_events(PrimaryGenerator::from_options(core_params_->particle(),
-                                                   inp.primary_gen_options));
+                                                   inp.primary_options));
     }
-    else if (ends_with(inp.event_filename, ".root"))
+    else if (ends_with(inp.event_file, ".root"))
     {
-        read_events(
-            RootEventReader(inp.event_filename, core_params_->particle()));
+        read_events(RootEventReader(inp.event_file, core_params_->particle()));
     }
     else
     {
         // Assume filename is one of the HepMC3-supported extensions
-        read_events(EventReader(inp.event_filename, core_params_->particle()));
+        read_events(EventReader(inp.event_file, core_params_->particle()));
     }
 }
 
@@ -385,11 +424,11 @@ void Runner::build_events(RunnerInput const& inp)
 void Runner::build_step_collectors(RunnerInput const& inp)
 {
     StepCollector::VecInterface step_interfaces;
-    if (!inp.mctruth_filename.empty())
+    if (!inp.mctruth_file.empty())
     {
         // Initialize ROOT file
         root_manager_
-            = std::make_shared<RootFileManager>(inp.mctruth_filename.c_str());
+            = std::make_shared<RootFileManager>(inp.mctruth_file.c_str());
 
         // Create root step writer
         step_interfaces.push_back(std::make_shared<RootStepWriter>(
@@ -444,7 +483,7 @@ void Runner::build_diagnostics(RunnerInput const& inp)
         auto step_diagnostic = std::make_shared<StepDiagnostic>(
             core_params_->action_reg()->next_id(),
             core_params_->particle(),
-            inp.step_diagnostic_maxsteps,
+            inp.step_diagnostic_bins,
             core_params_->max_streams());
 
         // Add to action registry
@@ -456,9 +495,9 @@ void Runner::build_diagnostics(RunnerInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build the transporter for the given stream.
+ * Get the transporter for the given stream, constructing if necessary.
  */
-auto Runner::build_transporter(StreamId stream) -> UPTransporterBase&
+auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 {
     CELER_EXPECT(stream < this->num_streams());
 
@@ -486,7 +525,7 @@ auto Runner::build_transporter(StreamId stream) -> UPTransporterBase&
         }();
     }
     CELER_ENSURE(result);
-    return result;
+    return *result;
 }
 
 //---------------------------------------------------------------------------//
@@ -519,7 +558,7 @@ int Runner::get_num_streams(RunnerInput const& inp)
         return num_threads;
     }
 #else
-    (void)sizeof(inp);
+    CELER_DISCARD(inp);
 #endif
     return 1;
 }

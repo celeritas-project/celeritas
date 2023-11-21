@@ -267,7 +267,7 @@ TEST_F(MaterialTest, isotope_view)
 {
     std::vector<int> atomic_numbers;
     std::vector<int> atomic_mass_numbers;
-    std::vector<double> nuclear_masses;
+    std::vector<real_type> nuclear_masses;
     for (auto i : range(params->num_isotopes()))
     {
         auto iso_view = params->get(IsotopeId{i});
@@ -279,7 +279,7 @@ TEST_F(MaterialTest, isotope_view)
     static int const expected_atomic_numbers[] = {1, 1, 13, 13, 11, 53, 53, 53};
     static int const expected_atomic_mass_numbers[]
         = {1, 2, 27, 28, 23, 125, 126, 127};
-    static double const expected_nuclear_masses[] = {
+    static real_type const expected_nuclear_masses[] = {
         938.272, 1875.61, 25126.5, 26058.3, 21409.2, 116321, 117253, 118184};
 
     EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
@@ -287,18 +287,16 @@ TEST_F(MaterialTest, isotope_view)
     EXPECT_VEC_SOFT_EQ(expected_nuclear_masses, nuclear_masses);
 }
 
-TEST_F(MaterialTest, output)
+TEST_F(MaterialTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
     MaterialParamsOutput out(params);
     EXPECT_EQ("material", out.label());
 
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_EQ(
+        EXPECT_JSON_EQ(
             R"json({"_units":{"atomic_mass":"amu","mean_excitation_energy":"MeV","nuclear_mass":"MeV/c^2"},"elements":{"atomic_mass":[1.008,26.9815385,22.98976928,126.90447],"atomic_number":[1,13,11,53],"coulomb_correction":[6.400821803338426e-05,0.010734632775699565,0.00770256745342534,0.15954439947436763],"isotope_fractions":[[0.9,0.1],[0.7,0.3],[1.0],[0.05,0.15,0.8]],"isotope_ids":[[0,1],[2,3],[4],[5,6,7]],"label":["H","Al","Na","I"],"mass_radiation_coeff":[0.0158611264432063,0.04164723292591279,0.03605392839455309,0.11791841505608874]},"isotopes":{"atomic_mass_number":[1,2,27,28,23,125,126,127],"atomic_number":[1,1,13,13,11,53,53,53],"label":["1H","2H","27Al","28Al","23Na","125I","126I","127I"],"nuclear_mass":[938.272,1875.61,25126.5,26058.3,21409.2,116321.0,117253.0,118184.0]},"materials":{"density":[3.6700020622594716,0.0,0.00017976000000000003,0.00017943386624303615],"electron_density":[9.4365282069664e+23,0.0,1.073948435904467e+20,1.072e+20],"element_frac":[[0.5,0.5],[],[1.0],[1.0]],"element_id":[[2,3],[],[0],[0]],"label":["NaI","hard vacuum","H2@1","H2@2"],"matter_state":["solid","unspecified","gas","gas"],"mean_excitation_energy":[0.00040000760709482647,0.0,1.9199999999999986e-05,1.9199999999999986e-05],"number_density":[2.948915064677e+22,0.0,1.073948435904467e+20,1.072e+20],"radiation_length":[3.5393292693170424,null,350729.99844063615,351367.4750467326],"temperature":[293.0,0.0,100.0,110.0],"zeff":[32.0,0.0,1.0,1.0]}})json",
-            to_string(out))
-            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
-            << ")json\"\n/******/";
+            to_string(out));
     }
 }
 
@@ -399,10 +397,10 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     result = m_test(input);
 #endif
 
-    double const expected_temperatures[] = {293, 0, 100, 110};
-    double const expected_rad_len[]
+    static real_type const expected_temperatures[] = {293, 0, 100, 110};
+    static real_type const expected_rad_len[]
         = {3.5393292693170424, inf, 350729.99844063615, 351367.47504673258};
-    double const expected_tot_z[]
+    static real_type const expected_tot_z[]
         = {9.4365282069664e+23, 0, 1.07394843590447e+20, 1.072e20};
 
     EXPECT_VEC_SOFT_EQ(expected_temperatures, result.temperatures);

@@ -9,7 +9,8 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-#include "celeritas/ext/RootUniquePtr.hh"
+
+#include "RootUniquePtr.hh"
 
 // Forward declare ROOT
 class TFile;
@@ -19,7 +20,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * ROOT TFile manager. Currently this class is *not* thread-safe. Since there
+ * ROOT TFile manager.
+ *
+ * Currently this class is *not* thread-safe. Since there
  * is only one TFile*, any writer class (such as `RootStepWriter.hh`) can just
  * create their own TTrees and ROOT will know how to handle them.
  *
@@ -29,6 +32,14 @@ namespace celeritas
 class RootFileManager
 {
   public:
+#if CELERITAS_USE_ROOT
+    // Whether ROOT output is enabled
+    static bool use_root();
+#else
+    // ROOT is never enabled if ROOT isn't available
+    constexpr static bool use_root() { return false; }
+#endif
+
     // Construct with filename
     explicit RootFileManager(char const* filename);
 

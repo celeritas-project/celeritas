@@ -51,7 +51,6 @@ QuadricCylConverter::QuadricCylConverter(real_type tol) : soft_equal_{tol} {}
 /*!
  * Try converting to a cylinder with this orientation.
  *
- * \f[
  * Cone:
  * \verbatim
     (x - x_0)^2 + (y - y_0)^2 - r^2 = 0

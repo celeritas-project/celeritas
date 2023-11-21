@@ -17,6 +17,12 @@
 
 namespace celeritas
 {
+namespace detail
+{
+template<class, class>
+struct LdgLoader;
+}  // namespace detail
+
 //---------------------------------------------------------------------------//
 /*!
  * Type-safe index for accessing an array.
@@ -30,7 +36,8 @@ namespace celeritas
 template<class ValueT, class SizeT = ::celeritas::size_type>
 class OpaqueId
 {
-    static_assert(static_cast<SizeT>(-1) > 0, "SizeT must be unsigned.");
+    static_assert(std::is_unsigned_v<SizeT> && !std::is_same_v<SizeT, bool>,
+                  "SizeT must be unsigned.");
 
   public:
     //!@{
@@ -91,6 +98,7 @@ class OpaqueId
     {
         return static_cast<size_type>(-1);
     }
+    friend detail::LdgLoader<OpaqueId<value_type, size_type> const, void>;
 };
 
 //---------------------------------------------------------------------------//
@@ -124,6 +132,14 @@ CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, U rhs)
     return lhs && (U(lhs.unchecked_get()) < rhs);
 }
 
+//! Allow less-than-equal comparison with *integer* for container comparison
+template<class V, class S, class U>
+CELER_CONSTEXPR_FUNCTION bool operator<=(OpaqueId<V, S> lhs, U rhs)
+{
+    // Cast to RHS
+    return lhs && (U(lhs.unchecked_get()) <= rhs);
+}
+
 //! Get the distance between two opaque IDs
 template<class V, class S>
 inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
@@ -153,7 +169,25 @@ operator-(OpaqueId<V, S> id, std::make_signed_t<S> offset)
     return OpaqueId<V, S>{id.unchecked_get() - static_cast<S>(offset)};
 }
 
+namespace detail
+{
+//! Template matching to determine if T is an OpaqueId
+template<class T>
+struct IsOpaqueId : std::false_type
+{
+};
+template<class V, class S>
+struct IsOpaqueId<OpaqueId<V, S>> : std::true_type
+{
+};
+template<class V, class S>
+struct IsOpaqueId<OpaqueId<V, S> const> : std::true_type
+{
+};
+template<class T>
+inline constexpr bool is_opaque_id_v = IsOpaqueId<T>::value;
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
 
 //---------------------------------------------------------------------------//
@@ -164,9 +198,7 @@ namespace std
 template<class V, class S>
 struct hash<celeritas::OpaqueId<V, S>>
 {
-    using argument_type = celeritas::OpaqueId<V, S>;
-    using result_type = std::size_t;
-    result_type operator()(argument_type const& id) const noexcept
+    std::size_t operator()(celeritas::OpaqueId<V, S> const& id) const noexcept
     {
         return std::hash<S>()(id.unchecked_get());
     }

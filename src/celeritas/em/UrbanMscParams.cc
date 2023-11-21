@@ -156,8 +156,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
             = get_scaled_xs(host_data.ids.electron)->physics_vectors;
         CELER_ASSERT(!phys_vec.empty());
         CELER_ASSERT(!phys_vec[0].x.empty());
-        host_data.params.low_energy_limit = MevEnergy{phys_vec[0].x.front()};
-        host_data.params.high_energy_limit = MevEnergy{phys_vec[0].x.back()};
+        host_data.params.low_energy_limit = MevEnergy(phys_vec[0].x.front());
+        host_data.params.high_energy_limit = MevEnergy(phys_vec[0].x.back());
     }
 
     {
@@ -195,7 +195,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
             mdata.push_back(UrbanMscParams::calc_material_data(mat));
 
             // Build particle-dependent data
-            const real_type zeff = mat.zeff();
+            double const zeff = mat.zeff();
             for (size_type p : range(par_ids.size()))
             {
                 UrbanMscParMatData this_pm;
@@ -230,9 +230,9 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                 // `UrbanMsc::is_applicable` to look up the particle and
                 // material
                 CELER_VALIDATE(host_data.params.low_energy_limit
-                                       == MevEnergy{pvec.x.front()}
+                                       == MevEnergy(pvec.x.front())
                                    && host_data.params.high_energy_limit
-                                          == MevEnergy{pvec.x.back()},
+                                          == MevEnergy(pvec.x.back()),
                                << "multiple scattering cross section energy "
                                   "limits are inconsistent across particles "
                                   "and/or materials");

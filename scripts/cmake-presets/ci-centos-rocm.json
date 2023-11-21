@@ -9,7 +9,6 @@
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
@@ -23,7 +22,7 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_TEST_VERBOSE": {"type": "BOOL", "value": "OFF"}, 
+        "CELERITAS_TEST_VERBOSE": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_COMPILER": "/opt/rocm/llvm/bin/clang++",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
         "CMAKE_CXX_STANDARD": "17",
@@ -34,48 +33,51 @@
       }
     },
     {
-      "name": "asan",
-      "description": "Build with address sanitizer flags",
-      "inherits": ["base"],
+      "name": "reldeb-orange-asan",
+      "description": "Build with address sanitizer flags without hip",
+      "inherits": ["base", ".reldeb"],
       "cacheVariables": {
         "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
       }
     },
     {
-      "name": "debug",
-      "description": "Build debug with HIP/ROCM for AMD",
-      "inherits": "base"
-    },
-    {
-      "name": "minitest",
-      "description": "Build without any dependencies but JSON/Googletest",
-      "inherits": "base",
+      "name": "debug-orange-minimal",
+      "description": "Build with minimal reasonable dependencies",
+      "inherits": [".debug", "base"],
       "cacheVariables": {
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
-      "name": "ndebug",
-      "description": "Build with HIP/ROCM for AMD",
+      "name": "debug-orange-float",
+      "description": "Build with single-precision arithmetic (no HIP)",
+      "inherits": [".reldeb", "base"],
+      "cacheVariables": {
+        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_REAL_TYPE": "float"
+      }
+    },
+    {
+      "name": "ndebug-orange-float",
+      "description": "Build with single-precision arithmetic and HIP/ROCm",
       "inherits": [".ndebug", "base"],
       "cacheVariables": {
-        "BUILD_SHARED_LIBS": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_REAL_TYPE": "float"
       }
     },
     {
-      "name": "geant4",
-      "description": "Build with geant4 as the core geometry",
-      "inherits": ["base"],
+      "name": "ndebug-orange",
+      "description": "Build with HIP/ROCm for AMD",
+      "inherits": [".ndebug", "base"]
+    },
+    {
+      "name": "reldeb-geant4",
+      "description": "Build with geant4 as the core geometry (no HIP)",
+      "inherits": [".reldeb", "base"],
       "cacheVariables": {
         "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
@@ -92,11 +94,12 @@
       "verbose": true,
       "jobs": 16
     },
-    {"name": "asan", "configurePreset": "asan", "inherits": "base"},
-    {"name": "debug", "configurePreset": "debug", "inherits": "base"},
-    {"name": "minitest", "configurePreset": "minitest", "inherits": "base"},
-    {"name": "geant4", "configurePreset": "geant4", "inherits": "base"},
-    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base",
+    {"name": "reldeb-orange-asan", "configurePreset": "reldeb-orange-asan", "inherits": "base"},
+    {"name": "debug-orange-minimal", "configurePreset": "debug-orange-minimal", "inherits": "base"},
+    {"name": "debug-orange-float", "configurePreset": "debug-orange-float", "inherits": "base"},
+    {"name": "ndebug-orange-float", "configurePreset": "ndebug-orange-float", "inherits": "base"},
+    {"name": "reldeb-geant4", "configurePreset": "reldeb-geant4", "inherits": "base"},
+    {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base",
      "targets": ["all", "install"]}
   ],
   "testPresets": [
@@ -115,10 +118,11 @@
         "outputOnFailure": true
       }
     },
-    {"name": "asan", "configurePreset": "asan", "inherits": "base"},
-    {"name": "debug", "configurePreset": "debug", "inherits": "base"},
-    {"name": "minitest", "configurePreset": "minitest", "inherits": "base"},
-    {"name": "geant4", "configurePreset": "geant4", "inherits": "base"},
-    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+    {"name": "reldeb-orange-asan", "configurePreset": "reldeb-orange-asan", "inherits": "base"},
+    {"name": "debug-orange-minimal", "configurePreset": "debug-orange-minimal", "inherits": "base"},
+    {"name": "debug-orange-float", "configurePreset": "debug-orange-float", "inherits": "base"},
+    {"name": "ndebug-orange-float", "configurePreset": "ndebug-orange-float", "inherits": "base"},
+    {"name": "reldeb-geant4", "configurePreset": "reldeb-geant4", "inherits": "base"},
+    {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base"}
   ]
 }

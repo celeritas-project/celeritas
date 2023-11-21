@@ -58,7 +58,7 @@ struct FieldDriverOptions
     //! Smallest allowable relative decrease in step size
     real_type max_stepping_decrease = 0.1;
 
-    //! Maximum number of steps (or trials)
+    //! Maximum number of integrations (or trials)
     short int max_nsteps = 100;
 
     //! Initial step tolerance
@@ -89,6 +89,7 @@ struct FieldDriverOptions
     }
 };
 
+//---------------------------------------------------------------------------//
 //! Equality operator
 constexpr bool
 operator==(FieldDriverOptions const& a, FieldDriverOptions const& b)
@@ -111,6 +112,10 @@ operator==(FieldDriverOptions const& a, FieldDriverOptions const& b)
            && a.min_chord_shrink == b.min_chord_shrink;
     // clang-format on
 }
+
+//---------------------------------------------------------------------------//
+// Throw a runtime assertion if any of the input is invalid
+void validate_input(FieldDriverOptions const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

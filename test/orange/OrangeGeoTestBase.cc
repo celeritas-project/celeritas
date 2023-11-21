@@ -12,16 +12,19 @@
 #include <utility>
 
 #include "celeritas_config.h"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/io/Logger.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/Types.hh"
 #include "orange/construct/OrangeInput.hh"
-#include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/detail/UniverseIndexer.hh"
+#include "orange/surf/LocalSurfaceVisitor.hh"
 #include "orange/surf/Sphere.hh"
-#include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/SurfaceIO.hh"
+
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -30,18 +33,6 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-struct ToStream
-{
-    std::ostream& os;
-
-    template<class S>
-    std::ostream& operator()(S&& surf) const
-    {
-        os << surf;
-        return os;
-    }
-};
-
 OrangeInput to_input(UnitInput u)
 {
     OrangeInput result;
@@ -80,14 +71,6 @@ std::vector<Sense> OrangeGeoTestBase::string_to_senses(std::string const& s)
 }
 
 //---------------------------------------------------------------------------//
-//! Default constructor
-OrangeGeoTestBase::OrangeGeoTestBase() = default;
-
-//---------------------------------------------------------------------------//
-//! Default destructor
-OrangeGeoTestBase::~OrangeGeoTestBase() = default;
-
-//---------------------------------------------------------------------------//
 /*!
  * Load a geometry from the given JSON filename.
  */
@@ -98,8 +81,12 @@ void OrangeGeoTestBase::build_geometry(char const* filename)
     CELER_VALIDATE(CELERITAS_USE_JSON,
                    << "JSON is not enabled so geometry cannot be loaded");
 
+    ScopedLogStorer scoped_log_{&celeritas::world_logger()};
     params_
         = std::make_unique<Params>(this->test_data_path("orange", filename));
+
+    static char const* const expected_log_levels[] = {"info"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 //---------------------------------------------------------------------------//
@@ -110,20 +97,20 @@ void OrangeGeoTestBase::build_geometry(OneVolInput inp)
 {
     CELER_EXPECT(!params_);
     UnitInput input;
-    {
-        // Insert volumes
-        VolumeInput vi;
-        vi.logic = {logic::ltrue};
-        vi.flags = (inp.complex_tracking ? VolumeInput::Flags::internal_surfaces
-                                         : 0);
-        vi.label = "infinite";
-        input.volumes.push_back(std::move(vi));
-    }
-
-    // Save fake bbox for sampling
+    input.label = "one volume";
+    // Fake bbox for sampling
     input.bbox = {{-0.5, -0.5, -0.5}, {0.5, 0.5, 0.5}};
 
-    input.label = "one volume";
+    input.volumes = {[&inp] {
+        VolumeInput vi;
+        vi.logic = {logic::ltrue};
+        vi.flags = (inp.complex_tracking ? static_cast<logic_int>(
+                        VolumeInput::Flags::internal_surfaces)
+                                         : 0);
+        vi.zorder = ZOrder::media;
+        vi.label = "infinite";
+        return vi;
+    }()};
 
     return this->build_geometry(std::move(input));
 }
@@ -136,43 +123,33 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
 {
     CELER_EXPECT(!params_);
     CELER_EXPECT(inp.radius > 0);
+
     UnitInput input;
+    input.label = "two volumes";
+    input.bbox = {{-inp.radius, -inp.radius, -inp.radius},
+                  {inp.radius, inp.radius, inp.radius}};
 
-    BBox bbox = {{-inp.radius, -inp.radius, -inp.radius},
-                 {inp.radius, inp.radius, inp.radius}};
-
-    auto inf = std::numeric_limits<real_type>::infinity();
-
-    BBox inf_bbox = {{-inf, -inf, -inf}, {inf, inf, inf}};
-
-    {
-        // Insert surfaces
-        SurfaceInputBuilder insert(&input.surfaces);
-        insert(Sphere({0, 0, 0}, inp.radius), Label("sphere"));
-    }
-    {
-        // Insert volumes
+    input.surfaces = {Sphere({0, 0, 0}, inp.radius)};
+    input.surface_labels = {Label("sphere")};
+    input.volumes = [&input] {
+        std::vector<VolumeInput> result;
         VolumeInput vi;
         vi.faces = {LocalSurfaceId{0}};
+        vi.zorder = ZOrder::media;
 
         // Outside
         vi.logic = {0};
         vi.label = "outside";
-        vi.bbox = inf_bbox;
-        input.volumes.push_back(vi);
+        vi.bbox = BBox::from_infinite();
+        result.push_back(vi);
 
         // Inside
         vi.logic = {0, logic::lnot};
         vi.label = "inside";
-        vi.bbox = bbox;
-        input.volumes.push_back(vi);
-    }
-
-    // Save bbox
-    input.bbox = {{-inp.radius, -inp.radius, -inp.radius},
-                  {inp.radius, inp.radius, inp.radius}};
-
-    input.label = "two volumes";
+        vi.bbox = input.bbox;
+        result.push_back(vi);
+        return result;
+    }();
 
     return this->build_geometry(std::move(input));
 }
@@ -225,18 +202,16 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     // TODO: update when multiple units are in play
     auto const& host_ref = this->host_params();
     CELER_ASSERT(host_ref.simple_units.size() == 1);
+    LocalSurfaceVisitor visit{host_ref, SimpleUnitId{0}};
 
     os << "# Surfaces\n";
-    Surfaces surfaces(host_ref,
-                      host_ref.simple_units[SimpleUnitId{0}].surfaces);
-    auto surf_to_stream = make_surface_action(surfaces, ToStream{os});
 
     // Loop over all surfaces and apply
-    for (auto id : range(LocalSurfaceId{surfaces.num_surfaces()}))
+    for (auto id : range(LocalSurfaceId{this->params().num_surfaces()}))
     {
         os << " - " << this->id_to_label(UniverseId{0}, id) << "(" << id.get()
            << "): ";
-        surf_to_stream(id);
+        visit([&os](auto const& surf) { os << surf; }, id);
         os << '\n';
     }
 }

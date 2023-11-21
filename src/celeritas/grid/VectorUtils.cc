@@ -28,7 +28,7 @@ std::vector<double> space_impl(double start, double stop, size_type n)
     result.front() = start;
     for (auto i : range<size_type>(1, n - 1))
     {
-        result[i] = interp(i);
+        result[i] = interp(static_cast<double>(i));
     }
     // Manually set last point to avoid any differences due to roundoff
     result.back() = stop;

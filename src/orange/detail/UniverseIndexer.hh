@@ -83,7 +83,7 @@ class UniverseIndexer
         = Collection<size_type, Ownership::const_reference, MemSpace::native>;
     using AllVals = AllItems<size_type, MemSpace::native>;
     using SizeId = OpaqueId<size_type>;
-    using SpanIter = Span<size_type const>::const_iterator;
+    using SpanIter = typename DataRef::SpanConstT::const_iterator;
 
     //// DATA ////
     UniverseIndexerDataRef data_;

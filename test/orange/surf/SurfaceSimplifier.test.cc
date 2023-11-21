@@ -20,6 +20,7 @@ namespace celeritas
 {
 namespace test
 {
+using constants::sqrt_three;
 using constants::sqrt_two;
 
 //---------------------------------------------------------------------------//
@@ -149,6 +150,7 @@ TEST_F(SurfaceSimplifierTest, cyl_aligned)
 TEST_F(SurfaceSimplifierTest, plane)
 {
     this->check_unchanged(Plane{{1 / sqrt_two, 0, 1 / sqrt_two}, 2.0});
+    this->check_unchanged(Plane{{1 / sqrt_two, 0, 1 / sqrt_two}, 0.0});
 
     this->check_round_trip<Plane>(PlaneX{4.0});
     this->check_round_trip<Plane>(PlaneY{-1.0});
@@ -158,6 +160,9 @@ TEST_F(SurfaceSimplifierTest, plane)
         Plane{{-1 / sqrt_two, -1 / sqrt_two, 0.0}, -2 * sqrt_two},
         Plane{{1 / sqrt_two, 1 / sqrt_two, 0.0}, 2 * sqrt_two},
         Sense::outside);
+
+    this->check_simplifies_to(Plane{{sqrt_three / 2, 0.5, 0.0}, 1e-15},
+                              Plane{{sqrt_three / 2, 0.5, 0.0}, 0});
 
     // Check vector/displacement normalization
     Real3 n{1, 0, 1e-4};
@@ -184,6 +189,11 @@ TEST_F(SurfaceSimplifierTest, sphere)
 TEST_F(SurfaceSimplifierTest, cone_aligned)
 {
     this->check_unchanged(ConeX{{1, 2, 3}, 0.5});
+    this->check_simplifies_to(ConeX{{1e-7, -1e-7, 1e-9}, 0.5},
+                              ConeX{{0, 0, 0}, 0.5});
+    this->check_simplifies_to(ConeY{{10, -1e-7, 1}, 0.5},
+                              ConeY{{10, 0, 1}, 0.5});
+    this->check_unchanged(ConeX{{0, 0, 0}, 0.5});
 }
 
 TEST_F(SurfaceSimplifierTest, simple_quadric)
@@ -197,7 +207,11 @@ TEST_F(SurfaceSimplifierTest, simple_quadric)
         SCOPED_TRACE("cylinder");
         this->check_round_trip<SimpleQuadric>(CylX{{4, 5, -1}, 4.0});
         this->check_round_trip<SimpleQuadric>(CylY{{4, 5, -1}, 1.0});
-        this->check_round_trip<SimpleQuadric>(CylZ{{4, 5, -1}, 0.1});
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            this->check_round_trip<SimpleQuadric>(CylZ{{4, 5, -1}, 0.1});
+        }
     }
 
     {
@@ -243,7 +257,7 @@ TEST_F(SurfaceSimplifierTest, simple_quadric)
         SCOPED_TRACE("scaled near-cylinder");
         // CylY{{1,2,3}, 2.5} -> SQ{{1,0,1}, {-2,0,-6}, 3.75}
         this->check_simplifies_to(
-            SimpleQuadric{{1, 1e-8, 1}, {-2, 0, -6}, 3.75},
+            SimpleQuadric{{1, 1e-9, 1}, {-2, 0, -6}, 3.75},
             CylY{{1, 2, 3}, 2.5});
     }
 

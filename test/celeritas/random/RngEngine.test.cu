@@ -62,7 +62,6 @@ std::vector<unsigned int> re_test_native(RngDeviceRef states)
     thrust::device_vector<unsigned int> samples(states.size());
 
     CELER_LAUNCH_KERNEL(sample_native,
-                        device().default_block_size(),
                         states.size(),
                         0,
                         states,
@@ -81,10 +80,8 @@ std::vector<T> re_test_canonical(RngDeviceRef states)
 {
     thrust::device_vector<T> samples(states.size());
 
-    static const KernelParamCalculator calc_launch_params(
-        "sample_canonical",
-        sample_canonical_kernel<T>,
-        device().default_block_size());
+    static KernelParamCalculator const calc_launch_params(
+        "sample_canonical", sample_canonical_kernel<T>);
     auto grid = calc_launch_params(states.size());
 
     CELER_LAUNCH_KERNEL_IMPL(sample_canonical_kernel<T>,

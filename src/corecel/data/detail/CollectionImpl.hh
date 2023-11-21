@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #ifndef CELER_DEVICE_COMPILE
 #    include <vector>
 
@@ -17,6 +19,10 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/LdgIterator.hh"
+#include "corecel/data/PinnedAllocator.hh"
+#include "corecel/data/detail/LdgIteratorImpl.hh"
+#include "corecel/sys/Device.hh"
 
 #include "../Copier.hh"
 #include "DisabledStorage.hh"
@@ -26,27 +32,53 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<class T, Ownership W>
+template<class T, Ownership W, typename = void>
 struct CollectionTraits
 {
     using type = T;
     using const_type = T const;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
-struct CollectionTraits<T, Ownership::reference>
+struct CollectionTraits<T, Ownership::reference, void>
 {
     using type = T;
     using const_type = T;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
-struct CollectionTraits<T, Ownership::const_reference>
+struct CollectionTraits<T,
+                        Ownership::const_reference,
+                        std::enable_if_t<!is_ldg_supported_v<std::add_const_t<T>>>>
 {
     using type = T const;
     using const_type = T const;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
+};
+template<class T>
+struct CollectionTraits<T,
+                        Ownership::const_reference,
+                        std::enable_if_t<is_ldg_supported_v<std::add_const_t<T>>>>
+{
+    using type = T const;
+    using const_type = T const;
+    using reference_type = type;
+    using const_reference_type = const_type;
+    using SpanT = Span<LdgValue<const_type>>;
+    using SpanConstT = Span<LdgValue<const_type>>;
 };
 
 //---------------------------------------------------------------------------//
@@ -54,7 +86,7 @@ struct CollectionTraits<T, Ownership::const_reference>
 template<class T, Ownership W, MemSpace M>
 struct CollectionStorage
 {
-    using type = Span<typename CollectionTraits<T, W>::type>;
+    using type = typename CollectionTraits<T, W>::SpanT;
     type data;
 };
 
@@ -62,6 +94,8 @@ template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::host>;
 template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::device>;
+template<class T>
+struct CollectionStorage<T, Ownership::value, MemSpace::mapped>;
 
 //---------------------------------------------------------------------------//
 //! Storage implementation for managed host data
@@ -90,6 +124,22 @@ struct CollectionStorage<T, Ownership::value, MemSpace::device>
     using type = DisabledStorage<T>;
 #else
     using type = DeviceVector<T>;
+#endif
+    type data;
+};
+
+//! Storage implementation for mapped host/device data
+template<class T>
+struct CollectionStorage<T, Ownership::value, MemSpace::mapped>
+{
+    static_assert(!std::is_same<T, bool>::value,
+                  "bool is not compatible between vector and anything else");
+#ifdef CELER_DEVICE_COMPILE
+    // Use "not implemented" but __host__ __device__ decorated functions when
+    // compiling in CUDA
+    using type = DisabledStorage<T>;
+#else
+    using type = std::vector<T, PinnedAllocator<T>>;
 #endif
     type data;
 };
@@ -126,6 +176,8 @@ template<>
 struct CollectionAssigner<Ownership::value, MemSpace::host>;
 template<>
 struct CollectionAssigner<Ownership::value, MemSpace::device>;
+template<>
+struct CollectionAssigner<Ownership::value, MemSpace::mapped>;
 
 //---------------------------------------------------------------------------//
 //! Check that sizes are acceptable when creating references from values
@@ -199,16 +251,23 @@ struct CollectionAssigner<Ownership::value, MemSpace::device>
 };
 
 //---------------------------------------------------------------------------//
-//! Template matching to determine if T is an OpaqueId
-template<class T>
-struct IsOpaqueId
+//! Assignment semantics for copying to mapped memory
+template<>
+struct CollectionAssigner<Ownership::value, MemSpace::mapped>
 {
-    static constexpr bool value = false;
-};
-template<class V, class S>
-struct IsOpaqueId<OpaqueId<V, S>>
-{
-    static constexpr bool value = true;
+    CollectionAssigner()
+    {
+        CELER_VALIDATE(celeritas::device().can_map_host_memory(),
+                       << "Device " << celeritas::device().device_id()
+                       << " doesn't support unified addressing");
+    }
+
+    template<class T, Ownership W2, MemSpace M2>
+    auto operator()(CollectionStorage<T, W2, M2> const& source)
+        -> CollectionStorage<T, Ownership::value, M2>
+    {
+        return {{source.data.data(), source.data.data() + source.data.size()}};
+    }
 };
 
 //---------------------------------------------------------------------------//

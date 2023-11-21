@@ -15,7 +15,8 @@
 #include "celeritas_test.hh"
 
 #if CELERITAS_USE_GEANT4
-#    include "CLHEP/Units/PhysicalConstants.h"
+#    include <CLHEP/Units/PhysicalConstants.h>
+#    include <CLHEP/Units/SystemOfUnits.h>
 #endif
 
 namespace celeritas
@@ -28,14 +29,14 @@ namespace test
 
 TEST(ConstantsTest, mathematical)
 {
-    EXPECT_DOUBLE_EQ(euler, std::exp(1.0));
-    EXPECT_DOUBLE_EQ(pi, std::acos(-1.0));
-    EXPECT_DOUBLE_EQ(sqrt_two, std::sqrt(2.0));
-    EXPECT_DOUBLE_EQ(sqrt_three, std::sqrt(3.0));
+    EXPECT_REAL_EQ(euler, std::exp(1.0));
+    EXPECT_REAL_EQ(pi, std::acos(-1.0));
+    EXPECT_REAL_EQ(sqrt_two, std::sqrt(2.0));
+    EXPECT_REAL_EQ(sqrt_three, std::sqrt(3.0));
 }
 
 //! Test that no precision is lost for cm<->m and other integer factors.
-TEST(ConstantsTest, exact_equivalence)
+TEST(ConstantsTest, TEST_IF_CELERITAS_DOUBLE(exact_equivalence))
 {
     EXPECT_EQ(299792458e2, c_light);  // cm/s
     EXPECT_EQ(6.62607015e-27, h_planck);  // erg
@@ -43,19 +44,15 @@ TEST(ConstantsTest, exact_equivalence)
 
 TEST(ConstantsTest, formulas)
 {
-    EXPECT_SOFT_NEAR(e_electron * e_electron
-                         / (2 * alpha_fine_structure * h_planck * c_light),
-                     eps_electric,
-                     1e-11);
-    EXPECT_SOFT_NEAR(
-        1 / (eps_electric * c_light * c_light), mu_magnetic, 1e-11);
-    EXPECT_SOFT_NEAR(
+    EXPECT_SOFT_EQ(e_electron * e_electron
+                       / (2 * alpha_fine_structure * h_planck * c_light),
+                   eps_electric);
+    EXPECT_SOFT_EQ(1 / (eps_electric * c_light * c_light), mu_magnetic);
+    EXPECT_SOFT_EQ(
         hbar_planck / (alpha_fine_structure * electron_mass * c_light),
-        a0_bohr,
-        1e-11);
-    EXPECT_SOFT_NEAR(alpha_fine_structure * alpha_fine_structure * a0_bohr,
-                     r_electron,
-                     1e-11);
+        a0_bohr);
+    EXPECT_SOFT_EQ(alpha_fine_structure * alpha_fine_structure * a0_bohr,
+                   r_electron);
 }
 
 TEST(ConstantsTest, clhep)
@@ -85,16 +82,14 @@ TEST(ConstantsTest, clhep)
 TEST(ConstantsTest, derivative)
 {
     // Compared against definition of Dalton, table 8 of SI 2019
-    EXPECT_SOFT_NEAR(1.66053906660e-27 * units::kilogram, atomic_mass, 1e-11);
-    EXPECT_SOFT_NEAR(1.602176634e-19, e_electron * units::volt, 1e-11);
+    EXPECT_SOFT_EQ(1.66053906660e-27 * units::kilogram, atomic_mass);
+    EXPECT_SOFT_EQ(1.602176634e-19 * units::joule, e_electron * units::volt);
 
     // CODATA 2018 listings
-    EXPECT_SOFT_NEAR(1.49241808560e-10 * units::joule,
-                     atomic_mass * c_light * c_light,
-                     1e-11);
-    EXPECT_SOFT_NEAR(931.49410242e6 * e_electron * units::volt,
-                     atomic_mass * c_light * c_light,
-                     1e-11);
+    EXPECT_SOFT_EQ(1.49241808560e-10 * units::joule,
+                   atomic_mass * c_light * c_light);
+    EXPECT_SOFT_EQ(931.49410242e6 * e_electron * units::volt,
+                   atomic_mass * c_light * c_light);
 }
 
 //---------------------------------------------------------------------------//
@@ -108,10 +103,10 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(UnitsTest, equivalence)
 {
-    EXPECT_DOUBLE_EQ(ampere * ampere * second * second * second * second
-                         / (kilogram * meter * meter),
-                     farad);
-    EXPECT_DOUBLE_EQ(kilogram * meter * meter / (second * second), joule);
+    EXPECT_REAL_EQ(ampere * ampere * second * second * second * second
+                       / (kilogram * meter * meter),
+                   farad);
+    EXPECT_REAL_EQ(kilogram * meter * meter / (second * second), joule);
 
     constexpr real_type erg = gram * centimeter * centimeter
                               / (second * second);
@@ -119,7 +114,7 @@ TEST(UnitsTest, equivalence)
     EXPECT_EQ(real_type(1), erg);
     EXPECT_EQ(1e7 * erg, joule);
 
-    EXPECT_DOUBLE_EQ(1e4, tesla);
+    EXPECT_REAL_EQ(1e4, tesla);
 }
 
 //---------------------------------------------------------------------------//

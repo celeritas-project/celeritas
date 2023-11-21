@@ -77,7 +77,8 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
     CELER_EXPECT(is);
 
-    ScopedMem record_mem("demo_loop.run");
+    ScopedProfiling profile_this{"celer-sim"};
+    ScopedMem record_mem("celer-sim.run");
 
     // Read input options and save a copy for output
     auto run_input = std::make_shared<RunnerInput>();
@@ -105,19 +106,23 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     }
     result.num_streams = num_streams;
 
+    if (run_input->warm_up)
+    {
+        get_setup_time = {};
+        run_stream.warm_up();
+        result.warmup_time = get_setup_time();
+    }
+
+    // Start profiling *after* initialization and warmup are complete
     Stopwatch get_transport_time;
     if (run_input->merge_events)
     {
-        ScopedProfiling profile_this{"celer-sim"};
-
         // Run all events simultaneously on a single stream
         result.events.front() = run_stream();
     }
     else
     {
         MultiExceptionHandler capture_exception;
-        ScopedProfiling profile_this{"celer-sim"};
-
 #ifdef _OPENMP
         // Set the maximum number of nested parallel regions
         // TODO: Enable nested OpenMP parallel regions for multithreaded CPU
@@ -138,6 +143,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
         }
         log_and_rethrow(std::move(capture_exception));
     }
+    result.action_times = run_stream.get_action_times();
     result.total_time = get_transport_time();
     record_mem = {};
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));

@@ -414,8 +414,9 @@ struct ContainerReprTraits
     }
 };
 
-template<class T>
-struct ReprTraits<std::vector<T>> : public ContainerReprTraits<std::vector<T>>
+template<class T, class A>
+struct ReprTraits<std::vector<T, A>>
+    : public ContainerReprTraits<std::vector<T, A>>
 {
     using value_type = std::decay_t<T>;
 

@@ -4,19 +4,45 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/HashUtils.hh
+// TODO: rename to Hasher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cstddef>
 #include <functional>
 #include <initializer_list>
+#include <type_traits>
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 
-#include "detail/HashUtilsImpl.hh"
+#include "detail/FnvHasher.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// TODO: add CMake configuration argument so this can be swapped out with e.g.
+// xxHash
+using Hasher = detail::FnvHasher<std::size_t>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Hash a span of contiguous data without padding.
+ *
+ * This should generally only be used if \c has_unique_object_representations_v
+ * is \c true, because e.g. structs have padding so this may result in reading
+ * uninitialized data or giving two equal structs different hashes.
+ */
+template<class T>
+std::size_t hash_as_bytes(Span<T const> s)
+{
+    std::size_t result{};
+    Hasher hash{&result};
+    hash(Span<std::byte const>{reinterpret_cast<std::byte const*>(s.data()),
+                               s.size() * sizeof(T)});
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Combine hashes of the given arguments using a fast hash algorithm.
@@ -33,15 +59,67 @@ template<class... Args>
 std::size_t hash_combine(Args const&... args)
 {
     // Construct a hasher and initialize
-    std::size_t result;
-    [[maybe_unused]] auto hash_fnv = detail::make_fast_hasher(&result);
+    std::size_t result{};
+    [[maybe_unused]] Hasher hash{&result};
 
     // Hash each one of the arguments sequentially by expanding into an unused
     // initializer list.
-    (void)std::initializer_list<int>{(hash_fnv(std::hash<Args>()(args)), 0)...};
+    (void)std::initializer_list<int>{(hash(std::hash<Args>()(args)), 0)...};
 
     return result;
 }
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+
+//---------------------------------------------------------------------------//
+// HASH SPECIALIZATIONS
+//---------------------------------------------------------------------------//
+//! \cond
+namespace std
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Hash specialization for celeritas span.
+ *
+ * This has three distinct cases:
+ * 1. Unique object representation: use for structs without padding or floats.
+ * 2. Floating point values: these will hash uniquely if they're not NaN.
+ * 3. All other types: combine the hash of their individual values.
+ */
+template<class T, std::size_t Extent>
+struct hash<celeritas::Span<T, Extent>>
+{
+    std::size_t operator()(celeritas::Span<T, Extent> const& s) const
+    {
+        if constexpr (std::has_unique_object_representations_v<T>)
+        {
+            return celeritas::hash_as_bytes(s);
+        }
+        else if constexpr (std::is_floating_point_v<T>)
+        {
+            CELER_EXPECT(([&s] {
+                for (auto const& v : s)
+                {
+                    if (v != v)
+                        return false;
+                }
+                return true;
+            }()));
+            return celeritas::hash_as_bytes(s);
+        }
+        else
+        {
+            std::size_t result{};
+            celeritas::Hasher hash{&result};
+            for (auto const& v : s)
+            {
+                hash(std::hash<decltype(v)>{}(v));
+            }
+            return result;
+        }
+    }
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace std
+//! \endcond

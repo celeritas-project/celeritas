@@ -11,11 +11,9 @@
 #include <G4Event.hh>
 
 #include "corecel/Macros.hh"
-#include "corecel/sys/Environment.hh"
-#include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
-#include "HitRootIO.hh"
+#include "RootIO.hh"
 
 namespace celeritas
 {
@@ -25,13 +23,16 @@ namespace app
 /*!
  * Construct with thread-local Celeritas data.
  */
-EventAction::EventAction(SPConstParams params, SPTransporter transport)
+EventAction::EventAction(SPConstParams params,
+                         SPTransporter transport,
+                         SPDiagnostics diagnostics)
     : params_(params)
     , transport_(transport)
-    , disable_offloading_(!celeritas::getenv("CELER_DISABLE").empty())
+    , diagnostics_{std::move(diagnostics)}
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(transport_);
+    CELER_EXPECT(diagnostics_);
 }
 
 //---------------------------------------------------------------------------//
@@ -42,13 +43,13 @@ void EventAction::BeginOfEventAction(G4Event const* event)
 {
     CELER_LOG_LOCAL(debug) << "Starting event " << event->GetEventID();
 
-    if (disable_offloading_)
+    get_event_time_ = {};
+
+    if (SharedParams::CeleritasDisabled())
         return;
 
     // Set event ID in local transporter
-    ExceptionConverter call_g4exception{"celer0002"};
-    CELER_TRY_HANDLE(transport_->SetEventId(event->GetEventID()),
-                     call_g4exception);
+    transport_->SetEventId(event->GetEventID());
 }
 
 //---------------------------------------------------------------------------//
@@ -59,18 +60,20 @@ void EventAction::EndOfEventAction(G4Event const* event)
 {
     CELER_EXPECT(event);
 
-    if (!disable_offloading_)
+    if (!SharedParams::CeleritasDisabled())
     {
         // Transport any tracks left in the buffer
-        ExceptionConverter call_g4exception{"celer0004", params_.get()};
-        CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+        transport_->Flush();
     }
 
-    if (GlobalSetup::Instance()->GetWriteSDHits())
+    if (RootIO::use_root())
     {
         // Write sensitive hits
-        HitRootIO::Instance()->WriteHits(event);
+        RootIO::Instance()->Write(event);
     }
+
+    // Record the time for this event
+    diagnostics_->Timer()->RecordEventTime(get_event_time_());
 
     CELER_LOG_LOCAL(debug) << "Finished event " << event->GetEventID();
 }

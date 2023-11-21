@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "BIHBuilder.hh"
 
+#include "corecel/cont/VariantUtils.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/detail/BIHUtils.hh"
 
@@ -14,25 +15,6 @@ namespace celeritas
 {
 namespace detail
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-/*!
- * Variadic-templated struct for overloaded operator() calls.
- */
-template<typename... Ts>
-struct Overload : Ts...
-{
-    using Ts::operator()...;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * "Deduction guide" for instantiating Overload objects w/o specifying types.
- */
-template<class... Ts>
-Overload(Ts&&...) -> Overload<Ts...>;
-}  // namespace
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a Storage object
@@ -48,8 +30,9 @@ BIHBuilder::BIHBuilder(Storage* storage) : storage_(storage)
  */
 BIHTree BIHBuilder::operator()(VecBBox bboxes)
 {
-    // Store bounding boxes and their corresponding centers
     CELER_EXPECT(!bboxes.empty());
+
+    // Store bounding boxes and their corresponding centers
     bboxes_ = std::move(bboxes);
     centers_.resize(bboxes_.size());
     std::transform(bboxes_.begin(),
@@ -57,9 +40,9 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
                    centers_.begin(),
                    &celeritas::calc_center<fast_real_type>);
 
+    // Separate infinite bounding boxes from finite
     VecIndices indices;
     VecIndices inf_volids;
-
     for (auto i : range(bboxes_.size()))
     {
         LocalVolumeId id(i);
@@ -70,6 +53,7 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
         }
         else
         {
+            CELER_ASSERT(bboxes_[i]);
             inf_volids.push_back(id);
         }
     }
@@ -100,9 +84,8 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
     else
     {
         // Degenerate case where all bounding boxes are infinite. Create a
-        // single empty leaf node, so that the existance of leaf nodes does not
+        // single empty leaf node, so that the existence of leaf nodes does not
         // need to be checked at runtime.
-
         VecLeafNodes leaf_nodes{1};
         tree.leaf_nodes
             = make_builder(&storage_->leaf_nodes)
@@ -143,7 +126,6 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
             = p.bboxes[Edge::right].lower()[ax];
 
         // Recursively construct the left and right branches
-
         for (auto edge : range(Edge::size_))
         {
             node.bounding_planes[edge].child = BIHNodeId(nodes->size());
@@ -168,7 +150,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 
 //---------------------------------------------------------------------------//
 /*!
- * Seperate nodes into inner and leaf vectors and renumber accordingly.
+ * Separate inner nodes from leaf nodes and renumber accordingly.
  */
 BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
 {
@@ -176,56 +158,60 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
     VecLeafNodes leaf_nodes;
 
     std::vector<bool> is_leaf;
-    std::vector<BIHNodeId> new_ids;
+    std::vector<std::size_t> new_indices;
 
-    auto visit_node
-        = Overload{[&](BIHInnerNode const& node) {
-                       new_ids.push_back(BIHNodeId(inner_nodes.size()));
-                       inner_nodes.push_back(node);
-                       is_leaf.push_back(false);
-                   },
-                   [&](BIHLeafNode const& node) {
-                       new_ids.push_back(BIHNodeId(leaf_nodes.size()));
-                       leaf_nodes.push_back(node);
-                       is_leaf.push_back(true);
-                   }};
+    is_leaf.reserve(nodes.size());
+    new_indices.reserve(nodes.size());
 
+    auto insert_node = Overload{[&](BIHInnerNode const& node) {
+                                    new_indices.push_back(inner_nodes.size());
+                                    inner_nodes.push_back(node);
+                                    is_leaf.push_back(false);
+                                },
+                                [&](BIHLeafNode const& node) {
+                                    new_indices.push_back(leaf_nodes.size());
+                                    leaf_nodes.push_back(node);
+                                    is_leaf.push_back(true);
+                                }};
     for (auto const& node : nodes)
     {
-        std::visit(visit_node, node);
+        std::visit(insert_node, node);
     }
 
-    size_type offset = inner_nodes.size();
-
+    // Transform "leaf ID" to "node ID"
+    auto offset = inner_nodes.size();
     for (auto i : range(nodes.size()))
     {
         if (is_leaf[i])
         {
-            new_ids[i] = new_ids[i] + offset;
+            new_indices[i] += offset;
         }
     }
 
+    // Remap IDs. "parent" will only be undefined for the root node.
+    auto remapped_id = [&new_indices](BIHNodeId old) {
+        CELER_EXPECT(old < new_indices.size());
+        return BIHNodeId{
+            static_cast<size_type>(new_indices[old.unchecked_get()])};
+    };
+
     for (auto& inner_node : inner_nodes)
     {
-        for (auto edge : range(BIHInnerNode::Edge::size_))
+        for (auto& bp : inner_node.bounding_planes)
         {
-            inner_node.bounding_planes[edge].child
-                = new_ids[inner_node.bounding_planes[edge].child.unchecked_get()];
+            bp.child = remapped_id(bp.child);
         }
-
-        // Handle root node
         if (inner_node.parent)
         {
-            inner_node.parent = new_ids[inner_node.parent.unchecked_get()];
+            inner_node.parent = remapped_id(inner_node.parent);
         }
     }
 
     for (auto& leaf_node : leaf_nodes)
     {
-        // Handle where the entire tree is a single leaf node
         if (leaf_node.parent)
         {
-            leaf_node.parent = new_ids[leaf_node.parent.unchecked_get()];
+            leaf_node.parent = remapped_id(leaf_node.parent);
         }
     }
 

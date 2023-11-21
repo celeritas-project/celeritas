@@ -77,8 +77,9 @@ auto SurfaceSimplifier::operator()(PlaneAligned<T> const& p) const
     // No simplification performed
     return {};
 }
-
+//! \cond
 ORANGE_INSTANTIATE_OP(PlaneAligned, PlaneAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -104,7 +105,44 @@ auto SurfaceSimplifier::operator()(CylAligned<T> const& c) const
     return {};
 }
 
+//! \cond
 ORANGE_INSTANTIATE_OP(CylCentered, CylAligned);
+//! \endcond
+
+//---------------------------------------------------------------------------//
+/*!
+ * A cone whose origin is close to any axis will be snapped to it.
+ *
+ * This uses a 1-norm for simplicity.
+ */
+template<Axis T>
+auto SurfaceSimplifier::operator()(ConeAligned<T> const& c) const
+    -> Optional<ConeAligned<T>>
+{
+    bool simplified = false;
+    Real3 origin = c.origin();
+    SoftZero const soft_zero{tol_};
+    for (auto ax : range(to_int(Axis::size_)))
+    {
+        if (origin[ax] != 0 && soft_zero(origin[ax]))
+        {
+            origin[ax] = 0;
+            simplified = true;
+        }
+    }
+
+    if (simplified)
+    {
+        return ConeAligned<T>::from_tangent_sq(origin, c.tangent_sq());
+    }
+
+    // No simplification performed
+    return {};
+}
+
+//! \cond
+ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -167,6 +205,12 @@ auto SurfaceSimplifier::operator()(Plane const& p)
         n *= norm_factor;
         d *= norm_factor;
         return Plane{n, d};
+    }
+
+    if (d != 0 && SoftZero<>{tol_}(d))
+    {
+        // Snap zero-distances to zero
+        return Plane{n, 0};
     }
 
     // No simplification performed

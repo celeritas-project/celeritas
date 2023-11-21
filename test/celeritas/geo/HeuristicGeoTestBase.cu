@@ -42,12 +42,7 @@ heuristic_test_kernel(DeviceCRef<HeuristicGeoParamsData> const params,
 void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const& params,
                             DeviceRef<HeuristicGeoStateData> const& state)
 {
-    CELER_LAUNCH_KERNEL(heuristic_test,
-                        device().default_block_size(),
-                        state.size(),
-                        0,
-                        params,
-                        state);
+    CELER_LAUNCH_KERNEL(heuristic_test, state.size(), 0, params, state);
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }

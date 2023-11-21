@@ -20,6 +20,8 @@
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/ext/GeantUtils.hh"
+#include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -49,10 +51,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                       "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
 
-    // Thread ID is -1 when running serially
-    auto thread_id = G4Threading::IsMultithreadedApplication()
-                         ? G4Threading::G4GetThreadId()
-                         : 0;
+    auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
                    << "Geant4 ThreadID (" << thread_id
                    << ") is invalid (perhaps LocalTransporter is being built "
@@ -107,8 +106,8 @@ void LocalTransporter::Push(G4Track const& g4track)
 
     track.particle_id = particles_->find(
         PDGNumber{g4track.GetDefinition()->GetPDGEncoding()});
-    track.energy = units::MevEnergy{
-        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV)};
+    track.energy = units::MevEnergy(
+        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '"
@@ -198,6 +197,33 @@ void LocalTransporter::Finalize()
     *this = {};
 
     CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated action times.
+ */
+auto LocalTransporter::GetActionTime() const -> MapStrReal
+{
+    CELER_EXPECT(*this);
+
+    MapStrReal result;
+    auto const& action_seq = step_->actions();
+    if (action_seq.sync() || !celeritas::device())
+    {
+        // Save kernel timing if either on the device with synchronization
+        // enabled or on the host
+        auto const& action_ptrs = action_seq.actions();
+        auto const& time = action_seq.accum_time();
+
+        CELER_ASSERT(action_ptrs.size() == time.size());
+        for (auto i : range(action_ptrs.size()))
+        {
+            auto&& label = action_ptrs[i]->label();
+            result[label] = time[i];
+        }
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
