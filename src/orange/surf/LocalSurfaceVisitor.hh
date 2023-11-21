@@ -136,8 +136,10 @@ CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
         = this->get_item(params_.real_ids, surfaces_.data_offsets, id);
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());
-
-    return T{params_.reals[{offset, offset + size}]};
+    // Construct a range used to index into collection using the appropriate
+    // operator[] overload then convert to a statically sized span using the
+    // first() member template function as required by surface ctor
+    return T{params_.reals[{offset, offset + size}].template first<size>()};
 }
 
 //---------------------------------------------------------------------------//

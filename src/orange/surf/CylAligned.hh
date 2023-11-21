@@ -105,7 +105,8 @@ class CylAligned
     inline CELER_FUNCTION CylAligned(Real3 const& origin, real_type radius);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION CylAligned(Storage);
+    template<class R>
+    explicit inline CELER_FUNCTION CylAligned(Span<R, StorageSpan::extent>);
 
     // Promote from a centered axis-aligned cylinder
     explicit CylAligned(CylCentered<T> const& other) noexcept;
@@ -192,7 +193,8 @@ CELER_FUNCTION CylAligned<T>::CylAligned(Real3 const& origin, real_type radius)
  * Construct from raw data.
  */
 template<Axis T>
-CELER_FUNCTION CylAligned<T>::CylAligned(Storage data)
+template<class R>
+CELER_FUNCTION CylAligned<T>::CylAligned(Span<R, StorageSpan::extent> data)
     : origin_u_{data[0]}, origin_v_{data[1]}, radius_sq_{data[2]}
 {
 }
