@@ -1,5 +1,8 @@
 name: push
-run-name: "${{github.ref_name}} (@${{github.actor}})"
+# run-name: >-
+#   ${{github.ref_name}}:
+#   ${{github.event.head_commit.message}}
+#   (${{github.event.pusher.name}})
 
 on:
   push:

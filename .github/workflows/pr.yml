@@ -1,5 +1,7 @@
 name: pr
-run-name: "#${{github.event.pull_request.number}} (@${{github.actor}}): ${{github.ref_name}}"
+run-name: >-
+  ${{github.event.pull_request.title}}
+  (#${{github.event.pull_request.number}})
 
 on:
   pull_request:
