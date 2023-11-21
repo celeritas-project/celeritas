@@ -237,10 +237,10 @@ CELER_FUNCTION Span<const typename T::value_type> make_span(T const& cont)
 
 //---------------------------------------------------------------------------//
 //! Construct an array from a fixed-size span
-template<class T, std::size_t N, class T2 = std::remove_cv_t<T>>
-CELER_CONSTEXPR_FUNCTION Array<T2, N> make_array(Span<T, N> const& s)
+template<class T, std::size_t N>
+CELER_CONSTEXPR_FUNCTION auto make_array(Span<T, N> const& s)
 {
-    Array<T2, N> result{};
+    Array<std::remove_cv_t<T>, N> result{};
     for (std::size_t i = 0; i < N; ++i)
     {
         result[i] = s[i];
@@ -250,12 +250,15 @@ CELER_CONSTEXPR_FUNCTION Array<T2, N> make_array(Span<T, N> const& s)
 
 //---------------------------------------------------------------------------//
 //! Construct an array from a fixed-size span, removing LdgValue marker
-template<class T,
-         std::size_t N,
-         class T2 = std::remove_cv_t<typename LdgValue<T>::value_type>>
-CELER_CONSTEXPR_FUNCTION Array<T2, N> make_array(LdgSpan<T, N> const& s)
+//! make_array(Span<T,N> const&) is not reused because:
+//! 1. Using this overload reads input data using __ldg
+//! 2. return make_array<T, N>(s) results in segfault (gcc 11.3). maybe a
+//! compiler bug? Temporary lifetime should be extended until the end of the
+//! expression and we return a copy...
+template<class T, std::size_t N>
+CELER_CONSTEXPR_FUNCTION auto make_array(LdgSpan<T, N> const& s)
 {
-    Array<T2, N> result{};
+    Array<std::remove_cv_t<T>, N> result{};
     for (std::size_t i = 0; i < N; ++i)
     {
         result[i] = s[i];
