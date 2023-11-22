@@ -15,6 +15,7 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 list(APPEND SOURCES
   AlongStepFactory.cc
   FastSimulationOffload.cc
+  GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
   Logger.cc
   LocalTransporter.cc
@@ -22,6 +23,7 @@ list(APPEND SOURCES
   SetupOptionsMessenger.cc
   SharedParams.cc
   SimpleOffload.cc
+  detail/GeantSimpleCaloSD.cc
   detail/HitManager.cc
   detail/HitProcessor.cc
   detail/SensDetInserter.cc

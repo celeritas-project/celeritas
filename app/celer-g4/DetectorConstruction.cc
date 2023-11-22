@@ -22,11 +22,13 @@
 
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "accel/AlongStepFactory.hh"
+#include "accel/GeantSimpleCalo.hh"
 #include "accel/RZMapMagneticField.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
@@ -68,9 +70,36 @@ DetectorConstruction::DetectorConstruction(SPParams params)
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
+    CELER_EXPECT(GlobalSetup::Instance()->GetSDSetupOptions().enabled
+                 == (GlobalSetup::Instance()->input().sd_type
+                     != SensitiveDetectorType::none));
+
     auto geo = this->construct_geo();
     CELER_ASSERT(geo.world);
     detectors_ = std::move(geo.detectors);
+
+    if (!detectors_.empty()
+        && GlobalSetup::Instance()->input().sd_type
+               == SensitiveDetectorType::simple_calo)
+    {
+        this->foreach_detector([this](auto start, auto stop) {
+            std::string name = start->first;
+            std::vector<G4LogicalVolume*> volumes;
+            for (auto iter = start; iter != stop; ++iter)
+            {
+                volumes.push_back(iter->second);
+            }
+            CELER_LOG(debug) << "Creating GeantSimpleCalo '" << name
+                             << "' with " << volumes.size() << " volumes";
+
+            // Create calo manager
+            simple_calos_.push_back(std::make_shared<GeantSimpleCalo>(
+                std::move(name), params_, std::move(volumes)));
+
+            // Add to output
+            params_->output_reg()->insert(simple_calos_.back());
+        });
+    }
 
     auto field = this->construct_field();
     CELER_ASSERT(field.along_step);
@@ -224,38 +253,53 @@ void DetectorConstruction::ConstructSDandField()
             convert_to_geant(field_options.delta_intersection, CLHEP::cm));
     }
 
-    if (detectors_.empty())
+    auto sd_type = GlobalSetup::Instance()->input().sd_type;
+    auto* sd_manager = G4SDManager::GetSDMpointer();
+
+    if (sd_type == SensitiveDetectorType::none)
     {
-        return;
+        CELER_LOG_LOCAL(debug) << "No sensitive detectors requested";
     }
-
-    CELER_LOG_LOCAL(status) << "Loading sensitive detectors";
-
-    G4SDManager* sd_manager = G4SDManager::GetSDMpointer();
-    this->foreach_detector([sd_manager](auto start, auto stop) {
-        // Create one detector for all the volumes
-        auto detector = std::make_unique<SensitiveDetector>(start->first);
-
-        // Attach sensitive detectors
-        for (auto iter = start; iter != stop; ++iter)
+    else if (sd_type == SensitiveDetectorType::simple_calo)
+    {
+        CELER_LOG_LOCAL(status) << "Attaching simple calorimeters";
+        for (auto& calo : simple_calos_)
         {
-            CELER_LOG_LOCAL(debug)
-                << "Attaching '" << iter->first << "'@" << detector.get()
-                << " to '" << iter->second->GetName() << "'@"
-                << static_cast<void const*>(iter->second);
-            iter->second->SetSensitiveDetector(detector.get());
+            // Create and attach SD
+            auto detector = calo->MakeSensitiveDetector();
+            CELER_ASSERT(detector);
+            sd_manager->AddNewDetector(detector.release());
         }
+    }
+    else if (sd_type == SensitiveDetectorType::event_hit)
+    {
+        CELER_LOG_LOCAL(status) << "Creating SDs";
+        this->foreach_detector([sd_manager](auto start, auto stop) {
+            // Create one detector for all the volumes
+            auto detector = std::make_unique<SensitiveDetector>(start->first);
 
-        // Hand SD to the manager
-        sd_manager->AddNewDetector(detector.release());
+            // Attach sensitive detectors
+            for (auto iter = start; iter != stop; ++iter)
+            {
+                CELER_LOG_LOCAL(debug)
+                    << "Attaching '" << iter->first << "'@" << detector.get()
+                    << " to '" << iter->second->GetName() << "'@"
+                    << static_cast<void const*>(iter->second);
+                iter->second->SetSensitiveDetector(detector.get());
+            }
 
-        // Add to ROOT output
-        if (RootIO::use_root())
-        {
-            RootIO::Instance()->AddSensitiveDetector(start->first);
-        }
-    });
+            // Hand SD to the manager
+            sd_manager->AddNewDetector(detector.release());
+
+            // Add to ROOT output
+            if (RootIO::use_root())
+            {
+                RootIO::Instance()->AddSensitiveDetector(start->first);
+            }
+        });
+    }
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Apply a function to the range of volumes for each detector.
