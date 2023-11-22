@@ -91,7 +91,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 
-        diagnostics_->Timer()->RecordSetupTime(
+        diagnostics_->timer()->RecordSetupTime(
             GlobalSetup::Instance()->GetSetupTime());
         get_transport_time_ = {};
     }
@@ -101,7 +101,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
     orig_eh_ = G4StateManager::GetStateManager()->GetExceptionHandler();
     static std::mutex exception_handle_mutex;
     exception_handler_ = std::make_shared<ExceptionHandler>(
-        [meh = diagnostics_->MultiExceptionHandler()](std::exception_ptr ptr) {
+        [meh = diagnostics_->multi_exception_handler()](std::exception_ptr ptr) {
             std::lock_guard scoped_lock{exception_handle_mutex};
             return (*meh)(ptr);
         });
@@ -126,11 +126,11 @@ void RunAction::EndOfRunAction(G4Run const*)
 
     if (transport_ && !SharedParams::CeleritasDisabled())
     {
-        diagnostics_->Timer()->RecordActionTime(transport_->GetActionTime());
+        diagnostics_->timer()->RecordActionTime(transport_->GetActionTime());
     }
     if (init_shared_)
     {
-        diagnostics_->Timer()->RecordTotalTime(get_transport_time_());
+        diagnostics_->timer()->RecordTotalTime(get_transport_time_());
 
         CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
     }

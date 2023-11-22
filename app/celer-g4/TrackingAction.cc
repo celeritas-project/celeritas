@@ -72,9 +72,9 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
  */
 void TrackingAction::PostUserTrackingAction(G4Track const* track)
 {
-    if (diagnostics_->StepDiagnostic())
+    if (diagnostics_->step_diagnostic())
     {
-        diagnostics_->StepDiagnostic()->Update(track);
+        diagnostics_->step_diagnostic()->Update(track);
     }
 }
 

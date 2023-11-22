@@ -15,7 +15,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 
-#include "G4RunManager.hh"
 #include "GlobalSetup.hh"
 
 #if CELERITAS_USE_JSON
@@ -78,7 +77,7 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
     }
 
     // Create shared exception handler (note: make_shared acts screwy here...)
-    meh_ = std::make_shared<::celeritas::MultiExceptionHandler>();
+    meh_ = std::make_shared<MultiExceptionHandler>();
 
     CELER_ENSURE(*this);
 }

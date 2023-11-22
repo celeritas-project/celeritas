@@ -77,7 +77,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
     }
 
     // Record the time for this event
-    diagnostics_->Timer()->RecordEventTime(get_event_time_());
+    diagnostics_->timer()->RecordEventTime(get_event_time_());
 
     CELER_LOG_LOCAL(debug) << "Finished event " << event->GetEventID();
 }
