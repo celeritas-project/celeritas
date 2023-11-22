@@ -326,8 +326,7 @@ celeritas_add_library(testcel_celeritas
   $<TARGET_OBJECTS:testcel_celeritas_geo>
 )
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE ${_common_testcel_libs} ${nlohmann_json_LIBRARIES}
-  Celeritas::orange ${_geo_libs}
+  PRIVATE ${_common_testcel_libs} ${nlohmann_json_LIBRARIES} ${_geo_libs}
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
@@ -386,7 +385,6 @@ if(CELERITAS_USE_VecGeom)
     )
   endif()
   celeritas_add_device_test(celeritas/ext/Vecgeom
-    LINK_LIBRARIES VecGeom::vecgeom
     FILTER
       ${_vecgeom_tests}
   )
@@ -421,7 +419,7 @@ celeritas_add_test(celeritas/field/Fields.test.cc)
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
 celeritas_add_test(celeritas/field/FieldPropagator.test.cc
-  ${_needs_geo} LINK_LIBRARIES ${_core_geo_lib})
+  ${_needs_geo})
 celeritas_add_test(celeritas/field/LinearPropagator.test.cc
   ${_needs_geo} LINK_LIBRARIES ${_geo_libs})
 celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
@@ -436,7 +434,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc
-  ${_geo_args} LINK_LIBRARIES ${_core_geo_lib})
+  ${_geo_args})
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
   set(_needs_geant_or_root DISABLE)
