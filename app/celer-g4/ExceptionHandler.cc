@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "accel/SharedParams.hh"
 
 namespace celeritas
 {
@@ -56,13 +57,19 @@ G4bool ExceptionHandler::Notify(char const* origin_of_exception,
             CELER_TRY_HANDLE(throw err, handle_);
             if (auto* run_man = G4RunManager::GetRunManager())
             {
-                if (severity == EventMustBeAborted)
+                if (severity == EventMustBeAborted
+                    && SharedParams::CeleritasDisabled())
                 {
+                    // Event can only be aborted if Celeritas is disabled
+                    // because we can't clear the local state
+                    CELER_LOG_LOCAL(error) << "Aborting event due to "
+                                              "exception";
                     run_man->AbortEvent();
                 }
                 else
                 {
-                    run_man->AbortRun(/* softAbort = */ true);
+                    CELER_LOG_LOCAL(critical) << "Aborting run due to exception";
+                    run_man->AbortRun();
                 }
             }
             else
