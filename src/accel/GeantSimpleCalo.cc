@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "GeantSimpleCalo.hh"
 
-#include <mutex>
-
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/ext/GeantGeoParams.hh"
@@ -83,6 +81,10 @@ GeantSimpleCalo::GeantSimpleCalo(std::string name,
                        << this->label() << "'");
     }
 
+    // Resize data
+    storage_->num_threads = params_->num_streams();
+    storage_->data.resize(storage_->num_threads);
+
     CELER_ENSURE(!storage_->name.empty());
     CELER_ENSURE(storage_->volume_to_index.size() == volumes_.size());
 }
@@ -93,8 +95,6 @@ GeantSimpleCalo::GeantSimpleCalo(std::string name,
  */
 auto GeantSimpleCalo::MakeSensitiveDetector() -> UPSensitiveDetector
 {
-    this->setup_storage();
-
     UPSensitiveDetector detector;
 
     // Get thread ID
@@ -216,32 +216,6 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
 #else
     CELER_DISCARD(j);
 #endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Allocate storage space for all threads.
- */
-void GeantSimpleCalo::setup_storage()
-{
-    if (storage_->num_threads == 0)
-    {
-        // Lock and check again
-        static std::mutex setup_mutex;
-        std::lock_guard scoped_lock{setup_mutex};
-        if (storage_->num_threads == 0)
-        {
-            // Resize data
-            storage_->num_threads = params_->num_streams();
-            storage_->data.resize(storage_->num_threads);
-
-            CELER_LOG_LOCAL(debug) << "Resized storage for '" << storage_->name
-                                   << "' to " << storage_->num_threads;
-        }
-    }
-
-    CELER_ENSURE(storage_->num_threads != 0);
-    CELER_ENSURE(storage_->data.size() == storage_->num_threads);
 }
 
 //---------------------------------------------------------------------------//

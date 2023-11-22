@@ -75,8 +75,6 @@ class GeantSimpleCalo final : public OutputInterface
     SPConstParams params_;
     VecLV volumes_;
     SPStorage storage_;
-
-    void setup_storage();
 };
 
 //---------------------------------------------------------------------------//
