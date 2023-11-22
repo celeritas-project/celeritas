@@ -32,7 +32,7 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<class T, Ownership W, typename = void>
+template<class T, Ownership W, MemSpace M, typename = void>
 struct CollectionTraits
 {
     using type = T;
@@ -44,8 +44,8 @@ struct CollectionTraits
 };
 
 //---------------------------------------------------------------------------//
-template<class T>
-struct CollectionTraits<T, Ownership::reference, void>
+template<class T, MemSpace M>
+struct CollectionTraits<T, Ownership::reference, M, void>
 {
     using type = T;
     using const_type = T;
@@ -56,9 +56,10 @@ struct CollectionTraits<T, Ownership::reference, void>
 };
 
 //---------------------------------------------------------------------------//
-template<class T>
+template<class T, MemSpace M>
 struct CollectionTraits<T,
                         Ownership::const_reference,
+                        M,
                         std::enable_if_t<!is_ldg_supported_v<std::add_const_t<T>>>>
 {
     using type = T const;
@@ -68,9 +69,27 @@ struct CollectionTraits<T,
     using SpanT = Span<type>;
     using SpanConstT = Span<const_type>;
 };
+
+//---------------------------------------------------------------------------//
+template<class T, MemSpace M>
+struct CollectionTraits<T,
+                        Ownership::const_reference,
+                        M,
+                        std::enable_if_t<is_ldg_supported_v<std::add_const_t<T>>>>
+{
+    using type = T const;
+    using const_type = T const;
+    using reference_type = type&;
+    using const_reference_type = const_type&;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
+};
+
+//---------------------------------------------------------------------------//
 template<class T>
 struct CollectionTraits<T,
                         Ownership::const_reference,
+                        MemSpace::device,
                         std::enable_if_t<is_ldg_supported_v<std::add_const_t<T>>>>
 {
     using type = T const;
@@ -86,7 +105,7 @@ struct CollectionTraits<T,
 template<class T, Ownership W, MemSpace M>
 struct CollectionStorage
 {
-    using type = typename CollectionTraits<T, W>::SpanT;
+    using type = typename CollectionTraits<T, W, M>::SpanT;
     type data;
 };
 
