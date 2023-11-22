@@ -24,7 +24,7 @@ namespace detail
 /*!
  * Shared storage for a single GeantSimpleCalo.
  *
- * This is created by the \c SharedGeantSimpleCalo and passed to all the \c
+ * This is created by the \c GeantSimpleCalo and passed to all the \c
  * G4VSensitiveDetector instances (one for each thread) for the calo.
  */
 struct GeantSimpleCaloStorage

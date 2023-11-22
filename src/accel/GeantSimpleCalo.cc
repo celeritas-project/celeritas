@@ -179,7 +179,7 @@ std::string GeantSimpleCalo::label() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Allocate storage space for all threads.
+ * Write output to the given JSON object.
  */
 void GeantSimpleCalo::output(JsonPimpl* j) const
 {

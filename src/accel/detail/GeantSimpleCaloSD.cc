@@ -37,8 +37,8 @@ GeantSimpleCaloSD::GeantSimpleCaloSD(SPStorage storage, size_type thread_id)
  */
 bool GeantSimpleCaloSD::ProcessHits(G4Step* g4step, G4TouchableHistory*)
 {
-    CELER_ASSERT(g4step);
-    CELER_ASSERT(g4step->GetPreStepPoint());
+    CELER_EXPECT(g4step);
+    CELER_EXPECT(g4step->GetPreStepPoint());
     double const edep = g4step->GetTotalEnergyDeposit();
 
     if (edep == 0)
