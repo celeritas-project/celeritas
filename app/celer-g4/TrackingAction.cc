@@ -53,14 +53,6 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
     if (SharedParams::CeleritasDisabled())
         return;
 
-    {
-        ExceptionConverter call_g4exception{"celer0003", params_.get()};
-        CELER_TRY_HANDLE(
-            CELER_VALIDATE(false,
-                           << "thread ID is " << G4Threading::G4GetThreadId()),
-            call_g4exception);
-    }
-
     auto const& allowed_particles = params_->OffloadParticles();
     if (std::find(std::begin(allowed_particles),
                   std::end(allowed_particles),
