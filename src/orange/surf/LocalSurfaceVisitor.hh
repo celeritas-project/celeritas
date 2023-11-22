@@ -74,11 +74,6 @@ class LocalSurfaceVisitor
     static inline CELER_FUNCTION T get_item(Items<T> const& items,
                                             ItemRange<T> const& range,
                                             ItemId<U> item);
-
-    // Get a pointer to the item at the given item index.
-    template<class T>
-    static inline CELER_FUNCTION T const*
-    get_ptr(Items<T> const& items, ItemId<T> item);
 };
 
 //---------------------------------------------------------------------------//
@@ -136,13 +131,15 @@ LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
 template<class T>
 CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
 {
-    OpaqueId<real_type> offset
+    using ItemIdT = typename decltype(params_.reals)::ItemIdT;
+    ItemIdT offset
         = this->get_item(params_.real_ids, surfaces_.data_offsets, id);
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());
-
-    real_type const* data = this->get_ptr(params_.reals, offset);
-    return T{Span<real_type const, size>{data, size}};
+    // Construct a range used to index into collection using the appropriate
+    // operator[] overload then convert to a statically sized span using the
+    // first() member template function as required by surface ctor
+    return T{params_.reals[{offset, offset + size}].template first<size>()};
 }
 
 //---------------------------------------------------------------------------//
@@ -152,28 +149,12 @@ CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
  */
 template<class T, class U>
 CELER_FUNCTION T LocalSurfaceVisitor::get_item(Items<T> const& items,
-                                               ItemRange<T> const& range,
+                                               ItemRange<T> const& offsets,
                                                ItemId<U> item)
 {
-    CELER_EXPECT(*range.end() <= items.size());
-    CELER_EXPECT(item < range.size());
-
-    T const* ptr = LocalSurfaceVisitor::get_ptr(items, *range.begin());
-    return *(ptr + item.unchecked_get());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a pointer to the item at the given item index.
- */
-template<class T>
-CELER_FUNCTION T const*
-LocalSurfaceVisitor::get_ptr(Items<T> const& items, ItemId<T> item)
-{
-    CELER_EXPECT(item < items.size());
-
-    T const* ptr = items[AllItems<T>{}].data();
-    return ptr + item.unchecked_get();
+    CELER_EXPECT(*offsets.end() <= items.size());
+    CELER_EXPECT(item < offsets.size());
+    return items[offsets][item.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

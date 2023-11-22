@@ -280,7 +280,11 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
         *sense_ = flip_sense(*sense_);
 
         // Construct reversed-sign quadric
-        return SimpleQuadric{make_span(arr)};
+        // Todo: make_span doesn't use the correct overload and creates a
+        // dynamic extent span
+        return SimpleQuadric{
+            Span<decltype(arr)::value_type, SimpleQuadric::StorageSpan::extent>{
+                make_span(arr)}};
     }
     else if (num_pos == 3)
     {
