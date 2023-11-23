@@ -96,8 +96,8 @@ struct CollectionTraits<T,
     using const_type = T const;
     using reference_type = type;
     using const_reference_type = const_type;
-    using SpanT = Span<LdgValue<const_type>>;
-    using SpanConstT = Span<LdgValue<const_type>>;
+    using SpanT = LdgSpan<const_type>;
+    using SpanConstT = LdgSpan<const_type>;
 };
 
 //---------------------------------------------------------------------------//
@@ -108,13 +108,6 @@ struct CollectionStorage
     using type = typename CollectionTraits<T, W, M>::SpanT;
     type data;
 };
-
-template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::host>;
-template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::device>;
-template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::mapped>;
 
 //---------------------------------------------------------------------------//
 //! Storage implementation for managed host data
@@ -164,6 +157,30 @@ struct CollectionStorage<T, Ownership::value, MemSpace::mapped>
 };
 
 //---------------------------------------------------------------------------//
+//! Check that sizes are acceptable when creating references from values
+template<Ownership W>
+struct CollectionStorageValidator
+{
+    template<class Size, class OtherSize>
+    void operator()(Size, OtherSize)
+    {
+        /* No validation needed */
+    }
+};
+
+template<>
+struct CollectionStorageValidator<Ownership::value>
+{
+    template<class Size, class OtherSize>
+    void operator()(Size dst, OtherSize src)
+    {
+        CELER_VALIDATE(dst == src,
+                       << "collection is too large (" << sizeof(Size)
+                       << "-byte int cannot hold " << src << " elements)");
+    }
+};
+
+//---------------------------------------------------------------------------//
 //! Assignment semantics for a collection
 template<Ownership W, MemSpace M>
 struct CollectionAssigner
@@ -188,37 +205,6 @@ struct CollectionAssigner
             !(W == Ownership::reference && W2 == Ownership::const_reference),
             "Can't create a reference from a const reference");
         return {{source.data.data(), source.data.size()}};
-    }
-};
-
-template<>
-struct CollectionAssigner<Ownership::value, MemSpace::host>;
-template<>
-struct CollectionAssigner<Ownership::value, MemSpace::device>;
-template<>
-struct CollectionAssigner<Ownership::value, MemSpace::mapped>;
-
-//---------------------------------------------------------------------------//
-//! Check that sizes are acceptable when creating references from values
-template<Ownership W>
-struct CollectionStorageValidator
-{
-    template<class Size, class OtherSize>
-    void operator()(Size, OtherSize)
-    {
-        /* No validation needed */
-    }
-};
-
-template<>
-struct CollectionStorageValidator<Ownership::value>
-{
-    template<class Size, class OtherSize>
-    void operator()(Size dst, OtherSize src)
-    {
-        CELER_VALIDATE(dst == src,
-                       << "collection is too large (" << sizeof(Size)
-                       << "-byte int cannot hold " << src << " elements)");
     }
 };
 
