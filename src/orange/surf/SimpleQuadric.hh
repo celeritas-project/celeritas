@@ -66,7 +66,8 @@ class SimpleQuadric
     SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION SimpleQuadric(Storage);
+    template<class R>
+    explicit inline CELER_FUNCTION SimpleQuadric(Span<R, StorageSpan::extent>);
 
     // Promote from a plane
     explicit SimpleQuadric(Plane const& other) noexcept;
@@ -145,7 +146,8 @@ SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
 /*!
  * Construct from raw data.
  */
-CELER_FUNCTION SimpleQuadric::SimpleQuadric(Storage data)
+template<class R>
+CELER_FUNCTION SimpleQuadric::SimpleQuadric(Span<R, StorageSpan::extent> data)
     : a_{data[0]}
     , b_{data[1]}
     , c_{data[2]}

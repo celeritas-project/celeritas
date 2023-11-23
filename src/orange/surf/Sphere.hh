@@ -59,7 +59,8 @@ class Sphere
     inline CELER_FUNCTION Sphere(Real3 const& origin, real_type radius);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION Sphere(Storage);
+    template<class R>
+    explicit inline CELER_FUNCTION Sphere(Span<R, StorageSpan::extent>);
 
     // Promote from a centered sphere
     explicit Sphere(SphereCentered const& other) noexcept;
@@ -113,7 +114,8 @@ CELER_FUNCTION Sphere::Sphere(Real3 const& origin, real_type radius)
 /*!
  * Construct from raw data.
  */
-CELER_FUNCTION Sphere::Sphere(Storage data)
+template<class R>
+CELER_FUNCTION Sphere::Sphere(Span<R, StorageSpan::extent> data)
     : origin_{data[0], data[1], data[2]}, radius_sq_{data[3]}
 {
 }

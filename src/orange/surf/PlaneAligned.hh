@@ -44,7 +44,8 @@ class PlaneAligned
     explicit inline CELER_FUNCTION PlaneAligned(real_type position);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION PlaneAligned(Storage);
+    template<class R>
+    explicit inline CELER_FUNCTION PlaneAligned(Span<R, StorageSpan::extent>);
 
     //// ACCESSORS ////
 
@@ -112,7 +113,8 @@ CELER_FUNCTION PlaneAligned<T>::PlaneAligned(real_type position)
  * Construct from raw data.
  */
 template<Axis T>
-CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Storage data) : position_(data[0])
+template<class R>
+CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Span<R, StorageSpan::extent> data) : position_(data[0])
 {
 }
 
