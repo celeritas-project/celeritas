@@ -274,6 +274,9 @@ other major code changes.
 Release process
 ---------------
 
+.. ***NOTE*** when changing this section, make sure
+   ``.github/pull_request_template.release`` is also updated.
+
 Releases can be created from the primary "develop" branch (major, minor, patch)
 or a "backport" branch (minor, patch).
 The following process must be followed (and may need iteration to converge) for
@@ -292,9 +295,9 @@ each release.
     `helper notebook`_ in the Celeritas documents repository to automate this.
 4.  Tag the branch on your fork with ``vX.Y.Z-rc.N`` where N starts with 1, and
     increment for every time you return to this step due to new pull requests.
-5.  Run regression tests on Summit (for performance testing), Crusher (for HIP
-    testing), and an additional machine with debug assertions enabled (e.g.,
-    Wildstyle).
+5.  Run performance regression tests on Summit (for performance testing),
+    Crusher/Frontier (for HIP testing), and an additional machine with debug
+    assertions enabled (e.g., Wildstyle).
 6.  [TODO: define high-level validation tests like `geant-val`_ and a test
     matrix correlating capability areas (code files/directories changed) to
     test names.] Rerun and perform a cursory check on all validation tests that
