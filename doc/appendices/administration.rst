@@ -98,8 +98,8 @@ increasing the `bus factor`_.
 
 .. _bus factor: https://en.wikipedia.org/wiki/Bus_factor
 
-Review process
---------------
+Reviewing pull requests
+-----------------------
 
 Each pull request must be reviewed by at least one
 member of the :ref:`core team <roles>` who is knowledgeable about
@@ -132,14 +132,109 @@ followed in the new code. Balance the desire for readability with the need to
 avoid bikeshedding_ by asking yourself whether your requests are
 substantive enough to merit a new pull request. Perfect is the enemy of good.
 
+Check that the title meets the requirements below, that the description is
+adequate, and that the appropriate labels are set.
+
 By the time you've finished the code review, you should understand the code
 well enough to maintain it (by extension or modification) in the future.
 
 .. _bikeshedding: https://thedecisionlab.com/biases/bikeshedding
 
+PR titles
+^^^^^^^^^
 
-Merge process
--------------
+The title should be an imperative statement (title-cased first word,
+no trailing punctuation) summarizing its effect on the user.  For example:
+ - Implement the FooBar model *[enhancement, physics]*
+ - Handle errors in track initialization *[enhancement, orange]*
+ - Fix sampling of low-energy Celeritons *[bug, physics]*
+ - Refactor code in preparation for new tracker type *[minor, orange]*
+ - Add CI support for multiple Geant4 versions *[enhancement, documentation]*
+
+Avoid tags in the title.
+
+PR description
+^^^^^^^^^^^^^^
+
+The description should summarize or enumerate the main changes in the pull
+request. Illustrative images are recommended if possible!
+
+Label descriptions
+^^^^^^^^^^^^^^^^^^
+
+The labels_ used in Celeritas GitHub pull requests and issues have specific
+meanings. There should be one "change type" and one "category" selected. A few
+special labels ("backport", "performance") can also be added when appropriate.
+
+Change type
+"""""""""""
+
+The change types are used to categorize changes in the release notes. If a pull
+request seems like it should have multiple change types, it should probably be
+broken up into multiple pull requests.
+
+Bug
+   Report or fix an error that a user could encounter.
+
+Documentation
+   Add new tests, documentation, or personal user presets *without* any changes
+   in the library or applications.
+
+Enhancement
+   Request or add something new to the code.
+
+Minor
+   Refactor code or make small changes that should be effectively invisible to
+   users and probably not reported.
+
+Category
+""""""""
+
+These should be fixes, changes, or enhancements to support...
+
+App
+   front end applications (``celer-g4`` and ``celer-sim``).
+
+Core
+   core infrastructure such as platform portability.
+
+External
+   integration with external libraries such as Geant4, VecGeom, and ROOT.
+
+Field
+   magnetic field propagation, linear propagation, and safety distance
+   calculation.
+
+ORANGE
+   the Celeritas geometry library for GPU tracking.
+
+Performance
+   performance optimization on GPU and CPU.
+
+Physics
+   particles, processes, and stepping algorithms.
+
+User
+   hits and track diagnostics (i.e., extracting data from tracks running on the
+   GPU).
+
+
+.. _labels: https://github.com/celeritas-project/celeritas/labels
+
+Merging
+-------
+
+The GitHub settings for Celeritas currently require that before merging:
+
+1.  The branch must be up-to-date with upstream develop. This ensures that
+    there are no failures from "implicit" conflicts (where no code actually
+    generates a git conflict, but some new requirement or change upstream
+    has not been implemented in the new branch). An "Update branch" button is
+    available on the pull request page to ensure this requirement is met.
+2.  The GitHub Action CI checks must pass. There are a small matrix of core
+    combinations that cover most potential build issues. These do not *execute*
+    GPU code but they will build it and ensure that the tests pass when
+    the Celeritas device capability is disabled.
 
 Celeritas uses the "squash and merge" process to ensure continuity of the code
 history and provide easy bisecting because all commits pass all tests.
@@ -147,7 +242,11 @@ Squashing eliminates the potential of broken commits and relieves developers of
 the burden of worrying about clean commit messages within a branch.
 
 Since there are few enough merge requests these days, only :ref:`maintainers
-<roles>` may commit a merge.
+<roles>` may commit a merge. When merging, check that the commit title matches
+the issue title (it may be inconsistent if the branch has only a single
+commit), and that the "co-author" tags at the bottom of the commit message
+accurately reflect contributions (co-authorship may be erroneously attributed
+for a simple merging of the main branch into the development branch).
 
 
 Releases

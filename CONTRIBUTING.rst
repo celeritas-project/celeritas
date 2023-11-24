@@ -74,11 +74,8 @@ and :ref:`style <style_guidelines>` guidelines have been followed for all new
 code and code changes.  Ensure the use of the correct formatting as well as the
 addition of documentation and unit tests for new code and bug fixes.
 
-All tests must pass on the CI runner before a PR can be merged. (Exceptions
-will be made if any failures are clearly unrelated to the changes and enough
-tests and/or configuration are passing to show that the new code is working.
-For example, some of the configurations have a tendency to fail due to disk
-space issues.) It's best to test locally first before submitting your pull
+All tests must pass on the CI runner before a PR can be merged. It's best to
+test locally first before submitting your pull
 request, and keep in mind that the multiple configurations on the CI (different
 dependency versions, different features) may reveal failures that your local
 testing might have missed.
