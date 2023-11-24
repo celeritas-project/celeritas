@@ -50,7 +50,7 @@ celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
 
 if(CELERITAS_USE_Python)
-  celeritas_optional_package(SWIG "Build SWIG Python bindings")
+  celeritas_optional_package(SWIG SWIG@4.1 "Build SWIG Python bindings")
 endif()
 
 # Components
