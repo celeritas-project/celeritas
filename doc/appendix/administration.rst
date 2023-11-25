@@ -145,6 +145,7 @@ PR titles
 
 The title should be an imperative statement (title-cased first word,
 no trailing punctuation) summarizing its effect on the user.  For example:
+
  - Implement the FooBar model *[enhancement, physics]*
  - Handle errors in track initialization *[enhancement, orange]*
  - Fix sampling of low-energy Celeritons *[bug, physics]*
